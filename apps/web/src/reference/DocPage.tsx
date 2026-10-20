@@ -13,6 +13,8 @@ export function DocPage({
   title,
   measure,
   gap,
+  fill,
+  controls,
   children,
 }: {
   title: string
@@ -20,11 +22,21 @@ export function DocPage({
   measure: '48rem' | '64rem'
   /** The gap between the body's blocks. */
   gap: string
+  /** The band's colour, in place of the Reference's (the Discord page's blurple). */
+  fill?: string
+  /** The page's controls on its band, filling the title's line (`asideAt="controls"`). */
+  controls?: ReactNode
   children: ReactNode
 }) {
   return (
     <div style={DOC_PAGE}>
-      <ChapterBand measure={PAGE_MEASURE}>{title}</ChapterBand>
+      <ChapterBand
+        measure={PAGE_MEASURE}
+        {...(fill ? { fill } : {})}
+        {...(controls ? { aside: controls, asideAt: 'controls' as const } : {})}
+      >
+        {title}
+      </ChapterBand>
       <div className="su-page-body">
         <div style={docMeasure(measure, gap)}>{children}</div>
       </div>

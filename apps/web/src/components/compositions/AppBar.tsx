@@ -269,7 +269,7 @@ export function AppBar({
             />
           </LinkComponent>
 
-          <nav aria-label="Salvage Union tools" style={SWITCH}>
+          <nav aria-label="Salvage Union tools" className="su-union-bar__switch" style={SWITCH}>
             {tabs.map((tab) => (
               <a
                 key={tab.key}

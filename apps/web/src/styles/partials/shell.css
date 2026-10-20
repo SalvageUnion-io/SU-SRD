@@ -146,6 +146,27 @@
   color: var(--su-bar-on-fg);
 }
 
+/* Two tabs side by side are ruled apart, so two that are not current read as
+   two (owner, 2026-10-20: "a more obvious separation between Reference /
+   Build / Play when two are inactive next to each other"). */
+.su-union-bar__tab + .su-union-bar__tab {
+  border-left: var(--bw-chrome) solid var(--su-bar-fg-30);
+}
+
+/* On a phone the switcher is centred on the bar (owner, 2026-10-20), between
+   the mark and the controls whatever their width. */
+@media not (width >= 40rem) {
+  .su-union-bar__row {
+    position: relative;
+  }
+
+  .su-union-bar__switch {
+    left: 50%;
+    position: absolute;
+    transform: translateX(-50%);
+  }
+}
+
 /* The product nav, inline beside the switcher, ruled off from it. */
 .su-union-bar__nav {
   align-items: center;

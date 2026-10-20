@@ -11,27 +11,17 @@ import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { Box, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
+import { Chips, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
 import { cn } from '../../lib/cn'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
-import {
-  ASIDE,
-  BOLD,
-  ITALIC,
-  inlineCode,
-  PANEL_BODY,
-  PANEL_HEAD,
-  PANEL_TITLE,
-  PROSE,
-  proseColumn,
-  SOFT_FRAME,
-} from '../../lib/docPageStyles'
+import { ASIDE, BOLD, ITALIC, inlineCode, PROSE, proseColumn } from '../../lib/docPageStyles'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { getEntitySchemas } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
 import { DocPage } from '../DocPage'
+import { DocPanel } from '../DocPanel'
 
 const TITLE = pageTitle('API Reference')
 const DESCRIPTION =
@@ -46,13 +36,11 @@ const EXAMPLE_LINK = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperti
 const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
 
-/** A box header's HTTP method. */
-const METHOD = {
-  color: color.wkMuted,
-  fontSize: fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-} satisfies CSSProperties
-const METHOD_CAPS = capsLabel()
+/** An endpoint's method, its one stamp beside its name, as an action's type is. */
+const GET = <Chips chips={{ durations: ['GET'], facts: [], tags: [] }} size="compact" />
+
+/** An endpoint's path, its body's first line: case matters, so never in caps. */
+const PATH = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
 /** A `<pre>` code sample; the padding is per sample. */
 const CODE_SAMPLE = {
@@ -248,104 +236,83 @@ function page(): PageResult {
         <Stack as="section" gap={24}>
           <Slab as="h2" label="Endpoints" />
 
-          {/* Schema data array */}
-          <Box frameColor={SOFT_FRAME} body="flush">
-            <div style={PANEL_HEAD}>
-              <p className={METHOD_CAPS} style={METHOD}>
-                GET
-              </p>
-              <p style={PANEL_TITLE}>
+          <DocPanel title="Every entity of a schema" chips={GET}>
+            <p style={PATH}>
+              <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
-              </p>
-            </div>
-            <div style={PANEL_BODY}>
-              <p>Returns the full data array for a schema. Each element is a game entity.</p>
-              <p>
-                <strong>Example:</strong>{' '}
-                <InlineRef
-                  href={`${baseUrl}/schema/chassis.json`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={EXAMPLE_LINK}
-                >
-                  {baseUrl}/schema/chassis.json
-                </InlineRef>
-              </p>
-              <CodeSample>{samples.schemaArray}</CodeSample>
-            </div>
-          </Box>
-
-          {/* JSON Schema definition */}
-          <Box frameColor={SOFT_FRAME} body="flush">
-            <div style={PANEL_HEAD}>
-              <p className={METHOD_CAPS} style={METHOD}>
-                GET
-              </p>
-              <p style={PANEL_TITLE}>
+              </code>
+            </p>
+            <p>Returns the full data array for a schema. Each element is a game entity.</p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <InlineRef
+                href={`${baseUrl}/schema/chassis.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={EXAMPLE_LINK}
+              >
+                {baseUrl}/schema/chassis.json
+              </InlineRef>
+            </p>
+            <CodeSample>{samples.schemaArray}</CodeSample>
+          </DocPanel>
+          <DocPanel title="A schema's JSON Schema" chips={GET}>
+            <p style={PATH}>
+              <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
-              </p>
-            </div>
-            <div style={PANEL_BODY}>
-              <p>
-                Returns the JSON Schema definition for a schema, generated from the Zod validation
-                schemas used in this site's codebase. Useful for validating data or understanding
-                the shape of entity objects.
-              </p>
-              <p>
-                <strong>Example:</strong>{' '}
-                <InlineRef
-                  href={`${baseUrl}/schema/chassis.schema.json`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={EXAMPLE_LINK}
-                >
-                  {baseUrl}/schema/chassis.schema.json
-                </InlineRef>
-              </p>
-              <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
-            </div>
-          </Box>
-
-          {/* Individual entity */}
-          <Box frameColor={SOFT_FRAME} body="flush">
-            <div style={PANEL_HEAD}>
-              <p className={METHOD_CAPS} style={METHOD}>
-                GET
-              </p>
-              <p style={PANEL_TITLE}>
+              </code>
+            </p>
+            <p>
+              Returns the JSON Schema definition for a schema, generated from the Zod validation
+              schemas used in this site's codebase. Useful for validating data or understanding the
+              shape of entity objects.
+            </p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <InlineRef
+                href={`${baseUrl}/schema/chassis.schema.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={EXAMPLE_LINK}
+              >
+                {baseUrl}/schema/chassis.schema.json
+              </InlineRef>
+            </p>
+            <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
+          </DocPanel>
+          <DocPanel title="One entity" chips={GET}>
+            <p style={PATH}>
+              <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
                 <span style={ITALIC}>{'{itemId}'}</span>.json
-              </p>
-            </div>
-            <div style={PANEL_BODY}>
-              <p>
-                Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
-                versions of the entity name (e.g., <code style={CODE}>{samples.name}</code> becomes{' '}
-                <code style={CODE}>{samples.slug}</code>). Slugs match the page URLs on the
-                reference site.
-              </p>
-              <p>
-                <strong>Example:</strong>{' '}
-                <InlineRef
-                  href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={EXAMPLE_LINK}
-                >
-                  {baseUrl}/schema/chassis/item/{samples.slug}.json
-                </InlineRef>
-              </p>
-              <CodeSample>{samples.entity}</CodeSample>
-            </div>
-          </Box>
+              </code>
+            </p>
+            <p>
+              Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
+              versions of the entity name (e.g., <code style={CODE}>{samples.name}</code> becomes{' '}
+              <code style={CODE}>{samples.slug}</code>). Slugs match the page URLs on the reference
+              site.
+            </p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <InlineRef
+                href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={EXAMPLE_LINK}
+              >
+                {baseUrl}/schema/chassis/item/{samples.slug}.json
+              </InlineRef>
+            </p>
+            <CodeSample>{samples.entity}</CodeSample>
+          </DocPanel>
         </Stack>
 
         {/* Usage example */}
-        <Stack as="section" gap={12}>
-          <Slab as="h2" label="Usage Example" />
-          <p style={PROSE}>Fetch all chassis data in browser JavaScript:</p>
+        <DocPanel title="Usage example">
+          <p>Fetch all chassis data in browser JavaScript:</p>
           <CodeSample roomy>{samples.fetch}</CodeSample>
-        </Stack>
+        </DocPanel>
 
         {/* Available schemas */}
         <Stack as="section" gap={16}>
@@ -354,8 +321,8 @@ function page(): PageResult {
             The following schema IDs are available. Use them in the endpoint patterns above.
           </p>
 
-          <Box frameColor={SOFT_FRAME} body="flush" className="su-api__schemas">
-            <table style={TABLE}>
+          <DocPanel title="Schema IDs" flush>
+            <table style={TABLE} className="su-api__schemas">
               <thead>
                 <tr className="su-print-ink" style={TABLE_HEAD}>
                   <th className={TH_CAPS} style={TH}>
@@ -395,18 +362,17 @@ function page(): PageResult {
                 ))}
               </tbody>
             </table>
-          </Box>
+          </DocPanel>
         </Stack>
 
         {/* CORS & headers */}
-        <Stack as="section" gap={12}>
-          <Slab as="h2" label="CORS Policy" />
-          <p style={PROSE}>
+        <DocPanel title="CORS policy">
+          <p>
             All <code style={CODE}>/schema/</code> endpoints include the following response headers:
           </p>
           <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
-          <p style={PROSE}>No preflight requests are required for standard GET requests.</p>
-        </Stack>
+          <p>No preflight requests are required for standard GET requests.</p>
+        </DocPanel>
 
         {/* Licensing note */}
         <SlabSection as="h2" title="Licensing" bodyStyle={PROSE_12} page>

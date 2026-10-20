@@ -283,8 +283,9 @@ const base = {
   tierHybrid: 'rgb(183, 65, 14)',
 
   /** Discord's dark blurple (its own button hover): the SRD home page's Discord
-   *  button only, a one-off exception to the tone palette (owner's call,
-   *  2026-10-14). Its #5865f2 carries paper under 4.5:1. */
+   *  block and the Discord page's band and command panels, the one exception
+   *  to the tone palette (owner's calls, 2026-10-14 and 2026-10-20). Its
+   *  #5865f2 carries paper under 4.5:1. */
   discord: 'rgb(71, 82, 196)',
 
   // — Status (Intact / Damaged / Destroyed): the warm state ramp. The Discord

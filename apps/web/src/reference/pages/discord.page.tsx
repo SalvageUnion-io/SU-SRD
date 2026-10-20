@@ -11,27 +11,17 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../../ssg/types'
-import { Box, Button, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
+import { Button, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import type { DiscordCommand } from '../../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../../generated/discordCommands'
 import { appPath } from '../../lib/appBase'
 import { DISCORD_INSTALL_URL, SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
-import {
-  ASIDE,
-  BOLD,
-  bulletList,
-  ITALIC,
-  inlineCode,
-  PANEL_BODY,
-  PANEL_HEAD,
-  PANEL_TITLE,
-  proseColumn,
-  SOFT_FRAME,
-} from '../../lib/docPageStyles'
+import { ASIDE, BOLD, bulletList, ITALIC, inlineCode, proseColumn } from '../../lib/docPageStyles'
 import { SalvageUnionReference } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
 import { DocPage } from '../DocPage'
+import { DocPanel } from '../DocPanel'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.
@@ -68,6 +58,9 @@ const PROSE_16 = proseColumn(space[16])
 const CODE = inlineCode()
 const LIST_4 = bulletList(space[4], 'margin')
 const LIST_8 = bulletList(space[8], 'margin')
+
+/** A command as typed, its panel's first line: never in caps. */
+const USAGE = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
 /** The site's search shortcut, as a key cap in prose. */
 const KEY_CAP = {
@@ -203,7 +196,25 @@ function page(): PageResult {
       breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
     },
     children: (
-      <DocPage title="Discord Bot" measure="48rem" gap={space[32]}>
+      <DocPage
+        title="Discord Bot"
+        measure="48rem"
+        gap={space[32]}
+        // Discord's own colour, the band its page wears (owner, 2026-10-20:
+        // "Header should be discord purple"), its install button on it.
+        fill={color.discord}
+        controls={
+          <Button
+            href={DISCORD_INSTALL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="ink"
+            size="full"
+          >
+            Add to your Discord server
+          </Button>
+        }
+      >
         {/* Overview + install */}
         <section style={PROSE_16}>
           <p>
@@ -216,18 +227,6 @@ function page(): PageResult {
             It asks for no server permissions — it only ever replies to slash commands. Free and
             with no configuration; rolling and lookups need no account.
           </p>
-          <p>
-            {/* The install CTA: THE primary (rust) action, at the home page's CTA size. */}
-            <Button
-              href={DISCORD_INSTALL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="primary"
-              size="full"
-            >
-              Add to your Discord server
-            </Button>
-          </p>
         </section>
 
         {/* Commands: every /su subcommand, from the bot's own builder */}
@@ -235,16 +234,14 @@ function page(): PageResult {
           <Slab as="h2" label="Commands" />
 
           {reference.map((command) => (
-            <Box key={command.name} frameColor={SOFT_FRAME} body="flush">
-              <div style={PANEL_HEAD}>
-                <p style={PANEL_TITLE}>
+            <DocPanel key={command.name} title={`/su ${command.name}`} tone="discord">
+              <p style={USAGE}>
+                <code>
                   <Usage command={command} />
-                </p>
-              </div>
-              <div style={PANEL_BODY}>
-                {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
-              </div>
-            </Box>
+                </code>
+              </p>
+              {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
+            </DocPanel>
           ))}
         </Stack>
 

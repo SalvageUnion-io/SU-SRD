@@ -9,7 +9,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../design/tokens'
+import { borderWidth, color, fontSize, radius, space, weight } from '../design/tokens'
 
 /** The page column: fills `<main>`, the band on top, a 48px foot. */
 export const DOC_PAGE = {
@@ -74,34 +74,6 @@ export const SMALL_PRINT = {
 
 /** A bold prose link (`InlineRef`). */
 export const BOLD = { fontWeight: weight.bold } satisfies CSSProperties
-
-/** A doc page's endpoint or command box: the Box in the faint frame. */
-export const SOFT_FRAME = 'var(--color-wk-faint)'
-
-/** A box's header strip — the method or command over its hairline. */
-export const PANEL_HEAD = {
-  borderColor: color.wkFaint,
-  borderStyle: 'solid',
-  borderWidth: `0 0 ${borderWidth.chrome}`,
-  paddingBlock: space[12],
-  paddingInline: space[20],
-} satisfies CSSProperties
-
-/** The box header's endpoint or command line. */
-export const PANEL_TITLE = {
-  fontFamily: font.body,
-  fontSize: fontSize.base,
-  fontWeight: weight.bold,
-  lineHeight: 1.5,
-  marginTop: space[4],
-} satisfies CSSProperties
-
-/** A box's body: prose blocks in a column. */
-export const PANEL_BODY = {
-  ...proseColumn(space[12]),
-  paddingBlock: space[16],
-  paddingInline: space[20],
-} satisfies CSSProperties
 
 export const ITALIC = { fontStyle: 'italic' } satisfies CSSProperties
 

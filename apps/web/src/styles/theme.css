@@ -129,8 +129,8 @@
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
 
   /* Discord's dark blurple (its own button hover): the SRD home's Discord
-     button only, a one-off exception to the tone palette (owner's call,
-     2026-10-14). Discord's #5865f2 carries paper at 4.4:1, under AA; this
+     block and the Discord page's band and panels, the one exception to the
+     tone palette (owner's calls, 2026-10-14 and 2026-10-20). Discord's #5865f2 carries paper at 4.4:1, under AA; this
      carries it at 6:1 (design/__tests__/contrast.test.ts). */
   --color-discord: rgb(71, 82, 196); /* #4752c4 */
 
