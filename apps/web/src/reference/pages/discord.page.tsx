@@ -15,11 +15,13 @@ import { Button, InlineRef, Slab, SlabSection, Stack } from '../../components/in
 import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import type { DiscordCommand } from '../../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../../generated/discordCommands'
+import { DISCORD_SAMPLES } from '../../generated/discordSamples'
 import { appPath } from '../../lib/appBase'
 import { DISCORD_INSTALL_URL, SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
 import { ASIDE, BOLD, bulletList, ITALIC, inlineCode, proseColumn } from '../../lib/docPageStyles'
 import { SalvageUnionReference } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
+import { DiscordReply } from '../DiscordReply'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
 
@@ -228,6 +230,13 @@ function page(): PageResult {
             with no configuration; rolling and lookups need no account.
           </p>
         </section>
+
+        {/* What it sends: the bot's own replies, drawn from its builders */}
+        <Stack as="section" gap={16}>
+          <Slab as="h2" label="In your server" />
+          <DiscordReply sample={DISCORD_SAMPLES.roll} label="The bot's reply to /su roll" />
+          <DiscordReply sample={DISCORD_SAMPLES.lookup} label="The bot's reply to /su lookup" />
+        </Stack>
 
         {/* Commands: every /su subcommand, from the bot's own builder */}
         <Stack as="section" gap={24}>

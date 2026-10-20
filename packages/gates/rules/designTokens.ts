@@ -453,6 +453,12 @@ const EXEMPTIONS: Exemption[] = [
       "A down entity's band (owner, 2026-10-14): a damaged band dulls toward a grey and a destroyed one goes flat grey, ink mixed into PAPER, not over transparent. A band carries text, so it must be opaque: `foregroundOn` and `contrast.test.ts` read these `color-mix(in srgb, …)` values to hold its contrast, which a translucent rung over an unknown ground would not let them do. Not a shade of ink at opacity, so not the ramp's to spell.",
   },
   {
+    file: 'apps/web/src/styles/discord-reply.css',
+    rules: ['raw-color', 'raw-border-width', 'raw-radius', 'raw-spacing'],
+    reason:
+      "EXTERNAL BRAND colours, not ours: the /discord page's screenshots (`reference/DiscordReply.tsx`) draw the bot's reply as Discord shows it, in Discord's dark-theme greys, its blurple and its link blue, with its 4px accent stripe and 3px button corners. A picture of Discord is recognisable BECAUSE it is Discord's, so resolving it to our tokens would misrepresent the app it pictures (the KofiButton rule for third-party marks). Alone in its file so the exemption covers the picture only.",
+  },
+  {
     file: 'apps/web/src/components/atoms/KofiButton.tsx',
     rules: ['raw-color'],
     reason:

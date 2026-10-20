@@ -5,6 +5,8 @@
  */
 /* The page layouts. */
 @import './pages.css';
+/* The Discord page's screenshots, in Discord's colours. */
+@import './discord-reply.css';
 
 /* The Union bar's account controls (`lib/accountBar.ts`): Sign in gives way
    to the account menu while somebody is signed in, and an account island that
