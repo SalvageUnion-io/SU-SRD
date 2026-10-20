@@ -11,7 +11,7 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
 5. **Connectors (claude.ai → Settings → Connectors).** Cloudflare Developer Platform and custom Cloudflare Observability
    at `https://observability.mcp.cloudflare.com/mcp`.
 6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev` runs a local backend with no account.
-   Test-auth setup: [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend), per container.
+   Signed in with no setup: `bun run dev:backend` ([`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#agent-backend)).
 7. **First `bun run dev` in a fresh container.** Copy `apps/web/.env.example` to `.env.local` first (else the CLI writes `CONVEX_URL`, not `VITE_CONVEX_URL`);
    the first run exits at Vite, so run it again.
 8. **Playwright.** The image's Chromium is older than `@playwright/test`'s: run e2e specs with `executablePath: '/opt/pw-browsers/chromium'`, never `playwright install`.

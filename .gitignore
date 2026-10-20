@@ -86,3 +86,5 @@ rules/*
 
 # `bun run shot`'s screenshots (tools/shot.ts)
 /.shots/
+# `bun run dev:backend`'s local Convex backend: database, keys, seed (tools/dev-backend.ts)
+/.dev-backend/

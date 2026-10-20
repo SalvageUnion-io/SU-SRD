@@ -35,18 +35,19 @@ import { useAuthActions } from '@convex-dev/auth/react'
 import { useEffect } from 'react'
 import { TEST_SIGN_IN_GLOBAL, testAuthBridgeEnabled } from './testAuthSeam.model'
 
-type TestSignIn = (email: string, password: string) => Promise<void>
+type TestSignIn = (email: string, password: string, flow?: 'signUp' | 'signIn') => Promise<void>
 
 function Bridge() {
   const { signIn } = useAuthActions()
 
   useEffect(() => {
-    const fn: TestSignIn = async (email, password) => {
-      // `signUp` rather than `signIn`: each e2e run wants a fresh account with
-      // an empty shelf, and Convex Auth's Password provider creates one on
-      // demand. A run that reused an account would inherit the previous run's
-      // roster and assert against it.
-      await signIn('password', { email, password, flow: 'signUp' })
+    const fn: TestSignIn = async (email, password, flow = 'signUp') => {
+      // `signUp` by default: each e2e run wants a fresh account with an empty
+      // shelf, and Convex Auth's Password provider creates one on demand. A
+      // run that reused an account would inherit the previous run's roster and
+      // assert against it. `signIn` returns to an existing account: the seeded
+      // one `tools/dev-backend.ts` made, which `bun run shot --signed-in` reuses.
+      await signIn('password', { email, password, flow })
     }
     ;(window as unknown as Record<string, TestSignIn>)[TEST_SIGN_IN_GLOBAL] = fn
 

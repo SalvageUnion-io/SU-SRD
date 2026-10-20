@@ -13,6 +13,7 @@ import {
   parseArgs,
   planShot,
   probe,
+  readSeedFile,
   WIDTHS,
 } from '../shot'
 import { fixtureTrees } from './fixtureTree'
@@ -36,6 +37,7 @@ describe('parseArgs', () => {
       target: '/about',
       width: 'phone',
       out: resolve('tmp/x'),
+      signedIn: false,
     })
     expect(parseArgs(['--width=column', '/']).width).toBe('column')
   })
@@ -51,12 +53,26 @@ describe('parseArgs', () => {
     [['app:starter']],
     // A target is a route: a bare name is neither an srd nor an app one.
     [['atoms--button--primary']],
+    // A seeded page exists only for the seeded account.
+    [[':pilot']],
+    [[':ship', '--signed-in']],
   ])('rejects %p with the usage line', (argv) => {
     expect(() => parseArgs(argv)).toThrow('usage: bun run shot')
   })
 })
 
+test('--signed-in takes a route or a seeded page', () => {
+  expect(parseArgs([':game', '--signed-in'])).toMatchObject({ target: ':game', signedIn: true })
+  expect(parseArgs(['app:/play', '--signed-in']).signedIn).toBe(true)
+})
+
 describe('planShot', () => {
+  test('a seeded page is the path the seed wrote, and an unseeded one says how to make it', () => {
+    const seeded = { email: 'a@b', password: 'p', pilot: '/build/sheet/pilot/x' }
+    expect(planShot({ target: ':pilot' }, seeded).path).toBe('/build/sheet/pilot/x')
+    expect(() => planShot({ target: ':mech' }, seeded)).toThrow('the seed made no mech')
+  })
+
   test("a /route goes to this checkout's dev server as is", () => {
     expect(planShot({ target: '/chassis/mule/' })).toEqual({
       server: expect.objectContaining({ name: 'dev', port: portFor() }),
@@ -114,6 +130,13 @@ describe('the dev server', () => {
   }
 
   const quietly = () => spyOn(console, 'error').mockImplementation(() => undefined)
+
+  test('a server with no command is reused, never started', async () => {
+    const port = closedPort()
+    await expect(
+      ensureServer({ name: 'dev:backend', port, cmd: [], cwd: CHECKOUT_ROOT })
+    ).rejects.toThrow(`nothing answers on :${port}: start it with \`bun run dev:backend\``)
+  })
 
   test('probe reads the checkout a server names: undefined for nothing, null for none', async () => {
     expect(await probe(serve(CHECKOUT_ROOT))).toBe(CHECKOUT_ROOT)
@@ -244,9 +267,29 @@ describe('main', () => {
         calls.push(`goto ${url}`)
         return { ok: () => status < 400, status: () => status }
       },
-      evaluate: async (script: string) => {
+      evaluate: async (script: string | ((arg: unknown) => unknown), arg?: unknown) => {
+        if (typeof script === 'function') {
+          const g = globalThis as { __appTestSignIn?: unknown }
+          g.__appTestSignIn = async (...a: unknown[]) => calls.push(`sign in ${a.join(' ')}`)
+          await script(arg)
+          delete g.__appTestSignIn
+          return
+        }
         calls.push(`evaluate ${script.slice(0, 20)}`)
       },
+      waitForFunction: async () => {
+        calls.push('seam')
+      },
+      waitForTimeout: async () => {
+        calls.push('wait')
+      },
+      getByRole: (_role: string, { name }: { name: string }) => ({
+        first: () => ({
+          waitFor: async () => {
+            calls.push(`attached ${name}`)
+          },
+        }),
+      }),
       waitForLoadState: async () => {
         calls.push('settle')
       },
@@ -317,6 +360,45 @@ describe('main', () => {
     expect(calls).toContain('settle')
     expect(calls.slice(-2)).toEqual([`screenshot ${file}`, 'close'])
     expect(stopped).toBe(1)
+  })
+
+  test('--signed-in signs the seeded account in on the running server, then shoots', async () => {
+    const out = tree({})
+    const { calls, launch } = fakeBrowser()
+    let asked: Server | undefined
+    const r = await run([':game', '--signed-in', '--out', out], {
+      ensure: async (server) => {
+        asked = server
+        return () => {}
+      },
+      readSeed: () => ({ email: 'a@b', password: 'pw', game: '/build/play/games/g' }),
+      launch,
+    })
+    expect(r.code).toBe(0)
+    // Never started: only the dev:backend server has a backend to sign in to.
+    expect(asked).toMatchObject({ name: 'dev:backend', cmd: [] })
+    const base = `http://localhost:${portFor()}`
+    expect(calls.slice(1, 6)).toEqual([
+      `goto ${base}${APP_BASE}/`,
+      'seam',
+      'sign in a@b pw signIn',
+      'attached Games',
+      `goto ${base}/build/play/games/g`,
+    ])
+    expect(calls).toContain('wait')
+    expect(r.out).toEqual([`${out}/game-page.png`])
+  })
+
+  test('--signed-in with no seed exits 2 saying how to make one', async () => {
+    const r = await run([':game', '--signed-in'], {
+      readSeed: () => readSeedFile(tree({})),
+    })
+    expect(r).toMatchObject({
+      code: 2,
+      err: [expect.stringContaining('run `bun run dev:backend` first')],
+    })
+    const root = tree({ '.dev-backend/seed.json': '{"email":"e","password":"p"}' })
+    expect(readSeedFile(root)).toEqual({ email: 'e', password: 'p' })
   })
 
   test('a browser that fails still stops the server it started', async () => {

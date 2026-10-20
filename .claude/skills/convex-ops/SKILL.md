@@ -55,6 +55,25 @@ password account (a repeated email is refused), and the session survives
 reloads. `bun run e2e` starts `bun run dev` itself (or reuses a running one),
 so its signed-in specs fail until this setup is done.
 
+## Agent backend
+
+An agent (a cloud container, a Remote Control sandbox) has no Convex login, so
+`bun run dev` cannot start. `bun run dev:backend` (`tools/dev-backend.ts`) needs
+none: it runs CI's pinned self-hosted backend on 3310/3311 (state in the
+gitignored `.dev-backend/`), sets the auth env, pushes `convex/`, serves the
+site on the checkout's port with the test seam, and on first start seeds
+`agent@example.com` (Bonesaw, the Mazona, Tenacity, the Game "The Long Haul")
+into `.dev-backend/seed.json`. Run it in the background. It never reads
+`.env.local` and leaves `bun run dev`'s deployment alone, but its dev server
+takes the checkout's port, so stop a `bun run dev` there (or use a worktree).
+
+```bash
+bun run dev:backend &                       # rerun to push a convex/ edit; --fresh wipes the data
+bun run shot :game --signed-in --width phone # also :pilot, :mech, :crawler, app:/route
+```
+
+In a browser: `await __appTestSignIn('agent@example.com', 'agent-dev-pass-1', 'signIn')`.
+
 ## Secrets never touch argv or stdout
 
 - **Pipe a secret in on stdin; never pass it as an argument.** A PEM begins

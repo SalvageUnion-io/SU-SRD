@@ -108,7 +108,7 @@ export function pageEntity(
   return { schema: m[1], item: m[2], ...(m[3] ? { pattern: m[3] } : {}) }
 }
 
-type Seeded = Record<'pilot' | 'mech' | 'crawler' | 'game', string>
+export type Seeded = Record<'pilot' | 'mech' | 'crawler' | 'game', string>
 
 /** A signed-in page's path with its `:kind` placeholder resolved, or undefined if the seed did not make it. */
 export function resolvePath(path: string, seeded: Partial<Seeded>): string | undefined {
@@ -195,15 +195,25 @@ export function builderRoot(base: string): string {
   return `${base}${BUILDER_BASE}/`
 }
 
-/** Signs a fresh test account up and gives it something to edit. */
-async function seed(page: Page, base: string): Promise<Partial<Seeded>> {
+/** A test-seam account: its email and password. */
+export type SeedAccount = { email: string; password: string }
+
+/**
+ * Signs a fresh test account up and gives it something to edit. Also
+ * `tools/dev-backend.ts`'s seed, with its fixed account.
+ */
+export async function seed(
+  page: Page,
+  base: string,
+  account: SeedAccount = { email: `gallery-${Date.now()}@example.com`, password: 'gallery-pass-1' }
+): Promise<Partial<Seeded>> {
   await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
   await page.waitForFunction(() => '__appTestSignIn' in (globalThis as unknown as InPage), null, {
     timeout: 30_000,
   })
-  await page.evaluate(async (email) => {
-    await (globalThis as unknown as InPage).__appTestSignIn?.(email, 'gallery-pass-1')
-  }, `gallery-${Date.now()}@example.com`)
+  await page.evaluate(async ({ email, password }) => {
+    await (globalThis as unknown as InPage).__appTestSignIn?.(email, password)
+  }, account)
   // The masthead's "Games" menu renders only once connected; outside Play the
   // bar keeps it hidden, so it is waited for attached (`e2e/fixtures.ts`).
   await page
