@@ -5,7 +5,7 @@
  * columns table is the same instrument.
  */
 import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ToasterMount } from '../../../containers/Toaster'
 import { CardRollTable } from '../CardRollTable'
@@ -153,9 +153,9 @@ describe('CardRollTable', () => {
     )
     const grid = screen.getByRole('table', { name: 'Callsign Table' })
     expect(grid.querySelectorAll('tbody tr')).toHaveLength(20)
-    expect(screen.getByText('Sparkles')).toBeTruthy()
-    const stamp = screen.getByRole('button', { name: 'Roll twice on Callsign Table' })
-    expect(stamp.textContent).toBe('Roll twice')
+    expect(within(grid).getByText('Sparkles')).toBeTruthy()
+    const stamp = screen.getByRole('button', { name: 'Roll the dice on Callsign Table' })
+    expect(stamp.textContent).toBe('Roll the Dice')
     fireEvent.click(stamp)
     expect(await screen.findByText(/^Callsign Table: rolled \d+ \(column /)).toBeTruthy()
     expect(grid.querySelectorAll('td[aria-current="true"]')).toHaveLength(1)

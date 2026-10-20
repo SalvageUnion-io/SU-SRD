@@ -18,7 +18,7 @@ export function PeekTable({ name, table }: { name: string; table: RefObjectTable
         title={name}
         size="mini"
         frame="box"
-        stamp={table.type === 'columns' ? 'Roll twice:' : undefined}
+        stamp={table.type === 'columns' ? 'Roll the Dice:' : undefined}
         table={
           table.type === 'columns'
             ? { kind: 'columns', columns: digestColumnsTable(table) }

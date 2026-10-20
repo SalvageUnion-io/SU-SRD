@@ -41,6 +41,7 @@ const TAG = cn('su-roll__tag', capsLabel({ weight: 'inherit' }))
  * - A COLUMNS table (Callsign, a d20 × d20) is the same instrument: its rows
  *   banded the same way, the columns' ranges across an ink head and the entry
  *   numbers down both outer edges; the rolled column head and cell are marked.
+ *   In a narrow frame the columns stack, each range over its entries two up.
  *
  * Presentational: rolling, and what a roll reads as, belong to the host. The
  * layout is `index.css`'s `.su-roll*`, sized by `size` and, on a page that
@@ -82,7 +83,7 @@ export type RollTableInstrumentProps = {
   size: CardSize
   /** The surface's tone (a CSS colour); its band paints every other row. */
   tone?: string
-  /** The roll's words: "Roll the Die:", or "Roll twice:" for two dice. */
+  /** The roll's words: "Roll the Die:", or "Roll the Dice:" for two dice. */
   stamp?: string
   /**
    * Roll the table: makes the roll control a button. Absent where the table
@@ -136,7 +137,12 @@ export function RollTableInstrument({
   // marks anew reveals it. The host may mark later (its die loads first), and
   // may re-render before then, so the old mark is never what is revealed.
   const reveal = useRef<{ before: string } | null>(null)
-  const marked = () => root.current?.querySelector('[aria-current="true"]')
+  // A columns table draws its mark twice (the grid and its narrow stack), one
+  // hidden: the one on screen is the one to reveal.
+  const marked = () => {
+    const all = Array.from(root.current?.querySelectorAll('[aria-current="true"]') ?? [])
+    return all.find((at) => at.getClientRects().length > 0) ?? all[0]
+  }
   // A row's text carries its pennant, "Rolled N", so a new roll reads anew.
   const markOf = (at: Element | null | undefined) => at?.textContent ?? ''
   useEffect(() => {
@@ -377,6 +383,51 @@ function Columns({ id, name, table }: { id?: string; name: string; table: Column
           ))}
         </tbody>
       </table>
+      {/* A narrow frame stacks the columns instead (`.su-roll__stack`): each
+          column's range over its entries, two up, so nothing scrolls sideways.
+          One of the two shows at a time; the other is display:none. */}
+      <div className="su-roll__stack">
+        {columns.map((column) => {
+          const half = Math.ceil(column.entries.length / 2)
+          return (
+            <section
+              key={column.key}
+              className="su-roll__stack-col"
+              aria-label={`${name}, column ${rollRangeLabel(column.key)}`}
+            >
+              <div
+                className="su-roll__stack-head"
+                aria-hidden="true"
+                data-rolled={mark?.column === column.key ? 'true' : undefined}
+              >
+                {rollRangeLabel(column.key)}
+              </div>
+              <ol
+                className="su-roll__stack-list"
+                style={{ '--su-roll-half': half } as CSSProperties}
+              >
+                {column.entries.map((entry, at) => {
+                  const rolled = mark?.column === column.key && mark.entry === entry.key
+                  return (
+                    <li
+                      key={entry.key}
+                      className="su-roll__stack-entry"
+                      data-rolled={rolled ? 'true' : undefined}
+                      aria-current={rolled ? 'true' : undefined}
+                      data-side={at >= half ? 'right' : undefined}
+                      // Side by side, entry N and N + half share a line and its fill.
+                      style={rowFill(at % half, rolled)}
+                    >
+                      <span className="su-roll__edge">{rollRangeLabel(entry.key)}</span>
+                      <span className="su-roll__stack-value">{entry.value}</span>
+                    </li>
+                  )
+                })}
+              </ol>
+            </section>
+          )
+        })}
+      </div>
     </div>
   )
 }

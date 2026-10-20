@@ -54,7 +54,7 @@ export function RollToken({
 }: {
   /** The table's name, on the cut-out. */
   name: string
-  /** The roll's words: "Roll the Die:" (the default), or "Roll twice:" for two dice. */
+  /** The roll's words: "Roll the Die:" (the default), or "Roll the Dice:" for two dice. */
   stamp?: string
   /** Roll it; absent (a damaged host), the stamp only reads. */
   onRoll?: () => void

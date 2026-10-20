@@ -69,26 +69,42 @@ describe('the columns table’s page', () => {
     expect(within(table).getByText('Iceman')).toBeTruthy()
     // No dead button: before the island mounts the stamp is a plain label.
     expect(screen.queryAllByRole('button')).toHaveLength(0)
-    expect(screen.getByText('Roll twice:').tagName).toBe('SPAN')
+    expect(screen.getByText('Roll the Dice:').tagName).toBe('SPAN')
   })
 
-  test('its Roll twice button is its one roll control', () => {
+  test('its Roll the Dice button is its one roll control', () => {
     render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
     const controls = screen.getAllByRole('button')
     expect(controls).toHaveLength(1)
-    expect(controls[0]?.getAttribute('aria-label')).toBe('Roll twice on Callsign Table')
+    expect(controls[0]?.getAttribute('aria-label')).toBe('Roll the dice on Callsign Table')
   })
 
   test('the button raises the callsign as a toast and marks its cell', async () => {
     render(<ColumnsTableIsland data={callsigns()} d20={dice(11, 7)} />)
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Roll the dice on Callsign Table' }))
     })
     const title = await screen.findByText('Callsign Table: rolled 7 (column 9–12)')
     const toast = title.closest('[data-sonner-toast]')
     expect(toast?.querySelector('[data-description]')?.textContent).toBe('Silverback')
     const cell = screen.getByRole('cell', { name: 'Silverback' })
     expect(cell.getAttribute('aria-current')).toBe('true')
+    // The narrow stack marks the same entry and its column's head.
+    const stacked = screen.getByRole('region', { name: 'Callsign Table, column 9–12' })
+    const entry = within(stacked).getByText('Silverback').closest('li')
+    expect(entry?.getAttribute('aria-current')).toBe('true')
+    expect(stacked.querySelector('.su-roll__stack-head')?.hasAttribute('data-rolled')).toBe(true)
     expect(screen.queryByRole('region', { name: 'You rolled' })).toBeNull()
+  })
+
+  test('a narrow frame stacks each column, its entries two up', () => {
+    render(<ColumnsTableView data={callsigns()} roll={null} />)
+    const columns = screen.getAllByRole('region', { name: /^Callsign Table, column / })
+    expect(columns).toHaveLength(5)
+    const first = within(columns[0] as HTMLElement).getAllByRole('listitem')
+    expect(first).toHaveLength(20)
+    // Entry 11 heads the right half, level with entry 1.
+    expect(first[10]?.getAttribute('data-side')).toBe('right')
+    expect(first[9]?.hasAttribute('data-side')).toBe(false)
   })
 })

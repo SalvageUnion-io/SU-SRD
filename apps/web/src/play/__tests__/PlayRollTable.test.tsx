@@ -12,11 +12,11 @@
  * `afterAll` restore.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { ToasterMount } from '../../components/index'
 
 /** The table's one roll control: the instrument's Roll the Die button. */
-const ROLL_BUTTON = /^Roll (the die|twice) on /
+const ROLL_BUTTON = /^Roll the (die|dice) on /
 
 /** d20 values the component will draw, in order. Refilled per test. */
 let queued: number[] = []
@@ -88,7 +88,10 @@ async function roll(): Promise<void> {
 }
 
 /** The rows (or cells) the instrument marks as rolled. */
-const marked = () => [...document.querySelectorAll('.su-roll [aria-current="true"]')]
+// The grid's marks (a columns table's narrow stack marks the same entry again).
+const marked = () => [
+  ...document.querySelectorAll('.su-roll [aria-current="true"]:not(.su-roll__stack-entry)'),
+]
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -255,7 +258,7 @@ describe('the columns variant', () => {
         <ToasterMount />
       </>
     )
-    expect(screen.getByRole('button', { name: 'Roll twice on NPC Generator' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll the dice on NPC Generator' })).toBeTruthy()
 
     await roll()
 
@@ -294,7 +297,7 @@ describe('the columns variant', () => {
 
     for (const col of COLUMN_KEYS) {
       expect(screen.getByRole('columnheader', { name: col.replace('-', '–') })).toBeTruthy()
-      expect(screen.getByText(`${col} entry 20`)).toBeTruthy()
+      expect(within(screen.getByRole('table')).getByText(`${col} entry 20`)).toBeTruthy()
     }
     // 5 columns x 20 rows.
     expect(document.querySelectorAll('tbody td.su-roll__cell')).toHaveLength(100)

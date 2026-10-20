@@ -47,14 +47,14 @@ describe('RollTableInstrument — the roll', () => {
       <RollTableInstrument
         name="Callsign Table"
         size="full"
-        stamp="Roll twice:"
+        stamp="Roll the Dice:"
         onRoll={() => {}}
         table={{ kind: 'columns', columns: [] }}
       />
     )
-    expect(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }).textContent).toBe(
-      'Roll twice'
-    )
+    expect(
+      screen.getByRole('button', { name: 'Roll the dice on Callsign Table' }).textContent
+    ).toBe('Roll the Dice')
   })
 
   test('without onRoll, the roll is the plain stamp, in the same place', () => {

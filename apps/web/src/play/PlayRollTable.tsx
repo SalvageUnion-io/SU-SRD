@@ -115,7 +115,7 @@ export function PlayRollTable({
       title={name}
       size={size}
       tone={tone}
-      stamp={isColumns ? 'Roll twice:' : undefined}
+      stamp={isColumns ? 'Roll the Dice:' : undefined}
       onRoll={isColumns ? rollColumns : rollBands}
       actions={
         landed ? (

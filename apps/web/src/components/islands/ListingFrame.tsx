@@ -15,6 +15,8 @@ export type ListingBand = {
   /** The schema's plural name, notched into the band. */
   title: string
   tone: ChapterTone
+  /** The band colour when the listing wears its own rather than its chapter's (`listingBandFillFor`). */
+  fill?: string
   /** The page's breadcrumbs, root-relative, the page itself last. */
   trail: BreadcrumbItem[]
 }
@@ -43,6 +45,7 @@ export function ListingFrame({
       >
         <ChapterBand
           tone={band.tone}
+          fill={band.fill}
           measure={PAGE_MEASURE}
           asideAt="controls"
           aside={rail || undefined}

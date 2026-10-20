@@ -36,7 +36,7 @@ function TraitText({ text }: { text: string }) {
  * the tables in its steps), cream on a surface with none.
  *
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
- * bar: its Roll twice stamp rolls both dice, the toast names the column, and
+ * bar: its Roll the Dice stamp rolls both dice, the toast names the column, and
  * the grid marks the column's head and the entry's cell.
  *
  * NESTED in another card (`nested`), the table is a Token (`RollToken`, the
@@ -118,7 +118,7 @@ export function CardRollTable({
     })
   }
 
-  const stamp = isColumns ? 'Roll twice:' : 'Roll the Die:'
+  const stamp = isColumns ? 'Roll the Dice:' : 'Roll the Die:'
   const onRoll = disabled ? undefined : isColumns ? rollColumns : rollBands
 
   if (nested) {
