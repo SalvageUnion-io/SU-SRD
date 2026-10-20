@@ -226,6 +226,9 @@ describe('watchMore', () => {
     document.body.innerHTML = ''
   })
 
+  /** After the next frame and the task it queues, when a deferred fit has run. */
+  const afterFrame = () => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 10)))
+
   /** A ResizeObserver whose callbacks the test fires. */
   function fakeObserver() {
     const fired: (() => void)[] = []
@@ -260,9 +263,11 @@ describe('watchMore', () => {
     const stop = watchMore(t.el)
     expect(t.over()).toBe(3)
 
-    // A font load refits every watched Token from every chip drawn.
+    // A font load refits every watched Token from every chip drawn, once the
+    // page has laid out with it: all of a frame's loads make one fit.
     for (const chip of t.strip.querySelectorAll('[data-w]')) chip.removeAttribute('data-chip-over')
     for (const refit of loads) refit()
+    await afterFrame()
     expect(t.over()).toBe(3)
 
     // A height change alone (the fit's own) is no refit; a width change is.
@@ -294,10 +299,13 @@ describe('watchMore', () => {
     expect(() => stop()).not.toThrow()
   })
 
-  test("a static page's contentful Tokens each fit", () => {
+  test("a static page's contentful Tokens fit together once it has laid out", async () => {
     fakeObserver()
     const t = token([40, 40, 40, 40, 40, 40], { room: 84 })
     watchStaticMore(document.body)
+    // Not while the page loads: after its next frame.
+    expect(t.over()).toBe(0)
+    await afterFrame()
     expect(t.over()).toBe(3)
   })
 })

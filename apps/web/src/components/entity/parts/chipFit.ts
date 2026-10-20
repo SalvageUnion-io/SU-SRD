@@ -128,14 +128,39 @@ function linesOf(chips: readonly HTMLElement[]): number {
  * gives the same result: nothing flickers, nothing feeds back.
  */
 export function fitMore(token: HTMLElement): void {
+  const fit = reset(token)
+  if (fit && linesOf(fit.chips) > MORE_LINES) fitOver(fit)
+}
+
+/**
+ * Fit many Tokens at once: every one reset first, then every one's lines
+ * read in one layout, and only those past `MORE_LINES` fitted further. A
+ * page of contentful Tokens (a pattern's loadout) fitted one by one forces a
+ * layout per Token, which blocks the main thread as the page loads.
+ */
+function fitMoreAll(tokens: Iterable<HTMLElement>): void {
+  const fits = [...tokens].flatMap((token) => reset(token) ?? [])
+  for (const fit of fits.filter(({ chips }) => linesOf(chips) > MORE_LINES)) fitOver(fit)
+}
+
+type Fit = NonNullable<ReturnType<typeof partsOf>> &
+  ReturnType<typeof chipsOf> & {
+    token: HTMLElement
+  }
+
+/** Every chip drawn and +MORE hidden: where a fit starts. Writes only. */
+function reset(token: HTMLElement): Fit | undefined {
   const parts = partsOf(token)
-  if (!parts) return
-  const { strip, more, slot } = parts
-  const { chips, keep } = chipsOf(strip)
+  if (!parts) return undefined
+  const { chips, keep } = chipsOf(parts.strip)
   for (const chip of chips) chip.removeAttribute(OVER_ATTRIBUTE)
-  more.hidden = true
-  slot.hidden = true
-  if (linesOf(chips) <= MORE_LINES) return
+  parts.more.hidden = true
+  parts.slot.hidden = true
+  return { ...parts, chips, keep, token }
+}
+
+/** A reset Token's chips past `MORE_LINES`: the ones that fit with +MORE, and +MORE on its slot. */
+function fitOver({ token, strip, more, slot, chips, keep }: Fit): void {
   more.hidden = false
   // The button's own box: the slot keeps its room, and +MORE lies on it.
   const size = (more.firstElementChild ?? more).getBoundingClientRect()
@@ -178,28 +203,46 @@ let fontsWatched = false
 function watchFonts(): void {
   if (fontsWatched || typeof document === 'undefined' || !document.fonts) return
   fontsWatched = true
-  const refit = () => {
-    for (const token of watched) fitMore(token)
+  void document.fonts.ready.then(refitSoon)
+  document.fonts.addEventListener?.('loadingdone', refitSoon)
+}
+
+let refitDue = false
+
+/**
+ * Fit every watched Token once the page has laid itself out: after the next
+ * frame, when reading a chip's box costs no layout of its own. Many asks
+ * (each font face, a static page's Tokens) make one fit.
+ */
+function refitSoon(): void {
+  if (refitDue) return
+  refitDue = true
+  const run = () => {
+    refitDue = false
+    fitMoreAll(watched)
   }
-  void document.fonts.ready.then(refit)
-  document.fonts.addEventListener?.('loadingdone', refit)
+  if (typeof requestAnimationFrame === 'undefined') queueMicrotask(run)
+  else requestAnimationFrame(() => setTimeout(run, 0))
 }
 
 /**
  * Fit a Token now and whenever its head changes width (a resize, its
  * column); returns the stop. Only a width change refits: the head's height
- * is what the fit itself changes.
+ * is what the fit itself changes. `later` leaves the first fit to the caller
+ * (a static page fits all its Tokens together, `refitSoon`), and reads no
+ * box until the page has laid out.
  */
-export function watchMore(token: HTMLElement): () => void {
+export function watchMore(token: HTMLElement, { later = false } = {}): () => void {
   if (!partsOf(token)) return () => undefined
-  fitMore(token)
+  if (!later) fitMore(token)
   watched.add(token)
   watchFonts()
   const head = token.firstElementChild
   if (!(head instanceof HTMLElement) || typeof ResizeObserver === 'undefined') {
     return () => watched.delete(token)
   }
-  let width = head.getBoundingClientRect().width
+  // Its first observation, after the page's own layout, is the width a later fit starts from.
+  let width = later ? undefined : head.getBoundingClientRect().width
   const observer = new ResizeObserver(() => {
     if (!token.isConnected) {
       observer.disconnect()
@@ -207,7 +250,10 @@ export function watchMore(token: HTMLElement): () => void {
       return
     }
     const now = head.getBoundingClientRect().width
-    if (Math.abs(now - width) < 0.5) return
+    if (width === undefined || Math.abs(now - width) < 0.5) {
+      width ??= now
+      return
+    }
     width = now
     fitMore(token)
   })
@@ -218,7 +264,11 @@ export function watchMore(token: HTMLElement): () => void {
   }
 }
 
-/** A static page's contentful Tokens (server-rendered, no React): each fits once and on resize. */
+/** A static page's contentful Tokens (server-rendered, no React): fitted together once laid out, and each on resize. */
 export function watchStaticMore(root: ParentNode = document): void {
-  for (const token of root.querySelectorAll<HTMLElement>(MORE_TOKEN)) watchMore(token)
+  for (const token of root.querySelectorAll<HTMLElement>(MORE_TOKEN)) {
+    watchMore(token, { later: true })
+  }
+  // Fitted together once the page has laid out, not one by one as it loads.
+  refitSoon()
 }
