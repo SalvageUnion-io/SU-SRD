@@ -31,6 +31,8 @@ export type StatColumnCell = {
   label: string
   value: string
   hoverText?: string
+  /** The label's short form, read on a phone (`Stat`'s `shortLabel`, a band's chips). */
+  shortLabel?: string
   /** Its part of the stat order (provenance, vitals, capacity). */
   group?: StatGroup
 }

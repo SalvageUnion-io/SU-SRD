@@ -90,34 +90,10 @@
   min-width: 0;
 }
 
-/* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
-   height (its plates inside the cell's hairline frame) and type, so every
-   chip on the band reads as one size. */
-.su-entity-stamps .su-stat-plate {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: calc(var(--size-compact) - 2 * var(--bw-hairline));
-  padding-inline: var(--space-8);
-}
-
-/* One size per band (C1a): a fact's or trait's value (`RNG | Long`,
-   `POP | 5,000–15,000`, `Explosive | 1`) reads at its label's type size, as
-   the stat column's cells beside it do (owner's call, 2026-10-18). */
-.su-entity-stamps .su-stat-plate + .su-stat-plate {
-  font-variant-numeric: tabular-nums;
-  justify-content: center;
-  min-width: 28px;
-}
-
-/* An ability's cost on its band: the book's pointy box at the stamps'
-   height (it stretches to its flex line), in the stamps' type. */
-.su-entity-stamps > .su-chip-lane > .su-cost-edge {
-  align-self: stretch;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: var(--size-compact);
-}
+/* The chips on the band are the body's chips (owner, 2026-10-20: "header
+   chips need to match body chips in sizing"): the card heads' Compact strip,
+   so what overflows into the page's first row is the same size it was on
+   the band. */
 
 /* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
  *

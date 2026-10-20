@@ -223,6 +223,22 @@
 }
 
 /* A two-line label ("Tech" / "Level"). */
+/* A label with a short form (`Stat`'s `shortLabel`): the long one, on a
+   phone the short one, never both. */
+.su-stat-label--short {
+  display: none;
+}
+
+@media not (width >= 40rem) {
+  .su-stat-label--long {
+    display: none;
+  }
+
+  .su-stat-label--short {
+    display: inline;
+  }
+}
+
 .su-stat-plate--stack {
   flex-direction: column;
 }

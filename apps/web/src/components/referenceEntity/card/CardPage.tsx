@@ -4,6 +4,7 @@ import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
 import { SlabSection } from '../../containers/SlabSection'
+import { abilityTreeNeighbours } from './abilityTreeRelations'
 import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { pageBodyStats } from './entityPage'
@@ -166,6 +167,19 @@ export function CardPage({
       )}
       {guide}
       {sections}
+      {/* An ability's neighbours in its tree, under the rest (owner, 2026-10-20). */}
+      {abilityTreeNeighbours(entity).map(({ label, abilities }) => (
+        <SlabSection
+          key={label}
+          as={sectionAs}
+          title={label}
+          page
+          className="su-entity-page__section"
+          bodyClassName="su-entity-page__section-body"
+        >
+          {abilities.map((data, index) => actionCard(data, index, nestedTitleLevel(!!sectionAs)))}
+        </SlabSection>
+      ))}
       <div className="su-entity-page__wide">
         <PatternLinkRows
           chassis={entity}

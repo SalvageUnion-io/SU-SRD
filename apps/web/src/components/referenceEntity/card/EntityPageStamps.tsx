@@ -15,12 +15,12 @@ import { labelChips } from './labelChips'
  * chassis's lead its page body instead), its action type and facets
  * (`RNG | Close`), its traits, linking to their entries, what it is built on
  * (a pattern's `CHASSIS | Mazona`, a relation) and what it is linked to (an
- * ability's `TREE | Leadership`, `PRECEDING`, `NEXT`), and last its cost in the
+ * ability's `TREE | Leadership`), and last its cost in the
  * pointy box, every chip the same gap apart (the SRD page's "Build With This"
  * is the band's `action`, after them). An ability's level is the band's
  * `lead`, left of the title. Never the kind (E9: the title says it to screen
- * readers). Every chip is at the band's Compact
- * height and type (`.su-entity-stamps`). The same facts the card's own chips
+ * readers). Every chip is the body's chip, a card head's Compact strip, so
+ * what overflows to the page's first row keeps its size. The same facts the card's own chips
  * show, resolved by `resolveEntityPageMeta` so the page cannot describe an
  * entity differently from its own card.
  *
@@ -56,7 +56,7 @@ export function EntityPageStamps({
     // Its fill, gap and alignment are `.su-entity-stamps`'.
     <Chips
       className="su-entity-stamps"
-      size="full"
+      size="compact"
       linkable
       chips={{
         durations: meta.actionTypes,
@@ -71,17 +71,18 @@ export function EntityPageStamps({
               key="parent"
               label={parent.label}
               entityRef={parent.ref}
+              size="compact"
               {...(parent.href ? { href: parent.href } : {})}
             />
           ),
-          ...relationChips(meta.relations),
+          ...relationChips(meta.relations, 'compact'),
         ],
       }}
       marks={
         legalStartingPattern || homebrew
           ? labelChips(
               { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-              'full'
+              'compact'
             )
           : undefined
       }

@@ -1,7 +1,8 @@
 /**
- * An ability's place in its tree (owner's calls, 2026-10-19): `TREE | <tree>`
- * opening its class, then `PRECEDING` and `NEXT`, the book's words (p.23),
- * on the Page band and on every card head with a relation budget (C3).
+ * An ability's place in its tree: `TREE | <tree>` opening its class, on the
+ * Page band and on every card head with a relation budget (C3); its
+ * `Preceding` and `Next` abilities, the book's words (p.23), are its Page's
+ * nested references (owner, 2026-10-20), never chips.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -9,7 +10,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { srdHrefFor } from '../../../../lib/entityHref'
 import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { PeekCard } from '../../../entity/PeekCard'
-import { abilityTreeRelations } from '../abilityTreeRelations'
+import { abilityTreeNeighbours, abilityTreeRelations } from '../abilityTreeRelations'
 import { EntityPageStamps } from '../EntityPageStamps'
 import { resolveEntityPageMeta } from '../entityPage'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -33,27 +34,27 @@ const relationLane = (root: ParentNode) =>
     [...cell.querySelectorAll('.su-stat-plate')].map((p) => p.textContent).join(' | ')
   )
 
+const neighbours = (name: string) =>
+  abilityTreeNeighbours(ability(name)).map(({ label, abilities }) => [
+    label,
+    abilities.map((a) => a.name),
+  ])
+
 describe('abilityTreeRelations', () => {
-  test('the first ability has its tree and the next, no preceding', () => {
-    expect(read('Folk Song')).toEqual([
-      ['Tree', 'Leadership', 'classes'],
-      ['Next', 'Behemoth', 'abilities'],
-    ])
+  test('an ability carries only its tree as a chip', () => {
+    for (const name of ['Folk Song', 'Behemoth', 'Valiant Speech']) {
+      expect(read(name)).toEqual([['Tree', 'Leadership', 'classes']])
+    }
   })
 
-  test('a middle ability has both neighbours, the preceding first', () => {
-    expect(read('Behemoth')).toEqual([
-      ['Tree', 'Leadership', 'classes'],
-      ['Preceding', 'Folk Song', 'abilities'],
-      ['Next', 'Valiant Speech', 'abilities'],
+  test("its neighbours are its Page's nested references, the preceding first", () => {
+    expect(neighbours('Folk Song')).toEqual([['Next', ['Behemoth']]])
+    expect(neighbours('Behemoth')).toEqual([
+      ['Preceding', ['Folk Song']],
+      ['Next', ['Valiant Speech']],
     ])
-  })
-
-  test('the last ability has its tree and the preceding, no next', () => {
-    expect(read('Valiant Speech')).toEqual([
-      ['Tree', 'Leadership', 'classes'],
-      ['Preceding', 'Behemoth', 'abilities'],
-    ])
+    expect(neighbours('Valiant Speech')).toEqual([['Preceding', ['Behemoth']]])
+    expect(neighbours('Network Takeover')).toEqual([])
   })
 
   test("the tree opens the class whose page draws it, under the tree's name", () => {
@@ -89,35 +90,23 @@ describe('the tree chips on each form', () => {
         <EntityPageStamps meta={resolveEntityPageMeta(ability('Behemoth'))} />
       </EntitySurfaceProvider>
     )
-    expect(relationLane(container)).toEqual([
-      'Tree | Leadership',
-      'Preceding | Folk Song',
-      'Next | Valiant Speech',
-    ])
+    expect(relationLane(container)).toEqual(['Tree | Leadership'])
     const lanes = [...container.querySelectorAll('[data-chip-class]')].map((lane) =>
       lane.getAttribute('data-chip-class')
     )
     expect(lanes.indexOf('relation')).toBeLessThan(lanes.indexOf('cost'))
     const links = [...container.querySelectorAll("[data-chip-class='relation'] a")]
-    expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      '/classes/hauler/',
-      '/abilities/folk-song/',
-      '/abilities/valiant-speech/',
-    ])
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/classes/hauler/'])
   })
 
   test('a Card head carries them too', () => {
     const { container } = render(<ReferenceEntityCard data={ability('Folk Song')} />)
-    expect(relationLane(container)).toEqual(['Tree | Leadership', 'Next | Behemoth'])
+    expect(relationLane(container)).toEqual(['Tree | Leadership'])
   })
 
   test('a Peek shows them inert: no link and no nested Peek (ruleset §1.6)', () => {
     const { container } = render(<PeekCard entity={ability('Behemoth')} />)
-    expect(relationLane(container)).toEqual([
-      'Tree | Leadership',
-      'Preceding | Folk Song',
-      'Next | Valiant Speech',
-    ])
+    expect(relationLane(container)).toEqual(['Tree | Leadership'])
     const lane = container.querySelector("[data-chip-class='relation']")
     expect(lane?.querySelector('a[href], [data-peek]')).toBeNull()
   })

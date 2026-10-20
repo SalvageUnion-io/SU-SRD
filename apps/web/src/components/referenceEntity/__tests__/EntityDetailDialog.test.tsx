@@ -82,7 +82,7 @@ describe('the detail dialog is the Page', () => {
     const stamps = dialog.querySelector<HTMLElement>('.su-entity-stamps')
     const bandStats = [
       ...(stamps?.querySelectorAll(
-        ':is([data-chip-class="rank"], [data-chip-class="measure"]) .su-stat-plate--label'
+        ':is([data-chip-class="rank"], [data-chip-class="measure"]) .su-stat-plate--label .su-stat-label--long'
       ) ?? []),
     ]
     expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level', 'Salvage Value'])

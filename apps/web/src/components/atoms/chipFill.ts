@@ -184,9 +184,9 @@ export function isFirst(item: Element, root: Element): boolean {
  * pixel to spare. Otherwise the `kept` ones stay (with +MORE after them,
  * `more` wide, on a header-only head), then the `first` ones that fit, in
  * source order, and of the rest those that fit beside them stay, counted
- * from the end, the line filled in order: the first that does not fit and
- * every one before it leave. `more` is whether +MORE is drawn: only when a
- * chip left.
+ * from the end, each that does not fit leaving and the next still tried, so
+ * the head holds as many as it can. `more` is whether +MORE is drawn: only
+ * when a chip left.
  */
 export function overflowPlan(
   widths: readonly number[],
@@ -203,26 +203,19 @@ export function overflowPlan(
   if (fits(all)) return { out, more: false }
   let used = widths.reduce((sum, width, i) => (kept[i] ? sum + gap + width : sum), name)
   if (more !== undefined) used += gap + more
-  let firstFull = false
   for (let i = 0; i < widths.length; i++) {
     if (kept[i] || !first[i]) continue
     const width = widths[i] as number
-    if (!firstFull && fits(used + gap + width)) used += gap + width
-    else {
-      firstFull = true
-      out[i] = true
-    }
+    if (fits(used + gap + width)) used += gap + width
+    else out[i] = true
   }
-  let full = false
   for (let i = widths.length - 1; i >= 0; i--) {
     if (kept[i] || first[i]) continue
     const width = widths[i] as number
-    // In order: once one does not fit, every one before it leaves too.
-    if (!full && fits(used + gap + width)) used += gap + width
-    else {
-      full = true
-      out[i] = true
-    }
+    // As many as fit stay (owner, 2026-10-20: "one of these could have fit in
+    // the header"): one too wide leaves, and the next one in still may stay.
+    if (fits(used + gap + width)) used += gap + width
+    else out[i] = true
   }
   return { out, more: more !== undefined && out.some(Boolean) }
 }

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { CHAPTER_REFS } from '../lib/chapters'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { NULL_BAND } from './atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR, ChapterBand, Slab, ToneStrip } from './index'
+import { GREY_HEADER } from './referenceEntity/card/cardChrome'
 
 type NotFoundProps = {
   /**
@@ -32,7 +32,7 @@ type NotFoundProps = {
 export function NotFound({ search, didYouMean, back }: NotFoundProps) {
   return (
     <div className="su-not-found">
-      <ChapterBand measure={PAGE_MEASURE} fill={NULL_BAND}>
+      <ChapterBand measure={PAGE_MEASURE} fill={GREY_HEADER}>
         Page not found
       </ChapterBand>
       <div className="su-not-found__body su-page-body">

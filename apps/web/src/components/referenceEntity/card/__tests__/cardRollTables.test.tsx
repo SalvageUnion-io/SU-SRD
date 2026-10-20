@@ -27,7 +27,8 @@ describe('roll tables reach the card by reference, not just inline', () => {
     const ability = find(SalvageUnionReference.Abilities.all(), 'System and Software Hacker')
     render(<ReferenceEntityCard data={ability} presentation="page" />)
 
-    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    // Its Next ability, nested on the page, rolls a table of its own.
+    expect(screen.getAllByLabelText(ROLL_BUTTON).length).toBeGreaterThan(0)
     expect(screen.getByText('The System or Module is destroyed.')).toBeTruthy()
   })
 

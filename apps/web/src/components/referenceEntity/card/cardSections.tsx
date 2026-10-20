@@ -327,9 +327,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
               entities={group.entities}
               host={nestedHost}
               write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
-              seal={
-                group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
-              }
             />
           )
         )}

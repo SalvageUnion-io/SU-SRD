@@ -111,6 +111,7 @@ function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
     ).map((fact) => ({
       key: fact.key,
       label: fact.label,
+      shortLabel: fact.short,
       value: fact.value,
       ...(fact.group ? { group: fact.group } : {}),
       ...(fact.hint ? { hoverText: fact.hint } : {}),

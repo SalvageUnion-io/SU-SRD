@@ -19,6 +19,7 @@ export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size
           label={stat.label}
           value={stat.value}
           bottomLabel={stat.bottomLabel}
+          shortLabel={stat.shortLabel}
           size={size}
           state={stat.state}
           onChange={stat.onChange}

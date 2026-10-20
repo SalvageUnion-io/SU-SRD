@@ -45,10 +45,3 @@ export const CHAPTER_BAND_COLOR: Record<ChapterTone, string> = {
   build: color.pilot,
   play: color.crawlerBand,
 }
-
-/**
- * The null band (owner, 2026-10-20: "Grey or some other null-ish color for
- * 404 pages"): ink a third into paper, no chapter's colour, for a page that
- * belongs to none. Ink prints on it.
- */
-export const NULL_BAND = 'color-mix(in srgb, var(--color-ink) 35%, var(--color-paper))'

@@ -9,6 +9,8 @@ export type StatItem = {
   group?: StatGroup
   outOfMax?: number
   bottomLabel?: string
+  /** The label's short form, read on a phone (`Stat`'s `shortLabel`). */
+  shortLabel?: string
   // Visual
   hoverText?: string
   /** State overlay — drives the Stat cell's border colour only (see StatBorderState). */

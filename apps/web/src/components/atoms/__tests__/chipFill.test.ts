@@ -22,9 +22,9 @@ describe('overflowPlan', () => {
     })
   })
 
-  test('in order: a chip before one that left leaves too, though it would fit', () => {
+  test('as many as fit stay: a chip before one that left still stays where it fits', () => {
     expect(overflowPlan([5, 90, 10], [false, false, true], 100, 150, 4).out).toEqual([
-      true,
+      false,
       true,
       false,
     ])

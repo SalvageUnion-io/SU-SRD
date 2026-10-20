@@ -105,6 +105,12 @@ type HorizontalValueProps = {
    * (`label` on top, `bottomLabel` below), e.g. "Tech" / "Level". */
   bottomLabel?: StatValue
   /**
+   * The label's short form, read in its place on a phone ("SP" for
+   * "Structure Points"; owner, 2026-10-20: "Mobile can use short form
+   * terminology to fit"). One label shows at a time.
+   */
+  shortLabel?: string
+  /**
    * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
    * cell, so it defaults to `full`; `compact` is the listing-row scale and
    * `mini` the seam-tag size (text-badge / 11px). One axis: a pair of booleans
@@ -180,6 +186,7 @@ function HorizontalValue({
   value,
   max,
   bottomLabel,
+  shortLabel,
   surface = 'plate',
   size = 'full',
   inline = true,
@@ -268,6 +275,11 @@ function HorizontalValue({
           <>
             <span>{label}</span>
             <span>{bottomLabel}</span>
+          </>
+        ) : shortLabel !== undefined && shortLabel !== String(label) ? (
+          <>
+            <span className="su-stat-label--long">{label}</span>
+            <span className="su-stat-label--short">{shortLabel}</span>
           </>
         ) : (
           label

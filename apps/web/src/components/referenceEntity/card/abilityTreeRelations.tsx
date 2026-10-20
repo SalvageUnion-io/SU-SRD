@@ -6,19 +6,18 @@ import { Stat } from '../../atoms/Stat'
 import { EntityStat } from '../../entity'
 
 /**
- * An ability's place in its tree, as relation chips (C11, owner's calls
- * 2026-10-19): `TREE | Leadership`, which opens the class whose page draws the
- * tree, then the ability before it and the ones after it, in the book's words
- * ("You must have the preceding Ability in a Core Ability Tree to train the
- * next Ability", Workshop Manual p.23): `PRECEDING | Folk Song`,
- * `NEXT | Valiant Speech`. The first ability has no PRECEDING, the last no
- * NEXT; a tree of one level (Legendary, Generic) has neither, and an absent
- * one leaves its lane empty (C6). The kind left the foot (E9), so the tree
- * rides the strip.
+ * An ability's place in its tree (C11, owner's calls 2026-10-19/20): its
+ * relation chip `TREE | Leadership`, which opens the class whose page draws
+ * the tree; and, on its Page only, the abilities before and after it, in the
+ * book's words ("You must have the preceding Ability in a Core Ability Tree
+ * to train the next Ability", Workshop Manual p.23), as nested references
+ * under the rest of the page, never chips (owner, 2026-10-20: "drop
+ * Preceding and Next from the chips"). The first ability has no Preceding,
+ * the last no Next; a tree of one level (Legendary, Generic) has neither.
  *
- * The Page band carries them, and every card head whose budget has relations
- * (C3: a compact or full Card, a Peek, where they only read, ruleset §1.6). A
- * Mini's are its Peek's.
+ * The Page band carries the tree, and every card head whose budget has
+ * relations (C3: a compact or full Card, a Peek, where they only read,
+ * ruleset §1.6). A Mini's are its Peek's.
  */
 export type EntityRelation = {
   /** The relation, label first: 'Tree', 'Preceding', 'Next'. */
@@ -43,19 +42,12 @@ function treeOwner(tree: string): RefClass | undefined {
   })
 }
 
-const abilityRef = (a: RefAbility): EntityRef => ({
-  schemaName: 'abilities',
-  id: a.id,
-  slug: getEntitySlug(a),
-  name: a.name,
-})
-
 /** An ability's tree relations, in the strip's order; none for anything else. */
 export function abilityTreeRelations(entity: RefMetaEntity): EntityRelation[] {
   if (!isAbility(entity) || !entity.tree) return []
   const { tree } = entity
   const owner = treeOwner(tree)
-  const relations: EntityRelation[] = [
+  return [
     {
       label: 'Tree',
       value: tree,
@@ -67,15 +59,24 @@ export function abilityTreeRelations(entity: RefMetaEntity): EntityRelation[] {
         : {}),
     },
   ]
+}
+
+/** An ability's neighbours in its tree, Preceding then Next: none for anything else. */
+export function abilityTreeNeighbours(
+  entity: RefMetaEntity
+): { label: 'Preceding' | 'Next'; abilities: RefAbility[] }[] {
+  if (!isAbility(entity) || !entity.tree) return []
   const level = step(entity.level)
-  if (level === undefined || !SalvageUnionReference.isLoaded('abilities')) return relations
+  if (level === undefined || !SalvageUnionReference.isLoaded('abilities')) return []
+  const { tree } = entity
   const atLevel = (n: number) =>
     SalvageUnionReference.Abilities.all().filter((a) => a.tree === tree && step(a.level) === n)
-  for (const a of atLevel(level - 1))
-    relations.push({ label: 'Preceding', value: a.name, ref: abilityRef(a) })
-  for (const a of atLevel(level + 1))
-    relations.push({ label: 'Next', value: a.name, ref: abilityRef(a) })
-  return relations
+  return (
+    [
+      { label: 'Preceding', abilities: atLevel(level - 1) },
+      { label: 'Next', abilities: atLevel(level + 1) },
+    ] as const
+  ).filter((group) => group.abilities.length > 0)
 }
 
 /**

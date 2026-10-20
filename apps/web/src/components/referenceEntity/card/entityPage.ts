@@ -87,6 +87,7 @@ function bookStatsOf(model: EntityModel): BookStat[] {
   return model.bookStats.map((fact) => ({
     key: fact.key,
     label: fact.label,
+    shortLabel: fact.short,
     value: fact.value,
     ...(fact.group ? { group: fact.group } : {}),
     ...(fact.hint ? { hoverText: fact.hint } : {}),
