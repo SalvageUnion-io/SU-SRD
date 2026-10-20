@@ -1,7 +1,8 @@
 /**
  * TheGame — "The Game" on a Game's own page (board M2;
  * docs/architecture/play.md §16): who mediates, who organises,
- * and, for the Organizer, **Hand over** and **Delete this game**.
+ * and, for the Organizer, **Hand over** and **Delete this Game**: a chip and
+ * the ⋯ menu on the section's head, as every contextual action is.
  *
  * Appointing the Mediator is the Organizer's (`games.setMediator`,
  * `requireOrganizer`), and it is the only way the flag is set: `games.create`
@@ -23,6 +24,7 @@ import {
   Button,
   ConfirmDialog,
   Field,
+  HeaderMenu,
   Select,
   SlabSection,
   Stat,
@@ -40,17 +42,6 @@ const LINES = {
   flexDirection: 'column',
   gap: space[8],
 } satisfies CSSProperties
-
-/** A line: its Stat, then the Organizer's Hand over at the far end. */
-const LINE = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: space[8],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
-
-const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: space[8] } satisfies CSSProperties
 
 export function TheGame({
   gameId,
@@ -79,21 +70,16 @@ export function TheGame({
   const appointing = mediators.length === 0
 
   return (
-    <SlabSection as="h2" bodyStyle={HUB_BODY} id="the-game-heading" title="The Game">
-      {/* Each a Stat with a text value (ruleset §3.7, §6.2), Compact as the
-          Hand over beside it (§4.7). */}
-      <div style={LINES}>
-        <div style={LINE}>
-          <Stat
-            label="Mediator"
-            value={mediators.length === 0 ? 'Nobody yet' : mediators.map(name).join(', ')}
-            size="compact"
-            wrap
-          />
-          {organizer && (
+    <SlabSection
+      as="h2"
+      bodyStyle={HUB_BODY}
+      id="the-game-heading"
+      title="The Game"
+      actions={
+        organizer ? (
+          <>
             <Button
-              variant="default"
-              size="compact"
+              size="mini"
               disabled={!canWrite || candidates.length === 0}
               onClick={() => {
                 setChosen(candidates[0]?.userId ?? '')
@@ -102,24 +88,40 @@ export function TheGame({
             >
               {appointing ? 'Appoint' : 'Hand over'}
             </Button>
-          )}
-        </div>
-        <div style={LINE}>
-          <Stat
-            label="Organiser"
-            value={organizers.map(name).join(', ') || '—'}
-            size="compact"
-            wrap
-          />
-        </div>
+            <HeaderMenu
+              variant="overflow"
+              trigger={null}
+              label="More for The Game"
+              sections={[
+                [
+                  {
+                    id: 'delete',
+                    label: 'Delete this Game…',
+                    tone: 'danger',
+                    onSelect: canWrite ? onDelete : undefined,
+                  },
+                ],
+              ]}
+            />
+          </>
+        ) : undefined
+      }
+    >
+      {/* Each a Stat with a text value (ruleset §3.7, §6.2). */}
+      <div style={LINES}>
+        <Stat
+          label="Mediator"
+          value={mediators.length === 0 ? 'Nobody yet' : mediators.map(name).join(', ')}
+          size="compact"
+          wrap
+        />
+        <Stat
+          label="Organiser"
+          value={organizers.map(name).join(', ') || '—'}
+          size="compact"
+          wrap
+        />
       </div>
-      {organizer && (
-        <div style={ACTIONS}>
-          <Button variant="primary" size="compact" disabled={!canWrite} onClick={onDelete}>
-            Delete this Game
-          </Button>
-        </div>
-      )}
       <ConfirmDialog
         open={handing}
         onOpenChange={setHanding}

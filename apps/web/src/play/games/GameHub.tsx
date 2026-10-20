@@ -15,7 +15,7 @@
  *  3. Two columns of sections. **Every member:** Crew & seats and the
  *     proposals awaiting their answer. **The Mediator:** Proposals you sent.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
- *     Invite link (copy and reset) and The Game's Hand over, which the
+ *     Invite link (copy and reset, chips on its head) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
  *
  * Moving between Games is Play's, and joining one is an invite link
@@ -74,12 +74,6 @@ type GameHubProps = {
 }
 
 const PENDING = { marginTop: tokens.space[24] } satisfies CSSProperties
-
-const INVITE_ACTIONS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
 
 const NOT_IN_NOTE = { marginTop: tokens.space[24] } satisfies CSSProperties
 
@@ -156,12 +150,17 @@ function GameSections({ game }: { game: Game }) {
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
-            <SlabSection as="h2" bodyStyle={HUB_BODY} id="invite-link-heading" title="Invite link">
-              <div style={INVITE_ACTIONS}>
-                <CopyInviteLink gameId={gameId} />
-                <ResetInviteLink gameId={gameId} />
-              </div>
-            </SlabSection>
+            <SlabSection
+              as="h2"
+              id="invite-link-heading"
+              title="Invite link"
+              actions={
+                <>
+                  <CopyInviteLink gameId={gameId} />
+                  <ResetInviteLink gameId={gameId} />
+                </>
+              }
+            />
           )}
           <TheGame
             gameId={gameId}

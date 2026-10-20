@@ -1,6 +1,6 @@
 /**
  * The Game's invite URL, the Organizer's, on the Game page: "Copy invite
- * link" and "Reset link".
+ * link" and "Reset link", chips on the Invite link section's head.
  *
  * Copying hands out the Game's one URL (`invites.link`); pressing it again
  * copies the same one. Resetting mints a new URL (`invites.reset`), and the
@@ -73,16 +73,11 @@ function ConnectedCopyInviteLink({
 
   return (
     <>
-      <Button
-        variant="default"
-        size="compact"
-        disabled={copyLink.pending}
-        onClick={() => void copy()}
-      >
+      <Button size="mini" disabled={copyLink.pending} onClick={() => void copy()}>
         <CopiedIcon
           copied={copied}
-          size="compact"
-          icon={<Link2 aria-hidden="true" size={tokens.iconSize.compact} />}
+          size="mini"
+          icon={<Link2 aria-hidden="true" size={tokens.iconSize.mini} />}
         />
         Copy invite link
       </Button>
@@ -110,7 +105,7 @@ function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setConfirming(true)}>
+      <Button size="mini" onClick={() => setConfirming(true)}>
         Reset link
       </Button>
       <ConfirmDialog

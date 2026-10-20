@@ -130,6 +130,13 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
   }
 }
 
+/** The Game section's ⋯ (`More for The Game`), where Delete this Game lives. */
+async function openGameMenu(): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More for The Game' }))
+  })
+}
+
 // Async act: the roster inside flips its hydrated flag from a promise after mount.
 async function renderHub(over: QueryAnswers = {}): Promise<void> {
   setQueryAnswers(answers(over))
@@ -185,7 +192,7 @@ describe('the sections under the roster (board M2)', () => {
     // outright, so offering either would be a control that only ever errors.
     expect(heading('Invite link')).toBeNull()
     expect(screen.queryByRole('button', { name: /Hand over|Appoint/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Delete this Game' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'More for The Game' })).toBeNull()
   })
 
   test('the Organizer gets the invite link, who mediates, and ending the game', async () => {
@@ -199,7 +206,8 @@ describe('the sections under the roster (board M2)', () => {
     // This is the ONLY way the Mediator flag is ever set.
     expect(screen.getByText('Nobody yet')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Appoint' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Delete this Game' })).toBeTruthy()
+    await openGameMenu()
+    expect(screen.getByRole('menuitem', { name: 'Delete this Game…' })).toBeTruthy()
     expect(screen.getByText('Organiser')).toBeTruthy()
   })
 
@@ -230,7 +238,8 @@ describe('the sections under the roster (board M2)', () => {
   test('ending the game asks first, says where everything lands, and then shows your Games', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
@@ -248,7 +257,8 @@ describe('the sections under the roster (board M2)', () => {
 
   test('a game with no crawler does not promise one', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
-    fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
 
     expect(
       screen.getByText(/^Anything unclaimed comes to you, in your Training Bay\.$/)
