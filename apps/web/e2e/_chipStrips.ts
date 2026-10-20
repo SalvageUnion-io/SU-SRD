@@ -18,16 +18,11 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * - **cost** a cost that is not the strip's last read chip, or, last of all,
  *   not on its lowest line and rightmost there; followed by +MORE alone, not
  *   right before it there.
- * - **fill** a contentful Token's line under another that is not full: its
- *   chips fill bottom-heavy (owner, 2026-10-19), so the chip ending the line
- *   above would not fit on it. And THE BOTTOM-RIGHT FILL of every head whose
- *   name and chips share a line (`[data-chip-fill]`: a Row's or Card's
- *   heading, a Tile's band, a Page's chapter band and its controls; owner's
- *   rule, 2026-10-20): its last item (the cost, the action) on the name's
- *   line and rightmost there; every line flush right; and each line above
- *   another an overflow, its right-hand item too wide to join the line under
- *   it (the name's line counted from the name's left edge). A head the fill
- *   never measured (no `data-fill-item`) fails too.
+ * - **fill** THE BOTTOM-RIGHT FILL of every head whose name and chips share
+ *   a line (`[data-chip-fill]`: a Row's or Card's heading, a Tile's band, a
+ *   Page's chapter band and its controls; owner's rule, 2026-10-20): its last
+ *   item (the cost, the action) on the name's line and rightmost there. A
+ *   head the fill never measured (no `data-fill-item`) fails too.
  * - **unclassed** a chip in no class lane: the strip is not drawn by `Chips`
  *   (`chips-and-actions.md` C2a, hard rule R4).
  * - **order** a chip whose class comes before the one ahead of it: the strip
@@ -38,31 +33,33 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   the strip's own box, cut by its entity's frame and by every ancestor that
  *   hides its overflow. A chip past its Row's edge, or cut by a Token's pill,
  *   fails; only the name may give way.
- * - **lines** a header-only Token's chips on more than one line, or a
- *   contentful Token's (N3) on more than two (C5): past two it draws the
- *   chips that fit and ends its second line in +MORE, which opens its Peek.
- *   A Row's or card's head stacks its chips up the band beside the name on
- *   as many lines as they take (owner's rule, 2026-10-20).
- * - **more** a +MORE chip anywhere but a Token's, or one that is not its
- *   strip's last chip, at the end of its lowest line (the visual bottom), or
- *   one that dropped the strip's cost (C5).
+ * - **lines** a header-only Token's chips on more than one line (C5).
+ * - **more** a +MORE chip that is not its strip's last chip, at the end of its
+ *   lowest line (the visual bottom), or one that dropped the strip's cost (C5).
  *
- * The owner's rules of 2026-10-20 (hard rules R37, R40), reported and not
- * failed while their entries stand in `_pendingRules.ts`:
+ * Hard rule R37 (C2b, C5; owner's rule, 2026-10-20), every one failing:
  *
- * - **more-contentful** a +MORE in a contentful Token: its overflow is its
- *   body's first row (C5).
+ * - **taller** a head whose chips make it taller: laid on one line beside its
+ *   name (the name held at its width, so its own wrap is not counted), the
+ *   head is shorter than as drawn. A fill head's and a contentful Token's.
  * - **overflow** a head whose chips rose above its name (a line over the
  *   name's line in a fill head, a contentful Token's chips on two lines), and
- *   a body's overflow row (`[data-chip-overflow]`) that is not the body's
- *   first row, not left-aligned, or holds the cost or the Tech Level (C2b).
- *   A Page's chapter band on a phone keeps its controls over its title.
+ *   a body's overflow row (`[data-chip-overflow]`) that is not its body's
+ *   first row (right under its head, or first in a Token's body), not
+ *   left-aligned, or holds the cost or the Tech Level. A Page's chapter band
+ *   on a phone keeps its stamps and controls over its title, by CSS alone.
+ * - **more-contentful** a +MORE on a contentful rendering (a contentful
+ *   Token, a head with an overflow row): its overflow is its body's first row.
+ *
+ * Reported and not failed while its entry stands in `_pendingRules.ts`:
+ *
  * - **align** a head's name not at its left: room before it, on its line,
  *   that nothing (the art, the tier) fills (EDL E22).
  */
 const STRIP = [
   '.su-entity-stamps',
   '[data-chip-group]',
+  '[data-chip-overflow]',
   '.su-entity-tile__chips',
   '.su-entity-token__chips',
 ].join(',')
@@ -84,7 +81,7 @@ const CHIP = [
   '[data-chip-class="uses"] > *',
 ].join(',')
 
-/** A contentful Token (N3) and its +MORE (C5): a button beside its head's link, on its strip. */
+/** A contentful Token (N3), and a header-only head's +MORE (C5): its strip's last chip. */
 const CONTENTFUL = '.su-entity-token[data-contentful]'
 const MORE = '.su-chip-more'
 
@@ -93,6 +90,9 @@ const FILL = '[data-chip-fill]'
 
 /** A body's first row, holding what of its head's chips did not fit beside the name (C2b). */
 const OVERFLOW = '[data-chip-overflow]'
+
+/** The band a contentful head's overflow row follows. */
+const OVERFLOW_OWNER = '[data-chip-overflow-owner]'
 
 /** An entity's frame: the box no chip of its strips may leave. */
 const FRAME = [
@@ -113,6 +113,7 @@ function scan({
   more,
   fill,
   overflow,
+  owner,
 }: {
   strip: string
   chip: string
@@ -123,6 +124,7 @@ function scan({
   more: string
   fill: string
   overflow: string
+  owner: string
 }): string[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   type Rect = { left: number; top: number; right: number; bottom: number }
@@ -167,6 +169,26 @@ function scan({
     return s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity) > 0.05
   }
   const describe = (el: Element) => (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)
+  /**
+   * How much taller a head is as drawn than with its chips laid on one line
+   * beside its name, the name held at its width (its own wrap is the name's,
+   * not the chips'): the height its chips add by stacking. Measured by
+   * laying it so for a moment and putting it back, before the next frame.
+   */
+  const growth = (head: HTMLElement, name: HTMLElement, strip?: HTMLElement | null) => {
+    const drawn = head.getBoundingClientRect().height
+    const width = name.getBoundingClientRect().width
+    const saved = [head, name, strip].map((el) => el?.style.cssText ?? '')
+    name.style.width = `${width}px`
+    name.style.flex = 'none'
+    head.style.flexWrap = 'nowrap'
+    if (strip) strip.style.flexWrap = 'nowrap'
+    const one = head.getBoundingClientRect().height
+    ;[head, name, strip].forEach((el, i) => {
+      if (el) el.style.cssText = saved[i] ?? ''
+    })
+    return drawn - one
+  }
   const faults: string[] = []
   // FOOT: a foot band carries no chip.
   for (const foot of document.querySelectorAll('[data-foot-band]')) {
@@ -175,22 +197,27 @@ function scan({
       faults.push(`foot: "${describe(inside[0] as Element)}" is a chip in a foot band`)
     }
   }
-  // MORE: only a Token's strip ends in +MORE, and never a contentful one's.
+  // MORE: a header-only head's; never a contentful rendering's, whose
+  // overflow is its body's first row.
   for (const el of document.querySelectorAll(more)) {
     if (!visible(el)) continue
-    if (el.closest(contentful)) {
-      faults.push(`more-contentful: "${describe(el)}" is a +MORE on a contentful Token`)
-    } else if (!el.closest('.su-entity-token')) {
-      faults.push(`more: "${describe(el)}" is a +MORE outside a Token`)
+    const band = el.closest(owner)
+    const rowed = !!band && !!band.nextElementSibling?.matches(overflow)
+    if (el.closest(contentful) || rowed) {
+      faults.push(`more-contentful: "${describe(el)}" is a +MORE on a contentful head`)
     }
   }
-  // OVERFLOW: a body's overflow row is its first row, left-aligned, and
-  // never holds the cost or the Tech Level, which stay in the head.
+  // OVERFLOW: a body's overflow row is its first row (right under its head's
+  // band, or first in a Token's body), left-aligned, and never holds the cost
+  // or the Tech Level, which stay in the head.
   for (const row of document.querySelectorAll(overflow)) {
     if (!visible(row)) continue
     const where = `${describe(row)}…`
-    const first = [...(row.parentElement?.children ?? [])].find(visible)
-    if (first !== row) faults.push(`overflow: ${where} the overflow row is not its body's first`)
+    const drawn = [...(row.parentElement?.children ?? [])].filter(visible)
+    const before = drawn[drawn.indexOf(row) - 1]
+    if (before && !before.matches(owner)) {
+      faults.push(`overflow: ${where} the overflow row is not its body's first`)
+    }
     const kept = row.querySelector('.su-cost, .su-cost-edge, [data-chip-class="rank"]')
     if (kept && visible(kept)) {
       faults.push(`overflow: ${where} "${describe(kept)}" left the head`)
@@ -211,27 +238,21 @@ function scan({
     const inside = [...root.querySelectorAll(chip)].filter(visible)
     const set = new Set(inside)
     const chips = inside.filter((el) => {
-      // +MORE's slot is the room it lies on, not a chip (C5).
-      if (el.matches('.su-chip-more-slot')) return false
       for (let p = el.parentElement; p && p !== root; p = p.parentElement) {
         if (set.has(p)) return false
       }
       return true
     })
-    // A contentful Token's +MORE lies on its strip from beside its head:
-    // the strip's last chip, in its menu slot.
+    // A contentful Token's head strip; and a header-only head's +MORE, its
+    // menu lane's last chip.
     const token = root.closest(`${contentful} > .su-entity-token__head`)?.parentElement
-    const moreChip = [...(token?.querySelectorAll(more) ?? [])].find(
-      (el) => visible(el) && !root.contains(el)
-    )
-    if (moreChip) chips.push(moreChip)
+    const moreChip = chips.find((el) => el.matches(more))
     if (chips.length === 0) continue
     const where = `${describe(chips[0] as Element)}…`
 
     // UNCLASSED and ORDER: each chip in its class's lane, the lanes in the
     // class order, in the source (what a screen reader reads).
     const classOf = (el: Element) => {
-      if (el === moreChip) return 'menu'
       const lane = el.closest('[data-chip-class]')
       return lane && root.contains(lane) ? (lane.getAttribute('data-chip-class') ?? '') : ''
     }
@@ -262,7 +283,7 @@ function scan({
     }
 
     const classOfEl = (el: Element) =>
-      el === moreChip ? 'menu' : el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
+      el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
 
     // LINES: chips whose boxes overlap vertically by half the shorter one.
     const boxes: Box[] = chips.map((el) => {
@@ -326,16 +347,13 @@ function scan({
       }
     }
 
-    // LINES: a Token's chips on one line, a contentful Token's on at most
-    // two (C5): past two, it ends in +MORE. A Row's head stacks them upward.
     // OVERFLOW: a contentful Token's head keeps one line; the rest is its body's (C2b).
     if (token && lines.length > 1) {
       faults.push(`overflow: ${where} its head's chips on ${lines.length} lines, not one`)
     }
-    const most = token ? 2 : root.closest('.su-entity-token__pill') ? 1 : Number.POSITIVE_INFINITY
-    if (lines.length > most) {
-      const hint = moreChip ? '' : ', with no +MORE'
-      faults.push(`lines: ${where} on ${lines.length} lines, at most ${most}${hint}`)
+    // LINES: a header-only Token's chips on one line (C5).
+    if (!token && root.closest('.su-entity-token__pill') && lines.length > 1) {
+      faults.push(`lines: ${where} on ${lines.length} lines, at most 1`)
     }
 
     // MORE: +MORE is the strip's last chip, at the end of its lowest line
@@ -346,35 +364,8 @@ function scan({
         faults.push(`more: ${where} "${describe(moreChip)}" is not at the end of its last line`)
       }
       // +MORE drops chips before the cost, never the cost (C2, C5).
-      if (root.querySelector('[data-chip-over] .su-cost, [data-chip-over].su-cost-edge')) {
+      if (root.querySelector('[data-fill-out] .su-cost, [data-fill-out].su-cost-edge')) {
         faults.push(`more: ${where} "${describe(moreChip)}" dropped the cost`)
-      }
-    }
-
-    // FILL: a contentful Token's chips fill bottom-heavy (owner, 2026-10-19):
-    // each line under another is full, the chip that ends the line above (the
-    // next in from the corner) too wide to join it.
-    if (token && lines.length > 1) {
-      const s = getComputedStyle(root)
-      const room =
-        root.getBoundingClientRect().width -
-        Number.parseFloat(s.paddingLeft) -
-        Number.parseFloat(s.paddingRight)
-      const gap = Number.parseFloat(s.columnGap) || 0
-      const span = (line: Box[]) => {
-        const first = line[0] as Box
-        const end = line[line.length - 1] as Box
-        return end.x + end.w - first.x
-      }
-      for (let i = 1; i < lines.length; i++) {
-        const above = lines[i - 1] as Box[]
-        const next = above[above.length - 1] as Box
-        const line = lines[i] as Box[]
-        if (span(line) + gap + next.w <= room - 1) {
-          faults.push(
-            `fill: ${where} "${describe(next.el)}" would fit on the line under it (${Math.round(span(line))}px of ${Math.round(room)}px)`
-          )
-        }
       }
     }
 
@@ -400,7 +391,7 @@ function scan({
   }
   // THE BOTTOM-RIGHT FILL: every head whose name and chips share one flow.
   for (const head of document.querySelectorAll<HTMLElement>(fill)) {
-    const name = head.querySelector(':scope > [data-fill-name]')
+    const name = head.querySelector<HTMLElement>(':scope > [data-fill-name]')
     if (!name || !visible(name)) continue
     const items = [...head.querySelectorAll('[data-fill-item]')].filter(visible)
     const where = `${describe(name)}…`
@@ -499,35 +490,22 @@ function scan({
       )
       continue
     }
-    const rights = lines.map((l) => Math.round(box(l[l.length - 1] as Element).right))
-    if (Math.max(...rights) - Math.min(...rights) > 1) {
-      faults.push(`fill: ${where} lines end at ${rights.join(',')}, not flush right`)
+    // TALLER: its chips never make the head taller (C2b).
+    const grew = growth(head, name)
+    if (grew > 1) {
+      faults.push(`taller: ${where} its chips make its head ${Math.round(grew)}px taller`)
     }
-    const s = getComputedStyle(head)
-    const room =
-      head.clientWidth - Number.parseFloat(s.paddingLeft) - Number.parseFloat(s.paddingRight)
-    const gap = Number.parseFloat(s.columnGap) || 0
-    const outer = (el: Element) => {
-      const cs = getComputedStyle(el)
-      return box(el).width + Number.parseFloat(cs.marginLeft) + Number.parseFloat(cs.marginRight)
-    }
-    for (let i = 1; i < lines.length; i++) {
-      const above = lines[i - 1] as Element[]
-      const below = lines[i] as Element[]
-      const next = above[above.length - 1] as Element
-      // A line of its own by design (an index's search on a phone).
-      if (
-        Number.parseFloat(getComputedStyle(next).flexBasis) >= 100 &&
-        getComputedStyle(next).flexBasis.endsWith('%')
-      )
-        continue
-      const left = below === nameLine ? nameBox.left : box(below[0] as Element).left
-      const span = box(below[below.length - 1] as Element).right - left
-      if (span + gap + outer(next) <= room - 1) {
-        faults.push(
-          `fill: ${where} "${describe(next)}" would fit on the line under it (${Math.round(span)}px of ${Math.round(room)}px)`
-        )
-      }
+  }
+  // TALLER: nor a contentful Token's head.
+  for (const token of document.querySelectorAll(contentful)) {
+    const pill = token.querySelector<HTMLElement>(
+      ':scope > .su-entity-token__head .su-entity-token__pill'
+    )
+    const name = pill?.querySelector<HTMLElement>('.su-entity-token__notch')
+    if (!pill || !name || !visible(pill)) continue
+    const grew = growth(pill, name, pill.querySelector<HTMLElement>('.su-entity-token__chips'))
+    if (grew > 1) {
+      faults.push(`taller: ${describe(name)}… its chips make its head ${Math.round(grew)}px taller`)
     }
   }
   return faults
@@ -545,5 +523,6 @@ export async function findChipStripFaults(page: Page): Promise<string[]> {
     more: MORE,
     fill: FILL,
     overflow: OVERFLOW,
+    owner: OVERFLOW_OWNER,
   })
 }

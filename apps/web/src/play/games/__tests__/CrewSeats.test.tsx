@@ -58,8 +58,11 @@ function seats(): HTMLElement[] {
   return within(screen.getByRole('list', { name: 'Seats' })).getAllByRole('listitem')
 }
 
+// The drawn chips: a bodyless Row's +MORE is hidden until a chip does not fit (C5).
 const cellsOf = (el: Element) =>
-  [...el.querySelectorAll('.su-entity-row .su-stat-cell')].map((c) => c.textContent)
+  [...el.querySelectorAll('.su-entity-row .su-stat-cell')]
+    .filter((c) => !c.closest('[hidden]'))
+    .map((c) => c.textContent)
 
 describe('CrewSeats', () => {
   test('each seat says who holds it, their mech as a chip, and its role; the Mediator only their name', () => {

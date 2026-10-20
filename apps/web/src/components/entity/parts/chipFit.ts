@@ -16,7 +16,14 @@
  * name, every chip whole.
  */
 
-import { isKept, OUT_ATTRIBUTE, overflowPlan, writeOverflowRow } from '../../atoms/chipFill'
+import {
+  isKept,
+  OUT_ATTRIBUTE,
+  overflowPlan,
+  watchChipFill,
+  watchStaticChipFill,
+  writeOverflowRow,
+} from '../../atoms/chipFill'
 
 /** A contentful Token (N3): its head's chips overflow into its body. */
 const CONTENTFUL = '.su-entity-token[data-contentful]'
@@ -115,83 +122,16 @@ export function fitTokenOverflow(token: HTMLElement): void {
   writeOverflowRow(row, out)
 }
 
-const watched = new Set<HTMLElement>()
-let fontsWatched = false
-
 /**
- * When a font loads every chip's width changes: fit every watched Token
- * again. A face loads when text first uses it, after `fonts.ready` may
- * already have settled, so each load is heard (`loadingdone`), not only the
- * first.
+ * Fit a contentful Token now and whenever it resizes, a face loads or its
+ * chips change (`watchChipFill`'s watch); returns the stop.
  */
-function watchFonts(): void {
-  if (fontsWatched || typeof document === 'undefined' || !document.fonts) return
-  fontsWatched = true
-  void document.fonts.ready.then(refitSoon)
-  document.fonts.addEventListener?.('loadingdone', refitSoon)
-}
-
-let refitDue = false
-
-/**
- * Fit every watched Token once the page has laid itself out: after the next
- * frame, when reading a chip's box costs no layout of its own. Many asks
- * (each font face, a static page's Tokens) make one fit.
- */
-function refitSoon(): void {
-  if (refitDue) return
-  refitDue = true
-  const run = () => {
-    refitDue = false
-    for (const token of watched) if (token.isConnected) fitTokenOverflow(token)
-  }
-  if (typeof requestAnimationFrame === 'undefined') queueMicrotask(run)
-  else requestAnimationFrame(() => setTimeout(run, 0))
-}
-
-/**
- * Fit a Token now and whenever its head changes width (a resize, its
- * column); returns the stop. Only a width change refits: the head's height
- * is the fit's own doing. `later` leaves the first fit to the caller (a
- * static page fits all its Tokens together, `refitSoon`), and reads no box
- * until the page has laid out.
- */
-export function watchTokenOverflow(token: HTMLElement, { later = false } = {}): () => void {
+export function watchTokenOverflow(token: HTMLElement): () => void {
   if (!partsOf(token)) return () => undefined
-  if (!later) fitTokenOverflow(token)
-  watched.add(token)
-  watchFonts()
-  const head = token.firstElementChild
-  if (!(head instanceof HTMLElement) || typeof ResizeObserver === 'undefined') {
-    return () => watched.delete(token)
-  }
-  // Its first observation, after the page's own layout, is the width a later fit starts from.
-  let at = later ? undefined : width(head)
-  const observer = new ResizeObserver(() => {
-    if (!token.isConnected) {
-      observer.disconnect()
-      watched.delete(token)
-      return
-    }
-    const now = width(head)
-    if (at === undefined || Math.abs(now - at) < 0.5) {
-      at ??= now
-      return
-    }
-    at = now
-    fitTokenOverflow(token)
-  })
-  observer.observe(head)
-  return () => {
-    observer.disconnect()
-    watched.delete(token)
-  }
+  return watchChipFill(token, fitTokenOverflow)
 }
 
-/** A static page's contentful Tokens (server-rendered, no React): fitted together once laid out, and each on resize. */
+/** A static page's contentful Tokens (server-rendered, no React): each fits (in turns) and on resize. */
 export function watchStaticTokenOverflow(root: ParentNode = document): void {
-  for (const token of root.querySelectorAll<HTMLElement>(CONTENTFUL)) {
-    watchTokenOverflow(token, { later: true })
-  }
-  refitSoon()
+  watchStaticChipFill(root, CONTENTFUL, fitTokenOverflow)
 }

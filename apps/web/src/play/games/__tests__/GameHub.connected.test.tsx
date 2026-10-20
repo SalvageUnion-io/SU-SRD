@@ -147,6 +147,12 @@ async function renderHub(over: QueryAnswers = {}): Promise<void> {
 
 const heading = (name: string) => screen.queryByRole('heading', { level: 2, name })
 
+/** An element's text as drawn: a bodyless Row's +MORE is hidden until a chip does not fit (C5). */
+const drawnText = (el: Element) => {
+  const copy = el.cloneNode(true) as Element
+  for (const hidden of copy.querySelectorAll('[hidden]')) hidden.remove()
+  return copy.textContent
+}
 describe('a Manage page in Play (ADR-052 §5, §7)', () => {
   test('the Game’s name on Play’s band, and none of Build’s controls', async () => {
     await renderHub()
@@ -300,7 +306,7 @@ describe('Crew & seats', () => {
     })
 
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
-    const rows = seats.getAllByRole('listitem').map((li) => li.textContent)
+    const rows = seats.getAllByRole('listitem').map(drawnText)
     // Join order; a Mediator with no pilot is their name alone; an unclaimed pilot is an open seat.
     // A pilot seat is the pilot's Row: who holds it, its role and HP, then its
     // mech as a relation chip (C11).
@@ -442,10 +448,7 @@ describe('Play from the Game page', () => {
   }
 
   /** The pilots on offer, as their Rows read: name, kind, then whose. */
-  const offered = (dialog: HTMLElement) =>
-    within(dialog)
-      .queryAllByRole('radio')
-      .map((r) => r.textContent)
+  const offered = (dialog: HTMLElement) => within(dialog).queryAllByRole('radio').map(drawnText)
 
   /** The body of `/play/<id>`, signed in and connected. */
   async function openGate(id: string): Promise<void> {

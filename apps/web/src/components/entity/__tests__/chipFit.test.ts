@@ -124,9 +124,6 @@ describe('watchTokenOverflow', () => {
     document.body.innerHTML = ''
   })
 
-  /** After the next frame and the task it queues, when a deferred fit has run. */
-  const afterFrame = () => new Promise((done) => requestAnimationFrame(() => setTimeout(done, 10)))
-
   /** A ResizeObserver whose callbacks the test fires. */
   function fakeObserver() {
     const fired: (() => void)[] = []
@@ -144,21 +141,14 @@ describe('watchTokenOverflow', () => {
     return { resize: () => fired.at(-1)?.(), disconnected: () => disconnected }
   }
 
-  test('refits when the head changes width, until stopped', () => {
+  test('refits when the Token resizes, until stopped', () => {
     const observer = fakeObserver()
-    let headWidth = 400
     const t = token([80, 80, 80], { pill: 400, cost: 40 })
-    const head = t.el.firstElementChild as HTMLElement
-    head.getBoundingClientRect = () => ({ width: headWidth }) as DOMRect
     const stop = watchTokenOverflow(t.el)
     expect(t.out()).toEqual(['chip 0'])
-    // A height change alone (the fit's own) is no refit; a width change is.
-    for (const chip of t.el.querySelectorAll('[data-w]')) chip.removeAttribute('data-fill-out')
+    t.widen(900)
     observer.resize()
     expect(t.out()).toEqual([])
-    headWidth = 300
-    observer.resize()
-    expect(t.out()).toEqual(['chip 0'])
     stop()
     expect(observer.disconnected()).toBe(1)
   })
@@ -172,13 +162,10 @@ describe('watchTokenOverflow', () => {
     expect(observer.disconnected()).toBe(1)
   })
 
-  test("a static page's contentful Tokens fit together once it has laid out", async () => {
+  test("a static page's contentful Tokens each fit on the page's load", () => {
     fakeObserver()
     const t = token([80, 80, 80], { pill: 400, cost: 40 })
     watchStaticTokenOverflow(document.body)
-    // Not while the page loads: after its next frame.
-    expect(t.out()).toEqual([])
-    await afterFrame()
     expect(t.out()).toEqual(['chip 0'])
   })
 })

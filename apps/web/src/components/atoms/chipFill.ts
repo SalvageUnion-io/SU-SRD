@@ -37,13 +37,13 @@ const FILL_NAME = '[data-fill-name]'
 const NOT_ITEMS = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
 
 /** A header-only head's +MORE (C5): drawn once a chip is out, its last chip. */
-export const MORE_ATTRIBUTE = 'data-chip-more'
+const MORE_ATTRIBUTE = 'data-chip-more'
 
 /**
  * A contentful head's band: the element its body's overflow row
  * (`[data-chip-overflow]`) follows, as its next sibling.
  */
-export const OVERFLOW_OWNER_ATTRIBUTE = 'data-chip-overflow-owner'
+const OVERFLOW_OWNER_ATTRIBUTE = 'data-chip-overflow-owner'
 
 /** The overflow row of the head `container` fills: the next sibling of its band, if that is one. */
 function overflowRowOf(container: HTMLElement): HTMLElement | null {
@@ -118,7 +118,7 @@ function oneLineWidth(
 }
 
 /** An item's chip class within `root`: its own, or its lane's; '' for none. */
-export function classOfItem(item: Element, root: Element): string {
+function classOfItem(item: Element, root: Element): string {
   const lane = item.closest('[data-chip-class]')
   return lane && root.contains(lane) ? (lane.getAttribute('data-chip-class') ?? '') : ''
 }
@@ -317,28 +317,33 @@ function fitChipFill(container: HTMLElement): void {
 }
 
 const watched = new WeakSet<HTMLElement>()
-const live = new Set<HTMLElement>()
+/** Every watched head, and its fit. */
+const live = new Map<HTMLElement, (head: HTMLElement) => void>()
 let fontsWatched = false
 
 /** A face loads when text first uses it: every chip's width changes, so fit again. */
 function watchFonts(): void {
   if (fontsWatched || typeof document === 'undefined' || !document.fonts) return
   fontsWatched = true
-  const refit = () => fitInTurns([...live], fitChipFill)
+  const refit = () => fitInTurns([...live.keys()], (head) => live.get(head)?.(head))
   void document.fonts.ready.then(refit)
   document.fonts.addEventListener?.('loadingdone', refit)
 }
 
 /**
- * Fit a head now and whenever its width, its name's or a chip's changes (a
- * resize, a face loading, a live reading) or its chips change; returns the
+ * Fit a head (with `fit`, a fill head's by default; a contentful Token's is
+ * `chipFit.ts`'s) now and whenever its width, its name's or a chip's changes
+ * (a resize, a face loading, a live reading) or its chips change; returns the
  * stop. A fit that reads what the last one read writes nothing, so the
  * resizes its own writes cause end there.
  */
-export function watchChipFill(container: HTMLElement): () => void {
+export function watchChipFill(
+  container: HTMLElement,
+  fitOne: (head: HTMLElement) => void = fitChipFill
+): () => void {
   if (watched.has(container)) return () => undefined
   watched.add(container)
-  live.add(container)
+  live.set(container, fitOne)
   const resize =
     typeof ResizeObserver === 'undefined'
       ? undefined
@@ -352,7 +357,7 @@ export function watchChipFill(container: HTMLElement): () => void {
   // page with many heads fitting every frame, never idle.
   const observed = new Set<Element>()
   const fit = () => {
-    fitChipFill(container)
+    fitOne(container)
     if (!resize) return
     const name = container.querySelector(`:scope > ${FILL_NAME}`)
     const now = new Set<Element>([container, ...container.querySelectorAll(`[${ITEM_ATTRIBUTE}]`)])
@@ -409,9 +414,16 @@ function fitInTurns(containers: HTMLElement[], each: (head: HTMLElement) => void
   if (later.length > 0) setTimeout(next, 0)
 }
 
-/** A static page's heads (server-rendered, no React): each fits (in turns) and on resize. */
-export function watchStaticChipFill(root: ParentNode = document): void {
-  fitInTurns([...root.querySelectorAll<HTMLElement>(FILL_HEAD)], (head) => {
-    watchChipFill(head)
+/**
+ * A static page's heads (server-rendered, no React) that `selector` finds:
+ * each fits with `fit` (in turns) and on resize. A fill head's by default.
+ */
+export function watchStaticChipFill(
+  root: ParentNode = document,
+  selector = FILL_HEAD,
+  fit: (head: HTMLElement) => void = fitChipFill
+): void {
+  fitInTurns([...root.querySelectorAll<HTMLElement>(selector)], (head) => {
+    watchChipFill(head, fit)
   })
 }

@@ -23,8 +23,8 @@ import type { Page } from '@playwright/test'
  *
  * An entity's own surface is not one of its controls: the link or radio the
  * Row or Token is (or its cover, or a Token with controls' name), a link that wraps its head, and a select
- * Row's check. A contentful Token's +MORE (C5) lies on its strip's last slot
- * from beside the head's link, so it is in its chip group. A contentful
+ * Row's check. What of a head's chips did not fit beside its name is its
+ * body's first row (`[data-chip-overflow]`, C2b): its chip group still. A contentful
  * Token's body holds its host's content and, in Edit, its fields (a crew
  * lead's name, keepsake and facts: `TokenBody`), which are no strip's. A
  * nested entity's controls are that entity's, held to its own chip group.
@@ -40,15 +40,10 @@ export type StripControlSelectors = {
   surface: string
   /** An entity's head: what a control beside the strip sits on. */
   head: string
-  /** The chip group. */
+  /** The chip group, and its body's overflow row (C2b). */
   group: string
   /** A select Row's check, the mode's own control (N7). */
   check: string
-  /**
-   * A contentful Token's +MORE (C5): a button beside its head's link that
-   * lies on the end of its strip's second line, its chip group's last slot.
-   */
-  more: string
   /** A contentful Token's body: its host's content and, in Edit, its fields. */
   body: string
   /** A Card's frame: an entity nested in it is the Card's, its controls the Card's. */
@@ -81,9 +76,8 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   entity: '.su-entity-row, .su-entity-token, .su-entity-tile',
   surface: '.su-entity-row__cover, .su-entity-token__head, .su-entity-token__link',
   head: '.su-entity-row__head, .su-entity-token__pill, .su-entity-tile__band',
-  group: '[data-chip-group]',
+  group: '[data-chip-group], [data-chip-overflow]',
   check: '.su-entity-row__head input[type="checkbox"]',
-  more: '.su-entity-token[data-contentful] > .su-entity-token__more > .su-chip-more',
   body: '.su-entity-token[data-contentful] > .su-entity-token__body',
   card: '.su-ec-frame',
   tokenGroup: '.su-token-group',
@@ -126,7 +120,6 @@ export function scanStripControls(a: StripControlSelectors): string[] {
         control.matches(a.entity) ||
         control.matches(a.surface) ||
         control.matches(a.check) ||
-        control.matches(a.more) ||
         control.closest(a.body) !== null ||
         control.querySelector(a.head) !== null
       ) {

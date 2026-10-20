@@ -89,7 +89,7 @@ test.describe('bundle-size budget', () => {
     // data chunks load only when one is reached for.
     //
     // A ratchet: it fails on any growth past the measured ~24 KB (the island
-    // entry, the chip lanes, +MORE and the bottom-right fill's runtime;
+    // entry, the chip lanes, the overflow and the bottom-right fill's runtime;
     // raised from 20 KB for the fill, owner's call 2026-10-20). Something
     // loading React or game data at page load again lands far above it.
     expect(totals.bytes).toBeLessThan(25_000)

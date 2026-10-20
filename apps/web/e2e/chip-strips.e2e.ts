@@ -11,12 +11,11 @@ import { test as signedIn } from './fixtures'
  * Page's band cluster, its cards' heads, their Tokens. A failure names the
  * page, the width and the fault (`_chipStrips.ts`): a value off its label's
  * size, a hole between chips, lines on no common edge, a cost out of its
- * corner, a head's chips not filling from its bottom right (a line that
- * rose though it fit beside the name), a chip clipped or past its strip's
- * edge (R3), too many lines.
+ * corner, a chip clipped or past its strip's edge (R3), too many lines, and
+ * R37's: a head its chips make taller, a chip above its name, an overflow
+ * row that is not its body's first, +MORE on a contentful head.
  * There is no allowlist: every fault fails, bar a pending rule's
- * (`_pendingRules.ts`: the overflow row, +MORE on a contentful Token, a name
- * off its head's left), which the report shows.
+ * (`_pendingRules.ts`: a name off its head's left), which the report shows.
  */
 const PAGES = [
   '/systems/',

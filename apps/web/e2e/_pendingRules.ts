@@ -2,7 +2,8 @@ import { test } from '@playwright/test'
 
 /**
  * Rules the owner has stated whose screens do not hold them yet
- * (hard-rules.md R37–R41, from the 4.0 gallery review of 2026-10-20). A gate
+ * (hard-rules.md R38, R40 and R41, from the 4.0 gallery review of
+ * 2026-10-20). A gate
  * finds them like any other rule, but reports them on its test (an annotation
  * per rule, with a count and the first findings) and never fails on them.
  * The work that makes the screens hold a rule deletes its entry here, in the
@@ -12,9 +13,6 @@ import { test } from '@playwright/test'
  * (`_chipStrips.ts`), or a nesting finding's `rule`.
  */
 export const PENDING_RULES: Readonly<Record<string, string>> = {
-  overflow:
-    "R37 (C2b): a head's chips that do not fit beside its name flow into the body's first row, left-aligned; the cost and Tech Level stay in the head",
-  'more-contentful': 'R37 (C5): a contentful Token never shows +MORE; its overflow is the body row',
   frame:
     "R38 (§4.3, EDL E21): an entity's frame is the subtle ink-40; only --su-row-frame colours one",
   align: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',

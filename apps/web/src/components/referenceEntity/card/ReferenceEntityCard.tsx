@@ -418,9 +418,7 @@ function ReferenceEntityCardInner({
     <CardTitleLink entity={entity} title={name} inPeek={insidePeek} />
   ) : undefined
 
-  // Every card wears the cut-out head; a Page has its chapter band. What of
-  // its chips does not fit beside the name goes to its body's first row, or,
-  // on a card that is its head alone, behind +MORE (C2b).
+  // Every card wears the cut-out head (its overflow, C2b); a Page has its chapter band.
   const header = (overflow: 'body' | 'more') => (
     <CardHead
       cutOut={!onPage}
@@ -558,18 +556,9 @@ function ReferenceEntityCardInner({
     )
   }
 
-  // Nothing under the head: a nested action with only its name and chips.
-  const headOnly =
-    !subtitleExtra &&
-    !body &&
-    !rollTableNode &&
-    !patternSection &&
-    !actionsNode &&
-    !nestedGroupsNode &&
-    !(!hide?.patterns && patternList.length > 0) &&
-    !afterExtraContent &&
-    !expand &&
-    !rendersFooter
+  const after = [afterExtraContent, expand, rendersFooter, !hide?.patterns && patternList.length]
+  const under = [subtitleExtra, body, rollTableNode, patternSection, actionsNode, nestedGroupsNode]
+  const headOnly = ![...under, ...after].some(Boolean) // a nested action's name and chips alone
   return (
     <CardOuter {...outer}>
       {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
@@ -612,11 +601,7 @@ function ReferenceEntityCardInner({
         )}
         {/* SLOT: expand — before the footer (a crawler bay's crew inset). */}
         {expand && (
-          <div
-            style={{
-              padding: `0 ${compact ? space[12] : space[14]} ${space[12]}`,
-            }}
-          >
+          <div style={{ padding: `0 ${compact ? space[12] : space[14]} ${space[12]}` }}>
             {expand}
           </div>
         )}
