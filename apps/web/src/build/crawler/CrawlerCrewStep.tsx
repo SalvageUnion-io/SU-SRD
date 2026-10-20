@@ -55,7 +55,7 @@ function npcOf(entity: RefEntity): ResolvedNpc | undefined {
  * Step 4 · Name your Crew (Union Crawler p.213) — the bay roster, restyled to
  * the poster idiom: the 10 base bays auto-seed (not
  * choosable, not removable; expansion bays never appear) and each is its
- * SRD entity's Token (header-only is a Token, EDL N2) until it opens into its
+ * SRD entity's Mini (header-only is a Mini, EDL N2) until it opens into its
  * compact card and the sheets' IdentityFields for the NPC's four crew facts
  * (Name, Background, Keepsake, Motto — guarded off the NPC's own choice set:
  * Augmented's A.I. carries neither Keepsake nor Motto). NPC HP is fixed by

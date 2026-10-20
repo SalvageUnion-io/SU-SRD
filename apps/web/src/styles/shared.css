@@ -124,7 +124,7 @@
   min-width: 0;
 }
 
-/* The guesses: search-result Rows. */
+/* The guesses: search-result Compacts. */
 .su-not-found__results {
   display: flex;
   flex-direction: column;

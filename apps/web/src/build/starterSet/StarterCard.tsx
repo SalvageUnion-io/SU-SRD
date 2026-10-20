@@ -1,6 +1,6 @@
 /**
  * StarterCard — one Starter Set build as the compact entity card: the entity
- * display language's ROW (`<Entity form="row">`), opening the build's
+ * display language's ROW (`<Entity size="compact">`), opening the build's
  * read-only sheet (`/starter/:kind/:id`).
  *
  * The front door and the Starter Set page both list the same thirteen builds,
@@ -10,7 +10,7 @@
  * relation chip (`chips-and-actions.md` C11): it Peeks and opens that entity.
  * The host's controls (signed in, "Copy to…") are the chip group's last slot
  * (C8, hard rule R6). Neither may sit inside the sheet's link (no nested
- * interactive content), so the Row is a covered link Row: the link is an empty
+ * interactive content), so the Compact is a covered link Compact: the link is an empty
  * cover over the whole card and the chips are raised above it.
  */
 
@@ -29,7 +29,7 @@ type StarterCardProps = {
 export function StarterCard({ kind, build, controls }: StarterCardProps) {
   return (
     <Entity
-      form="row"
+      size="compact"
       model={build.model}
       mode={{
         kind: 'link',

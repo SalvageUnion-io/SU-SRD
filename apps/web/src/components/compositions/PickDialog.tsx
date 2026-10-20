@@ -10,14 +10,14 @@ import { RadioCardGroup } from '../containers/RadioCardGroup'
 import { SlabSection } from '../containers/SlabSection'
 import type { TagItem } from '../entity'
 import { Entity } from '../entity/Entity'
-import type { EntityRowModel } from '../entity/types'
+import type { EntityFormModel } from '../entity/types'
 
-/** One thing on offer: its Row, and what the Row carries beside its name. */
+/** One thing on offer: its Compact, and what the Compact carries beside its name. */
 type PickChoice = {
   /** The radio value, unique across every group. */
   id: string
-  model: EntityRowModel
-  /** The Row's accessible name. */
+  model: EntityFormModel
+  /** The Compact's accessible name. */
   label: string
   /** The host's labels right of the name (who holds it). */
   labels?: ReactNode
@@ -75,7 +75,7 @@ const GROUPS = {
   gap: space[16],
 } satisfies CSSProperties
 
-/** One group: its Slab, then its Rows 8px apart. */
+/** One group: its Slab, then its Compacts 8px apart. */
 const GROUP = {
   display: 'flex',
   flexDirection: 'column',
@@ -92,7 +92,7 @@ const NOTE = {
 
 /**
  * PickDialog — the one pick dialog (ruleset §6.6): a narrow `ModalShell`
- * (chrome K7) around one radio group of Rows in select mode (EDL "Modes":
+ * (chrome K7) around one radio group of Compacts in select mode (EDL "Modes":
  * ink ring and the "Selected" seal), each run of them under its Slab, then
  * Cancel and the primary act in `DialogActions`. Nothing on offer is one
  * `EmptyState` (K8). Assigning a unit to a slot, moving one in from the
@@ -136,7 +136,7 @@ export function PickDialog({
               const rows = group.choices.map((choice) => (
                 <Entity
                   key={choice.id}
-                  form="row"
+                  size="compact"
                   model={choice.model}
                   mode={{
                     kind: 'select',

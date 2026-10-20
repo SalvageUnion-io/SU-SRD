@@ -22,14 +22,14 @@ import { paintFor } from '../parts/paint'
 import type { TagItem } from '../parts/tagItems'
 import { traitTags } from '../parts/tagItems'
 import { usePeekAttrs } from '../peekContext'
-import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
-import { RowBody, RowFrame } from './RowFrame'
+import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
+import { CompactBody, CompactFrame } from './CompactFrame'
 import { ROW_ROOT } from './rowRoot'
 
 /**
- * What a host resolves for the Row (`<Entity form="row">`'s title element,
+ * What a host resolves for the Compact (`<Entity size="compact">`'s title element,
  * controls, labels, links and trailing chip). A slot set here replaces what
- * the Row would derive from the model and the mode.
+ * the Compact would derive from the model and the mode.
  */
 type RowSlots = {
   titleAs?: ElementType
@@ -41,7 +41,7 @@ type RowSlots = {
    * The host's controls (Use, Assign, Unassign, View): the chip group's last
    * slot, after the cost and the state, ahead of a "⋯" (C8, hard rule R6);
    * never beside the strip. They never nest inside the surface's own control:
-   * a link or select Row that has them lays its surface over the frame and
+   * a link or select Compact that has them lays its surface over the frame and
    * raises them above it.
    */
   controls?: ReactNode
@@ -64,7 +64,7 @@ type RowSlots = {
 }
 
 export type RowProps = {
-  model: EntityRowModel
+  model: EntityFormModel
   /** Where it is drawn (C4): picks the one measure its head keeps; its kind's own by default. */
   context?: ChipContext
   instance?: EntityInstance
@@ -76,7 +76,7 @@ export type RowProps = {
    * cut-out, `tier` for an ability's numeral (a class page sets it on the track).
    */
   omit?: readonly EntityOmit[]
-  /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
+  /** Hover, focus or a long press Peeks the Compact (a pattern's loadout). Off in listings. */
   peek?: boolean
   slots?: RowSlots
 }
@@ -85,7 +85,7 @@ const READ: EntityMode = { kind: 'read' }
 
 /*
  * The frame (ink on paper, dashed when player-made: ruleset §3.9) and the body
- * are `RowFrame` and `RowBody`, whose `.su-entity-row__frame` / `__body`
+ * are `CompactFrame` and `CompactBody`, whose `.su-entity-compact__frame` / `__body`
  * classes are `partials/entity-forms.css`'s: every
  * row of a listing repeats them, so they are stylesheet rules, not style
  * objects (ADR-046, repeated elements). The selection ring and a down row's
@@ -100,11 +100,11 @@ const READ: EntityMode = { kind: 'read' }
  * a paper body: the host's leading content and the lead while browsing
  * (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
- * cut-out notched into the band's foot, as a Tile's. Fill follows kind (E12):
+ * cut-out notched into the band's foot, as a CompactIndex's. Fill follows kind (E12):
  * a "have" entity's tone, an ability's tier tone (Core orange, Advanced
  * and Hybrid rust, Legendary pink), any other "do" entity's ink banner with paper flecks.
  */
-export function Row({
+export function Compact({
   model,
   context,
   instance,
@@ -119,7 +119,7 @@ export function Row({
   const down = downOf(instance?.condition)
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined, undefined, down)
   const ability = model.ref.schemaName === 'abilities'
-  // An ability's Row wears its tier tone (E12); any other "do" entity the ink banner.
+  // An ability's Compact wears its tier tone (E12); any other "do" entity the ink banner.
   const fill = model.kind.nature === 'do' && !ability ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade)
@@ -147,7 +147,7 @@ export function Row({
     ) : undefined
   const note = omit.includes('kind') ? undefined : model.kind.note
   // The model's own labels (a unit's note, the HOMEBREW stamp): `CardLabels`
-  // draws them only when there is a note or the Row is user-made.
+  // draws them only when there is a note or the Compact is user-made.
   const ownLabels =
     userMade || note ? (
       <CardLabels
@@ -179,12 +179,12 @@ export function Row({
       ]
     : undefined
 
-  // A Row with controls, or a link Row with host labels or a trailing chip that
+  // A Compact with controls, or a link Compact with host labels or a trailing chip that
   // may be one (an owner seal that claims, a "⋯" menu), never nests them in its
   // own control (a link's `<a>`, a radio): the surface is an empty cover laid
   // over the frame, and the controls, the chips' own controls (and a toggle's
   // check) are raised above it (`[data-covered]`). There a relation is a link
-  // of its own too, raised with them (C11), so a link Row with relations is
+  // of its own too, raised with them (C11), so a link Compact with relations is
   // covered too: its relations Peek and open outside the link (a Starter Set
   // card's `CLASS | Engineer`).
   const covered =
@@ -193,7 +193,11 @@ export function Row({
       mode.kind === 'link')
 
   const frame = (
-    <RowFrame userMade={userMade} bodyless={!hasBody} style={selected ? SELECTED_RING : undefined}>
+    <CompactFrame
+      userMade={userMade}
+      bodyless={!hasBody}
+      style={selected ? SELECTED_RING : undefined}
+    >
       <Head
         title={title}
         kind={omit.includes('kind') ? undefined : model.kind.stamp}
@@ -222,7 +226,7 @@ export function Row({
         affordance={affordance}
         controls={slots.controls}
         labels={labelsAsChips ? undefined : ownLabels}
-        // Every Row wears the cut-out, bodied or not, its chips on the band
+        // Every Compact wears the cut-out, bodied or not, its chips on the band
         // beside the name (owner's call, 2026-10-13).
         notch
         chipsBeside
@@ -231,12 +235,12 @@ export function Row({
         overflow={hasBody ? 'body' : 'more'}
       />
       {hasBody && (
-        <RowBody style={down ? { opacity: 0.6 } : undefined}>
+        <CompactBody style={down ? { opacity: 0.6 } : undefined}>
           {slots.leading}
           {leadText && <Lead text={leadText} />}
-        </RowBody>
+        </CompactBody>
       )}
-    </RowFrame>
+    </CompactFrame>
   )
 
   if (covered) {
@@ -244,7 +248,11 @@ export function Row({
       <div className={ROW_ROOT} data-covered="">
         {frame}
         {mode.kind === 'select' ? (
-          <SelectSurface mode={mode} label={mode.label ?? title} className="su-entity-row__cover">
+          <SelectSurface
+            mode={mode}
+            label={mode.label ?? title}
+            className="su-entity-compact__cover"
+          >
             {null}
           </SelectSurface>
         ) : (
@@ -253,7 +261,7 @@ export function Row({
             label={title}
             attrs={mode.kind === 'link' ? mode.attrs : undefined}
             peek={peekAttrs}
-            className="su-entity-row__cover"
+            className="su-entity-compact__cover"
           >
             {null}
           </LinkSurface>

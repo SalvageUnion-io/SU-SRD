@@ -12,7 +12,7 @@ import { test } from './fixtures'
  * the strip (`beside`) or in the body under it (`under`).
  *
  * No baseline: every finding fails. A sheet item's state, uses, actions and ✕
- * ride its Token's chip group (`SheetItemLine`, R11), its name the link.
+ * ride its Mini's chip group (`SheetItemLine`, R11), its name the link.
  */
 const BASELINE: readonly DesignDebt[] = []
 

@@ -138,7 +138,7 @@ describe('a listing (compact cards under a visible heading)', () => {
     // The island's own cards from build-time data, not a stand-in: one tile
     // per chassis, each linking to its page.
     expect(html).not.toContain('su-listing__fallback-row')
-    expect(html.match(/class="su-entity-tile[ "]/g)?.length).toBeGreaterThan(40)
+    expect(html.match(/class="su-entity-index[ "]/g)?.length).toBeGreaterThan(40)
     expect(html).toContain('href="/chassis/mule/"')
   })
 

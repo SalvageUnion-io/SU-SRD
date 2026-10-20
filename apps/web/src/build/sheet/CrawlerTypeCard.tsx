@@ -7,15 +7,15 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
-import { Content, embeddedPeekAddress, TokenGrid, tokens } from '../../components/index'
+import { Content, embeddedPeekAddress, MiniGrid, tokens } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { LinkedCrewToken } from '../npc/LinkedCrewToken'
-import { CrewLeadToken } from './CrewLeadToken'
+import { LinkedCrewMini } from '../npc/LinkedCrewMini'
+import { CrewLeadMini } from './CrewLeadMini'
 
 const TYPE_STACK = {
   display: 'flex',
@@ -37,7 +37,7 @@ type CrawlerTypeCardProps = {
   store: typeof useEntityStore
   readOnly: boolean
   /**
-   * The type's special ability, one `li` a contentful Token. Rendered INSIDE
+   * The type's special ability, one `li` a contentful Mini. Rendered INSIDE
    * this card, in one masonry grid with the crew lead, because both describe
    * the same type.
    */
@@ -48,7 +48,7 @@ type CrawlerTypeCardProps = {
 
 /**
  * CrawlerTypeCard — the chosen crawler type's description and special
- * action(s), with its special NPC as a contentful Token (`CrewLeadToken`,
+ * action(s), with its special NPC as a contentful Mini (`CrewLeadMini`,
  * N3), as a bay's crew lead is: its head Peeks the type's NPC, its body holds
  * what the sheet tracks about them (in Edit, their fields). Mirrors
  * CrawlerBayCard: Keepsake/Motto persist through the NPC's
@@ -115,7 +115,7 @@ export function CrawlerTypeCard({
 
   const inlineReadOnly = readOnly || assigned !== undefined
   const inlineCrew = npc ? (
-    <CrewLeadToken
+    <CrewLeadMini
       entity={{ ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity}
       peekAt={embeddedPeekAddress(type.schemaName, type.id, 'npc')}
       instance={{ title: typeNpc?.npcName?.trim() || npc.position }}
@@ -144,7 +144,7 @@ export function CrawlerTypeCard({
   ) : undefined
   const crew =
     assigned && inlineCrew ? (
-      <LinkedCrewToken slotName={type.name} assignment={assigned} fallback={inlineCrew} />
+      <LinkedCrewMini slotName={type.name} assignment={assigned} fallback={inlineCrew} />
     ) : (
       inlineCrew
     )
@@ -166,11 +166,11 @@ export function CrawlerTypeCard({
   return (
     <div style={TYPE_STACK}>
       {description}
-      {/* Ability ∥ crew: one masonry grid of contentful Tokens (`TokenGrid`). */}
-      <TokenGrid label={`${type.name} ability and crew`}>
+      {/* Ability ∥ crew: one masonry grid of contentful Minis (`MiniGrid`). */}
+      <MiniGrid label={`${type.name} ability and crew`}>
         {ability}
         {crew && <li>{crew}</li>}
-      </TokenGrid>
+      </MiniGrid>
     </div>
   )
 }

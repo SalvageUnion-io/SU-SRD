@@ -22,7 +22,7 @@ export type LabelsProps = {
  * The same labels as chips of a head's one strip (`Chips`' marks, C2): beside
  * chips they are chips, at the strip's Size, never a cluster of their own at
  * another (siblings on one line share one Size, ruleset §4.7; owner's rule,
- * 2026-10-14, as a Row's note). The seal keeps its stamp and tone, and
+ * 2026-10-14, as a Compact's note). The seal keeps its stamp and tone, and
  * HOMEBREW its stamp; every other label is a `Stat` cell, the Legal
  * Starting Pattern a label-only one that says the book's words on hover.
  */

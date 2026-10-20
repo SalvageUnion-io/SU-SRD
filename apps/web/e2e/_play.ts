@@ -77,8 +77,8 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
 }
 
 /**
- * A pilot's Play screen, `/play/<id>`, read off its Training Bay Row's sheet link.
- * For a pilot in a Game its player also mediates: that Game's Row on the Play
+ * A pilot's Play screen, `/play/<id>`, read off its Training Bay Compact's sheet link.
+ * For a pilot in a Game its player also mediates: that Game's Compact on the Play
  * hub has one door, Mediate (ADR-052 §4), so there is no "Play <pilot>" to
  * follow.
  */
@@ -89,7 +89,7 @@ export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   await expect(row, `the Training Bay lists ${name}`).toBeVisible({ timeout: 30_000 })
   const href = await row.first().getAttribute('href')
   const id = href?.match(/\/sheet\/pilot\/([^/?#]+)/)?.[1]
-  if (!id) throw new Error(`${name}'s Training Bay Row has no sheet link: ${href}`)
+  if (!id) throw new Error(`${name}'s Training Bay Compact has no sheet link: ${href}`)
   return `/play/${id}`
 }
 

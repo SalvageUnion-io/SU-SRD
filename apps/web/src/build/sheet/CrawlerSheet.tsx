@@ -24,7 +24,7 @@
  * homebrew/custom-bay split needs a data-model flag the schema does not have)
  * as compact entity cards (max 2
  * columns), each with Intact/Damaged status, its crew lead as a
- * contentful Token (`CrewLeadToken`), a "Docks <mech>" one-liner on the Mech Bay, and a
+ * contentful Mini (`CrewLeadMini`), a "Docks <mech>" one-liner on the Mech Bay, and a
  * function/Repair action pair. Repair decrements 5 Scrap from the
  * crawler-TL pool bucket, spilling into higher buckets — a short pool is
  * advisory, never a block.
@@ -67,10 +67,10 @@ import {
   Button,
   EmptyState,
   Entity,
+  MiniGrid,
   SlabSection,
   Stack,
   Stat,
-  TokenGrid,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -119,7 +119,7 @@ type CrawlerSheetProps = {
    * Load target. Null when nothing is docked.
    */
   mech?: Mech | null
-  /** The docked mech's sheet: the Hold's load target and the Mech Bay's Token open it. */
+  /** The docked mech's sheet: the Hold's load target and the Mech Bay's Mini open it. */
   mechHref?: string
   /**
    * Injectable store — defaults to useEntityStore.
@@ -263,16 +263,16 @@ export function CrawlerSheet({
         <EmptyState variant="quiet" body="No weapons mounted." />
       )
     ) : (
-      // Contentful Tokens in a masonry grid across the bay, each Peeking its
+      // Contentful Minis in a masonry grid across the bay, each Peeking its
       // whole card (owner's call, 2026-10-20).
-      <TokenGrid label="Weapons mounted">
+      <MiniGrid label="Weapons mounted">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
             <li key={slug}>
               {system ? (
                 <Entity
-                  form="token"
+                  size="mini"
                   context="loadout"
                   entity={system}
                   mode={{ kind: 'link' }}
@@ -289,7 +289,7 @@ export function CrawlerSheet({
             </li>
           )
         })}
-      </TokenGrid>
+      </MiniGrid>
     )
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
@@ -468,16 +468,16 @@ export function CrawlerSheet({
               )
             }
           >
-            {/* Each bay a contentful Token and what belongs to it, in one
-                border of its tone (`TokenGroup`), a cell of the masonry grid. */}
-            <TokenGrid label="Bays">
+            {/* Each bay a contentful Mini and what belongs to it, in one
+                border of its tone (`MiniGroup`), a cell of the masonry grid. */}
+            <MiniGrid label="Bays">
               {bays.map((entry, i) =>
                 bayKind(entry) === 'storage' ? null : (
                   // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
                   <li key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</li>
                 )
               )}
-            </TokenGrid>
+            </MiniGrid>
           </SlabSection>
         )}
 

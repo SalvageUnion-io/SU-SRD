@@ -1,7 +1,7 @@
 /**
  * The Units column (play.md §4, wireframe pin 4) in each Situation: which
  * unit is live (− / +) and which is for reference (dashed, read-only, Board
- * its one control), the hangar's Tokens, the mech's Downtime restore preview,
+ * its one control), the hangar's Minis, the mech's Downtime restore preview,
  * a Game crawler read from the listing, and Sheet ⤢'s overlay.
  *
  * The column is handed a `Play` built here, as `PlayCockpit` hands it the one
@@ -225,7 +225,7 @@ describe('the Units column (play.md §4)', () => {
     expect(boards).toEqual([MECH])
   })
 
-  test('the other mechs are hangar Tokens, one per line, not boxes', async () => {
+  test('the other mechs are hangar Minis, one per line, not boxes', async () => {
     setQueryAnswers({})
     await renderColumn(playFor({ situation: 'onFoot' }).play)
     const hangar = document.querySelectorAll('.su-play-unit__hangar')
@@ -233,7 +233,7 @@ describe('the Units column (play.md §4)', () => {
     const token = hangar[0] as HTMLElement
     expect(token.textContent).toContain('Old Faithful')
     expect(token.textContent).toContain('In hangar')
-    expect(token.querySelector('.su-entity-token')).not.toBeNull()
+    expect(token.querySelector('.su-entity-mini')).not.toBeNull()
     expect(within(token).queryByRole('region')).toBeNull()
   })
 

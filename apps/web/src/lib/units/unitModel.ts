@@ -2,14 +2,14 @@
  * A PLAYER UNIT as the entity forms draw it (entity display language §7,
  * "Player-made units"): a pilot, mech, crawler, saved pattern or custom NPC is
  * the player's own build, which no reference record describes, so it has no
- * `toEntityModel`. This is its model for a Row or a Token — its kind, its tone,
+ * `toEntityModel`. This is its model for a Compact or a Mini — its kind, its tone,
  * its name and the readings the surface shows — with a synthetic ref, so it
  * never links by itself (its sheet's route goes in the link mode).
  */
 
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
-import type { EntityRowModel } from '../../components/index'
+import type { EntityFormModel } from '../../components/index'
 
 export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
 
@@ -47,7 +47,7 @@ const KIND: Record<
   {
     schemaName: EntitySchemaName
     tone: string
-    domain: EntityRowModel['kind']['domain']
+    domain: EntityFormModel['kind']['domain']
     /** The kind, for screen readers only (never a stamp, EDL E9). */
     label: string
   }
@@ -77,10 +77,10 @@ export function unitRowModel({
   /** A pattern or an NPC: dashed, its name quoted (ruleset §3.9). */
   userMade?: boolean
   /** The art of what it is built on (a pilot's class, a mech's chassis); none by default. */
-  art?: EntityRowModel['art']
-  /** Its own line, for a Row's `lead` (a pilot's motto). */
+  art?: EntityFormModel['art']
+  /** Its own line, for a Compact's `lead` (a pilot's motto). */
   lead?: string
-}): EntityRowModel {
+}): EntityFormModel {
   const { schemaName, tone, domain, label } = KIND[kind]
   const slug = nameToSlug(name)
   return {

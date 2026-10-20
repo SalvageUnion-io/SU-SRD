@@ -77,7 +77,7 @@ type StorageManifestProps = {
   mechName: string | null
   /** Crawler name; null when no crawler is linked. */
   crawlerName: string | null
-  /** The linked counterpart unit's sheet, for its Token; without one it only reads. */
+  /** The linked counterpart unit's sheet, for its Mini; without one it only reads. */
   counterpartHref?: string
   readOnly?: boolean
 }
@@ -123,7 +123,7 @@ const HOLD_PAD = {
   },
 } satisfies Record<string, Record<'strip' | 'list' | 'adder', string>>
 
-/** The linked counterpart's body: its lines a step apart, its Token filling its line (N4). */
+/** The linked counterpart's body: its lines a step apart, its Mini filling its line (N4). */
 const COUNTERPART = { gap: tokens.space[8] } satisfies CSSProperties
 
 const NOTE = {
@@ -191,7 +191,7 @@ export function StorageManifest({
       {lots.length === 0 ? (
         <EmptyState variant="quiet" body="Hold empty." />
       ) : (
-        <ul className="su-entity-token-list" style={{ padding: pad.list }}>
+        <ul className="su-entity-mini-list" style={{ padding: pad.list }}>
           {lots.map((lot) => (
             <CargoLotItem
               key={lot.id}

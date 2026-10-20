@@ -51,7 +51,7 @@ import {
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import {
-  chassisTokenName,
+  chassisMiniName,
   MAX_DEPTH,
   namesOwnPage,
   resolveHide,
@@ -69,7 +69,7 @@ import {
   resolveTitleSize,
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
-import { HeadToken } from './HeadToken'
+import { HeadMini } from './HeadMini'
 import { labelChips } from './labelChips'
 import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN } from './legalStartingPattern'
 import { CardLead, CardStack } from './NestedCards'
@@ -102,7 +102,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * The frame and the footer are ink on paper on every card; the
  * tone lives in the header alone. An entity's own roll table sits inline as a
  * flush band; its actions, like nested ENTITIES, stack framed in
- * the frame, one size step per level (large → medium → a Token), the
+ * the frame, one size step per level (large → medium → a Mini), the
  * frame stepping 3 → 2 → 1.5px with them.
  *
  * ## How this file is laid out
@@ -111,7 +111,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * carries, what each one is fed — and composes. What each section LOOKS like
  * lives beside it, one module per section: the labels
  * (`CardLabels`), the header (`EntityCardHeader`), the chip group
- * (`Chips`, E17), the Token form (`src/entity/`), the prose bands
+ * (`Chips`, E17), the Mini form (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
  * (`CardRollTable`), the trays, inline
  * actions and depth rows (`NestedCards`). The pure cell/stat builders are in
@@ -265,7 +265,7 @@ function ReferenceEntityCardInner({
         ? stripHostParenthetical(entityName, hostName)
         : entityName)
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name.
-  const resolvedChassisName = chassisName ?? chassisTokenName(schemaName, entityName)
+  const resolvedChassisName = chassisName ?? chassisMiniName(schemaName, entityName)
 
   const action = isAction ? (entity as ActionFields) : undefined
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
@@ -329,8 +329,8 @@ function ReferenceEntityCardInner({
 
   const isHead = extent === 'head'
   // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`). A
-  // Token draws no controls, so a head's controls reach it only as a card click:
-  // each stands hidden, and the Token itself takes the click's role, name and
+  // Mini draws no controls, so a head's controls reach it only as a card click:
+  // each stands hidden, and the Mini itself takes the click's role, name and
   // state (a folded card's disclosure).
   const { outer, frameStyle } = resolveCardInteraction({
     onCardClick,
@@ -345,12 +345,12 @@ function ReferenceEntityCardInner({
     frameWidth: resolveFrameWidth(isHead ? 'mini' : size),
   })
 
-  // HEADER-ONLY is the Token (N2), at every size: this card is its adapter,
-  // translating its props into the Token's slots. A Row or Card always has
-  // its body, so there is no head-only Row.
+  // HEADER-ONLY is the Mini (N2), at every size: this card is its adapter,
+  // translating its props into the Mini's slots. A Compact or Card always has
+  // its body, so there is no head-only Compact.
   if (isHead) {
     return (
-      <HeadToken
+      <HeadMini
         entity={entity}
         pattern={pattern}
         instance={{ title: name, ...(userMade ? { userMade } : {}) }}
@@ -408,7 +408,7 @@ function ReferenceEntityCardInner({
   // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
   const slots = cardStripSlots({ controls, status, subject: entityName })
   // A selected Card always wears the seal, "Selected" unless the caller names
-  // its own word. A Token (level 2) is ring only.
+  // its own word. A Mini (level 2) is ring only.
   const seal = selected ? <SelectedSeal word={selectionSeal} /> : undefined
 
   // A card met inside another names its own Page: its name links (`CardTitleLink`).
@@ -580,7 +580,7 @@ function ReferenceEntityCardInner({
         {patternSection}
         {actionsNode}
         {nestedGroupsNode}
-        {/* BASIC CHASSIS → its patterns as Tokens. */}
+        {/* BASIC CHASSIS → its patterns as Minis. */}
         {!hide?.patterns && patternList.length > 0 && (
           <CardStack size={size}>
             <PatternList
@@ -636,12 +636,12 @@ export type ReferenceEntityCardWrapperProps = Omit<
   size?: CardSize
   extent?: CardExtent
   /**
-   * Let the reader fold this card to its Token (`extent="head"`) and back;
+   * Let the reader fold this card to its Mini (`extent="head"`) and back;
    * folded is the DEFAULT, so a long collection reads as a list of names.
    * The affordance is ONE `controls` entry (`foldControl`): open, a chevron
    * with `aria-expanded` and `aria-controls` (the card wrapper's id,
-   * `resolveCardInteraction`); folded, the Token itself is the disclosure
-   * button, since a Token draws no controls.
+   * `resolveCardInteraction`); folded, the Mini itself is the disclosure
+   * button, since a Mini draws no controls.
    */
   collapsible?: boolean
 }

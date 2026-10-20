@@ -5,7 +5,7 @@
 
 /* ── compositions/StartHere ── */
 
-/* The three steps are catalog tiles (`.su-entity-tile`): stacked until the
+/* The three steps are catalog tiles (`.su-entity-index`): stacked until the
    block is 48rem wide, then three across. A class because the layout changes
    with the container's width. */
 .su-start-here {
@@ -77,18 +77,18 @@
 
 /* ── compositions/AbilityTrack ──
  * An ability tree on the book's chain (Core Book 2.0a p.33; ruleset, "Where
- * the screen departs from print"): each Row joined to the next by a short,
- * thick stem in the tier's hue, under the Row's own numeral, so tiers 1-2-3
- * read as one chain trained in order. The Rows are framed in the same hue,
+ * the screen departs from print"): each Compact joined to the next by a short,
+ * thick stem in the tier's hue, under the Compact's own numeral, so tiers 1-2-3
+ * read as one chain trained in order. The Compacts are framed in the same hue,
  * so a stem runs into a border of its own colour. It is a diagram between the
- * Rows, never a left border on a card (§3.10). `data-track` picks the hue; a
+ * Compacts, never a left border on a card (§3.10). `data-track` picks the hue; a
  * Legendary tree (pick one) has no numerals, its stem runs down the middle,
- * and an "or" stamp sits on it in a gap one Row tall, so two picks stand as
+ * and an "or" stamp sits on it in a gap one Compact tall, so two picks stand as
  * tall as a three-tier tree. The SRD's class page and abilities Tree, and
  * the app's pilot sheet, draw it. */
 .su-ability-track {
   /* The stem: its weight, the gap it bridges, and where it runs (under a
-     Row's numeral: the head's inset plus half the numeral). */
+     Compact's numeral: the head's inset plus half the numeral). */
   --su-track-gap: var(--space-12);
   --su-track-stem: 10px; /* design-tokens-ignore: the stem's line weight, not spacing */
   --su-track-stem-x: 1.15rem;
@@ -119,24 +119,24 @@
   grid-auto-rows: 1fr;
 }
 
-/* A track of contentful Tokens (a class page's path card, N3) runs its stem
-   under the Token's numeral: the pill's edge and inset plus half the numeral. */
-.su-ability-track:not([data-track='legendary']):has(> .su-ability-track__tier > .su-entity-token) {
+/* A track of contentful Minis (a class page's path card, N3) runs its stem
+   under the Mini's numeral: the pill's edge and inset plus half the numeral. */
+.su-ability-track:not([data-track='legendary']):has(> .su-ability-track__tier > .su-entity-mini) {
   --su-track-stem-x: calc(var(--bw-chrome) + var(--space-4) + 0.3rem);
 }
 
-/* A Row on a track is framed in the track's hue (the UI library's
-   `--su-row-frame`). */
+/* A Compact on a track is framed in the track's hue (the UI library's
+   `--su-compact-frame`). */
 .su-ability-track[data-track] > li {
-  --su-row-frame: var(--su-track-color);
+  --su-compact-frame: var(--su-track-color);
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* A tier in a row taller than its own Row (an equal Legendary row, or a
-   taller Row in the tree beside it) stretches its Row to fill it, so the
-   stem leaves from the Row's foot. */
+/* A tier in a row taller than its own Compact (an equal Legendary row, or a
+   taller Compact in the tree beside it) stretches its Compact to fill it, so the
+   stem leaves from the Compact's foot. */
 .su-ability-track[data-track] > .su-ability-track__tier > * {
   flex: 1 1 auto;
 }

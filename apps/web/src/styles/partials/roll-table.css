@@ -550,8 +550,8 @@
   }
 }
 
-/* A NESTED table (`CardRollTable nested`): a Token filling its line (N4),
-   its Roll button inside its strip after the name (C8), Mini at the Token's
+/* A NESTED table (`CardRollTable nested`): a Mini filling its line (N4),
+   its Roll button inside its strip after the name (C8), Mini at the Mini's
    height (C1a); a coarse pointer's 44px target is the Mini rung's own hit
    area, so the strip never grows. Its rows are its name's Peek. */
 .su-roll-token__actions {
@@ -563,7 +563,7 @@
   padding-right: var(--space-2);
 }
 
-/* A damaged host's stamp in place of Roll: the Token's Mini type, with a
+/* A damaged host's stamp in place of Roll: the Mini's Mini type, with a
    paper edge so its ink plate shows on the ink pill. */
 .su-roll-token .su-roll__stamp {
   box-shadow: inset 0 0 0 var(--bw-hairline) var(--color-paper);

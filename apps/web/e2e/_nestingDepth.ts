@@ -8,29 +8,29 @@ import type { Page } from '@playwright/test'
  *   Page, a dialog, a wizard step, the Peek plate), which draws no entity head
  *   of its own: a dialog's cut-out head is its chrome, so it is level 0 too.
  *   Every headed frame around a frame adds a level, so a Page's Card is 1 and
- *   a Row inside it 2.
- * - **N3** an entity inside a Token: a Token nests nothing (E6).
- * - **N4** a Token narrower than its line, by more than a pixel: one Token a
+ *   a Compact inside it 2.
+ * - **N3** an entity inside a Mini: a Mini nests nothing (E6).
+ * - **N4** a Mini narrower than its line, by more than a pixel: one Mini a
  *   line, filling it. In a two-up list (a pattern drone's parts) and a
- *   masonry grid of contentful Tokens (`TokenGrid`) each column is a line, as
+ *   masonry grid of contentful Minis (`MiniGrid`) each column is a line, as
  *   a sheet's sidebar is.
  * - **N5** a TitledBox (a `Box` with a head) inside an entity's frame.
  * - **N6** a TitledBox inside a wizard step around the step's entities.
- * - **N7** a Token in select mode (a radio, a checkbox, a pressed toggle):
- *   select is a Row's or a Card's, never a Token's. The one exception is an
- *   in-card entity choice (`ChoiceRegion`): its Token is a toggle, pressed when
+ * - **N7** a Mini in select mode (a radio, a checkbox, a pressed toggle):
+ *   select is a Compact's or a Card's, never a Mini's. The one exception is an
+ *   in-card entity choice (`ChoiceRegion`): its Mini is a toggle, pressed when
  *   chosen, under a `data-choice-toggle` parent; a radio or checkbox there
  *   still breaks N7.
- * - **N8** a Token one level deep on an entity's or a guide's Page (`oneDeep`):
- *   an entity nested one level deep is a Row drawn open with all its content,
- *   never a Token (EDL E6; owner, 2026-10-20: a bay's Smith, a guide's
- *   options). A Token level 2 or deeper, in a search list or on a Peek's
+ * - **N8** a Mini one level deep on an entity's or a guide's Page (`oneDeep`):
+ *   an entity nested one level deep is a Compact drawn open with all its content,
+ *   never a Mini (EDL E6; owner, 2026-10-20: a bay's Smith, a guide's
+ *   options). A Mini level 2 or deeper, in a search list or on a Peek's
  *   plate is no N8, and neither is one in the named exception (`n8Except`;
- *   owner, 2026-10-20: "Keep Tokens"): a pattern's loadout on a chassis's
+ *   owner, 2026-10-20: "Keep Minis"): a pattern's loadout on a chassis's
  *   or a pattern's Page, and a class's ability trees.
  *
- * A headed frame is the frame around a visible `Head` band (`Head`: Row, Card
- * and TitledBox alike) or a Tile's band; its name is the title on the band,
+ * A headed frame is the frame around a visible `Head` band (`Head`: Compact, Card
+ * and TitledBox alike) or a CompactIndex's band; its name is the title on the band,
  * which ends in the kind its `KindLabel` reads (`Shield Drone (Drone)`).
  * Subtrees hidden from assistive tech (`aria-hidden`, `inert`: the page under
  * a modal dialog) are not read.
@@ -48,11 +48,11 @@ export type NestingFinding = {
 
 /** The class names the forms draw (`entity/parts/Head.tsx`, `entity/forms/*`, `containers/Box.tsx`). */
 export type NestingSelectors = {
-  /** A head band: every `Head`, a Tile's band, a choice option's head on its Page (`ChoiceGroups`). */
+  /** A head band: every `Head`, a CompactIndex's band, a choice option's head on its Page (`ChoiceGroups`). */
   head: string
   /**
-   * The frame a head names, nearest first: a Row's or Box's, a Card's, a
-   * Tile's, a choice option's.
+   * The frame a head names, nearest first: a Compact's or Box's, a Card's, a
+   * CompactIndex's, a choice option's.
    */
   frame: string
   /** The title inside a head. */
@@ -61,25 +61,25 @@ export type NestingSelectors = {
   box: string
   /** A dialog's own TitledBox (`ModalShell`): its head is level 0 chrome. */
   chrome: string
-  /** A Token, header-only or contentful. */
+  /** A Mini, header-only or contentful. */
   token: string
-  /** A Token's name (its `KindLabel` inside). */
+  /** A Mini's name (its `KindLabel` inside). */
   tokenName: string
-  /** The parent of an in-card entity choice's Token, the toggle N7 allows. */
+  /** The parent of an in-card entity choice's Mini, the toggle N7 allows. */
   choiceToggle: string
   /** A wizard step's region (`WizShell`). */
   step: string
-  /** A two-up Token list (EDL E3): each of its columns is a line. */
+  /** A two-up Mini list (EDL E3): each of its columns is a line. */
   twoUp: string
-  /** A masonry grid of contentful Tokens (`TokenGrid`, EDL E3): each of its columns is a line. */
-  tokenGrid: string
+  /** A masonry grid of contentful Minis (`MiniGrid`, EDL E3): each of its columns is a line. */
+  miniGrid: string
   /** A live sheet's columns (`SheetColumns`): its main column and its sidebar are each a line. */
   sheetColumns: string
-  /** How many px narrower than its line a Token may be. */
+  /** How many px narrower than its line a Mini may be. */
   tolerance: number
   /**
-   * Where a Token one level deep breaks N8 (an entity's or a guide's Page:
-   * its `main`), or null where Tokens at level 1 are the form (a sheet, Play,
+   * Where a Mini one level deep breaks N8 (an entity's or a guide's Page:
+   * its `main`), or null where Minis at level 1 are the form (a sheet, Play,
    * a wizard).
    */
   oneDeep: string | null
@@ -88,23 +88,23 @@ export type NestingSelectors = {
   /**
    * N8's named exception (EDL E6; owner, 2026-10-20): a pattern's loadout
    * (`PatternLoadout`, on a chassis's Page and a pattern's) and a class's
-   * ability trees (`ClassAbilityTree`) keep their Tokens one level deep.
+   * ability trees (`ClassAbilityTree`) keep their Minis one level deep.
    */
   n8Except: string
 }
 
 export const NESTING_SELECTORS: NestingSelectors = {
-  head: '.su-entity-row__head, .su-entity-tile__band, [data-option-head]',
-  frame: '.su-entity-row__frame, .su-ec-frame, .su-entity-tile__frame, [data-option-frame]',
-  title: '.su-entity-row__title, .su-entity-tile__name',
+  head: '.su-entity-compact__head, .su-entity-index__band, [data-option-head]',
+  frame: '.su-entity-compact__frame, .su-ec-frame, .su-entity-index__frame, [data-option-frame]',
+  title: '.su-entity-compact__title, .su-entity-index__name',
   box: 'su-box',
   chrome: '.su-modal-panel',
-  token: '.su-entity-token',
-  tokenName: '.su-entity-token__name',
+  token: '.su-entity-mini',
+  tokenName: '.su-entity-mini__name',
   choiceToggle: '[data-choice-toggle]',
   step: '.su-wiz-main',
-  twoUp: '.su-entity-token-list--two-up',
-  tokenGrid: '.su-token-grid',
+  twoUp: '.su-entity-mini-list--two-up',
+  miniGrid: '.su-mini-grid',
   sheetColumns: '.su-sheet-columns',
   tolerance: 1,
   oneDeep: null,
@@ -154,7 +154,7 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       .sort((x, y) => (x.el.contains(y.el) ? -1 : 1))
   const chainOf = (outer: Frame[], last: string) => [...outer.map((f) => f.name), last].join(' > ')
   const tokens = [...document.querySelectorAll(a.token)].filter(visible)
-  const tokenName = (t: Element) => text(t.querySelector(a.tokenName)) || '(Token)'
+  const tokenName = (t: Element) => text(t.querySelector(a.tokenName)) || '(Mini)'
 
   const found: NestingFinding[] = []
   for (const f of frames) {
@@ -173,7 +173,7 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       found.push({ rule: 'N6', chain, detail: "a TitledBox around a wizard step's entities" })
   }
 
-  // N3: a Token nests nothing.
+  // N3: a Mini nests nothing.
   for (const t of tokens) {
     const inner = [
       ...frames.filter((f) => t.contains(f.el)).map((f) => f.name),
@@ -183,42 +183,42 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       found.push({
         rule: 'N3',
         chain: chainOf(around(t), `${tokenName(t)} > ${name}`),
-        detail: 'an entity inside a Token',
+        detail: 'an entity inside a Mini',
       })
   }
 
-  // N7: a Token takes no select mode, on its surface or its contentful head,
+  // N7: a Mini takes no select mode, on its surface or its contentful head,
   // bar an in-card choice's toggle: pressed, never a radio or a checkbox.
   const pick = '[role="radio"], [role="checkbox"], [aria-checked]'
   const select = `${pick}, [aria-pressed]`
   for (const t of tokens) {
-    const head = t.querySelector(':scope > .su-entity-token__head')
+    const head = t.querySelector(':scope > .su-entity-mini__head')
     const toggle = !!t.parentElement?.matches(a.choiceToggle)
     const rule = toggle ? pick : select
     if (t.matches(rule) || head?.matches(rule))
       found.push({
         rule: 'N7',
         chain: chainOf(around(t), tokenName(t)),
-        detail: 'a Token in select mode',
+        detail: 'a Mini in select mode',
       })
   }
 
-  // N8: one level deep on a Page, an entity is a Row drawn open, never a Token.
+  // N8: one level deep on a Page, an entity is a Compact drawn open, never a Mini.
   if (a.oneDeep) {
     for (const t of tokens) {
       if (!t.closest(a.oneDeep) || t.closest(a.notNested) || t.closest(a.n8Except)) continue
-      // A section's TitledBox frames no entity: a Token in one is still one deep.
+      // A section's TitledBox frames no entity: a Mini in one is still one deep.
       if (around(t).some((f) => f.kind === 'entity')) continue
       found.push({
         rule: 'N8',
         chain: chainOf(around(t), tokenName(t)),
-        detail: 'a Token one level deep: a Row drawn open with all its content',
+        detail: 'a Mini one level deep: a Compact drawn open with all its content',
       })
     }
   }
 
-  // N4: a Token fills its line. Its line is its parent's content box, less
-  // whatever else sits on the same row; a wrapper holding only the Token (a
+  // N4: a Mini fills its line. Its line is its parent's content box, less
+  // whatever else sits on the same row; a wrapper holding only the Mini (a
   // list item) must fill its own line in turn, unless it stands at its own
   // max-width: a measure (a Page's sections at 52rem) is the line there.
   const layoutParent = (el: Element) => {
@@ -245,8 +245,8 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       if (!p) return undefined
       const ps = getComputedStyle(p)
       // A masonry grid's line is its column, and a multi-column flow gives
-      // each item its column's whole width: the Token filled its item below.
-      if (p.matches(a.tokenGrid)) return undefined
+      // each item its column's whole width: the Mini filled its item below.
+      if (p.matches(a.miniGrid)) return undefined
       // A sheet's sidebar is a column of the page, a line of its own beside
       // the main column: what fills the sidebar fills its line.
       if (p.matches(a.sheetColumns)) return undefined
@@ -263,7 +263,7 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       const others = layoutKids(p).filter((k) => k !== el && visible(k) && inFlow(k))
       const row = others.filter((k) => sameRow(box, k.getBoundingClientRect()))
       if (row.some((k) => k.matches(a.token) || k.querySelector(a.token)))
-        return 'shares its line with another Token'
+        return 'shares its line with another Mini'
       const gaps = /flex|grid/.test(ps.display) ? px(ps.columnGap) * row.length : 0
       const free = room - gaps - row.reduce((sum, k) => sum + outerWidth(k), 0)
       if (free - outerWidth(el) > a.tolerance)

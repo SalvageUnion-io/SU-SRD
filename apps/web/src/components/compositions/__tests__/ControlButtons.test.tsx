@@ -154,7 +154,7 @@ describe('controlChips', () => {
     const button = screen.getByLabelText('Remove Charge')
     // The accessible name comes from ariaLabel, not visible text.
     expect(button.textContent).toBe('')
-    // Button's mini rung, the action chip a Row's controls share (not the
+    // Button's mini rung, the action chip a Compact's controls share (not the
     // 36px icon square), so an icon button and a worded one share a row.
     expect(button.className).toContain('su-btn--mini')
     expect(button.className).not.toContain('su-btn--icon-only')

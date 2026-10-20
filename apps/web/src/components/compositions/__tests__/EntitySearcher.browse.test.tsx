@@ -12,7 +12,7 @@ import { POOL_RENDER_MS } from './entitySearcherHarness'
 
 describe('EntitySearcher — browse mode', () => {
   it(
-    'has no rail, no boxes and no Show facet; a Token click opens it',
+    'has no rail, no boxes and no Show facet; a Mini click opens it',
     () => {
       const chassis = SalvageUnionReference.Chassis.all()[0]
       if (!chassis) throw new Error('No chassis in reference data')

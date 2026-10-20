@@ -63,7 +63,7 @@ export type ReferenceEntityCardProps = {
   hero?: ReactNode
   /**
    * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability
-   * as a page does, nested in the pick as a contentful Token (N3, E19: The
+   * as a page does, nested in the pick as a contentful Mini (N3, E19: The
    * app's mech-builder pick cards, where choosing needs it). It shows
    * even under `hide.actions`, which a picker
    * sets. Off everywhere else; nested cards never inherit it.
@@ -132,7 +132,7 @@ export type ReferenceEntityCardProps = {
   /** Draw select mode's ink ring (`SELECTED_RING`) — non-layout-shifting. */
   selected?: boolean
   /** The word on the ink seal a `selected` Card wears on its head band's
-   * right (hard rule R15): "Selected" by default. A Token (`extent="head"`) is
+   * right (hard rule R15): "Selected" by default. A Mini (`extent="head"`) is
    * ring only, never sealed. */
   selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */

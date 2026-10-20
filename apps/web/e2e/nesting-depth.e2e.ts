@@ -10,7 +10,7 @@ import { expect, test } from './fixtures'
 
 /**
  * The nesting law (ruleset §5, N1–N8; EDL E6) on the rendered page
- * (`_nestingDepth.ts`): three levels, nothing titled at level 2, a Token that
+ * (`_nestingDepth.ts`): three levels, nothing titled at level 2, a Mini that
  * nests nothing and fills its line, no TitledBox inside an entity or around a
  * wizard step's entities. A failure names the page, the chain of headed frames
  * (`Shield Drone (Drone) > Refractive Shield Projector (System)`) and the rule.
@@ -67,15 +67,15 @@ const PAGES = [
 
 /**
  * An entity's, a pattern's or a guide's Page, where an entity one level deep
- * is a Row drawn open (N8): not an index, a table, the Training Bay or a sheet.
+ * is a Compact drawn open (N8): not an index, a table, the Training Bay or a sheet.
  */
 const ONE_DEEP = /^\/(?!build\/|roll-tables\/)[a-z-]+\/[a-z0-9-]+\/(?:pattern\/[a-z0-9-]+\/)?$/
 
-/** Desktop, and a phone's width: a Token's line is narrower there. */
+/** Desktop, and a phone's width: a Mini's line is narrower there. */
 const WIDTHS = [1440, 390]
 
 /**
- * Each Peek opens from the bar search's result Token: its schema and a name
+ * Each Peek opens from the bar search's result Mini: its schema and a name
  * it holds.
  */
 const PEEKS = [
@@ -119,7 +119,7 @@ test.describe('signed out', () => {
     expect(failures, 'entities nested past the three levels').toEqual([])
   })
 
-  test('a Peek holds only Tokens', async ({ page }) => {
+  test('a Peek holds only Minis', async ({ page }) => {
     test.setTimeout(5 * 60_000)
     await page.setViewportSize({ width: 1440, height: 900 })
     const failures: string[] = []
@@ -133,10 +133,10 @@ test.describe('signed out', () => {
         .locator(`[role="option"][data-peek^="${schema}:"]`)
         .filter({ hasText: name })
         .first()
-      await expect(trigger, `a ${schema} Token for ${name} to Peek`).toBeVisible()
+      await expect(trigger, `a ${schema} Mini for ${name} to Peek`).toBeVisible()
       await trigger.hover()
       const popup = page.locator('[data-peek-popup]')
-      await expect(popup.locator('.su-entity-row__head').first()).toBeVisible()
+      await expect(popup.locator('.su-entity-compact__head').first()).toBeVisible()
       failures.push(...(await scan(page, `the ${name} Peek`)))
     }
     expect(failures, 'entities nested past the three levels in a Peek').toEqual([])

@@ -11,7 +11,7 @@ import { InsidePeekContext } from '../../entity/peekContext'
 import { Stack } from '../../index'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
-import { EntityTokenList } from './EntityTokenList'
+import { EntityMiniList } from './EntityMiniList'
 
 /** The prompt: a caption (13px body face, `wkMuted`, sentence case), the
  *  rung the type ladder names for hints. */
@@ -35,12 +35,12 @@ const chooseButtonStyle = {
  * Armament Bay's Weapons System = any Mech System dealing SP damage). Two faces:
  *
  * - **Editable** launches the shared `CatalogChoiceModal` (search + facets +
- *   rail) via a "Choose…" button, and shows the current pick as its Token.
+ *   rail) via a "Choose…" button, and shows the current pick as its Mini.
  *   Single-select — the modal owns the pool (filtered to the catalog).
  * - **Read-only** is a static reference: a Slab naming the choice, then a
- *   "Show options" button that lists the qualifying entities, each a Token
- *   (`EntityTokenList`). No disclosure
- *   triangle: a chevron belongs only to Tokens, rows, the roll-table toggle
+ *   "Show options" button that lists the qualifying entities, each a Mini
+ *   (`EntityMiniList`). No disclosure
+ *   triangle: a chevron belongs only to Minis, rows, the roll-table toggle
  *   and the app's folds. Inside a Peek, which is terminal (E16), the Slab
  *   stands alone: no button.
  *
@@ -76,7 +76,7 @@ export function CatalogChoiceListing({
   const prompt = firstParagraphText(choice.content)
 
   // The chosen entity (editable), resolved on demand and guarded — shown as
-  // its Token, so the pick reads like every other entity in a card.
+  // its Mini, so the pick reads like every other entity in a card.
   const chosenEntity = useMemo(() => {
     if (!chosen) return undefined
     try {
@@ -139,10 +139,10 @@ export function CatalogChoiceListing({
           </Button>
         )}
         {!insidePeek && options.open && (
-          // The whole qualifying collection is a big grouping: Tokens
+          // The whole qualifying collection is a big grouping: Minis
           // (owner's call, 2026-10-14).
           <div id={options.panelId} style={LIST}>
-            <EntityTokenList entities={entities} label={choice.name} />
+            <EntityMiniList entities={entities} label={choice.name} />
           </div>
         )}
       </SlabSection>

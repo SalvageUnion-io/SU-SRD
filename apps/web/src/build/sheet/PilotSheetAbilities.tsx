@@ -1,7 +1,7 @@
 /**
  * PilotSheetAbilities — the pilot sheet's Abilities (owner's calls,
  * 2026-10-14, 2026-10-19 and 2026-10-20): two sections, each a collapsible
- * `SlabSection` over a masonry grid (`TokenGrid`) of contentful Tokens, each
+ * `SlabSection` over a masonry grid (`MiniGrid`) of contentful Minis, each
  * ability its head and then its text, in Read and Edit alike.
  *
  *   1. **Abilities**, on top and open by default: the tree abilities, tree by
@@ -18,7 +18,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, SlabSection, TokenGrid, tokens } from '../../components/index'
+import { Button, EmptyState, MiniGrid, SlabSection, tokens } from '../../components/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -58,7 +58,7 @@ export function PilotSheetAbilities({
   onToggleUsed,
   onRemoveUnknown,
 }: PilotSheetAbilitiesProps) {
-  /** One learned ability, its contentful Token, wherever its tree puts it. */
+  /** One learned ability, its contentful Mini, wherever its tree puts it. */
   function renderAbility({ slug, ability }: AbilityEntry) {
     return (
       <li key={slug}>
@@ -94,7 +94,7 @@ export function PilotSheetAbilities({
           {none ? (
             <EmptyState variant="quiet" body="No abilities learned yet." />
           ) : (
-            <TokenGrid label="Tree Abilities" edit={!readOnly}>
+            <MiniGrid label="Tree Abilities" edit={!readOnly}>
               {classTrees.flatMap((group) => group.abilities.map(renderAbility))}
               {unresolvedAbilities.map((slug) => (
                 <li key={slug}>
@@ -106,15 +106,15 @@ export function PilotSheetAbilities({
                   />
                 </li>
               ))}
-            </TokenGrid>
+            </MiniGrid>
           )}
         </SlabSection>
       )}
       {genericAbilities.length > 0 && (
         <SlabSection fold="closed" title="Generic Abilities">
-          <TokenGrid label="Generic Abilities" edit={!readOnly}>
+          <MiniGrid label="Generic Abilities" edit={!readOnly}>
             {genericAbilities.map(renderAbility)}
-          </TokenGrid>
+          </MiniGrid>
         </SlabSection>
       )}
     </div>

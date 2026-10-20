@@ -1,7 +1,7 @@
 /**
  * PlayMediatorSeat — one seat at the Mediator's table (play.md §10, wireframe
- * pin 2): the pilot's Token, one a line (ruleset §1.3: Play's lists are
- * Tokens), its chips what the table needs at a glance: the mech as a relation
+ * pin 2): the pilot's Mini, one a line (ruleset §1.3: Play's lists are
+ * Minis), its chips what the table needs at a glance: the mech as a relation
  * chip (C11, R5), whether they are here ("Here", or "Away" once their seat
  * stops beating) and the vital needing the Mediator (▲, critical). Its body
  * (N3, plain content, no entity) is the mount in words, every live vital as a
@@ -14,7 +14,7 @@
  *    were last seen.
  *  - **Downtime** — the line says whether they are done with the step.
  *
- * The Token is a toggle (EDL Modes): pressed, its name aims Propose at this
+ * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
  * pilot (see the problem, propose the fix), the ring on its pill and the other
  * seats dimmed beside it. Sheet ⤢, its chip group's last slot, opens their
  * sheet read-only over Play.
@@ -76,7 +76,7 @@ export function PlayMediatorSeat({
       data-choice-toggle=""
     >
       <Entity
-        form="token"
+        size="mini"
         context="roster"
         model={unitRowModel({ kind: 'pilot', name: seat.name })}
         mode={{
@@ -87,7 +87,7 @@ export function PlayMediatorSeat({
           label: `${seat.label}. Aim Propose here`,
         }}
         dim={dim}
-        // The mech they are aboard or have parked is a relation chip (C11), never a Token under it (R5).
+        // The mech they are aboard or have parked is a relation chip (C11), never a Mini under it (R5).
         {...(seat.mech === null ? {} : { relations: [relation('mech', 'Mech', seat.mech.name)] })}
         state={
           <>

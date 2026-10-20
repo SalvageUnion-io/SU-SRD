@@ -24,8 +24,8 @@ const CLAIM = {
  * single field in two places. A seal that is always present and always in the same place
  * can be read down a list without reading anything else.
  *
- * It is a chip, the label-only style of the `Stat` cell a Row's chips are:
- * the first of the Row's chips, wrapping and centring with them, under the
+ * It is a chip, the label-only style of the `Stat` cell a Compact's chips are:
+ * the first of the Compact's chips, wrapping and centring with them, under the
  * same rules (owner's rule, 2026-10-14).
  *
  * ## Why UNCLAIMED is the pressable one
@@ -49,7 +49,7 @@ export function OwnerSeal({
   disabled: boolean
   onClaim: () => void
 }) {
-  // The label-only chip, at the Row's chip rung.
+  // The label-only chip, at the Compact's chip rung.
   const stamp = <Stat label={owner.label} size="compact" />
 
   if (!claimable) {

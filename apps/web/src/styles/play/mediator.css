@@ -14,10 +14,10 @@
   padding: 0;
 }
 
-/* The table's seats, a Token list (`.su-entity-token-list`) whose Tokens hold
+/* The table's seats, a Mini list (`.su-entity-mini-list`) whose Minis hold
    bodies: a wider gap, and room for the attention ring and the selection
-   ring, which sit outside each seat's Token. */
-.su-entity-token-list.su-play-seats {
+   ring, which sit outside each seat's Mini. */
+.su-entity-mini-list.su-play-seats {
   gap: var(--space-12);
   padding: var(--space-4);
 }
@@ -28,7 +28,7 @@
 }
 
 /* Something needs the Mediator: a ring in the bad hue around the whole seat,
-   outside the Row's frame so nothing changes size. The ▲ always comes with it. */
+   outside the Compact's frame so nothing changes size. The ▲ always comes with it. */
 .su-play-seat[data-attention] {
   outline: 2px solid var(--color-status-bad);
   outline-offset: 2px;

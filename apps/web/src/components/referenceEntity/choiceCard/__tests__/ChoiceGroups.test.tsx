@@ -270,7 +270,7 @@ describe('ChoiceGroups — table choice (A.I. Personality)', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  test('the table is a roll Token: its rows are its Peek, never opened in place', () => {
+  test('the table is a roll Mini: its rows are its Peek, never opened in place', () => {
     const { container } = render(<ChoiceGroups choices={[tableChoice]} readOnly />)
     expect(screen.queryAllByRole('listitem').length).toBe(0)
     expect(screen.queryByRole('button', { name: /Show the .* table/i })).toBeNull()

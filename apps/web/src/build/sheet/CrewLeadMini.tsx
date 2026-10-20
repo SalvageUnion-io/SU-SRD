@@ -1,7 +1,7 @@
 /**
- * CrewLeadToken — a crawler bay's crew lead, inside its bay card: a
- * CONTENTFUL Token (N3). The bay is a level-1 entity, so its crew lead sits at
- * level 2 and is a Token (N1), never a titled box (N5).
+ * CrewLeadMini — a crawler bay's crew lead, inside its bay card: a
+ * CONTENTFUL Mini (N3). The bay is a level-1 entity, so its crew lead sits at
+ * level 2 and is a Mini (N1), never a titled box (N5).
  *
  * The head is the NPC's: its name, then the role it holds as a relation chip
  * once it has a name of its own (`ROLE | Doc`, first, next to the name), then
@@ -19,12 +19,12 @@
 import { useMemo } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import type { EntityMode, EntityRowModel } from '../../components/index'
+import type { EntityFormModel, EntityMode } from '../../components/index'
 import { Entity, relation, Stat } from '../../components/index'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
 
-type CrewLeadTokenProps = NpcLinesProps & {
+type CrewLeadMiniProps = NpcLinesProps & {
   /** Its title on the head (the bay crew's name, else its role); a built NPC's model titles itself. */
   instance?: EntityInstance
   /** Default `read`; a built NPC's head links to its sheet. */
@@ -36,7 +36,7 @@ type CrewLeadTokenProps = NpcLinesProps & {
 /** Who heads it: the bay's SRD crew NPC, or a crew lead no reference record describes (`unitRowModel`). */
 type CrewSource =
   | { entity: RefMetaEntity; model?: never }
-  | { model: EntityRowModel; entity?: never }
+  | { model: EntityFormModel; entity?: never }
 
 /**
  * The head's chips past the role: the model's own, less its book HP, which
@@ -44,7 +44,7 @@ type CrewSource =
  * the uses slot in Edit), so the role comes first, next to the name (owner,
  * 2026-10-20). The book's HP hint stays on the reading.
  */
-function crewHead(model: EntityRowModel): { model: EntityRowModel; hpHint?: string } {
+function crewHead(model: EntityFormModel): { model: EntityFormModel; hpHint?: string } {
   const book = model.facts.find((fact) => fact.short === 'HP')
   return {
     model: { ...model, facts: model.facts.filter((fact) => fact.short !== 'HP') },
@@ -58,7 +58,7 @@ function roleChip(title: string | undefined, name: string) {
   return title && named ? [relation('crew-role', 'Role', title)] : undefined
 }
 
-export function CrewLeadToken(props: CrewLeadTokenProps) {
+export function CrewLeadMini(props: CrewLeadMiniProps) {
   const { bayName, title, name, hp, maxHp, onHpChange, instance, mode, peekAt, entity } = props
   const own = props.model
   const base = useMemo(() => own ?? toEntityModel(entity as RefMetaEntity), [own, entity])
@@ -83,7 +83,7 @@ export function CrewLeadToken(props: CrewLeadTokenProps) {
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew lead so the several on one crawler stay distinguishable; a <section> here would become a region landmark once named
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Entity
-        form="token"
+        size="mini"
         context="roster"
         model={model}
         instance={instance}

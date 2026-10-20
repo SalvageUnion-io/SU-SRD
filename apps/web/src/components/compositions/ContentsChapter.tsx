@@ -13,7 +13,7 @@ import { ToneStrip } from '../atoms/ToneStrip'
  * instead on a plain click (a host that must not leave its screen, Play),
  * while a middle- or modified click still follows the link.
  *
- * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a
+ * Compacts are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a
  * phone width (the touch floor, ruleset §4.6): `shared.css`'s
  * `.su-contents__row`, which both apps load.
  */

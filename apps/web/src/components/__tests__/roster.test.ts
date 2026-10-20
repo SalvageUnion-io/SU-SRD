@@ -104,26 +104,26 @@ const ROSTER = {
     'Cluster',
     'Grid',
     'MasonryColumns',
-    'TokenGrid', // EDL Token, contentful (N3): a list of them as masonry
+    'MiniGrid', // EDL Mini, contentful (N3): a list of them as masonry
   ],
   /** The EDL's forms and modes, the entity module's face, and the Card and Page. */
   edl: [
     'Entity',
-    'TokenGroup', // a Token and the Tokens that belong to it, one border (no nesting, E6)
+    'MiniGroup', // a Mini and the Minis that belong to it, one border (no nesting, E6)
     'Mention',
     'PeekHost',
     'EntitySurfaceProvider',
     'SELECT_DIM',
     'ReferenceEntityCard',
     'Content',
-    'ActionTokens',
+    'ActionMinis',
     'PatternListing',
     'EntityPageStamps',
     'resolveEntityPageMeta',
     'isLegalStartingPatternOf',
     'WhenDamaged',
     'BayInfo',
-    'EntityRollToken',
+    'EntityRollMini',
     'EntityChoices',
     'damagedEffectOf',
     'Chips',

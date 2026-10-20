@@ -37,20 +37,20 @@ function usePatternHref(chassis: ReferenceCardEntity, pattern: RefObjectAnyPatte
   return hrefFor({ ...host, schemaName, pattern: pattern.name })
 }
 
-/** The anchor around a pattern's Token fills its line, as the Token does (N4). */
+/** The anchor around a pattern's Mini fills its line, as the Mini does (N4). */
 const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 
 /**
  * `PatternListRow` — one entry of a host card's (a chassis's or a
  * Bio-Titan's) Patterns list: the pattern's TOKEN (inside a card it is named
- * by its head alone, EDL N2), linking to the pattern's own page. A Token
+ * by its head alone, EDL N2), linking to the pattern's own page. A Mini
  * nests nothing (E6): what the pattern changes (its loadout, a Bio-Titan
  * pattern's actions) is its Peek's and its Page's, never drawn under it here.
  *
  * A real `<a>`, not a click handler: a pattern page is a page like any other
  * entity's, so the entry has to open in a new tab on middle-click, show its
  * destination on hover, and be followable by a crawler. The anchor carries the
- * interaction; the Token inside it takes `cardClickable` for the hover
+ * interaction; the Mini inside it takes `cardClickable` for the hover
  * affordance ONLY, which is why it doesn't also become a `role=button` nested
  * inside a link.
  *
@@ -98,7 +98,7 @@ function PatternListRow({
   )
 }
 
-/** BASIC HOST CARD → the list of its patterns, each its Token. A Page lists
+/** BASIC HOST CARD → the list of its patterns, each its Mini. A Page lists
  * them as its own pattern rows instead (`PatternLinkRows`, level 1). */
 export function PatternList({
   chassis,
@@ -111,13 +111,13 @@ export function PatternList({
   chassis: ReferenceCardEntity
   chassisName: string
   patterns: RefObjectAnyPattern[]
-  /** The depth the Tokens render at (the host's + 1). */
+  /** The depth the Minis render at (the host's + 1). */
   depth: number
   hostDown: Down
   NestedCard: NestedCard
 }) {
   return (
-    <ul className="su-entity-token-list">
+    <ul className="su-entity-mini-list">
       {patterns.map((pat) => (
         <li key={pat.name}>
           <PatternListRow
@@ -136,11 +136,11 @@ export function PatternList({
 
 /**
  * PAGE view — one pattern at level 1, through the forms (EDL E15, hard rule
- * R7): the Row's frame (`Box`, which stands in `RowFrame`) under the Row's
+ * R7): the Compact's frame (`Box`, which stands in `CompactFrame`) under the Compact's
  * `Head` in the host's tone, the pattern's quoted name on its cut-out, then
  * the paper body: the pattern's opening paragraph as prose (a lead is an
  * index's, E11), and under it what the pattern changes: its loadout, Systems
- * beside Modules, one full-width Token a line with its TL at the column's
+ * beside Modules, one full-width Mini a line with its TL at the column's
  * edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
  * (`PatternUniques`). The HEAD is the link to the pattern's page, where it
  * has one; the body cannot be, because its names are links of their own.

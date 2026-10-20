@@ -2,11 +2,11 @@
  * PlayMediatorDowntime — the Mediator's centre column while Downtime runs
  * (play.md §10, wireframe mediator-downtime): the ten guide steps as the
  * player's track (`PlayDowntimeTrack`, a step a press away), then the current
- * step as one box (level 1) with each seat as a full-width Token saying
+ * step as one box (level 1) with each seat as a full-width Mini saying
  * whether they are done (level 2), and its way through (`DowntimeStepNav`:
  * Back, End Downtime and Next); then **Upkeep** and **Gather Cantina
- * Rumours**, a list of Tokens one a line (ruleset §1.3: Play's lists are
- * Tokens), Pay in Upkeep's chip group and what it came to its contentful
+ * Rumours**, a list of Minis one a line (ruleset §1.3: Play's lists are
+ * Minis), Pay in Upkeep's chip group and what it came to its contentful
  * body.
  *
  * Next stops at the
@@ -113,16 +113,16 @@ export function PlayMediatorDowntime({
             </Badge>
           }
         >
-          <ul className="su-entity-token-list" aria-label="Who is done">
+          <ul className="su-entity-mini-list" aria-label="Who is done">
             {seats.map((seat) => {
               const isDone = seatDone(seat, completedBy)
               return (
                 <li key={seat.pilotId}>
                   <Entity
-                    form="token"
+                    size="mini"
                     context="roster"
                     model={unitRowModel({ kind: 'pilot', name: seat.name })}
-                    // Where they are in the step, a state chip of the Token's
+                    // Where they are in the step, a state chip of the Mini's
                     // own Size, never loose words (C3, C8).
                     trailing={
                       <Stat
@@ -148,10 +148,10 @@ export function PlayMediatorDowntime({
           </div>
         </TitledBox>
       )}
-      <ul className="su-entity-token-list" aria-label="Downtime for the table" data-play-list="">
+      <ul className="su-entity-mini-list" aria-label="Downtime for the table" data-play-list="">
         <li className="su-play-act" data-action-key="upkeep">
           <Entity
-            form="token"
+            size="mini"
             context="play"
             model={UPKEEP}
             state={

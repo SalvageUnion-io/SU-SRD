@@ -1,6 +1,6 @@
 /**
  * Tests for the resolve — `useActionsDeck` driving `PlayResolveSteps`, the
- * steps an action's Row opens in (play.md §5). Verifies opening an action
+ * steps an action's Compact opens in (play.md §5). Verifies opening an action
  * offers Activate + Roll, Activate writes the EP/uses patch through the store,
  * Roll reads a Core Mechanic band, Apply never auto-writes a destructive
  * outcome, Hot(X) and EP-or-AP drive the activation, unrecorded live stats
@@ -109,8 +109,8 @@ async function clickRolling(text: string): Promise<void> {
 }
 
 /**
- * The resolve as an action's Row opens it: a button per action in the deck
- * (each Row's Use), the steps of the open one under them, with the seat's
+ * The resolve as an action's Compact opens it: a button per action in the deck
+ * (each Compact's Use), the steps of the open one under them, with the seat's
  * `resolving` held in component state as `useSeat`'s optimistic update holds
  * it. `written` records every write to the seat.
  */

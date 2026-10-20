@@ -79,7 +79,7 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
               <RosterList>
                 {builds.map((build) => (
                   <li key={build.id} style={ROW}>
-                    {/* Signed in, "Copy to…" is the Row's last chip (C8, hard rule R6). */}
+                    {/* Signed in, "Copy to…" is the Compact's last chip (C8, hard rule R6). */}
                     <StarterCard
                       kind={kind}
                       build={build}

@@ -72,7 +72,7 @@ type DidYouMeanIslandProps = {
 /**
  * The 404's "did you mean": the missed URL's slug, read back as a search term
  * and run against the same build-time index the SRD search uses
- * (`/search-index.json`), its closest entries as search-result Rows. No
+ * (`/search-index.json`), its closest entries as search-result Compacts. No
  * props on the page: the path is only known in the browser, since every miss
  * is answered with the one `404.html`.
  */
@@ -110,7 +110,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
                 return (
                   <li key={result.entityId}>
                     {model ? (
-                      <Entity form="row" model={model} mode={{ kind: 'link', href }} />
+                      <Entity size="compact" model={model} mode={{ kind: 'link', href }} />
                     ) : (
                       <a href={href} className="su-not-found__link">
                         {result.entityName}

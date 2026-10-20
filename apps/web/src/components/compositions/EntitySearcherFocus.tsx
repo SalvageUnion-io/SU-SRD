@@ -3,7 +3,7 @@
  * Page (EDL Form 5) — the band with the title notched in and its chips beside
  * it, the body, the foot — not a Card in a box: the pane IS the entity, as a
  * show page is, and scrolls as one sheet. An action bar under it adds it. On a
- * wide screen it is the middle column, there only once a Token is opened; on a
+ * wide screen it is the middle column, there only once a Mini is opened; on a
  * narrow one it takes the picker over, with a back bar (the list's name) above it.
  * Removing is the sidebar's.
  */

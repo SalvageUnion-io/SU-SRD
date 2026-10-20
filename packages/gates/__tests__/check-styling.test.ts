@@ -501,23 +501,23 @@ describe('styling rule set', () => {
       fixture({
         ...STYLING_BASE,
         'apps/web/src/styles/play/actions.css': [
-          '.su-play-act[data-open] .su-entity-row__frame { border-width: 3px }',
-          '/* `.su-entity-row__main` in a comment is prose */',
+          '.su-play-act[data-open] .su-entity-compact__frame { border-width: 3px }',
+          '/* `.su-entity-compact__main` in a comment is prose */',
           '.su-play-act { display: flex }',
           '',
         ].join('\n'),
         'apps/web/src/play/Pill.tsx':
-          'export const P = () => <div className="su-entity-token__pill" />\n',
-        'apps/web/src/play/__tests__/Pill.test.tsx': "q('.su-entity-token__name')\n",
-        'apps/web/src/components/entity/forms/Row.tsx':
-          '<div className="su-entity-row__frame" />\n',
+          'export const P = () => <div className="su-entity-mini__pill" />\n',
+        'apps/web/src/play/__tests__/Pill.test.tsx': "q('.su-entity-mini__name')\n",
+        'apps/web/src/components/entity/forms/Compact.tsx':
+          '<div className="su-entity-compact__frame" />\n',
         'apps/web/src/components/containers/Frame.tsx':
-          'export const F = () => <div className="su-entity-row__main" />\n',
-        'apps/web/src/styles/partials/entity-forms.css': '.su-entity-row__frame { flex: 1 }\n',
+          'export const F = () => <div className="su-entity-compact__main" />\n',
+        'apps/web/src/styles/partials/entity-forms.css': '.su-entity-compact__frame { flex: 1 }\n',
         'apps/web/src/styles/partials/controls.css':
-          '.su-picker > .su-entity-row__frame { min-height: 0 }\n',
+          '.su-picker > .su-entity-compact__frame { min-height: 0 }\n',
         'apps/web/src/styles/build/print.css':
-          '@media print {\n  .su-entity-token__pill { font-size: revert-layer }\n}\n',
+          '@media print {\n  .su-entity-mini__pill { font-size: revert-layer }\n}\n',
       })
     )
     expect(found['entity-markup']?.map((f) => `${f.file}:${f.line}`).sort()).toEqual([

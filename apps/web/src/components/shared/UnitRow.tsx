@@ -1,13 +1,13 @@
 /**
  * UnitRow — a player unit (pilot, mech, crawler, NPC) in a list: the library
- * Row (`<Entity form="row">`) over `unitRowModel`, with the host's controls in
- * its head's trailing slot (EDL E7). The name sits on the Row's paper
+ * Compact (`<Entity size="compact">`) over `unitRowModel`, with the host's controls in
+ * its head's trailing slot (EDL E7). The name sits on the Compact's paper
  * cut-out, the readings are label-first chips (`SP | 9/9`), the note and any
  * host labels (an owner seal, ★ Primary, HOMEBREW) sit right of the title
  * (ruleset §3.9, §7.2), and View / Unassign are the last controls.
  *
- * View is a control rather than the Row's own link because the Row carries
- * other controls (Assign, Make a copy): a host that wants the whole Row to
+ * View is a control rather than the Compact's own link because the Compact carries
+ * other controls (Assign, Make a copy): a host that wants the whole Compact to
  * open passes a `mode` instead.
  */
 
@@ -39,7 +39,7 @@ type UnitRowProps = {
   onUnassign?: (() => void) | undefined
   /** Controls before View and Unassign (Assign, Make a copy). */
   controls?: ReactNode
-  /** Default `read`: the controls are the Row's doors. */
+  /** Default `read`: the controls are the Compact's doors. */
   mode?: EntityMode
 }
 
@@ -87,7 +87,7 @@ export function UnitRow({
     ) : undefined
   // Each reading in its class's lane (C2): the rank and measures are the
   // model's facts, kept to its budget (a roster's lead vital, C3); a relation,
-  // a mark and a state are the Row's own chips.
+  // a mark and a state are the Compact's own chips.
   const byChip = (chip: string) => (readings ?? []).filter((r) => unitChipOf(r) === chip)
   const cell = (r: UnitReading) => (
     <Stat key={String(r.label)} label={r.label} value={r.value} size="compact" />
@@ -102,7 +102,7 @@ export function UnitRow({
   const state = byChip('state')
   return (
     <Entity
-      form="row"
+      size="compact"
       context="roster"
       model={unitRowModel({ kind, name, note, userMade, readings: readings ?? [] })}
       mode={mode}

@@ -1,7 +1,7 @@
 import type { RefEntity } from 'salvageunion-reference'
 import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
-import { ActionTokens } from '../referenceEntity/card/NestedCards'
+import { ActionMinis } from '../referenceEntity/card/NestedCards'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { InsidePeekContext } from './peekContext'
 
@@ -31,15 +31,15 @@ function peekChassisName(entity: RefEntity): string | undefined {
 
 /**
  * A chassis's Peek reads its chassis ability, not its patterns (owner's call,
- * 2026-10-14). The ability nests in the chassis, so it is a contentful Token
- * (N3, E19) as any nested action is (`ActionTokens`): its head, then its full
+ * 2026-10-14). The ability nests in the chassis, so it is a contentful Mini
+ * (N3, E19) as any nested action is (`ActionMinis`): its head, then its full
  * text, its `[(CHASSIS)]` naming this chassis ("The Mule"). In the Peek the
  * head reads and the roll table is left out (E16).
  */
 function peekChassisAbilities(entity: RefEntity, down: Down) {
   const abilities = getChassisAbilities(entity) ?? []
   return abilities.length > 0 ? (
-    <ActionTokens
+    <ActionMinis
       actions={abilities}
       size="mini"
       hostName={entity.name}
@@ -59,9 +59,9 @@ const PEEK_HIDE = { patterns: true }
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
  * controls, and no Peek inside it. Its name alone links, to the entity's Page
  * (`CardTitleLink`, R33). The card is level 1 on its plate (N1, E6),
- * so everything nested in it is a Token: children, drones, actions (contentful,
- * `ActionTokens`), choice options and guide ladders. No host lists its
- * patterns here, a chassis's or a Bio-Titan's: each is a pattern Token with
+ * so everything nested in it is a Mini: children, drones, actions (contentful,
+ * `ActionMinis`), choice options and guide ladders. No host lists its
+ * patterns here, a chassis's or a Bio-Titan's: each is a pattern Mini with
  * the actions it adds under it, which a Peek has no room to nest. A chassis
  * shows its chassis ability instead (`peekChassisAbilities`), its
  * `[(CHASSIS)]` naming the chassis (`peekChassisName`), never the raw token. A

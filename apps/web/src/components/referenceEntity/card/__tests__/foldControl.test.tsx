@@ -1,6 +1,6 @@
 /**
- * A folded card is its Token (EDL N2: header-only is a Token), and a Token
- * draws no rail: the Token itself is the ONE control, a disclosure button
+ * A folded card is its Mini (EDL N2: header-only is a Mini), and a Mini
+ * draws no rail: the Mini itself is the ONE control, a disclosure button
  * named for the card with its state. Opened, the Card's chevron folds it back.
  */
 import { describe, expect, test } from 'bun:test'
@@ -21,10 +21,10 @@ describe('a folded card', () => {
   const renderFolded = () =>
     render(<ReferenceEntityCard data={drill()} size="compact" collapsible />)
 
-  test('is a Token, and the Token is the one control: a disclosure, named, with its state', () => {
+  test('is a Mini, and the Mini is the one control: a disclosure, named, with its state', () => {
     const { container } = renderFolded()
-    expect(container.querySelector('.su-entity-token')).toBeTruthy()
-    expect(container.querySelector('.su-entity-row')).toBeNull()
+    expect(container.querySelector('.su-entity-mini')).toBeTruthy()
+    expect(container.querySelector('.su-entity-compact')).toBeNull()
     expect(screen.getAllByRole('button')).toHaveLength(1)
     const token = disclosure()
     expect(token.classList.contains('su-card-fold')).toBe(false)
@@ -44,7 +44,7 @@ describe('a folded card', () => {
     // The chevron's own click stops at the button: one click, one toggle.
     fireEvent.click(chevron)
     expect(disclosure().getAttribute('aria-expanded')).toBe('false')
-    expect(container.querySelector('.su-entity-token')).toBeTruthy()
+    expect(container.querySelector('.su-entity-mini')).toBeTruthy()
   })
 })
 

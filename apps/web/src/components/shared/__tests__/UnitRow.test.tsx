@@ -1,5 +1,5 @@
 /**
- * UnitRow — a player unit as the library Row: the name on the cut-out, its
+ * UnitRow — a player unit as the library Compact: the name on the cut-out, its
  * readings label-first chips, its note and the host's labels right of the
  * title, and View / Unassign as the head's controls, never inside a link.
  */
@@ -9,21 +9,21 @@ import { unitRowModel } from '../../../lib/units/unitModel'
 import { UnitRow } from '../UnitRow'
 
 const rowOf = (name: string) => {
-  const row = screen.getByText(name).closest('.su-entity-row')
+  const row = screen.getByText(name).closest('.su-entity-compact')
   if (!(row instanceof HTMLElement)) throw new Error(`no row for ${name}`)
   return row
 }
 
-/** A unit Row's chips as [class, text] pairs, in the order drawn (`Chips`' lanes). */
+/** A unit Compact's chips as [class, text] pairs, in the order drawn (`Chips`' lanes). */
 const lanesOf = (name: string) =>
   [...rowOf(name).querySelectorAll('[data-chip-class]')].flatMap((lane) =>
-    // A bodyless Row's +MORE is hidden until a chip does not fit (C5).
+    // A bodyless Compact's +MORE is hidden until a chip does not fit (C5).
     [...lane.querySelectorAll('.su-stat-cell')]
       .filter((cell) => !cell.closest('[hidden]'))
       .map((cell) => [lane.getAttribute('data-chip-class'), cell.textContent])
   )
 
-describe('unitRowModel budget (C3): a unit Row keeps its rank and its lead vital', () => {
+describe('unitRowModel budget (C3): a unit Compact keeps its rank and its lead vital', () => {
   test('a mech keeps SP of SP, EP and Heat', () => {
     render(
       <UnitRow
@@ -91,11 +91,11 @@ describe('unitRowModel budget (C3): a unit Row keeps its rank and its lead vital
 })
 
 describe('UnitRow', () => {
-  test('the library Row: the name on the paper cut-out, the frame the Row’s', () => {
+  test('the library Compact: the name on the paper cut-out, the frame the Compact’s', () => {
     render(<UnitRow kind="mech" name="Iron Fist" />)
     const row = rowOf('Iron Fist')
-    expect(row.querySelector('.su-entity-row__notch')?.textContent).toContain('Iron Fist')
-    expect(row.querySelector('.su-entity-row__frame')).not.toBeNull()
+    expect(row.querySelector('.su-entity-compact__notch')?.textContent).toContain('Iron Fist')
+    expect(row.querySelector('.su-entity-compact__frame')).not.toBeNull()
   })
 
   test('readings are label-first chips, each in its class lane', () => {
@@ -147,7 +147,7 @@ describe('UnitRow', () => {
         labels={<span data-testid="owner">YOU</span>}
       />
     )
-    const head = rowOf('Ace').querySelector('.su-entity-row__head')
+    const head = rowOf('Ace').querySelector('.su-entity-compact__head')
     if (!(head instanceof HTMLElement)) throw new Error('no head')
     expect(within(head).getByText('Home Crawler')).toBeTruthy()
     expect(within(head).getByTestId('owner')).toBeTruthy()
@@ -156,7 +156,9 @@ describe('UnitRow', () => {
   test('an NPC is user-made: dashed, with the HOMEBREW stamp', () => {
     render(<UnitRow kind="npc" name="Mags" userMade />)
     const row = rowOf('“Mags”')
-    expect(row.querySelector('.su-entity-row__frame')?.hasAttribute('data-user-made')).toBe(true)
+    expect(row.querySelector('.su-entity-compact__frame')?.hasAttribute('data-user-made')).toBe(
+      true
+    )
     expect(within(row).getByText('Homebrew')).toBeTruthy()
   })
 

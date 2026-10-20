@@ -4,7 +4,7 @@
  * painted, and the speckle when the surface wears it.
  *
  * The form passes the token: a "have" entity's own tone, an ability's tier
- * tone in a Row, `ink` for any other "do" entity. A damaged entity dulls that
+ * tone in a Compact, `ink` for any other "do" entity. A damaged entity dulls that
  * band toward grey (`dullBand`): still its colour, at a distance. A destroyed
  * one is grey, whatever its tone.
  */

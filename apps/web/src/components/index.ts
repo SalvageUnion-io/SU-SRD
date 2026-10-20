@@ -143,13 +143,13 @@ export {
   ogCardTitle,
   ogReferenceAddressFits,
 } from './compositions/ogCardText'
-// PickDialog — the one pick dialog (ruleset §6.6): Rows in select mode, one radio group.
+// PickDialog — the one pick dialog (ruleset §6.6): Compacts in select mode, one radio group.
 export { PickDialog } from './compositions/PickDialog'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
 // the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone
 export { RollTableInstrument } from './compositions/RollTableInstrument'
-// SearchListbox — the one list a search's results hang in (Tokens or Rows, `form`).
+// SearchListbox — the one list a search's results hang in (Minis or Compacts, `form`).
 export { SearchListbox } from './compositions/SearchListbox'
 // StartHere — the one onboarding block, on the SRD's home and the app's front door
 export { StartHere } from './compositions/StartHere'
@@ -160,7 +160,7 @@ export { useSearchCombobox } from './compositions/useSearchCombobox'
 // AdderBox — the dashed "+ add" intake under a list; AdderField labels a field in it.
 export { AdderBox, AdderField } from './containers/AdderBox'
 export { Banner } from './containers/Banner'
-// Box — the house container: the Row's square frame around a paper body (ruleset §4.3).
+// Box — the house container: the Compact's square frame around a paper body (ruleset §4.3).
 export { Box } from './containers/Box'
 // Callout — the unlabelled note: the bare Box framed in its accent (ruleset §5.2).
 export { Callout } from './containers/Callout'
@@ -185,6 +185,9 @@ export { HeaderMenu } from './containers/HeaderMenu'
 // loadingCopy — the one "Loading <thing>…" wording Pending, Skeleton and RoutePending share (R22)
 export { loadingCopy } from './containers/loadingCopy'
 export { MasonryColumns } from './containers/MasonryColumns'
+// MiniGrid — contentful Minis as a masonry grid by the room it has (a sheet's
+// abilities, actions, systems and modules; a pattern's loadout)
+export { MiniGrid } from './containers/MiniGrid'
 export { ModalShell } from './containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './containers/PageShell'
@@ -212,9 +215,6 @@ export type { StatItem } from './containers/statsBarTypes'
 export { TitledBox } from './containers/TitledBox'
 // ToasterMount — the document's one Toaster (R20); `toast` raises an act's notice
 export { ToasterMount, toast } from './containers/Toaster'
-// TokenGrid — contentful Tokens as a masonry grid by the room it has (a sheet's
-// abilities, actions, systems and modules; a pattern's loadout)
-export { TokenGrid } from './containers/TokenGrid'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,
@@ -223,8 +223,8 @@ export { toastRoll } from './containers/toastRoll'
 //   (a Play unit box's relation chips, C11) included.
 // - `EntityStat`: a fact whose value is an entity (`CLASS | Engineer`); the
 //   chip opens and Peeks it.
-// - `Art`: a Row's art window in its head, a `TitledBox`'s `art` (a sheet's chassis callout).
-// - `Head`: a Row's band, cut out (`notch`), the name on a paper tab and the
+// - `Art`: a Compact's art window in its head, a `TitledBox`'s `art` (a sheet's chassis callout).
+// - `Head`: a Compact's band, cut out (`notch`), the name on a paper tab and the
 //   chips right of it; a page's own cut-out card (the changelog, a class's
 //   paths) heads with it.
 // - `TagItem`, `Tags`, `relation`, `traitTags`: one trait or relation as a
@@ -255,9 +255,9 @@ export type {
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
 export { Mention } from './entity/forms/Mention'
-// TokenGroup — an entity's contentful Token and the Tokens that belong to it
+// MiniGroup — an entity's contentful Mini and the Minis that belong to it
 // in one border of its tone (a crawler bay and its crew), no nesting
-export { TokenGroup } from './entity/forms/TokenGroup'
+export { MiniGroup } from './entity/forms/MiniGroup'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
 export { SELECT_DIM } from './entity/modes/selectedRing'
 export type { PeekLoader } from './entity/Peek'
@@ -265,7 +265,7 @@ export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
 export { embeddedPeekAddress } from './entity/peekContext'
-export type { EntityMode, EntityRowModel } from './entity/types'
+export type { EntityFormModel, EntityMode } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
 // links) as a section; InlineMarkdown — one line of it, links only
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'
@@ -273,23 +273,23 @@ export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
 // BayInfo — a crawler bay's own rules under a folding Slab, its first section.
 export { BayInfo } from './referenceEntity/card/BayInfo'
-// EntityChoices — an entity's choices under its Token, for a host that draws it as one.
+// EntityChoices — an entity's choices under its Mini, for a host that draws it as one.
 export { EntityChoices } from './referenceEntity/card/EntityChoices'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
 // pages and the app's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
-// EntityRollToken — an entity's own roll table as a Token, under the entity's Token (E14).
-export { EntityRollToken } from './referenceEntity/card/EntityRollToken'
+// EntityRollMini — an entity's own roll table as a Mini, under the entity's Mini (E14).
+export { EntityRollMini } from './referenceEntity/card/EntityRollMini'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'
 // HomebrewStamp — the dashed HOMEBREW stamp (ruleset §3.9) every player-made
-// thing wears: a card's labels, a Row's marks, a saved pattern's page.
+// thing wears: a card's labels, a Compact's marks, a saved pattern's page.
 export { HomebrewStamp } from './referenceEntity/card/HomebrewStamp'
 // The stored-tag test for the book's starting builds, for a page band that
 // wears the stamp (`EntityPageStamps`) outside the card.
 export { isLegalStartingPatternOf } from './referenceEntity/card/legalStartingPattern'
-export { ActionTokens } from './referenceEntity/card/NestedCards'
+export { ActionMinis } from './referenceEntity/card/NestedCards'
 // A chassis page's pattern, listed: a player's pattern too, in Edit while they save it.
 export { PatternListing } from './referenceEntity/card/PatternListRow'
 // Entity display system

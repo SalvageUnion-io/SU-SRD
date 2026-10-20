@@ -103,7 +103,7 @@ export type HeaderFill = 'tone' | 'ink'
 
 /**
  * Which fill a header takes in a form (E12): things you do are the ink banner,
- * except an ability's Row, which wears its tier tone (Core orange, Advanced
+ * except an ability's Compact, which wears its tier tone (Core orange, Advanced
  * and Hybrid rust, Legendary pink) wherever abilities are listed.
  */
 export function headerFill(entity: RefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {

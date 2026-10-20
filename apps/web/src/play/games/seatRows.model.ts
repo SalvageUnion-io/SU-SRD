@@ -21,7 +21,7 @@ export type SeatRow = {
   who: string
   unit: string
   /**
-   * The seat's pilot, as its Row reads it: the callsign and the sheet the Row
+   * The seat's pilot, as its Compact reads it: the callsign and the sheet the Compact
    * opens, and the mech assigned to them with its sheet (null on foot). Null
    * for a member with no pilot.
    */

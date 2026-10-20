@@ -9,7 +9,7 @@
  *
  * ## One choice: the pilot
  *
- * The dialog (`PickDialog`) lists the Game's pilots — each its Row in select
+ * The dialog (`PickDialog`) lists the Game's pilots — each its Compact in select
  * mode (EDL "Modes"), who holds it right of the name — in the roster's own order: yours first
  * (`groupColumn`), then the crew's — and pre-selects the first one you own. A
  * viewer who owns none of those listed gets no pre-selection and picks one.

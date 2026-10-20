@@ -11,7 +11,7 @@
  * - The opening: its portrait beside its identity lines (`NpcLines`: role,
  *   keepsake, motto, detail, facts; its name a field in Edit), and its HP as
  *   the sheet's one vital gauge (`SheetVitalGauge`).
- * - Its actions as contentful Tokens under an Actions slab, their rules the
+ * - Its actions as contentful Minis under an Actions slab, their rules the
  *   book's; its traits as Tags.
  * - Down at 0 HP is the one unit-out treatment.
  *
@@ -27,7 +27,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import { ActionTokens, Button, SlabSection, Tags, tokens, traitTags } from '../../components/index'
+import { ActionMinis, Button, SlabSection, Tags, tokens, traitTags } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
@@ -289,7 +289,7 @@ export function NpcSheet({
             >
               {npcActions.length > 0 && (
                 <SlabSection fold="open" title="Actions" count={npcActions.length}>
-                  <ActionTokens
+                  <ActionMinis
                     actions={npcActions}
                     size="compact"
                     hostName={npc.name}

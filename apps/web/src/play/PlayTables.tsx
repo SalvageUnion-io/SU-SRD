@@ -1,13 +1,13 @@
 /**
  * PlayTables — the Tables section of the Cockpit's right column (play.md §8):
  * "Roll a table…" to find any roll table, the tables found and the tables the
- * Situation needs pinned (`pinnedTables`), each a list of roll table Tokens
- * in the Token grid (`TokenGrid`; ruleset §1.3: Play's lists are Tokens), the open table drawn by
+ * Situation needs pinned (`pinnedTables`), each a list of roll table Minis
+ * in the Mini grid (`MiniGrid`; ruleset §1.3: Play's lists are Minis), the open table drawn by
  * the shared roll instrument (`PlayRollTable`, `RollTableInstrument`
  * underneath), and the screen's one Post toggle (§9).
  *
- * Choosing a table's Token opens it (R8: the instrument, open, its stamp the
- * one roll); the open one is the pressed toggle Token (EDL Modes), the rest
+ * Choosing a table's Mini opens it (R8: the instrument, open, its stamp the
+ * one roll); the open one is the pressed toggle Mini (EDL Modes), the rest
  * dimmed beside it, and choosing it again closes it.
  *
  * Every roll goes through `recordPlayRoll`, so it lands on the Feed, the
@@ -19,8 +19,8 @@
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { RollToken } from '../components/entity/forms/RollToken'
-import { CHAPTER_BAND_COLOR, Checkbox, SearchField, TokenGrid, tokens } from '../components/index'
+import { RollMini } from '../components/entity/forms/RollMini'
+import { CHAPTER_BAND_COLOR, Checkbox, MiniGrid, SearchField, tokens } from '../components/index'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
 import { PlayRollTable } from './PlayRollTable'
@@ -94,9 +94,9 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         }}
       />
       {found.length > 0 && (
-        <TableTokens id={findId} label="Tables found" names={found} open={open} onPick={pick} />
+        <TableMinis id={findId} label="Tables found" names={found} open={open} onPick={pick} />
       )}
-      <TableTokens label="Pinned tables" names={pinnedTables(downtime)} open={open} onPick={pick} />
+      <TableMinis label="Pinned tables" names={pinnedTables(downtime)} open={open} onPick={pick} />
       {table && (
         <PlayRollTable
           key={table.name}
@@ -130,8 +130,8 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
   )
 }
 
-/** A list of tables, roll table Tokens in the Token grid, the open one pressed. */
-function TableTokens({
+/** A list of tables, roll table Minis in the Mini grid, the open one pressed. */
+function TableMinis({
   id,
   label,
   names,
@@ -146,10 +146,10 @@ function TableTokens({
   onPick: (name: string) => void
 }) {
   return (
-    <TokenGrid label={label} play className="su-play-tables" id={id}>
+    <MiniGrid label={label} play className="su-play-tables" id={id}>
       {names.map((name) => (
         <li key={name} data-choice-toggle="">
-          <RollToken
+          <RollMini
             name={name}
             toggle={{
               pressed: open === name,
@@ -159,6 +159,6 @@ function TableTokens({
           />
         </li>
       ))}
-    </TokenGrid>
+    </MiniGrid>
   )
 }

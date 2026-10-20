@@ -24,10 +24,10 @@ describe('Changelog', () => {
   test('each entry is a TitledBox article, the date on the tab', () => {
     const entries: ChangelogEntry[] = [{ date: '2026-07-20', items: ['Added a chassis'] }]
     const { container } = render(<Changelog entries={entries} />)
-    const head = container.querySelector('article.su-box .su-entity-row__head')
+    const head = container.querySelector('article.su-box .su-entity-compact__head')
     expect(head?.getAttribute('style')).toContain('background-color')
     expect(head?.hasAttribute('data-notch')).toBe(true)
-    expect(head?.querySelector('.su-entity-row__notch h2 time')).not.toBeNull()
+    expect(head?.querySelector('.su-entity-compact__notch h2 time')).not.toBeNull()
   })
 
   test('renders inline markdown links in a bullet item as anchors', () => {

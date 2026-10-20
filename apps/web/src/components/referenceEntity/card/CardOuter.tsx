@@ -9,7 +9,7 @@ export type CardOuterProps = {
   interaction: HTMLAttributes<HTMLDivElement>
   /** Set when the card is an option in an exactly-one picker. */
   radio?: { selected: boolean; onSelect: () => void }
-  /** Makes the card a Peek trigger (a Token's hover card). */
+  /** Makes the card a Peek trigger (a Mini's hover card). */
   peek?: PeekAttrs
 }
 

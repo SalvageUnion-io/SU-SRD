@@ -3,7 +3,7 @@ import { CHIP_CLASSES } from './chipSet'
 /**
  * THE LANES OF A LIST (`chips-and-actions.md` C6, hard rule R2): in a list,
  * every chip class is a column every line shares. A LIST is the lines that
- * share a parent, each a Row (with the wrappers it sits in alone:
+ * share a parent, each a Compact (with the wrappers it sits in alone:
  * its `li`, a grid cell); `e2e/_chipLanes.ts` reads lists the same way.
  *
  * Each line's strip (`Chips` with `lanes`) joins its list here. A list whose
@@ -20,12 +20,12 @@ import { CHIP_CLASSES } from './chipSet'
  * resize across the breakpoint).
  */
 
-/** What a line is: a Row. A Token holds no lanes (C6): its chips pack right. */
-const LINE = '.su-entity-row'
+/** What a line is: a Compact. A Mini holds no lanes (C6): its chips pack right. */
+const LINE = '.su-entity-compact'
 
 /**
  * A Card's frame. A Card is no line, so a strip whose nearest frame is a
- * Card's (its head) is in no list, even where the Card sits in a Row-drawn
+ * Card's (its head) is in no list, even where the Card sits in a Compact-drawn
  * frame (a wizard step's `Box`): joining that frame's list gave every card in
  * the step one set of lane widths, which wrapped their heads, which
  * re-measured the lanes, and the cards never stopped moving.

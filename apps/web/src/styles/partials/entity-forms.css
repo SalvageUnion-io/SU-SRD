@@ -1,21 +1,21 @@
 /*
- * The package stylesheet, part 3 of 21: the entity forms: Row and Token.
+ * The package stylesheet, part 3 of 21: the entity forms: Compact and Mini.
  * `../index.css` imports the parts in cascade order.
  */
 
-/* ══ The entity forms: Row and Token (entity display language) ═════════════
+/* ══ The entity forms: Compact and Mini (entity display language) ═════════════
  *
  * `src/entity/forms/`. A ROW is an inline-size container, so its art window
  * appears by ROOM (E10): only once the row is 18rem wide, whatever the
- * viewport. Its floor is a Token's ceiling (E3, 12rem), so a Row in a
- * shrink-wrapped slot never collapses to nothing. A link-mode Row is an `<a>`
+ * viewport. Its floor is a Mini's ceiling (E3, 12rem), so a Compact in a
+ * shrink-wrapped slot never collapses to nothing. A link-mode Compact is an `<a>`
  * and keeps the page's ink, not a link's colour or underline.
  *
  * Every part's static geometry is here, not in a style object, because a
  * listing repeats it on every row and token (ADR-046, repeated elements). The
  * paint (a tone, ink, grey when down) is the component's, inline.
  */
-.su-entity-row {
+.su-entity-compact {
   color: inherit;
   container-type: inline-size;
   display: flex;
@@ -25,18 +25,18 @@
   text-decoration: none;
 }
 
-/* The frame (owner's call, 2026-10-20): ink round a Row or `Box` with content
+/* The frame (owner's call, 2026-10-20): ink round a Compact or `Box` with content
    under its head; no edge round one that is its head alone (`data-bodyless`),
    its width kept transparent so nothing moves, and the paper stopping inside
    it so no paper ring shows round the band. Player-made is solid like the
    book (a HOMEBREW chip marks it); a Play reference unit is dashed. A
-   surrounding diagram may colour it through `--su-row-frame` (srd's ability
-   tracks frame their Rows in the track's hue). Square-cornered, as a show
+   surrounding diagram may colour it through `--su-compact-frame` (srd's ability
+   tracks frame their Compacts in the track's hue). Square-cornered, as a show
    page's band (owner's call, 2026-10-14). */
-.su-entity-row__frame {
+.su-entity-compact__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  border-color: var(--su-row-frame, var(--color-ink));
+  border-color: var(--su-compact-frame, var(--color-ink));
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
@@ -45,40 +45,40 @@
   overflow: hidden;
 }
 
-.su-entity-row__frame[data-bodyless]:not([data-reference]) {
-  border-color: var(--su-row-frame, transparent);
+.su-entity-compact__frame[data-bodyless]:not([data-reference]) {
+  border-color: var(--su-compact-frame, transparent);
 }
 
 /* A Play reference unit (ADR-051 §5, `Box`'s `reference`): dashed, read-only. */
-.su-entity-row__frame[data-reference] {
+.su-entity-compact__frame[data-reference] {
   border-style: dashed;
 }
 
-/* A Row that is its head alone (`data-bodyless`: a base class, a roll table,
+/* A Compact that is its head alone (`data-bodyless`: a base class, a roll table,
    with no facts and no lead to show) is its head's height wherever it stands:
-   stretched by a grid or a flex line beside bodied Rows, its frame keeps the
+   stretched by a grid or a flex line beside bodied Compacts, its frame keeps the
    head's height instead of opening an empty paper strip under it. */
-.su-entity-row__frame[data-bodyless] {
+.su-entity-compact__frame[data-bodyless] {
   flex: none;
 }
 
-.su-entity-row__main {
+.su-entity-compact__main {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
 }
 
-/* A frame that shrinks with its host (`RowFrame`'s `shrink`: a capped
+/* A frame that shrinks with its host (`CompactFrame`'s `shrink`: a capped
    dialog, a box that fills its panel): it and its main column give way below
    their content, and the host's body scrolls in what is left. */
-.su-entity-row__frame[data-shrink],
-.su-entity-row__frame[data-shrink] > .su-entity-row__main {
+.su-entity-compact__frame[data-shrink],
+.su-entity-compact__frame[data-shrink] > .su-entity-compact__main {
   min-height: 0;
 }
 
 /* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain. */
-.su-entity-row__head {
+.su-entity-compact__head {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -87,7 +87,7 @@
 
 /* The one line that never wraps: tier, name and labels, hint, stamps,
    affordance. */
-.su-entity-row__line {
+.su-entity-compact__line {
   align-items: center;
   column-gap: var(--space-8);
   display: flex;
@@ -97,7 +97,7 @@
 }
 
 /* The name and its labels: the row's room, the labels right after the name. */
-.su-entity-row__name {
+.su-entity-compact__name {
   align-items: center;
   column-gap: var(--space-8);
   display: flex;
@@ -108,7 +108,7 @@
 /* The title: it wraps at spaces, never clipped (a name is never cut to "…").
    Beside its labels it gives way first (a high shrink), but keeps its longest
    word whole. */
-.su-entity-row__title {
+.su-entity-compact__title {
   display: block;
   flex: 0 100 auto;
   font-size: var(--text-title);
@@ -122,7 +122,7 @@
 /* An ability's tier numeral, at the left, on the band: the title's face in
    the band's own foreground, undimmed, so it holds the 4.5:1 the tier bands
    are tested at (`design/__tests__/contrast.test.ts`). */
-.su-entity-row__tier {
+.su-entity-compact__tier {
   display: inline;
   flex: none;
   font-size: var(--text-title);
@@ -138,56 +138,56 @@
 
 /* The labels give way once the name cannot wrap further: their stamps wrap
    onto a second line, never cut to "…" (`.su-ec-labels`). */
-.su-entity-row__labels {
+.su-entity-compact__labels {
   display: flex;
   flex: 0 1 auto;
 }
 
-.su-entity-row__labels:empty {
+.su-entity-compact__labels:empty {
   display: none;
 }
 
 /*
- * THE CUT-OUT (`Head`'s `notch`: a Row with a body, a pattern row): the tier
+ * THE CUT-OUT (`Head`'s `notch`: a Compact with a body, a pattern row): the tier
  * and name sit on a tab of the paper below, notched into the band's foot, in
- * ink, as a catalog Tile's (ruleset, "Chapter band"). The tab opens into the
+ * ink, as a catalog CompactIndex's (ruleset, "Chapter band"). The tab opens into the
  * paper body, so no rule runs between head and body. The labels, stamps and
  * affordance stay on the band, centred on it.
  */
-.su-entity-row__head[data-notch] {
+.su-entity-compact__head[data-notch] {
   padding: var(--space-8) var(--space-12) 0;
 }
 
 /* `Head`'s `top`: controls on the band above the name's line, the band's
    full width (the SRD Explorer's search and filters). */
-.su-entity-row__top {
+.su-entity-compact__top {
   padding-bottom: var(--space-8);
 }
 
 /* Set by a grid taller than the head, the band runs the frame's height, its
-   cut-outs on the band's foot: a Row has a paper body only for a lead or
+   cut-outs on the band's foot: a Compact has a paper body only for a lead or
    stamp, never an empty one. */
-.su-entity-row__frame[data-bodyless] .su-entity-row__head {
+.su-entity-compact__frame[data-bodyless] .su-entity-compact__head {
   flex: 1 1 auto;
 }
 
 /* Not the heading: it holds the tab, which must reach the band's foot so it
    opens into the body with no band showing under it. */
-.su-entity-row__head[data-notch]
-  .su-entity-row__line
-  > :not(.su-entity-row__name, .su-entity-row__heading, .su-entity-row__art),
-.su-entity-row__head[data-notch] .su-entity-row__labels {
+.su-entity-compact__head[data-notch]
+  .su-entity-compact__line
+  > :not(.su-entity-compact__name, .su-entity-compact__heading, .su-entity-compact__art),
+.su-entity-compact__head[data-notch] .su-entity-compact__labels {
   align-self: center;
   margin-bottom: var(--space-4);
 }
 
-.su-entity-row__head[data-notch] .su-entity-row__line,
-.su-entity-row__head[data-notch] .su-entity-row__name {
+.su-entity-compact__head[data-notch] .su-entity-compact__line,
+.su-entity-compact__head[data-notch] .su-entity-compact__name {
   align-items: flex-end;
 }
 
 /* The tier stays on the band, left of the cut-out, on the name's baseline. */
-.su-entity-row__head[data-notch] .su-entity-row__line > .su-entity-row__tier {
+.su-entity-compact__head[data-notch] .su-entity-compact__line > .su-entity-compact__tier {
   align-self: flex-end;
   margin-bottom: var(--space-2);
 }
@@ -195,7 +195,7 @@
 /* A step's number (`TitledBox`'s `number`): the tier as an ink chip, its
    numeral in paper, as tall as the cut-out and butted against it, so the two
    read as one two-cell head (`1 | FILL OUT YOUR STATS`), a guide step's slab. */
-.su-entity-row__head[data-notch] .su-entity-row__line > .su-entity-row__tier--chip {
+.su-entity-compact__head[data-notch] .su-entity-compact__line > .su-entity-compact__tier--chip {
   background-color: var(--color-ink);
   color: var(--color-paper);
   display: block;
@@ -204,7 +204,7 @@
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
-.su-entity-row__notch {
+.su-entity-compact__notch {
   align-items: baseline;
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -216,23 +216,23 @@
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
-/* Taller than its head (a grid sets the height), a bodyless Row's band fills
+/* Taller than its head (a grid sets the height), a bodyless Compact's band fills
    the frame and its name and chips sit at the foot, the tab on the bottom
    border, so no paper strip opens under the head (owner's call, 2026-10-14). */
-.su-entity-row__frame[data-bodyless] > .su-entity-row__main > .su-entity-row__head {
+.su-entity-compact__frame[data-bodyless] > .su-entity-compact__main > .su-entity-compact__head {
   flex: 1 1 auto;
   justify-content: flex-end;
 }
 
-.su-entity-row__frame[data-bodyless] .su-entity-row__head > .su-entity-row__line {
+.su-entity-compact__frame[data-bodyless] .su-entity-compact__head > .su-entity-compact__line {
   flex: none;
 }
 
 /* With art, the line runs the band's height however tall the head is set,
    so the art's window stays centred on it. */
-.su-entity-row__frame[data-bodyless]
-  .su-entity-row__head
-  > .su-entity-row__line:has(> .su-entity-row__art) {
+.su-entity-compact__frame[data-bodyless]
+  .su-entity-compact__head
+  > .su-entity-compact__line:has(> .su-entity-compact__art) {
   flex: 1 1 auto;
 }
 
@@ -253,31 +253,31 @@
 /* A head with chips (`Head`'s `chips`): the name and the chips are one flow
    that fills from the bottom right (below). Its column gap is the chips' own
    4px; the name keeps another 4px to its right, so it stands 8px clear. */
-.su-entity-row__heading {
+.su-entity-compact__heading {
   column-gap: var(--space-4);
   flex: 1 1 0;
   min-width: 0;
 }
 
-.su-entity-row__heading > .su-entity-row__name {
+.su-entity-compact__heading > .su-entity-compact__name {
   padding-inline-end: var(--space-4);
 }
 
 /* A cut-out head with chips (`Head`'s `chipsBeside`): the name stays on its
    tab at the band's foot, however tall a grid sets the head, and the chips
    start on its line, never under it. */
-.su-entity-row__heading--cut {
+.su-entity-compact__heading--cut {
   align-self: stretch;
 }
 
-.su-entity-row__heading--cut > .su-entity-row__name {
+.su-entity-compact__heading--cut > .su-entity-compact__name {
   /* Under `wrap-reverse` the cross axis runs up: `flex-start` is the foot. */
   align-self: flex-start;
 }
 
 /* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b; owner's
-   rule, 2026-10-20): every head whose name and chips share a line (a Row's or
-   Card's heading, a Tile's band, a Page's chapter band: `[data-chip-fill]`).
+   rule, 2026-10-20): every head whose name and chips share a line (a Compact's or
+   Card's heading, a CompactIndex's band, a Page's chapter band: `[data-chip-fill]`).
    Chips sit only beside the name, on its line, the last chip (the cost) in
    the corner, filling that line leftward, and never make the head taller:
    what does not fit leaves the head (`data-fill-out`, below) for the body's
@@ -337,13 +337,13 @@
 }
 
 /* The strips and the labels' group draw no box: each chip is the flow's own. */
-[data-chip-fill] > :is(.su-chips, .su-entity-row__chip-group),
-[data-chip-fill] > .su-entity-row__chip-group > .su-chips {
+[data-chip-fill] > :is(.su-chips, .su-entity-compact__chip-group),
+[data-chip-fill] > .su-entity-compact__chip-group > .su-chips {
   display: contents;
 }
 
 /* On paper the cost's edge draws no box: its box is the flow's item. */
-:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-compact__chip-group > .su-chips)
   > .su-chip-lane
   > .su-cost-edge
   > .su-cost {
@@ -352,13 +352,13 @@
 
 /* A Card's labels (its type stamp) lead its chips: the first read, the last
    placed (`--su-items`, the flow's count). */
-[data-chip-fill] > .su-entity-row__chip-group > .su-entity-row__labels {
+[data-chip-fill] > .su-entity-compact__chip-group > .su-entity-compact__labels {
   margin-block: calc(var(--space-4) / 2);
   order: calc(3 * var(--su-items, 99));
 }
 
 /* A chip wider than the head itself (a Game's long name) wraps its value on
-   a line of its own, never past the Row's edge (R3, E18: it wraps, never
+   a line of its own, never past the Compact's edge (R3, E18: it wraps, never
    clipped). */
 [data-chip-fill] .su-stat-cell {
   max-width: 100%;
@@ -489,14 +489,14 @@
   --su-fill: calc(var(--su-lane-end, 0) + 24);
 }
 
-/* A label among the chips (a Row's labels lead its chip group; a Card's
+/* A label among the chips (a Compact's labels lead its chip group; a Card's
    type stamp shares `Head`'s chip group): its labels and chips one group,
    the chips rising above the stamp when the group wraps, the stamp drawn as
    a chip's plate (ink on a tone band, paper on the ink banner), never a
    stamp of its own style. */
-.su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp,
-.su-entity-row__heading > .su-chips .su-ec-labels__stamps > .su-badge-stamp,
-.su-entity-row__heading > .su-chips > .su-chip-lane > .su-badge-stamp:not(.su-badge--dashed) {
+.su-entity-compact__chip-group .su-ec-labels__stamps > .su-badge-stamp,
+.su-entity-compact__heading > .su-chips .su-ec-labels__stamps > .su-badge-stamp,
+.su-entity-compact__heading > .su-chips > .su-chip-lane > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-ink);
   border: var(--bw-hairline) solid var(--color-ink);
   box-shadow: none;
@@ -515,17 +515,17 @@
 }
 
 /* On the ink banner a chip's plate is paper. */
-.su-entity-row__head[data-ground='ink']
-  .su-entity-row__chip-group
+.su-entity-compact__head[data-ground='ink']
+  .su-entity-compact__chip-group
   .su-ec-labels__stamps
   > .su-badge-stamp,
-.su-entity-row__head[data-ground='ink']
-  .su-entity-row__heading
+.su-entity-compact__head[data-ground='ink']
+  .su-entity-compact__heading
   > .su-chips
   .su-ec-labels__stamps
   > .su-badge-stamp,
-.su-entity-row__head[data-ground='ink']
-  .su-entity-row__heading
+.su-entity-compact__head[data-ground='ink']
+  .su-entity-compact__heading
   > .su-chips
   > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-paper);
@@ -535,12 +535,12 @@
 
 /* A cut-out head's labels (a pattern's Legal Starting Pattern stamp) float
    right on the band too. */
-.su-entity-row__head[data-notch] .su-entity-row__labels {
+.su-entity-compact__head[data-notch] .su-entity-compact__labels {
   margin-left: auto;
 }
 
 /* On an ink ground (the frame's `data-ground`, chrome K1: the ink banner, an
-   ink Token, an ink band's controls) a chip is the same plate as on a tone
+   ink Mini, an ink band's controls) a chip is the same plate as on a tone
    band; each cell keeps a paper rule, or its ink label cell would vanish
    into the band. */
 [data-ground='ink'] .su-stat-cell {
@@ -596,7 +596,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   text-decoration: none;
 }
 
-.su-entity-row__body {
+.su-entity-compact__body {
   align-content: flex-start;
   align-items: center;
   display: flex;
@@ -614,8 +614,8 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
    `--su-head-art-width` / `--su-head-art-min` on an ancestor. The line art is
    printed on white, so `multiply` lays it onto the paper. Dropped under the
    name, a phone's chip strip is a stacking context: the panel is raised above
-   it, and lets a press through to the Row's surface. */
-.su-entity-row__art {
+   it, and lets a press through to the Compact's surface. */
+.su-entity-compact__art {
   align-self: center;
   background-color: var(--color-paper);
   display: none;
@@ -628,7 +628,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   z-index: 1;
 }
 
-.su-entity-row__art img {
+.su-entity-compact__art img {
   height: calc(100% - 2 * var(--space-4));
   inset: var(--space-4);
   mix-blend-mode: multiply;
@@ -638,51 +638,51 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 @container (width >= 18rem) {
-  /* design-tokens-ignore: E10, the art's window appears by the Row's own room (18rem), a component's fit, not a page breakpoint */
-  .su-entity-row__art {
+  /* design-tokens-ignore: E10, the art's window appears by the Compact's own room (18rem), a component's fit, not a page breakpoint */
+  .su-entity-compact__art {
     display: block;
   }
 }
 
 @media not (width >= 40rem) {
-  .su-entity-row__art {
+  .su-entity-compact__art {
     height: var(--su-head-art-min-phone, 4.25rem);
     width: var(--su-head-art-width-phone, 3.5rem);
   }
 }
 
-/* A link or select Row with controls (`data-covered`): the surface is an
-   empty cover over the whole Row, so the controls never nest inside its
+/* A link or select Compact with controls (`data-covered`): the surface is an
+   empty cover over the whole Compact, so the controls never nest inside its
    `<a>` or radio, and every button among the chips (the host's controls in
    the last slot, an owner seal that claims, a "⋯" menu) and a toggle's check
    sit raised above it. */
-.su-entity-row__cover {
+.su-entity-compact__cover {
   border-radius: var(--radius-card);
   inset: 0;
   position: absolute;
 }
 
-.su-entity-row[data-covered] .su-entity-row__labels,
-.su-entity-row[data-covered] .su-chips :is(a, button),
-.su-entity-row[data-covered] .su-entity-row__line > input {
+.su-entity-compact[data-covered] .su-entity-compact__labels,
+.su-entity-compact[data-covered] .su-chips :is(a, button),
+.su-entity-compact[data-covered] .su-entity-compact__line > input {
   position: relative;
   z-index: 1;
 }
 
-/* A Row as a listbox option (a search's results): the option the arrow keys
-   highlight wears the ink selection ring, as a selected Row does. */
-.su-entity-row[aria-selected='true'] {
+/* A Compact as a listbox option (a search's results): the option the arrow keys
+   highlight wears the ink selection ring, as a selected Compact does. */
+.su-entity-compact[aria-selected='true'] {
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
 /*
- * THE TILE (`src/entity/forms/Tile.tsx`): a listing's Catalog view, art first.
+ * THE TILE (`src/entity/forms/CompactIndex.tsx`): a listing's Catalog view, art first.
  * The art at 3:4 on paper (the line art multiplied onto it), then the tone
  * band with the name notched into its foot on a cut-out of the paper below,
  * in ink (ruleset, "Chapter band"), then the value cells. The art box holds
  * its ratio before the image arrives, so a lazy image never shifts the grid.
  */
-.su-entity-tile {
+.su-entity-index {
   color: inherit;
   display: flex;
   flex: 1 1 auto;
@@ -691,11 +691,11 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   text-decoration: none;
 }
 
-.su-entity-tile__frame {
+.su-entity-index__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  /* Ink round a Tile with its lead under the band, none round a band alone
-     (owner's call, 2026-10-20), as a Row's frame. */
+  /* Ink round a CompactIndex with its lead under the band, none round a band alone
+     (owner's call, 2026-10-20), as a Compact's frame. */
   border: var(--bw-entity-compact) solid transparent;
   display: flex;
   flex: 1 1 auto;
@@ -703,18 +703,18 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   overflow: hidden;
 }
 
-.su-entity-tile__frame:has(> .su-entity-tile__cells) {
+.su-entity-index__frame:has(> .su-entity-index__cells) {
   border-color: var(--color-ink);
 }
 
-.su-entity-tile__art {
+.su-entity-index__art {
   aspect-ratio: 3 / 4;
   background-color: var(--color-paper);
   display: flex;
   position: relative;
 }
 
-.su-entity-tile__art img {
+.su-entity-index__art img {
   height: calc(100% - 2 * var(--space-12));
   inset: var(--space-12);
   mix-blend-mode: multiply;
@@ -724,24 +724,24 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   width: calc(100% - 2 * var(--space-12));
 }
 
-.su-entity-tile:hover .su-entity-tile__art img {
+.su-entity-index:hover .su-entity-index__art img {
   transform: scale(1.03);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .su-entity-tile__art img {
+  .su-entity-index__art img {
     transition: none;
   }
 
-  .su-entity-tile:hover .su-entity-tile__art img {
+  .su-entity-index:hover .su-entity-index__art img {
     transform: none;
   }
 }
 
-/* The art's window (`Tile.tsx`'s `tileArtWindow`, set only on measured art):
+/* The art's window (`CompactIndex.tsx`'s `tileArtWindow`, set only on measured art):
    at a tablet's or desktop's width it is not a box, and the art draws whole
    at 3:4 as above. */
-.su-entity-tile__window {
+.su-entity-index__window {
   display: contents;
 }
 
@@ -753,13 +753,13 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
    draws whole in the band; a censor mark fills it. The band, chips and lead
    are unchanged. */
 @media not (width >= 40rem) {
-  .su-entity-tile__art {
+  .su-entity-index__art {
     aspect-ratio: 2 / 1;
     container-type: inline-size;
     overflow: hidden;
   }
 
-  .su-entity-tile__window {
+  .su-entity-index__window {
     aspect-ratio: var(--su-art-aspect);
     display: block;
     margin: auto;
@@ -768,23 +768,23 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
     width: min(100cqw - 2 * var(--space-12), (50cqw - 2 * var(--space-12)) * var(--su-art-aspect));
   }
 
-  .su-entity-tile__window img {
-    height: var(--su-tile-art-height);
+  .su-entity-index__window img {
+    height: var(--su-index-art-height);
     inset: auto;
-    left: var(--su-tile-art-left);
+    left: var(--su-index-art-left);
     max-width: none;
-    top: var(--su-tile-art-top);
-    width: var(--su-tile-art-width);
+    top: var(--su-index-art-top);
+    width: var(--su-index-art-width);
   }
 }
 
 /* A tile without art (`--bare`) has no art place: it opens on its band. In a
    list that mixes it with art-led tiles, its frame keeps its own height
    rather than stretching to theirs as an empty block of paper. */
-ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
+ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   > li
-  > .su-entity-tile--bare
-  > .su-entity-tile__frame {
+  > .su-entity-index--bare
+  > .su-entity-index__frame {
   flex-grow: 0;
 }
 
@@ -793,31 +793,31 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    fill from its bottom right (`[data-chip-fill]`, the head's fill): the cost
    in the corner beside the name, the rest leftward on the name's line; what
    does not fit is the lead's first row, or +MORE (C2b). */
-.su-entity-tile__band {
+.su-entity-index__band {
   border-top: var(--bw-chrome) solid var(--color-ink);
   min-height: calc(2.1 * var(--text-title) + var(--space-12));
   padding: var(--space-8) var(--space-8) 0;
 }
 
 /* A band with no chips is the name's line alone, on the foot. */
-.su-entity-tile__band:not([data-chip-fill]) {
+.su-entity-index__band:not([data-chip-fill]) {
   align-items: flex-end;
   display: flex;
 }
 
-.su-entity-tile--bare .su-entity-tile__band {
+.su-entity-index--bare .su-entity-index__band {
   border-top: 0;
 }
 
 /* The notch: a cut-out of the paper below, its foot open into the cells
    (under `wrap-reverse`, `flex-start` is the foot). */
-.su-entity-tile__notch {
+.su-entity-index__notch {
   align-self: flex-start;
   background-color: var(--color-paper);
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
-.su-entity-tile__cells {
+.su-entity-index__cells {
   align-content: flex-start;
   display: flex;
   flex: 1 1 auto;
@@ -826,12 +826,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: var(--space-6) var(--space-8) var(--space-8);
 }
 
-/* A Token fills its line (N4), here and not per caller: a block in a block,
+/* A Mini fills its line (N4), here and not per caller: a block in a block,
    a grid cell or a column; in a row of controls it grows into the room they
    leave and never pushes them off the line. A list sets one a line (a
-   column: `.su-entity-token-list`). */
-.su-entity-token,
-.su-entity-token__head {
+   column: `.su-entity-mini-list`). */
+.su-entity-mini,
+.su-entity-mini__head {
   color: inherit;
   display: flex;
   flex: 1 1 auto;
@@ -840,26 +840,26 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   text-decoration: none;
 }
 
-/* A CONTENTFUL Token (N3, `body`): its head, the link and Peek trigger, then
+/* A CONTENTFUL Mini (N3, `body`): its head, the link and Peek trigger, then
    the entity's text and the host's content, contained under the pill by a
-   border in the Token's own tone (its colour is per instance, inline), with
+   border in the Mini's own tone (its colour is per instance, inline), with
    no band, set in from the pill's edge to the name's tab. */
-.su-entity-token[data-contentful] {
+.su-entity-mini[data-contentful] {
   flex-direction: column;
   gap: 0;
   position: relative;
 }
 
 /* Down the column the head keeps its pill's height: a cell taller than the
-   Token lengthens nothing. */
-.su-entity-token[data-contentful] > .su-entity-token__head {
+   Mini lengthens nothing. */
+.su-entity-mini[data-contentful] > .su-entity-mini__head {
   flex: none;
 }
 
 /* The body hangs from the pill: sides and foot at the pill's edge width, in
-   the pill's tone, so the Token holds its content. It is the paper the name's
-   tab is cut from, on any ground, as a Row's frame is. */
-.su-entity-token__body {
+   the pill's tone, so the Mini holds its content. It is the paper the name's
+   tab is cut from, on any ground, as a Compact's frame is. */
+.su-entity-mini__body {
   background-clip: padding-box;
   background-color: var(--color-paper);
   border-style: solid;
@@ -874,8 +874,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* With nothing to show (a hidden overflow row counts for nothing). */
-.su-entity-token__body:empty,
-.su-entity-token__body:has(> .su-chip-overflow[hidden]:only-child) {
+.su-entity-mini__body:empty,
+.su-entity-mini__body:has(> .su-chip-overflow[hidden]:only-child) {
   display: none;
 }
 
@@ -884,27 +884,27 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    row, draws a dark rule under the tab. The body laps 1px of paper up over
    the band's foot (inside its side borders, painting nothing else), so the
    tab always opens into the paper. */
-.su-entity-token[data-contentful] > .su-entity-token__body {
+.su-entity-mini[data-contentful] > .su-entity-mini__body {
   box-shadow: 0 calc(-1px - var(--bw-chrome)) 0 calc(-1 * var(--bw-chrome)) var(--color-paper);
   position: relative;
 }
 
-.su-entity-token__lead {
+.su-entity-mini__lead {
   font-size: var(--text-sm);
   line-height: 1.4;
   margin: 0;
 }
 
-/* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
-   its name on the cut-out (below), the Token's full
+/* TOKEN (`entity/forms/Mini.tsx`): the pill, `[note] [tier] name [chips]`,
+   its name on the cut-out (below), the Mini's full
    width. Always one row (E18): short of room the name ends in "…", and the
    chips keep their whole width (below), held at its right end by the
    cut-out's margin. */
-.su-entity-token__pill {
+.su-entity-mini__pill {
   align-items: stretch;
   align-self: flex-start;
   /* No ink edge on a head alone (owner's call, 2026-10-20); its width stays,
-     so nothing moves. A contentful Token's pill is inked (below). */
+     so nothing moves. A contentful Mini's pill is inked (below). */
   border-color: transparent;
   border-style: solid;
   border-width: var(--bw-chrome);
@@ -922,13 +922,13 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
-/* A contentful Token wears the same cut-out as every Token: inked round its
-   paint but never under it, its tab opens into the body's paper, as a Row's
+/* A contentful Mini wears the same cut-out as every Mini: inked round its
+   paint but never under it, its tab opens into the body's paper, as a Compact's
    does, so no rule runs between head and body; and the paint over the tab is
-   the header-only Token's strip (its clear edge and its padding), so the head
+   the header-only Mini's strip (its clear edge and its padding), so the head
    never reads as a flat bar. The pill's height is unchanged. Gated by
    `e2e/token-cutout.e2e.ts`. */
-.su-entity-token[data-contentful] .su-entity-token__pill {
+.su-entity-mini[data-contentful] .su-entity-mini__pill {
   border-bottom-width: 0;
   border-color: var(--color-ink);
   padding-top: calc(var(--space-2) + var(--bw-chrome));
@@ -936,30 +936,30 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 
 /* The note stamp is the mini ink stamp (`Badge shape="stamp"`); in the pill's
    one line it never shrinks. */
-.su-entity-token__kind {
+.su-entity-mini__kind {
   flex: none;
 }
 
 /* On an ink pill (a thing you do: the pill's `data-ground`, chrome K1) the
    note stamp keeps a paper edge. */
-[data-ground='ink'] .su-entity-token__kind {
+[data-ground='ink'] .su-entity-mini__kind {
   box-shadow: inset 0 0 0 var(--bw-hairline) var(--color-paper);
 }
 
 /* An ability's tier numeral, before its name as on its band. */
-.su-entity-token__tier {
+.su-entity-mini__tier {
   flex: none;
 }
 
-/* A Token with controls (`data-acts`): its name is the link (C8). */
-.su-entity-token__link {
+/* A Mini with controls (`data-acts`): its name is the link (C8). */
+.su-entity-mini__link {
   color: inherit;
   text-decoration: none;
 }
 
 /* The name gives way first: it takes the room the chips leave and ends in
-   "…" when that is too little (E18's Token exception). */
-.su-entity-token__name {
+   "…" when that is too little (E18's Mini exception). */
+.su-entity-mini__name {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -972,7 +972,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    (C3), so width never drops, clips or wraps a chip; the name gives way
    instead, ending in "…" (C5). Nothing here clamps or hides them
    (`_chipStrips.ts` fails a chip outside its strip). */
-.su-entity-token__chips {
+.su-entity-mini__chips {
   align-items: center;
   display: flex;
   flex: none;
@@ -980,15 +980,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   gap: var(--space-4);
 }
 
-.su-entity-token__chips > *,
-.su-entity-token__chips > .su-chip-lane > * {
+.su-entity-mini__chips > *,
+.su-entity-mini__chips > .su-chip-lane > * {
   flex: none;
 }
 
-/* The HOMEBREW stamp leading a Token's chips is one of them, drawn as a Stat
+/* The HOMEBREW stamp leading a Mini's chips is one of them, drawn as a Stat
    cell of its Size is (§4.7, `atoms-badges.css`): never taller, never
    stretched to its line. */
-.su-entity-token__chips .su-chip-lane > .su-badge--dashed {
+.su-entity-mini__chips .su-chip-lane > .su-badge--dashed {
   align-items: center;
   align-self: center;
   border-width: var(--bw-hairline);
@@ -997,14 +997,14 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding-block: var(--space-2);
 }
 
-/* A contentful Token's head (N3) holds a compact head's budget (C3: economy,
+/* A contentful Mini's head (N3) holds a compact head's budget (C3: economy,
    facets, traits) on its one line (owner's rule, 2026-10-20): its chips
    never make the head taller. The name keeps at least min(9rem, 40%) of the
    pill, ending in "…" below that; what does not fit beside it leaves the
    head (`data-fill-out`) for the body's first row (`chipFit.ts`, C2b). Until
    the fit has run (and with no script) the chips wrap beside the name, flush
    right, the cost in the corner, every chip whole. */
-.su-entity-token[data-contentful] .su-entity-token__chips {
+.su-entity-mini[data-contentful] .su-entity-mini__chips {
   align-self: flex-end;
   flex: 0 1 auto;
   flex-direction: row-reverse;
@@ -1014,7 +1014,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   min-width: min-content;
 }
 
-.su-entity-token[data-contentful][data-chip-fitted] .su-entity-token__chips {
+.su-entity-mini[data-contentful][data-chip-fitted] .su-entity-mini__chips {
   align-self: center;
   flex: none;
   flex-wrap: nowrap;
@@ -1022,19 +1022,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   min-width: 0;
 }
 
-/* Its chips fill from the corner, as a Row's do (the bottom-right fill,
+/* Its chips fill from the corner, as a Compact's do (the bottom-right fill,
    above): the last chip takes it. Each chip keeps its place from the end
    (`--su-fill`), so the line still reads in class order. The name stays a
    cut-out at the pill's foot, never stretched to the chips' height. On paper
    the cost's edge draws no box (`display: contents`), so its box is the flex
    item and takes the edge's place. */
-.su-entity-token[data-contentful] .su-entity-token__chips > .su-chip-lane > *,
-.su-entity-token[data-contentful]
-  .su-entity-token__chips
-  > .su-chip-lane
-  > .su-cost-edge
-  > .su-cost,
-.su-entity-token[data-contentful] .su-entity-token__chips > .su-chips > .su-chip-lane > * {
+.su-entity-mini[data-contentful] .su-entity-mini__chips > .su-chip-lane > *,
+.su-entity-mini[data-contentful] .su-entity-mini__chips > .su-chip-lane > .su-cost-edge > .su-cost,
+.su-entity-mini[data-contentful] .su-entity-mini__chips > .su-chips > .su-chip-lane > * {
   order: var(--su-fill);
 }
 
@@ -1050,12 +1046,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   display: none;
 }
 
-/* In a contentful Token it is the body's own first row, in its padding. */
-.su-entity-token__body > .su-chip-overflow {
+/* In a contentful Mini it is the body's own first row, in its padding. */
+.su-entity-mini__body > .su-chip-overflow {
   padding: 0;
 }
 
-.su-entity-tile__overflow {
+.su-entity-index__overflow {
   padding: var(--space-6) var(--space-8) 0;
 }
 
@@ -1066,18 +1062,18 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
-/* A Token as a listbox option (the SRD header search): the highlighted option
-   wears the ink selection ring, as a Row option does. */
-.su-entity-token[aria-selected='true'] > .su-entity-token__pill {
+/* A Mini as a listbox option (the SRD header search): the highlighted option
+   wears the ink selection ring, as a Compact option does. */
+.su-entity-mini[aria-selected='true'] > .su-entity-mini__pill {
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
 /*
- * AN ENTITY GRID (`data-entity-grid` on the list): every Row in it is the same
- * height, and the parts line up. The grid's rows are equal, each cell's Row
+ * AN ENTITY GRID (`data-entity-grid` on the list): every Compact in it is the same
+ * height, and the parts line up. The grid's rows are equal, each cell's Compact
  * fills it (the paper body grows, the art runs the full height), and every
  * head reserves its title's two lines, so the heads end on one line and the
- * bodies start on one, even when one name wraps. Outside a grid a Row is its
+ * bodies start on one, even when one name wraps. Outside a grid a Compact is its
  * own height.
  */
 [data-entity-grid] {
@@ -1095,61 +1091,61 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: 1 1 auto;
 }
 
-/* A Row that is its head alone (`data-bodyless`: a roll table with no opening
+/* A Compact that is its head alone (`data-bodyless`: a roll table with no opening
    prose) keeps its head's height rather than stretching to its cell as an
    empty paper strip under the head. A grid holding one sizes each line to its own content,
-   so a line of heads is a head tall; a bodied Row still fills its line. */
-[data-entity-grid]:has(.su-entity-row__frame[data-bodyless]) {
+   so a line of heads is a head tall; a bodied Compact still fills its line. */
+[data-entity-grid]:has(.su-entity-compact__frame[data-bodyless]) {
   grid-auto-rows: auto;
 }
 
-[data-entity-grid] > * > .su-entity-row:has(> .su-entity-row__frame[data-bodyless]) {
+[data-entity-grid] > * > .su-entity-compact:has(> .su-entity-compact__frame[data-bodyless]) {
   flex: none;
 }
 
 /* Two title lines (22px at 1.05) on the head's title line, so every head in
    the grid is one height and the name centres in its line. */
-[data-entity-grid] .su-entity-row__line {
+[data-entity-grid] .su-entity-compact__line {
   min-height: calc(2.1 * var(--text-title));
 }
 
 /* Every lead in the grid reserves its three lines (`Lead`'s clamp at 1.4), so
-   a short lead never leaves its Row shorter than a line of full ones: a Row
+   a short lead never leaves its Compact shorter than a line of full ones: a Compact
    alone on a listing's last line shares no line to stretch to. */
 [data-entity-grid] .su-entity-lead {
   min-height: calc(3 * 1.4em);
 }
 
 /*
- * FIT (`data-entity-fit` on an ancestor): a Row's natural width is its head on
+ * FIT (`data-entity-fit` on an ancestor): a Compact's natural width is its head on
  * one line (tier, name, labels, affordance), so a wrapping flex line
- * can size each Row to its title (the class ability tree, a Row listing). The
+ * can size each Compact to its title (the class ability tree, a Compact listing). The
  * body (facts, tags, lead) fills that width and wraps inside it; it never
- * widens the Row. A size container's width cannot come from its content, so
- * here the Row is not one: its art window answers the nearest container above.
+ * widens the Compact. A size container's width cannot come from its content, so
+ * here the Compact is not one: its art window answers the nearest container above.
  */
-[data-entity-fit] .su-entity-row {
+[data-entity-fit] .su-entity-compact {
   container-type: normal;
 }
 
-[data-entity-fit] .su-entity-row__body {
+[data-entity-fit] .su-entity-compact__body {
   contain: inline-size;
 }
 
 /*
- * THE TOKEN CUT-OUT (`.su-entity-token__notch`): the name sits on a tab of
- * the paper, in ink, as a Row's and a Tile's head do, but at the Token's one
+ * THE TOKEN CUT-OUT (`.su-entity-mini__notch`): the name sits on a tab of
+ * the paper, in ink, as a Compact's and a CompactIndex's head do, but at the Mini's one
  * height: the tab runs from a thin strip of the paint down into the pill's
  * foot, so the pill grows no taller. Its corners are square. The paint shows
  * above and left of the tab and behind the chips; the note stamp stays on
- * the paint, left of the tab, where a Row keeps its tier.
+ * the paint, left of the tab, where a Compact keeps its tier.
  */
-.su-entity-token__pill > :not(.su-entity-token__notch) {
+.su-entity-mini__pill > :not(.su-entity-mini__notch) {
   align-self: center;
   margin-bottom: var(--space-2);
 }
 
-.su-entity-token__notch {
+.su-entity-mini__notch {
   align-items: center;
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -1161,9 +1157,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: var(--space-2) var(--space-6);
 }
 
-/* A contentful Token's name stays a cut-out at the pill's foot when its chips
+/* A contentful Mini's name stays a cut-out at the pill's foot when its chips
    take two lines, never stretched to their height (owner, 2026-10-19). */
-.su-entity-token[data-contentful] .su-entity-token__notch {
+.su-entity-mini[data-contentful] .su-entity-mini__notch {
   align-self: flex-end;
 }
 
@@ -1171,7 +1167,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    gap apart, half the gap above and below and none to the side, each at its
    place from the strip's end (`--su-fill`). Last in the file, after the
    grid's `> *` rules it outranks. */
-:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-compact__chip-group > .su-chips)
   > .su-chip-lane
   > * {
   display: inline-flex;
@@ -1180,10 +1176,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* On its line the cost is centred like its neighbours, its own height. */
-:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-compact__chip-group > .su-chips)
   > .su-chip-lane
   > .su-cost-edge,
-:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-compact__chip-group > .su-chips)
   > .su-chip-lane
   > .su-cost-edge
   > .su-cost {
@@ -1199,8 +1195,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    its left edge, so a class starts on one edge down the list and an absent
    value leaves its cell empty; the strip packs the lanes right on one line
    (the name gives way), a lane the gap from the next only where it has width.
-   Short of room the lanes draw no box and each line packs right: a Row below
-   40rem (a container query on the Row). A Token never holds lanes: its chips
+   Short of room the lanes draw no box and each line packs right: a Compact below
+   40rem (a container query on the Compact). A Mini never holds lanes: its chips
    pack as far right as they go (owner's call, 2026-10-19). Last in the file,
    after the fill order it overrides. */
 .su-chips[data-lanes] > [data-chip-class='mark'] {
@@ -1246,7 +1242,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 @container (width >= 40rem) {
   /* In a fill head the strip is one item again, its lanes on one line at
      the name's right (the fill's first and only chip). */
-  [data-chip-lanes='column'] .su-entity-row .su-chips[data-lanes] {
+  [data-chip-lanes='column'] .su-entity-compact .su-chips[data-lanes] {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -1254,7 +1250,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
     justify-content: flex-end;
   }
 
-  [data-chip-lanes='column'] .su-entity-row .su-chips[data-lanes] > .su-chip-lane {
+  [data-chip-lanes='column'] .su-entity-compact .su-chips[data-lanes] > .su-chip-lane {
     align-items: center;
     display: inline-flex;
     flex: none;
@@ -1263,20 +1259,20 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
     min-width: var(--su-lane-w);
   }
 
-  [data-chip-lanes='column'] .su-entity-row .su-chips[data-lanes] > .su-chip-lane > * {
+  [data-chip-lanes='column'] .su-entity-compact .su-chips[data-lanes] > .su-chip-lane > * {
     margin-block: 0;
     order: 0;
   }
 }
 
-/* A TOKEN LIST (`.su-entity-token-list`: a pattern's Systems and Modules,
-   Play's lists): one Token a line, each running the list's full width, its
+/* A TOKEN LIST (`.su-entity-mini-list`: a pattern's Systems and Modules,
+   Play's lists): one Mini a line, each running the list's full width, its
    name taking the room and its fact at the right edge, where the facts scan
    down the list. Under a coarse pointer, and in Play's phone form (its touch
    floor, `.su-play-root--phone`, ADR-045), each line is a 44px target (ruleset
-   §4.6, R12): the pill is the whole line's height, so a Token whose surface
+   §4.6, R12): the pill is the whole line's height, so a Mini whose surface
    is a control never sits short inside the floor's taller box. */
-.su-entity-token-list {
+.su-entity-mini-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -1285,15 +1281,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: 0;
 }
 
-.su-entity-token-list > li {
+.su-entity-mini-list > li {
   display: flex;
   min-width: 0;
 }
 
-/* Two Tokens a line (`--two-up`: a pattern drone's systems and modules under
-   its Token), in reading order; one a line on a phone, where two would each
+/* Two Minis a line (`--two-up`: a pattern drone's systems and modules under
+   its Mini), in reading order; one a line on a phone, where two would each
    be too narrow to hold a system name. */
-.su-entity-token-list--two-up {
+.su-entity-mini-list--two-up {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
   column-gap: var(--space-6);
@@ -1301,25 +1297,25 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 @media (width >= 40rem) {
-  .su-entity-token-list--two-up {
+  .su-entity-mini-list--two-up {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (pointer: coarse) {
-  .su-entity-token-list .su-entity-token__pill {
+  .su-entity-mini-list .su-entity-mini__pill {
     min-height: var(--size-full);
   }
 }
 
-.su-play-root--phone .su-entity-token-list .su-entity-token__pill {
+.su-play-root--phone .su-entity-mini-list .su-entity-mini__pill {
   min-height: var(--size-full);
 }
 
-/* A Token with controls on its line (`.su-entity-token-line`: the app's installed
-   sheet items): a phone gives the Token its own line and the controls the one
+/* A Mini with controls on its line (`.su-entity-mini-line`: the app's installed
+   sheet items): a phone gives the Mini its own line and the controls the one
    under it; from `sm` they share one, and the pill takes the line's height. */
-.su-entity-token-line {
+.su-entity-mini-line {
   align-items: stretch;
   display: flex;
   flex: 1 1 auto;
@@ -1328,22 +1324,22 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   min-width: 0;
 }
 
-.su-entity-token-line > .su-entity-token {
+.su-entity-mini-line > .su-entity-mini {
   flex: 1 1 100%;
   min-width: 0;
 }
 
-.su-entity-token-line > .su-entity-token > .su-entity-token__pill {
+.su-entity-mini-line > .su-entity-mini > .su-entity-mini__pill {
   align-self: stretch;
 }
 
 @media (width >= 40rem) {
-  .su-entity-token-line > .su-entity-token {
+  .su-entity-mini-line > .su-entity-mini {
     flex-basis: 12rem;
   }
 }
 
-/* An action in a chip group (C8: a Row's Use, a "⋯", a host's group of
+/* An action in a chip group (C8: a Compact's Use, a "⋯", a host's group of
    them) at the strip's Size is a Mini button DRAWN exactly a chip's height
    (C1a: one height, one centre line) in a 24px target (WCAG 2.2, 2.5.8), as
    a linked chip is (`.su-chip-link`): a transparent border round it takes the
@@ -1369,15 +1365,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
 }
 
-/* A Token's strip is one Mini line (ruleset §4.7: one height on a line): a
+/* A Mini's strip is one Mini line (ruleset §4.7: one height on a line): a
    stamp chip, the cost and a Use draw the same 18px plate on one centre. The
    cost would otherwise stretch to the line's 24px (a Mini button's target),
    and a stamp chip stops a pixel short of it. */
-.su-entity-token
-  .su-chips.su-entity-token__chips
+.su-entity-mini
+  .su-chips.su-entity-mini__chips
   > .su-chip-lane
   > :is(.su-stat-cell, .su-cost-edge, .su-cost),
-.su-entity-token .su-chips.su-entity-token__chips > .su-chip-lane > .su-cost-edge > .su-cost {
+.su-entity-mini .su-chips.su-entity-mini__chips > .su-chip-lane > .su-cost-edge > .su-cost {
   align-self: center;
   box-sizing: border-box;
   height: var(--size-mini);
@@ -1406,21 +1402,21 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   text-decoration: underline;
 }
 
-/* An index Tile's chips (`.su-entity-tile__chips`): items of the band's
+/* An index CompactIndex's chips (`.su-entity-index__chips`): items of the band's
    lines, in reading order, no margin of their own, each its own width, so a
    line that has no room wraps it up over the name. Last in the file, after
    the grid's `> *` rules it outranks. */
-.su-entity-tile__band > .su-entity-tile__chips > :not(.su-chip-lane),
-.su-entity-tile__band > .su-entity-tile__chips > .su-chip-lane > * {
+.su-entity-index__band > .su-entity-index__chips > :not(.su-chip-lane),
+.su-entity-index__band > .su-entity-index__chips > .su-chip-lane > * {
   display: inline-flex;
   flex: none;
   margin: 0;
 }
 
-/* A TokenGroup (`forms/TokenGroup.tsx`): an entity's contentful Token and the
-   Tokens that belong to it, one border in its tone round them all, a step of
+/* A MiniGroup (`forms/MiniGroup.tsx`): an entity's contentful Mini and the
+   Minis that belong to it, one border in its tone round them all, a step of
    paper inside it; no head, so no frame and no level. */
-.su-token-group {
+.su-mini-group {
   border: var(--bw-chrome) solid var(--color-ink);
   display: flex;
   flex-direction: column;
@@ -1437,8 +1433,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    too, it showed twice and rose over the name. +MORE stays hidden until a
    chip is out. */
 [data-chip-fill] [data-fill-out][data-fill-out][data-fill-out][data-fill-out],
-.su-entity-token[data-contentful]
-  .su-entity-token__chips
+.su-entity-mini[data-contentful]
+  .su-entity-mini__chips
   [data-fill-out][data-fill-out][data-fill-out],
 .su-chip-more[hidden][hidden][hidden][hidden] {
   display: none;

@@ -15,7 +15,7 @@ import { PAPER_NAME } from './paint'
 const NAME_CAPS = capsLabel({ weight: 'inherit' })
 
 /*
- * The band's parts are `.su-entity-row__*` classes (`styles/index.css`), not
+ * The band's parts are `.su-entity-compact__*` classes (`styles/index.css`), not
  * style objects: a listing repeats them on every row, so inline they were a
  * large share of each page (ADR-046, repeated elements). What varies by row
  * (the paint) stays inline.
@@ -61,7 +61,7 @@ export type HeadProps = {
   labels?: ReactNode
   /**
    * The cut-out (ruleset, "Chapter band"): the name notched into the band's
-   * foot on a tab of the paper below, in ink, as a catalog Tile's; the tier
+   * foot on a tab of the paper below, in ink, as a catalog CompactIndex's; the tier
    * stays on the band, left of it. Without `chipsBeside` it holds only for a
    * head with no chips: chips that drop under the name would leave the tab
    * mid-band.
@@ -70,13 +70,13 @@ export type HeadProps = {
   /**
    * Keep the cut-out with chips: the chips start on the name's line at the
    * band's bottom right and fill it leftward (`chipFill.ts`), never under it
-   * nor above it (every Row and Card head).
+   * nor above it (every Compact and Card head).
    */
   chipsBeside?: boolean
   /**
    * Where the chips that do not fit beside the name go (C2b): `body`, a
    * contentful rendering's, into its body's first row, drawn right under the
-   * band; `more`, a header-only one's (a bodyless Row), behind a +MORE chip
+   * band; `more`, a header-only one's (a bodyless Compact), behind a +MORE chip
    * that ends the strip. The head never grows for them.
    */
   overflow?: 'body' | 'more'
@@ -89,7 +89,7 @@ export type HeadProps = {
 }
 
 /**
- * HEAD — a Row's band: the art (its own window, at the left), the tier (on the band), the name (it wraps, never
+ * HEAD — a Compact's band: the art (its own window, at the left), the tier (on the band), the name (it wraps, never
  * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
  * right, the chip group (from the bottom right of the name's line, leftward,
  * on that line alone: ruleset §4.7's bottom-right fill; what does not fit goes
@@ -124,7 +124,11 @@ export function Head({
   useChipFill(headingRef, !!chips)
   const tierNode = tier && (
     <span
-      className={cn('su-entity-row__tier', NAME_CAPS, tierChip && 'su-entity-row__tier--chip')}
+      className={cn(
+        'su-entity-compact__tier',
+        NAME_CAPS,
+        tierChip && 'su-entity-compact__tier--chip'
+      )}
       data-handback=""
     >
       {tier}
@@ -132,7 +136,7 @@ export function Head({
   )
   const titleNode = (
     <TitleTag
-      className={cn('su-entity-row__title', NAME_CAPS)}
+      className={cn('su-entity-compact__title', NAME_CAPS)}
       // The app's heading face and print sizes hand the title its own back
       // (`styles/build/libHandback.css`, `print.css`).
       data-handback=""
@@ -152,16 +156,16 @@ export function Head({
   // Ability") in the chip group, one right-floated group in one chip style,
   // never a stamp of its own beside the tab.
   const labelsWithChips = cut && !!chips && !!labels
-  const labelsNode = labels && <div className="su-entity-row__labels">{labels}</div>
+  const labelsNode = labels && <div className="su-entity-compact__labels">{labels}</div>
   const name = (
-    <div className="su-entity-row__name" data-fill-name="">
-      {cut ? <span className="su-entity-row__notch">{titleNode}</span> : titleNode}
+    <div className="su-entity-compact__name" data-fill-name="">
+      {cut ? <span className="su-entity-compact__notch">{titleNode}</span> : titleNode}
       {!labelsWithChips && labelsNode}
     </div>
   )
   const band = (
     <div
-      className={cn('su-entity-row__head', grainClass(paint.grain))}
+      className={cn('su-entity-compact__head', grainClass(paint.grain))}
       data-fill={paint.ink ? 'ink' : 'tone'}
       // The band is the frame: an ink band (a thing you do) declares its
       // ground once, and its stamps, chips and cost read it in CSS (chrome K1).
@@ -171,19 +175,19 @@ export function Head({
       data-chip-overflow-owner={overflowRow ? '' : undefined}
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
-      {top && <div className="su-entity-row__top">{top}</div>}
-      <div className="su-entity-row__line">
+      {top && <div className="su-entity-compact__top">{top}</div>}
+      <div className="su-entity-compact__line">
         {art}
         {tierNode}
         {chips ? (
           <div
             ref={headingRef}
-            className={cn('su-entity-row__heading', cut && 'su-entity-row__heading--cut')}
+            className={cn('su-entity-compact__heading', cut && 'su-entity-compact__heading--cut')}
             data-chip-fill=""
           >
             {name}
             {labelsWithChips ? (
-              <div className="su-entity-row__chip-group">
+              <div className="su-entity-compact__chip-group">
                 {labelsNode}
                 {chips}
               </div>

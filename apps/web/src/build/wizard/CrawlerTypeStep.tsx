@@ -45,7 +45,7 @@ const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
  * (Augmented) the A.I. Personality roll — plus the Augmented type's
  * instructional +1 Training Point note (TEXT ONLY: the wizard never writes
  * to other characters — ADR-007 automation boundary). Every card here is
- * level 1, so its NPC is a Token (N1); the note is an unlabelled Callout (N5).
+ * level 1, so its NPC is a Mini (N1); the note is an unlabelled Callout (N5).
  */
 export function CrawlerTypeSelectStep({
   types,

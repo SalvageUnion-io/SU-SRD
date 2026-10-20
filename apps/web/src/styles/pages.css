@@ -296,7 +296,7 @@ a.su-home__discord:hover {
 
 /*
  * A schema listing (`SchemaViewerIsland`): the filter rail, then the entities
- * as compact cards (`EntityListingRow`, `extent="head"`) in groups the book
+ * as compact cards (`EntityIndexCompact`, `extent="head"`) in groups the book
  * prints them in, each under a solid slab. Each listing sets how narrow a card
  * may get: chassis, with a long row of value cells, take two across; the rest
  * three. The server renders the same grid as plain named rows
@@ -346,13 +346,13 @@ a.su-home__discord:hover {
   gap: var(--space-6);
 }
 
-/* An entity grid (`data-entity-grid`): every Row in it is one height, at
+/* An entity grid (`data-entity-grid`): every Compact in it is one height, at
    every width, and its heads end on one line (the UI library's entity forms).
    Its row tracks are the UI library's (`[data-entity-grid]`): equal (`1fr`),
-   each Row stretched to fill its cell, or a line's own height where a Row is
+   each Compact stretched to fill its cell, or a line's own height where a Compact is
    its head alone. Setting them here, unlayered, would override that. */
 .su-listing__cards {
-  /* The Row's art window, wider here so the line art reads at a glance; the
+  /* The Compact's art window, wider here so the line art reads at a glance; the
      art fills it top to bottom. */
   --su-head-art-min: 7rem;
   --su-head-art-min-phone: 6rem;
@@ -363,10 +363,10 @@ a.su-home__discord:hover {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--srd-listing-min)), 1fr));
 }
 
-/* A listing's Rows (`data-entity-fit`): each as wide as its title on one line
+/* A listing's Compacts (`data-entity-fit`): each as wide as its title on one line
    (the UI library's entity forms), no narrower than the listing's measure,
    growing to fill its line, so a short group never leaves the line's end
-   empty; a phone stacks them. Rows on a line share its height. */
+   empty; a phone stacks them. Compacts on a line share its height. */
 .su-listing__cards[data-entity-fit] {
   align-items: stretch;
   display: flex;
@@ -385,7 +385,7 @@ a.su-home__discord:hover {
 }
 
 /* The abilities' Tree (`data-view="tree"`) is one flat column: its tracks,
-   and a tree's plain rows, a Row a line, each its own height. */
+   and a tree's plain rows, a Compact a line, each its own height. */
 :where(.su-listing[data-view='tree']) .su-listing__cards {
   grid-auto-rows: auto;
   grid-template-columns: minmax(0, 1fr);
@@ -418,8 +418,8 @@ a.su-home__discord:hover {
 }
 
 /*
- * THE CATALOG (`data-view="catalog"`): the Tiles (the UI library's
- * `.su-entity-tile`), every listing's view at every width, one flat grid
+ * THE CATALOG (`data-view="catalog"`): the CompactIndexes (the UI library's
+ * `.su-entity-index`), every listing's view at every width, one flat grid
  * (`lib/listingView.ts`). It fills its line to the page's margin: as many
  * 17rem-or-wider tracks as the measure holds (four at the page's), stretched
  * to share the room, the remainder on a shorter last line. Every tile on the
@@ -455,7 +455,7 @@ a.su-home__discord:hover {
   padding: var(--space-4);
 }
 
-/* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
+/* On a phone a tile's art is a 2:1 band (`.su-entity-index__art`,
    the UI library's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
    the reserve and the skeleton's art box take that shape. */
 @media not (width >= 40rem) {
@@ -474,11 +474,11 @@ a.su-home__discord:hover {
 }
 
 /* The Tree view's trees, after the first two, skip layout and paint the same
-   way: the abilities index draws 36 trees of Rows, and laying them all out
+   way: the abilities index draws 36 trees of Compacts, and laying them all out
    was what still blocked its main thread on load. The reserved height is a
-   tree's (one track of Rows) until it has been laid out once: about 18.5rem
+   tree's (one track of Compacts) until it has been laid out once: about 18.5rem
    at desktop widths, where most trees measure 294px, and 25rem on a phone,
-   where their Rows wrap to 380–420px. The same 4px reach keeps the Rows'
+   where their Compacts wrap to 380–420px. The same 4px reach keeps the Compacts'
    focus rings inside the paint containment. */
 .su-listing[data-view='tree'] .su-listing__group:nth-child(n + 3) {
   content-visibility: auto;
@@ -862,7 +862,7 @@ a.su-home__discord:hover {
   min-width: min(100%, 12.5rem);
 }
 
-/* The card is a `TitledBox`; it takes its track's width, under a Row's 12rem floor. */
+/* The card is a `TitledBox`; it takes its track's width, under a Compact's 12rem floor. */
 .su-class-brief__card > .su-box {
   flex: 1 1 auto;
   min-width: 0;
@@ -910,9 +910,9 @@ a.su-home__discord:hover {
  * Legendary Abilities and "Hybrid Classes"), one card each, full width under
  * its Core trees: the class's own Advanced tree first, then each Hybrid Class.
  * Every card is the same shell, one column — a pilot head with the name on
- * the paper cut-out at the band's foot (a Row's) and, right of it, what opens
+ * the paper cut-out at the band's foot (a Compact's) and, right of it, what opens
  * the path and its kind; then the body, what the path is over its trees
- * (their Rows on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
+ * (their Compacts on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
  * the class's own path has no page, so its head links nowhere.
  */
 .su-class-paths {

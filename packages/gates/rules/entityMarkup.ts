@@ -35,16 +35,16 @@ const ENTITY_HOMES = [
 ] as const
 
 /** An entity form's inner class: its markup, which only `components/entity/` draws. */
-const ENTITY_PART_CLASS = /\bsu-entity-(?:row|token)__[\w-]+/g
+const ENTITY_PART_CLASS = /\bsu-entity-(?:compact|mini)__[\w-]+/g
 
 /**
  * R7 (hard-rules.md): entity markup lives only in `components/entity/` (EDL
  * E15), and its styling only in `entity-forms.css`. Anywhere else in the app
  * (Play, Build, the library's other containers and stylesheets) a rule that
- * restyles a Row's frame or main, or code that draws a Token's pill by its
+ * restyles a Compact's frame or main, or code that draws a Mini's pill by its
  * class, is a second entity form; the form's own props say what a host needs
- * instead (`Box`'s `reference`, `fill` and `shrink`, `Row`'s `dim`, the
- * pill's `--su-token-end`), and a cascade handback names a part by its
+ * instead (`Box`'s `reference`, `fill` and `shrink`, `Compact`'s `dim`, the
+ * pill's `--su-mini-end`), and a cascade handback names a part by its
  * `data-handback`. The imports' half is Biome's `noRestrictedImports` over
  * `apps/web/src/**` outside `components/entity/`.
  *

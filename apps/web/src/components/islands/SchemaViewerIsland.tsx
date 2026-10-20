@@ -41,7 +41,7 @@ import {
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
-import { EntityListingRow } from './EntityListingRow'
+import { EntityIndexCompact } from './EntityIndexCompact'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -429,7 +429,8 @@ function SchemaViewer({
                       {group.items.map((item: RefEntity, index) => (
                         <li key={item.id}>
                           <Entity
-                            form="tile"
+                            size="compact"
+                            layout="index"
                             entity={item}
                             mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                             omit={tileOmit}
@@ -449,7 +450,7 @@ function SchemaViewer({
                     <ul className="su-listing__cards" data-entity-fit="">
                       {group.items.map((item: RefEntity) => (
                         <li key={item.id}>
-                          <EntityListingRow
+                          <EntityIndexCompact
                             entity={item}
                             href={itemHref(schemaId, getEntitySlug(item))}
                             omit={omit}

@@ -29,7 +29,7 @@ import type { ChangeMeta } from './entityStore'
 /**
  * Guided Play (ADR-051): an enforced lifecycle transaction (a vital's − / +,
  * use a system, Push, Vent, apply a Downtime step, a roll on the Game's log).
- * Rows the retired Dashboard wrote carry `source: 'dashboard'`.
+ * Compacts the retired Dashboard wrote carry `source: 'dashboard'`.
  */
 export const PLAY_TXN: ChangeMeta = { kind: 'transaction', source: 'play' }
 

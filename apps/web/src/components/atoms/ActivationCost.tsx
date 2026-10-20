@@ -10,7 +10,7 @@ type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
   compact?: boolean
-  /** Beside `mini` chips (a Token): their type size, so it is no taller than they are. */
+  /** Beside `mini` chips (a Mini): their type size, so it is no taller than they are. */
   mini?: boolean
   /**
    * `og`: the fixed 1200 × 630 link preview's scale (`OgCard`), beside its

@@ -22,7 +22,7 @@ import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import {
   CardStack,
   DroneCards,
-  EmbeddedNpcTokens,
+  EmbeddedNpcMinis,
   InlineActions,
   NestedCardGroup,
 } from './NestedCards'
@@ -190,7 +190,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
     (!onPage && !!guideStepsNode)
 
-  // ACTIONS — inline, flush; below a Page, contentful Tokens (N3, `InlineActions`).
+  // ACTIONS — inline, flush; below a Page, contentful Minis (N3, `InlineActions`).
   const actionsNode: ReactNode =
     inlineActionEntities.length > 0 ? (
       <InlineActions actions={inlineActionEntities} host={nestedHost} />
@@ -281,7 +281,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // Nothing to nest is `null`, not an empty fragment: the card's lead gap
   // (`CardLead`) opens only for nested content, so a head-only card (a
   // creature's Stinger) closes on its head with no paper strip under it.
-  // A crawler bay's crew NPC is a Peek Token where it is level 2 (a bay's Card
+  // A crawler bay's crew NPC is a Peek Mini where it is level 2 (a bay's Card
   // on a sheet, N1). On the bay's Page it is one level deep, so it is drawn
   // open with all its content (N8, owner 2026-10-20: "the smith should be a
   // Listing row"), as it is where its crew choices are being made.
@@ -314,7 +314,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       {!isPattern &&
         inFlowGroups.map((group) =>
           bayCrewPeek && group.label === 'NPCs' ? (
-            <EmbeddedNpcTokens
+            <EmbeddedNpcMinis
               key={group.label}
               entities={group.entities}
               host={nestedHost}

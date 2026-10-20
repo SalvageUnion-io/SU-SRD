@@ -3,7 +3,7 @@
  * sibling of PilotIdentityPanel / MechIdentityPanel).
  * Poster identity band: Type (Name too, in Edit; Tech Level is the band's TL
  * chip), then the
- * crawler type's special ability as a library Row (a Peek of its card; no
+ * crawler type's special ability as a library Compact (a Peek of its card; no
  * lead off an SRD index, EDL E11) beside the type's crew NPC, then the
  * Description panel.
  *
@@ -74,10 +74,10 @@ export function CrawlerIdentityPanel({
 
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
   const abilities = resolveCrawlerTypeAbilities(crawler.type)
-  // Read names the type as its Token, which opens and Peeks it.
+  // Read names the type as its Mini, which opens and Peeks it.
   const readType =
     !canEdit && type ? (
-      <Entity form="token" context="browse" entity={type} mode={{ kind: 'link' }} />
+      <Entity size="mini" context="browse" entity={type} mode={{ kind: 'link' }} />
     ) : null
 
   /** Persist the crawler name (required — never write empty). */
@@ -119,13 +119,13 @@ export function CrawlerIdentityPanel({
             assigned={typeCrew}
             ability={
               abilities.length > 0 &&
-              // Contentful Tokens, each its head and then its text, Peeking
+              // Contentful Minis, each its head and then its text, Peeking
               // the whole ability (owner's call, 2026-10-20: every sheet
-              // entity a contentful Token).
+              // entity a contentful Mini).
               abilities.map((ability) => (
                 <li key={ability.id}>
                   <Entity
-                    form="token"
+                    size="mini"
                     context="play"
                     entity={ability}
                     mode={{ kind: 'link' }}

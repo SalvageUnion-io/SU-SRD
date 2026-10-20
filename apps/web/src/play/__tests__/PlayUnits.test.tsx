@@ -250,20 +250,20 @@ describe('the Downtime restore preview', () => {
 })
 
 describe('a hangar mech', () => {
-  test('a Token with its chassis and where it is', () => {
+  test('a Mini with its chassis and where it is', () => {
     const { container } = render(<PlayHangarMech name="Old Faithful" chassis="Mule" note={null} />)
-    expect(container.querySelector('.su-entity-token')).not.toBeNull()
+    expect(container.querySelector('.su-entity-mini')).not.toBeNull()
     expect(container.textContent).toContain('Old Faithful')
-    // Where it is, a state chip in the Token's chip group (C8), never loose words.
+    // Where it is, a state chip in the Mini's chip group (C8), never loose words.
     const state = container.querySelector(
-      ".su-entity-token__chips [data-chip-class='state'] .su-stat-cell"
+      ".su-entity-mini__chips [data-chip-class='state'] .su-stat-cell"
     )
     expect(state?.textContent).toBe('In hangar')
   })
 
   test('a destroyed one says so in place of "In hangar"', () => {
     const { container } = render(<PlayHangarMech name="Wreck" chassis={null} note="Destroyed" />)
-    expect(container.querySelector('.su-entity-token__chips')?.textContent).toBe('Destroyed')
+    expect(container.querySelector('.su-entity-mini__chips')?.textContent).toBe('Destroyed')
     expect(container.textContent).not.toContain('In hangar')
   })
 })

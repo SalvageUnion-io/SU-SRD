@@ -1,7 +1,7 @@
 /**
- * CrawlerSheet — per-bay crew lead (CrewLeadToken) tests.
+ * CrawlerSheet — per-bay crew lead (CrewLeadMini) tests.
  *
- * Each bay card's `expand` slot renders the crew lead as a contentful Token
+ * Each bay card's `expand` slot renders the crew lead as a contentful Mini
  * (N3): its head (name, role, HP) Peeks the bay's NPC, and its body holds the
  * keepsake / motto / detail / facts and, in Edit, the name and HP (max 4)
  * fields. No titled box nests in the bay (N5).
@@ -13,7 +13,7 @@
  *   3. Keepsake persists through the bay NPC's SRD freeform 'Keepsake' choice
  *      into the crawler's bayChoices map (store.update).
  *   4. The SRD role title (npc.position) renders read-only.
- *   5. Read and Edit both draw the crew as one contentful Token; readOnly
+ *   5. Read and Edit both draw the crew as one contentful Mini; readOnly
  *      exposes no edit controls.
  *   6. CrawlerSchema round-trips the bay entry fields (snapshot path).
  *
@@ -37,12 +37,12 @@ import { CrawlerSheet } from '../CrawlerSheet'
 // SalvageUnionReference.CrawlerBays.all patch (so bays resolve in the sheet)
 // ---------------------------------------------------------------------------
 
-/** The crew Token's head (its Peek trigger), by the name it wears. */
-function crewToken(name: string): Element {
-  const head = Array.from(document.querySelectorAll('.su-entity-token__name'))
+/** The crew Mini's head (its Peek trigger), by the name it wears. */
+function crewMini(name: string): Element {
+  const head = Array.from(document.querySelectorAll('.su-entity-mini__name'))
     .find((n) => n.textContent?.startsWith(name))
-    ?.closest('.su-entity-token__head')
-  if (!head) throw new Error(`no crew Token named ${name}`)
+    ?.closest('.su-entity-mini__head')
+  if (!head) throw new Error(`no crew Mini named ${name}`)
   return head
 }
 
@@ -133,7 +133,7 @@ function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEnti
 // Crew identity (name, title, detail)
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet — crew lead identity (CrewLeadToken)', () => {
+describe('CrawlerSheet — crew lead identity (CrewLeadMini)', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()
@@ -146,17 +146,17 @@ describe('CrawlerSheet — crew lead identity (CrewLeadToken)', () => {
 
     const inset = screen.getByLabelText('Command Bay crew lead')
     // The head: the role stamped before the crew's own name, HP live.
-    const head = crewToken('Dax Orsund')
+    const head = crewMini('Dax Orsund')
     expect(inset.contains(head)).toBe(true)
     expect(within(head as HTMLElement).getByText('Princeps')).toBeTruthy()
     expect(head.textContent).toContain('4/4')
     // The body, under the head and outside it.
-    const body = inset.querySelector('.su-entity-token__body') as HTMLElement
+    const body = inset.querySelector('.su-entity-mini__body') as HTMLElement
     expect(within(body).getByText('A stern veteran.')).toBeTruthy()
     expect(within(body).getByText('Hates synths')).toBeTruthy()
   })
 
-  test('no titled box nests in the bay: the crew lead is one contentful Token (N3, N5)', async () => {
+  test('no titled box nests in the bay: the crew lead is one contentful Mini (N3, N5)', async () => {
     restore = await patchCrawlerBays()
     for (const readOnly of [true, false]) {
       const { unmount } = render(
@@ -169,7 +169,7 @@ describe('CrawlerSheet — crew lead identity (CrewLeadToken)', () => {
       expandCards()
       const inset = screen.getByLabelText('Command Bay crew lead')
       expect(inset.querySelector('.su-box')).toBeNull()
-      expect(inset.querySelectorAll('.su-entity-token[data-contentful]')).toHaveLength(1)
+      expect(inset.querySelectorAll('.su-entity-mini[data-contentful]')).toHaveLength(1)
       unmount()
     }
   })
@@ -241,7 +241,7 @@ describe('CrawlerSheet — crew lead identity (CrewLeadToken)', () => {
 // Crew HP (pip click-to-set, max 4)
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
+describe('CrawlerSheet — crew HP editing (CrewLeadMini)', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()
@@ -259,7 +259,7 @@ describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
     expandCards()
 
     const inset = screen.getByLabelText('Command Bay crew lead')
-    // Crew HP is a stepper in the Token's head (starts full at 4/4, max 4); it
+    // Crew HP is a stepper in the Mini's head (starts full at 4/4, max 4); it
     // adjusts it by 1. Decrementing from 4 persists npcCurrentHP: 3.
     const decrease = within(inset).getByRole('button', { name: 'Decrease Command Bay crew HP' })
     await act(async () => {
@@ -275,20 +275,20 @@ describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
     )
   })
 
-  test('readOnly renders the crew as a Token, with no HP steppers', async () => {
+  test('readOnly renders the crew as a Mini, with no HP steppers', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} readOnly />)
     expandCards()
     expect(screen.queryByRole('button', { name: 'Decrease HP' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Increase HP' })).toBeNull()
-    // The Token is named for the crew and Peeks the bay's NPC card.
-    expect(crewToken('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
+    // The Mini is named for the crew and Peeks the bay's NPC card.
+    expect(crewMini('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
   })
 
-  test('Edit puts the fields in the Token body, and HP in its head', async () => {
+  test('Edit puts the fields in the Mini body, and HP in its head', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
-    const head = crewToken('Dax Orsund')
+    const head = crewMini('Dax Orsund')
     // The name alone is the Peek trigger; the head's HP stepper sits beside it.
     expect(head.querySelector('[data-peek]')?.getAttribute('data-peek')).toBe(
       'crawler-bays:command-bay/npc'
@@ -300,7 +300,7 @@ describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
     ).toBeTruthy()
     const body = screen
       .getByLabelText('Command Bay crew lead')
-      .querySelector('.su-entity-token__body') as HTMLElement
+      .querySelector('.su-entity-mini__body') as HTMLElement
     for (const field of ['name', 'keepsake', 'motto', 'detail']) {
       expect(within(body).getByLabelText(`Edit command bay crew ${field}`)).toBeTruthy()
     }
@@ -427,7 +427,7 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
 // Facts
 // ---------------------------------------------------------------------------
 
-describe('CrawlerSheet — crew facts (CrewLeadToken)', () => {
+describe('CrawlerSheet — crew facts (CrewLeadMini)', () => {
   let restore: () => void
   afterEach(() => {
     restore?.()
@@ -512,8 +512,8 @@ describe('CrawlerSheet — crew readOnly', () => {
     )
     expandCards()
 
-    // Read draws the crew as its contentful Token, the tracked values its body.
-    expect(crewToken('Dax Orsund')).toBeTruthy()
+    // Read draws the crew as its contentful Mini, the tracked values its body.
+    expect(crewMini('Dax Orsund')).toBeTruthy()
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(within(inset).getByText('A stern veteran.')).toBeTruthy()
     expect(within(inset).getByText('Hates synths')).toBeTruthy()

@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
-import { RowFrame } from '../entity/forms/RowFrame'
+import { CompactFrame } from '../entity/forms/CompactFrame'
 import { ROW_ROOT } from '../entity/forms/rowRoot'
 import { SelectSurface } from '../entity/modes/select'
 import { SELECTED_RING } from '../entity/modes/selectedRing'
 import type { EntityMode } from '../entity/types'
 
-/** A level-1 pick that is no entity: the Row's select mode on its frame. */
+/** A level-1 pick that is no entity: the Compact's select mode on its frame. */
 type BoxSelect = Extract<EntityMode, { kind: 'select' }>
 
 export type BoxProps = {
@@ -33,7 +33,7 @@ export type BoxProps = {
   bodyClassName?: string
   /** A Play reference unit (ADR-051 §5): its frame dashed, read-only. */
   reference?: boolean
-  /** Player-made (ruleset §3.9): its frame dashed, as the Row's (a pattern's maker's notes). */
+  /** Player-made (ruleset §3.9): its frame dashed, as the Compact's (a pattern's maker's notes). */
   userMade?: boolean
   /** Fill the parent's height, the body scrolling in what is left under the head. */
   fill?: boolean
@@ -45,7 +45,7 @@ export type BoxProps = {
   /**
    * Select mode (EDL Modes), for a level-1 pick that is no entity (a wizard's
    * Custom build, an NPC's Start blank): the whole box is the surface, a radio
-   * or a toggle, and selected it wears the Row's ink ring. `TitledBox` seals
+   * or a toggle, and selected it wears the Compact's ink ring. `TitledBox` seals
    * its head.
    */
   select?: BoxSelect
@@ -53,9 +53,9 @@ export type BoxProps = {
 }
 
 /**
- * BOX — the house container: the Row's square 2px frame around a paper body
+ * BOX — the house container: the Compact's square 2px frame around a paper body
  * (ruleset §4.3), with an optional head band. It stands in the
- * Row's own frame (`RowFrame`), so it draws no entity markup of its own (EDL
+ * Compact's own frame (`CompactFrame`), so it draws no entity markup of its own (EDL
  * E15, hard rule R7). Its named
  * variants: `TitledBox` (the cut-out head: dialogs, briefs, notices), and on
  * that `RecoveryPanel`; a `Callout` is the bare box in its accent. A box with
@@ -82,7 +82,7 @@ export function Box({
 }: BoxProps) {
   const hasBody = children !== null && children !== undefined && children !== false
   const frame = (
-    <RowFrame
+    <CompactFrame
       bodyless={!hasBody}
       reference={reference}
       userMade={userMade}
@@ -107,7 +107,7 @@ export function Box({
           {children}
         </div>
       )}
-    </RowFrame>
+    </CompactFrame>
   )
   if (select) {
     return (

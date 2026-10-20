@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SheetPickerModal } from '../../../build/sheet/SheetSection'
-import { pickInSearcher, searcherToken } from '../../../components/__tests__/searcherPick'
+import { pickInSearcher, searcherMini } from '../../../components/__tests__/searcherPick'
 import type { TrayWrites } from '../OppositionPicker'
 import { OppositionDialogs, OppositionPicker } from '../OppositionPicker'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from '../opposition.model'
@@ -210,7 +210,7 @@ describe('+ From the reference', () => {
     const picker = await openPicker()
     expect((picker.getByLabelText('Draw from') as HTMLSelectElement).value).toBe('npcs')
     // The Raider already on the field is marked chosen in the list.
-    const raider = searcherToken('Raider', dialog())?.closest('.su-searcher__item')
+    const raider = searcherMini('Raider', dialog())?.closest('.su-searcher__item')
     expect(raider?.hasAttribute('data-selected')).toBe(true)
 
     await add('Trooper')
@@ -227,7 +227,7 @@ describe('+ From the reference', () => {
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'creatures' } })
     })
-    expect(searcherToken('Trooper', dialog())).toBeNull()
+    expect(searcherMini('Trooper', dialog())).toBeNull()
     await add('Wasteland Bear')
     const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
     expect(schema).toBe('creatures')

@@ -5,7 +5,7 @@
  * description, in the house titled box the Starter Set and Shelves rows'
  * blocks share).
  *
- * A `TitledBox` in the chassis's tone: its art's window in the head (the Row's `Art`; fixed:
+ * A `TitledBox` in the chassis's tone: its art's window in the head (the Compact's `Art`; fixed:
  * the player's photo is the hero's), its name on the cut-out `Head` with a
  * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), in Edit CHANGE
  * CHASSIS as a Mini chip at the band's end (its `controls`; destructive, it
@@ -27,7 +27,7 @@ import type { SheetPatch } from './sheetViewProps.model'
 /** The callout's one chip: a bare label, saying what the block is. */
 const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
 
-/** Its band: the one label-only cell, Compact as a Row's head. */
+/** Its band: the one label-only cell, Compact as a Compact's head. */
 const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="compact" />
 
 type MechChassisCardProps = {

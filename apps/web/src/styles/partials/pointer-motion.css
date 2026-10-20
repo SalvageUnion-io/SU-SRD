@@ -12,9 +12,9 @@
  * stay off theme.css's floor, keep their drawn size, and get a centred 44px
  * hit area instead. So does a breadcrumb link: the phone's trail row is a line
  * of 17px text, and a 44px box per crumb would stretch it into a toolbar. So
- * does a Token that acts (a link, or a Peek's long press) wherever it sits: a
- * Mini pill (ruleset §4.7); a contentful Token's head that acts carries
- * `.su-hit-area` (`Token.tsx`). This
+ * does a Mini that acts (a link, or a Peek's long press) wherever it sits: a
+ * Mini pill (ruleset §4.7); a contentful Mini's head that acts carries
+ * `.su-hit-area` (`Mini.tsx`). This
  * half lives here, in the layer, so a call site that positions the control
  * (`absolute`) still wins over the `relative` the pseudo-element needs.
  */
@@ -22,8 +22,8 @@
   .su-btn--mini,
   .su-hit-area,
   .su-stat-step,
-  a.su-entity-token,
-  [data-peek].su-entity-token,
+  a.su-entity-mini,
+  [data-peek].su-entity-mini,
   .su-crumbs__link {
     position: relative;
   }
@@ -31,8 +31,8 @@
   .su-btn--mini::after,
   .su-hit-area::after,
   .su-stat-step::after,
-  a.su-entity-token::after,
-  [data-peek].su-entity-token::after,
+  a.su-entity-mini::after,
+  [data-peek].su-entity-mini::after,
   .su-crumbs__link::after {
     content: '';
     height: max(100%, var(--size-full));

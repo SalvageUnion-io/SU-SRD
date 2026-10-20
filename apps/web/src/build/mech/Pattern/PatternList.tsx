@@ -1,9 +1,9 @@
 /**
  * PatternList — lists all saved MechPatterns via the patternStore.
  *
- * Each pattern is a user-made Row (`<Entity form="row">` (dashed, stamped,
+ * Each pattern is a user-made Compact (`<Entity size="compact">` (dashed, stamped,
  * credited: ruleset §3.9) linking to its page, its "Build With This" the
- * Row's last chip (C8, hard rule R6), also where its chassis is missing.
+ * Compact's last chip (C8, hard rule R6), also where its chassis is missing.
  *
  * Data fetching: subscribes to usePatternStore — patterns get
  * the same lazy hydration as every other collection.
@@ -88,7 +88,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                 {/* The row is its page: where the maker sees it as others
                     will, and shares it. Build With This is its last chip. */}
                 <Entity
-                  form="row"
+                  size="compact"
                   entity={chassis}
                   pattern={asReferencePattern(pattern)}
                   instance={{ title: quotePatternName(pattern.name), userMade: true }}
@@ -107,8 +107,8 @@ export function PatternList({ onInstantiated }: PatternListProps) {
               </>
             ) : (
               <>
-                {/* No chassis to draw: a plain user-made unit Row, its Build
-                    With This still the Row's last chip. */}
+                {/* No chassis to draw: a plain user-made unit Compact, its Build
+                    With This still the Compact's last chip. */}
                 <UnitRow
                   kind="mech"
                   name={pattern.name}

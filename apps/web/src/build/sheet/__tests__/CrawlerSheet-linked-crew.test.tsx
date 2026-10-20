@@ -43,9 +43,9 @@ function store() {
   })
 }
 
-/** The name a crew lead's Token head wears. */
+/** The name a crew lead's Mini head wears. */
 function headName(crewLead: HTMLElement): string {
-  return crewLead.querySelector('.su-entity-token__head .su-entity-token__name')?.textContent ?? ''
+  return crewLead.querySelector('.su-entity-mini__head .su-entity-mini__name')?.textContent ?? ''
 }
 
 function assigned(npc: CrewAssignment['npc']): CrewAssignment[] {
@@ -61,9 +61,9 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     expect(headName(inset)).toContain('Doc Ambrose')
     expect(within(inset).getByText('Bleed later.')).toBeTruthy()
     expect(screen.queryByText('Old Mags')).toBeNull()
-    // A contentful Token, as the inline crew is: no titled box in the bay (N5).
+    // A contentful Mini, as the inline crew is: no titled box in the bay (N5).
     expect(inset.querySelector('.su-box')).toBeNull()
-    expect(inset.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
+    expect(inset.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
     expect(screen.getAllByText('Homebrew').length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' })).toHaveProperty(
       'href',

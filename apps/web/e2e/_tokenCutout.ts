@@ -1,13 +1,13 @@
 import type { Page } from '@playwright/test'
 
 /**
- * The cut-out head on a CONTENTFUL Token (N3), as the rendered page draws it.
- * Every Token, Row and Tile sets its name on a tab of the paper notched into
- * its band's foot; a contentful Token's tab opens into its body's paper, as a
- * Row's opens into its body, so no rule runs between head and body.
- * `findTokenCutoutFaults` returns one line per fault:
+ * The cut-out head on a CONTENTFUL Mini (N3), as the rendered page draws it.
+ * Every Mini, Compact and CompactIndex sets its name on a tab of the paper notched into
+ * its band's foot; a contentful Mini's tab opens into its body's paper, as a
+ * Compact's opens into its body, so no rule runs between head and body.
+ * `findMiniCutoutFaults` returns one line per fault:
  *
- * - **tab** the name is not on the cut-out (`.su-entity-token__notch`).
+ * - **tab** the name is not on the cut-out (`.su-entity-mini__notch`).
  * - **paper** the tab is not the paper.
  * - **strip** less than `MIN_STRIP` of the paint shows above the tab: the
  *   head reads as a flat bar with the name on it.
@@ -17,32 +17,32 @@ import type { Page } from '@playwright/test'
  * - **ground** the body is not the paper, so the tab stands on it as a box
  *   instead of being cut from it.
  *
- * A Token that is not drawn (a closed tab, a collapsed section) is not read,
+ * A Mini that is not drawn (a closed tab, a collapsed section) is not read,
  * nor a body that is empty (`:empty` hides it).
  */
-export type TokenCutoutSelectors = {
+export type MiniCutoutSelectors = {
   token: string
   pill: string
   notch: string
   body: string
 }
 
-export const TOKEN_CUTOUT_SELECTORS: TokenCutoutSelectors = {
-  token: '.su-entity-token[data-contentful]',
-  pill: '.su-entity-token__pill',
-  notch: '.su-entity-token__notch',
-  body: ':scope > .su-entity-token__body',
+export const TOKEN_CUTOUT_SELECTORS: MiniCutoutSelectors = {
+  token: '.su-entity-mini[data-contentful]',
+  pill: '.su-entity-mini__pill',
+  notch: '.su-entity-mini__notch',
+  body: ':scope > .su-entity-mini__body',
 }
 
-/** The paint above the tab, in CSS px: the header-only Token's strip, its edge and padding. */
+/** The paint above the tab, in CSS px: the header-only Mini's strip, its edge and padding. */
 export const MIN_STRIP = 3
 
 /** Runs in the page and returns plain data: everything it needs is declared inside it. */
-export function scanTokenCutouts({
+export function scanMiniCutouts({
   a,
   minStrip,
 }: {
-  a: TokenCutoutSelectors
+  a: MiniCutoutSelectors
   minStrip: number
 }): string[] {
   // The paper as the page resolves it, in the form computed styles report.
@@ -93,7 +93,7 @@ export function scanTokenCutouts({
   return faults
 }
 
-/** Every contentful Token's cut-out fault on the page. */
-export function findTokenCutoutFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scanTokenCutouts, { a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
+/** Every contentful Mini's cut-out fault on the page. */
+export function findMiniCutoutFaults(page: Page): Promise<string[]> {
+  return page.evaluate(scanMiniCutouts, { a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
 }

@@ -156,7 +156,7 @@ test('the Union bar holds one height in Build and in Play', async ({ page }) => 
  */
 const BAR = '.su-play-root header'
 const UNITS = '.su-play-unit'
-const UNIT_HEADS = '.su-play-unit .su-entity-row__head'
+const UNIT_HEADS = '.su-play-unit .su-entity-compact__head'
 const ACTIONS = 'li.su-play-act'
 
 /** Which lines each view shows and scans: the canvas all three, a phone's tab its own. */
@@ -196,8 +196,8 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
         failures.push(`Play, ${state}, at ${where}, the bar: ${controls}`)
       }
       // The phone's other tab is hidden, so its lines measure nothing there.
-      // Each kind of line is scanned on its own: an action line is a Token
-      // (ruleset §1.3), itself a control, so the Actions column's Tokens are
+      // Each kind of line is scanned on its own: an action line is a Mini
+      // (ruleset §1.3), itself a control, so the Actions column's Minis are
       // never one line with the Units column's steppers across the gutter.
       const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, ACTIONS] : lines
       for (const within of scanned) {

@@ -2,7 +2,7 @@
  * PlayActionEntry — one line of the Actions list, whatever it is (play.md
  * §5): a unit's action (`PlayActionRow`), the Reactor (`PlayReactorRow`),
  * Mount (`PlayMountRow`) or a Downtime action (`PlayDowntimeActionRow`).
- * Each is a Token, one `<li>` a line in the column's list (ruleset §1.3,
+ * Each is a Mini, one `<li>` a line in the column's list (ruleset §1.3,
  * play.md §12).
  */
 

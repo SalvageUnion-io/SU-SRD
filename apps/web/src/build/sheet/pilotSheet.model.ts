@@ -39,7 +39,7 @@ import type { SheetStoreState } from './sheetViewProps.model'
  * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
  * never stored in `pilot.abilities`. The sheet renders it from reference data
  * (board 10 prints Bonesaw's Generic cards although the record holds only Jury
- * Rig), in its own section AFTER the abilities the pilot owns, as Tokens: every pilot has
+ * Rig), in its own section AFTER the abilities the pilot owns, as Minis: every pilot has
  * the same eight, so they are reference, while the class's own abilities are
  * what tells this pilot from another.
  */
@@ -125,7 +125,7 @@ export type PilotSheetModel = {
   classAbilities: AbilityEntry[]
   /** Those abilities by tree, on their tracks: the Abilities section's trees. */
   classTrees: AbilityTreeGroup[]
-  /** The whole Generic tree, from reference data: its own section after them, as Tokens. */
+  /** The whole Generic tree, from reference data: its own section after them, as Minis. */
   genericAbilities: AbilityEntry[]
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   unresolvedAbilities: string[]

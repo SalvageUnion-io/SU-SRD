@@ -408,7 +408,7 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     { _id: 'g1', name: 'Run by me', tableRunner: true },
     { _id: 'g2', name: 'Not mine to run', tableRunner: false },
   ]
-  // Each destination is a Row (ruleset §1.9), the whole Row the pick.
+  // Each destination is a Compact (ruleset §1.9), the whole Compact the pick.
   const choices = () =>
     within(screen.getByRole('list', { name: 'Where to' }))
       .getAllByRole('button')

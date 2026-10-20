@@ -38,8 +38,8 @@ const DULL_GREY = {
 export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
 
 /** A DAMAGED band (owner, 2026-10-14): its own colour dulled toward grey, not
- * replaced by it, so it still reads as the same entity. Every form (Token,
- * Row, Tile, Card, Peek) dulls the same band the same way. */
+ * replaced by it, so it still reads as the same entity. Every form (Mini,
+ * Compact, CompactIndex, Card, Peek) dulls the same band the same way. */
 export function dullBand(band: string): string {
   return `color-mix(in srgb, ${band} 50%, ${DULL_GREY[foregroundOn(band, 'paper')]})`
 }
@@ -80,11 +80,11 @@ export type HeaderFill = 'tone' | 'ink'
 /**
  * Which fill a card's header takes, by data shape. Things you do (abilities,
  * actions) are the ink banner on a card. A PEEK's card wears the fill of the
- * Token, Row or Tile that opened it, never a different one: an ability's, its
- * tier tone (E12). A head-only card is a Token, which paints itself.
+ * Mini, Compact or CompactIndex that opened it, never a different one: an ability's, its
+ * tier tone (E12). A head-only card is a Mini, which paints itself.
  */
 export function resolveHeaderFill(entity: RefMetaEntity, insidePeek = false): HeaderFill {
-  // The entity model's rule (E12), with the Peek as its Row.
+  // The entity model's rule (E12), with the Peek as its Compact.
   return headerFill(entity, insidePeek ? 'row' : 'card')
 }
 
@@ -140,7 +140,7 @@ export function resolveCardColors({
 /**
  * The frame's weight. It steps with size (ruleset §4.3, board E2): 3px for
  * the large solo card, 2px one size down, 1.5px for a small card (and a
- * head-only card's Token).
+ * head-only card's Mini).
  */
 export function resolveFrameWidth(size: CardSize): string {
   if (size === 'mini') return 'var(--bw-chrome)'
@@ -232,7 +232,7 @@ export function resolveCardInteraction({
                   onClick: resolvedCardClick,
                   onKeyDown: activateOnKey(resolvedCardClick),
                   ...label,
-                  // A hidden disclosure control (a chevron-less folded Row)
+                  // A hidden disclosure control (a chevron-less folded Compact)
                   // hands its name and state to the card that now stands in for it.
                   ...(clickControl?.hidden && clickControl.ariaExpanded !== undefined
                     ? {
@@ -244,7 +244,7 @@ export function resolveCardInteraction({
                 },
         }
   // Selection state — select mode's ring (`SELECTED_RING`), the same 3px ink
-  // ring a selected Row and a select-mode Box draw. A non-layout-shifting
+  // ring a selected Compact and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
   // The frame is solid INK on every card, a user-made one too (owner's call,
   // 2026-10-20: its HOMEBREW chip marks it); the tone lives in the header band

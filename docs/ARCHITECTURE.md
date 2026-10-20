@@ -68,7 +68,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
 22. **Display system** <a id="display"></a>
-    Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
+    Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Box` is every other frame, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.

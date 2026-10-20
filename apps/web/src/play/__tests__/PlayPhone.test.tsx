@@ -7,7 +7,7 @@
  *  - Pinned above every tab, per Situation: on foot the pilot's HP and AP,
  *    Boarded the mech's SP, EP and Heat too, in Downtime nothing; the
  *    Situation switch under them.
- *  - Resolve stays inline in Act: Use opens the action's Row in place, and a
+ *  - Resolve stays inline in Act: Use opens the action's Compact in place, and a
  *    full turn (Activate, Roll, Apply) never leaves the tab.
  *  - A Downtime step is played on Act: the track, the step box, Apply.
  *
@@ -271,7 +271,7 @@ describe('pinned above every tab', () => {
 })
 
 describe('Act: resolve stays inline', () => {
-  test('Use opens the Row in place, in the Act panel', async () => {
+  test('Use opens the Compact in place, in the Act panel', async () => {
     await renderPhone({ situation: 'boarded' })
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const panel = openPanel()
@@ -283,7 +283,7 @@ describe('Act: resolve stays inline', () => {
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
   })
 
-  test('a full turn: Activate, Roll and Apply, all in the Row, never leaving Act', async () => {
+  test('a full turn: Activate, Roll and Apply, all in the Compact, never leaving Act', async () => {
     await renderPhone({ situation: 'boarded' })
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const row = () =>

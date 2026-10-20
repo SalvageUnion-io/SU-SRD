@@ -6,7 +6,7 @@
  * action type and the action's facets (RNG, DMG), the traits, the cost.
  *
  * The order is the model's (`bookStats`, then the action); each surface's
- * labels must be a subsequence of it: Row, Tile, Token, Card, Peek, the Page's
+ * labels must be a subsequence of it: Compact, CompactIndex, Mini, Card, Peek, the Page's
  * band, the link preview and the Discord card.
  */
 import { describe, expect, test } from 'bun:test'
@@ -110,14 +110,14 @@ describe('one stat order on every surface', () => {
     test(schemaName, () => {
       for (const entity of fixtures(schemaName)) {
         const name = toEntityModel(entity).title
-        for (const form of ['row', 'tile', 'token'] as const) {
+        for (const form of ['compact', 'index', 'mini'] as const) {
           const { container, unmount } = render(
-            form === 'token' ? (
-              <Entity form="token" context="loadout" entity={entity} />
-            ) : form === 'row' ? (
-              <Entity form="row" entity={entity} />
+            form === 'mini' ? (
+              <Entity size="mini" context="loadout" entity={entity} />
+            ) : form === 'compact' ? (
+              <Entity size="compact" entity={entity} />
             ) : (
-              <Entity form="tile" entity={entity} />
+              <Entity size="compact" layout="index" entity={entity} />
             )
           )
           expectInOrder(entity, `${name} ${form}`, domLabels(container))
@@ -153,7 +153,7 @@ describe('one stat order on every surface', () => {
       'systems',
       'Electro-Magnetic Shield Projector'
     ) as RefMetaEntity
-    const { container } = render(<Entity form="row" entity={shield} />)
+    const { container } = render(<Entity size="compact" entity={shield} />)
     expect(domLabels(container)[0]).toBe('TL')
     expect(resolveEntityPageMeta(shield).stats[0]?.label).toBe('Tech Level')
     expect(ogLabels('systems', shield)[0]).toBe('TL')
@@ -161,17 +161,17 @@ describe('one stat order on every surface', () => {
 
   test('every chip in a group sits the same gap apart: no wider gap between groups', () => {
     const mule = SalvageUnionReference.getByNameIn('chassis', 'Mule') as RefMetaEntity
-    const { container } = render(<Entity form="row" entity={mule} />)
+    const { container } = render(<Entity size="compact" entity={mule} />)
     const group = container.querySelector('[data-chip-group]')
     // Its filled lanes: a line in a list keeps its empty ones too (C6), and a
-    // bodyless Row's +MORE is hidden until a chip does not fit (C5).
+    // bodyless Compact's +MORE is hidden until a chip does not fit (C5).
     const lanes = Array.from(group?.children ?? []).filter((lane) =>
       lane.querySelector(':scope > :not([hidden])')
     )
     const sequence = lanes.map(
       (child) => child.querySelector('.su-stat-plate--label')?.textContent ?? '?'
     )
-    // A Row keeps the compact budget (C3): TL, then the measure its kind's loadout weighs.
+    // A Compact keeps the compact budget (C3): TL, then the measure its kind's loadout weighs.
     expect(sequence).toEqual(['TL', 'SP'])
   })
 
@@ -179,12 +179,12 @@ describe('one stat order on every surface', () => {
     let checked = 0
     for (const schemaName of ['systems', 'modules', 'abilities'] as const) {
       for (const entity of fixtures(schemaName)) {
-        for (const form of ['row', 'token'] as const) {
+        for (const form of ['compact', 'mini'] as const) {
           const { container, unmount } = render(
-            form === 'token' ? (
-              <Entity form="token" context="loadout" entity={entity} />
+            form === 'mini' ? (
+              <Entity size="mini" context="loadout" entity={entity} />
             ) : (
-              <Entity form={form} entity={entity} />
+              <Entity size={form} entity={entity} />
             )
           )
           const group = container.querySelector('[data-chip-group]')

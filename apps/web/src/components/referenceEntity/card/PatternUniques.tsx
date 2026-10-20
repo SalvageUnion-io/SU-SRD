@@ -1,7 +1,7 @@
 import type { RefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions } from 'salvageunion-reference'
 import type { Down } from './cardChrome'
-import { ActionTokens } from './NestedCards'
+import { ActionMinis } from './NestedCards'
 
 /**
  * `PatternUniques` — what makes ONE pattern itself, shown under its row in a
@@ -9,7 +9,7 @@ import { ActionTokens } from './NestedCards'
  * only naming them. The host's own stats and abilities are shared by every
  * pattern and already on the page, and a mech pattern's loadout is drawn by
  * its row (`PatternLinkRows`), so this is a BIO-TITAN pattern's added actions,
- * as contentful Tokens (N3, `ActionTokens`): the pattern is level 1 at most,
+ * as contentful Minis (N3, `ActionMinis`): the pattern is level 1 at most,
  * so they are level 2 — there is no loadout, and an added rule is the whole
  * of the difference, so it is printed in full rather than compressed to a
  * name.
@@ -35,7 +35,7 @@ export function PatternUniques({
   if (actions.length === 0) return null
   return (
     <div className={className}>
-      <ActionTokens
+      <ActionMinis
         actions={actions}
         size="compact"
         hostName={hostName}

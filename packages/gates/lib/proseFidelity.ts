@@ -123,12 +123,12 @@ const SKIP_KEYS = new Set([
 const NAME_KEYS = new Set(['name', 'displayName', 'label', 'position'])
 const STRUCTURAL = new Set<string>(STRUCTURAL_FIELDS)
 
-type Row = Record<string, unknown>
+type Compact = Record<string, unknown>
 
 /** A record's citations: its own `source`, then its `additionalSources`. */
-export function anchorsOf(e: Row): Anchor[] {
+export function anchorsOf(e: Compact): Anchor[] {
   const out: Anchor[] = []
-  const push = (a: Row) => {
+  const push = (a: Compact) => {
     if (typeof a.source !== 'string') return
     out.push({
       source: a.source,
@@ -137,7 +137,7 @@ export function anchorsOf(e: Row): Anchor[] {
     })
   }
   push(e)
-  if (Array.isArray(e.additionalSources)) for (const a of e.additionalSources) push(a as Row)
+  if (Array.isArray(e.additionalSources)) for (const a of e.additionalSources) push(a as Compact)
   return out
 }
 
@@ -164,8 +164,9 @@ export function collectProse(dataDir = DATA_DIR, repoRoot = REPO): ProseItem[] {
   const files = readdirSync(dataDir)
     .filter((f) => f.endsWith('.json'))
     .sort()
-  const data = new Map<string, Row[]>()
-  for (const f of files) data.set(f, JSON.parse(readFileSync(join(dataDir, f), 'utf8')) as Row[])
+  const data = new Map<string, Compact[]>()
+  for (const f of files)
+    data.set(f, JSON.parse(readFileSync(join(dataDir, f), 'utf8')) as Compact[])
 
   const owners = new Map<string, { anchors: Anchor[]; chassis: Set<string> }>()
   const collectRefs = (v: unknown, anchors: Anchor[], chassisName: string | undefined) => {
@@ -173,7 +174,7 @@ export function collectProse(dataDir = DATA_DIR, repoRoot = REPO): ProseItem[] {
     else if (v && typeof v === 'object') {
       // A nested record with its own citation (a Bio-Titan pattern, printed in
       // another book than its host) anchors the actions it lists, as in `walk`.
-      const here = typeof (v as Row).source === 'string' ? anchorsOf(v as Row) : anchors
+      const here = typeof (v as Compact).source === 'string' ? anchorsOf(v as Compact) : anchors
       for (const [k, x] of Object.entries(v)) {
         if ((k === 'actions' || k === 'chassisAbilities') && Array.isArray(x)) {
           for (const n of x) {
@@ -216,7 +217,7 @@ export function collectProse(dataDir = DATA_DIR, repoRoot = REPO): ProseItem[] {
       return
     }
     if (!v || typeof v !== 'object') return
-    const o = v as Row
+    const o = v as Compact
     // A nested record with its own citation (a chassis pattern) overrides the owner's.
     const here = typeof o.source === 'string' ? { ...base, anchors: anchorsOf(o) } : base
     // `datavalues` are stat lines we built ({ label: "Damage", value: "3 SP" }).

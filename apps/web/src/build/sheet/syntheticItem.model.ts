@@ -1,6 +1,6 @@
 /**
- * syntheticItem.model — the Token model of a carried thing the reference does
- * not hold (ruleset §6.6: a carried thing, entity or not, is a Token in
+ * syntheticItem.model — the Mini model of a carried thing the reference does
+ * not hold (ruleset §6.6: a carried thing, entity or not, is a Mini in
  * `SheetItemLine`): an unknown slug, a pilot's generic inventory entry, a cargo
  * lot. Its name, its facts as label-first chips in the stat order (so they
  * take the list's R2 lanes), its note as the stamp before the name; ink, as
@@ -8,7 +8,7 @@
  */
 
 import type { EntitySchemaName } from 'salvageunion-reference'
-import type { EntityRowModel } from '../../components/index'
+import type { EntityFormModel } from '../../components/index'
 
 /** One label-first fact (`SLOTS | 3`): `TL` is the rank, `Slots` and `Units` what it takes. */
 type SyntheticFact = { label: 'TL' | 'Slots' | 'Units'; value: number | string }
@@ -33,7 +33,7 @@ const KEY: Record<SyntheticFact['label'], string> = {
   Units: 'units',
 }
 
-export function syntheticItemModel(item: SyntheticItem): EntityRowModel {
+export function syntheticItemModel(item: SyntheticItem): EntityFormModel {
   return {
     ref: {
       schemaName: item.schemaName,

@@ -3,7 +3,7 @@
  * the flattened list, a line's inline resolve, and the Downtime track and step.
  *
  * The app's own stylesheet, a part of `styles/play/play.css`. Every line is a
- * Token (ruleset §1.3); these rules only lay the list out: the Token draws its
+ * Mini (ruleset §1.3); these rules only lay the list out: the Mini draws its
  * own state (dimmed not on hand or locked, its resolve its contentful body),
  * and nothing here adds a frame of its own (play.md §12).
  */
@@ -70,7 +70,7 @@
   white-space: nowrap;
 }
 
-/* A line's inline resolve: plain content in its Token's contentful body. */
+/* A line's inline resolve: plain content in its Mini's contentful body. */
 .su-play-resolve {
   display: flex;
   flex-direction: column;

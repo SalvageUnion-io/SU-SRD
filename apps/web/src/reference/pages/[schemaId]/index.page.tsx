@@ -3,7 +3,7 @@
  *
  * Headed by its chapter's band, or its own (`listingBandFillFor`: the systems'
  * and modules' TL blue) (the schema's plural name notched in, the
- * listing's search and filters on it), then the listing: the Catalog, one flat grid of Tiles with no group headings, at
+ * listing's search and filters on it), then the listing: the Catalog, one flat grid of CompactIndexes with no group headings, at
  * every width (`lib/listingView.ts`). The abilities open on their Tree
  * instead, each tree under its heading on its track, with Catalog | Tree in
  * the rail. Its footer wears the same chapter's band (the leading band's rule), as an entity page

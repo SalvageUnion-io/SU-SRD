@@ -86,14 +86,14 @@ beforeEach(() => {
 describe('the slots', () => {
   test('the type first, then one per bay, each keeping the book’s line', async () => {
     await renderBoard('c1')
-    // Each slot is a Row in select mode: picking it opens the slot.
+    // Each slot is a Compact in select mode: picking it opens the slot.
     expect(screen.getByRole('radio', { name: 'Type · Augmented: Union Crawler A.I.' })).toBeTruthy()
-    // The book's crew line: its name on the Row, its HP a label-first chip.
-    const mags = screen.getByText('Old Mags').closest('.su-entity-row')
+    // The book's crew line: its name on the Compact, its HP a label-first chip.
+    const mags = screen.getByText('Old Mags').closest('.su-entity-compact')
     if (!(mags instanceof HTMLElement)) throw new Error('no Old Mags row')
     expect(within(mags).getByText('Book’s crew line')).toBeTruthy()
     expect(within(mags).getByText('HP')).toBeTruthy()
-    // Design is the Row's control, never inside its radio.
+    // Design is the Compact's control, never inside its radio.
     const design = screen.getByRole('button', { name: 'Design Med Bay crew' })
     expect(design.closest('[role="radio"]')).toBeNull()
   })

@@ -34,7 +34,7 @@ const NAME_CAPS = capsLabel()
  *
  * A choice is just another nested group: a masonry of options. An option
  * that IS an entity (a catalog shortlist — Ballistic / Energy, Thermal
- * Optics…) is that entity's Token (`renderEntityOption`); any other option is
+ * Optics…) is that entity's Mini (`renderEntityOption`); any other option is
  * drawn by where it sits (`ChoiceOption`): on its entity's Page a headed
  * option card, elsewhere untitled (N1). The selection layer is the card's own
  * write-layer idiom: dim-until-chosen (editable), the canonical
@@ -58,7 +58,7 @@ type ChoiceGroupsProps = {
   /** Parent tone as a raw CSS colour — the option-card head band. */
   toneColor?: string
   /**
-   * Renders an option that resolves to an entity as that entity's Token
+   * Renders an option that resolves to an entity as that entity's Mini
    * (the card supplies it, so this file never imports the card back). Absent,
    * every option takes the plain option card.
    */

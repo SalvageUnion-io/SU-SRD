@@ -1,12 +1,12 @@
 /**
  * PlayLanding — the Play hub (`/play/`, ADR-052 §4): one tap from here into
  * any Game, its page or its Play screen, and any solo pilot. A Manage page
- * (ruleset §1.9): paper under the `play` band, Slab sections, Rows that link.
+ * (ruleset §1.9): paper under the `play` band, Slab sections, Compacts that link.
  *
  *  - **+ New Game** (`NewGameControl`, from a name or a template) and **Join**
  *    (paste an invite link, or its token, to open the invite screen), at the
  *    head of the page.
- *  - **Your Games** (`games.listMine`): one Row per Game, the whole Row opening
+ *  - **Your Games** (`games.listMine`): one Compact per Game, the whole Compact opening
  *    the Game's page in Play (`/play/games/$gameId`), with your role, how many
  *    are here now (the seats' heartbeats, `seats.presence`, play.md §7) and the
  *    Downtime state (`downtime.state`) as chips, and one rust door in its chip
@@ -244,7 +244,7 @@ function JoinGame() {
 }
 
 /**
- * One of your Games, as a Row: the whole Row opens the Game's page; its chips
+ * One of your Games, as a Compact: the whole Compact opens the Game's page; its chips
  * say your role, how many are here and the Downtime state; its one door,
  * last in the chip group, goes into play.
  */
@@ -264,7 +264,7 @@ function PlayGameItem({
   return (
     <li style={ITEM}>
       <Entity
-        form="row"
+        size="compact"
         model={gameRowModel(game.name)}
         titleAs="h3"
         mode={{ kind: 'link', href: gamePath(game._id) }}

@@ -36,7 +36,7 @@ type PeekSubject =
  * What an address names, once its schema is loaded. `<hostId>/npc` (an
  * `embeddedPeekAddress`) is the crew NPC embedded in that record, synthesized
  * exactly as its host card nests it; `<hostId>/table` is the record's roll
- * table (a folded roll Token Peeks it, `CardRollTable`).
+ * table (a folded roll Mini Peeks it, `CardRollTable`).
  */
 function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
   if (!isEntitySchema(schemaName) || !SalvageUnionReference.isLoaded(schemaName)) return undefined

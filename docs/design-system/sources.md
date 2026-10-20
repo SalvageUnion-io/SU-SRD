@@ -9,7 +9,7 @@ An agent reads a page with the Artifact tool's `read` action, not a web fetch. [
 2. **[Entity Display Language](https://claude.ai/artifact/5Wf8KGHCjgcMzJV7zY381C)** — one model, five forms, modes, nesting, rules E1–E20; codified in [entity-display-language.md](entity-display-language.md).
 3. **[Traits and Facets](https://claude.ai/artifact/TDRC7wUBiFBRBHf3mVwHLR)** — retires the "//" line: action type → stamp, range and damage → Stats, traits → Tags (E17).
 4. **[SRD Index Refresh](https://claude.ai/artifact/V77WHFAs2UWdVW3ociTWHw)** — listings as one compact card, grouped, with art, one filter rail, a chapter-toned foot.
-5. **[Token & Chip Grammar](https://claude.ai/artifact/KgnbEv1HTJ4sYoNxiyhffj)** — three zones, chip classes, budgets, lanes, actions inside the strip; codified in [chips-and-actions.md](chips-and-actions.md).
+5. **[Mini & Chip Grammar](https://claude.ai/artifact/KgnbEv1HTJ4sYoNxiyhffj)** — three zones, chip classes, budgets, lanes, actions inside the strip; codified in [chips-and-actions.md](chips-and-actions.md).
 
 ## The origin's boards
 

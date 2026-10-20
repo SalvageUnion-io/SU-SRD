@@ -14,12 +14,12 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
-import { pickInSearcher, searcherToken } from '../../../components/__tests__/searcherPick'
+import { pickInSearcher, searcherMini } from '../../../components/__tests__/searcherPick'
 import { CrawlerSystemsEditModal } from '../CrawlerSystemsEditModal'
 
 type Patch = Partial<Crawler> | ((current: Crawler) => Partial<Crawler>)
 
-/** The searcher renders a pool of Tokens and a Card; give the heavier renders room. */
+/** The searcher renders a pool of Minis and a Card; give the heavier renders room. */
 const RENDER_TIMEOUT_MS = 10_000
 
 function renderModal(crawler: Crawler) {
@@ -47,8 +47,8 @@ function applyPatch(patch: Patch | undefined, current: Crawler): Partial<Crawler
 /** The rail's budget Stat, as text ("1/1"): its value and max are separate nodes. */
 const budgetText = () => screen.getByRole('region', { name: /armed/i }).textContent
 
-/** An option's Token in the searcher's list. */
-const option = (name: string) => searcherToken(name)
+/** An option's Mini in the searcher's list. */
+const option = (name: string) => searcherMini(name)
 
 describe('CrawlerSystemsEditModal', () => {
   test(

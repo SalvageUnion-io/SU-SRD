@@ -9,9 +9,9 @@ describe('TitledBox', () => {
         <p>Body</p>
       </TitledBox>
     )
-    const head = container.querySelector('.su-entity-row__head[data-notch]')
+    const head = container.querySelector('.su-entity-compact__head[data-notch]')
     expect(head?.getAttribute('data-fill')).toBe('ink')
-    expect(head?.querySelector('.su-entity-row__notch')?.textContent).toBe('The Rule')
+    expect(head?.querySelector('.su-entity-compact__notch')?.textContent).toBe('The Rule')
     const body = container.querySelector('.su-box__body')
     expect(body?.textContent).toBe('Body')
     expect(body?.hasAttribute('data-flush')).toBe(false)
@@ -28,7 +28,7 @@ describe('TitledBox', () => {
         Body
       </TitledBox>
     )
-    const head = container.querySelector<HTMLElement>('.su-entity-row__head')
+    const head = container.querySelector<HTMLElement>('.su-entity-compact__head')
     expect(head?.style.backgroundColor).toBe('var(--color-mech)')
     expect(head?.textContent).toContain('SLOTS | 3')
     // The controls are the chip group's last slot (C8, R6), after its chips.
@@ -78,9 +78,9 @@ describe('TitledBox', () => {
       'true'
     )
     // The seal on the band's right, the ring on the solid frame.
-    const head = container.querySelector('.su-entity-row__head')
+    const head = container.querySelector('.su-entity-compact__head')
     expect(head?.textContent).toContain('Selected')
-    const frame = container.querySelector<HTMLElement>('.su-entity-row__frame')
+    const frame = container.querySelector<HTMLElement>('.su-entity-compact__frame')
     expect(frame?.style.boxShadow).toContain('3px')
     expect(frame?.hasAttribute('data-user-made')).toBe(false)
   })

@@ -111,7 +111,7 @@ describe('GamesDrawerList', () => {
     wrap(<GamesDrawerList onPick={() => closed++} />)
 
     const list = screen.getByRole('navigation', { name: 'Games' })
-    // Each Game is its Row (ruleset §1.9), its role a chip on it.
+    // Each Game is its Compact (ruleset §1.9), its role a chip on it.
     const game = within(list).getByRole('button', { name: 'Union Crawler #430' })
     expect(within(list).getByText('Mediator')).toBeTruthy()
     fireEvent.click(game)

@@ -27,13 +27,13 @@ import type { TagItem } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
 import { PEEK_ATTRIBUTE, useInsidePeek, usePeekAttrs } from '../peekContext'
-import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
+import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 /** The pill sets its name and chips in the caps recipe. */
-const PILL = cn('su-entity-token__pill', capsLabel())
+const PILL = cn('su-entity-mini__pill', capsLabel())
 
 /** The adapter's resolved parts (`ReferenceEntityCard` `extent="head"`, any size: N2). */
-export type TokenSlots = {
+export type MiniSlots = {
   outer?: CardOuterProps
   /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
   peekAt?: string
@@ -53,19 +53,19 @@ export type TokenSlots = {
   /** The uses slot after the state (C8): a live sheet item's `USES | 3/5` stepper. */
   uses?: ReactNode
   /**
-   * The last slot (C8): the host's actions and its ✕, at the Token's Size.
-   * A Token with controls (this or `uses`) is a `div` whose NAME is the link
+   * The last slot (C8): the host's actions and its ✕, at the Mini's Size.
+   * A Mini with controls (this or `uses`) is a `div` whose NAME is the link
    * and the Peek trigger, so no control sits inside a link
-   * (`chips-and-actions.md`, "A Token with actions").
+   * (`chips-and-actions.md`, "A Mini with actions").
    */
   menu?: ReactNode
 }
 
 /**
- * A CONTENTFUL Token's body (N3): what it draws under its one-row head,
- * bordered in its tone, with no band. A Token without one is its head alone.
+ * A CONTENTFUL Mini's body (N3): what it draws under its one-row head,
+ * bordered in its tone, with no band. A Mini without one is its head alone.
  */
-export type TokenBody = {
+export type MiniBody = {
   /**
    * The entity's own text, from its model: its prose (an action's rules,
    * every paragraph), else its lead (an ability's description). Default
@@ -76,7 +76,7 @@ export type TokenBody = {
   chassisName?: string
   /**
    * The host's content, after the text: a crew lead's keepsake, motto and
-   * facts and, in Edit, their fields. Never an entity (a Token nests
+   * facts and, in Edit, their fields. Never an entity (a Mini nests
    * nothing, E6), and inside a Peek read-only (E16).
    */
   children?: ReactNode
@@ -84,15 +84,15 @@ export type TokenBody = {
 
 const READ: EntityMode = { kind: 'read' }
 
-/** The text under a contentful Token's head: the model's prose, else its lead. */
-function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?: string }) {
+/** The text under a contentful Mini's head: the model's prose, else its lead. */
+function MiniText({ model, chassisName }: { model: EntityFormModel; chassisName?: string }) {
   if (model.prose?.length) return <Content body={model.prose} chassisName={chassisName} />
-  return model.lead ? <p className="su-entity-token__lead">{model.lead}</p> : null
+  return model.lead ? <p className="su-entity-mini__lead">{model.lead}</p> : null
 }
 
 type ToggleMode = Extract<EntityMode, { kind: 'select' }>
 
-/** The toggle Token's surface (`toggleAttrs`): where the link would stand, pressed while chosen. */
+/** The toggle Mini's surface (`toggleAttrs`): where the link would stand, pressed while chosen. */
 function ToggleSurface({
   mode,
   label,
@@ -118,7 +118,7 @@ function ToggleSurface({
 }
 
 /*
- * The pill, its note stamp and its name are `.su-entity-token__*` classes
+ * The pill, its note stamp and its name are `.su-entity-mini__*` classes
  * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
  * so inline they repeated on every one (ADR-046, repeated elements). The
  * pill's paint and a caller's frame stay inline; a player-made pill's dashes
@@ -145,13 +145,13 @@ function ToggleSurface({
  * so the body's own Mentions and fields never nest in it; inside a Peek the
  * head is read-only too (E16).
  *
- * In select mode it is the TOGGLE Token (EDL Modes, `role: 'toggle'`): its
+ * In select mode it is the TOGGLE Mini (EDL Modes, `role: 'toggle'`): its
  * surface (or, with controls, its name) is pressed while chosen, the ring on
- * its pill, never a seal; a radio or checkbox select stays a Row's (N7).
+ * its pill, never a seal; a radio or checkbox select stays a Compact's (N7).
  * `dim` is its host's one dim (`SELECT_DIM`): an unchosen toggle beside a
  * chosen one, a Play action not on hand.
  */
-export function Token({
+export function Mini({
   model,
   context,
   instance,
@@ -161,16 +161,16 @@ export function Token({
   body,
   dim = false,
 }: {
-  model: EntityRowModel
+  model: EntityFormModel
   /** Where it is drawn (C4): picks the one fact its context lane carries. */
   context: ChipContext
   instance?: EntityInstance
   mode?: EntityMode
   /** Facts the context already states, by key (`tech-level`), left off its chips. */
   omit?: readonly EntityOmit[]
-  slots?: TokenSlots
-  /** N3: the text and the host's content under the head; without it the Token is its head alone. */
-  body?: TokenBody
+  slots?: MiniSlots
+  /** N3: the text and the host's content under the head; without it the Mini is its head alone. */
+  body?: MiniBody
   /** Its host's one dim (`SELECT_DIM`): unchosen beside a chosen toggle, not on hand. */
   dim?: boolean
 }) {
@@ -181,7 +181,7 @@ export function Token({
     return token ? watchTokenOverflow(token) : undefined
   })
   const insidePeek = useInsidePeek()
-  // A contentful Token in a Peek reads (E16): its head opens nothing.
+  // A contentful Mini in a Peek reads (E16): its head opens nothing.
   const headMode = body && insidePeek ? READ : mode
   const toggle = headMode.kind === 'select' && headMode.role === 'toggle' ? headMode : null
   const target = useLinkTarget(headMode, model.ref)
@@ -249,19 +249,19 @@ export function Token({
       }}
     >
       {model.kind.note && (
-        <Badge shape="stamp" size="mini" className="su-entity-token__kind" data-handback="">
+        <Badge shape="stamp" size="mini" className="su-entity-mini__kind" data-handback="">
           {model.kind.note}
         </Badge>
       )}
-      {model.tier && <span className="su-entity-token__tier">{model.tier}</span>}
+      {model.tier && <span className="su-entity-mini__tier">{model.tier}</span>}
       {/* The cut-out: the name on a tab of paper, in ink, notched into the pill
-          from a thin strip of paint to its foot (a Row's head, at Token size). */}
-      <span className="su-entity-token__notch">
+          from a thin strip of paint to its foot (a Compact's head, at Mini size). */}
+      <span className="su-entity-mini__notch">
         {acts ? (
           // The name is the link and the Peek trigger (C8, R6): the controls
           // sit beside it in the chip group, never inside a link.
           surface(
-            'su-entity-token__name su-entity-token__link',
+            'su-entity-mini__name su-entity-mini__link',
             <>
               {title}
               <KindLabel kind={slots.kind ?? model.kind.type} />
@@ -269,7 +269,7 @@ export function Token({
             peek
           )
         ) : (
-          <span className="su-entity-token__name">
+          <span className="su-entity-mini__name">
             {title}
             <KindLabel kind={slots.kind ?? model.kind.type} />
           </span>
@@ -278,7 +278,7 @@ export function Token({
       {hasChips && (
         <Chips
           as="span"
-          className="su-entity-token__chips"
+          className="su-entity-mini__chips"
           chips={set}
           size="mini"
           // A player made it: the HOMEBREW stamp leads its chips (ruleset §3.9).
@@ -291,22 +291,22 @@ export function Token({
     </span>
   )
   const dimClass = dim ? SELECT_DIM : undefined
-  // Header-only, the surface is the Token; contentful, it is the head. A head
+  // Header-only, the surface is the Mini; contentful, it is the head. A head
   // that acts (a link, a toggle, or a Peek's long press) takes the coarse
-  // pointer's 44px hit area, as the header-only Token does (ruleset §4.6).
+  // pointer's 44px hit area, as the header-only Mini does (ruleset §4.6).
   const headActs = (!slots.outer && (!!target.href || !!toggle)) || PEEK_ATTRIBUTE in peek
   const surfaceClass = body
-    ? cn('su-entity-token__head', headActs && !acts && 'su-hit-area')
-    : cn('su-entity-token', dimClass)
-  // A Token with controls: a plain frame, its name the link (above).
+    ? cn('su-entity-mini__head', headActs && !acts && 'su-hit-area')
+    : cn('su-entity-mini', dimClass)
+  // A Mini with controls: a plain frame, its name the link (above).
   if (acts && !slots.outer && !body) {
     return (
-      <div className={cn('su-entity-token', dimClass)} data-acts="">
+      <div className={cn('su-entity-mini', dimClass)} data-acts="">
         {pill}
       </div>
     )
   }
-  // A contentful Token with controls (a sheet item in Edit): its head is a
+  // A contentful Mini with controls (a sheet item in Edit): its head is a
   // plain frame too, its name the link, so no control sits inside a link.
   const head = slots.outer ? (
     <CardOuter {...slots.outer} className={cn(slots.outer.className, surfaceClass)} peek={peek}>
@@ -323,18 +323,18 @@ export function Token({
   )
   if (!body) return head
   return (
-    <div ref={contentfulRef} className={cn('su-entity-token', dimClass)} data-contentful="">
+    <div ref={contentfulRef} className={cn('su-entity-mini', dimClass)} data-contentful="">
       {head}
-      {/* Bordered in the pill's own tone, so the Token contains its content. */}
+      {/* Bordered in the pill's own tone, so the Mini contains its content. */}
       <div
         data-user-made={userMade || undefined}
-        className="su-entity-token__body"
+        className="su-entity-mini__body"
         style={{ borderColor: paint.background, ...(down && { opacity: 0.6 }) }}
       >
         {/* What of the head's chips does not fit beside the name: the body's
             first row (C2b, `chipFit.ts`). */}
         {hasChips && <ChipOverflowRow />}
-        {body.text !== false && <TokenText model={model} chassisName={body.chassisName} />}
+        {body.text !== false && <MiniText model={model} chassisName={body.chassisName} />}
         {body.children}
       </div>
     </div>

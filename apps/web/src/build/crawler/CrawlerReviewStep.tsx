@@ -15,7 +15,7 @@ import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import '../../styles/build/wizard.css'
-import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
+import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.su-wiz-review-grid`. */
 const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
@@ -26,7 +26,7 @@ const RECAP = { alignSelf: 'start' } satisfies CSSProperties
 /** The Augmented reminder's body copy. */
 const REMINDER = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
-/** A recap value's chips and Tokens, on one wrapping line. */
+/** A recap value's chips and Minis, on one wrapping line. */
 const CHIPS = {
   alignItems: 'center',
   display: 'flex',
@@ -101,7 +101,7 @@ export function CrawlerReviewStep({
     <div className="su-wiz-review-grid" style={REVIEW_GRID}>
       <div className="su-wiz-stack su-wiz-stack--12" style={RECAP}>
         <Box bodyClassName="su-wiz-review-panel">
-          {/* The recap: Stats, the type as its chip, the rest as Tokens. */}
+          {/* The recap: Stats, the type as its chip, the rest as Minis. */}
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
             <RecapEntity label="Type" entity={selectedType} required />
@@ -109,9 +109,9 @@ export function CrawlerReviewStep({
             {spChip ?? <RecapStat label="SP" value={null} required />}
             <RecapStat label="Bays" value="Full base set, seeded automatically · all Intact" />
             {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
-            <RecapTokens label="Ability" entities={abilities} />
-            <RecapTokens label="Weapons" entities={systems} empty="Required" />
-            <RecapTokens label="Crew" models={crew} empty="Unnamed — fill in during play" />
+            <RecapMinis label="Ability" entities={abilities} />
+            <RecapMinis label="Weapons" entities={systems} empty="Required" />
+            <RecapMinis label="Crew" models={crew} empty="Unnamed — fill in during play" />
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>

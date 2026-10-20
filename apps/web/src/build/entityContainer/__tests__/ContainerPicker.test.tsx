@@ -75,7 +75,7 @@ describe('ContainerPicker', () => {
     expect(picks.map((c) => c.label)).toEqual(['Union Crawler #430'])
   })
 
-  test('list: a Row per choice, its hint a chip; loading pends, and with none it says why', () => {
+  test('list: a Compact per choice, its hint a chip; loading pends, and with none it says why', () => {
     const picks: ContainerChoice[] = []
     const props = {
       variant: 'list',
@@ -90,7 +90,7 @@ describe('ContainerPicker', () => {
     expect(screen.getByText('You are in no Game.')).toBeTruthy()
     rerender(<ContainerPicker {...props} choices={CHOICES} />)
     const list = screen.getByRole('list', { name: 'Where to' })
-    // A Game is a Row (ruleset §1.9), the whole Row the pick, its role a chip.
+    // A Game is a Compact (ruleset §1.9), the whole Compact the pick, its role a chip.
     const game = within(list).getByRole('button', { name: 'Union Crawler #430' })
     expect(within(list).getByText('Mediator')).toBeTruthy()
     expect(within(list).getByRole('button', { name: 'Training Bay' })).toBeTruthy()

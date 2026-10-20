@@ -1,7 +1,7 @@
 /**
  * NpcLines — what a sheet tracks about an NPC, under its head: a built NPC's
- * own sheet (beside its stat block) and a crew lead's contentful Token
- * (`CrewLeadToken`, N3: a bay's crew lead and a crawler type's special NPC).
+ * own sheet (beside its stat block) and a crew lead's contentful Mini
+ * (`CrewLeadMini`, N3: a bay's crew lead and a crawler type's special NPC).
  * Each crew lead has a name, keepsake, motto, detail, facts and 4 HP.
  *
  * In Read each is a row, its small caps label then its value, as Detail's
@@ -9,7 +9,7 @@
  * chips); Facts' value is the one chip well (`ChipListEditor`). In Edit each
  * one to write is a `Field` in its edit state (its label over the value box
  * a press opens, or over Facts' chip well). HP is never here: a crew lead's
- * is in its Token's head (`CrewLeadToken`), a built NPC's in its sheet's
+ * is in its Mini's head (`CrewLeadMini`), a built NPC's in its sheet's
  * vital gauge.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
@@ -121,7 +121,7 @@ function NpcRow({
 /**
  * A crew lead's id lines: Keepsake and Motto, Detail, Facts, each left out in
  * Read when empty. With `identity` the name leads them, for a head that holds
- * no field (a crew lead's contentful Token, `CrewLeadToken`): only while it can
+ * no field (a crew lead's contentful Mini, `CrewLeadMini`): only while it can
  * be written, since in Read that head shows it. HP rides that head in both.
  */
 export function NpcLines({

@@ -1,5 +1,5 @@
 /**
- * PlayResolveSteps — an action's resolve, opened in place as its Token's
+ * PlayResolveSteps — an action's resolve, opened in place as its Mini's
  * contentful body (play.md §5): Activate, then the Core Mechanic table, then
  * Apply. Presentational:
  * `useActionsDeck` builds the `ResolveModel` from the seat's `resolving` and
@@ -10,7 +10,7 @@
  * action has rolled, the same stamp reads Push (reroll, +2 Heat and a Heat
  * Check, Core Book p.233) while a Push is open to it.
  *
- * Inside a Token, which nests nothing (E6), so the steps are plain buttons and
+ * Inside a Mini, which nests nothing (E6), so the steps are plain buttons and
  * plain content (the Nested Frames Audit, play.md §12): no box, card, entity
  * or titled head of their own.
  * A note (the Cascade Failure hand-off) is an unlabelled Callout.

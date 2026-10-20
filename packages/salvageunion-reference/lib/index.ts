@@ -211,10 +211,10 @@ export {
   budgetFacts,
   type ChipContext,
   laneMeasure,
+  type MiniChipCell,
+  type MiniChips,
+  type MiniLane,
   naturalContext,
-  type TokenChipCell,
-  type TokenChips,
-  type TokenLane,
   tokenChips,
 } from './view/parts/tokenChips'
 export {

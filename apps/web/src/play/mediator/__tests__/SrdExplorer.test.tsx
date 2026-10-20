@@ -46,7 +46,7 @@ function row(container: HTMLElement, name: string): HTMLAnchorElement {
   return found
 }
 
-/** The category view is the shared EntitySearcher; its pool Tokens carry this. */
+/** The category view is the shared EntitySearcher; its pool Minis carry this. */
 function poolCards(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll<HTMLElement>('.su-searcher__list [data-searcher-open]')]
 }
@@ -68,7 +68,7 @@ const chapters = () => buildChapters()
 /**
  * The listing the drill-in tests open: Crawlers, 5 entries. What these tests
  * pin is the explorer's wiring (tile → searcher → card → back), which a short
- * pool exercises as fully as a long one; the searcher renders every pool Token,
+ * pool exercises as fully as a long one; the searcher renders every pool Mini,
  * so a long listing would cost render time for no extra coverage.
  */
 const LISTING = 'Crawlers'
@@ -101,13 +101,13 @@ describe('SrdExplorer', () => {
     expect(container.querySelector('.su-searcher__rail')).toBeNull()
   })
 
-  test('picking a Token drills into a reference card, back returns to the list', () => {
+  test('picking a Mini drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
     fireEvent.click(row(container, LISTING))
     const [first] = poolCards(container)
     if (!first) throw new Error('no pool cards')
-    const name = first.querySelector('.su-entity-token__name')?.textContent
-    if (!name) throw new Error('pool Token has no name')
+    const name = first.querySelector('.su-entity-mini__name')?.textContent
+    if (!name) throw new Error('pool Mini has no name')
     fireEvent.click(first)
     // The reference card renders; no longer a listing.
     expect(container.querySelector('.su-searcher')).toBeNull()
@@ -125,7 +125,7 @@ describe('SrdExplorer', () => {
     expect(container.querySelectorAll('.su-modal-panel')).toHaveLength(1)
     expect(close(container).textContent).toContain(LISTING)
     // Its search and filters sit on that head's band; its list under it.
-    const band = container.querySelector('.su-modal-panel .su-entity-row__head')
+    const band = container.querySelector('.su-modal-panel .su-entity-compact__head')
     expect(band?.querySelector('.su-searcher__toolbar input')).toBeTruthy()
     expect(band?.querySelector('.su-searcher__list')).toBeNull()
     expect(container.querySelector('.su-modal-panel .su-searcher__list')).toBeTruthy()
@@ -146,7 +146,7 @@ describe('SrdExplorer', () => {
     const input = mustInput(container.querySelector('input[role="combobox"]'))
     // A broad query that matches entities.
     fireEvent.change(input, { target: { value: 'iron' } })
-    // A result is a category button or an entity Row (link mode, an option).
+    // A result is a category button or an entity Compact (link mode, an option).
     const result = await waitFor(() => {
       const el = container.querySelector<HTMLElement>('[role="listbox"] [role="option"]')
       if (!el) throw new Error('no results yet')

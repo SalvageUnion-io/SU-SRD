@@ -4,7 +4,7 @@ import { activateOnKey } from '../atoms/interaction'
 import { EmptyState } from '../containers/EmptyState'
 import { Pending } from '../containers/Pending'
 import { Entity } from '../entity/Entity'
-import type { EntityRowModel } from '../entity/types'
+import type { EntityFormModel } from '../entity/types'
 import { NO_RESULTS } from './searchCopy'
 import type { SearchComboboxResult } from './useSearchCombobox'
 
@@ -19,11 +19,11 @@ type SearchListboxProps = {
   /** Names the list where nothing else does. */
   label?: string
   /**
-   * The entity results' form (EDL "Which form, where"): `token` in a dropdown
+   * The entity results' form (EDL "Which form, where"): `mini` in a dropdown
    * hung under a field (the Union bar's), `row` where the results have the
    * room of a panel (the Mediator's Reference).
    */
-  form: 'row' | 'token'
+  size: 'compact' | 'mini'
   /** The index is loaded; until then the list pends. */
   ready: boolean
   results: readonly SearchComboboxResult[]
@@ -31,7 +31,7 @@ type SearchListboxProps = {
   selectedIndex: number
   optionId: (index: number) => string
   /** The model an entity result draws; none, and it is drawn as a category line. */
-  modelOf: (result: SearchComboboxResult) => EntityRowModel | undefined
+  modelOf: (result: SearchComboboxResult) => EntityFormModel | undefined
   target: SearchTarget
   /** The host's placement: a popup under its field, or a scrolling panel. */
   style?: CSSProperties
@@ -43,10 +43,10 @@ const STATUS = {
   paddingInline: space[16],
 } satisfies CSSProperties
 
-/** Tokens one a line, full width (`.su-entity-token-list`), inset in the popup. */
+/** Minis one a line, full width (`.su-entity-mini-list`), inset in the popup. */
 const TOKENS = { padding: space[8] } satisfies CSSProperties
 
-/** Rows one a line, 8px apart. */
+/** Compacts one a line, 8px apart. */
 const ROWS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
 
 /** A category result; its hover and highlight ground is `.su-search__category`. */
@@ -71,8 +71,8 @@ const CATEGORY_GROUP = {
 
 /**
  * SearchListbox — the one list a search's results hang in, under the Union
- * bar's field and in the Mediator's Reference alike: each entity a Token or a
- * Row in link mode (`form`), each schema hit a category line, the option the
+ * bar's field and in the Mediator's Reference alike: each entity a Mini or a
+ * Compact in link mode (`size`), each schema hit a category line, the option the
  * arrow keys reach marked `aria-selected`; the index pending, then a search
  * that matched nothing saying so in the searcher's words (`searchCopy`, chrome
  * K8). Every result is a link to its page, or, where the host drills in place,
@@ -81,7 +81,7 @@ const CATEGORY_GROUP = {
 export function SearchListbox({
   id,
   label,
-  form,
+  size,
   ready,
   results,
   selectedIndex,
@@ -102,8 +102,8 @@ export function SearchListbox({
         </div>
       ) : (
         <div
-          className={form === 'token' ? 'su-entity-token-list' : undefined}
-          style={form === 'token' ? TOKENS : ROWS}
+          className={size === 'mini' ? 'su-entity-mini-list' : undefined}
+          style={size === 'mini' ? TOKENS : ROWS}
         >
           {results.map((result, index) => {
             // A link stays a link; an act is reached through the combobox alone.
@@ -120,10 +120,10 @@ export function SearchListbox({
                 : { onOpen: () => target.open(result) }
             if (model) {
               const mode = { kind: 'link', ...link, attrs: option } as const
-              return form === 'token' ? (
-                <Entity key={result.id} form="token" context="browse" model={model} mode={mode} />
+              return size === 'mini' ? (
+                <Entity key={result.id} size="mini" context="browse" model={model} mode={mode} />
               ) : (
-                <Entity key={result.id} form="row" model={model} mode={mode} />
+                <Entity key={result.id} size="compact" model={model} mode={mode} />
               )
             }
             const body = (

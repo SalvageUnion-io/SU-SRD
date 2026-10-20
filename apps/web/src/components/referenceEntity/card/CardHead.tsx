@@ -3,7 +3,7 @@ import { Head } from '../../entity'
 import { EntityCardHeader } from './EntityCardHeader'
 
 type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
-  /** The Row's head in place of the flush band (every framed card: `ReferenceEntityCard`'s `cutOut`). */
+  /** The Compact's head in place of the flush band (every framed card: `ReferenceEntityCard`'s `cutOut`). */
   cutOut: boolean
   /** The name as a link to its own Page (`CardTitleLink`). Cut-out only. */
   titleContent?: ReactNode
@@ -17,10 +17,10 @@ type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
 
 /**
  * A framed card's head: its flush header band (`EntityCardHeader`), or, CUT
- * OUT, the Row's head (`entity/parts/Head`) in the card's own fill, foreground
+ * OUT, the Compact's head (`entity/parts/Head`) in the card's own fill, foreground
  * and grain: the tier and name, the labels and the chip group (E17), its
  * controls the group's last slot, and select mode's seal. The name always sits
- * on the paper cut-out; unlike a Row's, its chips (a crew NPC's HP) stay on
+ * on the paper cut-out; unlike a Compact's, its chips (a crew NPC's HP) stay on
  * the band right of it and wrap there.
  */
 export function CardHead({

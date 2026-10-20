@@ -4,7 +4,7 @@ import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Box, EmptyState, FieldError, ReferenceEntityCard, tokens } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import '../../styles/build/wizard.css'
-import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
+import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.su-wiz-review-grid`. */
 const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
@@ -47,7 +47,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
 
   return (
     <div className="su-wiz-review-grid" style={REVIEW_GRID}>
-      {/* The recap: Stats, the class as its chip, the picks as Tokens. */}
+      {/* The recap: Stats, the class as its chip, the picks as Minis. */}
       <Box className="su-wiz-review-panel--start" bodyClassName="su-wiz-review-panel">
         <Recap>
           <RecapStat label="Name" value={form.name.trim()} required />
@@ -57,8 +57,8 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           <RecapStat label="Keepsake" value={form.keepsake} />
           <RecapStat label="Appearance" value={form.appearance} />
           <RecapStat label="Background" value={form.background} />
-          <RecapTokens label="Abilities" entities={chosenAbilities} />
-          <RecapTokens label="Equipment" entities={chosenEquipment} />
+          <RecapMinis label="Abilities" entities={chosenAbilities} />
+          <RecapMinis label="Equipment" entities={chosenEquipment} />
         </Recap>
         {submitError && <FieldError>{submitError}</FieldError>}
       </Box>

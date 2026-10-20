@@ -1,18 +1,18 @@
 /**
- * SheetItemLine — an item's controls in its Token's chip group (C8, hard
+ * SheetItemLine — an item's controls in its Mini's chip group (C8, hard
  * rules R6 and R11): the condition is the tri-state `StatusBadge`, Uses the
  * horizontal `Stat` in edit mode, then the actions and the one ✕, each in
- * the Token's `[data-chip-group]`, whose name is then the link.
+ * the Mini's `[data-chip-group]`, whose name is then the link.
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import type { EntityRowModel } from '../../../components/index'
+import type { EntityFormModel } from '../../../components/index'
 import { Entity } from '../../../components/index'
 import { SheetItemLine } from '../SheetItemLine'
 
-const MODEL: EntityRowModel = {
-  ref: { schemaName: 'systems', id: 'x', slug: 'token', name: 'Token', synthetic: true },
-  title: 'Token',
+const MODEL: EntityFormModel = {
+  ref: { schemaName: 'systems', id: 'x', slug: 'token', name: 'Mini', synthetic: true },
+  title: 'Mini',
   kind: { stamp: 'System', type: 'System', domain: 'gear', nature: 'have' },
   tone: 'ink',
   facts: [],
@@ -20,7 +20,7 @@ const MODEL: EntityRowModel = {
   art: { kind: 'none' },
 }
 
-const TOKEN = <Entity form="token" context="loadout" model={MODEL} mode={{ kind: 'read' }} />
+const TOKEN = <Entity size="mini" context="loadout" model={MODEL} mode={{ kind: 'read' }} />
 
 /** The chip group a control sits in. */
 const groupOf = (el: Element) => el.closest('[data-chip-group]')
@@ -83,11 +83,11 @@ describe('SheetItemLine — Edit', () => {
 })
 
 describe('SheetItemLine — Read', () => {
-  test('intact, the Token alone', () => {
+  test('intact, the Mini alone', () => {
     const { container } = render(
       <SheetItemLine token={TOKEN} name="Data Scanner" condition="intact" readOnly />
     )
-    expect(container.textContent?.startsWith('Token')).toBe(true)
+    expect(container.textContent?.startsWith('Mini')).toBe(true)
     expect(container.textContent).not.toContain('Intact')
   })
 

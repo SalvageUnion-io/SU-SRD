@@ -1,11 +1,11 @@
 /**
  * The Play hub's Your Games (ADR-052 §4) — pure, so `PlayLanding` only lays
- * them out. A Game is a Row (ruleset §1.9): the whole Row opens the Game's
+ * them out. A Game is a Compact (ruleset §1.9): the whole Compact opens the Game's
  * page in Play; its chips are your role, how many are here and the Downtime
  * state; its one door is the way into play, Mediate or Play <pilot>.
  */
 
-/** A label-first chip on a Game's Row: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
+/** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
 
 /** A Game's one door, rust: where it goes and what it is called. */

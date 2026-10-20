@@ -96,7 +96,7 @@ describe('DidYouMeanIsland', () => {
     }
   })
 
-  test('an index entry without a Row model is offered as a plain link to its page', async () => {
+  test('an index entry without a Compact model is offered as a plain link to its page', async () => {
     const slim = index.map(({ model: _model, ...entry }) => entry)
     fetchSpy?.mockImplementation(
       Object.assign(
@@ -109,6 +109,6 @@ describe('DidYouMeanIsland', () => {
     const link = await screen.findByRole('link', { name: 'Gopher' })
     expect(link.getAttribute('href')).toBe('/chassis/gopher/')
     expect(link.className).toBe('su-not-found__link')
-    expect(container.querySelector('.su-entity-row')).toBeNull()
+    expect(container.querySelector('.su-entity-compact')).toBeNull()
   })
 })

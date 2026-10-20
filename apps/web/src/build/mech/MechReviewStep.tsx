@@ -11,7 +11,7 @@ import {
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/build/wizard.css'
 import { readReference } from '../../lib/readReference'
-import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
+import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
 /** Columns are `.su-wiz-review-grid` (they change at lg). */
@@ -65,13 +65,13 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
     <div className="su-wiz-review-grid" style={LAYOUT}>
       <div style={KV_COLUMN}>
         <Box bodyClassName="su-wiz-review-panel">
-          {/* The recap: Stats, the chassis as its chip, the parts as Tokens. */}
+          {/* The recap: Stats, the chassis as its chip, the parts as Minis. */}
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
             <RecapEntity label="Chassis" entity={chassis} required />
             <RecapStat label="Pattern" value={form.patternName.trim()} />
-            <RecapTokens label="Systems" entities={chosenSystems} />
-            <RecapTokens label="Modules" entities={chosenModules} />
+            <RecapMinis label="Systems" entities={chosenSystems} />
+            <RecapMinis label="Modules" entities={chosenModules} />
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>

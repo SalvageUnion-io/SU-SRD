@@ -1,8 +1,8 @@
 /**
- * StarterCard — a Starter Set build's Row opens its read-only sheet, and the
+ * StarterCard — a Starter Set build's Compact opens its read-only sheet, and the
  * entity it is made from (`CLASS | Engineer`, `CHASSIS | Mule`) is a linked
  * chip of its own: it Peeks and opens that entity, outside the sheet's link.
- * A Row draws no lead (EDL E11): a pilot's motto is on its sheet, not here.
+ * A Compact draws no lead (EDL E11): a pilot's motto is on its sheet, not here.
  */
 
 import { describe, expect, mock, test } from 'bun:test'
@@ -49,7 +49,7 @@ describe('StarterCard', () => {
     expect(container.textContent).toMatch(/TL\s*1/)
   })
 
-  test("a pilot's Row draws no lead: its motto stays on its sheet (EDL E11)", () => {
+  test("a pilot's Compact draws no lead: its motto stays on its sheet (EDL E11)", () => {
     const motto = STARTER_PILOTS.find((p) => p.name === 'Bonesaw')?.motto
     expect(motto).toBeTruthy()
     const { container } = render(

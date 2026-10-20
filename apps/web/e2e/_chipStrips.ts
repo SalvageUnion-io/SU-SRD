@@ -7,7 +7,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
 /**
  * The chip-strip law (ruleset §4.7) as the rendered page draws it. A STRIP is
  * an entity's chip group: a Page's band cluster (`.su-entity-stamps`), a
- * card's or Row's head (`[data-chip-group]`), an index Tile's, a Token's. Its CHIPS are the
+ * card's or Compact's head (`[data-chip-group]`), an index CompactIndex's, a Mini's. Its CHIPS are the
  * outermost `CHIP` elements inside it. `findChipStripFaults` returns one line
  * per fault:
  *
@@ -19,7 +19,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   not on its lowest line and rightmost there; followed by +MORE alone, not
  *   right before it there.
  * - **fill** THE BOTTOM-RIGHT FILL of every head whose name and chips share
- *   a line (`[data-chip-fill]`: a Row's or Card's heading, a Tile's band, a
+ *   a line (`[data-chip-fill]`: a Compact's or Card's heading, a CompactIndex's band, a
  *   Page's chapter band and its controls; owner's rule, 2026-10-20): its last
  *   item (the cost, the action) on the name's line and rightmost there. A
  *   head the fill never measured (no `data-fill-item`) fails too.
@@ -31,9 +31,9 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * - **foot** a chip in a foot band (`[data-foot-band]`): a foot is text.
  * - **clip** a chip not whole inside its strip's visible box (R3, C3, C5):
  *   the strip's own box, cut by its entity's frame and by every ancestor that
- *   hides its overflow. A chip past its Row's edge, or cut by a Token's pill,
+ *   hides its overflow. A chip past its Compact's edge, or cut by a Mini's pill,
  *   fails; only the name may give way.
- * - **lines** a header-only Token's chips on more than one line (C5).
+ * - **lines** a header-only Mini's chips on more than one line (C5).
  * - **more** a +MORE chip that is not its strip's last chip, at the end of its
  *   lowest line (the visual bottom), or one that dropped the strip's cost (C5).
  *
@@ -41,14 +41,14 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *
  * - **taller** a head whose chips make it taller: laid on one line beside its
  *   name (the name held at its width, so its own wrap is not counted), the
- *   head is shorter than as drawn. A fill head's and a contentful Token's.
+ *   head is shorter than as drawn. A fill head's and a contentful Mini's.
  * - **overflow** a head whose chips rose above its name (a line over the
- *   name's line in a fill head, a contentful Token's chips on two lines), and
+ *   name's line in a fill head, a contentful Mini's chips on two lines), and
  *   a body's overflow row (`[data-chip-overflow]`) that is not its body's
- *   first row (right under its head, or first in a Token's body), not
+ *   first row (right under its head, or first in a Mini's body), not
  *   left-aligned, or holds the cost or the Tech Level.
  * - **more-contentful** a +MORE on a contentful rendering (a contentful
- *   Token, a head with an overflow row): its overflow is its body's first row.
+ *   Mini, a head with an overflow row): its overflow is its body's first row.
  *
  * Reported and not failed while its entry stands in `_pendingRules.ts`:
  *
@@ -59,8 +59,8 @@ const STRIP = [
   '.su-entity-stamps',
   '[data-chip-group]',
   '[data-chip-overflow]',
-  '.su-entity-tile__chips',
-  '.su-entity-token__chips',
+  '.su-entity-index__chips',
+  '.su-entity-mini__chips',
 ].join(',')
 
 const CHIP = [
@@ -70,8 +70,8 @@ const CHIP = [
   '.su-chip-link',
   '.su-cost-edge',
   '.su-cost',
-  // An action chip in the group (C8): a Row's "⋯", and whatever fills its
-  // last slot (a Row's Use, a host's controls; hard rule R6).
+  // An action chip in the group (C8): a Compact's "⋯", and whatever fills its
+  // last slot (a Compact's Use, a host's controls; hard rule R6).
   '.su-header-menu-trigger--overflow',
   '[data-chip-class="menu"] > *',
   // A live sheet item's condition and uses stepper, in the state and uses
@@ -80,8 +80,8 @@ const CHIP = [
   '[data-chip-class="uses"] > *',
 ].join(',')
 
-/** A contentful Token (N3), and a header-only head's +MORE (C5): its strip's last chip. */
-const CONTENTFUL = '.su-entity-token[data-contentful]'
+/** A contentful Mini (N3), and a header-only head's +MORE (C5): its strip's last chip. */
+const CONTENTFUL = '.su-entity-mini[data-contentful]'
 const MORE = '.su-chip-more'
 
 /** A head that fills from its bottom-right corner (`components/atoms/chipFill.ts`). */
@@ -95,9 +95,9 @@ const OVERFLOW_OWNER = '[data-chip-overflow-owner]'
 
 /** An entity's frame: the box no chip of its strips may leave. */
 const FRAME = [
-  '.su-entity-row__frame',
-  '.su-entity-token__pill',
-  '.su-entity-tile__frame',
+  '.su-entity-compact__frame',
+  '.su-entity-mini__pill',
+  '.su-entity-index__frame',
   '.su-ec-frame',
 ].join(',')
 
@@ -207,7 +207,7 @@ function scan({
     }
   }
   // OVERFLOW: a body's overflow row is its first row (right under its head's
-  // band, or first in a Token's body), left-aligned, and never holds the cost
+  // band, or first in a Mini's body), left-aligned, and never holds the cost
   // or the Tech Level, which stay in the head.
   for (const row of document.querySelectorAll(overflow)) {
     if (!visible(row)) continue
@@ -242,9 +242,9 @@ function scan({
       }
       return true
     })
-    // A contentful Token's head strip; and a header-only head's +MORE, its
+    // A contentful Mini's head strip; and a header-only head's +MORE, its
     // menu lane's last chip.
-    const token = root.closest(`${contentful} > .su-entity-token__head`)?.parentElement
+    const token = root.closest(`${contentful} > .su-entity-mini__head`)?.parentElement
     const moreChip = chips.find((el) => el.matches(more))
     if (chips.length === 0) continue
     const where = `${describe(chips[0] as Element)}…`
@@ -346,12 +346,12 @@ function scan({
       }
     }
 
-    // OVERFLOW: a contentful Token's head keeps one line; the rest is its body's (C2b).
+    // OVERFLOW: a contentful Mini's head keeps one line; the rest is its body's (C2b).
     if (token && lines.length > 1) {
       faults.push(`overflow: ${where} its head's chips on ${lines.length} lines, not one`)
     }
-    // LINES: a header-only Token's chips on one line (C5).
-    if (!token && root.closest('.su-entity-token__pill') && lines.length > 1) {
+    // LINES: a header-only Mini's chips on one line (C5).
+    if (!token && root.closest('.su-entity-mini__pill') && lines.length > 1) {
       faults.push(`lines: ${where} on ${lines.length} lines, at most 1`)
     }
 
@@ -474,14 +474,14 @@ function scan({
       faults.push(`taller: ${where} its chips make its head ${Math.round(grew)}px taller`)
     }
   }
-  // TALLER: nor a contentful Token's head.
+  // TALLER: nor a contentful Mini's head.
   for (const token of document.querySelectorAll(contentful)) {
     const pill = token.querySelector<HTMLElement>(
-      ':scope > .su-entity-token__head .su-entity-token__pill'
+      ':scope > .su-entity-mini__head .su-entity-mini__pill'
     )
-    const name = pill?.querySelector<HTMLElement>('.su-entity-token__notch')
+    const name = pill?.querySelector<HTMLElement>('.su-entity-mini__notch')
     if (!pill || !name || !visible(pill)) continue
-    const grew = growth(pill, name, pill.querySelector<HTMLElement>('.su-entity-token__chips'))
+    const grew = growth(pill, name, pill.querySelector<HTMLElement>('.su-entity-mini__chips'))
     if (grew > 1) {
       faults.push(`taller: ${describe(name)}… its chips make its head ${Math.round(grew)}px taller`)
     }

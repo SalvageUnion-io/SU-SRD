@@ -1,8 +1,8 @@
 /**
- * LinkedCrewToken — a crawler crew slot filled by a built NPC (Q2, ADR-044):
+ * LinkedCrewMini — a crawler crew slot filled by a built NPC (Q2, ADR-044):
  * a bay's, inside its bay card, and the crawler type's, in the sheet's
  * identity panel. While a slot is linked it shows the linked NPC in place of
- * its inline crew, as a contentful Token (N3, `CrewLeadToken`) as the inline
+ * its inline crew, as a contentful Mini (N3, `CrewLeadMini`) as the inline
  * crew is. Its dashed head opens the NPC's sheet (you track its HP there), so
  * the HOMEBREW stamp is the only line above it.
  *
@@ -17,7 +17,7 @@ import { Badge, HomebrewStamp, tokens } from '../../components/index'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { CrewLeadToken } from '../sheet/CrewLeadToken'
+import { CrewLeadMini } from '../sheet/CrewLeadMini'
 
 const STACK = {
   display: 'flex',
@@ -26,7 +26,7 @@ const STACK = {
   minWidth: 0,
 } satisfies CSSProperties
 
-type LinkedCrewTokenProps = {
+type LinkedCrewMiniProps = {
   /** The bay's (or type's) name — labels the crew lead for assistive tech. */
   slotName: string
   assignment: CrewAssignment
@@ -34,7 +34,7 @@ type LinkedCrewTokenProps = {
   fallback: ReactNode
 }
 
-export function LinkedCrewToken({ slotName, assignment, fallback }: LinkedCrewTokenProps) {
+export function LinkedCrewMini({ slotName, assignment, fallback }: LinkedCrewMiniProps) {
   const npc = assignment.npc
   if (npc === null) {
     return (
@@ -47,7 +47,7 @@ export function LinkedCrewToken({ slotName, assignment, fallback }: LinkedCrewTo
   return (
     <div style={STACK}>
       <HomebrewStamp />
-      <CrewLeadToken
+      <CrewLeadMini
         bayName={slotName}
         title={npc.position}
         name={npc.name}

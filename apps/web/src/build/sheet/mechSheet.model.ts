@@ -127,7 +127,7 @@ export function useMechSheetModel({
   const chassisEntity = resolveChassisRef(mech.chassisRef)
   const chassisName = chassisEntity?.name ?? chassis?.name ?? mech.chassisRef
   // The book writes a chassis ability once for every chassis that has it, with
-  // "[(CHASSIS)]" where it names the chassis; the hero's Row leads with that
+  // "[(CHASSIS)]" where it names the chassis; the hero's Compact leads with that
   // prose, so it reads "The Mazona has…".
   const chassisAbilities = (
     chassisEntity ? (SalvageUnionReference.resolveActions(chassisEntity) ?? []) : []

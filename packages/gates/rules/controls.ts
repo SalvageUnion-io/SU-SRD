@@ -184,7 +184,7 @@ export const ONE_ON_OFF: Record<string, string> = {
   'apps/web/src/components/atoms/ToggleCard.tsx':
     "a choice card's chosen state, the on/off whose face is its option's card (R15)",
   'apps/web/src/components/entity/modes/toggle.ts':
-    "the toggle Token's chosen state, Play's seats and Tables (R15)",
+    "the toggle Mini's chosen state, Play's seats and Tables (R15)",
 }
 
 /** Every JSX attribute or object key `name` in one file, with its value's source. */

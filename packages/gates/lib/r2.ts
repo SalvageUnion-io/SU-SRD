@@ -88,7 +88,7 @@ export function credentialsFromEnv(): R2Credentials {
       `missing R2 credential(s): ${missing.join(', ')}\n` +
         '  Resolve them from 1Password: op run --env-file=tools/r2.op.env -- <command>\n' +
         '  No token yet? Create an R2 API token scoped to the one bucket you are touching:\n' +
-        '  Cloudflare dashboard → R2 → Manage R2 API Tokens → Create API token.'
+        '  Cloudflare dashboard → R2 → Manage R2 API Minis → Create API token.'
     )
   }
 

@@ -24,7 +24,7 @@
 }
 
 /* The faded blueprint behind the mark: it fills the frame and sits under the
-   ink. Doubled so `.su-entity-tile__art img` cannot reach it. */
+   ink. Doubled so `.su-entity-index__art img` cannot reach it. */
 .su-missing-art .su-missing-art__backdrop {
   height: 100%;
   inset: 0;

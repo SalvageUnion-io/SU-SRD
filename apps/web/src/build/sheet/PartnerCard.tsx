@@ -35,11 +35,11 @@ import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Field,
+  MiniGrid,
   ReferenceEntityCard,
   SlabSection,
   Stack,
   summarizeBreakdown,
-  TokenGrid,
 } from '../../components/index'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
@@ -56,7 +56,7 @@ import {
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { MechItemToken } from './MechItemToken'
+import { MechItemMini } from './MechItemMini'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
 
@@ -262,14 +262,14 @@ export function PartnerCard({
     const keys = occurrenceKeys(slugs)
     return (
       <SlabSection as="h4" title={kind === 'system' ? 'Systems' : 'Modules'}>
-        {/* Contentful Tokens in a masonry grid, each Peeking its whole card. */}
-        <TokenGrid
+        {/* Contentful Minis in a masonry grid, each Peeking its whole card. */}
+        <MiniGrid
           label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
           edit={!readOnly}
         >
           {slugs.map((slug, index) => (
             <li key={keys[index]}>
-              <MechItemToken
+              <MechItemMini
                 slug={slug}
                 entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
                 condition={conditions[slug] ?? 'intact'}
@@ -296,7 +296,7 @@ export function PartnerCard({
               />
             </li>
           ))}
-        </TokenGrid>
+        </MiniGrid>
       </SlabSection>
     )
   }

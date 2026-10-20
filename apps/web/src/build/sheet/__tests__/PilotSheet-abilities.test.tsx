@@ -41,9 +41,9 @@ async function choose(ability: string, item: string | RegExp) {
 // "Talk Shop" resolves to a fixed AP cost of 3 in reference data.
 const ABILITY_TALK_SHOP = 'talk-shop'
 
-/** Each Row's and Token's chips' text: a cost is the book's pointy box, "3 AP". */
+/** Each Compact's and Mini's chips' text: a cost is the book's pointy box, "3 AP". */
 const costChips = () =>
-  Array.from(document.querySelectorAll('.su-entity-token__chips, .su-entity-row__head'))
+  Array.from(document.querySelectorAll('.su-entity-mini__chips, .su-entity-compact__head'))
     .map((g) => g.textContent ?? '')
     .join(' ')
 
@@ -84,11 +84,11 @@ function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeo
 }
 
 describe('PilotSheet — ability AP cost (Slice D)', () => {
-  test("displays the ability AP cost on the ability's Row", () => {
+  test("displays the ability AP cost on the ability's Compact", () => {
     render(<PilotSheet pilot={makePilot()} store={makeStubStore(makePilot())} />)
-    // The cost comes from the Row's own cost chip ("3 AP"), not from a
+    // The cost comes from the Compact's own cost chip ("3 AP"), not from a
     // sheet-added "AP Cost" pair, which printed a bare em-dash for
-    // variable-cost abilities where the Token says "X AP".
+    // variable-cost abilities where the Mini says "X AP".
     expect(costChips()).toContain('3 AP')
     expect(screen.queryByText('AP Cost')).toBeNull()
   })
@@ -129,7 +129,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     expect(updateSpy).not.toHaveBeenCalled()
   })
 
-  test("an ability's controls are one ⋯ in its Token's chip group (R6)", () => {
+  test("an ability's controls are one ⋯ in its Mini's chip group (R6)", () => {
     const pilot = makePilot()
     render(
       <PilotSheet
@@ -193,7 +193,7 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expandCards()
 
     expect(screen.queryByRole('button', { name: /^More for / })).toBeNull()
-    // AP cost still shown read-only (the Row's own cost chip), plus a
+    // AP cost still shown read-only (the Compact's own cost chip), plus a
     // static Used stamp.
     expect(costChips()).toContain('3 AP')
     expect(screen.getByText('Used')).toBeTruthy()
@@ -222,11 +222,11 @@ const foldOf = (title: string) => {
     section,
     open: button.getAttribute('aria-expanded') === 'true',
     shown: body !== null && body !== undefined && !body.hidden,
-    grid: body?.querySelector<HTMLElement>(':scope > ul.su-token-grid') ?? null,
+    grid: body?.querySelector<HTMLElement>(':scope > ul.su-mini-grid') ?? null,
   }
 }
 
-describe('PilotSheet — the abilities are two folding masonry grids of contentful Tokens', () => {
+describe('PilotSheet — the abilities are two folding masonry grids of contentful Minis', () => {
   for (const readOnly of [false, true]) {
     test(`tree abilities on top and open, Generic abilities under them and folded (${readOnly ? 'Read' : 'Edit'})`, () => {
       const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
@@ -246,14 +246,14 @@ describe('PilotSheet — the abilities are two folding masonry grids of contentf
       expect(trees.shown).toBe(true)
       expect(generic.open).toBe(false)
       expect(generic.shown).toBe(false)
-      // Each body is a masonry grid of contentful Tokens, one ability a cell.
+      // Each body is a masonry grid of contentful Minis, one ability a cell.
       for (const grid of [trees.grid, generic.grid]) {
         expect(grid).toBeTruthy()
         const cells = Array.from(grid?.children ?? [])
         expect(cells.length).toBeGreaterThan(0)
         for (const cell of cells) {
           expect(cell.tagName).toBe('LI')
-          expect(cell.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
+          expect(cell.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
         }
       }
       expect(trees.grid?.getAttribute('aria-label')).toBe('Tree Abilities')
@@ -262,7 +262,7 @@ describe('PilotSheet — the abilities are two folding masonry grids of contentf
 })
 
 describe('PilotSheet — the Generic tree is intrinsic', () => {
-  test('a pilot with no stored abilities still shows the Generic Tokens', async () => {
+  test('a pilot with no stored abilities still shows the Generic Minis', async () => {
     const pilot = makePilot({ abilities: [] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
@@ -271,7 +271,7 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
     // prints Bonesaw's Generic cards beside his one stored ability), in its own
     // section under the trees the pilot chose, which say none are learned.
     const generic = await openGeneric()
-    const names = Array.from(generic.querySelectorAll('.su-entity-token__name')).map(
+    const names = Array.from(generic.querySelectorAll('.su-entity-mini__name')).map(
       (n) => n.textContent ?? ''
     )
     for (const name of ['Repair', 'Area Salvage', 'Mech Salvage', 'Patch Up']) {
@@ -297,11 +297,11 @@ const treeAbilityNames = () =>
   Array.from(
     screen
       .getByRole('list', { name: 'Tree Abilities' })
-      .querySelectorAll(':scope > li .su-entity-token__name')
+      .querySelectorAll(':scope > li .su-entity-mini__name')
   ).map((name) => name.textContent ?? '')
 
 describe('PilotSheet — the tree abilities, tree by tree', () => {
-  test("only the Abilities taken, each a contentful Token, in its tree's order", () => {
+  test("only the Abilities taken, each a contentful Mini, in its tree's order", () => {
     const pilot = makePilot({ abilities: ['mech-acquisition', 'engineering-expertise'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
 
@@ -313,7 +313,7 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     // Each its head and then its text.
     const grid = screen.getByRole('list', { name: 'Tree Abilities' })
     expect(
-      grid.querySelectorAll('.su-entity-token[data-contentful] .su-entity-token__body')
+      grid.querySelectorAll('.su-entity-mini[data-contentful] .su-entity-mini__body')
     ).toHaveLength(2)
     // The Generic tree is its own grid, never in this one.
     expect(names.some((name) => name.startsWith('Repair'))).toBe(false)
@@ -336,7 +336,7 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     expect(at('Tip Top Shape')).toBe(3)
   })
 
-  test("Edit puts each ability's controls in its Token's chip group", async () => {
+  test("Edit puts each ability's controls in its Mini's chip group", async () => {
     const pilot = makePilot({ currentAP: 5 })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
@@ -358,8 +358,8 @@ describe('PilotSheet — the class art stands in for a portrait', () => {
   })
 })
 
-describe("PilotSheet — a read-only sheet's Tokens open their entity", () => {
-  test('clicking an ability Token opens its Page (the detail dialog)', () => {
+describe("PilotSheet — a read-only sheet's Minis open their entity", () => {
+  test('clicking an ability Mini opens its Page (the detail dialog)', () => {
     const pilot = makePilot()
     const openPage = mock((_ref: unknown) => {})
     render(

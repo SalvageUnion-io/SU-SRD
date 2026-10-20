@@ -13,18 +13,18 @@ import { expect, test } from '@playwright/test'
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.
- * - `inert`: a chip (a trait or relation Tag, an action's chip, a Token's
+ * - `inert`: a chip (a trait or relation Tag, an action's chip, a Mini's
  *   head) that still draws the pointer: on the plate it reads, and only reads.
  *
  * A kind is a Peek address's schema, with its part where it has one
  * (`crawler-bays/npc`, a bay's crew NPC; `systems/table`, a record's roll
  * table). They are found where a reader finds them: the Union bar's search
- * (every entity schema it Peeks) and the Mentions, Tags and roll Tokens on the
+ * (every entity schema it Peeks) and the Mentions, Tags and roll Minis on the
  * SRD's pages. `KINDS` is every kind found when this gate landed; a kind that
  * stops Peeking fails it, so a new kind is added here when it starts to.
  */
 
-/** A schema and a name the Union bar's search finds a Peek-able Token for. */
+/** A schema and a name the Union bar's search finds a Peek-able Mini for. */
 const SEARCH: readonly { schema: string; name: string }[] = [
   { schema: 'abilities', name: 'Engineering Expertise' },
   { schema: 'bio-titans', name: 'Typhon' },
@@ -48,7 +48,7 @@ const SEARCH: readonly { schema: string; name: string }[] = [
   { schema: 'vehicles', name: 'Power Loader' },
 ]
 
-/** SRD pages whose Mentions, Tags and roll Tokens Peek. */
+/** SRD pages whose Mentions, Tags and roll Minis Peek. */
 const PAGES = [
   '/chassis/mazona/',
   '/chassis/mazona/pattern/buzzard/',
@@ -65,7 +65,7 @@ const PAGES = [
   '/vehicles/fighting-box-wheel/',
   '/roll-tables/core-mechanic/',
   '/keywords/',
-  // A Starter Set sheet: a crawler bay's roll Token, folded off its own page,
+  // A Starter Set sheet: a crawler bay's roll Mini, folded off its own page,
   // and its actions' Mentions.
   '/build/starter/crawler/starter-crawler-tenacity',
 ]
@@ -130,7 +130,7 @@ function scanPlate(): string[] {
   }
   const opens = [...plate.querySelectorAll('[data-peek-open]')]
   if (opens.length > 1) out.push(`open: ${opens.length} linked names, not one`)
-  const title = plate.querySelector('.su-entity-row__head .su-entity-row__title')
+  const title = plate.querySelector('.su-entity-compact__head .su-entity-compact__title')
   for (const el of opens) {
     if (!title?.contains(el)) out.push(`open: ${what(el)} is not the card's name`)
     if (el.getAttribute('tabindex') !== '-1') out.push(`open: ${what(el)} is in the tab order`)
@@ -138,7 +138,7 @@ function scanPlate(): string[] {
   for (const el of plate.querySelectorAll('[data-peek]')) {
     out.push(`nested: ${what(el)} Peeks ${el.getAttribute('data-peek')}`)
   }
-  const chips = '[data-tag], [data-chip-group] > *, .su-entity-token, .su-entity-row__head'
+  const chips = '[data-tag], [data-chip-group] > *, .su-entity-mini, .su-entity-compact__head'
   for (const el of plate.querySelectorAll(chips)) {
     if (getComputedStyle(el).cursor === 'pointer') out.push(`inert: ${what(el)} draws the pointer`)
   }
@@ -151,7 +151,7 @@ async function peekAt(page: Page, trigger: Locator, where: string): Promise<stri
   await trigger.hover()
   const popup = page.locator('[data-peek-popup]')
   await expect(
-    popup.locator('.su-entity-row__head, .su-roll').first(),
+    popup.locator('.su-entity-compact__head, .su-roll').first(),
     `${where}: the Peek draws its card`
   ).toBeVisible()
   const faults = (await page.evaluate(scanPlate)).map((f) => `${where}: ${f}`)
@@ -169,7 +169,7 @@ test('a Peek of every kind is terminal', async ({ page }) => {
   const opened = new Map<string, string>()
   const failures: string[] = []
 
-  // The Union bar's search: a Token per schema.
+  // The Union bar's search: a Mini per schema.
   for (const { schema, name } of SEARCH) {
     await page.goto('/chassis/', { waitUntil: 'networkidle' })
     const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
@@ -191,7 +191,7 @@ test('a Peek of every kind is terminal', async ({ page }) => {
     failures.push(...(await peekAt(page, trigger, `the ${name} Peek (${kind})`)))
   }
 
-  // The SRD's pages: each kind their Mentions, Tags and roll Tokens open.
+  // The SRD's pages: each kind their Mentions, Tags and roll Minis open.
   for (const path of PAGES) {
     await page.goto(path, { waitUntil: 'networkidle' })
     const addresses = await page.evaluate(() =>

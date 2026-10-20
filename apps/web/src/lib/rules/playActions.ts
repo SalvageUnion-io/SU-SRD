@@ -434,7 +434,7 @@ export function activationHeatGate(args: {
 /**
  * Classify a rolled outcome for the Apply step (ADR-007). A Cascade Failure is
  * the destructive band — its severe consequence must NEVER be auto-written; the
- * resolve hands it to the player in its Token's Callout (`PlayResolveSteps`), who
+ * resolve hands it to the player in its Mini's Callout (`PlayResolveSteps`), who
  * takes the damage on the unit's gauge. Every other band is non-destructive and
  * auto-commits.
  */

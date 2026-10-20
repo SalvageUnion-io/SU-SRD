@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { EmptyState, Slab, Stat, tokens } from '../../components/index'
-import { ActionTokens } from '../../components/referenceEntity/card/NestedCards'
+import { ActionMinis } from '../../components/referenceEntity/card/NestedCards'
 import '../../styles/build/wizard.css'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
@@ -25,8 +25,8 @@ type MechStatsStepProps = {
  * Step 3 · Note down your Mech's Statistics (Mech Workshop p.95) — display
  * only. Every stat derives from the chosen Chassis: SP, EP, Heat Capacity,
  * System/Module Slots, Cargo, Salvage Value, plus its unique Chassis Ability.
- * The ability is the chassis's, nested in it, so it is a contentful Token
- * (N3, E19) as any nested action is (`ActionTokens`): its head, then its full
+ * The ability is the chassis's, nested in it, so it is a contentful Mini
+ * (N3, E19) as any nested action is (`ActionMinis`): its head, then its full
  * text, `[(CHASSIS)]` naming the chassis, and its roll table on the line under it.
  * Nothing to choose — Next always enabled.
  */
@@ -63,7 +63,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
         <>
           <Slab label="Chassis Ability" count={chassis.name} countInk="inherit" />
           <div style={ABILITIES}>
-            <ActionTokens
+            <ActionMinis
               actions={chassisAbilities}
               size="compact"
               hostName={chassis.name}

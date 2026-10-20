@@ -123,7 +123,7 @@ export function bayStates(crawler: Crawler): StatState[] {
 /**
  * A rail stat as a `UnitRow` reading: `SP 9/13`, `Bays 4/5 Intact`.
  *
- * `UnitRow` (the library Row the linked-unit slots use) takes flat
+ * `UnitRow` (the library Compact the linked-unit slots use) takes flat
  * `label | value` pairs, while a rail stat carries its own max and sometimes a
  * trailing word, so both fold into the value here rather than the row growing
  * a shape only these call sites would use.

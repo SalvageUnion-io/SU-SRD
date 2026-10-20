@@ -42,7 +42,7 @@ import { expect, test } from './fixtures'
 const GAME = 'The Rust Belt Run'
 
 /**
- * The player's seat on the Mediator's table: its toggle Token's name, a button
+ * The player's seat on the Mediator's table: its toggle Mini's name, a button
  * named "<callsign or name>, here, …", pressed while Propose is aimed there.
  */
 function seat(page: Page) {

@@ -1,14 +1,14 @@
 /**
  * PlayActionRow — one action in the Actions list (play.md §5): the action's
- * contentful Token, its text under its head, in the list's Token grid
- * (ruleset §1.3: Play's lists are Tokens), its Mini chips in the
+ * contentful Mini, its text under its head, in the list's Mini grid
+ * (ruleset §1.3: Play's lists are Minis), its Mini chips in the
  * shared stat order with the cost last. On hand it carries Use, after the cost
  * in its chip group (C8, ruleset §1.4), which opens the resolve in place in
- * the Token's body (N3: the action's own text, then `PlayResolveSteps`), with
+ * the Mini's body (N3: the action's own text, then `PlayResolveSteps`), with
  * Cancel in Use's slot; not on hand it is dimmed, and says what it needs as a
  * chip ("needs Boarded").
  *
- * A Token nests nothing (E6): the resolve inside it, its roll instrument (R8)
+ * A Mini nests nothing (E6): the resolve inside it, its roll instrument (R8)
  * and its steps, is plain content, never an entity of its own (play.md §12).
  */
 
@@ -65,7 +65,7 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
       data-action-key={entry.key}
     >
       <Entity
-        form="token"
+        size="mini"
         context="play"
         model={model}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}

@@ -1,9 +1,9 @@
 /**
  * SheetItemLine — one installed or carried item on a sheet: its TOKEN (which
- * Peeks the whole card), its state, uses and actions in the Token's own chip
+ * Peeks the whole card), its state, uses and actions in the Mini's own chip
  * group, after the cost, in the fixed slots (`chips-and-actions.md` C8, hard
- * rules R6 and R11): state · uses · the actions and ✕, at the Token's Size
- * (Mini; a Row's Compact). Nothing sits beside the strip or under it.
+ * rules R6 and R11): state · uses · the actions and ✕, at the Mini's Size
+ * (Mini; a Compact's Compact). Nothing sits beside the strip or under it.
  *
  *   - the condition: the tri-state `StatusBadge`, which steps it on
  *     (Intact → Damaged → Destroyed); Read shows it only when not intact;
@@ -13,7 +13,7 @@
  *     AP and Used, an equipment's Details, which opens its Page);
  *   - Remove: a square ✕ (`SheetRemoveButton`, the sheet's one remove control).
  *
- * A mech's Systems and Modules (`MechItemToken`), a pilot's equipment
+ * A mech's Systems and Modules (`MechItemMini`), a pilot's equipment
  * (`PilotEquipmentItem`), a pilot's abilities (`PilotAbilityItem`, which has
  * no condition: its Read stamp is "Used") and an item the reference does not
  * know (`UnknownItemLine`), a pilot's generic entry (`GenericEntryLine`) and a
@@ -30,7 +30,7 @@ import type { EntityProps } from '../../components/entity/Entity'
 import { Badge, Button, Stat, StatusBadge, tokens } from '../../components/index'
 
 type SheetItemLineProps = {
-  /** The item's Token, or a Row (an ability on its tree's track): an `<Entity>` element. */
+  /** The item's Mini, or a Compact (an ability on its tree's track): an `<Entity>` element. */
   token: ReactElement<EntityProps>
   /** The item's name, for the controls' accessible labels. */
   name: string
@@ -63,14 +63,14 @@ export function SheetItemLine({
   actions,
   onRemove,
 }: SheetItemLineProps) {
-  // Mini, a chip's height, on a Token and on a Row's head alike (C1a).
+  // Mini, a chip's height, on a Mini and on a Compact's head alike (C1a).
   const size = 'mini'
   const stampChip = stamp && (
     <Badge key="stamp" shape="stamp" surface="inverse" size={size}>
       {stamp}
     </Badge>
   )
-  // Read: the Token alone while intact; a damaged or destroyed one names its
+  // Read: the Mini alone while intact; a damaged or destroyed one names its
   // condition in its state slot, as does any `stamp`.
   // The token's own state (a carried entry's quantity) leads the slot.
   const own = token.props.state
@@ -128,7 +128,7 @@ export function SheetItemLine({
           ),
         }
       : {}),
-    // Always given in Edit: a Token with controls is the one whose name is
+    // Always given in Edit: a Mini with controls is the one whose name is
     // the link, so its condition's button never sits inside one.
     controls: (
       <>

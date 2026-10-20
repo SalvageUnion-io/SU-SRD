@@ -77,11 +77,11 @@ describe('trait tags (E17)', () => {
 
 /**
  * The card's own element whose whole text IS `text`: the chassis's stat, not
- * a nested pattern Token's chip of the same name.
+ * a nested pattern Mini's chip of the same name.
  */
 const bandLeaf = (container: HTMLElement, text: string) =>
   [...container.querySelectorAll('*')]
-    .filter((el) => el.textContent === text && !el.closest('.su-entity-token'))
+    .filter((el) => el.textContent === text && !el.closest('.su-entity-mini'))
     .at(-1)
 
 describe('header stat cluster', () => {

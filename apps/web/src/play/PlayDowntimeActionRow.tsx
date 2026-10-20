@@ -7,7 +7,7 @@
  * its row (`rollFor`, `playRolls.model.ts`).
  *
  * A bay that blocks one is named on its line (Pilot Bay, Trading Bay), never a
- * gate: the table rules it. A Token one a line in the list (ruleset §1.3;
+ * gate: the table rules it. A Mini one a line in the list (ruleset §1.3;
  * `playLineModel`, these being no reference entity), its chips and controls
  * in its chip group (R6); the Rumour table rolled is its contentful body,
  * plain content (N3, play.md §12).
@@ -44,7 +44,7 @@ type PlayDowntimeActionRowProps = {
 /**
  * A damaged bay, as the line names it; null when the bay is fine or absent.
  * The crawler box's chip for the same state (`PlayCrawlerUnit`), at the
- * Token's Size: a Mini Stat, beside the TP Stat and the Mini buttons.
+ * Mini's Size: a Mini Stat, beside the TP Stat and the Mini buttons.
  */
 function damagedBay(crawler: Crawler | null, slug: string, label: string) {
   if (crawler === null || !bayGate(crawler, slug).damaged) return null
@@ -104,7 +104,7 @@ export function PlayDowntimeActionRow({
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key={`downtime:${id}`}>
       <Entity
-        form="token"
+        size="mini"
         context="play"
         model={playLineModel({ name, key: `downtime-${id}` })}
         dim={away}

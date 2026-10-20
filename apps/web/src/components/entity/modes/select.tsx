@@ -54,7 +54,7 @@ export function SelectCheck({
  * the arrow keys inside a `RadioCardGroup`). `toggle` is a plain element whose
  * click is a POINTER convenience only — no role, tab stop or name — because
  * the real control is the `SelectCheck` checkbox inside it: a `role="button"`
- * surface would nest that checkbox in another control and turn the Row's
+ * surface would nest that checkbox in another control and turn the Compact's
  * facts and traits presentational.
  */
 export function SelectSurface({

@@ -10,11 +10,11 @@ import type { NestedCard } from './referenceEntityCardTypes'
  * trailing. Read-only renders the same options, static (readable); editable
  * (`onSelectionChange` present) makes them selectable. An option that IS an
  * entity, and an editable catalog choice's pick, sit inside the host card, so
- * each is that entity's TOKEN (EDL N1, N2), never a head-only Row. Editable,
- * the Token IS the toggle (EDL Modes): pressed when chosen, the ring on its
+ * each is that entity's TOKEN (EDL N1, N2), never a head-only Compact. Editable,
+ * the Mini IS the toggle (EDL Modes): pressed when chosen, the ring on its
  * pill, an unchosen one in the one `selectable` dim, no seal; `data-choice-toggle`
- * marks it, the one Token the nesting gate lets take a pressed state (N7 keeps
- * radio and checkbox picks on Row and Card). Read-only, a chosen option's Token
+ * marks it, the one Mini the nesting gate lets take a pressed state (N7 keeps
+ * radio and checkbox picks on Compact and Card). Read-only, a chosen option's Mini
  * wears the ring alone: level 2 is never sealed (hard rule R15).
  */
 export function ChoiceRegion({
@@ -84,7 +84,7 @@ export function ChoiceRegion({
         compact={compact}
         toneColor={toneColor}
         onPage={onPage}
-        // An option that IS an entity is its Token: read-only it reads, a
+        // An option that IS an entity is its Mini: read-only it reads, a
         // chosen one ringed; editable it is the toggle itself.
         renderEntityOption={(option) => {
           if (!option.readOnly) {

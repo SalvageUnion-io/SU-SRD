@@ -56,7 +56,7 @@ type MechChassisStepProps = {
  * One pattern option as the pattern reference card (the universal entity-card
  * rule): the chassis rendered in its PATTERN view, as everywhere else a
  * pattern is drawn — the quoted pattern title, the `Legal Starting Pattern`
- * label, the chassis ability as a contentful Token and the loadout as Tokens.
+ * label, the chassis ability as a contentful Mini and the loadout as Minis.
  */
 function PatternSelCard({
   chassis,
@@ -80,7 +80,7 @@ function PatternSelCard({
       onCardClick={onToggle}
       hide={{ actions: true, choices: true }}
       // Choosing a pattern needs its chassis ability: nested in the pick, a
-      // contentful Token (N3, E19).
+      // contentful Mini (N3, E19).
       showChassisAbility
     />
   )
@@ -146,7 +146,7 @@ export function MechChassisStep({
               onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
               hide={{ actions: true, choices: true, patterns: true }}
               // Choosing a chassis needs its ability: nested in the pick, a
-              // contentful Token (N3, E19).
+              // contentful Mini (N3, E19).
               showChassisAbility
               footMeta={[
                 { label: 'Costs', value: `${cost} scrap` },
@@ -172,7 +172,7 @@ export function MechChassisStep({
                 onToggle={() => onSelectPattern(pattern)}
               />
             ))}
-            {/* No entity, so no Card: the Row's frame in select mode, solid, since a
+            {/* No entity, so no Card: the Compact's frame in select mode, solid, since a
                 custom build is not user-made (ruleset §3.9). */}
             <TitledBox
               title="Custom build"

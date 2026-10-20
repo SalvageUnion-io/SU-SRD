@@ -19,7 +19,7 @@ export type StatColumnBoxes = { label: string; list: Box; cells: Box[] }
 /** How far off an edge may be, for sub-pixel layout. */
 export const STAT_FILL_TOLERANCE = 1
 
-/** Rows, top down: cells whose tops agree within the tolerance share a row. */
+/** Compacts, top down: cells whose tops agree within the tolerance share a row. */
 function rowsOf(cells: Box[]): Box[][] {
   const rows: Box[][] = []
   for (const cell of cells) {

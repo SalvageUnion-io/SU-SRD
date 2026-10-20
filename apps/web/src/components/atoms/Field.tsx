@@ -58,7 +58,7 @@ type FieldEditableProps = FieldCommon & {
   value: string
   /**
    * The read state's value when the field names an entity (a mech's chassis,
-   * a crawler's type): its Token, set under the label in place of the text.
+   * a crawler's type): its Mini, set under the label in place of the text.
    * Edit keeps `value` in the picker box.
    */
   readValue?: ReactNode
@@ -122,7 +122,7 @@ const TYPESET_PROSE = { ...TYPESET_VALUE, whiteSpace: 'pre-line' } satisfies CSS
 
 const TYPESET_PROMINENT = { ...TYPESET_VALUE, fontSize: fontSize.title } satisfies CSSProperties
 
-/** A read value that is a node (a Token), not text: the value's top margin only. */
+/** A read value that is a node (a Mini), not text: the value's top margin only. */
 const TYPESET_NODE = {
   display: 'flex',
   margin: `${space[4]} 0 0`,

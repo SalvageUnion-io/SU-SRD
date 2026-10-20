@@ -129,7 +129,7 @@ async function confirm(name: RegExp) {
   })
 }
 
-/** The candidates offered, by name: each is a unit Row in select mode, a radio. */
+/** The candidates offered, by name: each is a unit Compact in select mode, a radio. */
 const offered = () => screen.queryAllByRole('radio').map((r) => r.getAttribute('aria-label'))
 
 describe('AssignPicker — candidates share the subject’s container', () => {
@@ -175,7 +175,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     expect(offered()).toEqual(['Game Crawler', 'Other Game Crawler', 'Shelf Crawler'])
   })
 
-  test('each candidate is its unit Row in select mode, its readings as chips', () => {
+  test('each candidate is its unit Compact in select mode, its readings as chips', () => {
     inMode(
       CONNECTED,
       <AssignPicker

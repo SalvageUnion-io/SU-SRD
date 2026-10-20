@@ -18,7 +18,7 @@ State rules here, never prop tables or rosters: read props off the component.
 - **Size is two axes** (`containers/displayMode.ts`): `size` (`full | compact |
   mini`, how big) × `extent` (`full | head | catalog`, how much).
 - **Form by [EDL](../../docs/design-system/entity-display-language.md) E1–E5,
-  E15:** Row `<Entity form="row">`, Token `form="token"`, `<Mention>`, whole
+  E15:** Compact `<Entity size="compact">`, Mini `size="mini"`, `<Mention>`, whole
   entity `ReferenceEntityCard` (`presentation="page"` for a Page); never
   hand-assembled markup.
 - **Customise by slot, never by schema:** pass generic slot props

@@ -117,8 +117,8 @@ describe('hydration directives', () => {
       expect(inert.islands).toEqual([])
     })
 
-    it("a contentful Token's overflow row needs no listener of the card's", () => {
-      // The Hacker's ability Tokens carry their body's overflow row: still a
+    it("a contentful Mini's overflow row needs no listener of the card's", () => {
+      // The Hacker's ability Minis carry their body's overflow row: still a
       // document, the row filled by the page's one client entry.
       const hacker = getModel('classes')
         ?.all()

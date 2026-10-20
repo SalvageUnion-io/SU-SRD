@@ -1,7 +1,7 @@
 /**
  * The mech builder's pick cards show the chassis ability (E19): choosing a
  * chassis or a starting pattern needs it, though every other card leaves it
- * to the page. Nested in the pick it is a contentful Token (N3), never a card.
+ * to the page. Nested in the pick it is a contentful Mini (N3), never a card.
  */
 import { describe, expect, it } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -35,16 +35,16 @@ describe('MechChassisStep pick cards', () => {
     expect(cargoBays(patterns)).toBe(1)
   })
 
-  it('nests the chassis ability as a contentful Token, never a card', () => {
+  it('nests the chassis ability as a contentful Mini, never a card', () => {
     const { container } = render(step('mule'))
-    const tokens = [...container.querySelectorAll('.su-entity-token[data-contentful]')]
+    const tokens = [...container.querySelectorAll('.su-entity-mini[data-contentful]')]
     const abilities = tokens.filter((token) =>
-      token.querySelector('.su-entity-token__head')?.textContent?.includes('Integrated Cargo Bay')
+      token.querySelector('.su-entity-mini__head')?.textContent?.includes('Integrated Cargo Bay')
     )
     // The chassis pick and the Hauler pattern pick, one each.
     expect(abilities).toHaveLength(2)
     for (const token of abilities) {
-      expect(token.querySelector('.su-entity-token__body')?.textContent).toContain('The Mule')
+      expect(token.querySelector('.su-entity-mini__body')?.textContent).toContain('The Mule')
       expect(token.textContent).not.toContain('[(CHASSIS)]')
     }
   })

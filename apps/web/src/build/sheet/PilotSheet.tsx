@@ -7,13 +7,13 @@
  *     class's art, beside fields typeset in Read) beside the Vitals card
  *     (HP/AP gauges named from the one vitals map, TP and Conditions);
  *   - Abilities, two folding masonry grids (`PilotSheetAbilities`): each
- *     tree the pilot trained in, its taken Abilities as Rows on the SRD's
- *     track, open; then the Generic tree as Tokens, folded; each with Spend AP
+ *     tree the pilot trained in, its taken Abilities as Compacts on the SRD's
+ *     track, open; then the Generic tree as Minis, folded; each with Spend AP
  *     (fixed costs only) and a used/recharge toggle on its line in Edit;
  *   - ability-granted Partners, then Assigned Units, the last region;
  *   - and in the permanent right sidebar (`SheetColumns`, ruleset §1.2),
  *     what the pilot carries: Inventory, each piece of equipment a contentful
- *     Token (its head, then its text), a generic entry its Token, the slots'
+ *     Mini (its head, then its text), a generic entry its Mini, the slots'
  *     SlotGrid under them; in Edit each item's controls in its chip group.
  * Read leaves an empty section out (ruleset §1.2).
  *
@@ -358,14 +358,14 @@ export function PilotSheet({
                 <EmptyState variant="quiet" body="Nothing carried." />
               ) : (
                 // One item a line, in Read and Edit alike: each piece of
-                // equipment a contentful Token (its head, then its text), a
-                // generic entry its Token; in Edit their controls ride the
+                // equipment a contentful Mini (its head, then its text), a
+                // generic entry its Mini; in Edit their controls ride the
                 // chip group (`SheetItemLine`), as a mech's Systems do.
                 <ul
                   aria-label={`${pilot.name}'s equipment`}
                   data-sheet-carried=""
                   className={
-                    readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'
+                    readOnly ? 'su-entity-mini-list' : 'su-entity-mini-list su-sheet-items'
                   }
                 >
                   {model.ordinaryEquipment.map((slug) => (

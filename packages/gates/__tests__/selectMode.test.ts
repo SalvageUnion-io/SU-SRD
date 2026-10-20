@@ -91,9 +91,9 @@ describe('select-mode/level-2-seal', () => {
     expect(lines(found, 'level-2-seal')).toEqual([1])
   })
 
-  test("the Row, the Card's head, a select TitledBox, a Page's option and the searcher may seal", () => {
+  test("the Compact, the Card's head, a select TitledBox, a Page's option and the searcher may seal", () => {
     for (const rel of [
-      'apps/web/src/components/entity/forms/Row.tsx',
+      'apps/web/src/components/entity/forms/Compact.tsx',
       'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx',
       'apps/web/src/components/containers/TitledBox.tsx',
       'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx',

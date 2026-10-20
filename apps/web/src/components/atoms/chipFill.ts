@@ -4,9 +4,9 @@
  * line, the last of them (the cost, the last slot) in its bottom-right
  * corner, filling that line leftward. They never make the head taller: what
  * does not fit beside the name leaves the head. On a contentful rendering (a
- * Row with a body, a Card, a Page, a contentful Token) it is drawn as its
+ * Compact with a body, a Card, a Page, a contentful Mini) it is drawn as its
  * body's first row (`[data-chip-overflow]`, left-aligned, in class order); on
- * a header-only one (a bodyless Row, a Tile with no lead) it ends the head in
+ * a header-only one (a bodyless Compact, a CompactIndex with no lead) it ends the head in
  * a +MORE chip (`[data-chip-more]`), the cost right before it. The Tech
  * Level (rank), the cost and the slots after it (C8) never leave the head.
  *
@@ -120,7 +120,7 @@ function oneLineWidth(
 /**
  * The name's narrowest width that breaks no word: its widest word, with the
  * padding and borders between that word and the name's own edges. A name
- * that may break anywhere (`overflow-wrap: anywhere`, a Tile's or a Page's
+ * that may break anywhere (`overflow-wrap: anywhere`, a CompactIndex's or a Page's
  * title) has a `min-content` of one letter, and a fit that squeezed it there
  * broke a title mid-word on a phone ("MAZON / A").
  */
@@ -425,7 +425,7 @@ function watchFonts(): void {
 }
 
 /**
- * Fit a head (with `fit`, a fill head's by default; a contentful Token's is
+ * Fit a head (with `fit`, a fill head's by default; a contentful Mini's is
  * `chipFit.ts`'s) now and whenever its width, its name's or a chip's changes
  * (a resize, a face loading, a live reading) or its chips change; returns the
  * stop. A fit that reads what the last one read writes nothing, so the
@@ -481,7 +481,7 @@ export function watchChipFill(
   return stop
 }
 
-/** How many heads one task fits: a page of Rows fitted at once is a long task. */
+/** How many heads one task fits: a page of Compacts fitted at once is a long task. */
 const TURN = 12
 
 /**

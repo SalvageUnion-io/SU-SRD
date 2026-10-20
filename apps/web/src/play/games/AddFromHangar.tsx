@@ -6,9 +6,9 @@
  * the column's head, beside its create chip, never a block under the columns:
  * a contextual action lives on the head of what it acts on.
  *
- * The dialog is the one pick dialog (`PickDialog`, chrome K7): radio Rows (EDL
+ * The dialog is the one pick dialog (`PickDialog`, chrome K7): radio Compacts (EDL
  * select mode) under the column's Slab, in one radio group, so exactly one is
- * picked. Each Row shows its relation chips — the Game it would leave, the unit
+ * picked. Each Compact shows its relation chips — the Game it would leave, the unit
  * it is assigned to — so what the move touches is visible before it runs
  * (`hangarChoices`). Moving out of another Game, or clearing an assignment,
  * asks first: that is `requestMove`'s, on the page's confirm, which outlives

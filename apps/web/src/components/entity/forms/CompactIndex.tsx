@@ -17,15 +17,15 @@ import { CensorMark } from '../parts/CensorMark'
 import { Chips } from '../parts/Chips'
 import { censorMark } from '../parts/censor'
 import { factCells } from '../parts/factCells'
+import { INDEX_NAME, INDEX_NAME_CAPS } from '../parts/indexName'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
-import { TILE_NAME, TILE_NAME_CAPS } from '../parts/tileName'
-import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
+import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
-export type TileProps = {
-  model: EntityRowModel
+export type CompactIndexProps = {
+  model: EntityFormModel
   /** `link` on a listing; a tile has no `select` slot yet. */
-  mode?: TileMode
+  mode?: CompactIndexMode
   omit?: readonly EntityOmit[]
   /** The opening prose under the cells, while browsing (E11). */
   lead?: boolean
@@ -44,9 +44,9 @@ export type TileProps = {
   missingArt?: number
 }
 
-type TileMode = Extract<EntityMode, { kind: 'read' | 'link' }>
+type CompactIndexMode = Extract<EntityMode, { kind: 'read' | 'link' }>
 
-const READ: TileMode = { kind: 'read' }
+const READ: CompactIndexMode = { kind: 'read' }
 
 /**
  * The 440 derivative is the tile's own rendition: a catalog column tops out
@@ -58,7 +58,7 @@ const SIZES = `${widthAtLeast('xl')} 22rem, 50vw`
 
 /**
  * The art's measured ink box (`heroArtCrop`) as custom properties on the
- * tile's art window. Only the phone band reads them (`.su-entity-tile__window`
+ * tile's art window. Only the phone band reads them (`.su-entity-index__window`
  * in `entity-forms.css`): there the window takes the ink's aspect inside the
  * short band and the canvas's empty margin falls outside it, so a mech is
  * never cut off. At wider widths the window is `display: contents` and the
@@ -71,10 +71,10 @@ function tileArtWindow(url: string): CSSVarStyle | undefined {
   const { left, top, width, height } = crop.image
   return {
     ...crop.frame,
-    '--su-tile-art-left': String(left),
-    '--su-tile-art-top': String(top),
-    '--su-tile-art-width': String(width),
-    '--su-tile-art-height': String(height),
+    '--su-index-art-left': String(left),
+    '--su-index-art-top': String(top),
+    '--su-index-art-width': String(width),
+    '--su-index-art-height': String(height),
   }
 }
 
@@ -91,20 +91,20 @@ const MEASURE_KEY = 'ref-stat-'
  * chips (`EP | 2`, `SLOTS | 1`), a compact head's budget, beside the name on
  * the band (the name giving way); then, while
  * browsing, the lead clamped to three lines.
- * Layout is `index.css`'s `.su-entity-tile*`.
+ * Layout is `index.css`'s `.su-entity-index*`.
  */
-export function Tile({
+export function CompactIndex({
   model,
   mode = READ,
   omit = [],
   lead = false,
   priority = false,
   missingArt,
-}: TileProps) {
+}: CompactIndexProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
-  // A Tile's budget is a compact head's (C3), in its kind's own context (C4):
+  // A CompactIndex's budget is a compact head's (C3), in its kind's own context (C4):
   // of its measures (its `ref-stat-*` stats) it keeps the one that context
   // names, beside its rank, its other facts (a hybrid's REQ, a crawler's POP),
   // its action's facets and its cost.
@@ -143,14 +143,14 @@ export function Tile({
       target={target}
       label={model.title}
       className={
-        art.kind === 'image' || mark ? 'su-entity-tile' : 'su-entity-tile su-entity-tile--bare'
+        art.kind === 'image' || mark ? 'su-entity-index' : 'su-entity-index su-entity-index--bare'
       }
     >
-      <div className="su-entity-tile__frame" data-user-made={model.userMade || undefined}>
+      <div className="su-entity-index__frame" data-user-made={model.userMade || undefined}>
         {art.kind === 'image' && (
-          <span className="su-entity-tile__art">
+          <span className="su-entity-index__art">
             {artWindow ? (
-              <span className="su-entity-tile__window" style={artWindow}>
+              <span className="su-entity-index__window" style={artWindow}>
                 {image}
               </span>
             ) : (
@@ -159,13 +159,13 @@ export function Tile({
           </span>
         )}
         {mark && (
-          <span className="su-entity-tile__art">
+          <span className="su-entity-index__art">
             <CensorMark mark={mark} />
           </span>
         )}
         <div
           ref={bandRef}
-          className={cn('su-entity-tile__band', grainClass(paint.grain))}
+          className={cn('su-entity-index__band', grainClass(paint.grain))}
           data-grain={paint.grain}
           data-chip-fill={hasChips ? '' : undefined}
           data-chip-overflow-owner={hasChips && leadText ? '' : undefined}
@@ -175,11 +175,11 @@ export function Tile({
             columnGap: space[6],
           }}
         >
-          <span className="su-entity-tile__notch" data-fill-name="">
+          <span className="su-entity-index__notch" data-fill-name="">
             <span
-              className={cn('su-entity-tile__name', TILE_NAME_CAPS)}
+              className={cn('su-entity-index__name', INDEX_NAME_CAPS)}
               title={model.title}
-              style={TILE_NAME}
+              style={INDEX_NAME}
             >
               {model.title}
             </span>
@@ -191,7 +191,7 @@ export function Tile({
             // with no lead, behind +MORE (C2b, `chipFill.ts`).
             <Chips
               as="span"
-              className="su-entity-tile__chips"
+              className="su-entity-index__chips"
               size="compact"
               // A player made it: the HOMEBREW stamp leads its chips (ruleset §3.9).
               marks={model.userMade ? <HomebrewStamp size="compact" /> : undefined}
@@ -205,9 +205,9 @@ export function Tile({
             />
           )}
         </div>
-        {hasChips && leadText && <ChipOverflowRow className="su-entity-tile__overflow" />}
+        {hasChips && leadText && <ChipOverflowRow className="su-entity-index__overflow" />}
         {leadText && (
-          <div className="su-entity-tile__cells">
+          <div className="su-entity-index__cells">
             <Lead text={leadText} />
           </div>
         )}

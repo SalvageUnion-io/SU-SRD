@@ -1,8 +1,8 @@
 /**
- * A Row's RELATIONS (`chips-and-actions.md` C11): what it is built on or
+ * A Compact's RELATIONS (`chips-and-actions.md` C11): what it is built on or
  * linked to, label first (`CLASS | Engineer`, `PILOT | Bonesaw`), in the one
  * chip group after the traits and before the cost. A book entity Peeks and
- * opens; a player unit opens its sheet; a link-mode Row with relations is
+ * opens; a player unit opens its sheet; a link-mode Compact with relations is
  * covered, so they link outside its link.
  */
 import { describe, expect, test } from 'bun:test'
@@ -19,13 +19,13 @@ const need = <T,>(value: T | undefined, label: string): T => {
   return value
 }
 
-/** Each chip in the Row's chip group, as its text. */
+/** Each chip in the Compact's chip group, as its text. */
 const chipTexts = (container: HTMLElement) =>
   Array.from(container.querySelector('[data-chip-group]')?.children ?? []).map((chip) =>
     (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
   )
 
-describe('Row relations', () => {
+describe('Compact relations', () => {
   test('come after the traits and before the cost', () => {
     const shield = need(
       SalvageUnionReference.Systems.getByName('Electro-Magnetic Shield Projector'),
@@ -33,7 +33,7 @@ describe('Row relations', () => {
     )
     const { container } = render(
       <Entity
-        form="row"
+        size="compact"
         entity={shield}
         relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
       />
@@ -50,7 +50,7 @@ describe('Row relations', () => {
     const { ref, title } = toEntityModel(engineer)
     const { container } = render(
       <Entity
-        form="row"
+        size="compact"
         model={unitRowModel({ kind: 'pilot', name: 'Bonesaw' })}
         relations={[relation('class', 'Class', title, { ref })]}
       />
@@ -77,7 +77,7 @@ describe('Row relations', () => {
     const { container } = render(
       <EntitySurfaceContext.Provider value={{ linkAs: RouterLink }}>
         <Entity
-          form="row"
+          size="compact"
           model={unitRowModel({ kind: 'mech', name: 'Scrapper' })}
           relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
         />
@@ -87,10 +87,10 @@ describe('Row relations', () => {
     expect(routed).toEqual(['/sheet/pilot/p1'])
   })
 
-  test('a link-mode Row is covered: the relation links, outside the Row’s link', () => {
+  test('a link-mode Compact is covered: the relation links, outside the Compact’s link', () => {
     const { container } = render(
       <Entity
-        form="row"
+        size="compact"
         model={unitRowModel({ kind: 'mech', name: 'Scrapper' })}
         mode={{ kind: 'link', href: '/sheet/mech/m1' }}
         relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
@@ -98,7 +98,7 @@ describe('Row relations', () => {
     )
     const chip = container.querySelector('a[data-tag]')
     expect(chip?.getAttribute('href')).toBe('/sheet/pilot/p1')
-    const cover = container.querySelector('.su-entity-row__cover')
+    const cover = container.querySelector('.su-entity-compact__cover')
     expect(cover?.getAttribute('href')).toBe('/sheet/mech/m1')
     expect(cover?.contains(chip ?? null)).toBe(false)
   })

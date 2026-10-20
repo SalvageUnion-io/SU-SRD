@@ -10,7 +10,7 @@ const MECH_ACCENT = 'var(--color-sheet-mech)'
 
 /** The box's frame. */
 function root(container: HTMLElement): HTMLElement {
-  const el = container.querySelector('.su-entity-row__frame')
+  const el = container.querySelector('.su-entity-compact__frame')
   if (!(el instanceof HTMLElement)) throw new Error('callout rendered nothing')
   return el
 }
@@ -35,6 +35,6 @@ describe('Callout', () => {
   test('it paints no band — just a framed paper panel', () => {
     const { container } = render(<Callout tone="mech">Pick one of the following.</Callout>)
     expect(screen.getByText('Pick one of the following.')).toBeTruthy()
-    expect(container.querySelector('.su-entity-row__head')).toBeNull()
+    expect(container.querySelector('.su-entity-compact__head')).toBeNull()
   })
 })

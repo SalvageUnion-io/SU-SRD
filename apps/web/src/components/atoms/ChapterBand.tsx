@@ -37,7 +37,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * stuck onto it.
  *
  * `lead` sits on the band LEFT of the notch, on its foot, in the title's type
- * and the band's foreground: an ability's level numeral, where its Row sets
+ * and the band's foreground: an ability's level numeral, where its Compact sets
  * it. Nothing else goes there.
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
@@ -113,7 +113,7 @@ export type ChapterBandProps = {
   as?: ElementType
   /**
    * Left of the notch, on the band's foot, in the title's type: an ability
-   * page's level numeral, as its Row sets it left of its name.
+   * page's level numeral, as its Compact sets it left of its name.
    */
   lead?: ReactNode
   /** Right-hand content on the band, bottom-aligned with the notch. */

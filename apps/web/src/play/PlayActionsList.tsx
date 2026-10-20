@@ -2,8 +2,8 @@
  * PlayActionsList — the Actions column outside Downtime (play.md §5,
  * wireframe pins 5–7): what is on hand ("On hand · In <mech>" or "On foot"),
  * then the collapsed Not on hand group, each line saying what it needs. Every
- * line is a contentful Token (ruleset §1.3, ADR-051 §6) in the Token grid
- * (`TokenGrid`), its list marked `data-play-list` for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride
+ * line is a contentful Mini (ruleset §1.3, ADR-051 §6) in the Mini grid
+ * (`MiniGrid`), its list marked `data-play-list` for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride
  * the column's "Actions" heading line (pin 5). Every heading here is a Slab,
  * so each line stays level 1 (play.md §12).
  *
@@ -15,12 +15,12 @@ import {
   Button,
   Callout,
   EmptyState,
+  MiniGrid,
   SearchField,
   Segmented,
   SegmentedOption,
   Slab,
   SlabSection,
-  TokenGrid,
 } from '../components/index'
 import { PlayActionEntry } from './PlayActionEntry'
 import type { ListEntry } from './playActions.model'
@@ -28,7 +28,7 @@ import { TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
 
-/** A list of entries, one contentful Token each, in the Token grid. */
+/** A list of entries, one contentful Mini each, in the Mini grid. */
 export function PlayEntryList({
   entries,
   play,
@@ -41,11 +41,11 @@ export function PlayEntryList({
   label: string
 }) {
   return (
-    <TokenGrid label={label} play>
+    <MiniGrid label={label} play>
       {entries.map((entry) => (
         <PlayActionEntry key={entry.key} entry={entry} play={play} actions={actions} />
       ))}
-    </TokenGrid>
+    </MiniGrid>
   )
 }
 
@@ -75,7 +75,7 @@ export function PlayOrphanResolve({ actions }: { actions: PlayActions }) {
   if (resolve.kind === 'idle') return null
   if (resolve.kind === 'orphan') return <OrphanNote text={resolve.text} onClear={resolve.onClear} />
   // Resolving an action this Situation does not put on hand (Downtime began
-  // mid-roll): its Token cannot open, so say so here, and let it go.
+  // mid-roll): its Mini cannot open, so say so here, and let it go.
   const entry = actions.entries.find((e) => e.key === resolvingKey)
   if (entry !== undefined && entry.need === null) return null
   return (

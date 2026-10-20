@@ -40,12 +40,12 @@ export type EntityMode =
     }
 
 /**
- * What a Row or a Token draws: the model's identity, kind, fill, facts,
- * traits, lead and art, and a contentful Token its prose. A full
+ * What a Compact or a Mini draws: the model's identity, kind, fill, facts,
+ * traits, lead and art, and a contentful Mini its prose. A full
  * `EntityModel` is one; so is the slim copy a build-time index carries (the
  * SRD's search index), which has no prose, children or table to ship.
  */
-export type EntityRowModel = Pick<
+export type EntityFormModel = Pick<
   EntityModel,
   'ref' | 'title' | 'kind' | 'tone' | 'facts' | 'traits' | 'art'
 > &

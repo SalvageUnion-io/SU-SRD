@@ -1,5 +1,5 @@
 /**
- * `EntitySearcher`'s selection rail: what is already chosen, as Tokens, with
+ * `EntitySearcher`'s selection rail: what is already chosen, as Minis, with
  * the budgets and the picker's own actions. Never over the results: on a wide
  * screen it is the column right of the focused Card; on a narrow one it is a
  * bar at the foot of the picker whose disclosure opens the chosen list above
@@ -91,13 +91,13 @@ function useRailEntries(
  * The rail, a named region either way:
  *
  *   - wide — a column, always open: the heading and budgets pinned, the
- *     chosen Tokens scrolling beneath, the actions pinned at the foot.
+ *     chosen Minis scrolling beneath, the actions pinned at the foot.
  *   - narrow — a bar at the foot: the heading IS a disclosure button, beside
  *     the budgets and the actions; open, the chosen list sits above the bar.
  *     It starts closed: on a small screen the results are the task, and each
  *     chosen entry in the list already wears its tick.
  *
- * A chosen Token focuses that entry's Card (`onFocus`). In toggle and count
+ * A chosen Mini focuses that entry's Card (`onFocus`). In toggle and count
  * mode each has a Remove (✕); a single pick is replaced by picking another, so
  * it has none. Removing an entry hands focus to the entry now in its place, or to the heading once
  * the list is empty, so a keyboard user never lands on <body>.
@@ -177,17 +177,17 @@ export function SelectionRail({
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
       {entries.map((entry, position) => (
-        // The ✕ is the Token's last chip (C8, hard rule R6): a Token with
+        // The ✕ is the Mini's last chip (C8, hard rule R6): a Mini with
         // controls is a `div` whose name is the link, so no button nests in
         // it. The Tech level is the list's to say.
         <div
           key={`${entry.ref}#${entry.copy}`}
           data-testid="rail-entry"
-          className="su-entity-token-line"
+          className="su-entity-mini-line"
           style={ENTRY_STYLE}
         >
           <Entity
-            form="token"
+            size="mini"
             context="loadout"
             entity={entry.entity}
             omit={RAIL_OMIT}
@@ -321,7 +321,7 @@ const BUDGET_ROW_STYLE = {
 /** No `display` here: the list is folded with the `hidden` attribute. */
 const LIST_STYLE = { padding: `${space[12]} ${space[16]}` } satisfies CSSProperties
 const ENTRY_STYLE = { marginBottom: space[6] } satisfies CSSProperties
-/** The sidebar's Tokens leave their Tech level to the list. */
+/** The sidebar's Minis leave their Tech level to the list. */
 const RAIL_OMIT = ['tech-level'] as const
 
 const EMPTY_STYLE = {

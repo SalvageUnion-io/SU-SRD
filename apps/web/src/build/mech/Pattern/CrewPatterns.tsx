@@ -50,7 +50,7 @@ export function CrewPatterns() {
               aria-label={`${pattern.name}, made by ${madeBy}, shared in ${gameName}`}
             >
               <Entity
-                form="row"
+                size="compact"
                 entity={chassis}
                 pattern={asReferencePattern(pattern)}
                 instance={{ title: quotePatternName(pattern.name), userMade: true }}

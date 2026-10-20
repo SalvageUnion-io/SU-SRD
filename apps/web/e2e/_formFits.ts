@@ -9,18 +9,18 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * breaks:
  *
  * - **E2** a list item that holds an entity draws it as something other than
- *   a Row, a Tile or a Token: a Card, a hand-built headed frame, or a bare
+ *   a Compact, a CompactIndex or a Mini: a Card, a hand-built headed frame, or a bare
  *   link to a unit's sheet. The entity is the item's outermost entity markup.
- *   On a Live Sheet every item of its lists is a Token or a Row, entity or not
+ *   On a Live Sheet every item of its lists is a Mini or a Compact, entity or not
  *   (ruleset §6.6): a carried thing the reference does not hold (a generic
- *   entry, a cargo lot) is a Token from a synthetic model, never a panel.
+ *   entry, a cargo lot) is a Mini from a synthetic model, never a panel.
  * - **E11** a lead (`Lead`, `.su-entity-lead`) off an SRD index.
  * - **E19** a chassis ability drawn anywhere but on its chassis or pattern
- *   Page at level 1, or the mech sheet's hero, unless as a contentful Token.
- * - **E3** Play's lists are Tokens (ruleset §1.3, ADR-051 §6): a line of one
+ *   Page at level 1, or the mech sheet's hero, unless as a contentful Mini.
+ * - **E3** Play's lists are Minis (ruleset §1.3, ADR-051 §6): a line of one
  *   of Play's lists (`[data-play-list]`: the Actions, the Crew and the
- *   Mediator's seats, the Tables) that is no Token, or holds a Row or a
- *   TitledBox (`.su-entity-row`), a listing Row where a Token goes. On a Play
+ *   Mediator's seats, the Tables) that is no Mini, or holds a Compact or a
+ *   TitledBox (`.su-entity-compact`), a listing Compact where a Mini goes. On a Play
  *   route a page that marks no list fails too, so the gate never passes by
  *   finding nothing to read.
  *
@@ -42,7 +42,7 @@ export type FormSelectors = {
    * list of things carried or installed.
    */
   sheetItem: string
-  /** A Row (not a TitledBox, which shares its class), a Tile, a Token. */
+  /** A Compact (not a TitledBox, which shares its class), a CompactIndex, a Mini. */
   row: string
   tile: string
   token: string
@@ -59,11 +59,11 @@ export type FormSelectors = {
   lead: string
   /** A Peek's plate: never an index, whatever the page under it. */
   peek: string
-  /** The mech sheet's hero, where a chassis ability is a level-1 Row (E19). */
+  /** The mech sheet's hero, where a chassis ability is a level-1 Compact (E19). */
   mechHero: string
-  /** One of Play's lists, each line a Token (E3). */
+  /** One of Play's lists, each line a Mini (E3). */
   playList: string
-  /** A Row or a TitledBox, which shares its class: never a line of a Play list. */
+  /** A Compact or a TitledBox, which shares its class: never a line of a Play list. */
   anyRow: string
 }
 
@@ -74,9 +74,9 @@ export const FORM_SELECTORS: FormSelectors = {
     '.su-sheet-live-body .su-sheet-items > :not(li, ul, .su-sr-only)',
     '.su-sheet-live-body .su-sheet-pills > *',
   ].join(', '),
-  row: '.su-entity-row:not(.su-box)',
-  tile: '.su-entity-tile',
-  token: '.su-entity-token',
+  row: '.su-entity-compact:not(.su-box)',
+  tile: '.su-entity-index',
+  token: '.su-entity-mini',
   card: '.su-ec-outer',
   handFrame: '[data-option-frame]',
   unitLink: 'a[href*="/sheet/"]',
@@ -88,7 +88,7 @@ export const FORM_SELECTORS: FormSelectors = {
   peek: '[data-peek-popup]',
   mechHero: '.su-sheet-mech-hero-chassis',
   playList: '[data-play-list]',
-  anyRow: '.su-entity-row',
+  anyRow: '.su-entity-compact',
 }
 
 /** Every chassis ability's name, from the reference data. */
@@ -103,7 +103,7 @@ export function chassisAbilityNames(): string[] {
 
 /**
  * Where a scan runs: may it draw a lead, and a chassis ability at level 1?
- * Is it a Play screen, whose lists are Tokens (E3)?
+ * Is it a Play screen, whose lists are Minis (E3)?
  */
 export type FormPlace = { index: boolean; chassisPage: boolean; play: boolean }
 
@@ -128,7 +128,7 @@ export function scanForms({
     const s = getComputedStyle(el)
     return s.visibility !== 'hidden' && s.display !== 'none'
   }
-  /** A rendering's name: its Token's name or its head's title, kind and all. */
+  /** A rendering's name: its Mini's name or its head's title, kind and all. */
   const nameOf = (el: Element) =>
     (el.matches(a.token) ? text(el.querySelector(a.tokenName)) : '') ||
     text(el.querySelector(a.title)) ||
@@ -136,7 +136,7 @@ export function scanForms({
     text(el).slice(0, 40)
   const found: FormFinding[] = []
 
-  // E2: a list item's entity is a Row, a Tile or a Token.
+  // E2: a list item's entity is a Compact, a CompactIndex or a Mini.
   const entity = [a.row, a.tile, a.token, a.card, a.handFrame, a.unitLink].join(', ')
   for (const item of document.querySelectorAll(a.item)) {
     if (!visible(item)) continue
@@ -155,7 +155,7 @@ export function scanForms({
     }
   }
 
-  // E2, on a Live Sheet: every item of its lists is a Token or a Row.
+  // E2, on a Live Sheet: every item of its lists is a Mini or a Compact.
   const line = [a.row, a.token].join(', ')
   for (const item of document.querySelectorAll(a.sheetItem)) {
     if (!visible(item)) continue
@@ -163,11 +163,11 @@ export function scanForms({
     if ([...item.querySelectorAll(line)].some(visible)) continue
     found.push({
       rule: 'E2',
-      detail: `a sheet list item (${nameOf(item)}) that is no Token or Row`,
+      detail: `a sheet list item (${nameOf(item)}) that is no Mini or Compact`,
     })
   }
 
-  // E3: Play's lists are Tokens, one a line; never a Row (or a TitledBox).
+  // E3: Play's lists are Minis, one a line; never a Compact (or a TitledBox).
   const playLists = document.querySelectorAll(a.playList)
   if (place.play && playLists.length === 0)
     found.push({ rule: 'E3', detail: 'no Play list marked (data-play-list) on a Play screen' })
@@ -178,12 +178,12 @@ export function scanForms({
       if (!visible(line)) continue
       for (const row of line.querySelectorAll(a.anyRow)) {
         if (!visible(row)) continue
-        found.push({ rule: 'E3', detail: `a Row (${nameOf(row)}) in Play's ${label} list` })
+        found.push({ rule: 'E3', detail: `a Compact (${nameOf(row)}) in Play's ${label} list` })
       }
       if (![...line.querySelectorAll(a.token)].some(visible))
         found.push({
           rule: 'E3',
-          detail: `a line (${nameOf(line)}) of Play's ${label} list that is no Token`,
+          detail: `a line (${nameOf(line)}) of Play's ${label} list that is no Mini`,
         })
     }
   }
@@ -197,7 +197,7 @@ export function scanForms({
   }
 
   // E19: a chassis ability at level 1 only on its pages and the mech hero;
-  // else a contentful Token.
+  // else a contentful Mini.
   const isAbility = (name: string) => abilities.some((n) => name === n || name.startsWith(`${n} (`))
   const frames = new Set<Element>()
   for (const head of document.querySelectorAll(a.head)) {
@@ -221,7 +221,7 @@ export function scanForms({
     const name = text(token.querySelector(a.tokenName))
     if (!isAbility(name)) continue
     if (token.closest(`${a.token}[data-contentful]`)) continue
-    found.push({ rule: 'E19', detail: `the chassis ability ${name} as a header-only Token` })
+    found.push({ rule: 'E19', detail: `the chassis ability ${name} as a header-only Mini` })
   }
   return found
 }

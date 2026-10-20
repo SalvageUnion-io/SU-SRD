@@ -3,7 +3,7 @@
  * grid while entityStore hydration is in flight.
  *
  * Mirrors the hydrated layout (the same grid shell, `.su-roster-skeleton`, and
- * the shared Row ghost, `GhostRow`) so the swap to real content doesn't shift the
+ * the shared Compact ghost, `GhostRow`) so the swap to real content doesn't shift the
  * page. Columns 2–3 hide below `md`, matching the mobile single-column view.
  */
 
@@ -37,7 +37,7 @@ const COLUMN_ACTION = {
 
 const ROWS = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSProperties
 
-/** One list item of the shared Row ghost (`Skeleton`'s 'row' shape). */
+/** One list item of the shared Compact ghost (`Skeleton`'s 'row' shape). */
 function SkeletonRow() {
   return (
     <li style={{ listStyle: 'none' }}>

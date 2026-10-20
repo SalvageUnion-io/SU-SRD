@@ -1,10 +1,10 @@
 /**
- * MechItemToken — ONE installed system/module as the entity display language's
+ * MechItemMini — ONE installed system/module as the entity display language's
  * TOKEN (owner's call, 2026-10-14: a sheet's Systems, Modules and Assigned
- * Units are Tokens that Peek, not cards that expand). Hover, focus or a long
+ * Units are Minis that Peek, not cards that expand). Hover, focus or a long
  * press Peeks the whole card; a damaged or destroyed item's pill greys.
  *
- * Its controls sit ON the Token's line (`SheetItemLine`, which a pilot's
+ * Its controls sit ON the Mini's line (`SheetItemLine`, which a pilot's
  * equipment shares): the condition, Uses, Repair (Damaged only: shows the
  * half-SV scrap cost and opens a MODAL confirm offering an OPTIONAL crawler
  * scrap-pool deduction; the no-deduction path is always available —
@@ -45,7 +45,7 @@ const CONFIRM = {
   padding: tokens.space[20],
 } satisfies CSSProperties
 
-type MechItemTokenProps = {
+type MechItemMiniProps = {
   /** System/module slug as stored on the mech. */
   slug: string
   /** Resolved reference entity, or null when the slug does not resolve. */
@@ -75,7 +75,7 @@ type MechItemTokenProps = {
   onRemove?: () => void
 }
 
-export function MechItemToken({
+export function MechItemMini({
   slug,
   entity,
   condition,
@@ -87,7 +87,7 @@ export function MechItemToken({
   onUsesChange,
   onRepair,
   onRemove,
-}: MechItemTokenProps) {
+}: MechItemMiniProps) {
   const [confirmingRepair, setConfirmingRepair] = useState(false)
 
   if (!entity) {
@@ -175,7 +175,7 @@ export function MechItemToken({
       <SheetItemLine
         token={
           <Entity
-            form="token"
+            size="mini"
             context="loadout"
             entity={entity}
             instance={{ condition }}

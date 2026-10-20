@@ -10,24 +10,24 @@ import { matchesIn } from '../lib/styleSource'
 /**
  * An entity's frame (ruleset §4.3, owner's call 2026-10-20): the subtle
  * `--color-ink-40` the sheets' panels wear, never solid ink nor a per-entity
- * tone. Only `--su-row-frame` colours one (an ability tree's tier, a
+ * tone. Only `--su-compact-frame` colours one (an ability tree's tier, a
  * pattern's colour).
  */
 const ENTITY_FRAME_CLASSES = [
-  'su-entity-row__frame',
-  'su-entity-tile__frame',
+  'su-entity-compact__frame',
+  'su-entity-index__frame',
   'su-ec-frame',
-  'su-entity-token__pill',
-  'su-entity-token__body',
-  'su-token-group',
+  'su-entity-mini__pill',
+  'su-entity-mini__body',
+  'su-mini-group',
 ]
 
-/** Where a style object paints an entity's frame (a Card's, a choice option's, a contentful Token's body, a TokenGroup's). */
+/** Where a style object paints an entity's frame (a Card's, a choice option's, a contentful Mini's body, a MiniGroup's). */
 export const ENTITY_FRAME_STYLE_FILES: readonly string[] = [
   'apps/web/src/components/referenceEntity/card/cardChrome.ts',
   'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx',
-  'apps/web/src/components/entity/forms/Token.tsx',
-  'apps/web/src/components/entity/forms/TokenGroup.tsx',
+  'apps/web/src/components/entity/forms/Mini.tsx',
+  'apps/web/src/components/entity/forms/MiniGroup.tsx',
 ]
 
 const FRAME_COLOUR_PROP =
@@ -54,7 +54,7 @@ export const entityFrameInkCss = (decls: CssDecl[]) =>
 
 /** The values a frame's `borderColor` may take: the subtle ink, clear, or the tree's or pattern's colour. */
 const FRAME_COLOUR_OK =
-  /^(?:(?:tokens\.)?color\.ink40|['"`]var\(--color-ink-40\)['"`]|['"`]transparent['"`]|['"`]var\(--su-row-frame[^'"`]*['"`])$/
+  /^(?:(?:tokens\.)?color\.ink40|['"`]var\(--color-ink-40\)['"`]|['"`]transparent['"`]|['"`]var\(--su-compact-frame[^'"`]*['"`])$/
 
 export const entityFrameInkScript = (text: string, rel: string) =>
   ENTITY_FRAME_STYLE_FILES.includes(rel)

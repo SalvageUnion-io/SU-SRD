@@ -1,7 +1,7 @@
 /**
  * NpcPickRows — the NPC designer's Actions & traits step, one line a pick
- * (D6): the action's or trait's header-only Row, opening its full rules, with
- * its Carry toggle the Row's last chip (C8, hard rule R6).
+ * (D6): the action's or trait's header-only Compact, opening its full rules, with
+ * its Carry toggle the Compact's last chip (C8, hard rule R6).
  */
 
 import { Check } from 'lucide-react'
@@ -23,7 +23,7 @@ const GROW = { flex: 1, minWidth: 0 } satisfies CSSProperties
 
 /**
  * One header-only card that opens the full rules (D6), its Carry toggle the
- * Row's last chip (C8, hard rule R6); a name the reference lacks has its
+ * Compact's last chip (C8, hard rule R6); a name the reference lacks has its
  * toggle beside it.
  */
 function PickRow({
@@ -35,7 +35,7 @@ function PickRow({
   label: string
   carried: boolean
   onToggle: (carried: boolean) => void
-  /** The Row, handed its Carry toggle for its controls. */
+  /** The Compact, handed its Carry toggle for its controls. */
   children: (carry: ReactNode) => ReactNode
 }) {
   const carry = (
@@ -72,7 +72,7 @@ export function ActionPick({
           {action ? (
             <div style={GROW}>
               <Entity
-                form="row"
+                size="compact"
                 entity={action}
                 mode={{
                   kind: 'link',
@@ -121,7 +121,7 @@ export function TraitPick({
           {trait ? (
             <div style={GROW}>
               <Entity
-                form="row"
+                size="compact"
                 entity={trait}
                 instance={{ title: label }}
                 mode={{

@@ -74,7 +74,7 @@ const pageStyle = {
 } satisfies CSSProperties
 
 /**
- * The band a Page wears: the entity's own tone, as its card's head and Row
+ * The band a Page wears: the entity's own tone, as its card's head and Compact
  * wear it (a gear's tech level, an ability's tier, the crawler pink's deeper
  * text band), and the ink band of a thing you do that has no tone (an
  * action). The SRD's route picks its chapter's band where the entity has no
@@ -96,7 +96,7 @@ function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
  * pattern's Page leads the cluster with its chassis (`PATTERN OF | Mule`), the
  * `EntityStat` chip the SRD's pattern page carries: the surface opens it (The app's
  * Page opener, so in the dialog) and Peeks it. Its own component so a closed
- * dialog resolves none of it: a list renders a dialog per Row.
+ * dialog resolves none of it: a list renders a dialog per Compact.
  *
  * The entity picker's middle column (`EntitySearcherFocus`) is this Page too,
  * outside a dialog: it names its own heading element (`titleAs`) and leaves the
@@ -143,7 +143,7 @@ export function EntityDetailPage({
         }
         asideAt="notch"
         lead={
-          // An ability's level, left of its title as its Row sets it: just the number.
+          // An ability's level, left of its title as its Compact sets it: just the number.
           meta.numeral && (
             <>
               <span className="su-sr-only">Level </span>
@@ -174,7 +174,7 @@ export function EntityDetailPage({
  * E5): the backdrop, the kitty-cornered SRD black-stamp close button, and the
  * Page itself — the entity's band, `children` as its body (the card at
  * `presentation="page"`) and its foot citation. Both the entity path
- * (`useDetailModal`) and a level-2 Token (`NestedCards`) open it, so every
+ * (`useDetailModal`) and a level-2 Mini (`NestedCards`) open it, so every
  * detail view in the app is the same Page.
  */
 export function EntityDetailDialog({

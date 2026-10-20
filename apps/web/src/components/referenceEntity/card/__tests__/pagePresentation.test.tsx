@@ -182,7 +182,7 @@ describe('the card as a page', () => {
     expect(sizes).not.toContain('0.75rem')
   })
 
-  test('a pattern page lists its loadout after its chassis ability, as contentful Tokens in a grid', () => {
+  test('a pattern page lists its loadout after its chassis ability, as contentful Minis in a grid', () => {
     const chassis = gopher()
     const pattern = need(
       chassis.patterns?.find((p) => (p.systems?.length ?? 0) > 0),
@@ -200,19 +200,19 @@ describe('the card as a page', () => {
       !!loadout &&
       !!(before.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
     expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
-    expect(container.querySelector('.su-entity-page__opening .su-entity-token')).toBeNull()
-    // One contentful Token per installed part (multiples repeat), each in its
+    expect(container.querySelector('.su-entity-page__opening .su-entity-mini')).toBeNull()
+    // One contentful Mini per installed part (multiples repeat), each in its
     // group's masonry grid under its Slab (owner's call, 2026-10-20), never a
-    // framed card or a Row.
+    // framed card or a Compact.
     const parts = (pattern.systems ?? [])
       .concat(pattern.modules ?? [])
       .reduce((sum, part) => sum + (part.count ?? 1), 0)
     const tokens = [
-      ...(loadout?.querySelectorAll('ul.su-token-grid > li > .su-entity-token[data-contentful]') ??
+      ...(loadout?.querySelectorAll('ul.su-mini-grid > li > .su-entity-mini[data-contentful]') ??
         []),
     ]
     expect(tokens).toHaveLength(parts)
-    expect(loadout?.querySelector('.su-entity-row')).toBeNull()
+    expect(loadout?.querySelector('.su-entity-compact')).toBeNull()
     expect(loadout?.querySelector('.su-ec-frame')).toBeNull()
   })
 
@@ -235,16 +235,16 @@ describe('the card as a page', () => {
     render(<ReferenceEntityCard data={chassis} presentation="page" />)
     const drones = screen.getByRole('list', { name: 'DronTek Drones installed' })
     const shield = screen.getByRole('list', { name: 'Shield Drone loadout' })
-    // Right under the drone's Token, in the drone's own item.
+    // Right under the drone's Mini, in the drone's own item.
     expect(shield.parentElement?.parentElement).toBe(drones)
     expect(shield.parentElement?.textContent).toContain('Shield Drone')
-    expect(shield.classList.contains('su-entity-token-list--two-up')).toBe(true)
+    expect(shield.classList.contains('su-entity-mini-list--two-up')).toBe(true)
     expect([...shield.querySelectorAll(':scope > li')].map((li) => li.textContent ?? '')).toEqual([
       expect.stringContaining('Refractive Shield Projector'),
       expect.stringContaining('Electro-Magnetic Shield Projector'),
       expect.stringContaining('Energy Cell'),
     ])
-    // No Systems / Modules Slab of its own: the item is the Token, then its parts.
+    // No Systems / Modules Slab of its own: the item is the Mini, then its parts.
     expect(shield.parentElement?.children).toHaveLength(2)
     expect(shield.parentElement?.textContent).not.toMatch(/Systems|Modules/)
   })
@@ -263,23 +263,23 @@ describe('the card as a page', () => {
     expect(screen.getByRole('heading', { name: 'Tail Sweep (Action)', level: 3 })).toBeTruthy()
   })
 
-  test('a bay’s crew NPC on its Page is drawn open, never a Token (N8)', () => {
+  test('a bay’s crew NPC on its Page is drawn open, never a Mini (N8)', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     render(<ReferenceEntityCard data={bay} presentation="page" />)
     // One level deep on the Page: the NPC's own card, its heading and its text…
     expect(screen.getByRole('heading', { name: 'Chef (NPC)', level: 2 })).toBeTruthy()
-    // …and no Token for it.
-    const token = Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+    // …and no Mini for it.
+    const token = Array.from(document.querySelectorAll('.su-entity-mini')).find((t) =>
       t.textContent?.startsWith('Chef')
     )
     expect(token).toBeUndefined()
   })
 
-  test('a bay’s crew NPC in a Card is a Token that Peeks its card through the bay', () => {
+  test('a bay’s crew NPC in a Card is a Mini that Peeks its card through the bay', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     render(<ReferenceEntityCard data={bay} />)
     const token = need(
-      Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+      Array.from(document.querySelectorAll('.su-entity-mini')).find((t) =>
         t.textContent?.startsWith('Chef')
       ),
       'crew token'
@@ -287,12 +287,12 @@ describe('the card as a page', () => {
     expect(token.getAttribute('data-peek')).toBe(`crawler-bays:${bay.id}/npc`)
   })
 
-  test('a card’s crew NPC is a Token even under a write layer: level 2 holds Tokens only (N1)', () => {
+  test('a card’s crew NPC is a Mini even under a write layer: level 2 holds Minis only (N1)', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Command Bay'), 'command bay')
     render(<ReferenceEntityCard data={bay} selections={{}} onSelectionChange={() => {}} />)
     const npc = need(bay.npc && 'position' in bay.npc ? bay.npc.position : undefined, 'npc')
     const token = need(
-      Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+      Array.from(document.querySelectorAll('.su-entity-mini')).find((t) =>
         t.textContent?.startsWith(npc)
       ),
       'crew token'

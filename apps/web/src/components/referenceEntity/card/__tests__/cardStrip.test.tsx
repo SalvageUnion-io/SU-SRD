@@ -17,7 +17,7 @@ const equipment = () => {
 }
 
 const lane = (el: HTMLElement) => el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
-const head = (el: HTMLElement) => el.closest('.su-entity-row__head')
+const head = (el: HTMLElement) => el.closest('.su-entity-compact__head')
 
 describe("a card's head carries its controls", () => {
   test('a control is the chip group last slot; the seal sits on the band', () => {

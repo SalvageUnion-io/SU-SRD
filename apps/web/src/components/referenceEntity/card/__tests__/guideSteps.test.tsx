@@ -12,7 +12,7 @@
  *   `flavor` block are framed asides, and a run-in head (a value-only `label`,
  *   a sub-`heading`) becomes the stamp over its paragraph (the full rung on a
  *   page);
- * - on its Page a step's options are open Rows, one a line (N8); elsewhere Tokens;
+ * - on its Page a step's options are open Compacts, one a line (N8); elsewhere Minis;
  * - on a page the steps stand as a page section, not inside the prose column.
  */
 import { describe, expect, test } from 'bun:test'
@@ -316,7 +316,7 @@ describe('GuideSteps on the page', () => {
     expect(container.textContent).toContain('Reactor Overload Table p. 235')
   })
 
-  test("a step's options on its Page are open Rows, one a line, never Tokens (N8)", () => {
+  test("a step's options on its Page are open Compacts, one a line, never Minis (N8)", () => {
     const { container } = render(
       <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
     )
@@ -326,7 +326,7 @@ describe('GuideSteps on the page', () => {
     expect(items.length).toBeGreaterThan(0)
     for (const item of items) {
       expect(item.querySelector('.su-ec-frame')).not.toBeNull()
-      expect(item.querySelector(':scope > .su-entity-token')).toBeNull()
+      expect(item.querySelector(':scope > .su-entity-mini')).toBeNull()
     }
   })
 

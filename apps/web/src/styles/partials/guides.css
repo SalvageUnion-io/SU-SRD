@@ -74,8 +74,8 @@
   margin: 0;
 }
 
-/* The options a step selects from: Tokens (`EntityTokenList`), or on the
- * guide's Page open Rows, one a line (N8). */
+/* The options a step selects from: Minis (`EntityMiniList`), or on the
+ * guide's Page open Compacts, one a line (N8). */
 .su-guide__cards {
   padding-top: var(--space-12);
 }
@@ -134,7 +134,7 @@
 }
 
 /* On a Page the guide keeps the Page's one rhythm (ruleset §1.7, hard rule
-   R17): every block, a step's slab, its prose, its Tokens and its table,
+   R17): every block, a step's slab, its prose, its Minis and its table,
    one 12px gap from the next. */
 .su-entity-page > .su-guide,
 .su-entity-page > .su-guide .su-guide__flow,
@@ -418,9 +418,9 @@
 }
 
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
- * Each pattern is a card in the Row's language: its host's tone in the head
+ * Each pattern is a card in the Compact's language: its host's tone in the head
  * (the link), a paper body with the pattern's opening as a
- * clamped lead and its loadout, Systems beside Modules, one full-width Token
+ * clamped lead and its loadout, Systems beside Modules, one full-width Mini
  * a line (links of their own, so outside the head's anchor). One card a line.
  * On a phone only two show until "Show all" targets the section's heading
  * (`:target`), which needs no script. The section is a `SlabSection` on the
@@ -460,7 +460,7 @@
   max-width: 72ch;
 }
 
-/* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
+/* What the pattern changes (`PatternUniques`): its loadout Minis, or the
    actions a Bio-Titan pattern adds. */
 .su-pattern-rows__unique {
   display: flex;

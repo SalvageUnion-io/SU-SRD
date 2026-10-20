@@ -4,14 +4,14 @@ import { tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from './CardRollTable'
 
 /**
- * An entity's own ROLL TABLE as its Token (EDL E14: Token, Table, Roll the
- * Die), for a host that draws the entity as a Token rather than a Card: a
- * crawler bay's Trading Bay Table, on the line under the bay's Token in its
- * `TokenGroup`, never inside the Token (E6). Its name Peeks the rows; its
+ * An entity's own ROLL TABLE as its Mini (EDL E14: Mini, Table, Roll the
+ * Die), for a host that draws the entity as a Mini rather than a Card: a
+ * crawler bay's Trading Bay Table, on the line under the bay's Mini in its
+ * `MiniGroup`, never inside the Mini (E6). Its name Peeks the rows; its
  * roll is in its strip, off while the entity is down. Nothing when the
  * entity has no table.
  */
-export function EntityRollToken({
+export function EntityRollMini({
   entity,
   disabled = false,
 }: {

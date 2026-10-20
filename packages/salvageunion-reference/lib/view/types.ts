@@ -1,5 +1,5 @@
 /**
- * The entity VIEW MODEL — what every form (Mention, Token, Row, Card, Page)
+ * The entity VIEW MODEL — what every form (Mention, Mini, Compact, Card, Page)
  * draws, resolved once by `toEntityModel`. The agreed language is
  * `docs/design-system/entity-display-language.md`.
  *
@@ -128,7 +128,7 @@ export type EntityModel = {
     type: string
     domain: EntityDomain
     /** HAVE (wears its tone) or DO (an ability or action: the ink banner on a
-     * Card or Page; an ability's Row wears its tier tone). */
+     * Card or Page; an ability's Compact wears its tier tone). */
     nature: 'have' | 'do'
     classKind?: ClassKind
   }

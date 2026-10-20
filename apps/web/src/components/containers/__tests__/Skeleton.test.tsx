@@ -14,7 +14,7 @@ describe('Skeleton', () => {
     expect(band?.style.minHeight).toBe('60px')
   })
 
-  test('rows: a list of `count` Row ghosts under one status', () => {
+  test('rows: a list of `count` Compact ghosts under one status', () => {
     render(<Skeleton shape="rows" count={4} label="the crew" />)
     const status = screen.getByRole('status', { name: 'Loading the crew…' })
     expect(status.querySelectorAll('li')).toHaveLength(4)

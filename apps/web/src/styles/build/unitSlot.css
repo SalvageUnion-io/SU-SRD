@@ -4,7 +4,7 @@
  * src/components tokens. Loaded by `index.css`.
  *
  *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
- *     laid over the whole Row, its linked chips raised above it.
+ *     laid over the whole Compact, its linked chips raised above it.
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
  *     the "View in the Reference" link, an `InlineRef` alone in a card's foot.
  */

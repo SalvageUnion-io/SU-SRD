@@ -3,10 +3,10 @@ import type { Page } from '@playwright/test'
 /**
  * Hard rule R2 (`chips-and-actions.md` C6, C7) as the rendered page draws it:
  * in a list, every chip class is a column. A LIST is the lines that share a
- * parent: each a Row or Token (with the wrappers it sits in alone, its `li`)
+ * parent: each a Compact or Mini (with the wrappers it sits in alone, its `li`)
  * whose head carries a chip strip (`[data-chip-group]`), compared down each
  * column (the lines on one left and right edge). In a list whose lines have
- * room (a Row `PACK_AT` wide, a Token past a phone; short of it each line
+ * room (a Compact `PACK_AT` wide, a Mini past a phone; short of it each line
  * packs right, C6), every class that two lines carry starts on one left
  * edge in both. `findChipLaneFaults` returns
  * one line per class off its column:
@@ -25,18 +25,18 @@ function scan({ packAt }: { packAt: number }): string[] {
     const r = el.getBoundingClientRect()
     return r.width >= 4 && r.height >= 4
   }
-  // Each line's strip: the outermost `Chips` in a Row's head. A Token holds
+  // Each line's strip: the outermost `Chips` in a Compact's head. A Mini holds
   // no lanes: its chips pack as far right as they go (C6, owner 2026-10-19).
   const strips = [...document.querySelectorAll('[data-chip-group]')].filter(
     (strip) =>
       !strip.parentElement?.closest('[data-chip-group]') &&
-      strip.closest('.su-entity-row__head') &&
+      strip.closest('.su-entity-compact__head') &&
       visible(strip)
   )
   const lists = new Map<Element, { line: Element; strip: Element }[]>()
   for (const strip of strips) {
-    // A Card's head is no line (`chipLanes.ts`), even inside a Row-drawn frame.
-    const own = strip.closest('.su-entity-row, .su-entity-token, .su-ec-outer, .su-ec-frame')
+    // A Card's head is no line (`chipLanes.ts`), even inside a Compact-drawn frame.
+    const own = strip.closest('.su-entity-compact, .su-entity-mini, .su-ec-outer, .su-ec-frame')
     if (!own || own.matches('.su-ec-outer, .su-ec-frame')) continue
     let line: Element = own
     // Up through the wrappers a line sits in alone (a grid cell, a `div`).
@@ -57,7 +57,7 @@ function scan({ packAt }: { packAt: number }): string[] {
     const byEdges = new Map<string, { line: Element; strip: Element }[]>()
     for (const entry of lines) {
       const r = entry.line.getBoundingClientRect()
-      // A Row packs below `packAt` (a container query).
+      // A Compact packs below `packAt` (a container query).
       if (r.width < packAt) continue
       const key = `${Math.round(r.left)}:${Math.round(r.right)}`
       byEdges.set(key, [...(byEdges.get(key) ?? []), entry])

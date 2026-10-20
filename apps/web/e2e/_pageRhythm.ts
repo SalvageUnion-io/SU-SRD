@@ -16,8 +16,8 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * - **stat-label** a stat column label not set at 14px (§1.3, §4.6).
  *
  * A block is what the Page stacks at level 1: a headed frame no other frame
- * holds (a Card, a Row, a Box: a pattern row, a class's path), a Token list or
- * lone Token no frame holds, a Slab no frame holds, and the page's own parts:
+ * holds (a Card, a Compact, a Box: a pattern row, a class's path), a Mini list or
+ * lone Mini no frame holds, a Slab no frame holds, and the page's own parts:
  * the art, the stat column, a pattern's opening, the table, a Legendary
  * track's "or", a Hybrid Class's trees line, a guide step's table and a
  * phone's "On this page" list, and the prose's text, its
@@ -60,8 +60,8 @@ export const RHYTHM_SELECTORS: RhythmSelectors = {
   head: NESTING_SELECTORS.head,
   frame: NESTING_SELECTORS.frame,
   title: NESTING_SELECTORS.title,
-  token: '.su-entity-token',
-  tokenList: '.su-entity-token-list',
+  token: '.su-entity-mini',
+  tokenList: '.su-entity-mini-list',
   slab: '[data-slab]',
   parts:
     '.su-entity-page__art, .su-entity-page__stats, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees, .su-guide__table, .su-guide__toc-block .su-guide__toc',
@@ -107,8 +107,8 @@ export function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
     const nameOf = (el: Element) => {
       if (el.matches(a.slab)) return `the ${text(el).slice(0, 30)} Slab`
       if (el.matches(a.tokenList))
-        return `the Token list (${text(el.querySelector(a.token)).slice(0, 30)}…)`
-      if (el.matches(a.token)) return `the ${text(el).slice(0, 30)} Token`
+        return `the Mini list (${text(el.querySelector(a.token)).slice(0, 30)}…)`
+      if (el.matches(a.token)) return `the ${text(el).slice(0, 30)} Mini`
       if (frames.has(el)) {
         const head = el.querySelector(a.head)
         return `the ${text(head?.querySelector(a.title) ?? head).slice(0, 30)} frame`

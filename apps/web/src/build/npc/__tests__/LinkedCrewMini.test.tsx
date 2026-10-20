@@ -1,6 +1,6 @@
 /**
- * LinkedCrewToken — a bay's crew slot filled by a built NPC, inside the bay
- * card (Q2, ADR-044): the NPC as a contentful Token, stamped Homebrew, its
+ * LinkedCrewMini — a bay's crew slot filled by a built NPC, inside the bay
+ * card (Q2, ADR-044): the NPC as a contentful Mini, stamped Homebrew, its
  * head a link to its sheet; an NPC this view cannot read falls back to the
  * inline crew under a badge, never a blank slot.
  */
@@ -8,7 +8,7 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 import type { CrewAssignment } from '../../../lib/npcs/npcModel'
-import { LinkedCrewToken } from '../LinkedCrewToken'
+import { LinkedCrewMini } from '../LinkedCrewMini'
 
 const DOC = npcFixture({
   id: 'n1',
@@ -27,10 +27,10 @@ function assignment(npc: CrewAssignment['npc']): CrewAssignment {
   }
 }
 
-describe('LinkedCrewToken', () => {
-  test('a readable NPC is its crew-lead Token, stamped Homebrew, linking to its sheet', () => {
+describe('LinkedCrewMini', () => {
+  test('a readable NPC is its crew-lead Mini, stamped Homebrew, linking to its sheet', () => {
     render(
-      <LinkedCrewToken
+      <LinkedCrewMini
         slotName="Med Bay"
         assignment={assignment(DOC)}
         fallback={<span>inline crew</span>}
@@ -38,9 +38,9 @@ describe('LinkedCrewToken', () => {
     )
     expect(screen.getAllByText('Homebrew').length).toBeGreaterThan(0)
     const lead = screen.getByRole('group', { name: 'Med Bay crew lead' })
-    expect(lead.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
+    expect(lead.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
     expect(within(lead).getByText('Bleed later.')).toBeTruthy()
-    expect(lead.querySelector('.su-entity-token__head')?.textContent).toContain('4/4')
+    expect(lead.querySelector('.su-entity-mini__head')?.textContent).toContain('4/4')
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' }).getAttribute('href')).toBe(
       '/sheet/npc/n1'
     )
@@ -49,7 +49,7 @@ describe('LinkedCrewToken', () => {
 
   test('read-only: no field edits the linked NPC from the bay', () => {
     render(
-      <LinkedCrewToken
+      <LinkedCrewMini
         slotName="Med Bay"
         assignment={assignment(DOC)}
         fallback={<span>inline crew</span>}
@@ -61,7 +61,7 @@ describe('LinkedCrewToken', () => {
 
   test('an NPC this view cannot read shows the inline crew under a badge', () => {
     render(
-      <LinkedCrewToken
+      <LinkedCrewMini
         slotName="Med Bay"
         assignment={assignment(null)}
         fallback={<span>inline crew</span>}

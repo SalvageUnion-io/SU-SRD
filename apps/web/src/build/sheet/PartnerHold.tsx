@@ -41,8 +41,8 @@ const LOCKED_NOTE = {
   marginBottom: tokens.space[4],
 } satisfies CSSProperties
 
-/** One lot line a row, as a sheet's item list (`.su-entity-token-list`). */
-const LOT_LIST = 'su-entity-token-list'
+/** One lot line a row, as a sheet's item list (`.su-entity-mini-list`). */
+const LOT_LIST = 'su-entity-mini-list'
 
 export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerHoldProps) {
   const { state, usage, crawlerLocked } = cargo

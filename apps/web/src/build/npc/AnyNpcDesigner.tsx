@@ -188,10 +188,10 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
                 <span className={CAPS_LABEL} style={CAPS}>
                   Template
                 </span>
-                {/* Change is the template Token's last chip (C8, hard rule R6). */}
+                {/* Change is the template Mini's last chip (C8, hard rule R6). */}
                 {template ? (
                   <Entity
-                    form="token"
+                    size="mini"
                     context="browse"
                     entity={template}
                     controls={
@@ -319,7 +319,7 @@ function TemplateStep({
       <RadioCardGroup label="Template">
         <ul style={LIST} aria-label="Templates">
           <li>
-            {/* No entity, so no Row: the Row's frame in select mode. */}
+            {/* No entity, so no Compact: the Compact's frame in select mode. */}
             <TitledBox
               title="Start blank"
               select={{
@@ -335,9 +335,9 @@ function TemplateStep({
           </li>
           {shown.map((npc) => (
             <li key={npc.id}>
-              {/* A picker (E1): a Row in select mode; the list names the kind. */}
+              {/* A picker (E1): a Compact in select mode; the list names the kind. */}
               <Entity
-                form="row"
+                size="compact"
                 entity={npc}
                 omit={OMIT_KIND}
                 mode={{
@@ -448,7 +448,7 @@ function ActionsStep({
   )
 }
 
-/** A list of one kind: its Rows drop the kind stamp. */
+/** A list of one kind: its Compacts drop the kind stamp. */
 const OMIT_KIND = ['kind'] as const
 
 /** The search that adds an action or a trait from the reference (D6). */

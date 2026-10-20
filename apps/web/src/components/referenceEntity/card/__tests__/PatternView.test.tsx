@@ -252,7 +252,7 @@ describe('pattern loadout tokens', () => {
     )
   })
 
-  test('each loadout entry is a contentful Token: its head, then its text (owner, 2026-10-20)', () => {
+  test('each loadout entry is a contentful Mini: its head, then its text (owner, 2026-10-20)', () => {
     const { chassis, pattern } = thunderStorm()
     const { container } = render(
       <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
@@ -261,12 +261,12 @@ describe('pattern loadout tokens', () => {
     const entries = Array.from(systems.querySelectorAll(':scope > li'))
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      expect(entry.querySelector(':scope > .su-entity-token[data-contentful]')).not.toBeNull()
+      expect(entry.querySelector(':scope > .su-entity-mini[data-contentful]')).not.toBeNull()
     }
-    // The machine gun's description reads under each of its six Tokens.
+    // The machine gun's description reads under each of its six Minis.
     const text = 'This simple ballistic weapon'
     expect(
-      [...container.querySelectorAll('.su-entity-token__body')].filter((body) =>
+      [...container.querySelectorAll('.su-entity-mini__body')].filter((body) =>
         body.textContent?.includes(text)
       )
     ).toHaveLength(6)
@@ -295,27 +295,26 @@ describe('pattern loadout tokens', () => {
     expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
   })
 
-  test('each entry is one Token in the masonry grid: its name (its kind read out), then its action type, TL and Slots', () => {
+  test('each entry is one Mini in the masonry grid: its name (its kind read out), then its action type, TL and Slots', () => {
     const { chassis, pattern } = thunderStorm()
     render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
-    expect(systems.classList.contains('su-token-grid')).toBe(true)
+    expect(systems.classList.contains('su-mini-grid')).toBe(true)
     const entries = Array.from(systems.querySelectorAll(':scope > li'))
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      // One Token a cell, its head the link.
-      const tokens = entry.querySelectorAll('a.su-entity-token__head')
+      // One Mini a cell, its head the link.
+      const tokens = entry.querySelectorAll('a.su-entity-mini__head')
       expect(tokens).toHaveLength(1)
-      const pill = tokens[0]?.querySelector('.su-entity-token__pill')
+      const pill = tokens[0]?.querySelector('.su-entity-mini__pill')
       // The kind is never stamped (E9): screen readers hear it after the name.
-      expect(pill?.querySelector('.su-entity-token__kind')).toBeNull()
+      expect(pill?.querySelector('.su-entity-mini__kind')).toBeNull()
       expect(pill?.querySelector('.su-sr-only')?.textContent).toBe(' (System)')
       // Its chips follow the name, inside the pill, in E17's order: the
       // action type (when it has one) first, then TL, then Slots.
       const cells = Array.from(
-        pill?.querySelectorAll(
-          ':scope > .su-entity-token__chips > .su-chip-lane > .su-stat-cell'
-        ) ?? []
+        pill?.querySelectorAll(':scope > .su-entity-mini__chips > .su-chip-lane > .su-stat-cell') ??
+          []
       ).map((cell) => cell.textContent ?? '')
       const tl = cells.findIndex((text) => /^TL\s*\d+$/.test(text))
       expect(tl).toBeGreaterThanOrEqual(0)
@@ -489,7 +488,7 @@ describe('legal starting pattern stamp', () => {
  * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
  * abilities are shared by every pattern, so a row carries only the difference:
  * a mech pattern's loadout by name and TL, a Bio-Titan pattern's added
- * actions as contentful Tokens (N3: the row is level 1 at most, so they are
+ * actions as contentful Minis (N3: the row is level 1 at most, so they are
  * level 2). Both sit beside the row's link, never inside it —
  * they are links and controls of their own.
  */
@@ -515,15 +514,15 @@ describe('pattern rows show what each pattern changes', () => {
     render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} presentation="page" />))
     const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
     const added = screen.getByText('Metallic Reconstitution')
-    // A contentful Token, its rules under its head; never a framed card.
-    const token = added.closest('.su-entity-token[data-contentful]')
-    expect(token?.querySelector('.su-entity-token__body')?.textContent).not.toBe('')
+    // A contentful Mini, its rules under its head; never a framed card.
+    const token = added.closest('.su-entity-mini[data-contentful]')
+    expect(token?.querySelector('.su-entity-mini__body')?.textContent).not.toBe('')
     expect(added.closest('.su-ec-frame .su-ec-frame')).toBeNull()
     // It is not nested inside the row's link.
     expect(row.contains(added)).toBe(false)
   })
 
-  test("in a card a pattern is its Token alone: what it changes is its Peek's and Page's (E6)", () => {
+  test("in a card a pattern is its Mini alone: what it changes is its Peek's and Page's (E6)", () => {
     render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} />))
     expect(screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })).toBeTruthy()
     expect(screen.queryByText('Metallic Reconstitution')).toBeNull()
@@ -550,10 +549,10 @@ describe('Bio-Titan pattern view', () => {
     expect(patternProse).toBeLessThan(added)
     expect(added).toBeLessThan(inherited)
     expect(screen.getByText('Pattern Actions')).toBeTruthy()
-    // On a card the added action is level 2: a contentful Token (N3).
+    // On a card the added action is level 2: a contentful Mini (N3).
     const token = screen
       .getByText('Metallic Reconstitution')
-      .closest('.su-entity-token[data-contentful]')
+      .closest('.su-entity-mini[data-contentful]')
     expect(token).not.toBeNull()
   })
 })

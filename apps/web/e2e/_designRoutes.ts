@@ -35,8 +35,8 @@ export type DesignSeed = Record<DesignSeedKey, string>
 
 /**
  * The Game the seed makes, `tools/gallery.ts`'s name made long: its Training Bay
- * chip is wider than a Row's room beside the name at a page's three columns
- * (R3), so the chip-strip gate holds it inside the Row.
+ * chip is wider than a Compact's room beside the name at a page's three columns
+ * (R3), so the chip-strip gate holds it inside the Compact.
  */
 const GAME = 'The Long Haul Across the Glass Wastes'
 
@@ -129,8 +129,8 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
   const npc = new URL(page.url()).pathname
 
   // Play's doors, read off the Play hub as a player reaches them.
-  // The Organizer mediates the Game, so its Row's one door is Mediate: the
-  // player's screen is the pilot's own, from its Training Bay Row.
+  // The Organizer mediates the Game, so its Compact's one door is Mediate: the
+  // player's screen is the pilot's own, from its Training Bay Compact.
   const playPlayer = at(await pilotPlayPath(page, IN_GAME))
   const playSolo = at(await playDoor(page, `Play ${SOLO} solo`))
   const playMediator = at(await playDoor(page, `Mediate ${GAME}`))
@@ -150,7 +150,7 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
 
 /**
  * The carried things the reference does not hold, so a sheet's lists show
- * them (hard rule R35: a sheet list's item is a Token or Row): a generic entry
+ * them (hard rule R35: a sheet list's item is a Mini or Compact): a generic entry
  * in Bonesaw's inventory, a lot in the Mazona's hold and one in Tenacity's
  * Storage Bay, each through its sheet's own intake in Edit.
  */
@@ -159,12 +159,12 @@ async function seedCarried(
   sheets: { pilot: string; mech: string; crawler: string }
 ): Promise<void> {
   const carried = (name: string) =>
-    page.locator('.su-sheet-live-body .su-entity-token__name').filter({ hasText: name }).first()
+    page.locator('.su-sheet-live-body .su-entity-mini__name').filter({ hasText: name }).first()
   await page.goto(sheets.pilot, { waitUntil: 'networkidle' })
   await waitForReady(page)
   await edit(page)
   await page.getByRole('button', { name: 'Add Scrap (3 slots)' }).click()
-  await expect(carried('Scrap'), 'the generic entry is a Token').toBeVisible({ timeout: 20_000 })
+  await expect(carried('Scrap'), 'the generic entry is a Mini').toBeVisible({ timeout: 20_000 })
   for (const [path, into, lot] of [
     [sheets.mech, 'Load cargo into the mech hold', 'Salvaged Plating'],
     [sheets.crawler, 'Stow cargo into the Storage Bay', 'Sealed Crate'],
@@ -179,7 +179,7 @@ async function seedCarried(
       .getByLabel('New cargo name')
       .fill(lot)
     await adder.click()
-    await expect(carried(lot), `${lot} is a Token in its hold`).toBeVisible({ timeout: 20_000 })
+    await expect(carried(lot), `${lot} is a Mini in its hold`).toBeVisible({ timeout: 20_000 })
   }
 }
 
@@ -243,9 +243,9 @@ async function openPeek(page: Page, { schema, name }: { schema: string; name: st
     .locator(`[role="option"][data-peek^="${schema}:"]`)
     .filter({ hasText: name })
     .first()
-  await expect(trigger, `a ${schema} Token for ${name} to Peek`).toBeVisible()
+  await expect(trigger, `a ${schema} Mini for ${name} to Peek`).toBeVisible()
   await trigger.hover()
-  await expect(page.locator('[data-peek-popup] .su-entity-row__head').first()).toBeVisible()
+  await expect(page.locator('[data-peek-popup] .su-entity-compact__head').first()).toBeVisible()
 }
 
 /** Open a route and put it in its state; resolves when the page is at rest. */

@@ -15,7 +15,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, app pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, app mechs.
    - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, app crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown).
    - Off-book: `build`/`play` bands; Home's Discord button `--color-discord`.
-7. **Deliberate departures** — generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Rows wear their tier (E12); rounding only where the book rounds (§4.4).
+7. **Deliberate departures** — generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Compacts wear their tier (E12); rounding only where the book rounds (§4.4).
 
 ## The laws
 
@@ -23,26 +23,26 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 1. **§1 The context laws** — every surface is one of six contexts; the context picks materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
    1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link and the Page's Build With This (E20).
    2. **Live Sheet — the pencil** — `free`; a permanent right sidebar holds what the unit carries (equipment, storage, cargo); print reads, pencil writes: Read is typeset (empty fields and sections omitted, an empty state only where it can be filled); dashed fields and steppers are Edit's. Overrides wear a dashed ring and are logged; rules show, never gate.
-   3. **Play — the instrument panel** — its lists are Tokens (actions, crew, tables); the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row.
+   3. **Play — the instrument panel** — its lists are Minis (actions, crew, tables); the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row.
       A page like the sheets: the page ground, bar and foot the phase's band (`PHASE_TONE`), title cut out, each column paper on the ink-40 hairline (§4.3). On a phone: tabs under pinned vitals (ADR-051 §10).
-   4. **Use opens the action** — in Play an on-hand action's Token carries Use after its cost, which resolves it in place as the Token's contentful body (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
-   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): one-row head (art window), chip group (E17).
+   4. **Use opens the action** — in Play an on-hand action's Mini carries Use after its cost, which resolves it in place as the Mini's contentful body (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
+   5. **Compact — one entity, one click** — `<Entity size="compact">` is the one rendering for an entity in a list (index, search, slot, deck) at level 1 (E6): one-row head (art window), chip group (E17).
       Nothing edits or expands in place; art by room (EDL E10).
-   6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
+   6. **Peek — the glance** — a Compact contentful (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links (but its name's, to its Page), nested Peeks or steppers; level 1 on its plate (EDL E6, E16, E19).
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
       The body starts under the band at any length (a short page is never centred); level-1 blocks sit one 12px gap apart.
-   8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
-   9. **Manage — the owner's desk** — the Training Bay, the Play hub, a Game's page, the invite screen: paper under the area's band (Build `build`, Play `play`), level 0, Slab sections, Rows that link (a Game, seat or proposal too).
-      No stepper or in-place edit; acts are Buttons in a Row's chip group or under a Slab, destruction `confirm`. Rust is a door into play or a make (Play, Mediate, New Game); Open and filters are ink.
-2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Listing → Peek).
+   8. **Entity forms** — Mention, the Sizes and Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
+   9. **Manage — the owner's desk** — the Training Bay, the Play hub, a Game's page, the invite screen: paper under the area's band (Build `build`, Play `play`), level 0, Slab sections, Compacts that link (a Game, seat or proposal too).
+      No stepper or in-place edit; acts are Buttons in a Compact's chip group or under a Slab, destruction `confirm`. Rust is a door into play or a make (Play, Mediate, New Game); Open and filters are ink.
+2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Compact → Peek).
    1. **Vitals** — `VitalGauge`: sheet skin, Play's compact instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only.
    6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4), the last read chip; action slots follow it (C8).
-   7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1).
+   7. **Entity card** — Full contentful is THE canonical render; a list's the Compact, a Peek's Compact contentful (§1).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` and `InlineRef`, and no token aliases it. A destructive action is rust too, behind `ConfirmDialog`: no state colour fills a button.
       Focus and selection rings, "you are here" and chrome accents are ink.
@@ -69,9 +69,9 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface, `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
-   3. **§4.3 The border map** — one meaning each: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below `full`, `Box`), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value cells, table rules, sheet Identity/Vitals. A Row, Tile, Token or Box is inked only with content under its head.
-      Entity frames are `--color-ink-40`; only ability-tree Rows and patterns take a colour (`--su-row-frame`).
-   4. **§4.4 Radius and spacing** — entity frames (Card, Row, Tile, Token) and stamps are square; everything else that frames or floats (Btn, field, Box, dialog, popup, toast) is 3px, `calc(3px − frame)` inside; rounder only for the ink-banner tail.
+   3. **§4.3 The border map** — one meaning each: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (contentful below Full, `Box`), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value cells, table rules, sheet Identity/Vitals. A Compact, Mini or Box is inked only with content under its head.
+      Entity frames are `--color-ink-40`; only ability-tree Compacts and patterns take a colour (`--su-compact-frame`).
+   4. **§4.4 Radius and spacing** — entity frames (every Size) and stamps are square; everything else that frames or floats (Btn, field, Box, dialog, popup, toast) is 3px, `calc(3px − frame)` inside; rounder only for the ink-banner tail.
       Spacing inside a block is `{2, 4, 6, 8, 12}px`, 12px the card gutter; between blocks, 16 or 24px. No literal where a token exists.
    5. **§4.5 The pip-row split** — at most 6 per row, balanced and bottom-heavy (7 → 3/4, 13 → 4/4/5), for every pip surface. The redline pip sits at 70%.
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
@@ -91,8 +91,8 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs, at the line's Size, stroke 2 (chrome.md K11). The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (pills, HOMEBREW; never above it or riding the frame, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
-   - **Actions nest** — no Actions tray or stamp. On a Page, level 1: compact framed cards, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Tokens (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
-   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, EDL E6), frames 3 → 2px; nothing titled at level 2 or deeper; one level deep is an open Row (N8; R39's exception).
+   - **Actions nest** — no Actions tray or stamp. On a Page, level 1: Compact contentful, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Minis (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Mini, E14).
+   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, EDL E6), frames 3 → 2px; nothing titled at level 2 or deeper; one level deep is an open Compact (N8; R39's exception).
      A child hides prose its parent shows.
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab over content if a section of the parent (When Damaged, Crawler Hold, Scrap Pool), an unlabelled Callout if a note; never a `TitledBox` or its variants. On an SRD Page a level-1 block may stay a TitledBox.
    - **A container of entities is untitled** (N6) — a wizard step is its title and content; the entities in it are the titled things. A dialog's head is its chrome (level 0).
@@ -102,7 +102,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    3. **Gauge** — every vital and pip track, Play's steppers too: a darker room is a skin.
    4. **Section** — `SlabSection`: a Slab, one gap, its body; the fold and count its props.
    5. **Button** — `Button href` is every link drawn as a button; Back and Next are `BackLabel` / `NextLabel`.
-   6. **Item** — a carried thing, entity or not, is a Token in `SheetItemLine`; one pick dialog (`PickDialog`), one chip-well editor.
+   6. **Item** — a carried thing, entity or not, is a Mini in `SheetItemLine`; one pick dialog (`PickDialog`), one chip-well editor.
    7. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), the condition glyph, RollTable, and band ≠ rider.
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.

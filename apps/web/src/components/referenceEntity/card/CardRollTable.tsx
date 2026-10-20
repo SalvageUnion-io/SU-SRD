@@ -8,7 +8,7 @@ import { RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
 import { toastRoll } from '../../containers/toastRoll'
-import { RollToken } from '../../entity/forms/RollToken'
+import { RollMini } from '../../entity/forms/RollMini'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
@@ -39,8 +39,8 @@ function TraitText({ text }: { text: string }) {
  * bar: its Roll the Dice stamp rolls both dice, the toast names the column, and
  * the grid marks the column's head and the entry's cell.
  *
- * NESTED in another card (`nested`), the table is a Token (`RollToken`, the
- * Token form's own): its name Peeks the table (`peekAt`, `PeekTable`), its
+ * NESTED in another card (`nested`), the table is a Mini (`RollMini`, the
+ * Mini form's own): its name Peeks the table (`peekAt`, `PeekTable`), its
  * roll in its strip, so the rows never open in the card.
  */
 export function CardRollTable({
@@ -62,7 +62,7 @@ export function CardRollTable({
   disabled: boolean
   /** Start rolled at this die (a restored roll). */
   defaultRoll?: number
-  /** Inside another card: the table is a Token, its Roll in its strip, its rows its Peek's. */
+  /** Inside another card: the table is a Mini, its Roll in its strip, its rows its Peek's. */
   nested?: boolean
   /** The surface's tone (a CSS colour), whose band paints every other row. */
   tone?: string
@@ -123,7 +123,7 @@ export function CardRollTable({
 
   if (nested) {
     return (
-      <RollToken
+      <RollMini
         name={name}
         stamp={stamp}
         {...(onRoll ? { onRoll } : {})}

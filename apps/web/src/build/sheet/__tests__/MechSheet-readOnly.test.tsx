@@ -193,7 +193,7 @@ describe('MechSheet — the hero and the Chassis card', () => {
     expect(hero).not.toBeNull()
     expect(card).not.toBeNull()
     // The hero: the player's photo (the chassis art until changed), what they
-    // wrote, then the chassis stats and the chassis ability as a library Row.
+    // wrote, then the chassis stats and the chassis ability as a library Compact.
     expect(hero?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
     expect(hero?.querySelector('ul[aria-label="Chassis stats"]')).not.toBeNull()
     const ability = hero?.querySelector('ul[aria-label="Chassis ability"] li')
@@ -210,7 +210,7 @@ describe('MechSheet — the hero and the Chassis card', () => {
     expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
   })
 
-  test('the ability is a Row with no lead, which is an SRD index alone (EDL E11)', () => {
+  test('the ability is a Compact with no lead, which is an SRD index alone (EDL E11)', () => {
     const mazona: Mech = { ...fakeMech, chassisRef: 'mazona', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={mazona} store={makeStubStore(mazona)} crawler={fakeCrawler} readOnly />

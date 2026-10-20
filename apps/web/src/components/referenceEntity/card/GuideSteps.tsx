@@ -14,7 +14,7 @@ import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
 import { cardKey } from './cardHelpers'
-import { EntityTokenList } from './EntityTokenList'
+import { EntityMiniList } from './EntityMiniList'
 import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { CardTitleTag, NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -72,9 +72,9 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
  * restarts inside it. Under each slab: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
- * callouts, the entities it selects from (on the Page open Rows, else Tokens;
+ * callouts, the entities it selects from (on the Page open Compacts, else Minis;
  * a crawler's tech-level ladder too, down its own column), its roll table and any sub-guide as its
- * Token — every one through the primitive its kind already has.
+ * Mini — every one through the primitive its kind already has.
  *
  * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
  * steps stand beside the prose rather than inside the card body, and take the
@@ -128,9 +128,9 @@ export function GuideSteps({
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 
   // A step's options. On the guide's Page they are one level deep: each a
-  // Row drawn open with all its content (N8; owner, 2026-10-20: "These should
+  // Compact drawn open with all its content (N8; owner, 2026-10-20: "These should
   // be listing rows, not tokens"), one a line. Anywhere else (a Peek, a guide
-  // nested in a card) they are level 2: Tokens.
+  // nested in a card) they are level 2: Minis.
   const optionTitleAs = stepAs === 'h1' || stepAs === 'h2' ? headingBelow(stepAs) : undefined
   const optionList = (entities: ReferenceCardEntity[], label: string) =>
     page && !insidePeek ? (
@@ -150,7 +150,7 @@ export function GuideSteps({
         ))}
       </ul>
     ) : (
-      <EntityTokenList entities={entities} label={label} />
+      <EntityMiniList entities={entities} label={label} />
     )
 
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
@@ -183,7 +183,7 @@ export function GuideSteps({
       )
     })
     // `sidebar` marks a step whose entities are a progression LADDER (crawler
-    // tech levels) rather than a set of options — their Tokens read down a
+    // tech levels) rather than a set of options — their Minis read down a
     // narrow column beside the prose instead of across the page. The prose
     // comes first in the document, so a phone reads it before the ladder it
     // explains.

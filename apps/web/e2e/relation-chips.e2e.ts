@@ -6,8 +6,8 @@ import { test } from './fixtures'
 /**
  * Hard rule R5, a linked unit is a relation chip (C11), over every context
  * (hard rule R0's `designRoutes`), seeded, at page and phone widths, Play's
- * phone form tab by tab (`_relationChips.ts`): no entity in a Row's body and
- * no Token hung under a Row. Its copy half is the `copy` gate's banned role
+ * phone form tab by tab (`_relationChips.ts`): no entity in a Compact's body and
+ * no Mini hung under a Compact. Its copy half is the `copy` gate's banned role
  * stamps ("Assigned Mech", "Assigned Pilot").
  *
  * `BASELINE` is the debt this pass found when it landed, by route family and
@@ -15,7 +15,7 @@ import { test } from './fixtures'
  */
 const BASELINE: readonly DesignDebt[] = []
 
-test('every linked unit is a relation chip, never an entity under a Row', async ({ page }) => {
+test('every linked unit is a relation chip, never an entity under a Compact', async ({ page }) => {
   test.setTimeout(20 * 60_000)
   const seed = await seedDesignAccount(page)
   const findings = await walkDesignRoutes(page, seed, async ({ where }) => {

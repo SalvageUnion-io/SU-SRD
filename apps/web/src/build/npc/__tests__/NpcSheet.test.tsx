@@ -86,7 +86,7 @@ describe('the sheet', () => {
     expect(screen.getByText('Veteran')).toBeTruthy()
   })
 
-  test('its actions are Tokens under an Actions slab, their rules the book’s', async () => {
+  test('its actions are Minis under an Actions slab, their rules the book’s', async () => {
     await renderSheet()
     expect(screen.getAllByText('Green Laser Rifle (Veteran)').length).toBeGreaterThan(0)
   })

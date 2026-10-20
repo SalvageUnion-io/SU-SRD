@@ -15,9 +15,9 @@ import {
   damagedEffectOf,
   Entity,
   EntityChoices,
-  EntityRollToken,
+  EntityRollMini,
   embeddedPeekAddress,
-  TokenGroup,
+  MiniGroup,
   tokens,
   useDetailModal,
   WhenDamaged,
@@ -30,8 +30,8 @@ import { runWrite } from '../../lib/runWrite'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { LinkedCrewToken } from '../npc/LinkedCrewToken'
-import { CrewLeadToken } from './CrewLeadToken'
+import { LinkedCrewMini } from '../npc/LinkedCrewMini'
+import { CrewLeadMini } from './CrewLeadMini'
 import { LinkedUnitLink } from './LinkedUnitLink'
 import { SheetItemLine } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -60,7 +60,7 @@ const BAY_FUNCTIONS: Record<string, string> = {
  */
 const WHEN_DAMAGED = /\b(?:is|becomes|are|become)\s+damaged\b/i
 
-/** "Docks [mech]": the word, then under it the docked mech's Token, filling its line (N4). */
+/** "Docks [mech]": the word, then under it the docked mech's Mini, filling its line (N4). */
 const DOCKS = {
   color: tokens.color.ink,
   display: 'flex',
@@ -105,7 +105,7 @@ type CrawlerBayCardProps = {
   /**
    * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
    * the composition has a docked mech; renders above the crew lead, the mech
-   * as its Token, linking to its sheet where it has one.
+   * as its Mini, linking to its sheet where it has one.
    */
   dockedMech?: { name: string; href: string | undefined }
   /**
@@ -131,13 +131,13 @@ type CrawlerBayCardProps = {
 }
 
 /**
- * CrawlerBayCard — one installed bay as a CONTENTFUL Token and what belongs to
- * it, in one border of the bay's tone (`TokenGroup`; owner's calls,
- * 2026-10-20): the bay's Token (its condition stepping Intact ↔ Damaged from
+ * CrawlerBayCard — one installed bay as a CONTENTFUL Mini and what belongs to
+ * it, in one border of the bay's tone (`MiniGroup`; owner's calls,
+ * 2026-10-20): the bay's Mini (its condition stepping Intact ↔ Damaged from
  * its state slot, its function and Repair in its chip group, C8; its Bay Info
  * folded under its head), then on the lines under it its choices (the
  * Armament Bay's weapon pick), its roll table, what it holds, its crew lead's
- * contentful Token (`CrewLeadToken`, N3) and its When Damaged, open once it
+ * contentful Mini (`CrewLeadMini`, N3) and its When Damaged, open once it
  * is damaged. None sits inside another (E6). In the sidebar nothing folds.
  * The bay's full rules open in a detail modal from the function action.
  */
@@ -224,12 +224,12 @@ export function CrawlerBayCard({
   // While a built NPC is assigned, the inline crew is never written: read-only
   // is what lets the unlink restore it byte for byte (Q2).
   const inlineReadOnly = readOnly || assigned !== undefined
-  // The crew lead is a contentful Token (N3): its head Peeks the bay's crew
+  // The crew lead is a contentful Mini (N3): its head Peeks the bay's crew
   // NPC, embedded as its bay card nests it (`nestedEntityGroups`); its body is
   // what the sheet tracks about them, and in Edit their fields (owner's call,
   // 2026-10-17). A bay the book gives no crew NPC still has a crew lead.
   const inlineCrew = (
-    <CrewLeadToken
+    <CrewLeadMini
       {...(npc
         ? {
             entity: { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity,
@@ -269,7 +269,7 @@ export function CrawlerBayCard({
         </div>
       )}
       {assigned ? (
-        <LinkedCrewToken slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
+        <LinkedCrewMini slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
       ) : (
         inlineCrew
       )}
@@ -279,14 +279,14 @@ export function CrawlerBayCard({
   const functionLabel = BAY_FUNCTIONS[entry.bayRef] ?? 'Use'
 
   // The bay's rules, less the clause its When Damaged says once (WHEN_DAMAGED)
-  // and the SRD crew NPC, which is its crew lead's Token here.
+  // and the SRD crew NPC, which is its crew lead's Mini here.
   const { normal } = splitBayContent(bay.content)
   const damagedText = damagedEffectOf(bay) ?? ''
   const tokenData = { ...bay, npc: undefined, content: normal } as unknown as RefMetaEntity
   // In the sidebar nothing folds (ruleset §1.2): its sections stand open.
   const infoFold = inSidebar ? undefined : 'closed'
 
-  // The bay is a CONTENTFUL Token (owner's call, 2026-10-20): its head (its
+  // The bay is a CONTENTFUL Mini (owner's call, 2026-10-20): its head (its
   // condition steps from the state slot, C8; a bay is Intact or Damaged,
   // never Destroyed; its function and Repair are the last slot) and its Bay
   // Info under it, folded on a sheet.
@@ -294,7 +294,7 @@ export function CrawlerBayCard({
     <SheetItemLine
       token={
         <Entity
-          form="token"
+          size="mini"
           context="loadout"
           entity={tokenData}
           instance={{ condition }}
@@ -350,11 +350,11 @@ export function CrawlerBayCard({
   )
 
   // The bay and what belongs to it, one border in its tone (owner's call,
-  // 2026-10-20), none inside another (E6): its Token, its roll table, what it
+  // 2026-10-20), none inside another (E6): its Mini, its roll table, what it
   // holds, its crew lead, then its When Damaged, open once it is damaged.
   return (
     <>
-      <TokenGroup entity={tokenData} condition={condition} label={bay.name}>
+      <MiniGroup entity={tokenData} condition={condition} label={bay.name}>
         {line}
         <EntityChoices
           entity={bay as unknown as RefMetaEntity}
@@ -362,7 +362,7 @@ export function CrawlerBayCard({
           onSelectionChange={readOnly ? undefined : setSelections}
           techLevel={crawlerTl}
         />
-        <EntityRollToken entity={bay as unknown as RefMetaEntity} disabled={damaged} />
+        <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
         {contents}
         {crew}
         {damagedText && (
@@ -373,7 +373,7 @@ export function CrawlerBayCard({
             fold={inSidebar ? undefined : damaged ? 'open' : 'closed'}
           />
         )}
-      </TokenGroup>
+      </MiniGroup>
       {detail.modal}
     </>
   )

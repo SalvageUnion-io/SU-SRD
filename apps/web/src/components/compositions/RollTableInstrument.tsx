@@ -108,7 +108,7 @@ export type RollTableInstrumentProps = {
 /** The custom property the instrument carries its band in (`rollBandColor`). */
 const BAND_VAR = '--su-roll-band'
 
-/** Row `index`'s fill: paper, then the band, in turn; the rolled row is ink. */
+/** Compact `index`'s fill: paper, then the band, in turn; the rolled row is ink. */
 const rowFill = (index: number, marked: boolean): CSSProperties => ({
   backgroundColor: marked
     ? 'var(--color-ink)'
@@ -250,7 +250,7 @@ export function RollControl({
   name: string
   onRoll?: () => void
   children: string
-  /** `mini` inside a Token's strip (C1a), at the Token's height. */
+  /** `mini` inside a Mini's strip (C1a), at the Mini's height. */
   size?: 'compact' | 'mini'
 }) {
   const live = useLive()

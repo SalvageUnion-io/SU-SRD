@@ -32,7 +32,7 @@
 }
 
 /* A box that fills its panel (`fill`: the Mediator's propose dock): the box
-   fills the panel, its frame shrinks to it (the Row frame's `shrink`,
+   fills the panel, its frame shrinks to it (the Compact frame's `shrink`,
    `entity-forms.css`), and the body scrolls in what is left under the head. */
 .su-box[data-fill] {
   height: 100%;
@@ -170,10 +170,10 @@
   }
 }
 
-/* TokenGrid (`components/containers/TokenGrid.tsx`): contentful Tokens as a
+/* MiniGrid (`components/containers/MiniGrid.tsx`): contentful Minis as a
    masonry grid by the room it has, an 18rem column at least and three at
-   most, each Token whole in its column. */
-.su-token-grid {
+   most, each Mini whole in its column. */
+.su-mini-grid {
   column-gap: var(--space-12);
   columns: 18rem 3;
   list-style: none;
@@ -181,7 +181,7 @@
   padding: 0;
 }
 
-.su-token-grid > li {
+.su-mini-grid > li {
   break-inside: avoid;
   display: flex;
   flex-direction: column;
@@ -190,7 +190,7 @@
   min-width: 0;
 }
 
-.su-token-grid > li:last-child {
+.su-mini-grid > li:last-child {
   margin-bottom: 0;
 }
 
@@ -325,7 +325,7 @@
 }
 
 /* The overflow trigger (a listed unit's "⋯", board S1) is an action chip, the
-   last of its Row's chips, so it is exactly a compact chip's height: the 14px
+   last of its Compact's chips, so it is exactly a compact chip's height: the 14px
    glyph, 1px of padding and the 1px rule each side make 18px, as the plate's
    16px and its rule do (`.su-stat-cell`). Under a coarse pointer the `mini`
    rung's hit area makes it 44px to touch without drawing it bigger. While its

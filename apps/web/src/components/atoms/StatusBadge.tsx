@@ -42,7 +42,7 @@ type StatusBadgeProps = {
 /**
  * CONDITION — the one rendering of an entity's condition (ruleset §2.3, §5.9:
  * an atom, Badge(tone) in the condition vocabulary): in a strip it is the chip
- * group's state slot (`chips-and-actions.md` C8), a card's, a Row's or a sheet
+ * group's state slot (`chips-and-actions.md` C8), a card's, a Compact's or a sheet
  * item's alike. Clickable when a cycle handler is provided: it names the state
  * activation leads to, and announces the new state in a polite live region once
  * the write lands — the handler may be async, so the announcement waits for the

@@ -1,6 +1,6 @@
 /**
- * SearchListbox — the one list a search's results hang in: Tokens or Rows by
- * `form`, a category line that links or acts by `target`, and the searcher's
+ * SearchListbox — the one list a search's results hang in: Minis or Compacts by
+ * `size`, a category line that links or acts by `target`, and the searcher's
  * empty line (chrome K8).
  */
 import { describe, expect, test } from 'bun:test'
@@ -33,7 +33,7 @@ function list(props: Partial<Parameters<typeof SearchListbox>[0]> = {}) {
   return render(
     <SearchListbox
       id="results"
-      form="row"
+      size="compact"
       ready
       results={[MULE, CHASSIS]}
       selectedIndex={1}
@@ -53,13 +53,13 @@ describe('SearchListbox', () => {
     expect(options[1]?.getAttribute('aria-selected')).toBe('true')
   })
 
-  test('form picks the entity form: a Row or a Token', () => {
-    const { container, unmount } = list({ form: 'row' })
-    expect(container.querySelector('.su-entity-row')).not.toBeNull()
+  test('size picks the entity form: a Compact or a Mini', () => {
+    const { container, unmount } = list({ size: 'compact' })
+    expect(container.querySelector('.su-entity-compact')).not.toBeNull()
     unmount()
-    const tokens = list({ form: 'token' })
-    expect(tokens.container.querySelector('.su-entity-token-list')).not.toBeNull()
-    expect(tokens.container.querySelector('.su-entity-row')).toBeNull()
+    const tokens = list({ size: 'mini' })
+    expect(tokens.container.querySelector('.su-entity-mini-list')).not.toBeNull()
+    expect(tokens.container.querySelector('.su-entity-compact')).toBeNull()
   })
 
   test('a link target makes the category a link; an act target, an act', () => {

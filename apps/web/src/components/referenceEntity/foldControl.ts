@@ -3,7 +3,7 @@ import type { Disclosure } from '../../lib/useDisclosure'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
 /**
- * THE fold control — the Row ⇄ Card disclosure, built from a `useDisclosure`:
+ * THE fold control — the Compact ⇄ Card disclosure, built from a `useDisclosure`:
  * a chevron whose name ("<subject> details") stays put while `aria-expanded`
  * carries the state, and whose `aria-controls` names the card wrapper (the
  * disclosure's `panelId`), which takes that id (`resolveCardInteraction`).

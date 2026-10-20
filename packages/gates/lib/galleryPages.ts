@@ -64,13 +64,14 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     id: 'listings',
     title: 'Listings',
     tone: 'var(--pilot)',
-    intro: 'Rows grouped as the book prints them, with art where there is any, and the lore lead.',
+    intro:
+      'Compacts grouped as the book prints them, with art where there is any, and the lore lead.',
     pages: [
       srd('/chassis/', 'Chassis', 'Grouped by tech level; every chassis with art.', ['Art']),
       srd('/systems/', 'Systems', 'The largest listing; no art column.'),
-      srd('/abilities/', 'Abilities', 'Grouped by tree; each Row in its tier tone.'),
+      srd('/abilities/', 'Abilities', 'Grouped by tree; each Compact in its tier tone.'),
       srd('/creatures/', 'Creatures', 'Art and art-less entities mixed.'),
-      srd('/bio-titans/', 'Bio-Titans', 'An entity grid: every Row one height.'),
+      srd('/bio-titans/', 'Bio-Titans', 'An entity grid: every Compact one height.'),
       srd('/keywords/', 'Keywords', 'Text only: a name and a lead.'),
     ],
   },

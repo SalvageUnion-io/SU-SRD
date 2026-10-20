@@ -4,7 +4,7 @@
  *
  * When `crawler.type` is set, the identity panel renders the type's special
  * ability and the type itself as compact entity cards, with the special NPC
- * a contentful Token (`CrewLeadToken`), as a bay's crew lead. Keepsake/Motto persist
+ * a contentful Mini (`CrewLeadMini`), as a bay's crew lead. Keepsake/Motto persist
  * through the type NPC's SRD freeform choices into bayChoices keyed by the
  * type ref; structured name/HP/description persist into the `typeNpc` field.
  *
@@ -146,11 +146,11 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     // The type's special ability renders as its own compact entity card.
     expect(screen.getByText('Improved Armour and Armaments')).toBeTruthy()
 
-    // A contentful Token (N3), as a bay's crew lead: its name heads it, and in
+    // A contentful Mini (N3), as a bay's crew lead: its name heads it, and in
     // Edit its Name field holds it too.
     const inset = screen.getByLabelText('Battle crew lead')
-    expect(inset.querySelector('.su-entity-token[data-contentful]')).not.toBeNull()
-    expect(inset.querySelector('.su-entity-token__name')?.textContent).toContain('Vex')
+    expect(inset.querySelector('.su-entity-mini[data-contentful]')).not.toBeNull()
+    expect(inset.querySelector('.su-entity-mini__name')?.textContent).toContain('Vex')
     expect(within(inset).getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
   })
 
@@ -202,7 +202,7 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     renderIdentity(crawler, makeStubStore(crawler))
 
     const inset = screen.getByLabelText('Augmented crew lead')
-    expect(inset.querySelector('.su-entity-token__name')?.textContent).toContain('Oracle')
+    expect(inset.querySelector('.su-entity-mini__name')?.textContent).toContain('Oracle')
     // No HP pips when maxHp is 0.
     expect(inset.querySelectorAll('[data-pip]').length).toBe(0)
     // Augmented's A.I. carries no Keepsake/Motto choice.

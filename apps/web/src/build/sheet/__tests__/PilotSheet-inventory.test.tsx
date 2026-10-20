@@ -235,7 +235,7 @@ describe('PilotSheet — generic inventory entries', () => {
     )
   })
 
-  test('a generic entry is a Token: its note, SLOTS and quantity chips, ✕ in its strip (R35)', () => {
+  test('a generic entry is a Mini: its note, SLOTS and quantity chips, ✕ in its strip (R35)', () => {
     const pilot = makePilot({
       genericInventory: [
         { id: 'gen-ration', name: 'Ration Pack', slotCost: 1, qty: 4, note: 'Galley issue' },
@@ -244,7 +244,7 @@ describe('PilotSheet — generic inventory entries', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
     const remove = screen.getByRole('button', { name: 'Remove Ration Pack' })
-    const token = remove.closest('.su-entity-token')
+    const token = remove.closest('.su-entity-mini')
     expect(token).not.toBeNull()
     expect(token?.textContent).toContain('Galley issue')
     const cells = [...(token?.querySelectorAll('.su-stat-cell') ?? [])].map((c) => c.textContent)

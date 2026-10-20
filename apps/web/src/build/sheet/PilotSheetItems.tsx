@@ -63,12 +63,12 @@ type PilotAbilityItemProps = {
 }
 
 /**
- * One ability: its CONTENTFUL Token (N3; owner's call, 2026-10-20), its head
+ * One ability: its CONTENTFUL Mini (N3; owner's call, 2026-10-20), its head
  * and then its text, which Peeks the whole card, its "Used" stamp in its state
  * slot, and in Edit a "⋯" in its chip group with Spend AP and Mark used. AP cost resolves
  * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
  * numeric cost (variable 'X' or none) — no spend control renders, we never
- * spend an undefined amount. The cost itself is the Token's own chip.
+ * spend an undefined amount. The cost itself is the Mini's own chip.
  */
 export function PilotAbilityItem({
   ability,
@@ -80,7 +80,7 @@ export function PilotAbilityItem({
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
   // Spend and Used are one "⋯" in the chip group's last slot (C8): its state
-  // slot reads "Used", and a Token's row stays whole at a phone's width.
+  // slot reads "Used", and a Mini's row stays whole at a phone's width.
   const spend =
     apCost === null
       ? []
@@ -96,7 +96,7 @@ export function PilotAbilityItem({
   return (
     <SheetItemLine
       token={
-        <Entity form="token" context="play" entity={ability} mode={{ kind: 'link' }} body={{}} />
+        <Entity size="mini" context="play" entity={ability} mode={{ kind: 'link' }} body={{}} />
       }
       name={ability.name}
       readOnly={readOnly}
@@ -157,7 +157,7 @@ type PilotEquipmentItemProps = {
 }
 
 /**
- * One inventory item: its contentful Token in both states. Edit puts the
+ * One inventory item: its contentful Mini in both states. Edit puts the
  * condition tri-state, uses, Details (the full card, with its choices) and
  * Remove in its chip group.
  *
@@ -221,7 +221,7 @@ export function PilotEquipmentItem({
   // and hold — because the grant and the granted thing are one entry to the
   // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
-  // A CONTENTFUL Token (N3; owner's call, 2026-10-19), in the sheet's
+  // A CONTENTFUL Mini (N3; owner's call, 2026-10-19), in the sheet's
   // sidebar: its head, the item named, typed and tech-levelled on one line,
   // then the item's text under it. It is the item in BOTH states. A damaged
   // item's pill greys, as its card's header does; its head Peeks the whole
@@ -229,7 +229,7 @@ export function PilotEquipmentItem({
   // first row (C2b).
   const pill = (
     <Entity
-      form="token"
+      size="mini"
       context="inventory"
       entity={equipment}
       instance={{ condition }}
@@ -241,7 +241,7 @@ export function PilotEquipmentItem({
   // written there. Everything else the Peek already shows.
   const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0
 
-  // Read: the Token alone. Edit: the same item line as a mech's Systems and
+  // Read: the Mini alone. Edit: the same item line as a mech's Systems and
   // Modules (`SheetItemLine`), Details where there are choices to make.
   if (readOnly) return pill
 
@@ -306,7 +306,7 @@ type GenericEntryLineProps = {
 
 /**
  * A generic entry, the carried thing the reference does not hold (ruleset
- * §6.6): a Token from its synthetic model on the sheet's item line, its note
+ * §6.6): a Mini from its synthetic model on the sheet's item line, its note
  * the stamp before its name, `SLOTS | n` in the loadout lane, a quantity above
  * one its state (`× | 4`), and in Edit the one remove control in its chip group.
  */
@@ -324,7 +324,7 @@ export function GenericEntryLine({ entry, readOnly, onRemove }: GenericEntryLine
     <SheetItemLine
       token={
         <Entity
-          form="token"
+          size="mini"
           context="loadout"
           model={model}
           mode={{ kind: 'read' }}

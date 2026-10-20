@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * The Play hub (`/play/`, ADR-052 §4): + New Game and Join at its head; Your
- * Games, each a Row opening the Game's page with your role, how many are
+ * Games, each a Compact opening the Game's page with your role, how many are
  * here and the Downtime state, and one door (Mediate where you mediate it,
  * else Play <your pilot>); Solo, each pilot in no Game with its mech's chip or
  * "No Mech" and Play solo; and Discord, each Game's channel or Connect
@@ -120,7 +120,7 @@ describe('the Play landing', () => {
     expect(queryCalls()).toHaveLength(0)
   })
 
-  test('Your Games: each a Row opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
+  test('Your Games: each a Compact opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
     setQueryAnswers({
       'games:listMine': [TENACITY, WASTES],
       'downtime:state': IN_DOWNTIME,
@@ -128,7 +128,7 @@ describe('the Play landing', () => {
     })
     await renderAs('connected')
     const tenacity = card('Tenacity')
-    // The whole Row opens the Game's page in Play.
+    // The whole Compact opens the Game's page in Play.
     expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
       '/play/games/land-g1'
     )
@@ -166,7 +166,7 @@ describe('the Play landing', () => {
     const elsewhere = card('Elsewhere')
     expect(elsewhere.queryByText('Downtime')).toBeNull()
     expect(elsewhere.queryByText('Scene')).toBeNull()
-    // Its page is one tap away, and the only link on the Row.
+    // Its page is one tap away, and the only link on the Compact.
     expect(elsewhere.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
       '/play/games/land-g9',
     ])

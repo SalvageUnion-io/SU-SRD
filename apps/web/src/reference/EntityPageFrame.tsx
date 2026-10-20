@@ -115,7 +115,7 @@ export function EntityPageFrame({
           )
         }
         lead={
-          // An ability's level, left of its title as its Row sets it: just the number.
+          // An ability's level, left of its title as its Compact sets it: just the number.
           meta.numeral && (
             <>
               <span className="su-sr-only">Level </span>

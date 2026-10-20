@@ -14,7 +14,7 @@ const techLevel = SalvageUnionReference.CrawlerTechLevels.all().find((tl) => tl.
 const exploratory = SalvageUnionReference.Crawlers.getByName('Exploratory')
 
 describe('CrawlerReviewStep', () => {
-  test('the recap reads as chips and Tokens, label first', () => {
+  test('the recap reads as chips and Minis, label first', () => {
     if (!techLevel || !exploratory) throw new Error('fixture missing')
     const { container } = render(
       <CrawlerReviewStep

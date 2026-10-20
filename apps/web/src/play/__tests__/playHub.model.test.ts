@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { gameChips, gameDoor } from '../playHub.model'
 
-/** The Play hub's Your Games: a Game's Row, its chips and its one door (ADR-052 §4). */
+/** The Play hub's Your Games: a Game's Compact, its chips and its one door (ADR-052 §4). */
 
 const GAME = { _id: 'g1', name: 'The Rust Belt Run', mediator: false }
 

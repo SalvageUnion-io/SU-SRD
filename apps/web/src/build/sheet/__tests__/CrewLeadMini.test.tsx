@@ -1,5 +1,5 @@
 /**
- * CrewLeadToken — a crawler bay's crew lead as a CONTENTFUL Token (N3):
+ * CrewLeadMini — a crawler bay's crew lead as a CONTENTFUL Mini (N3):
  * - the head names the NPC, chips the role it holds (`ROLE | Doc`) once it
  *   has a name of its own, and reads its HP live (`HP | 3/4`);
  * - in Edit the head keeps HP, as its stepper (the uses slot), never in the body;
@@ -12,7 +12,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { unitRowModel } from '../../../lib/units/unitModel'
-import { CrewLeadToken } from '../CrewLeadToken'
+import { CrewLeadMini } from '../CrewLeadMini'
 
 const crew = (name: string) => unitRowModel({ kind: 'npc', name, userMade: true })
 
@@ -28,19 +28,19 @@ const BASE = {
 }
 
 function head(group: HTMLElement): HTMLElement {
-  const found = group.querySelector<HTMLElement>('.su-entity-token__head')
-  if (!found) throw new Error('no Token head')
+  const found = group.querySelector<HTMLElement>('.su-entity-mini__head')
+  if (!found) throw new Error('no Mini head')
   return found
 }
 
-describe('CrewLeadToken — the head', () => {
+describe('CrewLeadMini — the head', () => {
   test('a named crew lead: its role a chip beside its HP, read live', () => {
-    render(<CrewLeadToken {...BASE} name="Ambrose" model={crew('Ambrose')} />)
+    render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     const band = head(group)
     // The role rides the head's chips, not a stamp before the name.
-    expect(band.querySelector('.su-entity-token__kind')).toBeNull()
-    expect(band.querySelector('.su-entity-token__name')?.textContent).toContain('Ambrose')
+    expect(band.querySelector('.su-entity-mini__kind')).toBeNull()
+    expect(band.querySelector('.su-entity-mini__name')?.textContent).toContain('Ambrose')
     expect(within(band).getByText('Role')).toBeTruthy()
     expect(within(band).getByText('Doc')).toBeTruthy()
     // First, next to the name: before the HP reading.
@@ -48,29 +48,29 @@ describe('CrewLeadToken — the head', () => {
     expect(text.indexOf('Role')).toBeLessThan(text.indexOf('HP'))
     expect(band.textContent).toContain('HP')
     expect(band.textContent).toContain('3/4')
-    // A contentful Token, never a titled box (N5).
-    expect(group.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
+    // A contentful Mini, never a titled box (N5).
+    expect(group.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
     expect(group.querySelector('.su-box')).toBeNull()
   })
 
   test('a crew lead with no name of its own chips no role: its title is the role', () => {
-    render(<CrewLeadToken {...BASE} name="Doc" model={crew('Doc')} />)
+    render(<CrewLeadMini {...BASE} name="Doc" model={crew('Doc')} />)
     const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
     expect(within(band).queryByText('Role')).toBeNull()
   })
 
   test('in Edit the head holds the HP stepper, and the body none', () => {
-    render(<CrewLeadToken {...BASE} name="Ambrose" model={crew('Ambrose')} onHpChange={() => {}} />)
+    render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} onHpChange={() => {}} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     const band = head(group)
     expect(band.textContent).toContain('3/4')
     expect(within(band).getByRole('button', { name: 'Decrease Med Bay crew HP' })).toBeTruthy()
-    const body = group.querySelector<HTMLElement>('.su-entity-token__body')
+    const body = group.querySelector<HTMLElement>('.su-entity-mini__body')
     expect(body?.textContent ?? '').not.toContain('HP')
   })
 
   test('a crew lead with no HP to track has no HP chip', () => {
-    render(<CrewLeadToken {...BASE} maxHp={0} hp={0} name="Ambrose" model={crew('Ambrose')} />)
+    render(<CrewLeadMini {...BASE} maxHp={0} hp={0} name="Ambrose" model={crew('Ambrose')} />)
     const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
     expect(within(band).queryByText('HP')).toBeNull()
   })
@@ -80,7 +80,7 @@ describe('CrewLeadToken — the head', () => {
     const npc = bay?.npc
     if (!npc) throw new Error('fixture missing: the Med Bay crew NPC')
     render(
-      <CrewLeadToken
+      <CrewLeadMini
         {...BASE}
         title={npc.position}
         name=""
@@ -96,10 +96,10 @@ describe('CrewLeadToken — the head', () => {
   })
 })
 
-describe('CrewLeadToken — the body', () => {
+describe('CrewLeadMini — the body', () => {
   test('Read lists only the lines that hold something', () => {
     render(
-      <CrewLeadToken
+      <CrewLeadMini
         {...BASE}
         name="Ambrose"
         model={crew('Ambrose')}
@@ -108,13 +108,13 @@ describe('CrewLeadToken — the body', () => {
       />
     )
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
-    const body = group.querySelector<HTMLElement>('.su-entity-token__body')
-    if (!body) throw new Error('no Token body')
+    const body = group.querySelector<HTMLElement>('.su-entity-mini__body')
+    if (!body) throw new Error('no Mini body')
     expect(within(body).getByText('Keepsake')).toBeTruthy()
     expect(within(body).getByText('A locket')).toBeTruthy()
     expect(within(body).getByText('Hates rain')).toBeTruthy()
     expect(within(body).queryByText('Motto')).toBeNull()
-    // Rows, as Detail reads, never `[label | value]` chips.
+    // Compacts, as Detail reads, never `[label | value]` chips.
     expect(body.querySelector('.su-stat-cell')).toBeNull()
   })
 })

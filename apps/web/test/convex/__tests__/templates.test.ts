@@ -170,7 +170,7 @@ describe('starter-set template', () => {
     expect(after).toHaveLength(pilots.length)
   })
 
-  // Rows stamped with a template body id as their appId exist: edits to claimed
+  // Compacts stamped with a template body id as their appId exist: edits to claimed
   // pre-gens inserted them before writes looked for the seeded row. `byAppId`
   // finds them in every account and Game, so they must not answer first.
   test("another player's row stamped with the body id does not block the write", async () => {

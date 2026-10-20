@@ -15,7 +15,7 @@
  * (`rollFor`, `playRolls.model.ts`: the Feed, the Game's log, Discord); a Vent
  * or a Shut down is an applied change on the Feed (`recordPlayChange`).
  *
- * A Token one a line in the list (ruleset §1.3; `playLineModel`, the Reactor
+ * A Mini one a line in the list (ruleset §1.3; `playLineModel`, the Reactor
  * being no reference entity), its controls in its chip group (R6); the table
  * and the result are its contentful body, plain content (N3, play.md §12).
  * Not on hand, it is its head alone, the need its chip.
@@ -181,7 +181,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key="reactor">
       <Entity
-        form="token"
+        size="mini"
         context="play"
         model={MODEL}
         dim={away}

@@ -4,7 +4,7 @@
  * same picker every other "choose a reference entity" modal runs on.
  *
  * A chassis is one of the largest entities in the data — artwork, stat block,
- * chassis ability, patterns — so the list is Tokens and only the chassis being
+ * chassis ability, patterns — so the list is Minis and only the chassis being
  * read is a Card; `hide.patterns` drops the one section a picker has no use
  * for (patterns are chosen in the next step).
  *

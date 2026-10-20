@@ -4,7 +4,7 @@
  * the build's own picture where the set has one (each pilot's portrait, the
  * Tenacity), else the art of what it is made from (a mech's chassis), and its
  * class or chassis cells. No lead (EDL E11, owner 2026-10-19): a pilot's motto
- * is on its sheet, not its Row.
+ * is on its sheet, not its Compact.
  */
 
 import type { Photo } from 'game-domain/schemas/photo'
@@ -13,7 +13,7 @@ import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/sta
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import type { EntityRowModel, TagItem } from '../../components/index'
+import type { EntityFormModel, TagItem } from '../../components/index'
 import { relation } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
@@ -23,17 +23,22 @@ import { unitRowModel } from '../../lib/units/unitModel'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
 
 /**
- * One build: its Row model, and the entity it is built on (a pilot's class, a
+ * One build: its Compact model, and the entity it is built on (a pilot's class, a
  * mech's chassis) as a linked chip that Peeks and opens it.
  */
-export type StarterBuild = { id: string; name: string; model: EntityRowModel; relations: TagItem[] }
+export type StarterBuild = {
+  id: string
+  name: string
+  model: EntityFormModel
+  relations: TagItem[]
+}
 
 export type StarterShelf = { kind: StarterKind; title: string; builds: StarterBuild[] }
 
-const NO_ART: EntityRowModel['art'] = { kind: 'none' }
+const NO_ART: EntityFormModel['art'] = { kind: 'none' }
 
 /** A build's own photo as row art. Every Starter Set photo is CDN artwork. */
-function photoArt(photo: Photo | undefined): EntityRowModel['art'] | undefined {
+function photoArt(photo: Photo | undefined): EntityFormModel['art'] | undefined {
   return photo ? { kind: 'image', url: photoUrl(photo) } : undefined
 }
 

@@ -130,9 +130,9 @@ for (const width of [375, 1440]) {
 // The long names (Electro-Magnetic Shield Projector, System and Software
 // Hacker): every compact card holds its parts — the name wraps inside it, and
 // its chips and cells stay inside instead of being pushed past its edge. A
-// systems Tile's frame; an ability Row's head, on the Tree.
+// systems CompactIndex's frame; an ability Compact's head, on the Tree.
 for (const [schema, part] of [
-  ['systems', '.su-listing__tiles a[aria-label] .su-entity-tile__frame'],
+  ['systems', '.su-listing__tiles a[aria-label] .su-entity-index__frame'],
   ['abilities', '.su-listing__cards a[aria-label] [data-fill]'],
 ] as const) {
   test(`every ${schema} listing card at 375px keeps its parts inside it`, async ({ page }) => {
@@ -170,20 +170,20 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
 })
 
-// (g) Every listing is the Catalog at every width: one flat grid of Tiles, no
+// (g) Every listing is the Catalog at every width: one flat grid of CompactIndexes, no
 // group headings and no view toggle, each art box 3:4 before its image loads
 // (on a phone, at 40rem and below, a 2:1 band).
 for (const width of [1440, 390]) {
   test(`the /chassis/ Catalog is one flat grid at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/')
-    const tile = page.locator('.su-listing__tiles a.su-entity-tile').first()
+    const tile = page.locator('.su-listing__tiles a.su-entity-index').first()
     await expect(tile).toBeVisible({ timeout: 30_000 })
     await expect(page.locator('.su-listing__group')).toHaveCount(1)
     await expect(page.locator('.su-listing__group[aria-label]')).toHaveCount(0)
     await expect(page.locator('.su-rail__view')).toHaveCount(0)
     // boundingBox() does not wait, so wait for the art box to lay out first.
-    const art = tile.locator('.su-entity-tile__art')
+    const art = tile.locator('.su-entity-index__art')
     await expect(art).toBeVisible()
     const box = await art.boundingBox()
     expect(box).not.toBeNull()
@@ -193,7 +193,7 @@ for (const width of [1440, 390]) {
 }
 
 // (h) The abilities open on their Tree (each tree on its track), one column;
-// their Catalog is one flat grid of Tiles, under no tree heading.
+// their Catalog is one flat grid of CompactIndexes, under no tree heading.
 test('the abilities open on their Tree and offer a flat Catalog', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/abilities/')
@@ -203,6 +203,6 @@ test('the abilities open on their Tree and offer a flat Catalog', async ({ page 
   await page.getByRole('button', { name: 'Catalog' }).click()
   await expect(page.locator('.su-ability-track')).toHaveCount(0)
   await expect(page.locator('.su-listing__group')).toHaveCount(1)
-  await expect(page.locator('.su-listing__tiles a.su-entity-tile').first()).toBeVisible()
+  await expect(page.locator('.su-listing__tiles a.su-entity-index').first()).toBeVisible()
   await expect(page).toHaveURL(/view=catalog/)
 })

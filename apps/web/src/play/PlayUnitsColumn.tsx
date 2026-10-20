@@ -8,18 +8,18 @@
  *   only while Boarded: SP, EP, Heat and the range band (`seats.setRange`).
  *   Parked it is for reference, with Board. In Downtime it is in the Mech Bay
  *   and says what the current step restores.
- * - **Hangar** — the pilot's other mechs, Tokens in the Token grid.
+ * - **Hangar** — the pilot's other mechs, Minis in the Mini grid.
  * - **Crawler** — SP, TL and its bays; live in solo Downtime (or for the
  *   Mediator, whose screen draws the same box), otherwise for reference.
  *
  * "Sheet ⤢" on a box opens that unit's sheet over Play (`PlaySheetOverlay`).
  *
  * Its heading is a Slab, never a `TitledBox`, so each unit's box is level 1
- * and what is inside one is a Token or plain content (play.md §12).
+ * and what is inside one is a Mini or plain content (play.md §12).
  */
 
 import { useState } from 'react'
-import { EmptyState, Slab, TokenGrid } from '../components/index'
+import { EmptyState, MiniGrid, Slab } from '../components/index'
 import type { SheetTarget } from './PlaySheetOverlay'
 import { PlaySheetOverlay } from './PlaySheetOverlay'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
@@ -66,7 +66,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
         />
       ) : null}
       {units.hangar.length > 0 ? (
-        <TokenGrid label="Hangar" play>
+        <MiniGrid label="Hangar" play>
           {units.hangar.map((spare) => (
             <PlayHangarMech
               key={spare.mechId}
@@ -75,7 +75,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
               note={spare.note}
             />
           ))}
-        </TokenGrid>
+        </MiniGrid>
       ) : null}
       {units.crawler ? (
         <PlayCrawlerUnit

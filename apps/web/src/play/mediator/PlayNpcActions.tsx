@@ -1,13 +1,13 @@
 /**
  * PlayNpcActions — the chosen NPC's actions under the Opposition (play.md
  * §10, wireframe pin 4), flattened like a player's list (`npcActions`, sorted
- * by action type): each a Token one a line in the Actions column's own list
- * (ruleset §1.3, Play's lists are Tokens), its chips in
+ * by action type): each a Mini one a line in the Actions column's own list
+ * (ruleset §1.3, Play's lists are Minis), its chips in
  * the shared stat order, cost last, with Use after it (C8), then the Morale
  * check.
  *
  * Every roll here is a table's (`PlayRollInstrument`, R8): Use opens the
- * action's resolve as its Token's contentful body (N3, plain content), the
+ * action's resolve as its Mini's contentful body (N3, plain content), the
  * NPC Action table, whose stamp is the roll
  * and whose marked row is what it came to (ruleset §1.4, as a player's
  * action resolves). Every roll goes on Play's roll log (`reportingRoll`),
@@ -57,7 +57,7 @@ export function PlayNpcActions({
   rollFor = rollForTable,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
-  // The action resolving in its Token: one at a time, as a player's.
+  // The action resolving in its Mini: one at a time, as a player's.
   const [open, setOpen] = useState<string | null>(null)
   const live = canWrite && !npc.down
   return (
@@ -66,7 +66,7 @@ export function PlayNpcActions({
       {actions.length === 0 ? (
         <EmptyState variant="inline" body="The reference gives it no actions." />
       ) : null}
-      <ul className="su-entity-token-list" aria-label={`${npc.name}’s actions`} data-play-list="">
+      <ul className="su-entity-mini-list" aria-label={`${npc.name}’s actions`} data-play-list="">
         {actions.map((entry) => (
           <NpcActionRow
             key={entry.key}
@@ -80,7 +80,7 @@ export function PlayNpcActions({
         ))}
         <li className="su-play-act" data-action-key="morale">
           <Entity
-            form="token"
+            size="mini"
             context="play"
             model={MORALE_CHECK}
             body={{
@@ -131,7 +131,7 @@ function NpcActionRow({
   return (
     <li className="su-play-act" data-open={open || undefined} data-action-key={entry.key}>
       <Entity
-        form="token"
+        size="mini"
         context="play"
         model={model}
         controls={

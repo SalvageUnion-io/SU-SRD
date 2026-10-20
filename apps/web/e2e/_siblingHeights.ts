@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 /**
  * The sibling-height law (ruleset §4.7): controls side by side on one line —
- * chips, buttons, fields, switches, search boxes, Tokens — share one Size, so
+ * chips, buttons, fields, switches, search boxes, Minis — share one Size, so
  * one height. `findSiblingMismatches` reads the rendered page and returns every
  * line whose controls differ by a pixel or more.
  *
@@ -16,8 +16,8 @@ import type { Page } from '@playwright/test'
  *   the shorter one's height, and no more than `MAX_GAP` from its neighbour, so
  *   two columns of a form that happen to line up are not one line. A line
  *   never crosses a labelled section's edge: Play's columns (`PlayFrame`)
- *   stand a gutter apart, so an action Token is never one line with the
- *   Units column's steppers or the Tables column's Tokens.
+ *   stand a gutter apart, so an action Mini is never one line with the
+ *   Units column's steppers or the Tables column's Minis.
  */
 export type SiblingMismatch = {
   /** The line's element, as `tag.class.class`. */
@@ -40,7 +40,7 @@ const CONTROL = [
   '.su-badge-stamp',
   '.su-cost-edge',
   '.su-cost',
-  '.su-entity-token',
+  '.su-entity-mini',
   '.su-seg',
   '.su-search-field',
 ].join(',')
@@ -74,10 +74,10 @@ function scan({
       for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
       return true
     })
-    // A contentful Token (and all it holds) is a block of text under a head,
-    // not a control on a line: Tokens side by side in a masonry grid
-    // (`TokenGrid`) differ in height by their text.
-    .filter((el) => !el.matches('.su-entity-token[data-contentful]'))
+    // A contentful Mini (and all it holds) is a block of text under a head,
+    // not a control on a line: Minis side by side in a masonry grid
+    // (`MiniGrid`) differ in height by their text.
+    .filter((el) => !el.matches('.su-entity-mini[data-contentful]'))
   // A control drawn on its padding box (a strip's Mini button: a 24px target,
   // its plate the chip's 18px inside a transparent border) measures as drawn.
   const box = (el: Element): Box => {

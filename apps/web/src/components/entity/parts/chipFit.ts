@@ -4,14 +4,14 @@
  * never on a line of their own, so they never make the head taller. What
  * does not fit there leaves the head for its body's first row (the body's
  * `[data-chip-overflow]`), left-aligned, in class order; the Tech Level, the
- * cost and the slots after it (C8) never leave. A contentful Token shows no
+ * cost and the slots after it (C8) never leave. A contentful Mini shows no
  * +MORE: its body has the room.
  *
  * The name keeps at least `min(9rem, 40%)` of the pill (ending in "…" past
- * that, E18's Token exception); the chips take the rest. The plan is the
+ * that, E18's Mini exception); the chips take the rest. The plan is the
  * head's (`overflowPlan`, `chipFill.ts`), and so is the row's drawing
  * (`writeOverflowRow`). Plain DOM, no React: the client entry
- * (`islands.client.ts`) runs it on a static page, and `Token` on the ones it
+ * (`islands.client.ts`) runs it on a static page, and `Mini` on the ones it
  * draws. Until it has run (and with no script) the chips wrap beside the
  * name, every chip whole.
  */
@@ -25,8 +25,8 @@ import {
   writeOverflowRow,
 } from '../../atoms/chipFill'
 
-/** A contentful Token (N3): its head's chips overflow into its body. */
-const CONTENTFUL = '.su-entity-token[data-contentful]'
+/** A contentful Mini (N3): its head's chips overflow into its body. */
+const CONTENTFUL = '.su-entity-mini[data-contentful]'
 
 /** Set once a fit has run: the strip is then one line (CSS). */
 const FITTED_ATTRIBUTE = 'data-chip-fitted'
@@ -49,12 +49,12 @@ export function stripRoom(
   return others.reduce((room, width) => room - width - gap, pill - floor - gap)
 }
 
-/** A Token's strip, its pill and its body's overflow row, or nothing to fit. */
+/** A Mini's strip, its pill and its body's overflow row, or nothing to fit. */
 function partsOf(token: HTMLElement) {
-  const strip = token.querySelector<HTMLElement>('.su-entity-token__chips')
-  const pill = strip?.closest<HTMLElement>('.su-entity-token__pill')
+  const strip = token.querySelector<HTMLElement>('.su-entity-mini__chips')
+  const pill = strip?.closest<HTMLElement>('.su-entity-mini__pill')
   const row = token.querySelector<HTMLElement>(
-    ':scope > .su-entity-token__body > [data-chip-overflow]'
+    ':scope > .su-entity-mini__body > [data-chip-overflow]'
   )
   return strip && pill && row ? { strip, pill, row } : undefined
 }
@@ -75,7 +75,7 @@ function chipsOf(strip: HTMLElement): HTMLElement[] {
 const width = (el: Element) => el.getBoundingClientRect().width
 
 /**
- * Fit one contentful Token: every chip drawn on the strip's one line and
+ * Fit one contentful Mini: every chip drawn on the strip's one line and
  * measured, then what does not fit beside the name's floor marked out (not
  * drawn in the head) and copied into its body's first row. The same width
  * gives the same result: nothing flickers, nothing feeds back.
@@ -102,7 +102,7 @@ export function fitTokenOverflow(token: HTMLElement): void {
   const pillGap = Number.parseFloat(ps.columnGap) || 0
   // What else stands on the line: the note stamp, the tier (not the name's cut-out).
   const others = [...pill.children]
-    .filter((el) => el !== strip && !el.classList.contains('su-entity-token__notch'))
+    .filter((el) => el !== strip && !el.classList.contains('su-entity-mini__notch'))
     .map(width)
   const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
   const room = stripRoom(content, others, pillGap, rem)
@@ -123,7 +123,7 @@ export function fitTokenOverflow(token: HTMLElement): void {
 }
 
 /**
- * Fit a contentful Token now and whenever it resizes, a face loads or its
+ * Fit a contentful Mini now and whenever it resizes, a face loads or its
  * chips change (`watchChipFill`'s watch); returns the stop.
  */
 export function watchTokenOverflow(token: HTMLElement): () => void {
@@ -131,7 +131,7 @@ export function watchTokenOverflow(token: HTMLElement): () => void {
   return watchChipFill(token, fitTokenOverflow)
 }
 
-/** A static page's contentful Tokens (server-rendered, no React): each fits (in turns) and on resize. */
+/** A static page's contentful Minis (server-rendered, no React): each fits (in turns) and on resize. */
 export function watchStaticTokenOverflow(root: ParentNode = document): void {
   watchStaticChipFill(root, CONTENTFUL, fitTokenOverflow)
 }

@@ -1,22 +1,22 @@
 import { useContext } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
-import { TokenGrid } from '../../containers/TokenGrid'
+import { MiniGrid } from '../../containers/MiniGrid'
 import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
 import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
- * A BIG GROUPING of entities as Tokens (owner's call, 2026-10-14: "any big
+ * A BIG GROUPING of entities as Minis (owner's call, 2026-10-14: "any big
  * grouping should be tokens"): a guide step's options off its Page (on it
- * they are open Rows, N8), a catalog choice's qualifying entities. Each is a
- * CONTENTFUL Token (N3; owner's call,
+ * they are open Compacts, N8), a catalog choice's qualifying entities. Each is a
+ * CONTENTFUL Mini (N3; owner's call,
  * 2026-10-20), its head and then its text, in the masonry grid
- * (`TokenGrid`): one column on a phone, two across a page. Each opens its
+ * (`MiniGrid`): one column on a phone, two across a page. Each opens its
  * Page where the surface says (the SRD's route, the app's Page opener) and
  * Peeks its whole card; inside a Peek it reads only.
  */
-export function EntityTokenList({
+export function EntityMiniList({
   entities,
   label,
 }: {
@@ -25,24 +25,24 @@ export function EntityTokenList({
   label: string
 }) {
   return (
-    <TokenGrid label={label}>
+    <MiniGrid label={label}>
       {entities.map((entity, index) => (
         <li key={cardKey(entity, index)}>
-          <ListToken data={entity} />
+          <ListMini data={entity} />
         </li>
       ))}
-    </TokenGrid>
+    </MiniGrid>
   )
 }
 
 const READ = { kind: 'read' } as const
 const LINK = { kind: 'link' } as const
 
-function ListToken({ data }: { data: ReferenceCardEntity }) {
+function ListMini({ data }: { data: ReferenceCardEntity }) {
   const insidePeek = useContext(InsidePeekContext)
   return (
     <Entity
-      form="token"
+      size="mini"
       context="browse"
       entity={data as RefMetaEntity}
       mode={insidePeek ? READ : LINK}

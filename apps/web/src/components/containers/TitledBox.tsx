@@ -38,11 +38,11 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  * Every titled container that is not an entity wears it: dialogs
  * (`ModalShell`), a sheet's panels (a mech's Chassis and Hold), wizard briefs,
  * notices, and a level-1 pick that is no entity (`select`: a wizard's Custom
- * build), ringed and sealed as a selected Row. Entities draw through their own forms (`Row`,
+ * build), ringed and sealed as a selected Compact. Entities draw through their own forms (`Compact`,
  * `ReferenceEntityCard`), which share the same `Head`.
  *
  * Where it may not go (ruleset §5, N5 and N6): inside an entity's Card or
- * Row, where a section of the entity is a `Slab` over content and a note an
+ * Compact, where a section of the entity is a `Slab` over content and a note an
  * unlabelled `Callout`; nor around a wizard step's entities, since the step is
  * its title over its content. On an SRD Page a block at level 1 (a bay's When
  * Damaged) may stay one.
@@ -81,7 +81,7 @@ export function TitledBox({
           chips={chips}
           controls={controls}
           top={top}
-          // Select mode's seal, on the band's right as a selected Row's (R15).
+          // Select mode's seal, on the band's right as a selected Compact's (R15).
           affordance={select?.selected ? <SelectedSeal word={select.seal} /> : undefined}
           notch
           chipsBeside

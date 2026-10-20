@@ -8,7 +8,7 @@ You audit UI against the numbered laws in `docs/design-system/ruleset.md`
 (§0 the one law through §7.2 the StampSeam law). Read the whole file first; it
 is short. The tokens it names live in
 `apps/web/src/styles/theme.css`; the entity forms it points to
-(Mention, Token, Row, Card, Page, rules E1–E20) are in
+(Mention, Mini, Compact, Card, Page, rules E1–E20) are in
 `docs/design-system/entity-display-language.md` — open it when the target
 renders an entity.
 

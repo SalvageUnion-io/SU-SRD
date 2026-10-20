@@ -157,7 +157,7 @@ export const get = query({
  * A published entity's direct assignments, split by whether the far end is
  * published itself.
  *
- * Only a link whose far end sits in the **same container** counts at all. Rows
+ * Only a link whose far end sits in the **same container** counts at all. Compacts
  * older than the one-container rule (ADR-037) can still straddle two, and a
  * link's `to.id` was once a free string — so a cross-container link is stale or
  * forged data, not an assignment, and serving it would let anyone who can draw

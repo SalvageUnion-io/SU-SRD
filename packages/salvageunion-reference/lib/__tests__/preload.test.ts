@@ -314,11 +314,11 @@ describe('SalvageUnionReference.preload — list projection', () => {
   })
 
   const PROSE = ['paragraph', 'list-item', 'heading', 'flavor', 'hint']
-  type Row = { id?: string; content?: readonly { type: string }[] }
+  type Compact = { id?: string; content?: readonly { type: string }[] }
 
   /** Every row's prose blocks after its first paragraph (its lead), flattened:
    * what the projection drops. */
-  const proseOf = (rows: readonly Row[]) =>
+  const proseOf = (rows: readonly Compact[]) =>
     rows.flatMap((row) => {
       const lead = (row.content ?? []).find((block) => block.type === 'paragraph')
       return (row.content ?? []).filter((block) => block !== lead && PROSE.includes(block.type))

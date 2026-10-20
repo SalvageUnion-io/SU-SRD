@@ -5,12 +5,12 @@ import type { TreeTrack } from './index'
 import { AbilityTrack, Entity } from './index'
 
 /**
- * The tree's slab names the kind, so its Rows drop the type stamp; each keeps
+ * The tree's slab names the kind, so its Compacts drop the type stamp; each keeps
  * its tier numeral in its band, as it reads everywhere else.
  */
 const OMIT_KIND = ['kind'] as const
 
-/** A contentful Token's body: the ability's text, its lead (N3). */
+/** A contentful Mini's body: the ability's text, its lead (N3). */
 const ABILITY_TEXT = { text: true } as const
 
 const abilityHref = (ability: RefAbility) => itemHref('abilities', getEntitySlug(ability))
@@ -23,32 +23,32 @@ const abilityHref = (ability: RefAbility) => itemHref('abilities', getEntitySlug
  * numeral before its name.
  *
  * At level 1 (the class page's own trees, the abilities listing) each is a
- * Row (the listing row's shape, `EntityListingRow`). Inside a class page's
+ * Compact (the listing row's shape, `EntityIndexCompact`). Inside a class page's
  * path card, a level-1 frame, the track is level 2, so each is a contentful
- * Token (`form="token"`, N1, N3): its one-row head (tier, name, chips), then
+ * Mini (`size="mini"`, N1, N3): its one-row head (tier, name, chips), then
  * its text, held by a border in its tone.
  */
 export function ReferenceAbilityTrack({
   abilities,
   track,
   titleAs,
-  form = 'row',
+  size = 'compact',
 }: {
   abilities: readonly RefAbility[]
   track: TreeTrack
-  /** Row only: each Ability's title element. */
+  /** Compact only: each Ability's title element. */
   titleAs?: 'h3'
   /** `token` where the track sits inside a level-1 frame (a path card). */
-  form?: 'row' | 'token'
+  size?: 'compact' | 'mini'
 }) {
   return (
     <AbilityTrack
       abilities={abilities}
       track={track}
       renderAbility={(ability) =>
-        form === 'token' ? (
+        size === 'mini' ? (
           <Entity
-            form="token"
+            size="mini"
             context="play"
             entity={ability}
             mode={{ kind: 'link', href: abilityHref(ability) }}
@@ -57,7 +57,7 @@ export function ReferenceAbilityTrack({
           />
         ) : (
           <Entity
-            form="row"
+            size="compact"
             entity={ability}
             mode={{ kind: 'link', href: abilityHref(ability) }}
             omit={OMIT_KIND}

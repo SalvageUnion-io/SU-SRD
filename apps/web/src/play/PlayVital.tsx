@@ -25,7 +25,7 @@ const TONES: Record<VitalTone, CSSVarStyle> = {
   pilot: { '--tone': 'var(--color-pilot)', '--tone-deep': 'var(--color-sheet-pilot-deep)' },
   mech: { '--tone': 'var(--color-mech)', '--tone-deep': 'var(--color-sheet-mech-deep)' },
   crawler: { '--tone': 'var(--color-crawler)', '--tone-deep': 'var(--color-sheet-crawler-deep)' },
-  // The Opposition, on the Mediator's screen: the adversary tone its Rows wear.
+  // The Opposition, on the Mediator's screen: the adversary tone its Compacts wear.
   adversary: { '--tone': 'var(--color-adversary)', '--tone-deep': 'var(--color-adversary)' },
 }
 

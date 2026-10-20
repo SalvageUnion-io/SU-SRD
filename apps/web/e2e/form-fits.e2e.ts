@@ -8,10 +8,10 @@ import { test } from './fixtures'
  * Hard rule R35, the form fits the place (EDL E2, E11, E19), over every
  * context (hard rule R0's `designRoutes`), seeded, at page and phone widths,
  * Play's phone form tab by tab (`_formFits.ts`): every list item that holds an
- * entity draws it as a Row, a Tile or a Token; a lead only on an SRD index; a
+ * entity draws it as a Compact, a CompactIndex or a Mini; a lead only on an SRD index; a
  * chassis ability at level 1 only on its chassis and pattern Pages and the
- * mech sheet's hero, else a contentful Token; and Play's lists (the player's,
- * solo and the Mediator's, every phone tab) are Tokens, never Rows (E3,
+ * mech sheet's hero, else a contentful Mini; and Play's lists (the player's,
+ * solo and the Mediator's, every phone tab) are Minis, never Compacts (E3,
  * ruleset §1.3).
  *
  * `BASELINE` is the debt this pass found when it landed, by route family and
@@ -26,7 +26,7 @@ test('every context draws the form its place takes', async ({ page }) => {
   const seed = await seedDesignAccount(page)
   const findings = await walkDesignRoutes(page, seed, async ({ family, where }) => {
     const place = {
-      // A Peek opens over an index (`designRoutes`), whose Tiles keep their leads.
+      // A Peek opens over an index (`designRoutes`), whose CompactIndexes keep their leads.
       index: family === 'reference-index' || family === 'peek',
       chassisPage: family === 'reference-page' && /\/chassis\//.test(page.url()),
       play: DESIGN_FAMILIES[family] === 'play',

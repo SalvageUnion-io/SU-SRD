@@ -367,7 +367,7 @@ const stepNumberStyle = {
   padding: `${tokens.space[4]} ${tokens.space[8]} ${tokens.space[2]}`,
 } satisfies CSSProperties
 
-/** The title, in `.su-entity-row__title`'s face. */
+/** The title, in `.su-entity-compact__title`'s face. */
 const stepTitleStyle = {
   fontWeight: tokens.weight.extrabold,
   lineHeight: 1.05,

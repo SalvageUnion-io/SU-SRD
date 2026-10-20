@@ -178,9 +178,9 @@ export type BandFill = {
 }
 
 /**
- * An ability's tier tone (`entityTone`) as its page's band: the colour its Row
+ * An ability's tier tone (`entityTone`) as its page's band: the colour its Compact
  * wears on the abilities index, so the two cannot disagree. Legendary pink is
- * the deeper crawler band, as the Row paints it (it carries paper); Core is
+ * the deeper crawler band, as the Compact paints it (it carries paper); Core is
  * the chapter's own orange (`undefined`).
  */
 function abilityBandFill(entity: RefEntity): BandFill | undefined {
@@ -208,7 +208,7 @@ export function listingBandFillFor(schemaId: string): BandFill | undefined {
 
 /**
  * The bands a show page wears when not its chapter's: a system's or module's,
- * its tech level's colour, head and foot, as its card's header and Row do; an
+ * its tech level's colour, head and foot, as its card's header and Compact do; an
  * ability's, its tier's colour (E12). Every other page wears its chapter's
  * band from the colour map (`undefined`); a listing's is `listingBandFillFor`.
  */

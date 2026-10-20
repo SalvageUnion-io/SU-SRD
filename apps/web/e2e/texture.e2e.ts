@@ -11,7 +11,7 @@ import { expect, test } from './fixtures'
  * included, and never on paper, cream, the page ground (Play's included), the
  * ink-deep, a button or a field.
  *
- * - `speckled`: every entity band (a Row's, a TitledBox's or a unit box's
+ * - `speckled`: every entity band (a Compact's, a TitledBox's or a unit box's
  *   head, a card's band) on a Play canvas or phone form (`.su-play-root`:
  *   the player's, solo and the Mediator's), or on an overlay it lays over
  *   itself (a Peek, a menu, a dialog: the Mediator's Reference), that is a
@@ -32,8 +32,8 @@ const COCKPIT = '.su-play-root'
 /** What the Cockpit lays over itself, portalled out of it. */
 const OVERLAY = '[data-peek-popup], [role="dialog"], [role="alertdialog"], [role="menu"]'
 
-/** An entity band: a Row's or TitledBox's head, a card's band. */
-const BAND = '.su-entity-row__head, .su-ec-band'
+/** An entity band: a Compact's or TitledBox's head, a card's band. */
+const BAND = '.su-entity-compact__head, .su-ec-band'
 
 /**
  * The texture faults in the Cockpit and the overlays over it, one line each:
@@ -106,7 +106,7 @@ async function overlays(
     const address = await trigger.getAttribute('data-peek')
     await trigger.hover()
     const popup = page.locator('[data-peek-popup]')
-    await expect(popup.locator('.su-entity-row__head, .su-roll').first()).toBeVisible()
+    await expect(popup.locator('.su-entity-compact__head, .su-roll').first()).toBeVisible()
     read.push({ what: `the ${address} Peek`, faults: await grainFaults(page) })
     await page.mouse.move(0, 0)
     await page.keyboard.press('Escape')

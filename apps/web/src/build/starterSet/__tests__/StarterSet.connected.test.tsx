@@ -102,7 +102,7 @@ describe('Copy to… on the Starter Set page', () => {
     return screen.getByRole('menu')
   }
 
-  test('“Copy to…” is a chip in the Row’s chip group, outside the sheet’s link', () => {
+  test('“Copy to…” is a chip in the Compact’s chip group, outside the sheet’s link', () => {
     renderPage()
     const trigger = screen.getByRole('button', { name: 'Copy Bonesaw to…' })
     expect(trigger.closest('[data-chip-group]')).not.toBeNull()

@@ -19,7 +19,7 @@ describe('trackForTree', () => {
 })
 
 describe('AbilityTrack', () => {
-  test("a sequential tree draws the caller's Ability on each tier, its numeral left to the Row", () => {
+  test("a sequential tree draws the caller's Ability on each tier, its numeral left to the Compact", () => {
     const { container } = render(
       <AbilityTrack
         abilities={tree('Mechanical Knowledge')}

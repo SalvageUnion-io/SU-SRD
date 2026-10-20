@@ -100,12 +100,12 @@ describe('PeekHost', () => {
     expect(peek.querySelector('[data-peek-open]')?.getAttribute('tabindex')).toBe('-1')
   })
 
-  test('a Token is a trigger: hovering or focusing it shows its whole card', async () => {
+  test('a Mini is a trigger: hovering or focusing it shows its whole card', async () => {
     const drill = SalvageUnionReference.getByNameIn('systems', 'Salvaging Drill')
     if (!drill) throw new Error('Salvaging Drill fixture missing')
     render(
       <EntitySurfaceProvider value={{ hrefFor }}>
-        <Entity form="token" context="loadout" entity={drill} mode={{ kind: 'link' }} />
+        <Entity size="mini" context="loadout" entity={drill} mode={{ kind: 'link' }} />
         <PeekHost />
       </EntitySurfaceProvider>
     )
@@ -146,7 +146,7 @@ describe('PeekHost', () => {
     render(
       <>
         <Entity
-          form="token"
+          size="mini"
           context="loadout"
           entity={npc as unknown as RefMetaEntity}
           peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
@@ -154,7 +154,7 @@ describe('PeekHost', () => {
         <PeekHost />
       </>
     )
-    const token = document.querySelector('.su-entity-token')
+    const token = document.querySelector('.su-entity-mini')
     if (!token) throw new Error('no token')
     expect(token.getAttribute('data-peek')).toBe(`crawler-bays:${bay.id}/npc`)
     act(() => {

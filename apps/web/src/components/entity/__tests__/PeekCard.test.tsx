@@ -56,9 +56,9 @@ describe('Peek footer', () => {
     expect(foot.getAttribute('data-grain')).not.toBeNull()
   })
 
-  // The Peek wears the fill of the Token or Row that opened it (owner,
+  // The Peek wears the fill of the Mini or Compact that opened it (owner,
   // 2026-10-14): an ability's tier tone, not the card's ink banner.
-  test("an ability's Peek wears its tier tone, as its Token does", () => {
+  test("an ability's Peek wears its tier tone, as its Mini does", () => {
     const { container } = render(<PeekCard entity={scrap()} />)
     expect(container.querySelector('[style*="--color-pilot"]')).not.toBeNull()
   })
@@ -102,18 +102,18 @@ describe('Peek of a chassis', () => {
     return chassis
   }
 
-  // N3, E19: the ability nests in the chassis, so it is a contentful Token,
-  // never a Row or a card; inside the Peek its head opens nothing (E16).
-  test('shows its chassis ability as a contentful Token', () => {
+  // N3, E19: the ability nests in the chassis, so it is a contentful Mini,
+  // never a Compact or a card; inside the Peek its head opens nothing (E16).
+  test('shows its chassis ability as a contentful Mini', () => {
     const { container } = render(<PeekCard entity={mule()} />)
-    const token = container.querySelector('.su-entity-token[data-contentful]')
-    expect(token?.querySelector('.su-entity-token__head')?.textContent).toContain(
+    const token = container.querySelector('.su-entity-mini[data-contentful]')
+    expect(token?.querySelector('.su-entity-mini__head')?.textContent).toContain(
       'Integrated Cargo Bay'
     )
-    const body = token?.querySelector('.su-entity-token__body')?.textContent ?? ''
+    const body = token?.querySelector('.su-entity-mini__body')?.textContent ?? ''
     expect(body).toContain('The Mule')
     expect(body).not.toContain('[(CHASSIS)]')
-    expect(container.querySelector('.su-entity-row')).toBeNull()
+    expect(container.querySelector('.su-entity-compact')).toBeNull()
     expect(token?.querySelector('a')).toBeNull()
   })
 
@@ -126,14 +126,14 @@ describe('Peek of a chassis', () => {
 })
 
 // N1: the Peek is level 1 on its plate, so nothing in it is headed but itself:
-// one head band, one frame, everything nested a Token.
-describe('a Peek holds only Tokens', () => {
+// one head band, one frame, everything nested a Mini.
+describe('a Peek holds only Minis', () => {
   const headedFrames = (container: HTMLElement) => ({
-    heads: container.querySelectorAll('.su-entity-row__head, .su-entity-tile__band').length,
-    frames: container.querySelectorAll('.su-ec-frame, .su-entity-row__frame').length,
+    heads: container.querySelectorAll('.su-entity-compact__head, .su-entity-index__band').length,
+    frames: container.querySelectorAll('.su-ec-frame, .su-entity-compact__frame').length,
   })
 
-  test("a Bio-Titan's Peek lists none of its patterns; its actions are contentful Tokens", () => {
+  test("a Bio-Titan's Peek lists none of its patterns; its actions are contentful Minis", () => {
     const typhon = SalvageUnionReference.BioTitans.getByName('Typhon')
     if (!typhon) throw new Error('fixture missing: Typhon')
     const { container } = render(<PeekCard entity={typhon} />)
@@ -141,22 +141,22 @@ describe('a Peek holds only Tokens', () => {
     for (const pattern of typhon.patterns ?? []) {
       expect(container.textContent).not.toContain(pattern.name)
     }
-    expect(container.querySelector('.su-entity-token[data-contentful]')).not.toBeNull()
+    expect(container.querySelector('.su-entity-mini[data-contentful]')).not.toBeNull()
   })
 
-  test("a chassis's Peek: its frame, its head, and Tokens", () => {
+  test("a chassis's Peek: its frame, its head, and Minis", () => {
     const chassis = SalvageUnionReference.Chassis.getByName('Big Brother')
     if (!chassis) throw new Error('fixture missing: Big Brother')
     const { container } = render(<PeekCard entity={chassis} />)
     expect(headedFrames(container)).toEqual({ heads: 1, frames: 1 })
   })
 
-  test("an equipment item's Peek: its actions are Tokens, never framed cards", () => {
+  test("an equipment item's Peek: its actions are Minis, never framed cards", () => {
     const welder = SalvageUnionReference.Equipment.getByName('Portable Arc Welder')
     if (!welder) throw new Error('fixture missing: Portable Arc Welder')
     const { container } = render(<PeekCard entity={welder} />)
     expect(headedFrames(container)).toEqual({ heads: 1, frames: 1 })
-    expect(container.querySelectorAll('.su-entity-token[data-contentful]').length).toBe(3)
+    expect(container.querySelectorAll('.su-entity-mini[data-contentful]').length).toBe(3)
   })
 
   // An option that is not an entity is a Slab over its text (N5), not a

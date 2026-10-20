@@ -5,7 +5,7 @@
  *
  * `/` shows one container at a time (`Roster`): Shelves, or a Game picked in
  * its Games select. Both ask "what have we got and what can I do with it",
- * so both answer in the same three ontology-toned columns of Rows (`UnitRow`)
+ * so both answer in the same three ontology-toned columns of Compacts (`UnitRow`)
  * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
  * seal on every row, a way to pick up what nobody holds, and creation gated by
  * the rules in `lib/games/gameRoster.ts`.
@@ -189,7 +189,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   }
 
   /**
-   * A row's verbs, in its ⋯ menu as a shelf item's are (Shelves): the Row
+   * A row's verbs, in its ⋯ menu as a shelf item's are (Shelves): the Compact
    * itself opens the sheet, so its band carries only its name and chips.
    */
   function rowMenu(row: RosterRow): HeaderMenuItem[][] {
@@ -255,7 +255,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
           /* The primary crawler is where new crew is assigned (ADR-037), so
              the roster says which one it is. */
           note={row.primary ? '★ Primary' : undefined}
-          /* The Row is the door to the live sheet: editable when the row is
+          /* The Compact is the door to the live sheet: editable when the row is
              yours to edit (`row.can.openSheet`), read-only when it is a
              crewmate's (`SheetView`). */
           mode={{ kind: 'link', href: rosterSheetHref(row) }}

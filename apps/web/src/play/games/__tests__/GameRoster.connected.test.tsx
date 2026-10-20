@@ -390,7 +390,7 @@ describe('yours first, then everyone else', () => {
       body: { id: 'a-crawler-2', name: 'Second Wind', techLevel: '1' },
     }
     await renderAs(ME, listing({ crawlers: [SECOND, CRAWLER], primaryCrawlerId: CRAWLER._id }))
-    // The rows, in order — each Row is a link named for its unit.
+    // The rows, in order — each Compact is a link named for its unit.
     const names = screen
       .getAllByRole('link', { name: /^(#430 Tenacity|Second Wind)$/ })
       .map((link) => link.getAttribute('aria-label'))
@@ -689,7 +689,7 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     expect(names).not.toContain('Roach-Boy')
     expect(within(dialog).getByRole('heading', { name: 'Pilots' })).toBeTruthy()
     // What the move touches is visible: Skiv would leave Frostline (C11).
-    const skiv = within(group).getByRole('radio', { name: 'Skiv' }).closest('.su-entity-row')
+    const skiv = within(group).getByRole('radio', { name: 'Skiv' }).closest('.su-entity-compact')
     const tags = [...(skiv?.querySelectorAll('[data-tag]') ?? [])].map((t) => t.textContent)
     expect(tags).toEqual(['GameFrostline'])
     // Nothing picked, nothing to move.

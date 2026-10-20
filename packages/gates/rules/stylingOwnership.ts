@@ -555,7 +555,7 @@ const RULES: OwnershipRule[] = [
     id: 'entity-markup',
     mode: 'zero',
     rule: 'hard-rules R7 §Entity markup lives only in entity/: components/entity/ draws it and entity-forms.css styles it (EDL E15)',
-    fix: "Draw the entity through its form (`Row`, `RowFrame`, `RowBody`, `Entity`) and say what the host needs with the form's props (`Box`'s `reference`, `fill` or `shrink`, `Row`'s `dim`); a rule about a form's own parts goes in `styles/partials/entity-forms.css`, and a cascade handback names a part by `[data-handback]`. Never select or draw a `su-entity-row__*` / `su-entity-token__*` element anywhere else in apps/web/src.",
+    fix: "Draw the entity through its form (`Compact`, `CompactFrame`, `CompactBody`, `Entity`) and say what the host needs with the form's props (`Box`'s `reference`, `fill` or `shrink`, `Compact`'s `dim`); a rule about a form's own parts goes in `styles/partials/entity-forms.css`, and a cascade handback names a part by `[data-handback]`. Never select or draw a `su-entity-compact__*` / `su-entity-mini__*` element anywhere else in apps/web/src.",
     scan: (c) => scanEntityMarkupIn(c.root, c.appSource, c.read),
   },
 ]

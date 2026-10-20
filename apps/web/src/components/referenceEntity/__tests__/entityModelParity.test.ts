@@ -157,7 +157,7 @@ describe('toEntityModel parity, every entity', () => {
       agree(label(row), model.tone, schemaName === 'actions' ? 'ink' : toneToken(tone))
       const doFill = model.kind.nature === 'do' ? 'ink' : 'tone'
       agree(label(row), resolveHeaderFill(entity), doFill)
-      // A Peek's card wears the fill of the Token or Row that opened it: an
+      // A Peek's card wears the fill of the Mini or Compact that opened it: an
       // ability's, its tier tone (E12).
       const rowFill = schemaName === 'abilities' ? 'tone' : doFill
       agree(label(row), resolveHeaderFill(entity, true), rowFill)
@@ -256,7 +256,7 @@ describe('toEntityModel parity, every entity', () => {
   })
 
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
-    // The Row's lead is the model's; this is the formula the compact card used
+    // The Compact's lead is the model's; this is the formula the compact card used
     // before it did (`resolveHeaderHint`'s hint, else the first paragraph),
     // then what the catalog card borrows: a step-only guide's first step
     // (`resolveGuideLead`), then a grant's or an action's opening paragraph

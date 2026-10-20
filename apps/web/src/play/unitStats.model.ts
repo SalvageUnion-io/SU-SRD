@@ -88,7 +88,7 @@ export function hullGauge(crawler: Crawler): UnitGauge {
 
 /**
  * Each installed bay by name, its reference entity when it resolves (its
- * Token in the crawler's box), and whether it is damaged.
+ * Mini in the crawler's box), and whether it is damaged.
  */
 export function bayConditions(
   crawler: Crawler

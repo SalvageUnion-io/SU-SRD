@@ -301,7 +301,7 @@ const TOKEN_RULES: TokenRule[] = [
     rule: 'ruleset §4.3 — the border map, one meaning per weight (R13)',
     // Outlines are not on the map: the forced-colours fallback is a
     // transparent outline, and focus is R28's ring.
-    fix: 'Use the weight for the role: `borderWidth.entity` / `var(--bw-entity)` (3px, a full card), `entityCompact` / `--bw-entity-compact` (2px, a Card below full, a Row), `pill` / `--bw-pill` (2px), `chrome` / `--bw-chrome` (1.5px, controls), `hairline` / `--bw-hairline` (1px, value-cell frames and table rules).',
+    fix: 'Use the weight for the role: `borderWidth.entity` / `var(--bw-entity)` (3px, a full card), `entityCompact` / `--bw-entity-compact` (2px, a Card below full, a Compact), `pill` / `--bw-pill` (2px), `chrome` / `--bw-chrome` (1.5px, controls), `hairline` / `--bw-hairline` (1px, value-cell frames and table rules).',
     pattern: declaration(
       'border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-width)?',
       'border(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?(?:Width)?'

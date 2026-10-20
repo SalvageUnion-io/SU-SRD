@@ -258,21 +258,21 @@ describe('the bar', () => {
 })
 
 describe('the table', () => {
-  test('a seat per player: presence, mount Token, every vital, ▲ on what needs the Mediator', async () => {
+  test('a seat per player: presence, mount Mini, every vital, ▲ on what needs the Mediator', async () => {
     await renderCockpit()
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const items = seats.getAllByRole('listitem').filter((li) => li.className === 'su-play-seat')
     expect(items).toHaveLength(4)
     const bonesaw = within(items[0] as HTMLElement)
     expect(bonesaw.getByText('Buzzard')).toBeTruthy()
-    // SP is on the mount Token too.
+    // SP is on the mount Mini too.
     for (const chip of ['HP', 'AP', 'SP', 'EP', 'Heat']) {
       expect(bonesaw.getAllByText(chip).length).toBeGreaterThan(0)
     }
     expect(bonesaw.getByText('Bonesaw is resolving 120mm Cannon: activated')).toBeTruthy()
     const rook = items[2] as HTMLElement
     expect(rook.dataset.attention).toBe('true')
-    // The ▲ vital is a chip on the seat's Token, and again among every vital in its body.
+    // The ▲ vital is a chip on the seat's Mini, and again among every vital in its body.
     expect(within(rook).getAllByText('▲ HP')).toHaveLength(2)
     expect(within(rook).getByText('Injured')).toBeTruthy()
   })

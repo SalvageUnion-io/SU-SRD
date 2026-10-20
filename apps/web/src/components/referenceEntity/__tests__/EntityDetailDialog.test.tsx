@@ -4,7 +4,7 @@
  * `presentation="page"` as its body (a chassis's stats leading it, the art its
  * hero), and the foot's citation in the card footer's plain text. Never a
  * framed card. Both openers draw it: `useDetailModal` and a
- * level-2 Token (N1). A pattern's Page links its chassis (`PATTERN OF | Mule`)
+ * level-2 Mini (N1). A pattern's Page links its chassis (`PATTERN OF | Mule`)
  * through the surface's Page opener, as the SRD's pattern page does.
  */
 import { describe, expect, mock, test } from 'bun:test'
@@ -161,7 +161,7 @@ describe('the detail dialog is the Page', () => {
     expect(within(dialog).queryByText('Pattern of')).toBeNull()
   })
 
-  test('a level-2 Token opens the same Page', () => {
+  test('a level-2 Mini opens the same Page', () => {
     render(<ReferenceEntityCard data={sestra()} presentation="page" />)
     fireEvent.click(screen.getByRole('button', { name: 'Open Hover Locomotion System' }))
     const dialog = screen.getByRole('dialog', { name: /^Hover Locomotion System/ })

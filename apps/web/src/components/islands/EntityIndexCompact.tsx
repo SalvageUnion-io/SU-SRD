@@ -12,11 +12,11 @@ type EntityListingRowProps = {
 
 /**
  * One entity in a schema listing (ruleset §1, Listing: "one card, one click";
- * entity display language E2, E11): a Row in link mode, the whole row a real
+ * entity display language E2, E11): a Compact in link mode, the whole row a real
  * `<a>` to the entity's page. Its head carries the name (two lines, then
  * clamped), its body the facts as Stats, the traits as Tags and the entity's
  * opening prose; its head's art window the artwork, where the entity has any.
  */
-export function EntityListingRow({ entity, href, omit }: EntityListingRowProps) {
-  return <Entity form="row" entity={entity} mode={{ kind: 'link', href }} omit={omit} lead />
+export function EntityIndexCompact({ entity, href, omit }: EntityListingRowProps) {
+  return <Entity size="compact" entity={entity} mode={{ kind: 'link', href }} omit={omit} lead />
 }

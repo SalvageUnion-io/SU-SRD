@@ -23,7 +23,7 @@ export const MAX_DEPTH = 3
  * What a card's own `[(CHASSIS)]` tokens read: a chassis's name, or a vehicle's
  * (the E-Boat's item reuses the Kraken's chassis text); nothing otherwise.
  */
-export function chassisTokenName(schemaName: string, name: string): string | undefined {
+export function chassisMiniName(schemaName: string, name: string): string | undefined {
   return schemaName === 'chassis' || schemaName === 'vehicles' ? name : undefined
 }
 
@@ -137,7 +137,7 @@ export function blockPlainText(b: RefObjectContentBlock): string {
  * What a card hides. CATALOG — the SRD index tile — keeps artwork and
  * description ONLY, so every nested element is suppressed here, not at each
  * call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing
- * acts, so the roll-table controls go too (the link and the nested Tokens
+ * acts, so the roll-table controls go too (the link and the nested Minis
  * are handled where they render).
  */
 export function resolveHide(

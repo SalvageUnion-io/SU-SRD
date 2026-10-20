@@ -167,7 +167,7 @@
   color: var(--color-ink);
 }
 
-/* Among chips (a sheet band's cluster, a Row's strip; a Token's is in
+/* Among chips (a sheet band's cluster, a Compact's strip; a Mini's is in
    `entity-forms.css`) it is one of them, drawn as a Stat cell of its Size is
    (§4.7): line-height 1 inside a Stat plate's 2px padding and a 1px rule, so
    it stands exactly as tall as a Stat of the same Size beside it, its word

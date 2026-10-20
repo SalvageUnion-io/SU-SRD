@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { listingViewStorageKey, PARAM_VIEW } from './listingParams'
 
 /**
- * How a listing lays its entities out: `catalog`, one flat grid of Tiles with
+ * How a listing lays its entities out: `catalog`, one flat grid of CompactIndexes with
  * no group headings, or `tree` (a `TREE_LISTINGS` schema only), each tree
  * under its heading on its class-page track. Every listing is a Catalog; only
  * a tree listing has a choice, and it opens on its Tree.

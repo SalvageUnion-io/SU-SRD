@@ -147,7 +147,7 @@ async function renderHub(over: QueryAnswers = {}): Promise<void> {
 
 const heading = (name: string) => screen.queryByRole('heading', { level: 2, name })
 
-/** An element's text as drawn: a bodyless Row's +MORE is hidden until a chip does not fit (C5). */
+/** An element's text as drawn: a bodyless Compact's +MORE is hidden until a chip does not fit (C5). */
 const drawnText = (el: Element) => {
   const copy = el.cloneNode(true) as Element
   for (const hidden of copy.querySelectorAll('[hidden]')) hidden.remove()
@@ -308,7 +308,7 @@ describe('Crew & seats', () => {
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const rows = seats.getAllByRole('listitem').map(drawnText)
     // Join order; a Mediator with no pilot is their name alone; an unclaimed pilot is an open seat.
-    // A pilot seat is the pilot's Row: who holds it, its role and HP, then its
+    // A pilot seat is the pilot's Compact: who holds it, its role and HP, then its
     // mech as a relation chip (C11).
     expect(rows).toEqual([
       'Ash (you)',
@@ -447,7 +447,7 @@ describe('Play from the Game page', () => {
     return screen.getByRole('dialog')
   }
 
-  /** The pilots on offer, as their Rows read: name, kind, then whose. */
+  /** The pilots on offer, as their Compacts read: name, kind, then whose. */
   const offered = (dialog: HTMLElement) => within(dialog).queryAllByRole('radio').map(drawnText)
 
   /** The body of `/play/<id>`, signed in and connected. */
@@ -511,7 +511,7 @@ describe('Play from the Game page', () => {
     // The pilot is the only choice on offer, and a crewmate's is not one.
     const radios = within(dialog).getAllByRole('radio')
     expect(within(dialog).queryAllByRole('combobox')).toHaveLength(0)
-    // The chosen Row wears the "Selected" seal.
+    // The chosen Compact wears the "Selected" seal.
     expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 

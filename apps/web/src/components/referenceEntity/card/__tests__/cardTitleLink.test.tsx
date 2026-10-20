@@ -1,6 +1,6 @@
 /**
  * Linked names (owner, 2026-10-20): a card met inside another, nested or the
- * Peek's, names its own Page, as a Token's name does. The Peek's is its
+ * Peek's, names its own Page, as a Mini's name does. The Peek's is its
  * plate's one link (R33), out of the tab order.
  */
 import { describe, expect, mock, test } from 'bun:test'
@@ -34,7 +34,7 @@ describe('linked names', () => {
     expect(link?.getAttribute('href')).toBe('/systems/frost-protection/')
     expect(link?.getAttribute('tabindex')).toBe('-1')
     expect(link?.hasAttribute('data-peek-open')).toBe(true)
-    expect(link?.closest('.su-entity-row__title')).not.toBeNull()
+    expect(link?.closest('.su-entity-compact__title')).not.toBeNull()
   })
 
   test("a Peek's name opens the app's Page where it has no route", () => {

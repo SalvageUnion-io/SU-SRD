@@ -29,7 +29,7 @@ export const resolveNestedEntities = nestedEntityGroups
 export const resolvePatternGroups = patternGroups
 
 /** A drone plus its resolved systems/modules loadout — on a Page, a compact
- * drone card with a Token for each system and module; elsewhere a Token (N1). */
+ * drone card with a Mini for each system and module; elsewhere a Mini (N1). */
 export type DroneLoadout = {
   drone: RefEntity
   systems: RefEntity[]

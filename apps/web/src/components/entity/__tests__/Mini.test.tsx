@@ -1,5 +1,5 @@
 /**
- * A Token carries the chip budget its container's context names
+ * A Mini carries the chip budget its container's context names
  * (`chips-and-actions.md`, C3 and C4): its rank (TL), the one fact the
  * context carries (a loadout's Slots or SP, play's action type or
  * `ACTIONS | 3`, a roster's vital), then the cost box. An ability's tier
@@ -26,14 +26,14 @@ const get = (schema: string, name: string) => {
 
 /** Each chip's text, and the cost box's, in order. */
 const chipsOf = (schema: string, name: string, context: ChipContext = 'loadout') => {
-  const { container } = render(<Entity form="token" context={context} entity={get(schema, name)} />)
-  const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
+  const { container } = render(<Entity size="mini" context={context} entity={get(schema, name)} />)
+  const chips = container.querySelector('.su-entity-mini__pill > .su-entity-mini__chips')
   return Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
     (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
   )
 }
 
-describe('Token chips', () => {
+describe('Mini chips', () => {
   test('in a loadout: TL, then what it takes, label first, then the cost box last', () => {
     expect(chipsOf('systems', 'Electro-Magnetic Shield Projector')).toEqual([
       'TL3',
@@ -42,10 +42,10 @@ describe('Token chips', () => {
     ])
     expect(chipsOf('systems', 'Red Laser')).toEqual(['TL1', 'Slots3'])
     const { container } = render(
-      <Entity form="token" context="loadout" entity={get('systems', 'Red Laser')} />
+      <Entity size="mini" context="loadout" entity={get('systems', 'Red Laser')} />
     )
     const slots = container.querySelector(
-      '.su-entity-token__chips > [data-chip-class="measure"] > :last-child'
+      '.su-entity-mini__chips > [data-chip-class="measure"] > :last-child'
     )
     expect(slots?.firstElementChild?.textContent).toBe('Slots')
   })
@@ -65,7 +65,7 @@ describe('Token chips', () => {
     expect(chipsOf('systems', 'Red Laser', 'browse')).toEqual(['TL1'])
   })
 
-  test('the range, damage and traits never reach a header-only Token', () => {
+  test('the range, damage and traits never reach a header-only Mini', () => {
     for (const context of ['loadout', 'play', 'inventory', 'roster', 'browse'] as const) {
       expect(chipsOf('systems', 'Red Laser', context).some((chip) => chip.startsWith('RNG'))).toBe(
         false
@@ -75,20 +75,20 @@ describe('Token chips', () => {
 
   test('an ability sets its tier numeral before its name, never a tree chip', () => {
     const { container } = render(
-      <Entity form="token" context="play" entity={get('abilities', 'Jury Rig')} />
+      <Entity size="mini" context="play" entity={get('abilities', 'Jury Rig')} />
     )
-    const pill = container.querySelector('.su-entity-token__pill')
-    const tier = pill?.querySelector('.su-entity-token__tier')
+    const pill = container.querySelector('.su-entity-mini__pill')
+    const tier = pill?.querySelector('.su-entity-mini__tier')
     expect(tier?.textContent).toBe('1')
-    expect(tier?.nextElementSibling?.className).toBe('su-entity-token__notch')
+    expect(tier?.nextElementSibling?.className).toBe('su-entity-mini__notch')
     expect(
       chipsOf('abilities', 'Jury Rig', 'play').some((chip) => chip.startsWith('Forging'))
     ).toBe(false)
     // A Legendary has no numeral, as on its band.
     const legendary = render(
-      <Entity form="token" context="play" entity={get('abilities', 'Tip Top Shape')} />
+      <Entity size="mini" context="play" entity={get('abilities', 'Tip Top Shape')} />
     )
-    expect(legendary.container.querySelector('.su-entity-token__tier')).toBeNull()
+    expect(legendary.container.querySelector('.su-entity-mini__tier')).toBeNull()
     expect(
       chipsOf('abilities', 'Tip Top Shape', 'play').some((chip) => chip.startsWith('Legendary'))
     ).toBe(false)
@@ -101,13 +101,13 @@ describe('Token chips', () => {
   test("a host's trailing chip comes last, after the cost box", () => {
     const { container } = render(
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={get('systems', 'Electro-Magnetic Shield Projector')}
         trailing={<span>Damaged</span>}
       />
     )
-    const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
+    const chips = container.querySelector('.su-entity-mini__pill > .su-entity-mini__chips')
     // The cost lane, then the state lane (C8); a line keeps its empty lanes (C6).
     expect(chips?.querySelector('[data-chip-class="cost"]')?.textContent).toBe('2 EP')
     const filled = [...(chips?.children ?? [])].filter((lane) => lane.childElementCount > 0)
@@ -118,13 +118,13 @@ describe('Token chips', () => {
   test('a trailing chip alone still draws the chip group', () => {
     const { container } = render(
       <Entity
-        form="token"
+        size="mini"
         context="browse"
         entity={get('crawler-bays', 'Mech Bay')}
         trailing={<span>Damaged</span>}
       />
     )
-    const chips = container.querySelector('.su-entity-token__chips')
+    const chips = container.querySelector('.su-entity-mini__chips')
     expect(chips?.querySelector('[data-chip-class="state"]')?.textContent).toBe('Damaged')
   })
 })
@@ -146,11 +146,11 @@ describe('one chassis chip set in every form', () => {
   })
 })
 
-describe('a down Token', () => {
+describe('a down Mini', () => {
   const pill = (condition?: 'damaged' | 'destroyed') =>
     render(
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={get('systems', 'Red Laser')}
         instance={condition ? { condition } : undefined}
@@ -176,48 +176,48 @@ const ruleOf = (selector: string) => {
   return css.slice(css.indexOf('{', at) + 1, css.indexOf('}', at))
 }
 
-describe('a Token fills its line (N4)', () => {
-  test("in its own rule, not its callers': the Token and its pill grow to the line", () => {
-    const token = ruleOf('.su-entity-token,\n.su-entity-token__head')
+describe('a Mini fills its line (N4)', () => {
+  test("in its own rule, not its callers': the Mini and its pill grow to the line", () => {
+    const token = ruleOf('.su-entity-mini,\n.su-entity-mini__head')
     expect(token).toContain('display: flex;')
     expect(token).toContain('flex: 1 1 auto;')
     expect(token).toContain('min-width: 0;')
-    const pill = ruleOf('.su-entity-token__pill')
+    const pill = ruleOf('.su-entity-mini__pill')
     expect(pill).toContain('display: flex;')
     expect(pill).toContain('flex: 1 1 auto;')
   })
 
-  test('no caller holds a Token to its content width', () => {
+  test('no caller holds a Mini to its content width', () => {
     const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
-    expect(css).not.toMatch(/\.su-entity-token\s*\{[^}]*flex: 0 1 auto/)
+    expect(css).not.toMatch(/\.su-entity-mini\s*\{[^}]*flex: 0 1 auto/)
   })
 })
 
-describe('the contentful Token (N3)', () => {
+describe('the contentful Mini (N3)', () => {
   const shield = () => get('actions', 'Electro-Magnetic Shield Projector')
 
   test('header-only is its head alone, as before: the surface holds the pill and nothing else', () => {
     const { container } = render(
-      <Entity form="token" context="loadout" entity={get('systems', 'Red Laser')} />
+      <Entity size="mini" context="loadout" entity={get('systems', 'Red Laser')} />
     )
     const token = container.firstElementChild
-    expect(token?.className).toBe('su-entity-token')
+    expect(token?.className).toBe('su-entity-mini')
     expect(token?.hasAttribute('data-contentful')).toBe(false)
     expect(Array.from(token?.children ?? []).map((child) => child.classList[0])).toEqual([
-      'su-entity-token__pill',
+      'su-entity-mini__pill',
     ])
-    expect(container.querySelector('.su-entity-token__body')).toBeNull()
+    expect(container.querySelector('.su-entity-mini__body')).toBeNull()
   })
 
   test("a body draws the one-row head, then the entity's text under it, outside the pill", () => {
     const { container } = render(
-      <Entity form="token" context="loadout" entity={shield()} body={{}} />
+      <Entity size="mini" context="loadout" entity={shield()} body={{}} />
     )
-    const token = container.querySelector('.su-entity-token[data-contentful]')
+    const token = container.querySelector('.su-entity-mini[data-contentful]')
     const [head, body] = Array.from(token?.children ?? [])
-    expect(head?.className).toContain('su-entity-token__head')
-    expect(head?.firstElementChild?.classList[0]).toBe('su-entity-token__pill')
-    expect(body?.className).toBe('su-entity-token__body')
+    expect(head?.className).toContain('su-entity-mini__head')
+    expect(head?.firstElementChild?.classList[0]).toBe('su-entity-mini__pill')
+    expect(body?.className).toBe('su-entity-mini__body')
     // Every paragraph of the action's rules, not only its opening one.
     expect(body?.textContent).toContain('electro-magnetic field')
     expect(body?.textContent).toContain('When you or a target in Close Range is hit')
@@ -226,28 +226,28 @@ describe('the contentful Token (N3)', () => {
 
   test("the body is held by a border in the pill's own tone, hung from the pill", () => {
     const { container } = render(
-      <Entity form="token" context="loadout" entity={shield()} body={{}} />
+      <Entity size="mini" context="loadout" entity={shield()} body={{}} />
     )
-    const pill = container.querySelector<HTMLElement>('.su-entity-token__pill')
-    const body = container.querySelector<HTMLElement>('.su-entity-token__body')
+    const pill = container.querySelector<HTMLElement>('.su-entity-mini__pill')
+    const body = container.querySelector<HTMLElement>('.su-entity-mini__body')
     expect(pill?.style.backgroundColor).not.toBe('')
     expect(body?.style.borderColor).toBe(pill?.style.backgroundColor ?? '')
     const css = readPackageStylesheet()
     expect(css).toMatch(
-      /\.su-entity-token__body \{[^}]*border-top: 0;[^}]*border-width: var\(--bw-chrome\);/
+      /\.su-entity-mini__body \{[^}]*border-top: 0;[^}]*border-width: var\(--bw-chrome\);/
     )
-    expect(css).toMatch(/\.su-entity-token\[data-contentful\] \{[^}]*gap: 0;/)
+    expect(css).toMatch(/\.su-entity-mini\[data-contentful\] \{[^}]*gap: 0;/)
   })
 
   test('its head chips run in the class order: action type, range, traits, then the cost box', () => {
-    const { container } = render(<Entity form="token" context="play" entity={shield()} body={{}} />)
-    const chips = container.querySelector('.su-entity-token__head .su-entity-token__chips')
+    const { container } = render(<Entity size="mini" context="play" entity={shield()} body={{}} />)
+    const chips = container.querySelector('.su-entity-mini__head .su-entity-mini__chips')
     expect(
       Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
         (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
       )
     ).toEqual(['Reaction', 'RNGC', 'Shield', '2 EP'])
-    // Header-only keeps its budget: the range and traits are the Row's.
+    // Header-only keeps its budget: the range and traits are the Compact's.
     expect(chipsOf('actions', 'Electro-Magnetic Shield Projector', 'play')).toEqual([
       'Reaction',
       '2 EP',
@@ -256,17 +256,17 @@ describe('the contentful Token (N3)', () => {
 
   test('the head stays one row (E18): its name keeps the ellipsis and the chips their whole budget', () => {
     const { container } = render(
-      <Entity form="token" context="loadout" entity={shield()} body={{}} />
+      <Entity size="mini" context="loadout" entity={shield()} body={{}} />
     )
-    const pill = container.querySelector('.su-entity-token__head > .su-entity-token__pill')
-    expect(pill?.querySelector('.su-entity-token__notch > .su-entity-token__name')).not.toBeNull()
-    expect(pill?.querySelector(':scope > .su-entity-token__chips')).not.toBeNull()
-    expect(ruleOf('.su-entity-token__pill')).toContain('white-space: nowrap;')
-    const name = ruleOf('.su-entity-token__name')
+    const pill = container.querySelector('.su-entity-mini__head > .su-entity-mini__pill')
+    expect(pill?.querySelector('.su-entity-mini__notch > .su-entity-mini__name')).not.toBeNull()
+    expect(pill?.querySelector(':scope > .su-entity-mini__chips')).not.toBeNull()
+    expect(ruleOf('.su-entity-mini__pill')).toContain('white-space: nowrap;')
+    const name = ruleOf('.su-entity-mini__name')
     expect(name).toContain('text-overflow: ellipsis;')
     expect(name).toContain('white-space: nowrap;')
     // Whole chips on one line, never clamped or clipped (C3, C5): the name gives way.
-    const chips = ruleOf('.su-entity-token__chips')
+    const chips = ruleOf('.su-entity-mini__chips')
     expect(chips).toContain('flex: none;')
     expect(chips).toContain('flex-wrap: nowrap;')
     expect(chips).not.toContain('overflow')
@@ -276,9 +276,9 @@ describe('the contentful Token (N3)', () => {
 
   test('an entity with no prose of its own reads its lead (an ability its description)', () => {
     const { container } = render(
-      <Entity form="token" context="loadout" entity={get('abilities', 'Jury Rig')} body={{}} />
+      <Entity size="mini" context="loadout" entity={get('abilities', 'Jury Rig')} body={{}} />
     )
-    expect(container.querySelector('.su-entity-token__body')?.textContent).toBe(
+    expect(container.querySelector('.su-entity-mini__body')?.textContent).toBe(
       'Craft improvised equipment from everyday items.'
     )
   })
@@ -286,29 +286,29 @@ describe('the contentful Token (N3)', () => {
   test("the host's content follows the text; without the text it is the whole body", () => {
     const withText = render(
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={shield()}
         body={{ children: <p>Keepsake: a brass key</p> }}
       />
-    ).container.querySelector('.su-entity-token__body')
+    ).container.querySelector('.su-entity-mini__body')
     expect(withText?.lastElementChild?.textContent).toBe('Keepsake: a brass key')
     expect(withText?.textContent).toContain('electro-magnetic field')
     const alone = render(
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={shield()}
         body={{ text: false, children: <p>Keepsake: a brass key</p> }}
       />
-    ).container.querySelector('.su-entity-token__body')
+    ).container.querySelector('.su-entity-mini__body')
     expect(alone?.textContent).toBe('Keepsake: a brass key')
   })
 
   test('only the head links and Peeks: the body never nests in its link', () => {
     const { container } = render(
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={get('systems', 'Red Laser')}
         mode={{ kind: 'link', href: '/systems/red-laser/' }}
@@ -316,17 +316,17 @@ describe('the contentful Token (N3)', () => {
       />
     )
     const link = container.querySelector('a')
-    expect(link?.className).toContain('su-entity-token__head')
+    expect(link?.className).toContain('su-entity-mini__head')
     expect(link?.hasAttribute('data-peek')).toBe(true)
     expect(link?.querySelector('button')).toBeNull()
-    expect(container.querySelector('.su-entity-token__body button')).not.toBeNull()
+    expect(container.querySelector('.su-entity-mini__body button')).not.toBeNull()
   })
 
   test('inside a Peek it reads and is terminal (E16): no link, no Peek of its own', () => {
     const { container } = render(
       <InsidePeekContext.Provider value={true}>
         <Entity
-          form="token"
+          size="mini"
           context="loadout"
           entity={get('systems', 'Red Laser')}
           mode={{ kind: 'link', href: '/systems/red-laser/' }}
@@ -336,34 +336,34 @@ describe('the contentful Token (N3)', () => {
     )
     expect(container.querySelector('a')).toBeNull()
     expect(container.querySelector('[data-peek]')).toBeNull()
-    expect(container.querySelector('.su-entity-token__body')).not.toBeNull()
+    expect(container.querySelector('.su-entity-mini__body')).not.toBeNull()
   })
 })
 
-describe("a contentful Token's overflow row (C2b)", () => {
+describe("a contentful Mini's overflow row (C2b)", () => {
   const meld = () => get('abilities', 'Meld Form')
 
   test("is its body's first row, drawn empty and hidden until a chip does not fit", () => {
     const { container } = render(
       <Entity
-        form="token"
+        size="mini"
         context="play"
         entity={meld()}
         mode={{ kind: 'link', href: '/abilities/meld-form/' }}
         body={{}}
       />
     )
-    const body = container.querySelector('.su-entity-token__body')
+    const body = container.querySelector('.su-entity-mini__body')
     const row = body?.firstElementChild as HTMLElement | null
     expect(row?.hasAttribute('data-chip-overflow')).toBe(true)
     expect(row?.hidden).toBe(true)
     expect(row?.childElementCount).toBe(0)
-    // No +MORE on a contentful Token: its body has the room (C5).
-    expect(container.querySelector('.su-chip-more, .su-entity-token__more')).toBeNull()
+    // No +MORE on a contentful Mini: its body has the room (C5).
+    expect(container.querySelector('.su-chip-more, .su-entity-mini__more')).toBeNull()
   })
 
-  test('a header-only Token has no overflow row', () => {
-    const { container } = render(<Entity form="token" context="play" entity={meld()} />)
+  test('a header-only Mini has no overflow row', () => {
+    const { container } = render(<Entity size="mini" context="play" entity={meld()} />)
     expect(container.querySelector('[data-chip-overflow]')).toBeNull()
   })
 
@@ -372,13 +372,13 @@ describe("a contentful Token's overflow row (C2b)", () => {
     expect(out).toContain('display: none;')
     const css = readPackageStylesheet()
     const selectors = css.slice(css.lastIndexOf('\n[data-chip-fill] [data-fill-out]'))
-    expect(selectors).toContain('.su-entity-token__chips\n  [data-fill-out]')
+    expect(selectors).toContain('.su-entity-mini__chips\n  [data-fill-out]')
     expect(selectors.indexOf('{')).toBeGreaterThan(selectors.indexOf('.su-chip-more[hidden]'))
     expect(ruleOf('.su-chip-overflow[hidden]')).toContain('display: none;')
   })
 
   test("the out state comes after a fill chip's own display, which is as specific", () => {
-    // A Tile's out chips drew in its head as well as in its first row while
+    // A CompactIndex's out chips drew in its head as well as in its first row while
     // the fill chips' `display` came later in the file (cceb4a527).
     const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
     const fillChip = css.lastIndexOf('> .su-chip-lane\n  > * {')

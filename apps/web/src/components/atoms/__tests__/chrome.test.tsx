@@ -85,7 +85,7 @@ describe('Field — typeset read state', () => {
     expect(container).toBeTruthy()
   })
 
-  test('a read value that is a node (a Token) replaces the text; edit keeps the text', () => {
+  test('a read value that is a node (a Mini) replaces the text; edit keeps the text', () => {
     render(<Field label="Chassis" value="Mule" readValue={<a href="/chassis/mule/">Mule</a>} />)
     expect(screen.getByRole('link', { name: 'Mule' })).toBeTruthy()
     expect(screen.queryByText('Mule', { selector: 'p' })).toBeNull()

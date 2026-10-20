@@ -18,7 +18,7 @@ import { EntityStat } from '../../entity'
  *
  * The Page band carries them, and every card head whose budget has relations
  * (C3: a compact or full Card, a Peek, where they only read, ruleset §1.6). A
- * Token's are its Peek's.
+ * Mini's are its Peek's.
  */
 export type EntityRelation = {
   /** The relation, label first: 'Tree', 'Preceding', 'Next'. */

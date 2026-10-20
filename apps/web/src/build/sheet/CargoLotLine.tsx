@@ -1,11 +1,11 @@
 /**
  * CargoLotLine — one cargo lot, drawn the one way wherever a hold lists it
  * (the mech and crawler Holds, a partner's hold). A lot is a carried thing the
- * reference does not hold (ruleset §6.6), so it is a Token from its synthetic
+ * reference does not hold (ruleset §6.6), so it is a Mini from its synthetic
  * model on the sheet's item line (`SheetItemLine`): its Tech Level the rank
  * where it has one, `UNITS | 3` in the loadout lane, and a bulk lot whose
  * count is not its units its quantity as the state (`× | 6`). The host's moves
- * (Stow, Load, Unload, Unstow) are the chip group's last slot, at the Token's
+ * (Stow, Load, Unload, Unstow) are the chip group's last slot, at the Mini's
  * Size (R6); in Read there are none.
  */
 
@@ -35,7 +35,7 @@ export function CargoLotLine({ lot, actions }: { lot: LotFacts; actions?: ReactN
       <SheetItemLine
         token={
           <Entity
-            form="token"
+            size="mini"
             context="loadout"
             model={model}
             mode={{ kind: 'read' }}

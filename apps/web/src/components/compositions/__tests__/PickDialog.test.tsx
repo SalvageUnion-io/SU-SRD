@@ -1,6 +1,6 @@
 /**
  * PickDialog — the one pick dialog (ruleset §6.6, hard rule R24): one radio
- * group of Rows, a titled group under its Slab, one empty state, and the act
+ * group of Compacts, a titled group under its Slab, one empty state, and the act
  * off until something is picked.
  */
 import { describe, expect, test } from 'bun:test'
@@ -58,7 +58,7 @@ describe('PickDialog', () => {
     expect(act.disabled).toBe(true)
   })
 
-  test('a pick checks its Row and turns the act on', () => {
+  test('a pick checks its Compact and turns the act on', () => {
     const { confirmed } = pick({ selected: 'p1' })
     expect(screen.getByRole('radio', { name: 'Bonesaw' }).getAttribute('aria-checked')).toBe('true')
     fireEvent.click(screen.getByRole('button', { name: 'Move in' }))

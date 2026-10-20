@@ -175,7 +175,7 @@ describe('chrome-tokens/dashed', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
       [
-        '.su-entity-row__frame[data-user-made] { border-style: dashed; }',
+        '.su-entity-compact__frame[data-user-made] { border-style: dashed; }',
         '.su-badge--dashed { border: 1px dashed; }',
         '.frame[data-reference] { border-style: dashed; }',
         '.su-field__write-cue { border-style: dashed; }',
@@ -435,9 +435,9 @@ describe('chrome-tokens/entity-frame-ink', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
       [
-        '.su-entity-row__frame { border-color: var(--su-row-frame, var(--color-ink)); }',
-        '.su-token-group { border: var(--bw-chrome) solid var(--color-ink); }',
-        '.x .su-entity-token__body, .y { border-top-color: var(--color-ink-deep); }',
+        '.su-entity-compact__frame { border-color: var(--su-compact-frame, var(--color-ink)); }',
+        '.su-mini-group { border: var(--bw-chrome) solid var(--color-ink); }',
+        '.x .su-entity-mini__body, .y { border-top-color: var(--color-ink-deep); }',
         '.su-ec-frame[data-x] { border-color: var(--color-ink-2); }',
       ].join('\n')
     )
@@ -448,16 +448,16 @@ describe('chrome-tokens/entity-frame-ink', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
       [
-        '.su-entity-row__frame { border-color: var(--su-row-frame, var(--color-ink-40)); }',
+        '.su-entity-compact__frame { border-color: var(--su-compact-frame, var(--color-ink-40)); }',
         '.su-ec-frame { border-width: var(--bw-entity); border-style: solid; }',
         '.su-ec-frame > .su-ec-band { border-bottom: var(--bw-chrome) solid var(--color-ink); }',
-        '.su-entity-row__frame-x { border-color: var(--color-ink); }',
+        '.su-entity-compact__frame-x { border-color: var(--color-ink); }',
       ].join('\n')
     )
     expect(css['entity-frame-ink']).toEqual([])
   })
 
-  test("a frame's style object takes only the subtle ink, clear or --su-row-frame", () => {
+  test("a frame's style object takes only the subtle ink, clear or --su-compact-frame", () => {
     const rel = ENTITY_FRAME_STYLE_FILES[0] as string
     const bad = scan(
       rel,
@@ -469,7 +469,7 @@ describe('chrome-tokens/entity-frame-ink', () => {
       [
         'const A = { borderColor: color.ink40 }',
         "const B = { borderColor: 'transparent' }",
-        "const C = { borderColor: 'var(--su-row-frame, var(--color-ink-40))' }",
+        "const C = { borderColor: 'var(--su-compact-frame, var(--color-ink-40))' }",
       ].join('\n')
     )
     expect(good['entity-frame-ink']).toEqual([])

@@ -1,8 +1,8 @@
 /**
  * CrewSeats — "Crew & seats" on a Game's own page (board M2;
- * docs/architecture/play.md §16): the crawler as a Row, then
+ * docs/architecture/play.md §16): the crawler as a Compact, then
  * one entry per member's pilot, then the open seats, drawn as every crew list
- * draws them: the pilot's Row, opening its sheet (a Manage Row links, ruleset
+ * draws them: the pilot's Compact, opening its sheet (a Manage Compact links, ruleset
  * §1.9), with who holds the seat right of the name, the seat's role (PLAYER or
  * OPEN), the pilot's `HP | current/max` (`crew.vitals`) and its assigned mech
  * as a relation chip, `MECH | name`, opening the mech's sheet (C11).
@@ -77,7 +77,7 @@ function Seat({ row }: { row: SeatRow }) {
       mode={{ kind: 'link', href }}
       note={row.role === 'Mediator' ? undefined : row.role}
       readings={row.hp === null ? undefined : [{ label: 'HP', value: row.hp }]}
-      // Who holds the seat: the Row's first chip.
+      // Who holds the seat: the Compact's first chip.
       labels={row.role === 'Open' ? undefined : <Stat label={row.who} size="compact" />}
       // The mech the pilot is assigned, a relation chip opening its sheet (C11);
       // on foot the lane stays empty (C6).

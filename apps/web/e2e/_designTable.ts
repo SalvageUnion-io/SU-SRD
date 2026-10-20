@@ -121,7 +121,7 @@ export const designRoutes: readonly DesignRoute[] = [
   // Reference: an SRD Page and an index.
   { family: 'reference-page', path: '/chassis/mazona/', widths: BOTH },
   { family: 'reference-index', path: '/systems/', widths: BOTH },
-  // Listing: search-result Rows, the 404's guesses for a missed address.
+  // Listing: search-result Compacts, the 404's guesses for a missed address.
   { family: 'listing', path: '/drill/', widths: BOTH },
   // Peek: a chassis, from the bar's search over an index.
   {

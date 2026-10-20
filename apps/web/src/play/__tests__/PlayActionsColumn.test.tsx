@@ -1,8 +1,8 @@
 /**
  * The Actions column outside Downtime (play.md §5), with the deck's and the
- * Resolve tab's tests ported to the one list: every action is a level-1 Row
+ * Resolve tab's tests ported to the one list: every action is a level-1 Compact
  * under On hand or Not on hand, the type filter and Find narrow it, Use opens
- * the resolve in the Row itself (Activate, Roll, Push?, Apply), each step is
+ * the resolve in the Compact itself (Activate, Roll, Push?, Apply), each step is
  * written to the seat's `resolving` (so a reload keeps it), and every roll is
  * recorded on Play's roll log (`playRolls.model`). The Reactor and Mount are rows too.
  *
@@ -237,27 +237,27 @@ describe('the list', () => {
     expect(names).toEqual([`Use ${primary().name}`])
   })
 
-  test('each action is a contentful Token in the Token grid, its text under its head', () => {
+  test('each action is a contentful Mini in the Mini grid, its text under its head', () => {
     renderBoarded()
     const list = onHand()
-    expect(list.classList.contains('su-token-grid')).toBe(true)
+    expect(list.classList.contains('su-mini-grid')).toBe(true)
     expect(list.hasAttribute('data-play-list')).toBe(true)
     const token = rowFor(primary().name).querySelector('[data-contentful]')
-    expect(token?.querySelector('.su-entity-token__body')?.textContent?.trim()).not.toBe('')
+    expect(token?.querySelector('.su-entity-mini__body')?.textContent?.trim()).not.toBe('')
     // Use rides the head's chip group, at the chips' Mini Size (C8).
     const useButton = use(primary().name)
     expect(useButton.closest('[data-chip-group]')).not.toBeNull()
     expect(useButton.classList.contains('su-btn--mini')).toBe(true)
   })
 
-  test('nesting: no titled box, Row or Card head sits inside another', () => {
+  test('nesting: no titled box, Compact or Card head sits inside another', () => {
     renderBoarded()
-    expect(document.querySelector('.su-entity-row .su-entity-row')).toBeNull()
+    expect(document.querySelector('.su-entity-compact .su-entity-compact')).toBeNull()
   })
 })
 
-describe('Use: the resolve, in the Row', () => {
-  test('Use opens the Row in place with Activate and Roll, and Cancel in its head', async () => {
+describe('Use: the resolve, in the Compact', () => {
+  test('Use opens the Compact in place with Activate and Roll, and Cancel in its head', async () => {
     const { writes } = renderBoarded()
     await click(use(primary().name))
     const row = rowFor(primary().name)
@@ -351,7 +351,7 @@ describe('Use: the resolve, in the Row', () => {
     expect(steps).toEqual(['open', 'activated', 'roll 14', 'clear'])
   })
 
-  test('a reload mid-resolve keeps the roll: the seat reopens the Row on it', () => {
+  test('a reload mid-resolve keeps the roll: the seat reopens the Compact on it', () => {
     const p = primary()
     const key = primaryKey()
     renderBoarded({

@@ -25,7 +25,7 @@ const CARD_BAND = {
   padding: `${space[8]} ${space[12]}`,
 } satisfies CSSProperties
 
-/** Row's frame (`entity/forms/Row`): a paper plate with a hairline edge. */
+/** Compact's frame (`entity/forms/Compact`): a paper plate with a hairline edge. */
 const ROW = {
   borderRadius: radius.card,
   borderStyle: 'solid',
@@ -60,10 +60,10 @@ type SkeletonShape = 'card' | 'rows'
 type SkeletonProps = {
   /**
    * The form it stands in for: 'card' (default) the compact card; 'rows' a
-   * list of `count` Rows.
+   * list of `count` Compacts.
    */
   shape?: SkeletonShape
-  /** 'rows' only: how many Rows (default 3). */
+  /** 'rows' only: how many Compacts (default 3). */
   count?: number
   /** What is loading, for the status's name: `the crew` → "Loading the crew…". */
   label?: string
@@ -94,7 +94,7 @@ export function SkeletonFrame({ label, as: As = 'div', style, children }: Skelet
   )
 }
 
-/** One Row-shaped ghost plate, unannounced: the unit 'rows' (and
+/** One Compact-shaped ghost plate, unannounced: the unit 'rows' (and
  * `RosterSkeleton`'s columns) are built from. */
 export function GhostRow() {
   return (
@@ -126,7 +126,7 @@ function CardGhost() {
  *
  * Mirrors the anatomy of the form it stands in for with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**: the
- * compact (medium) card's frame / band / body by default, or a list of Rows.
+ * compact (medium) card's frame / band / body by default, or a list of Compacts.
  */
 export function Skeleton({ shape = 'card', count = 3, label }: SkeletonProps) {
   if (shape === 'rows') {

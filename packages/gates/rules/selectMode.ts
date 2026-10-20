@@ -3,8 +3,8 @@
  * rule R15 (`docs/design-system/hard-rules.md`, EDL Modes).
  *
  * One select mode in every picker, wizard and searcher: at level 1 a selected
- * Row or Card wears the ink ring and the "Selected" seal; at level 2 the
- * in-card toggle Token wears the ring alone; an option the picker cannot take,
+ * Compact or Card wears the ink ring and the "Selected" seal; at level 2 the
+ * in-card toggle Mini wears the ring alone; an option the picker cannot take,
  * demotes or has not chosen wears the one dim (`SELECT_DIM`, the card's
  * `selectable={false}`); a single choice is a radio. Before it a wizard Card
  * showed no seal, the searcher hand-built a "Chosen" plate, a level-2 choice
@@ -50,9 +50,9 @@ const PICKER_MARKS: readonly RegExp[] = [
 const SELECT_PARTS = new Set([
   'apps/web/src/components/entity/modes/select.tsx',
   // Its 0.6 is a down unit's condition, not a pick's state.
-  'apps/web/src/components/entity/forms/Row.tsx',
-  // The toggle Token's select (EDL Modes); its body's 0.6 is a down unit's condition.
-  'apps/web/src/components/entity/forms/Token.tsx',
+  'apps/web/src/components/entity/forms/Compact.tsx',
+  // The toggle Mini's select (EDL Modes); its body's 0.6 is a down unit's condition.
+  'apps/web/src/components/entity/forms/Mini.tsx',
   'apps/web/src/components/containers/RadioCardGroup.tsx',
   'apps/web/src/components/atoms/Checkbox.tsx',
   'apps/web/src/components/atoms/Radio.tsx',
@@ -64,10 +64,10 @@ const SELECT_PARTS = new Set([
  */
 const SEAL_HOSTS: Record<string, string> = {
   'apps/web/src/components/entity/modes/select.tsx': 'the seal itself',
-  'apps/web/src/components/entity/forms/Row.tsx': 'a Row (level 1)',
+  'apps/web/src/components/entity/forms/Compact.tsx': 'a Compact (level 1)',
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': "a Card's head (level 1)",
   'apps/web/src/components/containers/TitledBox.tsx':
-    "a level-1 pick that is no entity: select mode on the Row's frame",
+    "a level-1 pick that is no entity: select mode on the Compact's frame",
   'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx':
     'a choice option on its Page (level 1)',
   'apps/web/src/components/compositions/EntitySearcher.tsx': "the searcher's list (level 1)",
@@ -151,8 +151,8 @@ const RULES: Rule[] = [
   {
     id: 'level-2-seal',
     mode: 'zero',
-    rule: 'hard rule R15 (EDL Modes, N7) — the "Selected" seal is a level-1 Row\'s or Card\'s; a level-2 choice is ringed, never sealed',
-    fix: "At level 2 pass `selected` to the Token (the ring alone). At level 1 select through a Row's `select` mode, a Card's `selected` or a TitledBox's `select`, which seal it; a new level-1 form joins SEAL_HOSTS in packages/gates/rules/selectMode.ts.",
+    rule: 'hard rule R15 (EDL Modes, N7) — the "Selected" seal is a level-1 Compact\'s or Card\'s; a level-2 choice is ringed, never sealed',
+    fix: "At level 2 pass `selected` to the Mini (the ring alone). At level 1 select through a Compact's `select` mode, a Card's `selected` or a TitledBox's `select`, which seal it; a new level-1 form joins SEAL_HOSTS in packages/gates/rules/selectMode.ts.",
   },
 ]
 

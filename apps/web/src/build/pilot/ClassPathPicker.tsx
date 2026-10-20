@@ -107,7 +107,7 @@ function OptionCard({
 
 /**
  * One of the ledger's lists under its Slab, a line each: a class it names is
- * its Token (it Peeks the class); a tree or a cost is a line of text, since a
+ * its Mini (it Peeks the class); a tree or a cost is a line of text, since a
  * tree is no entity of its own.
  */
 function LedgerList({
@@ -122,13 +122,13 @@ function LedgerList({
   if (items.length === 0) return null
   return (
     <SlabSection title={label} aria-label={label}>
-      <ul className="su-entity-token-list">
+      <ul className="su-entity-mini-list">
         {items.map((item) => {
           const cls = allClasses.find((c) => c.name === item)
           return (
             <li key={item}>
               {cls ? (
-                <Entity form="token" context="browse" entity={cls} />
+                <Entity size="mini" context="browse" entity={cls} />
               ) : (
                 <span style={LEDGER_LINE}>{item}</span>
               )}
@@ -203,7 +203,7 @@ export function ClassPathPicker({
 
             {consequence.needsOrigin && (
               // The note, then its picks: level-1 cards as the class list's
-              // (N7: select is never a Token), beside it, not inside it.
+              // (N7: select is never a Mini), beside it, not inside it.
               <>
                 <Callout tone="ink">
                   <p style={ORIGIN_COPY}>

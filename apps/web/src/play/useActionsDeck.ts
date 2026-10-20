@@ -2,13 +2,13 @@
  * useActionsDeck — the rules and store half of an action's resolve (play.md
  * §5): it builds the deck the mount allows and drives Activate / Roll / Push /
  * Apply under the ADR-007 automation boundary, then hands `PlayResolveSteps`
- * a pure `ResolveModel` to draw inside the action's Token.
+ * a pure `ResolveModel` to draw inside the action's Mini.
  *
  *   Activate  → pay EP/AP + Hot Heat, decrement Uses (auto bookkeeping)
  *   Roll      → the Core Mechanic d20 + its band
  *   Push      → reroll the d20, +2 Heat, forcing a Heat Check (mech deck only)
  *   Apply     → commit the rolled outcome (a Cascade Failure is never
- *               auto-written: the Token says to take the damage on the mech)
+ *               auto-written: the Mini says to take the damage on the mech)
  *
  * **The resolve in progress lives on the seat** (`resolving`, ADR-038 §2):
  * which action, whether it is activated, the roll and whether it was applied.
@@ -131,7 +131,7 @@ export type ResolveModel =
         bandRange: string
         bandLabel: string
         bandSummary: string
-        /** A Cascade Failure: Apply hands it to the Row's Callout, never writes it. */
+        /** A Cascade Failure: Apply hands it to the Compact's Callout, never writes it. */
         destructive: boolean
       } | null
       pushLog?: string | null

@@ -1,8 +1,8 @@
 /**
- * A contentful Token's overflow (`chips-and-actions.md` C2b): its head is one
+ * A contentful Mini's overflow (`chips-and-actions.md` C2b): its head is one
  * line, and what of its chips does not fit beside the name's floor leaves the
  * head for its body's first row. `stripRoom` is the arithmetic;
- * `fitTokenOverflow` reads a Token laid out by a stand-in for the browser.
+ * `fitTokenOverflow` reads a Mini laid out by a stand-in for the browser.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
 import {
@@ -26,26 +26,26 @@ describe('stripRoom', () => {
 })
 
 /**
- * A contentful Token as `Token` draws it: the head and its pill (`pill` wide,
+ * A contentful Mini as `Mini` draws it: the head and its pill (`pill` wide,
  * a 6px column gap), the name's cut-out, the strip (a 4px gap) with an
  * economy lane of `widths` and, given `cost`, a cost lane; then the body, its
  * overflow row first. Each chip measures its `data-w`.
  */
 function token(widths: number[], { pill, cost }: { pill: number; cost?: number }) {
   const el = document.createElement('div')
-  el.className = 'su-entity-token'
+  el.className = 'su-entity-mini'
   el.setAttribute('data-contentful', '')
   el.innerHTML = `
-    <a class="su-entity-token__head"><span class="su-entity-token__pill" style="column-gap: 6px">
-      <span class="su-entity-token__notch"><span class="su-entity-token__name">Name</span></span>
-      <span class="su-chips su-entity-token__chips" style="column-gap: 4px">
+    <a class="su-entity-mini__head"><span class="su-entity-mini__pill" style="column-gap: 6px">
+      <span class="su-entity-mini__notch"><span class="su-entity-mini__name">Name</span></span>
+      <span class="su-chips su-entity-mini__chips" style="column-gap: 4px">
         <span class="su-chip-lane" data-chip-class="economy">${widths.map((w, i) => `<span data-w="${w}" id="c${i}">chip ${i}</span>`).join('')}</span>
         ${cost === undefined ? '' : `<span class="su-chip-lane" data-chip-class="cost"><span data-w="${cost}" data-cost>cost</span></span>`}
       </span>
     </span></a>
-    <div class="su-entity-token__body"><div class="su-chips su-chip-overflow" data-chip-overflow hidden></div><p>Text</p></div>`
+    <div class="su-entity-mini__body"><div class="su-chips su-chip-overflow" data-chip-overflow hidden></div><p>Text</p></div>`
   document.body.append(el)
-  const pillEl = el.querySelector('.su-entity-token__pill') as HTMLElement
+  const pillEl = el.querySelector('.su-entity-mini__pill') as HTMLElement
   let width = pill
   Object.defineProperty(pillEl, 'clientWidth', { get: () => width })
   for (const chip of el.querySelectorAll<HTMLElement>('[data-w]')) {
@@ -53,7 +53,7 @@ function token(widths: number[], { pill, cost }: { pill: number; cost?: number }
   }
   const row = el.querySelector('[data-chip-overflow]') as HTMLElement
   const out = () =>
-    [...el.querySelectorAll<HTMLElement>('.su-entity-token__chips [data-w]')]
+    [...el.querySelectorAll<HTMLElement>('.su-entity-mini__chips [data-w]')]
       .filter((c) => c.hasAttribute('data-fill-out'))
       .map((c) => c.textContent)
   const widen = (to: number) => {
@@ -108,10 +108,9 @@ describe('fitTokenOverflow', () => {
     expect(t.row.children.length).toBe(0)
   })
 
-  test('a Token with no overflow row is left as it is', () => {
+  test('a Mini with no overflow row is left as it is', () => {
     const el = document.createElement('div')
-    el.innerHTML =
-      '<a class="su-entity-token__head"><span class="su-entity-token__chips"></span></a>'
+    el.innerHTML = '<a class="su-entity-mini__head"><span class="su-entity-mini__chips"></span></a>'
     expect(() => fitTokenOverflow(el)).not.toThrow()
     expect(watchTokenOverflow(el)()).toBeUndefined()
   })
@@ -141,7 +140,7 @@ describe('watchTokenOverflow', () => {
     return { resize: () => fired.at(-1)?.(), disconnected: () => disconnected }
   }
 
-  test('refits when the Token resizes, until stopped', () => {
+  test('refits when the Mini resizes, until stopped', () => {
     const observer = fakeObserver()
     const t = token([80, 80, 80], { pill: 400, cost: 40 })
     const stop = watchTokenOverflow(t.el)
@@ -153,7 +152,7 @@ describe('watchTokenOverflow', () => {
     expect(observer.disconnected()).toBe(1)
   })
 
-  test('a Token taken off the page stops its own watch', () => {
+  test('a Mini taken off the page stops its own watch', () => {
     const observer = fakeObserver()
     const t = token([80, 80, 80], { pill: 400, cost: 40 })
     watchTokenOverflow(t.el)
@@ -162,7 +161,7 @@ describe('watchTokenOverflow', () => {
     expect(observer.disconnected()).toBe(1)
   })
 
-  test("a static page's contentful Tokens each fit on the page's load", () => {
+  test("a static page's contentful Minis each fit on the page's load", () => {
     fakeObserver()
     const t = token([80, 80, 80], { pill: 400, cost: 40 })
     watchStaticTokenOverflow(document.body)

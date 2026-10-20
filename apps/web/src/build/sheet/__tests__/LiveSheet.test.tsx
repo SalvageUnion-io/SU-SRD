@@ -251,9 +251,9 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
     expect(link.getAttribute('href')).toContain('/sheet/mech/m')
     expect(link.hasAttribute('data-tag')).toBe(true)
     expect(link.textContent?.replace(/\s+/g, '')).toBe('MechIronJaw')
-    // A chip, not a Token beside the strip.
+    // A chip, not a Mini beside the strip.
     expect(
-      document.querySelector('section[aria-label="Sheet controls"] .su-entity-token')
+      document.querySelector('section[aria-label="Sheet controls"] .su-entity-mini')
     ).toBeNull()
     // The sheet being read is not linked from its own bar.
     expect(bar().queryByRole('link', { name: /Mara Vex/ })).toBeNull()

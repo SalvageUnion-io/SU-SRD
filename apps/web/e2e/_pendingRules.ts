@@ -14,7 +14,7 @@ import { test } from '@playwright/test'
  */
 export const PENDING_RULES: Readonly<Record<string, string>> = {
   frame:
-    "R38 (§4.3, EDL E21): an entity's frame is the subtle ink-40; only --su-row-frame colours one",
+    "R38 (§4.3, EDL E21): an entity's frame is the subtle ink-40; only --su-compact-frame colours one",
   align: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
   'tab-size': "R41 (§4.7): a Button beside Tabs is the Tabs' Size",
 }

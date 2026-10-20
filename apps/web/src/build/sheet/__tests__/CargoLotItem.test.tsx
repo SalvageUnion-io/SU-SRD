@@ -1,7 +1,7 @@
 /**
  * One lot in The Hold, on either side of the mech ⇄ crawler boundary.
  *
- *  - Both sides draw the one lot line (`CargoLotLine`): a Token, its name,
+ *  - Both sides draw the one lot line (`CargoLotLine`): a Mini, its name,
  *    then `TL | n` where the lot has one and `UNITS | n`, a bulk lot's other
  *    count as its quantity (`× | n`), the moves in its chip group (R6, R35).
  *  - The crawler's Storage Bay: a cap-checked **Load** that partial-fills a
@@ -170,7 +170,7 @@ describe("the crawler's Storage Bay", () => {
     expect(load.textContent).toBe('Load')
   })
 
-  test('a lot is a Token; a bulk count that is not its units is its quantity, the moves in its chip group', async () => {
+  test('a lot is a Mini; a bulk count that is not its units is its quantity, the moves in its chip group', async () => {
     const fuel: CargoLot = {
       id: 'lot-fuel',
       kind: 'bulk',
@@ -182,10 +182,10 @@ describe("the crawler's Storage Bay", () => {
     }
     const tile = await renderLot({ lot: fuel, side: 'crawler' })
     const item = screen.getByRole('listitem')
-    const token = item.querySelector('.su-entity-token')
+    const token = item.querySelector('.su-entity-mini')
     expect(token).not.toBeNull()
     expect(chips()).toEqual(['Units 2', '× 6'])
-    // R6: the move sits inside the Token's own strip, never beside it.
+    // R6: the move sits inside the Mini's own strip, never beside it.
     expect(token?.contains(tile.getByRole('button', { name: 'Load Fuel Cells' }))).toBe(true)
   })
 

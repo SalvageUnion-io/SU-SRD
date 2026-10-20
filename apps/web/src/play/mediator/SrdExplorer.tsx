@@ -12,8 +12,8 @@
  *     SearchIsland) in the shared `SearchField`; a row **drills in place**
  *     (its `onOpen`) rather than following its link, which would leave Play.
  *  2. **Category** — that schema in `EntitySearcher`: its text search and
- *     tech-level / trait facets, the pool as Tokens. `mode="browse"`:
- *     nothing is being picked, so there is no rail and a Token's click opens it.
+ *     tech-level / trait facets, the pool as Minis. `mode="browse"`:
+ *     nothing is being picked, so there is no rail and a Mini's click opens it.
  *  3. **Entity** — the faithful `ReferenceEntityCard`, with a way back.
  *
  * ONE HEAD. The explorer draws the dialog's frame itself (it opens in a
@@ -147,12 +147,12 @@ function SrdHome({
           {announcement}
         </div>
         {open && (
-          // SEARCH (entity display language §7): every entity result is a Row
+          // SEARCH (entity display language §7): every entity result is a Compact
           // in link mode, without the lead; a category opens its listing.
           <SearchListbox
             id={listboxId}
             label="Search results"
-            form="row"
+            size="compact"
             ready={ready}
             results={results}
             selectedIndex={selectedIndex}

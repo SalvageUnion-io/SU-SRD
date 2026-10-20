@@ -12,7 +12,7 @@
  *   Chassis: the identity card's foot (`MechChassisCard`) — art, name (with
  *       a CHASSIS chip) and description, with Change Chassis in Edit.
  *   Systems & Modules — KEPT as two sections (each its own `SlabSection`,
- *       side by side from 48rem, one Token a line): different collections
+ *       side by side from 48rem, one Mini a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
  *       list is not trivial.
  *   The Hold (`StorageManifest side='mech'`), what the mech carries, is the
@@ -60,9 +60,9 @@ import {
   EntitySearcher,
   Field,
   FieldError,
+  MiniGrid,
   SlabSection,
   Stack,
-  TokenGrid,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -76,7 +76,7 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechChassisCard } from './MechChassisCard'
 import { MechHeroChassis } from './MechHeroChassis'
 import { MechIdentityPanel, MechProseFields } from './MechIdentity'
-import { MechItemToken } from './MechItemToken'
+import { MechItemMini } from './MechItemMini'
 import { MechVitals } from './MechVitals'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
@@ -161,7 +161,7 @@ type MechSheetProps = {
    * repair's scrap-pool deduction; the mech's own edits stay open.
    */
   crawlerReadOnly?: boolean
-  /** The linked crawler's sheet: The Hold's stow target Token opens it. */
+  /** The linked crawler's sheet: The Hold's stow target Mini opens it. */
   crawlerHref?: string
   /**
    * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
@@ -225,16 +225,16 @@ export function MechSheet({
     // Keyed by occurrence, not index: removing one item must not remount (and
     // hand local state to) the items after it. See occurrenceKeys.
     const keys = occurrenceKeys(slugs)
-    // Contentful Tokens in a masonry grid, each its head and then its text,
+    // Contentful Minis in a masonry grid, each its head and then its text,
     // Peeking its whole card (owner's call, 2026-10-20).
     return (
-      <TokenGrid
+      <MiniGrid
         label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
         edit={!readOnly}
       >
         {slugs.map((slug, index) => (
           <li key={keys[index]}>
-            <MechItemToken
+            <MechItemMini
               slug={slug}
               entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
               condition={conditions[slug] ?? 'intact'}
@@ -257,7 +257,7 @@ export function MechSheet({
             />
           </li>
         ))}
-      </TokenGrid>
+      </MiniGrid>
     )
   }
 

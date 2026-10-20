@@ -1,11 +1,11 @@
 /**
- * A Token's chip budget (`chips-and-actions.md`, C3 and C4): rank, one lane
+ * A Mini's chip budget (`chips-and-actions.md`, C3 and C4): rank, one lane
  * the container's context names, cost. Pinned per context, on synthetic models
  * and on real records through `toEntityModel`.
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import type { ChipContext, TokenChipSource } from '../parts/tokenChips'
+import type { ChipContext, MiniChipSource } from '../parts/tokenChips'
 import { budgetFacts, laneMeasure, naturalContext, tokenChips } from '../parts/tokenChips'
 import { toEntityModel } from '../toEntityModel'
 import type { Fact } from '../types'
@@ -21,7 +21,7 @@ const TL = fact('tech-level', 'TL', '1')
 
 const SYSTEM_REF = { schemaName: 'actions', id: 'a', slug: 'a', name: 'A' } as const
 
-const SYSTEM: TokenChipSource = {
+const SYSTEM: MiniChipSource = {
   facts: [TL, fact('ref-stat-slots', 'Slots', '3'), fact('ref-stat-range', 'RNG', 'C')],
   actionType: 'Turn',
   actions: [],
@@ -44,7 +44,7 @@ describe('tokenChips', () => {
       kind: 'cell',
       cell: { label: 'Slots', value: '3' },
     })
-    const unit: TokenChipSource = { facts: [fact('SP', 'SP', '7/9')] }
+    const unit: MiniChipSource = { facts: [fact('SP', 'SP', '7/9')] }
     expect(tokenChips(unit, 'loadout').lane).toEqual({
       kind: 'cell',
       cell: { label: 'SP', value: '7/9' },
@@ -74,7 +74,7 @@ describe('tokenChips', () => {
   })
 
   test('roster names the lead vital as its live reading', () => {
-    const pilot: TokenChipSource = { facts: [fact('HP', 'HP', '10/10')] }
+    const pilot: MiniChipSource = { facts: [fact('HP', 'HP', '10/10')] }
     expect(tokenChips(pilot, 'roster').lane).toEqual({
       kind: 'cell',
       cell: { label: 'HP', value: '10/10' },
@@ -85,7 +85,7 @@ describe('tokenChips', () => {
     expect(tokenChips(SYSTEM, 'browse').lane).toBeUndefined()
   })
 
-  test('the range, damage and traits never reach a Token', () => {
+  test('the range, damage and traits never reach a Mini', () => {
     for (const context of CONTEXTS) {
       const chips = tokenChips(SYSTEM, context)
       expect(JSON.stringify(chips)).not.toContain('RNG')
@@ -99,7 +99,7 @@ describe('tokenChips', () => {
   })
 
   test("a class's kind is its rank; an ability's tier never is", () => {
-    const cls: TokenChipSource = {
+    const cls: MiniChipSource = {
       facts: [],
       kind: { stamp: 'Class', type: 'Class', domain: 'pilot', nature: 'have', classKind: 'BASE' },
     }
@@ -121,8 +121,8 @@ describe('tokenChips', () => {
   })
 })
 
-describe('a contentful Token (N3)', () => {
-  const ACTION: TokenChipSource = {
+describe('a contentful Mini (N3)', () => {
+  const ACTION: MiniChipSource = {
     facts: [
       { ...fact('range', 'RNG', 'C'), group: 'action' },
       { ...fact('damage', 'DMG', '2'), group: 'action' },
@@ -144,21 +144,21 @@ describe('a contentful Token (N3)', () => {
     expect(chips.traits).toEqual([{ label: 'Shield' }, { label: 'Hot', value: '2' }])
   })
 
-  test('a header-only Token carries neither', () => {
+  test('a header-only Mini carries neither', () => {
     const chips = tokenChips(ACTION, 'play')
     expect(chips.facets).toBeUndefined()
     expect(chips.traits).toBeUndefined()
   })
 
   test("a unit's ungrouped readings never read as facets", () => {
-    const lead: TokenChipSource = {
+    const lead: MiniChipSource = {
       facts: [{ ...fact('HP', 'HP', '4/6'), group: 'vitals' }, fact('x', 'TL', '2')],
     }
     expect(tokenChips(lead, 'roster', { contentful: true }).facets).toBeUndefined()
   })
 })
 
-describe('a compact Card or Row head (C3)', () => {
+describe('a compact Card or Compact head (C3)', () => {
   const stats: Fact[] = [
     { ...TL, group: 'provenance' },
     { ...fact('slots', 'Slots', '3'), group: 'provenance' },

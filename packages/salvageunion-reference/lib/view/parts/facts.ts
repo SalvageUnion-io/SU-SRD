@@ -216,7 +216,7 @@ function statValue(
 }
 
 /**
- * A chassis's chips in a Row, Tile or Token (owner's call, 2026-10-14): TL,
+ * A chassis's chips in a Compact, CompactIndex or Mini (owner's call, 2026-10-14): TL,
  * SV, SP, EP, SYS, MODS. Its Page and its Peek print every stat, Cargo and
  * Heat too (owner's call, 2026-10-19).
  */

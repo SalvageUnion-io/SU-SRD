@@ -8,7 +8,7 @@ import type { Page } from '@playwright/test'
  * after the cost. `findStripControlFaults` returns one per control that does
  * not:
  *
- * - **beside** a control on an entity's head (its band, a Token's pill) but
+ * - **beside** a control on an entity's head (its band, a Mini's pill) but
  *   outside its chip group, or in the list item beside the entity: Play's Use
  *   on its own line above the chips.
  * - **under** a control in the entity's body: something that expands under
@@ -17,16 +17,16 @@ import type { Page } from '@playwright/test'
  * And outside the item: a control drawn as the sibling right before or after
  * an entity's list item (or, in a slot, the entity with the wrappers that hold
  * it alone, up to a sectioning element) in the same list or slot wrapper is
- * `beside` it, or `under` it when it starts below it (a Starter Set Row's
+ * `beside` it, or `under` it when it starts below it (a Starter Set Compact's
  * "Copy to…" select once was). An entity nested in another, or in a Card, is
  * its parent's: what sits beside it is the parent's own.
  *
  * An entity's own surface is not one of its controls: the link or radio the
- * Row or Token is (or its cover, or a Token with controls' name), a link that wraps its head, and a select
- * Row's check. What of a head's chips did not fit beside its name is its
+ * Compact or Mini is (or its cover, or a Mini with controls' name), a link that wraps its head, and a select
+ * Compact's check. What of a head's chips did not fit beside its name is its
  * body's first row (`[data-chip-overflow]`, C2b): its chip group still. A contentful
- * Token's body holds its host's content and, in Edit, its fields (a crew
- * lead's name, keepsake and facts: `TokenBody`), which are no strip's. A
+ * Mini's body holds its host's content and, in Edit, its fields (a crew
+ * lead's name, keepsake and facts: `MiniBody`), which are no strip's. A
  * nested entity's controls are that entity's, held to its own chip group.
  */
 export type StripControlSelectors = {
@@ -34,23 +34,23 @@ export type StripControlSelectors = {
   item: string
   /** What the gate reads as a control. */
   control: string
-  /** An entity's frame: a Row (a `TitledBox` line too), a Token, a Tile. */
+  /** An entity's frame: a Compact (a `TitledBox` line too), a Mini, a CompactIndex. */
   entity: string
-  /** The entity's own surface: its cover, a contentful Token's head. */
+  /** The entity's own surface: its cover, a contentful Mini's head. */
   surface: string
   /** An entity's head: what a control beside the strip sits on. */
   head: string
   /** The chip group, and its body's overflow row (C2b). */
   group: string
-  /** A select Row's check, the mode's own control (N7). */
+  /** A select Compact's check, the mode's own control (N7). */
   check: string
-  /** A contentful Token's body: its host's content and, in Edit, its fields. */
+  /** A contentful Mini's body: its host's content and, in Edit, its fields. */
   body: string
   /** A Card's frame: an entity nested in it is the Card's, its controls the Card's. */
   card: string
   /**
-   * A `TokenGroup`: an entity's Token and the Tokens that belong to it in one
-   * border. A control in it outside every Token (its When Damaged's fold, a
+   * A `MiniGroup`: an entity's Mini and the Minis that belong to it in one
+   * border. A control in it outside every Mini (its When Damaged's fold, a
    * choice) is the group's own section, as a Card's body is the Card's.
    */
   tokenGroup: string
@@ -73,14 +73,14 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
     'textarea',
     'summary',
   ].join(', '),
-  entity: '.su-entity-row, .su-entity-token, .su-entity-tile',
-  surface: '.su-entity-row__cover, .su-entity-token__head, .su-entity-token__link',
-  head: '.su-entity-row__head, .su-entity-token__pill, .su-entity-tile__band',
+  entity: '.su-entity-compact, .su-entity-mini, .su-entity-index',
+  surface: '.su-entity-compact__cover, .su-entity-mini__head, .su-entity-mini__link',
+  head: '.su-entity-compact__head, .su-entity-mini__pill, .su-entity-index__band',
   group: '[data-chip-group], [data-chip-overflow]',
-  check: '.su-entity-row__head input[type="checkbox"]',
-  body: '.su-entity-token[data-contentful] > .su-entity-token__body',
+  check: '.su-entity-compact__head input[type="checkbox"]',
+  body: '.su-entity-mini[data-contentful] > .su-entity-mini__body',
   card: '.su-ec-frame',
-  tokenGroup: '.su-token-group',
+  tokenGroup: '.su-mini-group',
   section:
     'section, article, aside, nav, main, header, footer, form, dialog, fieldset, [role="region"], [role="tabpanel"], [role="dialog"]',
 }
@@ -100,7 +100,9 @@ export function scanStripControls(a: StripControlSelectors): string[] {
   }
   const nameOf = (entity: Element) =>
     text(
-      entity.querySelector('.su-entity-row__title, .su-entity-token__name, .su-entity-tile__name')
+      entity.querySelector(
+        '.su-entity-compact__title, .su-entity-mini__name, .su-entity-index__name'
+      )
     ).slice(0, 40) || text(entity).slice(0, 40)
   const describe = (el: Element) => {
     const label = (el.getAttribute('aria-label') ?? text(el)).slice(0, 32)
@@ -147,7 +149,7 @@ export function scanStripControls(a: StripControlSelectors): string[] {
   }
   // Beside the item: a control drawn right before or after an entity's list
   // item (or, in a slot, the entity itself), a sibling in the same list or
-  // slot wrapper (a Starter Set Row's "Copy to…" under it). It is `under`
+  // slot wrapper (a Starter Set Compact's "Copy to…" under it). It is `under`
   // when it starts below the item, else `beside`.
   const nearest = (from: Element, step: 'previousElementSibling' | 'nextElementSibling') => {
     let el = from[step]

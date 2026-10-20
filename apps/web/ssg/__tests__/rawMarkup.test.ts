@@ -74,7 +74,7 @@ describe('rendered pages', () => {
     [
       'a hybrid class, its trees and their owners',
       '/classes/fabricator',
-      // The Row title's attributes are its classes' and the hand-back's to
+      // The Compact title's attributes are its classes' and the hand-back's to
       // change; the hybrid's own title is what this pins.
       'title="Hybrid"><span>Hybrid</span>',
     ],

@@ -56,7 +56,7 @@ export type CrewLine = {
    */
   unit: string
   /**
-   * The mech assigned to them, as its Token reads it: its name, its SP
+   * The mech assigned to them, as its Mini reads it: its name, its SP
    * (`6/9`) and whether they are aboard. Null with none.
    */
   unitMech: { name: string; sp: string; boarded: boolean } | null

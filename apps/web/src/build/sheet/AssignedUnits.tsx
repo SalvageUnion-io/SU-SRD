@@ -5,8 +5,8 @@
  * sheet. Read and Edit draw the same chip; Edit inlines the link's controls
  * after it (C8: Change, Unassign), and puts the ways to fill a kind (Assign,
  * + Create) on the section's head as its `actions` chips — the Creates fold
- * into a ⋯ menu once there are more than three chips. No role stamp ("Assigned Mech"), no Row,
- * no Token: an absent relation leaves no chip, and Read leaves the section out
+ * into a ⋯ menu once there are more than three chips. No role stamp ("Assigned Mech"), no Compact,
+ * no Mini: an absent relation leaves no chip, and Read leaves the section out
  * when nothing is linked (`hasAssignedUnits`).
  *
  * The one section every kind draws, pilot, mech and crawler, with its one

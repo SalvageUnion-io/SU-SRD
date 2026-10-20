@@ -1,6 +1,6 @@
 /*
  * play/side.css — Play's right column and its Discord rows (play.md §7–§9):
- * the Tables' lists of table Tokens, and the landing's channel rows.
+ * the Tables' lists of table Minis, and the landing's channel rows.
  *
  * The app's own stylesheet: a part of
  * `styles/play/play.css`, never imported by a library component. Only what has
@@ -8,8 +8,8 @@
  * unbound); everything else on those surfaces is a style object.
  */
 
-/* The Tables' lists of table Tokens (`PlayTables`): room inside the list for
-   the open table's selection ring, which sits outside its Token's pill. */
+/* The Tables' lists of table Minis (`PlayTables`): room inside the list for
+   the open table's selection ring, which sits outside its Mini's pill. */
 .su-play-tables {
   padding: var(--space-4);
 }

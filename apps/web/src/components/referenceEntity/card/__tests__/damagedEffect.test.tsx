@@ -29,7 +29,7 @@ describe('When Damaged', () => {
   test('on the bay’s Page it is the same block: a Slab over the effect, no box', () => {
     const { bay, effect } = cantina()
     const { container } = render(<ReferenceEntityCard data={bay} presentation="page" />)
-    const notch = Array.from(container.querySelectorAll('.su-box .su-entity-row__notch')).find(
+    const notch = Array.from(container.querySelectorAll('.su-box .su-entity-compact__notch')).find(
       (n) => n.textContent === 'When Damaged'
     )
     expect(notch).toBeUndefined()

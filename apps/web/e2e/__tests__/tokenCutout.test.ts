@@ -1,6 +1,6 @@
 /**
- * The contentful Token cut-out scan (`_tokenCutout.ts`) on hand-written markup
- * in the Token's class names: a tab of paper with the paint over it, opening
+ * The contentful Mini cut-out scan (`_tokenCutout.ts`) on hand-written markup
+ * in the Mini's class names: a tab of paper with the paint over it, opening
  * into a paper body bordered in the band's colour, passes; each way the head
  * goes flat is its own fault.
  *
@@ -8,7 +8,7 @@
  * `data-box="top bottom"` is its box, each 100px wide.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { MIN_STRIP, scanTokenCutouts, TOKEN_CUTOUT_SELECTORS } from '../_tokenCutout'
+import { MIN_STRIP, scanMiniCutouts, TOKEN_CUTOUT_SELECTORS } from '../_tokenCutout'
 
 const realRect = Element.prototype.getBoundingClientRect
 
@@ -62,14 +62,14 @@ const token = ({
   bodyEdge = BAND,
   bodyBg = PAPER,
 }: Parts = {}) => {
-  const name = '<span class="su-entity-token__name">Mule</span>'
+  const name = '<span class="su-entity-mini__name">Mule</span>'
   const head = notch
-    ? `<span class="su-entity-token__notch" data-box="${tab.join(' ')}" style="background-color: ${notchBg}">${name}</span>`
+    ? `<span class="su-entity-mini__notch" data-box="${tab.join(' ')}" style="background-color: ${notchBg}">${name}</span>`
     : name
-  return `<div class="su-entity-token" data-contentful><span class="su-entity-token__head"><span class="su-entity-token__pill" data-box="0 24" style="background-color: ${BAND}; border-top-width: 1.5px">${head}</span></span><div class="su-entity-token__body" data-box="${bodyTop} 80" style="border-left-color: ${bodyEdge}; background-color: ${bodyBg}">Text</div></div>`
+  return `<div class="su-entity-mini" data-contentful><span class="su-entity-mini__head"><span class="su-entity-mini__pill" data-box="0 24" style="background-color: ${BAND}; border-top-width: 1.5px">${head}</span></span><div class="su-entity-mini__body" data-box="${bodyTop} 80" style="border-left-color: ${bodyEdge}; background-color: ${bodyBg}">Text</div></div>`
 }
 
-const scan = () => scanTokenCutouts({ a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
+const scan = () => scanMiniCutouts({ a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
 
 describe('token cut-out scan', () => {
   test('a paper tab under the paint, opening into a paper body in the band, passes', () => {
@@ -109,7 +109,7 @@ describe('token cut-out scan', () => {
     ])
   })
 
-  test('a Token that is not drawn is not read', () => {
+  test('a Mini that is not drawn is not read', () => {
     document.body.innerHTML = withPaper(
       token({ notch: false }).replace('data-box="0 24"', 'data-box="0 0"')
     )

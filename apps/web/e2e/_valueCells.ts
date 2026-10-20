@@ -11,7 +11,7 @@ import type { Page } from '@playwright/test'
  *   on every side, in ink; on an ink ground (chrome K1) the frame is a paper
  *   rule (`data-ground="ink"` on its frame, unless what is actually under the
  *   cell is light: a chip that drops off an ink band onto a paper strip, a
- *   phone's Row head, is held to ink again), and a state (`good`, `caution`,
+ *   phone's Compact head, is held to ink again), and a state (`good`, `caution`,
  *   `critical`) recolours it, as `Stat`'s one lever does.
  * - `seam` (§7.2): a border-riding stamp (`STAMP_SEAM`, `.su-stamp-seam`)
  *   centres on its frame's top border line within 1px. Its frame is the box it

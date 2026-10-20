@@ -1,7 +1,7 @@
 /**
  * The Units column's unit boxes (play.md §4, wireframe pin 4): the pilot,
  * the mech and the crawler, each one `TitledBox` in its tone, and the mechs
- * left in the hangar as Tokens. Exported one by one so the Mediator's screen
+ * left in the hangar as Minis. Exported one by one so the Mediator's screen
  * (play.md §10) draws the same boxes with its own `live` flag.
  *
  * - **Live** — − / + on every vital (`PlayVital`), each press one write
@@ -17,7 +17,7 @@
  *
  * Each box is level 1, directly in the column. What it holds is level 2 and
  * plain: gauges, `Stat` chips (class, TP, injuries, bays, upkeep), a line of
- * text. A hangar mech is a full-width Token on its own line, never a box.
+ * text. A hangar mech is a full-width Mini on its own line, never a box.
  *
  * The dashed frame is the box's own (`reference`); the boxes' rows are
  * `.su-play-unit__*`, in `styles/play/units.css`, which `PlayFrame` loads.
@@ -438,9 +438,9 @@ export function PlayCrawlerUnit({
 }
 
 /**
- * A mech in the hangar: a Token in the hangar's Token grid (level 2), its
+ * A mech in the hangar: a Mini in the hangar's Mini grid (level 2), its
  * chassis its note, "In hangar" (or why it cannot fly) its state chip, last in
- * its chip group at the Token's Size (C8), never loose words after it.
+ * its chip group at the Mini's Size (C8), never loose words after it.
  */
 export function PlayHangarMech({
   name,
@@ -455,7 +455,7 @@ export function PlayHangarMech({
   return (
     <li className="su-play-unit__hangar">
       <Entity
-        form="token"
+        size="mini"
         context="play"
         model={unitRowModel({ kind: 'mech', name, note: chassis ?? undefined })}
         trailing={<Stat label={note ?? 'In hangar'} size="mini" />}

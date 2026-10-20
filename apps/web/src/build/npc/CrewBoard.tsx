@@ -319,10 +319,10 @@ function slotTitle(slot: CrewSlotView): string {
 }
 
 /**
- * One slot on the board, a Row in select mode (EDL "Modes"): picking it opens
+ * One slot on the board, a Compact in select mode (EDL "Modes"): picking it opens
  * the slot. Filled, it is the NPC (dashed, HOMEBREW); designing, the slot's
  * position under an "Editing" seal; else the book's crew line. The slot's
- * name is its note, the HP a chip (`HP | 4`), Design the Row's control.
+ * name is its note, the HP a chip (`HP | 4`), Design the Compact's control.
  */
 function SlotRow({
   slot,
@@ -358,7 +358,7 @@ function SlotRow({
   return (
     <li>
       <Entity
-        form="row"
+        size="compact"
         model={unitRowModel({
           kind: 'npc',
           name,

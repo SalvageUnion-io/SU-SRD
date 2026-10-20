@@ -1,5 +1,5 @@
 /* ── A sheet item's state, uses and actions (`SheetItemLine`) ride its
-      Token's chip group (C8, hard rule R6), at the Token's Mini Size; a
+      Mini's chip group (C8, hard rule R6), at the Mini's Mini Size; a
       Mini button there is drawn a chip's height (`entity-forms.css`). ── */
 
 /* The condition is the tri-state `StatusBadge`, drawn at the chip's height;

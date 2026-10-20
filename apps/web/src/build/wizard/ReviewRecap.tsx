@@ -2,14 +2,14 @@
  * A wizard's Review recap, in the shared primitives (ruleset §3.7, EDL E3):
  * each `label | value` a horizontal Stat, the unit's class, chassis or type a
  * chip that opens and Peeks it (`EntityStat`), and every list of entities a
- * Slab over its Tokens, one a line — never names joined with commas.
+ * Slab over its Minis, one a line — never names joined with commas.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import type { EntityRowModel } from '../../components/index'
+import type { EntityFormModel } from '../../components/index'
 import { Entity, EntityStat, SlabSection, Stat, tokens } from '../../components/index'
 
 /** The recap: its facts, then its lists, down one column. */
@@ -69,10 +69,10 @@ export function RecapEntity({
 }
 
 /**
- * A list of entities under its Slab, as Tokens one a line, each opening and
+ * A list of entities under its Slab, as Minis one a line, each opening and
  * Peeking its entity; `empty` says what an empty list means ("None").
  */
-export function RecapTokens({
+export function RecapMinis({
   label,
   entities,
   models,
@@ -82,7 +82,7 @@ export function RecapTokens({
   /** Reference entities, each drawn from its own model. */
   entities?: readonly RefMetaEntity[]
   /** Or models resolved elsewhere (a player's crew NPCs). */
-  models?: readonly EntityRowModel[]
+  models?: readonly EntityFormModel[]
   empty?: string
 }) {
   const count = (entities?.length ?? 0) + (models?.length ?? 0)
@@ -94,17 +94,17 @@ export function RecapTokens({
       style={SECTION}
     >
       {count > 0 && (
-        <ul className="su-entity-token-list">
+        <ul className="su-entity-mini-list">
           {entities?.map((entity, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: a build may pick the same entity twice
             <li key={`${entity.id}-${index}`}>
-              <Entity form="token" context="loadout" entity={entity} mode={{ kind: 'link' }} />
+              <Entity size="mini" context="loadout" entity={entity} mode={{ kind: 'link' }} />
             </li>
           ))}
           {models?.map((model, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: two crew may share a name
             <li key={`${model.ref.id}-${index}`}>
-              <Entity form="token" context="roster" model={model} />
+              <Entity size="mini" context="roster" model={model} />
             </li>
           ))}
         </ul>

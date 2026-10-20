@@ -134,7 +134,7 @@ describe('tab-role and pressed', () => {
   ].join('\n')
 
   test('a tab role outside Tabs and aria-pressed outside Segmented and Toggle are findings', () => {
-    const found = switchingFindings('apps/web/src/x/Row.tsx', source)
+    const found = switchingFindings('apps/web/src/x/Compact.tsx', source)
     expect(lines(found['tab-role'])).toEqual([1, 1, 2])
     expect(lines(found.pressed)).toEqual([4, 5])
   })
@@ -184,13 +184,15 @@ describe('controls scan', () => {
 
   test('a switching role outside its home is found across the tree, tests aside', () => {
     const root = tree({
-      'apps/web/src/a/Row.tsx': `export const T = () => <div role="tablist" />\n${pressed}`,
-      'apps/web/src/a/Row.test.tsx': pressed,
+      'apps/web/src/a/Compact.tsx': `export const T = () => <div role="tablist" />\n${pressed}`,
+      'apps/web/src/a/Compact.test.tsx': pressed,
     })
     const found = controlLaws.scan(root)
-    expect(found['tab-role']?.map((f) => [f.file, f.line])).toEqual([['apps/web/src/a/Row.tsx', 1]])
+    expect(found['tab-role']?.map((f) => [f.file, f.line])).toEqual([
+      ['apps/web/src/a/Compact.tsx', 1],
+    ])
     expect(
-      found.pressed?.filter((f) => f.file === 'apps/web/src/a/Row.tsx').map((f) => f.line)
+      found.pressed?.filter((f) => f.file === 'apps/web/src/a/Compact.tsx').map((f) => f.line)
     ).toEqual([2])
   })
 

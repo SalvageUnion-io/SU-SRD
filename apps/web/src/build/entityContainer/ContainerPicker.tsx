@@ -8,7 +8,7 @@
  * - `select` — a faux-select (the sheet's "In:"): the shelf leads, the Games
  *   follow under "Games", then any actions.
  * - `menu` — a `HeaderMenu` dropdown (the masthead's Games).
- * - `list` — a column of Rows (ruleset §1.9: a Game is a Row), the whole Row
+ * - `list` — a column of Compacts (ruleset §1.9: a Game is a Compact), the whole Compact
  *   the pick (the Move dialog, the mobile drawer); an action is a button.
  *
  * Every variant writes a choice the same way: its label, then its hint after a
@@ -87,7 +87,7 @@ type ListVariantProps = CommonProps & {
 
 type ContainerPickerProps = SelectVariantProps | MenuVariantProps | ListVariantProps
 
-/** An action's button spans the list, as the Rows above it do. */
+/** An action's button spans the list, as the Compacts above it do. */
 const LIST_ACTION = { width: '100%' } satisfies CSSProperties
 
 const LIST = {
@@ -194,7 +194,7 @@ function PickerList({ choices, onPick, actions = [], label, loading, empty }: Li
       {choices.map((c) => (
         <li key={serializeContainer(c.container)}>
           <Entity
-            form="row"
+            size="compact"
             model={c.container.kind === 'game' ? gameRowModel(c.label) : hangarRowModel(c.label)}
             mode={{ kind: 'link', onOpen: () => onPick(c) }}
             labels={c.hint ? <Stat label={c.hint} size="compact" /> : undefined}

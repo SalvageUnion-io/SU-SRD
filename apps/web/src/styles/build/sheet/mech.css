@@ -148,7 +148,7 @@
 }
 
 /* Systems, then Modules, one under the other: each is a masonry grid of
-   contentful Tokens (`TokenGrid`) that takes the column's width for its two
+   contentful Minis (`MiniGrid`) that takes the column's width for its two
    or three columns. */
 .su-sheet-mech-loadout {
   display: grid;

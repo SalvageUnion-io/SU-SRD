@@ -338,7 +338,7 @@ describe('checkBacktickedPathsExist', () => {
 
   it('scans skills as live-instruction docs', () => {
     const root = fixture({
-      '.claude/skills/ux/SKILL.md': 'Tokens live in `packages/ui/theme.css`.\n',
+      '.claude/skills/ux/SKILL.md': 'Minis live in `packages/ui/theme.css`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)

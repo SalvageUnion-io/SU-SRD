@@ -52,9 +52,9 @@ markSignedIn(document, signedIn)
 // A list's chip lanes (C6): the server-rendered lines' strips join their lists
 // here; an island's join from `Chips` when it mounts.
 joinStaticLanes()
-// A contentful Token's chips that do not fit beside its name go to its body's first row (C2b); an island's fit from `Token`.
+// A contentful Mini's chips that do not fit beside its name go to its body's first row (C2b); an island's fit from `Mini`.
 watchStaticTokenOverflow()
-// A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `Tile`, `ChapterBand`.
+// A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `CompactIndex`, `ChapterBand`.
 watchStaticChipFill()
 
 type PropsById = Record<string, Record<string, unknown>>

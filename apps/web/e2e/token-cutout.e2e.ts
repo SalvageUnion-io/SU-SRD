@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { findTokenCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
+import { findMiniCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
 
 /**
- * Every contentful Token (N3) wears the cut-out head every Token, Row and
- * Tile wears: its name on a paper tab notched into its band's foot, the paint
+ * Every contentful Mini (N3) wears the cut-out head every Mini, Compact and
+ * CompactIndex wears: its name on a paper tab notched into its band's foot, the paint
  * showing over it, the tab opening into its body's paper with no rule
  * between, the body bordered in the band's colour (`_tokenCutout.ts`). The
  * pages hold every kind a sheet or a page draws as one, signed out: a
@@ -26,7 +26,7 @@ const WIDTHS = [1440, 390]
 
 test.describe.configure({ retries: 0 })
 
-test('every contentful Token wears the cut-out head', async ({ page }) => {
+test('every contentful Mini wears the cut-out head', async ({ page }) => {
   test.setTimeout(5 * 60_000)
   const failures: string[] = []
   for (const width of WIDTHS) {
@@ -34,11 +34,11 @@ test('every contentful Token wears the cut-out head', async ({ page }) => {
     for (const path of PAGES) {
       await page.goto(path, { waitUntil: 'networkidle' })
       const tokens = page.locator(TOKEN_CUTOUT_SELECTORS.token)
-      await expect(tokens.first(), `${path} draws a contentful Token`).toBeVisible()
-      for (const fault of await findTokenCutoutFaults(page)) {
+      await expect(tokens.first(), `${path} draws a contentful Mini`).toBeVisible()
+      for (const fault of await findMiniCutoutFaults(page)) {
         failures.push(`${path} at ${width}px, ${fault}`)
       }
     }
   }
-  expect(failures, 'contentful Tokens off the cut-out').toEqual([])
+  expect(failures, 'contentful Minis off the cut-out').toEqual([])
 })

@@ -31,7 +31,7 @@ const PAGES = {
   guide: ['/guides/create-a-pilot/'],
 }
 
-/** The app's Page: a sheet's Token opens its entity's Page in the detail dialog. */
+/** The app's Page: a sheet's Mini opens its entity's Page in the detail dialog. */
 const APP_PAGE = { sheet: '/starter/mech/starter-mech-mazona', token: 'Mini Mortar' }
 
 test.use({ account: 'anonymous' })
@@ -61,8 +61,8 @@ for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
     test("the app's Page keeps one rhythm", async ({ page }) => {
       await gotoStable(page, APP_PAGE.sheet)
       await waitForReady(page)
-      const token = page.locator('.su-entity-token').filter({ hasText: APP_PAGE.token }).first()
-      await token.locator('.su-entity-token__name').click()
+      const token = page.locator('.su-entity-mini').filter({ hasText: APP_PAGE.token }).first()
+      await token.locator('.su-entity-mini__name').click()
       await expect(page.locator('.su-entity-dialog__body .su-entity-page')).toBeVisible()
       const failures = await scan(page, `the ${APP_PAGE.token} Page at ${width}`)
       expect(failures, "the app's Page off its rhythm").toEqual([])

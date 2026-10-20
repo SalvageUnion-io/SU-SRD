@@ -29,14 +29,14 @@ import {
 // this module is Node-only and already loads the ORM, so importing them costs
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
-import type { EntityRowModel } from '../components/index'
+import type { EntityFormModel } from '../components/index'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
 
-/** The Row's parts of an entity's model, for a search result (no lead, no hints). */
-function rowModel(entity: RefEntity): EntityRowModel {
+/** The Compact's parts of an entity's model, for a search result (no lead, no hints). */
+function rowModel(entity: RefEntity): EntityFormModel {
   const m = toEntityModel(entity)
   return {
     ref: m.ref,

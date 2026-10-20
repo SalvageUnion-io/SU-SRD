@@ -69,6 +69,6 @@ export function setViewport(width: number, height: number) {
 }
 
 // Every test renders the whole pool (the full equipment or chassis catalog, as
-// Tokens) and one Card, about 1 s alone but past the default 5 s once the pre-push gates and every
+// Minis) and one Card, about 1 s alone but past the default 5 s once the pre-push gates and every
 // workspace's suite share the cores.
 export const POOL_RENDER_MS = 20_000

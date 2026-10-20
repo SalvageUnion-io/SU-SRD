@@ -1,7 +1,7 @@
 /**
  * PlayCrew — the Crew section of the Cockpit's right column (play.md §7),
- * Game only: one Token per other seat at the table, in the Token grid
- * (`TokenGrid`; ruleset §1.3: Play's lists are Tokens), its Mini chips what
+ * Game only: one Mini per other seat at the table, in the Mini grid
+ * (`MiniGrid`; ruleset §1.3: Play's lists are Minis), its Mini chips what
  * the table needs at a glance: the mech aboard as a relation chip (`MECH | Atlas`, C11, R5;
  * "On foot" else), whether they are here ("Here", or "Away" once their seat
  * stops beating), and one vital: the one that needs looking at (▲, critical,
@@ -9,7 +9,7 @@
  * on foot.
  *
  * Tapping a line opens that crewmate's sheet read-only over Play
- * (`PlayCrewSheet`). What they are resolving is the Token's contentful body
+ * (`PlayCrewSheet`). What they are resolving is the Mini's contentful body
  * while there is one (N3: plain words, no entity), announced politely as it
  * changes.
  *
@@ -19,7 +19,7 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { EmptyState, Entity, relation, Stat, TokenGrid, tokens } from '../components/index'
+import { EmptyState, Entity, MiniGrid, relation, Stat, tokens } from '../components/index'
 import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
@@ -57,7 +57,7 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
       ) : lines.length === 0 ? (
         <EmptyState variant="inline" body="No one else is seated at this table yet." />
       ) : (
-        <TokenGrid label="Crew" play>
+        <MiniGrid label="Crew" play>
           {lines.map((line) => (
             <li key={line.pilotId}>
               <CrewLine line={line} onOpen={() => setOpen(line)} />
@@ -66,7 +66,7 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
               </span>
             </li>
           ))}
-        </TokenGrid>
+        </MiniGrid>
       )}
       <PlayCrewSheet
         gameId={gameId}
@@ -82,7 +82,7 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
   const { vital } = line
   return (
     <Entity
-      form="token"
+      size="mini"
       context="roster"
       model={unitRowModel({ kind: 'pilot', name: line.name })}
       mode={{
@@ -115,7 +115,7 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
           ) : null}
         </>
       }
-      // What they are resolving, in words: the Token's body while there is one.
+      // What they are resolving, in words: the Mini's body while there is one.
       {...(line.resolving
         ? { body: { text: false, children: <p style={RESOLVING}>{line.resolving}</p> } }
         : {})}

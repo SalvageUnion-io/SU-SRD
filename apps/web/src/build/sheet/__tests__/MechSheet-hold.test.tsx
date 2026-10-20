@@ -190,7 +190,7 @@ describe('MechSheet — The Hold (Stow)', () => {
 })
 
 describe('MechSheet — The Hold panel', () => {
-  test('a flat panel under a Slab; capacity is a label-first chip; the stow target is a Token', () => {
+  test('a flat panel under a Slab; capacity is a label-first chip; the stow target is a Mini', () => {
     const mech = makeMech({ cargoLots: [makeUnitLot('Sealed Crate', { units: 2 })] })
     const crawler = makeCrawler()
     const { container } = render(

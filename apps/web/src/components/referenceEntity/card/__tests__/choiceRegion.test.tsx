@@ -1,12 +1,12 @@
 /**
  * CHOICE REGION — an option that IS an entity sits inside its host card, so
- * it is that entity's Token (EDL N1, N2), never a head-only Row:
- * - read-only, every option is a Token that reads, and only the chosen one
+ * it is that entity's Mini (EDL N1, N2), never a head-only Compact:
+ * - read-only, every option is a Mini that reads, and only the chosen one
  *   wears the selection ring on its pill: level 2 is never sealed (R15);
- * - editable, each Token IS the toggle (EDL Modes): `data-choice-toggle`
+ * - editable, each Mini IS the toggle (EDL Modes): `data-choice-toggle`
  *   marks it, it is pressed when chosen, an unchosen one wears the one select
  *   dim, and no seal is drawn;
- * - an editable catalog choice's pick is the picked entity's Token.
+ * - an editable catalog choice's pick is the picked entity's Mini.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -28,21 +28,21 @@ const firstChoice = (entity: Parameters<typeof getChoices>[0]): RefObjectChoice 
   need(getChoices(entity)?.[0], 'its first choice')
 
 const RING = '0 0 0 3px var(--color-ink)'
-/** The ring a Token's pill wears when its option is chosen. */
+/** The ring a Mini's pill wears when its option is chosen. */
 const pillRing = (token: HTMLElement) =>
-  token.querySelector<HTMLElement>('.su-entity-token__pill')?.style.boxShadow ?? ''
+  token.querySelector<HTMLElement>('.su-entity-mini__pill')?.style.boxShadow ?? ''
 
-/** The Token whose name is `name`, by its name element. */
+/** The Mini whose name is `name`, by its name element. */
 function tokenNamed(container: HTMLElement, name: string): HTMLElement {
-  const names = [...container.querySelectorAll('.su-entity-token__name')]
+  const names = [...container.querySelectorAll('.su-entity-mini__name')]
   const match = names.find((el) => el.firstChild?.textContent === name)
-  const token = match?.closest<HTMLElement>('.su-entity-token')
-  if (!token) throw new Error(`no Token named ${name}`)
+  const token = match?.closest<HTMLElement>('.su-entity-mini')
+  if (!token) throw new Error(`no Mini named ${name}`)
   return token
 }
 
 describe('ChoiceRegion — read-only entity options', () => {
-  test('each option is a Token; the chosen one alone is ringed, and none is sealed', () => {
+  test('each option is a Mini; the chosen one alone is ringed, and none is sealed', () => {
     const choice = firstChoice(bionicSenses())
     const { container } = render(
       <ReferenceEntityCard data={bionicSenses()} selections={{ [choice.id]: ['Thermal Optics'] }} />
@@ -52,7 +52,7 @@ describe('ChoiceRegion — read-only entity options', () => {
     // Level 2 is ring only (hard rule R15): no seal, no seal line.
     expect(screen.queryByText('Chosen')).toBeNull()
     expect(screen.queryByText('Selected')).toBeNull()
-    expect(container.querySelector('.su-entity-token-line')).toBeNull()
+    expect(container.querySelector('.su-entity-mini-line')).toBeNull()
     // Read-only, nothing is a toggle.
     expect(container.querySelector('[data-choice-toggle]')).toBeNull()
     expect(container.querySelector('[aria-pressed]')).toBeNull()
@@ -65,7 +65,7 @@ describe('ChoiceRegion — read-only entity options', () => {
 })
 
 describe('ChoiceRegion — editable entity options', () => {
-  test('each Token is the toggle: pressed and ringed when chosen, unchosen ones dimmed, no seal', () => {
+  test('each Mini is the toggle: pressed and ringed when chosen, unchosen ones dimmed, no seal', () => {
     const choice = firstChoice(bionicSenses())
     const { container } = render(
       <ReferenceEntityCard
@@ -103,7 +103,7 @@ describe('ChoiceRegion — editable entity options', () => {
 })
 
 describe('ChoiceRegion — an editable catalog pick', () => {
-  test("the picked entity is its Token, above the picker's Change button", () => {
+  test("the picked entity is its Mini, above the picker's Change button", () => {
     const choice = firstChoice(armamentBay())
     const { container } = render(
       <ReferenceEntityCard

@@ -8,7 +8,7 @@
  * frame, as `data-grain` declares its texture, and every component inside
  * reads it in CSS (`[data-ground='ink'] .su-…`). Before this there were six
  * spellings of "on ink": a `ground` prop (Segmented, StepButton, Message), an
- * `onInk` prop (Chips, CardLabels, CostBox, ActivationCost, a Token's cells),
+ * `onInk` prop (Chips, CardLabels, CostBox, ActivationCost, a Mini's cells),
  * Stat's `inverse`, Badge's `on-ink` plate chosen by ground, Button's
  * `surface="ink"`, and the bar's own faded foregrounds. Each one had to be
  * threaded from the frame to the leaf by hand, and a leaf that missed it
@@ -122,7 +122,7 @@ const FRAMES: Record<string, string> = {
     "the Play bar, the Cockpit's page band (the Cantina's, which prints paper)",
   'apps/web/src/components/entity/parts/Head.tsx': "an entity form's head band (the ink banner)",
   'apps/web/src/components/referenceEntity/card/EntityCardHeader.tsx': "a card's head band",
-  'apps/web/src/components/entity/forms/Token.tsx': "a Token's pill",
+  'apps/web/src/components/entity/forms/Mini.tsx': "a Mini's pill",
   'apps/web/src/build/wizard/WizShell.tsx': "a wizard's ink action pill",
   'apps/web/src/components/compositions/RollTableInstrument.tsx': "a roll table's ink bar",
   'apps/web/src/components/containers/ModalShell.tsx':

@@ -139,11 +139,11 @@ describe('EntitySearcher — a phone (390×844)', () => {
   )
 
   it(
-    'opens a Token as its Page over the whole picker, and Back returns to that Token',
+    'opens a Mini as its Page over the whole picker, and Back returns to that Mini',
     () => {
       const eq = nth(allEquipment(), 0)
       render(<ControlledEquipment initial={[]} />)
-      // Nothing is focused on a phone until a Token is opened.
+      // Nothing is focused on a phone until a Mini is opened.
       expect(screen.queryByRole('button', { name: /back to list/i })).toBeNull()
       const token = screen.getByRole('button', { name: eq.name })
       fireEvent.click(token)
@@ -204,7 +204,7 @@ describe('EntitySearcher — the rail on a wide screen', () => {
       expect(region.querySelector('[aria-expanded]')).toBeNull()
       expect(within(region).getByRole('heading', { name: /equipped/i })).toBeTruthy()
       expect(within(region).getByRole('button', { name: `Remove ${eq.name}` })).toBeTruthy()
-      // The sidebar's Tokens leave the Tech level to the list.
+      // The sidebar's Minis leave the Tech level to the list.
       expect(within(within(region).getByTestId('rail-entry')).queryByText('TL')).toBeNull()
       expect(within(region).getByText('Inventory slots')).toBeTruthy()
       expect(within(region).getByRole('button', { name: 'Done' })).toBeTruthy()
@@ -234,11 +234,11 @@ describe('EntitySearcher — the rail on a wide screen', () => {
   )
 
   it(
-    'a chosen Token in the rail opens that entity’s Page',
+    'a chosen Mini in the rail opens that entity’s Page',
     () => {
       const [a, b] = threeEquipment()
       render(<ControlledEquipment initial={[a.id, b.id]} />)
-      // Nothing is open until a Token is, even with entities chosen.
+      // Nothing is open until a Mini is, even with entities chosen.
       expect(screen.queryByRole('group', { name: `${a.name} actions` })).toBeNull()
       fireEvent.click(within(rail()).getByRole('button', { name: b.name }))
       expect(screen.getByRole('group', { name: `${b.name} actions` })).toBeTruthy()

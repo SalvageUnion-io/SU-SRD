@@ -11,7 +11,7 @@ import { EntitySearcher } from '../EntitySearcher'
 import { rail } from './entitySearcherHarness'
 
 describe('EntitySearcher — single mode', () => {
-  it('labels the chosen Token; the chosen one has no Remove, and the rail carries the confirm actions', () => {
+  it('labels the chosen Mini; the chosen one has no Remove, and the rail carries the confirm actions', () => {
     const [chosen, other] = SalvageUnionReference.Chassis.all()
     if (!chosen || !other) throw new Error('Need two chassis in reference data')
     const toggled: string[] = []

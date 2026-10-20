@@ -157,7 +157,7 @@
 /* ══ The entity-searcher picker ══════════════════════════════════════════════
  *
  * `compositions/EntitySearcher.tsx` — the "add an entity" body every sheet picker
- * opens: a list of Tokens, the opened entity's Page, and the chosen sidebar.
+ * opens: a list of Minis, the opened entity's Page, and the chosen sidebar.
  * Classes, not style objects, because these properties change at the 64rem
  * breakpoint or with state (the split rule: a property with a responsive or
  * stateful variant lives here, resting value included). The component's static
@@ -170,17 +170,17 @@
  * `overflow: hidden`). Each part scrolls in its own `.su-searcher__scroll`.
  *
  * Below 64rem it is one column: the list over the rail's bar. `--takeover` is
- * a Token opened there: its Page fills the body and the list and bar are
+ * a Mini opened there: its Page fills the body and the list and bar are
  * hidden (the `hidden` attribute, so they stay mounted). From 64rem it is three
  * columns at a fixed height: the list a third of the width, the opened Page,
- * the sidebar. The middle holds a callout until a Token is opened, and
+ * the sidebar. The middle holds a callout until a Mini is opened, and
  * opening one never resizes the picker. `--browse` (the SRD Explorer) is the
  * list alone, as a grid.
  *
  * The breakpoint is mirrored by `WIDE_QUERY` in the component — change both or
  * neither.
  */
-/* Narrow, the frame takes the whole screen, so opening a Token's Page (or
+/* Narrow, the frame takes the whole screen, so opening a Mini's Page (or
    filtering the list down) never resizes the picker under a thumb. Its cap is
    `.su-searcher-panel`; this only fills it. */
 @media not (width >= 64rem) {
@@ -191,8 +191,8 @@
 
 /* ONE HEIGHT PER ROW. Every control in the picker matches its siblings: the
    bars (the toolbar, the Page's action bar, the phone's bottom bar) all run at
-   the compact button's height, and a list line (the Token, its chosen label,
-   its ✕) at a Token's. */
+   the compact button's height, and a list line (the Mini, its chosen label,
+   its ✕) at a Mini's. */
 .su-searcher-panel {
   --su-searcher-control: 32px;
   --su-searcher-line: 25px;
@@ -308,10 +308,10 @@
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
 
-/* One line per entity: the Token filling it, and once chosen its label.
-   Doubled classes, to hold the line together over `.su-entity-token-line`'s
+/* One line per entity: the Mini filling it, and once chosen its label.
+   Doubled classes, to hold the line together over `.su-entity-mini-line`'s
    phone wrap (choices-patterns.css, later in the cascade). */
-.su-searcher__item.su-entity-token-line {
+.su-searcher__item.su-entity-mini-line {
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
@@ -320,7 +320,7 @@
   padding: var(--space-2);
 }
 
-.su-searcher__item.su-entity-token-line > .su-entity-token {
+.su-searcher__item.su-entity-mini-line > .su-entity-mini {
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -339,7 +339,7 @@
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
-.su-searcher__item.su-entity-token-line > .su-badge-stamp {
+.su-searcher__item.su-entity-mini-line > .su-badge-stamp {
   align-self: center;
 }
 

@@ -5,7 +5,7 @@
  * `Play` (`board`, `claimAndBoard`, `setOnFoot`, `seat.eject`).
  *
  * ADR-007: Eject is behind a confirm, and so is claiming an unclaimed spare.
- * A Token one a line in the list (ruleset §1.3; `playLineModel`, Mount being
+ * A Mini one a line in the list (ruleset §1.3; `playLineModel`, Mount being
  * no reference entity), its controls in its chip group (R6); not on hand, the
  * need is its chip.
  */
@@ -58,7 +58,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           Board
         </Button>
       ) : (
-        // The outlined Button: on the Token's ink pill it reads paper (R19),
+        // The outlined Button: on the Mini's ink pill it reads paper (R19),
         // where an ink fill would vanish into the pill.
         <Button size="mini" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare' ? `Claim and board ${main.name}` : `Board ${main.name}`}
@@ -86,7 +86,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key="mount">
       <Entity
-        form="token"
+        size="mini"
         context="play"
         model={MODEL}
         dim={away}

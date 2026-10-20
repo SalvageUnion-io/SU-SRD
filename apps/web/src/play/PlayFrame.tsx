@@ -17,8 +17,8 @@
  *
  * The canvas is level 0. A column is a plain region on it, not a frame: its
  * heading is a Slab (`PlayColumn`), never a `TitledBox`, so what a column
- * lists — compact Rows, Cards, a unit's `TitledBox` — stays at level 1, and
- * anything inside one of those is a Token (level 2).
+ * lists — Compacts, Cards, a unit's `TitledBox` — stays at level 1, and
+ * anything inside one of those is a Mini (level 2).
  *
  * The Cockpit is a page like the sheets (owner's call, 2026-10-20): the page
  * ground, the Play bar and foot in the Cantina's band, and each column a paper

@@ -5,8 +5,8 @@
  * action of the pilot and the mech, the Reactor and Mount, sorted by action
  * type (Turn, Short, Long, Reaction, Free, Downtime), with a type filter and
  * Find on the "Actions" heading line (wireframe pin 5); what is on hand first, what is not collapsed below with its reason.
- * Every line is a Token (ruleset §1.3); Use opens the action in place as its
- * Token's contentful body: Activate, Roll, Push?, Apply, on the seat's
+ * Every line is a Mini (ruleset §1.3); Use opens the action in place as its
+ * Mini's contentful body: Activate, Roll, Push?, Apply, on the seat's
  * `resolving`.
  *
  * In Downtime it becomes the Downtime track and the current step

@@ -3,7 +3,7 @@
  * outside its Assigned units (the Hold's stow target, the Mech Bay's docked
  * mech): the one RELATION chip (hard rule R5, `chips-and-actions.md` C11),
  * label first, `CRAWLER | Tenacity`, its value opening that unit's sheet. No
- * Token, no readings: what it is doing is its own sheet's.
+ * Mini, no readings: what it is doing is its own sheet's.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

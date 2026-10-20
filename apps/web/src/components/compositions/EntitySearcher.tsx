@@ -3,12 +3,12 @@
  * and standalone picker modal (pilot equipment/abilities, mech systems/modules,
  * crawler weapons, chassis/NPC pickers) and Play's SRD Explorer.
  *
- * BROWSE, READ, KEEP. The pool is a list of Tokens, so a long collection
+ * BROWSE, READ, KEEP. The pool is a list of Minis, so a long collection
  * scans at a glance; a chosen one's line wears select mode's ring and its
- * `SelectedSeal` in the caller's word (EQUIPPED, 2 INSTALLED): hard rule R15. Opening a Token shows that
+ * `SelectedSeal` in the caller's word (EQUIPPED, 2 INSTALLED): hard rule R15. Opening a Mini shows that
  * entity whole, as its Page, with an action bar that adds it — the detail is
  * there when it is wanted, never in the way of the list. What is already
- * chosen sits in its own sidebar of Tokens with the budgets, and removing is
+ * chosen sits in its own sidebar of Minis with the budgets, and removing is
  * done there.
  *
  * Persistence-agnostic: the caller owns `selected` and the add/remove handlers
@@ -19,16 +19,16 @@
  * action bar says CHOOSE, and `railActions` carries the confirm affordance. `hide` drops the Card sections a picker cannot act on.
  *
  * THE LAYOUT (in the `.su-searcher*` classes, styles/partials/controls.css):
- *   - from 64rem, the Token list (a third of the width) and the chosen
- *     sidebar; opening a Token fills the middle column with its Page. Each
- *     column scrolls alone. Until a Token is opened the middle holds a callout
+ *   - from 64rem, the Mini list (a third of the width) and the chosen
+ *     sidebar; opening a Mini fills the middle column with its Page. Each
+ *     column scrolls alone. Until a Mini is opened the middle holds a callout
  *     saying what goes there.
- *   - below it, one column: the Token list over a bar holding the chosen
+ *   - below it, one column: the Mini list over a bar holding the chosen
  *     count (a disclosure that opens the chosen list), the budgets and the
- *     actions. Opening a Token gives its Page the whole picker, with Back to
+ *     actions. Opening a Mini gives its Page the whole picker, with Back to
  *     list above and the action bar below; the list stays mounted, hidden, so
  *     its scroll position survives the round trip.
- *   - browse has no choosing: a grid of Tokens, each opening via `onOpen`.
+ *   - browse has no choosing: a grid of Minis, each opening via `onOpen`.
  * DOM order follows the visual order, so focus order does too.
  *
  * NOTHING BELOW A FOLD. The frame is capped at the dynamic viewport and its
@@ -85,7 +85,7 @@ type EntitySearcherProps = {
    * than appending), so a single-select picker differs only in semantics, not
    * in wiring.
    * `browse`: nothing is chosen — a reference browser, not a picker (the
-   * Play's SRD Explorer). No rail, no Status facet; a Token's
+   * Play's SRD Explorer). No rail, no Status facet; a Mini's
    * click emits `onOpen`.
    */
   mode?: 'toggle' | 'count' | 'single' | 'browse'
@@ -218,7 +218,7 @@ export function EntitySearcher({
   }
 
   // A layout effect, so focus moves before paint: into the Page view on its
-  // Back button, and back out onto the Token that opened it.
+  // Back button, and back out onto the Mini that opened it.
   useLayoutEffect(() => {
     const target = pendingFocus.current
     if (target === null) return
@@ -264,27 +264,27 @@ export function EntitySearcher({
     />
   )
 
-  // ---- The Token list ----
+  // ---- The Mini list ----
   const single = mode === 'single'
   const tokens = visible.map((item) => {
     const ref = idOf(item)
     const count = countOf(item)
     const token = (
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={item}
         mode={{
           kind: 'link',
           onOpen: () => (browse ? onOpen?.(ref) : open(ref)),
-          // A data attribute, so the back control can find the Token it left.
+          // A data attribute, so the back control can find the Mini it left.
           attrs: { 'data-searcher-open': ref } as EntityLinkAttrs,
         }}
       />
     )
     if (browse) {
       return (
-        <div key={item.id} className="su-searcher__item su-entity-token-line">
+        <div key={item.id} className="su-searcher__item su-entity-mini-line">
           {token}
         </div>
       )
@@ -292,7 +292,7 @@ export function EntitySearcher({
     return (
       <div
         key={item.id}
-        className="su-searcher__item su-entity-token-line"
+        className="su-searcher__item su-entity-mini-line"
         data-focused={ref === focusedId || undefined}
         data-selected={count > 0 || undefined}
       >
@@ -440,7 +440,7 @@ export function EntitySearcher({
  * `.su-searcher` media query in styles/partials/controls.css — change both or
  * neither. CSS owns the LAYOUT; this only decides what the parts ARE at that
  * width: the rail a column or a bar, the Tech level chips inline or folded,
- * and whether an opened Token takes the picker over.
+ * and whether an opened Mini takes the picker over.
  */
 const WIDE_QUERY = widthAtLeast('lg')
 

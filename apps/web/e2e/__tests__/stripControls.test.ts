@@ -41,7 +41,7 @@ beforeEach(() => {
 })
 
 const row = (title: string, chips = '', body = '') =>
-  `<div class="su-entity-row"><div class="su-entity-row__head"><span class="su-entity-row__title">${title}</span><div data-chip-group>${chips}</div></div>${body}</div>`
+  `<div class="su-entity-compact"><div class="su-entity-compact__head"><span class="su-entity-compact__title">${title}</span><div data-chip-group>${chips}</div></div>${body}</div>`
 
 const scan = () => scanStripControls(STRIP_CONTROL_SELECTORS)
 
@@ -56,17 +56,17 @@ describe('strip-control scan', () => {
     expect(scan()).toEqual(['beside: select "Copy Bonesaw to…" beside “Bonesaw”'])
   })
 
-  test("a contentful Token's fields in its body are its host's, not the strip's", () => {
+  test("a contentful Mini's fields in its body are its host's, not the strip's", () => {
     // A crew lead in Edit: its name, keepsake and facts are fields in its body.
-    const token = `<div class="su-entity-token" data-contentful><span class="su-entity-token__head"><span class="su-entity-token__pill"><span class="su-entity-token__name">Hannah</span><span data-chip-group></span></span></span><div class="su-entity-token__body"><input aria-label="Edit crew name" /><button>Add crew fact</button></div></div>`
+    const token = `<div class="su-entity-mini" data-contentful><span class="su-entity-mini__head"><span class="su-entity-mini__pill"><span class="su-entity-mini__name">Hannah</span><span data-chip-group></span></span></span><div class="su-entity-mini__body"><input aria-label="Edit crew name" /><button>Add crew fact</button></div></div>`
     document.body.innerHTML = `<ul><li data-top="0">${token}</li></ul>`
     expect(scan()).toEqual([])
   })
 
-  test("a TokenGroup's own sections are the group's, not a strip's", () => {
-    // A bay: its Token, then its When Damaged fold, in one bordered group.
-    const token = `<div class="su-entity-token"><span class="su-entity-token__pill"><span class="su-entity-token__name">Mech Bay</span><span data-chip-group><button>Dock</button></span></span></div>`
-    document.body.innerHTML = `<ul><li data-top="0"><div class="su-token-group">${token}<section><button>Expand Mech Bay When Damaged</button></section></div></li></ul>`
+  test("a MiniGroup's own sections are the group's, not a strip's", () => {
+    // A bay: its Mini, then its When Damaged fold, in one bordered group.
+    const token = `<div class="su-entity-mini"><span class="su-entity-mini__pill"><span class="su-entity-mini__name">Mech Bay</span><span data-chip-group><button>Dock</button></span></span></div>`
+    document.body.innerHTML = `<ul><li data-top="0"><div class="su-mini-group">${token}<section><button>Expand Mech Bay When Damaged</button></section></div></li></ul>`
     expect(scan()).toEqual([])
   })
 

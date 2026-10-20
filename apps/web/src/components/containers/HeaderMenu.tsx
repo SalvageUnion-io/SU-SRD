@@ -33,7 +33,7 @@ import { SegmentedOption } from '../atoms/Segmented'
  *
  * ## Data, not children
  *
- * Rows are `sections` of plain `{ id, label, hint?, onSelect }` records, with a
+ * Compacts are `sections` of plain `{ id, label, hint?, onSelect }` records, with a
  * rule drawn between sections. That keeps the menu ignorant of what a row DOES
  * — its callers hand in closures over the router and the Convex session — while
  * the menu owns every pixel of the row, so the two menus in the masthead cannot
@@ -77,7 +77,7 @@ type HeaderMenuProps = {
    * too (WCAG 2.5.3, label in name).
    */
   label?: string
-  /** Rows, grouped; a rule separates each non-empty section from the next. */
+  /** Compacts, grouped; a rule separates each non-empty section from the next. */
   sections: HeaderMenuItem[][]
   /** Draw the ▾ after the trigger content. On by default; off for an avatar-only trigger. */
   chevron?: boolean
@@ -88,7 +88,7 @@ type HeaderMenuProps = {
   active?: boolean
   /**
    * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — the
-   * ⋯ (`Ellipsis`) action chip (a listed unit's menu, its Row's last chip; a
+   * ⋯ (`Ellipsis`) action chip (a listed unit's menu, its Compact's last chip; a
    * bar's ⋯ at `size="compact"`); it shows the glyph, so pass `label` to
    * name it, and `trigger` is not drawn. `button` —
    * the shared Button as an action chip, for a menu that is a section's action
@@ -128,7 +128,7 @@ const TRIGGER = {
 const TRIGGER_CAPS = capsLabel({ size: 'lede' })
 
 // The overflow trigger (board S1) is an action chip, Button's `mini` rung, so it
-// sits among a Row's chips at their height. Only its open state, the inverse
+// sits among a Compact's chips at their height. Only its open state, the inverse
 // plate, is `.su-header-menu-trigger--overflow`'s.
 const overflowTriggerClass = (size: 'mini' | 'compact') =>
   cn(buttonVariants({ size }), 'su-header-menu-trigger--overflow')

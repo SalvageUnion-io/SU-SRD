@@ -1,7 +1,7 @@
 /**
  * CrawlerSheet — a bay reads as Bay Info, its crew, When Damaged.
  *
- * On a sheet both folding sections start shut: the crew Token and the roll
+ * On a sheet both folding sections start shut: the crew Mini and the roll
  * bar stay in view, and the bay's rules and its damaged clause wait until the
  * reader opens them. A damaged bay opens its When Damaged. Real SRD bays
  * (Pilot Bay, Trading Bay), no patched rows.

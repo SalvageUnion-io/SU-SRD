@@ -116,7 +116,7 @@ describe('bandFillFor', () => {
     expect(bandFillFor('systems', systemAt(3))).toEqual({ band: 'var(--color-tl-3)' })
   })
 
-  test('an ability’s show page wears its tier’s colour, as its Row does on the index', () => {
+  test('an ability’s show page wears its tier’s colour, as its Compact does on the index', () => {
     const inTree = (tree: string) => {
       const ability = SalvageUnionReference.Abilities.all().find((a) => a.tree === tree)
       if (!ability) throw new Error(`no ability in ${tree}`)

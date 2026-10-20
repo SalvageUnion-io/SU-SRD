@@ -10,7 +10,7 @@ import {
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { EntitySurfaceProvider, ReferenceEntityCard, Skeleton } from '../../components/index'
-import { EntityListingRow } from '../../components/islands/EntityListingRow'
+import { EntityIndexCompact } from '../../components/islands/EntityIndexCompact'
 import { itemHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
@@ -69,11 +69,11 @@ function renderEntity(entity: RefEntity): string {
 }
 
 /** One listing row, as `SchemaViewerIsland` renders it. */
-function renderListingRow(schemaId: string, entity: RefEntity): string {
+function renderIndexCompact(schemaId: string, entity: RefEntity): string {
   return normalize(
     renderToStaticMarkup(
       <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-        <EntityListingRow
+        <EntityIndexCompact
           entity={entity}
           href={itemHref(schemaId, getEntitySlug(entity))}
           omit={['kind']}
@@ -128,14 +128,14 @@ export function describePreloadEquivalence(shard: number): void {
       it(`${schema.id}: listing rows render identically from the list projection`, async () => {
         const entities: RefEntity[] = getModel(schema.id)?.all() ?? []
         try {
-          const baseline = entities.map((entity) => renderListingRow(schema.id, entity))
+          const baseline = entities.map((entity) => renderIndexCompact(schema.id, entity))
 
           resetAllForTesting()
           await SalvageUnionReference.preload(preloadList, { projection: 'list' })
           if (preloadList.includes('actions')) {
             expect(SalvageUnionReference.isLoaded('actions')).toBe(false)
           }
-          const listed = entities.map((entity) => renderListingRow(schema.id, entity))
+          const listed = entities.map((entity) => renderIndexCompact(schema.id, entity))
 
           expect(listed).toEqual(baseline)
         } finally {

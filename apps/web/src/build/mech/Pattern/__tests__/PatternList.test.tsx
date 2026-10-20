@@ -60,8 +60,8 @@ describe('PatternList', () => {
     // Titled in typographic quotes, as on the Save preview and the public page.
     expect(screen.getByText('“Tow Rig”')).toBeTruthy()
     expect(screen.queryByText('"Tow Rig"')).toBeNull()
-    // The frame's dashes ride `data-user-made` (`.su-entity-row__frame[data-user-made]`).
-    expect(container.querySelector('.su-entity-row__frame[data-user-made]')).not.toBeNull()
+    // The frame's dashes ride `data-user-made` (`.su-entity-compact__frame[data-user-made]`).
+    expect(container.querySelector('.su-entity-compact__frame[data-user-made]')).not.toBeNull()
     expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.queryByText(/Chassis: scrapper/)).toBeNull()
     expect(screen.getByRole('button', { name: /^Build With This: a mech from / })).toBeTruthy()

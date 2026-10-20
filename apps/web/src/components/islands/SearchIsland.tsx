@@ -218,13 +218,13 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   )
 
   // HEADER SEARCH (entity display language, "Which form, where"): every
-  // entity result is a Token in link mode, one a line; a category is a plain
+  // entity result is a Mini in link mode, one a line; a category is a plain
   // link.
   const listbox = isOpen && (
     <DocumentLinks>
       <SearchListbox
         id={listboxId}
-        form="token"
+        size="mini"
         ready={ready}
         results={results}
         selectedIndex={selectedIndex}

@@ -112,7 +112,7 @@ const leftRailScript = (text: string) =>
  * selectors, each one of the four things dashed means.
  */
 const DASHED_SELECTORS: readonly [RegExp, string][] = [
-  [/\[data-user-made\]/, 'user-made: an entity frame, Token body or pill a player made'],
+  [/\[data-user-made\]/, 'user-made: an entity frame, Mini body or pill a player made'],
   [/\.su-badge--dashed\b/, 'user-made: the stamp'],
   [/\[data-reference\]/, 'a Play reference unit (ADR-051 §5): `Box`’s `reference`'],
   [/\.su-field__write-cue\b/, 'an edit field: a writable value box'],
@@ -469,8 +469,8 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'entity-frame-ink',
     mode: 'ratchet',
-    rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame is the subtle ink-40 the sheets wear, never solid ink or its tone; only `--su-row-frame` colours one (an ability tree, a pattern)',
-    fix: "Paint the frame `var(--color-ink-40)` (`color.ink40` in a style object), keeping its weight (§4.3). An ability tree's Rows and a pattern's frame take their colour through `--su-row-frame` alone. Then lower the baseline: `bun tools/check-rule-sets.ts --update-baseline`.",
+    rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame is the subtle ink-40 the sheets wear, never solid ink or its tone; only `--su-compact-frame` colours one (an ability tree, a pattern)',
+    fix: "Paint the frame `var(--color-ink-40)` (`color.ink40` in a style object), keeping its weight (§4.3). An ability tree's Compacts and a pattern's frame take their colour through `--su-compact-frame` alone. Then lower the baseline: `bun tools/check-rule-sets.ts --update-baseline`.",
     css: entityFrameInkCss,
     script: entityFrameInkScript,
   },

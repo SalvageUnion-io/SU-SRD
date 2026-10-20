@@ -8,7 +8,7 @@ import { test as signedIn } from './fixtures'
 
 /**
  * The chip-strip law (ruleset §4.7) on the page shapes that carry chips: a
- * Page's band cluster, its cards' heads, their Tokens. A failure names the
+ * Page's band cluster, its cards' heads, their Minis. A failure names the
  * page, the width and the fault (`_chipStrips.ts`): a value off its label's
  * size, a hole between chips, lines on no common edge, a cost out of its
  * corner, a chip clipped or past its strip's edge (R3), too many lines, and
@@ -71,8 +71,8 @@ test('every chip strip is one size, one gap, its cost in the corner', async ({ p
  * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
  * signed in and seeded, at page and phone widths, Play's phone form tab by
  * tab. A fault's rule is its kind: `size`, `gap`, `flush`, `cost`, `clip`
- * or `lines`. The seeded Game's long name holds a Training Bay Row's Game chip
- * inside its Row at a page's three columns (R3).
+ * or `lines`. The seeded Game's long name holds a Training Bay Compact's Game chip
+ * inside its Compact at a page's three columns (R3).
  *
  * `BASELINE` is the debt this pass found when it landed, by route family and
  * rule, each to be fixed and deleted here. A fault off it fails; an entry

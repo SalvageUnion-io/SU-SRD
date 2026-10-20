@@ -192,7 +192,7 @@ export async function installLoadoutItem(page: Page, name: string): Promise<void
 
 /**
  * Add one entry from a searcher (`EntitySearcher`: the sheet's pickers, a
- * Token list beside the opened entity's Page). An entry is opened from the
+ * Mini list beside the opened entity's Page). An entry is opened from the
  * list and added from its Page's action bar (`<name> actions`), never toggled
  * in the list.
  */
@@ -416,7 +416,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 export async function openSheetFor(page: Page, name: string): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  // A shelf item with a menu draws its link as a cover over the Row, named by
+  // A shelf item with a menu draws its link as a cover over the Compact, named by
   // its `aria-label` and holding no text; one without a menu wraps its text.
   const line = page
     .locator(`a[href*="/sheet/"][aria-label="${name}"]`)

@@ -3,7 +3,7 @@
  * Units rail (ADR-037).
  *
  * A button that opens the one pick dialog (`PickDialog`) of candidates — each
- * the unit's Row in select mode (EDL "Modes": ink ring and the "Selected"
+ * the unit's Compact in select mode (EDL "Modes": ink ring and the "Selected"
  * seal), one radio group — then draws the link on confirm. It replaces three
  * near-identical dialogs (`AssignPilotToMech`, `AssignCrawlerToPilot`,
  * `AssignPilotToCrawler`) that differed only in which
@@ -165,7 +165,7 @@ const MANY: Record<Kind, string> = {
   npc: 'NPCs',
 }
 
-/** A candidate's Row: its name, what it is built as, and its readings as chips. */
+/** A candidate's Compact: its name, what it is built as, and its readings as chips. */
 type Candidate = { id: string; name: string; note?: string | undefined; readings?: UnitReading[] }
 
 /** Chassis name for a mech row, best-effort (reference data may not be loaded). */

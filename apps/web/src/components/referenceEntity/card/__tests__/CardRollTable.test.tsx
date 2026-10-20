@@ -54,7 +54,7 @@ describe('CardRollTable', () => {
     expect(marked[0]?.textContent).toContain('Rolled 14')
   })
 
-  test('nested it is a Token: Roll the Die in its strip, its name Peeking the rows', () => {
+  test('nested it is a Mini: Roll the Die in its strip, its name Peeking the rows', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -66,11 +66,11 @@ describe('CardRollTable', () => {
       />
     )
     const token = document.querySelector('.su-roll-token')
-    expect(token?.querySelector('.su-entity-token__name')?.textContent).toContain('Core Mechanic')
+    expect(token?.querySelector('.su-entity-mini__name')?.textContent).toContain('Core Mechanic')
     expect(document.querySelector('.su-roll')).toBeNull()
-    // Its one control, in the pill after the name at the Token's rung (C1a, C8).
+    // Its one control, in the pill after the name at the Mini's rung (C1a, C8).
     const roll = screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
-    expect(token?.querySelector('.su-entity-token__pill')?.contains(roll)).toBe(true)
+    expect(token?.querySelector('.su-entity-mini__pill')?.contains(roll)).toBe(true)
     expect(roll.classList.contains('su-btn--mini')).toBe(true)
     expect(screen.queryByRole('button', { name: /^Show the .* table$/ })).toBeNull()
     // The rows are its name's Peek, focusable so a keyboard opens it too.

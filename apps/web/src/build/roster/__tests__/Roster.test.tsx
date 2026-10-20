@@ -285,12 +285,12 @@ describe('Training Bay — one shelf per kind', () => {
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText('Yours')).toBeTruthy()
-    // Its chips lead the Row's chip group, so the link is the Row's cover and
-    // the Row (`.su-entity-row`) holds what it reads.
+    // Its chips lead the Compact's chip group, so the link is the Compact's cover and
+    // the Compact (`.su-entity-compact`) holds what it reads.
     const line = within(npcs)
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
-      ?.closest('.su-entity-row')
+      ?.closest('.su-entity-compact')
     expect(line?.querySelector('[data-user-made]')).not.toBeNull()
     // The HOMEBREW stamp says it in a word.
     expect(line?.textContent).toContain('Homebrew')
@@ -333,7 +333,7 @@ describe('Training Bay — items', () => {
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/pilot/${id}`)
     expect(link?.getAttribute('aria-label')).toContain('Nia Vale')
-    const line = link?.closest('.su-entity-row')
+    const line = link?.closest('.su-entity-compact')
     expect(line?.textContent).toContain('Nia Vale')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
     expect(line?.textContent).toContain('Engineer')

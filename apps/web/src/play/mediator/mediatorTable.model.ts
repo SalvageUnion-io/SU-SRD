@@ -40,7 +40,7 @@ export type MediatorSeat = {
   present: boolean
   /** "Boarded · Buzzard", or "On foot". */
   mount: string
-  /** The mech assigned to them, as the seat's mount Token reads it; null with none. */
+  /** The mech assigned to them, as the seat's mount Mini reads it; null with none. */
   mech: { name: string; sp: string; boarded: boolean } | null
   /** Every live vital: HP and AP, and aboard the mech's SP, EP and Heat. */
   vitals: SeatVital[]

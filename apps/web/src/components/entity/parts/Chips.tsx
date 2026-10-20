@@ -14,8 +14,8 @@ import { Tags } from './Tags'
 import type { TagItem } from './tagItems'
 
 /**
- * CHIPS — every chip strip (`chips-and-actions.md` C2a): a Token's, a Row's
- * or Card's head, a Page's band, a Tile's, a TitledBox's or Slab's summary.
+ * CHIPS — every chip strip (`chips-and-actions.md` C2a): a Mini's, a Compact's
+ * or Card's head, a Page's band, a CompactIndex's, a TitledBox's or Slab's summary.
  * ONE group (E17), in THE class order (C2): the host's marks (a note,
  * HOMEBREW, Suggested), the rank (`TL | 2`), the measures in the stat order
  * (`SLOTS | 1`, `SP | 12`), the economy (the action type, "Turn Action", then
@@ -60,8 +60,8 @@ export function Chips({
   linkable?: boolean
   /**
    * Relations may link: as traits by default; also where the form raises its
-   * chips above a covering link (a Row's `data-covered`), so a unit's
-   * `GAME | Rust Run` opens the Game while the Row opens the unit (C11).
+   * chips above a covering link (a Compact's `data-covered`), so a unit's
+   * `GAME | Rust Run` opens the Game while the Compact opens the unit (C11).
    */
   relationsLinkable?: boolean
   /** The host's marks, first (a note, HOMEBREW, "Suggested"): one node per chip. */
@@ -76,10 +76,10 @@ export function Chips({
   nodes?: Partial<Record<ChipClass, ReactNode>>
   /** `end` packs the chips to the row's far end (a page's prose column). */
   align?: 'start' | 'end'
-  /** A `span` where the strip sits in phrasing content (a Token's pill, a Tile's band). */
+  /** A `span` where the strip sits in phrasing content (a Mini's pill, a CompactIndex's band). */
   as?: 'div' | 'span'
   /**
-   * A line's strip in a list (a Row's or Token's head): every class keeps its
+   * A line's strip in a list (a Compact's or Mini's head): every class keeps its
    * lane, empty or not, and the list sets each lane's width (`chipLanes.ts`,
    * C6), so a class is a column down the list.
    */
@@ -137,7 +137,7 @@ export function Chips({
   }
   const lanes = CHIP_CLASSES.map((cls) => {
     // A host's node is one chip; a Fragment is its children, each a chip, so
-    // the lanes before it count what it draws (a Row's View and Unassign).
+    // the lanes before it count what it draws (a Compact's View and Unassign).
     const extra = chipNodes(host[cls])
     return { cls, nodes: [...own[cls].nodes, ...extra], count: own[cls].count + extra.length }
   })
