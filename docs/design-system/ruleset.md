@@ -7,7 +7,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band, in the band's colour, is text, never chips: the citations on one line, Workshop Manual first, `//` between (`Workshop Manual · p.65 // Starter Set · p.37`); no kind, no ink rule; the source on its own cut-out, top right. A Page's is its one footer, the app's links under the source; a card's or Peek's stands alone.
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), every row full width (a short last row stretches), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL), TL a label only (prose: Tech Level).
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), two a row, paired in a group (SP | EP; lone cells span), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL), TL a label only (prose: Tech Level).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
@@ -41,7 +41,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only.
-   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4), the last read chip; action slots follow it (C8).
+   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Bio · SYS, MODS, Heat, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4), the last read chip; action slots follow it (C8).
    7. **Entity card** — Full contentful is THE canonical render; a list's the Compact, a Peek's Compact contentful (§1).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` and `InlineRef`, and no token aliases it. A destructive action is rust too, behind `ConfirmDialog`: no state colour fills a button.

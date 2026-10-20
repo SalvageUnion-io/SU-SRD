@@ -138,9 +138,9 @@ describe('one chassis chip set in every form', () => {
       'SV',
       'SP',
       'EP',
-      'Heat',
       'SYS',
       'MODS',
+      'Heat',
       'Cargo',
     ])
   })

@@ -162,9 +162,9 @@ export function useMechSheetModel({
 
   // The Chassis Stats strip, in the stat order every surface keeps (`STATS`,
   // salvageunion-reference): Tech Level and Salvage Value, then Structure
-  // Points, Energy Points and Heat Capacity, then System Slots, Module Slots
-  // and Cargo Capacity, spelled out (`STAT_LABELS.label`), each group opening
-  // a new row. Each is the machine's figure: SP/EP/Heat are the derived
+  // and Energy Points, then System and Module Slots, Heat and Cargo Capacity,
+  // spelled out (`STAT_LABELS.label`), each group pairing off its own cells
+  // (`StatColumn`). Each is the machine's figure: SP/EP/Heat are the derived
   // maxima, the slots and cargo the chassis's capacities. What is in use reads
   // where it is used: the Systems and Modules counts and The Hold.
   const chassisStats: ChassisStat[] = [
@@ -195,7 +195,6 @@ export function useMechSheetModel({
       group: 'vitals',
     },
     { key: 'ep', label: STAT_LABELS.energyPoints.label, value: String(maxEP), group: 'vitals' },
-    { key: 'heat', label: STAT_LABELS.heatCapacity.label, value: String(heatCap), group: 'vitals' },
     {
       key: 'system-slots',
       label: STAT_LABELS.systemSlots.label,
@@ -206,6 +205,12 @@ export function useMechSheetModel({
       key: 'module-slots',
       label: STAT_LABELS.moduleSlots.label,
       value: String(capacity.moduleSlotsMax),
+      group: 'capacity',
+    },
+    {
+      key: 'heat',
+      label: STAT_LABELS.heatCapacity.label,
+      value: String(heatCap),
       group: 'capacity',
     },
     {

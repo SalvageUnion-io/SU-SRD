@@ -171,9 +171,9 @@ describe('MechSheet — the Chassis stats', () => {
       'Salvage Value 10',
       'Structure Points 17',
       'Energy Points 11',
-      'Heat Capacity 3',
       'System Slots 7',
       'Module Slots 4',
+      'Heat Capacity 3',
       'Cargo Capacity 6',
     ]
     const at = pairs.map((pair) => text.indexOf(pair.replace(/ (\d+)$/, '$1')))

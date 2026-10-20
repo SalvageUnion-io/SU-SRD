@@ -34,9 +34,9 @@ export type EntityPageMeta = {
   techLevel?: string
   /**
    * The book's stat cells the band carries, Tech Level among them in the
-   * book's order (Slots Required, Tech Level, Salvage Value). Empty for a
-   * chassis and its patterns: their stats lead the page body, inline
-   * (`pageBodyStats`; owner's call, 2026-10-14).
+   * book's order (Slots Required, Tech Level, Salvage Value). A chassis and
+   * its patterns carry only their Tech Level and Salvage Value here: the rest
+   * lead the page body, inline (`pageBodyStats`; owner's call, 2026-10-20).
    */
   stats: BookStat[]
   /** An ability's tier numeral (its level in the tree). */
@@ -70,15 +70,18 @@ function isOwnStat(key: string): boolean {
 
 /**
  * A chassis (its patterns' pages too) keeps its stats in the page body, but
- * for its Tech Level, which rides the band beside the title as every other
- * page's does (owner's call, 2026-10-18).
+ * for its provenance, Tech Level and Salvage Value, which ride the band
+ * beside the title as every other page's do (owner's calls, 2026-10-18 and
+ * 2026-10-20).
  */
 function statsInBody(entity: RefMetaEntity): boolean {
   return 'schemaName' in entity && entity.schemaName === 'chassis'
 }
 
-/** The book stat a chassis page keeps in its band, out of its body. */
-const BAND_STAT = 'tech-level'
+/** Whether a book stat rides a chassis page's band, out of its body: its provenance. */
+function isBandStat(stat: BookStat): boolean {
+  return stat.group === 'provenance'
+}
 
 function bookStatsOf(model: EntityModel): BookStat[] {
   return model.bookStats.map((fact) => ({
@@ -90,10 +93,10 @@ function bookStatsOf(model: EntityModel): BookStat[] {
   }))
 }
 
-/** The stats that lead a page's body, inline: a chassis's, less its Tech Level; nothing else's. */
+/** The stats that lead a page's body, inline: a chassis's, less its Tech Level and Salvage Value; nothing else's. */
 export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
   return statsInBody(entity)
-    ? bookStatsOf(toEntityModel(entity)).filter((stat) => stat.key !== BAND_STAT)
+    ? bookStatsOf(toEntityModel(entity)).filter((stat) => !isBandStat(stat))
     : []
 }
 
@@ -107,9 +110,7 @@ export function resolveEntityPageMeta(
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    stats: statsInBody(entity)
-      ? bookStatsOf(model).filter((stat) => stat.key === BAND_STAT)
-      : bookStatsOf(model),
+    stats: statsInBody(entity) ? bookStatsOf(model).filter(isBandStat) : bookStatsOf(model),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
     facts: factCells(

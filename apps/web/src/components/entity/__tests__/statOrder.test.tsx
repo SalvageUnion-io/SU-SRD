@@ -2,7 +2,7 @@
  * THE stat order (owner, 2026-10-14): every surface draws an entity's stats in
  * one order, a smaller form dropping stats but never moving them. Tech Level
  * leads, then the groups: provenance (TL, Slots, SV), vitals (SP or HP, EP,
- * Heat, Bio-Salvage), capacity (SYS, MODS, Cargo; Upkeep, Upgrade), then the
+ * Bio-Salvage), capacity (SYS, MODS, Heat, Cargo; Upkeep, Upgrade), then the
  * action type and the action's facets (RNG, DMG), the traits, the cost.
  *
  * The order is the model's (`bookStats`, then the action); each surface's

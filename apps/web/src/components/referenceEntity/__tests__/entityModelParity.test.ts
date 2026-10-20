@@ -104,9 +104,9 @@ function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     // The band's stats: every book stat but a chassis's, which lead its body
-    // (all but its Tech Level, which rides the band).
+    // (all but its Tech Level and Salvage Value, which ride the band).
     stats: (model.ref.schemaName === 'chassis'
-      ? model.bookStats.filter((fact) => fact.key === 'tech-level')
+      ? model.bookStats.filter((fact) => fact.group === 'provenance')
       : model.bookStats
     ).map((fact) => ({
       key: fact.key,

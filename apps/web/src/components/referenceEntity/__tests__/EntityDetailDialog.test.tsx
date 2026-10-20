@@ -77,15 +77,15 @@ describe('the detail dialog is the Page', () => {
     // With art the page flows round it from 64rem (`.su-entity-page--flow`).
     expect(page.classList.contains('su-entity-page--flow')).toBe(true)
     expect(page.querySelector('.su-entity-page__art')).toBeTruthy()
-    // A chassis's stats are its body's, but for its Tech Level, the band's (E20):
-    // its rank chip, the only stat on the band's `Chips` strip.
+    // A chassis's stats are its body's, but for its Tech Level and Salvage
+    // Value, the band's (E20): the only stats on the band's `Chips` strip.
     const stamps = dialog.querySelector<HTMLElement>('.su-entity-stamps')
     const bandStats = [
       ...(stamps?.querySelectorAll(
         ':is([data-chip-class="rank"], [data-chip-class="measure"]) .su-stat-plate--label'
       ) ?? []),
     ]
-    expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level'])
+    expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level', 'Salvage Value'])
   })
 
   // Rulings 2026-10-19: no kind on the foot; the foot wears the band, edge to edge.

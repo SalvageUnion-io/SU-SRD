@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { StatGroup } from 'salvageunion-reference'
+import { cn } from '../../lib/cn'
 import { Stat } from './Stat'
 
 /**
@@ -9,11 +10,13 @@ import { Stat } from './Stat'
  * the value-cell law (§7.1) drawn the size the book draws it, so a label is
  * never squeezed into a header cell and never clips.
  *
- * Two to a row on a phone, and as many as fit at 200px from there up (board
- * 07: two columns beside the art). The cells keep the stat order: build them
- * from the entity model's `bookStats`. They fill the rows from the top down,
- * and every row spans the column: a short last row's cells stretch to share
- * it, so there is never an empty cell or a ragged edge (`stat-fill.e2e.ts`).
+ * Two to a row at every width, in pairs: each part of the stat order
+ * (provenance, vitals, capacity) pairs off its own cells from the top, so a
+ * mech reads Structure | Energy, System | Module Slots, Heat | Cargo (owner's
+ * call, 2026-10-20). A cell left without a partner, its group's last or a
+ * missing stat's neighbour, spans the row, so there is never an empty cell or
+ * a ragged edge (`stat-fill.e2e.ts`). The cells keep the stat order: build
+ * them from the entity model's `bookStats`.
  *
  * A layout of `Stat`s (ruleset §3.7, §6.2: every labelled value is a Stat,
  * no hand `dl`), each a list item, so a screen reader reads "Structure
@@ -36,17 +39,31 @@ type StatColumnProps = {
   stats: StatColumnCell[]
   /** Names the list (`aria-label`), e.g. "Gopher stats". */
   label: string
-  /**
-   * The compact cells, two a line, for a narrow column beside other content
-   * (the app mech sheet's hero). They flow on without a row break per group.
-   */
+  /** The compact cells, for a narrow column beside other content (the app mech sheet's hero). */
   compact?: boolean
   /** A cell's own style, by its index (a band's fill order, `EntityPageStamps`). */
   cellStyle?: (index: number) => CSSProperties
 }
 
+/**
+ * Which cells span their row: the cells pair off within each run of one
+ * group, and a run's odd last cell has no partner.
+ */
+function loneStatCells(stats: readonly Pick<StatColumnCell, 'group'>[]): boolean[] {
+  const lone: boolean[] = []
+  let runStart = 0
+  stats.forEach((stat, index) => {
+    if (index > 0 && stat.group !== stats[index - 1]?.group) runStart = index
+    const next = stats[index + 1]
+    const runEnds = !next || next.group !== stat.group
+    lone.push(runEnds && (index - runStart) % 2 === 0)
+  })
+  return lone
+}
+
 export function StatColumn({ stats, label, compact = false, cellStyle }: StatColumnProps) {
   if (stats.length === 0) return null
+  const lone = loneStatCells(stats)
   return (
     <ul
       className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
@@ -55,7 +72,7 @@ export function StatColumn({ stats, label, compact = false, cellStyle }: StatCol
       {stats.map((stat, index) => (
         <li
           key={stat.key}
-          className="su-stat-column__cell"
+          className={cn('su-stat-column__cell', lone[index] && 'su-stat-column__cell--lone')}
           title={stat.hoverText}
           style={cellStyle?.(index)}
         >

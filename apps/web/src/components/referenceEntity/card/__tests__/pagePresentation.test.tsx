@@ -43,18 +43,20 @@ const BOOK_EIGHT = [
   'Salvage Value',
   'Structure Points',
   'Energy Points',
-  'Heat Capacity',
   'System Slots',
   'Module Slots',
+  'Heat Capacity',
   'Cargo Capacity',
 ]
 
 describe('resolveEntityPageMeta — what the page’s bands say', () => {
-  test('a chassis’s stats read the manual’s eight, in the stat order: its TL on the band, the rest in the body', () => {
-    expect(resolveEntityPageMeta(gopher()).stats.map((s) => s.label)).toEqual(['Tech Level'])
+  test('a chassis’s stats read the manual’s eight, in the stat order: its TL and SV on the band, the rest in the body', () => {
+    expect(resolveEntityPageMeta(gopher()).stats.map((s) => s.label)).toEqual(
+      BOOK_EIGHT.slice(0, 2)
+    )
     const stats = pageBodyStats(gopher())
-    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT.slice(1))
-    expect(stats[1]?.value).toBe(String(gopher().structurePoints))
+    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT.slice(2))
+    expect(stats[0]?.value).toBe(String(gopher().structurePoints))
   })
 
   test('stats drop what the entity does not carry, and the TL when it has none', () => {
@@ -146,14 +148,16 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page__art img')).not.toBeNull()
   })
 
-  test('a chassis’s stats lead the body, inline, in the book’s words, in the stat order, less its TL', () => {
+  test('a chassis’s stats lead the body, inline, in the book’s words, in the stat order, less its TL and SV', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const column = container.querySelector('.su-entity-page__side > .su-entity-page__stats ul')
     expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
     const labels = [...(column?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
       (plate) => plate.textContent
     )
-    expect(labels).toEqual(BOOK_EIGHT.slice(1))
+    expect(labels).toEqual(BOOK_EIGHT.slice(2))
+    // Paired two a row: SP | EP, SYS | MODS, Heat | Cargo, none spanning.
+    expect(column?.querySelector('.su-stat-column__cell--lone')).toBeNull()
   })
 
   test('the chassis ability is a framed card atop the right column, with no "Chassis Ability" stamp', () => {

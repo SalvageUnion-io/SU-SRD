@@ -24,4 +24,31 @@ describe('StatColumn', () => {
     const { container } = render(<StatColumn stats={[]} label="None" />)
     expect(container.firstChild).toBeNull()
   })
+
+  const lone = (groups: (string | undefined)[]) => {
+    const { container } = render(
+      <StatColumn
+        stats={groups.map((group, index) => ({
+          key: String(index),
+          label: `Stat ${index}`,
+          value: '1',
+          ...(group ? { group: group as 'vitals' } : {}),
+        }))}
+        label="Stats"
+      />
+    )
+    return [...container.querySelectorAll('li')].map((li) =>
+      li.classList.contains('su-stat-column__cell--lone')
+    )
+  }
+
+  test('cells pair off within their group; one without a partner spans its row', () => {
+    const mech = ['vitals', 'vitals', 'capacity', 'capacity', 'capacity', 'capacity']
+    expect(lone(mech)).toEqual([false, false, false, false, false, false])
+    // No Energy Points: Structure spans, the capacity pairs hold.
+    expect(lone(mech.slice(1))).toEqual([true, false, false, false, false])
+    // A capacity short: its last cell spans.
+    expect(lone(mech.slice(0, 5))).toEqual([false, false, false, false, true])
+    expect(lone([undefined, undefined, undefined])).toEqual([false, false, true])
+  })
 })

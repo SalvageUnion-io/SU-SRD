@@ -93,9 +93,10 @@ type StatConfig = {
  * surface, a smaller form dropping stats but never moving them. Tech Level
  * leads it (`techLevelFact`, added by the caller), then four groups:
  * provenance (Tech Level, Slots Required, Salvage Value: the book's gear
- * sidebar, Workshop Manual pp.163, 191), vitals (SP or HP, EP, Heat: the
- * chassis spread, p.100; Bio-Salvage after the HP it comes from), capacity
- * (System and Module Slots, Cargo; a crawler's Upkeep and Upgrade), then an
+ * sidebar, Workshop Manual pp.163, 191), vitals (SP or HP, EP; Bio-Salvage
+ * after the HP it comes from), capacity (System and Module Slots, then Heat
+ * beside Cargo, the two capacities, owner's call 2026-10-20; a crawler's
+ * Upkeep and Upgrade), then an
  * action's facets (`facetCells`). A hint the Core Book prints (Mech stats
  * p.96–97, Hit Points p.20) is a `bookQuote`; the rest are written here.
  */
@@ -143,15 +144,6 @@ const STATS: StatConfig[] = [
     ),
   },
   {
-    key: 'heatCapacity',
-    getter: getHeatCapacity,
-    group: 'vitals',
-    hint: bookQuote(
-      { source: 'Salvage Union Workshop Manual', page: 97 },
-      'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.'
-    ),
-  },
-  {
     key: 'bioSalvageValue',
     getter: getBioSalvageValue,
     group: 'vitals',
@@ -173,6 +165,15 @@ const STATS: StatConfig[] = [
     hint: bookQuote(
       { source: 'Salvage Union Workshop Manual', page: 97 },
       "Each Module has a Module Slot value which represents how much space it takes up on a Mech, conversely a Mech's Module Slot value represents how many Modules it can mount."
+    ),
+  },
+  {
+    key: 'heatCapacity',
+    getter: getHeatCapacity,
+    group: 'capacity',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.'
     ),
   },
   {
