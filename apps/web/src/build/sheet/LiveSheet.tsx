@@ -382,7 +382,6 @@ export function LiveSheet({
                 {stripItems.map((item) => (
                   <Stat
                     key={item.key}
-                    orientation="horizontal"
                     label={item.label}
                     value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
                     // Non-priority readouts fold below sm so the condensed
@@ -448,17 +447,15 @@ export function LiveSheet({
           <>
             {(stamp || out || userMade) && (
               <Cluster gap={8}>
-                {userMade && <Stat orientation="horizontal" label="User-made" wrap />}
+                {userMade && <Stat label="User-made" wrap />}
                 {stamp &&
                   (stamp.entityRef ? (
                     <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
                   ) : (
-                    <Stat orientation="horizontal" label={stamp.label} value={stamp.name} wrap />
+                    <Stat label={stamp.label} value={stamp.name} wrap />
                   ))}
-                {userMade && (
-                  <Stat orientation="horizontal" label="Made by" value={userMade.madeBy} wrap />
-                )}
-                {out && <Stat orientation="horizontal" label={out.stamp} state="critical" wrap />}
+                {userMade && <Stat label="Made by" value={userMade.madeBy} wrap />}
+                {out && <Stat label={out.stamp} state="critical" wrap />}
               </Cluster>
             )}
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width

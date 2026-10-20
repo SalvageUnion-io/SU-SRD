@@ -90,13 +90,7 @@ export function UnitRow({
   // a mark and a state are the Row's own chips.
   const byChip = (chip: string) => (readings ?? []).filter((r) => unitChipOf(r) === chip)
   const cell = (r: UnitReading) => (
-    <Stat
-      key={String(r.label)}
-      orientation="horizontal"
-      label={r.label}
-      value={r.value}
-      size="compact"
-    />
+    <Stat key={String(r.label)} label={r.label} value={r.value} size="compact" />
   )
   const allRelations = [
     ...byChip('relation').map((r) =>

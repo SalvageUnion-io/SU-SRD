@@ -82,7 +82,7 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
           </h3>
         </span>
         <span className="su-entity-tile__chips">
-          <Stat orientation="horizontal" label="Step" value={index + 1} size="compact" />
+          <Stat label="Step" value={index + 1} size="compact" />
         </span>
       </div>
       <div className="su-entity-tile__cells">

@@ -43,7 +43,7 @@ export function EntityStat({
       peek={peek}
       className="su-chip-link su-chip-link--entity su-hit-area"
     >
-      <Stat orientation="horizontal" label={label} value={entityRef.name} size={size} wrap />
+      <Stat label={label} value={entityRef.name} size={size} wrap />
     </LinkSurface>
   )
 }

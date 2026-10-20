@@ -39,11 +39,7 @@ export function CargoLotLine({ lot, actions }: { lot: LotFacts; actions?: ReactN
             context="loadout"
             model={model}
             mode={{ kind: 'read' }}
-            state={
-              qty !== null ? (
-                <Stat orientation="horizontal" label="×" value={qty} size="mini" />
-              ) : undefined
-            }
+            state={qty !== null ? <Stat label="×" value={qty} size="mini" /> : undefined}
           />
         }
         name={lot.name}

@@ -156,7 +156,6 @@ export function PlayMediatorDowntime({
             model={UPKEEP}
             state={
               <Stat
-                orientation="horizontal"
                 size="mini"
                 label={`${DOWNTIME_UPKEEP_SCRAP} Scrap`}
                 value={unit === null ? undefined : `T${crawlerTl(unit)}`}
@@ -164,7 +163,7 @@ export function PlayMediatorDowntime({
             }
             controls={
               upkeepSpent ? (
-                <Stat orientation="horizontal" size="mini" label="Paid" />
+                <Stat size="mini" label="Paid" />
               ) : (
                 <Button
                   size="mini"

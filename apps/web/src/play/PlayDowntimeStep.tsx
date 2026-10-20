@@ -293,13 +293,7 @@ function PlanLineItem({
       ) : (
         <span className="su-play-dt-line__chips">
           {line.chips.map((chip) => (
-            <Stat
-              key={chip.label}
-              orientation="horizontal"
-              size="compact"
-              label={chip.label}
-              value={chip.value}
-            />
+            <Stat key={chip.label} size="compact" label={chip.label} value={chip.value} />
           ))}
         </span>
       )}

@@ -223,15 +223,7 @@ export function Token({
   const quantity = own.quantity
   const set = slots.relations?.length ? { ...own.set, relations: slots.relations } : own.set
   const state = [
-    quantity && (
-      <Stat
-        key="quantity"
-        orientation="horizontal"
-        label={quantity.label}
-        value={quantity.value}
-        size="mini"
-      />
-    ),
+    quantity && <Stat key="quantity" label={quantity.label} value={quantity.value} size="mini" />,
     slots.state,
   ]
   // A relation that Peeks or opens is a control of its own: the name is then

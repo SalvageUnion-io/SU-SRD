@@ -295,7 +295,6 @@ export function CrawlerSheet({
           {SCRAP_TLS.map((t) => (
             <Stat
               key={t}
-              orientation="horizontal"
               label={`T${t}`}
               value={scrapPoolBucket(pool, t)}
               min={0}

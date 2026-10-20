@@ -55,7 +55,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
     <Stack gap={16}>
       {/* Over-capacity is shown honestly rather than clamped — same rule the
           mech Hold follows. */}
-      <Stat orientation="horizontal" label="Cargo" value={usage.used} max={usage.cap} />
+      <Stat label="Cargo" value={usage.used} max={usage.cap} />
 
       <SlabSection as="h4" title="Carried">
         {state.carrierLots.length === 0 ? (

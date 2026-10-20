@@ -108,7 +108,6 @@ function TpBlock({
 }) {
   return (
     <Stat
-      orientation="horizontal"
       label="Training Points"
       value={value}
       mode={editable ? 'edit' : 'read'}
@@ -125,7 +124,7 @@ function TpBlock({
 function TpReadRow({ value }: { value: number }) {
   return (
     <div>
-      <Stat orientation="horizontal" label="Training Points" value={value} />
+      <Stat label="Training Points" value={value} />
     </div>
   )
 }

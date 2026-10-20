@@ -69,7 +69,7 @@ export function CrawlerReviewStep({
   // crawler sheet's storage labels.
   const scrap = toScrapPoolPatch(form.scrapPool)
   const scrapChips = Object.entries(scrap).map(([bucket, qty]) => (
-    <Stat key={bucket} label={`T${bucket.slice(2)}`} value={qty} orientation="horizontal" />
+    <Stat key={bucket} label={`T${bucket.slice(2)}`} value={qty} />
   ))
 
   // A crawler starts at full: `SP | 20/20`, the type bonus in its hover.
@@ -81,7 +81,6 @@ export function CrawlerReviewStep({
       label="SP"
       value={sp.total}
       max={sp.total}
-      orientation="horizontal"
       hoverText={
         sp.typeBonus > 0
           ? `${sp.base} + ${sp.typeBonus} type bonus = ${sp.total}; starts at full`

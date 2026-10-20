@@ -432,7 +432,6 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 Contribute scrap (Tech {tl}+)
               </span>
               <Stat
-                orientation="horizontal"
                 size="compact"
                 label="Scrap"
                 value={contribution}
@@ -584,7 +583,6 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 </Eyebrow>
                 <span style={QTY}>
                   <Stat
-                    orientation="horizontal"
                     size="compact"
                     label="Qty"
                     value={count}

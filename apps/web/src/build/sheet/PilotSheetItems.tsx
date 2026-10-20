@@ -342,11 +342,7 @@ export function GenericEntryLine({ entry, readOnly, onRemove }: GenericEntryLine
           context="loadout"
           model={model}
           mode={{ kind: 'read' }}
-          state={
-            qty > 1 ? (
-              <Stat orientation="horizontal" label="×" value={qty} size="mini" />
-            ) : undefined
-          }
+          state={qty > 1 ? <Stat label="×" value={qty} size="mini" /> : undefined}
         />
       }
       name={entry.name}

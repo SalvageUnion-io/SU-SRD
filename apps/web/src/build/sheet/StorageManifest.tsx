@@ -161,7 +161,6 @@ export function StorageManifest({
         {side === 'mech' ? (
           <>
             <Stat
-              orientation="horizontal"
               size="compact"
               label="Units"
               value={used}
@@ -182,13 +181,8 @@ export function StorageManifest({
           </>
         ) : (
           <>
-            <Stat
-              orientation="horizontal"
-              size="compact"
-              label="Units"
-              value={totalLotUnits(lots)}
-            />
-            <Stat orientation="horizontal" size="compact" label="Lots" value={lots.length} />
+            <Stat size="compact" label="Units" value={totalLotUnits(lots)} />
+            <Stat size="compact" label="Lots" value={lots.length} />
             <span style={MUTED_TEXT}>Unlimited</span>
           </>
         )}

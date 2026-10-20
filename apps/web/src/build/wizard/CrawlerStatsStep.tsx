@@ -51,11 +51,11 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <div style={statRowStyle}>
-        <Stat orientation="horizontal" label="TL" value={techLevel.techLevel} />
-        <Stat orientation="horizontal" label="SP" value={sp.total} max={sp.total} />
-        <Stat orientation="horizontal" label="UPKEEP" value={techLevel.upkeepCost ?? 0} />
-        <Stat orientation="horizontal" label="UPG" value={techLevel.upgradeCost ?? 0} />
-        <Stat orientation="horizontal" label="POOL" value={0} />
+        <Stat label="TL" value={techLevel.techLevel} />
+        <Stat label="SP" value={sp.total} max={sp.total} />
+        <Stat label="UPKEEP" value={techLevel.upkeepCost ?? 0} />
+        <Stat label="UPG" value={techLevel.upgradeCost ?? 0} />
+        <Stat label="POOL" value={0} />
       </div>
 
       <div className="su-wiz-stack su-wiz-stack--6" style={proseStyle}>

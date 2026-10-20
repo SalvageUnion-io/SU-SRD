@@ -161,12 +161,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
         count={`p.${GAINING_ABILITIES_PAGE}`}
         flush
         actions={
-          <Stat
-            orientation="horizontal"
-            label="Abilities"
-            value={`Up to ${plan.classEntity.maxAbilities}`}
-            size="compact"
-          />
+          <Stat label="Abilities" value={`Up to ${plan.classEntity.maxAbilities}`} size="compact" />
         }
       />
       <ul className="su-class-brief__cards">
@@ -219,7 +214,6 @@ function PathRequirement({ path }: { path: ClassPath }) {
       {trees.map((tree, index) => (
         <Stat
           key={tree}
-          orientation="horizontal"
           label={index === 0 ? 'REQ' : 'or'}
           value={tree}
           size="compact"
@@ -263,17 +257,10 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
           lanes
           chips={{ durations: [], facts: [], tags: [] }}
           marks={[
-            <Stat key="kind" orientation="horizontal" label={kind} size="compact" />,
+            <Stat key="kind" label={kind} size="compact" />,
             ...(path.hybrid && path.via
               ? []
-              : [
-                  <Stat
-                    key="only"
-                    orientation="horizontal"
-                    label={`${classEntity.name} only`}
-                    size="compact"
-                  />,
-                ]),
+              : [<Stat key="only" label={`${classEntity.name} only`} size="compact" />]),
           ]}
           nodes={{ relation: <PathRequirement path={path} /> }}
         />

@@ -135,14 +135,14 @@ export function CrawlerIdentityPanel({
               like the mech's chassis stats — a field box implied an input.
               Read sets it on the type's line, stretched to its Token's
               height, so the two read as one pair of the same size. */}
-          {readType === null && <Stat orientation="horizontal" label="TL" value={tlValue} />}
+          {readType === null && <Stat label="TL" value={tlValue} />}
           <Field
             label="Type"
             value={type?.name ?? ''}
             readValue={
               readType && (
                 <span style={TYPE_LINE}>
-                  <Stat orientation="horizontal" label="TL" value={tlValue} />
+                  <Stat label="TL" value={tlValue} />
                   {readType}
                 </span>
               )

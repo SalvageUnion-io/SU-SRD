@@ -108,7 +108,6 @@ export function SheetItemLine({
       ? {
           uses: (
             <Stat
-              orientation="horizontal"
               label="Uses"
               value={uses.remaining}
               max={uses.max}

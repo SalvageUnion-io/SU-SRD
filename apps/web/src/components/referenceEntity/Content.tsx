@@ -108,7 +108,6 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
   return (
     <PeekCell peek={peek}>
       <Stat
-        orientation="horizontal"
         label={
           (item.type === 'keyword' && MEASURED_KEYWORD_SHORT[String(item.label)]) || item.label
         }

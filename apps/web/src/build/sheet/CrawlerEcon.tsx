@@ -135,7 +135,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
   return (
     <div style={LOZ}>
       {/* A label-first chip, as every stat reads; `full` is the reading rung. */}
-      <Stat orientation="horizontal" label={item.label} value={item.value} max={item.max} />
+      <Stat label={item.label} value={item.value} max={item.max} />
       {item.caption && (
         <span className={CAPTION_CAPS} style={CAPTION}>
           {item.caption}

@@ -91,10 +91,9 @@ export function PlayMediatorSeat({
         {...(seat.mech === null ? {} : { relations: [relation('mech', 'Mech', seat.mech.name)] })}
         state={
           <>
-            <Stat orientation="horizontal" size="mini" label={away ? 'Away' : 'Here'} />
+            <Stat size="mini" label={away ? 'Away' : 'Here'} />
             {flagged ? (
               <Stat
-                orientation="horizontal"
                 size="mini"
                 state="critical"
                 label={`▲ ${flagged.label}`}
@@ -123,7 +122,6 @@ export function PlayMediatorSeat({
                 {seat.vitals.map((v) => (
                   <Stat
                     key={v.label}
-                    orientation="horizontal"
                     size="compact"
                     label={v.attention ? `▲ ${v.label}` : v.label}
                     value={v.value ?? undefined}

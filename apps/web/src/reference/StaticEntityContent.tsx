@@ -70,7 +70,7 @@ export function StaticEntityContent({ summary, parent, cite: given }: StaticEnti
       {summary.stats.length > 0 && (
         <div className="su-static__stats">
           {summary.stats.map(({ label, value }) => (
-            <Stat key={label} orientation="horizontal" label={label} value={value} />
+            <Stat key={label} label={label} value={value} />
           ))}
         </div>
       )}

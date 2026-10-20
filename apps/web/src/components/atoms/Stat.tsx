@@ -77,8 +77,6 @@ type StatValue = number | string
 type HorizontalValueProps = {
   /** Header code / label ('HP', 'Range', or a numeric tier). */
   label: StatValue
-  /** The one anatomy; kept so a call site may still spell it out. */
-  orientation?: 'horizontal'
   value?: StatValue
   /**
    * The cell's MATERIAL — same geometry (`label` then `value`, inline), two

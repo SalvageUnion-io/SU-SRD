@@ -28,12 +28,7 @@ const briefStyle = {
 export function GainScrapStep() {
   return (
     <div style={rowStyle}>
-      <Stat
-        orientation="horizontal"
-        label="SCRAP"
-        value={MECH_CREATION_SCRAP_CAP}
-        max={MECH_CREATION_SCRAP_CAP}
-      />
+      <Stat label="SCRAP" value={MECH_CREATION_SCRAP_CAP} max={MECH_CREATION_SCRAP_CAP} />
       <p style={briefStyle}>
         Every purchase in this workshop — the Chassis, each System, each Module — debits this one
         pool. Whatever is left over banks to your Union Crawler when the build is done.

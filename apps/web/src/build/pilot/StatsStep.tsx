@@ -23,14 +23,9 @@ const STAT_ROW = {
 export function StatsStep() {
   return (
     <div style={STAT_ROW}>
-      <Stat orientation="horizontal" label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
-      <Stat orientation="horizontal" label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
-      <Stat
-        orientation="horizontal"
-        label="INV"
-        value={PILOT_BASE_INVENTORY_SLOTS}
-        max={PILOT_BASE_INVENTORY_SLOTS}
-      />
+      <Stat label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
+      <Stat label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
+      <Stat label="INV" value={PILOT_BASE_INVENTORY_SLOTS} max={PILOT_BASE_INVENTORY_SLOTS} />
     </div>
   )
 }

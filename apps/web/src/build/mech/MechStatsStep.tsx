@@ -50,38 +50,13 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <div style={STAT_ROW}>
-        <Stat
-          orientation="horizontal"
-          label="SP"
-          value={chassis.structurePoints}
-          max={chassis.structurePoints}
-        />
-        <Stat
-          orientation="horizontal"
-          label="EP"
-          value={chassis.energyPoints}
-          max={chassis.energyPoints}
-        />
-        <Stat orientation="horizontal" label="HEAT" value={0} max={chassis.heatCapacity} />
-        <Stat
-          orientation="horizontal"
-          label="SYS"
-          value={chassis.systemSlots}
-          max={chassis.systemSlots}
-        />
-        <Stat
-          orientation="horizontal"
-          label="MOD"
-          value={chassis.moduleSlots}
-          max={chassis.moduleSlots}
-        />
-        <Stat
-          orientation="horizontal"
-          label="CARGO"
-          value={chassis.cargoCapacity}
-          max={chassis.cargoCapacity}
-        />
-        <Stat orientation="horizontal" label="SV" value={chassis.salvageValue} />
+        <Stat label="SP" value={chassis.structurePoints} max={chassis.structurePoints} />
+        <Stat label="EP" value={chassis.energyPoints} max={chassis.energyPoints} />
+        <Stat label="HEAT" value={0} max={chassis.heatCapacity} />
+        <Stat label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} />
+        <Stat label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} />
+        <Stat label="CARGO" value={chassis.cargoCapacity} max={chassis.cargoCapacity} />
+        <Stat label="SV" value={chassis.salvageValue} />
       </div>
 
       {chassisAbilities.length > 0 && (

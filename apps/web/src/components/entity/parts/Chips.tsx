@@ -110,9 +110,7 @@ export function Chips({
     },
     economy: {
       nodes: [
-        ...chips.durations.map((duration) => (
-          <Stat key={duration} orientation="horizontal" label={duration} size={size} />
-        )),
+        ...chips.durations.map((duration) => <Stat key={duration} label={duration} size={size} />),
         ...(action.length ? [<Facts key="action" cells={action} size={size} />] : []),
       ],
       count: chips.durations.length + action.length,

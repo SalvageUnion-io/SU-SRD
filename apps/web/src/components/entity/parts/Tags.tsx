@@ -38,7 +38,6 @@ export function Tag({
   const open = ref && !href && openPage ? () => openPage(ref) : undefined
   const cell = (
     <Stat
-      orientation="horizontal"
       label={tag.name}
       value={tag.param?.trim() ? tag.param : undefined}
       size={size}

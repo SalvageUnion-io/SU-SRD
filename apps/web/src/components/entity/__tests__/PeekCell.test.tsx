@@ -17,7 +17,7 @@ const burn = (): EntityRef => {
   return toEntityModel(trait).ref
 }
 
-const cell = <Stat orientation="horizontal" label="Burn" value="2" />
+const cell = <Stat label="Burn" value="2" />
 
 describe('PeekCell', () => {
   test('wraps the chip in its Peek address', () => {

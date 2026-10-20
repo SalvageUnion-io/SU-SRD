@@ -269,13 +269,7 @@ function PlayGameItem({
         titleAs="h3"
         mode={{ kind: 'link', href: gamePath(game._id) }}
         labels={chips.map((chip) => (
-          <Stat
-            key={chip.key}
-            orientation="horizontal"
-            label={chip.label}
-            value={chip.value}
-            size="compact"
-          />
+          <Stat key={chip.key} label={chip.label} value={chip.value} size="compact" />
         ))}
         trailing={
           door ? (

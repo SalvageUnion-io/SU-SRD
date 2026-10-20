@@ -27,7 +27,7 @@ import type { StatState } from '../../components/index'
  *
  * These were three components that each hand-wrote the same inline markup and
  * differed only in WHICH stats they listed. The markup itself is now the
- * canonical `Stat` (`orientation="horizontal" surface="plain"`, ruleset §3.7);
+ * canonical `Stat` (`surface="plain"`, ruleset §3.7);
  * `rowStats` (below) adapts a list of these into the `UnitRow` readings the
  * text, and these functions just supply the numbers.
  *

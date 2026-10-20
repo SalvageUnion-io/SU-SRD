@@ -91,7 +91,6 @@ export function CrewLeadToken(props: CrewLeadTokenProps) {
           ? {
               uses: (
                 <Stat
-                  orientation="horizontal"
                   label="HP"
                   value={hp}
                   max={maxHp}

@@ -45,7 +45,6 @@ export function RecapStat({
   if (empty && !required) return null
   return (
     <Stat
-      orientation="horizontal"
       label={label}
       value={empty ? 'Required' : value}
       state={empty ? 'caution' : 'default'}

@@ -33,7 +33,7 @@ type PlayActionRowProps = {
 
 /** Why a line is not on hand ("needs Boarded"), as its state chip (C8). */
 export function NeedChip({ need }: { need: string }) {
-  return <Stat orientation="horizontal" size="mini" label={need} />
+  return <Stat size="mini" label={need} />
 }
 
 export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayActionRowProps) {

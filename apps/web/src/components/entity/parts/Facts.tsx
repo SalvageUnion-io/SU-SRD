@@ -16,7 +16,6 @@ export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size
       {cells.map((stat) => (
         <Stat
           key={stat.key}
-          orientation="horizontal"
           label={stat.label}
           value={stat.value}
           bottomLabel={stat.bottomLabel}

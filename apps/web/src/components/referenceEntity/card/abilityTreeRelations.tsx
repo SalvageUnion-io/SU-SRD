@@ -90,14 +90,7 @@ export function relationChips(
     ref ? (
       <EntityStat key={`${label}-${value}`} label={label} entityRef={ref} size={size} />
     ) : (
-      <Stat
-        key={`${label}-${value}`}
-        orientation="horizontal"
-        label={label}
-        value={value}
-        size={size}
-        wrap
-      />
+      <Stat key={`${label}-${value}`} label={label} value={value} size={size} wrap />
     )
   )
 }

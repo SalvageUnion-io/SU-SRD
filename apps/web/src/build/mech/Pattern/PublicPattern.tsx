@@ -282,7 +282,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 href={itemHref('chassis', getEntitySlug(chassis))}
               />
             )}
-            {chassis && <Stat orientation="horizontal" label="TL" value={chassis.techLevel} />}
+            {chassis && <Stat label="TL" value={chassis.techLevel} />}
           </div>
         }
       >

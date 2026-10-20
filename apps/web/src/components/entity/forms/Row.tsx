@@ -173,10 +173,8 @@ export function Row({
   const marks = labelsAsChips
     ? [
         slots.extraLabels,
-        note && <Stat key="note" orientation="horizontal" label={note} size="compact" />,
-        userMade && (
-          <Stat key="user-made" orientation="horizontal" label="User-made" size="compact" />
-        ),
+        note && <Stat key="note" label={note} size="compact" />,
+        userMade && <Stat key="user-made" label="User-made" size="compact" />,
       ]
     : undefined
 

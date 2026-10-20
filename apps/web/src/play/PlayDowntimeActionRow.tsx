@@ -85,7 +85,7 @@ export function PlayDowntimeActionRow({
   const chips =
     id === 'train' ? (
       <>
-        <Stat orientation="horizontal" size="mini" label="TP" value={pilot?.trainingPoints ?? 0} />
+        <Stat size="mini" label="TP" value={pilot?.trainingPoints ?? 0} />
         {damagedBay(crawler, 'pilot-bay', 'Pilot Bay')}
       </>
     ) : id === 'craftTrade' ? (

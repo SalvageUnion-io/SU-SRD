@@ -50,7 +50,7 @@ export function OwnerSeal({
   onClaim: () => void
 }) {
   // The label-only chip, at the Row's chip rung.
-  const stamp = <Stat orientation="horizontal" label={owner.label} size="compact" />
+  const stamp = <Stat label={owner.label} size="compact" />
 
   if (!claimable) {
     // Inert: a fact about the row, not a control.

@@ -233,7 +233,6 @@ function Chips({
       {stats.map((stat) => (
         <Stat
           key={`${stat.label}-${stat.value ?? ''}`}
-          orientation="horizontal"
           label={stat.label}
           value={stat.value}
           size="full"

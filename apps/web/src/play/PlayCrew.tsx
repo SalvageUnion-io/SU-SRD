@@ -96,13 +96,10 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
         : { relations: [relation('mech', 'Mech', line.boardedIn)] })}
       state={
         <>
-          {line.boardedIn === null ? (
-            <Stat orientation="horizontal" size="mini" label="On foot" />
-          ) : null}
-          <Stat orientation="horizontal" size="mini" label={line.present ? 'Here' : 'Away'} />
+          {line.boardedIn === null ? <Stat size="mini" label="On foot" /> : null}
+          <Stat size="mini" label={line.present ? 'Here' : 'Away'} />
           {vital.attention ? (
             <Stat
-              orientation="horizontal"
               size="mini"
               state="critical"
               label={`▲ ${vital.label}`}
@@ -110,7 +107,6 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
             />
           ) : line.present ? (
             <Stat
-              orientation="horizontal"
               size="mini"
               surface="plain"
               label={vital.label}

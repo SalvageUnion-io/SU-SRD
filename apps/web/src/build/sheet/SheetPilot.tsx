@@ -140,7 +140,6 @@ export function SheetPilot({
             assign: <AssignPicker subject={self} container={container} pick="crawler" />,
             extra: (
               <Stat
-                orientation="horizontal"
                 label="Crawler"
                 value={pilot.crawlerLevel ?? 1}
                 max={6}

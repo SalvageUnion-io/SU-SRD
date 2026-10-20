@@ -78,11 +78,7 @@ function Seat({ row }: { row: SeatRow }) {
       note={row.role === 'Mediator' ? undefined : row.role}
       readings={row.hp === null ? undefined : [{ label: 'HP', value: row.hp }]}
       // Who holds the seat: the Row's first chip.
-      labels={
-        row.role === 'Open' ? undefined : (
-          <Stat orientation="horizontal" label={row.who} size="compact" />
-        )
-      }
+      labels={row.role === 'Open' ? undefined : <Stat label={row.who} size="compact" />}
       // The mech the pilot is assigned, a relation chip opening its sheet (C11);
       // on foot the lane stays empty (C6).
       relations={

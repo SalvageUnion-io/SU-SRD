@@ -167,7 +167,7 @@ type BadgeProps = (BadgeChipProps | BadgeStampProps) & { ref?: Ref<HTMLElement> 
  *                              Stamp); `size` + stamp `surface` + `seam`.
  *
  * **Label-only.** A badge cites categorical metadata at a glance. **A label+value
- * readout is NOT a badge** — it is a Stat (`Stat orientation="horizontal"`), the
+ * readout is NOT a badge** — it is a Stat (`Stat`), the
  * value-cell law (ruleset §0, §7.1). Pill and Chip were named presets over the
  * chip shape.
  */
