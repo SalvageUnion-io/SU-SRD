@@ -18,7 +18,7 @@ type MasonryColumnsProps = {
   /**
    * Radio-group semantics for exactly-one pickers: the flow is a
    * `RadioCardGroup`. Pair with `ReferenceEntityCard` cells using
-   * `selectionRole="radio"` / `Sel` cells using `radio`, and pass an accessible
+   * `selectionRole="radio"` / `TitledBox` cells in select mode, and pass an accessible
    * group name via `ariaLabel`.
    */
   radio?: boolean
