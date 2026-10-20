@@ -1,25 +1,27 @@
 /**
- * MechChassisCard — the mech sheet's CHASSIS callout, the hero's foot (owner's
- * calls, 2026-10-14: the hero is the player's photo and what they wrote;
+ * MechChassisCard — the mech sheet's CHASSIS callout, the sidebar's first
+ * block under the vitals (owner's call, 2026-10-20; 2026-10-14: the hero is
+ * the player's photo and what they wrote;
  * "Chassis has a reference" — a separate, smaller card with the chassis
  * description, in the house titled box the Starter Set and Shelves rows'
  * blocks share).
  *
- * A `TitledBox` in the chassis's tone: its art's window in the head (the Compact's `Art`; fixed:
- * the player's photo is the hero's), its name on the cut-out `Head` with a
+ * A `TitledBox` in the chassis's tone: its name on the cut-out `Head` at the
+ * head's left, in line with the text under it (owner's call, 2026-10-20), with a
  * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), in Edit CHANGE
  * CHASSIS as a Mini chip at the band's end (its `controls`; destructive, it
- * keeps its own confirm step), and a paper body holding the book's
- * description. The mech's chassis stats and the chassis ability are in the
+ * keeps its own confirm step), and a paper body holding the chassis's art
+ * (the Compact's `Art`; fixed: the player's photo is the hero's) and the
+ * book's description. The mech's chassis stats and the chassis ability are in the
  * hero (owner's call, 2026-10-14).
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import type { StatItem } from '../../components/index'
-import { Art, Button, Chips, Content, Field, TitledBox } from '../../components/index'
+import { Art, Button, Chips, Content, Field, TitledBox, tokens } from '../../components/index'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
@@ -29,6 +31,17 @@ const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
 
 /** Its band: the one label-only cell, Compact as a Compact's head. */
 const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="compact" />
+
+/** The body's block: its prose wraps the art floated at its left. */
+const BODY = { display: 'flow-root' } satisfies CSSProperties
+
+/** The art at a Compact's art width, the prose wrapping it. */
+const ART = {
+  float: 'left',
+  marginBottom: tokens.space[4],
+  marginRight: tokens.space[12],
+  width: '6rem',
+} satisfies CSSProperties
 
 type MechChassisCardProps = {
   mech: Mech
@@ -78,7 +91,6 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
         title={chassisName}
         label="Chassis"
         tone={model.tone}
-        art={model.art && <Art art={model.art} />}
         chips={KIND_CHIPS}
         controls={
           patch && (
@@ -88,13 +100,20 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
           )
         }
       >
-        {entity?.content && entity.content.length > 0 && (
-          <Content
-            body={entity.content as ComponentProps<typeof Content>['body']}
-            fontSize="sm"
-            chassisName={chassisName}
-          />
-        )}
+        <div style={BODY}>
+          {model.art && (
+            <div style={ART}>
+              <Art art={model.art} />
+            </div>
+          )}
+          {entity?.content && entity.content.length > 0 && (
+            <Content
+              body={entity.content as ComponentProps<typeof Content>['body']}
+              fontSize="sm"
+              chassisName={chassisName}
+            />
+          )}
+        </div>
       </TitledBox>
       {picker}
     </>

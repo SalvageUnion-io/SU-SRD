@@ -9,18 +9,17 @@
  *   Identity Band: image | text | stats + ability (`MechHeroChassis`) — the
  *       player's photo, what they wrote (the pattern name in Edit only: it is
  *       the band's title), the chassis stats and ability ∥ the vitals rail.
- *   Chassis: the identity card's foot (`MechChassisCard`) — art, name (with
- *       a CHASSIS chip) and description, with Change Chassis in Edit.
  *   Systems & Modules — KEPT as two sections (each its own `SlabSection`,
  *       side by side from 48rem, one Mini a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
  *       list is not trivial.
- *   The Hold (`StorageManifest side='mech'`), what the mech carries, is the
- *       permanent right sidebar (`SheetColumns`, ruleset §1.2): beside the
- *       sheet from the 64rem rung, straight under the opening on a phone —
- *       cargo is reached for mid-session, and the printed sheet's
- *       bottom-of-page-2 placement buried it under two long loadout lists.
- *   Assigned Units closes the sheet.
+ *   The sidebar (`SheetColumns`, ruleset §1.2), beside the sheet from the
+ *       64rem rung, straight under the opening on a phone: the Chassis
+ *       callout (`MechChassisCard`: name with a CHASSIS chip, art,
+ *       description, Change Chassis in Edit), then The Hold
+ *       (`StorageManifest side='mech'`), what the mech carries — cargo is
+ *       reached for mid-session — then Assigned Units (owner's calls,
+ *       2026-10-20).
  *
  * Section containers follow the card-vs-slab rule (see `SlabSection`):
  * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
@@ -104,8 +103,6 @@ const FIELDS = {
   height: '100%',
   minWidth: 0,
 } satisfies CSSProperties
-
-const CHASSIS = { marginTop: 'auto', paddingTop: tokens.space[24] } satisfies CSSProperties
 
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
 type AsPrinted = { pattern: string; cite: string } | undefined
@@ -289,67 +286,54 @@ export function MechSheet({
           <SheetHero
             name={mech.name}
             fields={
-              <>
-                <PhotoBeside
-                  below={
-                    <MechDescriptionField
+              <PhotoBeside
+                below={
+                  <MechDescriptionField
+                    mech={mech}
+                    onSave={readOnly ? undefined : actions.saveDescription}
+                  />
+                }
+                photo={
+                  <EntityPhoto
+                    photo={mech.photo}
+                    // The chassis art until the player changes it.
+                    fallback={chassisArt(mech.chassisRef)}
+                    name={mech.name}
+                    onChange={
+                      readOnly
+                        ? undefined
+                        : (photo) =>
+                            useEntityStore
+                              .getState()
+                              .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
+                    }
+                  />
+                }
+              >
+                <div className="su-sheet-mech-hero-split">
+                  <div style={FIELDS}>
+                    <MechIdentityPanel
                       mech={mech}
-                      onSave={readOnly ? undefined : actions.saveDescription}
-                    />
-                  }
-                  photo={
-                    <EntityPhoto
-                      photo={mech.photo}
-                      // The chassis art until the player changes it.
-                      fallback={chassisArt(mech.chassisRef)}
-                      name={mech.name}
-                      onChange={
-                        readOnly
-                          ? undefined
-                          : (photo) =>
-                              useEntityStore
-                                .getState()
-                                .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
+                      patch={readOnly ? undefined : actions.patchMech}
+                      after={
+                        <>
+                          <Field
+                            label="Quirk"
+                            value={mech.quirk ?? ''}
+                            onSave={readOnly ? undefined : actions.saveQuirk}
+                            placeholder="No quirk recorded."
+                          />
+                          <MechAppearanceField
+                            mech={mech}
+                            onSave={readOnly ? undefined : actions.saveAppearance}
+                          />
+                        </>
                       }
                     />
-                  }
-                >
-                  <div className="su-sheet-mech-hero-split">
-                    <div style={FIELDS}>
-                      <MechIdentityPanel
-                        mech={mech}
-                        patch={readOnly ? undefined : actions.patchMech}
-                        after={
-                          <>
-                            <Field
-                              label="Quirk"
-                              value={mech.quirk ?? ''}
-                              onSave={readOnly ? undefined : actions.saveQuirk}
-                              placeholder="No quirk recorded."
-                            />
-                            <MechAppearanceField
-                              mech={mech}
-                              onSave={readOnly ? undefined : actions.saveAppearance}
-                            />
-                          </>
-                        }
-                      />
-                    </div>
-                    <MechHeroChassis
-                      stats={model.chassisStats}
-                      abilities={model.chassisAbilities}
-                    />
                   </div>
-                </PhotoBeside>
-                <div style={CHASSIS}>
-                  <MechChassisCard
-                    mech={mech}
-                    entity={model.chassisEntity}
-                    chassisName={model.chassisName}
-                    patch={readOnly ? undefined : actions.patchMech}
-                  />
+                  <MechHeroChassis stats={model.chassisStats} abilities={model.chassisAbilities} />
                 </div>
-              </>
+              </PhotoBeside>
             }
             vitals={
               <MechVitals
@@ -362,31 +346,41 @@ export function MechSheet({
             }
           />
         }
-        // ===== The Hold, the sidebar (ruleset §1.2) =====
-        // What the mech carries: its cargo, beside the sheet from the 64rem
-        // rung and straight under the opening on a phone, so it is the next
-        // thing a crew reaches for mid-session.
+        // ===== The sidebar (ruleset §1.2) =====
+        // The chassis callout under the vitals, then what the mech carries
+        // (its cargo), then its Assigned Units (owner's calls, 2026-10-20):
+        // beside the sheet from the 64rem rung and straight under the opening
+        // on a phone, so the hold is the next thing a crew reaches for.
         aside={
-          showHold ? (
-            <SlabSection
-              title="The Hold"
-              count={{
-                label: 'Slots',
-                value: cargo.usage.used,
-                max: cargo.usage.cap,
-                ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
-              }}
-            >
-              <StorageManifest
-                side="mech"
-                cargo={cargo}
-                mechName={mech.name}
-                crawlerName={crawler?.name ?? null}
-                counterpartHref={crawlerHref}
-                readOnly={readOnly}
-              />
-            </SlabSection>
-          ) : undefined
+          <>
+            <MechChassisCard
+              mech={mech}
+              entity={model.chassisEntity}
+              chassisName={model.chassisName}
+              patch={readOnly ? undefined : actions.patchMech}
+            />
+            {showHold && (
+              <SlabSection
+                title="The Hold"
+                count={{
+                  label: 'Slots',
+                  value: cargo.usage.used,
+                  max: cargo.usage.cap,
+                  ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
+                }}
+              >
+                <StorageManifest
+                  side="mech"
+                  cargo={cargo}
+                  mechName={mech.name}
+                  crawlerName={crawler?.name ?? null}
+                  counterpartHref={crawlerHref}
+                  readOnly={readOnly}
+                />
+              </SlabSection>
+            )}
+            {linkedUnits}
+          </>
         }
       >
         {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
@@ -460,9 +454,6 @@ export function MechSheet({
             </Stack>
           </SlabSection>
         )}
-
-        {/* ===== Assigned Units — the last region (`AssignedUnits`, built by SheetMech) ===== */}
-        {linkedUnits}
       </SheetColumns>
 
       {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it

@@ -17,6 +17,7 @@
  */
 
 import {
+  isFirst,
   isKept,
   OUT_ATTRIBUTE,
   overflowPlan,
@@ -115,7 +116,9 @@ export function fitTokenOverflow(token: HTMLElement): void {
     chips.map((chip) => isKept(chip, strip)),
     -gap,
     room,
-    gap
+    gap,
+    undefined,
+    chips.map((chip) => isFirst(chip, strip))
   )
   const out = chips.filter((_, i) => plan.out[i])
   for (const chip of out) chip.setAttribute(OUT_ATTRIBUTE, '')

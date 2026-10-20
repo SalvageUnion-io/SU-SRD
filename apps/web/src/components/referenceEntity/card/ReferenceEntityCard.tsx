@@ -413,9 +413,9 @@ function ReferenceEntityCardInner({
 
   // A card met inside another names its own Page: its name links (`CardTitleLink`).
   const interactive = !!(onCardClick || cardClickable || selectable || selectionRole)
-  const place = { onPage, depth: depthProp, insidePeek, pattern: isPattern, interactive }
+  const place = { onPage, depth: depthProp, insidePeek, interactive }
   const titleContent = namesOwnPage(place) ? (
-    <CardTitleLink entity={entity} title={name} inPeek={insidePeek} />
+    <CardTitleLink entity={entity} title={name} inPeek={insidePeek} pattern={pattern} />
   ) : undefined
 
   // Every card wears the cut-out head (its overflow, C2b); a Page has its chapter band.
@@ -558,12 +558,12 @@ function ReferenceEntityCardInner({
 
   const after = [afterExtraContent, expand, rendersFooter, !hide?.patterns && patternList.length]
   const under = [subtitleExtra, body, rollTableNode, patternSection, actionsNode, nestedGroupsNode]
-  const headOnly = ![...under, ...after].some(Boolean) // a nested action's name and chips alone
+  const lone = !depth && ![...under, ...after].some(Boolean) // +MORE alone, nested a body (C2b)
   return (
     <CardOuter {...outer}>
       {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
       <div className="su-ec-frame" style={frameStyle}>
-        {header(headOnly ? 'more' : 'body')}
+        {header(lone ? 'more' : 'body')}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (
           <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>

@@ -37,22 +37,37 @@ function usePatternHref(chassis: ReferenceCardEntity, pattern: RefObjectAnyPatte
   return hrefFor({ ...host, schemaName, pattern: pattern.name })
 }
 
+/** A contentful pattern Mini under its host shows its description alone: not
+ * its host's art, prose or CHASSIS marker, nor its loadout, actions or drones. */
+const DESCRIPTION_ONLY = {
+  patterns: true,
+  actions: true,
+  content: true,
+  image: true,
+  axisMarkers: true,
+  nested: true,
+} as const
+
 /** The anchor around a pattern's Mini fills its line, as the Mini does (N4). */
 const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 
 /**
  * `PatternListRow` — one entry of a host card's (a chassis's or a
- * Bio-Titan's) Patterns list: the pattern's TOKEN (inside a card it is named
- * by its head alone, EDL N2), linking to the pattern's own page. A Mini
- * nests nothing (E6): what the pattern changes (its loadout, a Bio-Titan
- * pattern's actions) is its Peek's and its Page's, never drawn under it here.
+ * Bio-Titan's) Patterns list: the pattern's Mini, running the list's full
+ * width. A pattern the book describes (or a legal starting pattern, which
+ * closes on the book's sentence for it) is a CONTENTFUL Mini, its head and
+ * then that description alone (owner, 2026-10-20: "full width and contentful,
+ * showing only the special pattern descriptions"); its loadout and a
+ * Bio-Titan pattern's actions stay its Peek's and its Page's. Its name is the
+ * link to the pattern's Page (`CardTitleLink`), so the prose's own links never
+ * nest inside another.
  *
- * A real `<a>`, not a click handler: a pattern page is a page like any other
- * entity's, so the entry has to open in a new tab on middle-click, show its
- * destination on hover, and be followable by a crawler. The anchor carries the
- * interaction; the Mini inside it takes `cardClickable` for the hover
- * affordance ONLY, which is why it doesn't also become a `role=button` nested
- * inside a link.
+ * A pattern with no description is a header-only Mini inside a real `<a>`:
+ * a pattern page is a page like any other entity's, so the entry has to open
+ * in a new tab on middle-click, show its destination on hover, and be
+ * followable by a crawler. The anchor carries the interaction; the Mini
+ * inside it takes `cardClickable` for the hover affordance ONLY, which is why
+ * it doesn't also become a `role=button` nested inside a link.
  *
  * On a surface with no routes (any app whose patterns have no pages) the row
  * renders inert, not a link to nowhere.
@@ -73,6 +88,19 @@ function PatternListRow({
   NestedCard: NestedCard
 }) {
   const href = usePatternHref(chassis, pattern)
+  if (pattern.content?.length || isLegalStartingPatternOf(pattern)) {
+    return (
+      <NestedCard
+        data={chassis}
+        pattern={pattern}
+        size="mini"
+        extent="full"
+        depth={depth}
+        hostDown={hostDown}
+        hide={DESCRIPTION_ONLY}
+      />
+    )
+  }
   const card = (
     <NestedCard
       data={chassis}
@@ -98,7 +126,8 @@ function PatternListRow({
   )
 }
 
-/** BASIC HOST CARD → the list of its patterns, each its Mini. A Page lists
+/** BASIC HOST CARD → the list of its patterns, each its Mini (contentful
+ * where the book describes it). A Page lists
  * them as its own pattern rows instead (`PatternLinkRows`, level 1). */
 export function PatternList({
   chassis,
