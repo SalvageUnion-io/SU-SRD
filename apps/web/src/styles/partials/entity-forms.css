@@ -877,6 +877,16 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   display: none;
 }
 
+/* The tab's foot and the body's top meet on one line, which a scaled or
+   zoomed page lands between pixels: the band's ink, blended into that pixel
+   row, draws a dark rule under the tab. The body laps 1px of paper up over
+   the band's foot (inside its side borders, painting nothing else), so the
+   tab always opens into the paper. */
+.su-entity-token[data-contentful] > .su-entity-token__body {
+  box-shadow: 0 calc(-1px - var(--bw-chrome)) 0 calc(-1 * var(--bw-chrome)) var(--color-paper);
+  position: relative;
+}
+
 .su-entity-token__lead {
   font-size: var(--text-sm);
   line-height: 1.4;
@@ -1371,6 +1381,20 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 .su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
   outline: var(--bw-hairline) solid currentcolor;
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
+}
+
+/* A Token's strip is one Mini line (ruleset §4.7: one height on a line): a
+   stamp chip, the cost and a Use draw the same 18px plate on one centre. The
+   cost would otherwise stretch to the line's 24px (a Mini button's target),
+   and a stamp chip stops a pixel short of it. */
+.su-entity-token
+  .su-chips.su-entity-token__chips
+  > .su-chip-lane
+  > :is(.su-stat-cell, .su-cost-edge, .su-cost),
+.su-entity-token .su-chips.su-entity-token__chips > .su-chip-lane > .su-cost-edge > .su-cost {
+  align-self: center;
+  box-sizing: border-box;
+  height: var(--size-mini);
 }
 
 /* The condition in a strip's state slot (C8, ruleset §2.3: `StatusBadge`)
