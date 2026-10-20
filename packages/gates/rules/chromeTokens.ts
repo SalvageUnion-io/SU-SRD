@@ -133,7 +133,6 @@ const DASHED_FILES: readonly [string, string][] = [
   ['apps/web/src/components/referenceEntity/card/HomebrewStamp.tsx', 'user-made: the stamp'],
   ['apps/web/src/components/compositions/OgCard.tsx', 'user-made: the share card'],
   ['apps/web/src/build/mech/Pattern/PublicPattern.tsx', 'user-made: a pattern’s page'],
-  ['apps/web/src/build/mech/Pattern/SavePatternPage.tsx', 'user-made: saving a pattern'],
   ['apps/web/src/build/npc/npcStyles.model.ts', 'user-made: the NPC builder'],
   // An edit field: Edit's controls are pencil (ruleset §1.2).
   ['apps/web/src/components/atoms/Field.tsx', 'an edit field'],

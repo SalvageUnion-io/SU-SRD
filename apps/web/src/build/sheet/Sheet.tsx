@@ -34,6 +34,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
+import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
@@ -173,6 +174,7 @@ export function Sheet({
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  const [savePatternOpen, setSavePatternOpen] = useState(false)
   // The container move's confirm. Owned here, not by the control, because the
   // control lives in the ⋯ menu, which unmounts on the press that answers it.
   const { confirm, dialog: confirmDialog } = useConfirm()
@@ -270,15 +272,11 @@ export function Sheet({
       Change Log
     </Button>
   )
-  // A mech saves as a pattern on its own page (board P1): a write, so it
-  // is offered only where this sheet can write.
+  // A mech saves as a pattern in a dialog over its sheet (board P1): a write,
+  // so it is offered only where this sheet can write.
   const savePatternLink =
     kind === 'mech' && !writesBlocked ? (
-      <Button
-        href={`/mechs/patterns/new?from=${encodeURIComponent(id)}`}
-        variant="ghost"
-        size="compact"
-      >
+      <Button variant="ghost" size="compact" onClick={() => setSavePatternOpen(true)}>
         Save as pattern
       </Button>
     ) : null
@@ -418,6 +416,13 @@ export function Sheet({
             open={shareOpen}
             onOpenChange={setShareOpen}
           />
+          {resolved.kind === 'mech' && (
+            <SavePatternDialog
+              source={resolved.entity}
+              open={savePatternOpen}
+              onOpenChange={setSavePatternOpen}
+            />
+          )}
           {confirmDialog}
         </>
       )}

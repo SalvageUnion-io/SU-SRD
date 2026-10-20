@@ -117,7 +117,6 @@ describe('the shell’s Union bar, marked for its route', () => {
     for (const route of [
       '/',
       '/mechs/patterns/',
-      '/mechs/patterns/new',
       '/starter/',
       '/pilots/new',
       '/play/',

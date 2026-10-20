@@ -101,6 +101,7 @@ import { usePatternStore } from '../../stores/patternStore'
 import type { AssignableType } from '../../stores/types'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
+import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
@@ -158,6 +159,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const go = useGo()
   const [filter, setFilter] = useState<ShelfFilter>('everything')
   const [moving, setMoving] = useState<MoveSubject | null>(null)
+  // The mech being saved as a pattern, in its dialog over the Hangar.
+  const [savingPattern, setSavingPattern] = useState<string | null>(null)
   const [importResult, setImportResult] = useState<string | null>(null)
   // Menu items have no line of their own, so a failed export is a toast.
   const exportOne = useServerAction(
@@ -183,6 +186,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // whichever way the toggle is set.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
+  const patternSource = allMechs.find((m) => m.id === savingPattern)
 
   // The Showing select: a Game you have since left falls back to Everything.
   const filters = shelfFilters(games)
@@ -257,7 +261,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               {
                 id: 'pattern',
                 label: 'Save as pattern',
-                onSelect: writable(() => go('/mechs/patterns/new', { from: unit.id })),
+                onSelect: writable(() => setSavingPattern(unit.id)),
               },
             ]
           : []),
@@ -362,7 +366,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       : allMechs.map((m) => ({
           id: m.id,
           label: m.name,
-          onSelect: () => go('/mechs/patterns/new', { from: m.id }),
+          onSelect: () => setSavingPattern(m.id),
         }))
 
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
@@ -574,6 +578,13 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         confirm={confirm}
       />
       {dialog}
+      <SavePatternDialog
+        source={patternSource ?? { name: '', chassisRef: '', systems: [], modules: [] }}
+        open={patternSource !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setSavingPattern(null)
+        }}
+      />
     </PageShell>
   )
 }

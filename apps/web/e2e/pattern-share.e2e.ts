@@ -2,8 +2,8 @@ import { buildMech, openSheetFor } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Save a mech as a pattern, open its public page signed out, and build a mech
- * from it (boards P1 and P2).
+ * Save a mech as a pattern from its dialog, share it by link, open its page
+ * signed out, and build a mech from it (boards P1 and P2).
  *
  * Signed in (the default `test` from `fixtures.ts`), so it SKIPS with a stated
  * reason in a build with no test sign-in seam and runs for real in the nightly
@@ -15,25 +15,22 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
   await buildMech(page, 'Iron Fist')
   await openSheetFor(page, 'Iron Fist')
 
-  // --- P1: Save as pattern, from the mech sheet's ⋯ menu ---
+  // --- P1: Save as pattern, from the mech sheet's ⋯ menu, in its dialog ---
   await page.getByRole('button', { name: 'More actions' }).click()
-  await page.getByRole('link', { name: 'Save as pattern' }).click()
-  await page.waitForURL(/\/mechs\/patterns\/new\?from=/, { timeout: 15_000 })
+  await page.getByRole('button', { name: 'Save as pattern' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Save as pattern' })
+  // The pattern as its chassis lists it, in Edit: homebrew, the name in its cut-out.
+  await expect(dialog.getByText('Homebrew', { exact: true }).first()).toBeVisible()
+  await dialog.getByLabel('Pattern name', { exact: true }).fill('Tow Rig')
+  await dialog.getByLabel('Pattern description', { exact: true }).fill('Rig first, rivet later.')
+  await dialog.getByRole('button', { name: 'Save pattern' }).click()
 
-  // Exact: until the route swaps, the sheet's own "Edit pattern name" control
-  // is still on the page and a substring match lands on it.
-  await page.getByLabel('Pattern name', { exact: true }).fill('Tow Rig')
-  await page
-    .getByLabel('Notes for whoever builds it', { exact: true })
-    .fill('Rig first, rivet later.')
-  await page.getByLabel(/Anyone with the link/).check()
-  // The preview is the pattern as others will see it: user-made.
-  await expect(page.getByText('Homebrew', { exact: true }).first()).toBeVisible()
-  await page.getByRole('button', { name: 'Save pattern' }).click()
-
-  // A shared pattern opens on its own page.
+  // A saved pattern opens on its own page, its maker's alone until shared.
   await page.waitForURL(/\/p\/pattern\/[^/]+$/, { timeout: 20_000 })
   const link = page.url()
+  await page.getByRole('button', { name: 'Share Tow Rig' }).click()
+  await page.getByRole('radio', { name: /Anyone with the link/ }).check()
+  await page.keyboard.press('Escape')
 
   // --- P2: the public page, with no account at all ---
   const visitor = await browser.newContext()

@@ -278,6 +278,8 @@ export { HomebrewStamp } from './referenceEntity/card/HomebrewStamp'
 // wears the stamp (`EntityPageStamps`) outside the card.
 export { isLegalStartingPatternOf } from './referenceEntity/card/legalStartingPattern'
 export { ActionTokens } from './referenceEntity/card/NestedCards'
+// A chassis page's pattern, listed: a player's pattern too, in Edit while they save it.
+export { PatternListing } from './referenceEntity/card/PatternListRow'
 // Entity display system
 export { ReferenceEntityCard } from './referenceEntity/card/ReferenceEntityCard'
 export type { CardFootMeta } from './referenceEntity/card/referenceEntityCardTypes'

@@ -85,11 +85,12 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
         {form.chassisName && (
           <div>
             <SavePatternButton
-              mechName={form.name.trim() || 'Unnamed Mech'}
-              chassisRef={form.chassisName}
-              systems={form.systems}
-              modules={form.modules}
-              cargoLots={form.cargoLots}
+              source={{
+                name: form.name.trim() || 'Unnamed Mech',
+                chassisRef: form.chassisName,
+                systems: form.systems,
+                modules: form.modules,
+              }}
             />
           </div>
         )}

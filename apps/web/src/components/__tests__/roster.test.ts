@@ -115,6 +115,7 @@ const ROSTER = {
     'ReferenceEntityCard',
     'Content',
     'ActionTokens',
+    'PatternListing',
     'EntityPageStamps',
     'resolveEntityPageMeta',
     'isLegalStartingPatternOf',

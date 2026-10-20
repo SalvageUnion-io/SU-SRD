@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
@@ -137,24 +137,34 @@ export function PatternList({
 /**
  * PAGE view — one pattern at level 1, through the forms (EDL E15, hard rule
  * R7): the Row's frame (`Box`, which stands in `RowFrame`) under the Row's
- * `Head` in the host's tone, the pattern's quoted name on its cut-out as the
- * link, then the paper body: the pattern's opening paragraph as prose (a lead
- * is an index's, E11), and under it what the pattern changes: its loadout,
- * Systems beside Modules, one full-width Token a line with its TL at the
- * column's edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
- * (`PatternUniques`). The HEAD is the link to the pattern's page; the body
- * cannot be, because its names are links of their own.
+ * `Head` in the host's tone, the pattern's quoted name on its cut-out, then
+ * the paper body: the pattern's opening paragraph as prose (a lead is an
+ * index's, E11), and under it what the pattern changes: its loadout, Systems
+ * beside Modules, one full-width Token a line with its TL at the column's
+ * edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
+ * (`PatternUniques`). The HEAD is the link to the pattern's page, where it
+ * has one; the body cannot be, because its names are links of their own.
+ *
+ * A player's pattern is listed the same way, in Edit while they save it:
+ * `edit` swaps the name for its field and the prose for its own, and
+ * `homebrew` puts the HOMEBREW stamp among its chips (ruleset §3.9).
  */
-function PatternLinkRow({
+export function PatternListing({
   chassis,
   chassisName,
   pattern,
   host,
+  homebrew = false,
+  edit,
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
   pattern: RefObjectAnyPattern
   host: PatternRowsHost
+  /** A player made it: the HOMEBREW stamp among its chips. */
+  homebrew?: boolean
+  /** Edit: the name's field, in its cut-out, and the description's, in the prose's place. */
+  edit?: { name: ReactNode; description: ReactNode }
 }) {
   const href = usePatternHref(chassis, pattern)
   const surface = useEntitySurface()
@@ -171,54 +181,68 @@ function PatternLinkRow({
   )
   const drones = useMemo(() => resolvePatternDrones(pattern), [pattern])
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
-  // The book's starting builds wear their stamp on the row as on the card: a
-  // chip of the head's strip, at its Size (`labelChips`).
-  const chips = isLegalStartingPatternOf(pattern)
-    ? labelChips({ seal: undefined, axisMarkers: [], legalStartingPattern: true }, 'compact')
-    : undefined
+  // The book's starting builds wear their stamp on the row as on the card, a
+  // player's its HOMEBREW stamp: a chip of the head's strip, at its Size (`labelChips`).
+  const legalStartingPattern = isLegalStartingPatternOf(pattern)
+  const chips =
+    legalStartingPattern || homebrew
+      ? labelChips(
+          { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
+          'compact'
+        )
+      : undefined
   // The name on the paper cut-out (Head's `notch`): the body below is paper.
-  const head = <Head title={`“${name}”`} notch chipsBeside paint={paint} chips={chips} />
+  const head = (
+    <Head
+      title={`“${name}”`}
+      titleContent={edit?.name}
+      notch
+      chipsBeside
+      paint={paint}
+      chips={chips}
+    />
+  )
   return (
-    <li>
-      <Box
-        head={
-          href ? (
-            <a
-              href={href}
-              aria-label={`${name} — ${chassisName} pattern`}
-              className={cn('su-pattern-rows__head', FOCUS_RING)}
-            >
-              {head}
-            </a>
-          ) : (
-            head
-          )
-        }
-      >
-        {description && <p className="su-pattern-rows__prose">{description}</p>}
-        {(loadout.length > 0 || drones.length > 0) && (
-          <PatternLoadout
-            groups={loadout}
-            drones={drones}
-            sectionAs={undefined}
-            hostDown={host.hostDown}
-            owner={name}
-          />
-        )}
-        <PatternUniques
-          className="su-pattern-rows__unique"
-          pattern={pattern}
+    <Box
+      head={
+        href && !edit ? (
+          <a
+            href={href}
+            aria-label={`${name} — ${chassisName} pattern`}
+            className={cn('su-pattern-rows__head', FOCUS_RING)}
+          >
+            {head}
+          </a>
+        ) : (
+          head
+        )
+      }
+    >
+      {edit
+        ? edit.description
+        : description && <p className="su-pattern-rows__prose">{description}</p>}
+      {(loadout.length > 0 || drones.length > 0) && (
+        <PatternLoadout
+          groups={loadout}
+          drones={drones}
+          sectionAs={undefined}
           hostDown={host.hostDown}
-          hostName={chassisName}
-          chassisName={host.chassisName}
+          owner={name}
         />
-      </Box>
-    </li>
+      )}
+      <PatternUniques
+        className="su-pattern-rows__unique"
+        pattern={pattern}
+        hostDown={host.hostDown}
+        hostName={chassisName}
+        chassisName={host.chassisName}
+      />
+    </Box>
   )
 }
 
 /** What a page's pattern rows need to render each pattern's uniques. */
-type PatternRowsHost = {
+export type PatternRowsHost = {
   hostDown: Down
   chassisName: string | undefined
 }
@@ -259,13 +283,9 @@ export function PatternLinkRows({
     >
       <ul className="su-pattern-rows__list">
         {patterns.map((pat) => (
-          <PatternLinkRow
-            key={pat.name}
-            chassis={chassis}
-            chassisName={chassisName}
-            pattern={pat}
-            host={host}
-          />
+          <li key={pat.name}>
+            <PatternListing chassis={chassis} chassisName={chassisName} pattern={pat} host={host} />
+          </li>
         ))}
       </ul>
       {count > PATTERNS_ON_A_PHONE && (

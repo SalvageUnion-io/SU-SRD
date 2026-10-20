@@ -308,10 +308,12 @@ describe('a unit’s ⋯ menu', () => {
     expect(assigned).toEqual(['/sheet/pilot/p-nia'])
   })
 
-  test('a mech’s Save as pattern opens the pattern designer from it', async () => {
+  test('a mech’s Save as pattern opens its dialog over the Hangar', async () => {
     await renderShelves()
     await choose(await openMenu('Iron Jaw'), 'Save as pattern')
-    expect(assigned).toEqual(['/mechs/patterns/new?from=m-jaw'])
+    const name = screen.getByRole('textbox', { name: 'Pattern name' }) as HTMLInputElement
+    expect(name.value).toBe('Iron Jaw')
+    expect(assigned).toEqual([])
   })
 })
 
@@ -324,7 +326,9 @@ describe('Patterns', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('menuitem', { name: 'Iron Jaw' }))
     })
-    expect(assigned).toEqual(['/mechs/patterns/new?from=m-jaw'])
+    const name = screen.getByRole('textbox', { name: 'Pattern name' }) as HTMLInputElement
+    expect(name.value).toBe('Iron Jaw')
+    expect(assigned).toEqual([])
   })
 
   test('with no mechs, + From a mech says to build one first', async () => {

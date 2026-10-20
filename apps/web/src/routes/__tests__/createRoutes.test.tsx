@@ -4,7 +4,7 @@
  * link's chassis, pattern, class or crawler type — dropped when it names
  * nothing legal), where each callback navigates, the NPC designer's view and
  * crew in the URL, and `/sheet/$kind/$id` choosing its page or saying the kind
- * is not a sheet. Also `/mechs/patterns/new`, Play's two screens and the
+ * is not a sheet. Also Play's two screens and the
  * retired `/dashboard/$pilotId`, which lands on Play.
  *
  * The screens themselves have their own suites, so each is replaced here by a
@@ -103,21 +103,6 @@ const convexMocks = await installConvexMocks({
     }),
     '../../build/npc/NpcSheetView': () => ({
       NpcSheetView: (p: Props) => h('p', null, `NPC sheet: ${String(p.id)}`),
-    }),
-    '../../build/mech/Pattern/SavePatternPage': () => ({
-      SavePatternPage: (p: Props) =>
-        h(
-          'section',
-          { 'aria-label': 'Save pattern' },
-          h('p', null, `saving from ${String(p.mechId) || 'none'}`),
-          call('Saved private', () =>
-            (p.onSaved as (id: string, v: string) => void)('pat-1', 'private')
-          ),
-          call('Saved public', () =>
-            (p.onSaved as (id: string, v: string) => void)('pat-2', 'public')
-          ),
-          call('Cancel save', p.onCancel as () => void)
-        ),
     }),
     '../../play/PlayGate': () => ({
       PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
@@ -285,33 +270,6 @@ describe('/sheet/$kind/$id', () => {
     await mountAt('/sheet/dropship/x1')
     expect(await screen.findByText('Sheet not found')).toBeTruthy()
     expect(screen.getByText(/“dropship” is not a sheet type\./)).toBeTruthy()
-  })
-})
-
-describe('/mechs/patterns/new', () => {
-  test('saves from the mech in the URL; a private pattern goes home', async () => {
-    const router = await mountAt('/mechs/patterns/new?from=m1')
-    expect(await screen.findByText('saving from m1')).toBeTruthy()
-    await press('Saved private')
-    expect(at(router).pathname).toBe('/')
-  })
-
-  test('a shared pattern opens its public page', async () => {
-    // The public page it lands on asks for the pattern; this one is not shared.
-    const router = await mountAt('/mechs/patterns/new?from=m1', { 'publicSheet:pattern': null })
-    await press('Saved public')
-    expect(at(router).pathname).toBe('/p/pattern/pat-2')
-  })
-
-  test('cancel goes back to the mech it came from, or home with none', async () => {
-    const router = await mountAt('/mechs/patterns/new?from=m1')
-    await press('Cancel save')
-    expect(at(router).pathname).toBe('/sheet/mech/m1')
-
-    await go(router, '/mechs/patterns/new')
-    expect(await screen.findByText('saving from none')).toBeTruthy()
-    await press('Cancel save')
-    expect(at(router).pathname).toBe('/')
   })
 })
 

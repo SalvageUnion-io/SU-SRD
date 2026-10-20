@@ -70,7 +70,7 @@ describe('UnionBarSlots', () => {
     expect(currentIn('Build')).toEqual(['Starter Set'])
     rerender(<UnionBarSlots pathname="/" />)
     expect(currentIn('Build')).toEqual(['Training Bay'])
-    rerender(<UnionBarSlots pathname="/mechs/patterns/new" />)
+    rerender(<UnionBarSlots pathname="/mechs/patterns/" />)
     expect(currentIn('Build')).toEqual(['Patterns'])
     rerender(<UnionBarSlots pathname="/pilots/new" />)
     expect(currentIn('Build')).toEqual([])
