@@ -14,7 +14,8 @@ import { FOCUS_RING } from '../atoms/interaction'
  *   after a `//` (`Workshop Manual · p.65 // … (CR) · p.37`, `citeLine`), in
  *   the same words a card's foot cites it, text, never chips, and no kind
  *   (ruleset Source 2, E9). It has no ink rule: the band's colour runs edge
- *   to edge.
+ *   to edge. A player-made page (a saved pattern) puts its `credit` there
+ *   instead: "Homebrew // Made by alxjrvs".
  * - **Every page** carries the licence's required legal text, the tool's own
  *   pages (`links`, through `LinkComponent`) and the "Powered by Salvage"
  *   mark, reversed to paper on a ground that prints paper.
@@ -27,6 +28,12 @@ type FooterPrinting = { book: string; page?: number }
 export type FooterFoot = {
   /** Where it is printed: the book first, then each reprint. */
   printings?: readonly FooterPrinting[]
+  /**
+   * A player-made page's credit, in the place the printings take (ruleset
+   * §3.9): "Homebrew // Made by alxjrvs". It has no page in any book to cite,
+   * so it replaces them.
+   */
+  credit?: string
   /** The inner row's max width, matching the page's own measure. */
   measure?: string
 }
@@ -113,7 +120,7 @@ function End({
 
 export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }: FooterProps) {
   const measure = foot?.measure ?? SITE_MEASURE
-  const citation = citeLine(foot?.printings ?? [])
+  const citation = foot?.credit ?? citeLine(foot?.printings ?? [])
   return (
     <footer className="su-footer">
       <ChapterFoot

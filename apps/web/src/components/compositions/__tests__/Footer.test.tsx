@@ -199,3 +199,19 @@ describe('Footer in another tool', () => {
     )
   })
 })
+
+/** A player-made page has no page to cite: its maker is credited in that place. */
+describe('Footer on a homebrew page', () => {
+  test('cites the credit where a book page cites its printings, the licence row kept', () => {
+    const { container } = render(
+      <Footer
+        links={LINKS}
+        poweredBySalvageUrl="/mark.webp"
+        foot={{ credit: 'Homebrew // Made by alxjrvs', printings: GOPHER.printings }}
+      />
+    )
+    const citation = container.querySelector('.su-footer__citation')?.textContent
+    expect(citation).toBe('Homebrew // Made by alxjrvs')
+    expect(container.querySelector('.su-footer__legal')).not.toBeNull()
+  })
+})

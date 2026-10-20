@@ -57,6 +57,11 @@ export type ReferenceEntityCardProps = {
    */
   presentation?: 'card' | 'page'
   /**
+   * PAGE only: the hero in place of the entity's own art — a saved pattern's
+   * page shows its maker's photo, and lets its maker change it.
+   */
+  hero?: ReactNode
+  /**
    * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability
    * as a page does, nested in the pick as a contentful Token (N3, E19: The
    * app's mech-builder pick cards, where choosing needs it). It shows

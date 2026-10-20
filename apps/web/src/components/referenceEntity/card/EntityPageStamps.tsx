@@ -8,7 +8,8 @@ import { labelChips } from './labelChips'
  * EntityPageStamps — what an entity Page's chapter band carries right of its
  * title (boards 07, 08; EDL E20) — an SRD route's and the app's detail dialog's
  * alike — as one `Chips` strip that wraps (`chips-and-actions.md` C2a), in the
- * class order (C2): the Legal Starting Pattern stamp (a mark), then every chip
+ * class order (C2): the Legal Starting Pattern stamp or a player-made page's
+ * dashed HOMEBREW stamp (a mark), then every chip
  * the entity carries (E17; the page body holds none, owner's call
  * 2026-10-14): its stats under their full names (Tech Level first; a
  * chassis's lead its page body instead), its action type and facets
@@ -33,12 +34,18 @@ type EntityPageStampsProps = {
   legalStartingPattern?: boolean
   /** What the entity is built on (a pattern's chassis): its relation chip, `CHASSIS | Mazona`. */
   parent?: { label: string; ref: EntityRef; href?: string } | undefined
+  /**
+   * A player made it (a saved pattern): the dashed HOMEBREW stamp, the band's
+   * mark where a book pattern may wear Legal Starting Pattern (ruleset §3.9).
+   */
+  homebrew?: boolean
 }
 
 export function EntityPageStamps({
   meta,
   legalStartingPattern = false,
   parent,
+  homebrew = false,
 }: EntityPageStampsProps) {
   const cost = meta.cost
     ? meta.cost.currency
@@ -71,8 +78,11 @@ export function EntityPageStamps({
         ],
       }}
       marks={
-        legalStartingPattern
-          ? labelChips({ seal: undefined, axisMarkers: [], legalStartingPattern }, 'full')
+        legalStartingPattern || homebrew
+          ? labelChips(
+              { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
+              'full'
+            )
           : undefined
       }
     />

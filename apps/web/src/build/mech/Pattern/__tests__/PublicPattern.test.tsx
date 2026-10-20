@@ -1,6 +1,6 @@
 /**
- * The public pattern page, `/p/pattern/:appId` (board P2): reference-
- * styled, plainly user-made, and buildable by a signed-in reader.
+ * The public pattern page, `/p/pattern/:appId` (board P2): laid out as the
+ * book's pattern page, plainly homebrew, and buildable by a signed-in reader.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
@@ -30,6 +30,7 @@ const { ConnectionContext } = await import('../../../../lib/connection/connectio
 const { useEntityStore } = await import('../../../../stores/entityStore')
 const { usePatternStore } = await import('../../../../stores/patternStore')
 const { PublicSheetView } = await import('../../../sheet/PublicSheetView')
+const { usePageFoot } = await import('../../../../lib/pageFoot')
 
 withSignedInBackend()
 
@@ -93,27 +94,35 @@ beforeEach(() => {
 })
 
 describe('a shared pattern reads like the book and says a player made it', () => {
-  test('hatched band, User-made stamp, the maker named, their notes', () => {
+  test('laid out as the book pattern page: HOMEBREW stamp, the maker credited on the foot, their notes as its description', () => {
     setQueryAnswers({ 'publicSheet:pattern': answer() })
     const { container } = renderAs(SIGNED_OUT)
 
     expect(screen.getByRole('heading', { level: 1, name: /Tow Rig/ })).toBeTruthy()
-    expect(container.querySelector('[data-user-made]')).not.toBeNull()
-    expect(screen.getByText('User-made pattern')).toBeTruthy()
-    expect(screen.getByRole('note', { name: 'Who made this' }).textContent).toContain(
-      'Made by alxjrvs.'
+    // The book page's band, not a hatched one: the stamp says it instead.
+    expect(container.querySelector('[data-user-made]')).toBeNull()
+    expect(container.querySelector('.su-entity-stamps')?.textContent).toContain('Homebrew')
+    expect(screen.getByRole('link', { name: /Scrapper/ })).toBeTruthy()
+    // The notes lead the pattern as a book pattern's prose does.
+    expect(container.querySelector('.su-entity-page__opening')?.textContent).toContain(
+      'Rig first, rivet later.'
     )
-    expect(screen.getByText('Rig first, rivet later.')).toBeTruthy()
+    expect(usePageFoot.getState().credit).toBe('Homebrew // Made by alxjrvs')
     expect(screen.getByText('3 mechs built from it')).toBeTruthy()
+  })
+
+  test('the foot forgets the credit once the page is gone', () => {
+    setQueryAnswers({ 'publicSheet:pattern': answer() })
+    const { unmount } = renderAs(SIGNED_OUT)
+    unmount()
+    expect(usePageFoot.getState().credit).toBeUndefined()
   })
 
   test('the chassis and the loadout come from the reference', () => {
     setQueryAnswers({ 'publicSheet:pattern': answer() })
     renderAs(SIGNED_OUT)
 
-    expect(
-      screen.getByText('Stats come from the Scrapper chassis in the Workshop Manual.')
-    ).toBeTruthy()
+    expect(screen.getAllByText('Scrapper chassis').length).toBeGreaterThan(0)
     for (const part of ['Rigging Arm', 'Transport Hold', 'Comms Module']) {
       expect(screen.getAllByText(part).length).toBeGreaterThan(0)
     }

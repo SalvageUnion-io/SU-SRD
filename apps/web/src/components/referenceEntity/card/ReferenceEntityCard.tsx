@@ -174,6 +174,7 @@ function ReferenceEntityCardInner({
   extent = 'full',
   depth: depthProp = 0,
   presentation = 'card',
+  hero,
   showChassisAbility,
   shownProse,
   userMade = false,
@@ -529,7 +530,7 @@ function ReferenceEntityCardInner({
     return (
       <CardPage
         entity={entity}
-        hero={heroNode}
+        hero={hero ?? heroNode}
         leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={

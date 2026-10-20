@@ -2,12 +2,15 @@
  * PublicPattern — one saved mech pattern's page, at `/p/pattern/:appId`
  * (board P2).
  *
- * It reads like a reference page and says plainly that a player made it
- * (ruleset §3.9): a hatched mech band with a dashed notch and a "User-made
- * pattern" stamp, a banner naming the maker, the maker's notes in a dashed box,
- * and a hatched foot. Everything that IS the book — the chassis art, its stat
- * column and ability, every part of the loadout — renders from the reference,
- * solid. Its credit is just "Made by [user]", never a page citation.
+ * It is laid out as the book's own pattern page is (`EntityPageFrame` around
+ * the card at `presentation="page"`): the chassis chapter's band, the quoted
+ * title notched in, and right of it the stamps — a dashed HOMEBREW stamp
+ * where a book pattern may wear Legal Starting Pattern, its Tech Level, and
+ * `PATTERN OF | <chassis>` — then the art, the chassis stats, the pattern's
+ * description, the chassis prose and ability, and the loadout. Three things
+ * say a player made it (ruleset §3.9): the HOMEBREW stamp, the maker's own
+ * description where a book pattern's prose goes, and the page's foot, which
+ * cites "Homebrew // Made by [user]" where a book page cites its printings.
  *
  * Readable with no account when its maker shared it by link; by its Game's crew
  * when they shared it with the crew (`publicSheet.pattern`). Building from it,
@@ -21,45 +24,34 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import {
-  extractStaticEntitySummary,
-  getAssetUrl,
-  getChassisAbilities,
-  getEntitySlug,
-} from 'salvageunion-reference'
+import type { RefObjectPattern } from 'salvageunion-reference'
+import { getAssetUrl, getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import {
   Button,
   ChapterBand,
   Cluster,
-  Entity,
-  EntityStat,
-  Grid,
+  EntityPageStamps,
+  KindLabel,
   quotePatternName,
   ReferenceEntityCard,
-  SlabSection,
-  Stat,
-  StatColumn,
+  resolveEntityPageMeta,
   Text,
-  TitledBox,
   toast,
   tokens,
-  USER_MADE_HATCH,
-  UserMadeStamp,
 } from '../../../components/index'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
-import { appPath } from '../../../lib/appBase'
+import { chapterForSchema } from '../../../lib/chapters'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
-import { entityHref, itemHref } from '../../../lib/entityHref'
-import { formatDay } from '../../../lib/formatDate'
+import { itemHref } from '../../../lib/entityHref'
+import { usePageFootCredit } from '../../../lib/pageFoot'
+import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
+  asReferencePattern,
   mechFromPattern,
   patternChassis,
   patternCopy,
-  patternHref,
-  patternLoadout,
-  slotsUsed,
 } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -76,69 +68,11 @@ export type PublicPatternAnswer = {
   visibility: PatternVisibility | null
 }
 
-/** The canvas's 1200px measure: with 320px loadout cells it sets three across. */
-const MEASURE = '75rem'
-
+/** A page's ground, as the book's pages wear it. */
 const PAGE = { backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 
-/** The line of stamps right of the title (EDL E20), below it on a phone. */
-const HEAD_LINE = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-/** The maker banner: paper, closed by a dashed rule (ruleset §3.9). */
-const BANNER = {
-  backgroundColor: tokens.color.paper,
-  borderBottomColor: tokens.color.ink,
-  borderBottomStyle: 'dashed',
-  borderBottomWidth: tokens.borderWidth.chrome,
-} satisfies CSSProperties
-
-const BANNER_ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  gap: tokens.space[12],
-  margin: '0 auto',
-  maxWidth: MEASURE,
-  padding: `${tokens.space[12]} ${tokens.space[16]}`,
-} satisfies CSSProperties
-
-const BANG = {
-  alignItems: 'center',
-  borderColor: tokens.color.ink,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.chrome,
-  display: 'inline-flex',
-  flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontWeight: tokens.weight.extrabold,
-  height: '1.75rem',
-  justifyContent: 'center',
-  width: '1.75rem',
-} satisfies CSSProperties
-
-// Its side padding and centring are `.su-page-body`'s: the band's row padding.
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[32],
-  maxWidth: MEASURE,
-  paddingBlock: `${tokens.space[24]} ${tokens.space[48]}`,
-} satisfies CSSProperties
-
-const COLUMN = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-  minWidth: 0,
-} satisfies CSSProperties
-
-const ART = {
+/** The maker's photo: the hero's box, its edge dashed (their picture, not the book's art). */
+const PHOTO_FRAME = {
   alignItems: 'center',
   aspectRatio: '4 / 3',
   backgroundColor: tokens.color.paper,
@@ -150,49 +84,16 @@ const ART = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
-/** The maker's own words, in their dashed box (ruleset §3.9). */
-const NOTES_TEXT = {
-  fontFamily: tokens.font.body,
-  fontStyle: 'italic',
-  margin: 0,
-} satisfies CSSProperties
-
-/** The note under the stats: a 13px grey caption, aligned left. */
-const STATS_NOTE = {
-  color: tokens.color.ink2,
-  fontFamily: tokens.font.body,
-  fontSize: '13px',
-  margin: 0,
-  textAlign: 'left',
+/** The reader's ways to use it, and its maker's, under the loadout. */
+const ACTIONS = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
 } satisfies CSSProperties
 
 /** A primary action: 44px at least (`Button` sets its condensed caps). */
 const ACTION_BUTTON = {
   minHeight: tokens.size.full,
-} satisfies CSSProperties
-
-const FOOT = {
-  backgroundColor: tokens.color.mech,
-  backgroundImage: USER_MADE_HATCH,
-} satisfies CSSProperties
-
-const FOOT_ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-  justifyContent: 'space-between',
-  margin: '0 auto',
-  maxWidth: MEASURE,
-  padding: `${tokens.space[12]} ${tokens.space[16]}`,
-} satisfies CSSProperties
-
-const FOOT_CHIP = {
-  backgroundColor: tokens.color.paper,
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  padding: `${tokens.space[2]} ${tokens.space[8]}`,
 } satisfies CSSProperties
 
 const VISIBILITY_COPY: Record<PatternVisibility, string> = {
@@ -201,7 +102,17 @@ const VISIBILITY_COPY: Record<PatternVisibility, string> = {
   game: 'Your Game’s crew can read this pattern and build from it.',
 }
 
-/** Open a loadout part's reference page, when the book has one for it. */
+/**
+ * The saved pattern as the book's pattern shape, its maker's notes as its
+ * description: they go where a book pattern's prose goes.
+ */
+function pagePattern(pattern: MechPattern): RefObjectPattern {
+  const notes = pattern.notes?.trim()
+  return {
+    ...asReferencePattern(pattern),
+    ...(notes ? { content: [{ type: 'paragraph', value: notes }] } : {}),
+  }
+}
 
 /**
  * Write the maker's photo onto their own pattern. The page reads the pattern
@@ -215,22 +126,21 @@ async function setPatternPhoto(patternId: string, photo: Photo | undefined): Pro
 }
 
 export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
-  const { pattern, madeBy, sharedAt, builtCount, mine, visibility } = answer
+  const { pattern, madeBy, builtCount, mine, visibility } = answer
   const navigate = useNavigate()
   const { mode, canWrite } = useConnection()
   const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
 
+  // Where a book page cites its printings, this one credits its maker.
+  usePageFootCredit(`Homebrew // Made by ${madeBy}`)
+
   const chassis = patternChassis(pattern)
-  const loadout = patternLoadout(pattern)
-  const parts = [...loadout.systems, ...loadout.modules]
+  const refPattern = pagePattern(pattern)
+  const meta = chassis ? resolveEntityPageMeta(chassis, refPattern) : undefined
   const art = chassis ? getAssetUrl(chassis) : undefined
-  const stats = (chassis ? extractStaticEntitySummary(chassis).stats : []).map((stat) => ({
-    key: stat.label,
-    label: stat.label,
-    value: String(stat.value),
-  }))
-  const abilities = chassis ? (getChassisAbilities(chassis) ?? []) : []
+  const editable = mine && canWrite
+  const writable = canWrite && mode === 'connected'
 
   async function build() {
     setBusy('build')
@@ -260,115 +170,83 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
 
   return (
     <main style={PAGE}>
-      <ChapterBand
-        tone="mech"
-        measure={MEASURE}
-        userMade
-        asideAt="notch"
-        aside={
-          <div style={HEAD_LINE}>
-            <UserMadeStamp label="User-made pattern" />
-            {/* Label-first chips (EDL E9): the chassis opens its reference
-                page and Peeks it; then its tech level. */}
-            {chassis && (
-              <EntityStat
-                label="Chassis"
-                entityRef={{
-                  schemaName: 'chassis',
-                  id: chassis.id,
-                  slug: getEntitySlug(chassis),
-                  name: chassis.name,
+      <article className="su-entity">
+        <ChapterBand
+          tone={chapterForSchema('chassis').tone}
+          measure={PAGE_MEASURE}
+          asideAt="notch"
+          aside={
+            meta && chassis ? (
+              <EntityPageStamps
+                meta={meta}
+                homebrew
+                parent={{
+                  label: 'Pattern of',
+                  ref: toEntityModel(chassis).ref,
+                  href: itemHref('chassis', getEntitySlug(chassis)),
                 }}
-                href={itemHref('chassis', getEntitySlug(chassis))}
               />
-            )}
-            {chassis && <Stat label="TL" value={chassis.techLevel} />}
-          </div>
-        }
-      >
-        {quotePatternName(pattern.name)}
-      </ChapterBand>
-
-      <div role="note" aria-label="Who made this" style={BANNER}>
-        <div style={BANNER_ROW}>
-          <span aria-hidden="true" style={BANG}>
-            !
-          </span>
-          <span>
-            <strong>Made by {madeBy}.</strong> Not a legal starting mech; check with your Mediator
-            before you bring it to the table.
-          </span>
-        </div>
-      </div>
-
-      <div className="su-page-body" style={BODY}>
-        <Grid min="26rem" gap={32}>
-          <section style={COLUMN} aria-label="Chassis">
-            {/* The maker's photo where they gave one, else the chassis art. */}
-            <EntityPhoto
-              photo={pattern.photo}
-              fallback={art && chassis ? { url: art, alt: `${chassis.name} line art` } : undefined}
-              name={pattern.name}
-              frame={ART}
-              onChange={
-                mine && canWrite ? (photo) => setPatternPhoto(pattern.id, photo) : undefined
-              }
-            />
-            {!pattern.photo && !art && !(mine && canWrite) && (
-              <div style={ART}>
-                <Text variant="hint">No artwork in the reference for this chassis.</Text>
-              </div>
-            )}
-            {pattern.notes && (
-              <TitledBox title="Maker’s notes" userMade>
-                <p style={NOTES_TEXT}>{pattern.notes}</p>
-              </TitledBox>
-            )}
-          </section>
-
-          <section style={COLUMN} aria-label="Stats and actions">
-            {stats.length > 0 && (
-              <StatColumn
-                stats={stats}
-                label={chassis ? `${chassis.name} stats` : 'Chassis stats'}
-                compact
-              />
-            )}
-            {chassis && (
-              <p style={STATS_NOTE}>
-                Stats come from the {chassis.name} chassis in the Workshop Manual.
-              </p>
-            )}
-            {abilities.map((ability) => (
-              <ReferenceEntityCard
-                key={ability.id}
-                data={ability}
+            ) : undefined
+          }
+          action={
+            writable && (
+              <Button
+                variant="primary"
                 size="compact"
-                chassisName={chassis?.name}
-              />
-            ))}
+                className="su-page-action su-hit-area"
+                onClick={() => void build()}
+                disabled={busy !== null}
+                aria-label={`Build With This: a mech from ${pattern.name}`}
+              >
+                {busy === 'build' ? 'Building…' : 'Build With This'}
+              </Button>
+            )
+          }
+        >
+          {quotePatternName(pattern.name)}
+          <KindLabel kind="Pattern" />
+        </ChapterBand>
 
+        <div className="su-entity__body su-page-body">
+          {chassis ? (
+            <ReferenceEntityCard
+              data={chassis}
+              pattern={refPattern}
+              size="full"
+              presentation="page"
+              hero={
+                // The maker's photo where they gave one, else the chassis art;
+                // only its maker can change it.
+                pattern.photo || editable ? (
+                  <EntityPhoto
+                    photo={pattern.photo}
+                    fallback={art ? { url: art, alt: `${chassis.name} line art` } : undefined}
+                    name={pattern.name}
+                    frame={PHOTO_FRAME}
+                    onChange={editable ? (photo) => setPatternPhoto(pattern.id, photo) : undefined}
+                  />
+                ) : undefined
+              }
+              userMade
+              madeBy={madeBy}
+            />
+          ) : (
+            <Text variant="hint">
+              The chassis this pattern is built on is not in the reference.
+            </Text>
+          )}
+
+          <section style={ACTIONS} aria-label="Use this pattern">
             <Cluster gap={12}>
-              {canWrite && mode === 'connected' ? (
-                <>
-                  <Button
-                    variant="primary"
-                    style={ACTION_BUTTON}
-                    onClick={() => void build()}
-                    disabled={busy !== null}
-                    aria-label={`Build With This: a mech from ${pattern.name}`}
-                  >
-                    {busy === 'build' ? 'Building…' : 'Build With This'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    style={ACTION_BUTTON}
-                    onClick={() => void copy()}
-                    disabled={busy !== null}
-                  >
-                    {busy === 'copy' ? 'Copying…' : 'Make a copy'}
-                  </Button>
-                </>
+              {writable ? (
+                <Button
+                  variant="ghost"
+                  style={ACTION_BUTTON}
+                  onClick={() => void copy()}
+                  disabled={busy !== null}
+                >
+                  {busy === 'copy' ? 'Copying…' : 'Make a copy'}
+                </Button>
               ) : mode === 'connected' || mode === 'disconnected' ? null : (
                 <>
                   <SignInControl />
@@ -382,7 +260,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             {mine && visibility && (
               <Cluster gap={12}>
                 <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>
-                {canWrite && mode === 'connected' && (
+                {writable && (
                   <Button
                     variant="ghost"
                     style={ACTION_BUTTON}
@@ -395,55 +273,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               </Cluster>
             )}
           </section>
-        </Grid>
-
-        <SlabSection
-          id="pattern-loadout"
-          title="Loadout"
-          count={
-            chassis
-              ? [
-                  {
-                    label: 'Systems',
-                    value: slotsUsed(loadout.systems),
-                    max: chassis.systemSlots,
-                  },
-                  {
-                    label: 'Modules',
-                    value: slotsUsed(loadout.modules),
-                    max: chassis.moduleSlots,
-                  },
-                ]
-              : undefined
-          }
-        >
-          {/* A pattern's loadout is Tokens, one a line (EDL "Which form,
-              where" 1), as the save page lists it. */}
-          <ul aria-label="Loadout" className="su-entity-token-list">
-            {parts.map((part, index) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
-              <li key={`${part.id}-${index}`}>
-                <Entity
-                  form="token"
-                  context="loadout"
-                  entity={part}
-                  mode={{ kind: 'link', href: entityHref(part) }}
-                />
-              </li>
-            ))}
-          </ul>
-        </SlabSection>
-      </div>
-
-      <footer style={FOOT}>
-        <div style={FOOT_ROW}>
-          <UserMadeStamp label={`Made by ${madeBy}`} />
-          <span style={FOOT_CHIP}>
-            {sharedAt !== null ? `Shared ${formatDay(sharedAt)} · ` : ''}
-            {`${window.location.host}${appPath(patternHref(pattern.id))}`}
-          </span>
         </div>
-      </footer>
+      </article>
       {mine && (
         <ShareStatusDialog
           kind="pattern"
