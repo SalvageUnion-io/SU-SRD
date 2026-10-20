@@ -1076,3 +1076,33 @@ a.su-home__discord:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* A document page with a sidebar (`DocPage`'s `sidebar`: the Discord page's
+   screenshots): beside the reading column from 64rem, after it below. */
+.su-doc-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.su-doc-page__sidebar {
+  min-width: 0;
+  padding-top: var(--space-8);
+}
+
+@media (width >= 64rem) {
+  .su-doc-page__grid {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .su-doc-page__grid > :first-child {
+    flex: 1 1 auto;
+  }
+
+  .su-doc-page__sidebar {
+    flex: 0 0 24rem;
+    position: sticky;
+    top: var(--space-24);
+  }
+}

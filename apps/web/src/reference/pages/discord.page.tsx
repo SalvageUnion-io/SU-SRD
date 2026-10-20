@@ -205,6 +205,16 @@ function page(): PageResult {
         // Discord's own colour, the band its page wears (owner, 2026-10-20:
         // "Header should be discord purple"), its install button on it.
         fill={color.discord}
+        sidebar={
+          // What it sends: the bot's own replies, drawn from its builders,
+          // in the page's sidebar (owner, 2026-10-20: "make use of the
+          // sidebar area").
+          <Stack as="section" gap={16}>
+            <Slab as="h2" label="In your server" />
+            <DiscordReply sample={DISCORD_SAMPLES.roll} label="The bot's reply to /su roll" />
+            <DiscordReply sample={DISCORD_SAMPLES.lookup} label="The bot's reply to /su lookup" />
+          </Stack>
+        }
         controls={
           <Button
             href={DISCORD_INSTALL_URL}
@@ -230,13 +240,6 @@ function page(): PageResult {
             with no configuration; rolling and lookups need no account.
           </p>
         </section>
-
-        {/* What it sends: the bot's own replies, drawn from its builders */}
-        <Stack as="section" gap={16}>
-          <Slab as="h2" label="In your server" />
-          <DiscordReply sample={DISCORD_SAMPLES.roll} label="The bot's reply to /su roll" />
-          <DiscordReply sample={DISCORD_SAMPLES.lookup} label="The bot's reply to /su lookup" />
-        </Stack>
 
         {/* Commands: every /su subcommand, from the bot's own builder */}
         <Stack as="section" gap={24}>

@@ -799,6 +799,15 @@
     padding: var(--space-12) var(--space-16) 0;
   }
 
+  /* A lone button there is the line's width (owner, 2026-10-20: the Discord
+     page's install button, "full-width button here"). */
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    > .su-btn:only-child {
+    width: 100%;
+  }
+
   .su-chapter-band[data-aside='controls']
     .su-chapter-band__row[data-chip-fill]
     > .su-chapter-band__aside

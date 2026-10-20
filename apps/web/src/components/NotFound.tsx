@@ -32,17 +32,22 @@ type NotFoundProps = {
 export function NotFound({ search, didYouMean, back }: NotFoundProps) {
   return (
     <div className="su-not-found">
-      <ChapterBand measure={PAGE_MEASURE} fill={GREY_HEADER}>
+      {/* The search is the band's control, as an index's is (owner, 2026-10-20:
+          "search should be in header"); on a phone it leads the body, full
+          width, above the 404's words. */}
+      <ChapterBand
+        measure={PAGE_MEASURE}
+        fill={GREY_HEADER}
+        aside={<div className="su-not-found__search">{search}</div>}
+        asideAt="controls"
+      >
         Page not found
       </ChapterBand>
       <div className="su-not-found__body su-page-body">
-        <div className="su-not-found__lede">
-          <p>
-            <strong>404 · Salvage operation failed.</strong> This page was broken down, relocated,
-            or never existed. Search the Reference for it, or open a chapter.
-          </p>
-          {search}
-        </div>
+        <p className="su-not-found__lede">
+          <strong>404 · Salvage operation failed.</strong> This page was broken down, relocated, or
+          never existed. Search the Reference for it, or open a chapter.
+        </p>
         {back}
         {didYouMean}
         <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">

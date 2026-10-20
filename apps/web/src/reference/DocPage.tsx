@@ -15,6 +15,7 @@ export function DocPage({
   gap,
   fill,
   controls,
+  sidebar,
   children,
 }: {
   title: string
@@ -26,6 +27,8 @@ export function DocPage({
   fill?: string
   /** The page's controls on its band, filling the title's line (`asideAt="controls"`). */
   controls?: ReactNode
+  /** A column beside the reading column on a wide screen (`.su-doc-page__grid`), after it on a narrow one. */
+  sidebar?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -38,7 +41,14 @@ export function DocPage({
         {title}
       </ChapterBand>
       <div className="su-page-body">
-        <div style={docMeasure(measure, gap)}>{children}</div>
+        {sidebar ? (
+          <div className="su-doc-page__grid">
+            <div style={docMeasure(measure, gap)}>{children}</div>
+            <aside className="su-doc-page__sidebar">{sidebar}</aside>
+          </div>
+        ) : (
+          <div style={docMeasure(measure, gap)}>{children}</div>
+        )}
       </div>
     </div>
   )

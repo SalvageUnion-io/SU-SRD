@@ -50,6 +50,14 @@
   }
 }
 
+/* On a phone its button is the line's width too (owner, 2026-10-20: "search
+   button should be full width"). */
+@media not (width >= 40rem) {
+  .su-hero-search > :not(.su-hero-search__box) {
+    flex: 1 1 100%;
+  }
+}
+
 .su-hero-search__field {
   border-width: var(--bw-chrome);
   min-height: var(--size-full);
@@ -79,14 +87,17 @@
  * swatch (ruleset §3.8).
  */
 .su-not-found__lede {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
+  font-size: var(--text-xl);
+  line-height: 1.5;
+  margin: 0;
   max-width: 40rem;
 }
 
-.su-not-found__lede p {
-  margin: 0;
+/* The band's search: an index's width beside the title. */
+.su-not-found__search {
+  flex: 1 1 18rem;
+  max-width: 28rem;
+  min-width: 0;
 }
 
 .su-not-found__body {
