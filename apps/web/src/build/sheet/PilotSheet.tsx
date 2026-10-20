@@ -78,7 +78,6 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { ChipListEditor } from './ChipListEditor'
 import { CONDITION_DRAFT } from './chipWell.model'
 import { PartnerCard } from './PartnerCard'
-import { PhotoBeside } from './PhotoBeside'
 import { PilotIdentityPanel } from './PilotIdentity'
 import { PilotSheetAbilities } from './PilotSheetAbilities'
 import { GenericEntryAdder, GenericEntryLine, PilotEquipmentItem } from './PilotSheetItems'
@@ -226,7 +225,10 @@ export function PilotSheet({
           <SheetHero
             name={pilot.name}
             fields={
-              <PhotoBeside
+              <PilotIdentityPanel
+                pilot={pilot}
+                onToggleUsed={readOnly ? undefined : actions.toggleUsed}
+                patch={readOnly ? undefined : actions.patchPilot}
                 photo={
                   <EntityPhoto
                     photo={pilot.photo}
@@ -244,13 +246,7 @@ export function PilotSheet({
                     }
                   />
                 }
-              >
-                <PilotIdentityPanel
-                  pilot={pilot}
-                  onToggleUsed={readOnly ? undefined : actions.toggleUsed}
-                  patch={readOnly ? undefined : actions.patchPilot}
-                />
-              </PhotoBeside>
+              />
             }
             vitals={
               <>

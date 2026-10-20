@@ -92,7 +92,6 @@ import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
-import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
@@ -398,7 +397,13 @@ export function CrawlerSheet({
           <SheetHero
             name={crawler.name}
             fields={
-              <PhotoBeside
+              <CrawlerIdentityPanel
+                crawler={crawler}
+                store={store}
+                storeState={storeState}
+                patch={readOnly ? undefined : patchCrawler}
+                readOnly={readOnly}
+                typeCrew={assignmentFor(crew, { kind: 'type' })}
                 photo={
                   <EntityPhoto
                     photo={crawler.photo}
@@ -412,18 +417,7 @@ export function CrawlerSheet({
                     }
                   />
                 }
-              >
-                <Stack gap={16} style={SHRINK}>
-                  <CrawlerIdentityPanel
-                    crawler={crawler}
-                    store={store}
-                    storeState={storeState}
-                    patch={readOnly ? undefined : patchCrawler}
-                    readOnly={readOnly}
-                    typeCrew={assignmentFor(crew, { kind: 'type' })}
-                  />
-                </Stack>
-              </PhotoBeside>
+              />
             }
             vitals={economy}
             vitalsActions={economyActions}

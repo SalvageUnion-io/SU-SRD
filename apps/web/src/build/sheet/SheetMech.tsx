@@ -157,7 +157,7 @@ export function SheetMech({
           {
             key: 'pilot',
             kind: 'pilot' as const,
-            assign: <AssignPicker subject={self} container={container} pick="pilot" />,
+            assign: <AssignPicker subject={self} container={container} pick="pilot" size="mini" />,
           },
         ]),
     ...(composition.crawler || withheldCrawler
@@ -166,7 +166,9 @@ export function SheetMech({
           {
             key: 'crawler',
             kind: 'crawler' as const,
-            assign: <AssignPicker subject={self} container={container} pick="crawler" />,
+            assign: (
+              <AssignPicker subject={self} container={container} pick="crawler" size="mini" />
+            ),
           },
         ]),
   ]

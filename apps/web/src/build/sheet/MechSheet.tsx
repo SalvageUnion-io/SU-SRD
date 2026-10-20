@@ -75,7 +75,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechChassisCard } from './MechChassisCard'
 import { MechHeroChassis } from './MechHeroChassis'
-import { MechIdentityPanel, MechProseFields } from './MechIdentity'
+import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from './MechIdentity'
 import { MechItemMini } from './MechItemMini'
 import { MechVitals } from './MechVitals'
 import type { ChassisLike } from './mechSheet.model'
@@ -291,6 +291,12 @@ export function MechSheet({
             fields={
               <>
                 <PhotoBeside
+                  below={
+                    <MechDescriptionField
+                      mech={mech}
+                      onSave={readOnly ? undefined : actions.saveDescription}
+                    />
+                  }
                   photo={
                     <EntityPhoto
                       photo={mech.photo}
@@ -314,19 +320,19 @@ export function MechSheet({
                         mech={mech}
                         patch={readOnly ? undefined : actions.patchMech}
                         after={
-                          <Field
-                            label="Quirk"
-                            value={mech.quirk ?? ''}
-                            onSave={readOnly ? undefined : actions.saveQuirk}
-                            placeholder="No quirk recorded."
-                          />
+                          <>
+                            <Field
+                              label="Quirk"
+                              value={mech.quirk ?? ''}
+                              onSave={readOnly ? undefined : actions.saveQuirk}
+                              placeholder="No quirk recorded."
+                            />
+                            <MechAppearanceField
+                              mech={mech}
+                              onSave={readOnly ? undefined : actions.saveAppearance}
+                            />
+                          </>
                         }
-                      />
-
-                      <MechProseFields
-                        mech={mech}
-                        saveAppearance={readOnly ? undefined : actions.saveAppearance}
-                        saveDescription={readOnly ? undefined : actions.saveDescription}
                       />
                     </div>
                     <MechHeroChassis

@@ -88,6 +88,12 @@ type SlabProps = {
    * on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
    */
   countAt?: 'end' | 'label'
+  /**
+   * `mini`: the head at the Mini Size (18px), for a section inside a
+   * contentful Mini (a crawler bay's Bay Info and When Damaged; owner's
+   * review, 2026-10-20: a Mini's headers and expanders are its Size).
+   */
+  size?: 'mini'
 }
 
 /**
@@ -145,6 +151,21 @@ const LABEL = {
   paddingTop: space[2],
 } satisfies CSSProperties
 
+/** The Mini Size's stamp: the Mini's 18px, its chip type. */
+const LABEL_MINI = {
+  ...LABEL,
+  alignItems: 'center',
+  display: 'inline-flex',
+  fontSize: fontSize.xs,
+  lineHeight: 1,
+  minHeight: 'var(--size-mini)',
+  paddingBottom: 0,
+  paddingInline: space[6],
+  paddingTop: 0,
+} satisfies CSSProperties
+
+const ROW_MINI = { ...ROW_FLUSH, gap: space[6] } satisfies CSSProperties
+
 const RULE = {
   borderTopColor: color.ink50,
   borderTopStyle: 'solid',
@@ -181,6 +202,7 @@ export function Slab({
   ref,
   tabIndex,
   countAt = 'end',
+  size,
 }: SlabProps) {
   const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
@@ -207,13 +229,17 @@ export function Slab({
     )
   )
   return (
-    <div className={className} style={flush ? ROW_FLUSH : ROW} data-slab="">
+    <div
+      className={className}
+      style={size === 'mini' ? ROW_MINI : flush ? ROW_FLUSH : ROW}
+      data-slab=""
+    >
       <Label
         id={id}
         ref={ref}
         tabIndex={tabIndex}
         className={cn(POSTER_STAMP, tabIndex !== undefined && FOCUS_RING)}
-        style={LABEL}
+        style={size === 'mini' ? LABEL_MINI : LABEL}
       >
         {label}
       </Label>

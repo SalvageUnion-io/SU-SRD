@@ -20,11 +20,14 @@ export function BayInfo({
   subject,
   fold,
   onPage = false,
+  size,
   children,
 }: {
   /** The bay's name, so each bay's fold is named for it ("Expand Pilot Bay Bay Info"). */
   subject: string
   fold?: 'open' | 'closed'
+  /** `mini`: inside the bay's contentful Mini (a live sheet), at its Size. */
+  size?: 'mini'
   /** The bay's own Page: head and body are the page's blocks, 12px apart. */
   onPage?: boolean
   children: ReactNode
@@ -34,6 +37,7 @@ export function BayInfo({
       title="Bay Info"
       fold={fold}
       foldLabel={`${subject} Bay Info`}
+      size={size}
       page={onPage}
       className="su-ec-block"
       // On a Page its body is the page's prose column, as the prose it holds is.

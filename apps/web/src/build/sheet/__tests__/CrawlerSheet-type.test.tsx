@@ -26,6 +26,13 @@ import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
+/** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
+function openCrewDetails() {
+  for (const toggle of screen.queryAllByRole('button', { name: /^Edit .* crew details$/ })) {
+    fireEvent.click(toggle)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Patched crawler-type catalog
 // ---------------------------------------------------------------------------
@@ -175,6 +182,7 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     const update = mock(async () => makeCrawler())
     const crawler = makeCrawler({ type: BATTLE_REF, typeNpc: { npcName: 'Vex' } })
     renderIdentity(crawler, makeStubStore(crawler, update))
+    openCrewDetails()
 
     const field = screen.getByLabelText('Edit battle crew motto')
     await act(async () => {
