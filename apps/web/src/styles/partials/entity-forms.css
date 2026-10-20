@@ -653,6 +653,15 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   }
 }
 
+/* A Row (a Compact that is its head alone) never grows for its art: the
+   panel is the row's own height, square, small as that makes it (owner,
+   2026-10-20: "fit the height of the row without increasing it"). */
+.su-entity-compact__frame[data-bodyless] .su-entity-compact__art {
+  align-self: stretch;
+  height: auto;
+  width: var(--size-compact);
+}
+
 /* A link or select Compact with controls (`data-covered`): the surface is an
    empty cover over the whole Compact, so the controls never nest inside its
    `<a>` or radio, and every button among the chips (the host's controls in
