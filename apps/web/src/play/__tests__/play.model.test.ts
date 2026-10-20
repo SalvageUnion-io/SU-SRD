@@ -36,6 +36,10 @@ describe('PHASE_TONE', () => {
     expect(CHAPTER_BAND_COLOR[PHASE_TONE.downtime]).toBe(CHAPTER_BAND_COLOR.play)
   })
 
+  test('the Mediator’s Scene is the Denizens navy (owner, 2026-10-20)', () => {
+    expect(CHAPTER_BAND_COLOR[PHASE_TONE.scene]).toBe(CHAPTER_BAND_COLOR.denizen)
+  })
+
   test('every phase is its own colour, each with a foreground that prints on it', () => {
     const bands = Object.values(PHASE_TONE).map((tone) => CHAPTER_BAND_COLOR[tone])
     expect(new Set(bands).size).toBe(bands.length)
