@@ -522,7 +522,7 @@ describe('pattern rows show what each pattern changes', () => {
     expect(row.contains(added)).toBe(false)
   })
 
-  test("in a card a pattern is its Mini alone: what it changes is its Peek's and Page's (E6)", () => {
+  test("in a card a pattern is a Mini with its description only: what it changes is its Peek's and Page's (E6)", () => {
     render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} />))
     expect(screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })).toBeTruthy()
     expect(screen.queryByText('Metallic Reconstitution')).toBeNull()
@@ -530,6 +530,9 @@ describe('pattern rows show what each pattern changes', () => {
     const { container } = render(<ReferenceEntityCard data={mule()} />)
     expect(screen.queryByRole('list', { name: 'Hauler loadout' })).toBeNull()
     expect(container.textContent).not.toContain('Reactor Flare')
+    // Owner, 2026-10-20: "full width and contentful, showing only the special
+    // pattern descriptions".
+    expect(container.textContent).toContain('designed for hauling cargo')
   })
 })
 

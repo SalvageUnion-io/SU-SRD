@@ -60,7 +60,10 @@ describe('stat label short forms', () => {
   })
 
   test('a compact card never falls back to the half-form labels', () => {
-    const text = textOf(<ReferenceEntityCard data={mule()} size="compact" />)
+    // Its patterns' descriptions are prose ("a legal Tech 1 build"), not labels.
+    const text = textOf(
+      <ReferenceEntityCard data={mule()} size="compact" hide={{ patterns: true }} />
+    )
     // "Tech" with no "Level" beside it, and bare "System"/"Module", were the
     // three labels that read as neither the long nor the short form.
     expect(text).not.toContain('Tech')

@@ -231,6 +231,8 @@ export type ReferenceEntityCardHideConfig = {
    * sheet, drawn as the SRD's bay Page draws it, wears none.
    */
   axisMarkers?: boolean
+  /** Suppress the nested groups (its drones, their Systems and Modules, a bay's When Damaged). */
+  nested?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

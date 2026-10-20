@@ -38,13 +38,14 @@ function usePatternHref(chassis: ReferenceCardEntity, pattern: RefObjectAnyPatte
 }
 
 /** A contentful pattern Mini under its host shows its description alone: not
- * its host's art, prose or CHASSIS marker, nor its loadout or actions. */
+ * its host's art, prose or CHASSIS marker, nor its loadout, actions or drones. */
 const DESCRIPTION_ONLY = {
   patterns: true,
   actions: true,
   content: true,
   image: true,
   axisMarkers: true,
+  nested: true,
 } as const
 
 /** The anchor around a pattern's Mini fills its line, as the Mini does (N4). */

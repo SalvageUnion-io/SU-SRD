@@ -175,7 +175,9 @@ describe('nesting legibility', () => {
     expect(drone.classList.contains('su-entity-mini')).toBe(true)
     // Its loadout is its Peek's and its Page's, not nested a level deeper.
     expect(screen.queryByRole('button', { name: 'Open Hover Locomotion System' })).toBeNull()
-    expect(container.querySelectorAll('.su-ec-frame')).toHaveLength(1)
+    // One card: its patterns are Minis with their description (E6), never a frame of the drone's.
+    const frames = [...container.querySelectorAll('.su-ec-frame')]
+    expect(frames.filter((f) => !f.closest('.su-entity-mini-list'))).toHaveLength(1)
   })
 
   test('proseKey matches the same sentence through the chassis token', () => {

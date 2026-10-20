@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { entityRef, isBioTitanPattern } from 'salvageunion-reference'
+import { entityRef, isBioTitanPattern, normalizePatternName } from 'salvageunion-reference'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { LinkSurface } from '../../entity/modes/link'
 import { useLinkTarget } from '../../entity/modes/linkTarget'
@@ -55,7 +55,10 @@ export function CardTitleLink({
   return (
     <LinkSurface
       target={target}
-      label={`Open ${title}`}
+      // A pattern reads as its row did: "Hauler — Mule pattern".
+      label={
+        pattern ? `${normalizePatternName(pattern.name)} — ${ref.name} pattern` : `Open ${title}`
+      }
       attrs={inPeek ? IN_PEEK : undefined}
       className="su-card-title-link"
     >

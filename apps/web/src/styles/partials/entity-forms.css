@@ -1050,6 +1050,11 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   display: none;
 }
 
+/* A nested card's only body (a head-only action's overflow): it closes the frame. */
+.su-ec-frame > .su-chip-overflow:last-child {
+  padding-bottom: var(--space-8);
+}
+
 /* In a contentful Mini it is the body's own first row, in its padding. */
 .su-entity-mini__body > .su-chip-overflow {
   padding: 0;

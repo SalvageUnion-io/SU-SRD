@@ -301,11 +301,12 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       )
     ) : null
   const hasNestedGroups =
-    !!damagedNode ||
-    droneInfos.length > 0 ||
-    droneSystems.length > 0 ||
-    droneModules.length > 0 ||
-    (!isPattern && inFlowGroups.some((group) => group.entities.length > 0))
+    !hide?.nested &&
+    (!!damagedNode ||
+      droneInfos.length > 0 ||
+      droneSystems.length > 0 ||
+      droneModules.length > 0 ||
+      (!isPattern && inFlowGroups.some((group) => group.entities.length > 0)))
   const nestedGroupsNode = hasNestedGroups ? (
     <>
       <DroneCards drones={droneInfos} host={nestedHost} />
