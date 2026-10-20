@@ -40,7 +40,7 @@ describe('LinkedCrewToken', () => {
     const lead = screen.getByRole('group', { name: 'Med Bay crew lead' })
     expect(lead.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
     expect(within(lead).getByText('Bleed later.')).toBeTruthy()
-    expect(within(lead).getByText('4/4')).toBeTruthy()
+    expect(lead.querySelector('.su-entity-token__head')?.textContent).toContain('4/4')
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' }).getAttribute('href')).toBe(
       '/sheet/npc/n1'
     )

@@ -43,6 +43,9 @@ describe('CrewLeadToken — the head', () => {
     expect(band.querySelector('.su-entity-token__name')?.textContent).toContain('Ambrose')
     expect(within(band).getByText('Role')).toBeTruthy()
     expect(within(band).getByText('Doc')).toBeTruthy()
+    // First, next to the name: before the HP reading.
+    const text = band.textContent ?? ''
+    expect(text.indexOf('Role')).toBeLessThan(text.indexOf('HP'))
     expect(band.textContent).toContain('HP')
     expect(band.textContent).toContain('3/4')
     // A contentful Token, never a titled box (N5).
