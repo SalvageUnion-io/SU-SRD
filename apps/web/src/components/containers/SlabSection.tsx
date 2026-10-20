@@ -60,6 +60,8 @@ type SlabSectionProps = {
   foldLabel?: string
   /** On a Page: head and body are level-1 blocks, 12px apart (R17). */
   page?: boolean
+  /** `mini`: inside a contentful Mini, its head and fold at the Mini Size (18px), 6px over the body. */
+  size?: 'mini'
   /** The section's name when it has no `id` to be labelled by. */
   'aria-label'?: string
   className?: string
@@ -73,6 +75,13 @@ type SlabSectionProps = {
 
 /** The fold's square: Compact, as the Manage buttons it shares the rail with (§4.7). */
 const FOLD_BUTTON = { borderColor: color.ink35 } satisfies CSSProperties
+
+/** The Mini Size's fold: an 18px square. */
+const FOLD_BUTTON_MINI = {
+  ...FOLD_BUTTON,
+  paddingInline: 0,
+  width: 'var(--size-mini)',
+} satisfies CSSProperties
 
 const CHEVRON = {
   transitionProperty: 'transform, translate, scale, rotate',
@@ -93,6 +102,7 @@ export function SlabSection({
   fold,
   foldLabel,
   page = false,
+  size,
   'aria-label': ariaLabel,
   className,
   style,
@@ -109,14 +119,14 @@ export function SlabSection({
   const foldControl = fold && (
     <Button
       variant="ghost"
-      size="iconOnly"
+      size={size === 'mini' ? 'mini' : 'iconOnly'}
       {...disclosure.toggleProps}
       aria-label={`${disclosure.open ? 'Collapse' : 'Expand'} ${name}`.trim()}
-      style={FOLD_BUTTON}
+      style={size === 'mini' ? FOLD_BUTTON_MINI : FOLD_BUTTON}
     >
       <ChevronDown
         aria-hidden="true"
-        size={iconSize.compact}
+        size={size === 'mini' ? iconSize.mini : iconSize.compact}
         style={disclosure.open ? CHEVRON : CHEVRON_SHUT}
       />
     </Button>
@@ -128,6 +138,7 @@ export function SlabSection({
       className={cn(
         'su-slab-section',
         page && 'su-slab-section--page',
+        size === 'mini' && 'su-slab-section--mini',
         'su-sheet-section',
         className
       )}
@@ -141,6 +152,7 @@ export function SlabSection({
         countAt={countAt}
         countInk={countInk}
         flush
+        size={size}
         className={cn(
           'su-slab-section__head',
           fold && 'su-slab-section__head--fold',

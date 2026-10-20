@@ -14,6 +14,13 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
 
+/** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
+function openCrewDetails() {
+  for (const toggle of screen.queryAllByRole('button', { name: /^Edit .* crew details$/ })) {
+    fireEvent.click(toggle)
+  }
+}
+
 const crawler: Crawler = {
   id: 'crawler-fold-1',
   schemaVersion: 1,
@@ -86,6 +93,7 @@ describe('a crawler bay on the sheet', () => {
 
   test('a click inside the bay does not unfold it: only the fold does', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
+    openCrewDetails()
     fireEvent.click(screen.getByRole('button', { name: 'Edit pilot bay crew name' }))
     expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
     expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')

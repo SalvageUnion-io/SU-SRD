@@ -33,6 +33,7 @@ export function WhenDamaged({
   subject,
   onPage = false,
   fold,
+  size,
 }: {
   effect: string
   /** The bay's name, so each bay's fold is named for it ("Expand Pilot Bay When Damaged"). */
@@ -41,6 +42,8 @@ export function WhenDamaged({
   onPage?: boolean
   /** A fold control, and the state the section starts in. */
   fold?: 'open' | 'closed'
+  /** `mini`: inside the bay's contentful Mini (a live sheet), at its Size. */
+  size?: 'mini'
 }) {
   // On a Page it is one of the page's sections, as its Actions are.
   if (onPage) {
@@ -62,6 +65,7 @@ export function WhenDamaged({
       title="When Damaged"
       fold={fold}
       foldLabel={`${subject} When Damaged`}
+      size={size}
       className="su-ec-block"
     >
       <p style={EFFECT_CARD}>{effect}</p>

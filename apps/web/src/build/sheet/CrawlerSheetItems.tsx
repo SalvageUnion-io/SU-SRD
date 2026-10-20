@@ -131,14 +131,14 @@ type CrawlerBayCardProps = {
 }
 
 /**
- * CrawlerBayCard — one installed bay as a CONTENTFUL Mini and what belongs to
- * it, in one subtle border (`MiniGroup`; owner's calls,
- * 2026-10-20): the bay's Mini (its condition stepping Intact ↔ Damaged from
- * its state slot, its function and Repair in its chip group, C8; its Bay Info
- * folded under its head), then on the lines under it its choices (the
- * Armament Bay's weapon pick), its roll table, what it holds, its crew lead's
- * contentful Mini (`CrewLeadMini`, N3) and its When Damaged, open once it
- * is damaged. None sits inside another (E6). In the sidebar nothing folds.
+ * CrawlerBayCard — one installed bay as a CONTENTFUL Mini, in one subtle
+ * border (`MiniGroup`; owner's calls, 2026-10-20): its head (its
+ * condition stepping Intact ↔ Damaged from its state slot, its function and
+ * Repair in its chip group, C8), then in its body (owner's review,
+ * 2026-10-20) its Bay Info, folded, its choices (the Armament Bay's weapon
+ * pick), its roll table, what it holds, its crew lead's collapsed Mini
+ * (`CrewLeadMini`) and its When Damaged, open once it is damaged; the
+ * sections at the Mini Size. In the sidebar nothing folds.
  * The bay's full rules open in a detail modal from the function action.
  */
 export function CrawlerBayCard({
@@ -288,8 +288,10 @@ export function CrawlerBayCard({
 
   // The bay is a CONTENTFUL Mini (owner's call, 2026-10-20): its head (its
   // condition steps from the state slot, C8; a bay is Intact or Damaged,
-  // never Destroyed; its function and Repair are the last slot) and its Bay
-  // Info under it, folded on a sheet.
+  // never Destroyed; its function and Repair are the last slot), then in its
+  // body everything that is the bay's (owner's review, 2026-10-20): its Bay
+  // Info, its choices and roll table, what it holds, its crew lead's
+  // collapsed Mini and its When Damaged, each section at the Mini Size.
   const line = (
     <SheetItemLine
       token={
@@ -302,9 +304,29 @@ export function CrawlerBayCard({
           body={{
             text: false,
             children: (
-              <BayInfo subject={bay.name} fold={infoFold}>
-                <Content body={normal as ComponentProps<typeof Content>['body']} />
-              </BayInfo>
+              <>
+                <BayInfo subject={bay.name} fold={infoFold} size="mini">
+                  <Content body={normal as ComponentProps<typeof Content>['body']} />
+                </BayInfo>
+                <EntityChoices
+                  entity={bay as unknown as RefMetaEntity}
+                  selections={selections}
+                  onSelectionChange={readOnly ? undefined : setSelections}
+                  techLevel={crawlerTl}
+                />
+                <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
+                {contents}
+                {crew}
+                {damagedText && (
+                  <WhenDamaged
+                    key={condition}
+                    effect={damagedText}
+                    subject={bay.name}
+                    fold={inSidebar ? undefined : damaged ? 'open' : 'closed'}
+                    size="mini"
+                  />
+                )}
+              </>
             ),
           }}
         />
@@ -349,31 +371,10 @@ export function CrawlerBayCard({
     />
   )
 
-  // The bay and what belongs to it, one subtle border (owner's call,
-  // 2026-10-20), none inside another (E6): its Mini, its roll table, what it
-  // holds, its crew lead, then its When Damaged, open once it is damaged.
+  // The bay's Mini, in one subtle border (owner's call, 2026-10-20).
   return (
     <>
-      <MiniGroup label={bay.name}>
-        {line}
-        <EntityChoices
-          entity={bay as unknown as RefMetaEntity}
-          selections={selections}
-          onSelectionChange={readOnly ? undefined : setSelections}
-          techLevel={crawlerTl}
-        />
-        <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
-        {contents}
-        {crew}
-        {damagedText && (
-          <WhenDamaged
-            key={condition}
-            effect={damagedText}
-            subject={bay.name}
-            fold={inSidebar ? undefined : damaged ? 'open' : 'closed'}
-          />
-        )}
-      </MiniGroup>
+      <MiniGroup label={bay.name}>{line}</MiniGroup>
       {detail.modal}
     </>
   )

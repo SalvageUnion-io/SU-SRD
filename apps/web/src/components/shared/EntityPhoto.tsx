@@ -65,7 +65,10 @@ const EMPTY = {
 
 const IMG = { height: '100%', objectFit: 'contain', width: '100%' } satisfies CSSProperties
 
-const CONTROLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+/** Replace and Remove side by side under the picture, sharing its width (owner's review, 2026-10-20). */
+const CONTROLS = { display: 'flex', gap: tokens.space[8] } satisfies CSSProperties
+
+const CONTROL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
 /** The app's Convex client, loaded on the first upload rather than with the sheet. */
 const client = async () => (await import('../../lib/connection/convexClient')).convexClient
@@ -147,8 +150,10 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
             disabled={busy}
             onClick={() => input.current?.click()}
             aria-label={`${photo ? 'Replace' : 'Upload'} ${name}'s photo`}
+            style={CONTROL}
           >
-            {upload.pending ? 'Uploading…' : photo ? 'Replace photo' : 'Upload photo'}
+            {/* The labels name the act; the picture above says what of. */}
+            {upload.pending ? 'Uploading…' : photo ? 'Replace' : 'Upload photo'}
           </Button>
           {photo && (
             <Button
@@ -157,8 +162,9 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
               disabled={busy}
               onClick={() => void removal.run()}
               aria-label={`Remove ${name}'s photo`}
+              style={CONTROL}
             >
-              {removal.pending ? 'Removing…' : 'Remove photo'}
+              {removal.pending ? 'Removing…' : 'Remove'}
             </Button>
           )}
           <input

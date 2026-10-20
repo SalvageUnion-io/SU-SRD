@@ -63,39 +63,50 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
   )
 }
 
-type MechProseFieldsProps = {
+/** The mech's Appearance: one of the player's short fields, beside the photo. */
+export function MechAppearanceField({
+  mech,
+  onSave,
+}: {
   mech: Mech
-  /** Field saves; omit on read-only sheets (no edit affordance). */
-  saveAppearance?: (next: string) => void
-  saveDescription?: (next: string) => void
+  /** Omit on read-only sheets (no edit affordance). */
+  onSave?: (next: string) => void
+}) {
+  return (
+    <Field
+      label="Appearance"
+      value={mech.appearance ?? ''}
+      multiline
+      onSave={onSave}
+      placeholder="No appearance recorded."
+    />
+  )
 }
 
 /**
- * The mech's prose fields, spanning the identity card under the pattern name
- * and Quirk. The Description closes the card and takes whatever height the
- * slab has left (the identity slab stretches to match the vitals beside it,
- * and that space should go to a field the reader can use rather than sitting
- * as dead paper), as the pilot's Bio does.
+ * The mech's Description: the long prose, running the identity card's full
+ * width under the photo and the fields beside it (owner's review, 2026-10-20:
+ * no empty column under the photo). It takes whatever height the card has
+ * left (the identity card stretches to match the vitals beside it), as the
+ * pilot's Bio does.
  */
-export function MechProseFields({ mech, saveAppearance, saveDescription }: MechProseFieldsProps) {
+export function MechDescriptionField({
+  mech,
+  onSave,
+}: {
+  mech: Mech
+  /** Omit on read-only sheets (no edit affordance). */
+  onSave?: (next: string) => void
+}) {
   return (
-    <>
-      <Field
-        label="Appearance"
-        value={mech.appearance ?? ''}
-        multiline
-        onSave={saveAppearance}
-        placeholder="No appearance recorded."
-      />
-      <Field
-        label="Description"
-        value={mech.description ?? ''}
-        multiline
-        fill
-        onSave={saveDescription}
-        placeholder="No description written yet."
-        className="su-sheet-mech-fill"
-      />
-    </>
+    <Field
+      label="Description"
+      value={mech.description ?? ''}
+      multiline
+      fill
+      onSave={onSave}
+      placeholder="No description written yet."
+      className="su-sheet-mech-fill"
+    />
   )
 }

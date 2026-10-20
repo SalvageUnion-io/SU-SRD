@@ -1429,6 +1429,14 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   padding: var(--space-6);
 }
 
+/* A group of one (a crawler bay, whose crew and sections are inside its
+   Mini's body: owner's review, 2026-10-20) draws no second frame round the
+   Mini's own. */
+.su-mini-group:has(> :only-child) {
+  border-width: 0;
+  padding: 0;
+}
+
 /* THE OUT STATE (C2b, C5), last in the file: a state the fit writes outranks
    every form's own chip `display` by specificity (repeated attributes) and by
    place: a fill chip's rule (`:is(…) > .su-chip-lane > *`, above) was as

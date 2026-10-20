@@ -33,6 +33,13 @@ import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { CrawlerSheet } from '../CrawlerSheet'
 
+/** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
+function openCrewDetails() {
+  for (const toggle of screen.queryAllByRole('button', { name: /^Edit .* crew details$/ })) {
+    fireEvent.click(toggle)
+  }
+}
+
 // ---------------------------------------------------------------------------
 // SalvageUnionReference.CrawlerBays.all patch (so bays resolve in the sheet)
 // ---------------------------------------------------------------------------
@@ -184,6 +191,7 @@ describe('CrawlerSheet — crew lead identity (CrewLeadMini)', () => {
       />
     )
     expandCards()
+    openCrewDetails()
 
     const field = screen.getByLabelText('Edit command bay crew name')
     await act(async () => {
@@ -214,6 +222,7 @@ describe('CrawlerSheet — crew lead identity (CrewLeadMini)', () => {
       />
     )
     expandCards()
+    openCrewDetails()
 
     const field = screen.getByLabelText('Edit command bay crew detail')
     await act(async () => {
@@ -295,6 +304,7 @@ describe('CrawlerSheet — crew HP editing (CrewLeadMini)', () => {
     )
     expect(head.querySelector('input, textarea')).toBeNull()
     expect(head.textContent).toContain('4/4')
+    openCrewDetails()
     expect(
       within(head as HTMLElement).getByRole('button', { name: 'Decrease Command Bay crew HP' })
     ).toBeTruthy()
@@ -336,6 +346,7 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
     const update = mock(async () => baseCrawler)
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
     expandCards()
+    openCrewDetails()
 
     const field = screen.getByLabelText('Edit command bay crew keepsake')
     await act(async () => {
@@ -393,6 +404,7 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
     const update = mock(async () => baseCrawler)
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
     expandCards()
+    openCrewDetails()
 
     const field = screen.getByLabelText('Edit command bay crew motto')
     await act(async () => {
@@ -443,6 +455,7 @@ describe('CrawlerSheet — crew facts (CrewLeadMini)', () => {
       />
     )
     expandCards()
+    openCrewDetails()
 
     const addBtn = screen.getByLabelText('Add Command Bay crew fact')
     await act(async () => {
@@ -473,6 +486,7 @@ describe('CrawlerSheet — crew facts (CrewLeadMini)', () => {
       />
     )
     expandCards()
+    openCrewDetails()
 
     const removeBtn = screen.getByLabelText('Remove Command Bay crew fact Hates synths')
     await act(async () => {

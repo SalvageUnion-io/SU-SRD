@@ -28,13 +28,14 @@
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Badge, Button, Field, Toggle, tokens } from '../../components/index'
 import { resolveClassName } from '../../lib/classRef'
 import { classChangePatch } from '../../lib/rules/classPath'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
+import { PhotoBeside } from './PhotoBeside'
 import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps.model'
 import { UsedPip } from './UsedPip'
@@ -139,9 +140,11 @@ type PilotIdentityPanelProps = {
   onToggleUsed?: (key: UsedTraitKey, next: boolean) => void
   /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
+  /** The pilot's picture (`EntityPhoto`), beside the field grid; the prose runs under both. */
+  photo?: ReactNode
 }
 
-export function PilotIdentityPanel({ pilot, onToggleUsed, patch }: PilotIdentityPanelProps) {
+export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotIdentityPanelProps) {
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -207,102 +210,112 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch }: PilotIdentity
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
     <div style={PANEL}>
-      {/* Poster field grid — left / right columns; single column on mobile in
-          the poster's reading order. The columns keep their natural row rhythm
-          — spreading them independently pulled Keepsake/Background out of line
-          with Callsign/Class, since each column distributes its own slack. All
-          the leftover height goes to the Bio instead. */}
-      <div
-        className={leftColumn ? 'su-sheet-pilot-split' : undefined}
-        style={leftColumn ? FIELD_GRID : { ...FIELD_GRID, ...ONE_COLUMN }}
-      >
-        {leftColumn && (
-          <div style={FIELD_COLUMN}>
-            {/* Callsign and Class lead TOGETHER, at the same prominence: what a
-              pilot is called and what they do are the two facts you identify
-              them by. Name lives here too, in Edit: this is the pilot's name edit
-              surface (the band's title mirrors it).
-
-              Read prints only what the band does not: its eyebrow stamps the
-              class and its title is the name, so Class goes, and Callsign goes
-              when it is the name. Repeating them straight under the band read
-              as a subtitle saying the title twice. */}
-            {(canEdit || showCallsign) && (
-              <div className="su-sheet-pilot-split" style={FIELD_GRID}>
-                {showCallsign && (
-                  <Field
-                    label="Callsign"
-                    value={pilot.callsign}
-                    onSave={canEdit ? saveRequired('callsign') : undefined}
-                    prominent
-                  />
-                )}
-                {canEdit && (
-                  <Field
-                    label="Class"
-                    value={resolveClassName(pilot.classRef)}
-                    onEditClick={openClassPicker}
-                    prominent
-                  />
-                )}
-              </div>
-            )}
-            {/* Read omits the name: it is the band's title. */}
-            {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
+      {/* The picture sits beside the field grid only; Appearance and the
+          Bio run the card's full width under both (owner's review,
+          2026-10-20: no empty column under the photo). */}
+      <PhotoBeside
+        photo={photo}
+        below={
+          <>
+            {/* Appearance spans the card: it is prose, and a half-width column
+                wrapped it into a narrow ribbon beside the single-line fields. */}
             <Field
-              label="Pronouns"
-              value={pilot.pronouns ?? ''}
-              onSave={canEdit ? saveText('pronouns') : undefined}
-              placeholder="—"
+              label="Appearance"
+              value={pilot.appearance}
+              multiline
+              onSave={canEdit ? saveText('appearance') : undefined}
+            />
+
+            {/* Bio — the freeform backstory, a full-width identity field. */}
+            <div style={BIO}>
+              <Field
+                label="Bio"
+                value={pilot.description ?? ''}
+                multiline
+                fill
+                onSave={canEdit ? saveText('description') : undefined}
+                placeholder="No bio written yet."
+                className="su-sheet-pilot-fill"
+              />
+            </div>
+          </>
+        }
+      >
+        {/* Poster field grid — left / right columns; single column on mobile in
+            the poster's reading order. The columns keep their natural row rhythm
+            — spreading them independently pulled Keepsake/Background out of line
+            with Callsign/Class, since each column distributes its own slack. All
+            the leftover height goes to the Bio instead. */}
+        <div
+          className={leftColumn ? 'su-sheet-pilot-split' : undefined}
+          style={leftColumn ? FIELD_GRID : { ...FIELD_GRID, ...ONE_COLUMN }}
+        >
+          {leftColumn && (
+            <div style={FIELD_COLUMN}>
+              {/* Callsign and Class lead TOGETHER, at the same prominence: what a
+                pilot is called and what they do are the two facts you identify
+                them by. Name lives here too, in Edit: this is the pilot's name edit
+                surface (the band's title mirrors it).
+
+                Read prints only what the band does not: its eyebrow stamps the
+                class and its title is the name, so Class goes, and Callsign goes
+                when it is the name. Repeating them straight under the band read
+                as a subtitle saying the title twice. */}
+              {(canEdit || showCallsign) && (
+                <div className="su-sheet-pilot-split" style={FIELD_GRID}>
+                  {showCallsign && (
+                    <Field
+                      label="Callsign"
+                      value={pilot.callsign}
+                      onSave={canEdit ? saveRequired('callsign') : undefined}
+                      prominent
+                    />
+                  )}
+                  {canEdit && (
+                    <Field
+                      label="Class"
+                      value={resolveClassName(pilot.classRef)}
+                      onEditClick={openClassPicker}
+                      prominent
+                    />
+                  )}
+                </div>
+              )}
+              {/* Read omits the name: it is the band's title. */}
+              {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
+              <Field
+                label="Pronouns"
+                value={pilot.pronouns ?? ''}
+                onSave={canEdit ? saveText('pronouns') : undefined}
+                placeholder="—"
+              />
+            </div>
+          )}
+          <div style={FIELD_COLUMN}>
+            <Field
+              label="Motto"
+              value={pilot.motto}
+              multiline
+              onSave={canEdit ? saveText('motto') : undefined}
+              labelAction={usedChip('motto', 'motto')}
+            />
+            <Field
+              label="Keepsake"
+              value={pilot.keepsake}
+              multiline
+              onSave={canEdit ? saveText('keepsake') : undefined}
+              labelAction={usedChip('keepsake', 'keepsake')}
+            />
+            <Field
+              label="Background"
+              value={pilot.background}
+              multiline
+              onSave={canEdit ? saveText('background') : undefined}
+              labelAction={usedChip('background', 'background')}
             />
           </div>
-        )}
-        <div style={FIELD_COLUMN}>
-          <Field
-            label="Motto"
-            value={pilot.motto}
-            multiline
-            onSave={canEdit ? saveText('motto') : undefined}
-            labelAction={usedChip('motto', 'motto')}
-          />
-          <Field
-            label="Keepsake"
-            value={pilot.keepsake}
-            multiline
-            onSave={canEdit ? saveText('keepsake') : undefined}
-            labelAction={usedChip('keepsake', 'keepsake')}
-          />
-          <Field
-            label="Background"
-            value={pilot.background}
-            multiline
-            onSave={canEdit ? saveText('background') : undefined}
-            labelAction={usedChip('background', 'background')}
-          />
         </div>
-      </div>
-
-      {/* Appearance spans the card: it is prose, and a half-width column
-          wrapped it into a narrow ribbon beside the single-line fields. */}
-      <Field
-        label="Appearance"
-        value={pilot.appearance}
-        multiline
-        onSave={canEdit ? saveText('appearance') : undefined}
-      />
-
-      {/* Bio — the freeform backstory, a full-width identity field. */}
-      <div style={BIO}>
-        <Field
-          label="Bio"
-          value={pilot.description ?? ''}
-          multiline
-          fill
-          onSave={canEdit ? saveText('description') : undefined}
-          placeholder="No bio written yet."
-          className="su-sheet-pilot-fill"
-        />
-      </div>
+      </PhotoBeside>
 
       {/* Class — single-select through the ONE shared picker, same as every
           other "choose a reference entity" modal. */}

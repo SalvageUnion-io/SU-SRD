@@ -5,10 +5,12 @@
  * - in Edit the head keeps HP, as its stepper (the uses slot), never in the body;
  * - the body holds what the sheet tracks (Keepsake, Motto, Detail, Facts),
  *   each left out in Read when empty;
- * - the group is named for its bay, so several crew leads stay distinguishable.
+ * - the group is named for its bay, so several crew leads stay distinguishable;
+ * - in Edit it starts collapsed, its lines read as in Read, its Details
+ *   control in the head opening their fields.
  */
 import { describe, expect, test } from 'bun:test'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { unitRowModel } from '../../../lib/units/unitModel'
@@ -116,5 +118,33 @@ describe('CrewLeadMini — the body', () => {
     expect(within(body).queryByText('Motto')).toBeNull()
     // Compacts, as Detail reads, never `[label | value]` chips.
     expect(body.querySelector('.su-stat-cell')).toBeNull()
+  })
+})
+
+describe('CrewLeadMini — collapsed in Edit', () => {
+  const editing = {
+    ...BASE,
+    keepsake: 'A bent cog',
+    onNameChange: () => {},
+    onHpChange: () => {},
+    onKeepsakeChange: () => {},
+  }
+
+  test('its lines read as in Read until Details opens their fields', () => {
+    render(<CrewLeadMini {...editing} name="Ambrose" model={crew('Ambrose')} />)
+    const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
+    expect(within(group).getByText('A bent cog')).toBeTruthy()
+    expect(within(group).queryByLabelText('Edit med bay crew keepsake')).toBeNull()
+    const details = within(head(group)).getByRole('button', { name: 'Edit Med Bay crew details' })
+    fireEvent.click(details)
+    expect(within(group).getByLabelText('Edit med bay crew keepsake')).toBeTruthy()
+    expect(within(group).getByLabelText('Edit med bay crew name')).toBeTruthy()
+    fireEvent.click(within(head(group)).getByRole('button', { name: 'Close Med Bay crew details' }))
+    expect(within(group).queryByLabelText('Edit med bay crew keepsake')).toBeNull()
+  })
+
+  test('Read has no Details control', () => {
+    render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} />)
+    expect(screen.queryByRole('button', { name: /crew details$/ })).toBeNull()
   })
 })

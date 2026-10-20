@@ -16,11 +16,11 @@
  * Handler absence is the read-only encoding, as on `NpcLines`.
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel, EntityMode } from '../../components/index'
-import { Entity, relation, Stat } from '../../components/index'
+import { Entity, relation, Stat, Toggle } from '../../components/index'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
 
@@ -58,11 +58,28 @@ function roleChip(title: string | undefined, name: string) {
   return title && named ? [relation('crew-role', 'Role', title)] : undefined
 }
 
+/** Its lines as Read shows them: no handlers, so each is a row and an empty one is left out. */
+function readLines({
+  onNameChange: _name,
+  onHpChange: _hp,
+  onKeepsakeChange: _keepsake,
+  onMottoChange: _motto,
+  onDetailChange: _detail,
+  onFactsChange: _facts,
+  ...lines
+}: NpcLinesProps): NpcLinesProps {
+  return lines
+}
+
 export function CrewLeadMini(props: CrewLeadMiniProps) {
   const { bayName, title, name, hp, maxHp, onHpChange, instance, mode, peekAt, entity } = props
   const own = props.model
   const base = useMemo(() => own ?? toEntityModel(entity as RefMetaEntity), [own, entity])
   const editing = onHpChange !== undefined
+  // In Edit the crew lead starts collapsed, its lines read as in Read; its
+  // Details control opens their fields (owner's review, 2026-10-20: a bay's
+  // crew lead is a collapsed Mini, not four open fields).
+  const [open, setOpen] = useState(false)
   const { model, hpHint } = useMemo(() => crewHead(base), [base])
   const relations = roleChip(title, name)
   const hpReading =
@@ -91,7 +108,30 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
         peekAt={peekAt}
         {...(relations ? { relations } : {})}
         {...(hpReading ? (editing ? { uses: hpReading } : { state: hpReading }) : {})}
-        body={{ text: false, children: <NpcLines {...props} identity /> }}
+        {...(editing
+          ? {
+              controls: (
+                <Toggle
+                  variant="pencil"
+                  size="mini"
+                  pressed={open}
+                  onClick={() => setOpen(!open)}
+                  aria-label={`${open ? 'Close' : 'Edit'} ${bayName} crew details`}
+                >
+                  Details
+                </Toggle>
+              ),
+            }
+          : {})}
+        body={{
+          text: false,
+          children:
+            editing && !open ? (
+              <NpcLines {...readLines(props)} />
+            ) : (
+              <NpcLines {...props} identity />
+            ),
+        }}
       />
     </div>
   )

@@ -22,7 +22,7 @@
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Entity, Field, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
@@ -30,9 +30,16 @@ import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerTypeCard'
+import { PhotoBeside } from './PhotoBeside'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
-const PANEL = { minWidth: 0 } satisfies CSSProperties
+/** Fills the hero's card body, so the type's internals take the height it has. */
+const PANEL = {
+  display: 'flex',
+  flex: '1 1 auto',
+  flexDirection: 'column',
+  minWidth: 0,
+} satisfies CSSProperties
 
 const STACK = {
   display: 'flex',
@@ -58,6 +65,8 @@ type CrawlerIdentityPanelProps = {
   readOnly?: boolean
   /** The built NPC filling the type's NPC slot, if any (ADR-044). */
   typeCrew?: CrewAssignment
+  /** The crawler's picture (`EntityPhoto`), beside its Name and Type; the rest runs under both. */
+  photo?: ReactNode
 }
 
 export function CrawlerIdentityPanel({
@@ -67,6 +76,7 @@ export function CrawlerIdentityPanel({
   patch,
   readOnly = false,
   typeCrew,
+  photo,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
@@ -93,59 +103,69 @@ export function CrawlerIdentityPanel({
 
   return (
     <section aria-label="Crawler identity" style={PANEL}>
-      <div style={STACK}>
-        {/* The band already names the crawler, so Read never repeats it;
-            Edit keeps the field to rename it, as a pilot's Name. Tech Level
-            is not here: it is the band's TL chip, beside the type's. */}
-        {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
-        <Field
-          label="Type"
-          value={type?.name ?? ''}
-          readValue={readType}
-          onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
-        />
+      {/* The picture sits beside the Name and Type only; the type's
+          internals and the Description run the card's full width under both
+          (owner's review, 2026-10-20: no empty column under the photo). */}
+      <PhotoBeside
+        photo={photo}
+        below={
+          <>
+            {/* The type's INTERNALS, laid out directly in identity: no card frame
+                around them. The ability and the crew sit side by side and fill the
+                band. */}
+            {crawler.type && (
+              <CrawlerTypeCard
+                crawlerId={crawler.id}
+                typeRef={crawler.type}
+                typeNpc={crawler.typeNpc}
+                seedSelections={crawler.bayChoices?.[crawler.type]}
+                store={store}
+                readOnly={readOnly}
+                assigned={typeCrew}
+                ability={
+                  abilities.length > 0 &&
+                  // Contentful Minis, each its head and then its text, Peeking
+                  // the whole ability (owner's call, 2026-10-20: every sheet
+                  // entity a contentful Mini).
+                  abilities.map((ability) => (
+                    <li key={ability.id}>
+                      <Entity
+                        size="mini"
+                        context="play"
+                        entity={ability}
+                        mode={{ kind: 'link' }}
+                        body={{}}
+                      />
+                    </li>
+                  ))
+                }
+              />
+            )}
 
-        {/* The type's INTERNALS, laid out directly in identity: no card frame
-            around them. The ability and the crew sit side by side and fill the
-            band. */}
-        {crawler.type && (
-          <CrawlerTypeCard
-            crawlerId={crawler.id}
-            typeRef={crawler.type}
-            typeNpc={crawler.typeNpc}
-            seedSelections={crawler.bayChoices?.[crawler.type]}
-            store={store}
-            readOnly={readOnly}
-            assigned={typeCrew}
-            ability={
-              abilities.length > 0 &&
-              // Contentful Minis, each its head and then its text, Peeking
-              // the whole ability (owner's call, 2026-10-20: every sheet
-              // entity a contentful Mini).
-              abilities.map((ability) => (
-                <li key={ability.id}>
-                  <Entity
-                    size="mini"
-                    context="play"
-                    entity={ability}
-                    mode={{ kind: 'link' }}
-                    body={{}}
-                  />
-                </li>
-              ))
-            }
+            {/* Description panel — same FIELD section (edits with Identity). */}
+            <Field
+              label="Description"
+              value={crawler.description ?? ''}
+              multiline
+              placeholder={canEdit ? 'Describe your crawler…' : '—'}
+              onSave={canEdit ? saveDescription : undefined}
+            />
+          </>
+        }
+      >
+        <div style={STACK}>
+          {/* The band already names the crawler, so Read never repeats it;
+              Edit keeps the field to rename it, as a pilot's Name. Tech Level
+              is not here: it is the band's TL chip, beside the type's. */}
+          {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
+          <Field
+            label="Type"
+            value={type?.name ?? ''}
+            readValue={readType}
+            onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
           />
-        )}
-
-        {/* Description panel — same FIELD section (edits with Identity). */}
-        <Field
-          label="Description"
-          value={crawler.description ?? ''}
-          multiline
-          placeholder={canEdit ? 'Describe your crawler…' : '—'}
-          onSave={canEdit ? saveDescription : undefined}
-        />
-      </div>
+        </div>
+      </PhotoBeside>
 
       {/* Type swap — the existing confirmed destructive picker flow. Mounted
           lazily so its reference preload only runs once the picker opens. */}

@@ -128,7 +128,7 @@ export function SheetPilot({
           {
             key: 'mech',
             kind: 'mech' as const,
-            assign: <AssignPicker subject={self} container={container} pick="mech" />,
+            assign: <AssignPicker subject={self} container={container} pick="mech" size="mini" />,
           },
         ]),
     ...(composition.crawler || withheldCrawler
@@ -137,7 +137,9 @@ export function SheetPilot({
           {
             key: 'crawler',
             kind: 'crawler' as const,
-            assign: <AssignPicker subject={self} container={container} pick="crawler" />,
+            assign: (
+              <AssignPicker subject={self} container={container} pick="crawler" size="mini" />
+            ),
             extra: (
               <Stat
                 label="Crawler"

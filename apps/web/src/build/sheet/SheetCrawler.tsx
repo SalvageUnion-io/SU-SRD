@@ -200,6 +200,7 @@ export function SheetCrawler({
       container={container}
       pick="pilot"
       exclude={composition.crawlerPilots.map((p) => p.id)}
+      size="mini"
     />
   )
   const dockPicker = (
@@ -208,6 +209,7 @@ export function SheetCrawler({
       container={container}
       pick="mech"
       exclude={composition.crawlerMechs.map((m) => m.id)}
+      size="mini"
     />
   )
 
@@ -243,8 +245,8 @@ export function SheetCrawler({
   // A crawler takes more than one of each, so the way to add the next
   // survives the first.
   const slots: AssignedSlot[] = [
-    { key: 'mech', kind: 'mech', assign: dockPicker },
-    { key: 'pilot', kind: 'pilot', assign: crewPicker },
+    { key: 'mech', kind: 'mech', assign: dockPicker, placeholder: 'Dock a Mech' },
+    { key: 'pilot', kind: 'pilot', assign: crewPicker, placeholder: 'Add a Pilot to the crew' },
   ]
   const rail = <AssignedUnits units={units} slots={slots} editable={editable} />
 

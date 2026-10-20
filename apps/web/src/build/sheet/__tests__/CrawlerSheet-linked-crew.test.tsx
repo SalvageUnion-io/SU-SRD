@@ -8,13 +8,20 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import type { CrewAssignment } from '../../../lib/npcs/npcModel'
 import { CrawlerSheet } from '../CrawlerSheet'
+
+/** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
+function openCrewDetails() {
+  for (const toggle of screen.queryAllByRole('button', { name: /^Edit .* crew details$/ })) {
+    fireEvent.click(toggle)
+  }
+}
 
 const crawler: Crawler = crawlerFixture({
   id: 'c1',
@@ -76,6 +83,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
   test('an unlinked bay beside it keeps its inline crew, editable', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} crew={assigned(DOC)} />)
     expandCards()
+    openCrewDetails()
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(headName(inset)).toContain('Ilsa Varn')
     expect(within(inset).getByRole('button', { name: /Edit command bay crew name/ })).toBeTruthy()
