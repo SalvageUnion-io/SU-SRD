@@ -13,9 +13,10 @@
  *
  * - The binary is the `convex-local-backend` release CI pins, its version and
  *   sha256 read from that action, so the two never drift. It is cached where
- *   `convex dev --local` caches binaries (`~/.cache/convex/binaries/<version>/`);
- *   when GitHub is unreachable, the newest binary already cached there runs
- *   instead, with a warning.
+ *   `convex dev --local` caches binaries (`~/.cache/convex/binaries/<version>/`),
+ *   or in `.dev-backend/binaries/` when the home is read-only (a Remote Control
+ *   sandbox); when GitHub is unreachable, the newest binary already cached
+ *   runs instead, with a warning.
  * - State lives in `.dev-backend/` at the checkout root (gitignored): the
  *   database, file storage, the instance secret and `seed.json`. A restart
  *   keeps it; `--fresh` wipes it first.
@@ -31,7 +32,8 @@
  *   gallery's seed (`tools/gallery.ts`: Bonesaw, the Mazona and Tenacity
  *   copied to the Training Bay, the Game "The Long Haul" with Bonesaw in it)
  *   and writes the account and those four paths to `.dev-backend/seed.json`.
- *   A seed that fails (no Chromium) is reported and the site still runs.
+ *   A seed that fails (Chromium cannot start, as in a sandbox that refuses
+ *   its socket) is reported and the site still runs, signed out.
  * - It stays in the foreground until interrupted, then stops both. Run it in
  *   the background; a second run while both answer exits 0 at once.
  *
@@ -203,22 +205,39 @@ export const realSys: Sys = {
   error: (line) => console.error(line),
 }
 
+/** The first of `dirs` a directory can be made in, or undefined. */
+function writableDir(dirs: readonly string[], version: string): string | undefined {
+  for (const dir of dirs) {
+    try {
+      mkdirSync(join(dir, version), { recursive: true })
+      return join(dir, version)
+    } catch {
+      // Read-only (a Remote Control sandbox's home): try the next.
+    }
+  }
+  return undefined
+}
+
 /**
- * The backend binary: the pinned one, cached or downloaded and checked, else
- * the newest one already cached. Throws when there is none.
+ * The backend binary: the pinned one, cached in any of `dirs` or downloaded
+ * and checked into the first writable one, else the newest one already
+ * cached. Throws when there is none.
  */
 export async function resolveBinary(
   sys: Sys,
   pins: { version: string; sha256: string },
-  home = homedir()
+  dirs: readonly string[]
 ): Promise<string> {
-  const dir = join(binariesDir(home), pins.version)
-  const binary = join(dir, 'convex-local-backend')
-  if (existsSync(binary)) return binary
+  const cachedIn = (version: string) =>
+    dirs.map((d) => join(d, version, 'convex-local-backend')).find((binary) => existsSync(binary))
+  const pinned = cachedIn(pins.version)
+  if (pinned) return pinned
+  const dir = writableDir(dirs, pins.version)
   try {
-    mkdirSync(dir, { recursive: true })
+    if (!dir) throw new Error(`none of ${dirs.join(', ')} is writable`)
+    const binary = join(dir, 'convex-local-backend')
     const zip = join(dir, 'backend.zip')
-    sys.log(`[dev-backend] downloading convex-local-backend ${pins.version}…`)
+    sys.log(`[dev-backend] downloading convex-local-backend ${pins.version} to ${dir}…`)
     await sys.download(backendUrl(pins.version), zip)
     const sum = await sys.sha256(zip)
     if (sum !== pins.sha256) throw new Error(`checksum ${sum} is not the pinned ${pins.sha256}`)
@@ -228,22 +247,22 @@ export async function resolveBinary(
     await sys.run(['chmod', '+x', binary], dir)
     return binary
   } catch (caught) {
-    rmSync(dir, { recursive: true, force: true })
-    const cached = existsSync(binariesDir(home))
-      ? readdirSync(binariesDir(home))
-          .filter((v) => existsSync(join(binariesDir(home), v, 'convex-local-backend')))
-          .sort()
-          .reverse()
-      : []
-    const fallback = cached[0]
+    if (dir) rmSync(dir, { recursive: true, force: true })
+    const versions = dirs
+      .filter((d) => existsSync(d))
+      .flatMap((d) => readdirSync(d))
+      .filter((v) => cachedIn(v))
+      .sort()
+      .reverse()
+    const fallback = versions[0]
     if (!fallback)
       throw new Error(
-        `no convex-local-backend: the download failed (${(caught as Error).message}) and ${binariesDir(home)} holds none`
+        `no convex-local-backend: the download failed (${(caught as Error).message}) and ${dirs.join(', ')} hold none`
       )
     sys.error(
       `[dev-backend] warning: the download failed (${(caught as Error).message}); running the cached ${fallback} instead of the pinned ${pins.version}`
     )
-    return join(binariesDir(home), fallback, 'convex-local-backend')
+    return cachedIn(fallback) as string
   }
 }
 
@@ -309,7 +328,9 @@ async function provision(sys: Sys, root: string, envFile: string, state: string,
 async function seedOnce(sys: Sys, base: string, seedFile: string): Promise<void> {
   sys.log(`[dev-backend] seeding ${SEED_ACCOUNT.email}…`)
   try {
-    const browser = await sys.launch()
+    const browser = await sys.launch().catch((caught: Error) => {
+      throw new Error(`Chromium could not start: ${caught.message.split('\n')[0]}`)
+    })
     try {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
       const seeded = await sys.seed(page, base, SEED_ACCOUNT)
@@ -367,7 +388,8 @@ export async function main(
     const pins = backendPins(
       readFileSync(join(root, '.github/actions/convex-backend/action.yml'), 'utf8')
     )
-    const binary = await resolveBinary(sys, pins, home)
+    // `convex dev --local`'s cache, else the state directory (a read-only home).
+    const binary = await resolveBinary(sys, pins, [binariesDir(home), join(state, 'binaries')])
 
     // One secret per state directory, so the admin key survives a restart.
     const secretFile = join(state, 'instance-secret')

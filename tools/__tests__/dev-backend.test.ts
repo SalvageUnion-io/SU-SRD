@@ -168,7 +168,7 @@ describe('resolveBinary', () => {
   test('a cached pinned binary is used as is', async () => {
     const home = tree({ [`.cache/convex/binaries/${PINS.version}/convex-local-backend`]: 'bin' })
     const { sys, world } = fakeSys()
-    expect(await resolveBinary(sys, PINS, home)).toBe(
+    expect(await resolveBinary(sys, PINS, [binariesDir(home)])).toBe(
       join(binariesDir(home), PINS.version, 'convex-local-backend')
     )
     expect(world.calls).toEqual([])
@@ -177,7 +177,7 @@ describe('resolveBinary', () => {
   test('otherwise it is downloaded, checked, unzipped into the shared cache', async () => {
     const home = tree({})
     const { sys, world } = fakeSys({ run: unzipping })
-    const binary = await resolveBinary(sys, PINS, home)
+    const binary = await resolveBinary(sys, PINS, [binariesDir(home)])
     expect(existsSync(binary)).toBe(true)
     expect(existsSync(join(binariesDir(home), PINS.version, 'backend.zip'))).toBe(false)
     expect(world.calls[0]).toStartWith('download convex-local-backend-')
@@ -192,7 +192,7 @@ describe('resolveBinary', () => {
       '.cache/convex/binaries/precompiled-3/empty': '',
     })
     const { sys, world } = fakeSys({ sha: 'b'.repeat(64) })
-    expect(await resolveBinary(sys, PINS, home)).toBe(
+    expect(await resolveBinary(sys, PINS, [binariesDir(home)])).toBe(
       join(binariesDir(home), 'precompiled-2', 'convex-local-backend')
     )
     expect(world.errors[0]).toContain('checksum')
@@ -202,14 +202,31 @@ describe('resolveBinary', () => {
 
   test('a failed unzip with nothing cached is an error naming both', async () => {
     const { sys } = fakeSys({ run: () => ({ code: 9, stdout: '', stderr: 'no unzip' }) })
-    await expect(resolveBinary(sys, PINS, tree({}))).rejects.toThrow(
-      /unzip failed: no unzip\) and .* holds none/
+    await expect(resolveBinary(sys, PINS, [binariesDir(tree({}))])).rejects.toThrow(
+      /unzip failed: no unzip\) and .* hold none/
     )
+  })
+
+  test('a read-only cache is skipped for the next directory, and a cached pin found there', async () => {
+    // A file where the cache directory would go: mkdir under it fails, as on a read-only home.
+    const home = tree({ '.cache/convex': 'not a directory' })
+    const local = join(tree({}), 'binaries')
+    const { sys, world } = fakeSys({ run: unzipping })
+    const binary = await resolveBinary(sys, PINS, [binariesDir(home), local])
+    expect(binary).toBe(join(local, PINS.version, 'convex-local-backend'))
+    expect(world.logs[0]).toContain(`to ${join(local, PINS.version)}`)
+    expect(await resolveBinary(sys, PINS, [binariesDir(home), local])).toBe(binary)
+  })
+
+  test('nowhere writable is an error naming the directories', async () => {
+    const home = tree({ '.cache/convex': 'not a directory' })
+    const { sys } = fakeSys()
+    await expect(resolveBinary(sys, PINS, [binariesDir(home)])).rejects.toThrow('is writable')
   })
 
   test('offline with no cache directory at all is an error', async () => {
     const { sys } = fakeSys({ downloadFails: true })
-    await expect(resolveBinary(sys, PINS, tree({}))).rejects.toThrow('(offline)')
+    await expect(resolveBinary(sys, PINS, [binariesDir(tree({}))])).rejects.toThrow('(offline)')
   })
 })
 
@@ -344,6 +361,23 @@ describe('main', () => {
     })
     expect(await main([], sys, s)).toBe(1)
     expect(world.errors[0]).toContain('convex deploy -y failed:\nschema invalid')
+  })
+
+  test('a Chromium that cannot start is named as such', async () => {
+    const s = setup()
+    const { sys, world } = fakeSys({
+      comesUp: new Map([
+        [`${s.api}/version`, null],
+        [`${s.dev}/`, s.root],
+      ]),
+    })
+    sys.launch = async () => {
+      throw new Error('Target page, context or browser has been closed\nlog')
+    }
+    expect(await main([], sys, s)).toBe(0)
+    expect(world.errors[0]).toContain(
+      'Chromium could not start: Target page, context or browser has been closed)'
+    )
   })
 
   test('a failed seed warns and the site still runs; a child that exits ends it with 1', async () => {
