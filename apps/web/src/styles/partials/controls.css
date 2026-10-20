@@ -234,6 +234,13 @@
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);
 }
 
+/* On a host's band (`EntitySearcher`'s `frame`), the band is its ground and
+   its padding: no rule under it. */
+.su-searcher__on-band .su-searcher__toolbar {
+  padding: 0;
+  border-bottom: 0;
+}
+
 .su-searcher {
   flex: 1 1 auto;
   min-height: 0;

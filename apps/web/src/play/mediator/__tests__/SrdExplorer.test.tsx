@@ -118,14 +118,17 @@ describe('SrdExplorer', () => {
     expect(poolCards(container).length).toBeGreaterThan(0)
   })
 
-  test('a category is a chip on the one head, not a second titled box', () => {
+  test('a category is a chip on the one head, its search on the band, not a second titled box', () => {
     const { container } = renderSrd()
     fireEvent.click(row(container, LISTING))
     // One cut-out head: the dialog's, with the category beside its title.
     expect(container.querySelectorAll('.su-modal-panel')).toHaveLength(1)
     expect(close(container).textContent).toContain(LISTING)
-    // The searcher's toolbar sits straight in the frame's body.
-    expect(container.querySelector('.su-modal-panel .su-searcher__toolbar')).toBeTruthy()
+    // Its search and filters sit on that head's band; its list under it.
+    const band = container.querySelector('.su-modal-panel .su-entity-row__head')
+    expect(band?.querySelector('.su-searcher__toolbar input')).toBeTruthy()
+    expect(band?.querySelector('.su-searcher__list')).toBeNull()
+    expect(container.querySelector('.su-modal-panel .su-searcher__list')).toBeTruthy()
   })
 
   test('the category chip returns to the Contents', () => {

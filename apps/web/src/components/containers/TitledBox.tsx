@@ -25,6 +25,8 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   controls?: ReactNode
   /** The art's window at the band's left (`Art`): a sheet's Chassis panel. */
   art?: ReactNode
+  /** Controls on the band above the name, its full width (`Head`'s `top`). */
+  top?: ReactNode
 }
 
 /**
@@ -55,6 +57,7 @@ export function TitledBox({
   chips,
   controls,
   art,
+  top,
   label,
   select,
   ...box
@@ -77,6 +80,7 @@ export function TitledBox({
           art={art}
           chips={chips}
           controls={controls}
+          top={top}
           // Select mode's seal, on the band's right as a selected Row's (R15).
           affordance={select?.selected ? <SelectedSeal word={select.seal} /> : undefined}
           notch

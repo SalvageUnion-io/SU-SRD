@@ -73,6 +73,12 @@ export type HeadProps = {
    * (`useChipsFit`), never under it (every Row and Card head).
    */
   chipsBeside?: boolean
+  /**
+   * A row of controls on the band above the name's line, the width of the
+   * band: a dialog's search and filters (the SRD Explorer's), so they sit in
+   * the head, as an index's sit on its chapter band.
+   */
+  top?: ReactNode
 }
 
 /**
@@ -100,6 +106,7 @@ export function Head({
   labels,
   notch = false,
   chipsBeside = false,
+  top,
 }: HeadProps) {
   const chips = asStrip(chipsProp, controls)
   const cut = notch && (!chips || chipsBeside)
@@ -153,6 +160,7 @@ export function Head({
       data-notch={cut || undefined}
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
+      {top && <div className="su-entity-row__top">{top}</div>}
       <div className="su-entity-row__line">
         {art}
         {tierNode}

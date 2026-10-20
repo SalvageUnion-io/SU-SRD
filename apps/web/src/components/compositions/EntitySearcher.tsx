@@ -138,13 +138,14 @@ type EntitySearcherProps = {
    */
   railActions?: ReactNode
   /**
-   * `false`: the searcher sits inside a frame that already wears the head (a
-   * titled dialog, the SRD Explorer's), so it draws no cut-out box of its
-   * own: its toolbar opens straight under that head, and `title`, `subtitle`
-   * and the close badge are the host's to show. Default `true`: its own
-   * frame, as every picker in a `bare` ModalShell needs.
+   * The host draws the frame (the SRD Explorer's dialog head): the searcher
+   * hands it its toolbar, for the host's band, and its body, for under it,
+   * and draws no cut-out box of its own, so there is never a titled box in a
+   * titled box. `title`, `subtitle` and the close badge are then the host's
+   * to show. Without it the searcher is its own frame, as every picker in a
+   * `bare` ModalShell needs.
    */
-  framed?: boolean
+  frame?: (parts: { toolbar: ReactNode; body: ReactNode }) => ReactNode
 }
 
 /** The default `idOf`: module-level, so it is one function across renders. */
@@ -171,7 +172,7 @@ export function EntitySearcher({
   hide,
   showChassisAbility,
   railActions,
-  framed = true,
+  frame,
 }: EntitySearcherProps) {
   // Actions/choices are never pickable inside a picker; anything else is the
   // caller's to suppress.
@@ -367,9 +368,8 @@ export function EntitySearcher({
     </div>
   )
 
-  const body = (
+  const searcher = (
     <>
-      {!takeover && toolbar}
       <div
         className={cn(
           'su-searcher',
@@ -385,14 +385,17 @@ export function EntitySearcher({
     </>
   )
 
-  // Inside a frame that already has its head: no second box, so the toolbar
-  // is the first row under the host's band, never a titled box in a titled box.
-  if (!framed) {
-    return (
-      <section aria-label={title} className="su-searcher-panel" style={HOSTED_STYLE}>
-        {body}
-      </section>
-    )
+  // The host's frame: the toolbar on its band (the panel class carries the
+  // controls' one height there too), the rest filling its body.
+  if (frame) {
+    return frame({
+      toolbar: !takeover && <div className="su-searcher-panel su-searcher__on-band">{toolbar}</div>,
+      body: (
+        <section aria-label={title} className="su-searcher-panel" style={HOSTED_STYLE}>
+          {searcher}
+        </section>
+      ),
+    })
   }
 
   // The cut-out head every titled container wears (`TitledBox`, as ModalShell
@@ -422,7 +425,8 @@ export function EntitySearcher({
           {subtitle}
         </p>
       )}
-      {body}
+      {!takeover && toolbar}
+      {searcher}
     </TitledBox>
   )
 }
@@ -447,7 +451,7 @@ const WIDE_QUERY = widthAtLeast('lg')
  * searcher under the head takes what is left and scrolls in it. */
 const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
 
-/** Unframed, the searcher fills its host's body as the frame's body would. */
+/** In a host's frame, the searcher fills its body as its own frame's would. */
 const HOSTED_STYLE = {
   display: 'flex',
   flexDirection: 'column',

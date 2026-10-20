@@ -19,14 +19,15 @@
  * ONE HEAD. The explorer draws the dialog's frame itself (it opens in a
  * `bare` ModalShell): REFERENCE on the cut-out and the × on the band. A
  * category is a chip beside the title, whose × goes back to the Contents, and
- * its searcher is unframed (`framed={false}`), so its search and filters open
- * straight under that head rather than in a second titled box inside it.
+ * its searcher draws in that frame (`frame`): its search and filters on the
+ * band above the title, as an index's sit on its chapter band, and its list
+ * under it, never a second titled box inside the first.
  *
  * Preload hazard: the chapters and the schema listings read the ORM, so they
  * are built only once `useGameData()` is `ready` — never at module scope.
  */
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
@@ -208,6 +209,9 @@ type SrdView =
   | ({ kind: 'category' } & SrdCategoryRef)
   | { kind: 'entity'; entity: RefEntity; from: 'home' | SrdCategoryRef }
 
+/** The dialog's frame around a view: `top` is what the view sets on the band. */
+type SrdFrame = (body: ReactNode, top?: ReactNode) => ReactNode
+
 export function SrdExplorer({ onClose }: { onClose?: () => void }) {
   const { ready } = useGameData()
   const [view, setView] = useState<SrdView>({ kind: 'home' })
@@ -221,7 +225,7 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
       </ChipButton>
     ) : undefined
 
-  return (
+  const frame: SrdFrame = (body, top) => (
     <TitledBox
       title="Reference"
       tone="pilot"
@@ -229,27 +233,30 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
       body="flush"
       chips={chip}
       controls={onClose && <CloseButton onClick={onClose} />}
+      top={top}
     >
-      <div style={FRAME_BODY}>
-        <SrdBody ready={ready} view={view} setView={setView} />
-      </div>
+      <div style={FRAME_BODY}>{body}</div>
     </TitledBox>
   )
+
+  return <SrdBody ready={ready} view={view} setView={setView} frame={frame} />
 }
 
-/** The open view, under the frame's head. */
+/** The open view in the dialog's frame. */
 function SrdBody({
   ready,
   view,
   setView,
+  frame,
 }: {
   ready: boolean
   view: SrdView
   setView: (view: SrdView) => void
+  frame: SrdFrame
 }) {
   if (view.kind === 'entity') {
     const from = view.from
-    return (
+    return frame(
       <div className="su-play-display-scroll">
         <SrdEntity
           entity={view.entity}
@@ -261,18 +268,19 @@ function SrdBody({
 
   if (view.kind === 'category') {
     if (!ready) {
-      return (
+      return frame(
         <div className="su-play-display-scroll">
           <Pending label="reference data" />
         </div>
       )
     }
     const { schemaName, label } = view
+    // The searcher's search and filters go on the band, its list under it.
     return (
       <EntitySearcher
         schema={schemaName}
         mode="browse"
-        framed={false}
+        frame={({ toolbar, body }) => frame(body, toolbar)}
         selected={NOTHING_SELECTED}
         title={label}
         emptyMessage="No entries."
@@ -285,7 +293,7 @@ function SrdBody({
     )
   }
 
-  return (
+  return frame(
     <div className="su-play-display-scroll">
       <SrdHome
         ready={ready}
