@@ -401,6 +401,22 @@ a.su-home__discord:hover {
   min-width: 0;
 }
 
+/* On a desktop the trees sit two to a line, each half the measure, read
+   across then down; a line's two trees start together. Two columns need
+   26rem each, so a measure narrower than that (a squeezed window) keeps one
+   column. Below the desktop the trees stay one column (owner, 2026-10-20). */
+@media (width >= 64rem) {
+  .su-listing[data-view='tree'] .su-listing__groups {
+    align-items: start;
+    column-gap: var(--space-24);
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(max(26rem, calc((100% - var(--space-24)) / 2)), 1fr)
+      );
+  }
+}
+
 /*
  * THE CATALOG (`data-view="catalog"`): the Tiles (the UI library's
  * `.su-entity-tile`), every listing's view at every width, one flat grid
