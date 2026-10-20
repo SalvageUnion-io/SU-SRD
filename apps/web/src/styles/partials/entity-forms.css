@@ -25,18 +25,18 @@
   text-decoration: none;
 }
 
-/* The frame: paper with no ink edge on a Row (owner's call, 2026-10-20: no
-   black border round a listing), its width kept transparent so nothing moves;
-   ink round a `Box`, which stands in it; the paper stops inside the edge, so
-   no paper ring shows round the band; dashed in ink when player-made
-   (ruleset §3.9) or a Play reference unit. A surrounding diagram may colour it
-   through `--su-row-frame` (srd's ability tracks frame their Rows in the
-   track's hue). Square-cornered, as a show page's band (owner's call,
-   2026-10-14). */
+/* The frame (owner's call, 2026-10-20): ink round a Row or `Box` with content
+   under its head; no edge round one that is its head alone (`data-bodyless`),
+   its width kept transparent so nothing moves, and the paper stopping inside
+   it so no paper ring shows round the band. Player-made is solid like the
+   book (a HOMEBREW chip marks it); a Play reference unit is dashed. A
+   surrounding diagram may colour it through `--su-row-frame` (srd's ability
+   tracks frame their Rows in the track's hue). Square-cornered, as a show
+   page's band (owner's call, 2026-10-14). */
 .su-entity-row__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  border-color: var(--su-row-frame, transparent);
+  border-color: var(--su-row-frame, var(--color-ink));
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
@@ -45,14 +45,8 @@
   overflow: hidden;
 }
 
-.su-box > .su-entity-row__frame,
-.su-entity-row__frame[data-user-made],
-.su-entity-row__frame[data-reference] {
-  border-color: var(--su-row-frame, var(--color-ink));
-}
-
-.su-entity-row__frame[data-user-made] {
-  border-style: dashed;
+.su-entity-row__frame[data-bodyless]:not([data-reference]) {
+  border-color: var(--su-row-frame, transparent);
 }
 
 /* A Play reference unit (ADR-051 §5, `Box`'s `reference`): dashed, read-only. */
@@ -747,14 +741,14 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   padding: var(--space-4) var(--space-12) var(--space-6);
 }
 
-/* The art column: the row's full height, ruled off in ink. A listing may size
-   it through `--su-head-art-width` / `--su-head-art-min` on an ancestor. The
+/* The art column: the row's full height, beside the band with no rule between
+   (owner's call, 2026-10-20). A listing may size it through
+   `--su-head-art-width` / `--su-head-art-min` on an ancestor. The
    line art is printed on white, so `multiply` lays it onto the paper. */
 .su-entity-row__art {
   align-items: center;
   align-self: stretch;
   background-color: var(--color-paper);
-  border-right: var(--bw-chrome) solid var(--color-ink);
   display: none;
   flex: none;
   justify-content: center;
@@ -864,7 +858,8 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 .su-entity-tile__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  /* No ink edge (owner's call, 2026-10-20), but ink and dashed when player-made. */
+  /* Ink round a Tile with its lead under the band, none round a band alone
+     (owner's call, 2026-10-20), as a Row's frame. */
   border: var(--bw-entity-compact) solid transparent;
   display: flex;
   flex: 1 1 auto;
@@ -872,9 +867,8 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   overflow: hidden;
 }
 
-.su-entity-tile__frame[data-user-made] {
+.su-entity-tile__frame:has(> .su-entity-tile__cells) {
   border-color: var(--color-ink);
-  border-style: dashed;
 }
 
 .su-entity-tile__art {
@@ -1037,7 +1031,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* The body hangs from the pill: sides and foot at the pill's edge width, in
-   the pill's tone, so the Token holds its content; dashed when player-made. */
+   the pill's tone, so the Token holds its content. */
 .su-entity-token__body {
   border-style: solid;
   border-top: 0;
@@ -1048,10 +1042,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   gap: var(--space-4);
   min-width: 0;
   padding: var(--space-4) var(--space-6) var(--space-6) var(--space-8);
-}
-
-.su-entity-token__body[data-user-made] {
-  border-style: dashed;
 }
 
 .su-entity-token__body:empty {
@@ -1065,14 +1055,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
-   dashed when player-made, its name on the cut-out (below), the Token's full
+   its name on the cut-out (below), the Token's full
    width. Always one row (E18): short of room the name ends in "…", and the
    chips keep their whole width (below), held at its right end by the
    cut-out's margin. */
 .su-entity-token__pill {
   align-items: stretch;
   align-self: flex-start;
-  /* No ink edge (owner's call, 2026-10-20); its width stays, so nothing moves. */
+  /* No ink edge on a head alone (owner's call, 2026-10-20); its width stays,
+     so nothing moves. A contentful Token's pill is inked (below). */
   border-color: transparent;
   border-style: solid;
   border-width: var(--bw-chrome);
@@ -1090,9 +1081,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
-.su-entity-token__pill[data-user-made] {
+.su-entity-token[data-contentful] .su-entity-token__pill {
   border-color: var(--color-ink);
-  border-style: dashed;
 }
 
 /* The note stamp is the mini ink stamp (`Badge shape="stamp"`); in the pill's
