@@ -165,13 +165,28 @@ export function isKept(item: Element, root: Element): boolean {
 }
 
 /**
+ * The class that stays ahead of the rest (C2b; owner, 2026-10-20: "TL and
+ * Slots should be in the header, others should flow beneath"): the
+ * measures (Slots, SP, HP) keep their place beside the Tech Level while
+ * they fit, before the economy and the traits take what room is left. Not
+ * kept: a measure that does not fit still leaves, so the head never grows.
+ */
+const FIRST_CLASS = 'measure'
+
+/** Whether an item takes its place in the head before the rest (`FIRST_CLASS`). */
+export function isFirst(item: Element, root: Element): boolean {
+  return classOfItem(item, root) === FIRST_CLASS
+}
+
+/**
  * Which of `widths` (in source order) leave the head (C2b): none when every
  * one fits beside a name `name` wide in `room`, each `gap` apart, with a
  * pixel to spare. Otherwise the `kept` ones stay (with +MORE after them,
- * `more` wide, on a header-only head), and of the rest those that fit
- * beside them stay, counted from the end, the line filled in order: the
- * first that does not fit and every one before it leave. `more` is whether
- * +MORE is drawn: only when a chip left.
+ * `more` wide, on a header-only head), then the `first` ones that fit, in
+ * source order, and of the rest those that fit beside them stay, counted
+ * from the end, the line filled in order: the first that does not fit and
+ * every one before it leave. `more` is whether +MORE is drawn: only when a
+ * chip left.
  */
 export function overflowPlan(
   widths: readonly number[],
@@ -179,7 +194,8 @@ export function overflowPlan(
   name: number,
   room: number,
   gap: number,
-  more?: number
+  more?: number,
+  first: readonly boolean[] = []
 ): { out: boolean[]; more: boolean } {
   const fits = (used: number) => used <= room - 1
   const all = widths.reduce((sum, width) => sum + gap + width, name)
@@ -187,9 +203,19 @@ export function overflowPlan(
   if (fits(all)) return { out, more: false }
   let used = widths.reduce((sum, width, i) => (kept[i] ? sum + gap + width : sum), name)
   if (more !== undefined) used += gap + more
+  let firstFull = false
+  for (let i = 0; i < widths.length; i++) {
+    if (kept[i] || !first[i]) continue
+    const width = widths[i] as number
+    if (!firstFull && fits(used + gap + width)) used += gap + width
+    else {
+      firstFull = true
+      out[i] = true
+    }
+  }
   let full = false
   for (let i = widths.length - 1; i >= 0; i--) {
-    if (kept[i]) continue
+    if (kept[i] || first[i]) continue
     const width = widths[i] as number
     // In order: once one does not fit, every one before it leaves too.
     if (!full && fits(used + gap + width)) used += gap + width
@@ -234,13 +260,15 @@ function planWithRoom(
   moreWidth: number | undefined,
   hasRow: boolean
 ): { out: boolean[]; more: boolean } {
+  const first = items.map((item) => isFirst(item, container))
   const plan = overflowPlan(
     widths,
     items.map((item) => isKept(item, container)),
     nameWidth,
     room,
     gap,
-    moreWidth
+    moreWidth,
+    first
   )
   if (!hasRow) return plan
   const kept = widths.reduce((sum, width, i) => (plan.out[i] ? sum : sum + gap + width), 0)
@@ -253,7 +281,8 @@ function planWithRoom(
     nameWidth,
     room,
     gap,
-    moreWidth
+    moreWidth,
+    first
   )
 }
 

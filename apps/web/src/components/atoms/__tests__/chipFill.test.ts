@@ -30,6 +30,28 @@ describe('overflowPlan', () => {
     ])
   })
 
+  test('a first chip (a measure: Slots) keeps its place ahead of the ones after it', () => {
+    // TL (kept) | SLOTS (first) | RNG | DMG: 100 + 24 + 34 = 158; + 64 = 222 does not fit 200.
+    expect(
+      overflowPlan([20, 30, 60, 60], [true, false, false, false], 100, 200, 4, undefined, [
+        false,
+        true,
+        false,
+        false,
+      ]).out
+    ).toEqual([false, false, true, true])
+  })
+
+  test('a first chip that does not fit still leaves: the head never grows', () => {
+    expect(
+      overflowPlan([20, 120, 10], [true, false, false], 100, 150, 4, undefined, [
+        false,
+        true,
+        false,
+      ]).out
+    ).toEqual([false, true, false])
+  })
+
   test('a kept chip at the front (the Tech Level) stays while those after it leave', () => {
     expect(overflowPlan([20, 60, 60, 20], [true, false, false, true], 100, 220, 4).out).toEqual([
       false,
