@@ -1052,13 +1052,16 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
-/* The HOMEBREW stamp leading a Token's chips is one of them: as tall as the
-   chips on its line, never taller (§4.7), its word centred. */
+/* The HOMEBREW stamp leading a Token's chips is one of them, drawn as a Stat
+   cell of its Size is (§4.7, `atoms-badges.css`): never taller, never
+   stretched to its line. */
 .su-entity-token__chips .su-chip-lane > .su-badge--dashed {
   align-items: center;
-  align-self: stretch;
+  align-self: center;
+  border-width: var(--bw-hairline);
   display: inline-flex;
   line-height: 1;
+  padding-block: var(--space-2);
 }
 
 /* A contentful Token's head (N3) holds a compact head's budget (C3: economy,

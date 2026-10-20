@@ -167,14 +167,19 @@
   color: var(--color-ink);
 }
 
-/* Among a sheet band's chips (its cluster) it is one of them: as tall as the
-   chips on its line, never taller (§4.7), its word centred. A Token's strip
-   does the same (`entity-forms.css`). */
-.su-cluster > .su-badge--dashed {
+/* Among chips (a sheet band's cluster, a Row's strip; a Token's is in
+   `entity-forms.css`) it is one of them, drawn as a Stat cell of its Size is
+   (§4.7): line-height 1 inside a Stat plate's 2px padding and a 1px rule, so
+   it stands exactly as tall as a Stat of the same Size beside it, its word
+   centred. It never stretches to its line, which a band's aside can make
+   taller than its chips. */
+:is(.su-cluster, .su-chips > .su-chip-lane) > .su-badge--dashed {
   align-items: center;
-  align-self: stretch;
+  align-self: center;
+  border-width: var(--bw-hairline);
   display: inline-flex;
   line-height: 1;
+  padding-block: var(--space-2);
 }
 
 /* ── Stamps on a stamp ──

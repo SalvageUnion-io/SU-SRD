@@ -448,7 +448,7 @@ export function LiveSheet({
           <>
             {(stamp || out || userMade) && (
               <Cluster gap={8}>
-                {userMade && <HomebrewStamp size="compact" />}
+                {userMade && <HomebrewStamp size="full" />}
                 {stamp &&
                   (stamp.entityRef ? (
                     <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
