@@ -68,7 +68,7 @@ async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
   }
 }
 
-/** A locator that resolves everything; `evaluate` runs on a select offering Shelves. */
+/** A locator that resolves everything. */
 function locator(world: World, name: string): Record<string, Fn> {
   const self: Record<string, Fn> = {
     or: () => self,
@@ -79,9 +79,6 @@ function locator(world: World, name: string): Record<string, Fn> {
     click: async () => world.calls.push(`click ${name}`),
     waitFor: async () => {},
     fill: async (text) => world.calls.push(`fill ${name} ${text}`),
-    selectOption: async (value) => world.calls.push(`select ${value}`),
-    evaluate: async (fn) =>
-      (fn as Fn)({ options: [{ textContent: 'Hangar', value: 'shelves-id' }] }),
     screenshot: async (opts) => world.calls.push(`card ${(opts as { path: string }).path}`),
   }
   return self
@@ -215,7 +212,15 @@ describe('gallery run', () => {
     expect(r.manifest.failures).toEqual(planned.failures)
     expect(r.code).toBe(1)
     expect(w.calls).toContain('sign-in gallery-N@example.com')
-    expect(w.calls.filter((c) => c === 'select shelves-id')).toHaveLength(3)
+    // Bonesaw, the Mazona and Tenacity, each copied from its Starter Set sheet.
+    for (const sheet of [
+      'pilot/starter-pilot-bonesaw',
+      'mech/starter-mech-mazona',
+      'crawler/starter-crawler-tenacity',
+    ]) {
+      expect(w.calls).toContain(`goto ${SITE}/build/starter/${sheet}`)
+    }
+    expect(w.calls.filter((c) => c === 'click alertdialog > Make a copy')).toHaveLength(3)
     expect(w.calls).toContain('fill New Game name The Long Haul')
     expect(w.calls).toContain('click dialog > The Long Haul')
     // An edit page switches to Edit before each width is shot.

@@ -19,7 +19,7 @@
  *   is the site default fetches that file from the same build.
  * - `--signed-in` signs a fresh account up through the test seam
  *   (`__appTestSignIn`, `apps/web/e2e/fixtures.ts`), copies Bonesaw, the
- *   Mazona and Tenacity from the Starter Set to its Shelves, starts a Game and
+ *   Mazona and Tenacity from the Starter Set to its Hangar, starts a Game and
  *   moves Bonesaw in, then shoots the `signedIn` pages in that one browser
  *   context: the session's refresh token rotates on use, so a second context
  *   restored from it would be signed out.
@@ -130,7 +130,6 @@ type InPage = {
   __ogSetEntity?: (schema: string, item: string, pattern?: string) => void
   __appTestSignIn?: (email: string, password: string) => Promise<void>
 }
-type SelectLike = { options: Iterable<{ textContent: string | null; value: string }> }
 
 async function readOg(
   page: Page
@@ -205,19 +204,23 @@ async function seed(page: Page, base: string): Promise<Partial<Seeded>> {
   await page.evaluate(async (email) => {
     await (globalThis as unknown as InPage).__appTestSignIn?.(email, 'gallery-pass-1')
   }, `gallery-${Date.now()}@example.com`)
-  await page.getByRole('button', { name: 'Games' }).first().waitFor({ timeout: 30_000 })
-  for (const label of ['Copy Bonesaw to…', 'Copy Mazona to…', "Copy Crawler #430 'Tenacity' to…"]) {
-    await page.goto(`${base}${BUILDER_BASE}/starter`, { waitUntil: 'networkidle' })
-    const select = page.locator(`select[aria-label="${label}"]`).first()
-    const shelves = await select.evaluate(
-      (s) =>
-        [...(s as unknown as SelectLike).options].find((o) => o.textContent === 'Hangar')?.value
-    )
-    if (!shelves) throw new Error(`${label} offers no Hangar`)
-    await select.selectOption(shelves)
-    await page.getByRole('button', { name: 'Make a copy' }).click()
+  // The masthead's "Games" menu renders only once connected; outside Play the
+  // bar keeps it hidden, so it is waited for attached (`e2e/fixtures.ts`).
+  await page
+    .getByRole('button', { name: 'Games', includeHidden: true })
+    .first()
+    .waitFor({ state: 'attached', timeout: 30_000 })
+  // Each copied from its Starter Set sheet's "Make a copy", as `e2e/_designRoutes.ts` does.
+  for (const sheet of [
+    'pilot/starter-pilot-bonesaw',
+    'mech/starter-mech-mazona',
+    'crawler/starter-crawler-tenacity',
+  ]) {
+    await page.goto(`${base}${BUILDER_BASE}/starter/${sheet}`, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
     await page
-      .getByText(/^Copied /)
+      .getByText(/^Copied .* to your Hangar/)
       .first()
       .waitFor({ timeout: 20_000 })
   }
