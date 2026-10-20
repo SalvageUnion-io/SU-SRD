@@ -147,7 +147,12 @@ async function walkWizard(
       await page.waitForURL((url) => !url.pathname.includes('/new'), { timeout: 30_000 })
       return failures
     }
-    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    // The wizard's own Next, in its footer pill: an ability's NEXT tree chip
+    // on a step reads "Next: <ability>" too.
+    const next = page
+      .locator('.su-wiz-pill')
+      .getByRole('button', { name: /^Next(: |$)/ })
+      .first()
     if (!(await next.isVisible().catch(() => false))) return failures
     if (await next.isDisabled()) {
       for (const [label, value] of Object.entries(options.identity))
