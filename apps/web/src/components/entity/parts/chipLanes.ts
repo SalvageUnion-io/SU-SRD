@@ -64,42 +64,59 @@ function isColumn(strips: Iterable<HTMLElement>): boolean {
 }
 
 /**
- * Each class's widest lane across the list's strips, its widths lifted first.
+ * Each class's widest lane across a list's strips, its widths lifted first.
  * Only a list whose lines are one width keeps its lanes
  * (`data-chip-lanes="column"`): lines sized to their names (a fit list that
- * wraps) share no column, and pack.
+ * wraps) share no column, and pack. Every due list is lifted, then every one
+ * read, then every one written, so a page of lists takes one layout.
  */
-function measure(list: HTMLElement, lanes: ListLanes): void {
-  lanes.due = false
-  for (const cls of CHIP_CLASSES) list.style.removeProperty(`--su-lane-${cls}`)
-  list.setAttribute('data-chip-lanes', 'column')
-  if (!isColumn(lanes.strips)) {
-    list.setAttribute('data-chip-lanes', 'loose')
-    return
+function measure(due: [HTMLElement, ListLanes][]): void {
+  for (const [list, lanes] of due) {
+    lanes.due = false
+    for (const cls of CHIP_CLASSES) list.style.removeProperty(`--su-lane-${cls}`)
+    list.setAttribute('data-chip-lanes', 'column')
   }
-  const widest = new Map<string, number>(CHIP_CLASSES.map((cls) => [cls, 0]))
-  for (const strip of lanes.strips) {
-    if (!strip.isConnected) continue
-    for (const lane of strip.children) {
-      const cls = lane.getAttribute('data-chip-class')
-      if (!cls) continue
-      // A packed line's lanes draw no box: they measure 0 and change nothing.
-      const width = lane.getBoundingClientRect().width
-      widest.set(cls, Math.max(widest.get(cls) ?? 0, width))
+  const read = due.map(([list, lanes]) => {
+    if (!isColumn(lanes.strips)) return { list, widest: undefined }
+    const widest = new Map<string, number>(CHIP_CLASSES.map((cls) => [cls, 0]))
+    for (const strip of lanes.strips) {
+      if (!strip.isConnected) continue
+      for (const lane of strip.children) {
+        const cls = lane.getAttribute('data-chip-class')
+        if (!cls) continue
+        // A packed line's lanes draw no box: they measure 0 and change nothing.
+        const width = lane.getBoundingClientRect().width
+        widest.set(cls, Math.max(widest.get(cls) ?? 0, width))
+      }
+    }
+    return { list, widest }
+  })
+  for (const { list, widest } of read) {
+    if (!widest) {
+      list.setAttribute('data-chip-lanes', 'loose')
+      continue
+    }
+    for (const [cls, width] of widest) {
+      list.style.setProperty(`--su-lane-${cls}`, `${Math.ceil(width)}px`)
     }
   }
-  for (const [cls, width] of widest) {
-    list.style.setProperty(`--su-lane-${cls}`, `${Math.ceil(width)}px`)
-  }
 }
+
+/** The lists due a measure, measured together once this commit's strips have joined. */
+const dueLists = new Map<HTMLElement, ListLanes>()
 
 /** Measure the list once its strips of this commit have joined, before paint. */
 function schedule(list: HTMLElement, lanes: ListLanes): void {
   if (lanes.due) return
   lanes.due = true
-  queueMicrotask(() => {
-    if (lanes.due) measure(list, lanes)
-  })
+  if (dueLists.size === 0) {
+    queueMicrotask(() => {
+      const due = [...dueLists].filter(([, l]) => l.due)
+      dueLists.clear()
+      measure(due)
+    })
+  }
+  dueLists.set(list, lanes)
 }
 
 /** A strip in no list has nothing to leave. */

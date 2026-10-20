@@ -187,9 +187,7 @@ let fontsWatched = false
 function watchFonts(): void {
   if (fontsWatched || typeof document === 'undefined' || !document.fonts) return
   fontsWatched = true
-  const refit = () => {
-    for (const head of live) fitChipFill(head)
-  }
+  const refit = () => fitInTurns([...live], fitChipFill)
   void document.fonts.ready.then(refit)
   document.fonts.addEventListener?.('loadingdone', refit)
 }
@@ -247,7 +245,36 @@ export function watchChipFill(container: HTMLElement): () => void {
   return stop
 }
 
-/** A static page's heads (server-rendered, no React): each fits once and on resize. */
+/** How many heads one task fits: a page of Rows fitted at once is a long task. */
+const TURN = 12
+
+/**
+ * Do `each` to many heads a turn at a time: those on screen first, now (a
+ * shift in view counts against the page, one off screen does not), the rest
+ * in tasks of `TURN`, so the main thread is never held long (TBT).
+ */
+function fitInTurns(containers: HTMLElement[], each: (head: HTMLElement) => void): void {
+  if (containers.length <= TURN || typeof setTimeout === 'undefined') {
+    for (const head of containers) each(head)
+    return
+  }
+  const height = typeof innerHeight === 'number' ? innerHeight : 0
+  const later: HTMLElement[] = []
+  for (const head of containers) {
+    const r = head.getBoundingClientRect()
+    if (r.bottom > 0 && r.top < height) each(head)
+    else later.push(head)
+  }
+  const next = () => {
+    for (const head of later.splice(0, TURN)) if (head.isConnected) each(head)
+    if (later.length > 0) setTimeout(next, 0)
+  }
+  if (later.length > 0) setTimeout(next, 0)
+}
+
+/** A static page's heads (server-rendered, no React): each fits (in turns) and on resize. */
 export function watchStaticChipFill(root: ParentNode = document): void {
-  for (const head of root.querySelectorAll<HTMLElement>(FILL_HEAD)) watchChipFill(head)
+  fitInTurns([...root.querySelectorAll<HTMLElement>(FILL_HEAD)], (head) => {
+    watchChipFill(head)
+  })
 }
