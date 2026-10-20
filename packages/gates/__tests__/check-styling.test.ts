@@ -474,10 +474,10 @@ const STYLING_BASE: Record<string, string> = {
   'apps/web/src/styles/base.css': "@import './entry.css';\n",
   'apps/web/src/styles/app.css': "@import './styles/print.css';\n",
   'apps/web/src/styles/global.css': "@import './pages.css';\n",
-  'apps/web/src/styles/play/dashboard/canvas.css': '.su-dash-used { color: red }\n',
+  'apps/web/src/styles/play/dashboard/canvas.css': '.su-play-used { color: red }\n',
   'apps/web/src/styles/play/dashboard/instruments.css': '',
   'apps/web/src/styles/play/dashboard/phone.css': '',
-  'apps/web/src/play/Thing.tsx': 'export const T = () => <div className="su-dash-used" />\n',
+  'apps/web/src/play/Thing.tsx': 'export const T = () => <div className="su-play-used" />\n',
 }
 
 describe('styling rule set', () => {
@@ -573,31 +573,31 @@ describe('styling rule set', () => {
     ])
   })
 
-  test('an app @theme, dead app CSS and an undefined dashboard class are all found', () => {
+  test('an app @theme, dead app CSS and an undefined Play class are all found', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
         'apps/web/src/styles/extra.css':
           '@theme {\n  --color-x: red;\n}\n.never-used { color: red }\n',
-        'apps/web/src/Page.tsx': 'export const P = () => <div className="su-dash-missing" />\n',
+        'apps/web/src/Page.tsx': 'export const P = () => <div className="su-play-missing" />\n',
       })
     )
     expect(found['app-theme']?.length).toBe(1) // the reserved token; the @theme block is no-tailwind's
     expect(found['dead-app-css']?.map((f) => f.detail)).toEqual([
       '.never-used defined but never referenced in app source',
     ])
-    expect(found['dash-class-contract']?.map((f) => f.detail)[0]).toContain("'su-dash-missing'")
+    expect(found['dash-class-contract']?.map((f) => f.detail)[0]).toContain("'su-play-missing'")
   })
 
-  test('a dashboard class defined but never used is found', () => {
+  test('a Play class defined but never used is found', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/play/dashboard/instruments.css': '.su-dash-dead { color: red }\n',
+        'apps/web/src/styles/play/dashboard/instruments.css': '.su-play-dead { color: red }\n',
       })
     )
     expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([
-      "dashboard class '.su-dash-dead' defined but never referenced",
+      "Play class '.su-play-dead' defined but never referenced",
     ])
   })
 

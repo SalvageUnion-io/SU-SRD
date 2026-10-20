@@ -13,7 +13,7 @@ prefixes, rust allowlist and entry; its messages say the fix.
 - **The pattern:** `apps/web/src/design/tokens.ts` (typed scale, kept equal to
   `theme.css` by a parity test) + `apps/web/src/styles/index.css`, the one
   stylesheet, `@import`ing `styles/partials/` in cascade order. Play's
-  `.su-dash-*` and `.su-play-*` rules live in `apps/web/src/styles/play/`; any
+  `.su-play-*` rules live in `apps/web/src/styles/play/`; any
   other app- or page-only rule lives in that half's stylesheets.
 - **One spelling each:** static → `const NAME = { … } satisfies CSSProperties`
   at module scope (never `const NAME: CSSProperties =`); varies by instance → an

@@ -38,7 +38,7 @@ export function phoneViewport({
   Object.defineProperty(owner, 'clientWidth', {
     configurable: true,
     get(this: Element) {
-      if (this === document.documentElement || this.classList.contains('su-dash-root')) {
+      if (this === document.documentElement || this.classList.contains('su-play-root')) {
         return hostWidth()
       }
       return clientWidth.get?.call(this)

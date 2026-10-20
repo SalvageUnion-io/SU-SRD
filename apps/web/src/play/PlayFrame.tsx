@@ -24,7 +24,7 @@
  * sheet's (ruleset §1.3, §3.5.1; R10): the frame sets the texture once for
  * every entity form on the canvas and the phone form alike.
  *
- * The `.su-dash-*` stylesheet rides in with this module: the canvas's size
+ * The `.su-play-*` stylesheet rides in with this module: the canvas's size
  * and ground are its rules, and the Play route's chunk is where it belongs.
  * Play's own bundle (`styles/play/play.css`: Units, Actions, side) comes
  * after it.

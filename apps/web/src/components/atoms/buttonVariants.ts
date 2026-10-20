@@ -29,7 +29,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * ## The axes
  *
  * The `surface` axis picks the WORLD the button lives on: `paper` (default —
- * the light app chrome) or `instrument` (Play's canvas scope, `.su-dash-root`).
+ * the light app chrome) or `instrument` (Play's canvas scope, `.su-play-root`).
  * It is a world, never a ground: on an ink band or plate the frame declares
  * `data-ground="ink"` (chrome K1) and the outlined variants (`default`,
  * `ghost`) read it in CSS, a paper outline with paper text, the one on-ink

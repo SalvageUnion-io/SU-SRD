@@ -12,7 +12,7 @@ import { expect, test } from './fixtures'
  * field.
  *
  * - `speckled`: every entity band (a Row's, a TitledBox's or a unit box's
- *   head, a card's band) on a Play canvas or phone form (`.su-dash-root`:
+ *   head, a card's band) on a Play canvas or phone form (`.su-play-root`:
  *   the player's, solo and the Mediator's), or on an overlay it lays over
  *   itself (a Peek, a menu, a dialog: the Mediator's Reference), that is a
  *   brand-colour ground carries its `[data-grain]`, as on the sheet.
@@ -27,7 +27,7 @@ import { expect, test } from './fixtures'
  */
 
 /** The Cockpit, canvas or phone form. */
-const COCKPIT = '.su-dash-root'
+const COCKPIT = '.su-play-root'
 
 /** What the Cockpit lays over itself, portalled out of it. */
 const OVERLAY = '[data-peek-popup], [role="dialog"], [role="alertdialog"], [role="menu"]'

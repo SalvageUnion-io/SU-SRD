@@ -1420,7 +1420,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    Play's lists): one Token a line, each running the list's full width, its
    name taking the room and its fact at the right edge, where the facts scan
    down the list. Under a coarse pointer, and in Play's phone form (its touch
-   floor, `.su-dash-phone`, ADR-045), each line is a 44px target (ruleset
+   floor, `.su-play-root--phone`, ADR-045), each line is a 44px target (ruleset
    §4.6, R12): the pill is the whole line's height, so a Token whose surface
    is a control never sits short inside the floor's taller box. */
 .su-entity-token-list {
@@ -1459,7 +1459,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   }
 }
 
-.su-dash-phone .su-entity-token-list .su-entity-token__pill {
+.su-play-root--phone .su-entity-token-list .su-entity-token__pill {
   min-height: var(--size-full);
 }
 

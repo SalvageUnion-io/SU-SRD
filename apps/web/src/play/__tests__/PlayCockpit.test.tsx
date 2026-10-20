@@ -143,7 +143,7 @@ describe('the Cockpit frame', () => {
     const foot = within(screen.getByRole('contentinfo'))
     expect(foot.getByRole('status').textContent).toBe('● Saved')
     expect(foot.getByText('Solo · nothing is shared')).toBeTruthy()
-    expect(document.querySelector('.su-dash-canvas')).not.toBeNull()
+    expect(document.querySelector('.su-play-canvas')).not.toBeNull()
   })
 
   test('offline, Play is read-only and says so: the bar’s stamp and the foot', async () => {
@@ -168,8 +168,8 @@ describe('below the canvas’s floor: the phone form (play.md §11)', () => {
     const restore = phoneViewport()
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
-      expect(document.querySelector('.su-dash-canvas')).toBeNull()
-      expect(document.querySelector('.su-dash-phone .su-play-phone')).not.toBeNull()
+      expect(document.querySelector('.su-play-canvas')).toBeNull()
+      expect(document.querySelector('.su-play-root--phone .su-play-phone')).not.toBeNull()
       const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
       expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
       const bar = within(screen.getByRole('banner'))
@@ -179,7 +179,7 @@ describe('below the canvas’s floor: the phone form (play.md §11)', () => {
       expect(bar.queryByRole('group', { name: 'Situation' })).toBeNull()
       expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
       // The page never scrolls: the host fits the screen and hides overflow.
-      const host = document.querySelector('.su-dash-phone') as HTMLElement
+      const host = document.querySelector('.su-play-root--phone') as HTMLElement
       expect(host.style.overflow).toBe('hidden')
     } finally {
       restore()

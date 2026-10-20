@@ -17,7 +17,7 @@
  * exactly the height below its top, and `phone` scrolls inside itself (only
  * the open tab's list scrolls, ADR-051 §10).
  *
- * It owns the `.su-dash-root` scope (`styles/play/dashboard/`) that every
+ * It owns the `.su-play-root` scope (`styles/play/dashboard/`) that every
  * Play surface inherits, and paints the dark ground the columns sit on. It
  * imports no stylesheet: `PlayFrame` loads Play's.
  *
@@ -115,7 +115,7 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
     return (
       <main
         ref={hostRef}
-        className="su-dash-root su-dash-phone"
+        className="su-play-root su-play-root--phone"
         style={{ ...PHONE_HOST, height: hostH }}
       >
         {phone}
@@ -125,9 +125,9 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
 
   return (
     // Centred, so a downscaled canvas letterboxes evenly above and below.
-    <main ref={hostRef} className="su-dash-root" style={{ ...HOST, height: hostH }}>
+    <main ref={hostRef} className="su-play-root" style={{ ...HOST, height: hostH }}>
       <div
-        className="su-dash-canvas"
+        className="su-play-canvas"
         style={{ flexShrink: 0, transform: `scale(${scale})`, transformOrigin: 'center center' }}
       >
         {children}

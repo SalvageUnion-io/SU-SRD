@@ -10,7 +10,7 @@
  *
  * Why a build step and not a review habit: like the design-token drift, none of
  * these violations fail typecheck. A stray app `@theme` block compiles. Dead CSS
- * compiles. A canvas `su-dash-*` class referenced but never defined renders
+ * compiles. A canvas `su-play-*` class referenced but never defined renders
  * unstyled — no error, just a wrong-looking element.
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
@@ -37,14 +37,14 @@ const LIB_CSS = new Set(
 )
 const notLib = (rel: string) =>
   !LIB_CSS.has(rel) && !rel.startsWith('apps/web/src/styles/partials/')
-const DASHBOARD_DIR = 'apps/web/src/styles/play/dashboard'
+const PLAY_STYLES_DIR = 'apps/web/src/styles/play'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
   root: string
   appCss: string[]
   appSource: string[]
-  /** su-dash-* usage is checked repo-wide (the app, the library and the tests). */
+  /** su-play-* usage is checked repo-wide (the app, the library and the tests). */
   allTs: string[]
   read: (rel: string) => string
 }
@@ -219,21 +219,17 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// Play's canvas `.su-dash-*` classes (The app's own stylesheets).
-
-const DASHBOARD_CSS_FILES = ['canvas.css', 'instruments.css', 'phone.css'].map(
-  (f) => `${DASHBOARD_DIR}/${f}`
-)
+// Play's `.su-play-*` classes (its own stylesheets, `styles/play/**`).
 
 function scanDashContract(c: Corpus): Finding[] {
   const out: Finding[] = []
 
-  // DEFINED: `.su-dash-*` class selectors in the dashboard CSS files (exact).
+  // DEFINED: `.su-play-*` class selectors in Play's stylesheets (exact).
   const defined = new Map<string, { file: string; line: number }>()
-  for (const relPath of DASHBOARD_CSS_FILES) {
+  for (const relPath of listFiles(c.root, [PLAY_STYLES_DIR], ['.css'])) {
     const css = stripCssComments(c.read(relPath))
     css.split('\n').forEach((line, i) => {
-      for (const m of line.matchAll(/\.(su-dash-[a-z0-9-]+)/g)) {
+      for (const m of line.matchAll(/\.(su-play-[a-z0-9-]+)/g)) {
         const name = m[1]
         if (name !== undefined && !defined.has(name))
           defined.set(name, { file: relPath, line: i + 1 })
@@ -241,16 +237,16 @@ function scanDashContract(c: Corpus): Finding[] {
     })
   }
 
-  // USED: exact `su-dash-*` tokens appearing in any .tsx/.ts (incl. tests)
+  // USED: exact `su-play-*` tokens appearing in any .tsx/.ts (incl. tests)
   // repo-wide. Exact-token extraction (not prefix matching) is
-  // load-bearing: `su-dash-step` and `su-dash-step-num` are DIFFERENT
+  // load-bearing: `su-play-step` and `su-play-step-num` are DIFFERENT
   // classes, and a prefix match would let one usage falsely "cover" the other.
   //
   // Two precision guards keep this to genuine className references:
   //  - block comments are stripped, so a JSDoc line documenting a REMOVED class
   //    is not mistaken for a live usage.
-  //  - a `su-dash-*` string sitting in a NON-class attribute
-  //    (`name="su-dash-deck-currency"`
+  //  - a `su-play-*` string sitting in a NON-class attribute
+  //    (`name="su-play-deck-currency"`
   //    is a radio-group name, not a class) is skipped — it is not part of the
   //    class contract and must not gate it.
   const used = new Map<string, { file: string; line: number }>()
@@ -258,7 +254,7 @@ function scanDashContract(c: Corpus): Finding[] {
     stripTsComments(c.read(relPath))
       .split('\n')
       .forEach((line, i) => {
-        for (const m of line.matchAll(/\bsu-dash-[a-z0-9-]+/g)) {
+        for (const m of line.matchAll(/\bsu-play-[a-z0-9-]+/g)) {
           const before = line.slice(0, m.index)
           // Skip non-class attribute values (form name/id/htmlFor/key).
           if (/\b(?:name|id|htmlFor|key)\s*=\s*["'`{]$/.test(before)) continue
@@ -273,17 +269,17 @@ function scanDashContract(c: Corpus): Finding[] {
       out.push({
         file: where.file,
         line: where.line,
-        detail: `dashboard class '${name}' used but not defined in styles/dashboard/*.css`,
+        detail: `Play class '${name}' used but not defined in styles/play/**/*.css`,
       })
     }
   }
-  // (b) defined-but-unused — dead dashboard CSS.
+  // (b) defined-but-unused — dead Play CSS.
   for (const [name, where] of defined) {
     if (!used.has(name)) {
       out.push({
         file: where.file,
         line: where.line,
-        detail: `dashboard class '.${name}' defined but never referenced`,
+        detail: `Play class '.${name}' defined but never referenced`,
       })
     }
   }
@@ -530,8 +526,8 @@ const RULES: OwnershipRule[] = [
   {
     id: 'dash-class-contract',
     mode: 'zero',
-    rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/play/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-step and su-dash-step-num are different classes.',
+    rule: 'source-of-truth §the Play class contract is closed and bidirectional',
+    fix: 'used-but-undefined: define the `su-play-*` class in apps/web/src/styles/play/**/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-play-step and su-play-step-num are different classes.',
     scan: scanDashContract,
   },
   {

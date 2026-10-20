@@ -6,12 +6,12 @@
  * and the centre column `--color-paper`, the brightest surface, so "read this"
  * is pre-attentive. There is NO private token layer: every surface references
  * the canonical `--color-*` tokens (src/components theme.css) directly.
- * `.su-dash-root` only marks the canvas scope and sets the default ink text and
+ * `.su-play-root` only marks the canvas scope and sets the default ink text and
  * font. Colour encodes ONTOLOGY (mech green / pilot orange / crawler pink),
  * never identity (ADR-038 §8).
  */
 
-.su-dash-root {
+.su-play-root {
   color: var(--color-ink);
   font-family: var(--font-body);
   position: relative;
@@ -25,7 +25,7 @@
    as objects laid on one continuous workbench rather than a lit panel floating
    on an unlit one. The inset ring is a paper hairline (an ink one is invisible
    against the ground it sits on). */
-.su-dash-canvas {
+.su-play-canvas {
   width: 1280px;
   height: 800px;
   background: var(--color-ink-deep);

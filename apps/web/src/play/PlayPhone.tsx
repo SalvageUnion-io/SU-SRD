@@ -16,7 +16,7 @@
  * in each panel is the canvas's own column components, and the screen's
  * shared state (the roll dispatch, the Post toggle) is read once by its caller.
  *
- * Controls keep their touch sizes: `.su-dash-phone`, the host's scope, holds
+ * Controls keep their touch sizes: `.su-play-root--phone`, the host's scope, holds
  * every control to 44×44 (ruleset §4.6). The layout's states are
  * `.su-play-phone*` (`styles/play/phone.css`).
  */

@@ -144,7 +144,7 @@ test('the Union bar holds one height in Build and in Play', async ({ page }) => 
  * Skips without the test sign-in seam (`fixtures.ts`); ci.yml's `build-web`
  * carries it, so this runs on every PR.
  */
-const BAR = '.su-dash-root header'
+const BAR = '.su-play-root header'
 const UNITS = '.su-play-unit'
 const UNIT_HEADS = '.su-play-unit .su-entity-row__head'
 const ACTIONS = 'li.su-play-act'

@@ -4,7 +4,7 @@
  *
  * Only what a style object cannot say lives here (ADR-046): rules over the
  * column components the tabs reuse, which are laid out for a 1280×800 canvas.
- * The touch floor is `.su-dash-phone`'s (the host's scope,
+ * The touch floor is `.su-play-root--phone`'s (the host's scope,
  * `dashboard/phone.css`): every control at least 44×44.
  */
 

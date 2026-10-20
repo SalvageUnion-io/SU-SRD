@@ -8,7 +8,7 @@
 /*
  * A stamp on the bar (role, LIVE, read-only) stands as tall as the buttons
  * beside it (ruleset §4.7): the Compact Size, which a coarse pointer lifts to
- * the touch floor, and the phone form's 44px floor (`.su-dash-phone`,
+ * the touch floor, and the phone form's 44px floor (`.su-play-root--phone`,
  * `dashboard/phone.css`). Its text keeps the Compact rung, centred.
  */
 .su-play-bar__stamp {
@@ -18,6 +18,6 @@
   height: var(--size-compact);
 }
 
-.su-dash-phone .su-play-bar__stamp {
+.su-play-root--phone .su-play-bar__stamp {
   height: var(--size-full);
 }

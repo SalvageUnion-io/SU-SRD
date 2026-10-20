@@ -85,7 +85,7 @@ test('the Mediator runs the table from Play, and the player answers', async ({
 
     const mediatorPath = await playDoor(page, `Mediate ${GAME}`)
     await openPlay(page, mediatorPath)
-    const bar = page.locator('.su-dash-root header')
+    const bar = page.locator('.su-play-root header')
     await expect(bar.getByRole('heading', { name: GAME })).toBeVisible()
     await expect(bar.getByText('Mediator', { exact: true })).toBeVisible()
     await expect(seat(page)).toBeVisible({ timeout: 30_000 })

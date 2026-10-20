@@ -23,7 +23,7 @@ test('solo: On foot, Boarded and Downtime fit and pass axe', async ({ page }) =>
   await buildMech(page, 'Ironclad')
 
   await openPlay(page, await playDoor(page, 'Play Rook Hale solo'))
-  const bar = page.locator('.su-dash-root header')
+  const bar = page.locator('.su-play-root header')
   await expect(bar.getByRole('heading', { name: /Rook Hale/ })).toBeVisible()
 
   // --- On foot ---

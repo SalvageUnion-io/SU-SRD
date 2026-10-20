@@ -561,7 +561,7 @@ describe('on a phone (play.md §11)', () => {
 
   test('Table, Opposition, Tables, Propose under the pinned Scene / Downtime switch', async () => {
     await renderCockpit()
-    expect(document.querySelector('.su-dash-canvas')).toBeNull()
+    expect(document.querySelector('.su-play-canvas')).toBeNull()
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Tables', 'Propose'])
     const state = screen.getByRole('group', { name: 'Game state' })

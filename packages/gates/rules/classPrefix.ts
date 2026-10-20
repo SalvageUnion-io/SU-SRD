@@ -2,7 +2,7 @@
  * One class prefix — the `class-prefix` rule set of `tools/check-rule-sets.ts`.
  *
  * Every class the app's stylesheets author is `su-*` (Play's canvas
- * `su-dash-*` among them; `.claude/rules/styling.md`). The app once grew `wiz-`,
+ * `su-play-*` among them; `.claude/rules/styling.md`). The app once grew `wiz-`,
  * `header-menu-`, `npc-`, `shelves-` and a dozen more families beside some 800
  * `su-` selectors, and the UI library's tone contexts were `sheet--{kind}`: two
  * naming schemes for one stylesheet system, with nothing to say which a new
@@ -62,7 +62,7 @@ const RULES: Rule[] = [
     id: 'class-prefix',
     mode: 'zero',
     rule: '.claude/rules/styling.md — every class is `su-*`',
-    fix: 'Rename the class to `su-<name>`, keeping its family word (`su-wiz-*`, `su-sheet-*`; the Play canvas is `su-dash-*`), in the stylesheet and in every className, test and comment that names it.',
+    fix: 'Rename the class to `su-<name>`, keeping its family word (`su-wiz-*`, `su-sheet-*`; the Play canvas is `su-play-*`), in the stylesheet and in every className, test and comment that names it.',
   },
 ]
 

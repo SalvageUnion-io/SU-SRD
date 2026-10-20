@@ -137,7 +137,7 @@ describe("the phone form's scrollbar does not flip the form back (ADR-045 §7)",
   })
 
   test('PlayCanvas settles on the phone form and stays there', () => {
-    const phoneShowing = () => document.querySelector('.su-dash-phone') !== null
+    const phoneShowing = () => document.querySelector('.su-play-root--phone') !== null
     // Each width read past this many means the forms are flipping: fail
     // instead of looping forever.
     let reads = 0

@@ -4,7 +4,7 @@
  * Only what a style object cannot say lives here (ADR-046): rules over
  * descendants. The layout's own rules are `play/phone.css`.
  *
- * `.su-dash-phone` scopes the phone form: the host `PlayCanvas` renders below
+ * `.su-play-root--phone` scopes the phone form: the host `PlayCanvas` renders below
  * its floor.
  */
 
@@ -19,17 +19,17 @@
  * hit area instead, as a Mini control does under a coarse pointer
  * (`partials/pointer-motion.css`).
  */
-.su-dash-phone
+.su-play-root--phone
 :is(button, a[href], [role='button'], [role='tab'], summary):not([data-chip-group] *) {
   min-height: var(--size-full);
   min-width: var(--size-full);
 }
 
-.su-dash-phone [data-chip-group] :is(button, a[href], [role='button']) {
+.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button']) {
   position: relative;
 }
 
-.su-dash-phone [data-chip-group] :is(button, a[href], [role='button'])::after {
+.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button'])::after {
   content: '';
   height: max(100%, var(--size-full));
   left: 50%;

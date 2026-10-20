@@ -71,7 +71,7 @@ test('a Game made in Play: invite, join, a pilot moved in from the Hangar, then 
     await expect(launch.getByRole('radio', { name: PILOT })).toBeVisible({ timeout: 20_000 })
     await launch.getByRole('button', { name: 'Play', exact: true }).click()
     await player.page.waitForURL(/\/play\/(?!games\/)[^/]+$/, { timeout: 20_000 })
-    await expect(player.page.locator('.su-dash-root header h1')).toBeVisible({ timeout: 30_000 })
+    await expect(player.page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
   } finally {
     await player.context.close()
   }

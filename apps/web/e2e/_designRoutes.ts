@@ -250,7 +250,7 @@ async function open(page: Page, route: DesignRoute, path: string): Promise<void>
   if (DESIGN_FAMILIES[route.family] === 'play') {
     await page.goto(path)
     await waitForReady(page)
-    await expect(page.locator('.su-dash-root header h1')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
   } else {
     await page.goto(path, { waitUntil: 'networkidle' })
     if (path.startsWith(`${BASE}/`)) await waitForReady(page)
@@ -293,12 +293,12 @@ export async function walkDesignRoutes(
         .filter(Boolean)
         .join(', ')
       const where = `${route.family} ${route.path} at ${width}${state ? `, ${state}` : ''}`
-      const tabs = page.locator('.su-dash-phone [role="tab"]')
+      const tabs = page.locator('.su-play-root--phone [role="tab"]')
       const play = DESIGN_FAMILIES[route.family] === 'play'
       if (play && width === 'phone') {
         await expect(tabs.first(), `${where}: Play draws its phone form`).toBeVisible()
       }
-      const phonePlay = play && (await page.locator('.su-dash-phone').count()) > 0
+      const phonePlay = play && (await page.locator('.su-play-root--phone').count()) > 0
       if (phonePlay) {
         await expect(tabs.first(), `${where}: the phone form shows its tabs`).toBeVisible()
         for (const name of await tabs.allTextContents()) {

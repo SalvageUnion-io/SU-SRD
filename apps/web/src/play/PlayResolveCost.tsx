@@ -12,7 +12,7 @@ import { ActivationCost, cn, Radio, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import type { ResolveModel } from './useActionsDeck'
 
-const CHOICE_LABEL = cn('su-dash-deck-cost-choice-lab', capsLabel())
+const CHOICE_LABEL = cn('su-play-deck-cost-choice-lab', capsLabel())
 
 const SPEND = {
   display: 'flex',
@@ -59,14 +59,14 @@ export function ResolveCost({
   return (
     <>
       {currencyChoice && (
-        <fieldset className="su-dash-deck-cost-choice">
+        <fieldset className="su-play-deck-cost-choice">
           {/* One choice, the one `Radio` (hard rule R15): `bare`, as the
               fieldset already frames the pair. */}
           <legend className={CHOICE_LABEL}>Pay with</legend>
           <Radio
             bare
             label={`${currencyChoice.epCost} EP`}
-            name="su-dash-deck-currency"
+            name="su-play-deck-currency"
             checked={currencyChoice.currency === 'EP'}
             disabled={currencyChoice.activated}
             onChange={() => currencyChoice.onCurrency('EP')}
@@ -74,7 +74,7 @@ export function ResolveCost({
           <Radio
             bare
             label={`${currencyChoice.epCost} AP`}
-            name="su-dash-deck-currency"
+            name="su-play-deck-currency"
             checked={currencyChoice.currency === 'AP'}
             disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
             onChange={() => currencyChoice.onCurrency('AP')}
@@ -83,7 +83,7 @@ export function ResolveCost({
       )}
 
       {variableHot && (
-        <div className="su-dash-deck-hotx">
+        <div className="su-play-deck-hotx">
           {/* The sheet's own stepper (`Stat` in Edit): X's cell and its − / +. */}
           <Stat
             label="Hot"
@@ -95,8 +95,8 @@ export function ResolveCost({
           />
           <span
             className={cn(
-              'su-dash-deck-hotx-proj',
-              variableHot.over && 'su-dash-deck-hotx-proj--over'
+              'su-play-deck-hotx-proj',
+              variableHot.over && 'su-play-deck-hotx-proj--over'
             )}
           >
             {variableHot.projText}

@@ -56,7 +56,7 @@ export async function openPlay(page: Page, path: string, { dice = false } = {}):
   await gotoStable(page, path)
   await waitForReady(page)
   await socket
-  await expect(page.locator('.su-dash-root header h1')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
   if (dice) await page.evaluate(seedDice)
 }
 
@@ -127,7 +127,7 @@ export async function board(page: Page, mech: string): Promise<void> {
 
 /** Which form the screen drew: the 1280 × 800 canvas, or the phone's tabs. */
 async function formOf(page: Page): Promise<'canvas' | 'phone'> {
-  return (await page.locator('.su-dash-phone').count()) > 0 ? 'phone' : 'canvas'
+  return (await page.locator('.su-play-root--phone').count()) > 0 ? 'phone' : 'canvas'
 }
 
 /**
