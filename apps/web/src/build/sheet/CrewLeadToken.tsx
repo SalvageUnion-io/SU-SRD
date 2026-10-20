@@ -4,12 +4,13 @@
  * level 2 and is a Token (N1), never a titled box (N5).
  *
  * The head is the NPC's: its name (the role it holds stamped before it once it
- * has a name of its own, as a player unit's note is) and its HP, live in Read
- * (`HP | 3/4`); it Peeks the bay's crew NPC, or opens a built NPC's sheet. The
- * body is what the sheet tracks about them: Keepsake, Motto, Detail and Facts
- * (`NpcLines`), each left out in Read when empty. In Edit the body holds their
- * fields, led by the name and HP, which a head that is a Peek trigger cannot
- * hold; the head then drops its HP chip, the stepper's reading being the one.
+ * has a name of its own, as a player unit's note is) and its HP, always in the
+ * head (owner, 2026-10-20): live in Read (`HP | 3/4`), and in Edit the HP
+ * stepper in the head's uses slot (C8), as a sheet item's Uses, so the name
+ * alone is the Peek trigger. It Peeks the bay's crew NPC, or opens a built
+ * NPC's sheet. The body is what the sheet tracks about them: Keepsake, Motto,
+ * Detail and Facts (`NpcLines`), each left out in Read when empty; in Edit
+ * their fields, led by the name, which a head cannot hold.
  *
  * Handler absence is the read-only encoding, as on `NpcLines`.
  */
@@ -18,7 +19,7 @@ import { useMemo } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityMode, EntityRowModel } from '../../components/index'
-import { Entity } from '../../components/index'
+import { Entity, Stat } from '../../components/index'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
 
@@ -36,7 +37,7 @@ type CrewSource =
   | { entity: RefMetaEntity; model?: never }
   | { model: EntityRowModel; entity?: never }
 
-/** The head's chips: HP read live, or left to the body's stepper while it writes. */
+/** The head's chips: HP read live, or left to the head's stepper (its uses slot) while it writes. */
 function crewHead(
   model: EntityRowModel,
   {
@@ -86,6 +87,22 @@ export function CrewLeadToken(props: CrewLeadTokenProps) {
         instance={instance}
         mode={mode}
         peekAt={peekAt}
+        {...(editing && maxHp > 0
+          ? {
+              uses: (
+                <Stat
+                  orientation="horizontal"
+                  label="HP"
+                  value={hp}
+                  max={maxHp}
+                  size="compact"
+                  mode="edit"
+                  onChange={onHpChange}
+                  stepperLabel={`${bayName} crew HP`}
+                />
+              ),
+            }
+          : {})}
         body={{ text: false, children: <NpcLines {...props} identity /> }}
       />
     </div>

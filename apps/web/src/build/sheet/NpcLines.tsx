@@ -7,7 +7,8 @@
  * Role, Keepsake and Motto read as `Stat`s with text values (ruleset §3.7),
  * Detail as prose, Facts in the one chip well (`ChipListEditor`). In Edit each
  * one to write is a `Field` in its edit state (its label over the value box
- * a press opens), and HP its stepper.
+ * a press opens). HP is never here: a crew lead's is in its Token's head
+ * (`CrewLeadToken`), a built NPC's in its sheet's vital gauge.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
@@ -128,22 +129,19 @@ function NpcReading({ label, value }: { label: string; value: string }) {
 
 /**
  * A crew lead's id lines: Keepsake and Motto, Detail, Facts, each left out in
- * Read when empty. With `identity` the name and HP lead them, for a head that
- * holds no field (a crew lead's contentful Token, `CrewLeadToken`): each one
- * only while it can be written, since in Read that head shows both.
+ * Read when empty. With `identity` the name leads them, for a head that holds
+ * no field (a crew lead's contentful Token, `CrewLeadToken`): only while it can
+ * be written, since in Read that head shows it. HP rides that head in both.
  */
 export function NpcLines({
   bayName,
   title,
   name,
-  hp,
-  maxHp,
   keepsake,
   motto,
   detail,
   facts,
   onNameChange,
-  onHpChange,
   onKeepsakeChange,
   onMottoChange,
   onDetailChange,
@@ -151,7 +149,7 @@ export function NpcLines({
   identity = false,
   role = '',
 }: NpcLinesProps & {
-  /** Lead with the name and HP fields (the head they would sit on holds no field). */
+  /** Lead with the name field (the head it would sit on holds no field). */
   identity?: boolean
   /** Its role, read-only (a built NPC's own sheet, whose band carries no role chip). */
   role?: string
@@ -159,15 +157,13 @@ export function NpcLines({
   // Read leaves an empty field out: a row prints when it can be written or has
   // something to read.
   const showName = identity && onNameChange !== undefined
-  const showHp = identity && onHpChange !== undefined && maxHp > 0
   const showRole = role.trim() !== ''
   const showKeepsake = onKeepsakeChange !== undefined || keepsake.trim() !== ''
   const showMotto = onMottoChange !== undefined || motto.trim() !== ''
   const showDetail = onDetailChange !== undefined || detail.trim() !== ''
   const showFacts = onFactsChange !== undefined || facts.length > 0
-  if (!(showName || showHp || showRole || showKeepsake || showMotto || showDetail || showFacts))
-    return null
-  // Keepsake and Motto SHARE a row (as Name and HP do): both are one short
+  if (!(showName || showRole || showKeepsake || showMotto || showDetail || showFacts)) return null
+  // Keepsake and Motto SHARE a row: both are one short
   // phrase, and each taking a full 44px row of its own made a four-row inset
   // out of two lines of content. Detail and Facts keep their own rows — they
   // grow.
@@ -181,20 +177,6 @@ export function NpcLines({
           ariaLabel={`${bayName} crew name`}
           placeholder={title}
         />
-      )}
-      {showHp && (
-        // The Stat names itself.
-        <div style={ROW}>
-          <Stat
-            orientation="horizontal"
-            label="HP"
-            value={hp}
-            max={maxHp}
-            size="compact"
-            mode="edit"
-            onChange={onHpChange}
-          />
-        </div>
       )}
       {showRole && <NpcReading label="Role" value={role} />}
       {showKeepsake &&

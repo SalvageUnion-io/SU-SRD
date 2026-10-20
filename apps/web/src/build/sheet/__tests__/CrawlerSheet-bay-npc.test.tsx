@@ -259,9 +259,9 @@ describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
     expandCards()
 
     const inset = screen.getByLabelText('Command Bay crew lead')
-    // Crew HP is an editable value box (starts full at 4/4, max 4); its steppers
-    // adjust it by 1. Decrementing from 4 persists npcCurrentHP: 3.
-    const decrease = within(inset).getByRole('button', { name: 'Decrease HP' })
+    // Crew HP is a stepper in the Token's head (starts full at 4/4, max 4); it
+    // adjusts it by 1. Decrementing from 4 persists npcCurrentHP: 3.
+    const decrease = within(inset).getByRole('button', { name: 'Decrease Command Bay crew HP' })
     await act(async () => {
       fireEvent.click(decrease)
     })
@@ -285,21 +285,26 @@ describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
     expect(crewToken('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
   })
 
-  test('Edit puts the fields in the Token body, never in its head', async () => {
+  test('Edit puts the fields in the Token body, and HP in its head', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
     const head = crewToken('Dax Orsund')
-    expect(head.getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
-    // The head is a Peek trigger: it holds no control, and leaves HP to the stepper.
-    expect(head.querySelector('button, input, textarea')).toBeNull()
-    expect(head.textContent).not.toContain('4/4')
+    // The name alone is the Peek trigger; the head's HP stepper sits beside it.
+    expect(head.querySelector('[data-peek]')?.getAttribute('data-peek')).toBe(
+      'crawler-bays:command-bay/npc'
+    )
+    expect(head.querySelector('input, textarea')).toBeNull()
+    expect(head.textContent).toContain('4/4')
+    expect(
+      within(head as HTMLElement).getByRole('button', { name: 'Decrease Command Bay crew HP' })
+    ).toBeTruthy()
     const body = screen
       .getByLabelText('Command Bay crew lead')
       .querySelector('.su-entity-token__body') as HTMLElement
     for (const field of ['name', 'keepsake', 'motto', 'detail']) {
       expect(within(body).getByLabelText(`Edit command bay crew ${field}`)).toBeTruthy()
     }
-    expect(within(body).getByRole('button', { name: 'Decrease HP' })).toBeTruthy()
+    expect(within(body).queryByRole('button', { name: /HP$/ })).toBeNull()
     expect(within(body).getByLabelText('Add Command Bay crew fact')).toBeTruthy()
   })
 })
