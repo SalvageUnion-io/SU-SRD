@@ -29,7 +29,6 @@ export const font = {
  * `space[8]` is 8px.
  */
 export const space = {
-  0: '0px',
   2: '2px',
   4: '4px',
   6: '6px',
@@ -148,7 +147,7 @@ export const widthAtLeast = (rung: keyof typeof breakpoint): string =>
  * 10 and 10.5px) were retired into `badge`, and `bun run check styling`
  * (tokens/type-floor) rejects any smaller size, by name or by literal.
  *
- * The second block is the INHERITED rungs: the stock `text-xs` … `text-3xl`
+ * The second block is the INHERITED rungs: the stock `text-xs` … `text-2xl`
  * rungs at their rem values (theme.css declares them), so they scale with the
  * reader's font size.
  *
@@ -180,7 +179,6 @@ export const fontSize = {
   lg: '1.125rem',
   xl: '1.25rem',
   '2xl': '1.5rem',
-  '3xl': '1.875rem',
 } as const
 
 /** Font weights in use. Barlow ships the whole range; these are the rungs used. */
@@ -212,8 +210,8 @@ export const tracking = {
  *   badge  the stamp-chip family
  *   card   everything that frames or floats and is no entity: a button,
  *          field, box, dialog, popup, toast, pick card
- *   none   entity frames and stamps are square
- *   full   pills and circles
+ *
+ * Entity frames and stamps are square: they set no radius.
  *
  * The radius ladder is a *closed* role vocabulary: 3px is `card`, the one
  * rounding for a frame; there is no second (`tokens/radius-panel`, hard rule
@@ -223,8 +221,6 @@ export const radius = {
   pip: '1px',
   badge: '2px',
   card: '3px',
-  none: '0px',
-  full: '9999px',
 } as const
 
 /**
@@ -312,8 +308,6 @@ const base = {
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */
   ink60: 'rgb(40 32 25 / 0.6)',
-  /** MechChassisStep's Custom-build card border. */
-  ink55: 'rgb(40 32 25 / 0.55)',
   ink50: 'rgb(40 32 25 / 0.5)',
   ink40: 'rgb(40 32 25 / 0.4)',
   /** SlabSection's fold square. */

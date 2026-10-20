@@ -321,9 +321,9 @@ const TOGGLE_STYLE = {
   gap: space[8],
   minWidth: 0,
   maxWidth: '100%',
-  margin: space[0],
-  padding: space[0],
-  borderWidth: space[0],
+  margin: 0,
+  padding: 0,
+  borderWidth: 0,
   borderRadius: radius.card,
   background: 'none',
   color: 'inherit',
@@ -347,7 +347,7 @@ const ENTRY_STYLE = { marginBottom: space[6] } satisfies CSSProperties
 const RAIL_OMIT = ['tech-level'] as const
 
 const EMPTY_STYLE = {
-  margin: space[0],
+  margin: 0,
   fontFamily: font.body,
   fontSize: fontSize.xs,
   color: color.wkMuted,

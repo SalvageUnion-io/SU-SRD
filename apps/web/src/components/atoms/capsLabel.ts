@@ -36,8 +36,7 @@ import { cn } from '../../lib/cn'
  * deliberately"), not a constant.
  *
  * The `size` axis carries only rungs of the **semantic** type ladder. Sites
- * currently on the inherited rem scale (`text-xs`, `text-sm`, `text-lg`,
- * `text-3xl`) are deliberately NOT expressible here — moving `text-sm` (14px) to
+ * currently on the inherited rem scale (`text-xs`, `text-sm`, `text-lg`) are deliberately NOT expressible here — moving `text-sm` (14px) to
  * `text-caption` (13px) is a per-site design call, not a rename, so those sites
  * keep their own size class until someone rules on each one. `size` has no
  * default for the same reason a `Badge` chip supplies its own: omit it and the

@@ -313,7 +313,7 @@ const TOKEN_RULES: TokenRule[] = [
     id: 'raw-radius',
     mode: 'zero',
     rule: 'ruleset §4.4 — square entity frames, 3px for everything that frames or floats (R13)',
-    fix: 'Use `radius.card` / `var(--radius-card)` (3px: a button, field, Box, dialog, popup, toast), `calc(var(--radius-card) - <frame>)` inside a frame, `radius.none` for an entity frame or stamp, `radius.full` for a pill or circle; `pip` and `badge` for those two.',
+    fix: 'Use `radius.card` / `var(--radius-card)` (3px: a button, field, Box, dialog, popup, toast), `calc(var(--radius-card) - <frame>)` inside a frame; an entity frame or stamp sets none (square); `pip` and `badge` for those two.',
     pattern: declaration(
       'border(?:-(?:top|bottom|start|end)-(?:left|right|start|end))?-radius',
       'border(?:Top|Bottom|Start|End)?(?:Left|Right|Start|End)?Radius'
@@ -328,7 +328,7 @@ const TOKEN_RULES: TokenRule[] = [
     // and a doc page's aside wore it while every other frame was 3px. Its
     // token is deleted; this keeps a spelling of it from coming back, in a
     // style object or as a stylesheet's custom property.
-    fix: 'Use `radius.card` / `var(--radius-card)` (3px): a frame that is no entity (a Box, a pick card, a dialog, a button) is 3px; an entity frame or stamp is `radius.none`.',
+    fix: 'Use `radius.card` / `var(--radius-card)` (3px): a frame that is no entity (a Box, a pick card, a dialog, a button) is 3px; an entity frame or stamp sets none (square).',
     pattern: /\bradius\.panel\b|--radius-panel(?![\w-])/g,
   },
   {
