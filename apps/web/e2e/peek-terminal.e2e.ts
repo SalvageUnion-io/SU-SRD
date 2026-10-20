@@ -8,7 +8,10 @@ import { expect, test } from '@playwright/test'
  *
  * - `control`: a button, a link (`a[href]`), a field (`input`, `select`,
  *   `textarea`), a `role="button"` or `role="link"`, or anything else in the
- *   tab order: nothing on a Peek acts.
+ *   tab order: nothing on a Peek acts, but its name.
+ * - `open`: the one exception (owner's call, 2026-10-20: "linked names"), the
+ *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
+ *   at most one, in the plate's first head's title, out of the tab order.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.
  * - `inert`: a chip (a trait or relation Tag, an action's chip, a Token's
  *   head) that still draws the pointer: on the plate it reads, and only reads.
@@ -122,7 +125,16 @@ function scanPlate(): string[] {
     '[contenteditable="true"]',
     '[tabindex]:not([tabindex="-1"])',
   ].join(',')
-  for (const el of plate.querySelectorAll(controls)) out.push(`control: ${what(el)}`)
+  for (const el of plate.querySelectorAll(controls)) {
+    if (!el.hasAttribute('data-peek-open')) out.push(`control: ${what(el)}`)
+  }
+  const opens = [...plate.querySelectorAll('[data-peek-open]')]
+  if (opens.length > 1) out.push(`open: ${opens.length} linked names, not one`)
+  const title = plate.querySelector('.su-entity-row__head .su-entity-row__title')
+  for (const el of opens) {
+    if (!title?.contains(el)) out.push(`open: ${what(el)} is not the card's name`)
+    if (el.getAttribute('tabindex') !== '-1') out.push(`open: ${what(el)} is in the tab order`)
+  }
   for (const el of plate.querySelectorAll('[data-peek]')) {
     out.push(`nested: ${what(el)} Peeks ${el.getAttribute('data-peek')}`)
   }

@@ -87,7 +87,7 @@ describe('PeekHost', () => {
     expect(navigate).not.toHaveBeenCalled()
   })
 
-  test('a Peek never nests: nothing inside it is a trigger', async () => {
+  test('a Peek never nests: nothing inside it is a trigger, and only its name links', async () => {
     // A system's card carries trait Tags, which Peek everywhere but here.
     const drill = refOf('systems', 'Salvaging Drill')
     render(<Page entityRef={drill} label="Salvaging Drill" />)
@@ -95,7 +95,9 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Salvaging Drill'))
     expect(peek.querySelector('[data-peek]')).toBeNull()
-    expect(peek.querySelector('a, button')).toBeNull()
+    // Its one link is its name, to its Page, out of the tab order (R33).
+    expect(peek.querySelector('a:not([data-peek-open]), button')).toBeNull()
+    expect(peek.querySelector('[data-peek-open]')?.getAttribute('tabindex')).toBe('-1')
   })
 
   test('a Token is a trigger: hovering or focusing it shows its whole card', async () => {

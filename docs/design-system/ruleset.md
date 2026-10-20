@@ -30,7 +30,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
       Nothing edits or expands in place; art by room (EDL E10).
       An SRD index draws Tiles (`form="tile"`, EDL E2).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
-      Terminal: no buttons, links, nested Peeks or steppers; level 1 on its plate (EDL E6, E16, E19).
+      Terminal: no buttons, links (but its name's, to its Page), nested Peeks or steppers; level 1 on its plate (EDL E6, E16, E19).
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
       The body starts under the band at any length (a short page is never centred); level-1 blocks sit one 12px gap apart.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).

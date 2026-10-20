@@ -9,7 +9,11 @@
 
 import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
-import type { CardTitleTag, ReferenceCardEntity } from './referenceEntityCardTypes'
+import type {
+  CardTitleTag,
+  ReferenceCardEntity,
+  ReferenceEntityCardHideConfig,
+} from './referenceEntityCardTypes'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
@@ -127,4 +131,40 @@ export function choiceRendersNothing(
 /** A content block's plain text, or '' for anything that is not plain prose. */
 export function blockPlainText(b: RefObjectContentBlock): string {
   return b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
+}
+
+/**
+ * What a card hides. CATALOG — the SRD index tile — keeps artwork and
+ * description ONLY, so every nested element is suppressed here, not at each
+ * call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing
+ * acts, so the roll-table controls go too (the link and the nested Tokens
+ * are handled where they render).
+ */
+export function resolveHide(
+  hideProp: ReferenceEntityCardHideConfig | undefined,
+  isCatalog: boolean,
+  insidePeek: boolean
+): ReferenceEntityCardHideConfig | undefined {
+  const base = isCatalog ? { ...hideProp, actions: true, choices: true, patterns: true } : hideProp
+  return insidePeek ? { ...base, rollTable: true } : base
+}
+
+/** Where a card stands, for whether its name links (`namesOwnPage`). */
+type CardPlace = {
+  onPage: boolean
+  depth: number
+  insidePeek: boolean
+  /** A pattern view: its pattern row links instead. */
+  pattern: boolean
+  /** The card is itself a control (a click, a select, a pick's role). */
+  interactive: boolean
+}
+
+/**
+ * Whether a card names its own Page (`CardTitleLink`): one met inside another,
+ * nested (depth > 0) or the Peek's own card, and not itself a control.
+ */
+export function namesOwnPage({ onPage, depth, insidePeek, pattern, interactive }: CardPlace) {
+  if (onPage || pattern || interactive) return false
+  return insidePeek ? depth === 0 : depth > 0
 }

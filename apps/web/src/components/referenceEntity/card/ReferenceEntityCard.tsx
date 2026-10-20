@@ -15,7 +15,7 @@ import {
   resolveActivationCurrency,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
-import { fontSize, space } from '../../../design/tokens'
+import { space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
@@ -36,6 +36,7 @@ import { CardHead } from './CardHead'
 import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
+import { CardTitleLink } from './CardTitleLink'
 import type { CardBodyInput } from './cardBodyProse'
 import { resolveBodyProse } from './cardBodyProse'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './cardCells'
@@ -49,7 +50,13 @@ import {
   resolveHeaderHint,
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
-import { chassisTokenName, MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
+import {
+  chassisTokenName,
+  MAX_DEPTH,
+  namesOwnPage,
+  resolveHide,
+  sectionHeadingLevel,
+} from './cardHelpers'
 import { resolveCardSections } from './cardSections'
 import { cardStripSlots } from './cardStrip'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
@@ -59,7 +66,7 @@ import {
   resolveCardTone,
   resolveSeamLabel,
   resolveTierNumeral,
-  titleSizeRung,
+  resolveTitleSize,
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
 import { HeadToken } from './HeadToken'
@@ -73,7 +80,6 @@ import { resolveFooterProvenance } from './provenance'
 import type {
   ActionFields,
   ReferenceCardEntity,
-  ReferenceEntityCardHideConfig,
   ReferenceEntityCardProps,
 } from './referenceEntityCardTypes'
 import { stripHostParenthetical } from './stripHostParenthetical'
@@ -114,31 +120,6 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * Sections that nest cards receive this card as `NestedCard`, never importing
  * it, so no section module imports back into this one.
  */
-
-/**
- * What a card hides. CATALOG — the SRD index tile — keeps artwork and
- * description ONLY, so every nested element is suppressed here, not at each
- * call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing
- * acts, so the roll-table controls go too (the link and the nested Tokens
- * are handled where they render).
- */
-function resolveHide(
-  hideProp: ReferenceEntityCardHideConfig | undefined,
-  isCatalog: boolean,
-  insidePeek: boolean
-): ReferenceEntityCardHideConfig | undefined {
-  const base = isCatalog ? { ...hideProp, actions: true, choices: true, patterns: true } : hideProp
-  return insidePeek ? { ...base, rollTable: true } : base
-}
-
-/**
- * The title's type step: by size, stepping down with depth (`titleSizeClass`). The ink
- * banner's large title sits a rung under the tone header's (board E1).
- */
-function resolveTitleSize(fill: HeaderFill, depth: number, size: CardSize) {
-  const ladderTitle = titleSizeRung(depth, size)
-  return fontSize[fill === 'ink' && ladderTitle === 'displayLg' ? 'display' : ladderTitle]
-}
 
 /**
  * What leads a page's prose column: any `subtitleExtra`, then a "Suggested"
@@ -430,11 +411,19 @@ function ReferenceEntityCardInner({
   // its own word. A Token (level 2) is ring only.
   const seal = selected ? <SelectedSeal word={selectionSeal} /> : undefined
 
+  // A card met inside another names its own Page: its name links (`CardTitleLink`).
+  const interactive = !!(onCardClick || cardClickable || selectable || selectionRole)
+  const place = { onPage, depth: depthProp, insidePeek, pattern: isPattern, interactive }
+  const titleContent = namesOwnPage(place) ? (
+    <CardTitleLink entity={entity} title={name} inPeek={insidePeek} />
+  ) : undefined
+
   // Every card wears the cut-out head; a Page has its chapter band.
   const header = (
     <CardHead
       cutOut={!onPage}
       title={name}
+      titleContent={titleContent}
       kind={kind}
       fill={fill}
       titleAs={titleAs}

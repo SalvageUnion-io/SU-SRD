@@ -5,6 +5,8 @@ import { EntityCardHeader } from './EntityCardHeader'
 type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
   /** The Row's head in place of the flush band (every framed card: `ReferenceEntityCard`'s `cutOut`). */
   cutOut: boolean
+  /** The name as a link to its own Page (`CardTitleLink`). Cut-out only. */
+  titleContent?: ReactNode
   /** The card's controls: its chip group's last slot (C8, hard rule R6). Cut-out only. */
   controls?: ReactNode
   /** Select mode's seal, on the band's right (EDL Modes, R15). Cut-out only. */
@@ -19,11 +21,12 @@ type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
  * on the paper cut-out; unlike a Row's, its chips (a crew NPC's HP) stay on
  * the band right of it and wrap there.
  */
-export function CardHead({ cutOut, controls, affordance, ...band }: CardHeadProps) {
+export function CardHead({ cutOut, controls, affordance, titleContent, ...band }: CardHeadProps) {
   if (!cutOut) return <EntityCardHeader {...band} />
   return (
     <Head
       title={band.title}
+      titleContent={titleContent}
       kind={band.kind}
       titleAs={band.titleAs}
       paint={{

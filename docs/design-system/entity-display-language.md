@@ -22,7 +22,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 4. **Card** — the whole entity in place: head (title, labels — pills, HOMEBREW — and chips), prose, actions and children as Tokens (E6), table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, the app's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
    Ability trees and pattern rows clear the art; a stack spans the column, 52rem with no art; a phone stacks the art above.
-6. **Peek** — a compact Card, read-only, level 1 on its plate: children as Tokens (E6). A Mention or trait chip carries only `data-peek`; one `PeekHost` per app opens it, lazily.
+6. **Peek** — a compact Card, read-only, level 1 on its plate: children as Tokens (E6). Triggers bear `data-peek`; one lazy `PeekHost` per app opens it.
 
 ## Modes
 
@@ -44,7 +44,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page (form 5): no new-tab `window.open`.
 - **E6** Three levels (N1): 0 the page box (Page, dialog, wizard step, Peek plate); 1 compact Rows or Cards; 2 Tokens only.
-  Nothing titled at level 2 or deeper; a Token nests nothing (deeper is its link or Peek).
+  Nothing titled at level 2 or deeper; a Token nests nothing (deeper is its link or Peek). Nested Card and Peek names link.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
 - **E9** Facts and traits are chips (horizontal Stats; traits link), sections Slabs. Citations are text on every foot, one line (ruleset Source 2); no foot names the kind (a mech sheet's CHASSIS chip does); stamps that say more stay.

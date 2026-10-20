@@ -10,7 +10,9 @@ import {
   schemaDomain,
   tierNumeral,
 } from 'salvageunion-reference'
+import { fontSize } from '../../../design/tokens'
 import type { CardSize } from '../../containers/displayMode'
+import type { HeaderFill } from './cardChrome'
 /** The six card domains + `action` — the entity model's (`EntityDomain`). */
 export type CardDomain = EntityDomain
 
@@ -156,6 +158,15 @@ export function titleSizeRung(depth: number, size: CardSize = 'full'): TitleRung
   const rung = Math.max(depth, 0, SIZE_LADDER_OFFSET[size])
   const index = Math.min(rung, TITLE_SIZE_LADDER.length - 1)
   return TITLE_SIZE_LADDER[index] ?? 'badge'
+}
+
+/**
+ * The title's type step: by size, stepping down with depth (`titleSizeClass`). The ink
+ * banner's large title sits a rung under the tone header's (board E1).
+ */
+export function resolveTitleSize(fill: HeaderFill, depth: number, size: CardSize) {
+  const ladderTitle = titleSizeRung(depth, size)
+  return fontSize[fill === 'ink' && ladderTitle === 'displayLg' ? 'display' : ladderTitle]
 }
 
 /**
