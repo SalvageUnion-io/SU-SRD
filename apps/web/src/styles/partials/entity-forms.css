@@ -1134,7 +1134,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    facets, traits), which a narrow pill cannot hold on one line. Its chips
    wrap beside the name instead, flush right, the cost in the corner, every
    chip whole; the name keeps at least min(9rem, 40%) of the pill, ending in
-   "…" below that. */
+   "…" below that. The strip never shrinks under its widest chip (a crew
+   lead's HP stepper, a chip that cannot wrap): the name gives way first. */
 .su-entity-token[data-contentful] .su-entity-token__chips {
   align-self: flex-end;
   flex: 0 1 auto;
@@ -1142,6 +1143,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex-wrap: wrap-reverse;
   justify-content: flex-start;
   max-width: calc(100% - min(9rem, 40%));
+  min-width: min-content;
 }
 
 /* Its chips fill bottom-heavy (owner's call, 2026-10-19), as a Row's do (the
