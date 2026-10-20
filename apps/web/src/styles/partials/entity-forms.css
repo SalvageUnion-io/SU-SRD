@@ -791,8 +791,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 /* Its top edge rules the art off; a bare tile's frame is its top edge.
    The band: the tone, with the name's cut-out sitting on its foot. Its chips
    fill from its bottom right (`[data-chip-fill]`, the head's fill): the cost
-   in the corner beside the name, the rest leftward, and only what overfills
-   the name's line rises in lines over it, each from the right. */
+   in the corner beside the name, the rest leftward on the name's line; what
+   does not fit is the lead's first row, or +MORE (C2b). */
 .su-entity-tile__band {
   border-top: var(--bw-chrome) solid var(--color-ink);
   min-height: calc(2.1 * var(--text-title) + var(--space-12));
@@ -1039,9 +1039,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* A chip that left its head (C2b): its copy is the body's first row, or, on
-   a header-only head, +MORE stands for it. */
-[data-chip-fill] [data-fill-out],
-.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out] {
+   a header-only head, +MORE stands for it. A state the fit writes, so it
+   outranks every form's own `display` for its chips (a Tile's is three
+   classes deep): doubled attributes, as the state must win wherever it
+   lands. Drawn there too, a chip showed twice and stacked the head. */
+[data-chip-fill] [data-fill-out][data-fill-out][data-fill-out],
+.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out][data-fill-out] {
   display: none;
 }
 
@@ -1073,7 +1076,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
-.su-chip-more[hidden] {
+/* Hidden until a chip is out, over a form's own chip `display` (doubled, as above). */
+.su-chip-more[hidden][hidden][hidden] {
   display: none;
 }
 

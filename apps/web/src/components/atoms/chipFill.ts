@@ -249,8 +249,8 @@ function fitChipFill(container: HTMLElement): void {
   const widths = items.map((item) => outerWidth(item, room))
   const moreWidth = moreItem ? outerWidth(moreItem, room) : undefined
   const nameWidth = oneLineWidth(name)
-  // A head laid by CSS alone (a Page's band on a phone, its stamps over its
-  // title) sends nothing out; nor does one with nowhere to send it.
+  // A head laid by CSS alone (a Page's controls band on a phone, its
+  // controls over its title) sends nothing out; nor does one with nowhere to send it.
   // Nor does one not laid out (a closed tab): it fits once drawn.
   const routes = room > 0 && s.flexDirection === 'row-reverse' && (!!row || moreWidth !== undefined)
   // What this fit reads: the same again (its own writes resized the name or

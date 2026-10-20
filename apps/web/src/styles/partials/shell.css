@@ -718,41 +718,28 @@
   }
 }
 
-/* ON A PHONE, ABOVE THE TITLE (ruleset §4.7; owner's call, 2026-10-20): a
-   band's stamps and controls are never beside its title, so they are laid by
-   CSS alone, never by the fill's measure, and nothing moves when the script
-   lands (no layout shift). They read in source order on lines over the
-   title, flush right, the last (the cost, the action) at the right end of
-   the line on the title; the title takes the bottom line, all of it. */
+/* ON A PHONE, A PAGE'S CONTROLS ABOVE THE TITLE (ruleset §4.7; owner's call,
+   2026-10-20): a band's controls (the Training Bay's and a Game's buttons,
+   an index's search) are laid by CSS alone, never by the fill's measure, so
+   nothing moves when the script lands. They read in source order on lines
+   over the title, flush right; the title takes the bottom line, all of it.
+   A show page's stamps are chips, and fill beside the title as every head's
+   do, what does not fit the page's first row (C2b). */
 @media not (width >= 40rem) {
-  .su-chapter-band__row[data-chip-fill] {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
 
-  .su-chapter-band__row[data-chip-fill]::after {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill]::after {
     display: none;
   }
 
-  .su-chapter-band .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
     flex: 1 1 100%;
     margin-inline-end: 0;
     order: 2;
-  }
-
-  .su-chapter-band
-    .su-chapter-band__row[data-chip-fill]
-    :is(
-      [data-fill-item],
-      .su-chip-lane > *,
-      .su-cost,
-      .su-chapter-band__aside > *,
-      .su-rail > *,
-      .su-rail__facets > *
-    ) {
-    margin-block: var(--space-4);
-    order: 1;
   }
 
   .su-chapter-band[data-aside='controls']
@@ -766,9 +753,10 @@
       .su-rail__facets > *
     ) {
     margin-block: 0 var(--space-12);
+    order: 1;
   }
 
-  .su-chapter-band .su-chapter-band__row[data-chip-fill] [data-fill-corner] {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] [data-fill-corner] {
     max-width: 100%;
   }
 

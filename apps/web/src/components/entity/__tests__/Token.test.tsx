@@ -370,7 +370,7 @@ describe("a contentful Token's overflow row (C2b)", () => {
   test('a chip that left the head is not drawn there, and a hidden row takes no room', () => {
     expect(
       ruleOf(
-        '[data-chip-fill] [data-fill-out],\n.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out]'
+        '[data-chip-fill] [data-fill-out][data-fill-out][data-fill-out],\n.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out][data-fill-out]'
       )
     ).toContain('display: none;')
     expect(ruleOf('.su-chip-overflow[hidden]')).toContain('display: none;')

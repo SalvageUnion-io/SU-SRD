@@ -418,8 +418,8 @@ export function ChapterBand({
   )
   if (!fills) return root
   // What of its stamps does not fit beside the title: the page's first row,
-  // under the band (C2b). On a phone the band lays them over its title, by
-  // CSS alone, so nothing goes there.
+  // under the band (C2b). A controls band on a phone is laid by CSS alone,
+  // so nothing goes there.
   return (
     <>
       {root}

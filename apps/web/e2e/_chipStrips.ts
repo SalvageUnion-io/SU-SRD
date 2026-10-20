@@ -46,8 +46,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   name's line in a fill head, a contentful Token's chips on two lines), and
  *   a body's overflow row (`[data-chip-overflow]`) that is not its body's
  *   first row (right under its head, or first in a Token's body), not
- *   left-aligned, or holds the cost or the Tech Level. A Page's chapter band
- *   on a phone keeps its stamps and controls over its title, by CSS alone.
+ *   left-aligned, or holds the cost or the Tech Level.
  * - **more-contentful** a +MORE on a contentful rendering (a contentful
  *   Token, a head with an overflow row): its overflow is its body's first row.
  *
@@ -445,37 +444,16 @@ function scan({
       return mid > nameBox.top && mid < nameBox.bottom + 1
     }
     const corner = items[items.length - 1] as Element
-    // On a phone a Page's band lays its stamps and controls above its title
-    // (ruleset §4.7, owner's call 2026-10-20): every item over the name, the
-    // last at the right end of the lowest line, the lines flush right.
-    if (head.matches('.su-chapter-band__row') && window.innerWidth < 640) {
-      // An index's search and filters are the exception: under the title, on
-      // the page ground (owner's call 2026-10-20).
-      if (head.closest('[data-aside="controls"]')) {
-        const above = items.find((el) => box(el).top < nameBox.bottom - 1)
-        if (above) faults.push(`fill: ${where} "${describe(above)}" is not under the title`)
-        continue
-      }
-      const over = items.filter((el) => box(el).bottom > nameBox.top + 1)
-      const lowest = lines[lines.length - 1] as Element[]
-      if (over.length > 0) {
-        faults.push(
-          `fill: ${where} "${describe(over[0] as Element)}" is beside the title, not above it`
-        )
-      } else if (lowest[lowest.length - 1] !== corner) {
-        faults.push(
-          `fill: ${where} "${describe(corner)}" is not at the right end of the line over the title`
-        )
-      } else {
-        const ends = lines
-          .filter(
-            (l) => !(l.length === 1 && getComputedStyle(l[0] as Element).flexBasis === '100%')
-          )
-          .map((l) => Math.round(box(l[l.length - 1] as Element).right))
-        if (ends.length > 0 && Math.max(...ends) - Math.min(...ends) > 1) {
-          faults.push(`fill: ${where} lines end at ${ends.join(',')}, not flush right`)
-        }
-      }
+    // On a phone an index's search and filters follow its title, under the
+    // band on the page ground (owner's call 2026-10-20); a show page's stamps
+    // fill beside the title as every head's do.
+    if (
+      head.matches('.su-chapter-band__row') &&
+      head.closest('[data-aside="controls"]') &&
+      window.innerWidth < 640
+    ) {
+      const above = items.find((el) => box(el).top < nameBox.bottom - 1)
+      if (above) faults.push(`fill: ${where} "${describe(above)}" is not under the title`)
       continue
     }
     const nameLine = lines.find((l) => l.some(onName))
