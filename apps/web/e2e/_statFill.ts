@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test'
 
 /**
- * A stat grid fills its width (ruleset, "The source" 3): every `StatColumn` on the page,
- * whatever its stat count and however many columns its width gives it, draws
- * rows that each run edge to edge. A short last row's cells grow to share the
+ * A stat grid fills its width (ruleset, "The source" 3): every `StatColumn`
+ * on the page, whatever its stat count and however many columns its width
+ * gives it, draws rows that each run edge to edge. A short last row's cells grow to share the
  * line, so there is never an empty cell or a ragged edge.
  *
  * `measureStatColumns` reads the rendered boxes in the page and returns plain

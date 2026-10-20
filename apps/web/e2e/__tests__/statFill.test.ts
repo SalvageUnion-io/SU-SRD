@@ -1,7 +1,7 @@
 /**
- * The stat-grid fill check (`_statFill.ts`, ruleset "The source" 3) on hand-made boxes:
- * full rows and a stretched last row pass; a centred, a left-packed or a
- * content-sized row fails.
+ * The stat-grid fill check (`_statFill.ts`, ruleset "The source" 3) on
+ * hand-made boxes: full rows and a stretched last row pass; a centred, a
+ * left-packed or a content-sized row fails.
  */
 import { describe, expect, test } from 'bun:test'
 import type { StatColumnBoxes } from '../_statFill'
