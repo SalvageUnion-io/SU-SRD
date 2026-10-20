@@ -46,6 +46,35 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Source' })).toBeTruthy()
   })
 
+  it('with a band, the rail is its controls: search and filters on the band, over the listing', () => {
+    const { container } = render(
+      <SchemaViewerIsland
+        schemaId="systems"
+        band={{
+          title: 'Systems',
+          tone: 'mech',
+          trail: [
+            { name: 'Reference', url: '/' },
+            { name: 'Systems', url: '/systems/' },
+          ],
+        }}
+        techLevels={[1, 2, 3]}
+        sources={['Core', 'Rig']}
+      />
+    )
+
+    const band = required(container.querySelector<HTMLElement>('.su-chapter-band'), 'the band')
+    expect(within(band).getByRole('heading', { level: 1 }).textContent).toBe('Systems')
+    // The trail rides the title's cut-out, as the layout's does.
+    expect(within(band).getByRole('navigation', { name: 'Breadcrumb' })).toBeTruthy()
+    const rail = required(band.querySelector<HTMLElement>('.su-rail'), 'the rail on the band')
+    expect(within(rail).getByRole('searchbox', { name: 'Filter items by name' })).toBeTruthy()
+    expect(within(rail).getByRole('group', { name: 'Tech Level' })).toBeTruthy()
+    // One rail, and the listing under the band on the page ground.
+    expect(container.querySelectorAll('.su-rail')).toHaveLength(1)
+    expect(container.querySelector('.su-listing-page .su-listing .su-rail')).toBeNull()
+  })
+
   it('renders filter buttons when multiple tech levels exist', () => {
     const firstSchema = required(entitySchemas[0], 'first entity schema')
 

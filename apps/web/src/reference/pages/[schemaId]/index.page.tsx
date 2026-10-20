@@ -1,8 +1,8 @@
 /**
  * `/[schemaId]` — the per-schema listing page (`/chassis/`).
  *
- * Headed by its chapter's band (the schema's plural name notched in), then the
- * listing: the Catalog, one flat grid of Tiles with no group headings, at
+ * Headed by its chapter's band (the schema's plural name notched in, the
+ * listing's search and filters on it), then the listing: the Catalog, one flat grid of Tiles with no group headings, at
  * every width (`lib/listingView.ts`). The abilities open on their Tree
  * instead, each tree under its heading on its track, with Catalog | Tree in
  * the rail. Its footer wears the same chapter's band (the leading band's rule), as an entity page
@@ -20,7 +20,7 @@
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { getAssetUrl } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
-import { ChapterBand } from '../../../components/index'
+import type { ListingBand } from '../../../components/islands/ListingFrame'
 import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
 import { chapterForSchema } from '../../../lib/chapters'
 import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
@@ -30,7 +30,6 @@ import { listingEntries } from '../../../lib/listingEntries'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
 import { defaultGroups } from '../../../lib/listingGroups'
 import { CATALOG_LISTINGS, defaultListingView } from '../../../lib/listingView'
-import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
@@ -69,6 +68,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     view === 'tree'
       ? defaultGroups(data, trees, techLevels, schemaId)
       : [{ key: 'all', label: undefined, items: data }]
+  // The band is the island's, so its search and filters can sit on it.
+  const band: ListingBand = {
+    title: pluralName,
+    tone: chapter.tone,
+    trail: [
+      { name: SRD_CRUMB.name, url: '/' },
+      { name: pluralName, url: schemaHref(schemaId) },
+    ],
+  }
   const shape: ListingShape = {
     count: data.length,
     groups: groups.map(({ key, label, items }) => ({ key, label, count: items.length })),
@@ -100,37 +108,34 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     },
     children: (
       <div className="su-listing-shell">
-        {/* The chapter band is the visible heading: the plural name in the
-            notch. */}
-        <ChapterBand tone={chapter.tone} measure={PAGE_MEASURE}>
-          {pluralName}
-        </ChapterBand>
-        <div className="su-listing-page su-page-body">
-          <Island
-            name="SchemaViewerIsland"
-            client="interaction"
-            ssr
-            props={{
-              schemaId,
-              techLevels,
-              sources,
-              trees,
-              preloadSchemas,
-              hasArt,
-              shape,
-              entryIds,
-            }}
-          >
-            <SchemaViewerListing
-              schemaId={schemaId}
-              techLevels={techLevels}
-              sources={sources}
-              trees={trees}
-              hasArt={hasArt}
-              entryIds={entryIds}
-            />
-          </Island>
-        </div>
+        {/* The island draws the chapter band (the plural name in the notch,
+            the rail as its controls) and the listing under it. */}
+        <Island
+          name="SchemaViewerIsland"
+          client="interaction"
+          ssr
+          props={{
+            schemaId,
+            band,
+            techLevels,
+            sources,
+            trees,
+            preloadSchemas,
+            hasArt,
+            shape,
+            entryIds,
+          }}
+        >
+          <SchemaViewerListing
+            schemaId={schemaId}
+            band={band}
+            techLevels={techLevels}
+            sources={sources}
+            trees={trees}
+            hasArt={hasArt}
+            entryIds={entryIds}
+          />
+        </Island>
       </div>
     ),
   }

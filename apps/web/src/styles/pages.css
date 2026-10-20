@@ -309,6 +309,12 @@ a.su-home__discord:hover {
   min-height: 100%;
 }
 
+/* The island draws the band and the listing under it, so its placeholder is
+   no box of its own: the band and the page body are the shell's rows. */
+.su-listing-shell > [data-island] {
+  display: contents;
+}
+
 .su-listing-page {
   background-color: var(--color-wk-bg);
 }
@@ -682,6 +688,24 @@ a.su-home__discord:hover {
   .su-rail__status ~ .su-rail__spring {
     display: block;
   }
+}
+
+/* On a listing's band (its `controls`): the rail takes the room right of the
+   name, its controls at the band's end, and is its own line over the name
+   when that room is too narrow for it. */
+.su-chapter-band .su-rail {
+  flex: 1 1 0;
+  justify-content: flex-end;
+  min-width: min(100%, 36rem);
+}
+
+/* Narrower than on the page, so a Tech Level row and a menu fit beside it. */
+.su-chapter-band .su-rail .su-rail__search {
+  flex-basis: 12rem;
+}
+
+.su-chapter-band[data-ground='ink'] :is(.su-rail__status, .su-rail__tally) {
+  color: var(--color-paper);
 }
 
 @media print {
