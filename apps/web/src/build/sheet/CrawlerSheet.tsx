@@ -42,9 +42,8 @@
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
- *   - the Tech Level stepper slab — Tech Level itself still reads
- *     live via the economy band's TL lozenge (built by SheetCrawler); only
- *     the hand-edit stepper UI drops.
+ *   - the Tech Level stepper slab — Tech Level is the chapter band's TL
+ *     chip (built by SheetCrawler), its stepper on the chip in Edit.
  *   - the Scrap Pool slab + `ScrapPoolSlab` — the scrapPool DATA/
  *     logic (`scrapPoolBucket` / `addToScrapPool`) is KEPT: bay Repair below
  *     still spends from it, and the same helpers feed mech repair/retire

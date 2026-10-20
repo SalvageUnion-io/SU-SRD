@@ -1,7 +1,8 @@
 /**
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
- * Poster identity band: Tech Level + Type (Name too, in Edit), then the
+ * Poster identity band: Type (Name too, in Edit; Tech Level is the band's TL
+ * chip), then the
  * crawler type's special ability as a library Row (a Peek of its card; no
  * lead off an SRD index, EDL E11) beside the type's crew NPC, then the
  * Description panel.
@@ -23,8 +24,7 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
-import { Entity, Field, Stat, tokens } from '../../components/index'
+import { Entity, Field, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
@@ -39,22 +39,6 @@ const STACK = {
   minWidth: 0,
   flexDirection: 'column',
   gap: tokens.space[12],
-} satisfies CSSProperties
-
-/** Tech Level ∥ Type; the column template is `.su-sheet-crawler-identity-row` (it steps at sm). */
-const TYPE_ROW = {
-  display: 'grid',
-  alignItems: 'end',
-  columnGap: tokens.space[16],
-  rowGap: tokens.space[12],
-} satisfies CSSProperties
-
-/** Read's TL chip and type Token on one line, the chip as tall as the Token. */
-const TYPE_LINE = {
-  display: 'flex',
-  alignItems: 'stretch',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
 } satisfies CSSProperties
 
 type CrawlerIdentityPanelProps = {
@@ -89,11 +73,7 @@ export function CrawlerIdentityPanel({
   const canEdit = patch !== undefined && !readOnly
 
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
-  // Derived, never hand-set — the crawler's stored rung, read here beside the
-  // type rather than in the economy rail.
-  const techLevel = parseCrawlerTechLevel(crawler.techLevel)
   const abilities = resolveCrawlerTypeAbilities(crawler.type)
-  const tlValue = techLevel ?? '—'
   // Read names the type as its Token, which opens and Peeks it.
   const readType =
     !canEdit && type ? (
@@ -116,30 +96,14 @@ export function CrawlerIdentityPanel({
       <div style={STACK}>
         {/* The band already names the crawler, so Read never repeats it;
             Edit keeps the field to rename it, as a pilot's Name. Tech Level
-            sits to the LEFT of the type: the crawler's rung, read alongside
-            what kind of crawler it is. */}
+            is not here: it is the band's TL chip, beside the type's. */}
         {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
-        <div className="su-sheet-crawler-identity-row" style={TYPE_ROW}>
-          {/* A STAT, not a Field: the tech level is derived from the crawler's
-              stored rung and never typed into, so it reads as a `TL | 1` chip
-              like the mech's chassis stats — a field box implied an input.
-              Read sets it on the type's line, stretched to its Token's
-              height, so the two read as one pair of the same size. */}
-          {readType === null && <Stat label="TL" value={tlValue} />}
-          <Field
-            label="Type"
-            value={type?.name ?? ''}
-            readValue={
-              readType && (
-                <span style={TYPE_LINE}>
-                  <Stat label="TL" value={tlValue} />
-                  {readType}
-                </span>
-              )
-            }
-            onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
-          />
-        </div>
+        <Field
+          label="Type"
+          value={type?.name ?? ''}
+          readValue={readType}
+          onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
+        />
 
         {/* The type's INTERNALS, laid out directly in identity: no card frame
             around them. The ability and the crew sit side by side and fill the

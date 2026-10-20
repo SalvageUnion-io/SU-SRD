@@ -1,23 +1,5 @@
 /* The crawler sheet group's rules: only what a style object cannot express. */
 
-/* ── CrawlerIdentity: Tech Level ∥ Type, stacked on a phone. ── */
-.su-sheet-crawler-identity-row {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (width >= 40rem) {
-  .su-sheet-crawler-identity-row {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-}
-
-/* Edit's TL chip shares its line with the type picker, a Full field: it is
-   drawn that Size's height (one Size per line, §4.7). */
-.su-sheet-crawler-identity-row > .su-stat-cell {
-  box-sizing: border-box;
-  height: var(--size-full);
-}
-
 /* ── StorageManifest: the Hold beside its counterpart where its column is md
    wide (a container query: in the sheet's sidebar, it stacks). ── */
 .su-sheet-crawler-manifest {

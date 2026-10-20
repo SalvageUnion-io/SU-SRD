@@ -129,6 +129,12 @@ type LiveSheetProps = {
    */
   kindDetail?: BandStamp
   /**
+   * The unit's rank chip (chips-and-actions C2: mark · rank · … · relation):
+   * a crawler's `TL | 1`, ahead of what it is built as. The caller draws it,
+   * with its stepper in Edit, so the band holds the one TL.
+   */
+  rank?: ReactNode
+  /**
    * The unit is out (hard rule R11's one unit-out treatment): a pilot killed
    * in action, a destroyed mech, an NPC down. Its stamp rides the band right
    * of the name with what it is built as, and its consequence is the body's
@@ -304,6 +310,7 @@ export function LiveSheet({
   actions,
   band,
   kindDetail,
+  rank,
   out,
   userMade,
   quoted = false,
@@ -446,9 +453,10 @@ export function LiveSheet({
         }
         aside={
           <>
-            {(stamp || out || userMade) && (
+            {(stamp || rank || out || userMade) && (
               <Cluster gap={8}>
                 {userMade && <HomebrewStamp size="full" />}
+                {rank}
                 {stamp &&
                   (stamp.entityRef ? (
                     <EntityStat label={stamp.label} entityRef={stamp.entityRef} />

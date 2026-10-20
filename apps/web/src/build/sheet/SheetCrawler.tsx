@@ -23,8 +23,8 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { linesFromBreakdown } from '../../components/index'
-import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
+import { linesFromBreakdown, Stat } from '../../components/index'
+import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AssignPicker } from '../wiring/AssignPicker'
@@ -112,7 +112,7 @@ export function SheetCrawler({
   const trading = bayGate(crawler, 'trading-bay')
   const econItems: EconLozItem[] = [
     // Tech LVL is NOT here any more: it is the crawler's own rung, and it
-    // reads in the identity beside the crawler type. The economy rail keeps the
+    // reads as the band's TL chip beside the crawler type. The economy rail keeps the
     // things you SPEND (upkeep, upgrade pool, trade, crew).
     ...(tl !== undefined
       ? [
@@ -299,6 +299,24 @@ export function SheetCrawler({
         segments={segments}
         band={band}
         kindDetail={crawlerStamp(crawler.type)}
+        // The crawler's rung is the band's TL chip, ahead of its type (C2's
+        // rank before relation); Edit grows its stepper on the chip, a Free
+        // Edit of the stored rung (the Upgrade dialog is the play path).
+        rank={
+          <Stat
+            label="TL"
+            value={tl ?? '—'}
+            mode={readOnly || tl === undefined ? 'read' : 'edit'}
+            onChange={
+              readOnly || tl === undefined
+                ? undefined
+                : (next) => patch({ techLevel: `tech-${next}` })
+            }
+            min={SCRAP_TLS[0]}
+            ceiling={SCRAP_TLS[SCRAP_TLS.length - 1]}
+            stepperLabel="tech level"
+          />
+        }
         actions={actions}
         renderBody={() => (
           <CrawlerSheet
