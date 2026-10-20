@@ -32,7 +32,9 @@
 }
 
 /* The phone's Pilot/Mech/Crawler switch: phones only, never on paper. */
-.su-sheet-live-segments {
+/* Not once it left the band for the page's first row (`data-fill-out`, C2b):
+   this sheet is unlayered, so its `display` would beat the out state. */
+.su-sheet-live-segments:not([data-fill-out]) {
   display: flex;
 }
 

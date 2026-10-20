@@ -473,7 +473,15 @@ export function LiveSheet({
                 here-state is ink); the others navigate to their wired
                 counterpart's sheet. */}
             {segments && segments.length > 1 && (
-              <nav aria-label="Assigned sheets" className="su-sheet-live-segments" style={SEGMENTS}>
+              <nav
+                aria-label="Assigned sheets"
+                className="su-sheet-live-segments"
+                // Its copy works as it does (links; the here-state is inert),
+                // so where it leaves the name too little it takes the page's
+                // first row, under the name (`chipFill.ts`).
+                data-fill-copy=""
+                style={SEGMENTS}
+              >
                 {segments.map((segment) =>
                   segment.active ? (
                     // The sheet you are on: marked, and no link (there is

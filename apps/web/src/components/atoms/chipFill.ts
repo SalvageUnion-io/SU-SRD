@@ -201,13 +201,27 @@ export function overflowPlan(
   return { out, more: more !== undefined && out.some(Boolean) }
 }
 
+/** What a control's copy would lose: its handlers. A link or a stamp copies whole. */
+const LIVE_CONTROL =
+  'button, input, select, textarea, [role="radio"], [role="tab"], [role="switch"]'
+
+/** Whether an item's copy in the first row works as the item: a link, or nothing live. */
+function copiesWhole(item: HTMLElement): boolean {
+  // The owner vouches for its copy: a sheet's Pilot | Mech | Crawler links.
+  if (item.hasAttribute('data-fill-copy') || item.querySelector('[data-fill-copy]')) return true
+  if (item.matches('a[href]')) return !item.querySelector(LIVE_CONTROL)
+  return !item.matches(LIVE_CONTROL) && !item.querySelector(LIVE_CONTROL)
+}
+
 /**
  * A head's plan (`overflowPlan`), the kept items staying. Where even they
  * leave the name less than its widest word (a Page's band on a phone: the
  * Tech Level and "Build with this" beside a one-word title) and the head has
  * a first row, its items in no class (a band's control, a Card's type stamp)
- * leave too: the name never breaks inside a word and no item is squeezed past
- * its own words. The rank, the cost and C8's slots never leave.
+ * leave too, if their copy works as they do (a link, a stamp; never a live
+ * control such as a sheet's Pilot | Mech | Crawler tabs): the name never
+ * breaks inside a word and no item is squeezed past its own words. The rank,
+ * the cost and C8's slots never leave.
  */
 function planWithRoom(
   container: HTMLElement,
@@ -230,7 +244,7 @@ function planWithRoom(
   )
   if (!hasRow) return plan
   const kept = widths.reduce((sum, width, i) => (plan.out[i] ? sum : sum + gap + width), 0)
-  const unclassed = items.map((item) => classOfItem(item, container) === '')
+  const unclassed = items.map((item) => classOfItem(item, container) === '' && copiesWhole(item))
   if (!unclassed.some((u, i) => u && !plan.out[i])) return plan
   if (kept + Math.max(oneLineWidth(name, 'min-content'), widestWord(name)) <= room - 1) return plan
   return overflowPlan(
@@ -368,7 +382,14 @@ function fitChipFill(container: HTMLElement): void {
   const wraps = shown.length > 0 && nameWidth + chipsWidth > room - 1
   const corner = shown[shown.length - 1]
   const last = shownWidths[shownWidths.length - 1] ?? 0
-  const shortest = wraps ? Math.max(oneLineWidth(name, 'min-content'), widestWord(name)) : 0
+  // The name keeps its widest word whole where the corner chip can wrap its
+  // value into what is left; a live control there (a sheet band's Pilot |
+  // Mech | Crawler) cannot, and would be drawn over the name.
+  const cornerWraps =
+    !!corner && !corner.matches(LIVE_CONTROL) && !corner.querySelector(LIVE_CONTROL)
+  const shortest = wraps
+    ? Math.max(oneLineWidth(name, 'min-content'), cornerWraps ? widestWord(name) : 0)
+    : 0
   const squeezed = wraps && room - chipsWidth - 1 < shortest
   if (corner && squeezed) corner.setAttribute(CORNER_ATTRIBUTE, '')
   if (fitted?.at === at) return
