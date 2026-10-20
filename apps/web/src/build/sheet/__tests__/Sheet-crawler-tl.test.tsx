@@ -62,7 +62,7 @@ describe('Crawler sheet — TL in the head', () => {
 
     expect(within(screen.getByLabelText('Crawler identity')).queryByText('TL')).toBeNull()
     await act(async () => {
-      fireEvent.click(within(bandOf()).getByRole('button', { name: 'Increase tech level' }))
+      fireEvent.click(within(bandOf()).getByRole('button', { name: 'Increase Tech Level' }))
     })
     await waitFor(() =>
       expect(useEntityStore.getState().get('crawler', crawler.id)?.techLevel).toBe('tech-3')

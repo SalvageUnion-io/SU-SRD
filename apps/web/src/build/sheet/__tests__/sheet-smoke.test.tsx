@@ -195,7 +195,7 @@ describe('Smoke — crawler-only sheet', () => {
     expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
   })
 
-  test('crawler tech level appears in the sheet (identity TL chip)', () => {
+  test("crawler tech level is the band's TL chip, not identity's", () => {
     render(
       <Sheet
         kind="crawler"
@@ -204,10 +204,12 @@ describe('Smoke — crawler-only sheet', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    // Tech Level reads in IDENTITY beside the crawler type now, not in the
-    // economy rail — the rail keeps the things you SPEND — as a `TL | n` chip.
+    // Tech Level is the chapter band's `TL | n` chip, ahead of its type, and
+    // nowhere in the body.
+    const band = screen.getByRole('heading', { level: 1 }).closest('.su-chapter-band__row')
+    expect(within(band as HTMLElement).getByText('TL')).toBeTruthy()
     const identity = screen.getByRole('region', { name: 'Crawler identity' })
-    expect(within(identity).getByText('TL')).toBeTruthy()
+    expect(within(identity).queryByText('TL')).toBeNull()
   })
 })
 

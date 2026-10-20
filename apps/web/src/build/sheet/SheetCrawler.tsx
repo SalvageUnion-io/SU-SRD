@@ -314,7 +314,7 @@ export function SheetCrawler({
             }
             min={SCRAP_TLS[0]}
             ceiling={SCRAP_TLS[SCRAP_TLS.length - 1]}
-            stepperLabel="tech level"
+            stepperLabel="Tech Level"
           />
         }
         actions={actions}
