@@ -130,3 +130,52 @@ export function discordEntryCard(
   const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
   return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
 }
+
+/** A player's saved pattern: where its page is, and who made it. */
+export type HomebrewPattern = {
+  /** The pattern's own page in the app (`/p/pattern/:id`), absolute. */
+  url: string
+  /** The maker's display name, as the page credits them. */
+  madeBy: string
+}
+
+/** Escape what would read as Discord markdown in a player-typed name. */
+function escapeMarkdown(text: string): string {
+  return text.replace(/[\\`*_~|[\]()<>#]/g, '\\$&')
+}
+
+/**
+ * A player's saved pattern as the card its book patterns get, for its page's
+ * Component Embed: the same blocks, read off its chassis and the pattern's
+ * name, description and loadout, marked as homebrew three ways, as its page
+ * is (ruleset §3.9): HOMEBREW leads the kicker, the title links to its own
+ * page, and the foot credits "Homebrew // Made by [user]" where a book card
+ * cites its printings.
+ */
+export function discordHomebrewPatternCard(
+  chassis: RefMetaEntity,
+  pattern: RefObjectAnyPattern,
+  homebrew: HomebrewPattern,
+  options: DiscordEntryCardOptions = {}
+): DiscordCard {
+  const parts = discordCardParts(toEntityModel(chassis, undefined, { pattern }))
+  const bookUrl = parts.url
+  const head = parts.head.map((line) => {
+    if (line.startsWith('-# ')) return `-# HOMEBREW · ${line.slice(3)}`
+    if (line.startsWith('## ') && bookUrl)
+      return line.replace(`](${bookUrl})`, `](${homebrew.url})`)
+    return line
+  })
+  const own = {
+    ...parts,
+    url: homebrew.url,
+    head,
+    cite: `-# Homebrew // Made by ${escapeMarkdown(homebrew.madeBy)}`,
+  }
+  const { srdOrigin } = options
+  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
+    return discordCard(own, { fits: fitsDiscordEntryBudget })
+  }
+  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
+  return rebase(discordCard(own, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
+}

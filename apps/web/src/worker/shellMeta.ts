@@ -22,6 +22,7 @@
 import { unionHere } from '../lib/barLinks'
 import type { PreviewMeta } from '../lib/documentHead'
 import { escapeMarkup, META_END, META_START, metaTags, renderTags } from '../lib/documentHead'
+import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
 /**
@@ -31,7 +32,13 @@ import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
  * and neither does its swap. `themeColor` is the band's tone, so the unfurl's
  * side bar matches the card.
  */
-export type ShellMeta = Omit<PreviewMeta, 'previewDescription' | 'type'>
+export type ShellMeta = Omit<PreviewMeta, 'previewDescription' | 'type'> & {
+  /**
+   * The page's Discord Component Embed JSON (a shared pattern's card, as a
+   * book page carries its own): Discord draws it in place of the preview.
+   */
+  componentEmbed?: string
+}
 
 /** Collapse whitespace and cap length, so a long name cannot bloat the head. */
 function tidy(value: string, max: number): string {
@@ -47,7 +54,13 @@ function renderMeta(meta: ShellMeta): string {
     description: tidy(meta.description, 200),
     ...(meta.image ? { image: { ...meta.image, alt: tidy(meta.image.alt, 120) } } : {}),
   })
-  return [META_START, renderTags(tags, '    '), META_END].join('\n    ')
+  // Data, never run: every `<` escaped, so a player-typed name cannot end the script.
+  const embed = meta.componentEmbed
+    ? [
+        `<script id="discord:component-embed" type="application/json">${escapeJsonForScript(meta.componentEmbed)}</script>`,
+      ]
+    : []
+  return [META_START, renderTags(tags, '    '), ...embed, META_END].join('\n    ')
 }
 
 /**

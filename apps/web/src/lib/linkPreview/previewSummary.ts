@@ -35,6 +35,8 @@ export type PreviewAnswer = {
   gameName: string | null
   /** A pilot's published mech, as its chassis slug. */
   mechChassisRef?: string | null
+  /** A shared pattern's Discord Component Embed JSON, when the Worker asked with its address. */
+  componentEmbed?: string
 }
 
 /** `publicSheet.invitePreview`'s answer. */

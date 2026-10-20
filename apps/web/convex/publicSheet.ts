@@ -20,6 +20,7 @@ import {
   sameContainerRows,
 } from './model/entities'
 import { inviteByCode, isCurrent } from './model/invites'
+import { patternEmbedJson } from './model/patternEmbed'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 import { entityRef, entityRefType, softLinkType } from './schema'
 
@@ -446,6 +447,12 @@ const previewAnswer = v.object({
    * cell reads as empty), as `assignmentsOf` withholds it from the page.
    */
   mechChassisRef: v.optional(v.union(v.string(), v.null())),
+  /**
+   * A pattern's Discord Component Embed JSON (`model/patternEmbed.ts`), when
+   * the caller names the app's address (`appUrl`): the card its page unfurls
+   * as in Discord, as a book pattern's page carries its own.
+   */
+  componentEmbed: v.optional(v.string()),
 })
 type PreviewAnswer = Infer<typeof previewAnswer>
 
@@ -466,17 +473,31 @@ type PreviewAnswer = Infer<typeof previewAnswer>
  * as a missing one.
  */
 export const preview = query({
-  args: { kind: previewKindValidator, appId: v.string() },
+  args: {
+    kind: previewKindValidator,
+    appId: v.string(),
+    /**
+     * The app's address as the unfurl bot reached it (`https://salvageunion.io/build`):
+     * a pattern's answer then carries its Discord card, its links on that origin.
+     */
+    appUrl: v.optional(v.string()),
+  },
   returns: v.union(previewAnswer, v.null()),
   handler: async (ctx, args): Promise<PreviewAnswer | null> => {
     if (args.kind === 'pattern') {
       const row = await patternByAppId(ctx, args.appId)
       if (row === null || row.publicRead !== true) return null
+      const ownerName = displayNameOf(await ctx.db.get(row.ownerId), 'a player')
+      const componentEmbed =
+        args.appUrl === undefined
+          ? null
+          : patternEmbedJson(row.body, ownerName, args.appUrl, args.appId)
       return {
         kind: 'pattern',
         body: row.body,
-        ownerName: displayNameOf(await ctx.db.get(row.ownerId), 'a player'),
+        ownerName,
         gameName: null,
+        ...(componentEmbed ? { componentEmbed } : {}),
       }
     }
     const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)

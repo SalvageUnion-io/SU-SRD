@@ -32,6 +32,7 @@ import type * as model_entities from "../model/entities.js";
 import type * as model_invites from "../model/invites.js";
 import type * as model_linkWrites from "../model/linkWrites.js";
 import type * as model_ownableWrites from "../model/ownableWrites.js";
+import type * as model_patternEmbed from "../model/patternEmbed.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as model_photos from "../model/photos.js";
 import type * as model_playTables from "../model/playTables.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   "model/invites": typeof model_invites;
   "model/linkWrites": typeof model_linkWrites;
   "model/ownableWrites": typeof model_ownableWrites;
+  "model/patternEmbed": typeof model_patternEmbed;
   "model/permissions": typeof model_permissions;
   "model/photos": typeof model_photos;
   "model/playTables": typeof model_playTables;

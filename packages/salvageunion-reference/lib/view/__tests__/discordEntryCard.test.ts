@@ -7,6 +7,7 @@ import {
   componentEmbedBytes,
   componentEmbedJson,
   discordEntryCard,
+  discordHomebrewPatternCard,
 } from '../discordEntryCard'
 
 /**
@@ -82,5 +83,55 @@ describe('componentEmbedBytes', () => {
     expect(componentEmbedBytes('ab')).toBe(2)
     expect(componentEmbedBytes('a<b')).toBe(8)
     expect(componentEmbedBytes('é')).toBe(2)
+  })
+})
+
+describe('discordHomebrewPatternCard', () => {
+  const page = 'https://salvageunion.io/build/p/pattern/abc123'
+  const towRig = {
+    name: 'Tow Rig',
+    systems: [{ name: 'Rigging Arm' }],
+    modules: [{ name: 'Comms Module' }],
+    content: [{ type: 'paragraph' as const, value: 'Rig first, rivet later.' }],
+  }
+
+  test('is the book pattern card, marked homebrew: kicker, title link, credit', () => {
+    const json = componentEmbedJson(
+      discordHomebrewPatternCard(entry('chassis', 'mule'), towRig, { url: page, madeBy: 'alxjrvs' })
+    )
+    expect(json).toContain('HOMEBREW · PATTERN OF MULE')
+    expect(json).toContain(`](${page})`)
+    expect(json).toContain('Rig first, rivet later.')
+    expect(json).toContain('Rigging Arm')
+    expect(json).toContain('Homebrew // Made by alxjrvs')
+    // No book page or printing is lent to it.
+    expect(json).not.toContain('/chassis/mule/pattern/tow-rig')
+    expect(json).not.toContain('Workshop Manual')
+    expect(componentEmbedBytes(json)).toBeLessThanOrEqual(COMPONENT_EMBED_MAX_BYTES)
+  })
+
+  test("a maker's name cannot write markdown into the credit", () => {
+    const json = componentEmbedJson(
+      discordHomebrewPatternCard(entry('chassis', 'mule'), towRig, {
+        url: page,
+        madeBy: '[click](https://evil.example)',
+      })
+    )
+    const credit = JSON.parse(json).component.components.at(-1).content
+    expect(credit).toBe('-# Homebrew // Made by \\[click\\]\\(https://evil.example\\)')
+  })
+
+  test('on a Worker Preview its SRD links go there; its own page stays given', () => {
+    const preview = 'https://preview-su-srd.alxjrvs.workers.dev'
+    const json = componentEmbedJson(
+      discordHomebrewPatternCard(
+        entry('chassis', 'mule'),
+        towRig,
+        { url: `${preview}/build/p/pattern/abc123`, madeBy: 'alxjrvs' },
+        { srdOrigin: preview }
+      )
+    )
+    expect(json).not.toContain('https://salvageunion.io')
+    expect(json).toContain(`${preview}/build/p/pattern/abc123`)
   })
 })

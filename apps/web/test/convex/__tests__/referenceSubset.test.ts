@@ -166,4 +166,45 @@ describe('Convex derives on the schemas it deploys', () => {
     expect(state.stepIndex).toBe(steps.length - 1)
     expect(state.upkeepSpent).toBe(true)
   })
+
+  test("a pattern's Discord card: every chassis, with every system and module", async () => {
+    const t = testConvex()
+    const { organizer } = await seedTable(t)
+    const systems = SalvageUnionReference.Systems.all().map((x) => nameToSlug(x.name))
+    const modules = SalvageUnionReference.Modules.all().map((x) => nameToSlug(x.name))
+    const chassis = SalvageUnionReference.Chassis.all()
+    const appUrl = 'https://salvageunion.io/build'
+    const embed = async (appId: string) =>
+      (await t.query(api.publicSheet.preview, { kind: 'pattern', appId, appUrl }))?.componentEmbed
+    const ids: string[] = []
+    for (const [i, c] of chassis.entries()) {
+      const id = `pat-${nameToSlug(c.name)}`
+      await organizer.as.mutation(api.shelf.upsertMechPattern, {
+        body: {
+          id,
+          schemaVersion: 1,
+          name: c.name,
+          chassisRef: nameToSlug(c.name),
+          systems: share(systems, i, chassis.length),
+          modules: share(modules, i, chassis.length),
+          cargoLots: [],
+          notes: 'Notes.',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        },
+      })
+      await organizer.as.mutation(api.shelf.setPatternVisibility, {
+        patternId: id,
+        visibility: 'link',
+      })
+      ids.push(id)
+    }
+    const loaded = []
+    for (const id of ids) loaded.push(await embed(id))
+    expect(loaded.every((json) => typeof json === 'string')).toBe(true)
+
+    deployedSchemasOnly()
+    const deployed = []
+    for (const id of ids) deployed.push(await embed(id))
+    expect(deployed).toEqual(loaded)
+  })
 })
