@@ -34,11 +34,19 @@ type SheetHeroProps = {
    * kind shares (`.su-sheet-vitals`), a rule between each row.
    */
   vitals?: ReactNode
+  /** The vitals card's action chips (a crawler's Pay / Fund / Trade), on its head. */
+  vitalsActions?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
 }
 
-export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: SheetHeroProps) {
+export function SheetHero({
+  name,
+  fields,
+  vitals,
+  vitalsActions,
+  fieldsTitle = 'Identity',
+}: SheetHeroProps) {
   return (
     <section
       aria-label={`${name} sheet header`}
@@ -67,7 +75,7 @@ export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: Sh
         {fields}
       </SheetSectionCard>
       {vitals && (
-        <SheetSectionCard title="Vitals">
+        <SheetSectionCard title="Vitals" actions={vitalsActions}>
           <div className="su-sheet-vitals" style={VITALS}>
             {vitals}
           </div>

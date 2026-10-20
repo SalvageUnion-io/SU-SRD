@@ -17,6 +17,11 @@ type SheetSectionCardProps = {
   title: string
   /** An optional status (a DEAD stamp), at the panel's top right. */
   count?: ReactNode
+  /**
+   * The panel's own action chips (Mini Buttons, a ⋯ `HeaderMenu`), at its top
+   * right after `count`: the panel prints no title, so this row is its head.
+   */
+  actions?: ReactNode
   /** Extra classes on the panel (e.g. a grid-span). */
   className?: string
   /** Extra classes on the body block (e.g. the grid gaps). */
@@ -44,6 +49,7 @@ const PAPER_PANEL = {
 const PAPER_COUNT = {
   marginBottom: space[12],
   display: 'flex',
+  flexWrap: 'wrap',
   alignItems: 'center',
   justifyContent: 'flex-end',
   gap: space[8],
@@ -52,13 +58,19 @@ const PAPER_COUNT = {
 export function SheetSectionCard({
   title,
   count,
+  actions,
   className,
   bodyClassName,
   children,
 }: SheetSectionCardProps) {
   return (
     <section aria-label={title} className={cn('su-sheet-section', className)} style={PAPER_PANEL}>
-      {count && <div style={PAPER_COUNT}>{count}</div>}
+      {(count || actions) && (
+        <div style={PAPER_COUNT}>
+          {count}
+          {actions}
+        </div>
+      )}
       <div className={cn('su-sheet-section-stack', bodyClassName)}>{children}</div>
     </section>
   )

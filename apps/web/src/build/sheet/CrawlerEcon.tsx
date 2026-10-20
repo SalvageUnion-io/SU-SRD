@@ -1,6 +1,7 @@
 /**
  * CrawlerEcon — the crawler's VITALS column: the SP gauge, the Upgrade-pool
- * gauge, a 2-up grid of the remaining readouts, and one row of actions.
+ * gauge and a 2-up grid of the remaining readouts (`CrawlerEconFrame`), and
+ * the column's action chips (`CrawlerEconActions`).
  *
  * There is no titled box around it any more. The column already sits in its own
  * section card, so the inset was a second frame inside the first, and its
@@ -8,9 +9,9 @@
  *
  * The two GAUGES are the numbers that fill and empty (structure, and the pool
  * you fund toward its cap); everything left is a flat readout, so it sits in
- * the grid. Every action collects into a single row at the FOOT rather than
- * hanging off its own stat — three buttons scattered through a stat grid read
- * as three unrelated controls.
+ * the grid. Every action collects onto the Vitals card's HEAD as a Mini chip
+ * (`SheetSectionCard`'s `actions`) rather than hanging off its own stat or
+ * sitting in a body row: a contextual action lives on its owner's head.
  *
  * Composes the shared primitives (style-unification pass §3): each readout is a
  * `Stat` value box (ruleset §3.7 — a label|value never hand-assembles its own
@@ -34,8 +35,8 @@ export type EconLozItem = {
   /** Small caption under the stat box, e.g. 'T2+ Scrap'. */
   caption?: string
   /**
-   * Contribute ONLY this item's action to the foot row — no stat box. For a
-   * reading that is already shown as a gauge above (the Upgrade pool) but whose
+   * Contribute ONLY this item's action to the head chips — no stat box. For a
+   * reading that is already shown as a gauge (the Upgrade pool) but whose
    * action still belongs with the others.
    */
   actionOnly?: boolean
@@ -62,14 +63,6 @@ const READOUTS = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-const ACTIONS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
 const LOZ = {
   display: 'flex',
   flexDirection: 'column',
@@ -91,9 +84,8 @@ type CrawlerEconFrameProps = {
   items: EconLozItem[]
 }
 
-/** The vitals column: gauges, a 2-up readout grid, then one row of actions. */
+/** The vitals column: gauges, then a 2-up readout grid. */
 export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProps) {
-  const actions = items.filter((item) => item.action)
   const readouts = items.filter((item) => !item.actionOnly)
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the vitals column; a <section> here would become a region landmark once named
@@ -107,30 +99,30 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
           ))}
         </div>
       )}
-      {actions.length > 0 && (
-        // Centred: the row sits under a stack of gauges and stat plates that are
-        // themselves centred in the column, so a left-aligned button row hung
-        // off the edge of everything above it.
-        <div style={ACTIONS}>
-          {actions.map((item) => (
-            <Button
-              key={item.label}
-              variant="primary"
-              size="mini"
-              aria-label={item.action?.ariaLabel}
-              title={item.action?.ariaLabel}
-              onClick={item.action?.onClick}
-            >
-              {item.action?.label}
-            </Button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
 
-/** One economy readout: a Stat value box, its caption, and the optional rust action. */
+/** The items' actions as the Vitals card's head chips: rust (§3.1), Mini. */
+export function CrawlerEconActions({ items }: { items: readonly EconLozItem[] }) {
+  return items.map(
+    ({ label, action }) =>
+      action && (
+        <Button
+          key={label}
+          variant="primary"
+          size="mini"
+          aria-label={action.ariaLabel}
+          title={action.ariaLabel}
+          onClick={action.onClick}
+        >
+          {action.label}
+        </Button>
+      )
+  )
+}
+
+/** One economy readout: a Stat value box and its caption. */
 function EconLoz({ item }: { item: EconLozItem }) {
   return (
     <div style={LOZ}>

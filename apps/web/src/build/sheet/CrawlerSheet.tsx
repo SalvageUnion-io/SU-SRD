@@ -138,6 +138,11 @@ type CrawlerSheetProps = {
    */
   economy?: ReactNode
   /**
+   * The economy's action chips (Pay / Fund / Trade), built by `SheetCrawler`
+   * beside `economy` and set on the vitals card's head, not in its body.
+   */
+  economyActions?: ReactNode
+  /**
    * The Assigned Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by SheetCrawler from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
@@ -163,6 +168,7 @@ export function CrawlerSheet({
   store = useEntityStore,
   readOnly = false,
   economy,
+  economyActions,
   linkedUnits,
   crew,
   crewHref,
@@ -415,6 +421,7 @@ export function CrawlerSheet({
               </PhotoBeside>
             }
             vitals={economy}
+            vitalsActions={economyActions}
           />
         }
         // ----- The Storage Bay, the sidebar: the crawler's own BAY, its

@@ -7,15 +7,15 @@
  *
  * A `TitledBox` in the chassis's tone: its art's window in the head (the Row's `Art`; fixed:
  * the player's photo is the hero's), its name on the cut-out `Head` with a
- * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), and a paper body
- * holding the
- * book's description and — in Edit — CHANGE CHASSIS (destructive; it keeps its
- * own confirm step). The mech's chassis stats and the chassis ability are in
- * the hero (owner's call, 2026-10-14).
+ * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), in Edit CHANGE
+ * CHASSIS as a Mini chip at the band's end (its `controls`; destructive, it
+ * keeps its own confirm step), and a paper body holding the book's
+ * description. The mech's chassis stats and the chassis ability are in the
+ * hero (owner's call, 2026-10-14).
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
-import type { ComponentProps, CSSProperties } from 'react'
+import type { ComponentProps } from 'react'
 import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import type { StatItem } from '../../components/index'
@@ -23,8 +23,6 @@ import { Art, Button, Chips, Content, Field, TitledBox } from '../../components/
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
-
-const CONTROLS = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
 
 /** The callout's one chip: a bare label, saying what the block is. */
 const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
@@ -82,6 +80,13 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
         tone={model.tone}
         art={model.art && <Art art={model.art} />}
         chips={KIND_CHIPS}
+        controls={
+          patch && (
+            <Button variant="default" size="mini" onClick={() => setPickerOpen(true)}>
+              Change Chassis
+            </Button>
+          )
+        }
       >
         {entity?.content && entity.content.length > 0 && (
           <Content
@@ -89,13 +94,6 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
             fontSize="sm"
             chassisName={chassisName}
           />
-        )}
-        {patch && (
-          <div style={CONTROLS}>
-            <Button variant="default" onClick={() => setPickerOpen(true)}>
-              Change Chassis
-            </Button>
-          </div>
         )}
       </TitledBox>
       {picker}

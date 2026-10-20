@@ -6,9 +6,10 @@
  * renders the `SheetHero` band as its first region.
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
- * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges, the economy action entry points),
- * which is handed to `CrawlerSheet` as `economy` and rendered as the identity
- * band's vitals rail, plus the docked-mech/lead-pilot rail content handed down
+ * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges) and its action entry points
+ * (`CrawlerEconActions`), handed to `CrawlerSheet` as `economy` and
+ * `economyActions` and rendered as the identity band's vitals card and its head
+ * chips, plus the docked-mech/lead-pilot rail content handed down
  * as `linkedUnits`. Owns the economy-dialog state (it was hoisted to Sheet
  * only because the branch wasn't a component).
  */
@@ -31,7 +32,7 @@ import type { AssignedSlot, AssignedUnit } from './AssignedUnits'
 import { AssignedUnits } from './AssignedUnits'
 import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
-import { CrawlerEconFrame } from './CrawlerEcon'
+import { CrawlerEconActions, CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
@@ -131,7 +132,7 @@ export function SheetCrawler({
       : []),
     // Upgrade is NOT a flat readout: it FILLS toward a cap, which is what a
     // gauge shows and a number cannot. It renders as one below the SP gauge —
-    // its Fund action still collects into the foot row with the others.
+    // its Fund action still collects onto the Vitals card's head with the others.
     ...(editable
       ? [
           {
@@ -284,6 +285,10 @@ export function SheetCrawler({
       items={econItems}
     />
   )
+  // Pay / Fund / Trade: chips on the Vitals card's head, not a row in its body.
+  const economyActions = econItems.some((item) => item.action) ? (
+    <CrawlerEconActions items={econItems} />
+  ) : undefined
 
   return (
     <>
@@ -303,6 +308,7 @@ export function SheetCrawler({
             store={store}
             readOnly={readOnly}
             economy={economy}
+            economyActions={economyActions}
             linkedUnits={rail}
             crew={composition.crew}
             crewHref={
