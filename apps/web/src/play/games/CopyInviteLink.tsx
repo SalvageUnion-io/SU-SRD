@@ -73,11 +73,11 @@ function ConnectedCopyInviteLink({
 
   return (
     <>
-      <Button size="mini" disabled={copyLink.pending} onClick={() => void copy()}>
+      <Button size="compact" disabled={copyLink.pending} onClick={() => void copy()}>
         <CopiedIcon
           copied={copied}
-          size="mini"
-          icon={<Link2 aria-hidden="true" size={tokens.iconSize.mini} />}
+          size="compact"
+          icon={<Link2 aria-hidden="true" size={tokens.iconSize.compact} />}
         />
         Copy invite link
       </Button>
@@ -105,7 +105,7 @@ function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
 
   return (
     <>
-      <Button size="mini" onClick={() => setConfirming(true)}>
+      <Button size="compact" onClick={() => setConfirming(true)}>
         Reset link
       </Button>
       <ConfirmDialog

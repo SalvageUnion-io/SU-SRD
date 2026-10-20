@@ -79,7 +79,7 @@ export function TheGame({
         organizer ? (
           <>
             <Button
-              size="mini"
+              size="compact"
               disabled={!canWrite || candidates.length === 0}
               onClick={() => {
                 setChosen(candidates[0]?.userId ?? '')
@@ -90,6 +90,7 @@ export function TheGame({
             </Button>
             <HeaderMenu
               variant="overflow"
+              size="compact"
               trigger={null}
               label="More for The Game"
               sections={[
