@@ -7,8 +7,9 @@
  * Role, Keepsake and Motto read as `Stat`s with text values (ruleset §3.7),
  * Detail as prose, Facts in the one chip well (`ChipListEditor`). In Edit each
  * one to write is a `Field` in its edit state (its label over the value box
- * a press opens). HP is never here: a crew lead's is in its Token's head
- * (`CrewLeadToken`), a built NPC's in its sheet's vital gauge.
+ * a press opens, or over Facts' chip well). HP is never here: a crew lead's
+ * is in its Token's head (`CrewLeadToken`), a built NPC's in its sheet's
+ * vital gauge.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
@@ -163,6 +164,19 @@ export function NpcLines({
   const showDetail = onDetailChange !== undefined || detail.trim() !== ''
   const showFacts = onFactsChange !== undefined || facts.length > 0
   if (!(showName || showRole || showKeepsake || showMotto || showDetail || showFacts)) return null
+  // Facts takes the Field label (over the well) while it can be written, as
+  // the fields beside it do; Read keeps the inline row, as Detail does.
+  const factsWell = (
+    <ChipListEditor
+      items={facts}
+      onChange={(next) => onFactsChange?.(next)}
+      noun="fact"
+      owner={`${bayName} crew`}
+      draftWidth={FACT_DRAFT}
+      tone="quiet"
+      readOnly={onFactsChange === undefined}
+    />
+  )
   // Keepsake and Motto SHARE a row: both are one short
   // phrase, and each taking a full 44px row of its own made a four-row inset
   // out of two lines of content. Detail and Facts keep their own rows — they
@@ -217,19 +231,16 @@ export function NpcLines({
             {detail}
           </NpcRow>
         ))}
-      {showFacts && (
-        <NpcRow label="Facts" grow plain className="su-sheet-npc-wide">
-          <ChipListEditor
-            items={facts}
-            onChange={(next) => onFactsChange?.(next)}
-            noun="fact"
-            owner={`${bayName} crew`}
-            draftWidth={FACT_DRAFT}
-            tone="quiet"
-            readOnly={onFactsChange === undefined}
-          />
-        </NpcRow>
-      )}
+      {showFacts &&
+        (onFactsChange ? (
+          <Field label="Facts" className="su-sheet-npc-wide">
+            {factsWell}
+          </Field>
+        ) : (
+          <NpcRow label="Facts" grow plain className="su-sheet-npc-wide">
+            {factsWell}
+          </NpcRow>
+        ))}
     </div>
   )
 }
