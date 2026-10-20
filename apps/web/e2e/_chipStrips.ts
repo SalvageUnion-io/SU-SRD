@@ -31,10 +31,11 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   the strip's own box, cut by its entity's frame and by every ancestor that
  *   hides its overflow. A chip past its Row's edge, or cut by a Token's pill,
  *   fails; only the name may give way.
- * - **lines** a header-only Token's chips on more than one line, a Row's
- *   or a contentful Token's (N3) on more than two (C5): past two a
- *   contentful Token draws the chips that fit and ends its second line in
- *   +MORE, which opens its Peek.
+ * - **lines** a header-only Token's chips on more than one line, or a
+ *   contentful Token's (N3) on more than two (C5): past two it draws the
+ *   chips that fit and ends its second line in +MORE, which opens its Peek.
+ *   A Row's or card's head stacks its chips up the band beside the name on
+ *   as many lines as they take (owner's rule, 2026-10-20).
  * - **more** a +MORE chip anywhere but a contentful Token's strip, or one
  *   that is not its strip's last chip, at the end of its lowest line (the
  *   visual bottom), or one that dropped the strip's cost (C5).
@@ -271,15 +272,9 @@ function scan({
       }
     }
 
-    // LINES: a Token's chips on one line, a Row's and a contentful Token's
-    // on at most two (C5): past two, a contentful Token ends in +MORE.
-    const most = token
-      ? 2
-      : root.closest('.su-entity-token__pill')
-        ? 1
-        : root.closest('.su-entity-row__head')
-          ? 2
-          : Number.POSITIVE_INFINITY
+    // LINES: a Token's chips on one line, a contentful Token's on at most
+    // two (C5): past two, it ends in +MORE. A Row's head stacks them upward.
+    const most = token ? 2 : root.closest('.su-entity-token__pill') ? 1 : Number.POSITIVE_INFINITY
     if (lines.length > most) {
       const hint = moreChip ? '' : ', with no +MORE'
       faults.push(`lines: ${where} on ${lines.length} lines, at most ${most}${hint}`)

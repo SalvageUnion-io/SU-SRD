@@ -522,170 +522,67 @@
   border-color: var(--color-paper);
 }
 
-/* UNDER THE NAME (`data-chips="under"`, `useChipsFit`): when the chips do
-   not fit beside the name they flow UNDER it, never above it (owner's rules,
-   2026-10-13 and 2026-10-14): their own line on the paper below the tab, the
-   head of the body, so the tab still opens into the paper. On a phone that is
-   when they would take more than two lines beside its one-line name; wider,
-   only when one chip is wider than the room the name leaves at its narrowest,
-   so a long chip (a Game's name) never runs past the Row's edge (R3).
-   The strip is painted the band's full width by a clipped shadow, since the
-   heading sits inset. A chip wider than the strip itself wraps its value
-   (E18: it wraps, never clipped). */
-.su-entity-row__heading--cut[data-chips='under'] {
+/* OVER THE NAME (`data-chips="over"`, `useChipsFit`): when one chip is
+   wider than the room the name leaves beside it (on a phone, beside its
+   one-line name; wider, at its narrowest), the chips rise onto the band's
+   full width ABOVE the name, never under it (owner's rule, 2026-10-20): they
+   stay in the head, filling from its bottom-right corner up, and the tab
+   still opens into the paper below. So a long chip (a Game's name) never
+   runs past the Row's edge (R3); one wider than the band itself wraps its
+   value (E18: it wraps, never clipped). Any other set stacks up beside the
+   name, on as many lines as it takes. */
+.su-entity-row__heading--cut[data-chips='over'] {
   flex-wrap: wrap;
-  row-gap: 0;
 }
 
-.su-entity-row__heading--cut[data-chips='under'] > .su-chips,
-.su-entity-row__heading--cut[data-chips='under'] > .su-entity-row__chip-group {
-  background-color: var(--color-paper);
-  box-shadow: 0 0 0 100vmax var(--color-paper);
-  clip-path: inset(0 -100vmax -1px);
+.su-entity-row__heading--cut[data-chips='over'] > .su-chips,
+.su-entity-row__heading--cut[data-chips='over'] > .su-entity-row__chip-group {
   flex-basis: 100%;
-  /* Under the name they pack to the left: the far end of a reversed line. */
-  justify-content: flex-end;
-  margin-left: 0;
-  padding-block: var(--space-6) 0;
+  order: -1;
+  padding-block: var(--space-2) 0;
 }
 
-/* Under the name, the chips are not beside it to centre on. */
-.su-entity-row__heading--cut[data-chips='under'] > .su-chips::after,
-.su-entity-row__heading--cut[data-chips='under'] > .su-entity-row__chip-group::before {
+/* Over the name, the chips are not beside it to centre on. */
+.su-entity-row__heading--cut[data-chips='over'] > .su-chips::after,
+.su-entity-row__heading--cut[data-chips='over'] > .su-entity-row__chip-group::before {
   content: none;
 }
 
-/* The tier and affordance stay on the band, by the name, and
-   paint over the strip (its clip makes it a stacking context). */
-/* On the paper strip an ink band's chips drop their paper rule. */
-[data-ground='ink'] .su-entity-row__heading--cut[data-chips='under'] .su-stat-cell {
-  border-color: var(--color-ink);
-}
-
-/* On the paper strip an ink band's words and outlined controls (a Row's Use,
-   "needs Boarded") are the paper ground's again: ink text on an ink outline,
-   never the band's paper on paper. */
-[data-ground='ink']
-  .su-entity-row__heading--cut[data-chips='under']
-  > :is(.su-chips, .su-entity-row__chip-group) {
-  color: var(--color-ink);
-}
-
-[data-ground='ink']
-  .su-entity-row__heading--cut[data-chips='under']
-  :is(.su-btn--default, .su-btn--ghost) {
-  border-color: var(--color-ink);
-  color: var(--color-ink);
-}
-
-[data-ground='ink']
-  .su-entity-row__heading--cut[data-chips='under']
-  :is(.su-btn--default, .su-btn--ghost):hover:not(:disabled) {
-  background-color: var(--color-ink-8);
-}
-
-.su-entity-row__head[data-ground='ink']
-  .su-entity-row__heading--cut[data-chips='under']
-  .su-entity-row__chip-group
-  .su-ec-labels__stamps
-  > .su-badge-stamp,
-.su-entity-row__head[data-ground='ink']
-  .su-entity-row__heading--cut[data-chips='under']
-  > .su-chips
-  .su-ec-labels__stamps
-  > .su-badge-stamp,
-.su-entity-row__head[data-ground='ink']
-  .su-entity-row__heading--cut[data-chips='under']
-  > .su-chips
-  > .su-badge-stamp:not(.su-badge--dashed) {
-  background-color: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-entity-row__head[data-notch]
-  .su-entity-row__line:has(> .su-entity-row__heading--cut[data-chips='under'])
-  > :not(.su-entity-row__heading--cut, .su-entity-row__art) {
-  align-self: flex-start;
-  margin-block: var(--space-6) 0;
-  position: relative;
-}
-
-.su-entity-row__heading--cut[data-chips='under'] .su-stat-cell {
+.su-entity-row__heading--cut[data-chips='over'] .su-stat-cell {
   max-width: 100%;
   white-space: normal;
 }
 
-.su-entity-row__heading--cut[data-chips='under'] .su-stat-plate--value {
+.su-entity-row__heading--cut[data-chips='over'] .su-stat-plate--value {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
 /* On a phone, before `useChipsFit` has run (or with no script), the chips
-   drop under the name as above; once it has, they stay beside it when it
+   rise over the name as above; once it has, they stay beside it when it
    says so (`data-chips="beside"`), the name keeping its one line. */
 @media not (width >= 40rem) {
   /* Beside, the name keeps its one line: `useChipsFit` measured the room it
-     leaves for the chips, on as many lines as they need (at most three). */
+     leaves for the chips, on as many lines as they need. */
   .su-entity-row__heading--cut[data-chips='beside'] > .su-entity-row__name {
     flex-shrink: 0;
   }
 
   .su-entity-row__heading--cut:not([data-chips]) {
     flex-wrap: wrap;
-    row-gap: 0;
   }
 
   .su-entity-row__heading--cut:not([data-chips]) > .su-chips,
   .su-entity-row__heading--cut:not([data-chips]) > .su-entity-row__chip-group {
-    background-color: var(--color-paper);
-    box-shadow: 0 0 0 100vmax var(--color-paper);
-    clip-path: inset(0 -100vmax -1px);
     flex-basis: 100%;
-    /* Under the name they pack to the left: the far end of a reversed line. */
-    justify-content: flex-end;
-    margin-left: 0;
-    padding-block: var(--space-6) 0;
+    order: -1;
+    padding-block: var(--space-2) 0;
   }
 
-  /* Under the name, the chips are not beside it to centre on. */
+  /* Over the name, the chips are not beside it to centre on. */
   .su-entity-row__heading--cut:not([data-chips]) > .su-chips::after,
   .su-entity-row__heading--cut:not([data-chips]) > .su-entity-row__chip-group::before {
     content: none;
-  }
-
-  /* The tier and affordance stay on the band, by the name, and
-     paint over the strip (its clip makes it a stacking context). */
-  /* On the paper strip an ink band's chips drop their paper rule. */
-  [data-ground='ink'] .su-entity-row__heading--cut:not([data-chips]) .su-stat-cell {
-    border-color: var(--color-ink);
-  }
-
-  .su-entity-row__head[data-ground='ink']
-    .su-entity-row__heading--cut:not([data-chips])
-    .su-entity-row__chip-group
-    .su-ec-labels__stamps
-    > .su-badge-stamp,
-  .su-entity-row__head[data-ground='ink']
-    .su-entity-row__heading--cut:not([data-chips])
-    > .su-chips
-    .su-ec-labels__stamps
-    > .su-badge-stamp,
-  .su-entity-row__head[data-ground='ink']
-    .su-entity-row__heading--cut:not([data-chips])
-    > .su-chips
-    > .su-badge-stamp:not(.su-badge--dashed) {
-    background-color: var(--color-ink);
-    border-color: var(--color-ink);
-    color: var(--color-paper);
-  }
-
-  .su-entity-row__head[data-notch]
-    .su-entity-row__line:has(> .su-entity-row__heading--cut:not([data-chips]))
-    > :not(.su-entity-row__heading--cut, .su-entity-row__art) {
-    align-self: flex-start;
-    margin-block: var(--space-6) 0;
-    position: relative;
   }
 }
 
@@ -811,11 +708,11 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   z-index: 1;
 }
 
-/* Dropped under the name, the chip strip's clip makes it a stacking context
-   the cover would paint over, its "⋯" with it: in a covered Row the strip is
-   raised too, and lets a press through to the cover but on its controls. */
+/* Raised over the name, the chip strip sits where the cover paints, its "⋯"
+   with it: in a covered Row the strip is raised too, and lets a press
+   through to the cover but on its controls. */
 .su-entity-row[data-covered]
-  .su-entity-row__heading--cut[data-chips='under']
+  .su-entity-row__heading--cut[data-chips='over']
   > :is(.su-chips, .su-entity-row__chip-group) {
   pointer-events: none;
   position: relative;
@@ -823,7 +720,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 .su-entity-row[data-covered]
-  .su-entity-row__heading--cut[data-chips='under']
+  .su-entity-row__heading--cut[data-chips='over']
   > :is(.su-chips, .su-entity-row__chip-group)
   :is(a, button) {
   pointer-events: auto;

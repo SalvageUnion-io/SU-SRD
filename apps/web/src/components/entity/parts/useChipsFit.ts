@@ -3,22 +3,14 @@ import { useEffect } from 'react'
 import { widthAtLeast } from '../../../design/tokens'
 import { chipLines } from './chipFit'
 
-/** A phone (`entity-forms.css`): under it the name keeps one line and the chips drop sooner. */
+/** A phone (`entity-forms.css`): under it the name keeps one line and the chips rise sooner. */
 const PHONE = `not ${widthAtLeast('sm')}`
-
-/**
- * The most lines the chips may take beside the name: a compact head
- * double-rows its chips, never more (`chips-and-actions.md` C5). More than
- * this and the band would grow into a tall, thin column of chips over a short
- * name: they drop under it instead.
- */
-export const MAX_CHIP_LINES = 2
 
 /** The width an element takes on one line, unwrapped (its max-content). */
 function oneLineWidth(el: HTMLElement): number {
   const { width, flex } = el.style
   el.style.width = 'max-content'
-  // Neither grown to the line (a dropped strip is the line's width) nor shrunk.
+  // Neither grown to the line (a raised strip is the line's width) nor shrunk.
   el.style.flex = 'none'
   const measured = el.getBoundingClientRect().width
   el.style.width = width
@@ -57,34 +49,21 @@ function chipWidths(chips: HTMLElement): number[] {
     .filter((width) => width > 0)
 }
 
-/** How many lines the chips take as laid out: their distinct tops. */
-function laidOutLines(chips: HTMLElement): number {
-  const tops: number[] = []
-  for (const item of chipItems(chips)) {
-    const r = item.getBoundingClientRect()
-    if (r.width <= 0) continue
-    if (!tops.some((top) => Math.abs(top - r.top) < r.height / 2)) tops.push(r.top)
-  }
-  return tops.length
-}
-
 /**
  * Whether a cut-out head's chips fit beside its name, written to the heading
- * as `data-chips="beside"` or `"under"` (`.su-entity-row__heading--cut`
- * drops them under the name onto the paper). They fit when, in the room the
- * name leaves on the band on its one line, they take at most
- * `MAX_CHIP_LINES` lines: a chip group that wraps stays in the head, its last
- * line on the name's capitals and the rest balanced above (owner's rule,
- * 2026-10-14), as a short one does.
+ * as `data-chips="beside"` or `"over"` (`.su-entity-row__heading--cut`
+ * raises them onto the band's full width above the name). They stay beside it on as many
+ * lines as they need, the last on the name's capitals and the rest stacked
+ * above it, up the band (owner's rules, 2026-10-14 and 2026-10-20): they rise
+ * over it only when one chip is wider than the room the name leaves.
  *
- * - **On a phone** that is measured every time. Until this has run (a static
- *   page with no script) they drop, as before.
+ * - **On a phone** that is measured every time, against the name's one line.
+ *   Until this has run (a static page with no script) they rise over it.
  * - **Wider**, the name may wrap beside them, so a head is left as it is
- *   while its chips stay inside it on at most `MAX_CHIP_LINES` lines (the
- *   common case: one read, no write). Only one that breaks that (a long
- *   chip, a Game's name, past the Row's edge: R3) drops them under,
- *   and goes back beside only when they fit beside the one-line name, so
- *   the switch never flips back and forth.
+ *   while its chips stay inside it (the common case: one read, no write).
+ *   Only one that breaks that (a long chip, a Game's name, past the Row's
+ *   edge: R3) raises them over it, and goes back beside only when they fit
+ *   beside the one-line name, so the switch never flips back and forth.
  *
  * Measured, not guessed from the viewport or the chip count: the name's
  * length and each chip's width decide.
@@ -97,7 +76,7 @@ export function useChipsFit(ref: RefObject<HTMLElement | null>, enabled: boolean
     if (!enabled || !heading || typeof ResizeObserver === 'undefined') return
     const phone = window.matchMedia?.(PHONE)
     // What the last answer was measured at: the heading's width and its chips'.
-    // Dropping the chips under the name (or raising them) changes the head's
+    // Raising the chips over the name (or bringing them back) changes the head's
     // height alone, which fires the observer again; measured at the same
     // widths, the answer stands, so a head never flips back and forth.
     let measuredAt = ''
@@ -110,24 +89,21 @@ export function useChipsFit(ref: RefObject<HTMLElement | null>, enabled: boolean
       const at = `${heading.clientWidth}:${phone?.matches}:${chipWidths(chips).join(',')}`
       if (at === measuredAt) return
       measuredAt = at
-      if (!phone?.matches && heading.dataset.chips !== 'under') {
-        const inside = heading.scrollWidth <= heading.clientWidth + 0.5
-        if (inside && laidOutLines(chips) <= MAX_CHIP_LINES) return
-        heading.dataset.chips = 'under'
+      if (!phone?.matches && heading.dataset.chips !== 'over') {
+        if (heading.scrollWidth <= heading.clientWidth + 0.5) return
+        heading.dataset.chips = 'over'
         return
       }
       const gap = Number.parseFloat(getComputedStyle(heading).columnGap) || 0
       const room = heading.clientWidth - oneLineWidth(name) - gap
       // The strip fills from its bottom-right corner: it packs from its end.
       const widths = chipWidths(chips).reverse()
+      // On as many lines as they take: only a chip wider than the room raises them over it.
       const fits =
         widths.length > 0
-          ? chipLines(widths, room) <= MAX_CHIP_LINES
+          ? Number.isFinite(chipLines(widths, room))
           : oneLineWidth(chips) <= room + 0.5
-      heading.dataset.chips = fits ? 'beside' : 'under'
-      // The sum can sit a rounding under the room the line breaks at: what
-      // is laid out decides, and the strip drops when it took a line more.
-      if (fits && laidOutLines(chips) > MAX_CHIP_LINES) heading.dataset.chips = 'under'
+      heading.dataset.chips = fits ? 'beside' : 'over'
     }
     measure()
     const observer = new ResizeObserver(measure)

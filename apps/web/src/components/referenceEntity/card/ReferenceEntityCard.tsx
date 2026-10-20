@@ -63,6 +63,7 @@ import {
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
 import { HeadToken } from './HeadToken'
+import { labelChips } from './labelChips'
 import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN } from './legalStartingPattern'
 import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
@@ -316,16 +317,15 @@ function ReferenceEntityCardInner({
   const foldedAction = foldedActionOf(foldableActions, entityName)
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
-  // The LABELS, right of the title: a parent seal (GRANTS) replaces the note.
-  const labels = (
-    <CardLabels
-      seal={parentSeal}
-      note={parentSeal ? undefined : kicker}
-      axisMarkers={axisMarkers}
-      legalStartingPattern={isLegalStartingPatternCard}
-      userMade={userMade}
-    />
-  )
+  // The LABELS: a parent seal (GRANTS) replaces the note. A card's head draws
+  // them as its strip's first chips, at its Size (`labelChips`).
+  const labelProps = {
+    seal: parentSeal,
+    note: parentSeal ? undefined : kicker,
+    axisMarkers,
+    legalStartingPattern: isLegalStartingPatternCard,
+    userMade,
+  }
   // HEADER value cells — the short `[label | value]` form; compact, the budget (C3); a Peek, every stat.
   const headerStats: StatItem[] = buildHeaderStats({
     entity,
@@ -389,7 +389,7 @@ function ReferenceEntityCardInner({
   // SUGGESTED — an ink stamp leading the "//" line, marking a recommended
   // pick. A recommendation is not an action, so it is never rust (§3.1).
   const suggestedNode: ReactNode = suggested ? (
-    <Badge shape="stamp" size="mini">
+    <Badge key="suggested" shape="stamp" size="mini">
       Suggested
     </Badge>
   ) : undefined
@@ -447,7 +447,7 @@ function ReferenceEntityCardInner({
         <Chips
           chips={chips}
           size="compact"
-          marks={suggestedNode}
+          marks={onPage ? suggestedNode : [...labelChips(labelProps, 'compact'), suggestedNode]}
           nodes={tree}
           state={slots.state.length > 0 ? slots.state : undefined}
           lanes
@@ -455,7 +455,7 @@ function ReferenceEntityCardInner({
       }
       controls={slots.controls.length > 0 ? slots.controls : undefined}
       affordance={seal}
-      labels={labels}
+      labels={onPage ? <CardLabels {...labelProps} /> : undefined}
       size={size}
       grain={grain}
       ruled

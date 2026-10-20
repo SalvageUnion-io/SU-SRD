@@ -108,19 +108,6 @@
   }
 }
 
-/*
- * The type and cost stamps beside an entity page's stats
- * (`EntityPageStamps`): the band's Size (Compact, `--size-compact`), the height
- * of its stat cells and its "Build With This", so the row reads as one size.
- */
-.su-entity-stamp {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: var(--size-compact);
-  padding-inline: var(--space-8);
-}
-
 /* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
    height (its plates inside the cell's hairline frame) and type, so every
    chip on the band reads as one size. */

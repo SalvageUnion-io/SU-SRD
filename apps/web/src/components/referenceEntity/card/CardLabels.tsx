@@ -1,6 +1,6 @@
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
-import type { AxisMarker } from './entityCardTone'
+import type { LabelsProps } from './labelChips'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { UserMadeStamp } from './UserMadeStamp'
 
@@ -34,16 +34,7 @@ export function CardLabels({
   axisMarkers,
   legalStartingPattern,
   userMade = false,
-}: {
-  /** A parent-provided seal (GRANTS, CHASSIS ABILITY). */
-  seal: { label: string; tone: string } | undefined
-  /** A caller's note that says more than the kind ("From Veteran", "Crawler crew · Med Bay"). */
-  note?: string
-  axisMarkers: AxisMarker[]
-  legalStartingPattern: boolean
-  /** USER-MADE (ruleset §3.9): a dashed User-made stamp after the others. */
-  userMade?: boolean
-}) {
+}: LabelsProps) {
   if (!seal && !note && axisMarkers.length === 0 && !legalStartingPattern && !userMade) return null
   return (
     <div className="su-ec-labels">

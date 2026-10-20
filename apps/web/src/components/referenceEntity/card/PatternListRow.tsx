@@ -15,8 +15,8 @@ import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
 import { Head, paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
-import { CardLabels } from './CardLabels'
 import type { Down } from './cardChrome'
+import { labelChips } from './labelChips'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
@@ -171,12 +171,13 @@ function PatternLinkRow({
   )
   const drones = useMemo(() => resolvePatternDrones(pattern), [pattern])
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
-  // The book's starting builds wear their stamp on the row, as on the card.
-  const labels = isLegalStartingPatternOf(pattern) ? (
-    <CardLabels seal={undefined} axisMarkers={[]} legalStartingPattern />
-  ) : undefined
+  // The book's starting builds wear their stamp on the row as on the card: a
+  // chip of the head's strip, at its Size (`labelChips`).
+  const chips = isLegalStartingPatternOf(pattern)
+    ? labelChips({ seal: undefined, axisMarkers: [], legalStartingPattern: true }, 'compact')
+    : undefined
   // The name on the paper cut-out (Head's `notch`): the body below is paper.
-  const head = <Head title={`“${name}”`} notch paint={paint} labels={labels} />
+  const head = <Head title={`“${name}”`} notch chipsBeside paint={paint} chips={chips} />
   return (
     <li>
       <Box

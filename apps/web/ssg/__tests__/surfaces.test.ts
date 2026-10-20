@@ -207,7 +207,7 @@ describe('a pattern page names and links its base chassis', () => {
   })
 
   it('wears no standalone "Pattern" stamp', () => {
-    expect(html).not.toMatch(/su-entity-stamp"[^>]*>Pattern</)
+    expect(html).not.toMatch(/su-stat-plate--label">Pattern</)
   })
 
   it('leads with the pattern, then the base chassis under its own slab', () => {
@@ -230,7 +230,8 @@ describe('a pattern page names and links its base chassis', () => {
   })
 
   it('stamps a legal starting pattern in the band, and offers to build it', () => {
-    expect(html).toMatch(/<span class="[^"]*su-entity-stamp"[^>]*>Legal Starting Pattern<\/span>/)
+    // The band's mark: a chip of its strip, at the strip's Size (`labelChips`).
+    expect(html).toMatch(/data-chip-class="mark"[^>]*>(?:<[^>]*>)*Legal Starting Pattern<\/span>/)
     expect(html).toMatch(
       /<a href="[^"]*mechs\/new\?mode=guided&amp;chassis=mazona&amp;pattern=buzzard"[^>]*>Build With This<\/a>/
     )

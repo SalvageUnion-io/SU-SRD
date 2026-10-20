@@ -68,8 +68,9 @@ export type HeadProps = {
   notch?: boolean
   /**
    * Keep the cut-out with chips: the chips stay on the band right of the
-   * name, and on a phone flow under it onto the paper when they do not fit
-   * beside it (`useChipsFit`), never above it (every Row and Card head).
+   * name, stacking up the band on as many lines as they take, and rise over
+   * it onto the band's full width only when one chip does not fit beside it
+   * (`useChipsFit`), never under it (every Row and Card head).
    */
   chipsBeside?: boolean
 }

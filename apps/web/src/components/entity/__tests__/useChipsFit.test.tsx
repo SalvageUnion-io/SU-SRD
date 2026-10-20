@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { useRef } from 'react'
-import { MAX_CHIP_LINES, useChipsFit } from '../parts/useChipsFit'
+import { useChipsFit } from '../parts/useChipsFit'
 
 const realMatchMedia = window.matchMedia
 
@@ -59,10 +59,10 @@ describe('useChipsFit', () => {
     expect(getByTestId('heading').dataset.chips).toBe('beside')
   })
 
-  test('on a phone, chips that do not fit drop under the name', () => {
+  test('on a phone, chips that do not fit rise over the name', () => {
     phone(true)
     const { getByTestId } = render(<Heading name={160} chips={150} room={300} />)
-    expect(getByTestId('heading').dataset.chips).toBe('under')
+    expect(getByTestId('heading').dataset.chips).toBe('over')
   })
 
   test('wider than a phone a head whose chips stay inside it is left as it is', () => {
@@ -71,10 +71,10 @@ describe('useChipsFit', () => {
     expect(getByTestId('heading').dataset.chips).toBeUndefined()
   })
 
-  test('wider than a phone chips that run past the head drop under the name (R3)', () => {
+  test('wider than a phone chips that run past the head rise over the name (R3)', () => {
     phone(false)
     const { getByTestId } = render(<Heading name={160} chips={150} room={300} overflow={10} />)
-    expect(getByTestId('heading').dataset.chips).toBe('under')
+    expect(getByTestId('heading').dataset.chips).toBe('over')
   })
 })
 
@@ -94,7 +94,7 @@ function ChipHeading({
   chips: number[]
   room: number
   perLine?: number
-  state?: 'beside' | 'under'
+  state?: 'beside' | 'over'
 }) {
   const ref = useRef<HTMLDivElement | null>(null)
   useChipsFit(ref, true)
@@ -138,13 +138,19 @@ describe('useChipsFit, chips that wrap', () => {
     expect(getByTestId('heading').dataset.chips).toBe('beside')
   })
 
-  test(`on a phone, chips that would take more than ${MAX_CHIP_LINES} lines drop under`, () => {
+  test('on a phone, chips that take many lines beside the name stack up beside it', () => {
     phone(true)
-    // 50px of room: one chip a line, six lines.
+    // 50px of room: one chip a line, six lines, stacked up the band.
     const { getByTestId } = render(
       <ChipHeading name={250} chips={[40, 40, 40, 40, 40, 40]} room={300} />
     )
-    expect(getByTestId('heading').dataset.chips).toBe('under')
+    expect(getByTestId('heading').dataset.chips).toBe('beside')
+  })
+
+  test('on a phone, a chip wider than the room beside the name raises them over', () => {
+    phone(true)
+    const { getByTestId } = render(<ChipHeading name={250} chips={[40, 60]} room={300} />)
+    expect(getByTestId('heading').dataset.chips).toBe('over')
   })
 })
 
@@ -157,24 +163,22 @@ describe('useChipsFit wider than a phone', () => {
     expect(getByTestId('heading').dataset.chips).toBeUndefined()
   })
 
-  test(`chips beside the name on more than ${MAX_CHIP_LINES} lines drop under it (C5)`, () => {
+  test('chips beside the name on more than two lines stay there, stacked up the band', () => {
     phone(false)
     const { getByTestId } = render(
       <ChipHeading name={100} chips={[40, 40, 40, 40, 40, 40]} room={300} perLine={2} />
     )
-    expect(getByTestId('heading').dataset.chips).toBe('under')
+    expect(getByTestId('heading').dataset.chips).toBeUndefined()
   })
 
-  test('under, they come back beside only when they fit beside the one-line name', () => {
+  test('over, they come back beside only when they fit beside the one-line name', () => {
     phone(false)
     const back = render(
-      <ChipHeading name={100} chips={[40, 40, 40, 40, 40, 40]} room={300} state="under" />
+      <ChipHeading name={100} chips={[40, 40, 40, 40, 40, 40]} room={300} state="over" />
     )
     expect(back.getByTestId('heading').dataset.chips).toBe('beside')
     back.unmount()
-    const stay = render(
-      <ChipHeading name={250} chips={[40, 40, 40, 40, 40, 40]} room={300} state="under" />
-    )
-    expect(stay.getByTestId('heading').dataset.chips).toBe('under')
+    const stay = render(<ChipHeading name={250} chips={[40, 60, 40]} room={300} state="over" />)
+    expect(stay.getByTestId('heading').dataset.chips).toBe('over')
   })
 })

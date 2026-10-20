@@ -1,9 +1,8 @@
 import type { EntityRef } from 'salvageunion-reference'
-import { Badge } from '../../atoms/Badge'
 import { Chips, EntityStat } from '../../entity'
 import { relationChips } from './abilityTreeRelations'
 import type { EntityPageMeta } from './entityPage'
-import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
+import { labelChips } from './labelChips'
 
 /**
  * EntityPageStamps — what an entity Page's chapter band carries right of its
@@ -72,16 +71,9 @@ export function EntityPageStamps({
         ],
       }}
       marks={
-        legalStartingPattern ? (
-          <Badge
-            shape="stamp"
-            size="compact"
-            className="su-entity-stamp"
-            title={LEGAL_STARTING_PATTERN_NOTE}
-          >
-            {LEGAL_STARTING_PATTERN}
-          </Badge>
-        ) : undefined
+        legalStartingPattern
+          ? labelChips({ seal: undefined, axisMarkers: [], legalStartingPattern }, 'full')
+          : undefined
       }
     />
   )
