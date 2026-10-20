@@ -12,6 +12,7 @@
  *   `flavor` block are framed asides, and a run-in head (a value-only `label`,
  *   a sub-`heading`) becomes the stamp over its paragraph (the full rung on a
  *   page);
+ * - a step's options are contentful Tokens in the masonry grid (`TokenGrid`);
  * - on a page the steps stand as a page section, not inside the prose column.
  */
 import { describe, expect, test } from 'bun:test'
@@ -313,6 +314,19 @@ describe('GuideSteps on the page', () => {
     const { container } = render(<ReferenceEntityCard data={guide('Heat')} presentation="page" />)
     expect(within(container).queryByRole('link', { name: 'p. 235' })).toBeNull()
     expect(container.textContent).toContain('Reactor Overload Table p. 235')
+  })
+
+  test("a step's options are contentful Tokens in the masonry grid (owner, 2026-10-20)", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
+    )
+    const grid = container.querySelector('ul.su-token-grid[aria-label="Craft your Systems"]')
+    expect(grid).not.toBeNull()
+    const items = grid?.querySelectorAll(':scope > li') ?? []
+    expect(items.length).toBeGreaterThan(0)
+    for (const item of items) {
+      expect(item.querySelector(':scope > .su-entity-token[data-contentful]')).not.toBeNull()
+    }
   })
 
   test('a wide step table scrolls in its own box', () => {
