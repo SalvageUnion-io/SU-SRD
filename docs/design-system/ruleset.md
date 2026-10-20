@@ -28,7 +28,6 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    4. **Use opens the action** — in Play an on-hand action's Token carries Use after its cost, which resolves it in place as the Token's contentful body (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): one-row head (art window), chip group (E17).
       Nothing edits or expands in place; art by room (EDL E10).
-      An SRD index draws Tiles (`form="tile"`, EDL E2).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links (but its name's, to its Page), nested Peeks or steppers; level 1 on its plate (EDL E6, E16, E19).
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
@@ -71,13 +70,14 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
    3. **§4.3 The border map** — one meaning each: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below `full`, `Box`), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value cells, table rules, sheet Identity/Vitals. A Row, Tile, Token or Box is inked only with content under its head.
+      Entity frames are `--color-ink-40`; only ability-tree Rows and patterns take a colour (`--su-row-frame`).
    4. **§4.4 Radius and spacing** — entity frames (Card, Row, Tile, Token) and stamps are square; everything else that frames or floats (Btn, field, Box, dialog, popup, toast) is 3px, `calc(3px − frame)` inside; rounder only for the ink-banner tail.
       Spacing inside a block is `{2, 4, 6, 8, 12}px`, 12px the card gutter; between blocks, 16 or 24px. No literal where a token exists.
    5. **§4.5 The pip-row split** — at most 6 per row, balanced and bottom-heavy (7 → 3/4, 13 → 4/4/5), for every pip surface. The redline pip sits at 70%.
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px, menu items included; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
-      A line's controls share one Size; chip values match labels, one gap apart, from the name's line's bottom right (C2b).
+      A line's controls share one Size; chip values match labels, one gap apart, filled as C2b. A Button beside Tabs is their Size.
 5. **§5 The irreducible set** — an ontology, not a roster: 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out); a note is a `Callout`.
@@ -92,7 +92,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs, at the line's Size, stroke 2 (chrome.md K11). The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (pills, HOMEBREW; never above it or riding the frame, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
    - **Actions nest** — no Actions tray or stamp. On a Page, level 1: compact framed cards, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Tokens (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
-   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, EDL E6), frames 3 → 2px; nothing titled at level 2 or deeper.
+   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, EDL E6), frames 3 → 2px; nothing titled at level 2 or deeper; one level deep is an open Row (N8).
      A child hides prose its parent shows.
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab over content if a section of the parent (When Damaged, Crawler Hold, Scrap Pool), an unlabelled Callout if a note; never a `TitledBox` or its variants. On an SRD Page a level-1 block may stay a TitledBox.
    - **A container of entities is untitled** (N6) — a wizard step is its title and content; the entities in it are the titled things. A dialog's head is its chrome (level 0).
@@ -107,4 +107,4 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.
    2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels sit right of its title).
-8. **§8 Chrome** — ground, breakpoints, motion, lift and layers, notices, loading, dialogs, empty and error states, focus and tabs: [chrome.md](chrome.md) K1–K10.
+8. **§8 Chrome** — [chrome.md](chrome.md) K1–K10.

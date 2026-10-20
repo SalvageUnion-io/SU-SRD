@@ -13,11 +13,14 @@
  * It shares the `tokens` id with `designTokens.ts`, so its findings print as
  * `tokens/<rule>` and `--only=tokens` runs both halves.
  *
- * ## Every rule is zero
+ * ## Every rule is zero, bar one ratchet
  *
  * Any finding fails, and none has a baseline entry. A genuinely-correct case
  * is an EXEMPTIONS entry with a written reason, or a `design-tokens-ignore`
- * comment on its line.
+ * comment on its line. The one ratchet is `entity-frame-ink` (hard rule
+ * R38): the owner's subtle-frame rule (2026-10-20) landed before the screens
+ * wore it, so its baseline in `tools/baselines/rule-sets.json` burns down as
+ * they do.
  */
 
 import { readFileSync } from 'node:fs'
@@ -34,6 +37,7 @@ import {
   parseCss,
 } from '../lib/styleSource'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { ENTITY_FRAME_STYLE_FILES, entityFrameInkCss, entityFrameInkScript } from './entityFrames'
 
 const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
@@ -462,6 +466,14 @@ const CHROME_RULES: ChromeRule[] = [
     css: rawBreakpointCss,
     script: rawBreakpointScript,
   },
+  {
+    id: 'entity-frame-ink',
+    mode: 'ratchet',
+    rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame is the subtle ink-40 the sheets wear, never solid ink or its tone; only `--su-row-frame` colours one (an ability tree, a pattern)',
+    fix: "Paint the frame `var(--color-ink-40)` (`color.ink40` in a style object), keeping its weight (§4.3). An ability tree's Rows and a pattern's frame take their colour through `--su-row-frame` alone. Then lower the baseline: `bun tools/check-rule-sets.ts --update-baseline`.",
+    css: entityFrameInkCss,
+    script: entityFrameInkScript,
+  },
 ]
 
 /**
@@ -542,7 +554,12 @@ export const chromeTokens: RuleSet = {
   rules: CHROME_RULES,
   exemptionsLive: 'packages/gates/rules/chromeTokens.ts (or a `design-tokens-ignore` line comment)',
   preflight(root) {
-    assertScanFloor('chrome tokens', scannedFiles(root).length, SCAN_FLOOR)
+    const files = scannedFiles(root)
+    assertScanFloor('chrome tokens', files.length, SCAN_FLOOR)
+    // The files whose style objects paint an entity's frame: a rename would
+    // leave entity-frame-ink reading nothing there.
+    for (const rel of ENTITY_FRAME_STYLE_FILES)
+      assertScanFloor(`chrome tokens (${rel})`, files.includes(rel) ? 1 : 0, 1)
     assertCoversWorkspaces('chrome tokens', SCAN_DIRS, {
       'packages/gates':
         'the gates themselves: the rule sets quote the patterns they forbid, and nothing here renders.',

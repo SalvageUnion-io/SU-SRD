@@ -21,6 +21,11 @@ import type { Page } from '@playwright/test'
  *   in-card entity choice (`ChoiceRegion`): its Token is a toggle, pressed when
  *   chosen, under a `data-choice-toggle` parent; a radio or checkbox there
  *   still breaks N7.
+ * - **N8** a Token one level deep on an entity's or a guide's Page (`oneDeep`):
+ *   an entity nested one level deep is a Row drawn open with all its content,
+ *   never a Token (EDL E6; owner, 2026-10-20: a bay's Smith, a guide's
+ *   options). A Token level 2 or deeper, in a search list or on a Peek's
+ *   plate is no N8. Report-only until the screens hold it (`_pendingRules.ts`).
  *
  * A headed frame is the frame around a visible `Head` band (`Head`: Row, Card
  * and TitledBox alike) or a Tile's band; its name is the title on the band,
@@ -32,7 +37,7 @@ import type { Page } from '@playwright/test'
  * measures them; the structure (N1, N3, N5, N6, N7) holds in any DOM.
  */
 export type NestingFinding = {
-  rule: 'N1' | 'N3' | 'N4' | 'N5' | 'N6' | 'N7'
+  rule: 'N1' | 'N3' | 'N4' | 'N5' | 'N6' | 'N7' | 'N8'
   /** The headed frames from the outermost in, `Bay (Crawler Bay) > When Damaged (TitledBox)`. */
   chain: string
   /** What breaks the rule there: `a headed frame at level 2`, `312px on a 480px line`. */
@@ -70,6 +75,14 @@ export type NestingSelectors = {
   sheetColumns: string
   /** How many px narrower than its line a Token may be. */
   tolerance: number
+  /**
+   * Where a Token one level deep breaks N8 (an entity's or a guide's Page:
+   * its `main`), or null where Tokens at level 1 are the form (a sheet, Play,
+   * a wizard).
+   */
+  oneDeep: string | null
+  /** What inside `oneDeep` is no nesting: a search's list, a Peek's plate, a dialog. */
+  notNested: string
 }
 
 export const NESTING_SELECTORS: NestingSelectors = {
@@ -86,6 +99,8 @@ export const NESTING_SELECTORS: NestingSelectors = {
   tokenGrid: '.su-token-grid',
   sheetColumns: '.su-sheet-columns',
   tolerance: 1,
+  oneDeep: null,
+  notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
 }
 
 /**
@@ -179,6 +194,20 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       })
   }
 
+  // N8: one level deep on a Page, an entity is a Row drawn open, never a Token.
+  if (a.oneDeep) {
+    for (const t of tokens) {
+      if (!t.closest(a.oneDeep) || t.closest(a.notNested)) continue
+      // A section's TitledBox frames no entity: a Token in one is still one deep.
+      if (around(t).some((f) => f.kind === 'entity')) continue
+      found.push({
+        rule: 'N8',
+        chain: chainOf(around(t), tokenName(t)),
+        detail: 'a Token one level deep: a Row drawn open with all its content',
+      })
+    }
+  }
+
   // N4: a Token fills its line. Its line is its parent's content box, less
   // whatever else sits on the same row; a wrapper holding only the Token (a
   // list item) must fill its own line in turn, unless it stands at its own
@@ -245,8 +274,12 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
   return found
 }
 
-export function findNestingFindings(page: Page): Promise<NestingFinding[]> {
-  return page.evaluate(scanNesting, NESTING_SELECTORS)
+/** Every finding on the page; `oneDeep` (an entity's or a guide's Page) adds N8. */
+export function findNestingFindings(
+  page: Page,
+  { oneDeep = false }: { oneDeep?: boolean } = {}
+): Promise<NestingFinding[]> {
+  return page.evaluate(scanNesting, { ...NESTING_SELECTORS, oneDeep: oneDeep ? 'main' : null })
 }
 
 /** One line per distinct finding, with how many times the page draws it. */

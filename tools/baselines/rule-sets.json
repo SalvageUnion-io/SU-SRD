@@ -1,4 +1,7 @@
 {
+  "chrome-tokens": {
+    "entity-frame-ink": 7
+  },
   "copy": {
     "lowercase-term": 192,
     "banned-variant": 2

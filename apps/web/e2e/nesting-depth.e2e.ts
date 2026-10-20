@@ -2,18 +2,22 @@ import type { Page } from '@playwright/test'
 import { at } from './_base'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt } from './_designTable'
+import { findFrameFaults } from './_entityFrames'
 import { editSheet, fillIdentity, openSheetFor, waitForReady } from './_helpers'
 import { describeFindings, findNestingFindings } from './_nestingDepth'
+import { holdPending, ruleOfFault } from './_pendingRules'
 import { expect, test } from './fixtures'
 
 /**
- * The nesting law (ruleset §5, N1–N7; EDL E6) on the rendered page
+ * The nesting law (ruleset §5, N1–N8; EDL E6) on the rendered page
  * (`_nestingDepth.ts`): three levels, nothing titled at level 2, a Token that
  * nests nothing and fills its line, no TitledBox inside an entity or around a
  * wizard step's entities. A failure names the page, the chain of headed frames
  * (`Shield Drone (Drone) > Refractive Shield Projector (System)`) and the rule.
  *
- * There is no allowlist: every finding fails.
+ * There is no allowlist: every finding fails, bar a pending rule's
+ * (`_pendingRules.ts`): N8 on an entity's or a guide's Page, and every
+ * entity frame's colour (`_entityFrames.ts`, R38), which the report shows.
  *
  * Signed out: sibling-heights' pages, the pages the nesting audit measured,
  * every Starter Set sheet, and a Peek of a chassis, a Bio-Titan and an
@@ -61,6 +65,12 @@ const PAGES = [
   ].map((sheet) => `/build/starter/${sheet}`),
 ]
 
+/**
+ * An entity's, a pattern's or a guide's Page, where an entity one level deep
+ * is a Row drawn open (N8): not an index, a table, the Training Bay or a sheet.
+ */
+const ONE_DEEP = /^\/(?!build\/|roll-tables\/)[a-z-]+\/[a-z0-9-]+\/(?:pattern\/[a-z0-9-]+\/)?$/
+
 /** Desktop, and a phone's width: a Token's line is narrower there. */
 const WIDTHS = [1440, 390]
 
@@ -86,14 +96,26 @@ test.describe('signed out', () => {
 
   test('every page nests three levels deep at most', async ({ page }) => {
     test.setTimeout(15 * 60_000)
-    const failures: string[] = []
+    const found: { rule: string; line: string }[] = []
     for (const width of WIDTHS) {
       await page.setViewportSize({ width, height: 900 })
       for (const path of PAGES) {
         await page.goto(path, { waitUntil: 'networkidle' })
-        failures.push(...(await scan(page, `${path} at ${width}px`)))
+        const where = `${path} at ${width}px`
+        const findings = await findNestingFindings(page, { oneDeep: ONE_DEEP.test(path) })
+        for (const rule of new Set(findings.map((f) => f.rule))) {
+          const lines = describeFindings(
+            where,
+            findings.filter((f) => f.rule === rule)
+          )
+          found.push(...lines.map((line) => ({ rule, line })))
+        }
+        for (const fault of await findFrameFaults(page)) {
+          found.push({ rule: ruleOfFault(fault), line: `${where}, ${fault}` })
+        }
       }
     }
+    const failures = holdPending('nesting-depth', found).map((f) => f.line)
     expect(failures, 'entities nested past the three levels').toEqual([])
   })
 
@@ -226,7 +248,7 @@ test.describe('signed in', () => {
   /**
    * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
    * seeded, at page and phone widths, Play's phone form tab by tab, under
-   * N1–N7.
+   * N1–N8 (N8 and frame colours pending).
    *
    * `BASELINE` is the debt this pass found when it landed, by route family and
    * rule, each to be fixed and deleted here. A finding off it fails; an entry
@@ -242,6 +264,8 @@ test.describe('signed in', () => {
       for (const f of await findNestingFindings(page)) {
         lines.set(`${where}: ${f.rule} ${f.chain}: ${f.detail}`, f.rule)
       }
+      for (const fault of await findFrameFaults(page))
+        lines.set(`${where}, ${fault}`, ruleOfFault(fault))
       return [...lines].map(([line, rule]) => ({ rule, line }))
     })
     expectWithinBaseline('nesting-depth', findings, BASELINE)

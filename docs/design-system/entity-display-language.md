@@ -7,7 +7,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 
 1. **Entity** — a `salvageunion-reference` record plus an optional instance (condition, uses, count, notes, title, user-made).
 2. **Model** — `toEntityModel(entity, instance?)` in `packages/salvageunion-reference/lib/view/`: pure, serialisable, shared by every surface and the bot.
-   Resolves identity, tone, facts, traits, prose, actions, children, table, art and cite once; no form computes a fact.
+   Resolves every fact, the prose, children, table, art and cite once; no form computes one.
 3. **Form** — which parts to draw, in a fixed order. **Mode** — which affordances fill the form's slots. Only these two are React.
 4. **Surface context** — reference resolution, band texture and the user-made treatment come once, never per call.
 
@@ -15,7 +15,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
 2. **Token** — `name [chips] [actions]`, one row, name cut out, filling its line (one a line in a list); links and Peeks as a Mention.
-   **Contentful** (N3): that head, then the entity's text, held in a border of its tone: nested actions, chassis abilities, a bay's crew lead.
+   **Contentful** (N3): that head, then the entity's text, held in the subtle frame (E21): nested actions, chassis abilities, a bay's crew lead.
 3. **Row** — every list: head (the art in its own paper window at the band's left, band on all sides, centred, ≥ 18rem where the schema has art; tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is one height and each name line reserves two.
    **Tile** — the SRD index's Row: 3:4 art if any, name notched in the band, facts, lead; link only.
@@ -31,11 +31,9 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 3. **select** — ink ring and "Selected" seal; Row, Card (pickers, wizards, the searcher), at level 1 (N7). One choice is a radio.
    An in-card entity choice (level 2) is a toggle Token: pressed, ring on its pill, unchosen dimmed by the one `selectable` dim, no seal.
 
-Header-only is no mode: it is a Token (E3).
-
 ## Hard rules
 
-Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, ruleset §5) is gated: N2, N3, N5 by the `entity-nesting` rule set, N1 and N3–N7 by the `nesting-depth` e2e spec.
+Each is checkable ([hard-rules.md](hard-rules.md) names the gates); breaking one needs an amendment here.
 
 - **E1** Choose the form by the job and room, never the app.
 - **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except an SRD index: Tiles, each line filled to the margin; abilities add a Tree (first).
@@ -44,6 +42,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page (form 5): no new-tab `window.open`.
 - **E6** Three levels (N1): 0 the page box (Page, dialog, wizard step, Peek plate); 1 compact Rows or Cards; 2 Tokens only.
+  One level deep on a Page (a bay's Smith, a guide's options): an open Row, never a Token (N8).
   Nothing titled at level 2 or deeper; a Token nests nothing (deeper is its link or Peek). Nested Card and Peek names link.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
@@ -56,16 +55,18 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument, open, on a Page, panel or resolve; its ROLL THE DIE stamp is the roll button, a result its marked row.
 - **E15** No hand-built entity markup outside `entity/`. A rules block (When Damaged, a chassis ability) has one renderer in every context.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). From the bottom right of the title's line, rising only on overflow (C2b); on a phone a Page's band keeps them above its title. On ink each chip has a paper rule.
+- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). From the bottom right of the title's line, the overflow in the body's first row (C2b); on a phone a Page's band keeps them above its title. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4), of a static budget (C3); its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages (level 1), mech hero and Discord card;
   nested (mech-wizard picks and stats step, Peek) it is a contentful Token (N3).
 - **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized); a chassis's stats lead its body.
+- **E21** Entity frames are the subtle ink-40 (ruleset §4.3); only ability-tree Rows and patterns take a colour.
+- **E22** A name and its cut-out sit at their head's left.
 
 ## Which form, where
 
 1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules at level 1, compact Cards, their actions Tokens (E6).
-2. **Search, everywhere** — the bar's dropdown, Tokens, link (no standalone search page). **Any prose** — Mention: Peek, then Page.
+2. **Search, everywhere** — the bar's dropdown, Tokens, link.
 3. **app wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **app dense slots** (inventory, bays, loadouts) — Token, link. **Deck** — Token. **Resolve** — Row / Card.
-5. **app "open" anywhere** — the detail dialog's Page. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.
+5. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.

@@ -12,6 +12,7 @@ import {
   LOADING_ATOMS,
   scanChromeSources,
 } from '../rules/chromeTokens'
+import { ENTITY_FRAME_STYLE_FILES } from '../rules/entityFrames'
 import { Exited, trapExit } from './trapExit'
 
 /**
@@ -24,10 +25,12 @@ const scan = (rel: string, text: string) => scanChromeSources(new Map([[rel, tex
 const lines = (found: ReturnType<typeof scan>, id: string) => found[id]?.map((f) => f.line)
 
 describe('chrome tokens rule set', () => {
-  test('every rule is zero', () => {
+  test('every rule is zero but the entity-frame-ink ratchet (R38)', () => {
     expect(chromeTokens.id).toBe('chrome-tokens')
-    expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(chromeTokens, {})).toEqual({})
+    expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([
+      'entity-frame-ink',
+    ])
+    expect(ratchetCounts(chromeTokens, {})).toEqual({ 'entity-frame-ink': 0 })
   })
 })
 
@@ -424,6 +427,56 @@ describe('chrome-tokens/raw-breakpoint', () => {
       ].join('\n')
     )
     expect(lines(tsx, 'raw-breakpoint')).toEqual([1, 2, 3])
+  })
+})
+
+describe('chrome-tokens/entity-frame-ink', () => {
+  test("solid ink on an entity frame's border fails, as a fallback too", () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.su-entity-row__frame { border-color: var(--su-row-frame, var(--color-ink)); }',
+        '.su-token-group { border: var(--bw-chrome) solid var(--color-ink); }',
+        '.x .su-entity-token__body, .y { border-top-color: var(--color-ink-deep); }',
+        '.su-ec-frame[data-x] { border-color: var(--color-ink-2); }',
+      ].join('\n')
+    )
+    expect(lines(css, 'entity-frame-ink')).toEqual([1, 2, 3, 4])
+  })
+
+  test('the subtle ink, a width, and solid ink inside a frame but not on it pass', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.su-entity-row__frame { border-color: var(--su-row-frame, var(--color-ink-40)); }',
+        '.su-ec-frame { border-width: var(--bw-entity); border-style: solid; }',
+        '.su-ec-frame > .su-ec-band { border-bottom: var(--bw-chrome) solid var(--color-ink); }',
+        '.su-entity-row__frame-x { border-color: var(--color-ink); }',
+      ].join('\n')
+    )
+    expect(css['entity-frame-ink']).toEqual([])
+  })
+
+  test("a frame's style object takes only the subtle ink, clear or --su-row-frame", () => {
+    const rel = ENTITY_FRAME_STYLE_FILES[0] as string
+    const bad = scan(
+      rel,
+      "const A = { borderColor: 'var(--color-ink)' }\nconst B = { borderColor: paint.background }"
+    )
+    expect(lines(bad, 'entity-frame-ink')).toEqual([1, 2])
+    const good = scan(
+      rel,
+      [
+        'const A = { borderColor: color.ink40 }',
+        "const B = { borderColor: 'transparent' }",
+        "const C = { borderColor: 'var(--su-row-frame, var(--color-ink-40))' }",
+      ].join('\n')
+    )
+    expect(good['entity-frame-ink']).toEqual([])
+    // Elsewhere a borderColor is no entity frame's.
+    expect(
+      scan('apps/web/src/X.tsx', 'const A = { borderColor: color.ink }')['entity-frame-ink']
+    ).toEqual([])
   })
 })
 

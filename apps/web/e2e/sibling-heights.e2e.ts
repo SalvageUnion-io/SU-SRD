@@ -5,8 +5,9 @@ import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_de
 import type { DesignDebt } from './_designTable'
 import { DESIGN_FAMILIES, designRoutes } from './_designTable'
 import { waitForReady } from './_helpers'
+import { holdPending, ruleOfFault } from './_pendingRules'
 import { board, CANVAS, openPlay, PHONE, pilotPlayPath } from './_play'
-import { findSiblingMismatches } from './_siblingHeights'
+import { findSiblingMismatches, findTabSizeFaults } from './_siblingHeights'
 import { setUpTable } from './_table'
 import { findTypeFloorFaults } from './_typeFloor'
 import { test as signedIn } from './fixtures'
@@ -53,6 +54,7 @@ test.describe.configure({ retries: 0 })
 test('siblings on one line share one height', async ({ page }) => {
   test.setTimeout(10 * 60_000)
   const failures: string[] = []
+  const tabSize: { rule: string; line: string }[] = []
   for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 900 })
     for (const path of PAGES) {
@@ -61,8 +63,12 @@ test('siblings on one line share one height', async ({ page }) => {
         const controls = m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')
         failures.push(`${path} at ${width}px, ${m.line}: ${controls}`)
       }
+      for (const fault of await findTabSizeFaults(page)) {
+        tabSize.push({ rule: ruleOfFault(fault), line: `${path} at ${width}px, ${fault}` })
+      }
     }
   }
+  failures.push(...holdPending('sibling-heights', tabSize).map((f) => f.line))
   expect(failures, 'controls on one line at different heights').toEqual([])
 })
 
@@ -260,6 +266,10 @@ signedIn('every context: siblings on one line share one height', async ({ page, 
       line: `${view.where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
     })),
     ...(await typeFloor(view)),
+    ...(await findTabSizeFaults(page)).map((fault) => ({
+      rule: ruleOfFault(fault),
+      line: `${view.where}, ${fault}`,
+    })),
   ])
   const play = designRoutes.filter((r) => DESIGN_FAMILIES[r.family] === 'play')
   findings.push(...(await walkDesignRoutes(page, seed, typeFloor, play, { widths: ['mid'] })))

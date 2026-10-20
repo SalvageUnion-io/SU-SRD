@@ -243,3 +243,38 @@ describe('N7: a Token takes no select mode', () => {
     expect(scan(card('Pick', 'Class', token('Hacker', 'Class') + option))).toEqual([])
   })
 })
+
+describe('N8: one level deep is a Row', () => {
+  const page = (body: string) => `<main>${body}</main>`
+  const deep = (html: string) => {
+    document.body.innerHTML = html
+    return scanNesting({ ...NESTING_SELECTORS, oneDeep: 'main' })
+  }
+
+  test("a Token straight on a Page, or in its section's TitledBox, breaks N8", () => {
+    expect(deep(page(token('The Smith', 'NPC')))).toEqual([
+      {
+        rule: 'N8',
+        chain: 'The Smith (NPC)',
+        detail: 'a Token one level deep: a Row drawn open with all its content',
+      },
+    ])
+    expect(deep(page(box(token('Hacker', 'Class'), 'Choose 1'))).map((f) => f.rule)).toEqual(['N8'])
+  })
+
+  test("a Row on a Page, a Token in a Card, a search list's Token and a Peek's are no N8", () => {
+    const listbox = `<div role="listbox">${token('Mule', 'Chassis')}</div>`
+    const peek = `<div data-peek-popup="">${token('Typhon', 'Bio-Titan')}</div>`
+    expect(
+      deep(
+        page(row('The Smith', 'NPC', '<p>All its content</p>')) +
+          page(card('Armoury', 'Crawler Bay', token('The Smith', 'NPC'))) +
+          page(listbox + peek)
+      )
+    ).toEqual([])
+  })
+
+  test('off a Page (oneDeep unset) a Token at level 1 is the form', () => {
+    expect(scan(page(token('The Smith', 'NPC')))).toEqual([])
+  })
+})

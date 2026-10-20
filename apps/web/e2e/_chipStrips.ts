@@ -43,9 +43,22 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   chips that fit and ends its second line in +MORE, which opens its Peek.
  *   A Row's or card's head stacks its chips up the band beside the name on
  *   as many lines as they take (owner's rule, 2026-10-20).
- * - **more** a +MORE chip anywhere but a contentful Token's strip, or one
- *   that is not its strip's last chip, at the end of its lowest line (the
- *   visual bottom), or one that dropped the strip's cost (C5).
+ * - **more** a +MORE chip anywhere but a Token's, or one that is not its
+ *   strip's last chip, at the end of its lowest line (the visual bottom), or
+ *   one that dropped the strip's cost (C5).
+ *
+ * The owner's rules of 2026-10-20 (hard rules R37, R40), reported and not
+ * failed while their entries stand in `_pendingRules.ts`:
+ *
+ * - **more-contentful** a +MORE in a contentful Token: its overflow is its
+ *   body's first row (C5).
+ * - **overflow** a head whose chips rose above its name (a line over the
+ *   name's line in a fill head, a contentful Token's chips on two lines), and
+ *   a body's overflow row (`[data-chip-overflow]`) that is not the body's
+ *   first row, not left-aligned, or holds the cost or the Tech Level (C2b).
+ *   A Page's chapter band on a phone keeps its controls over its title.
+ * - **align** a head's name not at its left: room before it, on its line,
+ *   that nothing (the art, the tier) fills (EDL E22).
  */
 const STRIP = [
   '.su-entity-stamps',
@@ -78,6 +91,9 @@ const MORE = '.su-chip-more'
 /** A head that fills from its bottom-right corner (`components/atoms/chipFill.ts`). */
 const FILL = '[data-chip-fill]'
 
+/** A body's first row, holding what of its head's chips did not fit beside the name (C2b). */
+const OVERFLOW = '[data-chip-overflow]'
+
 /** An entity's frame: the box no chip of its strips may leave. */
 const FRAME = [
   '.su-entity-row__frame',
@@ -96,6 +112,7 @@ function scan({
   contentful,
   more,
   fill,
+  overflow,
 }: {
   strip: string
   chip: string
@@ -105,6 +122,7 @@ function scan({
   contentful: string
   more: string
   fill: string
+  overflow: string
 }): string[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   type Rect = { left: number; top: number; right: number; bottom: number }
@@ -157,10 +175,32 @@ function scan({
       faults.push(`foot: "${describe(inside[0] as Element)}" is a chip in a foot band`)
     }
   }
-  // MORE: only a contentful Token's strip ends in +MORE.
+  // MORE: only a Token's strip ends in +MORE, and never a contentful one's.
   for (const el of document.querySelectorAll(more)) {
-    if (visible(el) && !el.closest(contentful)) {
-      faults.push(`more: "${describe(el)}" is a +MORE outside a contentful Token`)
+    if (!visible(el)) continue
+    if (el.closest(contentful)) {
+      faults.push(`more-contentful: "${describe(el)}" is a +MORE on a contentful Token`)
+    } else if (!el.closest('.su-entity-token')) {
+      faults.push(`more: "${describe(el)}" is a +MORE outside a Token`)
+    }
+  }
+  // OVERFLOW: a body's overflow row is its first row, left-aligned, and
+  // never holds the cost or the Tech Level, which stay in the head.
+  for (const row of document.querySelectorAll(overflow)) {
+    if (!visible(row)) continue
+    const where = `${describe(row)}…`
+    const first = [...(row.parentElement?.children ?? [])].find(visible)
+    if (first !== row) faults.push(`overflow: ${where} the overflow row is not its body's first`)
+    const kept = row.querySelector('.su-cost, .su-cost-edge, [data-chip-class="rank"]')
+    if (kept && visible(kept)) {
+      faults.push(`overflow: ${where} "${describe(kept)}" left the head`)
+    }
+    const items = [...row.querySelectorAll(chip)].filter(visible)
+    const s = getComputedStyle(row)
+    const left = row.getBoundingClientRect().left + Number.parseFloat(s.paddingLeft)
+    const start = Math.min(...items.map((el) => el.getBoundingClientRect().left))
+    if (items.length > 0 && start - left > 1) {
+      faults.push(`overflow: ${where} starts ${Math.round(start - left)}px in, not left-aligned`)
     }
   }
   const roots = [...document.querySelectorAll(strip)].filter(
@@ -288,6 +328,10 @@ function scan({
 
     // LINES: a Token's chips on one line, a contentful Token's on at most
     // two (C5): past two, it ends in +MORE. A Row's head stacks them upward.
+    // OVERFLOW: a contentful Token's head keeps one line; the rest is its body's (C2b).
+    if (token && lines.length > 1) {
+      faults.push(`overflow: ${where} its head's chips on ${lines.length} lines, not one`)
+    }
     const most = token ? 2 : root.closest('.su-entity-token__pill') ? 1 : Number.POSITIVE_INFINITY
     if (lines.length > most) {
       const hint = moreChip ? '' : ', with no +MORE'
@@ -360,12 +404,30 @@ function scan({
     if (!name || !visible(name)) continue
     const items = [...head.querySelectorAll('[data-fill-item]')].filter(visible)
     const where = `${describe(name)}…`
+    const nameBox = name.getBoundingClientRect()
+    // ALIGN: the name sits at its head's left; only what draws there (the
+    // art, the tier) may stand before it on its line.
+    {
+      const hs = getComputedStyle(head)
+      const gap = Number.parseFloat(hs.columnGap) || 0
+      let edge = head.getBoundingClientRect().left + Number.parseFloat(hs.paddingLeft)
+      for (const el of head.querySelectorAll('*')) {
+        if (el === name || name.contains(el) || el.contains(name) || !visible(el)) continue
+        const b = el.getBoundingClientRect()
+        const beside = Math.min(b.bottom, nameBox.bottom) - Math.max(b.top, nameBox.top) > 0
+        if (beside && b.right <= nameBox.left + 1) edge = Math.max(edge, b.right + gap)
+      }
+      if (nameBox.left - edge > 2) {
+        faults.push(
+          `align: ${where} the name starts ${Math.round(nameBox.left - edge)}px from its head's left`
+        )
+      }
+    }
     if (items.length === 0) {
       const drawn = [...head.querySelectorAll(chip)].some(visible)
       if (drawn) faults.push(`fill: ${where} its chips were never fitted (no data-fill-item)`)
       continue
     }
-    const nameBox = name.getBoundingClientRect()
     const box = (el: Element) => el.getBoundingClientRect()
     // Lines: items whose boxes overlap vertically by half the shorter one;
     // the name's line is the one that overlaps the name's lower half.
@@ -426,6 +488,11 @@ function scan({
       continue
     }
     const nameLine = lines.find((l) => l.some(onName))
+    // OVERFLOW: nothing rises above the name's line (C2b).
+    const risen = nameLine ? lines.slice(0, lines.indexOf(nameLine)).flat() : []
+    if (risen.length > 0) {
+      faults.push(`overflow: ${where} "${describe(risen[0] as Element)}" rose above the name`)
+    }
     if (!nameLine || !onName(corner) || nameLine[nameLine.length - 1] !== corner) {
       faults.push(
         `fill: ${where} "${describe(corner)}" is not at the bottom right, on the name's line`
@@ -477,5 +544,6 @@ export async function findChipStripFaults(page: Page): Promise<string[]> {
     contentful: CONTENTFUL,
     more: MORE,
     fill: FILL,
+    overflow: OVERFLOW,
   })
 }

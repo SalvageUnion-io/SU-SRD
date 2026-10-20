@@ -17,6 +17,7 @@ import {
   gamePageRoute,
 } from './_designTable'
 import { gotoStable, waitForReady } from './_helpers'
+import { holdPending } from './_pendingRules'
 import { CANVAS, MID, PHONE, pilotPlayPath, playDoor } from './_play'
 import { createGame, makeInviteLink } from './_table'
 
@@ -319,14 +320,15 @@ export async function walkDesignRoutes(
 /**
  * Fail on every finding off `baseline`; note each stale entry on the test
  * (an annotation in the report, not a failure: a debt one machine's fonts
- * draw and another's do not must not turn the gate red).
+ * draw and another's do not must not turn the gate red). A pending rule's
+ * findings (`_pendingRules.ts`) are reported, not failed.
  */
 export function expectWithinBaseline(
   gate: string,
   findings: readonly DesignFinding[],
   baseline: readonly DesignDebt[]
 ): void {
-  const { fresh, stale } = againstBaseline(findings, baseline)
+  const { fresh, stale } = againstBaseline(holdPending(gate, findings), baseline)
   for (const d of stale) {
     test.info().annotations.push({
       type: 'paid-off debt',

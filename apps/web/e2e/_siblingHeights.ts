@@ -163,3 +163,54 @@ function scan({
 export function findSiblingMismatches(page: Page, within?: string): Promise<SiblingMismatch[]> {
   return page.evaluate(scan, { control: CONTROL, maxGap: MAX_GAP, within: within ?? null })
 }
+
+/**
+ * A Button beside Tabs (or a Segmented row) is their Size (ruleset §4.7;
+ * owner, 2026-10-20):
+ * on the Tabs' line or in the band that holds them (the nearest ancestor,
+ * four levels up at most, that holds a Button too), every Button but a
+ * strip's chip is a tab's height. One `tab-size:` line per Button off it.
+ * Report-only until the screens hold it (`_pendingRules.ts`).
+ */
+function scanTabSize(): string[] {
+  const visible = (el: Element) => {
+    const r = el.getBoundingClientRect()
+    if (r.width < 4 || r.height < 4) return false
+    const s = getComputedStyle(el)
+    return s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity) > 0.05
+  }
+  const text = (el: Element) =>
+    (el.getAttribute('aria-label') ?? el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 24)
+  const faults: string[] = []
+  const seen = new Set<Element>()
+  // Tabs, or a Segmented row drawn as tabs (a sheet's Read | Edit).
+  for (const list of document.querySelectorAll('[role="tablist"], .su-seg')) {
+    const tab = [...list.querySelectorAll('[role="tab"], .su-seg__option')].find(visible)
+    if (!tab) continue
+    const height = Math.round(tab.getBoundingClientRect().height)
+    let band = list.parentElement
+    const buttons = (el: Element) =>
+      [...el.querySelectorAll('.su-btn')].filter(
+        (b) =>
+          visible(b) &&
+          !list.contains(b) &&
+          !b.closest('[data-chip-group], [data-chip-class], [role="menu"], [role="dialog"]')
+      )
+    for (let up = 0; band && up < 4 && buttons(band).length === 0; up++) band = band.parentElement
+    if (!band) continue
+    for (const b of buttons(band)) {
+      if (seen.has(b)) continue
+      seen.add(b)
+      const h = Math.round(b.getBoundingClientRect().height)
+      if (Math.abs(h - height) > 1) {
+        faults.push(`tab-size: "${text(b)}" is ${h}px beside ${height}px Tabs ("${text(tab)}")`)
+      }
+    }
+  }
+  return faults
+}
+
+/** Every Button beside Tabs that is not the Tabs' height. */
+export function findTabSizeFaults(page: Page): Promise<string[]> {
+  return page.evaluate(scanTabSize)
+}
