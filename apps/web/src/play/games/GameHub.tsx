@@ -11,9 +11,10 @@
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
  *     opens Play's Mediator screen (`/play/game/$gameId`); a player's **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it.
- *  2. **The roster** (`GameRoster`): the three columns, yours first.
- *  3. Two columns of sections. **Every member:** Crew & seats and the
- *     proposals awaiting their answer. **The Mediator:** Proposals you sent.
+ *  2. **The roster** (`GameRoster`): the three columns, yours first; each
+ *     pilot's seat (its HP, its mech) on its row, the Pilots head counting them.
+ *  3. Two columns of sections. **Every member:** the proposals awaiting
+ *     their answer. **The Mediator:** Proposals you sent.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset, chips on its head) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
@@ -40,14 +41,11 @@ import {
   Grid,
   PageShell,
   Pending,
-  Skeleton,
   SlabSection,
   Text,
   tokens,
 } from '../../components/index'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
-import { CrewSeats } from './CrewSeats'
-import { readCrawler } from './crawlerReading.model'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
@@ -55,7 +53,6 @@ import { GAME_BODY, GAME_MEASURE, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from
 import { LaunchPlay } from './LaunchPlay'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
-import { seatRows } from './seatRows.model'
 import { TheGame } from './TheGame'
 
 type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
@@ -103,37 +100,13 @@ function GameSections({ game }: { game: Game }) {
   // Probed rather than required: component tests render the page without a
   // RouterProvider, and `AppLink` degrades the same way.
   const router = useRouter({ warn: false })
-  const listing = useQuery(api.entities.listForGame, { gameId })
-  const members = useQuery(api.games.members, { gameId })
-  // The seats' HP: the server derives every crewmate's max (ADR-038 §4).
-  const vitals = useQuery(api.crew.vitals, { gameId })
   const me = useQuery(api.account.me, {})
   const viewerId = me?._id ?? null
-
-  const primary =
-    listing?.crawlers.find((c) => c._id === listing.primaryCrawlerId) ??
-    listing?.crawlers[0] ??
-    null
-  const crawler = primary === null ? null : readCrawler(primary)
-  const seats =
-    listing === undefined || members === undefined
-      ? null
-      : seatRows(listing, members, viewerId, vitals)
 
   return (
     <>
       <Grid min={HUB_COLUMN_MIN} gap={24} style={HUB_COLUMNS}>
         <div style={HUB_COLUMN}>
-          {seats === null ? (
-            <Skeleton shape="rows" label="the crew" />
-          ) : (
-            <CrewSeats
-              crawler={crawler}
-              rows={seats.rows}
-              claimed={seats.claimed}
-              total={seats.total}
-            />
-          )}
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}

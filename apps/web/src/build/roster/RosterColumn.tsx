@@ -15,6 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import type { SlabCount } from '../../components/index'
 import { Button, EmptyState, Segmented, SegmentedOption, SlabSection } from '../../components/index'
 import { color, iconSize, space } from '../../design/tokens'
 
@@ -100,6 +101,8 @@ type RosterColumnProps = {
   emptyMessage: string
   /** Extra head action (e.g. the Mechs column's 'Patterns' link). */
   headExtra?: ReactNode
+  /** The Slab's count chip (a Game's Pilots: `SEATS | 1/2`). */
+  count?: SlabCount
   /** No rows: the dashed empty state, carrying the create CTA. */
   empty: boolean
   children?: ReactNode
@@ -112,6 +115,7 @@ export function RosterColumn({
   create,
   emptyMessage,
   headExtra,
+  count,
   empty,
   children,
 }: RosterColumnProps) {
@@ -123,6 +127,7 @@ export function RosterColumn({
       as="h2"
       id={headingId}
       title={title}
+      {...(count ? { count } : {})}
       className={active ? undefined : 'su-roster-column--inactive'}
       actions={
         headExtra !== undefined || (create !== undefined && !empty) ? (

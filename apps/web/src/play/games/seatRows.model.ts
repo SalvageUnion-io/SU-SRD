@@ -1,5 +1,5 @@
 /**
- * The rows of "Crew & seats" on a Game's own page (board M2;
+ * A Game's seats, which its page's Pilots rows carry (board M2;
  * docs/architecture/play.md §16), from `entities.listForGame`
  * and `games.members`. Pure, so the order and the open seats are testable.
  */

@@ -141,15 +141,21 @@
 }
 
 /* The name WRAPS at word breaks (never clips): when the controls drop to a
-   second row the name keeps its whole title. `contain` still keeps a long
-   name from widening a width-less ancestor. */
+   second row the name keeps its whole title. */
+/* The name is a cut-out (owner, 2026-10-20: "WORM should be a cutout in the
+   roll table"): a square paper tab in ink on the bar's foot, opening into the
+   table's first, paper row, as every titled head's name does. */
 .su-roll__title {
-  contain: inline-size;
-  flex: 1 1 8rem;
+  align-self: flex-end;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  flex: 0 1 auto;
   font-size: var(--su-roll-title-size);
   line-height: 1.1;
+  margin-bottom: calc(-1 * var(--space-8));
   min-width: 0;
   overflow-wrap: break-word;
+  padding: var(--space-6) var(--space-8) var(--space-4);
 }
 
 .su-roll__hint {

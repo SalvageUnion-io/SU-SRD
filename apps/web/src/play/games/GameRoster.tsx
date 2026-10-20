@@ -31,7 +31,8 @@
  * Every row is a link to the live sheet (`rosterSheetHref`), its other verbs
  * in a ⋯ menu, its last chip, as a shelf item's (`ShelfItem`). A row's only
  * other chip is who holds it (and ★ Primary on the crawler): what a unit IS
- * is on its sheet, and the crew's state is in Crew & seats. The sheet opens
+ * is on its sheet, and a pilot's seat (its HP, its mech) and a crawler's vitals
+ * ride its chips; the Pilots head counts the seats. The sheet opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
@@ -72,6 +73,7 @@ import {
   FieldError,
   HeaderMenu,
   RosterSkeleton,
+  relation,
   Text,
   tokens,
 } from '../../components/index'
@@ -90,7 +92,10 @@ import {
 } from '../../lib/games/gameRoster'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { AddFromHangar } from './AddFromHangar'
+import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
+import type { SeatRow } from './seatRows.model'
+import { seatRows } from './seatRows.model'
 import { useRowActions } from './useRowActions'
 
 type GameRosterProps = {
@@ -143,6 +148,8 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   const me = useQuery(api.account.me, {})
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
+  const vitals = useQuery(api.crew.vitals, { gameId: gameId as Id<'games'> })
 
   const makePrimary = useServerAction(useMutation(api.games.setPrimaryCrawler), {
     failure: 'That crawler could not be made primary. Try again.',
@@ -186,6 +193,36 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
       localIds: new Set(localCrawlers.map((c) => c.id)),
       primaryCrawlerId: listing?.primaryCrawlerId ?? null,
     }),
+  }
+
+  // The seats (owner, 2026-10-20: "drop Crew and Seats, moving that
+  // information into Pilots"): each pilot's HP and mech ride its row, the
+  // Pilots head counts the claimed ones, the crawler's row its vitals.
+  const seats =
+    listing === undefined || members === undefined
+      ? null
+      : seatRows(listing, members, viewerId, vitals)
+  const seatOf = new Map<string, SeatRow>(seats?.rows.map((seat) => [seat.key, seat]) ?? [])
+  const crawlerOf = new Map((listing?.crawlers ?? []).map((c) => [c._id as string, readCrawler(c)]))
+
+  /** A row's readings and relations: a pilot's seat (HP, its mech), a crawler's vitals. */
+  function rowChips(row: RosterRow): Pick<Parameters<typeof UnitRow>[0], 'readings' | 'relations'> {
+    if (row.kind === 'crawler') {
+      const reading = crawlerOf.get(row.serverId)
+      return reading ? { readings: crawlerVitals(reading) } : {}
+    }
+    if (row.kind !== 'pilot') return {}
+    const seat = seatOf.get(row.serverId)
+    if (!seat?.pilot) return {}
+    const { mech, mechHref } = seat.pilot
+    return {
+      ...(seat.hp === null ? {} : { readings: [{ label: 'HP', value: seat.hp }] }),
+      // The mech the pilot is assigned, a relation chip opening its sheet (C11);
+      // on foot the lane stays empty (C6).
+      ...(mech === null
+        ? {}
+        : { relations: [relation('mech', 'Mech', mech, { href: mechHref ?? undefined })] }),
+    }
   }
 
   /**
@@ -259,6 +296,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
              yours to edit (`row.can.openSheet`), read-only when it is a
              crewmate's (`SheetView`). */
           mode={{ kind: 'link', href: rosterSheetHref(row) }}
+          {...rowChips(row)}
           /* Who holds it sits right of the name, a label (ruleset §7.2):
              never a stamp riding the frame. */
           labels={
@@ -357,6 +395,9 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                       </>
                     ) : undefined
                   }
+                  {...(column.kind === 'pilot' && seats !== null && seats.total > 0
+                    ? { count: { label: 'Seats', value: seats.claimed, max: seats.total } }
+                    : {})}
                   empty={columnRows.length === 0}
                 >
                   {columnBody(columnRows)}

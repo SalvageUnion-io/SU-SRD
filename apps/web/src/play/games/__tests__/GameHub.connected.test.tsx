@@ -9,7 +9,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  *  - it is a Manage page under Play's band, with none of Build's controls
  *    (Import, Export, the Games select) and no container of its own
  *
- *  - every member gets Crew & seats, their answer queue and The
+ *  - every member gets their answer queue and The
  *    Game; only the Organizer gets the admin (the invite link, Hand over,
  *    ending the game) — the server refuses the rest
  *  - only the Mediator's Mediate opens Play's Mediator screen, and only they
@@ -166,29 +166,31 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
 
   test('the sections are Slabs (solid stamps), level 2 under the page’s h1', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
-    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Crew & seats', 'Invite link', 'The Game']) {
+    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Invite link', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
   })
 })
 
 describe('the sections under the roster (board M2)', () => {
-  test('every member gets Crew & seats, the answer queue and The Game, below the lists', async () => {
+  test('every member gets the answer queue and The Game, below the lists; no Crew & seats', async () => {
     await renderHub({
       'proposals:pending': [
         { _id: 'c1', entityType: 'pilot', field: 'currentHP', after: 3, reason: null },
       ],
     })
 
-    for (const name of ['Crew & seats', 'Awaiting your answer', 'The Game']) {
+    for (const name of ['Awaiting your answer', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
+    // Its seats ride the Pilots rows (owner, 2026-10-20).
+    expect(heading('Crew & seats')).toBeNull()
     // Downtime runs in Play, not on the Game page.
     expect(heading('Downtime')).toBeNull()
     // Below the lists: the roster's columns come first in the document.
     const pilots = screen.getByRole('heading', { level: 2, name: 'Pilots' })
-    const crew = screen.getByRole('heading', { level: 2, name: 'Crew & seats' })
-    expect(pilots.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const game = screen.getByRole('heading', { level: 2, name: 'The Game' })
+    expect(pilots.compareDocumentPosition(game) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   test('a plain member gets none of the Organizer’s admin', async () => {
@@ -274,8 +276,8 @@ describe('the sections under the roster (board M2)', () => {
   })
 })
 
-describe('Crew & seats', () => {
-  test('each member’s pilot with what they have, the open seats, and the count', async () => {
+describe('the seats, on the Pilots rows', () => {
+  test('each pilot carries its HP and mech, and the Pilots head counts the seats', async () => {
     await renderHub({
       'games:members': [
         { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true, joinedAt: 1 },
@@ -305,18 +307,13 @@ describe('Crew & seats', () => {
       },
     })
 
-    const seats = within(screen.getByRole('list', { name: 'Seats' }))
-    const rows = seats.getAllByRole('listitem').map(drawnText)
-    // Join order; a Mediator with no pilot is their name alone; an unclaimed pilot is an open seat.
-    // A pilot seat is the pilot's Compact: who holds it, its role and HP, then its
-    // mech as a relation chip (C11).
-    expect(rows).toEqual([
-      'Ash (you)',
-      'Pickle (Pilot)BeefcakePlayerHP4/10MechSpectrum',
-      'Hotdog (Pilot)OpenHP8/8',
-    ])
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const text = drawnText(pilots)
+    // A pilot's row: its HP, then its mech as a relation chip (C11).
+    expect(text).toContain('HP4/10MechSpectrum')
+    expect(text).toContain('HP8/8')
     // The count is the label-first chip, `SEATS | 1/2`.
-    expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
+    expect(within(pilots).getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
   })

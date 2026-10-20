@@ -1,5 +1,5 @@
 /**
- * A Game's crawler as the Game page's Crew & seats card reads it
+ * A Game's crawler as the Game page's Crawlers row reads it
  * (docs/architecture/play.md §16).
  */
 
@@ -34,7 +34,7 @@ export function readCrawler(row: { appId: string | null; body: unknown }): Crawl
 
 /**
  * The crawler's vitals, label first: `TL | 3`, `SP | 14/20`. The Game page's
- * crew seats read only these: a crawler never lists its count of bays (owner's
+ * crawler row reads only these: a crawler never lists its count of bays (owner's
  * call, 2026-10-14).
  */
 export function crawlerVitals(

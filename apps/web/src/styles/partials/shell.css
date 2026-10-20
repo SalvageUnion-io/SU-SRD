@@ -687,7 +687,8 @@
 }
 
 /* The cost box is its chips' height on the band, never stretched to a line. */
-.su-chapter-band__row[data-chip-fill] .su-cost-edge[data-fill-item] {
+/* (The fill's item is the edge on an ink ground, the box itself on a colour.) */
+.su-chapter-band__row[data-chip-fill] :is(.su-cost-edge, .su-cost)[data-fill-item] {
   align-self: flex-start;
 }
 

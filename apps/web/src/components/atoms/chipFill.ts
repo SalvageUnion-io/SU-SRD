@@ -27,6 +27,8 @@
  * common head does not move when it does.
  */
 
+import { writeOverflowRow } from './chipOverflowRow'
+
 /** A head that fills from its bottom-right corner: the flow's container. */
 const FILL_HEAD = '[data-chip-fill]'
 
@@ -224,6 +226,19 @@ export function overflowPlan(
 const LIVE_CONTROL =
   'button, input, select, textarea, [role="radio"], [role="tab"], [role="switch"]'
 
+/**
+ * Whether an item's copy works as it once its buttons forward their clicks
+ * (`writeOverflowRow`): its only live controls are plain buttons (a Tech
+ * Level stepper's − and +), none a field, tab or switch.
+ */
+function forwards(item: HTMLElement): boolean {
+  const live = [
+    ...(item.matches(LIVE_CONTROL) ? [item] : []),
+    ...item.querySelectorAll(LIVE_CONTROL),
+  ]
+  return live.every((el) => el.matches('button:not([role])'))
+}
+
 /** Whether an item's copy in the first row works as the item: a link, or nothing live. */
 function copiesWhole(item: HTMLElement): boolean {
   // The owner vouches for its copy: a sheet's Pilot | Mech | Crawler links.
@@ -266,61 +281,36 @@ function planWithRoom(
   if (!hasRow) return plan
   const kept = widths.reduce((sum, width, i) => (plan.out[i] ? sum : sum + gap + width), 0)
   const unclassed = items.map((item) => classOfItem(item, container) === '' && copiesWhole(item))
-  if (!unclassed.some((u, i) => u && !plan.out[i])) return plan
-  if (kept + Math.max(oneLineWidth(name, 'min-content'), widestWord(name)) <= room - 1) return plan
-  return overflowPlan(
-    widths,
-    items.map((item, i) => !unclassed[i] && isKept(item, container)),
-    nameWidth,
-    room,
-    gap,
-    moreWidth,
-    first
+  const shortest = Math.max(oneLineWidth(name, 'min-content'), widestWord(name))
+  if (kept + shortest <= room - 1) return plan
+  const freed = unclassed.some((u, i) => u && !plan.out[i])
+    ? overflowPlan(
+        widths,
+        items.map((item, i) => !unclassed[i] && isKept(item, container)),
+        nameWidth,
+        room,
+        gap,
+        moreWidth,
+        first
+      )
+    : plan
+  // Where even then the name would break inside a word (a crawler's long
+  // name in Edit on a phone, beside its Tech Level stepper and type), the
+  // name takes the band's width and the rest are the first row, the Tech
+  // Level too (owner, 2026-10-20: "the name should be allowed to be full
+  // width with TL and type moving to content"); the cost and C8's slots stay.
+  const left = widths.reduce((sum, width, i) => (freed.out[i] ? sum : sum + gap + width), 0)
+  if (left + shortest <= room - 1) return freed
+  const stays = items.map(
+    (item, i) =>
+      !freed.out[i] &&
+      (CORNER_CLASSES.has(classOfItem(item, container)) || !(copiesWhole(item) || forwards(item)))
   )
+  return { out: items.map((_, i) => !stays[i]), more: false }
 }
 
-/** What each overflow row last drew: the items it copies, so an unchanged fit writes nothing. */
-const drawnRow = new WeakMap<HTMLElement, readonly HTMLElement[]>()
-
-/** The attributes a fit writes on an item, cleared from its copy. */
-const FIT_ATTRIBUTES = ['data-fill-item', 'data-fill-line', 'data-fill-corner', OUT_ATTRIBUTE]
-
-/**
- * Lay what left a contentful head in its body's first row (C2b): a copy of
- * each item that is out, in class order, each in a lane of its class (C2a),
- * so the row reads as a strip of its own; hidden while nothing is out. The
- * copies carry no ids, and nothing a fit wrote: what they link or Peek is
- * the document's (a link, the Peek's attributes), so they work as the chip.
- */
-export function writeOverflowRow(row: HTMLElement, out: readonly HTMLElement[]): void {
-  const drawn = drawnRow.get(row)
-  if (drawn && drawn.length === out.length && drawn.every((item, i) => item === out[i])) {
-    row.hidden = out.length === 0
-    return
-  }
-  drawnRow.set(row, [...out])
-  const lanes: HTMLElement[] = []
-  for (const item of out) {
-    const cls = item.closest('[data-chip-class]')?.getAttribute('data-chip-class') ?? ''
-    let lane = lanes[lanes.length - 1]
-    if (!lane || lane.getAttribute('data-chip-class') !== cls) {
-      lane = document.createElement('span')
-      lane.className = 'su-chip-lane'
-      lane.setAttribute('data-chip-class', cls)
-      lanes.push(lane)
-    }
-    const copy = item.cloneNode(true) as HTMLElement
-    for (const el of [copy, ...copy.querySelectorAll<HTMLElement>('*')]) {
-      el.removeAttribute('id')
-      for (const attr of FIT_ATTRIBUTES) el.removeAttribute(attr)
-      el.style?.removeProperty('--su-fill')
-      el.style?.removeProperty('--su-corner-max')
-    }
-    lane.append(copy)
-  }
-  row.replaceChildren(...lanes)
-  row.hidden = out.length === 0
-}
+/** What stays in the head however long its name: the cost and the slots after it (C8). */
+const CORNER_CLASSES = new Set(['cost', 'state', 'uses', 'menu'])
 
 /** What each head's last fit read (`fitChipFill`). */
 const fittedAt = new WeakMap<HTMLElement, { at: string; out: boolean[]; more: boolean }>()

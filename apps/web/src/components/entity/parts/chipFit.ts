@@ -23,8 +23,8 @@ import {
   overflowPlan,
   watchChipFill,
   watchStaticChipFill,
-  writeOverflowRow,
 } from '../../atoms/chipFill'
+import { writeOverflowRow } from '../../atoms/chipOverflowRow'
 
 /** A contentful Mini (N3): its head's chips overflow into its body. */
 const CONTENTFUL = '.su-entity-mini[data-contentful]'

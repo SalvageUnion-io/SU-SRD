@@ -140,6 +140,7 @@ async function renderAs(
     'account:me': me,
     'games:members': members,
     'entities:listForGame': rows,
+    'crew:vitals': undefined,
     'games:listMine': MY_GAMES,
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.

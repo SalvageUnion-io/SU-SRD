@@ -50,6 +50,12 @@
   border-color: var(--su-compact-frame, transparent);
 }
 
+/* A head alone opens its cut-out onto the ground: no edge under it, whatever
+   frames its other sides (owner, 2026-10-20: "no border beneath Mount"). */
+.su-entity-compact__frame[data-bodyless] {
+  border-bottom-color: transparent;
+}
+
 /* A Play reference unit (ADR-051 §5, `Box`'s `reference`): dashed, read-only. */
 .su-entity-compact__frame[data-reference] {
   border-style: dashed;
