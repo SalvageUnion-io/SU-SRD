@@ -20,10 +20,16 @@ export type ClassLike = {
  * Trees offered for the given class.
  *
  * `allLevels` adds the advanced and legendary trees, a HYBRID's two
- * borrowed trees, and the trees of already-selected abilities — so a pilot who
- * advanced into a Hybrid keeps their learned (now sealed) core trees visible
- * and toggleable.
+ * borrowed trees and its origin's core trees, and the trees of
+ * already-selected abilities — so a pilot who advanced into a Hybrid keeps
+ * their learned (now sealed) core trees visible and toggleable. `originName`
+ * is the hybrid's recorded origin, when the player named one.
  */
-export function treesFor(cls: ClassLike, allLevels: boolean, selectedTrees: string[]): string[] {
-  return offeredAbilityTrees(cls, { allLevels, selectedTrees })
+export function treesFor(
+  cls: ClassLike,
+  allLevels: boolean,
+  selectedTrees: string[],
+  originName?: string
+): string[] {
+  return offeredAbilityTrees(cls, { allLevels, selectedTrees, originName })
 }

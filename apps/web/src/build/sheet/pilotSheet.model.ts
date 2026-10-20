@@ -201,8 +201,9 @@ export function usePilotSheetModel({
   const genericInventory = pilot.genericInventory ?? []
 
   // Abilities offered on the live sheet are scoped to the pilot's class trees
-  // (core + advanced + legendary + any tree they've already learned) — the same
-  // edit-mode logic AbilitiesStep used, now feeding the shared searcher's filter.
+  // (core + advanced + legendary, a hybrid's origin trees, + any tree they've
+  // already learned) — the same edit-mode logic AbilitiesStep used, now feeding
+  // the shared searcher's filter.
   // Computed only while the Abilities picker is open: it reads the reference ORM,
   // which read-only snapshot renders never preload (the picker never opens there).
   //
@@ -215,8 +216,12 @@ export function usePilotSheetModel({
     const selectedTrees = SalvageUnionReference.Abilities.all()
       .filter((a) => pilot.abilities.includes(getEntitySlug(a)))
       .map((a) => a.tree)
-    return new Set(treesFor(cls, true, selectedTrees))
-  }, [picker, pilot.classRef, pilot.abilities])
+    const origin =
+      pilot.originClassRef === undefined
+        ? undefined
+        : SalvageUnionReference.Classes.getById(pilot.originClassRef)?.name
+    return new Set(treesFor(cls, true, selectedTrees, origin))
+  }, [picker, pilot.classRef, pilot.originClassRef, pilot.abilities])
 
   /**
    * The Generic tree — EVERY pilot has all of it, so it is read from the

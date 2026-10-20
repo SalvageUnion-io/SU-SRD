@@ -394,3 +394,22 @@ describe("PilotSheet — a read-only sheet's Tokens open their entity", () => {
     })
   })
 })
+
+describe("PilotSheet — a hybrid's Add Abilities offers its origin's trees", () => {
+  // Ranger is reached from Scout or Soldier; with no recorded origin both
+  // contribute. Survey Drone is Scout's Recon tree, which Ranger itself lacks.
+  const RANGER_ID = '4570fb02-10c4-4f53-8575-e54bd08d47d3'
+
+  async function offered(pilot: Pilot) {
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^Manage abilities$/i }))
+    })
+    return within(screen.getByRole('dialog'))
+  }
+
+  test('a Ranger with no recorded origin is offered Survey Drone', async () => {
+    const dialog = await offered(makePilot({ classRef: RANGER_ID, abilities: [] }))
+    expect(dialog.queryAllByRole('button', { name: /^Survey Drone$/ })).not.toHaveLength(0)
+  })
+})

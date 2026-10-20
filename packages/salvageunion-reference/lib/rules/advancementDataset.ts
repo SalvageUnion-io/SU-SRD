@@ -14,7 +14,7 @@
 import { SalvageUnionReference } from '../index'
 import type { RefClass } from '../schemas/index'
 import type { AdvancementClassInput, AdvancementDataset } from './advancement'
-import { hybridGrantedTrees } from './advancement'
+import { hybridGrantedTrees, originsForHybrid } from './advancement'
 
 /** Narrow a reference class record to the primitives advancement reads. */
 export function toAdvancementClass(cls: RefClass): AdvancementClassInput {
@@ -57,20 +57,36 @@ export function liveAdvancementDataset(): AdvancementDataset {
  * permanently and must never disappear from a sheet just because they are
  * closed to new picks.
  *
+ * A hybrid also offers its ORIGIN's core trees. Advancing takes 6 Core
+ * abilities learned before the pilot became a hybrid, and the ones outside the
+ * hybrid's four trees are sealed but kept, so a hybrid pilot built on the sheet
+ * has to be able to enter them (a Scout-born Ranger's Survey Drone is Recon).
+ * The sheet is Free Edit (ADR-021): it offers what the pilot can hold and does
+ * not gate. `originName` narrows that to one Core class; absent or unable to
+ * reach this hybrid, every Core class that can reach it contributes, the same
+ * "seal nothing on a guess" stance as `resolveAdvancementTrees`.
+ *
  * `allLevels: false` is the creation pool and is unchanged: core trees only,
  * which correctly yields nothing for a hybrid (they are not legal creation
  * classes).
  */
 export function offeredAbilityTrees(
   cls: AdvancementClassInput,
-  options: { allLevels: boolean; selectedTrees?: readonly string[] }
+  options: { allLevels: boolean; selectedTrees?: readonly string[]; originName?: string }
 ): string[] {
-  const { allLevels, selectedTrees = [] } = options
+  const { allLevels, selectedTrees = [], originName } = options
   const trees: string[] = [...(cls.coreTrees ?? [])]
 
   if (allLevels) {
     if (cls.hybrid === true) {
-      for (const tree of hybridGrantedTrees(liveAdvancementDataset(), cls.name)) {
+      const data = liveAdvancementDataset()
+      const reachable = originsForHybrid(data, cls.name)
+      const origins =
+        originName !== undefined && reachable.includes(originName) ? [originName] : reachable
+      const originTrees = data.classes
+        .filter((c) => origins.includes(c.name))
+        .flatMap((c) => c.coreTrees ?? [])
+      for (const tree of [...hybridGrantedTrees(data, cls.name), ...originTrees]) {
         if (!trees.includes(tree)) trees.push(tree)
       }
     }
