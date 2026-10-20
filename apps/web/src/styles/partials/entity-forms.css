@@ -844,8 +844,11 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* The body hangs from the pill: sides and foot at the pill's edge width, in
-   the pill's tone, so the Token holds its content. */
+   the pill's tone, so the Token holds its content. It is the paper the name's
+   tab is cut from, on any ground, as a Row's frame is. */
 .su-entity-token__body {
+  background-clip: padding-box;
+  background-color: var(--color-paper);
   border-style: solid;
   border-top: 0;
   border-width: var(--bw-chrome);
@@ -894,8 +897,16 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
+/* A contentful Token wears the same cut-out as every Token: inked round its
+   paint but never under it, its tab opens into the body's paper, as a Row's
+   does, so no rule runs between head and body; and the paint over the tab is
+   the header-only Token's strip (its clear edge and its padding), so the head
+   never reads as a flat bar. The pill's height is unchanged. Gated by
+   `e2e/token-cutout.e2e.ts`. */
 .su-entity-token[data-contentful] .su-entity-token__pill {
+  border-bottom-width: 0;
   border-color: var(--color-ink);
+  padding-top: calc(var(--space-2) + var(--bw-chrome));
 }
 
 /* The note stamp is the mini ink stamp (`Badge shape="stamp"`); in the pill's
