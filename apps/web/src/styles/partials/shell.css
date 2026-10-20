@@ -697,6 +697,14 @@
   margin-bottom: max(var(--space-8), calc(var(--su-band-mid) - var(--size-compact) / 2));
 }
 
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row[data-chip-fill]
+    [data-fill-item][data-fill-line] {
+    margin-bottom: var(--space-4);
+  }
+}
+
 /* A page's controls (Full, 44px) stand on the band's foot, its room under them. */
 .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] [data-fill-item] {
   margin-block: 0 var(--space-12);
@@ -707,6 +715,61 @@
     --su-band-room: var(--space-48);
     --su-band-title: calc(var(--space-12) + var(--text-chapter) * 0.92);
     --su-band-mid: calc(var(--text-chapter) * 0.428);
+  }
+}
+
+/* ON A PHONE, ABOVE THE TITLE (ruleset §4.7; owner's call, 2026-10-20): a
+   band's stamps and controls are never beside its title, so they are laid by
+   CSS alone, never by the fill's measure, and nothing moves when the script
+   lands (no layout shift). They read in source order on lines over the
+   title, flush right, the last (the cost, the action) at the right end of
+   the line on the title; the title takes the bottom line, all of it. */
+@media not (width >= 40rem) {
+  .su-chapter-band__row[data-chip-fill] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .su-chapter-band__row[data-chip-fill]::after {
+    display: none;
+  }
+
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
+    flex: 1 1 100%;
+    margin-inline-end: 0;
+    order: 2;
+  }
+
+  .su-chapter-band
+    .su-chapter-band__row[data-chip-fill]
+    :is(
+      [data-fill-item],
+      .su-chip-lane > *,
+      .su-cost,
+      .su-chapter-band__aside > *,
+      .su-rail > *,
+      .su-rail__facets > *
+    ) {
+    margin-block: var(--space-4);
+    order: 1;
+  }
+
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    :is(
+      [data-fill-item],
+      .su-chip-lane > *,
+      .su-cost,
+      .su-chapter-band__aside > *,
+      .su-rail > *,
+      .su-rail__facets > *
+    ) {
+    margin-block: 0 var(--space-12);
+  }
+
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] [data-fill-corner] {
+    max-width: 100%;
   }
 }
 

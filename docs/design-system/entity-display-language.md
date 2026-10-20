@@ -56,7 +56,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument, open, on a Page, panel or resolve; its ROLL THE DIE stamp is the roll button, a result its marked row.
 - **E15** No hand-built entity markup outside `entity/`. A rules block (When Damaged, a chassis ability) has one renderer in every context.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). From the bottom right of the title's line, rising only on overflow (C2b). On ink each chip has a paper rule.
+- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). From the bottom right of the title's line, rising only on overflow (C2b); on a phone a Page's band keeps them above its title. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4), of a static budget (C3); its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages (level 1), mech hero and Discord card;
   nested (mech-wizard picks and stats step, Peek) it is a contentful Token (N3).

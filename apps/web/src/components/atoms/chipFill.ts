@@ -18,7 +18,8 @@
  * Plain DOM, no React: a static page's client entry (`islands.client.ts`)
  * runs it, and `useChipFill` on the pages it draws. Until it has run (and
  * with no script) the CSS keeps every chip beside the name as the flex line
- * breaks them, so a head whose chips all fit there does not move when it does.
+ * breaks them on a wide head (the cost alone beside it on a phone), so the
+ * common head does not move when it does.
  */
 
 /** A head that fills from its bottom-right corner: the flow's container. */
