@@ -209,14 +209,27 @@ export function watchChipFill(container: HTMLElement): () => void {
           if (!container.isConnected) return stop()
           fit()
         })
+  // What the observer watches: observing a box again reports it again, and
+  // that report fits again, so only a box new to the flow is observed (and
+  // one gone from it let go). Re-observing all of them on every fit kept a
+  // page with many heads fitting every frame, never idle.
+  const observed = new Set<Element>()
   const fit = () => {
     fitChipFill(container)
     if (!resize) return
-    resize.disconnect()
-    resize.observe(container)
     const name = container.querySelector(`:scope > ${FILL_NAME}`)
-    if (name) resize.observe(name)
-    for (const item of container.querySelectorAll(`[${ITEM_ATTRIBUTE}]`)) resize.observe(item)
+    const now = new Set<Element>([container, ...container.querySelectorAll(`[${ITEM_ATTRIBUTE}]`)])
+    if (name) now.add(name)
+    for (const el of observed) {
+      if (now.has(el)) continue
+      resize.unobserve(el)
+      observed.delete(el)
+    }
+    for (const el of now) {
+      if (observed.has(el)) continue
+      resize.observe(el)
+      observed.add(el)
+    }
   }
   // The set of chips changes (a menu's slot, a chip added).
   const mutation = typeof MutationObserver === 'undefined' ? undefined : new MutationObserver(fit)
