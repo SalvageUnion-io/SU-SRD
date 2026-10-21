@@ -75,7 +75,6 @@ export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'
 export { Radio } from './atoms/Radio'
 export { SearchField } from './atoms/SearchField'
 export { Segmented, SegmentedOption } from './atoms/Segmented'
-export { SkipLink } from './atoms/SkipLink'
 export type { SlabCount } from './atoms/Slab'
 export { Slab } from './atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
