@@ -17,7 +17,6 @@ import {
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
-import type { Size } from '../../../styles/sizing'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { CardExtent } from '../../containers/displayMode'
@@ -219,7 +218,7 @@ function ReferenceEntityCardInner({
   const isAction = schemaName === 'actions'
   // A FRAMED action (one a list or a resolve draws) is never the
   // dominant solo card: a large one renders medium, at depth ≥ 1.
-  const size: Size = isAction && sizeProp === 'full' ? 'compact' : sizeProp
+  const size = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'full'
   const isCatalog = extent === 'catalog'
@@ -626,7 +625,7 @@ export type ReferenceEntityCardWrapperProps = Omit<
   'data' | 'size' | 'extent'
 > & {
   data: ReferenceCardEntity | undefined
-  size?: Size
+  size?: ReferenceEntityCardProps['size']
   extent?: CardExtent
   /**
    * Let the reader fold this card to its Mini (`extent="head"`) and back;

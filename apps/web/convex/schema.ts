@@ -16,10 +16,7 @@ import { literalUnion } from './model/validators'
  * and ADR-030 for the full record; the short version of what this file assumes:
  *
  *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR
- *     on its owner's personal shelf. `gameId` is nullable and null MEANS shelf.
- *     Play's tables (`model/playTables.ts`) are the exception: there an absent
- *     `gameId` means solo play (`channelBindings`, `seats`, whose solo seat
- *     carries `ownerId` instead), so their queries match `undefined`.
+ *     on its owner's personal shelf. Null `gameId` MEANS shelf (Play's tables: absent = solo).
  *   - Ownership is nullable too (ADR-030 §2). A null `ownerId` is an *unclaimed*
  *     entity — a normal state, arising when a player leaves, when the
  *     Mediator pre-builds a character, or from a Game template.
