@@ -10,7 +10,7 @@ import type { Page } from '@playwright/test'
  * `frame:` line per frame whose drawn edges are another colour, and each
  * fails; the static half is `chrome-tokens/entity-frame-ink`.
  */
-export const ENTITY_FRAMES = [
+const ENTITY_FRAMES = [
   '.su-entity-compact__frame',
   '.su-entity-index__frame',
   '.su-ec-frame',
@@ -21,10 +21,10 @@ export const ENTITY_FRAMES = [
 ].join(',')
 
 /** `--color-ink-40` as computed: warm ink at 0.4. */
-export const SUBTLE = 'rgba(40, 32, 25, 0.4)'
+const SUBTLE = 'rgba(40, 32, 25, 0.4)'
 
 /** Runs in the page; returns plain data. */
-export function scanFrames({ frames, subtle }: { frames: string; subtle: string }): string[] {
+function scanFrames({ frames, subtle }: { frames: string; subtle: string }): string[] {
   const faults: string[] = []
   const describe = (el: Element) =>
     (

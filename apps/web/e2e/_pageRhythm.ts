@@ -29,7 +29,7 @@ export type RhythmFinding = {
   detail: string
 }
 
-export type RhythmSelectors = {
+type RhythmSelectors = {
   /** A Page's body, under its band. */
   body: string
   /** The band a body starts under. */
@@ -54,7 +54,7 @@ export type RhythmSelectors = {
   tolerance: number
 }
 
-export const RHYTHM_SELECTORS: RhythmSelectors = {
+const RHYTHM_SELECTORS: RhythmSelectors = {
   body: '.su-entity__body, .su-entity-dialog__body',
   band: '.su-chapter-band',
   head: NESTING_SELECTORS.head,
@@ -77,7 +77,7 @@ export const RHYTHM_SELECTORS: RhythmSelectors = {
  * Runs in the page and returns plain data, so it closes over nothing: every
  * helper is declared inside it, and the selectors come in as its argument.
  */
-export function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
+function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
   type Block = {
     el: Element | null
     rect: { top: number; bottom: number; left: number; right: number }

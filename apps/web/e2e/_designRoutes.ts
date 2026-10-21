@@ -184,7 +184,7 @@ async function seedCarried(
 }
 
 /** A route's path in the browser: its own, or the seed's for a `:key`. */
-export function resolveDesignPath(path: string, seed: DesignSeed): string {
+function resolveDesignPath(path: string, seed: DesignSeed): string {
   if (!path.startsWith(':')) return path
   const resolved = seed[path.slice(1) as DesignSeedKey]
   if (!resolved) throw new Error(`the seed made no ${path}`)
@@ -200,7 +200,7 @@ export function resolveDesignPath(path: string, seed: DesignSeed): string {
 export type DesignWalkWidth = DesignWidth | 'mid'
 
 /** One view a gate scans: a route at a width, in one state. */
-export type DesignView = {
+type DesignView = {
   family: DesignFamily
   width: DesignWalkWidth
   /** `<path> at <width>[, <state>]`, the prefix of every finding the view has. */

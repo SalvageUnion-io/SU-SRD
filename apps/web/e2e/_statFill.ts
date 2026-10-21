@@ -11,13 +11,13 @@ import type { Page } from '@playwright/test'
  * holds it without a browser.
  */
 
-export type Box = { left: number; right: number; top: number }
+type Box = { left: number; right: number; top: number }
 
 /** One stat grid as drawn: its content box and its cells' outer boxes, in order. */
 export type StatColumnBoxes = { label: string; list: Box; cells: Box[] }
 
 /** How far off an edge may be, for sub-pixel layout. */
-export const STAT_FILL_TOLERANCE = 1
+const STAT_FILL_TOLERANCE = 1
 
 /** Compacts, top down: cells whose tops agree within the tolerance share a row. */
 function rowsOf(cells: Box[]): Box[][] {

@@ -49,9 +49,9 @@
         "src/routes/**/*.tsx",
         // The app's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
         "src/main.tsx",
-        // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
-        "e2e/reference-a11y.e2e.ts",
-        "e2e/app-a11y.e2e.ts"
+        // The Playwright specs and the review shoot, which its own config runs.
+        "e2e/**/*.e2e.ts",
+        "e2e/review/*.review.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.
@@ -62,7 +62,8 @@
         "src/**/*.{ts,tsx}",
         "ssg/**/*.{ts,tsx}",
         "convex/**/*.ts",
-        "test/**/*.ts"
+        "test/**/*.ts",
+        "e2e/**/*.ts"
       ],
       // Off: vite.config.ts loads the app's own TSX through Vite's module
       // runner, which knip's loader cannot parse; its entries are listed above.

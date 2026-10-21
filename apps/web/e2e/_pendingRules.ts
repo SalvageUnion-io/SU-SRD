@@ -12,7 +12,7 @@ import { test } from '@playwright/test'
  * Keyed by the finding's rule: the text before a fault's first `:`
  * (`_chipStrips.ts`), or a nesting finding's `rule`.
  */
-export const PENDING_RULES: Readonly<Record<string, string>> = {
+const PENDING_RULES: Readonly<Record<string, string>> = {
   align: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
   'tab-size': "R41 (§4.7): a Button beside Tabs is the Tabs' Size",
 }

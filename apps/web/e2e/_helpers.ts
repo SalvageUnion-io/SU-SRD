@@ -18,7 +18,7 @@ import { at, BASE } from './_base'
  * containing the entity name, the same pattern the in-app integration tests
  * use.
  */
-export function pickTargets(page: Page): Locator {
+function pickTargets(page: Page): Locator {
   return page.getByRole('button').or(page.getByRole('radio'))
 }
 

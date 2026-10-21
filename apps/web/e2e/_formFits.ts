@@ -32,7 +32,7 @@ export type FormFinding = {
   detail: string
 }
 
-export type FormSelectors = {
+type FormSelectors = {
   /** A list item: an `li`, an ARIA list item or option. */
   item: string
   /**
@@ -67,7 +67,7 @@ export type FormSelectors = {
   anyRow: string
 }
 
-export const FORM_SELECTORS: FormSelectors = {
+const FORM_SELECTORS: FormSelectors = {
   item: 'li, [role="listitem"], [role="option"]',
   sheetItem: [
     '.su-sheet-live-body li:not(.su-stat-column__cell)',
@@ -111,7 +111,7 @@ export type FormPlace = { index: boolean; chassisPage: boolean; play: boolean }
  * Runs in the page and returns plain data, so it closes over nothing: every
  * helper is declared inside it, and the selectors come in as its argument.
  */
-export function scanForms({
+function scanForms({
   a,
   place,
   abilities,
