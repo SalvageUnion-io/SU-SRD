@@ -2,10 +2,7 @@
  * Tests for the LiveSheet shell (the binding):
  * - condense = sticky bar + MiniStat strip, fade-in driven by an
  *   IntersectionObserver threshold with aria-hidden + pointer-events gating
- * - syncStats overlays derived values onto strip items by key
- *
- * (The entity-grid primitive tests live with the shared component:
- * src/components EntityGrid.test.tsx.)
+ * - the strip, the variant's tone and the phone fold
  */
 
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
@@ -319,15 +316,14 @@ describe('LiveSheet — condense strip gating (S11)', () => {
   })
 })
 
-describe('LiveSheet — strip values and syncStats', () => {
-  test('syncStats overlays derived values onto matching strip keys', () => {
-    renderShell({ syncStats: { cargo: 4 } })
+describe('LiveSheet — strip values', () => {
+  test('the strip shows each item as value/max', () => {
+    renderShell()
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
-    expect(screen.getByText('4/6')).toBeTruthy()
-    // Non-overlaid keys keep their own value
     expect(screen.getByText('7/10')).toBeTruthy()
+    expect(screen.getByText('0/6')).toBeTruthy()
   })
 
   test('variant sets the sheet tone class on the root', () => {

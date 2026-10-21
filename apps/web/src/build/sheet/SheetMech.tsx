@@ -201,7 +201,6 @@ export function SheetMech({
             }
           : undefined
       }
-      syncStats={{ cargo: cargoUsed }}
       actions={actions}
       renderBody={() => (
         <MechSheet

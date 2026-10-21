@@ -3,7 +3,7 @@
  * One shell, three variants, "so the three screens cannot drift apart".
  *
  * Render-prop contract (binding):
- *   { variant, name, strip, renderBody, syncStats }
+ *   { variant, name, strip, renderBody }
  *
  * The page starts with the chapter band: there is no back link and no bar
  * above it at rest. The sheet's controls — Read | Edit, "Make a copy", Share,
@@ -23,8 +23,7 @@
  * Stats are store-backed (the real app replacement for the prototype's
  * single useState): the caller derives `strip` values from the same entity
  * record its hero trackers edit, so hero and strip stay in lockstep by
- * construction. `syncStats` overlays derived values (e.g. mech Cargo = hold
- * usage) onto matching strip keys.
+ * construction.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
@@ -84,7 +83,7 @@ export type LiveSheetSegment = {
 }
 
 export type LiveSheetStripItem = {
-  /** Stable key — also the `syncStats` overlay key (e.g. 'cargo'). */
+  /** Stable key (e.g. 'cargo'). */
   key: string
   label: string
   value: number
@@ -115,8 +114,6 @@ type LiveSheetProps = {
    * handlers — the shell has no separate hero slot.
    */
   renderBody: () => ReactNode
-  /** Derived stat overlays merged onto strip items by key (e.g. {cargo: used}). */
-  syncStats?: Record<string, number>
   /** The sheet's own actions (Share, "⋯"), after the band's controls. */
   actions?: ReactNode
   /** The chapter band's controls (Read | Edit, "Make a copy"), in its corner. */
@@ -313,7 +310,6 @@ export function LiveSheet({
   strip = [],
   segments,
   renderBody,
-  syncStats,
   actions,
   band,
   kindDetail,
@@ -336,11 +332,6 @@ export function LiveSheet({
       : undefined
 
   const title = quoted ? `“${name}”` : name
-
-  const stripItems = strip.map((item) => ({
-    ...item,
-    value: syncStats?.[item.key] ?? item.value,
-  }))
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
@@ -395,7 +386,7 @@ export function LiveSheet({
                 <Badge shape="stamp" size="full" style={NAME_STAMP}>
                   {title}
                 </Badge>
-                {stripItems.map((item) => (
+                {strip.map((item) => (
                   <Stat
                     key={item.key}
                     label={item.label}

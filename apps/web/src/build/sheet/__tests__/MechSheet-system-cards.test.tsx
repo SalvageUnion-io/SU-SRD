@@ -1,7 +1,7 @@
 /**
  * MechSheet — system/module entity cards on the LiveSheet body.
  *
- * Systems and modules render as EntityGridRow'd full ReferenceEntityCard cards with
+ * Systems and modules render as full ReferenceEntityCard cards with
  * a status badge (Intact → Damaged → Destroyed cycle persists through the
  * store) — the per-item conditions vocabulary.
  *
