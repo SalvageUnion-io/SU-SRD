@@ -84,7 +84,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.
 27. **Repository settings** <a id="repo-settings"></a>
-    `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): no deletion or force-push, strict `CI Success` + PR-title checks, CodeQL.
+    `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): no deletion or force-push, PR only, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned (zizmor); ruleset and Environments drift-checked nightly; no merge queue.
 28. **Deploy** <a id="deploy"></a>
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
