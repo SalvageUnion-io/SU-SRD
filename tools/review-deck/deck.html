@@ -34,10 +34,10 @@
 }
 * { box-sizing: border-box; }
 body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
-.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; max-width: 1680px; margin: 0 auto; display: grid; gap: 12px; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; max-width: 1680px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 header.bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; border-bottom: 3px solid var(--ink); padding-bottom: 10px; }
 h1 { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-transform: uppercase; margin: 0; text-wrap: balance; }
-.meta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.meta { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 .meta b { color: var(--ink); font-weight: 500; }
 .tally { margin-left: auto; display: flex; flex-wrap: wrap; gap: 4px 12px; font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 13px; }
 .tally span { white-space: nowrap; }
@@ -57,6 +57,16 @@ select { border: 2px solid var(--ink); background: var(--sheet); color: var(--in
 .dot.ok { background: var(--ok); border-color: var(--ok); }
 .dot.chg { background: var(--warn); border-color: var(--warn); }
 .dot.cur { outline: 2px solid var(--ink); outline-offset: 1px; }
+.sections { display: flex; flex-wrap: wrap; gap: 0; border: 2px solid var(--ink); align-self: flex-start; }
+.sections button { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 15px; border: 0; border-left: 2px solid var(--ink); background: var(--sheet); color: var(--ink); padding: 8px 14px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+.sections button:first-child { border-left: 0; }
+.sections button small { font-family: var(--mono); font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--muted); font-weight: 400; }
+.sections button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.sections button[aria-pressed="true"] small { color: var(--sheet); }
+.sections button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dots .grp { flex-basis: 100%; font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.dots .grp:first-child { margin-top: 0; }
+.crumb { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
 .summary { display: flex; flex-wrap: wrap; gap: 6px; }
 .pill { font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; border: 1.5px solid currentColor; padding: 2px 8px; background: none; cursor: pointer; }
 .pill.rule { color: var(--rule); }
@@ -104,6 +114,11 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   .card { position: static; max-height: none; }
   .shot .frame { max-height: none; }
   .tally { margin-left: 0; }
+  h1 { font-size: 24px; }
+  .sections { display: grid; grid-template-columns: 1fr 1fr; align-self: stretch; }
+  .sections button { border-left: 0; border-top: 2px solid var(--ink); flex-wrap: wrap; }
+  .sections button:nth-child(even) { border-left: 2px solid var(--ink); }
+  .sections button:nth-child(-n+2) { border-top: 0; }
 }
 </style>
 
@@ -118,6 +133,8 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     </div>
   </header>
 
+  <nav class="sections" id="sections" aria-label="Part of the site"></nav>
+
   <div class="controls">
     <button class="btn" id="prev" type="button" aria-label="Previous slide">&larr; Prev</button>
     <span class="counter" id="counter">0 / 0</span>
@@ -125,7 +142,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     <label class="label" for="filter">Show</label>
     <select id="filter">
       <option value="commented">Commented last round</option>
-      <option value="all">Every slide</option>
+      <option value="all" selected>Every slide</option>
       <option value="rules">Rule violations</option>
       <option value="issues">Possible issues</option>
       <option value="changed">Changed since last feedback</option>
@@ -147,7 +164,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     </figure>
     <aside class="card" aria-label="Verdict">
       <section>
-        <div class="label">Screen</div>
+        <div class="crumb" id="crumb"></div>
         <div class="where" id="where"></div>
         <div class="url" id="url"></div>
         <div class="chips" id="tags"></div>
@@ -187,6 +204,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   let view = []
   let pos = 0
   let ruleFilter = ''
+  let section = ''
   const verdicts = {}
   let db = null
   let me = null
@@ -213,6 +231,15 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     $('filter').value = 'commented'
     applyFilter()
   }
+  // The site's three parts, and the groups inside each, in the order the deck walks them.
+  const PARTS = [
+    ['Reference', [['Indexes', ['reference-index', 'listing']], ['Pages', ['reference-page']], ['Peeks', ['peek']]]],
+    ['Build', [['Training Bay', ['hangar']], ['Starter set', ['starter-set']], ['New units', ['wizard-pilot', 'wizard-mech', 'wizard-crawler']], ['Sheets', ['sheet-pilot-read', 'sheet-pilot-edit', 'sheet-mech-read', 'sheet-mech-edit', 'sheet-crawler-read', 'sheet-crawler-edit', 'sheet-npc-read', 'sheet-npc-edit']]]],
+    ['Play', [['Play hub', ['play-hub']], ['Games', ['game-page', 'invite']], ['Player', ['play-player']], ['Solo', ['play-solo']], ['Mediator', ['play-mediator']]]],
+  ]
+  const placeOf = {}
+  PARTS.forEach(([part, groups], pi) => groups.forEach(([group, families], gi) => { for (const f of families) placeOf[f] = { part, group, rank: pi * 100 + gi } }))
+  const place = (s) => placeOf[s.family] || { part: 'Other', group: s.family, rank: 999 }
   const hasRule = (s, r) => (s.rules || []).some((x) => x.rule === r) || (s.issues || []).some((x) => x.rule === r)
 
   function setStatus(t, bad) { const el = $('status'); el.textContent = t; el.className = `status${bad ? ' bad' : ''}` }
@@ -238,6 +265,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     view = data.slides.filter((s) => {
       const v = current(s)
       if (ruleFilter && !hasRule(s, ruleFilter)) return false
+      if (section && place(s).part !== section) return false
       if (f === 'commented') return prior(s) !== null
       if (f === 'rules') return (s.rules || []).length > 0
       if (f === 'issues') return (s.issues || []).length > 0
@@ -261,6 +289,25 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
       else if (v && v.verdict === 'changes') chg++
     }
     $('nOk').textContent = ok; $('nChg').textContent = chg; $('nOpen').textContent = data.slides.length - ok - chg
+    renderSections()
+  }
+
+  function renderSections() {
+    const box = $('sections')
+    const parts = ['', ...new Set(data.slides.map((s) => place(s).part))]
+    box.textContent = ''
+    for (const part of parts) {
+      const mine = data.slides.filter((s) => !part || place(s).part === part)
+      const open = mine.filter((s) => !current(s)?.verdict).length
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.setAttribute('aria-pressed', String(section === part))
+      b.append(part || 'Everything')
+      const n = document.createElement('small'); n.textContent = `${mine.length} · ${open} open`
+      b.appendChild(n)
+      b.addEventListener('click', () => { section = part; applyFilter() })
+      box.appendChild(b)
+    }
   }
 
   function buildSummary() {
@@ -299,7 +346,14 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   function renderDots() {
     const box = $('dots')
     box.textContent = ''
+    let was = ''
     view.forEach((s, i) => {
+      const { part, group } = place(s)
+      if (`${part} \u203a ${group}` !== was) {
+        was = `${part} \u203a ${group}`
+        const g = document.createElement('span'); g.className = 'grp'; g.textContent = was
+        box.appendChild(g)
+      }
       const b = document.createElement('button')
       const v = current(s)
       b.type = 'button'
@@ -333,12 +387,13 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     if (!s) {
       $('img').removeAttribute('src'); $('img').alt = ''
       $('where').textContent = 'No slide matches this filter.'
-      for (const id of ['url', 'cap', 'tags', 'rules', 'issues']) $(id).textContent = ''
+      for (const id of ['crumb', 'url', 'cap', 'tags', 'rules', 'issues']) $(id).textContent = ''
       return
     }
     showShot(s)
     prefetch(view[pos + 1])
     $('img').alt = `${s.where}, scrolled ${s.depth}`
+    $('crumb').textContent = `${place(s).part} \u203a ${place(s).group}`
     $('where').textContent = s.where
     $('url').textContent = s.url
     $('cap').textContent = ''
@@ -427,9 +482,12 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     else if (e.key === 'ArrowLeft' || e.key === 'k') $('prev').click()
     else if (e.key === 'a' && !$('approve').disabled) $('approve').click()
     else if (e.key === 'r' && !$('changes').disabled) { e.preventDefault(); $('changes').click() }
+    else if (/^[0-3]$/.test(e.key)) $('sections').children[Number(e.key)]?.click()
   })
 
   fetch('manifest.json').then((r) => r.json()).then((m) => {
+    // Walk the site part by part: Reference, then Build, then Play, keeping the shoot's order inside a group.
+    m.slides = m.slides.map((s, i) => [s, i]).sort((a, b) => place(a[0]).rank - place(b[0]).rank || a[1] - b[1]).map(([s]) => s)
     data = m
     $('meta').textContent = ''
     const screens = new Set(m.slides.map((s) => s.where)).size
@@ -439,7 +497,17 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
       $('meta').appendChild(document.createTextNode(`${k} `))
       const b = document.createElement('b'); b.textContent = v; $('meta').appendChild(b)
     })
-    for (const p of [...new Set(m.slides.map((s) => s.where))]) { const o = document.createElement('option'); o.value = p; o.textContent = p; $('jump').appendChild(o) }
+    const groups = new Map()
+    for (const s of m.slides) {
+      const label = `${place(s).part} \u203a ${place(s).group}`
+      if (!groups.has(label)) groups.set(label, new Set())
+      groups.get(label).add(s.where)
+    }
+    for (const [label, screens] of groups) {
+      const og = document.createElement('optgroup'); og.label = label
+      for (const p of screens) { const o = document.createElement('option'); o.value = p; o.textContent = p; og.appendChild(o) }
+      $('jump').appendChild(og)
+    }
     buildSummary()
     view = m.slides.slice()
     render()
