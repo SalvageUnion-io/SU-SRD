@@ -44,21 +44,28 @@ function techLevelTone(level: number | undefined): string | undefined {
 /** Tier tones (the owner's call, 2026-10-13, over the book's spreads): Core =
  * pilot orange, Advanced and Hybrid = rust (`tier-hybrid`), Legendary =
  * crawler pink. The abilities index and an ability's show page both read
- * this, so they cannot disagree. */
+ * this, so they cannot disagree; a tree requirement wears its tree's. */
+function tierTone(tier: { legendary: boolean; advanced: boolean }): string {
+  if (tier.legendary) return 'crawler'
+  return tier.advanced ? 'tier-hybrid' : 'pilot'
+}
+
 function abilityTierTone(entity: RefMetaEntity): string {
-  const isLegendary =
-    ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
-    ('tree' in entity && String(entity.tree).includes('Legendary'))
-  if (isLegendary) return 'crawler'
   const tree = 'tree' in entity ? String(entity.tree) : ''
-  return isHybridTree(tree) || tree.includes('Advanced') ? 'tier-hybrid' : 'pilot'
+  return tierTone({
+    legendary:
+      ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
+      tree.includes('Legendary'),
+    advanced: isHybridTree(tree) || tree.includes('Advanced'),
+  })
 }
 
 function treeRequirementTone(entity: RefMetaEntity): string {
   const name = 'name' in entity ? String(entity.name).toLowerCase() : ''
-  if (name.includes('legendary')) return 'crawler'
-  if (name.includes('hybrid') || name.includes('advanced')) return 'tier-hybrid'
-  return 'pilot'
+  return tierTone({
+    legendary: name.includes('legendary'),
+    advanced: name.includes('hybrid') || name.includes('advanced'),
+  })
 }
 
 const SCHEMA_TONE: Partial<Record<RefEnumSchemaName, string>> = {
