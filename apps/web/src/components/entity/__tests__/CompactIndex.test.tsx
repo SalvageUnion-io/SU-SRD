@@ -183,3 +183,25 @@ describe('CompactIndex chips for systems and modules', () => {
     expect(chipsOf(container).querySelector('.su-entity-index__line')).toBeNull()
   })
 })
+
+describe('CompactIndex with no lead to browse by (round 11)', () => {
+  const hamlet = () =>
+    need(SalvageUnionReference.CrawlerTechLevels.getByName('Hamlet Crawler'), 'hamlet')
+
+  test('is contentful: its head keeps TL and SP, its body the measures left out', () => {
+    const { container } = render(<Entity size="compact" layout="index" entity={hamlet()} lead />)
+    const head = chipsOf(container).textContent ?? ''
+    expect(head).toContain('TL')
+    expect(head).toContain('SP')
+    expect(head).not.toContain('Upkeep')
+    const body = cellsOf(container).textContent ?? ''
+    expect(body).toContain('Upkeep')
+    expect(body).toContain('Upgrade')
+    expect(body).toContain('POP')
+  })
+
+  test('without `lead`, it stays header-only', () => {
+    const { container } = render(<Entity size="compact" layout="index" entity={hamlet()} />)
+    expect(container.querySelector('.su-entity-index__cells')).toBeNull()
+  })
+})

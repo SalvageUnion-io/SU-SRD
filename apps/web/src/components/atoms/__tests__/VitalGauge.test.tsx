@@ -385,6 +385,10 @@ describe('VitalGauge — mini HP cells', () => {
     expect(cells[0]?.style.width).toBe(cells[0]?.style.height)
     const grid = must(cells[0]?.parentElement)
     expect(grid.style.gridTemplateColumns).toBe('repeat(3, 8px)')
+    // The value sits under the cells, a rung smaller (round 11).
+    const value = must(grid.nextElementSibling as HTMLElement | null)
+    expect(value.textContent).toBe('3/9')
+    expect(value.style.fontSize).toBe('11px')
   })
 
   test('editable: the cells are one slider, a click sets the value', () => {

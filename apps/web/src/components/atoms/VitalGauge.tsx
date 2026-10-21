@@ -39,7 +39,6 @@ import {
   M_CELL,
   M_CELL_SIDE,
   M_GRID,
-  M_HEAD,
   M_LABEL,
   M_SHELL,
   M_VALUE,
@@ -321,8 +320,9 @@ export function VitalGauge({
     </div>
   )
 
-  // MINI — HP cells: label and value/max on one row, a square block of small
-  // square cells beneath (`miniColumns`), lit from the first.
+  // MINI — HP cells: the label, a square block of small square cells beneath
+  // it (`miniColumns`), lit from the first, and value/max under the block in
+  // smaller type (owner, round 11).
   if (size === 'mini') {
     const cells = Array.from({ length: segCount }, (_, n) => n).map((i) =>
       segment(i, trackSegmentState(i, shown, max, dangerFrom), M_CELL, editable)
@@ -340,15 +340,13 @@ export function VitalGauge({
         className={className}
         style={{ ...M_SHELL, ...style }}
       >
-        <div style={M_HEAD}>
-          <span className={capsLabel({ size: 'badge' })} style={{ ...M_LABEL, color: color.ink }}>
-            {label}
-          </span>
-          <span style={{ ...M_VALUE, color: isOver ? color.statusBad : color.ink }}>
-            {shown}/{max}
-          </span>
-        </div>
+        <span className={capsLabel({ size: 'badge' })} style={{ ...M_LABEL, color: color.ink }}>
+          {label}
+        </span>
         {editable ? slider(gridStyle, cells) : <div style={gridStyle}>{cells}</div>}
+        <span style={{ ...M_VALUE, color: isOver ? color.statusBad : color.ink }}>
+          {shown}/{max}
+        </span>
       </div>
     )
   }

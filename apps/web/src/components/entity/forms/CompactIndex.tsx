@@ -113,13 +113,28 @@ export function CompactIndex({
   // names, beside its rank, its other facts (a hybrid's REQ, a crawler's POP),
   // its action's facets and its cost.
   const kept = budgetFacts(model.facts, naturalContext(model.kind))
+  const leadText = lead ? model.lead : undefined
+  // A tile with no lead to browse by is still contentful when its budget left
+  // measures out (owner, round 11: the crawler tech levels "should be
+  // contentful"): its head keeps the budget alone (TL, SP), so the name keeps
+  // its room, and its body is the rest as chips (Upkeep, Upgrade, POP).
+  const spared =
+    lead && !leadText && model.facts.some((f) => f.key.startsWith(MEASURE_KEY) && !kept.includes(f))
   const facts = factCells(
-    model.facts.filter((fact) => kept.includes(fact) || !fact.key.startsWith(MEASURE_KEY)),
+    model.facts.filter(
+      (fact) => kept.includes(fact) || (!spared && !fact.key.startsWith(MEASURE_KEY))
+    ),
     omit
   )
+  const spare = spared
+    ? factCells(
+        model.facts.filter((fact) => !kept.includes(fact)),
+        omit
+      )
+    : []
+  const contentful = !!leadText || spare.length > 0
   const { art } = model
   const artWindow = art.kind === 'image' ? tileArtWindow(art.url) : undefined
-  const leadText = lead ? model.lead : undefined
   const mark =
     art.kind === 'none' && missingArt !== undefined
       ? censorMark(`${model.ref.schemaName}/${model.ref.id}`, missingArt, model.cite?.page)
@@ -206,14 +221,19 @@ export function CompactIndex({
                 tags: [],
                 ...(model.cost ? { cost: model.cost } : {}),
               }}
-              menu={leadText ? undefined : <MoreChip />}
+              menu={contentful ? undefined : <MoreChip />}
             />
           )}
         </div>
-        {hasChips && leadText && <ChipOverflowRow className="su-entity-index__overflow" />}
+        {hasChips && contentful && <ChipOverflowRow className="su-entity-index__overflow" />}
         {leadText && (
           <div className="su-entity-index__cells">
             <Lead text={leadText} />
+          </div>
+        )}
+        {spare.length > 0 && (
+          <div className="su-entity-index__cells">
+            <Chips as="span" size="compact" chips={{ durations: [], facts: spare, tags: [] }} />
           </div>
         )}
       </div>

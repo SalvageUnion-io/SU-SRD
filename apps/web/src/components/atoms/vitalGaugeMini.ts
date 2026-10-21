@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react'
-import { borderWidth, space } from '../../design/tokens'
-import { C_HEAD, C_LABEL, C_VALUE } from './vitalGaugeCompact'
+import { borderWidth, fontSize, space } from '../../design/tokens'
+import { C_LABEL, C_VALUE } from './vitalGaugeCompact'
 
-/** VitalGauge's mini-form style objects (a square grid of cells under a caption). */
+/** VitalGauge's mini-form style objects (a label, a square grid of cells, the value under it). */
 
 /** One cell's side: two cells and their gap fit a Mini's height (18px). */
 export const M_CELL_SIDE = '8px'
@@ -12,9 +12,9 @@ export const M_SHELL = {
   flexDirection: 'column',
   gap: space[4],
 } satisfies CSSProperties
-export const M_HEAD = C_HEAD
 export const M_LABEL = C_LABEL
-export const M_VALUE = C_VALUE
+/** The value under the cells, a rung smaller than the compact read-out's. */
+export const M_VALUE = { ...C_VALUE, fontSize: fontSize.badge } satisfies CSSProperties
 export const M_GRID = {
   display: 'grid',
   gap: space[2],
