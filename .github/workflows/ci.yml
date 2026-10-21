@@ -206,9 +206,10 @@ jobs:
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 
-      # The PR tier in one run: every spec but the performance budget (perf,
-      # below) and the app's other signed-in specs (e2e-nightly.yml runs
-      # the whole suite). A file filter is a pattern, so `smoke.e2e.ts` runs the
+      # The PR tier in one run: exactly the specs on the run line. Every other
+      # spec (the gate specs not named here, the app's other signed-in specs)
+      # runs only nightly, where e2e-nightly.yml runs the whole suite; the
+      # performance budget runs below. A file filter is a pattern, so `smoke.e2e.ts` runs the
       # reference pages' and the app's smoke (`reference-smoke.e2e.ts`,
       # `app-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
       # `offline`; Play's are named whole, because `play-` alone would also
@@ -222,7 +223,7 @@ jobs:
       # `nesting-depth.e2e.ts`'s wizards and sheet), and
       # E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
       # skip them (`e2e/fixtures.ts`).
-      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, chip-strip, nesting-depth and Play specs
+      - name: Run the PR-tier e2e specs
         working-directory: apps/web
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
