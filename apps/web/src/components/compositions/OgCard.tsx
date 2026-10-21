@@ -79,8 +79,8 @@ import {
 
 // ── Style objects ─────────────────────────────────────────────────────────
 
-/** The frame: twice the entity card's 3px, so it reads as 2px at 400px wide. */
-const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
+/** The frame: a poster's (twice the entity card's), so it reads as 2px at 400px wide. */
+const FRAME_WIDTH = borderWidth.poster
 
 const CARD = {
   backgroundColor: color.wkBg,

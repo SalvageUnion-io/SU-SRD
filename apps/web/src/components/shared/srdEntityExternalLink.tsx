@@ -24,7 +24,7 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
     <InlineRef
       href={href}
       aria-label={entityName ? `View ${entityName} in the Reference` : 'View in the Reference'}
-      // `.su-srd-entity-external-link` (styles/unitSlot.css): its 24px target.
+      // `.su-srd-entity-external-link` (styles/build/unitSlot.css): its 24px target.
       className="su-srd-entity-external-link"
     >
       View in the Reference

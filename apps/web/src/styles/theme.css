@@ -321,8 +321,10 @@
      pill = pills / status badges / dividers / statins / sblock / counterpart
      panels; chrome = everything else (buttons, inputs, panels, rows, pips).
      entity-compact = the entity card's frame one size down (ruleset §4.3): the
-     frame steps 3 → 2 → 1.5px with size and depth. */
+     frame steps 3 → 2 → 1.5px with size and depth. poster = a poster's
+     frame (OgCard, BrandCard), twice the entity card's. */
   --bw-entity: 3px;
+  --bw-poster: 6px;
   --bw-entity-compact: 2px;
   --bw-pill: 2px;
   --bw-chrome: 1.5px;

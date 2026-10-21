@@ -5,7 +5,7 @@
  *
  *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
  *     laid over the whole Compact, its linked chips raised above it.
- *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
+ *   - `srdEntityExternalLink` (components/shared/srdEntityExternalLink.tsx):
  *     the "View in the Reference" link, an `InlineRef` alone in a card's foot.
  */
 

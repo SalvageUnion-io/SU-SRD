@@ -231,6 +231,8 @@ export const radius = {
  *   chrome    1.5px  buttons, inputs, panels, rows, pips
  *   pill      2px    pills / status badges / dividers
  *   entity    3px    entity cards + hero header
+ *   poster    6px    a poster's frame (`OgCard`, `BrandCard`): twice the
+ *                    entity card's, so it reads as 2px at 400px wide
  */
 export const borderWidth = {
   hairline: '1px',
@@ -239,6 +241,7 @@ export const borderWidth = {
   /** The entity card's frame one size down: 3 → 2 → 1.5px (ruleset §4.3). */
   entityCompact: '2px',
   entity: '3px',
+  poster: '6px',
 } as const
 
 /**

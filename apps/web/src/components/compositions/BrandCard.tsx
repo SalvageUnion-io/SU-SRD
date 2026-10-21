@@ -30,8 +30,8 @@ export type BrandCardProps = {
   kicker: string
 }
 
-/** The frame: twice the entity card's 3px, as `OgCard`'s. */
-const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
+/** The frame: a poster's, as `OgCard`'s. */
+const FRAME_WIDTH = borderWidth.poster
 
 /** The chapter colours along the foot, in the book's order. */
 const FOOT_TONES = ['rules', 'pilot', 'mech', 'crawler', 'denizen'] as const

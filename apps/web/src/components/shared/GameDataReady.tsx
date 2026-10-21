@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 import { useLayoutEffect } from 'react'
 import { preloadGameData } from '../../lib/useGameData'
-import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import { GameDataGate } from '../GameDataGate'
 import type { EntitySurfaceValue } from '../index'
 import { EntitySurfaceProvider } from '../index'
 import { RoutePending } from './RouteFallbacks'
+import { srdEntityExternalLink } from './srdEntityExternalLink'
 
 /*
  * The full dataset's preload, started at MODULE SCOPE, not on first render.
