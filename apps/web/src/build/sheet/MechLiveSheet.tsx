@@ -4,14 +4,12 @@
  *
  * The body owns the identity band (Workshop-Manual layout): `MechSheet`
  * renders the `SheetHero` band as its first region. This
- * component's remaining job is the condensed top-bar strip and composing the
- * assigned-pilot/home-crawler rail content handed to `MechSheet` as
- * `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on
+ * component's remaining job is the condensed top-bar strip and the Assigned
+ * units (`assignedUnitsFor`), handed to `MechSheet` as `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on
  * Play, not the Free-Edit Live Sheet (ADR-021).
  */
 
 import { containerOf } from 'game-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -27,13 +25,12 @@ import {
 } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
 import { AssignPicker } from '../wiring/AssignPicker'
-import type { AssignedSlot, AssignedUnit } from './AssignedUnits'
 import { AssignedUnits } from './AssignedUnits'
+import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
 import { mechStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
-import { crawlerRailItems, pilotRailItems, rowStats } from './railStats.model'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type MechLiveSheetProps = SheetViewCommonProps & {
@@ -55,14 +52,14 @@ export function MechLiveSheet({
   editable,
   readOnly,
   crawlerReadOnly,
+  ownerOf,
   store,
   storeState,
+  holds,
   hrefFor,
   withheld,
 }: MechLiveSheetProps) {
   const pilotAbilities = ownPilotAbilities ?? composition.pilot?.abilities
-  const withheldPilot = withheld.find((u) => u.kind === 'pilot')
-  const withheldCrawler = withheld.find((u) => u.kind === 'crawler')
   const chassis = resolveChassisRef(mech.chassisRef)
   // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
   // the same piloting context the body sheet uses or the two would disagree.
@@ -92,97 +89,27 @@ export function MechLiveSheet({
     },
   ]
 
-  // The mech's two assignments are both its OWN links (ADR-037): the pilot it
-  // carries (`mech-to-pilot`) and the crawler it docks in (`mech-to-crawler`).
-  // Neither is reached through the other, so each slot assigns, changes and
-  // unassigns on its own — available whenever the sheet is in Edit, with no
-  // confirm (reversible, ADR-007).
-  const pilotLinkId = storeState.softLinks.find(
-    (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
-  )?.id
-  const crawlerLinkId = storeState.softLinks.find(
-    (l) => l.type === 'mech-to-crawler' && l.from.id === mech.id
-  )?.id
-  const unassign = (linkId: string | undefined) =>
-    editable && linkId ? () => runWrite(() => storeState.delete('softLink', linkId)) : undefined
-  // Both slots pick from where the mech lives — its Game, or your shelves.
+  // Assigned units: the pilot it carries and the crawler it docks in, both
+  // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
   const self = { type: 'mech', id: mech.id } as const
   const container = containerOf(mech)
-
-  // Assigned units: each a contentful Mini with its vitals, the same in Read
-  // and Edit; Edit adds Change and Unassign after it, and Assign / + Create for an
-  // empty place.
-  const units: AssignedUnit[] = []
-  if (composition.pilot) {
-    units.push({
-      key: 'pilot',
-      kind: 'pilot',
-      name: composition.pilot.name,
-      readings: rowStats(
-        pilotRailItems(
-          composition.pilot,
-          resolveEffectiveCrawlerLevel(composition.pilot, composition.crawler)
-        )
-      ),
-      href: hrefFor('pilot', composition.pilot.id),
-      change: (
-        <AssignPicker
-          subject={self}
-          container={container}
-          pick="pilot"
-          filled
-          exclude={[composition.pilot.id]}
-        />
-      ),
-      onUnassign: unassign(pilotLinkId),
-    })
-  } else if (withheldPilot) {
-    units.push({ key: 'pilot', kind: 'pilot', name: withheldPilot.name ?? 'Not shared' })
-  }
-  if (composition.crawler) {
-    units.push({
-      key: 'crawler',
-      kind: 'crawler',
-      name: composition.crawler.name,
-      readings: rowStats(crawlerRailItems(composition.crawler)),
-      href: hrefFor('crawler', composition.crawler.id),
-      change: (
-        <AssignPicker
-          subject={self}
-          container={container}
-          pick="crawler"
-          filled
-          exclude={[composition.crawler.id]}
-        />
-      ),
-      onUnassign: unassign(crawlerLinkId),
-    })
-  } else if (withheldCrawler) {
-    units.push({ key: 'crawler', kind: 'crawler', name: withheldCrawler.name ?? 'Not shared' })
-  }
-  const slots: AssignedSlot[] = [
-    ...(composition.pilot || withheldPilot
-      ? []
-      : [
-          {
-            key: 'pilot',
-            kind: 'pilot' as const,
-            assign: <AssignPicker subject={self} container={container} pick="pilot" size="mini" />,
-          },
-        ]),
-    ...(composition.crawler || withheldCrawler
-      ? []
-      : [
-          {
-            key: 'crawler',
-            kind: 'crawler' as const,
-            assign: (
-              <AssignPicker subject={self} container={container} pick="crawler" size="mini" />
-            ),
-          },
-        ]),
-  ]
-  const rail = <AssignedUnits units={units} slots={slots} editable={editable} />
+  const assigned = assignedUnitsFor({
+    subject: { kind: 'mech', entity: mech },
+    composition,
+    withheld,
+    softLinks: storeState.softLinks,
+    holds,
+    hrefFor,
+    ownerOf,
+    editable,
+    unassign: (linkId) => runWrite(() => storeState.delete('softLink', linkId)),
+    picker: (pick, options) => (
+      <AssignPicker subject={self} container={container} pick={pick} {...options} />
+    ),
+  })
+  const rail = hasAssignedUnits(assigned.units, editable) ? (
+    <AssignedUnits {...assigned} editable={editable} />
+  ) : undefined
 
   return (
     <LiveSheet

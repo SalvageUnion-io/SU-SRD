@@ -10,12 +10,11 @@
  * (`hasAssignedUnits`).
  *
  * The one section every kind draws, pilot, mech and crawler, with its one
- * body class (`.su-sheet-linked`).
+ * body class (`.su-sheet-linked`); what it lists is `assignedUnitsFor`.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Unlink } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { Fragment } from 'react'
 import {
   Button,
@@ -26,41 +25,9 @@ import {
   Stat,
   tokens,
 } from '../../components/index'
-import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-
-/** One linked unit: what it is to this sheet, its name, and where its sheet is. */
-export type AssignedUnit = {
-  key: string
-  /** The unit's kind: its Mini's tone. */
-  kind: SheetKind
-  /** What it is built as ("Engineer", "Scrapper"), stamped by its name. */
-  note?: string | undefined
-  /** Its status, its vitals as they stand (`SP | 9/13`): its Mini's body. */
-  readings?: readonly UnitReading[]
-  /** Its name; a withheld unit on a public sheet says "Not shared". */
-  name: string
-  /** Its sheet; without one the chip opens nothing (a withheld unit). */
-  href?: string
-  /** Who holds it in the Game (YOU, a crewmate, UNCLAIMED): a chip on its head. */
-  owner?: string | undefined
-  /** Edit: Change, the picker that replaces it (before Unassign). */
-  change?: ReactNode
-  /** Edit: take the link off (never the unit). */
-  onUnassign?: () => void
-}
-
-/** Edit: how a kind's place is filled, when it is empty or takes more than one. */
-export type AssignedSlot = {
-  key: string
-  kind: SheetKind
-  /** Assign one that exists (`AssignPicker`). */
-  assign: ReactNode
-  /** What stands in while it is empty (a pilot's mock crawler level): its placeholder's body. */
-  extra?: ReactNode
-  /** The placeholder's name; `No <Kind> assigned` by default. */
-  placeholder?: string
-}
+import type { AssignedSlot, AssignedUnit } from './assignedUnits.model'
+import { hasAssignedUnits } from './assignedUnits.model'
 
 const NEW_PATH: Record<SheetKind, string> = {
   pilot: '/pilots/new',
@@ -72,11 +39,6 @@ const KIND_NAME: Record<SheetKind, string> = {
   pilot: 'Pilot',
   mech: 'Mech',
   crawler: 'Crawler',
-}
-
-/** Whether the section draws at all: Read leaves it out with nothing linked. */
-function hasAssignedUnits(units: readonly AssignedUnit[], editable: boolean): boolean {
-  return editable || units.length > 0
 }
 
 export function AssignedUnits({

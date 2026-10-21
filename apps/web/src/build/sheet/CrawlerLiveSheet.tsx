@@ -9,13 +9,11 @@
  * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges) and its action entry points
  * (`CrawlerEconActions`), handed to `CrawlerSheet` as `economy` and
  * `economyActions` and rendered as the identity band's vitals card and its head
- * chips, plus the docked-mech/lead-pilot rail content handed down
- * as `linkedUnits`. Owns the economy-dialog state.
+ * chips, plus the Assigned units (`assignedUnitsFor`) handed down as
+ * `linkedUnits`. Owns the economy-dialog state.
  */
 
 import { containerOf } from 'game-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
-import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
@@ -29,8 +27,8 @@ import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEcon
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AssignPicker } from '../wiring/AssignPicker'
-import type { AssignedSlot, AssignedUnit } from './AssignedUnits'
 import { AssignedUnits } from './AssignedUnits'
+import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
 import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconActions, CrawlerEconFrame } from './CrawlerEcon'
@@ -40,7 +38,7 @@ import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { bayStates, mechRailItems, pilotRailItems, rowStats } from './railStats.model'
+import { bayStates } from './railStats.model'
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
@@ -176,101 +174,31 @@ export function CrawlerLiveSheet({
       : []),
   ]
 
-  // A crawler has no single "lead pilot" and no single docked mech: it is a
-  // home for a CREW. Both slots are lists — every pilot wired to this crawler,
-  // and every mech docked in it by its OWN `mech-to-crawler` link (ADR-037).
-  // A mech is assigned independently of its pilot, so a crew pilot's mech that
-  // is docked somewhere else is not in this bay, and a docked mech with no
-  // pilot still is.
-  const withheldMechs = withheld.filter((u) => u.kind === 'mech')
-  const withheldPilots = withheld.filter((u) => u.kind === 'pilot')
-
-  /**
-   * Take one pilot off the crew, or one mech out of the bay — the link, never
-   * the entity (always available on editable sheets; no confirm, ADR-007).
-   *
-   * Only for one this sheet holds: a link is undrawn from its pilot or mech, so
-   * a crewmate's on the list is theirs to take off, not yours.
-   */
-  function unassignFrom(type: 'pilot-to-crawler' | 'mech-to-crawler', fromId: string) {
-    const linkId = storeState.softLinks.find(
-      (l) => l.type === type && l.to.id === crawler.id && l.from.id === fromId
-    )?.id
-    const fromKind = type === 'pilot-to-crawler' ? 'pilot' : 'mech'
-    return editable && linkId && holds(fromKind, fromId)
-      ? () => runWrite(() => storeState.delete('softLink', linkId))
-      : undefined
-  }
-  // The pickers offer only what lives where this crawler does — its Game, or
-  // Shelves — and never what is already aboard.
+  // Assigned units: a crawler is a home for a CREW, with no single lead
+  // pilot or docked mech. Both places are lists — every mech docked by its OWN
+  // `mech-to-crawler` link (ADR-037), then every pilot wired to it — and each
+  // keeps its Assign after the first. A mech is assigned independently of its
+  // pilot, so a crew pilot's mech docked elsewhere is not in this bay, and a
+  // docked mech with no pilot still is.
   const self = { type: 'crawler', id: crawler.id } as const
   const container = containerOf(crawler)
-  const crewPicker = (
-    <AssignPicker
-      subject={self}
-      container={container}
-      pick="pilot"
-      exclude={composition.crawlerPilots.map((p) => p.id)}
-      size="mini"
-    />
-  )
-  const dockPicker = (
-    <AssignPicker
-      subject={self}
-      container={container}
-      pick="mech"
-      exclude={composition.crawlerMechs.map((m) => m.id)}
-      size="mini"
-    />
-  )
-
-  // Assigned units: every docked mech and every crew pilot a contentful Mini
-  // with its vitals, the same in Read and Edit; Edit adds Unassign after each
-  // (one this sheet holds), and Assign / + Create for the next of each kind.
-  const units: AssignedUnit[] = [
-    ...composition.crawlerMechs.map((dockedMech) => ({
-      key: dockedMech.id,
-      kind: 'mech' as const,
-      name: dockedMech.name,
-      readings: rowStats(
-        mechRailItems(
-          dockedMech,
-          pilotingContext(dockedMech, composition.crawlerMechPilots[dockedMech.id]?.abilities)
-        )
-      ),
-      href: hrefFor('mech', dockedMech.id),
-      owner: ownerOf?.('mech', dockedMech.id)?.label,
-      onUnassign: unassignFrom('mech-to-crawler', dockedMech.id),
-    })),
-    ...withheldMechs.map((unit) => ({
-      key: unit.key,
-      kind: 'mech' as const,
-      name: unit.name ?? 'Not shared',
-    })),
-    ...composition.crawlerPilots.map((crewPilot) => ({
-      key: crewPilot.id,
-      kind: 'pilot' as const,
-      name: crewPilot.name,
-      readings: rowStats(
-        pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
-      ),
-      href: hrefFor('pilot', crewPilot.id),
-      owner: ownerOf?.('pilot', crewPilot.id)?.label,
-      onUnassign: unassignFrom('pilot-to-crawler', crewPilot.id),
-    })),
-    ...withheldPilots.map((unit) => ({
-      key: unit.key,
-      kind: 'pilot' as const,
-      name: unit.name ?? 'Not shared',
-    })),
-  ]
-  // A crawler takes more than one of each, so the way to add the next
-  // survives the first.
-  const slots: AssignedSlot[] = [
-    { key: 'mech', kind: 'mech', assign: dockPicker, placeholder: 'Dock a Mech' },
-    { key: 'pilot', kind: 'pilot', assign: crewPicker, placeholder: 'Add a Pilot to the crew' },
-  ]
-  const rail = <AssignedUnits units={units} slots={slots} editable={editable} />
+  const assigned = assignedUnitsFor({
+    subject: { kind: 'crawler', entity: crawler },
+    composition,
+    withheld,
+    softLinks: storeState.softLinks,
+    holds,
+    hrefFor,
+    ownerOf,
+    editable,
+    unassign: (linkId) => runWrite(() => storeState.delete('softLink', linkId)),
+    picker: (pick, options) => (
+      <AssignPicker subject={self} container={container} pick={pick} {...options} />
+    ),
+  })
+  const rail = hasAssignedUnits(assigned.units, editable) ? (
+    <AssignedUnits {...assigned} editable={editable} />
+  ) : undefined
 
   // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
   // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
