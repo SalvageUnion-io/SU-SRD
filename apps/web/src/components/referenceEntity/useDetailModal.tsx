@@ -32,7 +32,7 @@ export function useDetailModal(
 } {
   const [open, setOpen] = useState(false)
 
-  // Where the surface has a route for the entity (srd's `hrefFor`), "View
+  // Where the surface has a route for the entity (the reference site's `hrefFor`), "View
   // details" goes to the entity's show page, in this tab (EDL E5: the detail
   // view is a Page, never a new-tab `window.open`), instead of opening the
   // in-place modal. The app's surface has no routes, so it keeps the modal.

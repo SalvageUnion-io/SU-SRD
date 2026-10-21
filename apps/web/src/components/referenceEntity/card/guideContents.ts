@@ -2,8 +2,8 @@
  * A guide page's "On this page" contents mark the section the reader is in
  * (scroll-spy).
  *
- * Plain DOM, so both of srd's paths share it: `GuideSteps` starts it in an
- * effect where the card is a React island, and srd's client entry starts it
+ * Plain DOM, so both of the reference site's paths share it: `GuideSteps` starts it in an
+ * effect where the card is a React island, and the reference site's client entry starts it
  * over a card served as static HTML, which never runs an effect. The current
  * entry is the last heading whose top has crossed the reading line near the
  * top of the viewport. Over the page's last screen the line slides down to

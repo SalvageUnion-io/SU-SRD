@@ -32,7 +32,7 @@ export const FIXED_MOVES: readonly Move[] = [{ from: '/sitemap.xml', to: '/sitem
 // The reference pages' old grammar
 // ---------------------------------------------------------------------------
 //
-// Until srd dropped `/schema/…/item/` from its URLs, a listing was
+// Until the reference site dropped `/schema/…/item/` from its URLs, a listing was
 // `/schema/chassis/` and a page `/schema/chassis/item/mule/` (a pattern under
 // it, `…/mule/pattern/hauler/`, an unfurl beside it, `…/item/mule.og.png`).
 // Those URLs are in search indexes, Discord history and bookmarks. Nothing the

@@ -4,7 +4,7 @@
  * The builder is the app's app-wide surface `externalLink`: full entity
  * cards + detail modals render its node in their foot band. It must produce a
  * same-tab "View in the Reference" link for real catalog entities and nothing for entities whose
- * schema has no srd page.
+ * schema has no reference page.
  */
 
 import { describe, expect, it } from 'bun:test'

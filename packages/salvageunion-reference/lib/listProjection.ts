@@ -15,7 +15,7 @@
  * marked `listProjection` to `lib/generated/<id>.list.generated.json`, and
  * `preload(schemas, { projection: 'list' })` loads it in place of the full
  * file. A later full `preload` replaces it. Nothing may read prose beyond the
- * first paragraph from a list-loaded schema: srd's listing render-equivalence test
+ * first paragraph from a list-loaded schema: the reference site's listing render-equivalence test
  * (`apps/web/src/lib/__tests__/preloadEquivalence.tsx`) proves a listing
  * renders the same markup from either copy.
  *

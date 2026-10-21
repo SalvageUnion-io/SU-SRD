@@ -1,5 +1,5 @@
 /**
- * The shared half of the two browser apps' error reporting (srd and the
+ * The shared half of the two browser apps' error reporting (the reference site and the
  * App, both in `apps/web`).
  *
  * Cloudflare has no browser error tracking, so each app posts its errors to its
@@ -102,9 +102,9 @@ export const MAX_REPORTS_PER_PAGE = 20
  * The browser abandoning a cross-document view transition: noise that is not
  * the app's to fix, for an app's `ignoreErrors`.
  *
- * A same-origin navigation can run a cross-document view transition (srd opts
+ * A same-origin navigation can run a cross-document view transition (the reference site opts
  * in with `@view-transition { navigation: auto }`; a page that does not opt in
- * still receives the one srd started). The promises that transition exposes
+ * still receives the one the reference site started). The promises that transition exposes
  * belong to the **user agent**, so there is no JS handle to `.catch()`: when
  * the browser abandons a transition it rejects one of them and the
  * `unhandledrejection` handler hears it. The navigation itself completes

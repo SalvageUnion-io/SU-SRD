@@ -4,7 +4,7 @@
  * Biome is the single formatter, and the generators format *in-process*,
  * before writing: `lib/index.ts` is committed and gated by
  * `tools/check-generated.ts`, `biome ci .` reads the gitignored `schemas/`
- * too (Biome ignores `.gitignore`), and srd serves those bytes verbatim. A later `biome format --write` pass would leave a
+ * too (Biome ignores `.gitignore`), and the reference site serves those bytes verbatim. A later `biome format --write` pass would leave a
  * clean tree failing that gate.
  *
  * ## Why shell out instead of using a Biome API package

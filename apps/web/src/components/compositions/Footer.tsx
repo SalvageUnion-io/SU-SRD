@@ -109,7 +109,7 @@ function End({
         width={40}
         height={40}
         // Below the fold on every page. Lazy also stops React's SSR from
-        // hoisting a `<link rel="preload">` for it into every srd `<head>`,
+        // hoisting a `<link rel="preload">` for it into every reference page's `<head>`,
         // where it competed with the fonts and the hero art.
         loading="lazy"
         decoding="async"

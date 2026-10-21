@@ -214,7 +214,7 @@ body {
 /* ══ Layout primitives (`containers/Stack.tsx`, `Cluster.tsx`, `Grid.tsx`) ══
  *
  * Classes rather than style objects because a page wears dozens of them and
- * srd writes a style object out on every element. First in the cascade, so a
+ * the reference site writes a style object out on every element. First in the cascade, so a
  * component class laid over one wins at one class each, the gap aside. The gap is one step
  * of the space scale, `data-gap`, one rule per step `containers/layoutGap.ts`
  * allows; the Grid's narrowest column is `--su-grid-min`, set inline because

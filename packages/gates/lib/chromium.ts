@@ -1,6 +1,6 @@
 /**
  * The one way the repo's scripts start Chromium (`tools/shot.ts`,
- * `tools/gallery.ts`, the srd brand and og:image scripts).
+ * `tools/gallery.ts`, the reference site's brand and og:image scripts).
  *
  * The browser is the pinned Playwright's own Chromium; else the
  * chrome-headless-shell in this checkout's `.pw-browsers/` (`CHECKOUT_BROWSERS`,

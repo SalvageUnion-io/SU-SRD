@@ -42,7 +42,7 @@ async function generateSchemas() {
       })
 
       // Wrap in array schema (all entity schemas are arrays). `$id` is the URL
-      // srd serves this very file at, so a consumer can resolve it.
+      // The reference site serves this very file at, so a consumer can resolve it.
       const arraySchema = {
         $schema: 'http://json-schema.org/draft-07/schema#',
         $id: `${SRD_SITE_URL}/schema/${schemaIdToFilename(schemaId)}`,

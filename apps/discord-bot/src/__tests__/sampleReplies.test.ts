@@ -1,6 +1,6 @@
 /**
- * The replies the srd's `/discord` page draws as its screenshots: the bot's
- * own, committed in the srd as generated data.
+ * The replies the reference site's `/discord` page draws as its screenshots: the bot's
+ * own, committed in the web app as generated data.
  */
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'

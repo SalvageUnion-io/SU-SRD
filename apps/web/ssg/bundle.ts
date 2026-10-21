@@ -1,5 +1,5 @@
 /**
- * bundle — the one Vite pass (`vite.config.ts`): srd's client entries and the
+ * bundle — the one Vite pass (`vite.config.ts`): the reference site's client entries and the
  * App, into `dist/`. Step 1 of `ssg/build.ts`, which runs it as a child
  * process.
  *

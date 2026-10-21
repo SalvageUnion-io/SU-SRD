@@ -68,7 +68,7 @@ type Manifest = Record<string, ManifestChunk>
  */
 const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
 
-/** The app's entry, its shell: its own document, never linked from srd's. */
+/** The app's entry, its shell: its own document, never linked from the reference site's. */
 const APP_ENTRY = 'build/index.html'
 
 /**
@@ -83,8 +83,8 @@ async function readAssets(): Promise<BuildAssets> {
   const manifestPath = join(distDir, '.vite', 'manifest.json')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
 
-  // The base stylesheet (`src/styles/baseStylesheet.ts`) links first, ahead of srd's own;
-  // its fonts are the only ones srd emits.
+  // The base stylesheet (`src/styles/baseStylesheet.ts`) links first, ahead of the reference site's own;
+  // its fonts are the only ones the reference site emits.
   const emitted = (await readdir(join(distDir, 'assets'))).map((name) => `assets/${name}`)
   const base = emitted.filter((file) => /^assets\/base-[\w-]+\.css$/.test(file))
   if (base.length !== 1) throw new Error(`[ssg] expected one base stylesheet, found ${base.length}`)

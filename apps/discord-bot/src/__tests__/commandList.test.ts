@@ -1,6 +1,6 @@
 /**
  * The `/su` command list the SRD's `/discord` page renders: read from the
- * registered builder, and committed in the srd as generated data.
+ * registered builder, and committed in the web app as generated data.
  */
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'

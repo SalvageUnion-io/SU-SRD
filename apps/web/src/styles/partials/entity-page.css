@@ -107,7 +107,7 @@
   padding: 0 var(--space-8);
 }
 
-/* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
+/* The stats on a band (`ChapterBand asideAt="notch"`, the reference site's `EntityPageStamps`)
    are the column's compact cells, the value at its label's type size (C1a:
    one size per strip, owner's call 2026-10-18), chips of the band's line
    (`.su-entity-stamps > dl`), the same gap apart. */

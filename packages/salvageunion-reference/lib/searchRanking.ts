@@ -3,7 +3,7 @@
  * matcher in the repo.
  *
  * There are two matchers and there have to be: the ORM-backed `search()` in
- * `search.ts`, which walks the loaded entity corpus field by field, and srd's
+ * `search.ts`, which walks the loaded entity corpus field by field, and the reference site's
  * `searchCompactIndex`, which runs in the browser against the build-time
  * `/search-index.json` so the site never ships the corpus. They differ in what
  * they match AGAINST. They must not differ in how a match is decided or ranked
@@ -11,7 +11,7 @@
  * see from either side.
  *
  * So the rules live here, once: the query tokenisation, the AND-of-tokens rule
- * with its name-only typo forgiveness, and the name-priority score tiers. srd
+ * with its name-only typo forgiveness, and the name-priority score tiers. The reference site
  * calls {@link scoreSearchMatch} with the facts it has, and the ORM calls the same
  * function with the extra facts only it can know.
  *

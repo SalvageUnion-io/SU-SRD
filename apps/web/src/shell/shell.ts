@@ -18,7 +18,7 @@
  *   claims every client route is the homepage. The Worker adds each public
  *   page's own (`worker/publicPages.ts`) for a crawler's request.
  * - The base stylesheet (the Barlow faces and the package stylesheet, shared
- *   with srd) is linked after the title by the `app-base-stylesheet` plugin,
+ *   with the reference site) is linked after the title by the `app-base-stylesheet` plugin,
  *   which alone knows its built URL.
  */
 import { createElement, Fragment } from 'react'

@@ -127,7 +127,7 @@ export {
   searchIn,
 } from './search'
 // The pure matching + ranking rules both matchers share: the ORM `search()`
-// above and srd's compact client index. No ORM import, so a
+// above and the reference site's compact client index. No ORM import, so a
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,

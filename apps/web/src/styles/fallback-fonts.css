@@ -6,7 +6,7 @@
  * the stack, a wider one, and the swap re-wrapped text: on a phone the trail
  * row's description fell to a second line and folded back, moving the page by
  * a CLS of 0.2-0.3 whenever the fonts landed after first paint (a slow
- * connection, even with srd's preloads).
+ * connection, even with the reference site's preloads).
  *
  * Each face is Arial (or its metric twin, Liberation Sans, or Helvetica) scaled
  * so its average advance matches Barlow's at that weight, measured in Chromium

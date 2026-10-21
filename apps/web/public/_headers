@@ -19,7 +19,7 @@
   # connect-src MUST keep 'self', or the browser blocks every error report
   # before it leaves the page — silent, and it looks healthy (zero errors).
   # script-src carries NO 'unsafe-inline' and NO hashes. With 'unsafe-inline',
-  # an injected <script> executes and CSP's primary XSS control is gone. srd
+  # an injected <script> executes and CSP's primary XSS control is gone. The reference site
   # emits no executable inline script at all — the /about and /greembeem
   # scripts load by URL from public/ — so this list is literal and cannot
   # drift. An inline <script> added later is BLOCKED by this policy: load it
@@ -60,7 +60,7 @@ https://su-srd.alxjrvs.workers.dev/*
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# `/assets/*` is the ONLY content-hashed path srd emits — every image an
+# `/assets/*` is the ONLY content-hashed path the reference site emits — every image an
 # import references (eldridge-coast-map) lands there with a hash in its name.
 # Every other image is a FIXED name replaced in place when it changes: the
 # og:image and manifest icons, the favicons, the header logos, and the

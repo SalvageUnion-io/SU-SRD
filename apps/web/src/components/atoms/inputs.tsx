@@ -3,7 +3,7 @@
  *
  * They live apart from `Field.tsx`, whose edit state draws them, so no
  * importer of either is ever in an import cycle. Cycles are worse here than in
- * most codebases: srd's SSR pass evaluates this TypeScript under Bun with no
+ * most codebases: the reference site's SSR pass evaluates this TypeScript under Bun with no
  * bundler in the loop, where cyclic module initialisation is TDZ-sensitive and
  * depends on evaluation order.
  *

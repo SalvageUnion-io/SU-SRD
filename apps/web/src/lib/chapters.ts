@@ -12,7 +12,7 @@
  * since the chapters are the home page's own groupings.
  *
  * Reads the ORM: call it only after `SalvageUnionReference.preload('all')`
- * (srd's build-time `gameData` import does that). Never import it from an
+ * (the reference site's build-time `gameData` import does that). Never import it from an
  * island — the drawer reads the frozen copy instead.
  */
 

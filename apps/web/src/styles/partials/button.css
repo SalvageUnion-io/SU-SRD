@@ -237,7 +237,7 @@
 }
 
 /*
- * A show page's head controls, one height in both apps: the srd entity page's
+ * A show page's head controls, one height in both apps: the reference entity page's
  * "Build with this", the app sheet bar's back, and beside the sheet's name
  * Read | Edit, "Make a copy", Share, "⋯" and the phone switch, so a row of them
  * never steps. Height only: each keeps its own padding and type. Under a coarse

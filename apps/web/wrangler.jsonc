@@ -70,7 +70,7 @@
     // A miss runs the Worker, which answers dist/404.html (or a bare 404 under
     // `/assets/`) with `no-store`. Not `404-page`: Static Assets applies
     // `_headers` to that response by path, so a missing chunk's 404 took the
-    // `/assets/*` rule's year of `immutable`. Not SPA mode either: srd is
+    // `/assets/*` rule's year of `immutable`. Not SPA mode either: the reference site is
     // pre-rendered, so a miss is genuinely a miss.
     "not_found_handling": "none",
     // `/build` and below: the app, whose Worker reads every answer

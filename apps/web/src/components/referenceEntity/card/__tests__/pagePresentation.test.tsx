@@ -31,7 +31,7 @@ const need = <T,>(value: T | undefined, label: string): T => {
 const gopher = () => need(SalvageUnionReference.Chassis.getByName('Gopher'), 'gopher')
 const juryRig = () => need(SalvageUnionReference.Abilities.getByName('Jury Rig'), 'jury rig')
 
-/** Stands in for srd's routes: every pattern's page. */
+/** Stands in for the reference site's routes: every pattern's page. */
 const PATTERN_ROUTES = { hrefFor: (ref: EntityRef) => (ref.pattern ? '/pattern/' : undefined) }
 
 // The manual's eight, in its order, under their full names: a Page prints the
@@ -336,9 +336,9 @@ describe('the card as a page', () => {
     expect(lead.querySelectorAll('h1, h2, h3, h4, h5, h6')).toHaveLength(0)
   })
 
-  // The srd page's h1 is its ChapterBand, outside the card: from there the
+  // The reference page's h1 is its ChapterBand, outside the card: from there the
   // outline may go down one level at a time, never skip one (axe
-  // `heading-order`, which the srd a11y gate runs).
+  // `heading-order`, which the reference a11y gate runs).
   const outlineSkips = (page: ReturnType<typeof render>) =>
     Array.from(page.container.querySelectorAll('h1, h2, h3, h4, h5, h6'))
       .map((h) => ({ level: Number(h.tagName[1]), text: h.textContent ?? '' }))

@@ -8,12 +8,12 @@ import {
 } from 'salvageunion-reference'
 
 /**
- * srd's TRAILING-SLASH policy over the shared route grammar.
+ * the reference site's TRAILING-SLASH policy over the shared route grammar.
  *
  * The grammar itself — which segments in which order — lives in
  * `salvageunion-reference/lib/assets.ts` (`srdSchemaPath` / `srdEntityPath`),
  * because the Discord bot and the app link into this site and must build the same
- * paths. This module adds the one thing that is genuinely srd's own: the
+ * paths. This module adds the one thing that is genuinely the reference site's own: the
  * trailing slash its directory-style output wants.
  *
  * It composes the grammar rather than re-authoring it: two copies drift, and
@@ -74,7 +74,7 @@ export function entityHref(entity: RefEntity): string | undefined {
 }
 
 /**
- * srd's routes as the entity SURFACE's `hrefFor` (`EntitySurfaceProvider`):
+ * the reference site's routes as the entity SURFACE's `hrefFor` (`EntitySurfaceProvider`):
  * an entity's page, or a pattern's under its chassis. A synthetic ref (built
  * from embedded data, no dataset row) and a meta schema's (an action) have no
  * page.

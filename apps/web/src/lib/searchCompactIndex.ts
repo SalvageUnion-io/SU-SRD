@@ -13,7 +13,7 @@
  * What differs is only the facts this matcher
  * has: with no per-field text it passes no description and no matched-field
  * count, so the ORM's `+10` description boost and `+5`-per-field refinement do
- * not apply. Neither is surfaced in the srd UI, which renders no match reasons.
+ * not apply. Neither is surfaced in the reference UI, which renders no match reasons.
  *
  * Those functions import nothing from the ORM, so the browser still never
  * loads the corpus.
@@ -33,7 +33,7 @@ import type { CompactSearchEntry } from './searchIndexTypes'
  * shape as `salvageunion-reference`'s `search()` (`SearchOptions` in,
  * `SearchResult[]` out) so it's a drop-in `searchFn` for
  * `useSearchCombobox`. `entity` on each result is a minimal stub
- * (`{ id, name, schemaName }`) — the only thing srd reads off it is
+ * (`{ id, name, schemaName }`) — the only thing the reference site reads off it is
  * `getEntitySlug(entity)` (name-only), never the full entity shape.
  */
 export function searchCompactIndex(
@@ -63,7 +63,7 @@ export function searchCompactIndex(
       schemaName: entry.schemaName,
       schemaTitle: entry.schemaTitle,
       // Minimal stub — see doc comment above. `as` is intentional/narrow: the
-      // full RefEntity shape is never read by any srd consumer.
+      // full RefEntity shape is never read by any reference consumer.
       entity: {
         id: entry.id,
         name: entry.name,

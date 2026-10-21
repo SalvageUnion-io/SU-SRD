@@ -1,4 +1,4 @@
-# srd SSG — design contract
+# reference SSG — design contract
 
 The in-house SSG behind `apps/web` (ADR-031 in [ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)). Types live in [`ssg/types.ts`](types.ts).
 
@@ -58,6 +58,6 @@ The WIKI link is not an island (`src/lib/wikiLink.ts`).
 
 ## Build (`ssg/build.ts`)
 
-1. **One client-only `vite build`** (`vite.config.ts`, with the app). srd's entries `islands.client.ts`, `styles.entry.ts` and `assets.entry.ts`, `manifest: true`; keep the shared `react` group, keep the app's groups off srd's modules, and never chunk `salvageunion-reference`.
+1. **One client-only `vite build`** (`vite.config.ts`, with the app). The reference site's entries `islands.client.ts`, `styles.entry.ts` and `assets.entry.ts`, `manifest: true`; keep the shared `react` group, keep the app's groups off the reference site's modules, and never chunk `salvageunion-reference`.
 2. **Render from the manifest.** Each route in `ssg/routes.ts` through `ssg/render.tsx`, then endpoints and the sitemap.
 3. **Refuse silent failures.** No script or stylesheet in the manifest, two routes on one file, zero pages, or a UUID entity link fails the build.

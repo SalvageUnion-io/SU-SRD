@@ -5,7 +5,7 @@
  * sitemap, and the refusal to build without a Convex URL.
  *
  * Every `transformIndexHtml` here acts on the app's shell alone (it carries
- * the `app:meta` markers): the dev server runs the same hooks over srd's
+ * the `app:meta` markers): the dev server runs the same hooks over the reference site's
  * pages, which link their own stylesheets and manifest.
  */
 
@@ -31,7 +31,7 @@ export const APP_ENTRY = join(APP_ROOT, APP_BASE.slice(1), 'index.html')
 /** Whether a document is the app's shell (`shell.ts`'s `app:meta` block). */
 const isShell = (html: string): boolean => html.includes('app:meta')
 
-/** A `transformIndexHtml` that leaves srd's pages alone. */
+/** A `transformIndexHtml` that leaves the reference site's pages alone. */
 function onShell(order: 'pre' | 'post', handler: (html: string) => string) {
   return { order, handler: (html: string) => (isShell(html) ? handler(html) : html) }
 }
@@ -127,7 +127,7 @@ export function baseStylesheetLink(): Plugin {
 }
 
 /**
- * The site's one web manifest (`src/pwa.ts`), linked from the shell as srd's
+ * The site's one web manifest (`src/pwa.ts`), linked from the shell as the reference site's
  * pages link it: one install for both apps, opening on the app.
  */
 export function siteManifest(): Plugin {

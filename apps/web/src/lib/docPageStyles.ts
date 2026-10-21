@@ -1,5 +1,5 @@
 /**
- * The style objects srd's plain document pages share — `/about`, `/api`,
+ * The style objects the reference site's plain document pages share — `/about`, `/api`,
  * `/changelog`, `/discord` and the two `/bot` policies: a page column under
  * the `ChapterBand`, a reading column, prose at the reading size, inline code.
  *

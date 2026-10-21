@@ -1,13 +1,13 @@
 /**
- * The one Vite config: srd and the app, built in one pass into one `dist/`
+ * The one Vite config: the reference site and the app, built in one pass into one `dist/`
  * (ADR-050), and served by the one dev server (`ssg/dev.ts`).
  *
- * - **srd** is three client entries (`src/runtime/`) the SSG links into every
+ * - **the reference site** is three client entries (`src/runtime/`) the SSG links into every
  *   page it pre-renders: `ssg/build.ts` runs this build, reads its manifest,
  *   then renders the pages under Bun. There is no server build.
  * - **The app** is one HTML entry, its shell, rendered rather than read
  *   (`ssg/appPlugins.ts`) and emitted as `build/index.html`. Its chunks
- *   share `assets/` with srd's; its router and service worker live under
+ *   share `assets/` with the reference site's; its router and service worker live under
  *   `/build/` (`APP_BASE` in `src/lib/appBase.ts`, ADR-048).
  *
  * The shell renders the Union bar from the UI library's TypeScript source,
@@ -40,7 +40,7 @@ import { referenceStamp } from './ssg/referenceStamp'
 const HERE = import.meta.dirname
 const OUT_DIR = join(HERE, 'dist')
 
-/** srd's client entries, by input key: the chunks `ssg/build.ts` links. */
+/** The reference site's client entries, by input key: the chunks `ssg/build.ts` links. */
 const SRD_INPUT = {
   islands: join(HERE, 'src/runtime/islands.client.ts'),
   // These two are never linked into a page (NON_LINKED_ENTRIES in
@@ -55,7 +55,7 @@ const APP_CHUNK = 'app'
 
 const graph = appGraph({ pageEntries: Object.values(SRD_INPUT) })
 
-/** An app chunk group: never a module an srd page reaches (`ssg/appGraph.ts`). */
+/** An app chunk group: never a module a reference page reaches (`ssg/appGraph.ts`). */
 const notOnPages =
   (pattern: RegExp) =>
   (id: string): boolean =>
@@ -137,7 +137,7 @@ export default defineConfig({
   build: {
     outDir: OUT_DIR,
     emptyOutDir: true,
-    // How `ssg/build.ts` learns srd's hashed entry names; it deletes the file.
+    // How `ssg/build.ts` learns the reference site's hashed entry names; it deletes the file.
     manifest: true,
     rolldownOptions: {
       input: { ...SRD_INPUT, [APP_CHUNK]: APP_ENTRY },
@@ -152,15 +152,15 @@ export default defineConfig({
         // `tags: ['$initial']` keeps a library only one lazy route uses (qrcode)
         // in that route's chunk. Priority decides who claims a module first.
         //
-        // No group takes a module an srd page reaches (`notOnPages`): the page
+        // No group takes a module a reference page reaches (`notOnPages`): the page
         // would download the whole group. Those split as Rolldown shares them.
         // There is deliberately no group for the reference package's data:
         // its JSON is dynamically imported per schema, and one chunk would
         // ship the full ~1.4 MB corpus to every page.
         codeSplitting: {
           // A group does not pull in what its modules import: the app's
-          // groups import srd's shared modules, which must stay where srd's
-          // pages load them. srd's modules import nothing of the app's,
+          // groups import the reference site's shared modules, which must stay where the reference site's
+          // pages load them. The reference site's modules import nothing of the app's,
           // so nothing they reach is in a group and no chunk cycles back.
           includeDependenciesRecursively: false,
           groups: [

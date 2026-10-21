@@ -7,7 +7,7 @@ import { captureJsTotals, jsChunkTotals } from './_bundle'
  * (`src/lib/searchIndexBuild.ts`) actually keep large data chunks off pages
  * that don't need them, and stay under a byte budget. This is the
  * regression guard for ADR-005's promise ("apps pay only for the data they
- * load") actually holding for srd — a change that widens a per-route
+ * load") actually holding for the reference site — a change that widens a per-route
  * preload list, or reintroduces `preload('all')` on an island, fails this
  * suite instead of silently regressing bundle size.
  *

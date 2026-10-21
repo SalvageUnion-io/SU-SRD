@@ -25,7 +25,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
 import { resolvePatternDrones, resolvePatternGroups } from './resolveNestedEntities'
 
 /**
- * A pattern's page, where the surface has routes (srd's `hrefFor`): the
+ * A pattern's page, where the surface has routes (the reference site's `hrefFor`): the
  * pattern's ref is its host's under the host's own schema, read off the
  * pattern's shape, so a host handed across an island boundary without its
  * `schemaName` still links. Undefined elsewhere (the app's patterns have no

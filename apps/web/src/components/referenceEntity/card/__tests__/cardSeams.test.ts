@@ -3,7 +3,7 @@
  *
  * Each is a pure function, reachable without a full render. The rendered
  * behaviour is pinned by the card's own
- * suites and by the srd output gate; these pin the rules directly, so a change
+ * suites and by the reference output gate; these pin the rules directly, so a change
  * to one fails here, next to the rule, rather than as a text diff on a page.
  */
 import { describe, expect, test } from 'bun:test'

@@ -252,7 +252,7 @@ function NestedMinis({ items, host }: { items: NestedMiniItem[]; host: NestedCar
 
 /**
  * A LEVEL-2 child as a Mini that opens the entity instead of expanding in
- * place: the detail page where the surface has a route for it (srd's
+ * place: the detail page where the surface has a route for it (the reference site's
  * `hrefFor`), else the detail dialog's Page (The App). It Peeks its whole card; a synthesised entity (no dataset row)
  * has no Peek, only its Page.
  */

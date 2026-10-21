@@ -4,7 +4,7 @@ import type { ButtonSpec, ContainerBlock, ContainerData } from './container'
 import { entityFromKey } from './lookupCard'
 
 /**
- * The replies the srd's `/discord` page shows as its screenshots (owner,
+ * The replies the reference site's `/discord` page shows as its screenshots (owner,
  * 2026-10-20: "generate the discord screenshots"): a `/su roll` and a
  * `/su lookup`, built by the very builders the bot answers with, a fixed die
  * and a fixed entry so the page does not change between builds. Written by

@@ -22,7 +22,7 @@
  * crawler-visible host, so alerting on unknown keys, traversal attempts and
  * unsupported extensions would turn Workers Issues into a scanner log. What
  * IS reported is the store failing to answer at all — the failure mode that
- * silently breaks entity artwork in both srd and the app at once.
+ * silently breaks entity artwork in both the reference site and the app at once.
  */
 
 import {
@@ -57,7 +57,7 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 /**
- * The security headers srd and the app send from `public/_headers` (`/*`), which
+ * The security headers the reference site and the app send from `public/_headers` (`/*`), which
  * Static Assets applies there and nothing applies here: this Worker builds every
  * response itself. `headers.test.ts` holds the two in agreement.
  */

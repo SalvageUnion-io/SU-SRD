@@ -14,9 +14,9 @@ test.use({ account: 'anonymous' })
  * route-level code splitting turned on in `vite.config.ts`
  * (`TanStackRouterVite({ autoCodeSplitting: true })`).
  *
- * ## What this measures, and why it differs from srd's suite
+ * ## What this measures, and why it differs from the reference site's suite
  *
- * srd's budget proves that per-route *data* preload lists keep large schema
+ * the reference site's budget proves that per-route *data* preload lists keep large schema
  * chunks off pages that don't need them. The app cannot make that claim and
  * deliberately doesn't try: `GameDataReady` calls
  * `SalvageUnionReference.preload('all')` on every route by design (see the

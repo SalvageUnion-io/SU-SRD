@@ -123,7 +123,7 @@ export function GuideSteps({
   const stepAs = hasSections ? headingBelow(sectionAs) : sectionAs
   const anchors = page ? guideAnchors(groups) : undefined
   // The contents mark the section in view (`guideContents`); a card served as
-  // static HTML runs no effect, so srd's client entry starts it there.
+  // static HTML runs no effect, so the reference site's client entry starts it there.
   const pageRef = useRef<HTMLDivElement>(null)
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 

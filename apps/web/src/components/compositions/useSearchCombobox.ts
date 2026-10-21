@@ -63,7 +63,7 @@ export type UseSearchComboboxOptions = {
   /**
    * Override the entity-search implementation. Defaults to the ORM-backed
    * `search()` from `salvageunion-reference`. Pass a different implementation
-   * to decouple entity search from the full ORM/dataset — e.g. srd's
+   * to decouple entity search from the full ORM/dataset — e.g. the reference site's
    * SearchIsland runs a build-time-generated compact index instead of
    * preloading the ~1.3 MB corpus just to power search.
    */

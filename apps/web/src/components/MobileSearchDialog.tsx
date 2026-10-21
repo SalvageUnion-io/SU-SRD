@@ -9,7 +9,7 @@ import { Button, CloseButton } from './index'
 
 type MobileSearchDialogProps = {
   /**
-   * The search UI hosted inside the sheet (e.g. srd's `SearchIsland`). It only
+   * The search UI hosted inside the sheet (e.g. the reference site's `SearchIsland`). It only
    * mounts while the sheet is open, so its data load stays deferred to first
    * open. The caller owns any content-specific styling (input width, etc.).
    */
@@ -62,7 +62,7 @@ const TRIGGER = {
  * Persistent search trigger + full-screen sheet for a mobile top nav bar. On
  * phones search is the primary action, so it lives directly in the bar (not
  * buried in the hamburger drawer). Tapping the magnifier opens a top sheet that
- * hosts arbitrary search `children` (srd passes its `SearchIsland`).
+ * hosts arbitrary search `children` (the reference site passes its `SearchIsland`).
  *
  * Content-agnostic shell: it owns the trigger, the sheet chrome (title + close),
  * focus trapping, and the slide (`.su-drawer`; it swipes back up to close); the

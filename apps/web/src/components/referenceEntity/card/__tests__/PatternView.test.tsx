@@ -29,7 +29,7 @@ const mule = () => {
   return found
 }
 
-/** Stands in for srd's routes: a pattern's page only. */
+/** Stands in for the reference site's routes: a pattern's page only. */
 const testPatternHref = (ref: EntityRef) =>
   ref.pattern ? `/chassis/${nameToSlug(ref.name)}/pattern/${nameToSlug(ref.pattern)}` : undefined
 
@@ -221,7 +221,7 @@ describe('full pattern view reading order', () => {
  * painting a TL-toned pill per part.
  */
 describe('pattern loadout tokens', () => {
-  /** Stands in for srd's entity routes. */
+  /** Stands in for the reference site's entity routes. */
   const testEntityHref = (ref: EntityRef) =>
     ref.pattern ? undefined : `/${ref.schemaName}/${nameToSlug(ref.name)}`
 

@@ -481,7 +481,7 @@ function FieldEditor({
   )
 }
 
-// `Input` and `Textarea` live in the leaf module `./inputs`, not here: srd's
+// `Input` and `Textarea` live in the leaf module `./inputs`, not here: the reference site's
 // SSR pass evaluates this source under Bun with no bundler, where an import
 // cycle is TDZ-sensitive and evaluation-order dependent, and a leaf keeps
 // every importer of them out of one.

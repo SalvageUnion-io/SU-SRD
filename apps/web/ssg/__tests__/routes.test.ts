@@ -22,7 +22,7 @@ const PUBLIC_DIR = fileURLToPath(new URL('../../public', import.meta.url))
 const PAGE_FLOOR = 900
 
 /**
- * The only inline `<script>` types srd may emit. `public/_headers` gives
+ * The only inline `<script>` types the reference site may emit. `public/_headers` gives
  * `script-src` no hashes and no 'unsafe-inline', so an inline script of any
  * other type is blocked in production: load it by URL instead. JSON and
  * JSON-LD are data blocks `script-src` never gates; speculation rules are

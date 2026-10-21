@@ -1,5 +1,5 @@
 /**
- * BaseLayout — the page document every srd route renders into.
+ * BaseLayout — the page document every reference route renders into.
  *
  * Renders the whole `<html>` document except for the built asset tags and the
  * island-props script, which `ssg/document.tsx` injects into the rendered

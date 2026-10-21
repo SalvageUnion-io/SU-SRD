@@ -120,7 +120,7 @@ type AppBarProps = {
   LinkComponent?: ElementType
   /**
    * The SU mark's URL. The app's own copy: the app serves its files under
-   * `/build/` (ADR-048), so the root's is srd's on one origin and missing on
+   * `/build/` (ADR-048), so the root's is the reference site's on one origin and missing on
    * any other.
    */
   markSrc?: string

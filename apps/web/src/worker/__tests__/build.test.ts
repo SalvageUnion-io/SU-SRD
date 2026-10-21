@@ -20,7 +20,7 @@ const IMMUTABLE = 'public, max-age=31536000, immutable'
 const CHUNK = `${APP_BASE}/assets/index-C0FFEE12.js`
 
 /**
- * A fake binding with `not_found_handling: none`: a file as itself with srd's
+ * A fake binding with `not_found_handling: none`: a file as itself with the reference site's
  * `_headers` (its CSP everywhere), a miss as a bare 404. Records every path.
  */
 function assetsWith(files: Record<string, { body: string; type: string }>) {

@@ -1,6 +1,6 @@
 /*
  * The base stylesheet: the one both apps load, from one URL, so a visit that
- * crosses from srd to the app (or back) downloads it once.
+ * crosses from the reference site to the app (or back) downloads it once.
  *
  * The Barlow faces and the tagline's hand (Caveat, `lib/scriptFont.ts`), then the token set, the reset and the package stylesheet
  * in their load-bearing cascade order from the one shared entry (see its

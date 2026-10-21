@@ -83,7 +83,7 @@ export function invalidateSearchIndex(): void {
  * A host's PATTERNS as searchable text: each visible pattern's name, its prose,
  * and the rules of the actions it adds. A pattern has no row of its own, so it
  * is found through its host — "Hill Worm" finds Typhon, "Hauler" the Mule.
- * Shared with srd's compact index (`searchIndexBuild.ts`), which mirrors this.
+ * Shared with the reference site's compact index (`searchIndexBuild.ts`), which mirrors this.
  */
 export function patternSearchText(entity: RefEntity): string {
   return (getPatterns(entity as RefMetaEntity) ?? [])
@@ -275,7 +275,7 @@ export function extractContentText(content: unknown): string {
 /**
  * Which fields of an entry hold at least one token. Drives the per-field part
  * of the score; the match decision itself is `matchSearchTokens`, shared with
- * srd's compact index (see `searchRanking.ts`).
+ * the reference site's compact index (see `searchRanking.ts`).
  */
 function matchedFieldsOf(indexEntry: SearchIndexEntry, tokens: string[]): string[] {
   const matchedFields: string[] = []

@@ -6,7 +6,7 @@ import { widthAtLeast } from '../../design/tokens'
  *
  * ## Why this is its own module
  *
- * It lives beside `CardImage` rather than inside it because srd's item pages
+ * It lives beside `CardImage` rather than inside it because the reference site's item pages
  * need the `sizes` string for their `rel="preload"`, and exporting anything
  * from `CardImage.tsx` through the barrel would make `CardImage` itself a
  * public component. `CardImage` is deliberately internal; a pure string helper
@@ -39,7 +39,7 @@ export function cardImageSizes(compact?: boolean): string {
 /**
  * The `sizes` of the entity page's HERO art (`CardImage hero`, board 07): half
  * of the page's 1200px measure beside the stat column from `lg`, the full
- * width of the column under it. srd's item pages preload with it.
+ * width of the column under it. The reference site's item pages preload with it.
  */
 export function heroImageSizes(): string {
   return `${widthAtLeast('lg')} 560px, 100vw`

@@ -26,8 +26,8 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   /**
-   * The skipped-deploy case. Commit A touched the app, commit B touched srd, and A's
-   * deploy never ran. Diffing HEAD^..HEAD at B saw only srd; diffing from the
+   * The skipped-deploy case. Commit A touched the app, commit B touched the reference site, and A's
+   * deploy never ran. Diffing HEAD^..HEAD at B saw only the reference site; diffing from the
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
@@ -65,7 +65,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'tsconfig.json',
     '.github/workflows/deploy-cloudflare.yml',
     '.github/actions/setup-bun/action.yml',
-    // rendered into srd's about page and the app's bundle, outside `apps/`
+    // rendered into the reference site's about page and the app's bundle, outside `apps/`
     'SPECIAL_THANKS.md',
     'ABOUT_JRVS.md',
     'LLM_STATEMENT.md',

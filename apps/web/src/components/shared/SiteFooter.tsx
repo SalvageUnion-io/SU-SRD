@@ -21,7 +21,7 @@ import { Footer, tokens } from '../index'
 /** Room between the page and its foot band, as the old hairline foot had. */
 const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
 
-/** srd's `public/` file, at the site's root. */
+/** The reference site's `public/` file, at the site's root. */
 const MARK = '/Powered_by_Salvage_Black.webp'
 
 export function SiteFooter() {

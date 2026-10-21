@@ -106,7 +106,7 @@ export { AccountMenu } from './compositions/AccountMenu'
 export { AppBar } from './compositions/AppBar'
 // Deliberately its own module rather than the card-image component's file,
 // which stays internal.
-// srd's item pages need this string for their `rel=preload`: it must match the
+// The reference site's item pages need this string for their `rel=preload`: it must match the
 // `sizes` on the <img> exactly, or the preload selects a different candidate
 // and the page fetches two files instead of one.
 export { assetSrcSetFor } from './compositions/assetSrcSet'
@@ -204,7 +204,7 @@ export { PopoverPanel } from './containers/PopoverPanel'
 // RadioGroup): one tab stop, arrow keys between the cards
 export { RadioCardGroup } from './containers/RadioCardGroup'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
-// action) behind srd's island error boundary and the app's root error component.
+// action) behind the reference site's island error boundary and the app's root error component.
 export { RecoveryPanel } from './containers/RecoveryPanel'
 export { RosterSkeleton } from './containers/RosterSkeleton'
 export { SheetSectionCard } from './containers/SheetSectionCard'

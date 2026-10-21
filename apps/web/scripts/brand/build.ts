@@ -2,9 +2,9 @@
  * `bun run brand` — writes every brand file from `mark.ts`.
  *
  * One run replaces the SU mark everywhere it is a file: the Union bar and
- * link-preview logo (`logos/su-cargo-dark.svg` in srd, the app and the catalog),
- * srd's favicon set and `favicon.ico`, the app's favicon and PWA icons, and the
- * Discord bot's profile icon. It lives in srd because srd owns sharp.
+ * link-preview logo (`logos/su-cargo-dark.svg` in the reference site, the app and the catalog),
+ * the reference site's favicon set and `favicon.ico`, the app's favicon and PWA icons, and the
+ * Discord bot's profile icon. It lives in the reference site because the reference site owns sharp.
  *
  * It also screenshots the profile banners (`banner.ts`): Discord's and the Ko-fi
  * cover, `apps/discord-bot/brand/{banner,kofi-cover}.png`.

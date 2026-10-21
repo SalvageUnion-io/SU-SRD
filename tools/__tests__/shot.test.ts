@@ -51,7 +51,7 @@ describe('parseArgs', () => {
     // Neither app has a dark theme, so there is no flag to emulate one.
     [['/a', '--dark']],
     [['app:starter']],
-    // A target is a route: a bare name is neither an srd nor an app one.
+    // A target is a route: a bare name is neither a reference route nor an app one.
     [['atoms--button--primary']],
     // A seeded page exists only for the seeded account.
     [[':pilot']],

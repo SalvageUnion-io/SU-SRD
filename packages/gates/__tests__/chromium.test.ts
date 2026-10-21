@@ -12,7 +12,7 @@ import {
 
 /**
  * `packages/gates/lib/chromium.ts` — the one Chromium launcher the shot,
- * gallery and srd brand/og:image scripts share.
+ * gallery and the reference site brand/og:image scripts share.
  */
 
 /** Runs `run` with `SHOT_CHROME_PATH` set to `value` (or unset), restoring it after. */

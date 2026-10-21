@@ -9,7 +9,7 @@
  *    The path is resolved from `import.meta.url` rather than `process.cwd()`
  *    so it does not depend on where the build was invoked from.
  * 2. The lightbox is a plain script, `public/about-lightbox.js`, loaded by
- *    URL: srd emits no executable inline script, so its CSP `script-src`
+ *    URL: the reference site emits no executable inline script, so its CSP `script-src`
  *    stays a literal (`public/_headers`). Every navigation is a real document
  *    load, so it runs on every visit.
  * 3. The Eldridge Coast map is a build-emitted, content-hashed asset rather
