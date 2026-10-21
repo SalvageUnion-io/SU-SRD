@@ -119,6 +119,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   .sections button { border-left: 0; border-top: 2px solid var(--ink); flex-wrap: wrap; }
   .sections button:nth-child(even) { border-left: 2px solid var(--ink); }
   .sections button:nth-child(-n+2) { border-top: 0; }
+  .sections button:last-child:nth-child(odd) { grid-column: 1 / -1; border-left: 0; }
 }
 </style>
 
@@ -205,6 +206,13 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   let pos = 0
   let ruleFilter = ''
   let section = ''
+  // The deck's extra section: one group per component update, each holding the slides of
+  // the screens it touches (components.json, optional). A slide there is the same slide as in
+  // its part, so one verdict covers both.
+  const UPDATES = 'Component updates'
+  let updates = []
+  let updSlides = []
+  const base = (s) => s && (s.base || s)
   const verdicts = {}
   let db = null
   let me = null
@@ -239,7 +247,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   ]
   const placeOf = {}
   PARTS.forEach(([part, groups], pi) => groups.forEach(([group, families], gi) => { for (const f of families) placeOf[f] = { part, group, rank: pi * 100 + gi } }))
-  const place = (s) => placeOf[s.family] || { part: 'Other', group: s.family, rank: 999 }
+  const place = (s) => s.upd ? { part: UPDATES, group: `${s.upd.n}. ${s.upd.name}`, rank: 1000 + s.upd.n } : placeOf[s.family] || { part: 'Other', group: s.family, rank: 999 }
   const hasRule = (s, r) => (s.rules || []).some((x) => x.rule === r) || (s.issues || []).some((x) => x.rule === r)
 
   function setStatus(t, bad) { const el = $('status'); el.textContent = t; el.className = `status${bad ? ' bad' : ''}` }
@@ -262,10 +270,10 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   function applyFilter() {
     const f = $('filter').value
     const cur = view[pos]
-    view = data.slides.filter((s) => {
+    view = (section === UPDATES ? updSlides : data.slides).filter((s) => {
       const v = current(s)
       if (ruleFilter && !hasRule(s, ruleFilter)) return false
-      if (section && place(s).part !== section) return false
+      if (section && section !== UPDATES && place(s).part !== section) return false
       if (f === 'commented') return prior(s) !== null
       if (f === 'rules') return (s.rules || []).length > 0
       if (f === 'issues') return (s.issues || []).length > 0
@@ -276,8 +284,9 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
       if (f === 'phone') return s.width < 1000
       return true
     })
-    const keep = cur ? view.indexOf(cur) : -1
-    pos = keep >= 0 ? keep : 0
+    const keep = cur ? view.findIndex((s) => s === cur) : -1
+    const same = keep < 0 && cur ? view.findIndex((s) => base(s) === base(cur)) : -1
+    pos = keep >= 0 ? keep : same >= 0 ? same : 0
     render()
   }
 
@@ -295,9 +304,10 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   function renderSections() {
     const box = $('sections')
     const parts = ['', ...new Set(data.slides.map((s) => place(s).part))]
+    if (updSlides.length) parts.push(UPDATES)
     box.textContent = ''
     for (const part of parts) {
-      const mine = data.slides.filter((s) => !part || place(s).part === part)
+      const mine = part === UPDATES ? [...new Set(updSlides.map(base))] : data.slides.filter((s) => !part || place(s).part === part)
       const open = mine.filter((s) => !current(s)?.verdict).length
       const b = document.createElement('button')
       b.type = 'button'
@@ -393,7 +403,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     showShot(s)
     prefetch(view[pos + 1])
     $('img').alt = `${s.where}, scrolled ${s.depth}`
-    $('crumb').textContent = `${place(s).part} \u203a ${place(s).group}`
+    $('crumb').textContent = s.upd ? `${UPDATES} \u203a ${place(s).group} \u203a ${s.upd.where}` : `${place(s).part} \u203a ${place(s).group}`
     $('where').textContent = s.where
     $('url').textContent = s.url
     $('cap').textContent = ''
@@ -482,7 +492,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     else if (e.key === 'ArrowLeft' || e.key === 'k') $('prev').click()
     else if (e.key === 'a' && !$('approve').disabled) $('approve').click()
     else if (e.key === 'r' && !$('changes').disabled) { e.preventDefault(); $('changes').click() }
-    else if (/^[0-3]$/.test(e.key)) $('sections').children[Number(e.key)]?.click()
+    else if (/^[0-4]$/.test(e.key)) $('sections').children[Number(e.key)]?.click()
   })
 
   fetch('manifest.json').then((r) => r.json()).then((m) => {
@@ -509,6 +519,14 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
       $('jump').appendChild(og)
     }
     buildSummary()
+    fetch('components.json').then((r) => (r.ok ? r.json() : null)).then((c) => {
+      updates = c?.updates || []
+      updSlides = updates.flatMap((u) => {
+        const re = new RegExp(u.match)
+        return data.slides.filter((s) => re.test(`${s.family} ${s.url} ${s.where}`)).map((s) => Object.assign(Object.create(s), { base: s, upd: u }))
+      })
+      if (updSlides.length) renderSections()
+    }).catch(() => {})
     view = m.slides.slice()
     render()
     openCommented()
