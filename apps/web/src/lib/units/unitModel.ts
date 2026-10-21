@@ -10,6 +10,7 @@
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import type { EntityFormModel } from '../../components/index'
+import { syntheticModel } from './syntheticModel'
 
 export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
 
@@ -83,10 +84,13 @@ export function unitRowModel({
 }): EntityFormModel {
   const { schemaName, tone, domain, label } = KIND[kind]
   const slug = nameToSlug(name)
-  return {
-    ref: { schemaName, id: `unit/${kind}/${slug}`, slug, name, synthetic: true },
+  return syntheticModel({
+    schemaName,
+    id: `unit/${kind}/${slug}`,
+    slug,
+    name,
     title: userMade ? `“${name}”` : name,
-    kind: { stamp: label, type: label, domain, nature: 'have', ...(note ? { note } : {}) },
+    kind: { label, domain, note },
     tone,
     // The rank and the measures, grouped so a head's budget (C3) keeps the
     // rank and its context's one measure (`budgetFacts`): a roster's lead
@@ -103,9 +107,8 @@ export function unitRowModel({
         group: rank ? ('provenance' as const) : ('vitals' as const),
       }
     }),
-    traits: [],
     art,
-    ...(lead ? { lead } : {}),
-    ...(userMade ? { userMade: true } : {}),
-  }
+    lead,
+    userMade,
+  })
 }

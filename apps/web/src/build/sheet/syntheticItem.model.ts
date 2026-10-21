@@ -9,6 +9,7 @@
 
 import type { EntitySchemaName } from 'salvageunion-reference'
 import type { EntityFormModel } from '../../components/index'
+import { syntheticModel } from '../../lib/units/syntheticModel'
 
 /** One label-first fact (`SLOTS | 3`): `TL` is the rank, `Slots` and `Units` what it takes. */
 type SyntheticFact = { label: 'TL' | 'Slots' | 'Units'; value: number | string }
@@ -34,22 +35,12 @@ const KEY: Record<SyntheticFact['label'], string> = {
 }
 
 export function syntheticItemModel(item: SyntheticItem): EntityFormModel {
-  return {
-    ref: {
-      schemaName: item.schemaName,
-      id: `synthetic/${item.schemaName}/${item.id}`,
-      slug: item.id,
-      name: item.name,
-      synthetic: true,
-    },
-    title: item.name,
-    kind: {
-      stamp: item.kind,
-      type: item.kind,
-      domain: 'gear',
-      nature: 'have',
-      ...(item.note ? { note: item.note } : {}),
-    },
+  return syntheticModel({
+    schemaName: item.schemaName,
+    id: `synthetic/${item.schemaName}/${item.id}`,
+    slug: item.id,
+    name: item.name,
+    kind: { label: item.kind, domain: 'gear', note: item.note },
     tone: 'ink',
     facts: (item.facts ?? []).map((fact) => ({
       key: KEY[fact.label],
@@ -58,7 +49,5 @@ export function syntheticItemModel(item: SyntheticItem): EntityFormModel {
       value: String(fact.value),
       group: fact.label === 'TL' ? 'provenance' : 'capacity',
     })),
-    traits: [],
-    art: { kind: 'none' },
-  }
+  })
 }

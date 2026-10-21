@@ -8,19 +8,19 @@
 import { PRODUCT } from 'game-domain/product'
 import { nameToSlug } from 'salvageunion-reference'
 import type { EntityFormModel } from '../../components/index'
+import { syntheticModel } from '../units/syntheticModel'
 
 /** A Game: its name on the crawler's tone, as its band wears it. */
 export function gameRowModel(name: string): EntityFormModel {
   const slug = nameToSlug(name)
-  return {
-    ref: { schemaName: 'crawlers', id: `game/${slug}`, slug, name, synthetic: true },
-    title: name,
-    kind: { stamp: 'Game', type: 'Game', domain: 'crawler', nature: 'have' },
+  return syntheticModel({
+    schemaName: 'crawlers',
+    id: `game/${slug}`,
+    slug,
+    name,
+    kind: { label: 'Game', domain: 'crawler' },
     tone: 'crawler',
-    facts: [],
-    traits: [],
-    art: { kind: 'none' },
-  }
+  })
 }
 
 /**
@@ -29,13 +29,12 @@ export function gameRowModel(name: string): EntityFormModel {
  */
 export function hangarRowModel(name: string): EntityFormModel {
   const slug = nameToSlug(name)
-  return {
-    ref: { schemaName: 'crawlers', id: `hangar/${slug}`, slug, name, synthetic: true },
-    title: name,
-    kind: { stamp: PRODUCT.build, type: PRODUCT.build, domain: 'crawler', nature: 'have' },
+  return syntheticModel({
+    schemaName: 'crawlers',
+    id: `hangar/${slug}`,
+    slug,
+    name,
+    kind: { label: PRODUCT.build, domain: 'crawler' },
     tone: 'ink',
-    facts: [],
-    traits: [],
-    art: { kind: 'none' },
-  }
+  })
 }

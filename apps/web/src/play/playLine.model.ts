@@ -9,21 +9,15 @@
  */
 
 import type { EntityFormModel } from '../components/index'
+import { syntheticModel } from '../lib/units/syntheticModel'
 
 export function playLineModel({ name, key }: { name: string; key: string }): EntityFormModel {
-  return {
-    ref: {
-      schemaName: 'actions',
-      id: `synthetic/play/${key}`,
-      slug: key,
-      name,
-      synthetic: true,
-    },
-    title: name,
-    kind: { stamp: 'Action', type: 'Action', domain: 'action', nature: 'do' },
+  return syntheticModel({
+    schemaName: 'actions',
+    id: `synthetic/play/${key}`,
+    slug: key,
+    name,
+    kind: { label: 'Action', domain: 'action', nature: 'do' },
     tone: 'ink',
-    facts: [],
-    traits: [],
-    art: { kind: 'none' },
-  }
+  })
 }

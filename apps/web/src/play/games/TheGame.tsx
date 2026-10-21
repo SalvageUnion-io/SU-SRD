@@ -36,6 +36,7 @@ import {
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { syntheticModel } from '../../lib/units/syntheticModel'
 import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -53,15 +54,15 @@ const LINES = {
 
 /** A member as an entity: their Discord name and picture, in Discord's colour. */
 function memberModel(name: string, avatarUrl: string | undefined): EntityFormModel {
-  return {
-    ref: { schemaName: 'classes', id: `member/${name}`, slug: name, name, synthetic: true },
-    title: name,
-    kind: { stamp: 'Member', type: 'Member', domain: 'pilot', nature: 'have' },
+  return syntheticModel({
+    schemaName: 'classes',
+    id: `member/${name}`,
+    slug: name,
+    name,
+    kind: { label: 'Member', domain: 'pilot' },
     tone: 'discord',
-    facts: [],
-    traits: [],
-    art: avatarUrl ? { kind: 'image', url: avatarUrl } : { kind: 'none' },
-  }
+    ...(avatarUrl ? { art: { kind: 'image', url: avatarUrl } } : {}),
+  })
 }
 
 export function TheGame({
