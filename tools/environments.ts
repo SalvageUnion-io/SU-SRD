@@ -132,13 +132,7 @@ export const ACTIONS_APP_ID = 15368
 export const MAIN_RULESET: RulesetSpec = {
   name: 'main',
   include: ['~DEFAULT_BRANCH'],
-  rules: [
-    'deletion',
-    'non_fast_forward',
-    'required_linear_history',
-    'required_status_checks',
-    'code_scanning',
-  ],
+  rules: ['deletion', 'non_fast_forward', 'required_status_checks', 'code_scanning'],
   requiredChecks: ['CI Success', 'PR title is a conventional commit'],
   codeScanning: [
     { tool: 'CodeQL', security_alerts_threshold: 'high_or_higher', alerts_threshold: 'errors' },
