@@ -10,6 +10,10 @@ The in-house SSG behind `apps/web` (ADR-031 in [ARCHITECTURE.md](../../../docs/A
 4. **Output paths follow the URL -> file table.** `ssg/__tests__/outputPath.test.ts` is the judge.
 5. **One render path.** `ssg/dev.ts` renders through the same `ssg/render.tsx` as the build; never a client-rendered SPA in dev.
 
+## Routes are registered, not discovered
+
+A page is a `src/reference/pages/**/*.page.tsx` module exporting a `PageModule` (`pattern`, optional `getStaticPaths`, `page`), built only once `register(…)`ed in `ssg/routes.ts`, the one list of what the site emits. A document with no data behind it is a `public/` file. Non-HTML outputs are `src/reference/endpoints/*.ts` via `ssg/endpoints.ts`: endpoints are not routes.
+
 ## URL -> file table
 
 | route                                  | dist file                                         |

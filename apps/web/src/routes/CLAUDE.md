@@ -4,13 +4,8 @@
 [`.claude/rules/app-data-access.md`](../../../../.claude/rules/app-data-access.md)
 before touching data.**
 
-- TanStack Router file routes (`src/routes/`, generated `src/routeTree.gen.ts`);
-  Zustand stores in memory (`src/stores/`); primitives and styling from
-  `src/components`. Base `/build/` everywhere, dev too (`lib/appBase.ts`); e2e
-  opens routes via `at()`; one spec: `bun run e2e <name>.e2e.ts`.
-- Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
-  `<Sheet readOnly>` over `src/build/sheet/readOnlySheetStore.model.ts`;
-  build no other.
+- Base `/build/` everywhere, dev too (`lib/appBase.ts`); e2e opens routes via
+  `at()`; one spec: `bun run e2e <name>.e2e.ts`.
 - **PWA `registerType` stays `'prompt'`:** `autoUpdate` activates a new worker
   under a live page and breaks its chunk loads. Navigations are network-first
   (`src/pwa.ts`); a compatible build is picked up at the next page change
@@ -34,21 +29,16 @@ before touching data.**
   server `appId` and a kept one would aim writes at another account's row;
   provenance goes in `seedRef`. Shelf ↔ Game patches `gameId` and nothing else.
 
-## Rules and play
+## Rules
 
-- Pure math is `salvageunion-reference/rules` (never the main barrel or a local
-  re-export); `src/lib/rules/` is app-local rules only; every die:
-  `src/lib/dice.ts`.
-- Play actions go in `src/play/`; the one sheet-local play control
-  is `CrawlerEconomyControl.tsx`. Condition changes stay player-driven via
-  `StatusBadge` → `cycleItemCondition`. More: [play.md](../../../../docs/architecture/play.md).
+Pure math is `salvageunion-reference/rules` (never the main barrel or a local
+re-export); `src/lib/rules/` is app-local rules only; every die:
+`src/lib/dice.ts`.
 
 ## Errors
 
-- **Throw `ConvexError` when the message is for a player; plain `Error` when
-  not:** Convex redacts every other throw to "Server Error". On the client, say
-  a failed write with `useServerAction` / `failureMessage`, never by matching
-  `'Server Error'`.
+- Say a failed write with `useServerAction` / `failureMessage`, never by
+  matching `'Server Error'`.
 - **A caught error is reported or explained, never dropped:** surface an
   outcome, report (`captureException` browser, `reportError` Worker), or comment
   why dropping is right. Possibly-unloaded reference data reads through
