@@ -7,22 +7,23 @@
 import type { PageModule, PageResult } from '../../../../ssg/types'
 import { InlineRef, Slab } from '../../../components/index'
 import { space } from '../../../design/tokens'
+import { appPath } from '../../../lib/appBase'
 import { BOLD, bulletList, proseColumn, SMALL_PRINT } from '../../../lib/docPageStyles'
 import { pageTitle } from '../../../lib/pageTitle'
 import { DocPage } from '../../DocPage'
 
 const BODY = proseColumn(space[16])
 const LIST = bulletList(space[4], 'padding')
-const LIST_AFTER_PROSE = { ...LIST, marginTop: space[8] }
+const AFTER_LIST = { marginTop: space[8] }
 
-const LAST_UPDATED = '6 July 2026'
+const LAST_UPDATED = '21 October 2026'
 
 function page(): PageResult {
   return {
     meta: {
       title: pageTitle('Discord Bot Privacy Policy'),
       description:
-        'Privacy Policy for the Salvage Union Discord bot. The Bot is stateless and stores no personal data.',
+        'Privacy Policy for the Salvage Union Discord bot: what it stores when you link an account or bind a channel, and how to remove it.',
     },
     children: (
       <DocPage title="Salvage Union Bot — Privacy Policy" measure="48rem" gap={space[24]}>
@@ -30,29 +31,41 @@ function page(): PageResult {
 
         <section style={BODY}>
           <p style={BOLD}>
-            Short version: the Bot does not have a database and does not store your personal data.
+            Short version: rolling and looking things up store nothing. If you sign in to
+            salvageunion.io with Discord, the Bot can show your account, Games and sheets, and post
+            Play’s rolls to a channel you bind. We store only what those features need, and you can
+            export or delete it from Settings.
           </p>
 
           <div>
             <Slab as="h2" label="What we collect" />
-            <p>
-              Nothing persistent. The Bot is stateless. It responds to slash-command and button
-              interactions in real time and keeps no record of them afterward.
-            </p>
-            <ul style={LIST_AFTER_PROSE}>
+            <ul style={LIST}>
               <li>
-                The Bot requests only the “Guilds” gateway intent. It does <strong>not</strong> read
-                message content.
+                <strong>Rolls and lookups</strong> (<code>/su roll</code>, <code>/su lookup</code>):
+                nothing. They answer in real time and keep no record. Buttons such as “Roll again”
+                carry the table or dice in the button itself.
               </li>
               <li>
-                It does not store your messages, user ID, server data, dice results, or command
-                history in any database.
+                <strong>Your linked account:</strong> when you sign in to salvageunion.io with
+                Discord, your account keeps your Discord user ID, name and avatar. The Bot uses that
+                ID to recognise you in <code>/su me</code>, <code>/su games</code> and{' '}
+                <code>/su sheet</code>, and shows only what your account may see.
               </li>
               <li>
-                Interactive buttons (“Roll again,” “See table”) work by encoding the table name or
-                dice notation into the button itself — not by storing anything on a server.
+                <strong>Bound channels</strong> (<code>/su bind</code>): the channel’s ID and name,
+                the Game it posts for (or none, for solo play), who bound it and when.{' '}
+                <code>/su unbind</code> deletes it.
+              </li>
+              <li>
+                <strong>Rolls from Play:</strong> a roll made on salvageunion.io is posted to the
+                bound channel as a card naming the roller. Its buttons carry the roller’s Discord ID
+                so that only they can use them.
               </li>
             </ul>
+            <p style={AFTER_LIST}>
+              The Bot requests only the “Guilds” gateway intent. It does <strong>not</strong> read
+              message content, and it never stores your messages.
+            </p>
           </div>
 
           <div>
@@ -61,7 +74,8 @@ function page(): PageResult {
               To keep the Bot reliable, unexpected errors are logged by our hosting provider
               (Cloudflare). These logs can include technical details about the error and the
               interaction that triggered it. They are used only to diagnose and fix bugs and are
-              retained per that provider’s standard retention.
+              retained per that provider’s standard retention. Errors in the salvageunion.io backend
+              are logged by Convex the same way.
             </p>
           </div>
 
@@ -73,16 +87,25 @@ function page(): PageResult {
                 Policy.
               </li>
               <li>
-                <strong>Cloudflare</strong> — hosts the Bot and logs its errors, as described above.
+                <strong>Cloudflare</strong> — hosts the Bot and salvageunion.io, and logs their
+                errors.
+              </li>
+              <li>
+                <strong>Convex</strong> — stores salvageunion.io accounts, Games and bound channels.
               </li>
             </ul>
           </div>
 
           <div>
-            <Slab as="h2" label="Data requests" />
+            <Slab as="h2" label="Your data" />
             <p>
-              Because we store no personal data, there is nothing to export or delete. For any
-              privacy questions, contact{' '}
+              Signed in at salvageunion.io,{' '}
+              <InlineRef href={appPath('/settings')} style={BOLD}>
+                Settings
+              </InlineRef>{' '}
+              lets you export everything your account holds or delete the account. Deleting it
+              removes your Discord link and your solo channel. A Game’s bound channel stays with the
+              Game until someone runs <code>/su unbind</code>. For anything else, contact{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                 privacy@salvageunion.io
               </InlineRef>

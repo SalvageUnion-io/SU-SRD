@@ -13,7 +13,7 @@ import { DocPage } from '../../DocPage'
 
 const BODY = proseColumn(space[16])
 
-const LAST_UPDATED = '6 July 2026'
+const LAST_UPDATED = '21 October 2026'
 
 function page(): PageResult {
   return {
@@ -36,9 +36,11 @@ function page(): PageResult {
             <Slab as="h2" label="The service" />
             <p>
               The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop
-              roleplaying game via Discord slash commands (<code>/su</code>). It is provided free of
-              charge, “as is,” without warranty of any kind. We may change, suspend, or discontinue
-              the Bot at any time.
+              roleplaying game via Discord slash commands (<code>/su</code>). With a salvageunion.io
+              account signed in with Discord, it also shows your account, Games and sheets, and
+              posts Play’s rolls to a channel you bind. It is provided free of charge, “as is,”
+              without warranty of any kind. We may change, suspend, or discontinue the Bot at any
+              time.
             </p>
           </div>
 
@@ -46,7 +48,8 @@ function page(): PageResult {
             <Slab as="h2" label="Acceptable use" />
             <p>
               Don’t use the Bot to break Discord’s Terms of Service or Community Guidelines, to
-              abuse or overload the service, or for any unlawful purpose.
+              abuse or overload the service, or for any unlawful purpose. Bind a channel only where
+              you’re allowed to post.
             </p>
           </div>
 
