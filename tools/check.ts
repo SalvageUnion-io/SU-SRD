@@ -220,13 +220,9 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'styling',
     guards:
-      'design tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5), chrome laws (R19, R28), control laws (R23, R29)',
+      'every rule set but copy: design and chrome tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5), chrome laws (R19, R28), select mode (R15), control laws (R23, R29)',
     fix: "follow the rule's printed fix; `bun tools/check-rule-sets.ts --only=<set> --report` lists every finding",
-    cmd: [
-      'bun',
-      'tools/check-rule-sets.ts',
-      '--only=tokens,chrome-tokens,styling,srd-css,tone-ground,class-prefix,entity-nesting,chrome,select-mode,controls',
-    ],
+    cmd: ['bun', 'tools/check-rule-sets.ts', '--group=styling'],
     profiles: ALL,
   },
   {
@@ -234,7 +230,7 @@ export const CHECKS: readonly CheckSpec[] = [
     guards:
       'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
     fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-rule-sets.ts --only=copy --update-baseline` (tools/baselines/rule-sets.json)',
-    cmd: ['bun', 'tools/check-rule-sets.ts', '--only=copy'],
+    cmd: ['bun', 'tools/check-rule-sets.ts', '--group=copy'],
     areas: ['code'],
     profiles: ALL,
   },

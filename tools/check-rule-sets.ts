@@ -16,8 +16,10 @@
  *   - `controls`     — icons take their Size; tabs, segments and toggles by job (packages/gates/rules/controls.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
- * The `styling` check runs the first ten (`--only=` their ids), the `copy`
- * check the last; tools/check.ts registers both.
+ * Each set belongs to one of two `bun run check` ids, registered in
+ * tools/check.ts: `copy` runs the copy sets (`--group=copy`), `styling` every
+ * other set (`--group=styling`). A new set is in a group the moment it is in
+ * `RULE_SETS`, so no check can leave it out.
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
  * a test. A deleted token leaves its `var()` resolving to nothing, a stray app
@@ -37,6 +39,7 @@
  * Usage:
  *   bun tools/check-rule-sets.ts                      # every set
  *   bun tools/check-rule-sets.ts --only=tokens,copy   # these sets
+ *   bun tools/check-rule-sets.ts --group=styling      # every set the `styling` check runs
  *   bun tools/check-rule-sets.ts --update-baseline    # lower the ratchets to today's counts
  *   bun tools/check-rule-sets.ts --update-baseline --allow-increase
  *   bun tools/check-rule-sets.ts --report             # print every finding; never fails
@@ -82,7 +85,21 @@ const RULE_SETS: readonly RuleSet[] = [
   copyTerms,
 ]
 
+/** The `bun run check` id that runs a set: `copy` for the copy sets, `styling` for the rest. */
+const GROUPS = ['styling', 'copy'] as const
+type Group = (typeof GROUPS)[number]
+const COPY_SETS: ReadonlySet<RuleSet> = new Set([copyTerms])
+const groupOf = (set: RuleSet): Group => (COPY_SETS.has(set) ? 'copy' : 'styling')
+
 function selectedSets(argv: readonly string[]): RuleSet[] {
+  const group = argv.find((a) => a.startsWith('--group='))?.slice('--group='.length)
+  if (group !== undefined) {
+    if (!(GROUPS as readonly string[]).includes(group)) {
+      console.error(`✗ unknown group: ${group}. Known: ${GROUPS.join(', ')}`)
+      process.exit(2)
+    }
+    return RULE_SETS.filter((s) => groupOf(s) === group)
+  }
   const only = argv.find((a) => a.startsWith('--only='))?.slice('--only='.length)
   if (!only) return [...RULE_SETS]
   const ids = only.split(',').filter(Boolean)
