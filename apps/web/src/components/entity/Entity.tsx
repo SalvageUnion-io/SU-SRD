@@ -28,9 +28,15 @@ type EntitySource =
  * unnamed). An index Compact takes none.
  */
 type EntityFormProps =
-  | { size: 'mini'; layout?: never; context: ChipContext }
-  | { size: 'compact'; layout?: never; context?: ChipContext }
-  | { size: 'compact'; layout: 'index'; context?: never }
+  | { size: 'mini'; layout?: never; context: ChipContext; trailing?: never }
+  | {
+      size: 'compact'
+      layout?: never
+      context?: ChipContext
+      /** The host's last chip, a listed unit's "⋯" menu (after `controls`). */
+      trailing?: ReactNode
+    }
+  | { size: 'compact'; layout: 'index'; context?: never; trailing?: never }
 
 export type EntityProps = EntitySource &
   EntityFormProps & {
@@ -57,7 +63,8 @@ export type EntityProps = EntitySource &
     titleAs?: ElementType
     /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
-     * group's last slot after the cost, ahead of a "⋯" (C8, hard rule R6).
+     * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
+     * hard rule R6).
      * They never nest in a link or select surface.
      */
     controls?: ReactNode
@@ -86,11 +93,6 @@ export type EntityProps = EntitySource &
     tint?: string
     /** Mini: its `state` is a control (a condition that steps), so its name is the link (C8). */
     stateActs?: boolean
-    /**
-     * Compact: the host's last chip, a listed unit's "⋯" menu. Mini: its state chip,
-     * as `state` (a Mini carries no menu).
-     */
-    trailing?: ReactNode
     /** Mini: the uses slot after its state (C8), a live item's stepper. */
     uses?: ReactNode
     /**
@@ -200,16 +202,10 @@ export function Entity(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            state ||
-            trailing ||
-            peekAt ||
-            relations ||
-            tint ||
-            uses !== undefined ||
-            controls !== undefined
+            state || peekAt || relations || tint || uses !== undefined || controls !== undefined
               ? {
                   ...(tint ? { tint } : {}),
-                  ...(state || trailing ? { state: state ?? trailing } : {}),
+                  ...(state ? { state } : {}),
                   ...(stateActs ? { stateActs } : {}),
                   ...(peekAt ? { peekAt } : {}),
                   ...(relations ? { relations } : {}),
@@ -225,9 +221,7 @@ export function Entity(props: EntityProps) {
       )
     default: {
       const unknown: never = props
-      throw new Error(
-        `<Entity size="${String((unknown as EntityProps).size)}">: only "mini" and "compact" are drawn yet`
-      )
+      throw new Error(`unknown Entity size "${String((unknown as EntityProps).size)}"`)
     }
   }
 }

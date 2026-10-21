@@ -25,7 +25,7 @@ import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 export type CompactIndexProps = {
   model: EntityFormModel
-  /** `link` on a listing; an index Compact has no `select` slot yet. */
+  /** `link` on a listing; an index Compact has no select mode. */
   mode?: CompactIndexMode
   omit?: readonly EntityOmit[]
   /** The opening prose under the cells, while browsing (E11). */

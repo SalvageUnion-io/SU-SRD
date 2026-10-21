@@ -124,7 +124,7 @@ export function PlayMediatorDowntime({
                     model={unitRowModel({ kind: 'pilot', name: seat.name })}
                     // Where they are in the step, a state chip of the Mini's
                     // own Size, never loose words (C3, C8).
-                    trailing={
+                    state={
                       <Stat
                         label={isDone ? 'Done' : seat.present ? 'Working' : 'Away'}
                         size="mini"

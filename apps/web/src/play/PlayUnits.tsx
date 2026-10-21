@@ -458,7 +458,7 @@ export function PlayHangarMech({
         size="mini"
         context="play"
         model={unitRowModel({ kind: 'mech', name, note: chassis ?? undefined })}
-        trailing={<Stat label={note ?? 'In hangar'} size="mini" />}
+        state={<Stat label={note ?? 'In hangar'} size="mini" />}
       />
     </li>
   )

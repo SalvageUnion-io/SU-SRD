@@ -98,13 +98,13 @@ describe('Mini chips', () => {
     expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SP12'])
   })
 
-  test("a host's trailing chip comes last, after the cost box", () => {
+  test("a host's state chip comes last, after the cost box", () => {
     const { container } = render(
       <Entity
         size="mini"
         context="loadout"
         entity={get('systems', 'Electro-Magnetic Shield Projector')}
-        trailing={<span>Damaged</span>}
+        state={<span>Damaged</span>}
       />
     )
     const chips = container.querySelector('.su-entity-mini__pill > .su-entity-mini__chips')
@@ -115,13 +115,13 @@ describe('Mini chips', () => {
     expect(filled.at(-1)?.textContent).toBe('Damaged')
   })
 
-  test('a trailing chip alone still draws the chip group', () => {
+  test('a state chip alone still draws the chip group', () => {
     const { container } = render(
       <Entity
         size="mini"
         context="browse"
         entity={get('crawler-bays', 'Mech Bay')}
-        trailing={<span>Damaged</span>}
+        state={<span>Damaged</span>}
       />
     )
     const chips = container.querySelector('.su-entity-mini__chips')
