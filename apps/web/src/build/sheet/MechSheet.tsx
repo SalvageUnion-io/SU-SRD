@@ -162,12 +162,12 @@ type MechSheetProps = {
   crawlerHref?: string
   /**
    * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
-   * by SheetMech from `composition` — MechSheet has no composition access of
+   * by MechLiveSheet from `composition` — MechSheet has no composition access of
    * its own, so this is passed straight through into the R4 section.
    */
   linkedUnits?: ReactNode
   /**
-   * The assigned pilot's ability refs, handed down by SheetMech from
+   * The assigned pilot's ability refs, handed down by MechLiveSheet from
    * `composition`. Beefcake is a PILOT ability that raises the piloted MECH's
    * Max SP and Cargo, so a mech's maxima cannot be derived from the mech alone
    * (ADR-029). Absent = unlinked, which correctly contributes nothing.

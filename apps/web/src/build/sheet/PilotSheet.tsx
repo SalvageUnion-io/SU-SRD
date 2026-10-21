@@ -163,7 +163,7 @@ type PilotSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Assigned Units section (mech + crawler), built by SheetPilot from
+   * The Assigned Units section (mech + crawler), built by PilotLiveSheet from
    * `composition` — PilotSheet has no composition access of its own, so this
    * is passed straight through, into the sidebar under Inventory. Undefined
    * when Read has nothing linked.

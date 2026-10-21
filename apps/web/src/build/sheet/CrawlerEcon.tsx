@@ -18,7 +18,7 @@
  * markup), and each action is a `Button` `variant="primary"` (§3.1 — rust is
  * the one action colour).
  *
- * Pure presentation — `SheetCrawler` still owns the economy-dialog state
+ * Pure presentation — `CrawlerLiveSheet` still owns the economy-dialog state
  * and builds the readout data; this only renders it.
  */
 

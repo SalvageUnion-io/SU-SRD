@@ -1,5 +1,5 @@
 /**
- * SheetPilot — the pilot branch of the live sheet (extracted from
+ * PilotLiveSheet — the pilot branch of the live sheet (extracted from
  * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
@@ -25,9 +25,9 @@ import { PilotSheet } from './PilotSheet'
 import { crawlerRailItems, mechRailItems, rowStats } from './railStats.model'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
-type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
+type PilotLiveSheetProps = SheetViewCommonProps & { pilot: Pilot }
 
-export function SheetPilot({
+export function PilotLiveSheet({
   pilot,
   composition,
   actions,
@@ -42,7 +42,7 @@ export function SheetPilot({
   hrefFor,
   withheld,
   patch,
-}: SheetPilotProps) {
+}: PilotLiveSheetProps) {
   // Softlink ids for the rail's Unassign control (relocated from the removed
   // detail page). Derived from the live link set — composition only exposes
   // resolved entities, not the link records. Link add/remove is available

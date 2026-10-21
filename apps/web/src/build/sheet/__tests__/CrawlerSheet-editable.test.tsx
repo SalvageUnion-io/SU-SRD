@@ -1,7 +1,7 @@
 /**
  * CrawlerSheet — bay action economy tests (poster layout).
  *
- * The SP/Bays trackers live in the body's economy band (SheetCrawler); this
+ * The SP/Bays trackers live in the body's economy band (CrawlerLiveSheet); this
  * file covers the Bays section's interactive surface:
  *   1. Bay status: Intact bays lead with their function action; a Damaged bay
  *      disables the function and promotes Repair.

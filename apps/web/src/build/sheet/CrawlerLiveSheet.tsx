@@ -1,5 +1,5 @@
 /**
- * SheetCrawler — the crawler branch of the live sheet (extracted from
+ * CrawlerLiveSheet — the crawler branch of the live sheet (extracted from
  * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band now (Workshop-Manual layout): `CrawlerSheet`
@@ -45,7 +45,7 @@ import { bayStates, mechRailItems, pilotRailItems, rowStats } from './railStats.
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
-type SheetCrawlerProps = SheetViewCommonProps & {
+type CrawlerLiveSheetProps = SheetViewCommonProps & {
   crawler: Crawler
   /**
    * The viewer may write this sheet, in Read too: a bay's condition still
@@ -57,7 +57,7 @@ type SheetCrawlerProps = SheetViewCommonProps & {
 /** The Upgrade pool's cap. */
 const UPGRADE_POOL_MAX = 30
 
-export function SheetCrawler({
+export function CrawlerLiveSheet({
   crawler,
   composition,
   actions,
@@ -73,7 +73,7 @@ export function SheetCrawler({
   hrefFor,
   withheld,
   patch,
-}: SheetCrawlerProps) {
+}: CrawlerLiveSheetProps) {
   // Crawler-economy dialog behind the UPKEEP/UPGRADE/TRADE lozenges.
   const [econDialog, setEconDialog] = useState<CrawlerEconomyDialog | null>(null)
 

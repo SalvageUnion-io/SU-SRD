@@ -50,7 +50,7 @@ import { resolveEquipment } from './pilotInventory'
  * mech-destruction is a player-confirmed step (like Critical Damage), never
  * silent bookkeeping. All the non-destructive fields (Heat, shutdown,
  * vulnerable, SP) still auto-apply; `meltdown` tells the caller to offer the
- * confirm. The shared `heatCheckPatch` (SheetMech's path) is left untouched.
+ * confirm. The shared `heatCheckPatch` (MechLiveSheet's path) is left untouched.
  */
 function autoApplyPatch(patch: Partial<Mech>): { patch: Partial<Mech>; meltdown: boolean } {
   if (!patch.destroyed) return { patch, meltdown: false }

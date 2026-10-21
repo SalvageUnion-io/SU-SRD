@@ -1,5 +1,5 @@
 /**
- * SheetMech — the mech branch of the live sheet (extracted from
+ * MechLiveSheet — the mech branch of the live sheet (extracted from
  * Sheet.tsx), in the poster layout.
  *
  * The body owns the identity band (Workshop-Manual layout): `MechSheet`
@@ -36,7 +36,7 @@ import { MechSheet } from './MechSheet'
 import { crawlerRailItems, pilotRailItems, rowStats } from './railStats.model'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
-type SheetMechProps = SheetViewCommonProps & {
+type MechLiveSheetProps = SheetViewCommonProps & {
   mech: Mech
   /**
    * Pilot ability refs to use instead of the composition's — supplied by the
@@ -45,7 +45,7 @@ type SheetMechProps = SheetViewCommonProps & {
   pilotAbilities?: string[]
 }
 
-export function SheetMech({
+export function MechLiveSheet({
   mech,
   pilotAbilities: ownPilotAbilities,
   composition,
@@ -59,7 +59,7 @@ export function SheetMech({
   storeState,
   hrefFor,
   withheld,
-}: SheetMechProps) {
+}: MechLiveSheetProps) {
   const pilotAbilities = ownPilotAbilities ?? composition.pilot?.abilities
   const withheldPilot = withheld.find((u) => u.kind === 'pilot')
   const withheldCrawler = withheld.find((u) => u.kind === 'crawler')

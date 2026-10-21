@@ -2,7 +2,7 @@
  * Sheet — root live-sheet component on the Header C LiveSheet shell. Resolves
  * the entity + its SoftLink composition (the ported
  * resolver in composition.model.ts), then dispatches to ONE per-kind view
- * (SheetPilot / SheetMech / SheetCrawler):
+ * (PilotLiveSheet / MechLiveSheet / CrawlerLiveSheet):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
  * chips (live mini stats, whole-chip navigation), variant sheet as the body.
  *
@@ -38,14 +38,14 @@ import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
+import { CrawlerLiveSheet } from './CrawlerLiveSheet'
 import type { EntityLookup } from './composition.model'
 import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
+import { MechLiveSheet } from './MechLiveSheet'
+import { PilotLiveSheet } from './PilotLiveSheet'
 import { SheetActionsMenu } from './SheetActionsMenu'
-import { SheetCrawler } from './SheetCrawler'
-import { SheetMech } from './SheetMech'
 import { SheetModeToggle } from './SheetModeToggle'
-import { SheetPilot } from './SheetPilot'
 import { useSheetMode } from './sheetMode.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 import type { OwnerOf } from './unitOwners.model'
@@ -375,11 +375,11 @@ export function Sheet({
 
   const sheetView =
     resolved.kind === 'pilot' ? (
-      <SheetPilot pilot={resolved.entity} {...common} />
+      <PilotLiveSheet pilot={resolved.entity} {...common} />
     ) : resolved.kind === 'mech' ? (
-      <SheetMech mech={resolved.entity} pilotAbilities={pilotAbilities} {...common} />
+      <MechLiveSheet mech={resolved.entity} pilotAbilities={pilotAbilities} {...common} />
     ) : (
-      <SheetCrawler
+      <CrawlerLiveSheet
         crawler={resolved.entity}
         liveCondition={!readOnlyProp && !writesBlocked}
         {...common}

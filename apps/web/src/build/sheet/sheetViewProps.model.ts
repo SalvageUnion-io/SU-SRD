@@ -77,7 +77,7 @@ type SheetPatchFields = Partial<Pilot> & Partial<Mech> & Partial<Crawler>
  * weapons) MUST use the updater form: `store.update` awaits the server commit
  * before it re-renders, so computing `[...prop.array, x]` from the render-time
  * prop races on rapid clicks and silently drops a selection. The updater reads
- * live in-memory state instead (same guard as SheetPilot's `toggleUsed`).
+ * live in-memory state instead (same guard as PilotLiveSheet's `toggleUsed`).
  */
 export type SheetPatch = (
   input: SheetPatchFields | ((current: Pilot | Mech | Crawler) => SheetPatchFields)

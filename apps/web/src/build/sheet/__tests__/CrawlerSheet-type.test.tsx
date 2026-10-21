@@ -127,7 +127,7 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
 // Tests
 // ---------------------------------------------------------------------------
 
-/** Render the identity panel the way SheetCrawler does (store + storeState). */
+/** Render the identity panel the way CrawlerLiveSheet does (store + storeState). */
 function renderIdentity(crawler: Crawler, store: typeof useEntityStore) {
   return render(
     <CrawlerIdentityPanel

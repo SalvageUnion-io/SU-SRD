@@ -9,14 +9,14 @@
  *
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
- *     by SheetCrawler and passed as `economy`) → Bays (2-column masonry, the
+ *     by CrawlerLiveSheet and passed as `economy`) → Bays (2-column masonry, the
  *     Armament Bay's weapons inside their bay) → Assigned Units.
  *   The Storage Bay, what the crawler carries, is the permanent right
  *     sidebar: beside the sheet from the 64rem rung, under the opening on a
  *     phone.
  *
  * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
- * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
+ * `CrawlerLiveSheet` (it owns the economy-dialog state + `patch`) and handed
  * down as the `economy` slot, rendered inside the Identity card below the
  * identity fields.
  *
@@ -43,7 +43,7 @@
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
  *   - the Tech Level stepper slab — Tech Level is the chapter band's TL
- *     chip (built by SheetCrawler), its stepper on the chip in Edit.
+ *     chip (built by CrawlerLiveSheet), its stepper on the chip in Edit.
  *   - the Scrap Pool slab + `ScrapPoolSlab` — the scrapPool DATA/
  *     logic (`scrapPoolBucket` / `addToScrapPool`) is KEPT: bay Repair below
  *     still spends from it, and the same helpers feed mech repair/retire
@@ -128,25 +128,25 @@ type CrawlerSheetProps = {
   /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
-   * Read, on a sheet its owner may track (`SheetCrawler`'s `editable`): a
+   * Read, on a sheet its owner may track (`CrawlerLiveSheet`'s `editable`): a
    * bay's condition still steps, as the SP gauge does (owner, round 6).
    */
   liveCondition?: boolean
   /**
    * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
-   * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
+   * lozenges) — built by `CrawlerLiveSheet` (it owns the economy-dialog state
    * and `patch`), rendered as the identity band's vitals rail. Undefined
    * renders nothing extra (e.g. a bare test render with no economy slot wired).
    */
   economy?: ReactNode
   /**
-   * The economy's action chips (Pay / Fund / Trade), built by `SheetCrawler`
+   * The economy's action chips (Pay / Fund / Trade), built by `CrawlerLiveSheet`
    * beside `economy` and set on the vitals card's head, not in its body.
    */
   economyActions?: ReactNode
   /**
    * The Assigned Units rail content (docked mech + lead pilot rail row/
-   * RailEmpty), built by SheetCrawler from `composition` — CrawlerSheet has
+   * RailEmpty), built by CrawlerLiveSheet from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
    * into the content column's bottom section.
    */
