@@ -16,7 +16,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { ChipListEditor } from './ChipListEditor'
 import { CONDITION_DRAFT } from './chipWell.model'
-import { freshEntity } from './controlPrimitives'
+import { freshEntity } from './freshEntity.model'
 
 type MechConditionsEditorProps = {
   mech: Mech

@@ -29,8 +29,8 @@ import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/me
 import { runWrite } from '../../lib/runWrite'
 import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
+import { changedFields, freshEntity } from './freshEntity.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 export type ItemKind = 'system' | 'module'

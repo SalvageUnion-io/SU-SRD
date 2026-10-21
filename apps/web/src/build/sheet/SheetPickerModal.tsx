@@ -1,25 +1,11 @@
 /**
- * SheetSection — the UNIFIED EDIT LANGUAGE primitives shared by all three
- * live sheets (redesign plan: three interaction archetypes, one editing cue,
- * one shared picker modal).
- *
- *   (A) FIELD sections: no primitive. This archetype was to have a
- *       `SectionEditButton` per-section Edit/Done toggle, flipping only its own
- *       fields into inline-edit. It was built and exported, and then never
- *       adopted by any sheet — the sheets edit fields live instead — so it was
- *       deleted rather than left as half a shipped API. Its (B) sibling below
- *       IS used; that asymmetry is why this note exists rather than a silent gap.
- *   (B) COLLECTION sections: a `Button` in the `SlabSection`'s `actions`
- *       ("Manage Abilities"), always visible and always ENABLED, opening the
- *       ONE shared picker modal (`SheetPickerModal` over ModalShell); the
- *       per-item remove (✕) is the sheet's one `SheetRemoveButton`
- *       (`SheetItemLine.tsx`). There is no header button of the sheets' own:
- *       the Manage control is the house `Button`, Compact as the fold beside
- *       it (§4.7). Free Edit: add/remove is not rule-gated (ADR-021).
- *   (C) STAT cells stay always-live StatBlock pips — no primitive needed here.
- *
- * `EDIT_CUE_HOVER_CLASS` is the single editing cue: a dashed outline on
- * section-edit fields and per-card controls (StatBlocks carry no cue).
+ * SheetPickerModal — the one picker modal (over `ModalShell`) that every live
+ * sheet's collection "Manage" or "+ Add", and every single-select swap, opens;
+ * a sheet never hand-rolls its own dialog. The Manage control is a house
+ * `Button` in its `SlabSection`'s `actions`; the per-item remove is the
+ * sheet's `SheetRemoveButton` (`SheetItemLine.tsx`). Add and remove are not
+ * rule-gated (TP, maxAbilities, slots): players self-manage. Play's Mediator
+ * opposition picker opens it too.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from 'react'

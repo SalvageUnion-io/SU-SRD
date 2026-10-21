@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react'
-import { SheetPickerModal } from '../../build/sheet/SheetSection'
+import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab } from '../../components/index'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'

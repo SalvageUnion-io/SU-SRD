@@ -2,9 +2,9 @@ import type { CSSProperties } from 'react'
 import { tokens } from '../../components/index'
 
 /**
- * Shared app-bar chrome constants (design source clean-pilot.html `.appbar`).
- * Kept in its own module (not LiveSheet.tsx) so component files only export
- * components — required for React Fast Refresh.
+ * The read-only banner's style object, shared by `SheetView` and
+ * `PublicSheet`. Kept out of the component files so they export only
+ * components (React Fast Refresh).
  */
 
 /** The caution banner over a sheet the reader cannot edit (public, or a crewmate's). */

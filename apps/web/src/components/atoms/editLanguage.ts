@@ -1,7 +1,5 @@
 /**
- * The shared UNIFIED EDIT LANGUAGE vocabulary — the single editing cue — kept
- * beside {@link SheetSection} but in its own module so the section components
- * stay in a components-only file.
+ * The live sheets' shared edit vocabulary: the single editing cue.
  */
 
 /**

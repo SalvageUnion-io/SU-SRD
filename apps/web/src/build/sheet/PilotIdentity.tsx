@@ -36,7 +36,7 @@ import { classChangePatch } from '../../lib/rules/classPath'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { PhotoBeside } from './PhotoBeside'
-import { SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from './SheetPickerModal'
 import type { SheetPatch } from './sheetViewProps.model'
 import { UsedPip } from './UsedPip'
 

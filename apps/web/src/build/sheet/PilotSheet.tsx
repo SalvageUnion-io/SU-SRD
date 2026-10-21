@@ -88,7 +88,7 @@ import { usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions.model'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
-import { SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from './SheetPickerModal'
 import { SheetVitalGauge } from './SheetVitalGauge'
 
 // ---------------------------------------------------------------------------

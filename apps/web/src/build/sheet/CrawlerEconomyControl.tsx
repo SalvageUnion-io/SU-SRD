@@ -75,7 +75,6 @@ import {
 } from '../../lib/rules/crawlerEconomy'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
-import { freshEntity } from './controlPrimitives'
 import {
   INITIAL_UPKEEP_STATE,
   initialTradeState,
@@ -83,6 +82,7 @@ import {
   tradeStep,
   upkeepReducer,
 } from './crawlerEconomyDialogState.model'
+import { freshEntity } from './freshEntity.model'
 
 const BODY = {
   display: 'flex',

@@ -1,6 +1,6 @@
 /* The mech sheet group's rules: only what a style object cannot express. */
 
-/* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome) ---- */
+/* ---- Shared sheet chrome (LiveSheet, Sheet, readOnlyBanner) ---- */
 
 /* The sheet's page gutter — the sticky bar and the read-only crew banner —
    is every page's (`.su-page-gutters` on the sheet's main, the UI library's

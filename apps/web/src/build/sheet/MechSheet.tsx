@@ -85,7 +85,7 @@ import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
-import { SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from './SheetPickerModal'
 import { StorageManifest } from './StorageManifest'
 
 /** The sheet column: an inline-size container (the poster regions query it). */
