@@ -1,5 +1,6 @@
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt } from './_designTable'
+import { ruleOfFault } from './_pendingRules'
 import { findValueCellFaults } from './_valueCells'
 import { expect, test } from './fixtures'
 
@@ -36,7 +37,7 @@ test('every context: value cells are paper in a 1px ink frame; seam stamps centr
     read.cells += cells
     read.seams += seams
     return faults.map((fault) => ({
-      rule: fault.slice(0, fault.indexOf(':')),
+      rule: ruleOfFault(fault),
       line: `${where}, ${fault}`,
     }))
   })
@@ -50,7 +51,7 @@ test('every context: value cells are paper in a 1px ink frame; seam stamps centr
       for (const fault of faults) {
         findings.push({
           family: 'reference-page',
-          rule: fault.slice(0, fault.indexOf(':')),
+          rule: ruleOfFault(fault),
           line: `${path} at ${width}px, ${fault}`,
         })
       }

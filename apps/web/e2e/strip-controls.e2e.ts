@@ -1,5 +1,6 @@
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt } from './_designTable'
+import { ruleOfFault } from './_pendingRules'
 import { findStripControlFaults } from './_stripControls'
 import { test } from './fixtures'
 
@@ -21,7 +22,7 @@ test('every control in an entity list item is in its chip group', async ({ page 
   const seed = await seedDesignAccount(page)
   const findings = await walkDesignRoutes(page, seed, async ({ where }) =>
     (await findStripControlFaults(page)).map((fault) => ({
-      rule: fault.slice(0, fault.indexOf(':')),
+      rule: ruleOfFault(fault),
       line: `${where}, ${fault}`,
     }))
   )
