@@ -66,7 +66,7 @@
   }
 }
 
-/* The fields card and its body: `SheetSectionCard` takes classes, no style. */
+/* The fields card and its stack (`SheetHero`'s hairline `Box`). */
 .su-sheet-hero-fields {
   display: flex;
   flex-direction: column;

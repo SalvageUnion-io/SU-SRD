@@ -178,7 +178,7 @@ export function PilotSheet({
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available: Free Edit, not rule-gated, ADR-021).
   // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, rendered in the SheetSectionCard header.
+  // Edit/Done toggle, rendered in the `SheetHero` panel's action row.
   const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
 
   const model = usePilotSheetModel({ pilot, storeState, picker })

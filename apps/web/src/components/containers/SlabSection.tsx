@@ -23,7 +23,7 @@
  *   phone's column.
  * - On a live sheet a section of entities is this, unframed: the cards carry
  *   their own frames, so a second would stack two enclosures into one block.
- *   A section of fields and gauges is a `SheetSectionCard`, a form's panel.
+ *   A section of fields and gauges is a hairline `Box` (`SheetHero`'s panel).
  * - The column is a class (`.su-slab-section`, `containers.css`), so a page
  *   whose layout law sets a section's own grid (the class page's trees, a
  *   subgrid) can say so in its stylesheet.

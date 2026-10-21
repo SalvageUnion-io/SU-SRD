@@ -207,7 +207,6 @@ export { RadioCardGroup } from './containers/RadioCardGroup'
 // action) behind the reference site's island error boundary and the app's root error component.
 export { RecoveryPanel } from './containers/RecoveryPanel'
 export { RosterSkeleton } from './containers/RosterSkeleton'
-export { SheetSectionCard } from './containers/SheetSectionCard'
 export { Skeleton, SkeletonFrame } from './containers/Skeleton'
 export { SlabSection } from './containers/SlabSection'
 export { Stack } from './containers/Stack'

@@ -7,7 +7,7 @@
  * shared IdentityField primitive.
  *
  * FIELD-section archetype (unified edit language). The parent
- * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
+ * `SheetHero` panel's action row owns the section's Edit/Done button, so this
  * panel is CONTROLLED via the `editing` prop rather than owning its own toggle
  * state. Class is
  * picker-backed — its edit affordance opens the ONE shared picker modal
@@ -141,8 +141,8 @@ function UsedChip({
 type PilotIdentityPanelProps = {
   pilot: Pilot
   /**
-   * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (the chead row lives in the card, not here).
+   * Section-level edit flag, owned by the parent `SheetHero` panel's action row
+   * Edit/Done button (the row lives in the panel, not here).
    */
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
   onToggleUsed?: (key: UsedTraitKey, next: boolean) => void

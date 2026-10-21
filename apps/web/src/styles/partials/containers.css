@@ -124,8 +124,8 @@
   color: var(--color-paper);
 }
 
-/* SheetSectionCard (`components/containers/SheetSectionCard.tsx`): its body block,
-   which merges the caller's `bodyClassName` (the sheets' grid gaps). */
+/* A live sheet's opening panel (`build/sheet/SheetHero.tsx`): the stack in its
+   box's body, which merges the hero's classes (the fields card's grid). */
 .su-sheet-section-stack {
   display: flex;
   flex: 1;

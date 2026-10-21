@@ -170,7 +170,6 @@ const ROSTER = {
     'FeedLine',
     'FeedList',
     'FeedTime',
-    'SheetSectionCard',
     'assetSrcSetFor',
     'heroImageSizes',
     'digestRollTable',

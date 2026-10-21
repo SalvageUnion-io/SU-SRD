@@ -32,6 +32,18 @@ describe('Box', () => {
     expect(container.querySelector('.su-box__body')?.hasAttribute('data-flush')).toBe(true)
   })
 
+  test('a hairline frame is one hairline all round, never the unit colour on top (R49)', () => {
+    const { container } = render(
+      <Box as="section" label="Identity" frame="hairline">
+        <p>Tenacity</p>
+      </Box>
+    )
+    const frame = container.querySelector<HTMLElement>('.su-entity-compact__frame')
+    expect(frame?.style.borderWidth).toBe('1px')
+    expect(frame?.getAttribute('style') ?? '').not.toContain('--tone')
+    expect(container.querySelector('section[aria-label="Identity"]')).not.toBeNull()
+  })
+
   test('closes on its head with no body', () => {
     const { container } = render(<Box head={<div>Head</div>} />)
     expect(container.querySelector('[data-bodyless]')).not.toBeNull()

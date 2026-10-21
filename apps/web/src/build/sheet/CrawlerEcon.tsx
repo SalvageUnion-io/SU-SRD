@@ -10,7 +10,7 @@
  * The two GAUGES are the numbers that fill and empty (structure, and the pool
  * you fund toward its cap); everything left is a flat readout, so it sits in
  * the grid. Every action collects onto the Vitals card's HEAD as a Mini chip
- * (`SheetSectionCard`'s `actions`) rather than hanging off its own stat or
+ * (`SheetHero`'s `vitalsActions`) rather than hanging off its own stat or
  * sitting in a body row: a contextual action lives on its owner's head.
  *
  * Composes the shared primitives (style-unification pass §3): each readout is a

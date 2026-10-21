@@ -7,7 +7,7 @@
  * of its card; no lead off an SRD index, EDL E11) beside the type's crew NPC.
  *
  * FIELD-section archetype (unified edit language). The parent
- * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
+ * `SheetHero` panel's action row owns the section's Edit/Done button, so this
  * panel is CONTROLLED via the `editing` prop rather than owning its own toggle
  * state, mirroring
  * `PilotIdentityPanel` / `MechIdentityPanel`. Type is picker-backed — its
@@ -56,8 +56,8 @@ type CrawlerIdentityPanelProps = {
   /** Partial merge on this crawler; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
   /**
-   * Section-level edit flag, owned by the parent `SheetSectionCard`'s header
-   * Edit/Done button (the chead row lives in the card, not here).
+   * Section-level edit flag, owned by the parent `SheetHero` panel's action row
+   * Edit/Done button (the row lives in the panel, not here).
    */
   /** CrawlerTypeCard's NPC inset needs an explicit flag — it writes through
    * the store directly (typeNpc), independent of `patch`. */

@@ -176,7 +176,7 @@ export function CrawlerSheet({
   // Edit: add/remove is not rule-gated (ADR-021).
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
   // Identity is a FIELD section (unified edit language archetype A): its own
-  // Edit/Done toggle, rendered in the SheetSectionCard header.
+  // Edit/Done toggle, rendered in the `SheetHero` panel's action row.
 
   /**
    * Persist a partial patch on this crawler (fire-and-forget write). The

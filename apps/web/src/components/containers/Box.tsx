@@ -1,10 +1,14 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { CompactFrame } from '../entity/forms/CompactFrame'
 import { ROW_ROOT } from '../entity/forms/rowRoot'
 import { SelectSurface } from '../entity/modes/select'
 import { SELECTED_RING } from '../entity/modes/selectedRing'
 import type { EntityMode } from '../entity/types'
+
+/** `frame="hairline"`: one light hairline all round, in place of the Compact's weight. */
+const HAIRLINE = { borderWidth: borderWidth.hairline } satisfies CSSProperties
 
 /** A level-1 pick that is no entity: the Compact's select mode on its frame. */
 type BoxSelect = Extract<EntityMode, { kind: 'select' }>
@@ -14,6 +18,12 @@ export type BoxProps = {
   head?: ReactNode
   /** The frame's colour token value (`var(--color-…)`); ink by default. */
   frameColor?: string
+  /**
+   * The frame's weight: the Compact's (`compact`), or one light hairline all
+   * round (`hairline`), the quiet frame of a live sheet's opening panels (R49),
+   * so the sheet's content carries the weight.
+   */
+  frame?: 'compact' | 'hairline'
   /** The landmark: `section` (named by `label`), an `article`, or a plain `div`. */
   as?: 'section' | 'article' | 'div'
   /** Names a `section`. */
@@ -66,6 +76,7 @@ export type BoxProps = {
 export function Box({
   head,
   frameColor,
+  frame: weight = 'compact',
   as: Root = 'div',
   label,
   role,
@@ -88,8 +99,9 @@ export function Box({
       userMade={userMade}
       shrink={fill || shrink}
       style={
-        frameColor || select?.selected
+        weight === 'hairline' || frameColor || select?.selected
           ? {
+              ...(weight === 'hairline' ? HAIRLINE : {}),
               ...(frameColor ? { borderColor: frameColor } : {}),
               ...(select?.selected && SELECTED_RING),
             }
