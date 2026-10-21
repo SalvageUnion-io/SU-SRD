@@ -55,9 +55,13 @@ export async function secondAccount(
   return { context, page }
 }
 
-/** Pick up an unclaimed pre-gen from the Game's roster. */
+/**
+ * Pick up an unclaimed pre-gen from the Game's Crew: the row naming it that
+ * still offers a pick-up (a pilot's row names its mech too, as a linked Mini).
+ */
 async function pickUp(page: Page, name: string): Promise<void> {
-  const row = page.locator('li', { hasText: name }).first()
+  const seal = page.getByRole('button', { name: /— pick this up$/ })
+  const row = page.locator('li', { hasText: name }).filter({ has: seal }).last()
   await row.getByRole('button', { name: /— pick this up$/ }).click()
   const confirm = page.getByRole('alertdialog')
   await confirm.getByRole('button', { name: 'Pick up' }).click()

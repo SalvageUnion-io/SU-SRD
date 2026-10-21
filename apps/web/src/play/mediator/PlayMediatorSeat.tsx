@@ -16,12 +16,12 @@
  *
  * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
  * pilot (see the problem, propose the fix), the ring on its pill and the other
- * seats dimmed beside it. Sheet ⤢, its chip group's last slot, opens their
+ * seats dimmed beside it. Sheet, its chip group's last slot, opens their
  * sheet read-only over Play.
  */
 
 import type { CSSProperties } from 'react'
-import { Button, Entity, Stat, tokens } from '../../components/index'
+import { Button, Entity, relation, Stat, tokens } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { MediatorSeat } from './mediatorTable.model'
 
@@ -78,7 +78,14 @@ export function PlayMediatorSeat({
       <Entity
         size="mini"
         context="roster"
-        model={unitRowModel({ kind: 'pilot', name: seat.name })}
+        // Aboard, the seat is their mech with a PILOT chip naming them; else
+        // the pilot with a MECH chip for the one assigned (owner, round 8: a
+        // pilot and its mech are one Mini).
+        model={
+          seat.mech?.boarded
+            ? unitRowModel({ kind: 'mech', name: seat.mech.name })
+            : unitRowModel({ kind: 'pilot', name: seat.name })
+        }
         mode={{
           kind: 'select',
           role: 'toggle',
@@ -87,11 +94,15 @@ export function PlayMediatorSeat({
           label: `${seat.label}. Aim Propose here`,
         }}
         dim={dim}
-        // The mech they are aboard or have parked, its header-only Mini in the
-        // seat's body, never a chip (owner, round 4).
         {...(seat.mech === null
           ? {}
-          : { linked: [{ key: 'mech', kind: 'mech' as const, name: seat.mech.name }] })}
+          : {
+              relations: [
+                seat.mech.boarded
+                  ? relation('pilot', 'Pilot', seat.name)
+                  : relation('mech', 'Mech', seat.mech.name),
+              ],
+            })}
         state={
           <>
             <Stat size="mini" label={away ? 'Away' : 'Here'} />
@@ -113,7 +124,7 @@ export function PlayMediatorSeat({
             aria-label={`Open ${seat.name}’s sheet`}
             onClick={onOpenSheet}
           >
-            Sheet ⤢
+            Sheet
           </Button>
         }
         body={{

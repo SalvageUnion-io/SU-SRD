@@ -1,7 +1,7 @@
 /**
  * Play's Discord channels as the screens read them (play.md §9), pure: whose a
- * channel is, the landing's rows (`channelBindings.mine`) and what the Post
- * toggle says. A channel is named as it was when bound (`#salvage-run`); a
+ * channel is, a Game's channel chip on the landing (`channelBindings.mine`)
+ * and what the Post toggle says. A channel is named as it was when bound (`#salvage-run`); a
  * binding made before names were kept is named by whose it is.
  */
 
@@ -20,29 +20,6 @@ export type ChannelOwner = { kind: 'game'; gameName: string | null } | { kind: '
 export type MyChannels = {
   personal: PlayBinding | null
   games: { gameId: string; gameName: string; mayBind: boolean; binding: PlayBinding | null }[]
-}
-
-/** One channel row as the landing lists it. */
-export type ChannelRow = {
-  key: string
-  name: string
-  owner: ChannelOwner
-  binding: PlayBinding | null
-}
-
-/** My Games' rows, in the server's order, then my own solo channel. */
-export function channelRows(mine: MyChannels): ChannelRow[] {
-  return [
-    ...mine.games.map(
-      (g): ChannelRow => ({
-        key: g.gameId,
-        name: g.gameName,
-        owner: { kind: 'game', gameName: g.gameName },
-        binding: g.binding,
-      })
-    ),
-    { key: 'solo', name: 'Solo', owner: { kind: 'solo' }, binding: mine.personal },
-  ]
 }
 
 /** A bound channel by its name, `#salvage-run`; null with no binding or no kept name. */

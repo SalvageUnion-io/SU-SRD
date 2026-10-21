@@ -6,8 +6,8 @@
  * runs it (ADR-038 §5).
  *
  * A tap on a seat aims Propose at that pilot and moves focus to its To field;
- * Sheet ⤢ opens their sheet read-only (`PlayCrewSheet`), the crawler's opens
- * its live sheet (`PlaySheetOverlay`). With no crawler it says where to raise
+ * Sheet opens their sheet read-only (`PlayCrewSheet`), the crawler's opens
+ * its live sheet in Build (`useOpenSheet`). With no crawler it says where to raise
  * one.
  */
 
@@ -17,9 +17,8 @@ import { useState } from 'react'
 import { EmptyState, FOCUS_RING, Slab } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { PlayCrewSheet } from '../PlayCrewSheet'
-import type { SheetTarget } from '../PlaySheetOverlay'
-import { PlaySheetOverlay } from '../PlaySheetOverlay'
 import { PlayCrawlerUnit } from '../PlayUnits'
+import { useOpenSheet } from '../useOpenSheet'
 import type { MediatorSeat } from './mediatorTable.model'
 import { seatDone, seatStepLine } from './mediatorTable.model'
 import { PlayMediatorSeat } from './PlayMediatorSeat'
@@ -34,7 +33,7 @@ type PlayMediatorTableProps = {
 
 export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTableProps) {
   const [crewSheet, setCrewSheet] = useState<MediatorSeat | null>(null)
-  const [sheet, setSheet] = useState<SheetTarget | null>(null)
+  const setSheet = useOpenSheet()
   const { seats, downtime, crawler, canWrite } = mediator
   const running = downtime.downtime.running
   const stepIndex = Math.min(downtime.downtime.stepIndex ?? 0, downtimeStepCount() - 1)
@@ -95,7 +94,6 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
         name={crewSheet?.name ?? ''}
         onClose={() => setCrewSheet(null)}
       />
-      <PlaySheetOverlay sheet={sheet} onClose={() => setSheet(null)} />
     </>
   )
 }

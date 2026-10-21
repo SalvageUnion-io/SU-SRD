@@ -2,16 +2,18 @@ import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Play hub (`/play/`, ADR-052 §4): + New Game and Join at its head; Your
- * Games, each a Compact opening the Game's page with your role, how many are
- * here and the Downtime state, and one door (Mediate where you mediate it,
- * else Play <your pilot>); Solo, each pilot in no Game with its mech's chip or
- * "No Mech" and Play solo; and Discord, each Game's channel or Connect
- * (`channelBindings.mine`). Signed out, sign in.
+ * The Play hub (`/play/`, ADR-052 §4): + New Game and Join with a link on its
+ * band; Your Games, each a contentful Compact opening the Game's page with
+ * your role, how many are here, the Downtime state and its channel as chips,
+ * its crew as Minis (each pilot and its mech one Mini), and one door (Mediate
+ * where you mediate it, else Play <your pilot>); Play solo, each pilot in no
+ * Game with its mech or "No Mech". Nothing that builds (owner, round 8).
+ * Signed out, sign in.
  *
- * Queries are answered by name (`convexMock.ts`): `games.listMine`, and
- * `downtime.state` and `seats.presence` (who is here) once per Game. Without a
- * router, so links are anchors.
+ * Queries are answered by name (`convexMock.ts`): `games.listMine` and
+ * `channelBindings.mine`, then `downtime.state`, `seats.presence`,
+ * `entities.listForGame` and `crew.vitals` once per Game. Without a router,
+ * so links are anchors.
  */
 
 import {
@@ -57,6 +59,14 @@ const IN_DOWNTIME = { running: true, stepIndex: 2, completedBy: [], upkeepSpent:
 const QUIET = {
   'channelBindings:mine': { personal: null, games: [] },
   'seats:presence': [],
+  'entities:listForGame': {
+    pilots: [],
+    mechs: [],
+    crawlers: [],
+    softLinks: [],
+    primaryCrawlerId: null,
+  },
+  'crew:vitals': { viewerId: 'u-me', pilots: [], mechs: [] },
 }
 
 beforeAll(async () => {
@@ -175,7 +185,7 @@ describe('the Play landing', () => {
   test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
     setQueryAnswers({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
     await renderAs('connected')
-    const solo = section('Solo')
+    const solo = section('Play solo')
     expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
       '/play/land-wren'
     )
@@ -213,6 +223,9 @@ describe('the Play landing', () => {
         fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
       })
 
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Join with a link' }))
+      })
       const field = screen.getByLabelText('Invite link')
       const join = screen.getByRole('button', { name: 'Join' })
       expect(join.hasAttribute('disabled')).toBe(true)
@@ -237,64 +250,124 @@ describe('the Play landing', () => {
     }
   })
 
-  test('Discord: each Game’s channel with Change, dashed "No channel yet" with Connect', async () => {
+  test('a Game’s channel is a chip on its card; there is no Discord section', async () => {
     setQueryAnswers({
-      'games:listMine': [],
+      'games:listMine': [TENACITY, WASTES],
       'downtime:state': IN_DOWNTIME,
-      'seats:presence': [],
+      ...QUIET,
       'channelBindings:mine': {
         personal: null,
         games: [
           {
             gameId: 'land-g1',
-            gameName: 'Rust Belt Run',
+            gameName: 'Tenacity',
             mayBind: true,
             binding: { channelId: 'c-1', channelName: 'salvage-run', boundAt: FIXTURE_NOW },
           },
-          { gameId: 'land-g2', gameName: 'Frostline', mayBind: false, binding: null },
+          { gameId: 'land-g2', gameName: 'Wastes', mayBind: false, binding: null },
+        ],
+      },
+    })
+    await renderAs('connected')
+    expect(card('Tenacity').getByText('#salvage-run')).toBeTruthy()
+    expect(card('Wastes').queryByText(/^#/)).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Discord' })).toBeNull()
+  })
+
+  test('the crew are Minis with their chips: a boarded pilot is its mech, else the pilot', async () => {
+    setQueryAnswers({
+      'games:listMine': [TENACITY],
+      'downtime:state': IN_DOWNTIME,
+      ...QUIET,
+      'entities:listForGame': {
+        pilots: [],
+        mechs: [],
+        crawlers: [{ _id: 'c1', appId: 'a-c1', body: { id: 'a-c1', name: 'Big Sal' } }],
+        softLinks: [],
+        primaryCrawlerId: 'c1',
+      },
+      'crew:vitals': {
+        viewerId: 'u-me',
+        pilots: [
           {
-            gameId: 'land-g3',
-            gameName: 'Old Haul',
-            mayBind: true,
-            binding: { channelId: 'c-3', channelName: null, boundAt: FIXTURE_NOW },
+            _id: 'p1',
+            linkId: 'a-p1',
+            appId: 'a-p1',
+            ownerId: 'u-me',
+            name: 'Rook',
+            currentHP: 4,
+            maxHP: 10,
+            currentAP: null,
+            maxAP: 5,
+            boarded: true,
+            mechId: 'a-m1',
+          },
+          {
+            _id: 'p2',
+            linkId: 'a-p2',
+            appId: 'a-p2',
+            ownerId: 'u-2',
+            name: 'Vesper',
+            currentHP: null,
+            maxHP: 8,
+            currentAP: null,
+            maxAP: 4,
+            boarded: false,
+            mechId: 'a-m2',
+          },
+        ],
+        mechs: [
+          {
+            _id: 'm1',
+            linkId: 'a-m1',
+            appId: 'a-m1',
+            ownerId: 'u-me',
+            name: 'Spectrum',
+            currentSP: 6,
+            maxSP: 9,
+            currentEP: null,
+            maxEP: 5,
+            currentHeat: 2,
+            maxHeat: 9,
+          },
+          {
+            _id: 'm2',
+            linkId: 'a-m2',
+            appId: 'a-m2',
+            ownerId: 'u-2',
+            name: 'Thresher',
+            currentSP: null,
+            maxSP: 12,
+            currentEP: null,
+            maxEP: 6,
+            currentHeat: null,
+            maxHeat: 10,
           },
         ],
       },
     })
     await renderAs('connected')
-    const discord = section('Discord')
-    const row = (name: string) => {
-      const item = discord.getByRole('heading', { name }).closest('li')
-      if (!item) throw new Error(`no channel row for ${name}`)
-      return item
-    }
-
-    // A bound channel by its name, then the Game's.
-    const bound = row('#salvage-run')
-    expect(within(bound).getByText('Rust Belt Run')).toBeTruthy()
-    expect(
-      within(bound).getByRole('button', { name: 'Change the channel for Rust Belt Run' })
-    ).toBeTruthy()
-    expect(bound.querySelector('[data-unbound]')).toBeNull()
-    // A binding that kept no name: the Game's, and the generic label.
-    expect(within(row('Old Haul')).getByText('# Channel bound')).toBeTruthy()
-
-    const unbound = row('Frostline')
-    expect(within(unbound).getByText('No channel yet')).toBeTruthy()
-    expect(unbound.querySelector('.su-play-discord-row')?.hasAttribute('data-unbound')).toBe(true)
-    // My own channel, for solo play, lists last.
-    expect(within(row('Solo')).getByRole('button', { name: /Connect the channel/ })).toBeTruthy()
-
-    // Connect explains /su bind: a channel is bound in Discord, not here.
-    await act(async () => {
-      within(unbound)
-        .getByRole('button', { name: /Connect the channel/ })
-        .click()
-    })
-    const dialog = within(screen.getByRole('dialog'))
-    expect(dialog.getByText(/No Discord channel is bound to Frostline yet/)).toBeTruthy()
-    expect(dialog.getByText('/su bind')).toBeTruthy()
-    expect(dialog.getByText(/Only the Game’s Mediator or Organiser/)).toBeTruthy()
+    const tenacity = screen.getByRole('heading', { name: 'Tenacity (Game)' }).closest('li')
+    const minis = [...(tenacity?.querySelectorAll('[data-entity-linked] > *') ?? [])].map(
+      (mini) => mini.textContent ?? ''
+    )
+    // The crawler first; Rook is aboard, so the Mini is Spectrum with a PILOT
+    // chip and its stats; Vesper is on foot, so the Mini is Vesper with a MECH
+    // chip. Never both halves of a pair.
+    expect(minis).toHaveLength(3)
+    expect(minis[0]).toContain('Big Sal')
+    expect(minis[1]).toContain('Spectrum')
+    expect(minis[1]).toContain('Rook')
+    expect(minis[1]).toContain('SP')
+    expect(minis[2]).toContain('Vesper')
+    expect(minis[2]).toContain('Thresher')
+    expect(minis[2]).toContain('HP')
+    // Each opens its sheet in Build.
+    const hrefs = [...(tenacity?.querySelectorAll('[data-entity-linked] a') ?? [])].map((a) =>
+      a.getAttribute('href')
+    )
+    expect(hrefs).toContain('/sheet/mech/a-m1')
+    expect(hrefs).toContain('/sheet/pilot/a-p2')
   })
 
   test('Your Games: how many are here now, from the seats’ heartbeat', async () => {
@@ -302,7 +375,7 @@ describe('the Play landing', () => {
     setQueryAnswers({
       'games:listMine': [TENACITY],
       'downtime:state': IN_DOWNTIME,
-      'channelBindings:mine': { personal: null, games: [] },
+      ...QUIET,
       // Two beat a moment ago; one has not beaten for an hour.
       'seats:presence': [now - 1_000, now - 5_000, now - 3_600_000],
     })
@@ -314,13 +387,13 @@ describe('the Play landing', () => {
   test('offline, the shelf still lists, and Your Games wait for the connection', async () => {
     setQueryAnswers({})
     await renderAs('disconnected')
-    expect(section('Solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
+    expect(section('Play solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
     expect(
       section('Your Games').getByText('Your Games list once the connection returns.')
     ).toBeTruthy()
     // Starting or joining a Game waits for the connection too.
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
-    expect(screen.queryByLabelText('Invite link')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Join with a link' })).toBeNull()
     expect(queryCalls()).toHaveLength(0)
   })
 })

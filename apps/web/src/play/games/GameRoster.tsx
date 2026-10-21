@@ -1,56 +1,31 @@
 /**
- * GameRoster — a Game's crew, in the hub's three columns.
+ * GameRoster — a Game's crew on its page in Play: one list, read at a glance
+ * before you sit down.
  *
- * ## Why this looks like Shelves
+ * ## Play lists the crew; Build keeps it
  *
- * `/` shows one container at a time (`Roster`): Shelves, or a Game picked in
- * its Games select. Both ask "what have we got and what can I do with it",
- * so both answer in the same three ontology-toned columns of Compacts (`UnitRow`)
- * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
- * seal on every row, a way to pick up what nobody holds, and creation gated by
- * the rules in `lib/games/gameRoster.ts`.
+ * Play only plays (owner, round 8: "don't overflow with build func"), so the
+ * crew here is not a second Training Bay. There is no create, no pattern and
+ * no copy: each row opens its unit's sheet in Build, and the head
+ * links out to Build for the rest — **+ New Pilot** (Build's own wizard,
+ * started for this Game, `/pilots/new?game=<id>`, ADR-052 §3), the table
+ * runner's **+ New Crawler** while the Game has none, and **Manage in Build**
+ * (the Training Bay, which moves units in and out of Games).
  *
- * ## Yours first
+ * ## One list, the crawler first
  *
- * Each column lists **your** pilots or mechs first, then everybody else's —
- * the crewmates' (their name on the seal) and the unclaimed ones (an UNCLAIMED
- * seal you press to pick it up). The seal says whose a row is, so the list needs
- * no group headings. A crawler is the crew's, owned by nobody, so the ★ Primary
- * leads its column (`groupColumn`).
+ * The crawler (★ Primary first), then the pilots, each with its seat (its HP)
+ * and the mech assigned to it as a linked Mini, then the mechs, each its own
+ * row so an unclaimed one can be picked up. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
+ * an UNCLAIMED seal picking it up. The head counts the seats.
  *
- * ## Creation goes through the wizards
+ * ## What stays here
  *
- * A create CTA is a link to Build's ordinary wizard with this Game named
- * (`/pilots/new?game=<id>`, ADR-052 §3): the new unit lands in this Game, and
- * finishing or cancelling comes back here. Nothing about building a pilot
- * changes because the pilot is destined for a crew, and a second, thinner
- * creation path would drift from the real one immediately.
- *
- * ## What a row opens
- *
- * Every row is a link to the live sheet (`rosterSheetHref`), its other verbs
- * in a ⋯ menu, its last chip, as a shelf item's (`ShelfItem`). A row's only
- * other chip is who holds it (and ★ Primary on the crawler): what a unit IS
- * is on its sheet, and a pilot's seat (its HP, its mech) and a crawler's vitals
- * ride its chips; the Pilots head counts the seats. The sheet opens
- * editable when the row is yours to edit — your own pilots and mechs, and the
- * crawler when you run the table (ADR-038 §5) — and read-only and live
- * otherwise; `entities.locate` decides and `SheetView` renders it. No row
- * opens Play: that is the Game band's Play chip (`LaunchPlay`).
- *
- * ## Every action is on a head
- *
- * A column's actions are chips in its head (`RosterColumn`): **Move in…**
- * (`AddFromHangar`) and its create chip, Patterns on the Mechs column. A row's
- * are its ⋯ menu. Nothing acts from a block of its own under the columns.
- *
- * ## Every verb that changes who has a build asks first
- *
- * Pick up, Offer to the crew, Make a copy, Move to your Training Bay, Delete and
- * Scrap each open one shared confirm (`useConfirm`) that says what will happen
- * and whether it can be undone, and do nothing until the player confirms. The
- * verbs and their words live outside this file — `useRowActions` and
- * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
+ * The verbs about a unit's place at this table, in a row's ⋯ menu: Offer to
+ * the crew, Make primary (the table runner's crawler), Move to your Training
+ * Bay and Delete… (your own, or the table runner's crawler).
+ * Each asks first through one shared confirm (`useConfirm`); their words live
+ * in `useRowActions` and `lib/games/rowActionCopy.ts`.
  */
 
 import { useMutation, useQuery } from 'convex/react'
@@ -60,19 +35,13 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import type { SegmentKind } from '../../build/roster/RosterColumn'
-import {
-  RosterColumn,
-  RosterGrid,
-  RosterList,
-  SegmentSwitch,
-} from '../../build/roster/RosterColumn'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
   FieldError,
   HeaderMenu,
   RosterSkeleton,
+  SlabSection,
   Text,
   tokens,
 } from '../../components/index'
@@ -81,7 +50,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
-import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
+import type { RosterRow } from '../../lib/games/gameRoster'
 import {
   crawlerRows,
   groupColumn,
@@ -89,8 +58,8 @@ import {
   rosterSheetHref,
   tableCapabilities,
 } from '../../lib/games/gameRoster'
+import { pool } from '../../lib/units/crewPair'
 import { newInGameHref } from '../../lib/wizard/fromGame'
-import { AddFromHangar } from './AddFromHangar'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -101,44 +70,28 @@ type GameRosterProps = {
   gameId: string
   /** The Game's name, for the confirms that name it; null while unknown. */
   gameName: string | null
-  /** The phone's one visible column — the hub's, so it survives a switch. */
-  activeSegment: SegmentKind
-  onSegmentChange: (kind: SegmentKind) => void
 }
 
-/** The three columns, in the build order the app teaches everywhere else. */
-const COLUMNS: ReadonlyArray<{
-  kind: RosterKind
-  title: string
-  /** The wizard, started for this Game (`?game=`): the unit lands here, and so does finishing. */
-  create: { path: '/pilots/new' | '/mechs/new' | '/crawlers/new'; label: string }
-  empty: string
-}> = [
-  {
-    kind: 'pilot',
-    title: 'Pilots',
-    create: { path: '/pilots/new', label: 'Create Pilot' },
-    empty: 'No pilots in this Game yet.',
-  },
-  {
-    kind: 'mech',
-    title: 'Mechs',
-    create: { path: '/mechs/new', label: 'Create Mech' },
-    empty: 'No mechs in this Game yet.',
-  },
-  {
-    kind: 'crawler',
-    title: 'Crawlers',
-    create: { path: '/crawlers/new', label: 'Raise a Crawler' },
-    empty: 'No Union Crawler yet.',
-  },
-]
-
-const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
+const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
-export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
+const LIST = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+} satisfies CSSProperties
+
+const BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const rowActions = useRowActions(confirm)
@@ -156,7 +109,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   const busy = makePrimary.pending
   const error = makePrimary.error
 
-  // Local copies decide what opens without a round trip, so the columns need
+  // Local copies decide what opens without a round trip, so the list needs
   // the local stores hydrated even though the listing itself is remote.
   useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
   const localPilots: Pilot[] = usePilots()
@@ -171,32 +124,29 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     crawlerCount: listing?.crawlers.length ?? 0,
   })
 
-  const rows: Record<RosterKind, RosterRow[]> = {
-    pilot: ownableRows({
-      kind: 'pilot',
-      rows: listing?.pilots ?? [],
-      viewerId,
-      members: roster,
-      localIds: new Set(localPilots.map((p) => p.id)),
-    }),
-    mech: ownableRows({
-      kind: 'mech',
-      rows: listing?.mechs ?? [],
-      viewerId,
-      members: roster,
-      localIds: new Set(localMechs.map((m) => m.id)),
-    }),
-    crawler: crawlerRows({
-      rows: listing?.crawlers ?? [],
-      tableRunner: caps.tableRunner,
-      localIds: new Set(localCrawlers.map((c) => c.id)),
-      primaryCrawlerId: listing?.primaryCrawlerId ?? null,
-    }),
-  }
-
+  const pilots = ownableRows({
+    kind: 'pilot',
+    rows: listing?.pilots ?? [],
+    viewerId,
+    members: roster,
+    localIds: new Set(localPilots.map((p) => p.id)),
+  })
+  const mechs = ownableRows({
+    kind: 'mech',
+    rows: listing?.mechs ?? [],
+    viewerId,
+    members: roster,
+    localIds: new Set(localMechs.map((m) => m.id)),
+  })
+  const crawlers = crawlerRows({
+    rows: listing?.crawlers ?? [],
+    tableRunner: caps.tableRunner,
+    localIds: new Set(localCrawlers.map((c) => c.id)),
+    primaryCrawlerId: listing?.primaryCrawlerId ?? null,
+  })
   // The seats (owner, 2026-10-20: "drop Crew and Seats, moving that
   // information into Pilots"): each pilot's HP and mech ride its row, the
-  // Pilots head counts the claimed ones, the crawler's row its vitals.
+  // head counts the claimed ones, the crawler's row its vitals.
   const seats =
     listing === undefined || members === undefined
       ? null
@@ -214,28 +164,46 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     const seat = seatOf.get(row.serverId)
     if (!seat?.pilot) return {}
     const { mech, mechHref } = seat.pilot
+    const live = vitals?.pilots.find((p) => p._id === row.serverId)
+    const mechLive =
+      live?.mechId == null
+        ? undefined
+        : vitals?.mechs.find((m) => (m.linkId ?? m._id) === live.mechId)
     return {
       ...(seat.hp === null ? {} : { readings: [{ label: 'HP', value: seat.hp }] }),
       // The mech the pilot is assigned, its header-only Mini opening its sheet,
-      // never a chip (owner, round 4); on foot there is none.
+      // never a chip (owner, round 4), its live readings its chips (round 8);
+      // on foot there is none.
       ...(mech === null
         ? {}
         : {
             linked: [
-              { key: 'mech', kind: 'mech' as const, name: mech, href: mechHref ?? undefined },
+              {
+                key: 'mech',
+                kind: 'mech' as const,
+                name: mech,
+                href: mechHref ?? undefined,
+                readings: mechLive
+                  ? [
+                      ...pool('SP', mechLive.currentSP, mechLive.maxSP),
+                      ...pool('EP', mechLive.currentEP, mechLive.maxEP),
+                      ...pool('Heat', mechLive.currentHeat, mechLive.maxHeat),
+                    ]
+                  : [],
+              },
             ],
           }),
     }
   }
 
   /**
-   * A row's verbs, in its ⋯ menu as a shelf item's are (Shelves): the Compact
-   * itself opens the sheet, so its band carries only its name and chips.
+   * A row's verbs about its place at this table, in its ⋯ menu: the Compact
+   * itself opens the sheet in Build, where everything else about a unit is done.
    */
   function rowMenu(row: RosterRow): HeaderMenuItem[][] {
     const act = (run: () => void) => (busy ? undefined : run)
     const verbs: HeaderMenuItem[] = [
-      { id: 'open', label: 'Open', onSelect: () => go(rosterSheetHref(row)) },
+      { id: 'open', label: 'Open sheet', onSelect: () => go(rosterSheetHref(row)) },
     ]
     // Picking up is the SEAL's job, not a menu row's (`OwnerSeal`). Any owner
     // may hand back, not just the table runner: ADR-030 §4 makes ownership
@@ -246,11 +214,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
         label: 'Offer to the crew',
         onSelect: act(() => rowActions.offer(row)),
       })
-    }
-    // Pilots and mechs only: copying the crawler, the crew's shared home, is
-    // a product choice nobody has made yet.
-    if (row.kind !== 'crawler') {
-      verbs.push({ id: 'copy', label: 'Make a copy', onSelect: act(() => rowActions.copy(row)) })
     }
     if (row.can.makePrimary) {
       verbs.push({
@@ -274,6 +237,8 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
         onSelect: act(() => rowActions.removeFromGame(row, gameName)),
       })
     }
+    // Leaving the table's roster for good: your own build, or (for the table
+    // runner) the crawler. Copying is Build's.
     const danger: HeaderMenuItem[] = []
     if (row.can.delete || row.can.scrap) {
       danger.push({
@@ -293,11 +258,10 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
           kind={row.kind}
           name={row.name}
           /* The primary crawler is where new crew is assigned (ADR-037), so
-             the roster says which one it is. */
+             the list says which one it is. */
           note={row.primary ? '★ Primary' : undefined}
-          /* The Compact is the door to the live sheet: editable when the row is
-             yours to edit (`row.can.openSheet`), read-only when it is a
-             crewmate's (`SheetView`). */
+          /* The Compact is the door to the live sheet in Build: editable when
+             the row is yours to edit, read-only when it is a crewmate's. */
           mode={{ kind: 'link', href: rosterSheetHref(row) }}
           {...rowChips(row)}
           /* Who holds it sits right of the name, a label (ruleset §7.2):
@@ -325,91 +289,64 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     )
   }
 
-  /** A column's body: your rows first, then everyone else's, in one list. */
-  function columnBody(columnRows: readonly RosterRow[]): ReactNode {
-    const { yours, others } = groupColumn(columnRows)
-    return <RosterList>{[...yours, ...others].map(renderRow)}</RosterList>
+  /** Each kind's rows, yours first, then everyone else's. */
+  const ordered = (rows: readonly RosterRow[]) => {
+    const { yours, others } = groupColumn(rows)
+    return [...yours, ...others]
   }
-
+  const rows = [...ordered(crawlers), ...ordered(pilots), ...ordered(mechs)]
   const loading = listing === undefined || members === undefined
 
   return (
     <>
-      {error !== null && (
-        <div style={HINT}>
-          <FieldError>{error}</FieldError>
-        </div>
-      )}
-
-      {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
-        <Text variant="hint" style={HINT}>
-          {caps.addCrewBlocked}
-        </Text>
-      )}
-
-      {loading ? (
-        <RosterSkeleton label="the crew" />
-      ) : (
-        <>
-          <SegmentSwitch active={activeSegment} onChange={onSegmentChange} />
-          <RosterGrid>
-            {COLUMNS.map((column) => {
-              const columnRows = rows[column.kind]
-              // The crawler column answers to the table runner (`createCrawler`);
-              // the other two to membership (`assertMayAddToContainer`).
-              const mayCreate = column.kind === 'crawler' ? caps.canRaiseCrawler : caps.canAddCrew
-              return (
-                <RosterColumn
-                  key={column.kind}
-                  kind={column.kind}
-                  title={column.title}
-                  active={activeSegment === column.kind}
-                  create={
-                    mayCreate
-                      ? {
-                          href: newInGameHref(column.create.path, gameId),
-                          label: column.create.label,
-                        }
-                      : undefined
-                  }
-                  emptyMessage={
-                    column.kind === 'crawler' && !caps.canRaiseCrawler
-                      ? 'No Union Crawler yet — the Mediator raises one.'
-                      : column.empty
-                  }
-                  headExtra={
-                    column.kind === 'mech' || caps.canAddCrew ? (
-                      <>
-                        {column.kind === 'mech' && (
-                          <Button href="/mechs/patterns" variant="ghost" size="compact">
-                            Patterns
-                          </Button>
-                        )}
-                        {/* One of your units in, by the same move as Build's
-                            "Move to a Game…": a chip on the column it fills. */}
-                        {caps.canAddCrew && (
-                          <AddFromHangar
-                            gameId={gameId}
-                            kind={column.kind}
-                            gameName={gameName}
-                            confirm={confirm}
-                          />
-                        )}
-                      </>
-                    ) : undefined
-                  }
-                  {...(column.kind === 'pilot' && seats !== null && seats.total > 0
-                    ? { count: { label: 'Seats', value: seats.claimed, max: seats.total } }
-                    : {})}
-                  empty={columnRows.length === 0}
-                >
-                  {columnBody(columnRows)}
-                </RosterColumn>
-              )
-            })}
-          </RosterGrid>
-        </>
-      )}
+      <SlabSection
+        as="h2"
+        id="crew-heading"
+        title="Crew"
+        {...(seats !== null && seats.total > 0
+          ? { count: { label: 'Seats', value: seats.claimed, max: seats.total } }
+          : {})}
+        actions={
+          <>
+            {caps.canAddCrew && (
+              <Button href={newInGameHref('/pilots/new', gameId)} variant="default" size="compact">
+                + New Pilot
+              </Button>
+            )}
+            {caps.canRaiseCrawler && !caps.hasCrawler && (
+              <Button
+                href={newInGameHref('/crawlers/new', gameId)}
+                variant="default"
+                size="compact"
+              >
+                + New Crawler
+              </Button>
+            )}
+            <Button href="/" variant="default" size="compact">
+              Manage in Build
+            </Button>
+          </>
+        }
+        bodyStyle={BODY}
+      >
+        {error !== null && <FieldError>{error}</FieldError>}
+        {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
+          <Text variant="hint" style={HINT}>
+            {caps.addCrewBlocked}
+          </Text>
+        )}
+        {loading ? (
+          <RosterSkeleton label="the crew" />
+        ) : rows.length === 0 ? (
+          <Text variant="hint" style={HINT}>
+            Nobody has brought a unit to this Game yet.
+          </Text>
+        ) : (
+          <ul aria-labelledby="crew-heading" style={LIST}>
+            {rows.map(renderRow)}
+          </ul>
+        )}
+      </SlabSection>
 
       {confirmDialog}
     </>

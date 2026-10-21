@@ -6,7 +6,7 @@
 
 import { afterEach, describe, expect, test } from 'bun:test'
 import { PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
-import { channelButtonLabel, channelRows, channelTag, postLabel } from '../channels.model'
+import { channelButtonLabel, channelTag, postLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount } from '../crew.model'
 import { mineText, playFeedEntries } from '../feed.model'
 import { liveLabel, playReadOnly } from '../play.model'
@@ -333,23 +333,6 @@ describe('the Tables (play.md §8)', () => {
 })
 
 describe('Discord channels (play.md §9)', () => {
-  test('each Game’s row, then my own solo channel', () => {
-    const bound = { channelId: 'c1', channelName: 'salvage-run', boundAt: 1 }
-    const rows = channelRows({
-      personal: null,
-      games: [
-        { gameId: 'g1', gameName: 'Rust Belt Run', mayBind: true, binding: bound },
-        { gameId: 'g2', gameName: 'Frostline', mayBind: false, binding: null },
-      ],
-    })
-    expect(rows.map((r) => [r.name, r.binding !== null])).toEqual([
-      ['Rust Belt Run', true],
-      ['Frostline', false],
-      ['Solo', false],
-    ])
-    expect(rows[2]?.owner).toEqual({ kind: 'solo' })
-  })
-
   test('the Post toggle says where: the channel by name, else whose it is', () => {
     expect(postLabel(true)).toBe('Post rolls to my channel')
     expect(postLabel(false)).toBe('Post rolls to the Game’s channel')

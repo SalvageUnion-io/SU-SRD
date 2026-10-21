@@ -11,10 +11,11 @@
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
  *     opens Play's Mediator screen (`/play/game/$gameId`); a player's **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it.
- *  2. **The roster** (`GameRoster`): the three columns, yours first; each
- *     pilot's seat (its HP, its mech) on its row, the Pilots head counting them.
- *  3. Two columns of sections. **Every member:** the proposals awaiting
- *     their answer. **The Mediator:** Proposals you sent.
+ *  1. Two columns of sections. **Every member:** the Crew (`GameRoster`):
+ *     one list, the crawler first, each pilot's seat (its HP, its mech) on
+ *     its row, the head counting them; it links out to Build for anything
+ *     about building (owner, round 8: Play only plays). Then the proposals
+ *     awaiting their answer. **The Mediator:** Proposals you sent.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset, chips on its head) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
@@ -34,7 +35,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import type { SegmentKind } from '../../build/roster/RosterColumn'
 import {
   Button,
   Callout,
@@ -59,8 +59,6 @@ type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
 
 type GameHubProps = {
   gameId: string
-  activeSegment: SegmentKind
-  onSegmentChange: (kind: SegmentKind) => void
 }
 
 const PENDING = { marginTop: tokens.space[24] } satisfies CSSProperties
@@ -93,7 +91,7 @@ function NotInGame() {
   )
 }
 
-/** The sections under the roster, in board M2's two columns. */
+/** The page's sections, in board M2's two columns: the crew's, then the table's. */
 function GameSections({ game }: { game: Game }) {
   const gameId = game._id as Id<'games'>
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -108,6 +106,7 @@ function GameSections({ game }: { game: Game }) {
       <Grid min={HUB_COLUMN_MIN} gap={24} style={HUB_COLUMNS}>
         {/* A column with nothing in it takes no row on a phone (`.su-hub-column`). */}
         <div className="su-hub-column" style={HUB_COLUMN}>
+          <GameRoster gameId={gameId} gameName={game.name} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
@@ -153,7 +152,7 @@ function GameSections({ game }: { game: Game }) {
   )
 }
 
-export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps) {
+export function GameHub({ gameId }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
   const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
@@ -179,15 +178,7 @@ export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps
       ) : game === null ? (
         <NotInGame />
       ) : (
-        <>
-          <GameRoster
-            gameId={gameId}
-            gameName={game.name}
-            activeSegment={activeSegment}
-            onSegmentChange={onSegmentChange}
-          />
-          <GameSections game={game} />
-        </>
+        <GameSections game={game} />
       )}
     </PageShell>
   )

@@ -18,17 +18,15 @@
  * and what is inside one is a Mini or plain content (play.md §12).
  */
 
-import { useState } from 'react'
 import { EmptyState, MiniGrid, Slab } from '../components/index'
-import type { SheetTarget } from './PlaySheetOverlay'
-import { PlaySheetOverlay } from './PlaySheetOverlay'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
 import type { PlayColumnProps } from './situation.model'
+import { useOpenSheet } from './useOpenSheet'
 import { usePlayUnits } from './usePlayUnits'
 
 export function PlayUnitsColumn({ play }: PlayColumnProps) {
   const units = usePlayUnits(play)
-  const [sheet, setSheet] = useState<SheetTarget | null>(null)
+  const setSheet = useOpenSheet()
   const { pilot, seat } = play
   const mech = units.mech?.mech ?? null
   const crawler = units.crawler?.crawler ?? null
@@ -89,7 +87,6 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
           }
         />
       ) : null}
-      <PlaySheetOverlay sheet={sheet} onClose={() => setSheet(null)} />
     </>
   )
 }

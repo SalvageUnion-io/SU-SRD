@@ -157,27 +157,8 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * A copy onto your shelf. Destroys nothing, but it does make something, and a
-   * player who expected a move would otherwise find two of them — so it names
-   * the copy it will make and says the two will not stay in step.
-   */
-  copy(name: string): ConfirmCopy {
-    return {
-      title: `Make a copy of ${name} in your Training Bay?`,
-      body: [
-        `This makes “${copyName(name)}” in your Training Bay. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
-        "Don't want it later? Delete the copy from your Training Bay.",
-      ],
-      confirmLabel: 'Make a copy',
-      pendingLabel: 'Copying…',
-      tone: 'default',
-      failure: `${name} could not be copied. Try again.`,
-    }
-  },
-
-  /**
    * "Make a copy" on Shelves (board S1): a second build of something already on
-   * your shelf, in no Game. Same promise as `copy` — it names the copy and says
+   * your shelf, in no Game. It names the copy and says
    * the two will not stay in step — for a reader who is already on the shelf.
    */
   copyOnShelf(name: string): ConfirmCopy {

@@ -463,7 +463,7 @@ describe('every Mediator capability is reachable here', () => {
     expect(foot.getByText('Players see the Opposition only through what you post')).toBeTruthy()
   })
 
-  test('The table: View a seat’s sheet is its Sheet ⤢', async () => {
+  test('The table: View a seat’s sheet is its Sheet', async () => {
     await renderCockpit()
     expect(named('Open Rook’s sheet')).toBeTruthy()
   })

@@ -1,10 +1,11 @@
 /**
- * The destructive and ownership verbs on a Game roster row, each behind its
+ * The destructive and ownership verbs on a Game's crew row, each behind its
  * confirm.
  *
  * Every verb here changes who has a build or whether it exists — picking it up,
- * offering it back, copying it, deleting it, scrapping the crawler — so none of
- * them runs on the press. Each opens the surface's confirm (`useConfirm`) with
+ * offering it back, moving it out, deleting it, scrapping the crawler — so none
+ * of them runs on the press. Copying is Build's (the Training Bay's ⋯ menu):
+ * Play only plays (owner, round 8). Each opens the surface's confirm (`useConfirm`) with
  * its words from `lib/games/rowActionCopy.ts`, and does the work only when the
  * player confirms. A failure stays on the dialog with its reason.
  *
@@ -19,9 +20,7 @@ import { moveTo, SHELF } from 'game-domain/container'
 import type { OwnableTable } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { useEntityStore } from '../../stores/entityStore'
@@ -37,8 +36,6 @@ export type RowActions = {
   pickUp: (row: RosterRow) => void
   /** Hand a character you hold back to the crew. */
   offer: (row: RosterRow) => void
-  /** Copy a pilot or mech into your shelves. */
-  copy: (row: RosterRow) => void
   /**
    * Take a build out of the Game it is in, to your shelves — same record, same id
    * (a move, never a copy). `gameName` names the Game in the confirm.
@@ -81,31 +78,6 @@ export function useRowActions(confirm: Confirm): RowActions {
           // It belongs to the table now, not to this browser: keeping a local
           // copy would leave an editor whose writes the server refuses.
           await forgetLocal(row)
-        },
-      }),
-
-    /**
-     * Offered on every pilot and mech row, including a crewmate's and an
-     * unclaimed pre-gen, because it is derived from what you may already read:
-     * membership of the Game grants a read-only view of every row's sheet, and
-     * copying what is on your screen escalates nothing. It is also the only way
-     * to keep a character when you walk away from a table — releasing one
-     * leaves it behind, unclaimed.
-     *
-     * It asks first even though it destroys nothing: it makes a second build,
-     * and a player who expected a move would otherwise find two of them.
-     */
-    copy: (row) =>
-      confirm({
-        ...ROW_ACTION_COPY.copy(row.name),
-        onConfirm: async () => {
-          const created = await useEntityStore
-            .getState()
-            .create(
-              row.kind === 'pilot' ? 'pilot' : 'mech',
-              copyForShelf(row.body, row.name) as never
-            )
-          toast.success(`Copied ${created.name} to your Training Bay.`)
         },
       }),
 

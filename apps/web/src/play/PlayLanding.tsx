@@ -1,20 +1,23 @@
 /**
- * PlayLanding — the Play hub (`/play/`, ADR-052 §4): one tap from here into
- * any Game, its page or its Play screen, and any solo pilot. A Manage page
- * (ruleset §1.9): paper under the `play` band, Slab sections, Compacts that link.
+ * PlayLanding — the Play hub (`/play/`, ADR-052 §4): your Games, and one tap
+ * from each into play. Play only plays (owner, round 8: "don't overflow with
+ * build func, focus on games"): nothing here makes or keeps a unit; each unit
+ * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
+ * `play` band.
  *
- *  - **+ New Game** (`NewGameControl`, from a name or a template) and **Join**
- *    (paste an invite link, or its token, to open the invite screen), at the
- *    head of the page.
- *  - **Your Games** (`games.listMine`): one Compact per Game, the whole Compact opening
- *    the Game's page in Play (`/play/games/$gameId`), with your role, how many
- *    are here now (the seats' heartbeats, `seats.presence`, play.md §7) and the
- *    Downtime state (`downtime.state`) as chips, and one rust door in its chip
- *    group: Mediate where you mediate it, else Play <your pilot>
- *    (`playHub.model.ts`).
- *  - **Solo**: each pilot you own that is in no Game, with its mech's chip or
- *    "No Mech", and Play solo.
- *  - **Discord**: the channels play posts to (`PlayDiscordSection`).
+ *  - **The band**: **+ New Game** (`NewGameControl`, from a name or a
+ *    template) and **Join with a link** (paste an invite link, or its token,
+ *    to open the invite screen), its controls.
+ *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
+ *    Game, the whole Compact opening the Game's page in Play
+ *    (`/play/games/$gameId`). Its chips are your role, how many are here now
+ *    (the seats' heartbeats, `seats.presence`, play.md §7), the Downtime state
+ *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
+ *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
+ *    its one door, last in the chip group: Mediate where you mediate it, else
+ *    Play <your pilot> (`playHub.model.ts`).
+ *  - **Play solo**, under the Games: each pilot you own that is in no Game,
+ *    with its mech or "No Mech", and Play solo.
  *
  * Signed out there is nothing to play, so it asks you to sign in. The store
  * holds only your own pilots, so every pilot it lists is yours to play.
@@ -40,8 +43,8 @@ import {
   ChapterBand,
   Entity,
   FieldError,
-  Grid,
   Input,
+  ModalShell,
   PageShell,
   Pending,
   Stat,
@@ -54,24 +57,29 @@ import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
-import { PlayDiscordSection } from './PlayDiscordSection'
+import type { MyChannels } from './channels.model'
+import { channelTag } from './channels.model'
 import { PlayRefusal } from './PlayRefusal'
 import { gamePilots, soloPilots } from './play.model'
-import { gameChips, gameDoor } from './playHub.model'
+import { gameChips, gameCrew, gameDoor } from './playHub.model'
 import { usePresenceClock } from './usePresenceClock'
 
 type GameSummary = FunctionReturnType<typeof api.games.listMine>[number]
 
-const MEASURE = '75rem'
+/** One column of Games: each card wide enough for its crew on a line or two. */
+const MEASURE = '60rem'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
-/** The sections side by side where there is room, stacked on a phone. */
-const SECTIONS = { alignItems: 'start' } satisfies CSSProperties
+const BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[32],
+} satisfies CSSProperties
 
-/** New Game and Join, at the page's head, packed to its far end. */
-const ACTIONS = {
-  alignItems: 'flex-start',
+/** The band's controls, packed to its far end. */
+const CONTROLS = {
+  alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[8],
@@ -79,12 +87,18 @@ const ACTIONS = {
 } satisfies CSSProperties
 
 const JOIN = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  margin: 0,
+  padding: tokens.space[20],
+} satisfies CSSProperties
+
+const JOIN_ROW = {
   alignItems: 'flex-start',
   display: 'flex',
-  flex: '0 1 28rem',
   flexWrap: 'wrap',
   gap: tokens.space[8],
-  margin: 0,
 } satisfies CSSProperties
 
 const JOIN_FIELD = {
@@ -110,42 +124,54 @@ export function PlayLanding() {
   }
   if (mode === 'connecting') return <RoutePending label="your session" />
   if (mode === 'connected') return <ConnectedPlayLanding />
-  return <PlayLandingView games={undefined} />
+  return <PlayLandingView games={undefined} channels={undefined} />
 }
 
 function ConnectedPlayLanding() {
   const games = useQuery(api.games.listMine, {})
-  return <PlayLandingView games={games} connected />
+  const channels = useQuery(api.channelBindings.mine, {}) as MyChannels | undefined
+  return <PlayLandingView games={games} channels={channels} connected />
 }
 
 type PlayLandingViewProps = {
   /** Your Games; undefined while they load, or with no server to ask. */
   games: readonly GameSummary[] | undefined
+  /** Where each Game's rolls post; undefined while it loads. */
+  channels: MyChannels | undefined
   /** There is a server to ask: an unanswered list is loading, not waiting. */
   connected?: boolean
 }
 
-function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
+function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
   useHydrateEntities(['pilot', 'mech', 'softLink'])
   const pilots = usePilots()
   const solo = soloPilots(pilots, useMechs(), useSoftLinkList())
+  const channelOf = new Map(
+    (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
+  )
 
   return (
     <PageShell
       measure={MEASURE}
       band={
-        <ChapterBand tone="play" measure={MEASURE}>
+        <ChapterBand
+          tone="play"
+          measure={MEASURE}
+          asideAt="controls"
+          aside={
+            connected ? (
+              <div style={CONTROLS}>
+                <NewGameControl />
+                <JoinGame />
+              </div>
+            ) : undefined
+          }
+        >
           {PRODUCT.play}
         </ChapterBand>
       }
     >
-      {connected && (
-        <div style={ACTIONS}>
-          <NewGameControl />
-          <JoinGame />
-        </div>
-      )}
-      <Grid min="20rem" gap={24} style={SECTIONS}>
+      <div style={BODY}>
         <Shelf
           title="Your Games"
           id="play-games"
@@ -161,15 +187,19 @@ function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
           }
         >
           {games?.map((game) => (
-            <PlayGameItem key={game._id} game={game} pilots={gamePilots(pilots, game._id)} />
+            <PlayGameItem
+              key={game._id}
+              game={game}
+              pilots={gamePilots(pilots, game._id)}
+              channel={channelOf.get(game._id) ?? null}
+            />
           ))}
         </Shelf>
         <Shelf
-          title="Solo"
+          title="Play solo"
           id="play-solo"
-          note="Pilots you own that are not in a Game."
           isEmpty={solo.length === 0}
-          empty="No Pilots outside a Game."
+          empty="Every Pilot of yours is in a Game."
         >
           {solo.map((pilot) => (
             <li key={pilot.pilotId} style={ITEM}>
@@ -200,7 +230,7 @@ function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
                   <Button
                     href={`/play/${pilot.pilotId}`}
                     aria-label={`Play ${pilot.name} solo`}
-                    variant="primary"
+                    variant="ink"
                     size="mini"
                   >
                     Play solo
@@ -210,19 +240,20 @@ function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
             </li>
           ))}
         </Shelf>
-        <PlayDiscordSection />
-      </Grid>
+      </div>
     </PageShell>
   )
 }
 
 /**
- * Join a Game: paste its invite link (or the token alone) and Join opens the
- * invite screen, which does the joining. Anything that is not a link or a
- * token says so here rather than opening a dead link's page.
+ * Join with a link: a band control opening one field. Paste an invite link
+ * (or the token alone) and Join opens the invite screen, which does the
+ * joining. Anything that is not a link or a token says so here rather than
+ * opening a dead link's page.
  */
 function JoinGame() {
   const go = useGo()
+  const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
 
@@ -233,49 +264,74 @@ function JoinGame() {
       setWrong(true)
       return
     }
+    setOpen(false)
     go(invitePath(token))
   }
 
   return (
-    <form style={JOIN} onSubmit={join} aria-label="Join a Game">
-      <div style={JOIN_FIELD}>
-        <Input
-          aria-label="Invite link"
-          placeholder="Paste an invite link to join…"
-          value={pasted}
-          onChange={(e) => {
-            setPasted(e.target.value)
-            setWrong(false)
-          }}
-          style={JOIN_INPUT}
-        />
-        <FieldError>{wrong ? 'That is not an invite link.' : null}</FieldError>
-      </div>
-      <Button type="submit" variant="default" size="compact" disabled={pasted.trim() === ''}>
-        Join
+    <>
+      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
+        Join with a link
       </Button>
-    </form>
+      <ModalShell open={open} onOpenChange={setOpen} title="Join a Game">
+        <form style={JOIN} onSubmit={join} aria-label="Join a Game">
+          <div style={JOIN_ROW}>
+            <div style={JOIN_FIELD}>
+              <Input
+                aria-label="Invite link"
+                placeholder="Paste an invite link…"
+                value={pasted}
+                onChange={(e) => {
+                  setPasted(e.target.value)
+                  setWrong(false)
+                }}
+                style={JOIN_INPUT}
+              />
+              <FieldError>{wrong ? 'That is not an invite link.' : null}</FieldError>
+            </div>
+            <Button type="submit" variant="primary" size="compact" disabled={pasted.trim() === ''}>
+              Join
+            </Button>
+          </div>
+        </form>
+      </ModalShell>
+    </>
   )
 }
 
 /**
- * One of your Games, as a Compact: the whole Compact opens the Game's page; its chips
- * say your role, how many are here and the Downtime state; its one door,
- * last in the chip group, goes into play.
+ * One of your Games, as a contentful Compact: the whole Compact opens the
+ * Game's page; its chips say your role, how many are here, the Downtime state
+ * and its channel; its body is the crew, each unit opening its sheet; its one
+ * door, last in the chip group, goes into play.
  */
 function PlayGameItem({
   game,
   pilots,
+  channel,
 }: {
   game: GameSummary
   pilots: readonly { id: string; name: string }[]
+  channel: string | null
 }) {
-  const downtime = useQuery(api.downtime.state, { gameId: game._id as Id<'games'> })
-  const seen = useQuery(api.seats.presence, { gameId: game._id as Id<'games'> })
+  const gameId = game._id as Id<'games'>
+  const downtime = useQuery(api.downtime.state, { gameId })
+  const seen = useQuery(api.seats.presence, { gameId })
+  const listing = useQuery(api.entities.listForGame, { gameId })
+  const vitals = useQuery(api.crew.vitals, { gameId })
   const now = usePresenceClock()
   const here = seen?.filter((at) => isPresent(at, now)).length ?? 0
-  const chips = gameChips({ mediator: game.mediator, here, downtime })
+  const chips = gameChips({ mediator: game.mediator, here, downtime, channel })
   const door = gameDoor(game, pilots)
+  const crew =
+    listing && vitals
+      ? gameCrew({
+          crawlers: listing.crawlers,
+          primaryCrawlerId: listing.primaryCrawlerId,
+          pilots: vitals.pilots,
+          mechs: vitals.mechs,
+        })
+      : []
   return (
     <li style={ITEM}>
       <Entity
@@ -286,6 +342,7 @@ function PlayGameItem({
         labels={chips.map((chip) => (
           <Stat key={chip.key} label={chip.label} value={chip.value} size="compact" />
         ))}
+        {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
           door ? (
             // Ink on the Game's pink, as its stamps are (owner, round 4:

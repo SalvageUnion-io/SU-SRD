@@ -37,7 +37,7 @@ import {
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { ownableRows, rosterSheetHref } from '../../lib/games/gameRoster'
+import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
 const { space } = tokens
@@ -79,7 +79,7 @@ export function TheGame({
 }) {
   const id = useId()
   const members = useQuery(api.games.members, { gameId })
-  const listing = useQuery(api.entities.listForGame, { gameId })
+  const vitals = useQuery(api.crew.vitals, { gameId })
   const setMediator = useMutation(api.games.setMediator)
   const { canWrite } = useConnection()
   const [handing, setHanding] = useState(false)
@@ -91,22 +91,12 @@ export function TheGame({
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
 
-  // What each member holds here, by their id: their pilots, then their mechs.
+  // What each member holds here, by their id: each pilot paired with its mech
+  // (the mech while aboard, else the pilot; owner, round 8), then spare mechs.
   const held = new Map<string, LinkedUnit[]>()
-  for (const kind of ['pilot', 'mech'] as const) {
-    const rows = ownableRows({
-      kind,
-      rows: (kind === 'pilot' ? listing?.pilots : listing?.mechs) ?? [],
-      viewerId,
-      members: members ?? [],
-      localIds: new Set(),
-    })
-    for (const row of rows) {
-      if (row.ownerId === null) continue
-      const list = held.get(row.ownerId) ?? []
-      list.push({ key: row.serverId, kind, name: row.name, href: rosterSheetHref(row) })
-      held.set(row.ownerId, list)
-    }
+  for (const { ownerId, unit } of vitals ? pairedCrew(vitals) : []) {
+    if (ownerId === null) continue
+    held.set(ownerId, [...(held.get(ownerId) ?? []), unit])
   }
 
   return (

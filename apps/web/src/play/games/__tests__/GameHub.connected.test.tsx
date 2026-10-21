@@ -141,7 +141,7 @@ async function openGameMenu(): Promise<void> {
 async function renderHub(over: QueryAnswers = {}): Promise<void> {
   setQueryAnswers(answers(over))
   await act(async () => {
-    render(<GameHub gameId="g1" activeSegment="pilot" onSegmentChange={() => {}} />)
+    render(<GameHub gameId="g1" />)
   })
 }
 
@@ -166,7 +166,7 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
 
   test('the sections are Slabs (solid stamps), level 2 under the page’s h1', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
-    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Invite link', 'The Game']) {
+    for (const name of ['Crew', 'Invite link', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
   })
@@ -183,12 +183,12 @@ describe('the sections under the roster (board M2)', () => {
     for (const name of ['Awaiting your answer', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
-    // Its seats ride the Pilots rows (owner, 2026-10-20).
+    // Its seats ride the pilots' rows (owner, 2026-10-20).
     expect(heading('Crew & seats')).toBeNull()
     // Downtime runs in Play, not on the Game page.
     expect(heading('Downtime')).toBeNull()
-    // Below the lists: the roster's columns come first in the document.
-    const pilots = screen.getByRole('heading', { level: 2, name: 'Pilots' })
+    // The crew comes first in the document.
+    const pilots = screen.getByRole('heading', { level: 2, name: 'Crew' })
     const game = screen.getByRole('heading', { level: 2, name: 'The Game' })
     expect(pilots.compareDocumentPosition(game) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
@@ -310,7 +310,7 @@ describe('the seats, on the Pilots rows', () => {
       },
     })
 
-    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const pilots = screen.getByRole('region', { name: 'Crew' })
     const text = drawnText(pilots)
     // A pilot's row: its HP, then its mech as its header-only Mini, never a
     // chip (round 4).
@@ -475,7 +475,7 @@ describe('Play from the Game page', () => {
 
     const button = launcher()
     expect(button).toBeTruthy()
-    const pilots = screen.getByRole('heading', { level: 2, name: 'Pilots' })
+    const pilots = screen.getByRole('heading', { level: 2, name: 'Crew' })
     expect(
       (button as HTMLElement).compareDocumentPosition(pilots) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
@@ -529,7 +529,7 @@ describe('Play from the Game page', () => {
     setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': undefined }))
     let view: ReturnType<typeof render> | undefined
     await act(async () => {
-      view = render(<GameHub gameId="g1" activeSegment="pilot" onSegmentChange={() => {}} />)
+      view = render(<GameHub gameId="g1" />)
     })
     const dialog = await openPicker()
     expect(within(dialog).getByText('Loading pilots…')).toBeTruthy()
@@ -537,7 +537,7 @@ describe('Play from the Game page', () => {
 
     setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) }))
     await act(async () => {
-      view?.rerender(<GameHub gameId="g1" activeSegment="pilot" onSegmentChange={() => {}} />)
+      view?.rerender(<GameHub gameId="g1" />)
     })
     const radios = within(screen.getByRole('dialog')).getAllByRole('radio')
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])

@@ -8,7 +8,7 @@ const said = (copy: ConfirmCopy) => [copy.title, ...copy.body, copy.confirmLabel
 describe('rowActionCopy', () => {
   test('the personal shelf is "your Training Bay" in the confirms that mention it', () => {
     const mentions = [
-      ROW_ACTION_COPY.copy('Vex Arlo'),
+      ROW_ACTION_COPY.copyOnShelf('Vex Arlo'),
       ROW_ACTION_COPY.leaveGame({
         name: 'Vex Arlo',
         kind: 'pilot',
@@ -117,7 +117,7 @@ describe('rowActionCopy', () => {
   })
 
   test('a copy names the build it will make', () => {
-    expect(said(ROW_ACTION_COPY.copy('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
+    expect(said(ROW_ACTION_COPY.copyOnShelf('Vex Arlo'))).toContain('“COPY OF Vex Arlo”')
   })
 
   test('a move out of a game the reader cannot name still reads as a sentence', () => {
@@ -138,7 +138,7 @@ describe('rowActionCopy', () => {
 
   test('only the two constructive verbs are not danger-toned', () => {
     expect(ROW_ACTION_COPY.pickUp('Vex Arlo').tone).toBe('default')
-    expect(ROW_ACTION_COPY.copy('Vex Arlo').tone).toBe('default')
+    expect(ROW_ACTION_COPY.copyOnShelf('Vex Arlo').tone).toBe('default')
     for (const copy of [
       ROW_ACTION_COPY.offer('Vex Arlo', 'pilot'),
       ROW_ACTION_COPY.deleteFromGame('Vex Arlo'),

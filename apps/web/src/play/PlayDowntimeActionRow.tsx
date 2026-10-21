@@ -2,7 +2,7 @@
  * PlayDowntimeActionRow — one of the Downtime actions the guide names that is
  * not a unit's action (play.md §6): Train your Pilot, Craft · Trade and
  * Gather Cantina Rumours. Training and crafting are spent on the sheets, so
- * their rows open the pilot's or the crawler's over Play (`PlaySheetOverlay`,
+ * their rows open the pilot's or the crawler's sheet in Build (`useOpenSheet`,
  * play.md §4); a rumour is a roll, made here and put on Play's roll log with
  * its row (`rollFor`, `playRolls.model.ts`).
  *
@@ -21,10 +21,10 @@ import { Button, Entity, Stat } from '../components/index'
 import { bayGate } from '../lib/rules/crawlerEconomy'
 import { NeedChip } from './PlayActionRow'
 import { PlayRollInstrument } from './PlayRollInstrument'
-import type { SheetTarget } from './PlaySheetOverlay'
-import { PlaySheetOverlay } from './PlaySheetOverlay'
 import type { DowntimeActionId } from './playActions.model'
 import { playLineModel } from './playLine.model'
+import type { SheetTarget } from './useOpenSheet'
+import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
 
 /** The table an app rumour is rolled on. */
@@ -61,7 +61,7 @@ export function PlayDowntimeActionRow({
   canWrite,
 }: PlayDowntimeActionRowProps) {
   const [rumour, setRumour] = useState<{ roll: number; text: string } | null>(null)
-  const [sheet, setSheet] = useState<SheetTarget | null>(null)
+  const setSheet = useOpenSheet()
   const away = need !== null
 
   async function rollRumour() {
@@ -75,9 +75,9 @@ export function PlayDowntimeActionRow({
     setRumour({ roll, text })
   }
 
-  /** "Spend TP" / "Open": the unit's sheet over Play. */
+  /** "Spend TP" / "Open": the unit's sheet in Build. */
   const open = (target: SheetTarget | null, label: string) => (
-    <Button size="mini" disabled={target === null} onClick={() => setSheet(target)}>
+    <Button size="mini" disabled={target === null} onClick={() => target && setSheet(target)}>
       {label}
     </Button>
   )
@@ -137,7 +137,6 @@ export function PlayDowntimeActionRow({
             }
           : {})}
       />
-      <PlaySheetOverlay sheet={sheet} onClose={() => setSheet(null)} />
     </li>
   )
 }

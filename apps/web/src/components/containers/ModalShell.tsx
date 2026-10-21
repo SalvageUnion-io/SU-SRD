@@ -72,12 +72,6 @@ type ModalShellProps = {
   /** Element to focus when the dialog closes (defaults to base-ui's: the
    *  trigger, or whatever held focus before it opened). */
   finalFocus?: RefObject<HTMLElement | null>
-  /**
-   * Fill the whole viewport, edge to edge, and scroll inside it: a sheet over
-   * Play (`PlaySheetOverlay`), a screen rather than a box over one. Ignores `width` and `align`; pair it with `bare`,
-   * so the child draws its own header and close control.
-   */
-  fullscreen?: boolean
   children?: ReactNode
 }
 
@@ -126,15 +120,6 @@ const SUBTITLE_CAPS = capsLabel()
  */
 const CONTROL_SLOT = { display: 'contents' } satisfies CSSProperties
 
-/** A full-screen popup covers the viewport and scrolls inside itself. */
-const FULLSCREEN_POPUP = {
-  position: 'fixed',
-  inset: 0,
-  zIndex: layer.overlay,
-  overflowY: 'auto',
-  outline: 'none',
-} satisfies CSSProperties
-
 export function ModalShell({
   open,
   onOpenChange,
@@ -150,7 +135,6 @@ export function ModalShell({
   bare = false,
   container,
   finalFocus,
-  fullscreen = false,
   children,
 }: ModalShellProps) {
   // `tone` is the whole API: a union, never a raw class string compared by
@@ -189,7 +173,7 @@ export function ModalShell({
       <Dialog.Popup
         initialFocus={initialFocus}
         finalFocus={finalFocus}
-        style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
+        style={container ? CONTAINED_POPUP : popupStyle}
       >
         {!ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}
         {description !== null && (

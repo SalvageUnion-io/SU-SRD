@@ -8,14 +8,9 @@
  *    Game you are not in reads as an explanation.
  *  - **Disconnected:** a Game is the server's record, so its page waits for the
  *    connection; your own builds stay in the Training Bay.
- *
- * The phone's Pilot/Mech/Crawler switch is kept here, so a remount of the hub
- * keeps the column a player picked.
  */
 
 import '../../styles/play/play.css'
-import { useState } from 'react'
-import type { SegmentKind } from '../../build/roster/RosterColumn'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { PlayRefusal } from '../PlayRefusal'
@@ -23,7 +18,6 @@ import { GameHub } from './GameHub'
 
 export function GamePage({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
-  const [segment, setSegment] = useState<SegmentKind>('pilot')
   if (mode === 'solo') {
     return (
       <PlayRefusal
@@ -44,7 +38,5 @@ export function GamePage({ gameId }: { gameId: string }) {
     )
   }
   // Remount per Game, so one table's busy and error state never shows on the next.
-  return (
-    <GameHub key={gameId} gameId={gameId} activeSegment={segment} onSegmentChange={setSegment} />
-  )
+  return <GameHub key={gameId} gameId={gameId} />
 }

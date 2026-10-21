@@ -3,23 +3,23 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { ConvexError } from 'convex/values'
 
 /**
- * `GameRoster` — a Game's crew in the hub's columns, connected.
+ * `GameRoster` — a Game's crew on its page in Play, one list, connected.
  *
- * What is worth testing here is not that three columns render; it is that the
+ * What is worth testing here is not that the list renders; it is that the
  * surface tells the truth about **what you may do**, because every control on
  * it corresponds to a server rule that will refuse. The cases below are the
  * ones where showing the wrong thing is actively harmful:
  *
  *  - offering a sheet for a crewmate's pilot (an editor whose saves are refused)
  *  - offering to pick up something somebody already holds
- *  - offering "create" in a Game with no crawler, which the server rejects
- *  - hiding the crawler CTA from the only person who can raise one
+ *  - hiding the crawler link from the only person who can raise one
+ *  - offering Build's verbs (create, copy) inside Play (owner, round 8)
  *
- * That each column lists YOUR rows first, framed under YOURS, and everyone
- * else's below — the crewmates' with their name on the seal.
+ * That each kind lists YOUR rows first and everyone else's after — the
+ * crewmates' with their name on the seal.
  *
- * And, for every verb that changes who has a build — pick up, offer, copy,
- * remove from game, delete, scrap — that it asks first: nothing happens until
+ * And, for every verb that changes who has a build — pick up, offer, remove
+ * from game, delete, scrap — that it asks first: nothing happens until
  * the confirm is pressed, Cancel leaves everything as it was, and a failure
  * keeps the dialog open with a reason.
  *
@@ -103,17 +103,6 @@ const MY_MECH = {
   ownerId: 'u-me',
   body: { id: 'a-mech', name: 'Iron Mongrel', chassisRef: 'iron-mongrel', currentSP: 12 },
 }
-/**
- * A crewmate's pilot with a COMPLETE body. A copy goes through
- * `entityStore.create`, which Zod-parses the body, so the sketch bodies above
- * would be refused on the way in.
- */
-const WHOLE_PILOT = {
-  _id: 's-whole',
-  appId: 'a-whole',
-  ownerId: 'u-med',
-  body: pilotFixture({ id: 'a-whole', name: 'Vex Arlo' }),
-}
 const CRAWLER = {
   _id: 's-crawler',
   appId: 'a-crawler',
@@ -145,14 +134,7 @@ async function renderAs(
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.
   await act(async () => {
-    render(
-      <GameRoster
-        gameId="g1"
-        gameName="Tenacity"
-        activeSegment="pilot"
-        onSegmentChange={() => {}}
-      />
-    )
+    render(<GameRoster gameId="g1" gameName="Tenacity" />)
   })
 }
 
@@ -205,7 +187,7 @@ describe('what a row offers', () => {
 
   test('the ⋯ menu’s Open goes to the same sheet as the row', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    expect((await verbsOf('Roach-Boy'))[0]).toBe('Open')
+    expect((await verbsOf('Roach-Boy'))[0]).toBe('Open sheet')
   })
 
   test('a pre-gen with no app id opens by its body id', async () => {
@@ -252,9 +234,9 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     // Game rows carry no trash at all — leaving a character you hold is
-    // "Offer to the crew", and deleting the crawler is the table runner's.
-    // Nothing here can destroy somebody else's build.
-    expect(await verbsOf('Ash')).toEqual(['Open', 'Make a copy'])
+    // "Offer to the crew", and deleting the crawler is the table runner's;
+    // copying is Build's (round 8). Nothing here can destroy somebody else's build.
+    expect(await verbsOf('Ash')).toEqual(['Open sheet'])
   })
 })
 
@@ -281,32 +263,31 @@ describe('picking up what nobody holds', () => {
 })
 
 describe('what the game will accept', () => {
-  test('a player may add crew before any crawler exists (ADR-037)', async () => {
+  test('a player may bring a pilot before any crawler exists (ADR-037)', async () => {
     await renderAs(ME, listing())
 
-    // The crew gathers first; the first crawler raised picks them up. The
-    // Crawlers column still says who raises one.
-    expect(screen.getByText('Create Pilot')).toBeTruthy()
-    expect(screen.getAllByText(/no Union Crawler yet/i).length).toBeGreaterThan(0)
+    // The crew gathers first; the first crawler raised picks them up.
+    expect(screen.getByText('+ New Pilot')).toBeTruthy()
+    expect(screen.queryByText('+ New Crawler')).toBeNull()
   })
 
-  test('and can create once the crawler exists', async () => {
+  test('and once the crawler exists', async () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(screen.getByText('Create Pilot')).toBeTruthy()
+    expect(screen.getByText('+ New Pilot')).toBeTruthy()
   })
 
   test('a player is never offered the crawler CTA', async () => {
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(screen.queryByText('Raise a Crawler')).toBeNull()
+    expect(screen.queryByText('+ New Crawler')).toBeNull()
   })
 
   test('the table runner may raise one before anything else exists', async () => {
     const mediator = { ...ME, _id: 'u-med', displayName: 'Mediator' }
     await renderAs(mediator, listing())
 
-    expect(screen.getByText('Raise a Crawler')).toBeTruthy()
+    expect(screen.getByText('+ New Crawler')).toBeTruthy()
     // Exempt from the crawler gate, or a new game could never be set up.
-    expect(screen.getByText('Create Pilot')).toBeTruthy()
+    expect(screen.getByText('+ New Pilot')).toBeTruthy()
   })
 
   test('the primary crawler is marked, and only the table runner can make another one primary', async () => {
@@ -400,26 +381,11 @@ describe('yours first, then everyone else', () => {
 })
 
 describe('make a copy', () => {
-  test('every character offers it, including ones you do not own', async () => {
-    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
-
-    // Derived from what you may already read: membership grants the frozen crew
-    // view of every row, so copying what is on screen escalates nothing. It is
-    // also the only way to keep a character when you walk away from the table:
-    // releasing one leaves it behind, unclaimed.
-    expect(await rowsOffering(['Roach-Boy', 'Ash', 'Pre-gen'], 'Make a copy')).toHaveLength(3)
-  })
-
-  test('the crawler does not — a deliberate hold, no longer an impossibility', async () => {
-    await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-
-    // This assertion is unchanged but its reason is not. A shelved crawler was
-    // once unrepresentable (`crawlers.gameId` was non-nullable); it is ordinary
-    // now. The crawler is the crew's shared home rather than a character
-    // somebody keeps, so offering "copy the table's crawler to your shelf" is a
-    // product decision that has not been made — and this test is what will fail
-    // first, loudly and in the right place, when somebody makes it.
-    expect(await verbsOf('#430 Tenacity')).not.toContain('Make a copy')
+  test('is Build’s: no row offers it in Play (owner, round 8)', async () => {
+    await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN], crawlers: [CRAWLER] }))
+    expect(
+      await rowsOffering(['Roach-Boy', 'Ash', 'Pre-gen', '#430 Tenacity'], 'Make a copy')
+    ).toEqual([])
   })
 })
 
@@ -478,23 +444,6 @@ describe('every verb that changes who has a build asks first', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
-  test('Make a copy says the copy is separate, and copies nothing until confirmed', async () => {
-    // Signed in: building needs an account. The backend's auth state is
-    // process-global, so it is set here rather than assumed.
-    setEntityBackendAuthState(SIGNED_IN)
-    await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
-    const dialog = await press('Vex Arlo', 'Make a copy')
-
-    expect(dialog.textContent).toContain('Make a copy of Vex Arlo in your Training Bay?')
-    expect(dialog.textContent).toContain("won't sync back")
-    expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
-
-    await confirmWith('Make a copy')
-    // A signed-in create commits to the (stubbed) server first, and settles after `act`.
-    await waitFor(() => expect(localPilotNames()).toContain('COPY OF Vex Arlo'))
-    expect(screen.queryByRole('alertdialog')).toBeNull()
-  })
-
   test('Deleting the crawler says it is for everyone and permanent, and deletes nothing until confirmed', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
     const dialog = await press('#430 Tenacity', 'Delete…')
@@ -535,7 +484,6 @@ describe('every verb that changes who has a build asks first', () => {
 
   test.each([
     ['Offer to the crew', MY_PILOT],
-    ['Make a copy', MY_PILOT],
     ['Delete…', MY_PILOT],
   ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
     await renderAs(ME, listing({ pilots: [pilot] }))
@@ -648,85 +596,17 @@ describe('remove from game', () => {
 })
 
 describe('units in from Build (ADR-052 §3, §5)', () => {
-  test('each Create opens Build’s wizard for this Game, so the unit lands here', async () => {
+  test('the head links out to Build: its wizard for this Game, and the Training Bay', async () => {
     const mediator = { ...ME, _id: 'u-med', displayName: 'Mediator' }
     await renderAs(mediator, listing())
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
-    expect(hrefOf('Create Pilot')).toBe('/pilots/new?game=g1')
-    expect(hrefOf('Create Mech')).toBe('/mechs/new?game=g1')
-    expect(hrefOf('Raise a Crawler')).toBe('/crawlers/new?game=g1')
-  })
-
-  /** Your Training Bay: a pilot on the shelf, one in another Game, one already here. */
-  async function holdHangar(): Promise<void> {
-    setEntityBackendAuthState(SIGNED_IN)
-    const store = useEntityStore.getState()
-    await store.adopt('pilot', pilotFixture({ id: 'a-shelf', name: 'Kestrel', gameId: null }))
-    await store.adopt('pilot', pilotFixture({ id: 'a-away', name: 'Skiv', gameId: 'g2' }))
-    await store.adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
-  }
-  const gameIdOf = (id: string) => useEntityStore.getState().get('pilot', id)?.gameId
-
-  async function openPicker(): Promise<HTMLElement> {
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Move a pilot in from your Training Bay' })
-      )
-    })
-    return screen.getByRole('dialog', { name: 'Move a pilot in from your Training Bay' })
-  }
-
-  test('the picker offers one of your units not in this Game, under its kind, with the Game it leaves', async () => {
-    await holdHangar()
-    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = await openPicker()
-
-    const group = within(dialog).getByRole('radiogroup')
-    const options = within(group).getAllByRole('radio')
-    // Earlier tests leave a copy on the shelf too: what matters is who is in and out.
-    const names = options.map((o) => o.getAttribute('aria-label') ?? o.textContent)
-    expect(names).toContain('Kestrel')
-    expect(names).toContain('Skiv')
-    expect(names).not.toContain('Roach-Boy')
-    expect(within(dialog).getByRole('heading', { name: 'Pilots' })).toBeTruthy()
-    // What the move touches is visible: Skiv would leave Frostline (C11).
-    const skiv = within(group).getByRole('radio', { name: 'Skiv' }).closest('.su-entity-compact')
-    const tags = [...(skiv?.querySelectorAll('[data-tag]') ?? [])].map((t) => t.textContent)
-    expect(tags).toEqual(['GameFrostline'])
-    // Nothing picked, nothing to move.
-    const move = within(dialog).getByRole('button', { name: 'Move in' })
-    expect(move.hasAttribute('disabled')).toBe(true)
-  })
-
-  test('one pick moves that same unit in, with the Training Bay’s move', async () => {
-    await holdHangar()
-    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = await openPicker()
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('radio', { name: 'Kestrel' }))
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move Kestrel in' }))
-    })
-    await settle(() => gameIdOf('a-shelf') === 'g1')
-    // A move, never a copy: the same id, its Game this one.
-    expect(gameIdOf('a-shelf')).toBe('g1')
-    expect(gameIdOf('a-away')).toBe('g2')
-  })
-
-  test('taking a unit out of another Game asks first', async () => {
-    await holdHangar()
-    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = await openPicker()
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('radio', { name: 'Skiv' }))
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move Skiv in' }))
-    })
-    const confirm = screen.getByRole('alertdialog')
-    expect(confirm.textContent).toContain('Frostline')
-    expect(gameIdOf('a-away')).toBe('g2')
+    expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
+    expect(hrefOf('+ New Crawler')).toBe('/crawlers/new?game=g1')
+    expect(hrefOf('Manage in Build')).toBe('/')
+    // Nothing that builds lives here (owner, round 8).
+    expect(screen.queryByText('Create Mech')).toBeNull()
+    expect(screen.queryByText('Patterns')).toBeNull()
+    expect(screen.queryByText('Move in…')).toBeNull()
   })
 })
 

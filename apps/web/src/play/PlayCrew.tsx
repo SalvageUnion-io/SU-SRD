@@ -19,7 +19,7 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { EmptyState, Entity, MiniGrid, Stat, tokens } from '../components/index'
+import { EmptyState, Entity, MiniGrid, relation, Stat, tokens } from '../components/index'
 import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
@@ -84,17 +84,19 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
     <Entity
       size="mini"
       context="roster"
-      model={unitRowModel({ kind: 'pilot', name: line.name })}
+      // Aboard, the line is their mech with a PILOT chip naming them; on foot,
+      // the pilot (owner, round 8: a pilot and its mech are one Mini).
+      model={
+        line.boardedIn === null
+          ? unitRowModel({ kind: 'pilot', name: line.name })
+          : unitRowModel({ kind: 'mech', name: line.boardedIn })
+      }
       mode={{
         kind: 'link',
         onOpen,
         attrs: { 'aria-label': `${crewLineLabel(line)}. Open their sheet` },
       }}
-      // The mech they are aboard, its header-only Mini in the line's body,
-      // never a chip (owner, round 4).
-      {...(line.boardedIn === null
-        ? {}
-        : { linked: [{ key: 'mech', kind: 'mech' as const, name: line.boardedIn }] })}
+      {...(line.boardedIn === null ? {} : { relations: [relation('pilot', 'Pilot', line.name)] })}
       state={
         <>
           {line.boardedIn === null ? <Stat size="mini" label="On foot" /> : null}

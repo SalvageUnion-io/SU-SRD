@@ -52,7 +52,7 @@ export type HeadProps = {
   /** The mode's affordance: the "Selected" seal, a toggle's check. */
   affordance?: ReactNode
   /**
-   * The host's actions (Use, Roll, Sheet ⤢, Assign, a dialog's ✕): inlined in
+   * The host's actions (Use, Roll, Sheet, Assign, a dialog's ✕): inlined in
    * the chip group after the cost, its last slot (`chips-and-actions.md` C8),
    * before any "⋯" the strip already ends with. Never beside the strip.
    */

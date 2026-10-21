@@ -10,7 +10,7 @@
  * - **Reference** — the dashed frame, every vital a read-out, and at most one
  *   control, the one that makes the unit live: Board, for a mech.
  *
- * A box's actions (Sheet ⤢, Board) are chips on its band, after its stamp
+ * A box's actions (Sheet, Board) are chips on its band, after its stamp
  * (chips-and-actions C8), never a button in a row of its body.
  *
  * ## Nesting (play.md §12)
@@ -115,11 +115,11 @@ function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: 
     runWrite(() => store.getState().update(kind, id, patch, PLAY_TXN))
 }
 
-/** "Sheet ⤢", a chip on the box's band: Mini, the band's Size (ruleset §4.7). */
+/** "Sheet", opening the unit’s sheet in Build (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
 function SheetButton({ name, onOpen }: { name: string; onOpen: () => void }) {
   return (
     <Button variant="ghost" size="mini" aria-label={`Open ${name}’s sheet`} onClick={onOpen}>
-      Sheet ⤢
+      Sheet
     </Button>
   )
 }
@@ -130,7 +130,7 @@ export type PlayPilotUnitProps = {
   crawler: Crawler | null
   /** − / + on HP and AP; else a read-out (another's pilot, offline). */
   live: boolean
-  /** "Sheet ⤢": opens the pilot's sheet over Play. */
+  /** "Sheet": opens the pilot's sheet over Play. */
   onOpenSheet?: () => void
   store?: UnitStore
 }
@@ -223,7 +223,7 @@ export type PlayMechUnitProps = {
   restore?: MechRestore
   /** Reference only: the one control that makes the mech live; null when it cannot be boarded. */
   onBoard?: (() => void) | null
-  /** "Sheet ⤢": opens the mech's sheet over Play. */
+  /** "Sheet": opens the mech's sheet over Play. */
   onOpenSheet?: () => void
   store?: UnitStore
 }
@@ -363,7 +363,7 @@ export type PlayCrawlerUnitProps = {
   live: boolean
   /** Downtime is running: the box carries the Downtime stamp and the Upkeep due. */
   downtime: boolean
-  /** "Sheet ⤢": opens the crawler's sheet over Play. */
+  /** "Sheet": opens the crawler's sheet over Play. */
   onOpenSheet?: () => void
   store?: UnitStore
 }

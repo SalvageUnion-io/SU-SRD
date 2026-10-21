@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { gameChips, gameDoor } from '../playHub.model'
+import { gameChips, gameCrew, gameDoor, pairedCrew } from '../playHub.model'
 
 /** The Play hub's Your Games: a Game's Compact, its chips and its one door (ADR-052 §4). */
 
@@ -51,5 +51,85 @@ describe('its one door', () => {
 
   test('none with no pilot of yours there', () => {
     expect(gameDoor(GAME, [])).toBeNull()
+  })
+})
+
+describe('its crew', () => {
+  const pilot = (over: Record<string, unknown>) => ({
+    _id: 'p1',
+    linkId: 'a-p1',
+    appId: 'a-p1',
+    ownerId: 'u1',
+    name: 'Rook',
+    currentHP: null,
+    maxHP: 10,
+    currentAP: null,
+    maxAP: 5,
+    boarded: false,
+    mechId: null,
+    ...over,
+  })
+  const mech = (over: Record<string, unknown>) => ({
+    _id: 'm1',
+    linkId: 'a-m1',
+    appId: 'a-m1',
+    ownerId: 'u1',
+    name: 'Spectrum',
+    currentSP: 6,
+    maxSP: 9,
+    currentEP: null,
+    maxEP: 5,
+    currentHeat: 0,
+    maxHeat: 9,
+    ...over,
+  })
+  const crawler = (id: string, name: string) => ({ _id: id, appId: `a-${id}`, body: { name } })
+
+  test('the primary crawler first, then each pilot paired with its mech, then spare mechs', () => {
+    const crew = gameCrew({
+      crawlers: [crawler('c2', 'Second Wind'), crawler('c1', 'Big Sal')],
+      primaryCrawlerId: 'c1',
+      pilots: [
+        pilot({ boarded: true, mechId: 'a-m1' }),
+        pilot({ _id: 'p2', linkId: 'a-p2', name: 'Vesper' }),
+      ],
+      mechs: [mech({}), mech({ _id: 'm2', linkId: 'a-m2', name: 'Thresher' })],
+    })
+    expect(crew.map((u) => [u.kind, u.name])).toEqual([
+      ['crawler', 'Big Sal'],
+      ['crawler', 'Second Wind'],
+      ['mech', 'Spectrum'],
+      ['pilot', 'Vesper'],
+      ['mech', 'Thresher'],
+    ])
+    expect(crew[2]?.readings).toEqual([
+      { label: 'SP', value: '6/9' },
+      { label: 'EP', value: '5/5' },
+      { label: 'Heat', value: '0/9' },
+    ])
+    expect(crew[2]?.relations?.[0]?.param).toBe('Rook')
+    expect(crew[3]?.href).toBe('/sheet/pilot/a-p2')
+  })
+
+  test('a member’s own: each unit carries whose it is', () => {
+    const crew = pairedCrew({
+      pilots: [pilot({ mechId: 'a-m1' })],
+      mechs: [mech({}), mech({ _id: 'm3', linkId: 'a-m3', ownerId: 'u2', name: 'Kite' })],
+    })
+    expect(crew.map((c) => [c.ownerId, c.unit.name])).toEqual([
+      ['u1', 'Rook'],
+      ['u2', 'Kite'],
+    ])
+  })
+})
+
+describe('its channel chip', () => {
+  test('a bound channel lists last, by its name', () => {
+    expect(
+      gameChips({ mediator: true, here: 0, downtime: undefined, channel: '#salvage-run' })
+    ).toEqual([
+      { key: 'role', label: 'Mediator' },
+      { key: 'channel', label: '#salvage-run' },
+    ])
   })
 })

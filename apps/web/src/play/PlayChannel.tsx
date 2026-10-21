@@ -38,7 +38,7 @@ type PlayChannelDialogProps = {
   binding: PlayBinding | null
 }
 
-export function PlayChannelDialog({ open, onClose, owner, binding }: PlayChannelDialogProps) {
+function PlayChannelDialog({ open, onClose, owner, binding }: PlayChannelDialogProps) {
   const whose = owner.kind === 'solo' ? 'your solo play' : (owner.gameName ?? 'this Game')
   return (
     <ModalShell

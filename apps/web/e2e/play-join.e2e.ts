@@ -3,15 +3,16 @@ import { createGame, makeInviteLink, secondAccount } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * A Game from end to end, every step in Play but the Training Bay the pilot comes
- * from (ADR-052 §3–§5):
+ * A Game from end to end: made, joined and played in Play, the pilot brought
+ * in from Build (ADR-052 §3–§5; Play only plays, owner, round 8):
  *
  *  1. The Organizer makes a Game on the Play hub (+ New Game) and lands on its
  *     page, `/play/games/<id>`, and copies its invite link.
  *  2. A player, with a pilot already in their Training Bay, opens the link and joins:
  *     joining lands on the same Game's page.
- *  3. They move the pilot in from their Training Bay (the page's single-choice
- *     picker), and the roster lists it.
+ *  3. They move the pilot in from their Training Bay (its ⋯ menu's Move to a
+ *     Game…, which the Game page's Manage in Build leads to), and the Game's
+ *     Crew lists it.
  *  4. Play opens that pilot's Cockpit.
  *
  * Two accounts, so it SKIPS without the test sign-in seam (`fixtures.ts`); it
@@ -22,7 +23,7 @@ import { expect, test } from './fixtures'
 const GAME = 'The Glass Road'
 const PILOT = 'Bonesaw'
 
-test('a Game made in Play: invite, join, a pilot moved in from the Training Bay, then Play', async ({
+test('a Game made in Play: invite, join, a pilot moved in from Build, then Play', async ({
   page,
   browser,
 }, info) => {
@@ -52,21 +53,27 @@ test('a Game made in Play: invite, join, a pilot moved in from the Training Bay,
       timeout: 20_000,
     })
 
-    // --- 3. Move the pilot in from the Training Bay: one choice, one move ---
-    await player.page
-      .getByRole('button', { name: 'Move a pilot in from your Training Bay' })
-      .click()
-    const picker = player.page.getByRole('dialog', {
-      name: 'Move a pilot in from your Training Bay',
+    // --- 3. Move the pilot in from the Training Bay, in Build ---
+    await player.page.getByRole('link', { name: 'Manage in Build' }).click()
+    await expect(player.page.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeVisible({
+      timeout: 20_000,
     })
-    await picker.getByRole('radio', { name: PILOT }).click()
-    await picker.getByRole('button', { name: `Move ${PILOT} in` }).click()
+    await player.page
+      .getByRole('button', { name: `More for ${PILOT}` })
+      .first()
+      .click()
+    await player.page.getByRole('menuitem', { name: 'Move to a Game…' }).click()
+    await player.page
+      .getByRole('list', { name: 'Where to' })
+      .getByRole('button', { name: GAME })
+      .click()
     await expect(player.page.getByText(`Moved ${PILOT} to ${GAME}.`).first()).toBeVisible({
       timeout: 20_000,
     })
-    await expect(picker).toBeHidden()
+    await gotoStable(player.page, `/play/games/${gameId}`)
+    await waitForReady(player.page)
     await expect(
-      player.page.getByRole('region', { name: 'Pilots' }).getByText(PILOT).first()
+      player.page.getByRole('region', { name: 'Crew' }).getByText(PILOT).first()
     ).toBeVisible({ timeout: 20_000 })
 
     // --- 4. Play: the pilot's Cockpit ---

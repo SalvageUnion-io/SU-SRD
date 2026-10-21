@@ -2,7 +2,7 @@
  * The Units column (play.md §4, wireframe pin 4) in each Situation: which
  * unit is live (− / +) and which is for reference (dashed, read-only, Board
  * its one control), the hangar's Minis, the mech's Downtime restore preview,
- * a Game crawler read from the listing, and Sheet ⤢'s overlay.
+ * a Game crawler read from the listing, and Sheet, which opens the sheet in Build.
  *
  * The column is handed a `Play` built here, as `PlayCockpit` hands it the one
  * from `usePlaySituation` (tested in `PlaySituation.connected.test.tsx`).
@@ -10,7 +10,7 @@
  * the boxes' own, in `PlayUnits.test.tsx`.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { downtimeGuideSteps } from 'game-domain/rules/downtime'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -348,18 +348,22 @@ describe('in a Game', () => {
   })
 })
 
-describe('Sheet ⤢', () => {
-  test('opens the unit’s sheet over Play, and closes back to it', async () => {
-    setQueryAnswers({ 'entities:locate': null, 'games:get': null })
-    await renderColumn(playFor({ situation: 'onFoot' }).play)
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Open Bonesaw’s sheet' }))
+describe('Sheet', () => {
+  test('opens the unit’s sheet in Build: Play carries no sheet of its own', async () => {
+    const assigned: string[] = []
+    const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
+      assigned.push(String(to))
     })
-    const dialog = await screen.findByRole('dialog', { name: 'Bonesaw sheet' })
-    expect(within(dialog).getByRole('heading', { level: 2, name: 'Bonesaw' })).toBeTruthy()
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Back to Play' }))
-    })
-    expect(screen.queryByRole('dialog')).toBeNull()
+    try {
+      await renderColumn(playFor({ situation: 'onFoot' }).play)
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Open Bonesaw’s sheet' }))
+      })
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(assigned).toHaveLength(1)
+      expect(assigned[0]).toMatch(/^\/sheet\/pilot\//)
+    } finally {
+      assign.mockRestore()
+    }
   })
 })
