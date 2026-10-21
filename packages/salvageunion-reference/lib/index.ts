@@ -141,6 +141,12 @@ export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
+  toComponentsV2,
+  type V2Block,
+  type V2Button,
+  type V2Container,
+} from './view/componentsV2'
+export {
   DISCORD_NEUTRAL_ACCENT,
   DISCORD_ROLL_ACCENT,
   discordAccent,

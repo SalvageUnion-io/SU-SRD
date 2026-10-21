@@ -30,18 +30,18 @@ const base: ContainerData = {
 describe('toContainer', () => {
   test('carries the accent colour V2 would otherwise cost', () => {
     // The tier colour rides on the container's accent.
-    const json = toContainer(base).toJSON()
+    const json = toContainer(base)
     expect(json.type).toBe(17)
     expect(json.accent_color).toBe(0x4b86a0)
   })
 
   test('emits blocks in authored order with the right component types', () => {
-    const json = toContainer(base).toJSON()
+    const json = toContainer(base)
     expect(json.components.map((c) => c.type)).toEqual([10, 10, 14, 10, 1])
   })
 
   test('a link button carries a url and no custom_id', () => {
-    const json = toContainer(base).toJSON()
+    const json = toContainer(base)
     const row = json.components.at(-1)
     if (row?.type !== 1) throw new Error('expected an action row last')
     const [action, link] = row.components
@@ -60,15 +60,15 @@ describe('toContainer', () => {
           thumbnail: { url: 'https://assets.salvageunion.io/chassis/aegis.webp', description: 'A' },
         },
       ],
-    }).toJSON()
+    })
     const section = json.components[0]
     if (section?.type !== 9) throw new Error('expected a section')
     expect(section.accessory.type).toBe(11)
   })
 
   test('the built payload serialises to what Discord receives', () => {
-    // adapter.ts hands builders over as they are; JSON.stringify calls their
-    // toJSON() on the way to the wire.
+    // adapter.ts hands the payload over as it is: the container is already
+    // Discord's JSON.
     const payload = {
       flags: MessageFlags.IsComponentsV2,
       components: [toContainer(base)],
@@ -142,7 +142,7 @@ describe('limit enforcement', () => {
           options: Array.from({ length: 30 }, (_, i) => ({ label: `E${i}`, value: `v${i}` })),
         },
       ],
-    }).toJSON()
+    })
     const row = json.components[0] as {
       type: number
       components: { type: number; options: unknown[] }[]

@@ -16,48 +16,22 @@
 
 import { SRD_SITE_URL } from '../origin'
 import type { RefMetaEntity, RefObjectAnyPattern } from '../schemas/index'
+import { toComponentsV2 } from './componentsV2'
 import { discordAccent } from './discordAccents'
-import type { DiscordBlock, DiscordCard, DiscordCardParts } from './discordCard'
+import type { DiscordCard, DiscordCardParts } from './discordCard'
 import { discordCard, discordCardParts } from './discordCard'
 import { toEntityModel } from './toEntityModel'
 
 /** Discord's ceiling for a Component Embed's whole payload, in UTF-8 bytes. */
 export const COMPONENT_EMBED_MAX_BYTES = 3000
 
-/** Discord's component type ids (Components V2). */
-const TYPE = { section: 9, text: 10, thumbnail: 11, separator: 14, container: 17 } as const
-
-function toRaw(block: DiscordBlock): Record<string, unknown> {
-  switch (block.kind) {
-    case 'text':
-      return { type: TYPE.text, content: block.content }
-    case 'separator':
-      return { type: TYPE.separator, divider: true, spacing: 1 }
-    case 'section':
-      return {
-        type: TYPE.section,
-        components: block.text.map((content) => ({ type: TYPE.text, content })),
-        ...(block.thumbnail
-          ? {
-              accessory: {
-                type: TYPE.thumbnail,
-                media: { url: block.thumbnail.url },
-                description: block.thumbnail.description,
-              },
-            }
-          : {}),
-      }
-  }
-}
-
-/** A card as a Component Embed's JSON: one Container, its accent the card's tone. */
+/**
+ * A card as a Component Embed's JSON: one Container, its accent the card's
+ * tone, written by the serialiser every bot reply goes through too.
+ */
 export function componentEmbedJson(card: DiscordCard): string {
   return JSON.stringify({
-    component: {
-      type: TYPE.container,
-      accent_color: discordAccent(card.tone),
-      components: card.blocks.map(toRaw),
-    },
+    component: toComponentsV2({ accent: discordAccent(card.tone), blocks: card.blocks }),
   })
 }
 

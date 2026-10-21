@@ -217,9 +217,9 @@ function replyMembers(ctx: AdapterContext) {
       // interaction — it has to become a follow-up, or it would be silently
       // dropped.
       //
-      // Payloads carry builder instances (`ContainerBuilder`) as they are;
-      // `JSON.stringify` — the Worker's for the initial response, the REST
-      // client's for everything after — calls their `toJSON()`.
+      // Payloads go as they are: a container is already Discord's JSON
+      // (`toContainer`), which `JSON.stringify` writes — the Worker's for the
+      // initial response, the REST client's for everything after.
       if (!ctx.sink.settled) {
         ctx.sink.send({ type: InteractionResponseType.ChannelMessageWithSource, data: payload })
         return undefined

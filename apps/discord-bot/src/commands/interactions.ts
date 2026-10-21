@@ -10,14 +10,8 @@
 
 import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-types/v10'
 
-/**
- * A top-level message component, either raw or as a builder.
- *
- * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
- * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
- * the wire (`worker/adapter.ts`).
- */
-type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
+/** A top-level message component as Discord's JSON (`toContainer`). */
+type ReplyComponent = APIMessageTopLevelComponent
 
 /**
  * What a handler may send as a reply or follow-up.

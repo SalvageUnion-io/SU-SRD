@@ -394,8 +394,8 @@ describe('interaction dispatch', () => {
     // have made this test fail for a reason unrelated to the behaviour under
     // test.
     //
-    // This also proves the whole V2 path end to end: the container builder
-    // serialises through its `toJSON()` and reaches the wire as real JSON.
+    // This also proves the whole V2 path end to end: the container's JSON
+    // (`toContainer`) reaches the wire as it was built.
     expect(JSON.stringify(body.data?.components)).toContain('Mule')
     expect(body.data?.content).toBeUndefined()
   })

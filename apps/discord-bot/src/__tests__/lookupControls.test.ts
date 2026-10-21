@@ -8,11 +8,11 @@ import { MessageFlags } from 'discord-api-types/v10'
 import { buttonInteractionHandlerFor } from './helpers'
 
 type Node = { content?: string; components?: Node[] }
-type Json = { toJSON(): { components: Node[] } }
+type Json = { components: Node[] }
 
 /** Every text in the container, a section's included. */
 const textOf = (arg: { components?: readonly unknown[] } | undefined): string =>
-  ((arg?.components?.[0] as Json | undefined)?.toJSON().components ?? [])
+  ((arg?.components?.[0] as Json | undefined)?.components ?? [])
     .flatMap((node) => [node.content ?? '', ...(node.components ?? []).map((c) => c.content ?? '')])
     .join('\n')
 

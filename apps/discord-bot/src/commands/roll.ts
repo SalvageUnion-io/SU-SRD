@@ -1,4 +1,5 @@
-import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import type { APIContainerComponent } from 'discord-api-types/v10'
 import { ButtonStyle, MessageFlags } from 'discord-api-types/v10'
 import {
   discordAccent,
@@ -56,7 +57,7 @@ function replayResult(payload: string):
  * error. `data` is the pure container it was rendered from.
  */
 export type RollMessage =
-  | { flags: number; components: [ContainerBuilder]; data: ContainerData; ephemeral?: true }
+  | { flags: number; components: [APIContainerComponent]; data: ContainerData; ephemeral?: true }
   | { error: string }
 
 /**
@@ -201,7 +202,7 @@ export function buildPostedRollMessage(
 export function buildSeeTableMessage(
   payload: string,
   roller?: string
-): { flags: number; components: [ContainerBuilder]; data: ContainerData } | { error: string } {
+): { flags: number; components: [APIContainerComponent]; data: ContainerData } | { error: string } {
   const replayed = replayResult(payload)
   if ('error' in replayed) return replayed
   const { table, outcome, decoded } = replayed
