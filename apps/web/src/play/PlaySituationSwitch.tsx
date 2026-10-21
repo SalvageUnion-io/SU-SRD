@@ -23,7 +23,8 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ConfirmDialog, HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
 import type { BoardOption } from './boardMenu.model'
-import { boardable } from './boardMenu.model'
+import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
+import { ClaimAndBoardConfirm } from './ClaimAndBoardConfirm'
 import type { Play } from './situation.model'
 
 const ROW = {
@@ -88,10 +89,7 @@ export function PlaySituationSwitch({
     else play.board(to.option.mechId)
   }
 
-  const boardedName =
-    play.boardedMech?.name ??
-    mechs.find((m) => m.mechId === play.boardedMechId)?.name ??
-    (play.boardedMechId === null ? null : 'Mech')
+  const boardedName = boardedMechName(play)
   const boarded = situation === 'boarded'
 
   return (
@@ -149,23 +147,7 @@ export function PlaySituationSwitch({
           if (to !== null) arrive(to)
         }}
       />
-      <ConfirmDialog
-        open={claiming !== null}
-        onOpenChange={(open) => {
-          if (!open) setClaiming(null)
-        }}
-        title="Claim and board"
-        body={
-          claiming === null
-            ? ''
-            : `${claiming.name} is an unclaimed spare. Claim it to make it yours in this Game, then board it. Boarding doesn’t assign it to ${play.pilot?.name ?? 'your Pilot'}.`
-        }
-        confirmLabel={claiming === null ? 'Claim and board' : `Claim and board ${claiming.name}`}
-        onConfirm={() => {
-          if (claiming !== null) play.claimAndBoard(claiming)
-          setClaiming(null)
-        }}
-      />
+      <ClaimAndBoardConfirm play={play} claiming={claiming} onClose={() => setClaiming(null)} />
     </div>
   )
 }
@@ -200,7 +182,7 @@ function BoardOptionControl({
   onChoose: (option: BoardOption) => void
 }) {
   const only = mechs.length === 1 ? mechs[0] : undefined
-  const label = pressed && boardedName !== null ? `Boarded · ${boardedName}` : 'Board'
+  const label = pressed ? (boardedName === null ? 'Boarded' : `Boarded · ${boardedName}`) : 'Board'
   const shown = short ? (pressed ? 'Boarded' : 'Board') : null
 
   if (mechs.length === 0) {
@@ -246,14 +228,7 @@ function BoardOptionControl({
         </>
       }
       chevron={false}
-      sections={[
-        mechs.map((option) => ({
-          id: option.mechId,
-          label: option.state === 'spare' ? `Claim and board ${option.name}` : option.name,
-          hint: option.state === 'spare' ? undefined : (option.note ?? undefined),
-          onSelect: boardable(option) ? () => onChoose(option) : undefined,
-        })),
-      ]}
+      sections={boardMenuSections(mechs, onChoose)}
     />
   )
 }

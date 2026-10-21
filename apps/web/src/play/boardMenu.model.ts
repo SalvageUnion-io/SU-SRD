@@ -24,6 +24,7 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
+import type { HeaderMenuItem } from '../components/index'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */
 export type CrewRow = {
@@ -73,6 +74,38 @@ export type BoardOption = {
 /** Whether choosing this option does anything: your own boards, a spare is claimed first. */
 export function boardable(option: BoardOption): boolean {
   return option.state === 'yours' || option.state === 'spare'
+}
+
+/**
+ * The Board menu's one section, as the Mount row and the Situation switch
+ * both offer it: each mech, a spare as "Claim and board", one that cannot be
+ * boarded listed with why and choosing nothing.
+ */
+export function boardMenuSections(
+  mechs: readonly BoardOption[],
+  choose: (option: BoardOption) => void
+): HeaderMenuItem[][] {
+  return [
+    mechs.map((option) => ({
+      id: option.mechId,
+      label: option.state === 'spare' ? `Claim and board ${option.name}` : option.name,
+      hint: option.state === 'spare' ? undefined : (option.note ?? undefined),
+      onSelect: boardable(option) ? () => choose(option) : undefined,
+    })),
+  ]
+}
+
+/** The name of the mech the seat is aboard, or null on foot or while it is unknown. */
+export function boardedMechName({
+  boardedMech,
+  boardedMechId,
+  mechs,
+}: {
+  boardedMech: { name: string } | null
+  boardedMechId: string | null
+  mechs: readonly BoardOption[]
+}): string | null {
+  return boardedMech?.name ?? mechs.find((m) => m.mechId === boardedMechId)?.name ?? null
 }
 
 function bodyField(body: unknown, field: string): unknown {

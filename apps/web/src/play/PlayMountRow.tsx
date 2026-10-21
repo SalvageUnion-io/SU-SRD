@@ -13,7 +13,8 @@
 import { useState } from 'react'
 import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
 import type { BoardOption } from './boardMenu.model'
-import { boardable } from './boardMenu.model'
+import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
+import { ClaimAndBoardConfirm } from './ClaimAndBoardConfirm'
 import { NeedChip } from './PlayActionRow'
 import { playLineModel } from './playLine.model'
 import type { Play } from './situation.model'
@@ -32,8 +33,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
   const away = need !== null
   const off = !play.canWrite
   const boarded = play.situation === 'boarded' || play.boardedMechId !== null
-  const boardedName =
-    play.boardedMech?.name ?? play.mechs.find((m) => m.mechId === play.boardedMechId)?.name ?? null
+  const boardedName = boardedMechName(play)
 
   function choose(option: BoardOption) {
     if (option.state === 'spare') setClaiming(option)
@@ -70,14 +70,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           disabled={off}
           label="Board, choose a Mech"
           trigger="Board"
-          sections={[
-            play.mechs.map((option) => ({
-              id: option.mechId,
-              label: option.state === 'spare' ? `Claim and board ${option.name}` : option.name,
-              hint: option.state === 'spare' ? undefined : (option.note ?? undefined),
-              onSelect: boardable(option) ? () => choose(option) : undefined,
-            })),
-          ]}
+          sections={boardMenuSections(play.mechs, choose)}
         />
       )}
     </>
@@ -109,23 +102,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           setEjecting(false)
         }}
       />
-      <ConfirmDialog
-        open={claiming !== null}
-        onOpenChange={(open) => {
-          if (!open) setClaiming(null)
-        }}
-        title="Claim and board"
-        body={
-          claiming === null
-            ? ''
-            : `${claiming.name} is an unclaimed spare. Claim it to make it yours in this Game, then board it. Boarding doesn’t assign it to ${play.pilot?.name ?? 'your Pilot'}.`
-        }
-        confirmLabel={claiming === null ? 'Claim and board' : `Claim and board ${claiming.name}`}
-        onConfirm={() => {
-          if (claiming !== null) play.claimAndBoard(claiming)
-          setClaiming(null)
-        }}
-      />
+      <ClaimAndBoardConfirm play={play} claiming={claiming} onClose={() => setClaiming(null)} />
     </li>
   )
 }
