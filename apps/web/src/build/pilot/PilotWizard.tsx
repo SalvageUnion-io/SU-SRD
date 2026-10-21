@@ -1,5 +1,5 @@
 import { PilotSchema } from 'game-domain/schemas/pilot'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { bookQuote, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -17,7 +17,6 @@ import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilo
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
-import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
@@ -26,6 +25,7 @@ import { FlavorStep } from '../wizard/FlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
+import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
@@ -137,38 +137,21 @@ export function PilotWizard({
     Equipment: SalvageUnionReference.Equipment,
   }
 
-  // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
-  // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
-  // through the deterministic clamp (§5.3) — violations from a
-  // pre-enforcement draft resolve oldest-first to the 1/2 budgets and the
-  // removals are announced once, by toast.
-  const draftKey = wizardDraftKey('pilot')
-  const clampRemovedRef = useRef<string[] | null>(null)
-  // A deep-linked pick (`?class=` — see `lib/wizard/preselect.ts`) seeds the
-  // fresh form and fills an empty draft; it is the baseline, so following the
-  // link alone leaves nothing to discard.
+  // The session draft (`useWizardDraft`): a pre-enforcement draft's
+  // violations resolve oldest-first to the 1/2 budgets (§5.3), and a
+  // deep-linked `?class=` is the baseline.
   const baseline = useMemo(
     () => withPreselection(EMPTY_PILOT_FORM_STATE, 'classId', preselectClassId),
     [preselectClassId]
   )
-  const [form, setForm] = useState<PilotWizardFormState>(() => {
-    const draft = readWizardDraft<PilotWizardFormState>(draftKey)
-    if (!draft) return baseline
-    const { form: clamped, removed } = clampPilotCreationDraft(draft)
-    if (removed.length > 0) clampRemovedRef.current = removed
-    return withPreselection(clamped, 'classId', preselectClassId)
+  const { form, setForm, formDirty, draftKey } = useWizardDraft<PilotWizardFormState>('pilot', {
+    baseline,
+    clamp: clampPilotCreationDraft,
+    reapply: (restored) => withPreselection(restored, 'classId', preselectClassId),
   })
-  useEffect(() => {
-    const removed = clampRemovedRef.current
-    if (removed && removed.length > 0) {
-      clampRemovedRef.current = null
-      toast.info(`Draft trimmed to creation limits — removed ${removed.join(', ')}.`)
-    }
-  }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
-  // The step machine + the create submit, shared with the mech and crawler
-  // wizards (`useWizardFlow`); the pilot's create input is a plain projection
+  // The step machine + the create submit, shared with the mech, crawler and
+  // NPC wizards (`useWizardFlow`); the pilot's create input is a plain projection
   // of the form.
   const { step, gate, submitError, shell } = useWizardFlow({
     entityType: 'pilot',

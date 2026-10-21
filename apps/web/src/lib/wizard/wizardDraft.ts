@@ -19,7 +19,7 @@ import { useEffect, useMemo, useRef } from 'react'
 
 const PREFIX = 'app-wizard-draft'
 
-type WizardKind = EntityKind
+export type WizardKind = EntityKind
 
 /**
  * Draft slot: one per wizard kind. The `:new` suffix is load-bearing — it is

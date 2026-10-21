@@ -1,5 +1,5 @@
 import { MechSchema } from 'game-domain/schemas/mech'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { slotPips } from '../../components/atoms/pipRows'
@@ -17,12 +17,12 @@ import {
   withPatternPrefill,
 } from '../../lib/wizard/mechFormState'
 import { withMechPreselection } from '../../lib/wizard/preselect'
-import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import '../../styles/build/wizard.css'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
+import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CraftItemsStep } from './CraftItemsStep'
@@ -116,37 +116,20 @@ export function MechWizard({
   preselectChassis,
   preselectPattern,
 }: MechWizardProps) {
-  // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
-  // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
-  // through the deterministic knapsack clamp (§5.3); removals are announced
-  // once, by toast.
-  const draftKey = wizardDraftKey('mech')
-  const clampRemovedRef = useRef<string[] | null>(null)
-  // A deep-linked pick (`?chassis=`, `?pattern=` — see `lib/wizard/preselect.ts`)
-  // seeds the fresh form and fills an empty draft; it is the baseline, so
-  // following the link alone leaves nothing to discard.
+  // The session draft (`useWizardDraft`): the deterministic knapsack clamp
+  // (§5.3), and a deep-linked `?chassis=` / `?pattern=` is the baseline.
   const baseline = useMemo(
     () => withMechPreselection(EMPTY_MECH_FORM_STATE, preselectChassis, preselectPattern),
     [preselectChassis, preselectPattern]
   )
-  const [form, setForm] = useState<MechWizardFormState>(() => {
-    const draft = readWizardDraft<MechWizardFormState>(draftKey)
-    if (!draft) return baseline
-    const { form: clamped, removed } = clampMechCreationDraft(draft)
-    if (removed.length > 0) clampRemovedRef.current = removed
-    return withMechPreselection(clamped, preselectChassis, preselectPattern)
+  const { form, setForm, formDirty, draftKey } = useWizardDraft<MechWizardFormState>('mech', {
+    baseline,
+    clamp: clampMechCreationDraft,
+    reapply: (restored) => withMechPreselection(restored, preselectChassis, preselectPattern),
   })
-  useEffect(() => {
-    const removed = clampRemovedRef.current
-    if (removed && removed.length > 0) {
-      clampRemovedRef.current = null
-      toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
-    }
-  }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
-  // The step machine + the create submit, shared with the pilot and crawler
-  // wizards (`useWizardFlow`); the mech's create input is a plain projection
+  // The step machine + the create submit, shared with the pilot, crawler and
+  // NPC wizards (`useWizardFlow`); the mech's create input is a plain projection
   // of the form.
   const { step, gate, submitError, shell } = useWizardFlow({
     entityType: 'mech',

@@ -1,6 +1,6 @@
 /**
  * useWizardFlow — the step machine, the create submit and the `WizShell`
- * navigation props the pilot, mech and crawler wizards all run.
+ * navigation props the pilot, mech, crawler and NPC wizards all run.
  *
  * Submit validates the create input against the entity's Zod schema (with a
  * throwaway `id` — the store mints the real one), surfaces the joined issue
@@ -9,10 +9,10 @@
  *
  * What differs per wizard stays with the caller: `toCreateInput` is a closure,
  * so the crawler derives its starting SP and seeds its base bays inside its
- * own, and `failureMessage` is passed verbatim because the three wizards'
+ * own, and `failureMessage` is passed verbatim because the wizards'
  * failure copy differs.
  *
- * `shell` is every `WizShell` prop the three wizards share
+ * `shell` is every `WizShell` prop the wizards share
  * (stepper, Back / Next / Cancel, the step gate and the Off-Rules escape);
  * each wizard spreads it and adds only its own kind, copy and trackers.
  */
@@ -33,7 +33,7 @@ import { OffRulesEscape } from './OffRulesEscape'
  *
  * Deliberately structural rather than `ZodType`: the hook only ever asks
  * "did it parse, and if not what were the messages", and typing it that way
- * keeps the three wizards free to hand over their own schema without the hook
+ * keeps the wizards free to hand over their own schema without the hook
  * having an opinion about the parsed shape.
  */
 type WizardValidationSchema = {
@@ -69,7 +69,7 @@ export type WizardFlowOptions<
   /** Validated with a throwaway id before the create write. */
   schema: WizardValidationSchema
   toCreateInput: (form: TForm) => CreateInput<T>
-  /** Copy shown when the write fails with a defect. Verbatim — the three differ. */
+  /** Copy shown when the write fails with a defect. Verbatim — each wizard's own. */
   failureMessage: string
   /** Called with the new entity's id once the create has landed. */
   onComplete: (entityId: string) => void

@@ -1,6 +1,6 @@
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import type {
   RefCrawler,
   RefEntity,
@@ -31,12 +31,12 @@ import {
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
-import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import { SystemsList } from '../wizard/SystemsList'
+import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
@@ -138,38 +138,21 @@ export function CrawlerWizard({
   const pilotCount = usePilots().length
   const mechCount = useMechs().length
 
-  // Draft-aware init: a stored session draft (refresh, back-nav, PWA reload)
-  // wins over the empty state; cleared on submit/cancelled exit. Drafts pass
-  // through the deterministic clamp (§5.3): illegal types/weapons drop, then
-  // weapons clamp NEWEST-first to the type's slots; removals are announced
-  // once, by toast.
-  const draftKey = wizardDraftKey('crawler')
-  const clampRemovedRef = useRef<string[] | null>(null)
-  // A deep-linked pick (`?type=` — see `lib/wizard/preselect.ts`) seeds the
-  // fresh form and fills an empty draft; it is the baseline, so following the
-  // link alone leaves nothing to discard.
+  // The session draft (`useWizardDraft`): the deterministic clamp (§5.3)
+  // drops illegal types/weapons, then clamps weapons NEWEST-first to the
+  // type's slots, and a deep-linked `?type=` is the baseline.
   const baseline = useMemo(
     () => withPreselection(EMPTY_CRAWLER_FORM_STATE, 'type', preselectType),
     [preselectType]
   )
-  const [form, setForm] = useState<CrawlerWizardFormState>(() => {
-    const draft = readWizardDraft<CrawlerWizardFormState>(draftKey)
-    if (!draft) return baseline
-    const { form: clamped, removed } = clampCrawlerCreationDraft(draft)
-    if (removed.length > 0) clampRemovedRef.current = removed
-    return withPreselection(clamped, 'type', preselectType)
+  const { form, setForm, formDirty, draftKey } = useWizardDraft<CrawlerWizardFormState>('crawler', {
+    baseline,
+    clamp: clampCrawlerCreationDraft,
+    reapply: (restored) => withPreselection(restored, 'type', preselectType),
   })
-  useEffect(() => {
-    const removed = clampRemovedRef.current
-    if (removed && removed.length > 0) {
-      clampRemovedRef.current = null
-      toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
-    }
-  }, [])
-  const formDirty = useWizardDraftSync(draftKey, form, baseline)
 
-  // The step machine + the create submit, shared with the pilot and mech
-  // wizards (`useWizardFlow`). `toCreateInput` is a closure rather than the
+  // The step machine + the create submit, shared with the pilot, mech and
+  // NPC wizards (`useWizardFlow`). `toCreateInput` is a closure rather than the
   // bare projection: a fresh crawler starts at its DERIVED full SP and
   // pre-seeds the base bay set.
   const { step, gate, submitError, shell } = useWizardFlow({

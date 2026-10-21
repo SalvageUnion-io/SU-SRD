@@ -57,7 +57,7 @@ import {
   toggleNpcAction,
   toggleNpcTrait,
 } from '../../lib/wizard/npcFormState'
-import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
@@ -101,11 +101,9 @@ type AnyNpcDesignerProps = {
 
 export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerProps) {
   const { canWrite } = useConnection()
-  const draftKey = wizardDraftKey('npc')
-  const [form, setForm] = useState<NpcFormState>(
-    () => readWizardDraft<NpcFormState>(draftKey) ?? EMPTY_NPC_FORM
-  )
-  const formDirty = useWizardDraftSync(draftKey, form, EMPTY_NPC_FORM)
+  const { form, setForm, formDirty, draftKey } = useWizardDraft<NpcFormState>('npc', {
+    baseline: EMPTY_NPC_FORM,
+  })
   /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
   const [pendingStart, setPendingStart] = useState<RefNPC | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
