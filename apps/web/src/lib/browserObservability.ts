@@ -140,10 +140,16 @@ export const ABANDONED_VIEW_TRANSITIONS = [
  *   lost, and the event carries no error object, which is why it arrives as a
  *   `NonError`. Raised by the browser for observers the app does not own
  *   (React libraries, in-app browsers' WebViews) as readily as for its own.
+ * - **`Script error.`**: an error thrown by a cross-origin script, which the
+ *   browser masks down to these two words with no stack, file or line. The
+ *   app's own scripts are same-origin, so it is never theirs, and there is
+ *   nothing in it to act on.
+ * - **`__gCrWeb`**: Chrome on iOS's own injected script, reached for in a
+ *   frame it was not injected into (`Can't find variable: __gCrWeb`).
  *
  * Matched as substrings of `${name}: ${message}`.
  */
-const BROWSER_NOISE = ['ResizeObserver loop']
+const BROWSER_NOISE = ['ResizeObserver loop', 'NonError: Script error.', '__gCrWeb']
 
 /**
  * The URL schemes a browser extension's own scripts run under (Chromium,

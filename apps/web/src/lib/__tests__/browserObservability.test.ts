@@ -88,6 +88,18 @@ describe('createBrowserObservability', () => {
     expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
   })
 
+  test('a masked cross-origin Script error and iOS Chrome’s __gCrWeb are dropped', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException('Script error.')
+    obs.captureException(
+      Object.assign(new Error("Can't find variable: __gCrWeb"), { name: 'ReferenceError' })
+    )
+    obs.captureException(new Error('Script error. in our own words'))
+    expect(sent.map((s) => s.report.message)).toEqual(['Script error. in our own words'])
+  })
+
   test('an error raised wholly inside a browser extension is dropped', () => {
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })
