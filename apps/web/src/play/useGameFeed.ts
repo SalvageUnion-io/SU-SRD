@@ -7,6 +7,10 @@
  * Every read is a Convex subscription, so a crewmate's roll, or the resolve
  * they are part-way through ("Rook is resolving Crush", ADR-038 §2), arrives
  * here as it happens.
+ *
+ * Beside the hook this file holds the crew's pure model: `CrewVitals`,
+ * `CrewLine`, `crewLines`, `crewPool` and `describeResolve`. `crew.model.ts`
+ * holds the Crew column's seat lines.
  */
 
 import { useQuery } from 'convex/react'

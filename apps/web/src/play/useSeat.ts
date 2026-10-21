@@ -71,7 +71,7 @@ export type SeatHandle = {
 /**
  * Which entity the seat runs: the boarded mech, the pilot on foot, or the
  * crawler in Downtime. Derived, never stored: mount comes from the seat, and
- * Downtime from the Game's `downtime` row (`useDowntime`).
+ * Downtime from the Game's `downtime` row (`useGameDowntime`).
  */
 export type MountState = 'mech' | 'pilot' | 'downtime'
 

@@ -14,7 +14,7 @@ import type { SeatMount } from 'game-domain/schemas/seat'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { BoardOption } from './boardMenu.model'
 import type { PlayReadOnly, PlayTarget } from './play.model'
-import type { DowntimeView } from './useDowntime'
+import type { DowntimeView } from './useGameDowntime'
 import type { SeatHandle } from './useSeat'
 
 /** What the pilot is doing, as the Situation switch shows it. */

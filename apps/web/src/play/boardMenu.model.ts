@@ -17,6 +17,9 @@
  * Pure, and none of it is a boundary: `seats.board` and `ownership.claim`
  * refuse what they refuse whatever this says. It mirrors them so a player sees
  * why before pressing, not after.
+ *
+ * It also declares the crew read types (`CrewRow`, `CrewLink`, `BoardSources`)
+ * that `crew.model.ts`, `seatCards.model.ts` and `mediatorTable.model.ts` import.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'

@@ -21,8 +21,8 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'
 import type { PlayTarget } from './play.model'
 import type { PlayDowntime } from './situation.model'
-import type { DowntimeView } from './useDowntime'
-import { NOT_RUNNING, useGameDowntime } from './useDowntime'
+import type { DowntimeView } from './useGameDowntime'
+import { NOT_RUNNING, useGameDowntime } from './useGameDowntime'
 import { reportBlockedWrite, reportRefusedWrite } from './useSeat'
 
 export function usePlayDowntime(
