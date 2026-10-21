@@ -11,7 +11,7 @@ import {
 import { expect, test } from './fixtures'
 
 /**
- * Wired build, then the share round-trip, against the Header C LiveSheet shell.
+ * Wired build, then the share round-trip, against the LiveSheet shell.
  *
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet

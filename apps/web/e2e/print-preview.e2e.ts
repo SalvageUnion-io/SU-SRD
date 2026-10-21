@@ -2,7 +2,7 @@ import { buildPilot, openSheetFor } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Print preview — A4 and US Letter, against the Header C LiveSheet shell.
+ * Print preview — A4 and US Letter, against the LiveSheet shell.
  *
  * Builds a pilot, opens the live sheet, then verifies the existing A4 print
  * stylesheet still renders the new markup acceptably. Playwright exposes

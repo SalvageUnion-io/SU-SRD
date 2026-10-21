@@ -10,7 +10,7 @@ test.use({ account: 'anonymous' })
  * and the app boots without crashing.
  *
  * A first-time visitor is signed out, and signed out the app is read-only
- * (ADR-034 as amended): `/` is the front door (board 09) asking them to sign
+ * (ADR-034 as amended): `/` is the front door asking them to sign
  * in, with no create affordance. The populated roster and the build flows are
  * covered, signed in, by the other e2e specs in the nightly suite.
  */

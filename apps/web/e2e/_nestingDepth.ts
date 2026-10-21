@@ -23,10 +23,10 @@ import type { Page } from '@playwright/test'
  *   still breaks N7.
  * - **N8** a Mini one level deep on an entity's or a guide's Page (`oneDeep`):
  *   an entity nested one level deep is a Compact drawn open with all its content,
- *   never a Mini (EDL E6; owner, 2026-10-20: a bay's Smith, a guide's
+ *   never a Mini (EDL E6, R39: a bay's Smith, a guide's
  *   options). A Mini level 2 or deeper, in a search list or on a Peek's
  *   plate is no N8, and neither is one in the named exception (`n8Except`;
- *   owner, 2026-10-20: "Keep Minis"): a pattern's loadout on a chassis's
+ *   R39): a pattern's loadout on a chassis's
  *   or a pattern's Page, and a class's ability trees.
  *
  * A headed frame is the frame around a visible `Head` band (`Head`: Compact, Card
@@ -86,7 +86,7 @@ export type NestingSelectors = {
   /** What inside `oneDeep` is no nesting: a search's list, a Peek's plate, a dialog. */
   notNested: string
   /**
-   * N8's named exception (EDL E6; owner, 2026-10-20): a pattern's loadout
+   * N8's named exception (EDL E6): a pattern's loadout
    * (`PatternLoadout`, on a chassis's Page and a pattern's) and a class's
    * ability trees (`ClassAbilityTree`) keep their Minis one level deep.
    */

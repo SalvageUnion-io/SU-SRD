@@ -1,8 +1,7 @@
 import type { Page } from '@playwright/test'
 
 /**
- * Hard rule R5, a linked unit is its header-only Mini, never a chip (owner,
- * round 4: "no linked units should be chips. all should be entities"), as the
+ * Hard rule R5, a linked unit is its header-only Mini, never a chip, as the
  * rendered page draws it: what a Compact is linked to leads its body
  * (`LinkedUnits`, `[data-entity-linked]`), so no entity hangs under a Compact.
  *

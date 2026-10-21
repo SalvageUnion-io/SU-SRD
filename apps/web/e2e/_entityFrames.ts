@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 
 /**
- * The frame-colour law (ruleset §4.3, EDL E21; owner, 2026-10-20) as the
+ * The frame-colour law (ruleset §4.3, EDL E21) as the
  * rendered page draws it: every entity's frame (a Compact's, CompactIndex's, Card's, a
  * choice option's, a Mini's pill and a contentful Mini's body, a
  * MiniGroup's) wears the subtle `--color-ink-40` the sheets' panels wear,

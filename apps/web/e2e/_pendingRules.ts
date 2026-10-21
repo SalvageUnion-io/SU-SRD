@@ -1,9 +1,7 @@
 import { test } from '@playwright/test'
 
 /**
- * Rules the owner has stated whose screens do not hold them yet
- * (hard-rules.md R40 and R41, from the 4.0 gallery review of
- * 2026-10-20). A gate
+ * Rules whose screens do not hold them yet (hard-rules.md R40 and R41). A gate
  * finds them like any other rule, but reports them on its test (an annotation
  * per rule, with a count and the first findings) and never fails on them.
  * The work that makes the screens hold a rule deletes its entry here, in the

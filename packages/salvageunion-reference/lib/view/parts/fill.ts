@@ -14,11 +14,10 @@ const RULES_BLUE = 'wk-line'
 
 /**
  * A guide's tone token, or `undefined` for every other entity. A creation
- * guide wears the colour of what it creates (owner, round 4: "'Create a
- * <Entity>' guides should be colored after the entity"): Create a Pilot
+ * guide wears the colour of what it creates (R44): Create a Pilot
  * pilot orange, Create a Mech mech green, Create a Crawler crawler pink.
- * Heat wears its own red (owner, round 4); every other guide rules blue, as
- * its page's band is (owner's call, 2026-10-14). A guide is the record with
+ * Heat wears its own red; every other guide rules blue, as
+ * its page's band is. A guide is the record with
  * a `guideType`.
  */
 const CREATION_TONE: Readonly<Record<string, string>> = {
@@ -41,7 +40,7 @@ function techLevelTone(level: number | undefined): string | undefined {
   return level !== undefined && level >= 1 && level <= 6 ? `tl-${level}` : undefined
 }
 
-/** Tier tones (the owner's call, 2026-10-13, over the book's spreads): Core =
+/** Tier tones (over the book's spreads): Core =
  * pilot orange, Advanced and Hybrid = rust (`tier-hybrid`), Legendary =
  * crawler pink. The abilities index and an ability's show page both read
  * this, so they cannot disagree; a tree requirement wears its tree's. */
@@ -110,11 +109,11 @@ export function entityTone(
     const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)
     if (tone) return tone
   }
-  // A bio-chassis wears the bio gear's mutant green, not chassis green (owner, round 5).
+  // A bio-chassis wears the bio gear's mutant green, not chassis green.
   if (schemaName === 'chassis' && getTechLevel(entity) === 'B') return 'tl-b'
   if (getBlackMarket(entity) === true) return 'ink-2'
   // A Hybrid Class wears its own brown, apart from the Core classes' orange
-  // (owner, round 6: "make hybrid classes brown not orange").
+  // (R44).
   if (schemaName === 'classes' && classKind(entity) === 'HYBRID') return 'class-hybrid'
   const bySchema = SCHEMA_TONE[schemaName]
   if (bySchema) return bySchema

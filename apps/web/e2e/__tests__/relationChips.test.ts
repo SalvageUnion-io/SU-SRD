@@ -39,7 +39,7 @@ describe('relation scan', () => {
     expect(scan()).toEqual([])
   })
 
-  test('a linked unit’s Mini leading a Compact’s body passes (round 4)', () => {
+  test('a linked unit’s Mini leading a Compact’s body passes', () => {
     document.body.innerHTML = row(
       'Bonesaw',
       `<div class="su-entity-linked" data-entity-linked="">${token('Mazona')}</div>`

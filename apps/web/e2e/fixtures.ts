@@ -47,7 +47,7 @@ import { waitForReady } from './_helpers'
 /**
  * The app's per-test budget. The first navigation of a test pulls in
  * salvageunion-reference (a large JSON dataset) and, against the dev server,
- * Vite's lazy compile of the dashboard and builder routes: 30-60 s on GHA
+ * Vite's lazy compile of the Training Bay and builder routes: 30-60 s on GHA
  * Ubuntu runners. 90 s leaves headroom without masking a real hang; against a
  * deployed origin (`E2E_BASE_URL`) every test also pays real round trips.
  */

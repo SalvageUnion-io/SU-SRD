@@ -4,7 +4,7 @@ import { expect, test } from './fixtures'
 
 /**
  * A Game from end to end: made, joined and played in Play, the pilot brought
- * in from Build (ADR-052 §3–§5; Play only plays, owner, round 8):
+ * in from Build (ADR-052 §3–§5; Play only plays):
  *
  *  1. The Organizer makes a Game on the Play hub (+ New Game) and lands on its
  *     page, `/play/games/<id>`, and copies its invite link.

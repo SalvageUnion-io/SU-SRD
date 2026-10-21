@@ -46,7 +46,7 @@ export const MechPatternSchema = z
      */
     cargoLots: z.array(CargoLotSchema),
     /**
-     * The maker's notes for whoever builds it (board P1). Shown on the
+     * The maker's notes for whoever builds it. Shown on the
      * pattern page in a dashed box: the maker's words, not the book's.
      */
     notes: z.string().optional(),

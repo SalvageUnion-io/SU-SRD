@@ -13,18 +13,17 @@
  *
  * ## Why it exists
  *
- * 3.0.0's tag and release were a by-hand step on the release PR's post-merge
- * checklist, and cloud sessions get 403 on the releases API, so only the owner
- * could run it. The owner chose (2026-10-14) that the release notes are the
- * release PR's What changed section, unedited: one changelog across the PR, the
- * release and the blog post.
+ * Cloud sessions get 403 on the releases API, so a by-hand tag and release
+ * could only be the owner's step. The release notes are the release PR's
+ * What changed section, unedited: one changelog across the PR, the release
+ * and the blog post.
  *
  * A version of `0.0.0` (none set) skips. A bumped version whose merge has no PR,
  * or whose PR has no What changed section, fails: a release with empty notes
  * is worse than a red run the owner can re-run after fixing the PR body.
  *
  * `--check-bump --base <version>` is CI's `version-bump` job on every PR into
- * `main` (owner's rule, 2026-10-14): it fails unless the root version is a
+ * `main`: it fails unless the root version is a
  * major, minor or patch bump over `main`'s, so no merge to `main` goes
  * unreleased.
  *

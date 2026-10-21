@@ -49,8 +49,8 @@ async function buildIronWagon(page: Page): Promise<void> {
  *
  * The wizard is Crawler Type → Statistics → Armament Bay → Crew → Name →
  * Review. Only the Name step gates, and its field is a click-to-edit control
- * ("Edit crawler name"), not the labelled `Crawler Name` input this spec used
- * to fill. Walk to the steps by content rather than counting Next clicks, so
+ * ("Edit crawler name"), not a labelled `Crawler Name` input. Walk to the
+ * steps by content rather than counting Next clicks, so
  * the next reshuffle does not silently strand this spec on the wrong step.
  *
  * Tech level is fixed at TL1 on create; bays are not chosen — every crawler

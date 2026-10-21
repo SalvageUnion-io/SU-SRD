@@ -20,7 +20,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   right before it there.
  * - **fill** THE BOTTOM-RIGHT FILL of every head whose name and chips share
  *   a line (`[data-chip-fill]`: a Compact's or Card's heading, a CompactIndex's band, a
- *   Page's chapter band and its controls; owner's rule, 2026-10-20): its last
+ *   Page's chapter band and its controls): its last
  *   item (the cost, the action) on the name's line and rightmost there. A
  *   head the fill never measured (no `data-fill-item`) fails too.
  * - **unclassed** a chip in no class lane: the strip is not drawn by `Chips`
@@ -37,7 +37,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * - **more** a +MORE chip that is not its strip's last chip, at the end of its
  *   lowest line (the visual bottom), or one that dropped the strip's cost (C5).
  *
- * Hard rule R37 (C2b, C5; owner's rule, 2026-10-20), every one failing:
+ * Hard rule R37 (C2b, C5), every one failing:
  *
  * - **taller** a head whose chips make it taller: laid on one line beside its
  *   name (the name held at its width, so its own wrap is not counted), the
@@ -298,7 +298,7 @@ function scan({
     lines.sort((a, b) => (a[0] as Box).y - (b[0] as Box).y)
 
     // GAP: every neighbouring pair in the strip one gap apart, whatever its
-    // class: chips always collapse to one side, never a gap (owner, 2026-10-20).
+    // class: chips always collapse to one side, never a gap.
     const gaps = lines.flatMap((line) =>
       line.slice(1).flatMap((b, i) => {
         const a = line[i] as Box
@@ -435,7 +435,7 @@ function scan({
     }
     const corner = items[items.length - 1] as Element
     // On a phone an index's search and filters follow its title, under the
-    // band on the page ground (owner's call 2026-10-20); a show page's stamps
+    // band on the page ground; a show page's stamps
     // fill beside the title as every head's do.
     if (
       head.matches('.su-chapter-band__row') &&

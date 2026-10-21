@@ -89,13 +89,13 @@ type StatConfig = {
 }
 
 /**
- * Every stat, in THE order (owner, 2026-10-14): one order for every form and
+ * Every stat, in THE order: one order for every form and
  * surface, a smaller form dropping stats but never moving them. Tech Level
  * leads it (`techLevelFact`, added by the caller), then four groups:
  * provenance (Tech Level, Slots Required, Salvage Value: the book's gear
  * sidebar, Workshop Manual pp.163, 191), vitals (SP or HP, EP; Bio-Salvage
  * after the HP it comes from), capacity (System and Module Slots, then Heat
- * beside Cargo, the two capacities, owner's call 2026-10-20; a crawler's
+ * beside Cargo, the two capacities; a crawler's
  * Upkeep and Upgrade), then an
  * action's facets (`facetCells`). A hint the Core Book prints (Mech stats
  * p.96–97, Hit Points p.20) is a `bookQuote`; the rest are written here.
@@ -217,9 +217,9 @@ function statValue(
 }
 
 /**
- * A chassis's chips in a Compact, CompactIndex or Mini (owner's call, 2026-10-14): TL,
+ * A chassis's chips in a Compact, CompactIndex or Mini: TL,
  * SV, SP, EP, SYS, MODS. Its Page and its Peek print every stat, Cargo and
- * Heat too (owner's call, 2026-10-19).
+ * Heat too.
  */
 const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
   'salvageValue',
@@ -232,7 +232,7 @@ const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
 type StatOptions = {
   schemaName?: RefEnumSchemaName | 'actions'
   techLevel?: number | 'B' | 'N'
-  /** Every stat, a chassis's included: the Peek's (owner's call, 2026-10-19). */
+  /** Every stat, a chassis's included: the Peek's. */
   every?: boolean
 }
 

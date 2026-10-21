@@ -86,8 +86,8 @@ test.describe('The Training Bay surfaces created entities with their identity', 
 
     // Name is displayed.
     await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
-    // Each shelf item is one line that opens its live sheet (the Training Bay, board
-    // S1), and the line is named by what it is — kind, class, name, HP — so a
+    // Each shelf item is one line that opens its live sheet (the Training
+    // Bay), and the line is named by what it is — kind, class, name, HP — so a
     // screen-reader user can tell which unit each opens (WCAG 2.4.4).
     const line = page.getByRole('link', { name: /Display Test Pilot/ })
     await expect(line).toBeVisible({ timeout: 15_000 })

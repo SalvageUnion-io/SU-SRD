@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 import { searchWidthFaults } from './_searchWidth'
 
 /**
- * A search field is full width on a phone (owner's rule, 2026-10-20;
- * `_searchWidth.ts`), on the signed-out pages that draw one: an SRD listing's
+ * A search field is full width on a phone (`_searchWidth.ts`), on the
+ * signed-out pages that draw one: an SRD listing's
  * rail, the header's search opened from its magnifier. Play's phone form is
  * held to it in `play-turn.e2e.ts`. Each page must draw a field, so the gate
  * never passes by reading nothing.

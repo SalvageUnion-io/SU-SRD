@@ -52,7 +52,7 @@ export function selectedOption(page: Page): Locator {
  * occasionally throws.
  *
  * The builders end on a *client-side* router redirect to `/` (the create flow
- * pushes the dashboard route). A full `page.goto('/')` issued right afterward
+ * pushes the Training Bay's route). A full `page.goto('/')` issued right afterward
  * can race the tail of that client navigation and the browser aborts the
  * superseded load — this is why `goto('/')` flakes while `goto('/pilots/new')`
  * (a distinct URL) does not. The abort is transient: the competing navigation
@@ -213,7 +213,7 @@ export async function clickNext(page: Page): Promise<void> {
 
 // ---------------------------------------------------------------------------
 // Entity builders — drive the WizShell wizards end to end.
-// Each returns once the dashboard redirect lands (the server write is
+// Each returns once the redirect to the Training Bay lands (the server write is
 // complete), so subsequent steps can rely on the entity existing.
 // ---------------------------------------------------------------------------
 
@@ -402,7 +402,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from the Training Bay (board S1).
+ * Open the live sheet for the named entity from the Training Bay.
  *
  * Each item on a shelf is one line, a link to its sheet named for the entity
  * (its text, or its `aria-label` when it is a cover). Match the link by its
@@ -430,8 +430,8 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Put the open sheet in Edit. A sheet opens in Read (board 10:
- * "print reads, pencil writes"), so every Manage, Assign and bay control is
+ * Put the open sheet in Edit. A sheet opens in Read ("print reads, pencil
+ * writes"), so every Manage, Assign and bay control is
  * one press of the band's Edit away: a toggle on the band, or a Read | Edit
  * radio. Pressing it when it is already on is a no-op, and the choice holds
  * for the rest of the visit.

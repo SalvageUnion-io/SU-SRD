@@ -50,16 +50,13 @@ test.use({ account: 'anonymous' })
  * failing on a real regression (a newly-eager heavy import, or a jump in the
  * data corpus).
  *
- * ## Re-baselined 2026-09-25
+ * ## What keeps the routes small
  *
- * Three changes moved the numbers down together: `/s/$id` and `/p/$kind/$appId`
- * stopped exporting page bodies from their route files, which had kept
- * `autoCodeSplitting` from splitting them and so pinned the whole live-sheet
- * tree into the entry; `vite.config.ts` gained named `codeSplitting` groups
- * (react, vendor, zod, reference, ui) for the initial graph; and
- * the reference package's trusted load path dropped Zod's entity schemas and
- * locales from the app's client. App JS per route fell by roughly: roster
- * −202 KB, pilot wizard −199 KB, dashboard −199 KB, live sheet −44 KB.
+ * A route file exports no page body, so `autoCodeSplitting` splits it and the
+ * live-sheet tree stays out of the entry; `vite.config.ts` names the
+ * `codeSplitting` groups (react, vendor, zod, reference, ui) of the initial
+ * graph; and the reference package's trusted load path keeps Zod's entity
+ * schemas and locales out of the app's client.
  *
  * ## Current baseline: the Convex-backed build
  *
@@ -71,18 +68,18 @@ test.use({ account: 'anonymous' })
  *   wizard     1,991,671 B   2,390,000 B
  *   sheet      2,161,232 B   2,590,000 B
  *
- * ## Play (ADR-051), 2026-10-17
+ * ## Play (ADR-051)
  *
- * Play replaced the Dashboard and the Mediator dashboard; the Worker 301s
- * `/dashboard/:id` there, so the Dashboard's budget went with it. Both Play routes
- * were measured at ~2.43 MB (`/play/:pilotId` 2,429,094 B, `/play/game/:gameId`
- * 2,431,749 B) on a local production build, beside a roster of 2,178,292 B on
- * the same build, and their ceilings sit ~20% above that: 2,920,000 B. Re-take
- * them from a CI run's `[bundle-budget]` lines when the table is next re-based.
+ * Both Play routes measure ~2.43 MB (`/play/:pilotId` 2,429,094 B,
+ * `/play/game/:gameId` 2,431,749 B) on a local production build, beside a
+ * roster of 2,178,292 B on the same build, and their ceilings sit ~20% above
+ * that: 2,920,000 B. Re-take them from a CI run's `[bundle-budget]` lines when
+ * the table is next re-based.
  *
- * Bringing the route-export split's ~200 KB back (roster → ~2.23 MB) still
- * fits under 20%, so this does not catch that revert on its own —
- * `routeExports.test.ts` and the `Sheet-` forbidden-chunk check below do.
+ * A route file that exports its page body pins ~200 KB back into the entry
+ * (roster → ~2.23 MB), which still fits under 20%, so this margin does not
+ * catch it — `routeExports.test.ts` and the `Sheet-` forbidden-chunk check
+ * below do.
  * What the margin catches is growth beyond ~400 KB. The biggest single chunk
  * is `vendor` (439,550 B, the Convex client included), ahead of the `actions`
  * data chunk (~363 KB); the largest-chunk tripwire sits at 530 KB, ~20% above

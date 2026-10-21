@@ -104,7 +104,7 @@ const TYPE_FLOOR_PX = 11
  * `PAPER_GROUND`).
  */
 const TEXTURE_FORBIDDEN: readonly RegExp[] = [
-  // Play and the Peek are NOT here (R10, decided 2026-10-19): their
+  // Play and the Peek are NOT here (R10): their
   // brand-colour bands wear the speckle as the sheet's do; Play's ink-deep
   // ground, its cream and paper columns are paper-like grounds the
   // `PAPER_GROUND` line check and the e2e (`texture.e2e.ts`) hold clean.
@@ -194,7 +194,7 @@ const TOKEN_RULES: TokenRule[] = [
     id: 'type-floor',
     mode: 'zero',
     rule: 'ruleset §4.6 — the 11px type floor, no exceptions',
-    // Board 04 ("raise the floor"): the four rungs under 11px carried most of
+    // The floor (R12): the four rungs under 11px carried most of
     // the stamps and stat labels — exactly the words a player squints at
     // mid-combat. They were retired into `badge`, and this keeps them retired:
     // a retired rung's NAME is a finding (in any spelling — utility, custom
@@ -216,8 +216,8 @@ const TOKEN_RULES: TokenRule[] = [
     // Rust had leaked into chrome as a brand accent — the ".io" and "Beta"
     // marks, section headings, the "you are here" state, link text, focus and
     // selection rings — and `--color-sheet-pilot-deep` aliased it outright, so
-    // nothing on screen said "this does something" any more (board 03, issue
-    // register #7). Every spelling of the rust family counts: the custom
+    // nothing on screen said "this does something" any more. Every spelling
+    // of the rust family counts: the custom
     // property (rust, rust-hi, rust-25), a utility-style class under any
     // variant prefix, and the `color.rust*` token keys.
     fix: 'Rust is painted only by `Button` / `buttonVariants` (every action) and `InlineRef` (an inline link). A link in prose is `InlineRef`; a heading or a "here" state is ink (an ink Slab, an inverse stamp); a focus or selection ring is ink. Never alias a token to rust.',
@@ -228,7 +228,7 @@ const TOKEN_RULES: TokenRule[] = [
     id: 'texture-placement',
     mode: 'zero',
     rule: 'ruleset §3.5.1 — the speckle sits on every brand-colour band and ink header, Play and the Peek included, never on paper, buttons, fields or tooltips',
-    // The light speckle (board 05c) is ink grain on a colour band and paper
+    // The light speckle is ink grain on a colour band and paper
     // flecks on an ink ground, in every context (R10). On a button it reads
     // as dirt on the one thing that must read clean; on a field it fights the
     // text being typed; on a tooltip it is noise at glance size; and on paper
@@ -450,7 +450,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/components/referenceEntity/card/cardChrome.ts',
     rules: ['ink-mix'],
     reason:
-      "A down entity's band (owner, 2026-10-14): a damaged band dulls toward a grey and a destroyed one goes flat grey, ink mixed into PAPER, not over transparent. A band carries text, so it must be opaque: `foregroundOn` and `contrast.test.ts` read these `color-mix(in srgb, …)` values to hold its contrast, which a translucent rung over an unknown ground would not let them do. Not a shade of ink at opacity, so not the ramp's to spell.",
+      "A down entity's band: a damaged band dulls toward a grey and a destroyed one goes flat grey, ink mixed into PAPER, not over transparent. A band carries text, so it must be opaque: `foregroundOn` and `contrast.test.ts` read these `color-mix(in srgb, …)` values to hold its contrast, which a translucent rung over an unknown ground would not let them do. Not a shade of ink at opacity, so not the ramp's to spell.",
   },
   {
     file: 'apps/web/src/styles/discord-reply.css',

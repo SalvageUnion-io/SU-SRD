@@ -3,7 +3,7 @@ import { expect, test } from './fixtures'
 
 /**
  * Save a mech as a pattern from its dialog, share it by link, open its page
- * signed out, and build a mech from it (boards P1 and P2).
+ * signed out, and build a mech from it.
  *
  * Signed in (the default `test` from `fixtures.ts`), so it SKIPS with a stated
  * reason in a build with no test sign-in seam and runs for real in the nightly

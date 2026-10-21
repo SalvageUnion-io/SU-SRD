@@ -5,7 +5,7 @@
  *
  * ## The incident
  *
- * CANTINA-CONVEX-9 (2026-10-09): a change made `entities.upsertByAppId`'s
+ * CANTINA-CONVEX-9: a change made `entities.upsertByAppId`'s
  * `expectedUpdatedAt` required. A tab that was open across that deploy still
  * ran the old bundle, which never sent the field, so the backend refused the
  * pilot it had just built. The build floor exists to stop such a tab before it

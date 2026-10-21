@@ -62,7 +62,7 @@ test('a chassis entity page renders its card', async ({ page }) => {
   })
 })
 
-// (d) The home page is the manual's Contents page (board 06).
+// (d) The home page is the manual's Contents page.
 test('the home page indexes the book’s chapters', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'The Salvage Union SRD' })).toBeVisible()
@@ -84,7 +84,7 @@ test('the home page indexes the book’s chapters', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Start here' })).toBeVisible()
 })
 
-// (e) A chassis page at a phone's width and a desktop's (boards 07, 08): its
+// (e) A chassis page at a phone's width and a desktop's: its
 // stats lead the body, inline, clear of the title (the phone bug was a stat
 // strip over it), beside the art from `sm`, and nothing scrolls sideways.
 for (const width of [375, 1440]) {
@@ -106,7 +106,7 @@ for (const width of [375, 1440]) {
     )
     expect(overflow).toBeLessThanOrEqual(0)
     if (width === 1440) {
-      // Board 07: the line-art hero on the left, the stats on the right.
+      // The line-art hero on the left, the stats on the right.
       const art = await page.locator('.su-entity-page__art').first().boundingBox()
       expect(art).toBeTruthy()
       if (art && statsBox) expect(art.x).toBeLessThan(statsBox.x)
@@ -157,7 +157,7 @@ for (const [schema, part] of [
   })
 }
 
-// (f) A roll table rolls on its own page (board 08b).
+// (f) A roll table rolls on its own page.
 test('a roll table page rolls and marks the result', async ({ page }) => {
   await page.goto('/roll-tables/core-mechanic/')
   // The ROLL THE DIE stamp is the roll: a button once the island mounts (the

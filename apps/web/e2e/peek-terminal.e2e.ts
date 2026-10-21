@@ -10,7 +10,7 @@ import { at } from './_base'
  * - `control`: a button, a link (`a[href]`), a field (`input`, `select`,
  *   `textarea`), a `role="button"` or `role="link"`, or anything else in the
  *   tab order: nothing on a Peek acts, but its name.
- * - `open`: the one exception (owner's call, 2026-10-20: "linked names"), the
+ * - `open`: the one exception (R33), the
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.

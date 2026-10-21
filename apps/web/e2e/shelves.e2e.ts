@@ -4,7 +4,7 @@ import { createGame } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * The Training Bay — everything you own (board S1, ADR-052 §1).
+ * The Training Bay — everything you own (ADR-052 §1).
  *
  * Signed in (the default `test` from `fixtures.ts`), so each spec SKIPS with a
  * stated reason in a build with no test sign-in seam and runs for real in the

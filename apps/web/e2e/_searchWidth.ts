@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 
 /**
- * A search field is full width on a phone (owner's rule, 2026-10-20): every
+ * A search field is full width on a phone: every
  * visible `SearchField` (`.su-search-field`) spans its line, edge to edge:
  * the content box of the outermost row it sits in (a search among tools must
  * fill the tools' whole row, on its own line), or, in no row, of its parent

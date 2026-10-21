@@ -3,8 +3,7 @@ import { expect, test } from './fixtures'
 
 /**
  * The NPC designer end to end: build an NPC from a template, assign it to a crawler bay,
- * and unassign it to fall back to the book's crew line (boards N1 and N2;
- * ADR-044).
+ * and unassign it to fall back to the book's crew line (ADR-044).
  *
  * Signed in (the default `test` from `fixtures.ts`), so it SKIPS with a stated
  * reason in a build with no test sign-in seam and runs for real in the nightly

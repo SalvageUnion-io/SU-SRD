@@ -6,7 +6,7 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
 /**
  * Running a table needs two people: the Organizer (the spec's own `page`,
  * signed in by `fixtures.ts`) and a second account in a context of its own.
- * These are the steps the Play and signed-in a11y specs share (board M2).
+ * These are the steps the Play and signed-in a11y specs share.
  */
 
 /** "+ New Game" from the Play hub, named; resolves to the new Game's id. */

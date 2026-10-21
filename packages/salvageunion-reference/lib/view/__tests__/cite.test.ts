@@ -47,7 +47,7 @@ describe('formatProvenance', () => {
   })
 })
 
-describe('citeLine (ruling 2026-10-19: every printing on one line)', () => {
+describe('citeLine (every printing on one line)', () => {
   test('the book first, then each reprint, "//" between, with no "Also in"', () => {
     expect(
       citeLine([

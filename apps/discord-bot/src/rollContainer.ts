@@ -143,7 +143,7 @@ function headlineAndBody(
 }
 
 /**
- * Where the die landed, as board 08b's "Lands on" readout: the band's range
+ * Where the die landed, as the roll-table page's "Lands on" readout: the band's range
  * ("11–19"), or on a two-roll table the column and the entry. The tier word
  * and the label say what happened; this says which row of the book it is.
  */

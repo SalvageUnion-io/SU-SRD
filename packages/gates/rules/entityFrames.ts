@@ -8,7 +8,7 @@ import type { CssDecl } from '../lib/styleSource'
 import { matchesIn } from '../lib/styleSource'
 
 /**
- * An entity's frame (ruleset §4.3, owner's call 2026-10-20): the subtle
+ * An entity's frame (ruleset §4.3): the subtle
  * `--color-ink-40` the sheets' panels wear, never solid ink nor a per-entity
  * tone. Only `--su-compact-frame` colours one (an ability tree's tier, a
  * pattern's colour).

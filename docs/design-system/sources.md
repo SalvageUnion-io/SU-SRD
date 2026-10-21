@@ -1,6 +1,6 @@
 # Design Sources
 
-The claude.ai design pages the design system was drawn from, and the boards code cites as `board NN`.
+The claude.ai design pages the design system was drawn from, and the boards of its origin. Code cites the rule a board became (R, §, E, C, K), never the board.
 An agent reads a page with the Artifact tool's `read` action, not a web fetch. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) wins, then [ruleset.md](ruleset.md).
 
 ## Pages
@@ -13,7 +13,7 @@ An agent reads a page with the Artifact tool's `read` action, not a web fetch. [
 
 ## The origin's boards
 
-Id · title — where code cites it (`board NN`); "—" means no code cites it. Boards P1/P2 are pattern boards.
+Id · title — the code it drew; "—" means none. Boards P1/P2 are pattern boards.
 
 1. **01** The brief —. **02** Issue register —. **02b** From the book —.
 2. **03** Colour: paper page, legible bands — `tokens.ts`, `contrast.test.ts`, `theme.css`. **04** Type: raise the floor — `theme.css`.

@@ -13,7 +13,7 @@ import { expect, test } from './fixtures'
  * wait for the pilot's name to become visible in the entity list rather than
  * relying solely on waitForReady (which only signals game-data preload).
  *
- * Delete lives in each shelf item's ⋯ menu (the Training Bay, board S1): the trigger is
+ * Delete lives in each shelf item's ⋯ menu (the Training Bay): the trigger is
  * named "More for <name>", and the row is the menuitem "Delete…". The confirm
  * is an alert dialog (role="alertdialog") with a "Delete" confirm button.
  */

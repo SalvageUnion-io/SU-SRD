@@ -169,7 +169,7 @@ describe('entityTone', () => {
     }
   })
 
-  test('a guide wears rules blue, a creation guide its unit, Heat its red (round 4)', () => {
+  test('a guide wears rules blue, a creation guide its unit, Heat its red', () => {
     for (const guideType of ['downtime', 'gameplay']) {
       expect(entityTone('guides', as({ ...base, guideType }))).toBe('wk-line')
     }
@@ -197,13 +197,13 @@ describe('entityTone', () => {
     expect(entityTone('systems', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
   })
 
-  test('a chassis is mech, a bio-chassis bio gear’s green (round 5); an action is ink', () => {
+  test('a chassis is mech, a bio-chassis bio gear’s green; an action is ink', () => {
     expect(entityTone('chassis', as(base))).toBe('mech')
     expect(entityTone('chassis', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
     expect(entityTone('actions', as(base))).toBe('ink')
   })
 
-  test('a Hybrid class wears its own brown, a Core class pilot orange (round 6)', () => {
+  test('a Hybrid class wears its own brown, a Core class pilot orange', () => {
     const classes = SalvageUnionReference.Classes.all()
     const hybrid = classes.find((c) => 'hybrid' in c && c.hybrid === true)
     const core = classes.find((c) => !('hybrid' in c && c.hybrid === true))

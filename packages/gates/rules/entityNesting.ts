@@ -47,8 +47,8 @@
  * two components, not one switched by a prop. The runtime gate,
  * `apps/web/e2e/nesting-depth.e2e.ts`, measures what renders.
  *
- * Every rule is `zero`. The owner's call (2026-10-17) was strict gates with
- * nothing allowlisted, so `EXEMPTIONS` is empty; an entry needs a reason.
+ * Every rule is `zero`: strict gates with nothing allowlisted, so
+ * `EXEMPTIONS` is empty; an entry needs a reason.
  */
 
 import { readFileSync } from 'node:fs'
@@ -92,7 +92,7 @@ const CARDS = new Set(['ReferenceEntityCard', 'NestedCard'])
 
 /**
  * Sanctioned exceptions: none. The milestone that wrote these rules fixed
- * every finding instead (owner, 2026-10-17). An entry needs a written reason.
+ * every finding instead. An entry needs a written reason.
  */
 const EXEMPTIONS: Exemption[] = []
 

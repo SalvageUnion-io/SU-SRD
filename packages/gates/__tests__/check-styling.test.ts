@@ -263,7 +263,7 @@ describe('tokens rule set', () => {
     ]) {
       expect(scan(file, ref)['texture-placement']?.length, file).toBe(2)
     }
-    // R10 (2026-10-19): Play's and the Peek's brand-colour bands wear it too.
+    // R10: Play's and the Peek's brand-colour bands wear it too.
     for (const file of [
       'apps/web/src/play/PlayUnits.tsx',
       'apps/web/src/styles/play/units.css',

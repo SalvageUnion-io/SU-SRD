@@ -218,8 +218,8 @@ export const PilotSchema = z
     partners: z.array(PartnerInstanceSchema).optional(),
 
     /**
-     * Manual fallback for the pilot's effective Crawler Tech Level (1–6), used
-     * to scale choice caps (e.g. the Custom Sniper Rifle's Modification choice,
+     * Manual fallback for the pilot's effective Crawler Tech Level (1–6), which
+     * scales choice caps (e.g. the Custom Sniper Rifle's Modification choice,
      * "at each Tech Level you may select an additional Modification") and the
      * Stat Training bonus to max HP/AP (`pilotMaxHPParts`). Only used
      * when the pilot is NOT linked to a crawler; when a crawler is associated its
