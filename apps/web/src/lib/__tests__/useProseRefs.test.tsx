@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import type { NameRefIndex } from '../../components/index'
 import { EntitySurfaceProvider } from '../../components/index'
 import { srdHrefFor } from '../entityHref'
-import { useParseTraitReferences } from '../parseTraitReferences'
+import { useParseTraitReferences } from '../useProseRefs'
 
 function Prose({ text }: { text: string }) {
   return <p>{useParseTraitReferences(text)}</p>

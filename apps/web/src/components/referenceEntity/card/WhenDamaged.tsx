@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize } from '../../../design/tokens'
-import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { SlabSection } from '../../containers/SlabSection'
 
 const EFFECT = {

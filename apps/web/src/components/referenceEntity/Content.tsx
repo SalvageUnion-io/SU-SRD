@@ -3,7 +3,7 @@ import type { RefObjectContentBlock, RefObjectDataValue } from 'salvageunion-ref
 import { glossaryRef, parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { space, fontSize as typeScale, weight } from '../../design/tokens'
-import { useParseTraitReferences } from '../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../lib/useProseRefs'
 import { ActivationCost } from '../atoms/ActivationCost'
 import { Badge } from '../atoms/Badge'
 import { Slab } from '../atoms/Slab'

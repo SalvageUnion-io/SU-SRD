@@ -49,7 +49,7 @@ describe('refText', () => {
   test('the names it prints in plain words are references too, outside the markup', () => {
     const prone = { schemaName: 'keywords' as const, id: 'prone-id', slug: 'prone', name: 'prone' }
     const parts = refText('It falls Prone and gains [[Prone]].', () => undefined, {
-      prone: [{ ref: prone }],
+      nameRefs: { prone: [{ ref: prone }] },
     })
     expect(parts).toEqual([
       'It falls ',
@@ -57,6 +57,25 @@ describe('refText', () => {
       ' and gains ',
       { text: 'Prone', ref: null },
       '.',
+    ])
+  })
+
+  test('a page reference links where the index resolves it, as a card’s prose does', () => {
+    const table = {
+      schemaName: 'roll-tables' as const,
+      id: 'overload-id',
+      slug: 'reactor-overload',
+      name: 'Reactor Overload',
+    }
+    const parts = refText(
+      'Roll on the Reactor Overload Table p. 235.\n\nSee p. 9.',
+      () => undefined,
+      { pageRefs: { 235: [{ ref: table, noun: 'roll table' }] } }
+    )
+    expect(parts).toEqual([
+      'Roll on the Reactor Overload Table ',
+      { text: 'p. 235', ref: table },
+      '.\n\nSee p. 9.',
     ])
   })
 })

@@ -13,6 +13,7 @@ import {
 } from '../components/index'
 import type { ColumnsTablePageData } from './columnsTablePage'
 import { nameRefIndexWithout } from './nameRefIndex'
+import { pageRefIndexFor } from './pageRefIndex'
 import type { RollTablePageData } from './rollTablePage'
 import { refText } from './rollTablePage'
 
@@ -23,9 +24,10 @@ function rollTableParts(item: RefEntity) {
     'table' in item && item.table && typeof item.table === 'object'
       ? (item.table as RefObjectTable)
       : undefined
-  // Its prose names other entries (a table's own name names itself: no link).
-  const names = nameRefIndexWithout(item.id)
-  const resolve = (text: string) => refText(text, mentionRef, names)
+  // Its prose names other entries (a table's own name names itself: no link)
+  // and cites pages, linked as its card would link them.
+  const refs = { nameRefs: nameRefIndexWithout(item.id), pageRefs: pageRefIndexFor(item) }
+  const resolve = (text: string) => refText(text, mentionRef, refs)
   const { contentParagraphs } = extractStaticEntitySummary(item, { keepReferences: true })
   return { name: item.name, description: contentParagraphs.map(resolve), table, resolve }
 }

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { bookName, citeLine } from 'salvageunion-reference'
 import { capsLabel } from '../components/atoms/capsLabel'
-import type { NameRefIndex } from '../components/index'
+import type { NameRefIndex, PageRefIndex } from '../components/index'
 import { InlineRef, mentionRef, RollTableInstrument, SlabSection, Stat } from '../components/index'
 import { MentionProse } from '../components/MentionProse'
 import { cn } from '../lib/cn'
@@ -25,14 +25,18 @@ const STATIC_LABEL = cn('su-static__label', capsLabel({ tracking: 'snug' }))
  *
  * Every trait or keyword it names, in its prose or its trait list, is a
  * Mention resolved at build time (`mentionRef`): a link to its page
- * with its Peek, as is every entry it names in plain words (`nameRefs`). The summary keeps its prose's `[[Trait]]` markup
+ * with its Peek, as is every entry it names in plain words (`nameRefs`) and
+ * every page it cites (`pageRefs`), cut as the card's prose is (`segmentProse`). The summary keeps its prose's `[[Trait]]` markup
  * (`keepReferences`) for exactly that; a summary without it reads as words.
  * The parent link is an `InlineRef`. Layout is `pages.css`'s `.su-static*`.
  */
 
-/** Prose with its references, and the entries it names (`names`), drawn as Mentions. */
-function Prose({ text, names }: { text: string; names: NameRefIndex | undefined }) {
-  return <MentionProse parts={refText(text, mentionRef, names)} />
+/** What the summary's prose resolves beyond its trait markup. */
+type ProseIndexes = { nameRefs?: NameRefIndex | undefined; pageRefs?: PageRefIndex | undefined }
+
+/** Prose with its references, the entries it names and the pages it cites, drawn as Mentions. */
+function Prose({ text, refs }: { text: string; refs: ProseIndexes }) {
+  return <MentionProse parts={refText(text, mentionRef, refs)} />
 }
 
 type StaticEntityContentProps = {
@@ -46,6 +50,8 @@ type StaticEntityContentProps = {
   cite?: string | undefined
   /** The entries its prose names in plain words (`lib/nameRefIndex.ts`). */
   nameRefs?: NameRefIndex
+  /** The pages its prose cites (`lib/pageRefIndex.ts`), linked as the card links them. */
+  pageRefs?: PageRefIndex | undefined
 }
 
 export function StaticEntityContent({
@@ -53,7 +59,9 @@ export function StaticEntityContent({
   parent,
   cite: given,
   nameRefs,
+  pageRefs,
 }: StaticEntityContentProps) {
+  const refs = { nameRefs, pageRefs }
   // The foot's cite, as every card and Page prints it.
   const cite =
     given ??
@@ -71,7 +79,7 @@ export function StaticEntityContent({
 
       {summary.description && (
         <p>
-          <Prose names={nameRefs} text={summary.description} />
+          <Prose refs={refs} text={summary.description} />
         </p>
       )}
 
@@ -85,7 +93,7 @@ export function StaticEntityContent({
 
       {summary.contentParagraphs.map((p) => (
         <p key={p}>
-          <Prose names={nameRefs} text={p} />
+          <Prose refs={refs} text={p} />
         </p>
       ))}
 
@@ -104,7 +112,7 @@ export function StaticEntityContent({
             rows: summary.table.map((row) => ({
               key: row.key,
               label: row.label ?? null,
-              value: <Prose names={nameRefs} text={row.value} />,
+              value: <Prose refs={refs} text={row.value} />,
             })),
           }}
         />
@@ -124,7 +132,7 @@ export function StaticEntityContent({
         >
           {section.paragraphs.map((p) => (
             <p key={p}>
-              <Prose names={nameRefs} text={p} />
+              <Prose refs={refs} text={p} />
             </p>
           ))}
         </SlabSection>

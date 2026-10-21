@@ -99,6 +99,7 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
       <StaticEntityContent
         summary={staticSummary}
         nameRefs={names}
+        pageRefs={pageRefs}
         // Every printing on the foot's one line, as the card and the Page cite it.
         cite={citeLine(provenancePrintings(resolveProvenance(item as RefMetaEntity, pattern)))}
         parent={

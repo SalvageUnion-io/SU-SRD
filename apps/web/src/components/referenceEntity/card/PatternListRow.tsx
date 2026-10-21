@@ -9,7 +9,7 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'

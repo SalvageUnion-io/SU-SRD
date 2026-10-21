@@ -7,50 +7,45 @@
  */
 
 import type { EntityRef, RefObjectTable } from 'salvageunion-reference'
-import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
-import { findNameRefs } from '../components/entity/nameRefs'
-import type { AnnouncedRoll, NameRefIndex } from '../components/index'
+import { NO_EFFECT, resultForTable } from 'salvageunion-reference'
+import type { AnnouncedRoll } from '../components/index'
+import type { ProseRefs } from './segmentProse'
+import { segmentProse } from './segmentProse'
 
 /**
- * Prose with its trait references resolved at build time: plain runs, and
- * each `[[Trait]]` as the words it prints and the glossary entry it names
- * (`null` when it names none), and each entry it names in plain words where
- * a `nameRefs` index is given (`findNameRefs`). Resolved on the server so the island reads no
+ * Prose with its references resolved at build time: plain runs, and each
+ * reference as the words it prints and the entry it names (`null` when it
+ * names none): a `[[Trait]]`, a "p. 235" where `pageRefs` resolves it, and an
+ * entry named in plain words where `nameRefs` is given. Cut by
+ * `segmentProse`, as a card's prose is (`useProseRefs`), so a page links a
+ * sentence as its card does. Resolved on the server so the island reads no
  * game data: a ref is a few strings, and the Mention draws its page and its
  * Peek from them.
  */
 export type RefText = (string | { text: string; ref: EntityRef | null })[]
 
 /**
- * Split prose on its `[[Trait]]` markup, resolving each name through
- * `resolve`, and on the names `nameRefs` holds.
+ * Prose cut into `RefText`, each trait name resolved through `resolve`. A
+ * paragraph break stays in the words around it.
  */
 export function refText(
   text: string,
   resolve: (name: string) => EntityRef | undefined,
-  nameRefs?: NameRefIndex
+  refs: ProseRefs = {}
 ): RefText {
-  const traits = parseTraitReferences(text).map((match) => ({
-    start: match.startIndex,
-    end: match.startIndex + match.fullMatch.length,
-    text:
-      match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`,
-    ref: resolve(match.traitName) ?? null,
-  }))
-  const names = nameRefs
-    ? findNameRefs(text, nameRefs, traits).map((match) => ({
-        ...match,
-        text: text.slice(match.start, match.end),
-      }))
-    : []
   const parts: RefText = []
-  let at = 0
-  for (const ref of [...traits, ...names].sort((a, b) => a.start - b.start)) {
-    if (ref.start > at) parts.push(text.slice(at, ref.start))
-    parts.push({ text: ref.text, ref: ref.ref })
-    at = ref.end
+  const words = (run: string) => {
+    const last = parts.at(-1)
+    if (typeof last === 'string') parts[parts.length - 1] = last + run
+    else parts.push(run)
   }
-  if (at < text.length) parts.push(text.slice(at))
+  for (const segment of segmentProse(text, refs)) {
+    if (segment.kind === 'text') words(segment.text)
+    else if (segment.kind === 'break') words('\n\n')
+    else if (segment.kind === 'trait') {
+      parts.push({ text: segment.text, ref: resolve(segment.name) ?? null })
+    } else parts.push({ text: segment.text, ref: segment.ref })
+  }
   return parts
 }
 

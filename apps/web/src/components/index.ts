@@ -19,12 +19,12 @@ export { cn } from '../lib/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from '../lib/dice'
 export { dieForTable, rollD20, rollForTable } from '../lib/dice'
-// Prose with its `[[Trait]]` references drawn as Mentions (The app's `PlayRollTable`).
-export { useParseTraitReferences } from '../lib/parseTraitReferences'
 // THE show/hide fold: open state plus the toggle's aria-expanded / aria-controls.
 export { useDisclosure } from '../lib/useDisclosure'
 // The one viewport media-query hook (a breakpoint read in JS, not CSS).
 export { useMediaQuery } from '../lib/useMediaQuery'
+// Prose with its `[[Trait]]` references drawn as Mentions (The app's `PlayRollTable`).
+export { useParseTraitReferences } from '../lib/useProseRefs'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from '../styles/cssVars'
 export { ActivationCost } from './atoms/ActivationCost'

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../lib/dice'
-import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import type { Size } from '../../../styles/sizing'
 import {
   digestColumnsTable,
