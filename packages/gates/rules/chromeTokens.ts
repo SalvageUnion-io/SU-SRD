@@ -1,6 +1,7 @@
 /**
- * Chrome-token laws — the second half of the `tokens` rule set of
- * `tools/check-rule-sets.ts` (docs/design-system/chrome.md, hard-rules.md).
+ * Chrome-token laws — the `chrome-tokens` rule set of
+ * `tools/check-rule-sets.ts`, beside `designTokens.ts`'s `tokens`
+ * (docs/design-system/chrome.md, hard-rules.md).
  *
  * `designTokens.ts` matches a literal on a line. These laws need to know
  * where a declaration sits: which selector a `dashed` is under, whether a left
@@ -10,8 +11,8 @@
  * around a match (`enclosingObject`), and every rule is a function over that,
  * not a regex.
  *
- * It shares the `tokens` id with `designTokens.ts`, so its findings print as
- * `tokens/<rule>` and `--only=tokens` runs both halves.
+ * Its id is `chrome-tokens`: findings print as `chrome-tokens/<rule>`, and
+ * `--only=tokens` does not run it (`--only=chrome-tokens` does).
  *
  * ## Every rule is zero
  *

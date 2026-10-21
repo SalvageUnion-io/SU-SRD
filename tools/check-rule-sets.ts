@@ -99,7 +99,6 @@ function selectedSets(argv: readonly string[]): RuleSet[] {
 function main(argv: readonly string[]): void {
   const sets = selectedSets(argv)
   for (const set of sets) set.preflight?.(ROOT)
-  // Keyed by the set, not its id: the two `tokens` halves share one id.
   const results = new Map(sets.map((set) => [set, set.scan(ROOT)] as const))
 
   if (argv.includes('--report')) {
