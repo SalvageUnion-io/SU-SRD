@@ -13,8 +13,8 @@
     },
     "tools": {
       // Every top-level script is run directly (`bun tools/<name>.ts`), by a
-      // root script, the check registry or a workflow.
-      "entry": ["*.ts"]
+      // root script, the check registry or a workflow; review-deck/ by hand.
+      "entry": ["*.ts", "review-deck/*.ts"]
     },
     "packages/gates": {
       // `rules/*.ts` is listed because knip reads `.gitignore`'s `rules/*`
