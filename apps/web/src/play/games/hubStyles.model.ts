@@ -9,12 +9,9 @@ import { tokens } from '../../components/index'
 
 const { space } = tokens
 
-/** The page's measure under its band: Shelves', and the SRD's. */
-export const GAME_MEASURE = '75rem'
-
 /**
  * The page body under the band (`PageShell`'s measured body, at
- * `GAME_MEASURE`): its height reserves a stable footprint, so the roster
+ * `PAGE_MEASURE`): its height reserves a stable footprint, so the roster
  * replacing the skeleton does not shift the page.
  */
 export const GAME_BODY = { minHeight: '60vh' } satisfies CSSProperties

@@ -45,11 +45,12 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
-import { GAME_BODY, GAME_MEASURE, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
+import { GAME_BODY, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -159,7 +160,7 @@ export function GameHub({ gameId }: GameHubProps) {
 
   return (
     <PageShell
-      measure={GAME_MEASURE}
+      measure={PAGE_MEASURE}
       stack={false}
       band={
         <GameBand

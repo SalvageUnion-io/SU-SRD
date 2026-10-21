@@ -19,6 +19,7 @@ import {
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -39,8 +40,6 @@ import { SignInControl } from './SignInControl'
  * it away, let me erase it — and splitting those across surfaces is how one of
  * them quietly never ships.
  */
-
-const MEASURE = '75rem'
 
 /** A concern's controls and notes, 12px apart under its stamp. */
 const BODY = {
@@ -201,10 +200,10 @@ function SettingsBody() {
 export function SettingsScreen() {
   return (
     <PageShell
-      measure={MEASURE}
+      measure={PAGE_MEASURE}
       stack={false}
       band={
-        <ChapterBand tone="ink" measure={MEASURE}>
+        <ChapterBand tone="ink" measure={PAGE_MEASURE}>
           Settings
         </ChapterBand>
       }

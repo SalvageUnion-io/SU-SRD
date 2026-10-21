@@ -74,6 +74,7 @@ import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExp
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { patternCopy, patternHref } from '../../lib/patterns/patterns'
 import type { PatternSharing, ShelfFilter, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
@@ -112,8 +113,6 @@ import { StarterShelf } from './StarterShelf'
 // ---------------------------------------------------------------------------
 // Layout
 // ---------------------------------------------------------------------------
-
-const MEASURE = '75rem'
 
 /**
  * One row of shelves (owner, 2026-10-15): your units (Pilots, Mechs,
@@ -377,11 +376,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   return (
     <PageShell
       className="su-shelves"
-      measure={MEASURE}
+      measure={PAGE_MEASURE}
       band={
         <ChapterBand
           tone="build"
-          measure={MEASURE}
+          measure={PAGE_MEASURE}
           eyebrow={
             <p role="status" aria-live="polite" className="su-shelves-band__status">
               {importResult}

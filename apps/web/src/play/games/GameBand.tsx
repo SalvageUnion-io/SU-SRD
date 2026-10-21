@@ -14,7 +14,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
-import { GAME_MEASURE } from './hubStyles.model'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 
 /**
  * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
@@ -45,7 +45,7 @@ export function GameBand({
   return (
     <ChapterBand
       tone="play"
-      measure={GAME_MEASURE}
+      measure={PAGE_MEASURE}
       id="game-band-heading"
       asideAt="controls"
       aside={

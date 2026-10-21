@@ -27,6 +27,7 @@ import { capsLabel } from '../../components/atoms/capsLabel'
 import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
@@ -40,9 +41,6 @@ const STEP_HREFS = {
   crawler: appPath('/crawlers/new'),
 }
 
-/** The width the band's notch and the content under it share. */
-const MEASURE = '75rem'
-
 /** The page: the band runs full-bleed, so this is not a padded `PageShell`. */
 const PAGE = {
   backgroundColor: tokens.color.wkBg,
@@ -54,7 +52,7 @@ const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[40],
-  maxWidth: MEASURE,
+  maxWidth: PAGE_MEASURE,
 } satisfies CSSProperties
 
 /** The kicker: brand caps, the eyebrow's tracking. */
@@ -72,7 +70,7 @@ export function FrontDoor() {
     <main style={PAGE}>
       <ChapterBand
         tone="build"
-        measure={MEASURE}
+        measure={PAGE_MEASURE}
         eyebrow={<span className={KICKER_CAPS}>{PRODUCT.descriptor}</span>}
         asideAt="notch"
         aside={<Tagline />}
