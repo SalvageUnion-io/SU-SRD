@@ -33,33 +33,25 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-type BrowserApp = {
-  name: string
-  /** Module that owns init, relative to repo root. */
-  modulePath: string
-  /** Entries that must each CALL the init. */
-  entryPaths: string[]
-  /** The app's CSP source: the `_headers` Workers Static Assets reads. */
-  headersPath: string
-  /** The Worker that answers the app's error reports. */
-  workerPath: string
-  /** Handlers the Worker must call, beyond `handleErrorReport`. */
-  extraHandlers: string[]
-}
+/** The module that owns init, relative to the repo root. */
+const MODULE_PATH = 'apps/web/src/lib/observability.ts'
 
-const BROWSER_APP: BrowserApp = {
-  name: 'web',
-  modulePath: 'apps/web/src/lib/observability.ts',
-  entryPaths: ['apps/web/src/runtime/islands.client.ts', 'apps/web/src/main.tsx'],
-  headersPath: 'apps/web/public/_headers',
-  workerPath: 'apps/web/src/worker/index.ts',
-  extraHandlers: ['handleConvexLogStream'],
-}
+/** The entries that must each CALL the init: the static pages' islands and the app's. */
+const ENTRY_PATHS = ['apps/web/src/runtime/islands.client.ts', 'apps/web/src/main.tsx']
+
+/** The CSP source: the `_headers` Workers Static Assets reads. */
+const HEADERS_PATH = 'apps/web/public/_headers'
+
+/** The Worker that answers the error reports. */
+const WORKER_PATH = 'apps/web/src/worker/index.ts'
+
+/** The handlers the Worker must call. */
+const WORKER_HANDLERS = ['handleErrorReport', 'handleConvexLogStream']
 
 const failures: string[] = []
 
-function fail(app: string, message: string): void {
-  failures.push(`  [${app}] ${message}`)
+function fail(message: string): void {
+  failures.push(`  ${message}`)
 }
 
 function exists(path: string): boolean {
@@ -102,54 +94,52 @@ const WEB_ANALYTICS_SOURCES = [
   ['connect-src', 'https://cloudflareinsights.com'],
 ] as const
 
-function checkBrowserApp(app: BrowserApp): void {
-  const module = code(app.modulePath)
+function checkWiring(): void {
+  const module = code(MODULE_PATH)
   if (module === null) {
-    fail(app.name, `observability module missing at ${app.modulePath}`)
+    fail(`observability module missing at ${MODULE_PATH}`)
   } else if (!/\bERROR_REPORT_PATH\b/.test(module)) {
-    fail(app.name, `${app.modulePath} does not post to ERROR_REPORT_PATH`)
+    fail(`${MODULE_PATH} does not post to ERROR_REPORT_PATH`)
   }
 
   // An init that is never called is indistinguishable from no init at all.
-  for (const entryPath of app.entryPaths) {
+  for (const entryPath of ENTRY_PATHS) {
     const entry = code(entryPath)
     if (entry === null) {
-      fail(app.name, `entry missing at ${entryPath}`)
+      fail(`entry missing at ${entryPath}`)
     } else if (!/\binitBrowserObservability\(/.test(entry)) {
-      fail(app.name, `${entryPath} never calls initBrowserObservability()`)
+      fail(`${entryPath} never calls initBrowserObservability()`)
     }
   }
 
   // A report posted to a Worker that does not route it is a 404 nobody sees.
-  const worker = code(app.workerPath)
+  const worker = code(WORKER_PATH)
   if (worker === null) {
-    fail(app.name, `no Worker entry at ${app.workerPath}`)
+    fail(`no Worker entry at ${WORKER_PATH}`)
   } else {
-    for (const handler of ['handleErrorReport', ...app.extraHandlers]) {
+    for (const handler of WORKER_HANDLERS) {
       if (!new RegExp(`\\b${handler}\\(`).test(worker)) {
-        fail(app.name, `${app.workerPath} never calls ${handler}() — those errors reach nothing`)
+        fail(`${WORKER_PATH} never calls ${handler}() — those errors reach nothing`)
       }
     }
   }
 
-  const headers = headersFile(app.headersPath)
+  const headers = headersFile(HEADERS_PATH)
   if (headers === null) {
-    fail(app.name, `no CSP source found at ${app.headersPath} — the error report is unguarded`)
+    fail(`no CSP source found at ${HEADERS_PATH} — the error report is unguarded`)
     return
   }
   const policy = headers.match(/Content-Security-Policy\s*:\s*([^\n]*)/)?.[1] ?? ''
   const connectSrc = directiveOf(policy, 'connect-src')
   if (connectSrc === null) {
     fail(
-      app.name,
-      `${app.headersPath} declares no Content-Security-Policy connect-src — the error report is unguarded`
+      `${HEADERS_PATH} declares no Content-Security-Policy connect-src — the error report is unguarded`
     )
     return
   }
   if (!connectSrc.includes("'self'")) {
     fail(
-      app.name,
-      `${app.headersPath}: CSP connect-src does not allow 'self' — error reports ` +
+      `${HEADERS_PATH}: CSP connect-src does not allow 'self' — error reports ` +
         `would be blocked in the browser.\n      got: connect-src ${connectSrc.join(' ')}`
     )
   }
@@ -157,8 +147,7 @@ function checkBrowserApp(app: BrowserApp): void {
     const sources = directiveOf(policy, name) ?? []
     if (!sources.includes(source)) {
       fail(
-        app.name,
-        `${app.headersPath}: CSP ${name} does not allow ${source} — the edge-injected ` +
+        `${HEADERS_PATH}: CSP ${name} does not allow ${source} — the edge-injected ` +
           `Web Analytics beacon would be blocked and the dashboard would record nothing.`
       )
     }
@@ -167,7 +156,7 @@ function checkBrowserApp(app: BrowserApp): void {
 
 console.log('Checking observability wiring (module → entry → Worker → CSP)…')
 
-checkBrowserApp(BROWSER_APP)
+checkWiring()
 
 if (failures.length > 0) {
   console.error(`\n✗ observability wiring failed:\n${failures.join('\n')}\n`)

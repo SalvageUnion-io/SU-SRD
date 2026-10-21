@@ -166,7 +166,7 @@ describe('check-observability reads parsed source, not prose', () => {
         async () => {
           const { exitCode, stderr } = await runCheck()
           expect(exitCode).toBe(1)
-          expect(stderr).toContain(`[web] ${entry} never calls initBrowserObservability()`)
+          expect(stderr).toContain(`${entry} never calls initBrowserObservability()`)
         }
       )
     }
@@ -183,9 +183,7 @@ describe('check-observability reads parsed source, not prose', () => {
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain(
-          '[web] apps/web/src/worker/index.ts never calls handleConvexLogStream()'
-        )
+        expect(stderr).toContain('apps/web/src/worker/index.ts never calls handleConvexLogStream()')
       }
     )
   })
