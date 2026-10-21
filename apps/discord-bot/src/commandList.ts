@@ -2,10 +2,10 @@
  * The `/su` command list as the SRD's `/discord` page documents it, read from
  * the registered builder (`suCommand.data`) so the page cannot fall behind the
  * bot: a subcommand added, renamed or re-described here is on the page after
- * `bun run gen:command-list`, and `commandList.test.ts` fails until it is.
+ * `bun --filter discord-bot gen:command-list`, and `commandList.test.ts` fails until it is.
  *
  * The rendered module is committed at `apps/web/src/generated/discordCommands.ts`;
- * the srd imports it as data, never the bot itself.
+ * the reference pages import it as data, never the bot itself.
  */
 
 import { suCommand } from './commands/su'

@@ -56,7 +56,7 @@ describe('the /su command list', () => {
     ])
   })
 
-  test('the srd’s committed copy is current (regenerate: bun run gen:command-list)', () => {
+  test('the web app’s committed copy is current (regenerate: bun --filter discord-bot gen:command-list)', () => {
     expect(readFileSync(COMMITTED, 'utf-8')).toBe(renderCommandListModule())
   })
 })

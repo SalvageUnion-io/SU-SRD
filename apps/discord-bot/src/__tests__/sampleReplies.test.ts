@@ -16,7 +16,7 @@ describe('the /discord page’s sample replies', () => {
     expect(lookup.command).toBe('/su lookup entity: green laser')
   })
 
-  test('the srd’s committed copy is current (regenerate: bun run gen:sample-replies)', () => {
+  test('the web app’s committed copy is current (regenerate: bun --filter discord-bot gen:sample-replies)', () => {
     expect(readFileSync(COMMITTED, 'utf-8')).toBe(renderSampleRepliesModule())
   })
 })

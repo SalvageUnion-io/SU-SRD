@@ -4,7 +4,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { renderSampleRepliesModule } from './sampleReplies'
 
 /**
- * Write the sample replies into the srd (`bun run gen:sample-replies`). A
+ * Write the sample replies into apps/web (`bun --filter discord-bot gen:sample-replies`). A
  * local CLI like `gen-command-list.ts`, never imported by the Worker.
  */
 
