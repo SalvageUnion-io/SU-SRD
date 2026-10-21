@@ -52,33 +52,33 @@ const DESCRIPTION = `About salvageunion.io, an open-source System Reference Docu
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
-/** The riveted plate's padding; `.su-pilot-panel` (global.css) is the plate. */
+/** The junk slab's padding; `.su-pilot-panel` (global.css) is the torn hull panel. */
 const PANEL = {
   paddingBlock: space[32],
   paddingInline: space[40],
   position: 'relative',
 } satisfies CSSProperties
 
-/** The plate's engraved lines, above its metal and rivets. */
+/** The slab's carved lines, above its paint, rust and rivets. */
 const PANEL_BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
   position: 'relative',
-  zIndex: 1,
+  zIndex: 2,
 } satisfies CSSProperties
 
-/** An engraved caps line — `.su-engraved-text` (global.css) is the paint. */
-const ENGRAVED_LINE = {
+/** A carved caps line — `.su-carved-text` (global.css) is the cut. */
+const CARVED_LINE = {
   fontSize: fontSize.sm,
   fontWeight: weight.medium,
   lineHeight: 'calc(1.25 / 0.875)',
   textAlign: 'center',
 } satisfies CSSProperties
-/** The engraved caps lines: the paint is `.su-engraved-text`, the caps the recipe's. */
-const ENGRAVED = cn('su-engraved-text', capsLabel({ weight: 'inherit', tracking: 'snug' }))
+/** The carved caps lines: the cut is `.su-carved-text`, the caps the recipe's. */
+const CARVED = cn('su-carved-text', capsLabel({ weight: 'inherit', tracking: 'snug' }))
 
-const INSPIRATION = { ...ENGRAVED_LINE, lineHeight: 1.625 } satisfies CSSProperties
+const INSPIRATION = { ...CARVED_LINE, lineHeight: 1.625 } satisfies CSSProperties
 
 const INSPIRATION_NAME = {
   fontSize: fontSize.lg,
@@ -104,7 +104,7 @@ const PILOT = {
 const PILOT_CAPS = capsLabel()
 
 const FRIENDS = {
-  ...ENGRAVED_LINE,
+  ...CARVED_LINE,
   fontSize: fontSize.lg,
   fontWeight: weight.bold,
   lineHeight: 'calc(1.75 / 1.125)',
@@ -179,9 +179,11 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
     children: (
       <>
         <DocPage title="About the Salvage Union SRD" measure="64rem" gap={space[32]}>
-          {/* Riveted scrap metal panel */}
+          {/* The dedication, carved into a torn-off hull panel */}
           <div className="su-pilot-panel-shadow">
             <div className="su-pilot-panel" style={PANEL}>
+              <div className="su-pilot-panel-chips" />
+              <div className="su-pilot-panel-stencil" />
               {/* Top edge rivets — inset from clipped edges */}
               <div
                 className="su-rivet su-rivet-green"
@@ -269,11 +271,13 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
 
               <div style={PANEL_BODY}>
                 {/* Inspiration text */}
-                <div className={ENGRAVED} style={INSPIRATION}>
-                  <p>Inspired by the pilots of</p>
-                  <p style={INSPIRATION_NAME}>#812 Haven</p>
-                  <p>of</p>
-                  <p style={INSPIRATION_NAME}>
+                <div style={INSPIRATION}>
+                  <p className={CARVED}>Inspired by the pilots of</p>
+                  <p className={CARVED} style={INSPIRATION_NAME}>
+                    #812 Haven
+                  </p>
+                  <p className={CARVED}>of</p>
+                  <p className={CARVED} style={INSPIRATION_NAME}>
                     {/* biome-ignore lint/a11y/useValidAnchor: the lightbox script preventDefaults this href and opens the <dialog> */}
                     <a href="#" id="map-link" style={POINTER}>
                       The Eldridge Coast
@@ -281,34 +285,34 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                   </p>
                 </div>
 
-                <hr className="su-metal-separator" />
+                <hr className="su-carved-rule" />
 
                 {/* Pilot names */}
                 <div style={PILOTS}>
                   {pilots.map((name, i) => (
                     <Fragment key={name}>
                       {i > 0 && (
-                        <span className="su-engraved-text" style={PILOT_GAP}>
+                        <span className="su-carved-text" style={PILOT_GAP}>
                           &ensp;&ensp;
                         </span>
                       )}
-                      <span className={cn('su-engraved-text', PILOT_CAPS)} style={PILOT}>
+                      <span className={cn('su-carved-text', PILOT_CAPS)} style={PILOT}>
                         {name}
                       </span>
                     </Fragment>
                   ))}
                 </div>
 
-                <hr className="su-metal-separator" />
+                <hr className="su-carved-rule" />
 
-                <p className={ENGRAVED} style={ENGRAVED_LINE}>
+                <p className={CARVED} style={CARVED_LINE}>
                   And union crawlers everywhere
                 </p>
 
-                <hr className="su-metal-separator" />
+                <hr className="su-carved-rule" />
 
                 {/* Friends text */}
-                <p className={ENGRAVED} style={FRIENDS}>
+                <p className={CARVED} style={FRIENDS}>
                   "We get by with a little help from our friends"
                 </p>
               </div>
@@ -392,11 +396,45 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           </Island>
         </DocPage>
 
-        {/* SVG filter for peeling paint text effect */}
+        {/* The junk slab's SVG filters (global.css names them) */}
         <svg style={HIDDEN} aria-hidden="true">
           <defs>
-            {/* Worn paint on engraved text */}
-            <filter id="paint-peel" x="-10%" y="-10%" width="120%" height="120%">
+            {/* Hand-cut edges: the carving's strokes waver where the blade skipped */}
+            <filter id="carve-rough" x="-5%" y="-20%" width="110%" height="140%">
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.85"
+                numOctaves="2"
+                seed="4"
+                result="wobble"
+              />
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="wobble"
+                scale="1.6"
+                xChannelSelector="R"
+                yChannelSelector="G"
+              />
+            </filter>
+            {/* Paint chipped back to rust: keeps the rust ground only in the noise's peaks */}
+            <filter id="paint-chips" x="0%" y="0%" width="100%" height="100%">
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.035 0.05"
+                numOctaves="4"
+                seed="23"
+                result="noise"
+              />
+              <feColorMatrix
+                in="noise"
+                type="matrix"
+                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -10 4.2"
+                result="mask"
+              />
+              <feComposite in="SourceGraphic" in2="mask" operator="in" />
+            </filter>
+            {/* Worn paint: the hazard stencil, mostly scraped away */}
+            <filter id="paint-peel" x="0%" y="0%" width="100%" height="100%">
               <feTurbulence
                 type="fractalNoise"
                 baseFrequency="0.1"
@@ -407,12 +445,12 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               <feColorMatrix
                 in="noise"
                 type="matrix"
-                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.75 3.1"
+                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -5 3.4"
                 result="mask"
               />
               <feComposite in="SourceGraphic" in2="mask" operator="in" />
             </filter>
-            {/* Subtle grain / texture overlay (no dirt coloring) */}
+            {/* Subtle grain over the paint (no dirt colouring) */}
             <filter id="plate-damage" x="0%" y="0%" width="100%" height="100%">
               <feTurbulence
                 type="fractalNoise"
