@@ -10,13 +10,12 @@
  *
  * The titles a caller can render as a heading (`titleAs`): an entity form's
  * (`Head`'s), which names itself by `data-handback` (the entity forms' markup
- * is `components/entity/`'s own, hard rule R7), and the card header's. Their
+ * is `components/entity/`'s own, hard rule R7). Its
  * print sizes are handed back in `print.css`. The
  * ChapterBand's notched title is always a heading, set as on the SRD. An
  * `Eyebrow` a caller renders as `h2`/`h3` keeps its own snug tracking.
  */
 [data-handback],
-.su-ec-band__title,
 .su-chapter-band__title,
 .su-eyebrow {
   font-family: revert-layer;

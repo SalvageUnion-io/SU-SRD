@@ -145,7 +145,7 @@ const ratio = (band: Band) => contrastRatio(band.ground ?? PAPER, FOREGROUND[ban
 /**
  * What a header owes is set by its TITLE SIZE, not by its band (WCAG 1.4.3):
  * large text — 24px, or 18.66px (14pt) bold — owes 3:1, anything smaller
- * 4.5:1. The title is set extrabold (`EntityCardHeader`), so the bold
+ * 4.5:1. The title is set extrabold (`entity/parts/Head`), so the bold
  * threshold is the one that applies.
  *
  * Every tone can render at every size and depth, so each band owes what the

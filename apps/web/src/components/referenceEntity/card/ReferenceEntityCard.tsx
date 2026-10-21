@@ -33,7 +33,6 @@ import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { treeRelationNodes } from './abilityTreeRelations'
 import { CardHead } from './CardHead'
-import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
 import { CardTitleLink } from './CardTitleLink'
@@ -66,7 +65,6 @@ import {
   resolveCardTone,
   resolveSeamLabel,
   resolveTierNumeral,
-  resolveTitleSize,
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
 import { HeadMini } from './HeadMini'
@@ -89,7 +87,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * NPCs (ruleset §5, boards E1–E4). ONE anatomy across every size × extent ×
  * context:
  *
- *   flush header (title, labels, chip group) · body · footer
+ *   cut-out head (title, labels, chip group) · body · footer
  *
  * with TWO header fills, chosen by the reader's question and decided by data
  * shape (`isDoEntity`), never a schema prop:
@@ -110,7 +108,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * `ReferenceEntityCardInner` DECIDES — fill, depth, which sections a card
  * carries, what each one is fed — and composes. What each section LOOKS like
  * lives beside it, one module per section: the labels
- * (`CardLabels`), the header (`EntityCardHeader`), the chip group
+ * (`labelChips`), the head (`CardHead`), the chip group
  * (`Chips`, E17), the Mini form (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
  * (`CardRollTable`), the trays, inline
@@ -245,7 +243,6 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const titleSize = resolveTitleSize(fill, depth, size)
   // ARTWORK — a MINI catalog tile drops it: at the small size the image would
   // crowd out the description it exists to caption.
   const isMiniCatalog = isCatalog && size === 'mini'
@@ -417,34 +414,30 @@ function ReferenceEntityCardInner({
     <CardTitleLink entity={entity} title={name} inPeek={insidePeek} pattern={pattern} />
   ) : undefined
 
-  // Every card wears the cut-out head (its overflow, C2b); a Page has its chapter band.
+  // Every framed card wears the cut-out head (its overflow, C2b); a Page has
+  // its chapter band (`CardPage`), so this is never called on a page.
   const header = (overflow: 'body' | 'more') => (
     <CardHead
-      cutOut={!onPage}
       title={name}
       titleContent={titleContent}
       kind={kind}
       fill={fill}
       titleAs={titleAs}
       bandColor={bandColor}
-      titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
       chips={
         <Chips
           chips={chips}
           size="compact"
-          marks={onPage ? suggestedNode : [...labelChips(labelProps, 'compact'), suggestedNode]}
+          marks={[...labelChips(labelProps, 'compact'), suggestedNode]}
           nodes={tree}
           state={slots.state.length > 0 ? slots.state : undefined}
         />
       }
       controls={slots.controls.length > 0 ? slots.controls : undefined}
       affordance={seal}
-      labels={onPage ? <CardLabels {...labelProps} /> : undefined}
-      size={size}
       grain={grain}
-      ruled
       overflow={overflow}
     />
   )

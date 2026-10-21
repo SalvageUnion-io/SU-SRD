@@ -32,8 +32,8 @@ const COCKPIT = '.su-play-root'
 /** What the Cockpit lays over itself, portalled out of it. */
 const OVERLAY = '[data-peek-popup], [role="dialog"], [role="alertdialog"], [role="menu"]'
 
-/** An entity band: a Compact's or TitledBox's head, a card's band. */
-const BAND = '.su-entity-compact__head, .su-ec-band'
+/** An entity band: a Compact's, TitledBox's or card's head (`Head`). */
+const BAND = '.su-entity-compact__head'
 
 /**
  * The texture faults in the Cockpit and the overlays over it, one line each:

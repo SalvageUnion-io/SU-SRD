@@ -162,13 +162,9 @@ export function resolveTechScaling(
 /**
  * The header's stat cluster.
  *
- * Stat LABELS are size-aware: `asCompact` abbreviates (SP, Cargo, …) for a
- * compact/nested/listing card, while a non-compact card keeps the full labels
- * (which may wrap two lines, which is fine). The card builds this TWICE for a
- * non-compact card, because the header measures itself and falls back to the
- * compact cells when it is too narrow to seat its value boxes (see
- * `narrowStats` on EntityCardHeader) — and those read "SV / SYS / MODS", not
- * the two-line long form.
+ * Stat LABELS are size-aware: `asCompact` (the default) abbreviates (SP,
+ * Cargo, …); `asCompact: false` keeps the full value box's labels, which may
+ * wrap two lines.
  */
 export function buildHeaderStats(options: {
   entity: RefMetaEntity

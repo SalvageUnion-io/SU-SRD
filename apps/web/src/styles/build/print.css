@@ -190,8 +190,7 @@
    * an entity form's by `data-handback`. */
   [style*='border'],
   [data-handback],
-  .su-stat-cell,
-  .su-ec-band--ruled {
+  .su-stat-cell {
     border-color: #000 !important;
   }
 

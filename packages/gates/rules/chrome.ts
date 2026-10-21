@@ -121,7 +121,6 @@ const FRAMES: Record<string, string> = {
   'apps/web/src/play/PlayBar.tsx':
     "the Play bar, the Cockpit's page band (the Cantina's, which prints paper)",
   'apps/web/src/components/entity/parts/Head.tsx': "an entity form's head band (the ink banner)",
-  'apps/web/src/components/referenceEntity/card/EntityCardHeader.tsx': "a card's head band",
   'apps/web/src/components/entity/forms/Mini.tsx': "a Mini's pill",
   'apps/web/src/build/wizard/WizShell.tsx': "a wizard's ink action pill",
   'apps/web/src/components/compositions/RollTableInstrument.tsx': "a roll table's ink bar",
