@@ -176,3 +176,10 @@ button.su-play-dt-track__step:disabled {
   gap: var(--space-8);
   justify-content: flex-end;
 }
+
+/* An action it cannot use now is faded (owner, round 10: "inactive actions
+   can be faded"), but no fainter than its name keeps 4.5:1 on its dulled band
+   (WCAG 1.4.3): the select dim's saturation, a lighter fade. */
+.su-play-act .su-select-dim {
+  opacity: 0.75;
+}

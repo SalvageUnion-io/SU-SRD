@@ -82,6 +82,8 @@ export type EntityProps = EntitySource &
      * a damaged thing's condition on a surface that only reads it (a crawler bay).
      */
     state?: ReactNode
+    /** Mini only: its band in this tone, dulled (`MiniSlots.tint`): a Play action's source unit. */
+    tint?: string
     /** Mini: its `state` is a control (a condition that steps), so its name is the link (C8). */
     stateActs?: boolean
     /**
@@ -124,6 +126,7 @@ export function Entity(props: EntityProps) {
     linked,
     state,
     stateActs,
+    tint,
     trailing,
     uses,
     body: ownBody,
@@ -197,8 +200,15 @@ export function Entity(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            state || trailing || peekAt || relations || uses !== undefined || controls !== undefined
+            state ||
+            trailing ||
+            peekAt ||
+            relations ||
+            tint ||
+            uses !== undefined ||
+            controls !== undefined
               ? {
+                  ...(tint ? { tint } : {}),
                   ...(state || trailing ? { state: state ?? trailing } : {}),
                   ...(stateActs ? { stateActs } : {}),
                   ...(peekAt ? { peekAt } : {}),

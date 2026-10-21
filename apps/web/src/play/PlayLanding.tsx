@@ -47,6 +47,7 @@ import {
   ModalShell,
   PageShell,
   Pending,
+  relation,
   Stat,
   tokens,
 } from '../components/index'
@@ -206,8 +207,10 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
               <UnitRow
                 kind="pilot"
                 name={pilot.name}
-                // Its mech, the header-only Mini of a linked unit, never a
-                // chip (owner, round 4); with none, the stamp says so.
+                readings={pilot.readings}
+                // The pair rule (owner, rounds 8 and 10): a pilot not aboard
+                // is the pilot, its HP and AP, with a MECH chip naming its
+                // mech; with none, the stamp says so.
                 {...(pilot.mechName === null
                   ? {
                       labels: (
@@ -217,13 +220,13 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
                       ),
                     }
                   : {
-                      linked: [
-                        {
-                          key: 'mech',
-                          kind: 'mech' as const,
-                          name: pilot.mechName,
-                          ...(pilot.mechId ? { href: `/sheet/mech/${pilot.mechId}` } : {}),
-                        },
+                      relations: [
+                        relation(
+                          'mech',
+                          'Mech',
+                          pilot.mechName,
+                          pilot.mechId ? { href: `/sheet/mech/${pilot.mechId}` } : {}
+                        ),
                       ],
                     })}
                 controls={

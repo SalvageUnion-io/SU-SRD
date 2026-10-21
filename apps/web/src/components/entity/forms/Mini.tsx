@@ -40,6 +40,12 @@ export type MiniSlots = {
   /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
   peekAt?: string
   frameStyle?: CSSProperties
+  /**
+   * Paint its band in this tone dulled toward grey, in place of its own: a
+   * thing you do in Play wears the unit it comes from (pilot, mech, crawler),
+   * at a distance, never black (owner, round 10).
+   */
+  tint?: string
   /** The kind, for screen readers (`KindLabel`). */
   kind?: string
   /** A read cost ("1 EP"), as its chip. */
@@ -196,7 +202,9 @@ export function Mini({
   const target = useLinkTarget(headMode, model.ref)
   const down = slots.down ?? downOf(instance?.condition)
   const peek = usePeekAttrs(model.ref, slots.peekAt, down)
-  const paint = paintFor(model.tone, { down, texture: false })
+  const paint = slots.tint
+    ? paintFor(slots.tint, { down: down === 'destroyed' ? down : true, texture: false })
+    : paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
   const chips = tokenChips(model, context, {

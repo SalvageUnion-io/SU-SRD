@@ -48,10 +48,25 @@ import { invitePath } from '../../lib/games/inviteLink'
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
-const HINT = { textAlign: 'left' } satisfies CSSProperties
+/** The invite's words, a step up from the body's (owner, round 10). */
+const WORDS = { fontSize: 'var(--text-lg)' } satisfies CSSProperties
 
-/** The page column: an invitation is a short read, so it does not span the hub's width. */
-const COLUMN = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
+const HINT = { ...WORDS, textAlign: 'left' } satisfies CSSProperties
+
+/**
+ * The page column: an invitation is a short read, so it does not span the
+ * hub's width. It stands in the middle of the room under the band, a size up
+ * (owner, round 10: "vertically center this invite block, bump up a size"),
+ * its type a step up in `.su-invite`.
+ */
+const COLUMN = {
+  display: 'flex',
+  flex: '1 1 auto',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  maxWidth: '42rem',
+  width: '100%',
+} satisfies CSSProperties
 
 /** How invites work, for a dead link and for a typed code from before links. */
 const HOW_INVITES_WORK =
@@ -73,7 +88,7 @@ const BACK = { href: '/play/', label: 'Play' }
 function Back({ signIn = false }: { signIn?: boolean }) {
   return (
     <div style={ACTIONS}>
-      <Button href={BACK.href} back size="compact">
+      <Button href={BACK.href} back size="full">
         {BACK.label}
       </Button>
       {signIn && <SignInControl redirectTo={BACK.href} />}
@@ -144,19 +159,14 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
 
   return (
     <TitledBox title="You have been invited">
-      <Text>
+      <Text style={WORDS}>
         {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
       </Text>
       <Text variant="hint" style={HINT}>
         Everyone at a table can read each other’s sheets.
       </Text>
       <div style={ACTIONS}>
-        <Button
-          variant="primary"
-          size="compact"
-          disabled={join.pending}
-          onClick={() => void accept()}
-        >
+        <Button variant="primary" size="full" disabled={join.pending} onClick={() => void accept()}>
           Join this Game
         </Button>
       </div>
@@ -178,7 +188,7 @@ function SignedOutInvite({ token }: { token: string }) {
 
   return (
     <TitledBox title="You have been invited">
-      <Text>
+      <Text style={WORDS}>
         {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
       </Text>
       <Text variant="hint" style={HINT}>
@@ -187,7 +197,11 @@ function SignedOutInvite({ token }: { token: string }) {
       </Text>
       <div>
         {/* Back here with `?join=1`, so the round trip ends in the Game. */}
-        <SignInControl label="Sign in to join" redirectTo={`${invitePath(token)}?join=1`} />
+        <SignInControl
+          label="Sign in to join"
+          size="full"
+          redirectTo={`${invitePath(token)}?join=1`}
+        />
       </div>
     </TitledBox>
   )

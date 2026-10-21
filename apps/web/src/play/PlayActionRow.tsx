@@ -6,7 +6,9 @@
  * in its chip group (C8, ruleset §1.4), which opens the resolve in place in
  * the Mini's body (N3: the action's own text, then `PlayResolveSteps`), with
  * Cancel in Use's slot; not on hand it is dimmed, and says what it needs as a
- * chip ("needs Boarded").
+ * chip ("needs Boarded"). Its band is its source unit's tone dulled (pilot or
+ * mech, owner, round 10: never black), and Use is a filled button; an action
+ * it cannot use now (locked, or read-only) is faded too.
  *
  * A Mini nests nothing (E6): the resolve inside it, its roll instrument (R8)
  * and its steps, is plain content, never an entity of its own (play.md §12).
@@ -48,6 +50,7 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
   ) : (
     <Button
       size="mini"
+      variant="ink"
       onClick={onUse}
       disabled={!canWrite}
       aria-label={`Use ${entry.name}`}
@@ -69,7 +72,8 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
         context="play"
         model={model}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
-        dim={away || locked !== null}
+        tint={entry.source}
+        dim={away || locked !== null || !canWrite}
         {...(away ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> } : {})}
         {...(controls ? { controls } : {})}
         // Contentful (N3): the action's own text, then, while it resolves, its steps.

@@ -23,7 +23,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
-import { heatDangerFrom, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
+import { Box, heatDangerFrom, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
 import { PlayVital } from './PlayVital'
 import type { PhoneTab, PinnedUnit } from './playPhone.model'
 
@@ -148,6 +148,7 @@ const UNIT = {
   flexDirection: 'column',
   gap: tokens.space[4],
   minWidth: 0,
+  padding: `${tokens.space[6]} ${tokens.space[8]}`,
 } satisfies CSSProperties
 
 const UNIT_NAME = {
@@ -173,15 +174,16 @@ const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
  * The live vitals pinned above every tab (`pinnedUnits`): one line per unit,
  * its name, then its vitals as the Units column draws them (`PlayVital`, the
  * compact `VitalGauge`: R7, Play's vitals are the sheet's gauge in a darker
- * skin, never a listing's Stat). A read-out: the − / + are the Units tab's.
- * Nothing in Downtime.
+ * skin, never a listing's Stat), each unit in a box in its tone (owner,
+ * round 10: "HP and AP should be contained in a box"). A read-out: the − / +
+ * are the Units tab's. Nothing in Downtime.
  */
 export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
   if (units.length === 0) return null
   return (
     <section aria-label="Pinned vitals" style={UNITS}>
       {units.map((unit) => (
-        <div key={unit.kind} style={UNIT}>
+        <Box key={unit.kind} frameColor={`var(--color-${unit.kind})`} body="flush" bodyStyle={UNIT}>
           <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
             {unit.name}
           </p>
@@ -198,7 +200,7 @@ export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
               </li>
             ))}
           </ul>
-        </div>
+        </Box>
       ))}
     </section>
   )

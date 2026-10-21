@@ -58,8 +58,8 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           Board
         </Button>
       ) : (
-        // The outlined Button: on the Mini's ink pill it reads paper (R19),
-        // where an ink fill would vanish into the pill.
+        // The outlined Button reads on the Mini's pill (R19),
+        // beside the Use and Eject a filled one draws.
         <Button size="mini" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare' ? `Claim and board ${main.name}` : `Board ${main.name}`}
         </Button>
@@ -89,7 +89,10 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         size="mini"
         context="play"
         model={MODEL}
-        dim={away}
+        // Getting in and out of a mech wears the mech's tone (owner, round 10),
+        // faded while there is nothing it can do.
+        tint="mech"
+        dim={away || off || (!boarded && main === undefined)}
         // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
         // the line carries only its controls (wireframe pin 5).
         {...(away ? { state: <NeedChip need={need} /> } : { controls })}

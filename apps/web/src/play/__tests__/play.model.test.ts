@@ -70,11 +70,13 @@ describe('the landing’s pilots', () => {
     createdAt: FIXTURE_NOW,
   }
 
-  test('Solo lists the shelf’s pilots, each with its assigned mech or none', () => {
-    expect(soloPilots([rook, wren, kite], [scrapper], [link])).toEqual([
+  test('Solo lists the shelf’s pilots, each with its assigned mech or none, and its HP and AP', () => {
+    const solo = soloPilots([rook, wren, kite], [scrapper], [link])
+    expect(solo.map(({ readings: _, ...p }) => p)).toEqual([
       { pilotId: 'p-wren', name: 'Wren', mechName: 'Scrapper', mechId: 'm-scrapper' },
       { pilotId: 'p-kite', name: 'Kite', mechName: null, mechId: null },
     ])
+    expect(solo[0]?.readings.map((r) => r.label)).toEqual(['HP', 'AP'])
   })
 
   test('a Game’s Play doors are your pilots in that Game alone', () => {

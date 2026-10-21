@@ -194,8 +194,10 @@ describe('the Play landing', () => {
       if (!item) throw new Error(`no solo row for ${name}`)
       return within(item)
     }
+    // The pair rule: a pilot not aboard is the pilot, with a MECH chip naming its mech.
     expect(row('Wren').getByText('Scrapper')).toBeTruthy()
-    expect(row('Wren').queryByText('Mech')).toBeNull()
+    expect(row('Wren').getByText('Mech')).toBeTruthy()
+    expect(row('Wren').getByText('HP')).toBeTruthy()
     expect(row('Kestrel').getByText('No Mech')).toBeTruthy()
     // A Game's pilot is not offered solo.
     expect(solo.queryByRole('link', { name: 'Play Rook solo' })).toBeNull()

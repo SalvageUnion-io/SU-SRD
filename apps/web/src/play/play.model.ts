@@ -12,6 +12,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
+import { pilotRailItems, rowStats } from '../build/sheet/railStats.model'
 import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
 import { foregroundOn } from '../design/contrast'
@@ -134,8 +135,10 @@ export type SoloPilot = {
   pilotId: string
   name: string
   mechName: string | null
-  /** The mech's id: its Mini opens its sheet. */
+  /** The mech's id: its chip opens its sheet. */
   mechId: string | null
+  /** The pilot's own chips: `HP 10/10`, `AP 5/5`. */
+  readings: { label: string; value: string }[]
 }
 
 /**
@@ -158,6 +161,7 @@ export function soloPilots(
         name: pilot.name,
         mechName: (link && mechNames.get(link.from.id)) ?? null,
         mechId: link && mechNames.has(link.from.id) ? link.from.id : null,
+        readings: rowStats(pilotRailItems(pilot)),
       }
     })
 }
