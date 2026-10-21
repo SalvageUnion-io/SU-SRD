@@ -64,14 +64,14 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
         tone="crawler"
         className="su-tech-level__block"
       >
-        <dl className="su-tech-level__lines">
+        {/* The book's lines as it prints them, "Upkeep: 5× Tech 1 Scrap". */}
+        <div className="su-tech-level__lines">
           {bookLines(level).map(({ label, value }) => (
-            <div key={label} className="su-tech-level__line">
-              <dt className="su-tech-level__label">{label}</dt>
-              <dd className="su-tech-level__value">{value}</dd>
-            </div>
+            <p key={label} className="su-tech-level__line">
+              <strong>{label}:</strong> {value}
+            </p>
           ))}
-        </dl>
+        </div>
       </TitledBox>
       <aside className="su-tech-level__ladder" aria-label="Union Crawler Tech Levels">
         <Slab as="h2" label="Tech Levels" />

@@ -30,7 +30,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * keeps this DOM order at every width, so tab order matches what you see.
  */
 
-/** A neighbour's Section names its relation, so its Compact drops the type stamp. */
+/** A neighbour's Section names its relation, so its Mini drops the type stamp. */
 const NEIGHBOUR_OMIT = ['kind'] as const
 
 type CardPageProps = {
@@ -174,9 +174,10 @@ export function CardPage({
       {guide}
       {sections}
       {/* An ability's neighbours in its tree, under the rest (owner, 2026-10-20),
-          each a collapsed header: a header-only Compact that links to its
-          Page and Peeks it (owner, 2026-10-20: "should just be a collapsed
-          header not the full content"). */}
+          each a collapsed header: a header-only Mini a line wide that links
+          to its Page (owner, 2026-10-20: "should just be a collapsed header
+          not the full content"; N2: a head alone is a Mini), a named N8
+          exception (`.su-entity-page__neighbours`). */}
       {abilityTreeNeighbours(entity).map(({ label, abilities }) => (
         <SlabSection
           key={label}
@@ -184,17 +185,16 @@ export function CardPage({
           title={label}
           page
           className="su-entity-page__section"
-          bodyClassName="su-entity-page__section-body"
+          bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
         >
           {abilities.map((ability) => (
             <Entity
               key={ability.id}
-              size="compact"
+              size="mini"
+              context="play"
               entity={ability}
               mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
               omit={NEIGHBOUR_OMIT}
-              peek
-              titleAs={nestedTitleLevel(!!sectionAs)}
             />
           ))}
         </SlabSection>

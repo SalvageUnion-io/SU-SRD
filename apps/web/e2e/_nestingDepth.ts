@@ -109,7 +109,8 @@ export const NESTING_SELECTORS: NestingSelectors = {
   tolerance: 1,
   oneDeep: null,
   notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
-  n8Except: '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree',
+  n8Except:
+    '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree, .su-entity-page__neighbours',
 }
 
 /**
