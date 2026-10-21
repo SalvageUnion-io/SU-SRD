@@ -48,8 +48,8 @@ import { defaultSeat, readSeat, remount, seatsAt, seatsInGame, writeSeat } from 
 /*
  * ## Who may read and write which seat
  *
- * `shelfRowOf` and `writablePilot` are exported for `downtime.ts`'s solo
- * Downtime too, though this is a function module. They are here rather than in
+ * `shelfRowOf` and `writablePilot` are exported for `downtime.ts` too,
+ * though this is a function module. They are here rather than in
  * `model/seats.ts` because they need `assertMayWrite`, and `ownableWrites`
  * already imports the seat cleanup from there.
  *
@@ -272,7 +272,7 @@ type SoloSeatRead = SeatRead & {
  * in a Game, or gone), so a screen whose pilot just moved into a Game reads
  * "not solo" rather than an error.
  *
- * `downtime` is the solo Downtime, null while none runs (`downtime.solo*`).
+ * `downtime` is the solo Downtime, null while none runs (`downtime.ts`).
  *
  * A seat whose row is boarded in a mech that is not on the caller's shelf
  * reads as on foot: the mech moved into a Game ahead of its pilot (it waits

@@ -72,32 +72,45 @@ function subscribe(listener: () => void): () => void {
   return () => server.listeners.delete(listener)
 }
 
-function answer(name: string): unknown {
+function answer(name: string, args: Record<string, unknown>): unknown {
   switch (name) {
     case 'seats:solo':
       return server.solo
-    case 'downtime:soloState': {
+    case 'seats:forGame':
+      return server.gameSeats
+    case 'downtime:state': {
+      if (args.gameId !== null) {
+        return {
+          running: server.gameDowntime !== null,
+          stepIndex: server.gameDowntime,
+          startedAt: null,
+          completedBy: [],
+          upkeepSpent: false,
+          claimed: [],
+        }
+      }
       const downtime = server.solo?.downtime ?? null
       return downtime === null
-        ? { running: false, stepIndex: null, completedBy: [], upkeepSpent: false }
+        ? {
+            running: false,
+            stepIndex: null,
+            startedAt: null,
+            completedBy: [],
+            upkeepSpent: false,
+            claimed: [],
+          }
         : {
             running: true,
             stepIndex: downtime.stepIndex,
             startedAt: downtime.startedAt,
             completedBy: [],
             upkeepSpent: downtime.upkeepSpent,
-            doneSteps: downtime.doneSteps ?? [],
+            claimed: (downtime.doneSteps ?? []).map((stepIndex) => ({
+              pilotId: args.pilotId,
+              stepIndex,
+            })),
           }
     }
-    case 'seats:forGame':
-      return server.gameSeats
-    case 'downtime:state':
-      return {
-        running: server.gameDowntime !== null,
-        stepIndex: server.gameDowntime,
-        completedBy: [],
-        upkeepSpent: false,
-      }
     case 'games:members':
       return []
     // The Play bar's channel button: nothing bound.
@@ -134,7 +147,7 @@ function answer(name: string): unknown {
 function useFakeQuery(ref: unknown, args?: unknown): unknown {
   useSyncExternalStore(subscribe, () => server.version)
   if (args === 'skip') return undefined
-  return answer(getFunctionName(ref as FunctionReference<'query'>))
+  return answer(getFunctionName(ref as FunctionReference<'query'>), args as Record<string, unknown>)
 }
 
 /** The server's side of each write this test makes. */
@@ -155,18 +168,20 @@ function apply(name: string, args: Record<string, unknown>): unknown {
     case 'seats:dismount':
       remount({ kind: 'foot' })
       break
-    case 'downtime:soloBegin':
-      if (server.solo !== null) {
+    case 'downtime:begin':
+      if (!solo) server.gameDowntime = 0
+      else if (server.solo !== null) {
         server.solo = {
           ...server.solo,
           downtime: { stepIndex: 0, startedAt: 1, upkeepSpent: false },
         }
       }
       break
-    case 'downtime:soloEnd':
-      if (server.solo !== null) server.solo = { ...server.solo, downtime: null }
+    case 'downtime:end':
+      if (!solo) server.gameDowntime = null
+      else if (server.solo !== null) server.solo = { ...server.solo, downtime: null }
       break
-    case 'downtime:soloMarkStepDone': {
+    case 'downtime:claimStep': {
       const downtime = server.solo?.downtime
       if (server.solo === null || downtime == null) return false
       const done = downtime.doneSteps ?? []
@@ -178,12 +193,6 @@ function apply(name: string, args: Record<string, unknown>): unknown {
       changed()
       return true
     }
-    case 'downtime:begin':
-      server.gameDowntime = 0
-      break
-    case 'downtime:end':
-      server.gameDowntime = null
-      break
     default:
       return undefined
   }
@@ -391,8 +400,8 @@ describe('solo: the solo seat and its own Downtime', () => {
     const downtime = situationGroup().getByRole('button', { name: 'Downtime' })
     expect(downtime.hasAttribute('disabled')).toBe(false)
     await click(downtime)
-    expect(writes('downtime:soloBegin')).toEqual([
-      { name: 'downtime:soloBegin', args: { pilotId: 'ps-bonesaw' } },
+    expect(writes('downtime:begin')).toEqual([
+      { name: 'downtime:begin', args: { gameId: null, pilotId: 'ps-bonesaw' } },
     ])
     // Downtime wins over the mount.
     expect(pressed()).toEqual(['Downtime'])
@@ -402,7 +411,7 @@ describe('solo: the solo seat and its own Downtime', () => {
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('You are on step 1 of')
     await click(within(dialog).getByRole('button', { name: 'End Downtime' }))
-    expect(writes('downtime:soloEnd')).toHaveLength(1)
+    expect(writes('downtime:end')).toHaveLength(1)
     expect(pressed()).toEqual(['On foot'])
   })
 })
@@ -513,9 +522,13 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
       play()?.downtime.advance()
       await play()?.downtime.spendUpkeep()
     })
-    expect(writes('downtime:soloSetStep')[0]?.args).toEqual({ pilotId: 'ps-bonesaw', stepIndex: 3 })
-    expect(writes('downtime:soloAdvance')).toHaveLength(1)
-    expect(writes('downtime:soloSpendUpkeep')).toHaveLength(1)
+    expect(writes('downtime:setStep')[0]?.args).toEqual({
+      gameId: null,
+      pilotId: 'ps-bonesaw',
+      stepIndex: 3,
+    })
+    expect(writes('downtime:advance')).toHaveLength(1)
+    expect(writes('downtime:spendUpkeep')).toHaveLength(1)
   })
 
   test('solo: the done steps come from the seat, and a step is claimed once', async () => {
@@ -534,7 +547,8 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     })
     expect([first, second]).toEqual([true, false])
     expect(play()?.downtime.doneSteps).toEqual([4])
-    expect(writes('downtime:soloMarkStepDone')[0]?.args).toEqual({
+    expect(writes('downtime:claimStep')[0]?.args).toEqual({
+      gameId: null,
       pilotId: 'ps-bonesaw',
       stepIndex: 4,
     })

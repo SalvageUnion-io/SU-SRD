@@ -6,9 +6,9 @@ player-driven (`cycleItemCondition`).
 
 - `usePlaySituation` and the side hooks run once per screen (one form is
   mounted), so the roll dispatch runs once.
-- Writes go through the hook's `send`, which refuses offline; a Downtime step
-  is claimed before it applies. The Mediator's target has no pilot
-  (`MediatorTarget`, `pilotId: null`).
+- Seat and Downtime writes go through `useGuardedWrite`, which refuses
+  offline; a Downtime step is claimed before it applies. The Mediator's
+  target has no pilot (`MediatorTarget`, `pilotId: null`).
 - Files: Units `PlayUnits*`; Actions `PlayActions*`, `useActionsDeck`,
   `lib/rules/actionPatches.ts`; Downtime `*Downtime*`; side `PlaySideColumn`;
   Mediator `mediator/`; Game page `games/`.

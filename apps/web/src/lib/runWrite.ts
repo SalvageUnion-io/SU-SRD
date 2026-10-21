@@ -31,22 +31,26 @@
  */
 
 import { toast } from '../components/index'
-import { StaleWriteRefused, WritesBlockedOffline } from '../stores/entityBackend'
+import { playerMessage } from './connection/useServerAction'
+import { captureException } from './observability'
 
 /**
  * Turn a rejected write into something the player can see.
  *
- * A blocked write is expected and gets its own copy — `WritesBlockedOffline`'s
- * message is already written for a human, and so is `StaleWriteRefused`'s (the
- * sheet changed before the edit reached it, and now shows that version). Anything else is a bug, so it keeps
- * its console trace as well as saying, plainly, that the change did not stick.
+ * What it says is `useServerAction`'s rule (`playerMessage`): a server
+ * refusal in its own words, and a blocked or stale write
+ * (`WritesBlockedOffline`, `StaleWriteRefused`, `LinkRefused`) in the copy
+ * written for a human. Anything else is a bug, so it is reported and keeps its
+ * console trace as well as saying, plainly, that the change did not stick.
  */
 export function reportWriteFailure(err: unknown): void {
-  if (err instanceof WritesBlockedOffline || err instanceof StaleWriteRefused) {
-    toast(err.message)
+  const said = playerMessage(err)
+  if (said !== null) {
+    toast(said)
     return
   }
   console.error('[app] write failed', err)
+  captureException(err)
   toast('That change could not be saved.')
 }
 
@@ -79,5 +83,19 @@ export function runWrite(write: () => Promise<unknown>, onApplied?: () => void):
     )
   } catch (err) {
     reportWriteFailure(err)
+  }
+}
+
+/**
+ * Run a write whose answer the caller acts on (a claim: did this call make
+ * it?), with its failure handled as `runWrite`'s. Resolves false when the
+ * write failed, having said so; never rejects.
+ */
+export async function askWrite(write: () => Promise<boolean>): Promise<boolean> {
+  try {
+    return await write()
+  } catch (err) {
+    reportWriteFailure(err)
+    return false
   }
 }

@@ -35,8 +35,8 @@ describe('the phase is table-wide and Mediator-driven', () => {
 
     // Reporting it saves every caller inventing the same default.
     const s = await a.as.query(api.downtime.state, { gameId })
-    expect(s.running).toBe(false)
-    expect(s.stepIndex).toBeNull()
+    expect(s?.running).toBe(false)
+    expect(s?.stepIndex).toBeNull()
   })
 
   test('the Mediator begins and advances; everybody sees it', async () => {
@@ -44,10 +44,10 @@ describe('the phase is table-wide and Mediator-driven', () => {
     const { gm, a, gameId } = await seedTable(t)
 
     await gm.as.mutation(api.downtime.begin, { gameId })
-    expect((await a.as.query(api.downtime.state, { gameId })).stepIndex).toBe(0)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.stepIndex).toBe(0)
 
     await gm.as.mutation(api.downtime.advance, { gameId })
-    expect((await a.as.query(api.downtime.state, { gameId })).stepIndex).toBe(1)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.stepIndex).toBe(1)
   })
 
   test('a player cannot begin, advance or end it', async () => {
@@ -78,11 +78,11 @@ describe('the Mediator may put the table back a step (setStep)', () => {
 
     await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: 1 })
     const back = await a.as.query(api.downtime.state, { gameId })
-    expect(back.stepIndex).toBe(1)
-    expect(back.completedBy).toHaveLength(0)
+    expect(back?.stepIndex).toBe(1)
+    expect(back?.completedBy).toHaveLength(0)
 
     await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: -4 })
-    expect((await a.as.query(api.downtime.state, { gameId })).stepIndex).toBe(0)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.stepIndex).toBe(0)
   })
 
   test('going back to Upkeep & Upgrade does not make it payable again', async () => {
@@ -120,7 +120,7 @@ describe('completion is per step, not cumulative', () => {
 
     // The point of a shared phase: Bex can see Ash is finished.
     const seen = await b.as.query(api.downtime.state, { gameId })
-    expect(seen.completedBy.map((c) => c.displayName)).toContain('Ash')
+    expect(seen?.completedBy.map((c) => c.displayName)).toContain('Ash')
   })
 
   test('advancing clears it', async () => {
@@ -133,7 +133,7 @@ describe('completion is per step, not cumulative', () => {
 
     // Otherwise a player who finished step 1 looks finished for the whole
     // Downtime — the opposite of what the Mediator needs to know.
-    expect((await a.as.query(api.downtime.state, { gameId })).completedBy).toHaveLength(0)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.completedBy).toHaveLength(0)
   })
 
   test('marking done twice does not duplicate', async () => {
@@ -144,7 +144,7 @@ describe('completion is per step, not cumulative', () => {
     await a.as.mutation(api.downtime.markStepDone, { gameId, done: true })
     await a.as.mutation(api.downtime.markStepDone, { gameId, done: true })
 
-    expect((await a.as.query(api.downtime.state, { gameId })).completedBy).toHaveLength(1)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.completedBy).toHaveLength(1)
   })
 
   test('a player can un-mark themselves', async () => {
@@ -154,7 +154,7 @@ describe('completion is per step, not cumulative', () => {
     await a.as.mutation(api.downtime.markStepDone, { gameId, done: true })
     await a.as.mutation(api.downtime.markStepDone, { gameId, done: false })
 
-    expect((await a.as.query(api.downtime.state, { gameId })).completedBy).toHaveLength(0)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.completedBy).toHaveLength(0)
   })
 })
 
@@ -182,7 +182,7 @@ describe('crawler upkeep is spent once, not per member', () => {
     await toUpkeepStep(gm, gameId)
 
     await expect(a.as.mutation(api.downtime.spendUpkeep, { gameId })).rejects.toThrow(/mediator/i)
-    expect((await a.as.query(api.downtime.state, { gameId })).upkeepSpent).toBe(false)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.upkeepSpent).toBe(false)
     expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
   })
 
@@ -203,7 +203,7 @@ describe('crawler upkeep is spent once, not per member', () => {
     await expect(gm.as.mutation(api.downtime.spendUpkeep, { gameId })).rejects.toThrow(
       /Upkeep & Upgrade step/
     )
-    expect((await a.as.query(api.downtime.state, { gameId })).upkeepSpent).toBe(true)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.upkeepSpent).toBe(true)
   })
 
   test('advancing a step does NOT reset it', async () => {
@@ -215,7 +215,21 @@ describe('crawler upkeep is spent once, not per member', () => {
     await gm.as.mutation(api.downtime.advance, { gameId })
 
     // Resetting here would charge the crew again mid-procedure.
-    expect((await a.as.query(api.downtime.state, { gameId })).upkeepSpent).toBe(true)
+    expect((await a.as.query(api.downtime.state, { gameId }))?.upkeepSpent).toBe(true)
+  })
+
+  test('a second Begin while running is no restart, so it does not reset it', async () => {
+    const t = testConvex()
+    const { gm, a, gameId } = await seedTable(t)
+    await toUpkeepStep(gm, gameId)
+    await gm.as.mutation(api.downtime.spendUpkeep, { gameId })
+
+    await gm.as.mutation(api.downtime.begin, { gameId })
+
+    expect(await a.as.query(api.downtime.state, { gameId })).toMatchObject({
+      stepIndex: 1,
+      upkeepSpent: true,
+    })
   })
 
   test('a NEW downtime does reset it', async () => {
@@ -253,7 +267,7 @@ describe('a step applies once per pilot (claimStep)', () => {
     await gm.as.mutation(api.downtime.advance, { gameId })
     await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: 0 })
     expect(await a.as.mutation(api.downtime.claimStep, claim)).toBe(false)
-    expect((await a.as.query(api.downtime.state, { gameId })).claimed).toEqual([
+    expect((await a.as.query(api.downtime.state, { gameId }))?.claimed).toEqual([
       { pilotId: 'pa', stepIndex: 0 },
     ])
   })
@@ -298,7 +312,9 @@ describe('non-members', () => {
     const outsider = await makeUser(t, 'Outsider')
     await gm.as.mutation(api.downtime.begin, { gameId })
 
-    await expect(outsider.as.query(api.downtime.state, { gameId })).rejects.toThrow(/not a member/i)
+    await expect(outsider.as.query(api.downtime.state, { gameId }))?.rejects.toThrow(
+      /not a member/i
+    )
     await expect(
       outsider.as.mutation(api.downtime.markStepDone, { gameId, done: true })
     ).rejects.toThrow(/not a member/i)

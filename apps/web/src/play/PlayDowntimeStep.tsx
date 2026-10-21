@@ -10,8 +10,8 @@
  *  - **Solo** the player runs it ("You run it"): Apply & mark done, then Next
  *    step (the last step ends Downtime).
  *
- * Either way the step is claimed for this pilot (`markStepDone`: the solo
- * seat, or the Game's `downtime.claimStep`) before anything is applied, and
+ * Either way the step is claimed for this pilot (`markStepDone`,
+ * `downtime.claimStep`) before anything is applied, and
  * Apply goes only when that claim answers true. A claimed step never offers
  * Apply or Skip again, so a reload, an Undo or the Mediator's Back never
  * applies a step twice (Train's +1 TP). A Game's "done" is per member, the

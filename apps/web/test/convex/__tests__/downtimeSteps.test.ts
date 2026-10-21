@@ -29,7 +29,7 @@ describe('Convex Downtime steps come from the dataset', () => {
     await gm.as.mutation(api.downtime.begin, { gameId })
     const steps = downtimeGuideSteps().length
     for (let i = 0; i < steps + 3; i++) await gm.as.mutation(api.downtime.advance, { gameId })
-    expect((await gm.as.query(api.downtime.state, { gameId })).stepIndex).toBe(steps - 1)
+    expect((await gm.as.query(api.downtime.state, { gameId }))?.stepIndex).toBe(steps - 1)
   })
 
   test('the guide still starts and ends where the book does', () => {

@@ -105,6 +105,14 @@ export function isSettlingConnection(mode: ConnectionMode): boolean {
   return mode === 'connecting'
 }
 
+/**
+ * Whether there is a session: connected, or signed in and offline. A signed-in
+ * screen's queries run (or keep their last answer) only then.
+ */
+export function isSignedIn(mode: ConnectionMode): boolean {
+  return mode === 'connected' || mode === 'disconnected'
+}
+
 /** Whether the server of record is in play: sync runs and writes may go up. */
 export function usesServerOfRecord(mode: ConnectionMode): boolean {
   return mode === 'connected'

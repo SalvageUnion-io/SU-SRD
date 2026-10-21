@@ -21,6 +21,7 @@ import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { isSignedIn } from '../../lib/connection/connectionMode'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { useEntityStore } from '../../stores/entityStore'
 import { AnyNpcDesigner } from './AnyNpcDesigner'
@@ -52,7 +53,7 @@ export function NpcDesignerPage({
   onCancel,
 }: NpcDesignerPageProps) {
   const { mode } = useConnection()
-  const signedIn = mode === 'connected' || mode === 'disconnected'
+  const signedIn = isSignedIn(mode)
   const me = useQuery(api.account.me, signedIn ? {} : 'skip')
   const madeBy = me?.displayName ?? 'you'
   const crawler = useEntityStore((s) => (crawlerId ? s.get('crawler', crawlerId) : null))

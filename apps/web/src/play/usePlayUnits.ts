@@ -18,6 +18,7 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'
+import { isSignedIn } from '../lib/connection/connectionMode'
 import { readReference } from '../lib/readReference'
 import { parseFrozenEntity } from '../lib/schemas/frozenEntity'
 import { useEntityStore } from '../stores/entityStore'
@@ -76,7 +77,7 @@ export function usePlayUnits(play: Play): PlayUnits {
   const { target, situation, canWrite } = play
   const store = useEntityStore()
   const { mode } = useConnection()
-  const signedIn = mode === 'connected' || mode === 'disconnected'
+  const signedIn = isSignedIn(mode)
   const listing = useQuery(
     api.entities.listForGame,
     signedIn && target.gameId !== null ? { gameId: target.gameId as Id<'games'> } : 'skip'

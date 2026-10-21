@@ -23,7 +23,6 @@ const NOT_RUNNING = { running: false, stepIndex: null, completedBy: [], upkeepSp
 const ANSWERS = {
   'seats:solo': null,
   'seats:forGame': [],
-  'downtime:soloState': NOT_RUNNING,
   'downtime:state': NOT_RUNNING,
   'games:members': [],
   'entities:listForGame': null,

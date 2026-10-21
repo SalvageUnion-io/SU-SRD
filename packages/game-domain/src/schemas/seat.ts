@@ -60,7 +60,7 @@ export type SeatResolving = z.infer<typeof SeatResolvingSchema>
  * when it began, whether its crawler upkeep is paid, and which steps are done.
  * Upkeep is paid once per Downtime: only a fresh Downtime clears the flag,
  * never a step change. `doneSteps` holds the index of each step marked done
- * (applied or skipped, `downtime.soloMarkStepDone`), so a step applies once
+ * (applied or skipped, `downtime.claimStep`), so a step applies once
  * however often the screen reloads; absent on a Downtime begun before it
  * existed, which reads as none done.
  */

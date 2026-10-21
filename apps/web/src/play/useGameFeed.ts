@@ -22,6 +22,7 @@ import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-refer
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'
+import { isSignedIn } from '../lib/connection/connectionMode'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
@@ -101,7 +102,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   const { mode } = useConnection()
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
-  const signedIn = mode === 'connected' || mode === 'disconnected'
+  const signedIn = isSignedIn(mode)
   const inGame = signedIn && gameId !== null
 
   const rolls = useQuery(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')

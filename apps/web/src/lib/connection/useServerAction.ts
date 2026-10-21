@@ -39,6 +39,20 @@ const STORE_PLAYER_ERRORS: readonly PlayerError[] = [
 ]
 
 /**
+ * The words a failed write carries for the player: a refusal's, or a
+ * player-facing error's; null for a defect, whose text is never shown.
+ */
+export function playerMessage(
+  err: unknown,
+  playerErrors: readonly PlayerError[] = []
+): string | null {
+  const refusal = serverMessage(err)
+  if (refusal !== null) return refusal
+  const said = [...STORE_PLAYER_ERRORS, ...playerErrors].some((kind) => err instanceof kind)
+  return said && err instanceof Error ? err.message : null
+}
+
+/**
  * What to tell the player when a write fails. Reports a defect; never shows its
  * text. `playerErrors` names the call site's own player-facing error classes.
  */
@@ -47,10 +61,8 @@ export function failureMessage(
   fallback: string,
   playerErrors: readonly PlayerError[] = []
 ): string {
-  const refusal = serverMessage(err)
-  if (refusal !== null) return refusal
-  const said = [...STORE_PLAYER_ERRORS, ...playerErrors].some((kind) => err instanceof kind)
-  if (said && err instanceof Error) return err.message
+  const said = playerMessage(err, playerErrors)
+  if (said !== null) return said
   captureException(err)
   return fallback
 }

@@ -163,8 +163,8 @@ describe('Convex derives on the schemas it deploys', () => {
       await organizer.as.mutation(api.downtime.advance, { gameId })
     }
     const state = await organizer.as.query(api.downtime.state, { gameId })
-    expect(state.stepIndex).toBe(steps.length - 1)
-    expect(state.upkeepSpent).toBe(true)
+    expect(state?.stepIndex).toBe(steps.length - 1)
+    expect(state?.upkeepSpent).toBe(true)
   })
 
   test("a pattern's Discord card: every chassis, with every system and module", async () => {

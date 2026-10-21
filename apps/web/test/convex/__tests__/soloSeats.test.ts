@@ -169,8 +169,8 @@ describe('solo refusals', () => {
       () => stranger.as.mutation(api.seats.setResolving, { ...SOLO, resolving: crush }),
       () => stranger.as.mutation(api.seats.clearResolving, SOLO),
       () => stranger.as.mutation(api.seats.heartbeat, SOLO),
-      () => stranger.as.mutation(api.downtime.soloBegin, { pilotId: 'p1' }),
-      () => stranger.as.mutation(api.downtime.soloEnd, { pilotId: 'p1' }),
+      () => stranger.as.mutation(api.downtime.begin, { gameId: null, pilotId: 'p1' }),
+      () => stranger.as.mutation(api.downtime.end, { gameId: null, pilotId: 'p1' }),
     ]
     for (const write of writes) {
       await expect(write()).rejects.toThrow(/another player's entity/i)
@@ -220,123 +220,120 @@ describe('solo refusals', () => {
 })
 
 describe('solo Downtime', () => {
-  const P = { pilotId: 'p1' }
+  const P = { gameId: null, pilotId: 'p1' }
 
   test('begin, advance, set a step and end, surviving a re-read', async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
-    expect(await player.as.query(api.downtime.soloState, P)).toEqual({
+    expect(await player.as.query(api.downtime.state, P)).toEqual({
       running: false,
       stepIndex: null,
+      startedAt: null,
       completedBy: [],
       upkeepSpent: false,
+      claimed: [],
     })
 
-    await player.as.mutation(api.downtime.soloBegin, P)
-    await player.as.mutation(api.downtime.soloAdvance, P)
-    let state = await player.as.query(api.downtime.soloState, P)
+    await player.as.mutation(api.downtime.begin, P)
+    await player.as.mutation(api.downtime.advance, P)
+    let state = await player.as.query(api.downtime.state, P)
     expect(state).toMatchObject({ running: true, stepIndex: 1, completedBy: [] })
     expect((await soloSeat(player))?.downtime).toMatchObject({ stepIndex: 1, upkeepSpent: false })
 
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: 0 })
-    expect((await player.as.query(api.downtime.soloState, P))?.stepIndex).toBe(0)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: 0 })
+    expect((await player.as.query(api.downtime.state, P))?.stepIndex).toBe(0)
 
     // Held to the guide's steps both ways, and the last step is where Advance stops.
     const last = downtimeGuideSteps().length - 1
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: 99 })
-    expect((await player.as.query(api.downtime.soloState, P))?.stepIndex).toBe(last)
-    await player.as.mutation(api.downtime.soloAdvance, P)
-    expect((await player.as.query(api.downtime.soloState, P))?.stepIndex).toBe(last)
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: -3 })
-    expect((await player.as.query(api.downtime.soloState, P))?.stepIndex).toBe(0)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: 99 })
+    expect((await player.as.query(api.downtime.state, P))?.stepIndex).toBe(last)
+    await player.as.mutation(api.downtime.advance, P)
+    expect((await player.as.query(api.downtime.state, P))?.stepIndex).toBe(last)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: -3 })
+    expect((await player.as.query(api.downtime.state, P))?.stepIndex).toBe(0)
 
-    await player.as.mutation(api.downtime.soloEnd, P)
-    state = await player.as.query(api.downtime.soloState, P)
+    await player.as.mutation(api.downtime.end, P)
+    state = await player.as.query(api.downtime.state, P)
     expect(state?.running).toBe(false)
     expect((await soloSeat(player))?.downtime).toBeNull()
     // Ending one that is not running is not an error.
-    await player.as.mutation(api.downtime.soloEnd, P)
+    await player.as.mutation(api.downtime.end, P)
   })
 
   test('upkeep is paid once per Downtime, only in its step, whatever the steps do', async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
-    await player.as.mutation(api.downtime.soloBegin, P)
-    await expect(player.as.mutation(api.downtime.soloSpendUpkeep, P)).rejects.toThrow(
+    await player.as.mutation(api.downtime.begin, P)
+    await expect(player.as.mutation(api.downtime.spendUpkeep, P)).rejects.toThrow(
       /Upkeep & Upgrade step/
     )
 
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: UPKEEP_STEP })
-    expect(await player.as.mutation(api.downtime.soloSpendUpkeep, P)).toBe(true)
-    expect(await player.as.mutation(api.downtime.soloSpendUpkeep, P)).toBe(false)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: UPKEEP_STEP })
+    expect(await player.as.mutation(api.downtime.spendUpkeep, P)).toBe(true)
+    expect(await player.as.mutation(api.downtime.spendUpkeep, P)).toBe(false)
 
     // Out and back into the step does not reopen it.
-    await player.as.mutation(api.downtime.soloAdvance, P)
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: UPKEEP_STEP })
-    expect(await player.as.mutation(api.downtime.soloSpendUpkeep, P)).toBe(false)
+    await player.as.mutation(api.downtime.advance, P)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: UPKEEP_STEP })
+    expect(await player.as.mutation(api.downtime.spendUpkeep, P)).toBe(false)
 
     // A second Begin while running is not a fresh Downtime.
-    await player.as.mutation(api.downtime.soloBegin, P)
-    expect(await player.as.query(api.downtime.soloState, P)).toMatchObject({
+    await player.as.mutation(api.downtime.begin, P)
+    expect(await player.as.query(api.downtime.state, P)).toMatchObject({
       stepIndex: UPKEEP_STEP,
       upkeepSpent: true,
     })
 
     // A fresh Downtime is the only thing that clears it.
-    await player.as.mutation(api.downtime.soloEnd, P)
-    await player.as.mutation(api.downtime.soloBegin, P)
-    expect((await player.as.query(api.downtime.soloState, P))?.upkeepSpent).toBe(false)
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: UPKEEP_STEP })
-    expect(await player.as.mutation(api.downtime.soloSpendUpkeep, P)).toBe(true)
+    await player.as.mutation(api.downtime.end, P)
+    await player.as.mutation(api.downtime.begin, P)
+    expect((await player.as.query(api.downtime.state, P))?.upkeepSpent).toBe(false)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: UPKEEP_STEP })
+    expect(await player.as.mutation(api.downtime.spendUpkeep, P)).toBe(true)
   })
 
   test('a step is marked done once: a second Apply after a reload is refused', async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
     const train = downtimeGuideSteps().findIndex((step) => step.name === 'Train your Pilot')
-    await player.as.mutation(api.downtime.soloBegin, P)
-    expect((await player.as.query(api.downtime.soloState, P))?.doneSteps).toEqual([])
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: train })
+    await player.as.mutation(api.downtime.begin, P)
+    expect((await player.as.query(api.downtime.state, P))?.claimed).toEqual([])
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: train })
 
-    expect(
-      await player.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex: train })
-    ).toBe(true)
+    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(true)
     // The reload: a fresh read of the seat still has it, and the claim is refused.
-    expect((await player.as.query(api.downtime.soloState, P))?.doneSteps).toEqual([train])
+    expect((await player.as.query(api.downtime.state, P))?.claimed).toEqual([
+      { pilotId: 'p1', stepIndex: train },
+    ])
     expect((await soloSeat(player))?.downtime).toMatchObject({ doneSteps: [train] })
-    expect(
-      await player.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex: train })
-    ).toBe(false)
+    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(false)
 
     // Moving the steps keeps it; a second Begin while running is no reset.
-    await player.as.mutation(api.downtime.soloAdvance, P)
-    await player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: train })
-    await player.as.mutation(api.downtime.soloBegin, P)
-    expect(
-      await player.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex: train })
-    ).toBe(false)
+    await player.as.mutation(api.downtime.advance, P)
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: train })
+    await player.as.mutation(api.downtime.begin, P)
+    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(false)
 
     // Only a fresh Downtime clears it.
-    await player.as.mutation(api.downtime.soloEnd, P)
-    await player.as.mutation(api.downtime.soloBegin, P)
-    expect((await player.as.query(api.downtime.soloState, P))?.doneSteps).toEqual([])
-    expect(
-      await player.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex: train })
-    ).toBe(true)
+    await player.as.mutation(api.downtime.end, P)
+    await player.as.mutation(api.downtime.begin, P)
+    expect((await player.as.query(api.downtime.state, P))?.claimed).toEqual([])
+    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: train })
+    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(true)
   })
 
-  test('only a real step is marked done, and only by the owner', async () => {
+  test('only the current step is marked done, and only by the owner', async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
-    await player.as.mutation(api.downtime.soloBegin, P)
-    for (const stepIndex of [-1, 1.5, downtimeGuideSteps().length]) {
-      await expect(
-        player.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex })
-      ).rejects.toThrow(/not a Downtime step/)
+    await player.as.mutation(api.downtime.begin, P)
+    for (const stepIndex of [-1, 1, 1.5, downtimeGuideSteps().length]) {
+      await expect(player.as.mutation(api.downtime.claimStep, { ...P, stepIndex })).rejects.toThrow(
+        /not the step/
+      )
     }
     const stranger = await makeUser(t, 'Stranger')
     await expect(
-      stranger.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex: 0 })
+      stranger.as.mutation(api.downtime.claimStep, { ...P, stepIndex: 0 })
     ).rejects.toThrow(/another player's entity/i)
   })
 
@@ -344,10 +341,10 @@ describe('solo Downtime', () => {
     const t = testConvex()
     const player = await soloPlayer(t)
     for (const write of [
-      () => player.as.mutation(api.downtime.soloAdvance, P),
-      () => player.as.mutation(api.downtime.soloSetStep, { ...P, stepIndex: 1 }),
-      () => player.as.mutation(api.downtime.soloSpendUpkeep, P),
-      () => player.as.mutation(api.downtime.soloMarkStepDone, { ...P, stepIndex: 0 }),
+      () => player.as.mutation(api.downtime.advance, P),
+      () => player.as.mutation(api.downtime.setStep, { ...P, stepIndex: 1 }),
+      () => player.as.mutation(api.downtime.spendUpkeep, P),
+      () => player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: 0 }),
     ]) {
       await expect(write()).rejects.toThrow(/not running/i)
     }
@@ -356,10 +353,10 @@ describe('solo Downtime', () => {
   test("the solo Downtime is nobody else's to read", async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
-    await player.as.mutation(api.downtime.soloBegin, P)
+    await player.as.mutation(api.downtime.begin, P)
     const stranger = await makeUser(t, 'Stranger')
-    expect(await stranger.as.query(api.downtime.soloState, P)).toBeNull()
-    await expect(stranger.as.mutation(api.downtime.soloAdvance, P)).rejects.toThrow(
+    expect(await stranger.as.query(api.downtime.state, P)).toBeNull()
+    await expect(stranger.as.mutation(api.downtime.advance, P)).rejects.toThrow(
       /another player's entity/i
     )
   })
@@ -375,7 +372,7 @@ describe('moving into a Game hands the solo seat over', () => {
     await player.as.mutation(api.seats.setRange, { ...SOLO, range: 'Long' })
     await player.as.mutation(api.seats.toggleEffect, { ...SOLO, ref: 'abilities:beefcake' })
     await player.as.mutation(api.seats.setResolving, { ...SOLO, resolving: crush })
-    await player.as.mutation(api.downtime.soloBegin, { pilotId: 'p1' })
+    await player.as.mutation(api.downtime.begin, { gameId: null, pilotId: 'p1' })
     return { organizer, player, gameId }
   }
 

@@ -14,7 +14,6 @@ import type { SeatMount } from 'game-domain/schemas/seat'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { BoardOption } from './boardMenu.model'
 import type { PlayReadOnly, PlayTarget } from './play.model'
-import type { DowntimeView } from './useGameDowntime'
 import type { SeatHandle } from './useSeat'
 
 /** What the pilot is doing, as the Situation switch shows it. */
@@ -51,6 +50,23 @@ export function soloMechOptions(
       })
     )
     .sort((a, b) => Number(b.mechId === assigned) - Number(a.mechId === assigned))
+}
+
+/** A member of the Game, as a ready pip names them. */
+type DowntimeMember = { userId: string; displayName: string }
+
+/** What Play reads off a Downtime (`downtime.state`). */
+export type DowntimeView = {
+  /** A step is running. */
+  running: boolean
+  /** The step the table (or the solo pilot) is on, or null when Downtime is not running. */
+  stepIndex: number | null
+  /** Who has finished the current step; a Game's only. Clears on every move. */
+  completedBy: readonly DowntimeMember[]
+  /** Upkeep is paid once per Downtime (`spendUpkeep`). */
+  upkeepSpent: boolean
+  /** Every member of the Game: one ready pip each; none solo. */
+  members: readonly DowntimeMember[]
 }
 
 /** The Game's or the solo seat's Downtime, and the writes Play may send for it. */

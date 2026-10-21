@@ -1,5 +1,5 @@
 {
-  "floor": 1791930756,
+  "floor": 1792621092,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -345,10 +345,24 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
         }
       }
     },
@@ -357,10 +371,24 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
         }
       }
     },
@@ -369,8 +397,16 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -393,10 +429,24 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
         }
       }
     },
@@ -423,103 +473,28 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
         },
         "stepIndex": {
           "fieldType": {
             "type": "number"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloAdvance": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloBegin": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloEnd": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloMarkStepDone": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "stepIndex": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloSetStep": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "stepIndex": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloSpendUpkeep": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "downtime:soloState": {
-      "type": "object",
-      "value": {
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
           },
           "optional": false
         }
@@ -530,10 +505,24 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
         }
       }
     },
@@ -542,10 +531,24 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
         }
       }
     },

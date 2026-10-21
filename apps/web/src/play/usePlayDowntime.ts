@@ -1,122 +1,94 @@
 /**
  * usePlayDowntime — the Downtime Play follows (play.md §3, §6): the Game's
- * `downtime` row (`useGameDowntime`), or with no Game the solo seat's own
- * (`downtime.soloState` and the `solo*` writes), as one handle.
+ * `downtime` row, or with no Game the solo seat's own, through the one
+ * `downtime` API keyed on the place (`gameId`, or null with the pilot), as
+ * `useSeatAt` does for the seat.
  *
  * In a Game only its Mediator starts, advances and ends Downtime, so it is
  * `locked` for everyone else; the server refuses the writes whatever this
  * says. Solo, nobody else is at the table: the player runs it, and may put it
- * on any step (`setStep`); in a Game the Mediator may too (their Back).
+ * on any step (`setStep`); in a Game the Mediator may too (their Back). Every
+ * member's Play follows the Game's through one `downtime.state` subscription;
+ * each member marks themselves done with the step (`markStepDone`), and
+ * `games.members` names everyone the ready pips count.
+ *
  * The steps this pilot has done (`doneSteps`) are claimed before they apply
- * (`markStepDone`): on the solo seat, or in a Game on its Downtime row
  * (`downtime.claimStep`, per pilot), so a step applies once however often the
  * screen reloads, a player presses Undo or the Mediator goes Back. The
- * Mediator's own screen (no pilot) claims nothing. Writes are refused here while they cannot go
- * (Disconnected, Outdated), never queued (ADR-030 §1).
+ * Mediator's own screen (no pilot) claims nothing. Before the first answer
+ * Downtime reads as not running. Writes go through `useGuardedWrite`: refused
+ * here while they cannot go (Disconnected, Outdated), never queued (ADR-030
+ * §1), and a server refusal is said in its own words.
  */
 
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'
+import { isSignedIn } from '../lib/connection/connectionMode'
+import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import type { PlayScreen } from './play.model'
-import type { PlayDowntime } from './situation.model'
-import type { DowntimeView } from './useGameDowntime'
-import { NOT_RUNNING, useGameDowntime } from './useGameDowntime'
-import { reportBlockedWrite, reportRefusedWrite } from './useSeat'
+import type { DowntimeView, PlayDowntime } from './situation.model'
+
+/** Downtime with no answer yet, or none running. */
+const NOT_RUNNING: DowntimeView = {
+  running: false,
+  stepIndex: null,
+  completedBy: [],
+  upkeepSpent: false,
+  members: [],
+}
 
 export function usePlayDowntime(target: PlayScreen): PlayDowntime {
-  const { mode, canWrite, outdated } = useConnection()
+  const signedIn = isSignedIn(useConnection().mode)
+  const guarded = useGuardedWrite()
   const gameId = target.gameId as Id<'games'> | null
-  const solo = gameId === null
-  const signedIn = mode === 'connected' || mode === 'disconnected'
+  const { pilotId } = target
+  // Where the Downtime is: the Game's, or the solo pilot's seat.
+  const place = gameId === null ? { gameId, pilotId: pilotId ?? undefined } : { gameId }
+  const readable = signedIn && (gameId !== null || pilotId !== null)
 
-  const game = useGameDowntime(gameId)
-  const soloState = useQuery(
-    api.downtime.soloState,
-    signedIn && solo && target.pilotId !== null ? { pilotId: target.pilotId } : 'skip'
-  )
-  const soloBegin = useMutation(api.downtime.soloBegin)
-  const soloAdvance = useMutation(api.downtime.soloAdvance)
-  const soloSetStep = useMutation(api.downtime.soloSetStep)
-  const soloEnd = useMutation(api.downtime.soloEnd)
-  const soloSpendUpkeep = useMutation(api.downtime.soloSpendUpkeep)
-  const soloMarkStepDone = useMutation(api.downtime.soloMarkStepDone)
+  const state = useQuery(api.downtime.state, readable ? place : 'skip')
+  const members = useQuery(api.games.members, signedIn && gameId !== null ? { gameId } : 'skip')
+  const begin = useMutation(api.downtime.begin)
+  const advance = useMutation(api.downtime.advance)
+  const setStep = useMutation(api.downtime.setStep)
+  const end = useMutation(api.downtime.end)
+  const markStepDone = useMutation(api.downtime.markStepDone)
+  const claimStep = useMutation(api.downtime.claimStep)
+  const spendUpkeep = useMutation(api.downtime.spendUpkeep)
 
-  if (!solo) {
-    const pilotId = target.pilotId
-    return {
-      downtime: game.downtime,
-      locked: !target.mediator,
-      begin: game.begin,
-      advance: game.advance,
-      // The Mediator's Back: the Game's step, back or forward.
-      setStep: target.mediator ? game.setStep : null,
-      end: game.end,
-      markDone: game.markDone,
-      doneSteps:
-        pilotId === null
-          ? null
-          : game.claimed.filter((c) => c.pilotId === pilotId).map((c) => c.stepIndex),
-      markStepDone: pilotId === null ? null : (stepIndex) => game.claimStep(pilotId, stepIndex),
-      spendUpkeep: game.spendUpkeep,
-    }
-  }
-
-  // Solo is always a pilot's screen: the Mediator's has a Game.
-  const soloPilot = target.pilotId ?? ''
-
-  // `soloState` answers null for a pilot no longer on the shelf: not running.
+  // `state` answers null for a solo pilot no longer on the shelf: not running.
   const downtime: DowntimeView =
-    soloState === undefined || soloState === null
+    state === undefined || state === null
       ? NOT_RUNNING
       : {
-          running: soloState.stepIndex !== null,
-          stepIndex: soloState.stepIndex,
-          completedBy: [],
-          upkeepSpent: soloState.upkeepSpent,
-          members: [],
+          running: state.stepIndex !== null,
+          stepIndex: state.stepIndex,
+          completedBy: state.completedBy,
+          upkeepSpent: state.upkeepSpent,
+          members: (members ?? []).map((m) => ({ userId: m.userId, displayName: m.displayName })),
         }
-
-  /** Whether a write may go now; when not, it says why. */
-  function writable(): boolean {
-    if (canWrite) return true
-    reportBlockedWrite({ mode, outdated })
-    return false
-  }
-
-  /** Send one solo write, or say why it cannot be sent. */
-  function send(write: (args: { pilotId: string }) => Promise<unknown>): void {
-    if (!writable()) return
-    write({ pilotId: soloPilot }).catch(reportRefusedWrite)
-  }
+  const solo = gameId === null
+  const mayMove = solo || target.mediator
 
   return {
     downtime,
-    locked: false,
-    begin: () => send((args) => soloBegin(args)),
-    advance: () => send((args) => soloAdvance(args)),
-    setStep: (stepIndex) => send((args) => soloSetStep({ ...args, stepIndex })),
-    end: () => send((args) => soloEnd(args)),
-    markDone: null,
-    doneSteps: soloState?.doneSteps ?? [],
-    markStepDone: async (stepIndex) => {
-      if (!writable()) return false
-      try {
-        return await soloMarkStepDone({ pilotId: soloPilot, stepIndex })
-      } catch (err) {
-        reportRefusedWrite(err)
-        return false
-      }
-    },
-    spendUpkeep: async () => {
-      if (!writable()) return false
-      try {
-        return await soloSpendUpkeep({ pilotId: soloPilot })
-      } catch (err) {
-        reportRefusedWrite(err)
-        return false
-      }
-    },
+    locked: !mayMove,
+    begin: () => guarded.send(() => begin(place)),
+    advance: () => guarded.send(() => advance(place)),
+    // Solo any step; in a Game the Mediator's Back.
+    setStep: mayMove ? (stepIndex) => guarded.send(() => setStep({ ...place, stepIndex })) : null,
+    end: () => guarded.send(() => end(place)),
+    markDone: gameId === null ? null : (done) => guarded.send(() => markStepDone({ gameId, done })),
+    doneSteps:
+      pilotId === null
+        ? null
+        : (state?.claimed ?? []).filter((c) => c.pilotId === pilotId).map((c) => c.stepIndex),
+    markStepDone:
+      pilotId === null
+        ? null
+        : (stepIndex) => guarded.ask(() => claimStep({ gameId, pilotId, stepIndex })),
+    spendUpkeep: () => guarded.ask(() => spendUpkeep(place)),
   }
 }

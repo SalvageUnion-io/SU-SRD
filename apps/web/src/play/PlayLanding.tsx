@@ -318,7 +318,7 @@ function PlayGameItem({
   channel: string | null
 }) {
   const gameId = game._id as Id<'games'>
-  const downtime = useQuery(api.downtime.state, { gameId })
+  const downtime = useQuery(api.downtime.state, { gameId }) ?? undefined
   const seen = useQuery(api.seats.presence, { gameId })
   const listing = useQuery(api.entities.listForGame, { gameId })
   const vitals = useQuery(api.crew.vitals, { gameId })

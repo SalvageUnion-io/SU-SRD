@@ -30,12 +30,9 @@ import { useMutation, useQuery } from 'convex/react'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { toast } from '../components/index'
-import type { ConnectionState } from '../lib/connection/connectionContext'
 import { useConnection } from '../lib/connection/connectionContext'
-import { serverMessage } from '../lib/connection/serverError'
-import { reportWriteFailure } from '../lib/runWrite'
-import { WritesBlockedOffline } from '../stores/entityBackend'
+import { isSignedIn } from '../lib/connection/connectionMode'
+import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 
 /** What Play reads off a seat. */
 export type SeatView = {
@@ -114,29 +111,6 @@ function remount(seat: SeatView, mount: SeatMount): Partial<SeatView> {
   return same ? { mount } : { mount, resolving: null }
 }
 
-/**
- * Show a refused Game write (a seat's, Downtime's): the server's own words
- * when it gave some.
- */
-export function reportRefusedWrite(err: unknown): void {
-  const refusal = serverMessage(err)
-  if (refusal !== null) {
-    toast(refusal)
-    return
-  }
-  reportWriteFailure(err)
-}
-
-/** Say why a Game write (a seat's, Downtime's) cannot go now: outdated, settling or offline. */
-export function reportBlockedWrite({
-  mode,
-  outdated,
-}: Pick<ConnectionState, 'mode' | 'outdated'>): void {
-  reportWriteFailure(
-    new WritesBlockedOffline(outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline')
-  )
-}
-
 /** Which seat `useSeatAt` reads and writes. */
 export type SeatAddress = {
   /**
@@ -153,8 +127,8 @@ export type SeatAddress = {
  * on whichever answer holds it (`forGame` or `solo`).
  */
 export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
-  const { mode, canWrite: connectionWrites, outdated } = useConnection()
-  const signedIn = mode === 'connected' || mode === 'disconnected'
+  const signedIn = isSignedIn(useConnection().mode)
+  const guarded = useGuardedWrite()
   const soloSeat = gameId === null
 
   const seats = useQuery(api.seats.forGame, signedIn && gameId !== null ? { gameId } : 'skip')
@@ -207,11 +181,7 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
     write: (args: { gameId: Id<'games'> | null; pilotId: string }) => Promise<unknown>
   ) {
     if (pilotId === null) return
-    if (!connectionWrites) {
-      reportBlockedWrite({ mode, outdated })
-      return
-    }
-    write({ gameId, pilotId }).catch(reportRefusedWrite)
+    guarded.send(() => write({ gameId, pilotId }))
   }
 
   return {
