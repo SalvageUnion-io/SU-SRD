@@ -1,6 +1,6 @@
 import { createFileRoute, useLocation, useNavigate } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { CrawlerBuilder } from '../../build/crawler/CrawlerBuilder'
+import { CrawlerWizard } from '../../build/crawler/CrawlerWizard'
 import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
 import { useWizardReturn } from '../../build/wizard/useWizardReturn'
 import { areaTitle } from '../../lib/pageTitle'
@@ -52,7 +52,7 @@ function CrawlersNewPage() {
         returnTo={returnTo}
         gameId={search.game}
         wizard={
-          <CrawlerBuilder
+          <CrawlerWizard
             onComplete={handleComplete}
             onCancel={handleCancel}
             gameId={search.game}

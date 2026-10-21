@@ -1,5 +1,5 @@
 /**
- * Integration tests for CrawlerBuilder on the WizShell skeleton, in the
+ * Integration tests for CrawlerWizard on the WizShell skeleton, in the
  * Union Crawler's book order (pp.212–213):
  *
  *   Choose a Crawler Type (radio entity cards) → Note your Crawler
@@ -21,7 +21,7 @@ import { must } from '../../../components/__tests__/must'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { CrawlerBuilder } from '../CrawlerBuilder'
+import { CrawlerWizard } from '../CrawlerWizard'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
@@ -139,9 +139,9 @@ function nonWeaponSystemAtTL(tl: number): { id: string; name: string } {
 // Create mode
 // ---------------------------------------------------------------------------
 
-describe('CrawlerBuilder — create mode', () => {
+describe('CrawlerWizard — create mode', () => {
   it('step 1 renders the five types as radio entity cards with a mutations badge + detail', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     expect(screen.getAllByText('Choose a Crawler Type').length).toBeGreaterThan(0)
     await waitFor(() => {
@@ -165,7 +165,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('the Augmented type surfaces the +1 Training Point callout (text only)', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
     await waitFor(() => screen.getByRole('radio', { name: 'Augmented' }))
     await pickType('Augmented')
     await waitFor(() => {
@@ -175,7 +175,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('step 2 displays fixed TL1 statistics with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickType('Battle')
     await clickNext() // -> Statistics
@@ -189,7 +189,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('TL-filters the Armament step to Tech 1 weapons only (non-weapons excluded)', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickType('Battle')
@@ -208,7 +208,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('gates the Armament step on the minimum-1 weapon mount', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
     await pickType('Engineering')
@@ -225,7 +225,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('hard-caps installs at the mutations-derived type allowance (Engineering = 1)', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
     await pickType('Engineering')
@@ -258,7 +258,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('a Battle Crawler mounts two — and a type change re-clamps with a toast', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickType('Battle')
@@ -285,7 +285,7 @@ describe('CrawlerBuilder — create mode', () => {
 
   it('walks every book step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
     const onComplete = mock(() => {})
-    render(<CrawlerBuilder onComplete={onComplete} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={onComplete} onCancel={() => {}} />)
 
     const battle = must(SalvageUnionReference.Crawlers.getByName('Battle'))
     const commandBay = must(SalvageUnionReference.CrawlerBays.getByName('Command Bay'))
@@ -370,7 +370,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('name gate: cannot reach Create with an empty name', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickType('Battle')
@@ -388,7 +388,7 @@ describe('CrawlerBuilder — create mode', () => {
 
   it('cancel calls onCancel', async () => {
     const onCancel = mock(() => {})
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={onCancel} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={onCancel} />)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
@@ -397,7 +397,7 @@ describe('CrawlerBuilder — create mode', () => {
   })
 
   it('offers no bay catalog anywhere — bays are seeded, not chosen', async () => {
-    render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickType('Battle')
@@ -407,11 +407,11 @@ describe('CrawlerBuilder — create mode', () => {
   })
 })
 
-describe('CrawlerBuilder — preselected type', () => {
+describe('CrawlerWizard — preselected type', () => {
   it('starts on the deep-linked crawler type', async () => {
     const battle = must(SalvageUnionReference.Crawlers.getByName('Battle'))
     render(
-      <CrawlerBuilder
+      <CrawlerWizard
         onComplete={() => {}}
         onCancel={() => {}}
         preselectType={getEntitySlug(battle)}

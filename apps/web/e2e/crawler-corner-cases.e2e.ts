@@ -3,7 +3,7 @@ import { advanceUntilVisible, clickNext, fillIdentity, pickByName, waitForReady 
 import { expect, test } from './fixtures'
 
 /**
- * CrawlerBuilder corner cases. The wizard is Crawler Type → Statistics →
+ * CrawlerWizard corner cases. The wizard is Crawler Type → Statistics →
  * Armament Bay → Crew → Name → Review; three steps gate (type, at least one
  * weapon, a name) and the rest are informational.
  *

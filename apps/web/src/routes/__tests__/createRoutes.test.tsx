@@ -73,8 +73,8 @@ const convexMocks = await installConvexMocks({
     '../../build/pilot/PilotWizard': () => ({
       PilotWizard: wizardStub('Pilot wizard', (p) => (p.preselectClassId ? 'a class' : 'none')),
     }),
-    '../../build/crawler/CrawlerBuilder': () => ({
-      CrawlerBuilder: wizardStub('Crawler builder', (p) => named(p.preselectType)),
+    '../../build/crawler/CrawlerWizard': () => ({
+      CrawlerWizard: wizardStub('Crawler builder', (p) => named(p.preselectType)),
     }),
     '../../build/npc/NpcDesignerPage': () => ({
       NpcDesignerPage: (p: Props) =>

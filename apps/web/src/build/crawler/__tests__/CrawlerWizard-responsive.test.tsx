@@ -1,5 +1,5 @@
 /**
- * CrawlerBuilder responsive layout tests.
+ * CrawlerWizard responsive layout tests.
  *
  * The builder sits on the shared WizShell skeleton: a 196px
  * stepper rail beside the panes on desktop (lg:flex-row), stacked full-width
@@ -14,16 +14,16 @@
 
 import { describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
-import { CrawlerBuilder } from '../CrawlerBuilder'
+import { CrawlerWizard } from '../CrawlerWizard'
 
 async function renderBuilder() {
-  const result = render(<CrawlerBuilder onComplete={() => {}} onCancel={() => {}} />)
+  const result = render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
   // Flush the mount-effect preload chain so its setState lands inside act.
   await act(async () => {})
   return result
 }
 
-describe('CrawlerBuilder — responsive wizard layout', () => {
+describe('CrawlerWizard — responsive wizard layout', () => {
   test('renders the WizShell row layout (stacked on mobile, rail beside panes at lg)', async () => {
     const { container } = await renderBuilder()
     // The rail/pane row: a column on a phone, a row from lg (`.su-wiz-body` in

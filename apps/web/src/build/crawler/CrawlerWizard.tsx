@@ -77,7 +77,7 @@ const STEP_TITLES: Record<CrawlerWizardStepId, string> = {
   review: 'Review',
 }
 
-type CrawlerBuilderProps = {
+type CrawlerWizardProps = {
   /** Called on successful create with the crawler's id. */
   onComplete: (crawlerId: string) => void
   /** Called when the user cancels. */
@@ -110,13 +110,13 @@ type CrawlerBuilderProps = {
  *     `scrapPool` is an explicit optional input relocated to step 5;
  *   - there is no warnings Banner — nothing can be in violation.
  */
-export function CrawlerBuilder({
+export function CrawlerWizard({
   onComplete,
   onCancel,
   onOffRules,
   gameId,
   preselectType,
-}: CrawlerBuilderProps) {
+}: CrawlerWizardProps) {
   // Read straight from the ORM: this renders inside GameDataReady, whose
   // preload('all') has already resolved, so these are synchronous. crawlers
   // drives the type selection (and its mutations-derived budgets);

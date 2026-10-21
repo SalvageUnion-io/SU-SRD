@@ -208,7 +208,7 @@
 }
 
 /* — The builders' steps (crawler, pilot, mech) — */
-/* CrawlerBuilder, PilotWizard, MechWizard: the gap under each step's RuleBrief.
+/* CrawlerWizard, PilotWizard, MechWizard: the gap under each step's RuleBrief.
    A class, not a style object: RuleBrief takes no `style`. */
 .su-wiz-rule-brief {
   margin-bottom: var(--space-20);
