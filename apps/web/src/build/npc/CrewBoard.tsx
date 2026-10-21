@@ -211,8 +211,7 @@ function CrewSlots({
     if (listing === undefined) return []
     return listing.npcs.flatMap((row) => {
       const parsed = NpcSchema.safeParse(row.body)
-      if (!parsed.success) return []
-      return [{ ...parsed.data, id: row.appId ?? parsed.data.id }]
+      return parsed.success ? [{ ...parsed.data, id: rowAppId(row) ?? parsed.data.id }] : []
     })
   }, [listing])
 

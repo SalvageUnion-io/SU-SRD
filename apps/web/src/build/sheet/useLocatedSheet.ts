@@ -41,7 +41,7 @@ import type { GameListing } from './readOnlySheetStore.model'
 import { rowAppId } from './readOnlySheetStore.model'
 import { useSheetModeStore } from './sheetMode.model'
 
-export type LocatedStatus = 'yours' | 'listed' | 'missing' | 'offline' | 'loading'
+type LocatedStatus = 'yours' | 'listed' | 'missing' | 'offline' | 'loading'
 
 /** A listed row of one kind: a crawler is communal, so it has no owner. */
 type ListedRow<K extends EntityKind> = K extends 'crawler' ? ServerCrawler : ServerOwnable

@@ -121,10 +121,6 @@ export function useNpcs(): Npc[] {
   return useEntityList('npc')
 }
 
-export function useNpc(id: string | undefined): Npc | null {
-  return useEntity('npc', id)
-}
-
 /**
  * Reactive list of ALL SoftLink records. Named `useSoftLinkList` (not
  * `useSoftLinks`) to avoid colliding with the domain-level
