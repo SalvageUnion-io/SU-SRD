@@ -12,11 +12,10 @@
  * looking at). On top of those it lists every live vital.
  */
 
-import { resolveGauge } from 'salvageunion-reference/rules'
 import type { BoardSources } from '../boardMenu.model'
 import { crewSeatLines } from '../crew.model'
 import type { CrewVitals } from '../useGameFeed'
-import { crewPool } from '../useGameFeed'
+import { vitalText } from '../useGameFeed'
 import { tableSeats } from './seatCards.model'
 
 /** One vital chip on a seat: `HP | 7/10`, or a word (`▲ Ejected`) with no value. */
@@ -58,12 +57,6 @@ type Member = { userId: string; joinedAt: number }
 type CrewPilot = CrewVitals['pilots'][number]
 type CrewMech = CrewVitals['mechs'][number]
 
-/** Heat: a gauge that starts empty. */
-function gauge(current: number | null, max: number | null): string {
-  if (max === null) return current === null ? '0' : String(current)
-  return `${resolveGauge(current ?? undefined, max)}/${max}`
-}
-
 /** Every live vital of a seat, the one `crewLines()` flags marked. */
 function seatVitals(
   pilot: CrewPilot,
@@ -71,14 +64,14 @@ function seatVitals(
   flagged: { label: string; attention: boolean }
 ): SeatVital[] {
   const vitals: SeatVital[] = [
-    { label: 'HP', value: crewPool(pilot.currentHP, pilot.maxHP), attention: false },
-    { label: 'AP', value: crewPool(pilot.currentAP, pilot.maxAP), attention: false },
+    { label: 'HP', value: vitalText('pool', pilot.currentHP, pilot.maxHP), attention: false },
+    { label: 'AP', value: vitalText('pool', pilot.currentAP, pilot.maxAP), attention: false },
   ]
   if (pilot.boarded && mech !== undefined) {
     vitals.push(
-      { label: 'SP', value: crewPool(mech.currentSP, mech.maxSP), attention: false },
-      { label: 'EP', value: crewPool(mech.currentEP, mech.maxEP), attention: false },
-      { label: 'Heat', value: gauge(mech.currentHeat, mech.maxHeat), attention: false }
+      { label: 'SP', value: vitalText('pool', mech.currentSP, mech.maxSP), attention: false },
+      { label: 'EP', value: vitalText('pool', mech.currentEP, mech.maxEP), attention: false },
+      { label: 'Heat', value: vitalText('gauge', mech.currentHeat, mech.maxHeat), attention: false }
     )
   }
   if (!flagged.attention) return vitals

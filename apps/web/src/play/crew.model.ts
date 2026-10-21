@@ -10,10 +10,9 @@
  */
 
 import { isPresent } from 'game-domain/schemas/seat'
-import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
-import { crewLines } from './useGameFeed'
+import { crewLines, vitalCurrent } from './useGameFeed'
 
 /** What is wrong, in words, or null for "Fine". A parked mech's trouble is its own line. */
 function crewProblem(c: CrewLine): string | null {
@@ -51,23 +50,17 @@ export type CrewSeatLine = {
 type CrewPilot = CrewVitals['pilots'][number]
 type CrewMech = CrewVitals['mechs'][number]
 
-function current(value: number | null, max: number | null): string {
-  if (max === null) return value === null ? '—' : String(value)
-  return String(resolvePool(value ?? undefined, max))
-}
-
-function heat(value: number | null, max: number | null): string {
-  return String(resolveGauge(value ?? undefined, max ?? undefined))
-}
-
 /**
  * The vital that says why a crewmate needs looking at, or, when nothing is
  * wrong, the one that matters most where they are: their mech's SP aboard,
  * their own HP on foot.
  */
 function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: boolean): CrewVital {
-  const hp = { label: 'HP', value: current(pilot.currentHP, pilot.maxHP) }
-  const sp = mech === undefined ? null : { label: 'SP', value: current(mech.currentSP, mech.maxSP) }
+  const hp = { label: 'HP', value: vitalCurrent('pool', pilot.currentHP, pilot.maxHP) }
+  const sp =
+    mech === undefined
+      ? null
+      : { label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) }
   if (!attention) return { ...(pilot.boarded && sp !== null ? sp : hp), attention: false }
 
   const flag = (v: { label: string; value: string | null }): CrewVital => ({
@@ -78,9 +71,10 @@ function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: bool
   if (pilot.status.ejected) return flag({ label: 'Ejected', value: null })
   const status = mech?.status ?? null
   if (mech !== undefined && status !== null) {
-    if (status.destroyed) return flag({ label: 'SP', value: current(mech.currentSP, mech.maxSP) })
+    if (status.destroyed)
+      return flag({ label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) })
     if (status.overheating)
-      return flag({ label: 'Heat', value: heat(mech.currentHeat, mech.maxHeat) })
+      return flag({ label: 'Heat', value: vitalCurrent('gauge', mech.currentHeat, mech.maxHeat) })
     if (status.shutdown) return flag({ label: 'Shut down', value: null })
     if (sp !== null) return flag(sp)
   }

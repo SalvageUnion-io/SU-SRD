@@ -9,7 +9,7 @@
  * here as it happens.
  *
  * Beside the hook this file holds the crew's pure model: `CrewVitals`,
- * `CrewLine`, `crewLines`, `crewPool` and `describeResolve`. `crew.model.ts`
+ * `CrewLine`, `crewLines`, `vitalText` and `describeResolve`. `crew.model.ts`
  * holds the Crew column's seat lines.
  */
 
@@ -18,11 +18,12 @@ import type { FunctionReturnType } from 'convex/server'
 import { containerOf } from 'game-domain/container'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
-import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { coreRollBandLabel } from 'salvageunion-reference/rules'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'
 import { isSignedIn } from '../lib/connection/connectionMode'
+import { gauge, pool } from '../lib/units/crewPair'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
@@ -129,12 +130,28 @@ export function describeResolve(pilotName: string, resolving: SeatResolving): st
   return resolving.activated ? `${head}: activated` : head
 }
 
-/** "12/16", or the stored value alone while the maximum is unknown. */
-export function crewPool(current: number | null, max: number | null, gauge = false): string {
-  if (max === null) return current === null ? '—' : String(current)
-  const stored = current ?? undefined
-  const value = gauge ? resolveGauge(stored, max) : resolvePool(stored, max)
-  return `${value}/${max}`
+/**
+ * A vital as the crew reads it: `crewPair`'s `pool` (HP, AP, SP, EP: an absent
+ * current is full) or `gauge` (Heat: an absent current is empty), "12/16"; or
+ * the stored value alone while the maximum is unknown.
+ */
+export function vitalText(
+  kind: 'pool' | 'gauge',
+  current: number | null,
+  max: number | null
+): string {
+  const reading = (kind === 'pool' ? pool : gauge)('', current, max)[0]
+  if (reading !== undefined) return String(reading.value)
+  return current === null ? '—' : String(current)
+}
+
+/** A vital's current value alone ("22" of "22/30"), for a line that shows one number. */
+export function vitalCurrent(
+  kind: 'pool' | 'gauge',
+  current: number | null,
+  max: number | null
+): string {
+  return vitalText(kind, current, max).split('/')[0] ?? '—'
 }
 
 type CrewMech = CrewVitals['mechs'][number]
@@ -197,19 +214,19 @@ export function crewLines(
     let mechLine: string | null = null
     if (mech !== undefined) {
       mechLine = p.boarded
-        ? `${mech.name} · SP ${crewPool(mech.currentSP, mech.maxSP)} · Heat ${crewPool(mech.currentHeat, mech.maxHeat, true)}`
+        ? `${mech.name} · SP ${vitalText('pool', mech.currentSP, mech.maxSP)} · Heat ${vitalText('gauge', mech.currentHeat, mech.maxHeat)}`
         : [`${mech.name} parked`, ...parkedProblems(mech.status)].join(', ')
     }
     const resolving = resolvingOf.get(id) ?? null
-    const hp = crewPool(p.currentHP, p.maxHP)
-    const ap = crewPool(p.currentAP, p.maxAP)
+    const hp = vitalText('pool', p.currentHP, p.maxHP)
+    const ap = vitalText('pool', p.currentAP, p.maxAP)
     const unit =
       mech === undefined
         ? p.boarded
           ? 'In a mech'
           : 'On foot'
         : p.boarded
-          ? `In ${mech.name} · SP ${crewPool(mech.currentSP, mech.maxSP)}`
+          ? `In ${mech.name} · SP ${vitalText('pool', mech.currentSP, mech.maxSP)}`
           : `On foot · ${mech.name} parked`
     lines.push({
       pilotId: id,
@@ -221,7 +238,11 @@ export function crewLines(
       unitMech:
         mech === undefined
           ? null
-          : { name: mech.name, sp: crewPool(mech.currentSP, mech.maxSP), boarded: p.boarded },
+          : {
+              name: mech.name,
+              sp: vitalText('pool', mech.currentSP, mech.maxSP),
+              boarded: p.boarded,
+            },
       mech: mechLine,
       mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [
