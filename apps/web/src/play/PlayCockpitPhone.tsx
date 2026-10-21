@@ -6,8 +6,7 @@
  *    resolving inline in its row; in Downtime the step track, the step box and
  *    the Downtime actions.
  *  - **Units** — the Units column (`PlayUnitsColumn`), every − / + on it.
- *  - **Tables** — the Tables and the Feed (`PlayTablesSection`,
- *    `PlayFeedSection`).
+ *  - **Tables** — the Tables and the Feed (`PlayerTablesAndFeed`).
  *  - **Crew** — a Game's other seats (`PlayCrewSection`); solo has no tab.
  *
  * Pinned above them: the live vitals for the Situation (`pinnedUnits`) and
@@ -20,7 +19,7 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayPhone, PlayPinnedVitals } from './PlayPhone'
-import { PlayCrewSection, PlayFeedSection, PlayTablesSection } from './PlaySideColumn'
+import { PlayCrewSection, PlayerTablesAndFeed } from './PlaySideColumn'
 import { PlaySituationSwitch } from './PlaySituationSwitch'
 import { PlayUnitsColumn } from './PlayUnitsColumn'
 import type { PlayerPhoneTab } from './playPhone.model'
@@ -68,8 +67,7 @@ export function PlayCockpitPhone({ target, play, bar, actions }: PlayCockpitPhon
         units: <PlayUnitsColumn target={target} play={play} />,
         tables: (
           <>
-            <PlayTablesSection target={target} play={play} side={side} />
-            <PlayFeedSection target={target} play={play} side={side} />
+            <PlayerTablesAndFeed target={target} play={play} side={side} />
           </>
         ),
         crew: <PlayCrewSection target={target} play={play} side={side} />,

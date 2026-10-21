@@ -35,7 +35,7 @@ export type FeedEntry =
   /** A roll or a change made on this screen: "You · Core Mechanic · 14 · Success". */
   | { kind: 'mine'; key: string; ts: number; text: string; roll: PlayRoll }
 
-type FeedSources = {
+export type FeedSources = {
   /** The Game's rolls, newest first; null solo or while loading. */
   rolls: readonly RollLine[] | null
   alerts: readonly AlertLine[]

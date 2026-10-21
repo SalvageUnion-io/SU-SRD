@@ -2,10 +2,10 @@
  * PlayMediatorSide — the Mediator's right column (play.md §10, wireframe pins
  * 5–6): the player's Tables and Feed sections, then the Propose dock.
  *
- *  - **Tables** (`PlayMediatorTablesSection`): pinned for the Game's state,
- *    Find for the rest, and the screen's Post toggle, private by default for
- *    the Mediator (`postDefault`, `postsByDefault`).
- *  - **Feed** (`PlayMediatorFeedSection`): the crew's rolls and the alerts
+ *  - **Tables** (`PlayTablesSection`, the player's): pinned for the Game's
+ *    state, Find for the rest, and the screen's Post toggle, private by
+ *    default for the Mediator (`postDefault`, `postsByDefault`).
+ *  - **Feed** (`PlayFeedSection`, the player's): the crew's rolls and the alerts
  *    sent, with this screen's own rolls (Opposition, Morale, tables), newest
  *    first. Nothing awaits the Mediator's answer, so no proposal waits here.
  *  - **Propose** (`PlayMediatorProposeSection`, `ProposeDock`): the propose
@@ -23,14 +23,13 @@
 import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
-import { Button, ModalShell, SlabSection, tokens } from '../../components/index'
+import { Button, ModalShell, tokens } from '../../components/index'
 import type { PlayBinding } from '../channels.model'
-import { PlayFeed } from '../PlayFeed'
-import { PlayTables } from '../PlayTables'
+import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
+import type { SideFeed } from '../usePlaySide'
 import { ProposalsList } from './ProposalsList'
 import { ProposeDock } from './ProposeDock'
 import type { PlayMediator } from './usePlayMediator'
-import type { PlayMediatorSideState } from './usePlayMediatorSide'
 import { usePlayMediatorSide } from './usePlayMediatorSide'
 
 const STACK = {
@@ -50,34 +49,24 @@ const SECTION = {
 /** The dock sits at the column's foot, as the wireframe draws it. */
 const DOCK = { ...SECTION, marginTop: 'auto' } satisfies CSSProperties
 
-type SectionProps = { mediator: PlayMediator; side: PlayMediatorSideState }
-
-/** Tables, pinned for the Game's state, and the Post toggle. */
-export function PlayMediatorTablesSection({ mediator, side }: SectionProps) {
+/** The Mediator's Tables and Feed sections, as the canvas and the phone's Tables tab stack them. */
+export function MediatorTablesAndFeed({
+  mediator,
+  side,
+}: {
+  mediator: PlayMediator
+  side: SideFeed
+}) {
   return (
-    <SlabSection as="h2" id="mediate-tables" title="Tables">
-      <PlayTables
+    <>
+      <PlayTablesSection
+        side={side}
+        idPrefix="mediate"
         downtime={mediator.downtime.downtime.running}
         solo={false}
-        post={side.post}
-        onPostChange={side.setPost}
-        binding={side.binding}
       />
-    </SlabSection>
-  )
-}
-
-/** The Feed: the crew's rolls and the alerts sent, with this screen's own. */
-export function PlayMediatorFeedSection({ mediator, side }: SectionProps) {
-  return (
-    <SlabSection as="h2" id="mediate-feed" title="Feed">
-      <PlayFeed
-        entries={side.entries}
-        posts={side.dispatch.posts}
-        postNow={side.dispatch.postNow}
-        canWrite={mediator.canWrite}
-      />
-    </SlabSection>
+      <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+    </>
   )
 }
 
@@ -150,8 +139,7 @@ export function PlayMediatorSide({
   const side = usePlayMediatorSide(mediator, binding)
   return (
     <div style={STACK}>
-      <PlayMediatorTablesSection mediator={mediator} side={side} />
-      <PlayMediatorFeedSection mediator={mediator} side={side} />
+      <MediatorTablesAndFeed mediator={mediator} side={side} />
       <PlayMediatorProposeSection
         mediator={mediator}
         targetId={targetId}

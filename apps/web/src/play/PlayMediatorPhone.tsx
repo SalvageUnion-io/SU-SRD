@@ -7,8 +7,7 @@
  *    (`PlayMediatorOpposition`); while Downtime runs the tab reads Downtime
  *    and holds the step track and its controls (`PlayMediatorDowntime`), as
  *    the canvas's centre does.
- *  - **Tables** — the Tables and the Feed (`PlayMediatorTablesSection`,
- *    `PlayMediatorFeedSection`).
+ *  - **Tables** — the Tables and the Feed (`MediatorTablesAndFeed`).
  *  - **Propose** — the dock and All proposals (`PlayMediatorProposeSection`).
  *
  * Pinned above them: the Scene / Downtime switch. A seat tapped on the Table
@@ -24,11 +23,7 @@ import type { PlayBinding } from './channels.model'
 import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
 import { PlayMediatorDowntime } from './mediator/PlayMediatorDowntime'
 import { PlayMediatorOpposition } from './mediator/PlayMediatorOpposition'
-import {
-  PlayMediatorFeedSection,
-  PlayMediatorProposeSection,
-  PlayMediatorTablesSection,
-} from './mediator/PlayMediatorSide'
+import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/PlayMediatorSide'
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
 import type { PlayMediator } from './mediator/usePlayMediator'
 import { usePlayMediatorSide } from './mediator/usePlayMediatorSide'
@@ -98,8 +93,7 @@ export function PlayMediatorPhone({
         ),
         tables: (
           <>
-            <PlayMediatorTablesSection mediator={mediator} side={side} />
-            <PlayMediatorFeedSection mediator={mediator} side={side} />
+            <MediatorTablesAndFeed mediator={mediator} side={side} />
           </>
         ),
         propose: (

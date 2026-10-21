@@ -17,7 +17,8 @@
  * play.md §11) calls it once too and puts the sections on its own tabs.
  *
  * Each section's heading is a Slab, never a `TitledBox`, so what a section
- * lists stays level 1 (play.md §12).
+ * lists stays level 1 (play.md §12). The Tables and Feed sections are the
+ * Mediator's too (`PlayMediatorSide`), over the same `useSideFeed`.
  */
 
 import type { CSSProperties } from 'react'
@@ -26,7 +27,7 @@ import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'
 import type { PlayColumnProps } from './situation.model'
-import type { PlaySide } from './usePlaySide'
+import type { PlaySide, SideFeed } from './usePlaySide'
 import { usePlaySide } from './usePlaySide'
 
 const STACK = {
@@ -35,10 +36,8 @@ const STACK = {
   gap: tokens.space[16],
 } satisfies CSSProperties
 
-type SectionProps = PlayColumnProps & { side: PlaySide }
-
 /** The Crew: a Game's other seats. Nothing solo. */
-export function PlayCrewSection({ target, side }: SectionProps) {
+export function PlayCrewSection({ target, side }: PlayColumnProps & { side: PlaySide }) {
   if (target.gameId === null) return null
   return (
     <SlabSection as="h2" id="play-crew" title="Crew">
@@ -52,13 +51,21 @@ export function PlayCrewSection({ target, side }: SectionProps) {
   )
 }
 
-/** The roll Tables and the Post toggle. */
-export function PlayTablesSection({ target, play, side }: SectionProps) {
+/** A Tables or Feed section: the screen's shared side, and its Slab ids' prefix. */
+type SideSectionProps = { side: SideFeed; idPrefix: 'play' | 'mediate' }
+
+/** The roll Tables, pinned for the Situation (or the Game's state), and the Post toggle. */
+export function PlayTablesSection({
+  side,
+  idPrefix,
+  downtime,
+  solo,
+}: SideSectionProps & { downtime: boolean; solo: boolean }) {
   return (
-    <SlabSection as="h2" id="play-tables" title="Tables">
+    <SlabSection as="h2" id={`${idPrefix}-tables`} title="Tables">
       <PlayTables
-        downtime={play.situation === 'downtime'}
-        solo={target.gameId === null}
+        downtime={downtime}
+        solo={solo}
         post={side.post}
         onPostChange={side.setPost}
         binding={side.binding}
@@ -68,16 +75,35 @@ export function PlayTablesSection({ target, play, side }: SectionProps) {
 }
 
 /** The Feed: rolls, alerts and proposals, newest first. */
-export function PlayFeedSection({ play, side }: SectionProps) {
+export function PlayFeedSection({
+  side,
+  idPrefix,
+  canWrite,
+}: SideSectionProps & { canWrite: boolean }) {
   return (
-    <SlabSection as="h2" id="play-feed" title="Feed">
+    <SlabSection as="h2" id={`${idPrefix}-feed`} title="Feed">
       <PlayFeed
         entries={side.entries}
         posts={side.dispatch.posts}
         postNow={side.dispatch.postNow}
-        canWrite={play.canWrite}
+        canWrite={canWrite}
       />
     </SlabSection>
+  )
+}
+
+/** The player's Tables and Feed sections, as the canvas and the phone's Tables tab stack them. */
+export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { side: SideFeed }) {
+  return (
+    <>
+      <PlayTablesSection
+        side={side}
+        idPrefix="play"
+        downtime={play.situation === 'downtime'}
+        solo={target.gameId === null}
+      />
+      <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />
+    </>
   )
 }
 
@@ -86,8 +112,7 @@ export function PlaySideColumn({ target, play }: PlayColumnProps) {
   return (
     <div style={STACK}>
       <PlayCrewSection target={target} play={play} side={side} />
-      <PlayTablesSection target={target} play={play} side={side} />
-      <PlayFeedSection target={target} play={play} side={side} />
+      <PlayerTablesAndFeed target={target} play={play} side={side} />
     </div>
   )
 }
