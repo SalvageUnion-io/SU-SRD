@@ -145,7 +145,7 @@ type MechSheetProps = {
    * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
-  /** Suppresses every edit affordance (published snapshots). */
+  /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
    * The linked home crawler (composition resolver) — powers The Hold's stow
@@ -188,7 +188,7 @@ export function MechSheet({
 }: MechSheetProps) {
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
-  // language archetype B; always available, never rule-gated for now).
+  // language archetype B; always available: Free Edit, not rule-gated, ADR-021).
   const [picker, setPicker] = useState<ItemKind | null>(null)
 
   const model = useMechSheetModel({

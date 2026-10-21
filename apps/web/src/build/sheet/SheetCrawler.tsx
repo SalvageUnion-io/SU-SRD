@@ -45,7 +45,14 @@ import { bayStates, mechRailItems, pilotRailItems, rowStats } from './railStats.
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
-type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
+type SheetCrawlerProps = SheetViewCommonProps & {
+  crawler: Crawler
+  /**
+   * The viewer may write this sheet, in Read too: a bay's condition still
+   * steps in Read, as the SP gauge does. Absent, as `editable`.
+   */
+  liveCondition?: boolean
+}
 
 /** The Upgrade pool's cap. */
 const UPGRADE_POOL_MAX = 30
@@ -58,7 +65,7 @@ export function SheetCrawler({
   band,
   editable,
   readOnly,
-  trackable = editable,
+  liveCondition = editable,
   ownerOf,
   store,
   storeState,
@@ -344,7 +351,7 @@ export function SheetCrawler({
             mechHref={composition.mech ? hrefFor('mech', composition.mech.id) : undefined}
             store={store}
             readOnly={readOnly}
-            trackable={trackable}
+            liveCondition={liveCondition}
             economy={economy}
             economyActions={economyActions}
             linkedUnits={rail}

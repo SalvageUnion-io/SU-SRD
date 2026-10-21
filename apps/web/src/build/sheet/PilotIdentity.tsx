@@ -161,8 +161,8 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
   // origin cannot be derived and the player has to name it.
   const [answeredOrigin, setAnsweredOrigin] = useState<string | undefined>(undefined)
 
-  // Resolved lazily — only once the picker opens — so read-only/snapshot
-  // renders never touch the (possibly unloaded) reference class catalog.
+  // Resolved lazily — only once the picker opens — so read-only renders
+  // never touch the (possibly unloaded) reference class catalog.
   const { base, specialisations } = classPickerOpen
     ? selectableClasses(undefined, true)
     : { base: [], specialisations: [] }

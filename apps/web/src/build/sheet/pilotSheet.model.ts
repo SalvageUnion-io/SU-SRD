@@ -29,10 +29,10 @@ import { linesFromBreakdown, trackForTree } from '../../components/index'
 import { resolveClass } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
+import type { EntityState } from '../../stores/entityStore'
 import type { ClassLike } from '../pilot/abilityTrees.model'
 import { treesFor } from '../pilot/abilityTrees.model'
 import { useSoftLinks } from '../wiring/useSoftLinks'
-import type { SheetStoreState } from './sheetViewProps.model'
 
 /**
  * The tree every pilot has regardless of class (Repair, Scrap, Mount, …).
@@ -98,7 +98,7 @@ function groupAbilityTrees(entries: readonly AbilityEntry[]): AbilityTreeGroup[]
 
 type PilotSheetModelOptions = {
   pilot: Pilot
-  storeState: SheetStoreState
+  storeState: EntityState
   /** Which picker is open — the ability-tree scope is only computed for one. */
   picker: 'abilities' | 'equipment' | null
 }
@@ -214,7 +214,7 @@ export function usePilotSheetModel({
   // already learned) — the same edit-mode logic AbilitiesStep used, now feeding
   // the shared searcher's filter.
   // Computed only while the Abilities picker is open: it reads the reference ORM,
-  // which read-only snapshot renders never preload (the picker never opens there).
+  // which read-only renders never preload (the picker never opens there).
   //
   // GENERIC is deliberately NOT in this set: those abilities are intrinsic to
   // every pilot rather than chosen, so they are never offered for selection.
@@ -239,7 +239,7 @@ export function usePilotSheetModel({
    * `Abilities.getBySlug` accepts, so the used/recharge toggles persist like any
    * other ability.
    *
-   * Guarded: read-only snapshot renders may not have preloaded the ORM, and a
+   * Guarded: read-only renders may not have preloaded the ORM, and a
    * missing catalog should drop the Generic cards, not throw the sheet.
    */
   const genericAbilities = useMemo(
@@ -271,7 +271,7 @@ export function usePilotSheetModel({
   // The class's own trees and every tree taken from, whole, each on its track
   // (the SRD's Tree view): the taken abilities as stored, the rest of each
   // class tree `unlearned`.
-  // Guarded as the Generic tree is: a snapshot without the ORM prints the
+  // Guarded as the Generic tree is: a read-only render without the ORM prints the
   // taken abilities alone.
   const classTrees = useMemo(() => {
     const taken = new Set(classAbilities.map((entry) => entry.ability.id))

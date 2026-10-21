@@ -9,11 +9,6 @@
  * Name. A mech's name and its pattern name are the same field, so it displays
  * the canonical `mech.name` and saving writes `name` and `patternName` in
  * lockstep.
- *
- * // TODO(redesign): the mockup also shows a "Source pattern" meta line (the
- * // published pattern this mech was templated from) and a "Save as pattern"
- * // header control — both need a new stored field / feature and are
- * // deliberately omitted rather than rendered dead.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'

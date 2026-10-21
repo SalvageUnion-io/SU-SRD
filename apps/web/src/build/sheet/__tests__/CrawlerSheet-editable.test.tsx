@@ -316,7 +316,7 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
         crawler={fakeCrawler}
         store={makeStubStore(fakeCrawler, { updateCrawlerBay })}
         readOnly
-        trackable
+        liveCondition
       />
     )
     const steppers = screen.getAllByRole('button', {

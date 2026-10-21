@@ -26,11 +26,11 @@ import { useState } from 'react'
 import { Entity, Field, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import type { useEntityStore } from '../../stores/entityStore'
+import type { EntityState, useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerTypeCard'
 import { PhotoBeside } from './PhotoBeside'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
+import type { SheetPatch } from './sheetViewProps.model'
 
 /** Fills the hero's card body, so the type's internals take the height it has. */
 const PANEL = {
@@ -52,7 +52,7 @@ type CrawlerIdentityPanelProps = {
   /** Injectable store hook — CrawlerTypeCard's choice/NPC persistence. */
   store: typeof useEntityStore
   /** Live write surface for the type modal's multi-write. */
-  storeState: SheetStoreState
+  storeState: EntityState
   /** Partial merge on this crawler; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
   /**

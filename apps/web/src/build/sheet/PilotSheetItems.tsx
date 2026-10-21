@@ -164,7 +164,7 @@ type PilotEquipmentItemProps = {
   pilotId: string
   /**
    * Persisted choice selections for this item, sourced from the canonical
-   * pilot prop so read-only/snapshot rendering does not depend on the store.
+   * pilot prop so a read-only rendering does not depend on the store.
    */
   seedSelections: ChoiceSelections | undefined
   condition: ItemCondition

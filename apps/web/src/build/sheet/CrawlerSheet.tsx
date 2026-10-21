@@ -55,7 +55,7 @@
  * activation (the bays' status/repair controls) are KEPT — only the
  * play-control PANELS drop.
  *
- * readOnly suppresses every edit affordance (snapshot contexts).
+ * readOnly suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)).
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -125,13 +125,13 @@ type CrawlerSheetProps = {
    * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
-  /** Suppresses every edit affordance (published snapshots). */
+  /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
    * Read, on a sheet its owner may track (`SheetCrawler`'s `editable`): a
    * bay's condition still steps, as the SP gauge does (owner, round 6).
    */
-  trackable?: boolean
+  liveCondition?: boolean
   /**
    * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
    * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
@@ -169,7 +169,7 @@ export function CrawlerSheet({
   mechHref,
   store = useEntityStore,
   readOnly = false,
-  trackable = false,
+  liveCondition = false,
   economy,
   economyActions,
   linkedUnits,
@@ -180,9 +180,8 @@ export function CrawlerSheet({
   const cargo = useCargo({ mech, crawler, store, readOnly })
 
   // Weapons '+ Add' opens the existing picker modal (archetype B — always
-  // available; the modal itself carries the p.213/p.216 mount cap).
-  // TODO(redesign): rule-gate add/remove (scrap economy) — deferred; users
-  // self-manage for now.
+  // available; the modal itself carries the p.213/p.216 mount cap). Free
+  // Edit: add/remove is not rule-gated (ADR-021).
   const [systemsModalOpen, setSystemsModalOpen] = useState(false)
   // Identity is a FIELD section (unified edit language archetype A): its own
   // Edit/Done toggle, rendered in the SheetSectionCard header.
@@ -358,7 +357,7 @@ export function CrawlerSheet({
         seedSelections={crawler.bayChoices?.[entry.bayRef]}
         store={store}
         readOnly={readOnly}
-        trackable={trackable}
+        liveCondition={liveCondition}
         dockedMech={kind === 'mech' && mech ? { name: mech.name, href: mechHref } : undefined}
         // "Mount" opens the weapons picker — the thing the verb means — rather
         // than the bay's rules text.
@@ -450,9 +449,7 @@ export function CrawlerSheet({
         }
       >
         {/* Bays — ONE unified grid, every bay but the Storage Bay, which is
-            the sidebar's (no crew/functional split). // TODO(redesign): render
-            homebrew/custom bays in a separate "Custom Bays" group underneath
-            once the data distinguishes them. */}
+            the sidebar's (no crew/functional split). */}
         {bays.length > storageBays.length && (
           <SlabSection
             fold="open"

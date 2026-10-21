@@ -1,16 +1,8 @@
 /**
- * The owner chip (ADR-030 §6).
- *
- * Every entity row in a Game shows who holds it. This module produces the chip
- * *content* as data; the rendering goes through the entity card's existing
- * `controls` API as a `badge`, which is why there is no component here.
- *
- * That choice is deliberate and worth stating: `src/components` is shared with
- * `apps/web`, which has no accounts and never will. Teaching the card about
- * users would push an app-only concept into a package whose contract is to
- * stay backend-agnostic. Passing a `badge` in from the app keeps the knowledge
- * where it belongs, and `badge` renders at every card extent — full, head, and
- * catalog — so a dense listing row and an expanded card show the same chip.
+ * The owner chip (ADR-030 §6): who holds an entity in a Game, as data. An
+ * ownerless entity reads "Unclaimed", never a blank (`UNCLAIMED_LABEL`). It
+ * renders as the roster's `OwnerSeal` (`play/games/OwnerSeal.tsx`) and as a
+ * linked unit's state chip in a sheet's `AssignedUnits` (`owner`).
  */
 
 /** How an entity's ownership should read on a card. */

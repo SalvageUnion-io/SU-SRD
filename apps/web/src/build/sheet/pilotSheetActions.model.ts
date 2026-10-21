@@ -38,18 +38,18 @@ import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/r
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { pilotActivationPatch } from '../../lib/rules/playActions'
 import { runWrite } from '../../lib/runWrite'
-import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
+import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import type { UsedTraitKey } from './PilotIdentity'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
+import type { SheetPatch } from './sheetViewProps.model'
 
 type PilotSheetActionsOptions = {
   pilot: Pilot
   /** Injectable store hook — forwarded to `useSoftWarnings`. */
   store: typeof useEntityStore
-  storeState: SheetStoreState
+  storeState: EntityState
   /**
    * The pilot's effective crawler Tech Level (`resolveEffectiveCrawlerLevel`),
    * so a Spend AP on an unset pool starts from the same max the sheet shows.

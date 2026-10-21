@@ -15,8 +15,7 @@
  *       per-item remove (✕) is the sheet's one `SheetRemoveButton`
  *       (`SheetItemLine.tsx`). There is no header button of the sheets' own:
  *       the Manage control is the house `Button`, Compact as the fold beside
- *       it (§4.7). // TODO(redesign): rule-gate add/remove (TP /
- *       maxAbilities / slots / scrap economy) — deferred; users self-manage.
+ *       it (§4.7). Free Edit: add/remove is not rule-gated (ADR-021).
  *   (C) STAT cells stay always-live StatBlock pips — no primitive needed here.
  *
  * `EDIT_CUE_HOVER_CLASS` is the single editing cue: a dashed outline on

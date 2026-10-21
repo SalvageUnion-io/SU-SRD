@@ -50,8 +50,6 @@ import { useSheetMode } from './sheetMode.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 import type { OwnerOf } from './unitOwners.model'
 
-// Re-exported so existing consumers (tests) keep their import.
-
 /**
  * The sheet's own entity, resolved with its kind as a discriminant so the
  * per-kind dispatch below narrows without casts.
@@ -66,20 +64,10 @@ function resolveSheetEntity(
   kind: SheetKind,
   id: string
 ): ResolvedSheetEntity | null {
-  switch (kind) {
-    case 'pilot': {
-      const entity = lookup.get(kind, id)
-      return entity === null ? null : { kind, entity }
-    }
-    case 'mech': {
-      const entity = lookup.get(kind, id)
-      return entity === null ? null : { kind, entity }
-    }
-    case 'crawler': {
-      const entity = lookup.get(kind, id)
-      return entity === null ? null : { kind, entity }
-    }
-  }
+  const entity = lookup.get(kind, id)
+  // `lookup.get` returns the record of the kind it is asked for; TS cannot
+  // correlate the two across the union, so the pair is asserted once here.
+  return entity === null ? null : ({ kind, entity } as ResolvedSheetEntity)
 }
 
 type SheetProps = {
@@ -92,8 +80,8 @@ type SheetProps = {
   /** Injectable store hook (writes); the real Zustand store when omitted. */
   store?: typeof useEntityStore
   /**
-   * Hides Share + disables all stat editing (frozen read-only contexts: the
-   * public sheet and a crewmate's sheet in a Game).
+   * Hides Share + disables all stat editing (a sheet the viewer cannot write:
+   * the public sheet, a crewmate's sheet in a Game, a Starter Set template).
    *
    * This is the *caller's* declaration that the sheet is a read-only rendering.
    * Connectivity read-only is resolved separately, from `useConnection()`, and
@@ -120,7 +108,7 @@ type SheetProps = {
   /**
    * Pilot ability refs to use instead of the composition's.
    *
-   * A frozen read-only sheet (the public sheet, `PublicSheet.tsx`) shows a LIVE
+   * A read-only sheet (the public sheet, `PublicSheet.tsx`) shows a LIVE
    * INSTANCE but carries a private read-only store with no pilot record and no
    * soft-links, so the composition resolves `pilot: null` — and pilot-sourced
    * contributions (Beefcake's +3+X Max SP and +6 Cargo, ADR-029) would silently
@@ -375,12 +363,10 @@ export function Sheet({
     segments,
     editable: !readOnly,
     readOnly,
-    trackable: !readOnlyProp && !writesBlocked,
     ownerOf,
     crawlerReadOnly,
     store,
     storeState,
-    lookup,
     holds,
     hrefFor,
     withheld,
@@ -391,9 +377,13 @@ export function Sheet({
     resolved.kind === 'pilot' ? (
       <SheetPilot pilot={resolved.entity} {...common} />
     ) : resolved.kind === 'mech' ? (
-      <SheetMech mech={resolved.entity} pilotAbilitiesOverride={pilotAbilities} {...common} />
+      <SheetMech mech={resolved.entity} pilotAbilities={pilotAbilities} {...common} />
     ) : (
-      <SheetCrawler crawler={resolved.entity} {...common} />
+      <SheetCrawler
+        crawler={resolved.entity}
+        liveCondition={!readOnlyProp && !writesBlocked}
+        {...common}
+      />
     )
 
   return (

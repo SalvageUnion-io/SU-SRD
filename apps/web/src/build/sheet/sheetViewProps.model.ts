@@ -11,12 +11,9 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { EntityState, useEntityStore } from '../../stores/entityStore'
-import type { EntityLookup, SheetComposition } from './composition.model'
+import type { SheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 import type { OwnerOf } from './unitOwners.model'
-
-/** The store-state surface the views actually touch (injectable in tests). */
-export type SheetStoreState = EntityState
 
 /**
  * A linked unit the viewer may not read — on a public sheet, an assignment
@@ -44,11 +41,6 @@ export type SheetViewCommonProps = {
   segments?: LiveSheetSegment[]
   editable: boolean
   readOnly: boolean
-  /**
-   * The viewer may write this sheet, in Read too: the play state Read still
-   * steps (a crawler bay's condition; owner, round 6). Absent, as `editable`.
-   */
-  trackable?: boolean
   /** Who holds each unit in the Game (`unitOwners.model.ts`); absent outside one. */
   ownerOf?: OwnerOf
   /**
@@ -59,17 +51,11 @@ export type SheetViewCommonProps = {
   crawlerReadOnly: boolean
   /** Injectable store hook, forwarded to body sheets/controls. */
   store: typeof useEntityStore
-  storeState: SheetStoreState
-  /**
-   * Cross-type read used by mech Push (freshest record) and the rail. It also
-   * resolves entities the viewer may read but not edit (a Game's crewmates),
-   * so a linked unit found here is not necessarily one this sheet can write.
-   */
-  lookup: EntityLookup
+  storeState: EntityState
   /**
    * Whether this sheet's own store holds the entity — i.e. it is one the viewer
    * may edit, and a link drawn out of it is theirs to undraw. False for a
-   * crewmate's pilot or mech resolved through `lookup` alone.
+   * crewmate's pilot or mech resolved through the sheet's lookup alone.
    */
   holds: (kind: EntityRef['type'], id: string) => boolean
   /** Where a linked unit's View goes; `undefined` renders no View at all. */

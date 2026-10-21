@@ -96,14 +96,14 @@ type CrawlerBayCardProps = {
   onRepair: (entry: CrawlerBayEntry, index: number) => void
   /**
    * Persisted choice selections for this bay (keyed by `entry.bayRef`), from
-   * the canonical crawler prop so read-only/snapshot rendering does not
+   * the canonical crawler prop so a read-only rendering does not
    * depend on the live store.
    */
   seedSelections: ChoiceSelections | undefined
   store: typeof useEntityStore
   readOnly: boolean
   /** Read on a sheet its owner tracks: the bay's condition still steps (owner, round 6). */
-  trackable?: boolean
+  liveCondition?: boolean
   /**
    * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
    * the composition has a docked mech; renders above the crew lead, the mech
@@ -152,7 +152,7 @@ export function CrawlerBayCard({
   seedSelections,
   store,
   readOnly,
-  trackable = false,
+  liveCondition = false,
   dockedMech,
   contents,
   onFunction,
@@ -342,7 +342,7 @@ export function CrawlerBayCard({
       readOnly={readOnly}
       onConditionCycle={toggleCondition}
       nextCondition={damaged ? 'intact' : 'damaged'}
-      liveCondition={trackable}
+      liveCondition={liveCondition}
       actions={
         <>
           <Button

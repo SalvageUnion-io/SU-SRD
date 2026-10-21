@@ -16,7 +16,7 @@
  *   field and controls ("New Command Bay crew fact"), so several wells on one
  *   page stay distinguishable.
  * - `readOnly` drops the × and the "+ Add": the chips read as plain chips
- *   (a published snapshot).
+ *   (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)).
  *
  * Persistence: `onChange` receives the next list. Callers write it reading the
  * freshest record from the store, never a stale closure.

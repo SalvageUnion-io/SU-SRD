@@ -27,11 +27,11 @@ import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
-import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
+import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
-import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
+import type { SheetPatch } from './sheetViewProps.model'
 
 export type ItemKind = 'system' | 'module'
 
@@ -39,7 +39,7 @@ type MechSheetActionsOptions = {
   mech: Mech
   /** Injectable store hook — forwarded to `useSoftWarnings`. */
   store: typeof useEntityStore
-  storeState: SheetStoreState
+  storeState: EntityState
   /** The linked home crawler, or null — the repair scrap-pool deduction target. */
   crawler: Crawler | null
 }
@@ -128,9 +128,7 @@ export function useMechSheetActions({
   // Reads the FRESHEST record so rapid picker clicks don't race the async
   // store write. Duplicates are rules-legal; capacity stays soft.
   // Hand-editing the loadout never clears patternName — the pattern name IS
-  // the mech's identity.
-  // TODO(redesign): rule-gate add/remove (slot budgets / scrap economy) —
-  // deferred; users self-manage for now.
+  // the mech's identity. Free Edit: add/remove is not rule-gated (ADR-021).
   function addItem(kind: ItemKind, slug: string) {
     const fresh = freshMech()
     write(

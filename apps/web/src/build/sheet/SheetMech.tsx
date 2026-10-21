@@ -39,15 +39,15 @@ import type { SheetViewCommonProps } from './sheetViewProps.model'
 type SheetMechProps = SheetViewCommonProps & {
   mech: Mech
   /**
-   * Pilot ability refs to use instead of the composition's — supplied by a
-   * published snapshot, whose read-only store has no pilot record (ADR-029).
+   * Pilot ability refs to use instead of the composition's — supplied by the
+   * public sheet, whose read-only store has no pilot record (ADR-029).
    */
-  pilotAbilitiesOverride?: string[]
+  pilotAbilities?: string[]
 }
 
 export function SheetMech({
   mech,
-  pilotAbilitiesOverride,
+  pilotAbilities: ownPilotAbilities,
   composition,
   actions,
   segments,
@@ -60,12 +60,13 @@ export function SheetMech({
   hrefFor,
   withheld,
 }: SheetMechProps) {
+  const pilotAbilities = ownPilotAbilities ?? composition.pilot?.abilities
   const withheldPilot = withheld.find((u) => u.kind === 'pilot')
   const withheldCrawler = withheld.find((u) => u.kind === 'crawler')
   const chassis = resolveChassisRef(mech.chassisRef)
   // Beefcake raises the piloted MECH (ADR-029), so the condensed strip needs
   // the same piloting context the body sheet uses or the two would disagree.
-  const piloting = pilotingContext(mech, pilotAbilitiesOverride ?? composition.pilot?.abilities)
+  const piloting = pilotingContext(mech, pilotAbilities)
   const maxSP = mechMaxSP(mech, chassis, piloting)
   const maxEP = mechMaxEP(mech, chassis)
   const maxHeat = mechMaxHeat(mech, chassis)
@@ -211,7 +212,7 @@ export function SheetMech({
           crawlerReadOnly={crawlerReadOnly}
           crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}
           linkedUnits={rail}
-          pilotAbilities={pilotAbilitiesOverride ?? composition.pilot?.abilities}
+          pilotAbilities={pilotAbilities}
         />
       )}
     />

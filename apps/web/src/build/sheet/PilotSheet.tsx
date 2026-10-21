@@ -50,7 +50,7 @@
  *
  * All handlers read the freshest record from the store (never the render-time
  * prop) so rapid sequential edits don't stomp each other. readOnly suppresses
- * every edit affordance (published snapshots).
+ * every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)).
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -155,7 +155,7 @@ type PilotSheetProps = {
    * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: typeof useEntityStore
-  /** When true, every edit affordance is suppressed (published snapshots). */
+  /** When true, every edit affordance is suppressed (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
    * The viewer may not write the linked crawler: a player in a Game, whose
@@ -180,7 +180,7 @@ export function PilotSheet({
 }: PilotSheetProps) {
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
-  // language archetype B; always available, never rule-gated for now).
+  // language archetype B; always available: Free Edit, not rule-gated, ADR-021).
   // Identity is a FIELD section (unified edit language archetype A): its own
   // Edit/Done toggle, rendered in the SheetSectionCard header.
   const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
