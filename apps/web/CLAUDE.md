@@ -24,23 +24,10 @@ and the PR-tier e2e specs (`ci.yml`) on that `dist`; lower a
 ## Convex
 
 `convex/` is the app's backend; tests in `test/` and `e2e/`; static pages
-never import them (Biome). The block below binds `convex/` only; `bunx`, not
-`npx`. Vendored Convex skills and how they meet this repo: [AGENTS.md](AGENTS.md).
+never import them (Biome). Convex's AI block lives in `convex/CLAUDE.md`, so
+it loads only there (move it back if `convex ai-files install` re-adds it
+here); `bunx`, not `npx`. Vendored Convex skills and how they meet this repo: [AGENTS.md](AGENTS.md).
 
 **Refusals:** `NotAuthorized` (`model/permissions.ts`) when the caller may not
 act, `ConvexError` when the state refuses (gone, destroyed); a plain `Error` is
 a defect, redacted to "Server Error".
-
-<!-- convex-ai-start -->
-
-This project uses [Convex](https://convex.dev) as its backend.
-
-When working on Convex code, **always read
-`convex/_generated/ai/guidelines.md` first** for important guidelines on
-how to correctly use Convex APIs and patterns. The file contains rules that
-override what you may have learned about Convex from training data.
-
-Convex agent skills for common tasks can be installed by running
-`npx convex ai-files install`.
-
-<!-- convex-ai-end -->

@@ -10,9 +10,16 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { checkCommentHistory } from 'gates/lib/commentHistory'
 import { assertScanFloor } from 'gates/lib/scanFloor'
-import type { SessionProfile } from 'gates/lib/sessionLoad'
 import { checkSessionLoad, gitignoredMatcher, importsOf, markdownIn } from 'gates/lib/sessionLoad'
 import { CHECK_IDS, CHECKS as GATES } from './check'
+import {
+  CLAUDE_MD_BUDGET,
+  COLLAPSED_DOCS,
+  OVER_BUDGET,
+  RULE_BUDGET,
+  SESSION_CEILINGS,
+  SESSION_PROFILES,
+} from './docBudgets'
 import type { DocDriftCheckId } from './docDriftChecks'
 import { fixLines, onlyIds } from './docDriftChecks'
 
@@ -912,26 +919,6 @@ export function checkTerseShape(root: string, docs: string[] = TERSE_DOCS): Chec
 
 // ─── size ───────────────────────────────────────────────────────────────────
 
-const CLAUDE_MD_BUDGET = 8_000
-const RULE_BUDGET = 4_000
-
-/** Files over budget when it landed, held there: lower an entry as it shrinks, delete it under budget. */
-const OVER_BUDGET: Record<string, number> = {}
-
-/** Context docs collapsed to terse lists, held near that size: raise one only on purpose, in the PR. */
-const COLLAPSED_DOCS: Record<string, number> = {
-  'apps/web/ssg/DESIGN.md': 5_400,
-  'docs/ARCHITECTURE.md': 18_200,
-  'docs/README.md': 2_600,
-  'docs/architecture/npc-builder.md': 2_000,
-  'docs/architecture/play.md': 10_500,
-  'docs/design-system/chrome.md': 3_000,
-  'docs/design-system/entity-display-language.md': 6_900,
-  'docs/design-system/ruleset.md': 16_300,
-  'docs/design-system/sources.md': 3_600,
-  'docs/ops/cloud-environment.md': 3_800,
-}
-
 export function checkDocSizes(
   root: string,
   overBudget: Record<string, number> = OVER_BUDGET,
@@ -977,23 +964,6 @@ export function checkDocSizes(
 }
 
 // ─── load ───────────────────────────────────────────────────────────────────
-
-/** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
-const SESSION_PROFILES: Record<string, SessionProfile> = {
-  /** It reads the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
-  web: { dirs: ['apps/web'], reads: ['apps/web/convex/_generated/ai/guidelines.md'] },
-  bot: { dirs: ['apps/discord-bot'], reads: [] },
-}
-
-/**
- * Characters each profile loads, held at today's total: a ratchet. Lower an
- * entry when its total drops more than `SESSION_SLACK` under it (the check says
- * so); raise one only on purpose, saying why in the commit.
- */
-const SESSION_CEILINGS: Record<string, number> = {
-  web: 41_680,
-  bot: 11_463,
-}
 
 // ─── runner ─────────────────────────────────────────────────────────────────
 

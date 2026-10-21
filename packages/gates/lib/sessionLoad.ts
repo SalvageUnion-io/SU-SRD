@@ -2,7 +2,7 @@
  * What an agent session loads: the instruction text a session working in some
  * directories reads before it starts. doc-drift's `load` check
  * (`tools/check-doc-drift.ts`) totals it per named profile and holds each total
- * to a ratchet; the profiles and their ceilings live there.
+ * to a ratchet; the profiles and their ceilings live in `tools/docBudgets.ts`.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
