@@ -384,7 +384,13 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   }
 
   $('prev').addEventListener('click', () => { if (pos > 0) { pos--; render() } })
-  $('next').addEventListener('click', () => { if (pos < view.length - 1) { pos++; render() } })
+  // Moving on from a slide with no verdict and no comment approves it.
+  $('next').addEventListener('click', () => {
+    if (pos >= view.length - 1) return
+    if (db && canWrite && !current(view[pos])?.verdict && !$('comment').value.trim()) save({ verdict: 'approve', comment: '' })
+    pos++
+    render()
+  })
   $('filter').addEventListener('change', () => { chosen = true; applyFilter(); $('filter').blur() })
   $('jump').addEventListener('change', () => {
     const i = view.findIndex((s) => s.where === $('jump').value)
@@ -404,7 +410,9 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     if (v.verdict !== 'changes') $('comment').focus()
   })
   $('saveComment').addEventListener('click', () => {
-    save({ comment: $('comment').value })
+    const v = current(view[pos]) || {}
+    const comment = $('comment').value
+    save(!v.verdict && !comment.trim() ? { verdict: 'approve', comment: '' } : { comment })
     $('comment').blur()
     if (pos < view.length - 1) { pos++; render() }
   })
