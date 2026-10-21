@@ -727,6 +727,17 @@
   }
 }
 
+/* On a phone a show page's title, stamps and Build With This share one
+   line where they can (owner, 2026-10-20, Mazona: "chips and build with this
+   should be able to fit into the header here"): the stamps a chip's gap
+   apart (4px, as every strip's), the plate's sides 8px (at the file's end,
+   after the trail's own padding). */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row[data-chip-fill] {
+    column-gap: var(--space-4);
+  }
+}
+
 /* A page's controls (Full, 44px) stand on the band's foot, its room under them. */
 .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] [data-fill-item] {
   margin-block: 0 var(--space-12);
@@ -1169,5 +1180,14 @@
 @media (width >= 40rem) {
   .su-chapter-band__overflow {
     padding: var(--space-16) var(--space-24) 0;
+  }
+}
+
+/* (The Mazona phone fit's other half, after the trail's own padding: a show
+   page's plate is 8px a side on a phone, above.) */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__plate > .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__plate > .su-chapter-band__trail {
+    padding-inline: var(--space-8);
   }
 }

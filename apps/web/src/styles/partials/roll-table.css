@@ -158,6 +158,19 @@
   padding: var(--space-6) var(--space-8) var(--space-4);
 }
 
+/* THE ONE EXCEPTION (owner, 2026-10-20, Worm: "center the cutout text on
+   table names here, as a one-time expansion, same size as the roll the die
+   button. One-off exception."): a table an entity's Page carries centres
+   its name's tab on the bar, the Roll button's height, its words centred. */
+.su-entity-page__table .su-roll__title {
+  align-items: center;
+  align-self: center;
+  display: inline-flex;
+  margin-bottom: 0;
+  min-height: var(--size-compact);
+  padding-block: 0;
+}
+
 .su-roll__hint {
   color: var(--color-paper-85);
   flex: 1 1 8rem;

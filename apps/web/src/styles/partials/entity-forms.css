@@ -582,6 +582,14 @@
   min-block-size: var(--space-24);
 }
 
+/* On a Page band's title line the chips stand on one foot (the fill's
+   bottom), so a linked chip's cell stands on its target's foot too, level
+   with its unlinked siblings (owner, 2026-10-20, Hill Worm: "Misalignment
+   in the chips"); its 24px target rises above it. */
+.su-chapter-band :is(a, button, [role='button']).su-chip-link[data-fill-line] {
+  align-items: flex-end;
+}
+
 :is(a, button).su-chip-link:hover .su-stat-plate--label {
   text-decoration: underline;
 }
@@ -660,12 +668,21 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 /* A Row (a Compact that is its head alone) never grows for its art: the
-   panel is the row's own height, square, small as that makes it (owner,
-   2026-10-20: "fit the height of the row without increasing it"). */
+   panel is a small square on the band, its top on the cut-out's text's top
+   and room under it, not a cut-out of its own (owner, 2026-10-20: "fit the
+   height of the row without increasing it"; /drill/: "smaller, with room on
+   the bottom ... the top should be inline with the cutout text"). */
 .su-entity-compact__frame[data-bodyless] .su-entity-compact__art {
-  align-self: stretch;
-  height: auto;
-  width: var(--size-compact);
+  align-self: flex-start;
+  height: var(--space-20);
+  margin-top: var(--space-4);
+  width: var(--space-20);
+}
+
+.su-entity-compact__frame[data-bodyless] .su-entity-compact__art img {
+  height: calc(100% - 2 * var(--space-2));
+  inset: var(--space-2);
+  width: calc(100% - 2 * var(--space-2));
 }
 
 /* A link or select Compact with controls (`data-covered`): the surface is an

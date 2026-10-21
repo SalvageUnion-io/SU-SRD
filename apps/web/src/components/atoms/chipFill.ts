@@ -132,6 +132,9 @@ function widestWord(el: HTMLElement): number {
   const range = document.createRange()
   let widest = 0
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    // Words only a screen reader hears (a Page title's "(Chassis)") take no
+    // room: measured, their clipped box broke a title that fit (Mazona).
+    if (node.parentElement?.closest('.su-sr-only')) continue
     const text = node.textContent ?? ''
     let inset = 0
     for (let box = node.parentElement; box && box !== el.parentElement; box = box.parentElement) {
