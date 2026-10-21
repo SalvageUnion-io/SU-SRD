@@ -14,7 +14,7 @@
  *
  * The front door is the shell itself, which every other route is answered with
  * too, so it carries no canonical of its own: the Worker adds it for a crawler's
- * request (`index.ts` rule 2).
+ * request (`app.ts`'s `share-preview` rule).
  *
  * Every URL is built from the deployment's origin (a Worker Preview's for its
  * build, the request's for the Worker) and the app's base, so a Preview names

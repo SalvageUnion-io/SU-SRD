@@ -10,32 +10,33 @@
  *
  * Under `/build/` the rules read the path inside the base (`basePath.ts`):
  *
- *   D. `/about`, `/changelog` → a 301 to the SRD's page.
- *   R. a retired address (`/games`, `/join/:code`, the old crew view) → a 301
- *      to where it lives now. Both read the moved-path table
- *      (`../lib/redirects.ts`). intheunionnow.com's zone
- *      Redirect Rule sends its old links here.
- *   0. `/og/*.png` → a link preview's picture (`linkPreview.ts`), rendered on
- *      request and cached by version.
- *   1. `/assets/*`, or a dot in the last segment: a FILE, asked of the binding.
- *      A file that is there comes back as itself; one that is not comes back
- *      as the shell, and these rules answer `null`: the site's own miss
- *      (`index.ts`), never the shell.
- *   2. a shared thing's route (`/p/:kind/:appId`, `/invite/:token`) asked for
- *      without `Sec-Fetch-Mode: navigate` (a crawler, an unfurl bot) → the
- *      shell with its `app:meta` block swapped for that thing's preview
- *      (`shellMeta.ts`). The front door asked for the same way gets the shell
- *      with its canonical.
- *   3. anything else → the binding's answer: the shell for a navigation to
- *      any client route, its Union bar marked for the route's mode and nav
- *      item (`markUnionRoute`), and hidden on the routes that draw none. The Starter Set, each of its builds and `/sitemap.xml` are files
- *      the build pre-renders (`publicPages.ts`).
+ *   - `doc-301`: `/about`, `/changelog` → a 301 to the SRD's page.
+ *   - `retired-301`: a retired address (`/games`, `/join/:code`, the old crew
+ *     view) → a 301 to where it lives now. Both read the moved-path table
+ *     (`../lib/redirects.ts`). intheunionnow.com's zone Redirect Rule sends
+ *     its old links here.
+ *   - `og-image`: `/og/*.png` → a link preview's picture (`linkPreview.ts`),
+ *     rendered on request and cached by version.
+ *   - `file-or-miss`: `/assets/*`, or a dot in the last segment: a FILE, asked
+ *     of the binding. A file that is there comes back as itself; one that is
+ *     not comes back as the shell, and these rules answer `null`: the site's
+ *     own miss (`index.ts`), never the shell.
+ *   - `share-preview`: a shared thing's route (`/p/:kind/:appId`,
+ *     `/invite/:token`) asked for without `Sec-Fetch-Mode: navigate` (a
+ *     crawler, an unfurl bot) → the shell with its `app:meta` block swapped
+ *     for that thing's preview (`shellMeta.ts`). The front door asked for the
+ *     same way gets the shell with its canonical.
+ *   - `shell`: anything else → the binding's answer: the shell for a
+ *     navigation to any client route, its Union bar marked for the route's
+ *     mode and nav item (`markUnionRoute`), and hidden on the routes that draw
+ *     none. The Starter Set, each of its builds and `/sitemap.xml` are files
+ *     the build pre-renders (`publicPages.ts`).
  *
- * Rules 2 and 3 answer with the shell, and every client route but the public
+ * `share-preview` and `shell` answer with the shell, and every client route but the public
  * ones (`indexable`) carries `X-Robots-Tag: noindex`: a game, a pilot's sheet
  * or a sign-in screen is a private or empty page to a crawler.
  *
- * ## Rule 1 is the one that has already broken production
+ * ## `file-or-miss` is the rule that has already broken production
  *
  * Every hashed chunk a deploy rotates away is requested by exactly one
  * population: clients still running the previous build, by module import,
@@ -192,7 +193,7 @@ function isNavigation(request: Request): boolean {
 }
 
 /**
- * Rule 1. The binding answers a missing file with the shell, `200 text/html`,
+ * `file-or-miss`. The binding answers a missing file with the shell, `200 text/html`,
  * which becomes the site's miss. A `304` does not say which body it matched — a client
  * that cached the shell under a chunk's URL revalidates against the shell's
  * ETag — so the binding is asked again without the validators.
@@ -214,7 +215,7 @@ function withoutValidators(request: Request): Request {
   return new Request(request.url, { method: request.method, headers })
 }
 
-/** Rule 2. The shell, its `app:meta` block swapped for the route's preview. */
+/** `share-preview`. The shell, its `app:meta` block swapped for the route's preview. */
 async function sharedShell(
   route: PreviewRoute,
   url: URL,
@@ -230,7 +231,7 @@ async function sharedShell(
 }
 
 /**
- * Rule 2, for the front door: the shell with its canonical. The other public
+ * `share-preview`, for the front door: the shell with its canonical. The other public
  * pages are pre-rendered (`publicPages.ts`).
  */
 async function frontDoor(url: URL, env: AppEnv, base: string): Promise<Response> {
