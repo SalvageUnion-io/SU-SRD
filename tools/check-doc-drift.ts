@@ -1,36 +1,9 @@
 #!/usr/bin/env bun
 /**
  * Doc drift — `bun run check doc-drift`. Eleven checks, each asking whether
- * what a doc, or a comment, tells a reader is still true:
- *
- *   paths    every backticked repo path in a live-instruction doc or a Claude
- *            hook exists, unless the words beside it mark it history or a proposal.
- *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
- *            `bun run check <id>` there, or in a hook, is real.
- *   fixes    every path and bun command in a `tools/check.ts` fix hint exists.
- *   claims   no agent doc (the ADR entries excepted) repeats a claim the repo
- *            has retired (`RETIRED_CLAIMS`).
- *   decisions every ADR is entry N under `## Decisions` in docs/ARCHITECTURE.md
- *            (`N. **ADR-NNN Title**`) or named on its one `Retired …:` line,
- *            none missing or repeated; an entry that amends, supersedes or
- *            reverses another is named in that one. A kept full text (the ADRs
- *            code cites by §) is `docs/adr/NNN-slug.md`, opening on
- *            `# ADR-NNN: Title`, no front-matter, linked from entry N.
- *   shape    a terse doc (`TERSE_DOCS`) is numbered entries: a bold headline,
- *            then at most two lines.
- *   links    every relative markdown link in a tracked `.md` file resolves,
- *            its `#fragment` to a heading or `<a id>` anchor.
- *   areas    every `## Areas` entry carries one `<a id="slug"></a>`, and every
- *            tracked file cites an Area by that slug, never by number.
- *   size     CLAUDE.md files (with their `@path` imports) stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000: they load into
- *            every session in scope. `COLLAPSED_DOCS` hold their own budgets.
- *   load     each session profile (`SESSION_PROFILES`) totals what it loads
- *            (root CLAUDE.md and imports, each CLAUDE.md under its directories,
- *            every matching rule, the docs it must read), held to a ratchet
- *            (`SESSION_CEILINGS`).
- *   history  no comment in tracked code under apps/, packages/ or tools/
- *            narrates history (`gates/lib/commentHistory`'s phrases, at zero).
+ * what a doc, or a comment, tells a reader is still true. `docDriftChecks.ts`
+ * names each (`paths`, `links`, `load`, `history`, …) with what it asks and
+ * the fix its failures print; `--only=<id>[,<id>]` reruns some.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -40,6 +13,8 @@ import { assertScanFloor } from 'gates/lib/scanFloor'
 import type { SessionProfile } from 'gates/lib/sessionLoad'
 import { checkSessionLoad, gitignoredMatcher, importsOf, markdownIn } from 'gates/lib/sessionLoad'
 import { CHECK_IDS, CHECKS as GATES } from './check'
+import type { DocDriftCheckId } from './docDriftChecks'
+import { fixLines, onlyIds } from './docDriftChecks'
 
 const repoRoot = join(import.meta.dir, '..')
 
@@ -1022,35 +997,56 @@ const SESSION_CEILINGS: Record<string, number> = {
 
 // ─── runner ─────────────────────────────────────────────────────────────────
 
-const CHECKS = [
-  checkBacktickedPathsExist,
-  checkReferencedScripts,
-  (root: string) => checkFixHints(root),
-  (root: string) => checkRetiredClaims(root),
-  (root: string) => checkMarkdownLinks(root),
-  (root: string) => checkAreaCitations(root),
-  (root: string) => checkDecisions(root),
-  (root: string) => checkTerseShape(root),
-  (root: string) => checkDocSizes(root),
-  (root: string) => checkSessionLoad(root, SESSION_PROFILES, SESSION_CEILINGS),
-  checkCommentHistory,
-] as const
+/** One check: its id (`docDriftChecks.ts`) and how to run it. */
+type NamedCheck = { id: string; run: (root: string) => CheckResult }
 
-/** Run every check over the docs under `root` (floored: a collapsed corpus passes all); exit code. */
-export function main(root = repoRoot, checks: readonly ((r: string) => CheckResult)[] = CHECKS) {
+const CHECKS: readonly (NamedCheck & { id: DocDriftCheckId })[] = [
+  { id: 'paths', run: checkBacktickedPathsExist },
+  { id: 'scripts', run: checkReferencedScripts },
+  { id: 'fixes', run: (root) => checkFixHints(root) },
+  { id: 'claims', run: (root) => checkRetiredClaims(root) },
+  { id: 'links', run: (root) => checkMarkdownLinks(root) },
+  { id: 'areas', run: (root) => checkAreaCitations(root) },
+  { id: 'decisions', run: (root) => checkDecisions(root) },
+  { id: 'shape', run: (root) => checkTerseShape(root) },
+  { id: 'size', run: (root) => checkDocSizes(root) },
+  { id: 'load', run: (root) => checkSessionLoad(root, SESSION_PROFILES, SESSION_CEILINGS) },
+  { id: 'history', run: checkCommentHistory },
+]
+
+/**
+ * Run the checks `--only=` names, or all, over the docs under `root` (floored: a collapsed
+ * corpus passes all); a failing check prints its failures, fix and rerun. Exit code.
+ */
+export function main(
+  root = repoRoot,
+  checks: readonly NamedCheck[] = CHECKS,
+  argv: readonly string[] = []
+) {
+  let only: string[] | undefined
+  try {
+    only = onlyIds(argv, checks)
+  } catch (caught) {
+    console.error((caught as Error).message)
+    return 2
+  }
   const liveDocs = liveInstructionDocs(root)
   assertScanFloor('doc-drift (live-instruction docs)', liveDocs.length, 13)
   console.log(`  (${liveDocs.length} live-instruction docs scanned)`)
 
-  const failures: string[] = []
-  for (const check of checks) {
-    const result = check(root)
+  const failed: { id: string; failures: string[] }[] = []
+  for (const check of checks.filter((c) => !only || only.includes(c.id))) {
+    const result = check.run(root)
     if (result.failures.length === 0) console.log(`✓ ${result.ok}`)
-    failures.push(...result.failures)
+    else failed.push({ id: check.id, failures: result.failures })
   }
-  for (const message of failures) console.error(`✗ ${message}`)
-  if (failures.length > 0) console.error(`\n${failures.length} doc-drift failure(s)`)
-  return failures.length > 0 ? 1 : 0
+  for (const { id, failures } of failed) {
+    for (const message of failures) console.error(`✗ ${message}`)
+    for (const line of fixLines(id)) console.error(line)
+  }
+  const count = failed.reduce((n, f) => n + f.failures.length, 0)
+  if (count > 0) console.error(`\n${count} doc-drift failure(s)`)
+  return count > 0 ? 1 : 0
 }
 
-if (import.meta.main) process.exit(main())
+if (import.meta.main) process.exit(main(repoRoot, CHECKS, process.argv.slice(2)))

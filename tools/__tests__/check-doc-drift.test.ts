@@ -821,18 +821,20 @@ describe('checkDocSizes', () => {
 })
 
 describe('main', () => {
-  const pass = (ok: string) => () => ({ ok, failures: [] })
-  const fail =
-    (...failures: string[]) =>
-    () => ({ ok: 'unused', failures })
+  const pass = (id: string, ok: string) => ({ id, run: () => ({ ok, failures: [] }) })
+  const fail = (id: string, ...failures: string[]) => ({
+    id,
+    run: () => ({ ok: 'unused', failures }),
+  })
   const run = (
     root: string,
-    checks: Array<(root: string) => { ok: string; failures: string[] }>
+    checks: Array<{ id: string; run: (root: string) => { ok: string; failures: string[] } }>,
+    argv: string[] = []
   ) => {
     const out = spyOn(console, 'log').mockImplementation(() => {})
     const err = spyOn(console, 'error').mockImplementation(() => {})
     try {
-      const code = main(root, checks)
+      const code = main(root, checks, argv)
       const lines = (spy: typeof out) => spy.mock.calls.map((c) => String(c[0]))
       return { code, out: lines(out), err: lines(err) }
     } finally {
@@ -846,7 +848,10 @@ describe('main', () => {
   )
 
   it('prints the corpus size and each passing check', () => {
-    const r = run(fixture(docs), [pass('links resolve'), pass('ADRs numbered')])
+    const r = run(fixture(docs), [
+      pass('links', 'links resolve'),
+      pass('decisions', 'ADRs numbered'),
+    ])
     expect(r).toEqual({
       code: 0,
       out: ['  (13 live-instruction docs scanned)', '✓ links resolve', '✓ ADRs numbered'],
@@ -854,10 +859,30 @@ describe('main', () => {
     })
   })
 
-  it('reports every failure of every check, then the count', () => {
-    const r = run(fixture(docs), [pass('fine'), fail('a.md:1 is stale', 'b.md:2 too'), fail('c')])
+  it("reports each failing check's failures with its fix and rerun line, then the count", () => {
+    const r = run(fixture(docs), [
+      pass('claims', 'fine'),
+      fail('links', 'a.md:1 is stale', 'b.md:2 too'),
+      fail('other', 'c'),
+    ])
     expect(r.code).toBe(1)
     expect(r.out).toEqual(['  (13 live-instruction docs scanned)', '✓ fine'])
-    expect(r.err).toEqual(['✗ a.md:1 is stale', '✗ b.md:2 too', '✗ c', '\n3 doc-drift failure(s)'])
+    expect(r.err).toEqual([
+      '✗ a.md:1 is stale',
+      '✗ b.md:2 too',
+      '  fix (links): fix the link or its #fragment',
+      '  rerun: bun tools/check-doc-drift.ts --only=links',
+      '✗ c',
+      '  rerun: bun tools/check-doc-drift.ts --only=other',
+      '\n3 doc-drift failure(s)',
+    ])
+  })
+
+  it('runs only the checks --only= names, and refuses an unknown one', () => {
+    const r = run(fixture(docs), [pass('links', 'links'), fail('size', 'big')], ['--only=links'])
+    expect(r.code).toBe(0)
+    expect(r.out).toEqual(['  (13 live-instruction docs scanned)', '✓ links'])
+    const bad = run(fixture(docs), [pass('links', 'links')], ['--only=nope'])
+    expect(bad).toMatchObject({ code: 2, err: ['unknown doc-drift check nope: one of links'] })
   })
 })
