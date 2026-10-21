@@ -57,7 +57,7 @@ const STEPS: readonly CrawlerWizardStepId[] = [
   'review',
 ]
 
-/** Stepper-rail labels (mockup Screen 03 `.rlabel`). */
+/** Stepper-rail labels. */
 const STEP_LABELS: Record<CrawlerWizardStepId, string> = {
   type: 'Crawler Type',
   stats: 'Statistics',
@@ -92,8 +92,8 @@ type CrawlerWizardProps = {
 
 /**
  * Multi-step crawler wizard on the shared WizShell skeleton, restructured to
- * the Union Crawler's 5 book steps + Review (mockup Screen 03 — magenta band,
- * peach step card) with the crawler
+ * the Union Crawler's 5 book steps + Review (a magenta band, a peach step
+ * card) with the crawler
  * creation rules enforced HARD (§5):
  *
  *   - exactly 1 of 5 types (radio, entity cards); the type's stored
@@ -331,7 +331,7 @@ export function CrawlerWizard({
   })()
 
   // Tracker tab in the action pill: the WEAPONS pip chip rides on the
-  // Armament step (mockup Screen 03).
+  // Armament step.
   const trackers =
     step === 'weapons' ? (
       <WizTracker

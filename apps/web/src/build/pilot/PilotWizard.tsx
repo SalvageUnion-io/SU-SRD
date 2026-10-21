@@ -45,7 +45,7 @@ const STEPS: readonly PilotWizardStepId[] = [
   'review',
 ]
 
-/** Stepper-rail labels (mockup Screen 01 `.rlabel`). */
+/** Stepper-rail labels. */
 const STEP_LABELS: Record<PilotWizardStepId, string> = {
   stats: 'Your stats',
   classAbility: 'Class & Ability',
@@ -109,8 +109,7 @@ type PilotWizardProps = {
 
 /**
  * Multi-step pilot wizard on the shared WizShell skeleton, restructured to
- * the Pilot Bay's 8 book steps + Review (mockup
- * Screen 01) with HARD creation enforcement (§5):
+ * the Pilot Bay's 8 book steps + Review with HARD creation enforcement (§5):
  *
  *   - illegal options are FILTERED OUT (core classes only, legal Level-1
  *     abilities only, Tech 1 equipment only) — never rendered;

@@ -236,9 +236,9 @@ export function StorageManifest({
       style={MANIFEST}
       data-storage-side={side}
     >
-      {/* Hold panel. The mech's: the house titled box, as the Chassis card
-          (owner's call, 2026-10-14), the mech it belongs to a chip on its
-          band. The crawler's is a section of the Storage Bay it sits in (N5). */}
+      {/* Hold panel. The mech's: the house titled box, as the Chassis card, the
+          mech it belongs to a chip on its band. The crawler's is a section of
+          the Storage Bay it sits in (N5). */}
       {framed ? (
         <TitledBox
           as="section"
@@ -260,7 +260,7 @@ export function StorageManifest({
           {holdBody}
         </TitledBox>
       ) : (
-        // The Storage Bay's other sections' Mini Size (owner, round 10).
+        // The Storage Bay's other sections' Mini Size.
         <SlabSection title="Crawler Hold" id={holdId} size="mini">
           {holdBody}
         </SlabSection>

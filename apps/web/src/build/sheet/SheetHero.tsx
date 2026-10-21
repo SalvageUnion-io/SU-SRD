@@ -67,8 +67,8 @@ export function SheetHero({
           a card has no chevron, which is exactly right here. */}
       <SheetSectionCard
         title={fieldsTitle}
-        // One surface in Read and Edit (owner's call, 2026-10-14: Edit looks
-        // like Read), so switching modes never reframes the page.
+        // One surface in Read and Edit (Edit looks like Read), so switching
+        // modes never reframes the page.
         className="su-sheet-hero-fields"
         bodyClassName="su-sheet-hero-fields-body"
       >

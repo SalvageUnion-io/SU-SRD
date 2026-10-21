@@ -1,5 +1,5 @@
 /**
- * Shelf — one kind of thing you keep (Shelves, board S1): the section stamp
+ * Shelf — one kind of thing you keep (Shelves): the section stamp
  * with its count beside it, a dashed rule running to the shelf's "+ New…"
  * control, a line saying what the shelf is for where it needs one, and the
  * items, or the shared empty state saying there are none.

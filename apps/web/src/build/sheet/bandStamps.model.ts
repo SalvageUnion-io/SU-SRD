@@ -1,5 +1,5 @@
 /**
- * What a sheet's chapter band says the unit is built as (board 10), right of
+ * What a sheet's chapter band says the unit is built as, right of
  * its name: the pilot's class, the mech's chassis, the crawler's type — a
  * label-first chip (`CLASS | Engineer`) that opens and Peeks the entity it
  * names. A ref that does not resolve keeps the stored name, as a chip that

@@ -1,9 +1,7 @@
 /**
  * AssignedUnits — a sheet's Assigned units section: each linked unit is a
  * contentful Mini of its kind in one masonry grid (`MiniGrid`), never a chip
- * (owner, 2026-10-20: "a masonry grid of contentful tokens, containing
- * relative status ... never be chips. References to other units should
- * always be compact or mini references"). Its name opens that unit's sheet
+ * (R5). Its name opens that unit's sheet
  * and Peeks nothing; its body is its status, its vitals as they stand (`SP |
  * 9/13`). Edit puts the link's controls in its chip group (C8: Change,
  * Unassign). In Edit each place still to fill is a placeholder Mini of its
@@ -44,7 +42,7 @@ export type AssignedUnit = {
   name: string
   /** Its sheet; without one the chip opens nothing (a withheld unit). */
   href?: string
-  /** Who holds it in the Game (YOU, a crewmate, UNCLAIMED): a chip on its head (owner, round 7). */
+  /** Who holds it in the Game (YOU, a crewmate, UNCLAIMED): a chip on its head. */
   owner?: string | undefined
   /** Edit: Change, the picker that replaces it (before Unassign). */
   change?: ReactNode
@@ -151,7 +149,7 @@ export function AssignedUnits({
       )}
       {/* Each place to fill, a placeholder of its kind with Assign and
           + Create inside it; what stands in for it (a stepper is not a
-          button's Size, C1a) its body (owner, round 5). */}
+          button's Size, C1a) its body. */}
       {open.map((slot) => (
         <Fragment key={slot.key}>
           <Entity

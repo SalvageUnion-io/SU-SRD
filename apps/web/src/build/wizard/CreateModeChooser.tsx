@@ -1,6 +1,5 @@
 /**
- * CreateModeChooser — the "which door?" screen every /new opens on
- * (mockup Screen 04).
+ * CreateModeChooser — the "which door?" screen every /new opens on.
  *
  * Two doors under the page's ChapterBand, each the house `TitledBox` with its
  * one act: GUIDED (primary — the existing step wizard), headed in the kind's
@@ -37,7 +36,7 @@ const KIND_LABEL: Record<SheetKind, string> = {
   crawler: 'Crawler',
 }
 
-/** Guided-door copy + Core Book citation per kind (mockup Screen 04). */
+/** Guided-door copy + Core Book citation per kind. */
 const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
     body: 'Step through the Pilot Bay rules, one card at a time — class, abilities, equipment, identity.',
@@ -104,7 +103,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
       </ChapterBand>
 
       <div className="su-wiz-chooser-body" style={bodyStyle}>
-        {/* The two doors (mockup `.choosegrid`). */}
+        {/* The two doors. */}
         <div className="su-wiz-chooser-doors">
           <TitledBox title="Guided" tone={kind}>
             <p style={doorText}>{guided.body}</p>
@@ -125,9 +124,8 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
           </TitledBox>
         </div>
 
-        {/* Mech only: the third Blank-family door — Instantiate from Pattern
-            (mockup `.thirdnote`, made actionable: links to the existing
-            /mechs/patterns flow). */}
+        {/* Mech only: the third Blank-family door — Instantiate from Pattern,
+            a link to the /mechs/patterns flow. */}
         {kind === 'mech' && (
           <AppLink
             href="/mechs/patterns"

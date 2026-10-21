@@ -25,9 +25,7 @@ import type { StatState } from '../../components/index'
 /**
  * One reading on a rail line — plain builders below, NOT components.
  *
- * These were three components that each hand-wrote the same inline markup and
- * differed only in WHICH stats they listed. The markup itself is now the
- * canonical `Stat` (`surface="plain"`, ruleset §3.7);
+ * The markup is the canonical `Stat` (`surface="plain"`, ruleset §3.7);
  * `rowStats` (below) adapts a list of these into the `UnitRow` readings the
  * text, and these functions just supply the numbers.
  *
@@ -107,8 +105,7 @@ export function crawlerRailItems(crawler: Crawler): RailStat[] {
   const intact = states.filter((s) => s === 'intact').length
   return [
     { label: SP, value: resolvePool(crawler.currentSP, maxSP), max: maxSP },
-    // Bays only appear once the crawler HAS bays — an empty "Bays 0/0" line was
-    // never rendered before and must not start now.
+    // Bays only appear once the crawler HAS bays: never an empty "Bays 0/0" line.
     ...(states.length > 0
       ? [{ label: 'Bays', value: intact, max: states.length, suffix: CONDITION_LABELS.intact }]
       : []),

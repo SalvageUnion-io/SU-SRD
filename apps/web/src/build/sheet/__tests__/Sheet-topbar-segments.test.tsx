@@ -84,8 +84,8 @@ describe('Sheet — top-bar Edit action', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    // No gate: the field is its own affordance from the first render. (It used
-    // to take a section "Edit identity" toggle to reveal these.)
+    // No gate: the field is its own affordance from the first render, with no
+    // section toggle to reveal it.
     expect(screen.getByRole('button', { name: /edit callsign/i })).toBeTruthy()
     // Class is picker-backed: its affordance opens the shared picker modal, so
     // its accessible name matches the visible 'Change' word (WCAG 2.5.3).

@@ -33,7 +33,7 @@ type SystemsListProps = {
  * (the universal entity-card rule). The parent owns the weapons + TL filter
  * (guided create: Tech 1 only); selection is HARD-capped at `maxSelectable`
  * — the type's mutations-derived Armament-Bay allowance — and an at-cap card
- * dims with a reason chip naming the gate (mockup Screen 02), visible, never
+ * dims with a reason chip naming the gate, visible, never
  * hidden.
  */
 export function SystemsList({

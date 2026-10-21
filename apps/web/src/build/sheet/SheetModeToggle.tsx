@@ -1,5 +1,5 @@
 /**
- * SheetModeToggle — the sheet band's Read | Edit (board 10; `sheetMode.model.ts`):
+ * SheetModeToggle — the sheet band's Read | Edit (`sheetMode.model.ts`):
  * the shared `Segmented`, at a page head's action height so it stands as tall
  * as its neighbours (`.su-page-action`). The mode you are in is the ink plate;
  * `aria-pressed` carries it, so a screen reader hears which of the two is on.

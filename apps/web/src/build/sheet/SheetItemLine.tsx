@@ -43,7 +43,7 @@ type SheetItemLineProps = {
   nextCondition?: ItemCondition
   /**
    * Read on a sheet its owner may track: the condition still steps, as the
-   * SP gauge does (a crawler bay is damaged in play; owner, round 6).
+   * SP gauge does (a crawler bay is damaged in play).
    */
   liveCondition?: boolean
   /** Read: a stamp in the state slot (an ability's "Used"), beside any condition. */

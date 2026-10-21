@@ -15,7 +15,7 @@
  *     what the pilot carries: Inventory, each piece of equipment a contentful
  *     Mini (its head, then its text), a generic entry its Mini, the slots'
  *     SlotGrid under them; in Edit each item's controls in its chip group;
- *     then Assigned Units, the mech and crawler they field (round 4).
+ *     then Assigned Units, the mech and crawler they field.
  * Read leaves an empty section out (ruleset §1.2).
  *
  * Read | Edit (`sheetMode.model.ts`) reaches here as `readOnly`: Read withdraws every
@@ -27,17 +27,13 @@
  * carry their own frame, so a second frame around them reads as one opaque
  * block.
  *
- * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
- * re-homing as an off-sheet action surface):
- *   - `PilotTakeDamageControl` — Take Damage / Critical Injury loop.
- *   - the Injuries slab + `InjuryRow` — severity-enum list editor.
- *   - the Bio `SheetDescription` section — folded into the Identity
- *     card instead as an extra field (see `PilotIdentityPanel`'s Bio field).
- *   - the Crawler Level slab — `resolveEffectiveCrawlerLevel` is
- *     PRESERVED (in `pilotSheet.model`, still scaling the Modification-style
- *     choice caps); only the manual-fallback editor UI is dropped.
- * The always-live Vitals gauges and per-card activation (Spend AP, Use /
- * Restock, condition cycling) are KEPT — only the play-control PANELS drop.
+ * No play-control panel lives on the sheet: Take Damage and Critical Injury
+ * are Play's (ADR-021). The Bio is a field of the Identity card
+ * (`PilotIdentityPanel`). The effective Crawler Level
+ * (`resolveEffectiveCrawlerLevel`, in `pilotSheet.model`) scales the
+ * Modification-style choice caps, with no editor on the sheet. The Vitals
+ * gauges and per-card activation (Spend AP, Use / Restock, condition cycling)
+ * are live here.
  *
  * ## What lives where
  *
@@ -278,8 +274,7 @@ export function PilotSheet({
                   }
                   readOnly={readOnly}
                 />
-                {/* TP stands right under AP, in the same row of the vitals
-                    (owner, round 4: "should be closer to the other stats"). */}
+                {/* TP stands right under AP, in the same row of the vitals. */}
                 <div style={TP_ROW}>
                   <TpBlock
                     value={tp}
@@ -315,7 +310,7 @@ export function PilotSheet({
                   </div>
                 )}
                 {/* The class, its header-only Mini under the stats, linking to
-                    its Page (owner, round 4: "add a cutout like 'class'"). */}
+                    its Page (R49). */}
                 {pilotClass && (
                   <div style={MIN_W_0}>
                     <Entity
@@ -333,8 +328,8 @@ export function PilotSheet({
         // ===== Inventory, the sidebar (ruleset §1.2) ===== None in Read
         // when nothing is carried: an empty section is left out, as an empty
         // field is.
-        // Assigned Units follow it there (owner, round 4: "move assigned
-        // units to the sidebar"): what the pilot carries, then what they field.
+        // Assigned Units follow it there (R49): what the pilot carries, then
+        // what they field.
         aside={
           readOnly && empty && !linkedUnits ? undefined : (
             <>

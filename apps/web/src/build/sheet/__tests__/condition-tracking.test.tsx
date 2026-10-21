@@ -249,7 +249,7 @@ describe('PilotSheet — equipment condition toggle (#240)', () => {
       <PilotSheet pilot={fakePilot} store={makePilotStubStore(fakePilot, updateSpy)} readOnly />
     )
 
-    // Read state (board 10): the item is its shortform pill, with no status
+    // Read state: the item is its shortform pill, with no status
     // control to press — and nothing is written.
     expect(screen.queryByRole('button', { name: /status:/i })).toBeNull()
     expect(screen.getAllByText(/pistol/i).length).toBeGreaterThan(0)

@@ -31,29 +31,21 @@
  *
  * Armament Bay Weapons — collection section (unified edit language
  * archetype B): always-available '+ Add' opening the existing weapons
- * picker (CrawlerSystemsEditModal), per-card remove (✕). The poster has no
- * region for this (it's live mounted loadout, not a play-control panel, so
- * it's not part of the drop list below) — it gets its own content-column
- * card.
+ * picker (CrawlerSystemsEditModal), per-card remove (✕). It is the live
+ * mounted loadout, not a play-control panel, so it has its own
+ * content-column card.
  *
  * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
  * in the sidebar; Load is cap-checked against the docked mech. Keeps the
  * Stow/Load transfer feature.
  *
- * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
- * re-homing as an off-sheet action surface):
- *   - the Tech Level stepper slab — Tech Level is the chapter band's TL
- *     chip (built by CrawlerLiveSheet), its stepper on the chip in Edit.
- *   - the Scrap Pool slab + `ScrapPoolSlab` — the scrapPool DATA/
- *     logic (`scrapPoolBucket` / `addToScrapPool`) is KEPT: bay Repair below
- *     still spends from it, and the same helpers feed mech repair/retire
- *     from the mech sheet.
- *   - the Downtime/Salvaging/Crafting slabs + `DowntimeControl` /
- *     `SalvageControl` / `CraftingControl` — deleted outright, no
- *     other consumer.
- * The always-live Vitals (SP `VitalGauge`, via `economy`) and per-card
- * activation (the bays' status/repair controls) are KEPT — only the
- * play-control PANELS drop.
+ * No play-control panel lives on the sheet. Tech Level is the chapter band's
+ * TL chip (built by CrawlerLiveSheet), its stepper on the chip in Edit. The
+ * scrap pool has no section of its own: bay Repair below spends from it
+ * (`scrapPoolBucket` / `addToScrapPool`), as mech repair does from the mech
+ * sheet. Downtime, Salvaging and Crafting are not the sheet's. The Vitals
+ * (SP `VitalGauge`, via `economy`) and per-card activation (the bays'
+ * status/repair controls) are live here.
  *
  * readOnly suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)).
  */
@@ -129,7 +121,7 @@ type CrawlerSheetProps = {
   readOnly?: boolean
   /**
    * Read, on a sheet its owner may track (`CrawlerLiveSheet`'s `editable`): a
-   * bay's condition still steps, as the SP gauge does (owner, round 6).
+   * bay's condition still steps, as the SP gauge does.
    */
   liveCondition?: boolean
   /**
@@ -267,8 +259,7 @@ export function CrawlerSheet({
         <EmptyState variant="quiet" body="No weapons mounted." />
       )
     ) : (
-      // Header-only Minis across the bay, each Peeking its whole card (owner,
-      // round 4: "Armament bay can be a header only mini").
+      // Header-only Minis across the bay, each Peeking its whole card.
       <MiniGrid label="Weapons mounted">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
@@ -296,7 +287,7 @@ export function CrawlerSheet({
       {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
           bucket bay-repair spends), a section of the bay under its Slab, as
           the Crawler Hold below it is (N5), both at the Mini Size of the
-          bay's other sections (owner, round 10). Per-tech-level `Stat` steppers let
+          bay's other sections. Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
@@ -429,8 +420,7 @@ export function CrawlerSheet({
         // to go somewhere: they are crawler-level data (the pool is what bay
         // REPAIRS spend), so hiding them with the bay would strand them; they
         // render under a Storage Bay Slab instead. -----
-        // The Assigned Units follow it there (owner, 2026-10-20: "also a
-        // good place for the sidebar").
+        // The Assigned Units follow it there (R49: they ride the sidebar).
         aside={
           storageBays.length > 0 || storageContents || linkedUnits ? (
             <>

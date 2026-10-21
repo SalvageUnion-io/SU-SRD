@@ -10,7 +10,7 @@ import { AssignedUnits } from '../AssignedUnits'
 import { LinkedUnitLink } from '../LinkedUnitLink'
 
 describe('AssignedUnits', () => {
-  test('a unit held in a Game wears its owner chip on its head (round 7)', () => {
+  test('a unit held in a Game wears its owner chip on its head', () => {
     render(
       <AssignedUnits
         editable={false}
@@ -53,7 +53,7 @@ describe('AssignedUnits', () => {
     expect(list.querySelector('.su-chip-link')).toBeNull()
   })
 
-  test('Edit: an empty place is a placeholder Mini, what stands in for it its body (round 5)', () => {
+  test('Edit: an empty place is a placeholder Mini, what stands in for it its body', () => {
     render(
       <AssignedUnits
         editable

@@ -5,7 +5,7 @@
  * A Game's page (`GameRoster`) and the Starter Set (`StarterSetRoster`) lay
  * their units out in these columns. What goes INSIDE a column is the caller's:
  * yours-then-everyone-else's in a Game, the book's crew in the Starter Set.
- * Shelves (`build/shelves/`) has shelves of its own, board S1.
+ * Shelves (`build/shelves/`) has shelves of its own.
  *
  * At the mobile endpoint (≤ md) the three columns collapse to one, behind a
  * segmented switch the page owns — so the segment a player picked survives

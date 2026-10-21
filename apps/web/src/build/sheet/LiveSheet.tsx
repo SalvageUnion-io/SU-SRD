@@ -1,27 +1,21 @@
 /**
- * LiveSheet — the Header C shared sheet shell.
+ * LiveSheet — the shared sheet shell (R11: one Live Sheet grammar).
  * One shell, three variants, "so the three screens cannot drift apart".
- *
- * Render-prop contract (binding):
- *   { variant, name, strip, renderBody }
  *
  * The page starts with the chapter band: there is no back link and no bar
  * above it at rest. The sheet's controls — Read | Edit, "Make a copy", Share,
  * "⋯" — sit in the band's top-right corner; the type stamp sits right of the
  * name, and the phone's Pilot/Mech/Crawler switch below it.
  *
- * Condense (S11 — binding): the top bar is sticky and takes no room at rest;
- * when the hero scrolls out
- * of view (IntersectionObserver simple threshold — NOT the prototype's
- * clamp01 scroll interpolation, which is a post-beta fast-follow) the bar
- * fades in the entity name stamp + kind pill + live MiniStat strip via a CSS
- * transition, so the anchored bar keeps name + at-a-glance readouts in view
- * once the poster scrolls away. While hidden this block is aria-hidden and
- * pointer-events:none. Reducing this below "strip + fade + aria gating" needs
- * explicit design sign-off (risk R4).
+ * Condense: the top bar is sticky and takes no room at rest; when the hero
+ * scrolls out of view (an IntersectionObserver threshold, not a scroll
+ * interpolation) the bar fades in the entity name stamp + kind pill + live
+ * MiniStat strip via a CSS transition, so the anchored bar keeps name +
+ * at-a-glance readouts in view once the poster scrolls away. While hidden
+ * this block is aria-hidden and pointer-events:none: strip, fade and aria
+ * gating, all three.
  *
- * Stats are store-backed (the real app replacement for the prototype's
- * single useState): the caller derives `strip` values from the same entity
+ * Stats are store-backed: the caller derives `strip` values from the same entity
  * record its hero trackers edit, so hero and strip stay in lockstep by
  * construction.
  */
@@ -125,8 +119,7 @@ type LiveSheetProps = {
    */
   kindDetail?: BandStamp
   /**
-   * Where it came from, when not a blank build (owner, round 4: "add a
-   * 'Starter kit' or 'Homebrew' chip to entities sourced from there"): the
+   * Where it came from, when not a blank build (R49): the
    * Starter Set (`seedRef`) is a STARTER KIT chip, a saved pattern
    * (`sourcePattern`) the HOMEBREW stamp.
    */
@@ -153,7 +146,7 @@ type LiveSheetProps = {
   /**
    * The name is a mech's pattern name, which the book prints in quotes: the
    * band's title and the condensed bar read “Mazona”, and the band carries a
-   * PATTERN chip (owner, round 5).
+   * PATTERN chip.
    */
   quoted?: boolean
 }
@@ -178,7 +171,7 @@ const BAR_ANCHOR = {
 const BAR = {
   alignItems: 'center',
   background: 'var(--color-wk-bg)',
-  // No black rule under the app's nav (owner, 2026-10-19): the lift alone
+  // No black rule under the app's nav: the lift alone
   // sets it off the page it floats over.
   boxShadow: tokens.shadow.lift,
   columnGap: tokens.space[16],
@@ -275,8 +268,8 @@ const OUT_NOTE = {
 } satisfies CSSProperties
 
 /**
- * True once `target` has scrolled out of the viewport's top. Plain threshold
- * observer per S11; environments without IntersectionObserver (happy-dom,
+ * True once `target` has scrolled out of the viewport's top. A plain
+ * threshold observer; environments without IntersectionObserver (happy-dom,
  * very old browsers) simply never condense.
  */
 function useCondensed(target: RefObject<HTMLElement | null>): boolean {
@@ -369,10 +362,9 @@ export function LiveSheet({
           style={condensed ? BAR_SHOWN : BAR_HIDDEN}
         >
           {/* Condensed identity + live MiniStat strip. At rest this is hidden —
-            the entity name lives once, in the poster hero below (§4.1, Option
-            A). Once the hero scrolls out of view it fades in the name stamp +
-            kind pill + at-a-glance readouts (poster `.barname` + `.kindpill`)
-            so the anchored bar keeps them in view (S11). */}
+            the entity name lives once, in the poster hero below. Once the
+            hero scrolls out of view it fades in the name stamp + kind pill +
+            at-a-glance readouts so the anchored bar keeps them in view. */}
           <div
             data-sheet-strip=""
             aria-hidden={!condensed}
@@ -402,8 +394,8 @@ export function LiveSheet({
             )}
           </div>
 
-          {/* Each LINKED UNIT as its header-only Mini, never a chip (owner,
-            round 4: "no linked units should be chips"), on the right beside the sheet actions: a
+          {/* Each LINKED UNIT as its header-only Mini, never a chip (R5), on
+            the right beside the sheet actions: a
             hop straight to that pilot / mech / crawler, not a jump link to a
             section at the foot of the page. They ride the condensed state with
             the name and vitals: at rest the
@@ -433,7 +425,7 @@ export function LiveSheet({
           bar seams (border + shadow) and fills (name + vitals). */}
       <div ref={topRef} aria-hidden="true" style={SENTINEL} />
 
-      {/* The chapter band (board 10): the sheet's one h1, notched into a band
+      {/* The chapter band: the sheet's one h1, notched into a band
           in its own tone with the speckle behind it. The controls — Read |
           Edit where the viewer may write, "Make a copy", Share and "⋯" — sit
           in its top-right corner. Right of the name (EDL E20), what it is
@@ -457,7 +449,7 @@ export function LiveSheet({
               <Cluster gap={8} className="su-sheet-band-stamps">
                 {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
                 {source === 'starter' && <Stat label="Starter Kit" />}
-                {/* Its name is a pattern's: it says so (owner, round 5). */}
+                {/* Its name is a pattern's: it says so. */}
                 {quoted && <Stat label="Pattern" />}
                 {rank}
                 {stamp &&

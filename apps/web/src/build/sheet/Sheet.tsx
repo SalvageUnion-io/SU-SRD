@@ -1,6 +1,6 @@
 /**
- * Sheet — root live-sheet component on the Header C LiveSheet shell. Resolves
- * the entity + its SoftLink composition (the ported
+ * Sheet — root live-sheet component on the LiveSheet shell. Resolves
+ * the entity + its SoftLink composition (the
  * resolver in composition.model.ts), then dispatches to ONE per-kind view
  * (PilotLiveSheet / MechLiveSheet / CrawlerLiveSheet):
  * hero = entity-card-writ-large with live trackers, linked entities as rail
@@ -245,8 +245,8 @@ export function Sheet({
       Print
     </Button>
   )
-  // Entity-level admin affordances relocated from the (removed) detail page:
-  // single-entity JSON export + container move. Unassigning a linked entity
+  // Entity-level admin affordances: single-entity JSON export + container
+  // move. Unassigning a linked entity
   // lives on the rail chip, not here — it's contextual to the link.
   const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
   const containerControl = (
@@ -264,7 +264,7 @@ export function Sheet({
       Change Log
     </Button>
   )
-  // A mech saves as a pattern in a dialog over its sheet (board P1): a write,
+  // A mech saves as a pattern in a dialog over its sheet: a write,
   // so it is offered only where this sheet can write.
   const savePatternLink =
     kind === 'mech' && !writesBlocked ? (

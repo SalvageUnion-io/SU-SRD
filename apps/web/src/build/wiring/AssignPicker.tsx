@@ -4,12 +4,10 @@
  *
  * A button that opens the one pick dialog (`PickDialog`) of candidates — each
  * the unit's Compact in select mode (EDL "Modes": ink ring and the "Selected"
- * seal), one radio group — then draws the link on confirm. It replaces three
- * near-identical dialogs (`AssignPilotToMech`, `AssignCrawlerToPilot`,
- * `AssignPilotToCrawler`) that differed only in which
- * kinds they listed and which way round the link pointed — and none of which
- * looked at where anything lived, so a pilot in one Game was offered every
- * crawler in every other Game, and the server refused the pick.
+ * seal), one radio group — then draws the link on confirm. One picker serves
+ * every pairing of kinds, either way round the link points, and offers only
+ * what the server would accept: a pilot in one Game is never offered a
+ * crawler in another.
  *
  * ## Which candidates
  *

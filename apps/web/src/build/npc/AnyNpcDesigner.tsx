@@ -1,5 +1,5 @@
 /**
- * AnyNpcDesigner — board N1: design an NPC from a reference template in the five
+ * AnyNpcDesigner — design an NPC from a reference template in the five
  * steps of `docs/architecture/npc-builder.md` §4.1 (Template, Stats, Actions &
  * traits, Identity, Review), beside a live preview of its card.
  *

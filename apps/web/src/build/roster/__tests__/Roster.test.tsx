@@ -1,6 +1,5 @@
 /**
- * Roster component tests: the front door signed out, Shelves signed in
- * (board S1).
+ * Roster component tests: the front door signed out, Shelves signed in.
  *
  * We exercise the real (in-memory) entityStore to keep tests honest.
  *
@@ -145,7 +144,7 @@ afterEach(async () => {
 // Signed out: the front door
 // ---------------------------------------------------------------------------
 
-describe('Roster — signed out, it is the front door (board 09)', () => {
+describe('Roster — signed out, it is the front door', () => {
   // Outside any provider the connection is Solo: a signed-out visitor. Every
   // build lives in an account (ADR-034 as amended), so there is nothing of
   // theirs to list, create or import — but the Starter Set is reference, and
@@ -156,7 +155,7 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
     })
 
     expect(screen.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeTruthy()
-    // The intro band is gone (owner, 2026-10-14): signing in is the header's.
+    // The intro band is gone: signing in is the header's.
     expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()
     expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
@@ -344,7 +343,7 @@ describe('Training Bay — items', () => {
     expect(line?.textContent).not.toContain('Unassigned')
   })
 
-  test('linked units are each other’s header-only Minis, never chips (round 4)', async () => {
+  test('linked units are each other’s header-only Minis, never chips', async () => {
     const store = useEntityStore.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
@@ -357,7 +356,7 @@ describe('Training Bay — items', () => {
 
     await renderShelves()
 
-    // Each a header-only Mini in the other's body, never a chip (round 4).
+    // Each a header-only Mini in the other's body, never a chip.
     const linked = Array.from(document.querySelectorAll('[data-entity-linked]')).map((el) =>
       (el.textContent ?? '').trim()
     )

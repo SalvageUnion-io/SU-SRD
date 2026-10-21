@@ -54,8 +54,8 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         size="mini"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
-        // "Build With This", as every build action reads (owner's call,
-        // 2026-10-13); the accessible name starts with it and says what it builds.
+        // "Build With This", as every build action reads; the accessible name
+        // starts with it and says what it builds.
         aria-label={`Build With This: a mech from ${pattern.name}`}
       >
         {isInstantiating ? 'Building…' : 'Build With This'}

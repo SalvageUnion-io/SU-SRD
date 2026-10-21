@@ -1,6 +1,5 @@
 /**
- * PublicPattern — one saved mech pattern's page, at `/p/pattern/:appId`
- * (board P2).
+ * PublicPattern — one saved mech pattern's page, at `/p/pattern/:appId`.
  *
  * It is laid out as the book's own pattern page is (`EntityPageFrame` around
  * the card at `presentation="page"`): the chassis chapter's band, the quoted

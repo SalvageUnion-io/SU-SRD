@@ -1,5 +1,5 @@
 /**
- * "Move to a Game…" from a Training Bay item's ⋯ menu (Shelves, board S1).
+ * "Move to a Game…" from a Training Bay item's ⋯ menu (Shelves).
  *
  * A short dialog that lists only where the server would accept this build
  * (`moveDestinations`, the client mirror of ADR-037): a pilot or mech into any

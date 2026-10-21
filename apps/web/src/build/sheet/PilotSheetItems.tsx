@@ -1,7 +1,7 @@
 /**
  * PilotSheetItems — the pilot sheet's per-item building blocks (abilities,
- * equipment, generic entries, injuries), extracted from PilotSheet.tsx.
- * Purely presentational and callback-driven — PilotSheet
+ * equipment, generic entries, injuries). Purely presentational and
+ * callback-driven — PilotSheet
  * owns all persistence.
  */
 
@@ -62,7 +62,7 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
-  /** Trained: its body reads its full rules, every action's text, not only its lead (owner, round 6). */
+  /** Trained: its body reads its full rules, every action's text, not only its lead. */
   full?: boolean
 }
 
@@ -87,7 +87,7 @@ function AbilityRules({ ability }: { ability: RefAbility }) {
 }
 
 /**
- * One ability: its CONTENTFUL Mini (N3; owner's call, 2026-10-20), its head
+ * One ability: its CONTENTFUL Mini (N3), its head
  * and then its text, which Peeks the whole card, its "Used" stamp in its state
  * slot, and in Edit a "⋯" in its chip group with Spend AP and Mark used. AP cost resolves
  * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
@@ -192,7 +192,7 @@ type PilotEquipmentItemProps = {
  * condition tri-state, uses, Details (the full card, with its choices) and
  * Remove in its chip group.
  *
- * Extracted from the map body so it can legally call the useEntityChoices hook.
+ * A component of its own so it can call the useEntityChoices hook.
  */
 export function PilotEquipmentItem({
   slug,
@@ -252,7 +252,7 @@ export function PilotEquipmentItem({
   // and hold — because the grant and the granted thing are one entry to the
   // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
-  // A CONTENTFUL Mini (N3; owner's call, 2026-10-19), in the sheet's
+  // A CONTENTFUL Mini (N3), in the sheet's
   // sidebar: its head, the item named, typed and tech-levelled on one line,
   // then the item's text under it. It is the item in BOTH states. A damaged
   // item's pill greys, as its card's header does; its head Peeks the whole

@@ -15,7 +15,7 @@
  * When the entity at the other end of an assignment is published too, its row
  * carries its name, its vitals and a View into its own public page. When it is
  * not, the server sends its kind and nothing else, and its slot says "Not
- * shared" (`WithheldUnitRow`) — publishing your pilot never names, let alone
+ * shared" — publishing your pilot never names, let alone
  * republishes, your crewmate's.
  */
 

@@ -1,9 +1,9 @@
 /**
  * usePilotSheetModel — everything the pilot Live Sheet COMPUTES, in one place.
  *
- * The pilot body was ~850 lines because three unrelated jobs shared one
- * function: derive the model, mutate the record, render the poster. This file
- * is the first of those. It reads the store and the reference ORM and returns
+ * Three unrelated jobs, each in its own place: derive the model, mutate the
+ * record, render the poster. This file is the first of those. It reads the
+ * store and the reference ORM and returns
  * plain data; it never writes, and it renders nothing.
  *
  * Every value here was lifted verbatim out of `PilotSheet` — the memo
@@ -39,7 +39,7 @@ import { useSoftLinks } from '../wiring/useSoftLinks'
  *
  * It is INTRINSIC, not chosen: it is never offered in the abilities picker and
  * never stored in `pilot.abilities`. The sheet renders it from reference data
- * (board 10 prints Bonesaw's Generic cards although the record holds only Jury
+ * (Bonesaw reads his Generic cards although the record holds only Jury
  * Rig), in its own section AFTER the abilities the pilot owns, as Minis: every pilot has
  * the same eight, so they are reference, while the class's own abilities are
  * what tells this pilot from another.
@@ -49,7 +49,7 @@ const GENERIC_TREE = 'Generic'
 /**
  * One ability, keyed by the slug the pilot record actually stores. `unlearned`
  * marks one of the class's trees the pilot has not taken: the sheet prints it
- * greyed, read-only, so the whole tree reads (owner, round 4).
+ * greyed, read-only, so the whole tree reads.
  */
 export type AbilityEntry = { slug: string; ability: RefAbility; unlearned?: true }
 
@@ -284,7 +284,7 @@ export function usePilotSheetModel({
         const origin =
           pilot.originClassRef === undefined ? undefined : resolveClass(pilot.originClassRef)?.name
         // The class's own trees, never its Advanced or Legendary ones, which
-        // show once taken from (owner, round 5).
+        // show once taken from.
         const trees = new Set(
           treesFor(
             cls,

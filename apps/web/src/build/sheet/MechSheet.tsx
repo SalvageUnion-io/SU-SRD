@@ -18,25 +18,23 @@
  *       callout (`MechChassisCard`: name with a CHASSIS chip, art,
  *       description, Change Chassis in Edit), then The Hold
  *       (`StorageManifest side='mech'`), what the mech carries — cargo is
- *       reached for mid-session — then Assigned Units (owner's calls,
- *       2026-10-20).
+ *       reached for mid-session — then Assigned Units (R49).
  *
  * Section containers follow the card-vs-slab rule (see `SlabSection`):
  * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
  * collections get a SLAB (The Hold, Systems, Modules, Assigned Units). Read
  * leaves an empty section out (hard rule R11).
  *
- * Dropped (the poster redesign), to be re-homed off the sheet: Heat Check / Push /
- * Reactor Overload, Take Damage / Critical Damage, and the Retire slab.
- * The always-live Vitals gauges (SP/EP/Heat) and per-card activation (Use /
- * Repair / uses economy on System/Module cards, chassis-ability Use) are
- * KEPT — only the play-control PANELS drop. Shutdown/Vulnerable/Destroyed
- * still surface (and clear) through the unified Conditions chips in the
- * Vitals card (`MechConditionsEditor`), which already merges those flags.
+ * No play-control panel lives on the sheet: Heat Check / Push / Reactor
+ * Overload and Take Damage / Critical Damage are Play's (ADR-021). The
+ * Vitals gauges (SP/EP/Heat) and per-card activation (Use / Repair / uses
+ * economy on System/Module cards, chassis-ability Use) are live here.
+ * Shutdown/Vulnerable/Destroyed surface (and clear) through the Conditions
+ * chips in the Vitals card (`MechConditionsEditor`), which merges those flags.
  *
  * ## What lives where
  *
- * This file is now the RENDER, and only the render. Its two siblings:
+ * This file is the RENDER, and only the render. Its two siblings:
  *   - `mechSheet.model.ts` — the derived model (SP/EP/Heat maxima and their
  *     provenance ledgers, slot capacity, the chassis-stats strip, cargo).
  *   - `mechSheetActions.model.ts` — every write, all of them through one `write()`
@@ -223,7 +221,7 @@ export function MechSheet({
     // hand local state to) the items after it. See occurrenceKeys.
     const keys = occurrenceKeys(slugs)
     // Contentful Minis in a masonry grid, each its head and then its text,
-    // Peeking its whole card (owner's call, 2026-10-20).
+    // Peeking its whole card.
     return (
       <MiniGrid
         label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
@@ -348,7 +346,7 @@ export function MechSheet({
         }
         // ===== The sidebar (ruleset §1.2) =====
         // The chassis callout under the vitals, then what the mech carries
-        // (its cargo), then its Assigned Units (owner's calls, 2026-10-20):
+        // (its cargo), then its Assigned Units:
         // beside the sheet from the 64rem rung and straight under the opening
         // on a phone, so the hold is the next thing a crew reaches for.
         aside={

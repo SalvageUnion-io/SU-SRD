@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 
 /**
  * The Game / shelf controls (ADR-030 §2): the
- * live-sheet move, and a shelf item's "Move to a Game…" (Shelves, board S1).
+ * live-sheet move, and a shelf item's "Move to a Game…" (Shelves).
  *
  * What these pin: both render nothing for somebody who is not signed in
  * (there is no second container to offer), all list the account's Games once

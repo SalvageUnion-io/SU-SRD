@@ -30,7 +30,7 @@ function summaryText(summary: MergeSummary): string {
 const IMPORT_PLAYER_ERRORS = [ImportRefused]
 
 /**
- * On an ink band (Shelves, the Roster, board S1) the band's `data-ground`
+ * On an ink band (Shelves, the Roster) the band's `data-ground`
  * makes the button the on-ink ghost and the result line paper, in CSS
  * (chrome K1); the line is `.su-import-summary` for that reason.
  */

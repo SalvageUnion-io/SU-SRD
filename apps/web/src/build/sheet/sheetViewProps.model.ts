@@ -25,7 +25,7 @@ import type { OwnerOf } from './unitOwners.model'
 export type WithheldUnit = { key: string; kind: EntityRef['type']; name?: string }
 
 /**
- * The sheet's chapter band (board 10), past its title: the band's controls
+ * The sheet's chapter band, past its title: the band's controls
  * (Read | Edit, the Starter Set's "Sign in to make a copy" / "Make a copy"),
  * in its top-right corner.
  */

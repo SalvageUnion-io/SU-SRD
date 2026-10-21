@@ -149,7 +149,7 @@ describe('PilotSheet — equipment choice cards', () => {
   })
 
   test('readOnly (the Read state): the item is its shortform pill, and nothing is written', async () => {
-    // Read prints the inventory as pills (board 10): the choice is
+    // Read prints the inventory as pills: the choice is
     // the card's, shown in Edit. A read-only sheet offers no choice to toggle.
     const pilot = makePilot({
       equipmentChoices: {

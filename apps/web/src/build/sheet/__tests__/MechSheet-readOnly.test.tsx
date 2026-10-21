@@ -202,8 +202,8 @@ describe('MechSheet — the hero and the Chassis card', () => {
     expect(hero?.textContent).not.toContain('Pattern name')
     // The card: the chassis's name, art and description, and nothing the hero has.
     expect(card?.textContent).toContain('Spectrum')
-    // The callout leads the sidebar, above the Hold (owner's call,
-    // 2026-10-20), with a CHASSIS chip beside its name.
+    // The callout leads the sidebar, above the Hold, with a CHASSIS chip
+    // beside its name.
     const aside = container.querySelector('[data-sheet-aside]')
     expect(hero?.contains(card ?? null)).toBe(false)
     expect(aside?.firstElementChild).toBe(card)

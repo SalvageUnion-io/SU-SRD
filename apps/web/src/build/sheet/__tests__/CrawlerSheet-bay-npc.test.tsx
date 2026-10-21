@@ -156,7 +156,7 @@ describe('CrawlerSheet — crew lead identity (CrewLeadMini)', () => {
     const head = crewMini('Dax Orsund')
     expect(inset.contains(head)).toBe(true)
     expect(within(head as HTMLElement).getByText('Princeps')).toBeTruthy()
-    // Its HP is the gauge beside its lines (round 5), never in the head.
+    // Its HP is the gauge beside its lines, never in the head.
     expect(head.textContent).not.toContain('HP')
     expect(within(inset).getByRole('img', { name: 'HP 4 of 4' })).toBeTruthy()
     // The body, under the head and outside it.

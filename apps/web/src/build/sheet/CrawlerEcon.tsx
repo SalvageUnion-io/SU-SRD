@@ -95,7 +95,7 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
       {gauge}
       {upgrade}
       {readouts.length > 0 && (
-        // One readout (the Upkeep) centres in the column (owner, round 5).
+        // One readout (the Upkeep) centres in the column.
         <div style={{ ...READOUTS, gridTemplateColumns: readoutColumns(readouts.length) }}>
           {readouts.map((item) => (
             <EconLoz key={item.label} item={item} />

@@ -5,8 +5,9 @@
  * Each crew lead has a name, keepsake, motto, detail, facts and 4 HP.
  *
  * In Read each is its small caps label over its value, as Detail's prose
- * (owner, 2026-10-20: NPC details are rows, never `[label | value]` chips;
- * round 4: the label above, not to the left); Facts' value is the one chip well (`ChipListEditor`). In Edit each
+ * (NPC details are rows, never `[label | value]` chips, the label above,
+ * not to the left); Facts' value is the one chip well (`ChipListEditor`). In
+ * Edit each
  * one to write is a `Field` in its edit state (its label over the value box
  * a press opens, or over Facts' chip well). HP is never here: a crew lead's
  * is the gauge beside them (`CrewLeadMini`), a built NPC's in its sheet's
@@ -17,7 +18,7 @@
  * choice (see CrawlerSheet). Handler absence IS the read-only encoding —
  * omit a field's handler and it renders plain text, no edit affordances, and
  * an empty field is left out rather than printed as a dash (the sheet's Read
- * state, board 10).
+ * state).
  */
 
 import type { CSSProperties, ReactNode } from 'react'
@@ -26,7 +27,7 @@ import { Field, tokens } from '../../components/index'
 import { ChipListEditor } from './ChipListEditor'
 import { FACT_DRAFT } from './chipWell.model'
 
-/** Its label over its value (owner, round 4: "Put the label above, not to the left"). */
+/** Its label over its value, never to its left. */
 const ROW = {
   display: 'flex',
   flexDirection: 'column',

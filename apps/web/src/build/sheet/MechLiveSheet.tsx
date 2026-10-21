@@ -1,6 +1,6 @@
 /**
- * MechLiveSheet — the mech branch of the live sheet (extracted from
- * Sheet.tsx), in the poster layout.
+ * MechLiveSheet — the mech branch of the live sheet (`Sheet` dispatches to
+ * it), in the poster layout.
  *
  * The body owns the identity band (Workshop-Manual layout): `MechSheet`
  * renders the `SheetHero` band as its first region. This

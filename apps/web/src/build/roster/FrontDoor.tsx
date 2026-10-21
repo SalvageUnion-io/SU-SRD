@@ -1,5 +1,5 @@
 /**
- * FrontDoor — Build's home for a visitor who is not signed in (board 09).
+ * FrontDoor — Build's home for a visitor who is not signed in.
  *
  * Signed out, the app is read-only (ADR-034 as amended): there is nothing of the
  * visitor's to list, so `/` is the front door instead —
@@ -7,7 +7,7 @@
  *  - **Build's name** on its chapter band (`PRODUCT.build`, the Training Bay)
  *    in Build's pilot-orange tone,
  *    under `PRODUCT.descriptor`, with the legacy tagline quoted beside the
- *    name (under it on a phone). No intro band under it (owner, 2026-10-14):
+ *    name (under it on a phone). No intro band under it:
  *    signing in is the header's, and the Starter Set is the header's tab and
  *    this page's own section;
  *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):

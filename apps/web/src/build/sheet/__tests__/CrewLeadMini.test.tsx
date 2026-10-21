@@ -2,7 +2,7 @@
  * CrewLeadMini — a crawler bay's crew lead as a CONTENTFUL Mini (N3):
  * - the head names the NPC and chips the role it holds (`THE | Doc`) once it
  *   has a name of its own; its HP is Mini HP cells beside its lines, read
- *   live, set by its cells in Edit (round 9);
+ *   live, set by its cells in Edit;
  * - the body holds what the sheet tracks (Keepsake, Motto, Detail, Facts),
  *   each left out in Read when empty;
  * - the group is named for its bay, so several crew leads stay distinguishable;
@@ -36,7 +36,7 @@ function head(group: HTMLElement): HTMLElement {
 }
 
 describe('CrewLeadMini — the head and its HP', () => {
-  test('a named crew lead: its role a THE chip, its HP a gauge beside its lines (round 5)', () => {
+  test('a named crew lead: its role a THE chip, its HP a gauge beside its lines', () => {
     render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     const band = head(group)
@@ -46,7 +46,7 @@ describe('CrewLeadMini — the head and its HP', () => {
     expect(within(band).getByText('The')).toBeTruthy()
     expect(within(band).getByText('Doc')).toBeTruthy()
     expect(band.textContent).not.toContain('HP')
-    // The HP reads live in the body, as Mini HP cells (round 9).
+    // The HP reads live in the body, as Mini HP cells.
     const hp = within(group).getByRole('img', { name: 'HP 3 of 4' })
     expect(hp.getAttribute('data-size')).toBe('mini')
     expect(hp.querySelectorAll('[data-pip]')).toHaveLength(4)

@@ -4,8 +4,8 @@
  * sit beside them in the hero; its name, art and description are its callout
  * at the hero card's foot (`MechChassisCard`).
  *
- * The PATTERN NAME is the band's title, so Read leaves it out (owner's call,
- * 2026-10-14) and Edit shows it as the name's edit surface, as the pilot's
+ * The PATTERN NAME is the band's title, so Read leaves it out and Edit shows
+ * it as the name's edit surface, as the pilot's
  * Name. A mech's name and its pattern name are the same field, so it displays
  * the canonical `mech.name` and saving writes `name` and `patternName` in
  * lockstep.
@@ -80,8 +80,8 @@ export function MechAppearanceField({
 
 /**
  * The mech's Description: the long prose, running the identity card's full
- * width under the photo and the fields beside it (owner's review, 2026-10-20:
- * no empty column under the photo). It takes whatever height the card has
+ * width under the photo and the fields beside it, so no empty column stands
+ * under the photo. It takes whatever height the card has
  * left (the identity card stretches to match the vitals beside it), as the
  * pilot's Bio does.
  */

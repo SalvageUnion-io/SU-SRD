@@ -1,9 +1,9 @@
 /**
  * Roster — what `/` shows, by who is looking:
  *
- *  - **Signed out** — the front door (`FrontDoor`, board 09).
- *  - **Signed in** — everything you keep, on your account (`Shelves`, board
- *    S1). Disconnected too: the whole cached pile is the only rendering that
+ *  - **Signed out** — the front door (`FrontDoor`).
+ *  - **Signed in** — everything you keep, on your account (`Shelves`).
+ *    Disconnected too: the whole cached pile is the only rendering that
  *    cannot lose a build.
  *
  * A Game's page is Play's (`/play/games/$gameId`, ADR-052 §5): Build renders

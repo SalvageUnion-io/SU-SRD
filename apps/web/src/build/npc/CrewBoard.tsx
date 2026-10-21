@@ -1,5 +1,5 @@
 /**
- * CrewBoard — board N2: design the crawler type's special NPC and each bay's
+ * CrewBoard — design the crawler type's special NPC and each bay's
  * crew, and assign them (ADR-044; `docs/architecture/npc-builder.md`).
  *
  * The left column lists every crew slot — the type, then one per bay. A slot

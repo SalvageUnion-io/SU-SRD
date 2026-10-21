@@ -36,8 +36,8 @@ export function mechChassisStats(chassisRef: string): UnitReading[] | undefined 
 }
 
 /**
- * A crawler row's stats: `TL | 2`. A crawler never lists its count of bays
- * (owner's call, 2026-10-14); the crew roster reads the same.
+ * A crawler row's stats: `TL | 2`. A crawler never lists its count of bays;
+ * the crew roster reads the same.
  */
 export function crawlerStats(techLevel: string): UnitReading[] {
   const tl = techLevel.replace(/[^0-9]/g, '')

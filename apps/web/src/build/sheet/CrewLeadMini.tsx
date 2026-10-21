@@ -4,13 +4,13 @@
  * level 2 and is a Mini (N1), never a titled box (N5).
  *
  * The head is the NPC's: its name, then the role it holds as a relation chip
- * once it has a name of its own (`THE | Doc`, next to the name; owner, round
- * 5), so the name alone is the Peek trigger. It Peeks the bay's crew NPC, or
+ * once it has a name of its own (`THE | Doc`, next to the name; R46), so the
+ * name alone is the Peek trigger. It Peeks the bay's crew NPC, or
  * opens a built NPC's sheet. The body is what the sheet tracks about them:
  * Keepsake, Motto, Detail and Facts (`NpcLines`), each left out in Read when
  * empty, in Edit their fields, led by the name, which a head cannot hold;
- * and right of them its HP, Mini HP cells in a square block (owner, round
- * 9), set by its cells in Edit.
+ * and right of them its HP, Mini HP cells in a square block (R46), set by its
+ * cells in Edit.
  *
  * Handler absence is the read-only encoding, as on `NpcLines`.
  */
@@ -40,8 +40,8 @@ type CrewSource =
 /**
  * The head's chips past the role: the model's own, less its book HP, which
  * the head reads live after the role (its state slot in Read, its stepper in
- * the uses slot in Edit), so the role comes first, next to the name (owner,
- * 2026-10-20). The book's HP hint stays on the reading.
+ * the uses slot in Edit), so the role comes first, next to the name. The
+ * book's HP hint stays on the reading.
  */
 function crewHead(model: EntityFormModel): { model: EntityFormModel; hpHint?: string } {
   const book = model.facts.find((fact) => fact.short === 'HP')
@@ -54,7 +54,7 @@ function crewHead(model: EntityFormModel): { model: EntityFormModel; hpHint?: st
 /** Its role as a chip, once it has a name of its own: unnamed, the head's title is the role. */
 function roleChip(title: string | undefined, name: string) {
   const named = name.trim() !== '' && name.trim() !== title
-  // "THE | Doc": the role it holds, as the book names it (owner, round 5).
+  // "THE | Doc": the role it holds, as the book names it.
   return title && named ? [relation('crew-role', 'The', title)] : undefined
 }
 
@@ -77,13 +77,13 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
   const base = useMemo(() => own ?? toEntityModel(entity as RefMetaEntity), [own, entity])
   const editing = onHpChange !== undefined
   // In Edit the crew lead starts collapsed, its lines read as in Read; its
-  // Details control opens their fields (owner's review, 2026-10-20: a bay's
-  // crew lead is a collapsed Mini, not four open fields).
+  // Details control opens their fields: a bay's crew lead is a collapsed
+  // Mini, not four open fields.
   const [open, setOpen] = useState(false)
   const { model, hpHint } = useMemo(() => crewHead(base), [base])
   const relations = roleChip(title, name)
-  // Its HP right of its lines, as Mini HP cells (owner, round 9: "a mini sized
-  // HP cell display … a square grid"): set in Edit, read in Read.
+  // Its HP right of its lines, as Mini HP cells (R46): set in Edit, read in
+  // Read.
   const hpGauge =
     maxHp > 0 ? (
       <div className="su-crew-lead__hp" title={hpHint}>

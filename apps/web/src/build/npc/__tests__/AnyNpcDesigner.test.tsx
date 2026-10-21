@@ -1,5 +1,5 @@
 /**
- * Board N1 — design an NPC from a reference template: the template
+ * The NPC designer — design an NPC from a reference template: the template
  * fills the stat block, the actions are the reference's behind checkboxes, the
  * preview wears the user-made treatment, and the save stores slugs.
  */

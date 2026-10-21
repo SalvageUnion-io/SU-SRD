@@ -1,5 +1,5 @@
 /**
- * The public pattern page, `/p/pattern/:appId` (board P2): laid out as the
+ * The public pattern page, `/p/pattern/:appId`: laid out as the
  * book's pattern page, plainly homebrew, and buildable by a signed-in reader.
  */
 

@@ -119,7 +119,7 @@ describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', ()
   })
 })
 
-describe('MechSheet — Damaged promotes Repair (S12)', () => {
+describe('MechSheet — Damaged promotes Repair', () => {
   test('Damaged: Repair primary with half-SV cost', () => {
     const mech = makeMech({
       systems: ['smoke-machine'],

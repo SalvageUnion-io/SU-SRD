@@ -69,7 +69,7 @@ describe('a crawler bay on the sheet', () => {
     expect(shown('Trading Scrap')).toBe(false)
   })
 
-  test('Bay Info leads, then When Damaged, then the crew (round 7)', () => {
+  test('Bay Info leads, then When Damaged, then the crew', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
     const info = fold('Pilot Bay', 'Bay Info')
     const crew = screen.getByRole('group', { name: 'Pilot Bay crew lead' })
@@ -78,14 +78,14 @@ describe('a crawler bay on the sheet', () => {
     expect(damaged.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test('Bay Info and When Damaged come before the roll table and the rest (round 10)', () => {
+  test('Bay Info and When Damaged come before the roll table and the rest', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
     const damaged = fold('Trading Bay', 'When Damaged')
     const roll = screen.getByRole('button', { name: 'Roll the die on Trading Bay' })
     expect(damaged.compareDocumentPosition(roll) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test("the Storage Bay's Scrap Pool and Crawler Hold head at its sections' Mini Size (round 10)", () => {
+  test("the Storage Bay's Scrap Pool and Crawler Hold head at its sections' Mini Size", () => {
     const withStorage: Crawler = { ...crawler, crawlerBays: [{ bayRef: 'storage-bay' }] }
     render(<CrawlerSheet crawler={withStorage} store={store()} />)
     for (const title of ['Scrap Pool', 'Crawler Hold']) {

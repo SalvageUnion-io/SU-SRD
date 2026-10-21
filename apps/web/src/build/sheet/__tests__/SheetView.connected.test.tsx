@@ -11,7 +11,7 @@ import { createElement } from 'react'
  *  - a crewmate's pilot shows its CURRENT assignments — the mech flying it and
  *    the crawler it crews — read from the Game's live listing, not a frozen
  *    single-entity copy that could show neither;
- *  - your own sheet opens in Read with Edit one press away (board 10), a
+ *  - your own sheet opens in Read with Edit one press away, a
  *    crewmate's read-only with no edit controls and no Edit, at one address;
  *  - your crawler's crew lists crewmates' pilots this browser does not cache,
  *    as read-only rows that link to their live view;
@@ -313,7 +313,7 @@ describe('your own sheet', () => {
       '/sheet/mech/m-theirs'
     )
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
-    // Each wears whose it is on its head (round 7): yours, or the crewmate's name.
+    // Each wears whose it is on its head: yours, or the crewmate's name.
     const ownerOf = (name: string) =>
       [...document.querySelectorAll('[data-assigned-unit]')]
         .find((unit) => unit.querySelector('.su-entity-mini__name')?.textContent?.startsWith(name))

@@ -2,8 +2,8 @@
  * PhotoBeside — an identity card body with the entity's picture beside its
  * first fields (`EntityPhoto`), or above them where the card is narrow. What
  * comes `below` (the long prose: a Bio, a Description) runs the card's full
- * width under the photo, so no empty column stands under the picture (owner's
- * review, 2026-10-20: the sheets' whitespace). The layout is `.su-photo-beside`
+ * width under the photo, so no empty column stands under the picture. The
+ * layout is `.su-photo-beside`
  * (`styles/build/sheet/photo.css`), which queries the card's own width; an
  * `EntityPhoto` that renders nothing leaves the slot empty, and an empty slot
  * takes no room.

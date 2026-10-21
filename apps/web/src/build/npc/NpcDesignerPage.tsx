@@ -4,9 +4,9 @@
  *
  * "Any NPC | Crawler crew" is a tab row on the band (`?view=any|crew`):
  *
- *  - **Any NPC** (board N1) on the Denizens navy band — five steps from a
+ *  - **Any NPC** on the Denizens navy band — five steps from a
  *    reference template or a blank start (`AnyNpcDesigner`).
- *  - **Crawler crew** (board N2) on the crawler band — a crawler's type and
+ *  - **Crawler crew** on the crawler band — a crawler's type and
  *    bay slots, designed and assigned (`CrewBoard`, `&crawler=&slot=`).
  *
  * Both bands are solid: the designer is a tool, and the hatched user-made

@@ -37,7 +37,7 @@ const citeCaps = capsLabel({ size: 'badge', weight: 'semibold' })
  * RuleBrief — the rule a wizard step (or a blocked Play action) answers
  * to: an untitled `Box` inside the step's own untitled frame, the rule text on
  * its paper and its citation under it. The step's title names the section; the
- * box carries no title of its own (owner's call, 2026-10-17), only the
+ * box carries no title of its own, only the
  * landmark's name for a screen reader.
  */
 export function RuleBrief({ rule, cite, className }: RuleBriefProps) {

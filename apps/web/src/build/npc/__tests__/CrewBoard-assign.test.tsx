@@ -1,5 +1,5 @@
 /**
- * Board N2 — crawler crew, the paths `CrewBoard.test.tsx` leaves open:
+ * Crawler crew, the paths `CrewBoard.test.tsx` leaves open:
  * choosing which crawler to crew, the name the form insists on, assigning an
  * NPC that is already in the crawler's container, a refused assignment (on
  * its own, and after a save that landed), a Game crawler's crew read live

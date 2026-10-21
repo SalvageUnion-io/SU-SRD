@@ -115,7 +115,7 @@ import { StarterShelf } from './StarterShelf'
 // ---------------------------------------------------------------------------
 
 /**
- * One row of shelves (owner, 2026-10-15): your units (Pilots, Mechs,
+ * One row of shelves: your units (Pilots, Mechs,
  * Crawlers), then what you made (NPCs, Patterns), side by side where there is
  * room, stacked on a phone. The Starter Set is the third row, folded.
  */
@@ -185,7 +185,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // whichever way the toggle is set.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
-  // A linked unit's Mini carries its own stat chips (owner, round 8).
+  // A linked unit's Mini carries its own stat chips.
   const pilotReadings = new Map(allPilots.map((p) => [p.id, rowStats(pilotRailItems(p))]))
   const mechReadings = new Map(allMechs.map((m) => [m.id, rowStats(mechRailItems(m))]))
   const patternSource = allMechs.find((m) => m.id === savingPattern)

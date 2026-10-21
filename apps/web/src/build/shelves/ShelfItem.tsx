@@ -1,11 +1,11 @@
 /**
- * ShelfItem — one thing on a shelf (the Training Bay, board S1): the library Compact a
+ * ShelfItem — one thing on a shelf (the Training Bay): the library Compact a
  * Game's roster draws the same units with (`UnitRow`), the whole Compact opening
  * it. Its chips are the defining fact (never its kind, EDL E9) and one
  * reading, label-first (`CLASS | ENGINEER`, `HP | 8/10`), led by this item's
  * own chips (for a pattern or NPC, who can see it) as label-only chips, the
- * way a Game's Compact leads with its owner chip (never boxes under the card;
- * owner's rule, 2026-10-14); then its relations, the units linked to it and
+ * way a Game's Compact leads with its owner chip (never boxes under the card,
+ * R6); then its relations, the units linked to it and
  * the Game it is in (`GAME | Rust Run`, opening that Game's page in Play,
  * C11); and its "⋯" menu, an action chip, last on the name's line.
  *

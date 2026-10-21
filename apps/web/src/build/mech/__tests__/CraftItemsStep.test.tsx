@@ -2,7 +2,7 @@
  * Unit tests for CraftItemsStep: the create-mode
  * Craft your Systems / Modules grid. Pins the two enforcement mechanics —
  * the per-copy `+` clamp (maxCount from the SHARED scrap pool + the step's
- * slot budget) and the dimmed-with-reason card (mockup Screen 02) — plus the
+ * slot budget) and the dimmed-with-reason card — plus the
  * Tech-1 filter and the SUGGESTED pill.
  */
 

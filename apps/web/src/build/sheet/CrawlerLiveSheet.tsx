@@ -1,8 +1,8 @@
 /**
- * CrawlerLiveSheet — the crawler branch of the live sheet (extracted from
- * Sheet.tsx), in the poster layout.
+ * CrawlerLiveSheet — the crawler branch of the live sheet (`Sheet`
+ * dispatches to it), in the poster layout.
  *
- * The body owns the identity band now (Workshop-Manual layout): `CrawlerSheet`
+ * The body owns the identity band (Workshop-Manual layout): `CrawlerSheet`
  * renders the `SheetHero` band as its first region.
  * This component's remaining job is composing the economy band (the poster
  * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
@@ -10,8 +10,7 @@
  * (`CrawlerEconActions`), handed to `CrawlerSheet` as `economy` and
  * `economyActions` and rendered as the identity band's vitals card and its head
  * chips, plus the docked-mech/lead-pilot rail content handed down
- * as `linkedUnits`. Owns the economy-dialog state (it was hoisted to Sheet
- * only because the branch wasn't a component).
+ * as `linkedUnits`. Owns the economy-dialog state.
  */
 
 import { containerOf } from 'game-domain/container'
@@ -161,7 +160,7 @@ export function CrawlerLiveSheet({
     ...(trading.present && tl !== undefined
       ? [
           {
-            // Its Trade action only: the rail reads no Trade (owner, round 5).
+            // Its Trade action only: the rail reads no Trade.
             label: 'Trade',
             value: tradingSourceTl(tl),
             actionOnly: true,

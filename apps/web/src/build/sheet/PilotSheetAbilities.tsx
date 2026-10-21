@@ -1,12 +1,12 @@
 /**
- * PilotSheetAbilities — the pilot sheet's Abilities (owner's calls,
- * 2026-10-14, 2026-10-19 and 2026-10-20): two collapsible `SlabSection`s of
+ * PilotSheetAbilities — the pilot sheet's Abilities (R48): two collapsible
+ * `SlabSection`s of
  * contentful Minis, each ability its head and then its text, in Read and Edit
  * alike.
  *
  *   1. **Abilities**, on top and open by default: the trees the class
- *      itself opens (its Core trees; owner, round 5: no Advanced trees for a
- *      Core class) and any tree the pilot has taken from, each drawn as the
+ *      itself opens (its Core trees; no Advanced trees for a Core class, R48)
+ *      and any tree the pilot has taken from, each drawn as the
  *      class page draws it, on its track with its stems, three across where
  *      they fit, the untaken abilities greyed and read-only; then any the
  *      reference does not know.
@@ -142,7 +142,7 @@ export function PilotSheetAbilities({
           {none && <EmptyState variant="quiet" body="No abilities learned yet." />}
           {classTrees.length > 0 && (
             // The trees as the class page draws them, each on its track with
-            // its stems, side by side, three across where they fit (owner, round 5).
+            // its stems, side by side, three across where they fit.
             <div className="su-pilot-trees">
               {classTrees.map((group) => (
                 <TreeTrackSection key={group.tree} group={group} render={renderAbility} />

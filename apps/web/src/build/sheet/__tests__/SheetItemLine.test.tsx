@@ -26,7 +26,7 @@ const TOKEN = <Entity size="mini" context="loadout" model={MODEL} mode={{ kind: 
 const groupOf = (el: Element) => el.closest('[data-chip-group]')
 
 describe('SheetItemLine — Read', () => {
-  test('a live condition still steps in Read (a crawler bay, round 6)', () => {
+  test('a live condition still steps in Read (a crawler bay)', () => {
     const onConditionCycle = mock(() => undefined)
     render(
       <SheetItemLine

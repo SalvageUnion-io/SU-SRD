@@ -1,7 +1,7 @@
 /**
- * StarterShelf — the Starter Set at the foot of the Training Bay (board S1): the
+ * StarterShelf — the Starter Set at the foot of the Training Bay: the
  * same grid of cards the signed-out front door shows (`StarterSetGrid`),
- * folded under its Slab until its fold opens it (owner, 2026-10-15). Your own
+ * folded under its Slab until its fold opens it. Your own
  * builds come first; the book's are reference, read-only, and kept by making a
  * copy from a build's sheet (`/starter/:kind/:id`), never by editing the
  * book's.

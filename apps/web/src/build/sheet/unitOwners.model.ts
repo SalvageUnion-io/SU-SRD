@@ -3,7 +3,7 @@
  * from its listing (`entities.listForGame`) and its members (`games.members`),
  * as the roster's owner seal reads them (`ownerChipFor`): YOU, a crewmate's
  * name, or UNCLAIMED. A crawler's Assigned units wear it on each Mini's head
- * (owner, round 7: "In crawler bay assigned units, add ownership chips").
+ * (R49).
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

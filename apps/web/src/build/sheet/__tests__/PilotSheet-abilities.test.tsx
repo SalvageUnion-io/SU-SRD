@@ -227,7 +227,7 @@ const foldOf = (title: string) => {
   }
 }
 
-/** The class's trees (round 5): each on its track, the trees side by side. */
+/** The class's trees: each on its track, the trees side by side. */
 const treesOf = (): HTMLElement => {
   const trees = document.querySelector<HTMLElement>('.su-pilot-trees')
   if (!trees) throw new Error('no pilot trees')
@@ -254,8 +254,8 @@ describe('PilotSheet — the abilities fold: the trees on their tracks, the Gene
       expect(trees.shown).toBe(true)
       expect(generic.open).toBe(false)
       expect(generic.shown).toBe(false)
-      // The trees each a track of contentful Minis, one ability a tier
-      // (round 5); the Generic tree a masonry grid of them, one a cell.
+      // The trees each a track of contentful Minis, one ability a tier; the
+      // Generic tree a masonry grid of them, one a cell.
       const tiers = Array.from(trees.trees?.querySelectorAll('.su-ability-track__tier') ?? [])
       const cells = Array.from(generic.grid?.children ?? [])
       for (const group of [tiers, cells]) {
@@ -275,8 +275,8 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
 
-    // Never stored, never picked: every pilot carries the whole tree (board 10
-    // prints Bonesaw's Generic cards beside his one stored ability), in its own
+    // Never stored, never picked: every pilot carries the whole tree (Bonesaw
+    // reads his Generic cards beside his one stored ability), in its own
     // section under the trees the pilot chose, which say none are learned.
     const generic = await openGeneric()
     const names = Array.from(generic.querySelectorAll('.su-entity-mini__name')).map(
@@ -399,7 +399,7 @@ describe("PilotSheet — a hybrid's Add Abilities offers its origin's trees", ()
   })
 })
 
-describe("PilotSheet — the class's own trees (round 5)", () => {
+describe("PilotSheet — the class's own trees", () => {
   test('a Core class shows its Core trees whole, the untaken greyed, never its Advanced tree', () => {
     const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
@@ -414,7 +414,7 @@ describe("PilotSheet — the class's own trees (round 5)", () => {
   })
 })
 
-describe('PilotSheet — a taken ability reads its full rules (round 6)', () => {
+describe('PilotSheet — a taken ability reads its full rules', () => {
   test('Talk Shop taken reads its rules; its untaken tree-mates their lead alone', () => {
     const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)

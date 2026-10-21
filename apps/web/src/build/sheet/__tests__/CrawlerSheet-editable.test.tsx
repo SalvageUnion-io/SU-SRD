@@ -301,14 +301,14 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
     )
 
     expect(screen.queryByRole('button', { name: /Status:/ })).toBeNull()
-    // Read draws no controls at all (board 10): no Repair, no bay function.
+    // Read draws no controls at all: no Repair, no bay function.
     expect(screen.queryByRole('button', { name: 'Repair' })).toBeNull()
 
     expect(update).not.toHaveBeenCalled()
     expect(updateCrawlerBay).not.toHaveBeenCalled()
   })
 
-  test('Read on a sheet its viewer may write still damages a bay (round 6)', async () => {
+  test('Read on a sheet its viewer may write still damages a bay', async () => {
     restore = await patchCrawlerBays()
     const updateCrawlerBay = mock(async () => fakeCrawler)
     render(

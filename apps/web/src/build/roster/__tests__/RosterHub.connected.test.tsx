@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Training Bay at `/`, signed in, end to end through the real `Roster` (board S1).
+ * The Training Bay at `/`, signed in, end to end through the real `Roster`.
  *
  * What these pin:
  *

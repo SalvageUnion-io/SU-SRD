@@ -1,7 +1,7 @@
 /**
  * StarterSheetView — one Starter Set build's sheet: the real `<Sheet>`, read
- * only, over the templates themselves. Its band offers "Make a copy" (board
- * 10) in its top-right corner, and says nothing else: the page is plainly the
+ * only, over the templates themselves. Its band offers "Make a copy" in its
+ * top-right corner, and says nothing else: the page is plainly the
  * Starter Set's, and a sheet with no edit controls is plainly read-only.
  *
  * The store is `makeReadOnlySheetStore` over the whole Starter Set, so the

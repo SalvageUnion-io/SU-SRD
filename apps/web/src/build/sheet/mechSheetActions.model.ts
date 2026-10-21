@@ -193,7 +193,7 @@ export function useMechSheetActions({
   /**
    * Repair to Intact (half SV in Scrap — the cost is shown on the button).
    * `deductTl` is the optional crawler pool bucket to decrement; the repair
-   * itself never blocks on the pool (S12).
+   * itself never blocks on the pool.
    */
   async function repairItem(kind: ItemKind, slug: string, deductTl: number | null, cost: number) {
     const fresh = freshMech()

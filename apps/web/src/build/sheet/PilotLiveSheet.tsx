@@ -1,6 +1,6 @@
 /**
- * PilotLiveSheet — the pilot branch of the live sheet (extracted from
- * Sheet.tsx), in the poster layout.
+ * PilotLiveSheet — the pilot branch of the live sheet (`Sheet` dispatches to
+ * it), in the poster layout.
  *
  * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
  * renders the `SheetHero` band as its first region. This
@@ -43,8 +43,8 @@ export function PilotLiveSheet({
   withheld,
   patch,
 }: PilotLiveSheetProps) {
-  // Softlink ids for the rail's Unassign control (relocated from the removed
-  // detail page). Derived from the live link set — composition only exposes
+  // Softlink ids for the rail's Unassign control. Derived from the live link
+  // set — composition only exposes
   // resolved entities, not the link records. Link add/remove is available
   // whenever the sheet is in Edit, and needs no confirm: an assignment is
   // reversible bookkeeping (ADR-007).

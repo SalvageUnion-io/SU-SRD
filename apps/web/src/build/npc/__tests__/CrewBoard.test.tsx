@@ -1,5 +1,5 @@
 /**
- * Board N2 — crawler crew (ADR-044): design a bay's NPC, save and
+ * Crawler crew (ADR-044): design a bay's NPC, save and
  * assign it, unassign it to fall back to the book's line, and the read-only
  * board for anyone who may not write the crawler (D7).
  */

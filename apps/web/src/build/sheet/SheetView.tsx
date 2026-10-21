@@ -101,7 +101,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
 
   // Who holds each listed pilot and mech: the owner chips on a crawler's
-  // Assigned units (owner, round 7).
+  // Assigned units.
   const me = useQuery(api.account.me, gameId === null ? 'skip' : {})
   const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
   const ownerOf = useMemo<OwnerOf | undefined>(

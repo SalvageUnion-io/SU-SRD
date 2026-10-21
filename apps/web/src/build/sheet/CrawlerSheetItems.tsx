@@ -1,6 +1,6 @@
 /**
- * CrawlerSheetItems — the crawler sheet's bay cards, extracted from
- * CrawlerSheet.tsx (the crawler type's card is `CrawlerTypeCard`).
+ * CrawlerSheetItems — the crawler sheet's bay cards (the crawler type's card
+ * is `CrawlerTypeCard`).
  * Presentational + callback-driven — CrawlerSheet owns all persistence.
  */
 
@@ -102,7 +102,7 @@ type CrawlerBayCardProps = {
   seedSelections: ChoiceSelections | undefined
   store: typeof useEntityStore
   readOnly: boolean
-  /** Read on a sheet its owner tracks: the bay's condition still steps (owner, round 6). */
+  /** Read on a sheet its owner tracks: the bay's condition still steps. */
   liveCondition?: boolean
   /**
    * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
@@ -132,11 +132,11 @@ type CrawlerBayCardProps = {
 
 /**
  * CrawlerBayCard — one installed bay as a CONTENTFUL Mini, in one subtle
- * border (`MiniGroup`; owner's calls, 2026-10-20): its head (its
+ * border (`MiniGroup`): its head (its
  * condition stepping Intact ↔ Damaged from its state slot, its function and
- * Repair in its chip group, C8), then in its body (owner's review,
- * 2026-10-20) its Bay Info, folded, and its When Damaged, open once it is
- * damaged, first (owner, round 10); then its choices (the Armament Bay's
+ * Repair in its chip group, C8), then in its body (R46) its Bay Info,
+ * folded, and its When Damaged, open once it is
+ * damaged, first; then its choices (the Armament Bay's
  * weapon pick), its roll table, what it holds and its crew lead's collapsed
  * Mini (`CrewLeadMini`); every section at the Mini Size, the sidebar's
  * Storage Bay's alike.
@@ -227,8 +227,8 @@ export function CrawlerBayCard({
   const inlineReadOnly = readOnly || assigned !== undefined
   // The crew lead is a contentful Mini (N3): its head Peeks the bay's crew
   // NPC, embedded as its bay card nests it (`nestedEntityGroups`); its body is
-  // what the sheet tracks about them, and in Edit their fields (owner's call,
-  // 2026-10-17). A bay the book gives no crew NPC still has a crew lead.
+  // what the sheet tracks about them, and in Edit their fields. A bay the
+  // book gives no crew NPC still has a crew lead.
   const inlineCrew = (
     <CrewLeadMini
       {...(npc
@@ -284,14 +284,14 @@ export function CrawlerBayCard({
   const { normal } = splitBayContent(bay.content)
   const damagedText = damagedEffectOf(bay) ?? ''
   const tokenData = { ...bay, npc: undefined, content: normal } as unknown as RefMetaEntity
-  // Its Bay Info folds, the sidebar's Storage Bay's too (owner, round 5).
+  // Its Bay Info folds, the sidebar's Storage Bay's too.
   const infoFold = 'closed'
 
-  // The bay is a CONTENTFUL Mini (owner's call, 2026-10-20): its head (its
+  // The bay is a CONTENTFUL Mini: its head (its
   // condition steps from the state slot, C8; a bay is Intact or Damaged,
   // never Destroyed; its function and Repair are the last slot), then in its
-  // body everything that is the bay's (owner's review, 2026-10-20): its Bay
-  // Info and When Damaged first (owner, round 10), then its choices and roll
+  // body everything that is the bay's: its Bay
+  // Info and When Damaged first, then its choices and roll
   // table, what it holds and its crew lead's collapsed Mini, each section at
   // the Mini Size.
   const line = (
@@ -310,15 +310,13 @@ export function CrawlerBayCard({
                 <BayInfo subject={bay.name} fold={infoFold} size="mini">
                   <Content body={normal as ComponentProps<typeof Content>['body']} />
                 </BayInfo>
-                {/* Bay Info and When Damaged first, then everything else (owner,
-                    round 10). */}
+                {/* Bay Info and When Damaged first, then everything else (R46). */}
                 {damagedText && (
                   <WhenDamaged
                     key={condition}
                     effect={damagedText}
                     subject={bay.name}
-                    // Its When Damaged folds in the sidebar too (owner, 2026-10-20:
-                    // When Damaged "in the storage bay should be collapsible").
+                    // Its When Damaged folds in the sidebar too (R46).
                     fold={damaged ? 'open' : 'closed'}
                     size="mini"
                   />
@@ -378,7 +376,7 @@ export function CrawlerBayCard({
     />
   )
 
-  // The bay's Mini, in one subtle border (owner's call, 2026-10-20).
+  // The bay's Mini, in one subtle border.
   return (
     <>
       <MiniGroup label={bay.name}>{line}</MiniGroup>

@@ -47,7 +47,7 @@ describe('a Starter Set sheet', () => {
     expect(copy.closest('.su-chapter-band__corner')).not.toBeNull()
     // The band names the class and Bonesaw's callsign is the title, so the
     // identity card repeats neither under it: the class's one other place is
-    // its Mini under the vitals (round 4).
+    // its Mini under the vitals.
     expect(screen.getAllByText('Engineer')).toHaveLength(2)
     expect(screen.queryByText('Callsign')).toBeNull()
   })

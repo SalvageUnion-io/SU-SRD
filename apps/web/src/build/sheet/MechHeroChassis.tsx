@@ -1,9 +1,9 @@
 /**
- * MechHeroChassis — the mech hero's right column (owner's call, 2026-10-14:
- * the hero is image | text | stats + ability): the mech's chassis stats in
+ * MechHeroChassis — the mech hero's right column (the hero is image | text |
+ * stats + ability): the mech's chassis stats in
  * the hero's top-right corner, the chassis ability under them as a
  * contentful Mini, its head and then its text, Peeking its whole card
- * (owner's call, 2026-10-20; EDL E19 allows a contentful Mini anywhere).
+ * (EDL E19 allows a contentful Mini anywhere).
  */
 
 import type { CSSProperties } from 'react'

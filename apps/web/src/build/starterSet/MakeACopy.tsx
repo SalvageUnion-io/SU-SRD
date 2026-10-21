@@ -1,5 +1,5 @@
 /**
- * "Make a copy" — the Starter Set sheet's one action (board 10):
+ * "Make a copy" — the Starter Set sheet's one action:
  * copy this build onto the player's shelf, to edit and play. The template is
  * untouched (`copyStarter`). Copying into a Game is the Starter Set page's
  * "Copy to…", which lists the destinations.

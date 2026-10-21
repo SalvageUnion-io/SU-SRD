@@ -149,7 +149,7 @@ describe('LiveSheet — condensed identity (name stamp)', () => {
   })
 })
 
-describe('LiveSheet — the chapter band (board 10)', () => {
+describe('LiveSheet — the chapter band', () => {
   test('the name is the band’s h1 (its kind for screen readers) and its detail', () => {
     renderShell({ kindDetail: ENGINEER })
     const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
@@ -188,7 +188,7 @@ describe('LiveSheet — the chapter band (board 10)', () => {
     expect(within(band).getAllByText('Scrapper')).toHaveLength(1)
   })
 
-  test('a pattern-named mech says so: “its name” and a PATTERN chip (round 5)', () => {
+  test('a pattern-named mech says so: “its name” and a PATTERN chip', () => {
     renderShell({ variant: 'mech', name: 'Mazona', quoted: true })
     const title = screen.getByRole('heading', { level: 1, name: /“Mazona”/ })
     const band = must(title.closest<HTMLElement>('.su-chapter-band'))
@@ -241,7 +241,7 @@ describe('LiveSheet — the chapter band (board 10)', () => {
 })
 
 describe('LiveSheet — the condensed bar’s linked units', () => {
-  test('each other unit is its header-only Mini, linking to its sheet, never a chip (round 4)', () => {
+  test('each other unit is its header-only Mini, linking to its sheet, never a chip', () => {
     renderShell({
       segments: [
         { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
@@ -270,7 +270,7 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
   })
 })
 
-describe('LiveSheet — condense strip gating (S11)', () => {
+describe('LiveSheet — condense strip gating', () => {
   test('resting state: strip is aria-hidden with pointer-events disabled', () => {
     renderShell()
     const wrapper = stripWrapper()

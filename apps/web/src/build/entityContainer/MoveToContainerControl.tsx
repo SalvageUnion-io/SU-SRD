@@ -2,8 +2,8 @@
  * MoveToContainerControl — live-sheet affordance for moving one entity between
  * **Shelves** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
- * Replaces `AssignToWorkspaceButton`. A select (`ContainerPicker`), with Workspaces swapped for the
- * two real containers. Moving INTO a Game is one tap unless it clears an
+ * A select (`ContainerPicker`) of the two containers. Moving INTO a Game is
+ * one tap unless it clears an
  * assignment; moving OUT of one — back to your shelves, or on to another Game —
  * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
  * and "Move to your Training Bay" on a Game's rows).

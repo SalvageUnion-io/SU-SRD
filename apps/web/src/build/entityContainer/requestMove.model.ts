@@ -1,8 +1,8 @@
 /**
  * The one decision every container move makes before it moves anything: does
  * it ask first? Shared by the live sheet's "In:" select
- * (`MoveToContainerControl`) and a shelf item's "Move to a Game…" (Shelves,
- * board S1), so the two cannot disagree about when a move confirms.
+ * (`MoveToContainerControl`) and a shelf item's "Move to a Game…" (Shelves),
+ * so the two cannot disagree about when a move confirms.
  *
  *  - **Out of a Game** — to the shelf or on to another Game — always asks
  *    (`leaveGame`): it takes the build off a roster the table was reading.

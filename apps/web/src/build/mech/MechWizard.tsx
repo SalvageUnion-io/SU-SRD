@@ -44,7 +44,7 @@ const STEPS: readonly MechWizardStepId[] = [
   'review',
 ]
 
-/** Stepper-rail labels (mockup Screen 02 `.rlabel`). */
+/** Stepper-rail labels. */
 const STEP_LABELS: Record<MechWizardStepId, string> = {
   scrap: 'Gain Scrap',
   chassis: 'Craft your Chassis',
@@ -87,7 +87,7 @@ type MechWizardProps = {
 
 /**
  * Multi-step mech wizard on the shared WizShell skeleton, restructured to
- * the Mech Workshop's 8 book steps + Review (mockup Screen 02) with the
+ * the Mech Workshop's 8 book steps + Review with the
  * 20-Scrap economy enforced HARD (§5):
  *
  *   - illegal options are FILTERED OUT (Tech 1 chassis/systems/modules only;
@@ -353,7 +353,7 @@ export function MechWizard({
 
   // Tracker tabs in the action pill: the SCRAP tab debuts on step 1 and rides
   // along wherever scrap can move; the slot pip chips join on their own
-  // crafting steps (mockup Screen 02).
+  // crafting steps.
   const trackers = (() => {
     const scrap = (
       <WizTracker

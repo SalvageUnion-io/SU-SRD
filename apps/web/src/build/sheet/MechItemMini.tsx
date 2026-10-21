@@ -1,7 +1,7 @@
 /**
  * MechItemMini — ONE installed system/module as the entity display language's
- * TOKEN (owner's call, 2026-10-14: a sheet's Systems, Modules and Assigned
- * Units are Minis that Peek, not cards that expand). Hover, focus or a long
+ * TOKEN (R35: a sheet's Systems, Modules and Assigned Units are Minis that
+ * Peek, not cards that expand). Hover, focus or a long
  * press Peeks the whole card; a damaged or destroyed item's pill greys.
  *
  * Its controls sit ON the Mini's line (`SheetItemLine`, which a pilot's

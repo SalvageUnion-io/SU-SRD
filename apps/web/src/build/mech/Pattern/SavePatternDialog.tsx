@@ -1,6 +1,6 @@
 /**
- * SavePatternDialog — save a mech's chassis and loadout as a pattern (board
- * P1), over the screen it was asked from: the mech sheet's More actions, a
+ * SavePatternDialog — save a mech's chassis and loadout as a pattern, over
+ * the screen it was asked from: the mech sheet's More actions, a
  * Hangar shelf's menu, the builder's review.
  *
  * It shows the pattern as a chassis page lists its patterns (`PatternListing`)

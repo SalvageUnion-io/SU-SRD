@@ -219,8 +219,8 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
     // (the Bio grows into whatever is left) instead of leaving dead paper.
     <div style={PANEL}>
       {/* In Edit the picture sits beside the field grid only; Appearance
-          and the Bio run the card's full width under both (owner's review,
-          2026-10-20: no empty column under the photo). Read's fields are
+          and the Bio run the card's full width under both, so no empty column
+          stands under the photo. Read's fields are
           short lines, so the prose stays beside the photo. */}
       <PhotoBeside
         photo={photo}
@@ -302,8 +302,8 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
             </div>
           )}
           {/* With nothing beside them (Read, most often), the three short
-              traits share one row, so the card spends no height on their gaps
-              (owner, round 4: "less whitespace"); the Bio runs under. */}
+              traits share one row, so the card spends no height on their gaps;
+              the Bio runs under. */}
           <div
             className={leftColumn ? undefined : 'su-sheet-pilot-traits'}
             style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}

@@ -1,19 +1,19 @@
 /**
  * MechChassisCard — the mech sheet's CHASSIS callout, the sidebar's first
- * block under the vitals (owner's call, 2026-10-20; 2026-10-14: the hero is
+ * block under the vitals (2026-10-14: the hero is
  * the player's photo and what they wrote;
  * "Chassis has a reference" — a separate, smaller card with the chassis
  * description, in the house titled box the Starter Set and Shelves rows'
  * blocks share).
  *
  * A `TitledBox` in the chassis's tone: its name on the cut-out `Head` at the
- * head's left, in line with the text under it (owner's call, 2026-10-20), with a
- * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), in Edit CHANGE
+ * head's left, in line with the text under it, with a
+ * CHASSIS chip beside it (`Chips`), in Edit CHANGE
  * CHASSIS as a Mini chip at the band's end (its `controls`; destructive, it
  * keeps its own confirm step), and a paper body holding the chassis's art
  * (the Compact's `Art`; fixed: the player's photo is the hero's) and the
  * book's description. The mech's chassis stats and the chassis ability are in the
- * hero (owner's call, 2026-10-14).
+ * hero.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'

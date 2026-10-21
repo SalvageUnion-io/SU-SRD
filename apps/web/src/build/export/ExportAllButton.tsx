@@ -5,8 +5,8 @@ import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
 
 /**
- * "Export all" and its failure line. On an ink band (Shelves, the Roster,
- * board S1) the band's `data-ground` makes the button the on-ink ghost and the
+ * "Export all" and its failure line. On an ink band (Shelves, the Roster)
+ * the band's `data-ground` makes the button the on-ink ghost and the
  * line paper, in CSS (chrome K1).
  */
 export function ExportAllButton() {

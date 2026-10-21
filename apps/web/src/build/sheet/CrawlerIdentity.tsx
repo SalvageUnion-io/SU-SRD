@@ -99,7 +99,7 @@ export function CrawlerIdentityPanel({
     <section aria-label="Crawler identity" style={PANEL}>
       {/* The Description leads, beside the picture, after the Name and Type
           in Edit; the type's internals run the card's full width under both in
-          Edit (owner's review, 2026-10-20: no empty column under the photo),
+          Edit, so no empty column stands under the photo,
           and stay beside the photo in Read. */}
       <PhotoBeside
         photo={photo}
@@ -121,8 +121,7 @@ export function CrawlerIdentityPanel({
                 ability={
                   abilities.length > 0 &&
                   // Contentful Minis, each its head and then its text, Peeking
-                  // the whole ability (owner's call, 2026-10-20: every sheet
-                  // entity a contentful Mini).
+                  // the whole ability: every sheet entity a contentful Mini.
                   abilities.map((ability) => (
                     <li key={ability.id}>
                       <Entity
@@ -145,8 +144,8 @@ export function CrawlerIdentityPanel({
               Edit keeps the field to rename it, as a pilot's Name. Tech Level
               is not here: it is the band's TL chip, beside the type's. */}
           {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
-          {/* Read leaves the Type out: the band's TYPE chip names it (owner,
-              round 5: "reductive"); Edit keeps it to change it. */}
+          {/* Read leaves the Type out: the band's TYPE chip names it; Edit
+              keeps it to change it. */}
           {canEdit && (
             <Field
               label="Type"
@@ -154,7 +153,7 @@ export function CrawlerIdentityPanel({
               onEditClick={() => setTypePickerOpen(true)}
             />
           )}
-          {/* The Description leads the hero (owner, round 5). */}
+          {/* The Description leads the hero. */}
           <Field
             label="Description"
             value={crawler.description ?? ''}
