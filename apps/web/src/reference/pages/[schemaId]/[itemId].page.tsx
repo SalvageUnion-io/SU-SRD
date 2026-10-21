@@ -34,6 +34,9 @@ import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
 
+/** The stats a crawler tech level's band keeps; the rest are its body's text. */
+const BAND_STATS: ReadonlySet<string> = new Set(['Tech Level', 'Structure Points'])
+
 type Params = { schemaId: string; itemId: string }
 
 type Props = {
@@ -52,13 +55,14 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const chapter = chapterForSchema(schemaId)
   const fill = bandFillFor(schemaId, item)
   // A crawler tech level's facts are its body's block of text, the book's
-  // (`CrawlerTechLevelPage`): its band keeps only its Tech Level.
+  // (`CrawlerTechLevelPage`): its band keeps its Tech Level and Structure
+  // Points (owner, round 6: "move SP to the page header").
   const techLevelPage = schemaId === 'crawler-tech-levels'
   const resolvedMeta = resolveEntityPageMeta(item)
   const pageMeta = techLevelPage
     ? {
         ...resolvedMeta,
-        stats: resolvedMeta.stats.filter((stat) => stat.label === 'Tech Level'),
+        stats: resolvedMeta.stats.filter((stat) => BAND_STATS.has(stat.label)),
         facts: [],
       }
     : resolvedMeta

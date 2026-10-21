@@ -51,6 +51,7 @@ export function RollMini({
   onRoll,
   peekAt,
   toggle,
+  size = 'mini',
 }: {
   /** The table's name, on the cut-out. */
   name: string
@@ -62,6 +63,8 @@ export function RollMini({
   peekAt?: string
   /** A choice of table: pressed while it is open, `dim` beside a chosen one. */
   toggle?: { pressed: boolean; onToggle: () => void; dim?: boolean }
+  /** Nested in a Page (a Full host), one size up: a Compact head (owner, round 6). */
+  size?: 'mini' | 'compact'
 }) {
   const peek = usePeekAttrs(undefined, toggle ? undefined : peekAt)
   const peeks = Object.keys(peek).length > 0
@@ -80,7 +83,10 @@ export function RollMini({
     )
   }
   return (
-    <div className="su-entity-mini su-roll-token">
+    <div
+      className="su-entity-mini su-roll-token"
+      data-size={size === 'compact' ? 'compact' : undefined}
+    >
       <div className={PILL} style={TOKEN_PILL}>
         {/* The name tab is the Peek's trigger, focusable so a keyboard
             opens it too; the roll beside it is its own control. */}
@@ -93,7 +99,7 @@ export function RollMini({
         </span>
         {/* Its chip group (C8): the roll, the strip's one action. */}
         <span className="su-roll-token__actions" data-chip-group="">
-          <RollControl name={name} size="mini" onRoll={onRoll}>
+          <RollControl name={name} size={size} onRoll={onRoll}>
             {stamp ?? 'Roll the Die:'}
           </RollControl>
         </span>

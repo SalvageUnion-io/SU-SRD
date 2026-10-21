@@ -41,6 +41,19 @@
   opacity: 0.5;
 }
 
+/* A stem is the track's colour only between two abilities the pilot has
+   both taken; touching an untaken one it is grey (owner, round 6). */
+.su-pilot-trees .su-ability-track__tier:has(> .su-pilot-ability--unlearned)::after,
+.su-pilot-trees
+  .su-ability-track__tier:has(+ .su-ability-track__tier > .su-pilot-ability--unlearned)::after,
+.su-pilot-trees
+  .su-ability-track__tier:has(> .su-pilot-ability--unlearned)
+  + .su-ability-track__or::before,
+.su-pilot-trees
+  .su-ability-track__or:has(+ .su-ability-track__tier > .su-pilot-ability--unlearned)::before {
+  background: var(--color-ink-40);
+}
+
 /* The pilot's trees as the class page draws them (`AbilityTrack`), three
    across where they fit, one each on a phone (owner, round 5). Side by side,
    each tree is its slab and its tiers on the trees' own rows, so the trees'

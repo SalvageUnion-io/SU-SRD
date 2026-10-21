@@ -168,7 +168,14 @@ export function CardPage({
       )}
     >
       {hasMain && (
-        <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
+        <div
+          className={cn(
+            'su-entity-page__main',
+            !!hero && 'su-entity-page__main--art',
+            // Its actions wrap under the art (owner, round 6).
+            !!hero && otherActions.length > 0 && 'su-entity-page__main--wrap'
+          )}
+        >
           {hero && <div className="su-entity-page__art">{hero}</div>}
           <div className="su-entity-page__side">
             {stats.length > 0 && (

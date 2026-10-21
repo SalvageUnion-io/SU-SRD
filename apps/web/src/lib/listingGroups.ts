@@ -79,6 +79,14 @@ function groupBySource(items: RefEntity[]): ListingGroup[] {
   }))
 }
 
+/**
+ * How a Catalog groups its tiles: flat, except the classes, whose Core and
+ * Hybrid classes each sit under their own heading (owner, round 6).
+ */
+export function catalogGroupBy(schemaId: string): GroupBy {
+  return schemaId === 'classes' ? 'kind' : 'none'
+}
+
 export function resolveGroupBy(
   items: RefEntity[],
   trees: string[],
@@ -123,7 +131,7 @@ export function groupEntities(items: RefEntity[], groupBy: GroupBy): ListingGrou
             ? `${String(bay)} Bays`
             : hybrid
               ? 'Hybrid Classes'
-              : 'Base Classes'
+              : 'Core Classes'
     const group = byKey.get(key) ?? { key, label, items: [] }
     group.items.push(item)
     byKey.set(key, group)

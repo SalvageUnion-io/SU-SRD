@@ -10,6 +10,7 @@ import type { GenericInventoryEntry } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
+import { extractVisibleActions } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
 import {
   AdderBox,
@@ -21,6 +22,7 @@ import {
   ReferenceEntityCard,
   Stat,
 } from '../../components/index'
+import { Content } from '../../components/referenceEntity/Content'
 import { EntityDetailDialog } from '../../components/referenceEntity/EntityDetailDialog'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
@@ -60,6 +62,28 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
+  /** Trained: its body reads its full rules, every action's text, not only its lead (owner, round 6). */
+  full?: boolean
+}
+
+/**
+ * A trained ability's full rules under its lead: each of its actions' text,
+ * one that is not the ability's own name under its name. Text, never a
+ * nested entity (a Mini nests nothing, E6).
+ */
+function AbilityRules({ ability }: { ability: RefAbility }) {
+  const actions = (extractVisibleActions(ability) ?? []).filter((action) => action.content?.length)
+  if (actions.length === 0) return null
+  return (
+    <>
+      {actions.map((action) => (
+        <div key={action.id} className="su-pilot-ability__rules">
+          {action.name !== ability.name && <strong>{action.name}</strong>}
+          <Content body={action.content ?? []} compact />
+        </div>
+      ))}
+    </>
+  )
 }
 
 /**
@@ -77,6 +101,7 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
+  full = false,
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
   // Spend and Used are one "⋯" in the chip group's last slot (C8): its state
@@ -96,7 +121,13 @@ export function PilotAbilityItem({
   return (
     <SheetItemLine
       token={
-        <Entity size="mini" context="play" entity={ability} mode={{ kind: 'link' }} body={{}} />
+        <Entity
+          size="mini"
+          context="play"
+          entity={ability}
+          mode={{ kind: 'link' }}
+          body={full ? { children: <AbilityRules ability={ability} /> } : {}}
+        />
       }
       name={ability.name}
       readOnly={readOnly}

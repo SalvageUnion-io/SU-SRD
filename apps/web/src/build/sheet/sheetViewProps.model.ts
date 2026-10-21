@@ -44,6 +44,11 @@ export type SheetViewCommonProps = {
   editable: boolean
   readOnly: boolean
   /**
+   * The viewer may write this sheet, in Read too: the play state Read still
+   * steps (a crawler bay's condition; owner, round 6). Absent, as `editable`.
+   */
+  trackable?: boolean
+  /**
    * The viewer may not write the Game's crawler (a player: the Mediator keeps
    * it, ADR-038 §5). Closes the cargo moves and scrap draws that would write
    * it from a pilot's or mech's own sheet; `readOnly` still governs the rest.

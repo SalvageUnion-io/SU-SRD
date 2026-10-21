@@ -41,6 +41,11 @@ type SheetItemLineProps = {
   onConditionCycle?: () => void
   /** The condition a step goes to, where it is not the next of three (a crawler bay: Intact ↔ Damaged). */
   nextCondition?: ItemCondition
+  /**
+   * Read on a sheet its owner may track: the condition still steps, as the
+   * SP gauge does (a crawler bay is damaged in play; owner, round 6).
+   */
+  liveCondition?: boolean
   /** Read: a stamp in the state slot (an ability's "Used"), beside any condition. */
   stamp?: string
   /** Uses left out of a max; absent when the item has none. */
@@ -58,6 +63,7 @@ export function SheetItemLine({
   readOnly,
   onConditionCycle,
   nextCondition,
+  liveCondition = false,
   stamp,
   uses,
   actions,
@@ -74,6 +80,28 @@ export function SheetItemLine({
   // condition in its state slot, as does any `stamp`.
   // The token's own state (a carried entry's quantity) leads the slot.
   const own = token.props.state
+  // The condition's stepper, its next one named on it.
+  const stepper = condition && (
+    <span className="su-sheet-item__condition">
+      <StatusBadge
+        status={condition}
+        subject={name}
+        onClick={onConditionCycle}
+        {...(nextCondition ? { next: nextCondition } : {})}
+      />
+    </span>
+  )
+  if (readOnly && liveCondition && onConditionCycle && condition) {
+    return cloneElement(token, {
+      state: (
+        <>
+          {own}
+          {stepper}
+          {stampChip}
+        </>
+      ),
+    })
+  }
   if (readOnly) {
     const damaged = condition !== undefined && condition !== 'intact'
     if (!damaged && !stamp) return token
@@ -98,18 +126,7 @@ export function SheetItemLine({
       condition || stampChip || own ? (
         <>
           {own}
-          {condition ? (
-            <span className="su-sheet-item__condition">
-              <StatusBadge
-                status={condition}
-                subject={name}
-                onClick={onConditionCycle}
-                {...(nextCondition ? { next: nextCondition } : {})}
-              />
-            </span>
-          ) : (
-            stampChip
-          )}
+          {condition ? stepper : stampChip}
         </>
       ) : undefined,
     ...(hasUses

@@ -79,6 +79,22 @@ describe('CardRollTable', () => {
     expect(trigger?.getAttribute('tabindex')).toBe('0')
   })
 
+  test('nested beside a Full host it is one size up, a Compact head (round 6)', () => {
+    render(
+      <CardRollTable
+        table={coreMechanic()}
+        name="Core Mechanic"
+        size="compact"
+        nested
+        nestedSize="compact"
+        disabled={false}
+      />
+    )
+    expect(document.querySelector('.su-roll-token')?.getAttribute('data-size')).toBe('compact')
+    const roll = screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
+    expect(roll.classList.contains('su-btn--mini')).toBe(false)
+  })
+
   test('a damaged host reads the table but cannot roll it', () => {
     render(<CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled />)
     expect(screen.queryByRole('button', { name: /^Roll/ })).toBeNull()

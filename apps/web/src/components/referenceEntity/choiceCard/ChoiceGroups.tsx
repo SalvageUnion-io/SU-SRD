@@ -378,8 +378,10 @@ function ChoiceOptionGroup({
             name={`${tableName} Table`}
             size={compact ? 'mini' : 'compact'}
             // Collapsed into its header everywhere, a Page included: name and
-            // Roll the Die, its rows its Peek's (owner, round 5).
+            // Roll the Die, its rows its Peek's (owner, round 5); a Compact
+            // head beside a Full host's, a Mini in a card's (round 6).
             nested
+            nestedSize={compact ? 'mini' : 'compact'}
             peekAt={tablePeekAddress(tableEntity)}
             disabled={false}
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}

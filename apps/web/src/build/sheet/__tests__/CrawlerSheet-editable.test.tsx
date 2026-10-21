@@ -16,7 +16,7 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
@@ -306,6 +306,27 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
 
     expect(update).not.toHaveBeenCalled()
     expect(updateCrawlerBay).not.toHaveBeenCalled()
+  })
+
+  test('Read on a sheet its viewer may write still damages a bay (round 6)', async () => {
+    restore = await patchCrawlerBays()
+    const updateCrawlerBay = mock(async () => fakeCrawler)
+    render(
+      <CrawlerSheet
+        crawler={fakeCrawler}
+        store={makeStubStore(fakeCrawler, { updateCrawlerBay })}
+        readOnly
+        trackable
+      />
+    )
+    const steppers = screen.getAllByRole('button', {
+      name: /status: Intact\. Activate to mark Damaged/,
+    })
+    expect(steppers.length).toBeGreaterThan(0)
+    // Only the condition steps: Read still draws no Repair.
+    expect(screen.queryByRole('button', { name: 'Repair' })).toBeNull()
+    fireEvent.click(steppers[0] as HTMLElement)
+    await waitFor(() => expect(updateCrawlerBay).toHaveBeenCalledTimes(1))
   })
 })
 

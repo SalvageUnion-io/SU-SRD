@@ -128,6 +128,11 @@ type CrawlerSheetProps = {
   /** Suppresses every edit affordance (published snapshots). */
   readOnly?: boolean
   /**
+   * Read, on a sheet its owner may track (`SheetCrawler`'s `editable`): a
+   * bay's condition still steps, as the SP gauge does (owner, round 6).
+   */
+  trackable?: boolean
+  /**
    * The economy band content (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade
    * lozenges) — built by `SheetCrawler` (it owns the economy-dialog state
    * and `patch`), rendered as the identity band's vitals rail. Undefined
@@ -164,6 +169,7 @@ export function CrawlerSheet({
   mechHref,
   store = useEntityStore,
   readOnly = false,
+  trackable = false,
   economy,
   economyActions,
   linkedUnits,
@@ -351,6 +357,7 @@ export function CrawlerSheet({
         seedSelections={crawler.bayChoices?.[entry.bayRef]}
         store={store}
         readOnly={readOnly}
+        trackable={trackable}
         dockedMech={kind === 'mech' && mech ? { name: mech.name, href: mechHref } : undefined}
         // "Mount" opens the weapons picker — the thing the verb means — rather
         // than the bay's rules text.

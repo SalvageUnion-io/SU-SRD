@@ -413,3 +413,19 @@ describe("PilotSheet — the class's own trees (round 5)", () => {
     expect(treesOf().querySelectorAll('.su-ability-track').length).toBeGreaterThan(1)
   })
 })
+
+describe('PilotSheet — a taken ability reads its full rules (round 6)', () => {
+  test('Talk Shop taken reads its rules; its untaken tree-mates their lead alone', () => {
+    const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    const rules = treesOf().querySelectorAll('.su-pilot-ability__rules')
+    expect(rules.length).toBeGreaterThan(0)
+    for (const block of rules) {
+      expect(block.closest('.su-pilot-ability--unlearned')).toBeNull()
+      expect((block.textContent ?? '').length).toBeGreaterThan(0)
+    }
+    expect(
+      treesOf().querySelector('.su-pilot-ability--unlearned .su-pilot-ability__rules')
+    ).toBeNull()
+  })
+})

@@ -24,6 +24,7 @@ export const DISCORD_TONE_ACCENT: Readonly<Record<string, number>> = {
   'denizen-band': 0x2f4a66,
   adversary: 0x8c4b38,
   'tier-hybrid': 0xb7410e,
+  'class-hybrid': 0x6b4423,
   'tl-1': 0x73c9e6,
   'tl-2': 0x57a9c8,
   'tl-3': 0x5391a9,

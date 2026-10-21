@@ -57,6 +57,7 @@ export function SheetCrawler({
   band,
   editable,
   readOnly,
+  trackable = editable,
   store,
   storeState,
   holds,
@@ -334,6 +335,7 @@ export function SheetCrawler({
             mechHref={composition.mech ? hrefFor('mech', composition.mech.id) : undefined}
             store={store}
             readOnly={readOnly}
+            trackable={trackable}
             economy={economy}
             economyActions={economyActions}
             linkedUnits={rail}

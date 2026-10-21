@@ -57,6 +57,7 @@ export function CardRollTable({
   tone,
   onRollResult,
   peekAt,
+  nestedSize = 'mini',
 }: {
   table: RefObjectTable
   /** The table's name, for the bar. */
@@ -74,6 +75,8 @@ export function CardRollTable({
   onRollResult?: (text: string, key: string) => void
   /** Nested: the table's Peek address (`tablePeekAddress`); none, and its name only reads. */
   peekAt?: string
+  /** Nested: its head's Size, a Mini, or a Compact in a Full host (owner, round 6). */
+  nestedSize?: 'mini' | 'compact'
 }) {
   // A "20"-only table reads with its "1–19: Nothing happens." row (owner, round 4).
   const table = withNothingHappens(bookTable)
@@ -132,6 +135,7 @@ export function CardRollTable({
       <RollMini
         name={name}
         stamp={stamp}
+        size={nestedSize}
         {...(onRoll ? { onRoll } : {})}
         {...(peekAt ? { peekAt } : {})}
       />

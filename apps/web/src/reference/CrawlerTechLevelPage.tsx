@@ -1,6 +1,6 @@
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { Entity, Slab, Stat, TitledBox } from '../components/index'
+import { Box, Entity, Slab } from '../components/index'
 import { itemHref } from '../lib/entityHref'
 
 /**
@@ -10,7 +10,8 @@ import { itemHref } from '../lib/entityHref'
  * redesign it, taking use of the sidebar space"). The book sets each level
  * as a block of text (Core Book p.218: "Structure Points: 20 / Upkeep: 5×
  * Tech 1 Scrap ..."), so the level's facts are that block, read as the book
- * reads them, on its own TitledBox; the band carries only its Tech Level. The
+ * reads them, in a plain Box (owner, round 6: "should not be a infobox");
+ * the band carries its Tech Level and Structure Points. The
  * sidebar is the ladder, every level a header-only Compact in order, this
  * one marked, the rest linking to their Pages. Every word is the data's
  * (`crawler-tech-levels.json`), the book's phrasing around it.
@@ -35,7 +36,7 @@ function population({ populationMin, populationMax }: TechLevel): string {
 }
 
 /** The book's lines for one level, label first, in its order; its Tech Level
- * and Structure Points are the box's chips (owner, round 4). */
+ * and Structure Points are the band's. */
 function bookLines(level: TechLevel): { label: string; value: string }[] {
   const scrap = `Tech ${level.techLevel} Scrap`
   return [
@@ -58,20 +59,7 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
   )
   return (
     <div className="su-tech-level">
-      <TitledBox
-        title={level.name}
-        titleAs="h2"
-        tone="crawler"
-        className="su-tech-level__block"
-        // Its stats are chips beside the name, as an entity's are (owner,
-        // round 4: "move SP and Tech to Chips for the main content as well").
-        chips={
-          <>
-            <Stat label="Tech Level" value={level.techLevel} size="compact" />
-            <Stat label="Structure Points" value={level.structurePoints} size="compact" />
-          </>
-        }
-      >
+      <Box className="su-tech-level__block">
         {/* The book's lines as it prints them, "Upkeep: 5× Tech 1 Scrap". */}
         <div className="su-tech-level__lines">
           {bookLines(level).map(({ label, value }) => (
@@ -80,7 +68,7 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
             </p>
           ))}
         </div>
-      </TitledBox>
+      </Box>
       <aside className="su-tech-level__ladder" aria-label="Union Crawler Tech Levels">
         <Slab as="h2" label="Tech Levels" />
         <ol className="su-tech-level__rungs">

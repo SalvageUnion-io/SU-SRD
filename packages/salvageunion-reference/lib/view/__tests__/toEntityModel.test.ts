@@ -203,6 +203,15 @@ describe('entityTone', () => {
     expect(entityTone('actions', as(base))).toBe('ink')
   })
 
+  test('a Hybrid class wears its own brown, a Core class pilot orange (round 6)', () => {
+    const classes = SalvageUnionReference.Classes.all()
+    const hybrid = classes.find((c) => 'hybrid' in c && c.hybrid === true)
+    const core = classes.find((c) => !('hybrid' in c && c.hybrid === true))
+    if (!hybrid || !core) throw new Error('fixtures missing')
+    expect(entityTone('classes', hybrid)).toBe('class-hybrid')
+    expect(entityTone('classes', core)).not.toBe('class-hybrid')
+  })
+
   test('abilities take their tier tone: core, advanced or hybrid, legendary', () => {
     const tones = new Set(
       SalvageUnionReference.Abilities.all().map((a) => entityTone('abilities', a))

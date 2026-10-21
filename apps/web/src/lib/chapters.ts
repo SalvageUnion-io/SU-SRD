@@ -222,7 +222,7 @@ export function listingBandFillFor(schemaId: string): BandFill | undefined {
  * (`entityTone`), the colour its card's header and Compact wear, head and foot
  * (owner, round 4: "fix the band colors to always match the entity"). Gear
  * (systems, modules, drones, equipment, vehicles) wears its tech level's
- * colour; a Hybrid Class its tier's rust; an ability its tier's colour (E12);
+ * colour; a Hybrid Class its brown; an ability its tier's colour (E12);
  * a creation guide its entity's colour, Heat its red (`guideTone`).
  * Every other page wears its chapter's band from the colour map
  * (`undefined`); a listing's is `listingBandFillFor`.
@@ -231,7 +231,7 @@ export function bandFillFor(schemaId: string, entity: RefEntity): BandFill | und
   if (schemaId === 'abilities') return abilityBandFill(entity)
   if (!isSchemaName(schemaId)) return undefined
   const tone = entityTone(schemaId, entity)
-  const own = tone.startsWith('tl-') || tone === 'tier-hybrid'
+  const own = tone.startsWith('tl-') || tone === 'tier-hybrid' || tone === 'class-hybrid'
   // A guide that is not rules blue: a creation guide's entity, Heat's red.
   const guide = schemaId === 'guides' && tone !== 'wk-line'
   if (own || guide) return { band: `var(--color-${tone})` }

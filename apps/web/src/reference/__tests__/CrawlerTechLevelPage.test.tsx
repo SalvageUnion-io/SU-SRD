@@ -18,7 +18,7 @@ describe('CrawlerTechLevelPage', () => {
   test('reads the level as the book prints it', () => {
     const { container } = render(<CrawlerTechLevelPage item={level('Hamlet Crawler')} />)
     const lines = [...container.querySelectorAll('.su-tech-level__line')].map((p) => p.textContent)
-    // Its Structure Points ride its head, a chip beside its Tech Level (round 4).
+    // Its Tech Level and Structure Points ride the page's band (round 6).
     expect(lines).toEqual([
       'Upkeep: 5× Tech 1 Scrap',
       'Upgrade: 30× Tech 1 Scrap',
@@ -26,12 +26,12 @@ describe('CrawlerTechLevelPage', () => {
     ])
   })
 
-  test('its Tech Level and Structure Points are chips on its head', () => {
+  test('its text sits in a plain box, its stats on the band (round 6)', () => {
     const { container } = render(<CrawlerTechLevelPage item={level('Hamlet Crawler')} />)
     const block = container.querySelector('.su-tech-level__block')
-    expect(block?.textContent).toContain('Tech Level')
-    expect(block?.textContent).toContain('Structure Points')
-    expect(block?.textContent).toContain('20')
+    expect(block).not.toBeNull()
+    expect(block?.querySelector('h2')).toBeNull()
+    expect(block?.textContent).not.toContain('Structure Points')
   })
 
   test('the highest level cannot be upgraded and has no ceiling on its population', () => {

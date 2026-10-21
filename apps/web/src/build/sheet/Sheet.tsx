@@ -371,6 +371,7 @@ export function Sheet({
     segments,
     editable: !readOnly,
     readOnly,
+    trackable: !readOnlyProp && !writesBlocked,
     crawlerReadOnly,
     store,
     storeState,

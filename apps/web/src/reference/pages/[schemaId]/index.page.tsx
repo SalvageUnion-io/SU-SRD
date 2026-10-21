@@ -29,7 +29,7 @@ import { schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import { listingEntries } from '../../../lib/listingEntries'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
-import { defaultGroups } from '../../../lib/listingGroups'
+import { catalogGroupBy, defaultGroups, groupEntities } from '../../../lib/listingGroups'
 import { CATALOG_LISTINGS, defaultListingView } from '../../../lib/listingView'
 import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
@@ -68,7 +68,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const groups: ListingGroup[] =
     view === 'tree'
       ? defaultGroups(data, trees, techLevels, schemaId)
-      : [{ key: 'all', label: undefined, items: data }]
+      : groupEntities(data, catalogGroupBy(schemaId))
   // The band is the island's, so its search and filters can sit on it.
   const band: ListingBand = {
     title: pluralName,

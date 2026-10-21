@@ -274,6 +274,47 @@
   .su-entity-page--art > .su-entity-page__main--art > .su-entity-page__art {
     flex: 0 0 42%;
   }
+
+  /* A page with actions beside its art (`--wrap`) floats the art in the top
+     left and lets the column wrap under it (owner, round 6: "actions should
+     wrap under the photo"): the column's wrappers turn to block flow, so each
+     card (a flex box, which never overlaps a float) sits beside the art while
+     it lasts and runs the full width under it. */
+  .su-entity-page__main--wrap {
+    display: flow-root;
+  }
+
+  .su-entity-page--art > .su-entity-page__main--wrap > .su-entity-page__art {
+    float: left;
+    margin: 0 var(--space-32) var(--space-12) 0;
+    width: 42%;
+  }
+
+  .su-entity-page__main--wrap
+    :is(
+      .su-entity-page__side,
+      .su-entity-page__opening,
+      .su-entity-page__prose,
+      .su-entity-page__lead,
+      .su-entity-page__section,
+      .su-entity-page__section-body
+    ) {
+    display: block;
+  }
+
+  .su-entity-page__main--wrap
+    :is(
+      .su-entity-page__side,
+      .su-entity-page__opening,
+      .su-entity-page__prose,
+      .su-entity-page__lead,
+      .su-entity-page__section,
+      .su-entity-page__section-body
+    )
+    > *
+    + * {
+    margin-top: var(--space-12);
+  }
 }
 
 .su-entity-page__wide:empty {

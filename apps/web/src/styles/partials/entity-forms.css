@@ -988,6 +988,21 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   white-space: nowrap;
 }
 
+/* A roll table nested in a Page (`RollMini size="compact"`), one size up (owner, round 6: "should render one size
+   up"): the Compact's 32px head, its name at the Compact's title size, its
+   Roll the Compact button. */
+.su-roll-token[data-size='compact'] > .su-entity-mini__pill {
+  align-items: flex-end;
+  box-sizing: border-box;
+  font-size: var(--text-title);
+  height: var(--size-compact);
+  line-height: 1;
+}
+
+.su-roll-token[data-size='compact'] .su-roll-token__actions {
+  align-self: center;
+}
+
 /* A contentful Mini wears the same cut-out as every Mini: the subtle ink-40
    (R38) round its paint but never under it, its tab opens into the body's paper, as a Compact's
    does, so no rule runs between head and body; and the paint over the tab is

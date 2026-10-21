@@ -127,6 +127,10 @@
      `var(--color-rust)` or its value: nothing may wear the action colour
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
+  /* A Hybrid Class's brown (owner, round 6: "make hybrid classes brown not
+     orange"), apart from the ability tiers' rust and the adversary brown. It
+     carries paper text (design/__tests__/contrast.test.ts). */
+  --color-class-hybrid: rgb(107, 68, 35); /* #6b4423 */
 
   /* The Heat guide's own red (owner, round 4): its band and its tile. It
      carries paper (design/__tests__/contrast.test.ts). */

@@ -114,6 +114,7 @@ export function PilotSheetAbilities({
           onSpend={onSpend}
           onToggleUsed={(next) => onToggleUsed(slug, next)}
           readOnly={readOnly || !!unlearned}
+          full={!unlearned}
         />
       </div>
     )

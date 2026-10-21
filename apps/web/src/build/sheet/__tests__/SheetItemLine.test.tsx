@@ -25,6 +25,40 @@ const TOKEN = <Entity size="mini" context="loadout" model={MODEL} mode={{ kind: 
 /** The chip group a control sits in. */
 const groupOf = (el: Element) => el.closest('[data-chip-group]')
 
+describe('SheetItemLine — Read', () => {
+  test('a live condition still steps in Read (a crawler bay, round 6)', () => {
+    const onConditionCycle = mock(() => undefined)
+    render(
+      <SheetItemLine
+        token={TOKEN}
+        name="Mech Bay"
+        condition="intact"
+        readOnly
+        liveCondition
+        onConditionCycle={onConditionCycle}
+        nextCondition="damaged"
+      />
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Mech Bay status: Intact. Activate to mark Damaged' })
+    )
+    expect(onConditionCycle).toHaveBeenCalledTimes(1)
+  })
+
+  test('without it, Read draws an intact item as its Mini alone', () => {
+    render(
+      <SheetItemLine
+        token={TOKEN}
+        name="Mech Bay"
+        condition="intact"
+        readOnly
+        onConditionCycle={() => undefined}
+      />
+    )
+    expect(screen.queryByRole('button', { name: /status:/ })).toBeNull()
+  })
+})
+
 describe('SheetItemLine — Edit', () => {
   test('the condition is the StatusBadge, which steps it on', () => {
     const onConditionCycle = mock(() => undefined)

@@ -113,13 +113,13 @@ describe('bandFillFor', () => {
     expect(bandFillFor('vehicles', vehicle)?.band).toMatch(/^var\(--color-tl-/)
   })
 
-  test('a Hybrid Class wears its tier’s rust; a Core class and a chassis their chapter’s', () => {
+  test('a Hybrid Class wears its brown; a Core class and a chassis their chapter’s', () => {
     const classes = SalvageUnionReference.Classes.all()
     const hybrid = classes.find((c) => 'hybrid' in c && c.hybrid === true)
     const core = classes.find((c) => !('hybrid' in c && c.hybrid === true))
     const chassis = SalvageUnionReference.Chassis.all()[0]
     if (!hybrid || !core || !chassis) throw new Error('fixtures missing')
-    expect(bandFillFor('classes', hybrid)).toEqual({ band: 'var(--color-tier-hybrid)' })
+    expect(bandFillFor('classes', hybrid)).toEqual({ band: 'var(--color-class-hybrid)' })
     expect(bandFillFor('classes', core)).toBeUndefined()
     expect(bandFillFor('chassis', chassis)).toBeUndefined()
     expect(bandFillFor('not-a-schema', chassis)).toBeUndefined()

@@ -22,7 +22,7 @@ import {
   resolveEntityPageMeta,
 } from '../../../../../components/index'
 import { patternBuildLinkFor } from '../../../../../lib/buildLink'
-import { chapterForSchema } from '../../../../../lib/chapters'
+import { bandFillFor, chapterForSchema } from '../../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../../lib/componentEmbed'
 import {
   entityTitle,
@@ -141,6 +141,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       <EntityPageFrame
         title={`“${patternName}”`}
         tone={chapter.tone}
+        // A bio-chassis's pattern wears its chassis's green band (owner, round 6).
+        fill={bandFillFor(schemaId, host)?.band}
         meta={pageMeta}
         parent={{
           label: 'Pattern of',
