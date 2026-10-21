@@ -219,8 +219,9 @@ jobs:
       # as a phone: they block on any violation. `app-offline.e2e.ts` proves the
       # app works offline, and the one install: opened at `/`, the reference
       # and the app both open offline.
-      # `design-walk.e2e.ts` is every layout gate over R0's routes, signed in
-      # on one seeded account; `sibling-heights`, `chip-strips`, `nesting-depth`,
+      # `design-walk.e2e.ts` is the layout gates over R0's routes, signed in on
+      # one seeded account: here only those `E2E_DESIGN_GATES` names, to fit the
+      # job's time; nightly, every gate. `sibling-heights`, `chip-strips`, `nesting-depth`,
       # `token-cutout` and `search-width` walk the signed-out reference corpus.
       # The build carries the seam, so the signed-in tests in these specs run
       # signed in (`play-*`, `design-walk.e2e.ts`, the Play lines of
@@ -231,6 +232,7 @@ jobs:
         working-directory: apps/web
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
+          E2E_DESIGN_GATES: chip-strips,nesting-depth,sibling-heights
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts app-offline.e2e.ts design-walk.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts token-cutout.e2e.ts nesting-depth.e2e.ts roll-instrument.e2e.ts search-width.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts play-join.e2e.ts
 
       - name: Upload Playwright reports on failure

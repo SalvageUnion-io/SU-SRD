@@ -26,9 +26,9 @@ import { expect, test } from './fixtures'
  * Every layout gate over every context (hard rule R0), in one walk: the
  * account is seeded once (`gates/lib/seedAccount.ts`), each of `designRoutes`
  * (`_designTable.ts`) opens once at page and phone widths, Play's phone form
- * tab by tab, and each view is handed to every gate's scan in `GATES` (a gate
- * that reads only some families says which). A gate's own scanner is its
- * `_x.ts`.
+ * tab by tab, and each view is handed to every gate's scan in `designGates` (a
+ * gate that reads only some families says which; `E2E_DESIGN_GATES` holds a run
+ * to some gates, `selectGates`). A gate's own scanner is its `_x.ts`.
  *
  * Each gate is then held to its `baseline` in a step of its own
  * (`expectWithinBaseline`, soft), so a failure names the gate and every gate is
@@ -344,6 +344,25 @@ async function expectTouchMenus(browser: Browser, page: Page, seed: Seed): Promi
   expect.soft(short, 'menu items under 44px on a coarse pointer').toEqual([])
 }
 
+/**
+ * The gates a run holds: every one, or those `E2E_DESIGN_GATES` names
+ * (comma-separated). ci.yml's PR tier names the gates that fit its time
+ * budget; the nightly run sets none and holds them all. A name that is no
+ * gate throws, so a renamed gate never silently drops out of the PR tier.
+ */
+function selectGates(gates: Gate[], only = process.env.E2E_DESIGN_GATES): Gate[] {
+  if (!only) return gates
+  const names = only.split(',').map((n) => n.trim())
+  const unknown = names.filter((n) => !gates.some((g) => g.gate === n))
+  if (unknown.length) throw new Error(`E2E_DESIGN_GATES names no gate: ${unknown.join(', ')}`)
+  const held = gates.filter((g) => names.includes(g.gate))
+  test.info().annotations.push({
+    type: 'gates held',
+    description: `${held.map((g) => g.gate).join(', ')} (E2E_DESIGN_GATES); the rest run nightly`,
+  })
+  return held
+}
+
 /** A thrown error's first line, as a finding reports it. */
 const threw = (error: unknown): string =>
   `threw ${(error instanceof Error ? error.message : String(error)).split('\n')[0]}`
@@ -353,7 +372,7 @@ test.describe.configure({ retries: 0 })
 test('every context: every layout gate', async ({ page, browser }) => {
   test.setTimeout(45 * 60_000)
   const seed = await test.step('seed the account', () => seedAccount(page))
-  const gates = designGates(page)
+  const gates = selectGates(designGates(page))
   const found = new Map<Gate, DesignFinding[]>(gates.map((g) => [g, []]))
   await test.step('walk designRoutes', () =>
     visitDesignViews(
