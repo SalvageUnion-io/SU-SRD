@@ -64,8 +64,11 @@ export class NotAuthorized extends ConvexError<string> {
   }
 }
 
-/** The signed-in user, or a throw. Solo (anonymous) callers never reach here. */
-export async function requireUser(ctx: AnyCtx): Promise<Id<'users'>> {
+/**
+ * The signed-in user, or a throw. Solo (anonymous) callers never reach here.
+ * It reads only `ctx.auth`, so an action's ctx serves as well as a query's.
+ */
+export async function requireUser(ctx: Pick<AnyCtx, 'auth'>): Promise<Id<'users'>> {
   const userId = await getAuthUserId(ctx)
   if (userId === null) throw new NotAuthorized('Not signed in')
   return userId

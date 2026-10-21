@@ -12,7 +12,7 @@ import { action, internalQuery, query } from './_generated/server'
 import { displayNameOf } from './account'
 import { bindingForGame, personalBinding } from './model/channelBindings'
 import { oldestByAppId } from './model/entities'
-import { getMembership, NotAuthorized, requireMemberAs } from './model/permissions'
+import { getMembership, requireMemberAs, requireUser } from './model/permissions'
 
 /**
  * Discord channels for Play: what is bound, and posting a roll to it.
@@ -240,8 +240,7 @@ export const postRoll = action({
   },
   handler: async (ctx, args): Promise<PostRollResult> => {
     if (!args.post) return { kind: 'skipped' }
-    const userId = await getAuthUserId(ctx)
-    if (userId === null) throw new NotAuthorized('Not signed in')
+    const userId = await requireUser(ctx)
 
     const target = await ctx.runQuery(internal.channelBindings.postTarget, {
       userId,
