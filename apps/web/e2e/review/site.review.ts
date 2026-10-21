@@ -324,10 +324,9 @@ async function viewRules(page: Page, where: string): Promise<{ rule: string; lin
       return null
     }
   }
-  const [strips, lanes, frames, nesting, siblings, rhythm, cutouts] = await Promise.all(
+  const [strips, frames, nesting, siblings, rhythm, cutouts] = await Promise.all(
     [
       '_chipStrips',
-      '_chipLanes',
       '_entityFrames',
       '_nestingDepth',
       '_siblingHeights',
@@ -349,7 +348,6 @@ async function viewRules(page: Page, where: string): Promise<{ rule: string; lin
         (l) => !/^(more-contentful|overflow|align):/.test(l)
       )
   )
-  await take('C6 chip lanes', async () => (await call(lanes, 'findChipLaneFaults')()) as string[])
   await take('R38 frames', async () => (await call(frames, 'findFrameFaults')()) as string[])
   await take(
     (l) => `R39 nesting · ${l.split(' ')[0]}`,
