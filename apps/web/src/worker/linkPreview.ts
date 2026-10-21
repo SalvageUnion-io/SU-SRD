@@ -44,6 +44,7 @@
  * it works on salvageunion.io/build and on a Worker Preview alike.
  */
 
+import { APP_BASE, routeInApp } from '../lib/appBase'
 import { fnv1a } from '../lib/fnv1a'
 import type {
   InvitePreviewAnswer,
@@ -59,7 +60,6 @@ import {
   sheetCard,
   titleCaseSlug,
 } from '../lib/linkPreview/previewSummary'
-import { pathInApp } from './basePath'
 import { reportError } from './errorReports'
 import type { ShellMeta } from './shellMeta'
 
@@ -174,7 +174,7 @@ async function resolve(
 
 /**
  * The page address the card's foot prints: host and path, never a scheme.
- * `base` is the app's base path (`basePath.ts`), `''` at the root.
+ * `base` is the app's base path (`APP_BASE`).
  */
 function addressOf(origin: string, route: PreviewRoute, base: string): string {
   const host = new URL(origin).host
@@ -227,7 +227,7 @@ export async function metaFor(
   url: URL,
   env: PreviewEnv,
   fetchImpl: Fetch = fetch,
-  base = ''
+  base = APP_BASE
 ): Promise<ShellMeta | null> {
   const resolved = await resolve(route, env, fetchImpl, `${url.origin}${base}`)
   if (resolved === undefined) return null
@@ -322,9 +322,9 @@ export async function ogImage(
   deps: { cache: ImageCache | undefined; fetch?: Fetch; base?: string }
 ): Promise<Response> {
   const fetchImpl = deps.fetch ?? fetch
-  const base = deps.base ?? ''
+  const base = deps.base ?? APP_BASE
   const url = new URL(request.url)
-  const target = surfaceOf(pathInApp(url.pathname, base))
+  const target = surfaceOf(routeInApp(url.pathname, base) ?? url.pathname)
   if (target === null || !canRender(env)) return NOT_FOUND()
 
   let surface = target.surface

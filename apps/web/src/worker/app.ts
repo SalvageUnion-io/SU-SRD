@@ -8,7 +8,7 @@
  * `spaAssets` answers a miss under the base with the shell, as a single-page
  * app's binding would.
  *
- * Under `/build/` the rules read the path inside the base (`basePath.ts`):
+ * Under `/build/` the rules read the path inside the base (`routeInApp`):
  *
  *   - `doc-301`: `/about`, `/changelog` → a 301 to the SRD's page.
  *   - `retired-301`: a retired address (`/games`, `/join/:code`, the old crew
@@ -51,7 +51,6 @@
 import { APP_BASE, routeInApp } from '../lib/appBase'
 import { retiredDocPage, retiredTarget } from '../lib/redirects'
 import { hidesUnionBar } from '../shell/unionSlots'
-import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import { frontDoorShell } from './publicPages'
@@ -116,8 +115,9 @@ export async function serveApp(
   const env = { ...siteEnv, ASSETS: spaAssets(siteEnv.ASSETS, base) }
 
   // Every rule below reads the path inside the app; a URL it builds puts the
-  // base back.
-  const path = pathInApp(url.pathname, base)
+  // base back. A path outside the base is left whole: nothing the app serves
+  // lives there, so the rules answer it as the miss it is.
+  const path = routeInApp(url.pathname, base) ?? url.pathname
 
   // D. A doc page the app no longer has: the SRD's on this origin.
   const docPage = retiredDocPage(path)

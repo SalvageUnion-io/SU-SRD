@@ -21,9 +21,10 @@ export function appPath(route: string): string {
 
 /**
  * The route inside the app a site path names (`/build/p/mech/x` →
- * `/p/mech/x`, `/build` → `/`), or null for a path outside it.
+ * `/p/mech/x`, `/build` → `/`), or null for a path outside it. `base` is
+ * {@link APP_BASE}; a Worker test mounts the app at the root with `''`.
  */
-export function routeInApp(pathname: string): string | null {
-  if (pathname === APP_BASE) return '/'
-  return pathname.startsWith(`${APP_BASE}/`) ? pathname.slice(APP_BASE.length) : null
+export function routeInApp(pathname: string, base: string = APP_BASE): string | null {
+  if (pathname === base) return '/'
+  return pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : null
 }
