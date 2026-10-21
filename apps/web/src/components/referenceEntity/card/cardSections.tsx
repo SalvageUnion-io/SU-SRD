@@ -98,7 +98,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     prose,
     bodyNodes,
     leadBlocks,
-    catalogLeadBlocks,
     inlineActionEntities,
     nestedHost,
   } = resolved
@@ -193,7 +192,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const bodyHasContent =
     !!bodyAnchor ||
     proseNodes.length > 0 ||
-    catalogLeadBlocks.length > 0 ||
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
     (!onPage && !!guideStepsNode)
 
@@ -219,7 +217,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
           {proseNodes}
         </>
       )}
-      {catalogLeadBlocks.length > 0 && <CardProse body={catalogLeadBlocks} context={prose} />}
       {/* A SELF-action's content already renders AS the body; only a
           differently-named folded action renders here (with its name). */}
       {!isSelfAction &&

@@ -62,11 +62,10 @@ describe('class card rendering', () => {
     expect(stamps[0]?.nextElementSibling?.textContent).toBe('HYBRID')
   })
 
-  test('the kind stamp survives extent="catalog" — the deliberate exception', () => {
-    // Catalog tiles suppress card chrome, but the class kind is exempt: a reader
-    // scanning the class index needs to know a hybrid is unavailable at creation
-    // before opening anything.
-    render(<ReferenceEntityCard data={classByName('Smuggler')} extent="catalog" />)
+  test('a compact class card wears the kind stamp too', () => {
+    // A reader needs to know a hybrid is unavailable at creation before
+    // opening anything.
+    render(<ReferenceEntityCard data={classByName('Smuggler')} size="compact" />)
     expect(screen.getByText('HYBRID')).toBeTruthy()
   })
 })

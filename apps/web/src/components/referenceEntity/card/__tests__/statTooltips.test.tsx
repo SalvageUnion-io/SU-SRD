@@ -67,7 +67,7 @@ describe('trait tags (E17)', () => {
   test('inside a Peek the line is inert — no nested Peek', () => {
     const { container } = render(
       <InsidePeekContext.Provider value={true}>
-        <ReferenceEntityCard data={action('Beta Fission Gun')} size="compact" extent="catalog" />
+        <ReferenceEntityCard data={action('Beta Fission Gun')} size="compact" />
       </InsidePeekContext.Provider>
     )
     expect(container.querySelector(TRIGGER)).toBeNull()

@@ -17,9 +17,8 @@ Architecture: `docs/ARCHITECTURE.md#display`; laws: the ruleset and the
   Full contentful `ReferenceEntityCard` (`size`), a Page with
   `presentation="page"`. Never hand-assembled markup.
 - **Extent:** the EDL's header-only / contentful. Header-only is `<Entity>`
-  (a Mini without `body`, a Compact `bodyless`); the card is always
-  contentful (`extent` in `containers/displayMode.ts`: `full`, or `catalog`,
-  the class picker's art and text).
+  (a Mini without `body`, a Compact `bodyless`); `ReferenceEntityCard` is
+  always contentful, at any `size`.
 - **One card shell:** every other frame is `Box` (`containers/`): titled,
   `TitledBox`; a note, `Callout`. Never route the entity card through `Box`.
 - **Customise by slot, never by schema:** generic slot props and `hide`;

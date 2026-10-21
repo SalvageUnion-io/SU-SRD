@@ -22,8 +22,8 @@ type EntityCardIdentityFooterProps = {
   footMeta?: CardFootMeta[]
   /**
    * App-supplied cross-link (The app's "View in the Reference"), the entity
-   * surface's `externalLink`. Full extent only — the card passes
-   * `undefined` for head/catalog so listings stay uncluttered.
+   * surface's `externalLink`. The card passes `undefined` inside a Peek and
+   * for a user-made entity.
    */
   externalLink?: ReactNode
   size: Size

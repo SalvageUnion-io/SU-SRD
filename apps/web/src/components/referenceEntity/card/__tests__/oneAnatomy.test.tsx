@@ -248,6 +248,14 @@ describe('the user-made flag', () => {
 })
 
 describe('contexts', () => {
+  test('a mini card still renders its whole content: size is not how much it shows', () => {
+    const bay = SalvageUnionReference.CrawlerBays.getByName('Armament Bay')
+    if (!bay) throw new Error('Armament Bay fixture missing')
+    render(<ReferenceEntityCard data={bay} size="mini" />)
+    expect(screen.getByText(bay.name)).toBeTruthy()
+    expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()
+  })
+
   test('texture={false} flattens the card and every card nested in it', () => {
     const { container } = render(
       <ReferenceEntityCard data={sestra()} presentation="page" texture={false} />

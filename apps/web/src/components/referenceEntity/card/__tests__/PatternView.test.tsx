@@ -11,7 +11,7 @@
  *    modules, so the pattern is framed by the chassis it belongs to.
  * 4. The chassis ability shows only on a PAGE — the chassis page and its
  *    pattern pages — and on the app's builder pick cards (`showChassisAbility`),
- *    never on any other card, a catalog tile or a nested card.
+ *    never on any other card or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
@@ -105,7 +105,6 @@ describe('the chassis ability shows only on a page', () => {
 
   for (const [form, card] of [
     ['a chassis card', () => <ReferenceEntityCard data={mule()} size="full" />],
-    ['a chassis catalog tile', () => <ReferenceEntityCard data={mule()} extent="catalog" />],
     ['a pattern card', () => <ReferenceEntityCard data={mule()} pattern={hauler()} />],
     [
       'a nested chassis card on a page',
@@ -126,13 +125,6 @@ describe('the chassis ability shows only on a page', () => {
       <ReferenceEntityCard data={mule()} size="compact" hide={PICK_HIDE} showChassisAbility />
     )
     expect(abilityCount(container)).toBe(1)
-  })
-
-  test('the opt-in does not reach a catalog tile', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={mule()} extent="catalog" showChassisAbility />
-    )
-    expect(abilityCount(container)).toBe(0)
   })
 
   /** The builder's pattern pick card, as `MechChassisStep` renders it. */

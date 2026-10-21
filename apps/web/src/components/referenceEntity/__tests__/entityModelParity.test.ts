@@ -14,7 +14,6 @@
 import { describe, expect, test } from 'bun:test'
 import type {
   EntityModel,
-  RefEntity,
   RefEnumSchemaName,
   RefMetaEntity,
   RefObjectAnyPattern,
@@ -44,12 +43,10 @@ import type { EntityRelation } from '../card/abilityTreeRelations'
 import { abilityTreeRelations } from '../card/abilityTreeRelations'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
-import { resolveCatalogLeadBlocks } from '../card/catalogLead'
 import { resolveCardTone } from '../card/entityCardTone'
 import { resolveEntityPageMeta } from '../card/entityPage'
 import { resolveNestedSections } from '../card/nestedSections'
 import type { ActionFields } from '../card/referenceEntityCardTypes'
-import { resolveGuideLead } from '../card/resolveGuideLead'
 import {
   resolveDroneOwnLoadout,
   resolveNestedEntities,
@@ -264,22 +261,18 @@ describe('toEntityModel parity, every entity', () => {
   })
 
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
-    // The Compact's lead is the model's; this is the formula the compact card used
-    // before it did (`resolveHeaderHint`'s hint, else the first paragraph),
-    // then what the catalog card borrows: a step-only guide's first step
-    // (`resolveGuideLead`), then a grant's or an action's opening paragraph
-    // (`resolveCatalogLeadBlocks`).
+    // The Compact's lead is the model's, and where the card has a lead of its
+    // own (`resolveHeaderHint`'s hint, else the first paragraph) the two agree.
+    // An entity with neither borrows one in the model alone (a step-only
+    // guide's first step, a grant's or an action's opening paragraph).
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
       const { hintText } = resolveHeaderHint(entity, {
         isTitanicMeta: schemaName === 'actions' && isTitanicAction(entity as { name?: string }),
       })
-      const lead =
-        hintText ||
-        firstParagraphText('content' in entity ? entity.content : undefined) ||
-        resolveGuideLead(entity) ||
-        String(resolveCatalogLeadBlocks(entity as RefEntity)[0]?.value ?? '')
-      agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
+      const lead = hintText || firstParagraphText('content' in entity ? entity.content : undefined)
+      if (!lead) continue
+      agree(label(row), toEntityModel(entity).lead, plainTraitText(lead))
     }
   })
 
@@ -328,7 +321,6 @@ describe('toEntityModel parity, every entity', () => {
         entity,
         schemaName,
         pattern: undefined,
-        isCatalog: false,
         // The model is the PAGE's: a chassis ability shows only there.
         onPage: true,
         depth: 0,

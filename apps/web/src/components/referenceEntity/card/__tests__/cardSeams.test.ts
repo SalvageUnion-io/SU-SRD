@@ -246,22 +246,18 @@ describe('cardChrome', () => {
 })
 
 describe('nestedSections', () => {
-  test('a catalog tile and an action expand nothing', () => {
+  test('a chassis expands and lists its patterns', () => {
     const chassis = SalvageUnionReference.Chassis.all()[0] as RefMetaEntity
-    const common = {
+    const page = resolveNestedSections({
       entity: chassis,
+      schemaName: 'chassis',
       pattern: undefined,
       onPage: false,
       depth: 0,
       isGrantingAbility: false,
       foldedAction: undefined,
       droneLoadout: undefined,
-    }
-    const tile = resolveNestedSections({ ...common, schemaName: 'chassis', isCatalog: true })
-    expect(tile.canExpand).toBe(false)
-    expect(tile.patternList).toEqual([])
-    expect(tile.chassisAbilityEntities).toEqual([])
-    const page = resolveNestedSections({ ...common, schemaName: 'chassis', isCatalog: false })
+    })
     expect(page.canExpand).toBe(true)
     expect(page.patternList.length).toBeGreaterThan(0)
   })
@@ -272,7 +268,6 @@ describe('nestedSections', () => {
     const common = {
       entity: chassis,
       schemaName: 'chassis' as const,
-      isCatalog: false,
       depth: 0,
       isGrantingAbility: false,
       foldedAction: undefined,
@@ -286,7 +281,7 @@ describe('nestedSections', () => {
     }
   })
 
-  test('a builder pick (`showChassisAbility`) resolves the chassis ability off the page, never on a tile', () => {
+  test('a builder pick (`showChassisAbility`) resolves the chassis ability off the page', () => {
     const chassis = SalvageUnionReference.Chassis.getByName('Mule') as RefMetaEntity
     const common = {
       entity: chassis,
@@ -299,9 +294,6 @@ describe('nestedSections', () => {
       foldedAction: undefined,
       droneLoadout: undefined,
     }
-    expect(
-      resolveNestedSections({ ...common, isCatalog: false }).chassisAbilityEntities.length
-    ).toBeGreaterThan(0)
-    expect(resolveNestedSections({ ...common, isCatalog: true }).chassisAbilityEntities).toEqual([])
+    expect(resolveNestedSections(common).chassisAbilityEntities.length).toBeGreaterThan(0)
   })
 })

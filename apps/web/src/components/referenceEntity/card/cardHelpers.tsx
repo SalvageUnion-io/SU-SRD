@@ -134,19 +134,15 @@ export function blockPlainText(b: RefObjectContentBlock): string {
 }
 
 /**
- * What a card hides. CATALOG — the SRD index tile — keeps artwork and
- * description ONLY, so every nested element is suppressed here, not at each
- * call-site. TERMINAL (ruleset §1, R33): inside a tooltip popup nothing
- * acts, so the roll-table controls go too (the link and the nested Minis
- * are handled where they render).
+ * What a card hides. TERMINAL (ruleset §1, R33): inside a tooltip popup
+ * nothing acts, so the roll-table controls go too (the link and the nested
+ * Minis are handled where they render).
  */
 export function resolveHide(
   hideProp: ReferenceEntityCardHideConfig | undefined,
-  isCatalog: boolean,
   insidePeek: boolean
 ): ReferenceEntityCardHideConfig | undefined {
-  const base = isCatalog ? { ...hideProp, actions: true, choices: true, patterns: true } : hideProp
-  return insidePeek ? { ...base, rollTable: true } : base
+  return insidePeek ? { ...hideProp, rollTable: true } : hideProp
 }
 
 /** Where a card stands, for whether its name links (`namesOwnPage`). */

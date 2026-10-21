@@ -26,7 +26,6 @@ describe('a selected Card (level 1)', () => {
       <ReferenceEntityCard
         data={hauler()}
         size="compact"
-        extent="catalog"
         selected
         selectionRole="radio"
         onCardClick={() => {}}

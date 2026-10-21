@@ -59,8 +59,7 @@ export function CardLabels({
           <Stat key={marker.label} label={marker.label} value={marker.value} size="mini" />
         ))}
         {/* A pattern the book sanctions as a starting loadout wears a stamp RIGHT
-          of the `[Chassis | …]` marker. It sits in the head (not the body)
-          precisely so it survives the LISTING extent. Purely the stored
+          of the `[Chassis | …]` marker, in the head. Purely the stored
           `legalStarting` data tag, never computed from tech level or SV. */}
         {legalStartingPattern && (
           <Badge

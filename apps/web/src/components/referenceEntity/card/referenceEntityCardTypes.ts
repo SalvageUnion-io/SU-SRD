@@ -9,7 +9,6 @@ import type {
 } from 'salvageunion-reference'
 import type { Size } from '../../../styles/sizing'
 import type { EntityStatus } from '../../atoms/entityStatus'
-import type { CardExtent } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -28,10 +27,9 @@ export type ReferenceCardEntity = RefEntity | RefMetaEntity
 
 export type ReferenceEntityCardProps = {
   data: ReferenceCardEntity
+  /** How big it renders (default `full`); at any size the card is contentful,
+   * so a `mini` card still shows its whole content. */
   size?: Size
-  /** How much of the entity renders — orthogonal to `size`, so a `mini` card
-   * can still show its whole content. */
-  extent?: CardExtent
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
    * header, one step down per level). Threaded through the recursion. */
   depth?: number
@@ -79,7 +77,7 @@ export type ReferenceEntityCardProps = {
    * USER-MADE (ruleset §3.9): something a player made that could pass
    * for the book — a mech pattern, an NPC. A dashed ink frame, a dashed
    * HOMEBREW stamp in the header's labels, a dashed footer rule and a dashed pill, at
-   * every size and extent. Canon-built units (pilots, mechs, crawlers) never
+   * every size. Canon-built units (pilots, mechs, crawlers) never
    * set it.
    */
   userMade?: boolean

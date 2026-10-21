@@ -18,8 +18,6 @@ import {
 import { space } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
-import type { CardExtent } from '../../containers/displayMode'
-import { resolveCardDisplay } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChipSet } from '../../entity'
 import { Chips } from '../../entity'
@@ -80,8 +78,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
 
 /**
  * ReferenceEntityCard — the ONE card that renders ENTITIES, ACTIONS, and
- * NPCs (ruleset §5). ONE anatomy across every size × extent ×
- * context:
+ * NPCs (ruleset §5). ONE anatomy across every size × context:
  *
  *   cut-out head (title, labels, chip group) · body · footer
  *
@@ -146,7 +143,6 @@ const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'full',
-  extent = 'full',
   depth: depthProp = 0,
   presentation = 'card',
   hero,
@@ -217,8 +213,7 @@ function ReferenceEntityCardInner({
   const size = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'full'
-  const isCatalog = extent === 'catalog'
-  const hide = resolveHide(hideProp, isCatalog, insidePeek)
+  const hide = resolveHide(hideProp, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
   const fill: HeaderFill = resolveHeaderFill(entity, insidePeek)
@@ -239,10 +234,7 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  // ARTWORK — a MINI catalog tile drops it: at the small size the image would
-  // crowd out the description it exists to caption.
-  const isMiniCatalog = isCatalog && size === 'mini'
-  const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
+  const assetUrl = getAssetUrl(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
 
   // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.
@@ -303,7 +295,7 @@ function ReferenceEntityCardInner({
   const headerStats: StatItem[] = buildHeaderStats({
     entity,
     schemaName,
-    budget: compact && !insidePeek && !isCatalog,
+    budget: compact && !insidePeek,
     every: insidePeek,
     none: isAction,
     techLevel,
@@ -413,9 +405,7 @@ function ReferenceEntityCardInner({
     />
   )
 
-  // A CATALOG tile carries NO footer: it is artwork + description, and
-  // provenance belongs on the entity's own page, which the tile links to.
-  const rendersFooter = !isCatalog && depth === 0
+  const rendersFooter = depth === 0
 
   // BODY — the prose, the inline actions, the table, the guide, the pattern
   // section and the nested groups (`cardBodyProse.tsx`, `cardSections.tsx`).
@@ -432,7 +422,6 @@ function ReferenceEntityCardInner({
     onPage,
     readable,
     isAction,
-    isCatalog,
     isDown,
     isTitanicMeta,
     isLegalStartingPatternCard,
@@ -442,7 +431,6 @@ function ReferenceEntityCardInner({
     hide,
     foldedAction,
     titanicBodyContent,
-    hintText,
     leadHint: hintText,
     assetUrl,
     assetSrcSet,
@@ -568,16 +556,14 @@ function ReferenceEntityCardInner({
             {expand}
           </div>
         )}
-        {/* FOOTER — none on a catalog tile; a Peek's wears the header band. */}
+        {/* FOOTER — a Peek's wears the header band. */}
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
             // Every printing on the one line, on every foot (ruleset Source 2).
             provenance={userMade ? undefined : provenance}
             footMeta={footMeta}
-            externalLink={
-              extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
-            }
+            externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
             size={size}
             credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
             band={{ onBand, bandColor }}
@@ -589,35 +575,24 @@ function ReferenceEntityCardInner({
   )
 }
 
-/** Public wrapper props: the canonical card props plus the ergonomic display
- * sugar and a nullable `data`. */
-export type ReferenceEntityCardWrapperProps = Omit<
-  ReferenceEntityCardProps,
-  'data' | 'size' | 'extent'
-> & {
+/** Public wrapper props: the canonical card props with a nullable `data`. */
+export type ReferenceEntityCardWrapperProps = Omit<ReferenceEntityCardProps, 'data'> & {
   data: ReferenceCardEntity | undefined
-  size?: ReferenceEntityCardProps['size']
-  extent?: CardExtent
 }
 
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
- * entity. It takes the `size` / `extent` axes (`containers/displayMode.ts`),
- * renders nothing for a null `data`, and greys the header for a damaged or
+ * entity. It takes the card's `size` (default `full`), renders nothing for a
+ * null `data`, and greys the header for a damaged or
  * destroyed `status`. The recursive card body is `ReferenceEntityCardInner`.
  */
 export function ReferenceEntityCard({
   data,
-  size,
-  extent,
   texture,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
   if (!data) return null
-  const display = resolveCardDisplay({ size, extent })
-  const inner = (
-    <ReferenceEntityCardInner data={data} size={display.size} extent={display.extent} {...rest} />
-  )
+  const inner = <ReferenceEntityCardInner data={data} {...rest} />
   // A card that is the pick is the one control in its frame (`PickSurface`).
   const card = rest.selectionRole ? <PickSurface>{inner}</PickSurface> : inner
   // `texture={false}` holds for every nested card and form (the surface, E13).

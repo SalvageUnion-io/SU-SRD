@@ -94,7 +94,6 @@ function PatternListRow({
         data={chassis}
         pattern={pattern}
         size="mini"
-        extent="full"
         depth={depth}
         hostDown={hostDown}
         hide={DESCRIPTION_ONLY}

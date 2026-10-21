@@ -15,12 +15,13 @@ import {
   Callout,
   Entity,
   RadioCardGroup,
-  ReferenceEntityCard,
+  SELECT_DIM,
   Slab,
   SlabSection,
   Stack,
   tokens,
 } from '../../components/index'
+import { cn } from '../../lib/cn'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/build/wizard.css'
@@ -83,19 +84,22 @@ function OptionCard({
 }) {
   return (
     <div>
-      <ReferenceEntityCard
-        data={cls}
-        size="compact"
-        extent="catalog"
-        className="su-wiz-class-card"
-        selected={selected}
-        selectionRole="radio"
-        // An unreachable (off-ring) class is demoted but still pickable: the
-        // one select dim (hard rule R15) until it is the pick.
-        selectable={!dimmed || selected}
-        cardClickLabel={note === undefined ? cls.name : `${cls.name}, ${note}`}
-        onCardClick={onSelect}
-      />
+      {/* An unreachable (off-ring) class is demoted but still pickable: the
+          one select dim (hard rule R15) until it is the pick. */}
+      <div className={cn('su-wiz-class-card', dimmed && !selected && SELECT_DIM)}>
+        <Entity
+          size="compact"
+          entity={cls}
+          lead
+          mode={{
+            kind: 'select',
+            role: 'radio',
+            selected,
+            onSelect,
+            label: note === undefined ? cls.name : `${cls.name}, ${note}`,
+          }}
+        />
+      </div>
       {note !== undefined && (
         <p className={OPTION_NOTE_CAPS} style={OPTION_NOTE}>
           {note}
@@ -202,7 +206,7 @@ export function ClassPathPicker({
             <Ledger consequence={consequence} allClasses={allClasses} />
 
             {consequence.needsOrigin && (
-              // The note, then its picks: level-1 cards as the class list's
+              // The note, then its picks: radio Compacts as the class list's
               // (N7: select is never a Mini), beside it, not inside it.
               <>
                 <Callout tone="ink">
@@ -216,17 +220,20 @@ export function ClassPathPicker({
                 </Callout>
                 <RadioCardGroup label="Origin class">
                   {originChoiceClasses.map((cls) => (
-                    <ReferenceEntityCard
-                      key={cls.id}
-                      data={cls}
-                      size="compact"
-                      extent="catalog"
-                      className="su-wiz-class-card"
-                      selected={cls.id === answeredOrigin}
-                      selectionRole="radio"
-                      cardClickLabel={`Came from ${cls.name}`}
-                      onCardClick={() => onAnswerOrigin(cls.id)}
-                    />
+                    <div key={cls.id} className="su-wiz-class-card">
+                      <Entity
+                        size="compact"
+                        entity={cls}
+                        lead
+                        mode={{
+                          kind: 'select',
+                          role: 'radio',
+                          selected: cls.id === answeredOrigin,
+                          onSelect: () => onAnswerOrigin(cls.id),
+                          label: `Came from ${cls.name}`,
+                        }}
+                      />
+                    </div>
                   ))}
                 </RadioCardGroup>
               </>

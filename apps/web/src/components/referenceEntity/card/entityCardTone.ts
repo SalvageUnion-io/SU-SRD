@@ -161,19 +161,13 @@ export function resolveAxisMarkers(entity: RefMetaEntity): AxisMarker[] {
   // level is the banner's tier numeral (`resolveSeamLabel`,
   // `resolveTierNumeral`). TECH LEVEL is a header stat.
   if (isAbility(entity)) return []
-  // CLASS KIND — an axis pill that survives `extent="catalog"`. Catalog
-  // tiles otherwise suppress card chrome, but WHICH KIND of class a tile is
-  // (base / hybrid / non-advanceable) is the single most load-bearing fact on a
-  // class listing page: a hybrid can't be taken at creation and the Salvager
-  // never advances, so a reader scanning the index needs it before they open
-  // anything. This is a deliberate, ruled exception to the catalog suppression,
-  // not an oversight — the labels are not gated on extent, so returning the marker
-  // here is what carries it onto the tile. Keep it that way.
+  // CLASS KIND — WHICH KIND of class it is (base / hybrid / non-advanceable)
+  // is the single most load-bearing fact on a class card: a hybrid can't be
+  // taken at creation and the Salvager never advances.
   const kind = classKind(entity)
   if (kind) return [{ label: 'Class', value: kind }]
-  // BAY KIND survives the catalog for the same reason: whether a bay comes
-  // with every Union Crawler or is added in play is what the bay index is
-  // scanned for.
+  // BAY KIND for the same reason: whether a bay comes with every Union
+  // Crawler or is added in play.
   const bay = bayKind(entity)
   if (bay) return [{ label: 'Bay', value: bay }]
   return []

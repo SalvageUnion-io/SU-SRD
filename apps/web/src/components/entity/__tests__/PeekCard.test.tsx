@@ -45,9 +45,7 @@ describe('Peek footer', () => {
 
   // The footer matches the colour, off a Peek too.
   test('a card off a Peek wears its head band and grain on its foot too', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={frost()} size="mini" extent="full" texture />
-    )
+    const { container } = render(<ReferenceEntityCard data={frost()} size="mini" texture />)
     const foot = footerOf()
     expect(foot.style.background).not.toBe('')
     expect(foot.style.color).toMatch(/var\(--color-(ink|paper)\)/)

@@ -33,7 +33,6 @@ export function resolveNestedSections({
   entity,
   schemaName,
   pattern,
-  isCatalog,
   onPage,
   showChassisAbility = false,
   depth,
@@ -45,7 +44,6 @@ export function resolveNestedSections({
   schemaName: RefEnumSchemaName | 'actions'
   /** Set on a PATTERN view, whose `entity` is its host (chassis or Bio-Titan). */
   pattern: RefObjectAnyPattern | undefined
-  isCatalog: boolean
   /** The card IS the page (`presentation="page"` at the top level). */
   onPage: boolean
   /** A builder pick card shows the chassis ability off the page too. */
@@ -61,9 +59,8 @@ export function resolveNestedSections({
   const isAction = schemaName === 'actions'
   const isPattern = !!pattern
   // Only entities expand (actions are leaves, pattern views show their loadout);
-  // bounded by MAX_DEPTH. A catalog tile never expands — no nested entities,
-  // chassis abilities or actions, whatever the entity carries.
-  const canExpand = !isAction && !isCatalog && depth < MAX_DEPTH
+  // bounded by MAX_DEPTH.
+  const canExpand = !isAction && depth < MAX_DEPTH
   const canExpandEntity = canExpand && !isPattern
   const nestedGroups = canExpandEntity ? resolveNestedEntities(entity) : []
   // Chassis abilities are name refs into the ACTIONS schema (resolved by
@@ -91,8 +88,7 @@ export function resolveNestedSections({
     ? resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones')
     : []
   const patternActions: RefMetaAction[] = pattern && canExpand ? extractPatternActions(pattern) : []
-  const patternList: RefObjectAnyPattern[] =
-    !isPattern && !isCatalog ? (getPatterns(entity) ?? []) : []
+  const patternList: RefObjectAnyPattern[] = !isPattern ? (getPatterns(entity) ?? []) : []
 
   // TITANIC actions always get their own full-width row (never the masonry).
   const titanicActions = allActions.filter(isTitanicAction)

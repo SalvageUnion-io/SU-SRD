@@ -33,26 +33,21 @@ const chassis = () => {
 const LINK_TEXT = 'View in the Reference'
 const LINKED = { externalLink: () => <a href="/srd">{LINK_TEXT}</a> }
 
-const renderWithLink = (extent: 'full' | 'catalog') =>
+const renderWithLink = () =>
   render(
     <EntitySurfaceProvider value={LINKED}>
-      <ReferenceEntityCard data={chassis()} extent={extent} />
+      <ReferenceEntityCard data={chassis()} />
     </EntitySurfaceProvider>
   )
 
 describe('entity card external cross-link', () => {
-  test('renders the provided link in the identity footer at full extent', () => {
-    renderWithLink('full')
+  test('renders the provided link in the identity footer', () => {
+    renderWithLink()
     expect(screen.getByText(LINK_TEXT)).toBeTruthy()
   })
 
-  test('omits the link on catalog tiles', () => {
-    renderWithLink('catalog')
-    expect(screen.queryByText(LINK_TEXT)).toBeNull()
-  })
-
   test('renders nothing extra when no provider supplies a builder', () => {
-    render(<ReferenceEntityCard data={chassis()} extent="full" />)
+    render(<ReferenceEntityCard data={chassis()} />)
     expect(screen.queryByText(LINK_TEXT)).toBeNull()
   })
 })

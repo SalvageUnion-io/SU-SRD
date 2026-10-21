@@ -270,8 +270,7 @@
   }
 }
 
-/* ClassPathPicker: the gap under each class card. A class:
-   ReferenceEntityCard takes no `style`. */
+/* ClassPathPicker: the gap under each class Compact, on its wrapper. */
 .su-wiz-class-card {
   margin-bottom: var(--space-4);
 }
