@@ -15,6 +15,7 @@ import {
   downtimeGuideSteps,
   downtimeMechPatch,
   mechBayStatus,
+  RESTORE_STEP_NAME,
 } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -56,9 +57,6 @@ export function unitLiveness({
     crawler: canWrite && crawlerHeld && ((solo && situation === 'downtime') || mediator),
   }
 }
-
-/** The Downtime guide step whose patches restore a mech (Workshop Manual p.228). */
-export const RESTORE_STEP_NAME = 'Restore your Mech & Pilot'
 
 /** What the step will set each mech vital to; a vital the step leaves alone is absent. */
 export type MechRestore = { sp?: number; ep?: number; heat?: number }

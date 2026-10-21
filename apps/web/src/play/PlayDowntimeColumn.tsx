@@ -11,7 +11,7 @@
  * so the step box and every row stay level 1 (play.md §12).
  */
 
-import { downtimeGuideSteps } from 'game-domain/rules/downtime'
+import { currentDowntimeStep } from 'game-domain/rules/downtime'
 import { Slab } from '../components/index'
 import { PlayAwayGroup, PlayEntryList, PlayOrphanResolve } from './PlayActionsList'
 import { PlayDowntimeStep } from './PlayDowntimeStep'
@@ -21,10 +21,7 @@ import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
 
 export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: PlayActions }) {
-  const steps = downtimeGuideSteps()
-  const count = steps.length
-  const idx = Math.min(Math.max(play.downtime.downtime.stepIndex ?? 0, 0), Math.max(count - 1, 0))
-  const step = steps[idx]
+  const { steps, index: idx, step, count } = currentDowntimeStep(play.downtime.downtime.stepIndex)
   const setStep = play.downtime.setStep
   const { onHand, away } = splitOnHand(actions.entries)
 

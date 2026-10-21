@@ -13,6 +13,9 @@ import {
   downtimePilotPatch,
   mechBayStatus,
   medBayStatus,
+  RESTORE_STEP_NAME,
+  TRAIN_STEP_NAME,
+  UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -215,12 +218,12 @@ function resetsLine(pilot: Pilot, crawler: Crawler | null, tl: number): PlanLine
 export function stepPlan(input: StepPlanInput): PlanLine[] {
   const { stepName, pilot, mech, crawler, pilotCrawlerTl, upkeep } = input
   const lines: (PlanLine | null)[] = []
-  if (stepName === 'Restore your Mech & Pilot') {
+  if (stepName === RESTORE_STEP_NAME) {
     if (mech) lines.push(mechLine(mech, crawler))
     if (pilot) lines.push(pilotLine(pilot, crawler, pilotCrawlerTl))
     lines.push(usesLine(pilot, mech, crawler, pilotCrawlerTl))
     if (pilot) lines.push(resetsLine(pilot, crawler, pilotCrawlerTl))
-  } else if (stepName === 'Train your Pilot' && pilot) {
+  } else if (stepName === TRAIN_STEP_NAME && pilot) {
     const tp = pilot.trainingPoints ?? 0
     lines.push({
       key: 'train',
@@ -229,7 +232,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
       steps: ['trainPilots'],
       skippable: true,
     })
-  } else if (stepName === 'Upkeep & Upgrade' && crawler) {
+  } else if (stepName === UPKEEP_STEP_NAME && crawler) {
     lines.push({
       key: 'upkeep',
       title: 'Upkeep',

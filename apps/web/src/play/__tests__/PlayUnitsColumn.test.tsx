@@ -12,7 +12,7 @@
 
 import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { downtimeGuideSteps } from 'game-domain/rules/downtime'
+import { downtimeGuideSteps, RESTORE_STEP_NAME } from 'game-domain/rules/downtime'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import {
@@ -23,7 +23,6 @@ import {
 } from '../../components/__tests__/fixtures'
 import type { BoardOption } from '../boardMenu.model'
 import type { Play, Situation } from '../situation.model'
-import { RESTORE_STEP_NAME } from '../units.model'
 import { fakeSeat } from './seatFixture'
 
 // Module scope, before the imports below — see `convexMock.ts`.

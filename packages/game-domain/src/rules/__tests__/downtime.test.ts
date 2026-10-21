@@ -17,6 +17,7 @@ import type { DowntimeSteps, MedBayStatus } from '../downtime'
 import {
   allDowntimeSteps,
   CHASSIS_DAMAGED_CONDITION,
+  currentDowntimeStep,
   downtimeMechPatch,
   downtimePilotPatch,
   downtimeStepCount,
@@ -24,7 +25,10 @@ import {
   isUpkeepStep,
   mechBayStatus,
   medBayStatus,
+  RESTORE_STEP_NAME,
   repairableItems,
+  TRAIN_STEP_NAME,
+  UPKEEP_STEP_NAME,
 } from '../downtime'
 
 // ---------------------------------------------------------------------------
@@ -139,6 +143,21 @@ describe('the Downtime guide', () => {
     expect(isUpkeepStep(0)).toBe(false)
     expect(isUpkeepStep(null)).toBe(false)
     expect(isUpkeepStep(999)).toBe(false)
+  })
+
+  it('names the steps the app applies patches in', () => {
+    for (const name of [RESTORE_STEP_NAME, TRAIN_STEP_NAME, UPKEEP_STEP_NAME]) {
+      expect(downtimeStepNames()).toContain(name)
+    }
+  })
+
+  it('clamps the current step to the guide, the first when unset', () => {
+    const count = downtimeStepCount()
+    expect(currentDowntimeStep(undefined)).toMatchObject({ index: 0, count, last: false })
+    expect(currentDowntimeStep(-3).index).toBe(0)
+    const end = currentDowntimeStep(999)
+    expect(end).toMatchObject({ index: count - 1, last: true })
+    expect(end.step?.name).toBe('Prepare for the next Salvage Run')
   })
 })
 

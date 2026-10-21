@@ -91,6 +91,12 @@ export const DOWNTIME_UPKEEP_SCRAP = 5
  */
 export const UPKEEP_STEP_NAME = 'Upkeep & Upgrade'
 
+/** The Crawler Downtime step whose patches restore a mech and heal a pilot (p.228). */
+export const RESTORE_STEP_NAME = 'Restore your Mech & Pilot'
+
+/** The Crawler Downtime step a pilot trains in (p.228). */
+export const TRAIN_STEP_NAME = 'Train your Pilot'
+
 /** The Crawler Downtime guide's steps, in order; empty when the guide is missing. */
 export function downtimeGuideSteps() {
   return SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps ?? []
@@ -108,6 +114,18 @@ export function downtimeStepCount(): number {
  */
 export function downtimeStepNames(): string[] {
   return downtimeGuideSteps().map((step) => step.name)
+}
+
+/**
+ * Where the table is in the Downtime guide: `stepIndex` clamped to its steps
+ * (the first when unset), the step itself, how many there are, and whether it
+ * is the last.
+ */
+export function currentDowntimeStep(stepIndex: number | null | undefined) {
+  const steps = downtimeGuideSteps()
+  const count = steps.length
+  const index = Math.min(Math.max(stepIndex ?? 0, 0), Math.max(count - 1, 0))
+  return { steps, index, step: steps[index], count, last: index >= count - 1 }
 }
 
 /**

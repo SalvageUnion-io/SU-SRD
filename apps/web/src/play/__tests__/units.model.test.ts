@@ -4,16 +4,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { downtimeGuideSteps } from 'game-domain/rules/downtime'
+import { downtimeGuideSteps, RESTORE_STEP_NAME } from 'game-domain/rules/downtime'
 import { crawlerFixture, mechFixture } from '../../components/__tests__/fixtures'
 import type { BoardOption } from '../boardMenu.model'
-import {
-  bayChips,
-  hangarMechs,
-  mechRestorePreview,
-  RESTORE_STEP_NAME,
-  unitLiveness,
-} from '../units.model'
+import { bayChips, hangarMechs, mechRestorePreview, unitLiveness } from '../units.model'
 
 const RESTORE_STEP = downtimeGuideSteps().findIndex((s) => s.name === RESTORE_STEP_NAME)
 

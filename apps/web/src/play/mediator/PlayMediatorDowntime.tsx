@@ -18,8 +18,8 @@
  */
 
 import {
+  currentDowntimeStep,
   DOWNTIME_UPKEEP_SCRAP,
-  downtimeGuideSteps,
   isUpkeepStep,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
@@ -63,11 +63,7 @@ export function PlayMediatorDowntime({
   const { downtime, seats, canWrite, crawler } = mediator
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [upkeepNote, setUpkeepNote] = useState<string | null>(null)
-  const steps = downtimeGuideSteps()
-  const count = steps.length
-  const idx = Math.min(Math.max(downtime.downtime.stepIndex ?? 0, 0), Math.max(count - 1, 0))
-  const step = steps[idx]
-  const last = idx >= count - 1
+  const { steps, index: idx, step, count, last } = currentDowntimeStep(downtime.downtime.stepIndex)
   const { completedBy, upkeepSpent } = downtime.downtime
   const { done, of } = doneOf(seats, completedBy)
   const upkeepStep = isUpkeepStep(idx)
