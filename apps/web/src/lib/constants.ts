@@ -13,8 +13,6 @@ import { originOf } from './site'
  */
 export const SITE_URL = originOf(import.meta.env.VITE_SITE_ORIGIN)
 
-/** Every breadcrumb trail's root: the home page is the book's Contents, on
- *  every page that has a trail (never "Home" on some and "Contents" on others). */
 /** The site's description: the home page's, and any page's that sets none. */
 export const DEFAULT_DESCRIPTION =
   'The rules reference and character manager for the Salvage Union TTRPG: every chassis, system, module and ability, and the app to run Pilots, Mechs and Crawlers.'

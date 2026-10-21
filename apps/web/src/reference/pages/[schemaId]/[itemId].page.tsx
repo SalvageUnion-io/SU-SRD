@@ -23,7 +23,6 @@ import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
 import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, SRD_CRUMB } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
-import { entityPageFoot } from '../../../lib/entityPageFoot'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { pageTitle } from '../../../lib/pageTitle'
@@ -171,7 +170,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: itemName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(pageMeta),
+    foot: { printings: pageMeta.printings },
     // A roll table has no build link or guide exits: both are null for it.
     children: (
       <EntityPageFrame

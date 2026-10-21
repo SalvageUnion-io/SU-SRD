@@ -12,8 +12,9 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { DocumentMeta, PageFoot } from '../../../ssg/types'
+import type { DocumentMeta } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import type { FooterFoot } from '../../components/index'
 import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../../components/index'
 import { color } from '../../design/tokens'
 import { cn } from '../../lib/cn'
@@ -28,13 +29,6 @@ import { Island } from '../../runtime/Island'
 import { TopNavigation } from '../TopNavigation'
 
 const SKIP_LINK = cn('su-skip-link', capsLabel())
-
-/**
- * Pages whose own search (the 404's) stands in for the Union bar's: two fields
- * on one page would both claim ⌘K. Keyed by the route's pathname, so the 404
- * is `/404/` though it is emitted as `404.html`.
- */
-const PAGES_WITH_SEARCH = new Set(['/404/'])
 
 /** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({
@@ -64,7 +58,7 @@ export type BaseLayoutProps = {
   pathname: string
   children: ReactNode
   /** A book page's foot (its citation); absent → the licence row alone. */
-  foot?: PageFoot
+  foot?: FooterFoot
 }
 
 export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) {
@@ -211,7 +205,10 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           <a href="#main-content" className={SKIP_LINK}>
             Skip to content
           </a>
-          <TopNavigation breadcrumbs={trail} pageHasSearch={PAGES_WITH_SEARCH.has(pathname)} />
+          {/* The 404's own search stands in for the Union bar's: two fields on
+              one page would both claim ⌘K. Its pathname is `/404/` though it
+              is emitted as `404.html`. */}
+          <TopNavigation breadcrumbs={trail} pageHasSearch={pathname === '/404/'} />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus

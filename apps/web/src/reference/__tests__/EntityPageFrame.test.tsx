@@ -9,7 +9,6 @@ import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveEntityPageMeta } from '../../components/index'
 import { appPath } from '../../lib/appBase'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
-import { entityPageFoot } from '../../lib/entityPageFoot'
 import { EntityPageFrame } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {
@@ -111,12 +110,5 @@ describe('EntityPageFrame', () => {
     )
     const body = container.querySelector<HTMLElement>('.su-entity__body')
     expect(body?.classList.contains('su-page-body')).toBe(true)
-  })
-})
-
-describe('entityPageFoot', () => {
-  test('carries the printings from meta, and no kind (ruling 3, 2026-10-19)', () => {
-    const meta = resolveEntityPageMeta(guide('Heat'))
-    expect(entityPageFoot(meta)).toEqual({ printings: meta.printings })
   })
 })

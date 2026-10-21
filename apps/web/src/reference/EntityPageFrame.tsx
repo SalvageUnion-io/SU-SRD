@@ -14,8 +14,8 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
  * band's `asideAt="notch"`, and the button, the band's `action`, stays on the
  * band beside it); then the body. The page's foot — its printings on one
  * line (`Workshop Manual · p.65 // … (CR) · p.37`), no kind — is the site
- * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
- * (`lib/entityPageFoot.ts`) to the layout as its `PageResult.foot`.
+ * `Footer`'s, so the page ends once: the page module hands its printings
+ * to the layout as its `PageResult.foot`.
  *
  * Entity, pattern and roll-table pages all wear it, so the three cannot drift.
  * `meta` comes from `resolveEntityPageMeta`, the same helpers the card's own

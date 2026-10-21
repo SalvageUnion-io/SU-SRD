@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { SITE_LINKS } from '../../lib/docPages'
-import { usePageFoot } from '../../lib/pageFoot'
+import { usePageCredit } from '../../stores/pageCredit'
 import { Footer, tokens } from '../index'
 
 /**
@@ -8,7 +8,7 @@ import { Footer, tokens } from '../index'
  * the colour of the page's leading band (ink where none leads), with the
  * licence row and the doc pages both tools share, which live on the SRD
  * (`docPages.ts`). A player-made page's credit rides it where a book page's
- * citation would (`usePageFootCredit`).
+ * citation would (`useCitePageCredit`).
  *
  * It ends every page that draws the Union bar, signed in or out, at every
  * width. It sits in normal flow after the route, so nothing pinned can cover
@@ -25,7 +25,7 @@ const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
 const MARK = '/Powered_by_Salvage_Black.webp'
 
 export function SiteFooter() {
-  const credit = usePageFoot((state) => state.credit)
+  const credit = usePageCredit((state) => state.credit)
   return (
     <div style={GAP}>
       <Footer

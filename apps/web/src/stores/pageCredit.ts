@@ -10,14 +10,14 @@ import { create } from 'zustand'
  * Only a player-made page sets one today: a saved pattern's "Homebrew // Made
  * by alxjrvs", in the place a book page cites its printings (ruleset §3.9).
  */
-type PageFootState = { credit: string | undefined }
+type PageCreditState = { credit: string | undefined }
 
-export const usePageFoot = create<PageFootState>(() => ({ credit: undefined }))
+export const usePageCredit = create<PageCreditState>(() => ({ credit: undefined }))
 
 /** Cite `credit` on the page's foot while the calling page is mounted. */
-export function usePageFootCredit(credit: string | undefined): void {
+export function useCitePageCredit(credit: string | undefined): void {
   useEffect(() => {
-    usePageFoot.setState({ credit })
-    return () => usePageFoot.setState({ credit: undefined })
+    usePageCredit.setState({ credit })
+    return () => usePageCredit.setState({ credit: undefined })
   }, [credit])
 }

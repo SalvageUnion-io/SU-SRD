@@ -10,11 +10,12 @@
 
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import type { FooterFoot } from '../src/components/index'
 import { escapeJsonForScript } from '../src/lib/escapeJsonForScript'
 import { BaseLayout } from '../src/reference/layouts/BaseLayout'
 import type { CollectedIslandProps } from '../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../src/runtime/Island'
-import type { BuiltAssets, DocumentMeta, DocumentShell, PageFoot } from './types'
+import type { BuiltAssets, DocumentMeta, DocumentShell } from './types'
 
 /** Hashed URLs of the built client assets, read from `dist/.vite/manifest.json`. */
 export type BuildAssets = {
@@ -66,8 +67,8 @@ export type RenderDocumentInput = {
   assets: BuildAssets
   /** `'bare'` renders `children` AS the document; see `DocumentShell`. */
   shell?: DocumentShell
-  /** A book page's foot: its citation; see `PageFoot`. */
-  foot?: PageFoot
+  /** A book page's foot: its citation; see `PageResult.foot`. */
+  foot?: FooterFoot
 }
 
 export function renderDocument({

@@ -67,21 +67,18 @@ export type DocumentMeta = {
  */
 export type DocumentShell = 'base' | 'bare'
 
-/**
- * A book page's foot: the shared `Footer`'s (src/components), named for the
- * page. A show page's printings ride the one footer, on one line before the
- * licence; the footer wears the page's leading band either way. A page
- * without a citation (a listing, search) passes none; the layout sets the one
- * page measure on every foot.
- */
-export type PageFoot = FooterFoot
-
 /** What a page returns: its head metadata, its body tree and, for a book page, its foot. */
 export type PageResult = {
   meta: DocumentMeta
   children: ReactNode
   shell?: DocumentShell
-  foot?: PageFoot
+  /**
+   * A book page's foot: the shared `Footer`'s (src/components). A show page's
+   * printings ride the one footer, on one line before the licence; the footer
+   * wears the page's leading band either way. A page without a citation (a
+   * listing) passes none; the layout sets the one page measure on every foot.
+   */
+  foot?: FooterFoot
 }
 
 /**
@@ -125,9 +122,8 @@ export type PageModule<Params = Record<string, string>, Props = unknown> = {
 /**
  * A non-HTML build output.
  *
- * Part of the SSG contract in `ssg/DESIGN.md`.
- * `src/reference/endpoints/{itemJson,llmsTxt,schemaDefinitionJson,schemaJson,searchIndexJson}.ts`
- * implement it.
+ * Part of the SSG contract in `ssg/DESIGN.md`. Every module in
+ * `src/reference/endpoints/` implements it.
  */
 export type EndpointModule<Params = Record<string, string>, Props = unknown> = {
   /** Concrete output path relative to dist, may contain [params]. */

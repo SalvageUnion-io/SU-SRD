@@ -8,15 +8,12 @@
 import type { AnnouncedRoll, DigestedColumnsColumn } from '../components/index'
 import type { RefText } from './rollTablePage'
 
-/** One column: its d20 range ("9-12") and its entries (`digestColumnsTable`). */
-export type ColumnsTableColumn = DigestedColumnsColumn
-
 /** Everything the page and its island need, serialised once as island props. */
 export type ColumnsTablePageData = {
   name: string
   /** The table's prose, a paragraph each, its references resolved (`refText`). */
   description: RefText[]
-  columns: ColumnsTableColumn[]
+  columns: DigestedColumnsColumn[]
 }
 
 /** A pair of rolls: the column's, then the entry's. */
@@ -30,9 +27,9 @@ export function rangeHolds(key: string, roll: number): boolean {
 
 /** Where a pair of rolls lands: its column, and the entry down it. */
 export function columnsHit(
-  columns: ColumnsTableColumn[],
+  columns: DigestedColumnsColumn[],
   roll: ColumnsRoll
-): { column: ColumnsTableColumn; entry: { key: string; value: string } } | undefined {
+): { column: DigestedColumnsColumn; entry: { key: string; value: string } } | undefined {
   const column = columns.find((c) => rangeHolds(c.key, roll.column))
   const entry = column?.entries.find((e) => rangeHolds(e.key, roll.entry))
   return column && entry ? { column, entry } : undefined

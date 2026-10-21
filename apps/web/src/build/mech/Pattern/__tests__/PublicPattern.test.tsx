@@ -30,7 +30,7 @@ const { ConnectionContext } = await import('../../../../lib/connection/connectio
 const { useEntityStore } = await import('../../../../stores/entityStore')
 const { usePatternStore } = await import('../../../../stores/patternStore')
 const { PublicSheetView } = await import('../../../sheet/PublicSheetView')
-const { usePageFoot } = await import('../../../../lib/pageFoot')
+const { usePageCredit } = await import('../../../../stores/pageCredit')
 
 withSignedInBackend()
 
@@ -107,7 +107,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     expect(container.querySelector('.su-entity-page__opening')?.textContent).toContain(
       'Rig first, rivet later.'
     )
-    expect(usePageFoot.getState().credit).toBe('Homebrew // Made by alxjrvs')
+    expect(usePageCredit.getState().credit).toBe('Homebrew // Made by alxjrvs')
     expect(screen.getByText('3 mechs built from it')).toBeTruthy()
   })
 
@@ -115,7 +115,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     setQueryAnswers({ 'publicSheet:pattern': answer() })
     const { unmount } = renderAs(SIGNED_OUT)
     unmount()
-    expect(usePageFoot.getState().credit).toBeUndefined()
+    expect(usePageCredit.getState().credit).toBeUndefined()
   })
 
   test('the chassis and the loadout come from the reference', () => {

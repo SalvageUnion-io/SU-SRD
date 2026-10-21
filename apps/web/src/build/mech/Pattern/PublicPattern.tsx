@@ -43,7 +43,6 @@ import { chapterForSchema } from '../../../lib/chapters'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { itemHref } from '../../../lib/entityHref'
-import { usePageFootCredit } from '../../../lib/pageFoot'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
@@ -53,6 +52,7 @@ import {
   patternCopy,
 } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
+import { useCitePageCredit } from '../../../stores/pageCredit'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
@@ -127,7 +127,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const [shareOpen, setShareOpen] = useState(false)
 
   // Where a book page cites its printings, this one credits its maker.
-  usePageFootCredit(`Homebrew // Made by ${madeBy}`)
+  useCitePageCredit(`Homebrew // Made by ${madeBy}`)
 
   const chassis = patternChassis(pattern)
   const refPattern = pagePattern(pattern)

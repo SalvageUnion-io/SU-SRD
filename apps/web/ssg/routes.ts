@@ -34,8 +34,6 @@ export const routes: RouteRegistration[] = [
   register(itemPage),
   register(patternPage),
   register(changelogPage),
-  // Noindexed (results are query-driven), so listing it in the sitemap would
-  // ask crawlers to fetch a page the page itself tells them not to index.
   register(botPrivacyPage),
   register(botTermsPage),
   register(aboutPage),

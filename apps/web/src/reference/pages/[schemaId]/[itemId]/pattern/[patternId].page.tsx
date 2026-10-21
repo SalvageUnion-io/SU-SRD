@@ -31,7 +31,6 @@ import {
   SRD_CRUMB,
 } from '../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../lib/entityHref'
-import { entityPageFoot } from '../../../../../lib/entityPageFoot'
 import { getReferenceEntityData } from '../../../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../../../lib/ogCard'
 import { pageTitle } from '../../../../../lib/pageTitle'
@@ -136,7 +135,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: patternName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(pageMeta),
+    foot: { printings: pageMeta.printings },
     children: (
       <EntityPageFrame
         title={`“${patternName}”`}

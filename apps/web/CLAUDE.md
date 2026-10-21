@@ -21,7 +21,7 @@ a route. Non-HTML outputs are `src/reference/endpoints/*.ts` wired through
 - **Chapters** (`src/lib/chapters.ts`) drive the home index, nav drawer, each
   page's band colour and trail.
 - Entity, pattern and roll-table pages wear `EntityPageFrame`: `ChapterBand`,
-  then the card at `presentation="page"`, with `foot: entityPageFoot(...)`.
+  then the card at `presentation="page"`, with `foot: { printings }`.
 - Page layouts are `src/styles/pages.css`.
 - A `.css` import reachable from SSR builds green and silently never ships.
 - `src/runtime/assets.entry.ts` is the only importer of `src/assets/`; pages
