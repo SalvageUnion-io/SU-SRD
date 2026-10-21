@@ -1055,9 +1055,14 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex: none;
 }
 
-/* A Mini with controls (`data-acts`): its name is the link (C8). */
+/* A Mini with controls (`data-acts`): its name is the link (C8). Its line
+   is shorter than WCAG 2.2's 24px target (2.5.8), so its box reaches 24px
+   in padding the same negative margin takes back: the Mini draws at its
+   height and the name's target is 24px tall. */
 .su-entity-mini__link {
   color: inherit;
+  margin-block: calc((1lh - var(--space-24)) / 2);
+  padding-block: calc((var(--space-24) - 1lh) / 2);
   text-decoration: none;
 }
 
@@ -1511,6 +1516,12 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-entity-compact[data-covered] .su-entity-linked {
   position: relative;
   z-index: 1;
+}
+
+/* A linked Mini sits on its Compact's own link, so nothing spaces it from a
+   neighbouring target: it is a 24px target itself (WCAG 2.2, 2.5.8). */
+.su-entity-linked > a.su-entity-mini {
+  min-block-size: var(--space-24);
 }
 
 /* A crawler tech level's block reads a size up from a Compact's, the Page's
