@@ -161,16 +161,3 @@ export function foregroundOn(band: string | undefined, fallback: Foreground = 'p
 
 /** WCAG AA for body text: the ratio a foreground must reach to print on a band. */
 export const TEXT_CONTRAST = 4.5
-
-/**
- * Whether ink or paper prints on `band` at {@link TEXT_CONTRAST}. A band that
- * cannot be resolved is assumed to: the caller's fallback stands.
- */
-export function bandCarriesText(band: string | undefined): boolean {
-  const ground = band ? resolveColor(band) : undefined
-  if (!ground) return true
-  return (
-    Math.max(contrastRatio(FOREGROUND.ink, ground), contrastRatio(FOREGROUND.paper, ground)) >=
-    TEXT_CONTRAST
-  )
-}

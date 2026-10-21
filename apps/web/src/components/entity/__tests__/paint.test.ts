@@ -3,20 +3,10 @@ import { GREY_HEADER } from '../../referenceEntity/card/cardChrome'
 import { paintFor } from '../parts/paint'
 
 /**
- * The name's paper chip is contrast-driven (ruleset §3.8): a band prints its
- * name in whichever of ink or paper reaches 4.5:1, and wears the chip only
- * where neither does.
+ * The name's foreground is contrast-driven (ruleset §3.8): a band prints its
+ * name in whichever of ink or paper contrasts more.
  */
-describe('paintFor: the name on paper', () => {
-  test('every tech-level band carries ink or paper, so prints the name bare', () => {
-    for (const tone of ['tl-1', 'tl-2', 'tl-3', 'tl-4', 'tl-5', 'tl-6', 'tl-b', 'tl-n']) {
-      expect({ tone, onPaper: paintFor(tone, { texture: false }).nameOnPaper }).toEqual({
-        tone,
-        onPaper: false,
-      })
-    }
-  })
-
+describe("paintFor: the name's foreground", () => {
   test('ink on TL1 to TL3, paper from TL4 up', () => {
     expect(paintFor('tl-1', { texture: false }).color).toBe('var(--color-ink)')
     expect(paintFor('tl-2', { texture: false }).color).toBe('var(--color-ink)')
@@ -27,15 +17,9 @@ describe('paintFor: the name on paper', () => {
   test('Nanite prints paper', () => {
     expect(paintFor('tl-n', { texture: false }).color).toBe('var(--color-paper)')
   })
-
-  test('a kind tone that carries text never wears the chip', () => {
-    for (const tone of ['pilot', 'mech', 'ink', 'adversary']) {
-      expect(paintFor(tone, { texture: false }).nameOnPaper).toBe(false)
-    }
-  })
 })
 
-/** Damaged dulls the band toward grey; destroyed is grey (owner, 2026-10-14). */
+/** Damaged dulls the band toward grey; destroyed is grey. */
 describe('paintFor: a down band', () => {
   const tones = [
     'ink',
@@ -61,11 +45,10 @@ describe('paintFor: a down band', () => {
     for (const tone of tones) {
       const up = paintFor(tone, { texture: false })
       const down = paintFor(tone, { down: true, texture: false })
-      expect({ tone, color: down.color, ink: down.ink, chip: down.nameOnPaper }).toEqual({
+      expect({ tone, color: down.color, ink: down.ink }).toEqual({
         tone,
         color: up.color,
         ink: up.ink,
-        chip: false,
       })
     }
   })

@@ -448,7 +448,7 @@ describe('chrome-tokens/entity-frame-ink', () => {
       [
         '.su-entity-compact__frame { border-color: var(--su-compact-frame, var(--color-ink-40)); }',
         '.su-ec-frame { border-width: var(--bw-entity); border-style: solid; }',
-        '.su-ec-frame > .su-ec-band { border-bottom: var(--bw-chrome) solid var(--color-ink); }',
+        '.su-ec-frame > .su-x-inner { border-bottom: var(--bw-chrome) solid var(--color-ink); }',
         '.su-entity-compact__frame-x { border-color: var(--color-ink); }',
       ].join('\n')
     )

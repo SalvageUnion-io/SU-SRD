@@ -64,7 +64,6 @@ export function CardHead({
         background: bandColor ?? 'var(--color-paper)',
         color: titleColor ?? 'var(--color-ink)',
         ink: fill === 'ink',
-        nameOnPaper: false,
         ...(grain ? { grain } : {}),
       }}
       tier={numeral}

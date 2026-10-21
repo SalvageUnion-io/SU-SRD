@@ -129,7 +129,6 @@ const tierPaint = (tier: TreeTrack) =>
     background: TIER_BAND[tier],
     color: 'var(--color-ink)',
     ink: false,
-    nameOnPaper: false,
   }) as const
 
 /** A Hybrid Class's trees, with the class that owns each branch. */
@@ -244,7 +243,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   const note = hybrid
     ? toEntityModel(hybrid).lead
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
-  // A Hybrid Class's path wears its rust, the class's own its orange (owner, round 5).
+  // A Hybrid Class's path wears its rust, the class's own its orange.
   const track: TreeTrack = hybrid ? 'hybrid' : 'core'
   const head = (
     <Head
@@ -293,7 +292,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
           </div>
         </div>
         {/* The foot shares the head's colour, its citation on a paper cut-out,
-            as a page's foot band does (owner, round 5); text, never chips (EDL E9). */}
+            as a page's foot band does; text, never chips (EDL E9). */}
         <p className="su-class-path__foot" style={{ backgroundColor: TIER_BAND[track] }}>
           <span className="su-class-path__cite">
             Workshop Manual · p.{(hybrid ?? classEntity).page}
@@ -324,7 +323,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     )
   }
 
-  // The Core trees two across (owner, round 4: "two columns of trees"), on
+  // The Core trees two across, on
   // the path cards' shared rows; then every path the class
   // advances along, its own (Legendary) first, then each Hybrid Class, all
   // the same card with their trees side by side.

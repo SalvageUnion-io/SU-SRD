@@ -38,7 +38,6 @@ const BAND = {
   color: 'var(--color-ink)',
   grain: 'ink',
   ink: false,
-  nameOnPaper: false,
 } as const
 
 /**
