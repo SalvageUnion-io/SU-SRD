@@ -68,7 +68,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
 22. **Display system** <a id="display"></a>
-    Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
+    Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`.
     `Box` is every other frame, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.
@@ -146,7 +146,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex.
 26. **ADR-026 Entity card design rules** · [full text](adr/026-entity-card-design-rules.md)
-    `ReferenceEntityCard` is the only entity Card and Page; app UI layers onto it. Stats have no pips; a modified stat wears a heavier ink frame.
+    `ReferenceEntityCard` is the only entity card and Page; app UI layers onto it. Stats have no pips; a modified stat wears a heavier ink frame.
 28. **ADR-028 A partner renders in place**
     A partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
 29. **ADR-029 Unified contribution model and stat provenance** · [full text](adr/029-contribution-model.md)

@@ -58,10 +58,10 @@ Mediator. Sheets open as an overlay; Build stays where loadouts are edited.
 
 ### 6. One Actions list
 
-Every action from pilot, mech and crawler is one list of Tokens (owner, 2026-10-19), sorted and
+Every action from pilot, mech and crawler is one list of Minis, sorted and
 filtered by action type. What the Situation allows is On hand; the rest is a
 collapsed Not on hand group naming what each needs. Boarded keeps the pilot's
-own abilities and equipment on hand. An action resolves inline in its Token
+own abilities and equipment on hand. An action resolves inline in its Mini
 (Activate, Roll, Push, Apply) on the seat's `resolving`.
 
 ### 7. Crew and presence
@@ -95,17 +95,17 @@ vitals and the Situation switch. Only the open tab's list scrolls.
 
 ### 11. Play follows the nesting rules
 
-Play sits in the canon's nesting rules N1–N7 (ruleset §5; the entity display
-language's E3, E6 and E18) and their gates. Its own frames place as follows:
+Play sits in the canon's nesting rules N1–N8 (the entity display
+language's E6, with E3 and E18) and their gates. Its own frames place as follows:
 
 1. **Level 0 is the Play canvas**, a dialog or an overlay (N1). What sits
-   directly in a column is level 1: a compact Row or Card, or a unit
-   `TitledBox`; what is inside one of those is level 2 (Tokens, N3–N4, or
+   directly in a column is level 1: a Compact or contentful card, or a unit
+   `TitledBox`; what is inside one of those is level 2 (Minis, N4, or
    plain content).
 2. **Column headings are plain titles or Slabs** (stamp and leader rule), not
    TitledBoxes, so what a column holds stays at level 1.
 3. **A section inside an entity box is a Slab over plain content** (N5): a
-   step's "Will apply" list, the resolve steps inside an action's Token.
+   step's "Will apply" list, the resolve steps inside an action's Mini.
 
 ## Consequences
 

@@ -13,8 +13,8 @@ the public API and the only list of exports; its rules:
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm)
   (boards: [sources.md](../../../../docs/design-system/sources.md)), codified by
   [`ruleset.md`](../../../../docs/design-system/ruleset.md); entity forms (Compact,
-  index Compact, Mini, Mention, Peek in `entity/`; Card and Page are
-  `ReferenceEntityCard`) by the [EDL](../../../../docs/design-system/entity-display-language.md).
+  index Compact, Mini, Mention, Peek in `entity/`; contentful forms and Page
+  are `ReferenceEntityCard`) by the [EDL](../../../../docs/design-system/entity-display-language.md).
 
 ## Groups
 
