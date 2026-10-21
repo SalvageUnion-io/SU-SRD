@@ -432,14 +432,20 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 /**
  * Put the open sheet in Edit. A sheet opens in Read (board 10:
  * "print reads, pencil writes"), so every Manage, Assign and bay control is
- * one press of the band's Edit away. Pressing it when it is already on is a
- * no-op, and the choice holds for the rest of the visit.
+ * one press of the band's Edit away: a toggle on the band, or a Read | Edit
+ * radio. Pressing it when it is already on is a no-op, and the choice holds
+ * for the rest of the visit.
  */
 export async function editSheet(page: Page): Promise<void> {
-  const edit = page.getByRole('button', { name: 'Edit', exact: true })
-  await expect(edit).toBeVisible({ timeout: 15_000 })
-  if ((await edit.getAttribute('aria-pressed')) !== 'true') await edit.click()
-  await expect(edit).toHaveAttribute('aria-pressed', 'true')
+  const control = page
+    .getByRole('button', { name: 'Edit', exact: true })
+    .or(page.getByRole('radio', { name: 'Edit', exact: true }))
+    .first()
+  await expect(control, 'the sheet offers Edit').toBeVisible({ timeout: 15_000 })
+  const on = async () =>
+    (await control.getAttribute('aria-pressed')) ?? (await control.getAttribute('aria-checked'))
+  if ((await on()) !== 'true') await control.click()
+  await expect.poll(on, { message: 'the sheet is in Edit' }).toBe('true')
 }
 
 /**

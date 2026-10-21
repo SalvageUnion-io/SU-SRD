@@ -11,7 +11,7 @@ import type {
   DesignSeedKey,
 } from './_designTable'
 import { againstBaseline, DESIGN_FAMILIES, designRoutes, gamePageRoute } from './_designTable'
-import { gotoStable, waitForReady } from './_helpers'
+import { editSheet, gotoStable, waitForReady } from './_helpers'
 import { holdPending } from './_pendingRules'
 import { CANVAS, MID, PHONE, pilotPlayPath, playDoor } from './_play'
 import { createGame, makeInviteLink } from './_table'
@@ -215,17 +215,9 @@ async function settle(page: Page): Promise<void> {
   await page.waitForTimeout(300)
 }
 
-/** Press the sheet's Edit (a toggle on a sheet's band, or a Read | Edit radio). */
+/** Put the sheet in Edit (`editSheet`), then let it settle for a capture. */
 async function edit(page: Page): Promise<void> {
-  const control = page
-    .getByRole('button', { name: 'Edit', exact: true })
-    .or(page.getByRole('radio', { name: 'Edit', exact: true }))
-    .first()
-  await expect(control, 'the Live Sheet offers Edit').toBeVisible({ timeout: 15_000 })
-  const on = async () =>
-    (await control.getAttribute('aria-pressed')) ?? (await control.getAttribute('aria-checked'))
-  if ((await on()) !== 'true') await control.click()
-  await expect.poll(on, { message: 'the Live Sheet is in Edit' }).toBe('true')
+  await editSheet(page)
   await settle(page)
 }
 
