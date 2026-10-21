@@ -71,8 +71,6 @@ export function CardHead({
       chips={chips}
       controls={controls}
       affordance={affordance}
-      notch
-      chipsBeside
       overflow={overflow}
     />
   )

@@ -226,17 +226,8 @@ export function PatternListing({
           'compact'
         )
       : undefined
-  // The name on the paper cut-out (Head's `notch`): the body below is paper.
-  const head = (
-    <Head
-      title={`“${name}”`}
-      titleContent={edit?.name}
-      notch
-      chipsBeside
-      paint={paint}
-      chips={chips}
-    />
-  )
+  // The name on the paper cut-out (`Head`'s): the body below is paper.
+  const head = <Head title={`“${name}”`} titleContent={edit?.name} paint={paint} chips={chips} />
   return (
     <Box
       head={

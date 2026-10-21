@@ -31,15 +31,6 @@ export type Paint = {
   nameOnPaper: boolean
 }
 
-/** The name on its paper chip, line by line (`box-decoration-break`). */
-export const PAPER_NAME = {
-  backgroundColor: 'var(--color-paper)',
-  boxDecorationBreak: 'clone',
-  color: 'var(--color-ink)',
-  padding: '0 var(--space-4)',
-  WebkitBoxDecorationBreak: 'clone',
-} as const
-
 const FOREGROUND = { ink: 'var(--color-ink)', paper: 'var(--color-paper)' } as const
 
 export function paintFor(

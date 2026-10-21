@@ -83,8 +83,6 @@ export function TitledBox({
           top={top}
           // Select mode's seal, on the band's right as a selected Compact's (R15).
           affordance={select?.selected ? <SelectedSeal word={select.seal} /> : undefined}
-          notch
-          chipsBeside
         />
       }
     />

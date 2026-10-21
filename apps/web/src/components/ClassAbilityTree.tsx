@@ -266,8 +266,6 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
           nodes={{ relation: <PathRequirement path={path} /> }}
         />
       }
-      notch
-      chipsBeside
     />
   )
   return (

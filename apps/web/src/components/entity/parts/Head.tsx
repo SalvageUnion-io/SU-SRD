@@ -9,7 +9,6 @@ import { Chips } from './Chips'
 import type { ChipSet } from './chipSet'
 import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
-import { PAPER_NAME } from './paint'
 
 /** The tier and the name: caps from the recipe, their extrabold weight the rule's. */
 const NAME_CAPS = capsLabel({ weight: 'inherit' })
@@ -60,20 +59,6 @@ export type HeadProps = {
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
   /**
-   * The cut-out (ruleset, "Chapter band"): the name notched into the band's
-   * foot on a tab of the paper below, in ink, as a catalog index Compact's; the tier
-   * stays on the band, left of it. Without `chipsBeside` it holds only for a
-   * head with no chips: chips that drop under the name would leave the tab
-   * mid-band.
-   */
-  notch?: boolean
-  /**
-   * Keep the cut-out with chips: the chips start on the name's line at the
-   * band's bottom right and fill it leftward (`chipFill.ts`), never under it
-   * nor above it (every Compact and Card head).
-   */
-  chipsBeside?: boolean
-  /**
    * Where the chips that do not fit beside the name go (C2b): `body`, a
    * contentful rendering's, into its body's first row, drawn right under the
    * band; `more`, a header-only one's (a bodyless Compact), behind a +MORE chip
@@ -90,7 +75,8 @@ export type HeadProps = {
 
 /**
  * HEAD — a Compact's band: the art (its own window, at the left), the tier (on the band), the name (it wraps, never
- * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
+ * clipped) notched into the band's foot on a tab of the paper below, in ink
+ * (ruleset, "Chapter band"), with its labels to its
  * right, the chip group (from the bottom right of the name's line, leftward,
  * on that line alone: ruleset §4.7's bottom-right fill; what does not fit goes
  * to the body's first row, or behind +MORE, C2b), the host's controls its last
@@ -112,14 +98,11 @@ export function Head({
   affordance,
   controls,
   labels,
-  notch = false,
-  chipsBeside = false,
   overflow = 'body',
   top,
 }: HeadProps) {
   const chips = asStrip(chipsProp, controls, overflow === 'more')
   const overflowRow = !!chips && overflow === 'body'
-  const cut = notch && (!chips || chipsBeside)
   const headingRef = useRef<HTMLDivElement>(null)
   useChipFill(headingRef, !!chips)
   const tierNode = tier && (
@@ -142,24 +125,19 @@ export function Head({
       data-handback=""
       title={title}
       // On the notch's paper the name is ink (the class's), whatever the band.
-      style={cut ? undefined : { color: paint.color }}
     >
-      {paint.nameOnPaper && !cut ? (
-        <span style={PAPER_NAME}>{titleContent ?? title}</span>
-      ) : (
-        <span>{titleContent ?? title}</span>
-      )}
+      <span>{titleContent ?? title}</span>
       <KindLabel kind={kind} />
     </TitleTag>
   )
   // A cut-out head with chips keeps its labels (a type stamp: "Chassis
   // Ability") in the chip group, one right-floated group in one chip style,
   // never a stamp of its own beside the tab.
-  const labelsWithChips = cut && !!chips && !!labels
+  const labelsWithChips = !!chips && !!labels
   const labelsNode = labels && <div className="su-entity-compact__labels">{labels}</div>
   const name = (
     <div className="su-entity-compact__name" data-fill-name="">
-      {cut ? <span className="su-entity-compact__notch">{titleNode}</span> : titleNode}
+      <span className="su-entity-compact__notch">{titleNode}</span>
       {!labelsWithChips && labelsNode}
     </div>
   )
@@ -171,7 +149,7 @@ export function Head({
       // ground once, and its stamps, chips and cost read it in CSS (chrome K1).
       data-ground={paint.ink ? 'ink' : undefined}
       data-grain={paint.grain}
-      data-notch={cut || undefined}
+      data-notch
       data-chip-overflow-owner={overflowRow ? '' : undefined}
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
@@ -182,7 +160,7 @@ export function Head({
         {chips ? (
           <div
             ref={headingRef}
-            className={cn('su-entity-compact__heading', cut && 'su-entity-compact__heading--cut')}
+            className="su-entity-compact__heading su-entity-compact__heading--cut"
             data-chip-fill=""
           >
             {name}

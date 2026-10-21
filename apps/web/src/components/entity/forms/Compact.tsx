@@ -234,8 +234,6 @@ export function Compact({
         labels={labelsAsChips ? undefined : ownLabels}
         // Every Compact wears the cut-out, bodied or not, its chips on the band
         // beside the name (owner's call, 2026-10-13).
-        notch
-        chipsBeside
         // What does not fit beside the name: the body's first row, or, with
         // no body, +MORE (C2b, C5).
         overflow={hasBody ? 'body' : 'more'}

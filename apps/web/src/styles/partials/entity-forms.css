@@ -309,7 +309,7 @@
   padding-inline-end: var(--space-4);
 }
 
-/* A cut-out head with chips (`Head`'s `chipsBeside`): the name stays on its
+/* A cut-out head with chips (`Head`'s): the name stays on its
    tab at the band's foot, however tall a grid sets the head, and the chips
    start on its line, never under it. */
 .su-entity-compact__heading--cut {

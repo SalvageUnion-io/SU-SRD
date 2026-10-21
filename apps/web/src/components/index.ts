@@ -228,7 +228,7 @@ export { toastRoll } from './containers/toastRoll'
 // - `EntityStat`: a fact whose value is an entity (`CLASS | Engineer`); the
 //   chip opens and Peeks it.
 // - `Art`: a Compact's art window in its head, a `TitledBox`'s `art` (a sheet's chassis callout).
-// - `Head`: a Compact's band, cut out (`notch`), the name on a paper tab and the
+// - `Head`: a Compact's band, cut out, the name on a paper tab and the
 //   chips right of it; a page's own cut-out card (the changelog, a class's
 //   paths) heads with it.
 // - `TagItem`, `Tags`, `relation`, `traitTags`: one trait or relation as a
