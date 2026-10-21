@@ -2,8 +2,8 @@ import type { Page } from '@playwright/test'
 
 /**
  * The frame-colour law (ruleset §4.3, EDL E21) as the
- * rendered page draws it: every entity's frame (a Compact's, CompactIndex's, Card's, a
- * choice option's, a Mini's pill and a contentful Mini's body, a
+ * rendered page draws it: every entity's frame (a Compact's, CompactIndex's, Card's,
+ * a choice option's `Box`, a Mini's pill and a contentful Mini's body, a
  * MiniGroup's) wears the subtle `--color-ink-40` the sheets' panels wear,
  * never solid ink or the entity's tone. Only `--su-compact-frame` colours one: an
  * ability tree's tier, a pattern's colour. `findFrameFaults` returns one
@@ -14,7 +14,6 @@ const ENTITY_FRAMES = [
   '.su-entity-compact__frame',
   '.su-entity-index__frame',
   '.su-ec-frame',
-  '[data-option-frame]',
   '.su-entity-mini__pill',
   '.su-entity-mini__body',
   '.su-mini-group',
@@ -27,11 +26,7 @@ const SUBTLE = 'rgba(40, 32, 25, 0.4)'
 function scanFrames({ frames, subtle }: { frames: string; subtle: string }): string[] {
   const faults: string[] = []
   const describe = (el: Element) =>
-    (
-      el.closest(
-        '.su-entity-compact, .su-entity-mini, .su-entity-index, .su-ec, [data-option-frame]'
-      ) ?? el
-    ).textContent
+    (el.closest('.su-entity-compact, .su-entity-mini, .su-entity-index, .su-ec') ?? el).textContent
       ?.trim()
       .replace(/\s+/g, ' ')
       .slice(0, 40) ?? ''

@@ -73,13 +73,13 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     const { container } = render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} />)
     fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
     expect(screen.queryByText(/^Chosen/)).toBeNull()
-    expect(container.querySelector('[data-option-head]')).toBeNull()
+    expect(container.querySelector('.su-entity-compact__head')).toBeNull()
     cleanup()
 
     const page = render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} onPage />)
     fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
     expect(screen.getByText(/^Chosen/)).toBeTruthy()
-    expect(page.container.querySelectorAll('[data-option-head]').length).toBeGreaterThan(0)
+    expect(page.container.querySelectorAll('.su-entity-compact__head').length).toBeGreaterThan(0)
   })
 
   test('read-only off its Page, an option is a Slab over its text', () => {

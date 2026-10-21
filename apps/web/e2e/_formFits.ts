@@ -48,8 +48,6 @@ type FormSelectors = {
   token: string
   /** A Card (`ReferenceEntityCard`). */
   card: string
-  /** A headed frame built outside `entity/` (a choice option). */
-  handFrame: string
   /** A link to a unit's Live Sheet. */
   unitLink: string
   head: string
@@ -78,7 +76,6 @@ const FORM_SELECTORS: FormSelectors = {
   tile: '.su-entity-index',
   token: '.su-entity-mini',
   card: '.su-ec-outer',
-  handFrame: '[data-option-frame]',
   unitLink: 'a[href*="/sheet/"]',
   head: NESTING_SELECTORS.head,
   frame: NESTING_SELECTORS.frame,
@@ -137,20 +134,15 @@ function scanForms({
   const found: FormFinding[] = []
 
   // E2: a list item's entity is a Compact, a CompactIndex or a Mini.
-  const entity = [a.row, a.tile, a.token, a.card, a.handFrame, a.unitLink].join(', ')
+  const entity = [a.row, a.tile, a.token, a.card, a.unitLink].join(', ')
   for (const item of document.querySelectorAll(a.item)) {
     if (!visible(item)) continue
     const inner = [...item.querySelectorAll(entity)].filter(visible)
-    if (item.matches(a.handFrame)) inner.unshift(item)
     const outermost = inner.filter((el) => !inner.some((o) => o !== el && o.contains(el)))
     for (const el of outermost) {
       if (el.matches(a.row) || el.matches(a.tile) || el.matches(a.token)) continue
       if (el.closest(a.token) || el.closest(a.row) || el.closest(a.tile)) continue
-      const what = el.matches(a.card)
-        ? 'a Card'
-        : el.matches(a.handFrame)
-          ? 'a hand-built frame'
-          : 'a bare unit link'
+      const what = el.matches(a.card) ? 'a Card' : 'a bare unit link'
       found.push({ rule: 'E2', detail: `${what} (${nameOf(el)}) in a list item` })
     }
   }
@@ -192,7 +184,7 @@ function scanForms({
   for (const lead of document.querySelectorAll(a.lead)) {
     if (!visible(lead)) continue
     if (place.index && !lead.closest(a.peek)) continue
-    const host = lead.closest(`${a.row}, ${a.tile}, ${a.handFrame}`) ?? lead.parentElement
+    const host = lead.closest(`${a.row}, ${a.tile}`) ?? lead.parentElement
     found.push({ rule: 'E11', detail: `a lead in ${host ? nameOf(host) : 'a block'}` })
   }
 

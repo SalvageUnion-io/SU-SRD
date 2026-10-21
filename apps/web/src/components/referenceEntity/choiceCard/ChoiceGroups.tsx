@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useContext, useId, useState } from 'react'
 import type { RefEntity, RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
-import { color, duration, ease, font, fontSize, space, weight } from '../../../design/tokens'
+import { color, font, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import type { CSSVarStyle } from '../../../styles/cssVars'
@@ -11,7 +11,10 @@ import { Field } from '../../atoms/Field'
 import { Input, Textarea } from '../../atoms/inputs'
 import { Stat } from '../../atoms/Stat'
 import { ToggleCard } from '../../atoms/ToggleCard'
+import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
+import { TitledBox } from '../../containers/TitledBox'
+import type { Paint } from '../../entity'
 import { SelectedSeal } from '../../entity/modes/select'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
@@ -100,9 +103,6 @@ function resolveOptionEntity(option: ChoiceCardOption): RefEntity | undefined {
   }
 }
 
-/** The option card's frame, by density — the compact card's ink frame (ruleset §5). */
-const FRAME_WIDTH = { regular: 'var(--bw-entity-compact)', compact: 'var(--bw-chrome)' }
-
 /** A read-only chosen value, set as bold prose (`text-xs`, its line height included). */
 const chosenValueStyle = {
   fontFamily: font.body,
@@ -119,15 +119,28 @@ const optionCellStyle = {
   paddingTop: space[12],
 } satisfies CSSProperties
 
-/** An option's name on its Page: the paper cut-out on its head's foot. */
-const CUT_OUT = {
-  backgroundColor: color.paper,
-  color: color.ink,
-  padding: `${space[4]} ${space[8]} ${space[2]}`,
+/**
+ * The toggle around an option's box: it fills its cell, and pressed it wears
+ * select's ring on the box's square frame (`SELECTED_RING`), as a selected
+ * Box does.
+ */
+const TOGGLE = {
+  background: 'none',
+  border: 0,
+  color: 'inherit',
+  display: 'block',
+  font: 'inherit',
+  padding: 0,
+  textAlign: 'left',
+  width: '100%',
 } satisfies CSSProperties
 
-/** The head's corner chip, on the name's line. */
-const CORNER = { alignSelf: 'center', flex: 'none' } satisfies CSSProperties
+/** An editable option's name off a Page, over its text in the plain box. */
+const optionNameStyle = {
+  color: color.ink,
+  fontSize: fontSize.caption,
+  lineHeight: 1.15,
+} satisfies CSSProperties
 
 /** Off a Page, an option's text at the card body's size. */
 const optionTextStyle = {
@@ -139,17 +152,18 @@ const optionTextStyle = {
 
 /**
  * A selectable OPTION that is not an entity. On its entity's own Page (level
- * 1) it takes the compact card's anatomy (ruleset §5): an ink frame, the tone
- * head with the option's title in ink or paper (whichever the tone carries),
- * and the paper body; in the one select dim until chosen, with the selection
- * ring and the "Chosen" seal when chosen — the entity card's own write layer.
+ * 1) it is a `TitledBox` (ruleset §5): the tone head with the option's name on
+ * its cut-out and the CHOICE chip, or the "Chosen" seal once chosen, on the
+ * band's right, over the paper body; in the one select dim until chosen, and
+ * ringed when chosen.
  *
  * Anywhere else it sits inside a card at level 2, where nothing is titled
  * (N1, N5) and nothing is sealed (hard rule R15): read-only (a Peek included)
  * its name is a Slab over its text, unframed, ringed when it was chosen;
- * editable it is an unheaded toggle, its name and text on the paper of a plain
- * frame, pressed and ringed when chosen, in the one dim until then, with no
- * band or seal.
+ * editable it is an unheaded `Box`, its name and text on the paper, pressed
+ * and ringed when chosen, in the one dim until then, with no band or seal.
+ *
+ * Editable, the box sits in a `ToggleCard`, the one control (`aria-pressed`).
  */
 function ChoiceOption({
   label,
@@ -159,7 +173,6 @@ function ChoiceOption({
   disabled,
   onToggle,
   toneColor,
-  compact,
   onPage,
 }: {
   label: string
@@ -170,7 +183,6 @@ function ChoiceOption({
   disabled?: boolean
   onToggle: () => void
   toneColor?: string
-  compact?: boolean
   /** The option is its entity's own Page's (level 1): the headed option card. */
   onPage?: boolean
 }): ReactNode {
@@ -185,96 +197,58 @@ function ChoiceOption({
       </SlabSection>
     )
   }
-  const band = textBand(toneColor)
-  const onBand = onTone(band, 'ink') === 'paper' ? color.paper : color.ink
-  const button = {
-    background: 'none',
-    border: 0,
-    borderRadius: 'var(--radius-card)',
-    color: 'inherit',
-    cursor: readOnly ? 'default' : disabled ? 'not-allowed' : 'pointer',
-    display: 'block',
-    font: 'inherit',
-    padding: 0,
-    textAlign: 'left',
-    transition: `opacity ${duration.fast} ${ease}`,
-    width: '100%',
-  } satisfies CSSProperties
-  const frame = {
-    backgroundColor: 'var(--color-paper)',
-    borderColor: 'var(--color-ink-40)',
-    borderStyle: 'solid',
-    borderWidth: compact ? FRAME_WIDTH.compact : FRAME_WIDTH.regular,
-    borderRadius: 'var(--radius-card)',
-    overflow: 'hidden',
-    ...(chosen ? SELECTED_RING : undefined),
-  } satisfies CSSProperties
-  const [padY, padX] = compact ? [space[6], space[8]] : [space[8], space[12]]
-  const inset = `${padY} ${padX}`
-  const name = {
-    fontSize: compact ? fontSize.caption : fontSize.lede,
-    lineHeight: 1.15,
-    padding: inset,
-  } satisfies CSSProperties
-  // On the Page the name is a cut-out on the tone head's foot, as every
-  // head's (a Custom Sniper Rifle's Modifications: "should
-  // have cutouts"), its CHOICE chip in the corner; elsewhere ink on the
-  // frame's paper.
-  const head = onPage
-    ? {
-        alignItems: 'flex-end',
-        backgroundColor: band ?? 'var(--color-ink)',
-        color: band ? onBand : color.paper,
-        display: 'flex',
-        gap: space[8],
-        justifyContent: 'space-between',
-        padding: `${space[8]} ${padX} 0`,
+  const text = description ? <p style={optionTextStyle}>{parsedDescription}</p> : null
+  // Level 1 on its Page: a titled box, select mode's seal on the band's right
+  // (R15); unchosen, the CHOICE chip says it is one to pick.
+  const box = onPage ? (
+    <TitledBox
+      title={label}
+      paint={optionPaint(toneColor)}
+      affordance={
+        chosen ? <SelectedSeal word="Chosen" /> : <Stat label="Choice" size="compact" hollow />
       }
-    : {
-        ...name,
-        color: color.ink,
-        // The text sits right under the name: no band between them.
-        padding: description ? `${padY} ${padX} 0` : inset,
-      }
-  const body = {
-    color: color.ink,
-    fontSize: compact ? fontSize.badge : fontSize.xs,
-    lineHeight: 1.375,
-    padding: inset,
-  } satisfies CSSProperties
+    >
+      {text}
+    </TitledBox>
+  ) : (
+    <Box>
+      <span className={NAME_CAPS} style={optionNameStyle}>
+        {label}
+      </span>
+      {text}
+    </Box>
+  )
+  // Read-only on its Page: the box alone, ringed when it was chosen.
+  if (readOnly) {
+    return <div style={chosen ? SELECTED_RING : undefined}>{box}</div>
+  }
   return (
     <ToggleCard
       pressed={chosen}
       disabled={disabled}
-      onClick={readOnly ? undefined : onToggle}
+      onClick={onToggle}
       // The one select dim (R15): unchosen, whether or not the cap allows it.
-      className={cn(!readOnly && !chosen && SELECT_DIM)}
-      style={button}
+      className={cn(!chosen && SELECT_DIM)}
+      style={{
+        ...TOGGLE,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...(chosen ? SELECTED_RING : {}),
+      }}
     >
-      {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
-      <div data-option-frame="" style={frame}>
-        <div data-option-head={onPage || undefined} className={NAME_CAPS} style={head}>
-          {onPage ? (
-            <>
-              <span style={{ ...name, ...CUT_OUT }}>{label}</span>
-              {/* Level 1 on its Page: select mode's seal on the head's right
-                  (R15); unchosen, the CHOICE chip says it is one to pick. */}
-              <span style={CORNER}>
-                {chosen ? (
-                  <SelectedSeal word="Chosen" />
-                ) : (
-                  <Stat label="Choice" size="compact" hollow />
-                )}
-              </span>
-            </>
-          ) : (
-            label
-          )}
-        </div>
-        {description && <div style={body}>{parsedDescription}</div>}
-      </div>
+      {box}
     </ToggleCard>
   )
+}
+
+/** A Page option's band: its entity's tone, as its text band, else ink. */
+function optionPaint(toneColor: string | undefined): Paint {
+  const band = textBand(toneColor)
+  if (!band) return { background: 'var(--color-ink)', color: color.paper, ink: true }
+  return {
+    background: band,
+    color: onTone(band, 'ink') === 'paper' ? color.paper : color.ink,
+    ink: false,
+  }
 }
 
 /**
@@ -453,7 +427,6 @@ function ChoiceOptionGroup({
                   disabled={disabled}
                   onToggle={onToggle}
                   toneColor={toneColor}
-                  compact={compact}
                   onPage={onPage}
                 />
               )}

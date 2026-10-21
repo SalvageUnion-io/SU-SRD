@@ -27,6 +27,11 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   art?: ReactNode
   /** Controls on the band above the name, its full width (`Head`'s `top`). */
   top?: ReactNode
+  /**
+   * The band's right slot, in place of select's seal: a host's own mark when
+   * the box sits inside the control (a choice's option in its toggle).
+   */
+  affordance?: ReactNode
 }
 
 /**
@@ -58,6 +63,7 @@ export function TitledBox({
   controls,
   art,
   top,
+  affordance,
   label,
   select,
   ...box
@@ -82,7 +88,9 @@ export function TitledBox({
           controls={controls}
           top={top}
           // Select mode's seal, on the band's right as a selected Compact's (R15).
-          affordance={select?.selected ? <SelectedSeal word={select.seal} /> : undefined}
+          affordance={
+            affordance ?? (select?.selected ? <SelectedSeal word={select.seal} /> : undefined)
+          }
         />
       }
     />

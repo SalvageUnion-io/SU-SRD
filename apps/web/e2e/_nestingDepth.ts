@@ -94,8 +94,8 @@ export type NestingSelectors = {
 }
 
 export const NESTING_SELECTORS: NestingSelectors = {
-  head: '.su-entity-compact__head, .su-entity-index__band, [data-option-head]',
-  frame: '.su-entity-compact__frame, .su-ec-frame, .su-entity-index__frame, [data-option-frame]',
+  head: '.su-entity-compact__head, .su-entity-index__band',
+  frame: '.su-entity-compact__frame, .su-ec-frame, .su-entity-index__frame',
   title: '.su-entity-compact__title, .su-entity-index__name',
   box: 'su-box',
   chrome: '.su-modal-panel',
