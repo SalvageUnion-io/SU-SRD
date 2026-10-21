@@ -5,6 +5,7 @@
  * Training Bay are no reference entities, so neither Peeks.
  */
 
+import { PRODUCT } from 'game-domain/product'
 import { nameToSlug } from 'salvageunion-reference'
 import type { EntityFormModel } from '../../components/index'
 
@@ -23,15 +24,15 @@ export function gameRowModel(name: string): EntityFormModel {
 }
 
 /**
- * The Training Bay, a unit's place out of every Game: Shelves ink (ruleset, the
- * book's colour map), under the name its list gives it ("Not in a Game").
+ * The Training Bay, a unit's place out of every Game, in ink, under the name
+ * its list gives it ("Not in a Game"). Its id is `hangar/` plus that name.
  */
 export function hangarRowModel(name: string): EntityFormModel {
   const slug = nameToSlug(name)
   return {
     ref: { schemaName: 'crawlers', id: `hangar/${slug}`, slug, name, synthetic: true },
     title: name,
-    kind: { stamp: 'Training Bay', type: 'Training Bay', domain: 'crawler', nature: 'have' },
+    kind: { stamp: PRODUCT.build, type: PRODUCT.build, domain: 'crawler', nature: 'have' },
     tone: 'ink',
     facts: [],
     traits: [],

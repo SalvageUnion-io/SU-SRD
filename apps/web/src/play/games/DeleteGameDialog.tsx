@@ -29,6 +29,7 @@
  */
 
 import { useMutation } from 'convex/react'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -127,15 +128,16 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               {surviving.length > 0 && (
                 <li>
                   <Text variant="hint" style={LEFT}>
-                    {surviving.join(' and ')} go back to whoever owns them, in their Training Bay.
+                    {surviving.join(' and ')} go back to whoever owns them, in their {PRODUCT.build}
+                    .
                   </Text>
                 </li>
               )}
               <li>
                 <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? 'Anything unclaimed comes to you, in your Training Bay.'
-                    : `${game.crawlerName} and anything unclaimed come to you, in your Training Bay.`}
+                    ? `Anything unclaimed comes to you, in your ${PRODUCT.build}.`
+                    : `${game.crawlerName} and anything unclaimed come to you, in your ${PRODUCT.build}.`}
                 </Text>
               </li>
             </ul>

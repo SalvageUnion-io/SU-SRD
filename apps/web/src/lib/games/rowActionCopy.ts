@@ -12,8 +12,8 @@
  * "are you sure?" makes the reader work out the consequence themselves, which
  * is the one job the dialog exists to do for them.
  *
- * The personal container is called **"your shelf"** in anything a player reads
- * (the page is Shelves); "My Stuff" is retired.
+ * The personal container is called **"your Training Bay"** (`PRODUCT.build`)
+ * in anything a player reads.
  *
  * The tone is part of the copy because it is part of the message: `danger` for
  * anything that takes a build — or its assignments — away from you or from the
@@ -21,6 +21,7 @@
  */
 
 import type { EntityKind } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 
@@ -83,7 +84,7 @@ function builds(n: number): string {
 }
 
 /** Where the other end of a link cleared on the way into a Game still is. */
-const STILL_IN_MY_STUFF = '(still in your Training Bay)'
+const STILL_IN_TRAINING_BAY = `(still in your ${PRODUCT.build})`
 
 /**
  * What a move from your shelf into a Game clears, one line per assignment: a
@@ -95,7 +96,7 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
     const named = cleared.flatMap((c) => (c.other.name === null ? [] : [c.other.name]))
     const unnamed = cleared.length - named.length
     const who = [
-      ...(named.length > 0 ? [`${listOf(named)} ${STILL_IN_MY_STUFF}`] : []),
+      ...(named.length > 0 ? [`${listOf(named)} ${STILL_IN_TRAINING_BAY}`] : []),
       ...(unnamed === 0 ? [] : [named.length > 0 ? `${unnamed} more` : builds(unnamed)]),
     ].join(' and ')
     return [`${who} ${cleared.length === 1 ? 'leaves' : 'leave'} its crew.`]
@@ -108,7 +109,7 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
     ...pairings.map((c) =>
       c.other.name === null
         ? `${their} pairing with a ${c.other.kind} is cleared.`
-        : `${their} pairing with ${c.other.name} ${STILL_IN_MY_STUFF} is cleared.`
+        : `${their} pairing with ${c.other.name} ${STILL_IN_TRAINING_BAY} is cleared.`
     ),
     ...crews.map((c) =>
       c.other.name === null
@@ -157,7 +158,7 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * "Make a copy" on Shelves (board S1): a second build of something already on
+   * "Make a copy" in the Training Bay (board S1): a second build of something already on
    * your shelf, in no Game. It names the copy and says
    * the two will not stay in step — for a reader who is already on the shelf.
    */
@@ -165,7 +166,7 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Make a copy of ${name}?`,
       body: [
-        `This puts “${copyName(name)}” in your Training Bay, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        `This puts “${copyName(name)}” in your ${PRODUCT.build}, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
         "Don't want it later? Delete the copy.",
       ],
       confirmLabel: 'Make a copy',
@@ -249,11 +250,11 @@ export const ROW_ACTION_COPY = {
       return {
         title: `Move ${args.name} out of ${from}?`,
         body: [
-          `${args.name} leaves the Game's roster and goes back to your Training Bay, so the rest of the table won't see ${it} any more.`,
+          `${args.name} leaves the Game's roster and goes back to your ${PRODUCT.build}, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),
           `You can move ${it} back into the Game later.`,
         ],
-        confirmLabel: 'Move to your Training Bay',
+        confirmLabel: `Move to your ${PRODUCT.build}`,
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,
@@ -302,7 +303,7 @@ export const ROW_ACTION_COPY = {
       body: [
         `${args.name} joins ${game}'s roster.`,
         ...clearedOnEntry(args.kind, args.cleared),
-        `You can move ${them(args.kind)} back to your Training Bay later, but you'll need to make ${assignments} again.`,
+        `You can move ${them(args.kind)} back to your ${PRODUCT.build} later, but you'll need to make ${assignments} again.`,
       ],
       confirmLabel: 'Move',
       pendingLabel: 'Moving…',

@@ -86,15 +86,15 @@ describe('againstBaseline', () => {
   })
 
   test('a finding is held only by a debt on its family and rule whose match it contains', () => {
-    const baseline = [debt('hangar', 'sibling', 'button.su-btn "New Game"')]
+    const baseline = [debt('training-bay', 'sibling', 'button.su-btn "New Game"')]
     const findings = [
       finding(
-        'hangar',
+        'training-bay',
         'sibling',
-        'hangar /build/ at phone, div.row: 44px button.su-btn "New Game"'
+        'training-bay /build/ at phone, div.row: 44px button.su-btn "New Game"'
       ),
       finding('play-hub', 'sibling', 'play-hub at phone, div.row: 44px button.su-btn "New Game"'),
-      finding('hangar', 'gap', 'hangar at phone, gap: button.su-btn "New Game"'),
+      finding('training-bay', 'gap', 'training-bay at phone, gap: button.su-btn "New Game"'),
     ]
     const { fresh, held, stale } = againstBaseline(findings, baseline)
     expect(held).toEqual([findings[0] as DesignFinding])

@@ -29,6 +29,7 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
+import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -233,7 +234,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     if (row.can.removeFromGame && row.localId !== null) {
       verbs.push({
         id: 'remove',
-        label: 'Move to your Training Bay',
+        label: `Move to your ${PRODUCT.build}`,
         onSelect: act(() => rowActions.removeFromGame(row, gameName)),
       })
     }

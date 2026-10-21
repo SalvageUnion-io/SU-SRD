@@ -11,7 +11,7 @@ import { expect, test } from './fixtures'
  * nightly `e2e` job: moving, copying and importing are all Convex writes.
  */
 
-async function openShelves(page: Page): Promise<void> {
+async function openTrainingBay(page: Page): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
   await expect(page.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeVisible({
@@ -36,7 +36,7 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
   // A Game to move it into, started on the Play hub.
   const gameId = await createGame(page, 'Dustbowl Run')
 
-  await openShelves(page)
+  await openTrainingBay(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })
   await expect(pilots.getByText('Shelf Runner')).toBeVisible({ timeout: 15_000 })
   // In no Game: no Game chip, and never an "Unassigned" one.
@@ -76,7 +76,7 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
 })
 
 test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
-  await openShelves(page)
+  await openTrainingBay(page)
 
   // The Starter Set is folded under its Slab until its fold opens it.
   await page.getByRole('button', { name: 'Expand Starter Set' }).click()
@@ -89,14 +89,14 @@ test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
   await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
   await expect(page.getByRole('alertdialog')).toHaveCount(0, { timeout: 15_000 })
 
-  await openShelves(page)
+  await openTrainingBay(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })
   await expect(pilots.getByText('Bonesaw')).toBeVisible({ timeout: 15_000 })
 })
 
 test('export the shelf, and import it back', async ({ page }) => {
   await buildPilot(page, 'Backed Up', 'Bak')
-  await openShelves(page)
+  await openTrainingBay(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })
   await expect(pilots.getByText('Backed Up')).toBeVisible({ timeout: 15_000 })
 

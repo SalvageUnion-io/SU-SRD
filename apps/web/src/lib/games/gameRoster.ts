@@ -21,6 +21,7 @@ import { sameContainer } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { sheetPath } from 'game-domain/entityKinds'
 import { hasMediator, runsTable } from 'game-domain/games/roles'
+import { PRODUCT } from 'game-domain/product'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -185,7 +186,7 @@ export function moveDestinations(args: {
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'Training Bay' }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: PRODUCT.build }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,

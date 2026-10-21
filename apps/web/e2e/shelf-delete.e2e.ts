@@ -2,23 +2,23 @@ import { buildPilot, waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Shelves delete flow: create a pilot, confirm the delete dialog, verify
+ * The Training Bay's delete flow: create a pilot, confirm the delete dialog, verify
  * the pilot disappears. Catches regressions in the Roster's delete confirm
  * (src/components `ConfirmDialog`) and the shelf item's ⋯ menu Delete wiring.
  *
  * The shared builder (`buildPilot`) walks whatever steps the pilot wizard has
- * and returns once the redirect back to Shelves ("/") has landed.
+ * and returns once the redirect back to the Training Bay ("/") has landed.
  *
  * Shelf hydration is async (the account's rows arrive from Convex). We
  * wait for the pilot's name to become visible in the entity list rather than
  * relying solely on waitForReady (which only signals game-data preload).
  *
- * Delete lives in each shelf item's ⋯ menu (Shelves, board S1): the trigger is
+ * Delete lives in each shelf item's ⋯ menu (the Training Bay, board S1): the trigger is
  * named "More for <name>", and the row is the menuitem "Delete…". The confirm
  * is an alert dialog (role="alertdialog") with a "Delete" confirm button.
  */
 
-test('create then delete a pilot from Shelves', async ({ page }) => {
+test('create then delete a pilot from the Training Bay', async ({ page }) => {
   // ── Step 1: Build a minimal pilot ──────────────────────────────────────────
   // The shared builder walks whatever steps the wizard currently has and
   // returns once the redirect to "/" has landed.

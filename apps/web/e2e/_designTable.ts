@@ -38,7 +38,7 @@ export const DESIGN_FAMILIES = {
   'wizard-pilot': 'wizard',
   'wizard-mech': 'wizard',
   'wizard-crawler': 'wizard',
-  hangar: 'manage',
+  'training-bay': 'manage',
   'play-hub': 'manage',
   'game-page': 'manage',
   invite: 'manage',
@@ -147,7 +147,7 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'wizard-crawler', path: at('/crawlers/new'), widths: BOTH },
   { family: 'wizard-crawler', path: at('/crawlers/new?mode=guided'), widths: BOTH },
   // Manage: the Training Bay, the Play hub, a Game's page, the invite screen.
-  { family: 'hangar', path: at('/'), widths: BOTH },
+  { family: 'training-bay', path: at('/'), widths: BOTH },
   { family: 'play-hub', path: at('/play/'), widths: BOTH },
   { family: 'game-page', path: ':game', widths: BOTH },
   { family: 'invite', path: ':invite', widths: BOTH },

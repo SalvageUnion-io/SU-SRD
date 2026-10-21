@@ -31,6 +31,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { containerOf } from 'game-domain/container'
+import { PRODUCT } from 'game-domain/product'
 import { useEffect } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
@@ -51,7 +52,7 @@ export function PlayGate({ id }: { id: string }) {
       <PlayRefusal
         title="Sign in to play"
         body="Play runs your Pilots, solo or in a Game. Sign in, then open Play and choose one."
-        link={{ href: '/', label: 'Training Bay' }}
+        link={{ href: '/', label: PRODUCT.build }}
       />
     )
   }

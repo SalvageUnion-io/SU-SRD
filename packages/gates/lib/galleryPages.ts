@@ -3,7 +3,7 @@
  * reviewer's look, grouped the way the gallery prints them. Every path is on
  * the one site, the app's under `BUILDER_BASE`; `signedIn` pages are
  * reached through a seeded test account (`tools/gallery.ts` copies three
- * Starter Set characters to its Shelves), and their `path` may name a seeded
+ * Starter Set characters to its Training Bay), and their `path` may name a seeded
  * entity by kind (`:pilot`, `:mech`, `:crawler`, `:game`), resolved once the
  * seed has run.
  */

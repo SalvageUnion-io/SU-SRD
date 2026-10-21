@@ -9,7 +9,7 @@ import { expect, test } from './fixtures'
  * WCAG 2.2 AA on the pages only an account reaches, at desktop and as a
  * Pixel 7 (`packages/gates/lib/a11yScan.ts`). Fails on any violation.
  *
- * `a11y.e2e.ts` scans signed out, where the app is read-only: Shelves, the
+ * `a11y.e2e.ts` scans signed out, where the app is read-only: the Training Bay, the
  * wizards, the live sheets, the Game and Play never render there. This spec
  * signs in through the fixtures account (`fixtures.ts`), sets up the Starter
  * Set table the Play specs play (`setUpTable`), and scans each of those pages
@@ -54,7 +54,7 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
     browser,
     baseURL: baseURL ?? '',
     pages: [
-      // Shelves, with the account's Game and units on it.
+      // The Training Bay, with the account's Game and units on it.
       at('/'),
       // Each wizard's first step.
       at('/pilots/new?mode=guided'),

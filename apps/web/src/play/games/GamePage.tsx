@@ -11,6 +11,7 @@
  */
 
 import '../../styles/play/play.css'
+import { PRODUCT } from 'game-domain/product'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { PlayRefusal } from '../PlayRefusal'
@@ -32,8 +33,8 @@ export function GamePage({ gameId }: { gameId: string }) {
     return (
       <PlayRefusal
         title="This Game opens once you are back online"
-        body="A Game's page is read from the server. Your own builds stay in the Training Bay meanwhile."
-        link={{ href: '/', label: 'Training Bay' }}
+        body={`A Game's page is read from the server. Your own builds stay in the ${PRODUCT.build} meanwhile.`}
+        link={{ href: '/', label: PRODUCT.build }}
       />
     )
   }

@@ -77,7 +77,7 @@ test.describe('chassis cards show stats from the SRD', () => {
   })
 })
 
-test.describe('Shelves surface created entities with their identity', () => {
+test.describe('The Training Bay surfaces created entities with their identity', () => {
   test('newly built pilot shows up in the roster with their name', async ({ page }) => {
     // Drive the wizard through the shared builder rather than a fixed number
     // of Next clicks — that count was wrong the moment a step was inserted.
@@ -86,7 +86,7 @@ test.describe('Shelves surface created entities with their identity', () => {
 
     // Name is displayed.
     await expect(page.getByText('Display Test Pilot').first()).toBeVisible({ timeout: 15_000 })
-    // Each shelf item is one line that opens its live sheet (Shelves, board
+    // Each shelf item is one line that opens its live sheet (the Training Bay, board
     // S1), and the line is named by what it is — kind, class, name, HP — so a
     // screen-reader user can tell which unit each opens (WCAG 2.4.4).
     const line = page.getByRole('link', { name: /Display Test Pilot/ })

@@ -18,6 +18,7 @@
 
 import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
@@ -33,7 +34,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
       <PlayRefusal
         title="Sign in to run your Game"
         body="The Mediator runs a Game from Play. Sign in, then open Play and choose Mediate."
-        link={{ href: '/', label: 'Training Bay' }}
+        link={{ href: '/', label: PRODUCT.build }}
       />
     )
   }

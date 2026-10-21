@@ -248,7 +248,7 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   return false
 }
 
-/** Shelves at `/`, or a Game's own page: where a finished build returns to. */
+/** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
   return pathname === at('/') || new RegExp(`^${BASE}/play/games/[^/]+/?$`).test(pathname)
 }
@@ -402,7 +402,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from Shelves (board S1).
+ * Open the live sheet for the named entity from the Training Bay (board S1).
  *
  * Each item on a shelf is one line, a link to its sheet named for the entity
  * (its text, or its `aria-label` when it is a cover). Match the link by its
