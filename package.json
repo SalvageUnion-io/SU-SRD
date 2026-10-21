@@ -1,7 +1,7 @@
 {
   "name": "susrd",
   "private": true,
-  "version": "3.26.4",
+  "version": "3.26.5",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",

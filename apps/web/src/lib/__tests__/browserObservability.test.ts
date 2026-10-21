@@ -347,6 +347,20 @@ describe('installChunkRecovery', () => {
     expect(event.defaultPrevented).toBe(true)
   })
 
+  test('once a recovery reload is on its way, the page reports nothing more', () => {
+    // The router's boundary catching the failed route (`reading 'component'`)
+    // is the same skew the reload is about to clear.
+    const { sent, transport } = recorder()
+    const { obs, target, teardown } = setup({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+
+    firePreloadError(target)
+    obs.captureException(new TypeError("Cannot read properties of undefined (reading 'component')"))
+    teardown()
+
+    expect(sent.map((s) => s.report.fingerprint)).toEqual([['chunk-preload-error']])
+  })
+
   test('a burst of failures in one page is one reload and one event', () => {
     // A page that fails several imports at once: the first schedules the
     // reload, and the rest are the same skew, not failed recoveries.
