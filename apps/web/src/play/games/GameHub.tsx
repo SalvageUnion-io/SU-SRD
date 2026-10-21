@@ -4,8 +4,7 @@
  * One place per table, in the Manage context (ruleset §1.9): paper under the
  * `play` band, level 0, Slab sections, Compacts that link. It lists a Game the
  * way the Training Bay lists your things and puts everything you can do about the
- * table below the lists, as board M2 draws it
- * (docs/architecture/play.md §16):
+ * table below the lists (docs/architecture/play.md §16):
  *
  *  0. **The band** (`GameBand`): the Game's name on Play's band, and one way
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
@@ -14,7 +13,7 @@
  *  1. Two columns of sections. **Every member:** the Crew (`GameRoster`):
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
- *     about building (owner, round 8: Play only plays). Then the proposals
+ *     about building (ADR-052 §3: Play only plays). Then the proposals
  *     awaiting their answer. **The Mediator:** Proposals you sent.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset, chips on its head) and The Game's Hand over, which the
@@ -92,7 +91,7 @@ function NotInGame() {
   )
 }
 
-/** The page's sections, in board M2's two columns: the crew's, then the table's. */
+/** The page's sections, in two columns: the crew's, then the table's. */
 function GameSections({ game }: { game: Game }) {
   const gameId = game._id as Id<'games'>
   const [confirmingDelete, setConfirmingDelete] = useState(false)

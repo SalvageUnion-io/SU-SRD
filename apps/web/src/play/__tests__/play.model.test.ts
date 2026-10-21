@@ -36,7 +36,7 @@ describe('PHASE_TONE', () => {
     expect(CHAPTER_BAND_COLOR[PHASE_TONE.downtime]).toBe(CHAPTER_BAND_COLOR.play)
   })
 
-  test('the Mediator’s Scene is the Denizens navy (owner, 2026-10-20)', () => {
+  test('the Mediator’s Scene is the Denizens navy', () => {
     expect(CHAPTER_BAND_COLOR[PHASE_TONE.scene]).toBe(CHAPTER_BAND_COLOR.denizen)
   })
 

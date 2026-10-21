@@ -13,7 +13,7 @@
  *    which `games.get` deliberately does not tell apart).
  *
  * A pilot on the shelf plays solo; there is no Game to ask about. A Game
- * without a Mediator plays too: Play no longer waits on one.
+ * without a Mediator plays too.
  *
  * It lives in the component, not the route's `beforeLoad`, because loaders
  * never read player entities (`.claude/rules/tanstack-router.md`), and because

@@ -174,8 +174,8 @@ const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
  * The live vitals pinned above every tab (`pinnedUnits`): one line per unit,
  * its name, then its vitals as the Units column draws them (`PlayVital`, the
  * compact `VitalGauge`: R7, Play's vitals are the sheet's gauge in a darker
- * skin, never a listing's Stat), each unit in a box in its tone (owner,
- * round 10: "HP and AP should be contained in a box"). A read-out: the − / +
+ * skin, never a listing's Stat), each unit's HP and AP in a box in its tone.
+ * A read-out: the − / +
  * are the Units tab's. Nothing in Downtime.
  */
 export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {

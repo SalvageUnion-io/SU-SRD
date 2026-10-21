@@ -85,7 +85,7 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
       size="mini"
       context="roster"
       // Aboard, the line is their mech with a PILOT chip naming them; on foot,
-      // the pilot (owner, round 8: a pilot and its mech are one Mini).
+      // the pilot: a pilot and its mech are one Mini (`crewPair`).
       model={
         line.boardedIn === null
           ? unitRowModel({ kind: 'pilot', name: line.name })

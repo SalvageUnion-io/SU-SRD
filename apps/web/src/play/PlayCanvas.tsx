@@ -19,7 +19,7 @@
  *
  * It owns the `.su-play-root` scope (`styles/play/dashboard/`) that every
  * Play surface inherits, and paints the page ground the columns sit on, as
- * the sheets' and the Play hub's pages do (owner's call, 2026-10-20). It
+ * the sheets' and the Play hub's pages do. It
  * imports no stylesheet: `PlayFrame` loads Play's.
  *
  * Its host, in either form, is the page's one `<main>` landmark: no Play

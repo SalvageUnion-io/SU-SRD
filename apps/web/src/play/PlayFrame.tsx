@@ -20,7 +20,7 @@
  * lists — Compacts, Cards, a unit's `TitledBox` — stays at level 1, and
  * anything inside one of those is a Mini (level 2).
  *
- * The Cockpit is a page like the sheets (owner's call, 2026-10-20): the page
+ * The Cockpit is a page like the sheets: the page
  * ground, the Play bar and foot in the Cantina's band, and each column a paper
  * panel on a hairline. Its ground is flat, its brand-colour bands speckled as the
  * sheet's (ruleset §1.3, §3.5.1; R10): the frame sets the texture once for
@@ -74,8 +74,7 @@ const FOOT = {
 
 /**
  * A column: a paper panel on the page ground, framed in the 1px ink-40
- * hairline a sheet's opening panels wear (ruleset §4.3; owner's call,
- * 2026-10-20), its own scroll.
+ * hairline a sheet's opening panels wear (ruleset §4.3, R49), its own scroll.
  */
 const COLUMN = {
   background: 'var(--color-paper)',

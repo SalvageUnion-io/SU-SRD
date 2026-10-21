@@ -1,5 +1,5 @@
 /**
- * GameBand — the head of a Game's own page (board M2, ADR-052 §5): Play's
+ * GameBand — the head of a Game's own page (ADR-052 §5): Play's
  * chapter band (the Manage context's band, ruleset §1.9) whose row keeps the
  * page's 75rem measure, the Game's name notched into its foot as the page's
  * `h1`, and the ways into the Cockpit beside it on the band's foot, wrapping up

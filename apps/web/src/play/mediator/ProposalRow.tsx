@@ -1,7 +1,7 @@
 /**
  * ProposalRow — one proposal the Mediator sent, as the propose dock, All
  * proposals and the Game page's "Proposals you sent" all show it
- * (docs/architecture/play.md §15; boards M1 and M2).
+ * (docs/architecture/play.md §15).
  *
  * "Judge · HP → 4 · "Ejection burn"", when, and the state in words, on a
  * `FeedLine`. A proposal stores no before (ADR-030 §4, as amended), so a sent

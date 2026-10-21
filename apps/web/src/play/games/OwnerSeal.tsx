@@ -26,7 +26,7 @@ const CLAIM = {
  *
  * It is a chip, the label-only style of the `Stat` cell a Compact's chips are:
  * the first of the Compact's chips, wrapping and centring with them, under the
- * same rules (owner's rule, 2026-10-14).
+ * same rules.
  *
  * ## Why UNCLAIMED is the pressable one
  *

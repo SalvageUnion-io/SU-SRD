@@ -184,7 +184,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
         size="mini"
         context="play"
         model={MODEL}
-        // The mech's own (owner, round 10: an action wears its source unit).
+        // The mech's own: an action wears its source unit's tone.
         tint="mech"
         dim={away}
         {...(away ? { state: <NeedChip need={need} /> } : { controls })}

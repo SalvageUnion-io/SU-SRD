@@ -79,8 +79,8 @@ export function PlayMediatorSeat({
         size="mini"
         context="roster"
         // Aboard, the seat is their mech with a PILOT chip naming them; else
-        // the pilot with a MECH chip for the one assigned (owner, round 8: a
-        // pilot and its mech are one Mini).
+        // the pilot with a MECH chip for the one assigned: a pilot and its
+        // mech are one Mini (`crewPair`).
         model={
           seat.mech?.boarded
             ? unitRowModel({ kind: 'mech', name: seat.mech.name })

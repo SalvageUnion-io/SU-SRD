@@ -107,7 +107,7 @@ export function PlayDowntimeActionRow({
         size="mini"
         context="play"
         model={playLineModel({ name, key: `downtime-${id}` })}
-        // Its source's tone (owner, round 10): training is the pilot's, the
+        // Its source's tone: training is the pilot's, the
         // rest the crawler's.
         tint={id === 'train' ? 'pilot' : 'crawler'}
         dim={away}

@@ -89,7 +89,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         size="mini"
         context="play"
         model={MODEL}
-        // Getting in and out of a mech wears the mech's tone (owner, round 10),
+        // Getting in and out of a mech wears the mech's tone,
         // faded while there is nothing it can do.
         tint="mech"
         dim={away || off || (!boarded && main === undefined)}

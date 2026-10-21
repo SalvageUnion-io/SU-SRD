@@ -2,8 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:tes
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
- * `GameHub` — a Game's own page in Play, `/play/games/$gameId` (board M2,
- * ADR-052 §5): the band, the roster, then two columns of sections. What this
+ * `GameHub` — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5):
+ * the band, the roster, then two columns of sections. What this
  * file defends:
  *
  *  - it is a Manage page under Play's band, with none of Build's controls
@@ -172,7 +172,7 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
   })
 })
 
-describe('the sections under the roster (board M2)', () => {
+describe('the sections under the roster', () => {
   test('every member gets the answer queue and The Game, below the lists; no Crew & seats', async () => {
     await renderHub({
       'proposals:pending': [
@@ -183,7 +183,7 @@ describe('the sections under the roster (board M2)', () => {
     for (const name of ['Awaiting your answer', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
-    // Its seats ride the pilots' rows (owner, 2026-10-20).
+    // Its seats ride the pilots' rows.
     expect(heading('Crew & seats')).toBeNull()
     // Downtime runs in Play, not on the Game page.
     expect(heading('Downtime')).toBeNull()
@@ -216,7 +216,7 @@ describe('the sections under the roster (board M2)', () => {
     expect(screen.getByRole('button', { name: 'Appoint' })).toBeTruthy()
     await openGameMenu()
     expect(screen.getByRole('menuitem', { name: 'Delete this Game…' })).toBeTruthy()
-    // Each member is a social card (round 4): their name, their roles as chips.
+    // Each member is a social card: their name, their roles as chips.
     const members = screen.getByRole('list', { name: 'Members' })
     expect(within(members).getByText('Ash (you)')).toBeTruthy()
     expect(within(members).getByText('Beefcake')).toBeTruthy()
@@ -313,7 +313,7 @@ describe('the seats, on the Pilots rows', () => {
     const pilots = screen.getByRole('region', { name: 'Crew' })
     const text = drawnText(pilots)
     // A pilot's row: its HP, then its mech as its header-only Mini, never a
-    // chip (round 4).
+    // chip.
     expect(text).toContain('HP4/10')
     expect(text).not.toContain('MechSpectrum')
     expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('Spectrum')

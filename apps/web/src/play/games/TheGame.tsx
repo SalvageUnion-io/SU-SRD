@@ -1,7 +1,6 @@
 /**
- * TheGame — "The Game" on a Game's own page (board M2;
- * docs/architecture/play.md §16): its people, each a social card (owner,
- * round 4: "social cards, compact contentful, for each user"): a contentful
+ * TheGame — "The Game" on a Game's own page (docs/architecture/play.md §16):
+ * its people, each a social card (R50): a contentful
  * Compact in Discord's colour, their Discord picture and name, chips for
  * their roles, and the pilots and mechs they hold in this Game as header-only
  * Minis linking to them. And, for the Organizer, **Hand over** and **Delete this Game**: a chip and
@@ -92,7 +91,7 @@ export function TheGame({
   const appointing = mediators.length === 0
 
   // What each member holds here, by their id: each pilot paired with its mech
-  // (the mech while aboard, else the pilot; owner, round 8), then spare mechs.
+  // (the mech while aboard, else the pilot), then spare mechs.
   const held = new Map<string, LinkedUnit[]>()
   for (const { ownerId, unit } of vitals ? pairedCrew(vitals) : []) {
     if (ownerId === null) continue

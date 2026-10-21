@@ -7,7 +7,7 @@
  * Boarded / Downtime, the `situation` slot), and at the end the Discord
  * channel button and ⋯ (the `channel` and `menu` slots).
  *
- * The bar is the screen's chapter band (owner's call, 2026-10-20), in its
+ * The bar is the screen's chapter band, in its
  * phase's colour (`tone`, `PHASE_TONE`: on foot the pilot's orange, Boarded
  * the mech's green, Downtime the Cantina's pink), speckled, with the title
  * notched into its foot on a cut-out of the page ground, in ink. Its

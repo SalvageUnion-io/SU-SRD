@@ -4,7 +4,7 @@
  *
  * ## Play lists the crew; Build keeps it
  *
- * Play only plays (owner, round 8: "don't overflow with build func"), so the
+ * Play only plays (ADR-052 §3), so the
  * crew here is not a second Training Bay. There is no create, no pattern and
  * no copy: each row opens its unit's sheet in Build, and the head
  * links out to Build for the rest — **+ New Pilot** (Build's own wizard,
@@ -145,8 +145,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     localIds: new Set(localCrawlers.map((c) => c.id)),
     primaryCrawlerId: listing?.primaryCrawlerId ?? null,
   })
-  // The seats (owner, 2026-10-20: "drop Crew and Seats, moving that
-  // information into Pilots"): each pilot's HP and mech ride its row, the
+  // The seats are no section of their own: each pilot's HP and mech ride its row, the
   // head counts the claimed ones, the crawler's row its vitals.
   const seats =
     listing === undefined || members === undefined
@@ -173,7 +172,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     return {
       ...(seat.hp === null ? {} : { readings: [{ label: 'HP', value: seat.hp }] }),
       // The mech the pilot is assigned, its header-only Mini opening its sheet,
-      // never a chip (owner, round 4), its live readings its chips (round 8);
+      // never a chip, its live readings its chips;
       // on foot there is none.
       ...(mech === null
         ? {}

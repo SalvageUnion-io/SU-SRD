@@ -7,7 +7,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * your role, how many are here, the Downtime state and its channel as chips,
  * its crew as Minis (each pilot and its mech one Mini), and one door (Mediate
  * where you mediate it, else Play <your pilot>); Play solo, each pilot in no
- * Game with its mech or "No Mech". Nothing that builds (owner, round 8).
+ * Game with its mech or "No Mech". Nothing that builds.
  * Signed out, sign in.
  *
  * Queries are answered by name (`convexMock.ts`): `games.listMine` and

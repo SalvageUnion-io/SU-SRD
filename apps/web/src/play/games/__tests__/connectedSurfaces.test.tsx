@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 
 /**
- * The Game page's member surfaces in their **connected** state (board M2):
+ * The Game page's member surfaces in their **connected** state:
  * the player's answer queue.
  *
  * The Convex hooks are mocked through `installConvexMocks()`, which owns the

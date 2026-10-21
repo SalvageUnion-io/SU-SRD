@@ -1,5 +1,5 @@
 /**
- * The Game page's section layout (board M2): two columns of `SlabSection`s that
+ * The Game page's section layout: two columns of `SlabSection`s that
  * become one on a phone without a media query — `min(100%, 26rem)` is what
  * keeps a 390px screen from scrolling sideways — and the copy under a stamp.
  */

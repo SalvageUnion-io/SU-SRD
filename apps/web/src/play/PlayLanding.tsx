@@ -1,7 +1,7 @@
 /**
  * PlayLanding — the Play hub (`/play/`, ADR-052 §4): your Games, and one tap
- * from each into play. Play only plays (owner, round 8: "don't overflow with
- * build func, focus on games"): nothing here makes or keeps a unit; each unit
+ * from each into play. Play only plays (ADR-052 §3): nothing here makes or
+ * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
  * `play` band.
  *
@@ -208,7 +208,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
                 kind="pilot"
                 name={pilot.name}
                 readings={pilot.readings}
-                // The pair rule (owner, rounds 8 and 10): a pilot not aboard
+                // The pair rule (`crewPair`): a pilot not aboard
                 // is the pilot, its HP and AP, with a MECH chip naming its
                 // mech; with none, the stamp says so.
                 {...(pilot.mechName === null
@@ -348,8 +348,8 @@ function PlayGameItem({
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
           door ? (
-            // Ink on the Game's pink, as its stamps are (owner, round 4:
-            // "'Mediate' color looks odd against pink"), a chip's height.
+            // Ink on the Game's pink, as its stamps are (R44: a control on a
+            // pink band is ink), a chip's height.
             <Button href={door.href} aria-label={door.ariaLabel} variant="ink" size="mini">
               {door.label}
             </Button>

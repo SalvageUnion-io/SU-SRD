@@ -9,7 +9,7 @@
  *    the second reads Downtime while it runs).
  *  - The pinned vitals (`pinnedUnits`): what a spend reads. On foot the
  *    pilot's HP and AP; Boarded those and the mech's SP, EP and Heat; in
- *    Downtime nothing, since nothing spends (ADR-045 D8) and the step box
+ *    Downtime nothing, since nothing spends (play.md §11) and the step box
  *    leads the Act tab.
  *
  * A form is a renderer, never a second home for play state (ADR-045 §1): the

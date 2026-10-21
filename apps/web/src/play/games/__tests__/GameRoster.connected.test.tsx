@@ -13,7 +13,7 @@ import { ConvexError } from 'convex/values'
  *  - offering a sheet for a crewmate's pilot (an editor whose saves are refused)
  *  - offering to pick up something somebody already holds
  *  - hiding the crawler link from the only person who can raise one
- *  - offering Build's verbs (create, copy) inside Play (owner, round 8)
+ *  - offering Build's verbs (create, copy) inside Play
  *
  * That each kind lists YOUR rows first and everyone else's after — the
  * crewmates' with their name on the seal.
@@ -235,7 +235,7 @@ describe('what a row offers', () => {
 
     // Game rows carry no trash at all — leaving a character you hold is
     // "Offer to the crew", and deleting the crawler is the table runner's;
-    // copying is Build's (round 8). Nothing here can destroy somebody else's build.
+    // copying is Build's. Nothing here can destroy somebody else's build.
     expect(await verbsOf('Ash')).toEqual(['Open sheet'])
   })
 })
@@ -381,7 +381,7 @@ describe('yours first, then everyone else', () => {
 })
 
 describe('make a copy', () => {
-  test('is Build’s: no row offers it in Play (owner, round 8)', async () => {
+  test('is Build’s: no row offers it in Play', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN], crawlers: [CRAWLER] }))
     expect(
       await rowsOffering(['Roach-Boy', 'Ash', 'Pre-gen', '#430 Tenacity'], 'Make a copy')
@@ -603,7 +603,7 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
     expect(hrefOf('+ New Crawler')).toBe('/crawlers/new?game=g1')
     expect(hrefOf('Manage in Build')).toBe('/')
-    // Nothing that builds lives here (owner, round 8).
+    // Nothing that builds lives here.
     expect(screen.queryByText('Create Mech')).toBeNull()
     expect(screen.queryByText('Patterns')).toBeNull()
     expect(screen.queryByText('Move in…')).toBeNull()

@@ -34,8 +34,7 @@ export function readCrawler(row: { appId: string | null; body: unknown }): Crawl
 
 /**
  * The crawler's vitals, label first: `TL | 3`, `SP | 14/20`. The Game page's
- * crawler row reads only these: a crawler never lists its count of bays (owner's
- * call, 2026-10-14).
+ * crawler row reads only these: a crawler never lists its count of bays.
  */
 export function crawlerVitals(
   crawler: CrawlerReading

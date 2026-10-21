@@ -55,7 +55,7 @@ export function playStamp(target: Pick<PlayTarget, 'gameId'>): string | undefine
 export type PlayPhase = 'onFoot' | 'boarded' | 'downtime' | 'scene'
 
 /**
- * The band the bar and foot wear in each phase (owner's call, 2026-10-20): the
+ * The band the bar and foot wear in each phase: the
  * unit the player is running, its chapter's colour, as a sheet's band wears
  * it. On foot the pilot's orange, Boarded the mech's green, Downtime the
  * Cantina's deep crawler pink, solo and in a Game alike; the Mediator's Scene

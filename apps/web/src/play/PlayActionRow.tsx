@@ -7,7 +7,7 @@
  * the Mini's body (N3: the action's own text, then `PlayResolveSteps`), with
  * Cancel in Use's slot; not on hand it is dimmed, and says what it needs as a
  * chip ("needs Boarded"). Its band is its source unit's tone dulled (pilot or
- * mech, owner, round 10: never black), and Use is a filled button; an action
+ * mech, never black), and Use is a filled button; an action
  * it cannot use now (locked, or read-only) is faded too.
  *
  * A Mini nests nothing (E6): the resolve inside it, its roll instrument (R8)

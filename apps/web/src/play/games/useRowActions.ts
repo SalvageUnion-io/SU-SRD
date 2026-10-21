@@ -5,7 +5,7 @@
  * Every verb here changes who has a build or whether it exists — picking it up,
  * offering it back, moving it out, deleting it, scrapping the crawler — so none
  * of them runs on the press. Copying is Build's (the Training Bay's ⋯ menu):
- * Play only plays (owner, round 8). Each opens the surface's confirm (`useConfirm`) with
+ * Play only plays. Each opens the surface's confirm (`useConfirm`) with
  * its words from `lib/games/rowActionCopy.ts`, and does the work only when the
  * player confirms. A failure stays on the dialog with its reason.
  *

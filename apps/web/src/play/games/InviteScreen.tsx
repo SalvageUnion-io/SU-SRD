@@ -48,15 +48,14 @@ import { invitePath } from '../../lib/games/inviteLink'
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
-/** The invite's words, a step up from the body's (owner, round 10). */
+/** The invite's words, a step up from the body's. */
 const WORDS = { fontSize: 'var(--text-lg)' } satisfies CSSProperties
 
 const HINT = { ...WORDS, textAlign: 'left' } satisfies CSSProperties
 
 /**
  * The page column: an invitation is a short read, so it does not span the
- * hub's width. It stands in the middle of the room under the band, a size up
- * (owner, round 10: "vertically center this invite block, bump up a size"),
+ * hub's width. It stands in the middle of the room under the band, a size up,
  * its type a step up in `.su-invite`.
  */
 const COLUMN = {

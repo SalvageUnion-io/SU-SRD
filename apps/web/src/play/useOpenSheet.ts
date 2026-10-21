@@ -1,7 +1,7 @@
 /**
  * useOpenSheet — what "Sheet" on a Play unit does (play.md §4): it opens that
- * unit's live sheet in Build, at `/sheet/$kind/$id`. Play only plays (owner,
- * round 8: "don't overflow with build func"), so it carries no second sheet
+ * unit's live sheet in Build, at `/sheet/$kind/$id`. Play only plays
+ * (ADR-052 §3), so it carries no second sheet
  * of its own; the seat keeps its state, so Back returns to the same screen.
  */
 
