@@ -1,11 +1,11 @@
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import { downtimeGuideSteps, isUpkeepStep, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { mutation } from './model/entities'
-import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
+import { requireMediator, requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import type { SeatPlace } from './model/seats'
 import { readSeat, writeSeat } from './model/seats'
@@ -68,6 +68,20 @@ async function readState(
     .query('downtime')
     .withIndex('by_game', (q) => q.eq('gameId', gameId))
     .unique()
+}
+
+/**
+ * The Game's running Downtime: its row and the step the table is on, or a
+ * refusal when none is running. A state refusal, not an authorization one, so
+ * a plain `ConvexError`.
+ */
+async function runningGame(
+  ctx: MutationCtx,
+  gameId: Id<'games'>
+): Promise<{ row: Doc<'downtime'>; stepIndex: number }> {
+  const row = await readState(ctx, gameId)
+  if (row === null || row.stepIndex === null) throw new ConvexError('Downtime is not running')
+  return { row, stepIndex: row.stepIndex }
 }
 
 async function ensureState(ctx: MutationCtx, gameId: Id<'games'>): Promise<Doc<'downtime'>> {
@@ -155,14 +169,11 @@ export const advance = mutation({
   args: { gameId: v.id('games') },
   handler: async (ctx, args): Promise<void> => {
     await requireMediator(ctx, args.gameId)
-    const row = await readState(ctx, args.gameId)
-    if (row === null || row.stepIndex === null) {
-      throw new NotAuthorized('Downtime is not running')
-    }
+    const { row, stepIndex } = await runningGame(ctx, args.gameId)
 
     // Clamp at the last step (`clampStep`, shared with the solo Downtime below).
-    const next = clampStep(row.stepIndex + 1)
-    if (next === row.stepIndex) return
+    const next = clampStep(stepIndex + 1)
+    if (next === stepIndex) return
 
     await ctx.db.patch(row._id, {
       stepIndex: next,
@@ -183,12 +194,9 @@ export const setStep = mutation({
   args: { gameId: v.id('games'), stepIndex: v.number() },
   handler: async (ctx, args): Promise<void> => {
     await requireMediator(ctx, args.gameId)
-    const row = await readState(ctx, args.gameId)
-    if (row === null || row.stepIndex === null) {
-      throw new NotAuthorized('Downtime is not running')
-    }
+    const { row, stepIndex: current } = await runningGame(ctx, args.gameId)
     const stepIndex = clampStep(args.stepIndex)
-    if (stepIndex === row.stepIndex) return
+    if (stepIndex === current) return
     await ctx.db.patch(row._id, { stepIndex, completedBy: [] })
   },
 })
@@ -220,10 +228,7 @@ export const markStepDone = mutation({
   args: { gameId: v.id('games'), done: v.boolean() },
   handler: async (ctx, args): Promise<void> => {
     const membership = await requireMember(ctx, args.gameId)
-    const row = await readState(ctx, args.gameId)
-    if (row === null || row.stepIndex === null) {
-      throw new NotAuthorized('Downtime is not running')
-    }
+    const { row } = await runningGame(ctx, args.gameId)
 
     const without = row.completedBy.filter((id) => id !== membership.userId)
     await ctx.db.patch(row._id, {
@@ -245,12 +250,9 @@ export const claimStep = mutation({
   args: { gameId: v.id('games'), pilotId: v.string(), stepIndex: v.number() },
   handler: async (ctx, args): Promise<boolean> => {
     await writablePilot(ctx, args.gameId, args.pilotId)
-    const row = await readState(ctx, args.gameId)
-    if (row === null || row.stepIndex === null) {
-      throw new NotAuthorized('Downtime is not running')
-    }
-    if (args.stepIndex !== row.stepIndex) {
-      throw new NotAuthorized('That is not the step the table is on')
+    const { row, stepIndex } = await runningGame(ctx, args.gameId)
+    if (args.stepIndex !== stepIndex) {
+      throw new ConvexError('That is not the step the table is on')
     }
     const claimed = row.claimed ?? []
     const mine = (c: { pilotId: string; stepIndex: number }) =>
@@ -277,13 +279,10 @@ export const spendUpkeep = mutation({
   args: { gameId: v.id('games') },
   handler: async (ctx, args): Promise<boolean> => {
     await requireMediator(ctx, args.gameId)
-    const row = await readState(ctx, args.gameId)
-    if (row === null || row.stepIndex === null) {
-      throw new NotAuthorized('Downtime is not running')
-    }
+    const { row, stepIndex } = await runningGame(ctx, args.gameId)
     loadReferenceData()
-    if (!isUpkeepStep(row.stepIndex)) {
-      throw new NotAuthorized(`Upkeep is paid in the ${UPKEEP_STEP_NAME} step`)
+    if (!isUpkeepStep(stepIndex)) {
+      throw new ConvexError(`Upkeep is paid in the ${UPKEEP_STEP_NAME} step`)
     }
     if (row.upkeepSpent) return false
 
@@ -315,7 +314,7 @@ async function runningSolo(
 ): Promise<{ place: SeatPlace; downtime: NonNullable<Doc<'seats'>['downtime']> }> {
   const { place } = await writablePilot(ctx, null, pilotId)
   const downtime = (await readSeat(ctx, place, pilotId))?.downtime
-  if (downtime === undefined) throw new NotAuthorized('Downtime is not running')
+  if (downtime === undefined) throw new ConvexError('Downtime is not running')
   return { place, downtime }
 }
 
@@ -401,7 +400,7 @@ export const soloSpendUpkeep = mutation({
     const { place, downtime } = await runningSolo(ctx, args.pilotId)
     loadReferenceData()
     if (!isUpkeepStep(downtime.stepIndex)) {
-      throw new NotAuthorized(`Upkeep is paid in the ${UPKEEP_STEP_NAME} step`)
+      throw new ConvexError(`Upkeep is paid in the ${UPKEEP_STEP_NAME} step`)
     }
     if (downtime.upkeepSpent) return false
     await writeSeat(ctx, place, args.pilotId, () => ({
@@ -423,7 +422,7 @@ export const soloMarkStepDone = mutation({
   handler: async (ctx, args): Promise<boolean> => {
     const { place, downtime } = await runningSolo(ctx, args.pilotId)
     if (!Number.isInteger(args.stepIndex) || clampStep(args.stepIndex) !== args.stepIndex) {
-      throw new NotAuthorized('That is not a Downtime step')
+      throw new ConvexError('That is not a Downtime step')
     }
     const done = downtime.doneSteps ?? []
     if (done.includes(args.stepIndex)) return false
