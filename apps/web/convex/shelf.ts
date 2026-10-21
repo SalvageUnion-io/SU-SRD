@@ -166,8 +166,8 @@ export const crewPatterns = query({
 
 /**
  * Who can read each of the caller's own patterns, and how many mechs have been
- * built from it — the chips under a pattern on the Shelves page (board
- * S1: "Shared by link", "Only me", "Built twice"). Those facts live in the
+ * built from it — the chips under a pattern on the Shelves page ("Shared by
+ * link", "Only me", "Built twice"). Those facts live in the
  * row's columns rather than its body, so the local pattern cache cannot answer
  * them. Signed out there is no shelf: an empty list.
  */

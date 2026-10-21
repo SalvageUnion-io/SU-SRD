@@ -42,10 +42,10 @@ import { literalUnion } from './model/validators'
  * The `v.any()` bodies above are the *only* place we give up validation. Where a
  * column's values are a short, closed list that some Zod schema already names,
  * it is declared as a `v.union` of literals rather than a `v.string()` with the
- * list in a comment. A comment is not checked: `Doc<'changeLog'>['state']` typed
- * as `string` meant every `row.state === 'proposed'` in `proposals.ts` compared
- * two arbitrary strings, so a typo read as "no rows match" rather than as a type
- * error. Each union below is that list, checked, and kept in step with its Zod
+ * list in a comment. A comment is not checked: typed as `string`,
+ * `Doc<'changeLog'>['state']` would let `row.state === 'proposed'` compare two
+ * arbitrary strings, so a typo would read as "no rows match" rather than as a
+ * type error. Each union below is that list, checked, and kept in step with its Zod
  * counterpart in `game-domain/schemas/`.
  *
  * Where the Zod side is a schema, the validator is built from it with
@@ -96,7 +96,7 @@ export const crewSlot = zodToConvex(CrewSlotSchema)
  * What a Change Log row is about: one of the player entities, or the Game.
  *
  * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
- * Discord roll the bot once logged and a Play roll
+ * Discord roll the bot logged and a Play roll
  * (`appendChangeLog`, from `playRolls.model.ts`) are log rows about the Game
  * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
@@ -258,9 +258,8 @@ export default defineSchema({
      * (`games.setPrimaryCrawler`). Changing it moves nobody — assignment is an
      * explicit link written when an entity enters the Game.
      *
-     * Optional because every Game predates it: absent means "the oldest crawler
-     * here", which is what `primaryCrawlerOf` resolves it to, and what the
-     * Game summary and the bot showed as *the* crawler before it existed.
+     * Optional: absent means "the oldest crawler here", which is what
+     * `primaryCrawlerOf` resolves it to, for the Game summary and the bot.
      */
     primaryCrawlerId: v.optional(v.union(v.id('crawlers'), v.null())),
   }),

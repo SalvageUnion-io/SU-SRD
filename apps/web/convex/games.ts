@@ -57,10 +57,10 @@ type GameSummary = Infer<typeof gameRead>
  * reader can check the consequence against the table before ending it.
  *
  * They come from `games.summary`, which the triggers in `model/entities.ts`
- * keep current, rather than from counting here. Counting here meant collecting
+ * keep current, rather than from counting here. Counting here would collect
  * every membership, pilot, mech and crawler of every Game the caller belongs
  * to on each run — and because this is a reactive query, reading those rows
- * subscribed every Game list to every sheet in every one of those Games.
+ * would subscribe every Game list to every sheet in every one of those Games.
  */
 async function summarize(
   ctx: QueryCtx,
@@ -176,16 +176,13 @@ export const create = mutation({
  * | every **crawler**               | the deleting Organizer's shelf |
  * | every **encounter NPC**         | the deleting Organizer's shelf |
  *
- * The first row is the oldest rule here and the one that matters most: deleting
- * a campaign must never delete somebody's character.
+ * The first row is the one that matters most: deleting a campaign must never
+ * delete somebody's character.
  *
- * The other two are what the previous version got wrong. It deleted unclaimed
- * entities and crawlers outright, reasoning that they had no shelf to fall back
- * to — true when it was written, because both need a shelf row carrying an
- * owner and the crawler had no `ownerId` column at all. Both are expressible
- * now (see `schema.ts`), so both fall back, and the receiving shelf is the
- * **deleter's**: they are the one person guaranteed to exist, and the one
- * looking at the consequence as it happens.
+ * Nothing is deleted outright: an unclaimed entity or a crawler has a shelf to
+ * fall back to too, since a shelf row carries an owner (see `schema.ts`), and
+ * the receiving shelf is the **deleter's**: they are the one person
+ * guaranteed to exist, and the one looking at the consequence as it happens.
  *
  * Note this is the moment a crawler stops being communal. Inside a Game it has
  * no owner by design (ADR-030 §5); on a shelf it must have one, because an entity with
@@ -230,9 +227,9 @@ export const destroy = mutation({
     }
 
     // The Mediator's prepared opposition falls back for the same reason the
-    // crawler does, and it became able to only in the same way: `encounterNpcs`
-    // gained a nullable `gameId` and an `ownerId` (ADR-034 decision 2), so a
-    // tray is not something only a Game can hold, and deleting it would throw
+    // crawler does: `encounterNpcs` has a nullable `gameId` and an `ownerId`
+    // (ADR-034 decision 2), so a tray is not something only a Game can hold,
+    // and deleting it would throw
     // away prep work somebody genuinely built — exactly what the rule above
     // forbids.
     //

@@ -24,9 +24,9 @@ import { shelfRowOf, writablePilot } from './seats'
  *
  * `upkeepSpent` is a flag on the *Game's* Downtime, not on each member. The
  * crawler is the crew's, so its upkeep is one cost paid once — six members
- * each spending it is the exact double-charging that made per-player Downtime
- * unworkable. Since the crawler became the Mediator's (ADR-038 §5) only the
- * Mediator pays it, and the flag still guards a second tab or a second press.
+ * each spending it would charge it six times. The crawler is the Mediator's
+ * (ADR-038 §5), so only the Mediator pays it, and the flag guards a second tab
+ * or a second press.
  * The flag resets when a new Downtime starts, never when a step advances.
  *
  * Upkeep is a step of the procedure ("Upkeep & Upgrade", p.227), so the Game's
