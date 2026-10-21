@@ -52,11 +52,13 @@ export type MiniSlots = {
   down?: Down
   /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
   state?: ReactNode
+  /** Its state chip is a control (a condition that steps): the Mini then acts, as with `uses`. */
+  stateActs?: boolean
   /** The uses slot after the state (C8): a live sheet item's `USES | 3/5` stepper. */
   uses?: ReactNode
   /**
    * The last slot (C8): the host's actions and its ✕, at the Mini's Size.
-   * A Mini with controls (this or `uses`) is a `div` whose NAME is the link
+   * A Mini with controls (this, `uses` or a `stateActs` state) is a `div` whose NAME is the link
    * and the Peek trigger, so no control sits inside a link
    * (`chips-and-actions.md`, "A Mini with actions").
    */
@@ -213,7 +215,8 @@ export function Mini({
   // A relation that Peeks or opens is a control of its own: the name is then
   // the link, so it never nests in one (C11).
   const linkedRelation = !!slots.relations?.some((r) => r.ref || r.href)
-  const acts = slots.uses !== undefined || slots.menu !== undefined || linkedRelation
+  const acts =
+    slots.uses !== undefined || slots.menu !== undefined || !!slots.stateActs || linkedRelation
   const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts || userMade
   /** The name, or the whole surface: a toggle, a link, or plain. */
   const surface = (className: string, children: ReactNode, surfacePeek: PeekAttrs) =>

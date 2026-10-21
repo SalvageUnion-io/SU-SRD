@@ -100,6 +100,8 @@ export function SheetItemLine({
           {stampChip}
         </>
       ),
+      // The stepper is a control: the name is then the link, never around it.
+      stateActs: true,
     })
   }
   if (readOnly) {
@@ -129,6 +131,7 @@ export function SheetItemLine({
           {condition ? stepper : stampChip}
         </>
       ) : undefined,
+    ...(condition ? { stateActs: true } : {}),
     ...(hasUses
       ? {
           uses: (

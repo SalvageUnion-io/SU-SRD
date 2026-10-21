@@ -82,6 +82,8 @@ export type EntityProps = EntitySource &
      * a damaged thing's condition on a surface that only reads it (a crawler bay).
      */
     state?: ReactNode
+    /** Mini: its `state` is a control (a condition that steps), so its name is the link (C8). */
+    stateActs?: boolean
     /**
      * Compact: the host's last chip, a listed unit's "⋯" menu. Mini: its state chip,
      * as `state` (a Mini carries no menu).
@@ -121,6 +123,7 @@ export function Entity(props: EntityProps) {
     relations,
     linked,
     state,
+    stateActs,
     trailing,
     uses,
     body: ownBody,
@@ -197,6 +200,7 @@ export function Entity(props: EntityProps) {
             state || trailing || peekAt || relations || uses !== undefined || controls !== undefined
               ? {
                   ...(state || trailing ? { state: state ?? trailing } : {}),
+                  ...(stateActs ? { stateActs } : {}),
                   ...(peekAt ? { peekAt } : {}),
                   ...(relations ? { relations } : {}),
                   // A Mini's controls are its chip group's last slots (C8).

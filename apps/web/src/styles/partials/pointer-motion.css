@@ -24,6 +24,7 @@
   .su-stat-step,
   a.su-entity-mini,
   [data-peek].su-entity-mini,
+  .su-sheet-item__condition > button,
   .su-crumbs__link {
     position: relative;
   }
@@ -33,6 +34,7 @@
   .su-stat-step::after,
   a.su-entity-mini::after,
   [data-peek].su-entity-mini::after,
+  .su-sheet-item__condition > button::after,
   .su-crumbs__link::after {
     content: '';
     height: max(100%, var(--size-full));
