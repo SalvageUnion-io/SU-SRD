@@ -1,6 +1,6 @@
 import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { ClassAbilityTree } from './ClassAbilityTree'
-import type { PageRefIndex } from './index'
+import type { NameRefIndex, PageRefIndex } from './index'
 import { ReferenceEntityCard } from './index'
 import { ReferenceSurface } from './ReferenceSurface'
 
@@ -9,6 +9,8 @@ type EntityCardStaticProps = {
   pattern?: RefObjectAnyPattern
   /** The pages its text cites (`lib/pageRefIndex.ts`), to link "p. N". */
   pageRefs?: PageRefIndex
+  /** The names its prose uses (`lib/nameRefIndex.ts`), to link them. */
+  nameRefs?: NameRefIndex
 }
 
 /** The class (core trees) or advanced class (hybrid) whose ability tree the card carries. */
@@ -40,11 +42,11 @@ function classOf(item: RefEntity): RefClass | undefined {
  * before rendering this, so the ORM lookups the card makes for
  * nested entities resolve synchronously during the build.
  */
-export function EntityCardStatic({ item, pattern, pageRefs }: EntityCardStaticProps) {
+export function EntityCardStatic({ item, pattern, pageRefs, nameRefs }: EntityCardStaticProps) {
   const classEntity = classOf(item)
 
   return (
-    <ReferenceSurface pageRefs={pageRefs}>
+    <ReferenceSurface pageRefs={pageRefs} nameRefs={nameRefs}>
       <ReferenceEntityCard
         data={item}
         pattern={pattern}

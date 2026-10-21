@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { bookName, citeLine } from 'salvageunion-reference'
 import { capsLabel } from '../components/atoms/capsLabel'
+import type { NameRefIndex } from '../components/index'
 import { InlineRef, mentionRef, RollTableInstrument, SlabSection, Stat } from '../components/index'
 import { MentionProse } from '../components/MentionProse'
 import { cn } from '../lib/cn'
@@ -24,14 +25,14 @@ const STATIC_LABEL = cn('su-static__label', capsLabel({ tracking: 'snug' }))
  *
  * Every trait or keyword it names, in its prose or its trait list, is a
  * Mention resolved at build time (`mentionRef`): a link to its page
- * with its Peek. The summary keeps its prose's `[[Trait]]` markup
+ * with its Peek, as is every entry it names in plain words (`nameRefs`). The summary keeps its prose's `[[Trait]]` markup
  * (`keepReferences`) for exactly that; a summary without it reads as words.
  * The parent link is an `InlineRef`. Layout is `pages.css`'s `.su-static*`.
  */
 
-/** Prose with its references drawn as Mentions. */
-function Prose({ text }: { text: string }) {
-  return <MentionProse parts={refText(text, mentionRef)} />
+/** Prose with its references, and the entries it names (`names`), drawn as Mentions. */
+function Prose({ text, names }: { text: string; names: NameRefIndex | undefined }) {
+  return <MentionProse parts={refText(text, mentionRef, names)} />
 }
 
 type StaticEntityContentProps = {
@@ -43,9 +44,16 @@ type StaticEntityContentProps = {
    * summary's own book and page.
    */
   cite?: string | undefined
+  /** The entries its prose names in plain words (`lib/nameRefIndex.ts`). */
+  nameRefs?: NameRefIndex
 }
 
-export function StaticEntityContent({ summary, parent, cite: given }: StaticEntityContentProps) {
+export function StaticEntityContent({
+  summary,
+  parent,
+  cite: given,
+  nameRefs,
+}: StaticEntityContentProps) {
   // The foot's cite, as every card and Page prints it.
   const cite =
     given ??
@@ -63,7 +71,7 @@ export function StaticEntityContent({ summary, parent, cite: given }: StaticEnti
 
       {summary.description && (
         <p>
-          <Prose text={summary.description} />
+          <Prose names={nameRefs} text={summary.description} />
         </p>
       )}
 
@@ -77,7 +85,7 @@ export function StaticEntityContent({ summary, parent, cite: given }: StaticEnti
 
       {summary.contentParagraphs.map((p) => (
         <p key={p}>
-          <Prose text={p} />
+          <Prose names={nameRefs} text={p} />
         </p>
       ))}
 
@@ -96,7 +104,7 @@ export function StaticEntityContent({ summary, parent, cite: given }: StaticEnti
             rows: summary.table.map((row) => ({
               key: row.key,
               label: row.label ?? null,
-              value: <Prose text={row.value} />,
+              value: <Prose names={nameRefs} text={row.value} />,
             })),
           }}
         />
@@ -116,7 +124,7 @@ export function StaticEntityContent({ summary, parent, cite: given }: StaticEnti
         >
           {section.paragraphs.map((p) => (
             <p key={p}>
-              <Prose text={p} />
+              <Prose names={nameRefs} text={p} />
             </p>
           ))}
         </SlabSection>

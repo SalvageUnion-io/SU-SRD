@@ -1,6 +1,7 @@
 import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 import type { EntityRef, RefEntity } from 'salvageunion-reference'
+import type { NameRefIndex } from './nameRefs'
 import type { PageRefIndex } from './pageRefs'
 
 /**
@@ -18,6 +19,9 @@ import type { PageRefIndex } from './pageRefs'
  * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
  *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
  *   reference stays text.
+ * - `nameRefs`: the entries the prose names in plain words ("the Dependable
+ *   Trait", "within Close Range"), so each is a Mention (`nameRefs.ts`).
+ *   Absent, the words stay text.
  * - `appliesRules`: the app applies the rules the data encodes (The app, ADR-029
  *   §6), so a rules-bearing paragraph wears the AUTO stamp. Absent (the SRD,
  *   which applies nothing), the same paragraph is plain prose.
@@ -31,6 +35,7 @@ export type EntitySurfaceValue = {
   linkAs?: EntityLinkComponent
   texture: boolean
   pageRefs?: PageRefIndex
+  nameRefs?: NameRefIndex
   appliesRules?: boolean
   externalLink?: EntityExternalLinkBuilder | null
 }

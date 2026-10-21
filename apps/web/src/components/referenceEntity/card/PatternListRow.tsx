@@ -9,6 +9,7 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
+import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'
@@ -124,6 +125,11 @@ function PatternListRow({
   ) : (
     card
   )
+}
+
+/** A pattern's description, its references Mentions as in any prose. */
+function PatternProse({ text }: { text: string }) {
+  return <p className="su-pattern-rows__prose">{useParseTraitReferences(text)}</p>
 }
 
 /** BASIC HOST CARD → the list of its patterns, each its Mini (contentful
@@ -247,9 +253,7 @@ export function PatternListing({
         )
       }
     >
-      {edit
-        ? edit.description
-        : description && <p className="su-pattern-rows__prose">{description}</p>}
+      {edit ? edit.description : description && <PatternProse text={description} />}
       {(loadout.length > 0 || drones.length > 0) && (
         <PatternLoadout
           groups={loadout}

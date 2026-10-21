@@ -6,6 +6,7 @@
  */
 
 import type { AnnouncedRoll, DigestedColumnsColumn } from '../components/index'
+import type { RefText } from './rollTablePage'
 
 /** One column: its d20 range ("9-12") and its entries (`digestColumnsTable`). */
 export type ColumnsTableColumn = DigestedColumnsColumn
@@ -13,8 +14,8 @@ export type ColumnsTableColumn = DigestedColumnsColumn
 /** Everything the page and its island need, serialised once as island props. */
 export type ColumnsTablePageData = {
   name: string
-  /** The table's prose, as plain paragraphs. */
-  description: string[]
+  /** The table's prose, a paragraph each, its references resolved (`refText`). */
+  description: RefText[]
   columns: ColumnsTableColumn[]
 }
 

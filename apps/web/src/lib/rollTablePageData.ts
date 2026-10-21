@@ -7,6 +7,7 @@ import type { RefEntity, RefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
 import { digestColumnsTable, digestRollTable, mentionRef } from '../components/index'
 import type { ColumnsTablePageData } from './columnsTablePage'
+import { nameRefIndexWithout } from './nameRefIndex'
 import type { RollTablePageData } from './rollTablePage'
 import { refText } from './rollTablePage'
 
@@ -17,7 +18,11 @@ function rollTableParts(item: RefEntity) {
     'table' in item && item.table && typeof item.table === 'object'
       ? (item.table as RefObjectTable)
       : undefined
-  return { name: item.name, description: extractStaticEntitySummary(item).contentParagraphs, table }
+  // Its prose names other entries (a table's own name names itself: no link).
+  const names = nameRefIndexWithout(item.id)
+  const resolve = (text: string) => refText(text, mentionRef, names)
+  const { contentParagraphs } = extractStaticEntitySummary(item, { keepReferences: true })
+  return { name: item.name, description: contentParagraphs.map(resolve), table, resolve }
 }
 
 /**
@@ -32,7 +37,7 @@ export function rollTablePageData(item: RefEntity): RollTablePageData | null {
   const rows = digestRollTable(table).map(({ key, label, value }) => ({
     key,
     label,
-    value: refText(value, mentionRef),
+    value: parts.resolve(value),
   }))
   if (rows.length === 0) return null
   return { name: parts.name, description: parts.description, rows, table }

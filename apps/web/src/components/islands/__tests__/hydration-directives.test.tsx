@@ -176,6 +176,7 @@ describe('hydration directives', () => {
         'pattern',
         'preloadSchemas',
         'pageRefs',
+        'nameRefs',
       ])
     })
   })

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize } from '../../../design/tokens'
+import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { SlabSection } from '../../containers/SlabSection'
 
 const EFFECT = {
@@ -13,6 +14,11 @@ const EFFECT_PAGE = { ...EFFECT, fontSize: fontSize.base } satisfies CSSProperti
 
 /** In a card (a live sheet's bay, a Peek), at the card body's size. */
 const EFFECT_CARD = { ...EFFECT, fontSize: fontSize.xs } satisfies CSSProperties
+
+/** The effect's words, its references Mentions as in any prose. */
+function EffectText({ effect }: { effect: string }) {
+  return <>{useParseTraitReferences(effect)}</>
+}
 
 /**
  * WHEN DAMAGED — a crawler bay's rules block, one renderer in every context
@@ -56,7 +62,9 @@ export function WhenDamaged({
         className="su-entity-page__section"
         bodyClassName="su-entity-page__section-body"
       >
-        <p style={EFFECT_PAGE}>{effect}</p>
+        <p style={EFFECT_PAGE}>
+          <EffectText effect={effect} />
+        </p>
       </SlabSection>
     )
   }
@@ -68,7 +76,9 @@ export function WhenDamaged({
       size={size}
       className="su-ec-block"
     >
-      <p style={EFFECT_CARD}>{effect}</p>
+      <p style={EFFECT_CARD}>
+        <EffectText effect={effect} />
+      </p>
     </SlabSection>
   )
 }

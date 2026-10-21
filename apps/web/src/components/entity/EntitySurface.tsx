@@ -6,8 +6,8 @@ import { EntitySurfaceContext } from './entitySurfaceContext'
 
 /**
  * Supply (part of) the SURFACE to every entity form below (`EntitySurfaceValue`,
- * EDL E13): how a ref resolves, the Page opener, texture, the page-reference
- * index, whether the app applies the rules (`appliesRules`) and the external
+ * EDL E13): how a ref resolves, the Page opener, texture, the page- and name-reference
+ * indexes, whether the app applies the rules (`appliesRules`) and the external
  * cross-link (`externalLink`, `null` for none). A nested provider overrides
  * only what it sets. Setting `texture` also reaches `ReferenceEntityCard`'s own
  * read of it (`CardTextureContext`, until the card reads the surface), so a
@@ -21,7 +21,8 @@ export function EntitySurfaceProvider({
   children: ReactNode
 }) {
   const parent = useContext(EntitySurfaceContext)
-  const { hrefFor, openPage, linkAs, texture, pageRefs, appliesRules, externalLink } = value
+  const { hrefFor, openPage, linkAs, texture, pageRefs, nameRefs, appliesRules, externalLink } =
+    value
   const merged = useMemo(
     () => ({
       ...parent,
@@ -30,10 +31,11 @@ export function EntitySurfaceProvider({
       ...(linkAs ? { linkAs } : {}),
       ...(texture !== undefined ? { texture } : {}),
       ...(pageRefs ? { pageRefs } : {}),
+      ...(nameRefs ? { nameRefs } : {}),
       ...(appliesRules !== undefined ? { appliesRules } : {}),
       ...(externalLink !== undefined ? { externalLink } : {}),
     }),
-    [parent, hrefFor, openPage, linkAs, texture, pageRefs, appliesRules, externalLink]
+    [parent, hrefFor, openPage, linkAs, texture, pageRefs, nameRefs, appliesRules, externalLink]
   )
   const provided = (
     <EntitySurfaceContext.Provider value={merged}>{children}</EntitySurfaceContext.Provider>

@@ -1,9 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { parseTraitReferences as parseTraitRefs } from 'salvageunion-reference'
 import { mentionRef } from '../components/entity'
 import { useEntitySurface } from '../components/entity/entitySurfaceContext'
 import { Mention } from '../components/entity/forms/Mention'
+import { findNameRefs, ProseOwnerContext } from '../components/entity/nameRefs'
 import { findPageRefs, resolvePageRef } from '../components/entity/pageRefs'
 import { useInsidePeek } from '../components/entity/peekContext'
 import { space } from '../design/tokens'
@@ -42,6 +43,11 @@ function TraitRef({ name, param }: { name: string; param?: string }) {
  * covering that page, reading "p. 235". One that does not, and every one
  * inside a Peek (terminal, E16), stays text.
  *
+ * And the entries it names in plain words: where the surface supplies
+ * `nameRefs` (the SRD), "the Dependable Trait" or "within Close Range" is a
+ * Mention of that entry (`findNameRefs`), each entry once per text. Inside a
+ * Peek they stay text, as page references do.
+ *
  * Performance: Uses useMemo to prevent re-parsing on every render
  * Returns original text as-is if no bracket notation found (common case)
  *
@@ -49,9 +55,11 @@ function TraitRef({ name, param }: { name: string; param?: string }) {
  * @returns Original text string if no matches, or array of React nodes (strings and Mentions) if matches found
  */
 export function useParseTraitReferences(text: string | undefined): ReactNode {
-  const { pageRefs: pageIndex } = useEntitySurface()
+  const { pageRefs: pageIndex, nameRefs: nameIndex } = useEntitySurface()
   const insidePeek = useInsidePeek()
   const pageRefIndex = insidePeek ? undefined : pageIndex
+  const nameRefIndex = insidePeek ? undefined : nameIndex
+  const owner = useContext(ProseOwnerContext)
   return useMemo(() => {
     if (!text) {
       return null
@@ -61,7 +69,7 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
     const hasParagraphBreaks = text.includes('\n\n')
     const hasPageRefs = !!pageRefIndex && text.includes('p.')
 
-    if (!hasTraits && !hasParagraphBreaks && !hasPageRefs) {
+    if (!hasTraits && !hasParagraphBreaks && !hasPageRefs && !nameRefIndex) {
       return text
     }
 
@@ -101,7 +109,16 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
         })
       : []
 
-    for (const seg of [...traits, ...breaks, ...pages].sort((a, b) => a.start - b.start)) {
+    // A name inside trait markup is the trait's; a "p. N" is never a name.
+    const names = nameRefIndex
+      ? findNameRefs(text, nameRefIndex, traits, owner).map((m) => ({
+          ...m,
+          kind: 'name' as const,
+        }))
+      : []
+
+    const segments = [...traits, ...breaks, ...pages, ...names].sort((a, b) => a.start - b.start)
+    for (const seg of segments) {
       // A paragraph break inside a trait reference cannot happen, but a
       // defensive skip keeps a pathological overlap from duplicating prose.
       if (seg.start < currentIndex) continue
@@ -110,9 +127,9 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
       }
       if (seg.kind === 'break') {
         nodes.push(<span key={`break-${seg.start}`} style={PARAGRAPH_BREAK} />)
-      } else if (seg.kind === 'page') {
+      } else if (seg.kind === 'page' || seg.kind === 'name') {
         nodes.push(
-          <Mention key={`page-${seg.start}`} entityRef={seg.ref}>
+          <Mention key={`${seg.kind}-${seg.start}`} entityRef={seg.ref}>
             {text.substring(seg.start, seg.end)}
           </Mention>
         )
@@ -126,6 +143,6 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
       nodes.push(text.substring(currentIndex))
     }
 
-    return nodes.length === 0 ? text : nodes
-  }, [text, pageRefIndex])
+    return nodes.length === 0 || (nodes.length === 1 && nodes[0] === text) ? text : nodes
+  }, [text, pageRefIndex, nameRefIndex, owner])
 }

@@ -260,6 +260,8 @@ export { Mention } from './entity/forms/Mention'
 export { MiniGroup } from './entity/forms/MiniGroup'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
 export { SELECT_DIM } from './entity/modes/selectedRing'
+export type { NameRefCandidate, NameRefIndex, NameRefMatch } from './entity/nameRefs'
+export { findNameRefs } from './entity/nameRefs'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'

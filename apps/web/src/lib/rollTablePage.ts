@@ -8,27 +8,47 @@
 
 import type { EntityRef, RefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
-import type { AnnouncedRoll } from '../components/index'
+import { findNameRefs } from '../components/entity/nameRefs'
+import type { AnnouncedRoll, NameRefIndex } from '../components/index'
 
 /**
  * Prose with its trait references resolved at build time: plain runs, and
  * each `[[Trait]]` as the words it prints and the glossary entry it names
- * (`null` when it names none). Resolved on the server so the island reads no
+ * (`null` when it names none), and each entry it names in plain words where
+ * a `nameRefs` index is given (`findNameRefs`). Resolved on the server so the island reads no
  * game data: a ref is a few strings, and the Mention draws its page and its
  * Peek from them.
  */
 export type RefText = (string | { text: string; ref: EntityRef | null })[]
 
-/** Split prose on its `[[Trait]]` markup, resolving each name through `resolve`. */
-export function refText(text: string, resolve: (name: string) => EntityRef | undefined): RefText {
+/**
+ * Split prose on its `[[Trait]]` markup, resolving each name through
+ * `resolve`, and on the names `nameRefs` holds.
+ */
+export function refText(
+  text: string,
+  resolve: (name: string) => EntityRef | undefined,
+  nameRefs?: NameRefIndex
+): RefText {
+  const traits = parseTraitReferences(text).map((match) => ({
+    start: match.startIndex,
+    end: match.startIndex + match.fullMatch.length,
+    text:
+      match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`,
+    ref: resolve(match.traitName) ?? null,
+  }))
+  const names = nameRefs
+    ? findNameRefs(text, nameRefs, traits).map((match) => ({
+        ...match,
+        text: text.slice(match.start, match.end),
+      }))
+    : []
   const parts: RefText = []
   let at = 0
-  for (const match of parseTraitReferences(text)) {
-    if (match.startIndex > at) parts.push(text.slice(at, match.startIndex))
-    const words =
-      match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`
-    parts.push({ text: words, ref: resolve(match.traitName) ?? null })
-    at = match.startIndex + match.fullMatch.length
+  for (const ref of [...traits, ...names].sort((a, b) => a.start - b.start)) {
+    if (ref.start > at) parts.push(text.slice(at, ref.start))
+    parts.push({ text: ref.text, ref: ref.ref })
+    at = ref.end
   }
   if (at < text.length) parts.push(text.slice(at))
   return parts
@@ -52,8 +72,8 @@ export type RollTableRow = {
 /** Everything the page and its island need, serialised once as island props. */
 export type RollTablePageData = {
   name: string
-  /** The table's prose, as plain paragraphs. */
-  description: string[]
+  /** The table's prose, a paragraph each, its references resolved (`refText`). */
+  description: RefText[]
   rows: RollTableRow[]
   table: RefObjectTable
 }
@@ -96,10 +116,17 @@ const COMPACT_CHARS = 1200
 const DENSE_CHARS = 1800
 
 /** The setting a table's page takes on a wide screen, from its bands and its note. */
-export function rollTableDensity(rows: RollTableRow[], description: string[]): RollTableDensity {
+export function rollTableDensity(
+  rows: RollTableRow[],
+  description: readonly (string | RefText)[]
+): RollTableDensity {
   const chars = bandChars(rows)
   if (chars >= DENSE_CHARS) return 'dense'
-  const note = description.reduce((sum, paragraph) => sum + paragraph.length, 0)
+  const note = description.reduce(
+    (sum, paragraph) =>
+      sum + (typeof paragraph === 'string' ? paragraph : plainText(paragraph)).length,
+    0
+  )
   return splitRows(rows) || chars + note >= COMPACT_CHARS ? 'compact' : 'roomy'
 }
 

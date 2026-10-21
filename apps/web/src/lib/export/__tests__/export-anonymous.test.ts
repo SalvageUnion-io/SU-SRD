@@ -6,13 +6,14 @@
  * rows in memory only, and a session's end drops them (`forgetLoadedRows`),
  * so the last account's rows never reach a signed-out backup.
  *
- * Runs on the default (anonymous) backend on purpose: no `withSignedInBackend`.
+ * Runs on the default (anonymous) backend on purpose: no `withSignedInBackend`,
+ * and the anonymous state set before each test.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { resetStores } from '../../../stores/__tests__/resetStores'
-import { selectBackend } from '../../../stores/entityBackend'
+import { selectBackend, setEntityBackendAuthState } from '../../../stores/entityBackend'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
 import { forgetLoadedRows } from '../../../stores/sessionRows'
@@ -28,6 +29,9 @@ const patternInput = {
 }
 
 beforeEach(resetStores)
+// The anonymous backend, pinned: a connected screen's test earlier in the
+// process (SettingsScreen, WizardGameChip) can leave its session signed in.
+beforeEach(() => setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true }))
 
 describe('an anonymous backup', () => {
   test('saves no pattern, so carries none', async () => {

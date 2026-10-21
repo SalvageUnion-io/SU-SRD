@@ -137,6 +137,7 @@ const ROSTER = {
     'mentionRef',
     'embeddedPeekAddress',
     'findPageRefs',
+    'findNameRefs',
     'HomebrewStamp',
     'USER_MADE_HATCH',
     'quotePatternName',

@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
+import type { RefText } from '../lib/rollTablePage'
+import { plainText } from '../lib/rollTablePage'
 import { InlineRef } from './index'
+import { MentionProse } from './MentionProse'
 
 type RollPageFrameProps = {
   /** The page's density setting (`rollTableDensity`, or always `compact`). */
   density: string
-  /** The table's prose, a paragraph each, over the instrument. */
-  description: readonly string[]
+  /** The table's prose, a paragraph each, over the instrument: its references are Mentions. */
+  description: readonly RefText[]
   /** The page's main column under the prose: the table's instrument. */
   children: ReactNode
 }
@@ -20,8 +23,8 @@ export function RollPageFrame({ density, description, children }: RollPageFrameP
   return (
     <div className="su-roll-page" data-density={density}>
       {description.map((paragraph) => (
-        <p key={paragraph} className="su-roll-page__description">
-          {paragraph}
+        <p key={plainText(paragraph)} className="su-roll-page__description">
+          <MentionProse parts={paragraph} />
         </p>
       ))}
       {children}

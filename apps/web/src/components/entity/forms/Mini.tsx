@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
+import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
 import { ChipOverflowRow } from '../../atoms/chipOverflow'
@@ -18,6 +19,7 @@ import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { SELECT_DIM, SELECTED_RING } from '../modes/selectedRing'
 import { toggleAttrs } from '../modes/toggle'
+import { ProseOwnerContext } from '../nameRefs'
 import { Chips } from '../parts/Chips'
 import { watchTokenOverflow } from '../parts/chipFit'
 import { chipCount } from '../parts/chipSet'
@@ -84,10 +86,15 @@ export type MiniBody = {
 
 const READ: EntityMode = { kind: 'read' }
 
+/** A contentful Mini's lead, its references Mentions as in any prose. */
+function MiniLead({ text }: { text: string }) {
+  return <p className="su-entity-mini__lead">{useParseTraitReferences(text)}</p>
+}
+
 /** The text under a contentful Mini's head: the model's prose, else its lead. */
 function MiniText({ model, chassisName }: { model: EntityFormModel; chassisName?: string }) {
   if (model.prose?.length) return <Content body={model.prose} chassisName={chassisName} />
-  return model.lead ? <p className="su-entity-mini__lead">{model.lead}</p> : null
+  return model.lead ? <MiniLead text={model.lead} /> : null
 }
 
 type ToggleMode = Extract<EntityMode, { kind: 'select' }>
@@ -334,7 +341,11 @@ export function Mini({
         {/* What of the head's chips does not fit beside the name: the body's
             first row (C2b, `chipFit.ts`). */}
         {hasChips && <ChipOverflowRow />}
-        {body.text !== false && <MiniText model={model} chassisName={body.chassisName} />}
+        {body.text !== false && (
+          <ProseOwnerContext.Provider value={model.ref?.id}>
+            <MiniText model={model} chassisName={body.chassisName} />
+          </ProseOwnerContext.Provider>
+        )}
         {body.children}
       </div>
     </div>

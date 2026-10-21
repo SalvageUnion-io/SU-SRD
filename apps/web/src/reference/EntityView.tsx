@@ -25,6 +25,8 @@
  * of the CLIENT island, where the narrow list is the point.
  */
 
+import type { ReactElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   citeLine,
@@ -36,11 +38,25 @@ import { EntityCardStatic } from '../components/EntityCardStatic'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
+import { nameRefIndexWithout, nameRefsFor } from '../lib/nameRefIndex'
 import { pageRefsFor } from '../lib/pageRefIndex'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { Island } from '../runtime/Island'
 import { StaticEntityContent } from './StaticEntityContent'
+
+/**
+ * A card's words as the server draws them: the prose its island resolves names
+ * in, including what the card carries beyond its own record (a class's ability
+ * tree, a chassis's patterns).
+ */
+function cardText(card: ReactElement): string {
+  return renderToStaticMarkup(card)
+    .replace(/<[^>]*>/g, '\n')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+}
 
 type EntityViewProps = {
   item: RefEntity
@@ -51,9 +67,15 @@ type EntityViewProps = {
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
   const pageRefs = pageRefsFor(schemaId, item)
+  // The server resolves names against the whole dataset (less the entity's
+  // own name); the island carries just the names its card draws.
+  const names = nameRefIndexWithout(item.id)
   if (!cardNeedsHydration(item, pattern)) {
-    return <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
+    return <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={names} />
   }
+  const nameRefs = nameRefsFor(item, [
+    cardText(<EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />),
+  ])
 
   // The fallback draws its references as Mentions, so it keeps their markup.
   const staticSummary = pattern
@@ -71,10 +93,12 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
           pattern,
           preloadSchemas: getSchemaPreloadList(schemaId),
           pageRefs,
+          nameRefs,
         }}
       />
       <StaticEntityContent
         summary={staticSummary}
+        nameRefs={names}
         // Every printing on the foot's one line, as the card and the Page cite it.
         cite={citeLine(provenancePrintings(resolveProvenance(item as RefMetaEntity, pattern)))}
         parent={

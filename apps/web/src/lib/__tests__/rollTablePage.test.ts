@@ -45,6 +45,20 @@ describe('refText', () => {
     ])
     expect(plainText(parts)).toBe('It gains the Vulnerable Trait and Burn (X).')
   })
+
+  test('the names it prints in plain words are references too, outside the markup', () => {
+    const prone = { schemaName: 'keywords' as const, id: 'prone-id', slug: 'prone', name: 'prone' }
+    const parts = refText('It falls Prone and gains [[Prone]].', () => undefined, {
+      prone: [{ ref: prone }],
+    })
+    expect(parts).toEqual([
+      'It falls ',
+      { text: 'Prone', ref: prone },
+      ' and gains ',
+      { text: 'Prone', ref: null },
+      '.',
+    ])
+  })
 })
 
 describe('splitRows', () => {
