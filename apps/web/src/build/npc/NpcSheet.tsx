@@ -77,7 +77,10 @@ type NpcSheetProps = {
   confirm?: Confirm
   /** After the delete lands — where to go is the route's call. */
   onDeleted?: () => void
-  /** Why a read-only page cannot be changed; a crewmate's NPC by default. */
+  /**
+   * Why a read-only page cannot be changed, as a note atop it (a shared NPC);
+   * a crewmate's reads it on the crew sheet's banner instead (`CrewSheetBanner`).
+   */
   readOnlyNote?: string
 }
 
@@ -109,7 +112,7 @@ export function NpcSheet({
   crewing,
   confirm,
   onDeleted,
-  readOnlyNote = 'You are reading a crewmate’s NPC. Only whoever made it can change it.',
+  readOnlyNote,
 }: NpcSheetProps) {
   const [shareOpen, setShareOpen] = useState(false)
   const { canWrite, settling } = useConnection()
@@ -200,7 +203,7 @@ export function NpcSheet({
         }
         renderBody={() => (
           <section aria-label={`${npc.name} NPC sheet`} className="su-sheet-section" style={SHEET}>
-            {readOnlyProp && (
+            {readOnlyProp && readOnlyNote && (
               <p role="note" style={NOTE}>
                 {readOnlyNote}
               </p>

@@ -2,34 +2,30 @@
  * NpcSheetView — `/sheet/npc/:id`'s body: which NPC, and whether the viewer
  * may edit it (ADR-044).
  *
- * The same three answers `SheetView` gives a pilot, read the same way:
+ * The same three answers `SheetView` gives a pilot, from the same
+ * `useLocatedSheet`, worded the same (`SheetFallback`):
  *
  *  - **Yours** — the local copy, editable, unless the server says otherwise.
  *  - **A crewmate's, in a Game you belong to** — read live and read-only from
- *    `entities.listForGame`, never cached (ADR-037).
+ *    `entities.listForGame`, never cached (ADR-037), under the crew sheet's
+ *    caution banner (`CrewSheetBanner`).
  *  - **Neither** — not found.
- *
- * `entities.locate` tells them apart, as it does for every sheet.
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
-import { PRODUCT } from 'game-domain/product'
-import type { Npc } from 'game-domain/schemas/npc'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { useEffect, useMemo } from 'react'
-import { api } from '../../../convex/_generated/api'
-import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { useMemo } from 'react'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { useNpc, useSoftLinkList } from '../../lib/entities'
+import { useSoftLinkList } from '../../lib/entities'
 import { softLinkFromServer } from '../../lib/links/linkSync'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
-import { areaTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
-import { SheetSkeleton } from '../sheet/SheetSkeleton'
-import { SheetModeContext, useSheetModeStore } from '../sheet/sheetMode.model'
+import { CrewSheetBanner } from '../sheet/CrewSheetBanner'
+import { rowAppId } from '../sheet/readOnlySheetStore.model'
+import { SheetFallback } from '../sheet/SheetFallback'
+import { SheetModeContext } from '../sheet/sheetMode.model'
+import { useLocatedSheet } from '../sheet/useLocatedSheet'
 import type { NpcCrewing } from './NpcSheet'
 import { NpcSheet } from './NpcSheet'
 
@@ -49,42 +45,24 @@ function crewingOf(
 }
 
 export function NpcSheetView({ id }: { id: string }) {
-  const { mode } = useConnection()
   const navigate = useNavigate()
   const { confirm, dialog } = useConfirm()
-  const held = useNpc(id)
   const links = useSoftLinkList()
   const crawlers = useEntityStore((s) => s.crawlers)
-  // Read | Edit, held for the visit as on every sheet (`sheetMode.model.ts`).
-  const editing = useSheetModeStore((s) => s.editing)
-  const setEditing = useSheetModeStore((s) => s.setEditing)
-  const sheetMode = useMemo(() => ({ editing, setEditing }), [editing, setEditing])
+  const { status, held, listing, listedRow, members, me, sheetMode, crew } = useLocatedSheet(
+    'npc',
+    id
+  )
 
-  const online = mode === 'connected'
-  const located = useQuery(api.entities.locate, online ? { kind: 'npc', id } : 'skip')
-  const gameId = located?.gameId ?? null
-  const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
-  const me = useQuery(api.account.me, online ? {} : 'skip')
-
-  const name = held?.name ?? null
-  useEffect(() => {
-    document.title = areaTitle(PRODUCT.build, name || 'NPC')
-  }, [name])
-
-  /** A crewmate's NPC, parsed from the Game's listing; null when it is not there. */
+  /** A crewmate's NPC, parsed from the Game's listing; null when it cannot be read. */
   const theirs = useMemo(() => {
-    if (listing === undefined) return undefined
-    const row = listing.npcs.find(
-      (n) => (n.appId ?? (n.body as { id?: unknown } | null)?.id) === id
-    )
-    if (row === undefined) return null
-    const parsed = NpcSchema.safeParse(row.body)
-    return parsed.success ? { npc: { ...parsed.data, id } as Npc, ownerId: row.ownerId } : null
-  }, [listing, id])
+    if (listedRow === undefined) return undefined
+    const parsed = NpcSchema.safeParse(listedRow.body)
+    return parsed.success ? { ...parsed.data, id } : null
+  }, [listedRow, id])
 
-  // Yours: the local copy, editable — unless the server says otherwise.
-  if (held !== null && (located == null || located.mayEdit)) {
+  // Yours: the local copy, editable.
+  if (status === 'yours' && held !== null) {
     const crawlerName = (crawlerId: string) => crawlers.find((c) => c.id === crawlerId)?.name
     return (
       <SheetModeContext.Provider value={sheetMode}>
@@ -100,52 +78,32 @@ export function NpcSheetView({ id }: { id: string }) {
       </SheetModeContext.Provider>
     )
   }
-
-  if (!online) {
-    if (mode === 'connecting') return <SheetSkeleton />
+  if (status !== 'listed' || theirs === undefined || listedRow === undefined) {
     return (
-      <NotFoundPanel
-        title="NPC not found"
-        message="This NPC was not loaded before the connection dropped, and loading it needs a connection."
+      <SheetFallback
+        kind="npc"
+        status={status === 'listed' || status === 'yours' ? 'loading' : status}
+        back={crew}
       />
     )
   }
-  if (located === undefined) return <SheetSkeleton />
-  if (located === null) {
-    return (
-      <NotFoundPanel
-        title="NPC not found"
-        message="It may have been deleted, or it is in a Game you are not part of."
-      />
-    )
-  }
-  // Yours, on its way into this browser's cache: wait for it.
-  if (located.mayEdit) return <SheetSkeleton />
-  if (theirs === undefined) return <SheetSkeleton />
-  if (theirs === null) {
-    return (
-      <NotFoundPanel
-        title="Could not show this NPC"
-        message="This NPC's data doesn't match anything this app knows how to show. It may have been built in a newer version."
-      />
-    )
-  }
+  if (theirs === null) return <SheetFallback kind="npc" status="unreadable" back={crew} />
 
   const gameLinks = (listing?.softLinks ?? []).map(softLinkFromServer)
   const gameCrawlerName = (crawlerId: string) => {
-    const row = listing?.crawlers.find(
-      (c) => (c.appId ?? (c.body as { id?: unknown } | null)?.id) === crawlerId
-    )
+    const row = listing?.crawlers.find((c) => rowAppId(c) === crawlerId)
     const crawlerBodyName = (row?.body as { name?: unknown } | undefined)?.name
     return typeof crawlerBodyName === 'string' ? crawlerBodyName : undefined
   }
-  const maker = members?.find((m) => m.userId === theirs.ownerId)?.displayName
+  const maker = members?.find((m) => m.userId === listedRow.ownerId)?.displayName
   return (
-    <NpcSheet
-      npc={theirs.npc}
-      madeBy={maker ?? 'a player'}
-      readOnly
-      crewing={crewingOf(gameLinks, id, gameCrawlerName)}
-    />
+    <CrewSheetBanner kind="npc">
+      <NpcSheet
+        npc={theirs}
+        madeBy={maker ?? 'a player'}
+        readOnly
+        crewing={crewingOf(gameLinks, id, gameCrawlerName)}
+      />
+    </CrewSheetBanner>
   )
 }

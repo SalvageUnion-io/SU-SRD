@@ -442,7 +442,7 @@ describe('addresses', () => {
   })
 
   test('something you cannot see is simply not found', async () => {
-    setQueryAnswers({ 'entities:locate': null })
+    setQueryAnswers({ 'entities:locate': null, 'account:me': null })
     await view('pilot', 'stranger')
 
     expect(screen.getByText(/pilot not found/i)).toBeTruthy()

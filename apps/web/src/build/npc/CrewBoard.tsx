@@ -74,6 +74,7 @@ import {
 } from '../../lib/wizard/crewFormState'
 import { useEntityStore } from '../../stores/entityStore'
 import { npcStats } from '../roster/rowStats.model'
+import { rowAppId } from '../sheet/readOnlySheetStore.model'
 import { RollTableButton } from '../wizard/RollTableButton'
 import { assignedCrewControls, unassignCrew } from './assignedCrewControls.model'
 import { NpcCard } from './NpcCard'
@@ -220,7 +221,7 @@ function CrewSlots({
   /** Who made an NPC: the viewer for their own, else its owner by display name. */
   const makerOf = (npc: Npc) => {
     if (npcs.some((own) => own.id === npc.id)) return madeBy
-    const ownerId = listing?.npcs.find((row) => (row.appId ?? '') === npc.id)?.ownerId
+    const ownerId = listing?.npcs.find((row) => rowAppId(row) === npc.id)?.ownerId
     return members?.find((m) => m.userId === ownerId)?.displayName ?? 'a player'
   }
   const crew = crewAssignmentsOf(links, crawler.id, lookupNpc)

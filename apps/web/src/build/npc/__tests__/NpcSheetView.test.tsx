@@ -97,7 +97,7 @@ beforeEach(async () => {
   setQueryAnswers({
     'games:listMine': [],
     'account:me': { displayName: 'alxjrvs' },
-    'entities:locate': { gameId: null, mayEdit: true },
+    'entities:locate': { id: 'n-mine', gameId: null, mayEdit: true },
   })
 })
 
@@ -137,7 +137,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
     setQueryAnswers({
       'games:listMine': [],
       'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { gameId: 'g1', mayEdit: false },
+      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities:listForGame': gameListing(),
       'games:members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
@@ -146,7 +146,10 @@ describe('a crewmate’s, in a Game you belong to', () => {
     // A crewmate's NPC has no corner actions and no Read | Edit to switch.
     expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Edit$/ })).toBeNull()
-    expect(screen.getByText(/You are reading a crewmate’s NPC/)).toBeTruthy()
+    // The crew sheet's caution banner says why, as on a crewmate's pilot.
+    expect(screen.getByRole('note', { name: 'Read-only crew sheet' }).textContent).toContain(
+      'You are reading a crewmate’s NPC'
+    )
     expect(screen.getByRole('link', { name: 'Bulwark' })).toBeTruthy()
   })
 
@@ -154,7 +157,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
     setQueryAnswers({
       'games:listMine': [],
       'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { gameId: 'g1', mayEdit: false },
+      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities:listForGame': gameListing(),
       'games:members': [],
     })
@@ -165,7 +168,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
   test('a row this app cannot read says so', async () => {
     setQueryAnswers({
       'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { gameId: 'g1', mayEdit: false },
+      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities:listForGame': gameListing({ name: 42 }),
       'games:members': [],
     })
@@ -176,7 +179,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
   test('while the listing loads, a skeleton', async () => {
     setQueryAnswers({
       'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { gameId: 'g1', mayEdit: false },
+      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities:listForGame': undefined,
       'games:members': undefined,
     })
@@ -189,8 +192,9 @@ describe('neither', () => {
   test('the server knows no such NPC', async () => {
     setQueryAnswers({ 'account:me': null, 'entities:locate': null })
     await renderView('n-missing')
+    // The words every sheet's not-found uses (`SheetFallback`).
     expect(screen.getByText('NPC not found')).toBeTruthy()
-    expect(screen.getByText(/It may have been deleted/)).toBeTruthy()
+    expect(screen.getByText(/This NPC may have been deleted/)).toBeTruthy()
   })
 
   test('still locating: a skeleton', async () => {
@@ -200,14 +204,17 @@ describe('neither', () => {
   })
 
   test('yours on the server but not here yet: a skeleton while it arrives', async () => {
-    setQueryAnswers({ 'account:me': null, 'entities:locate': { gameId: null, mayEdit: true } })
+    setQueryAnswers({
+      'account:me': null,
+      'entities:locate': { id: 'n-missing', gameId: null, mayEdit: true },
+    })
     await renderView('n-missing')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 
   test('offline and not held: loading it needs a connection', async () => {
     await renderView('n-missing', 'disconnected')
-    expect(screen.getByText('NPC not found')).toBeTruthy()
+    expect(screen.getByText('NPC unavailable offline')).toBeTruthy()
     expect(screen.getByText(/loading it needs a connection/)).toBeTruthy()
   })
 

@@ -3,7 +3,8 @@
 - **Sheet layers:** route → `SheetView` | `PublicSheetView` |
   `StarterSheetView` → `Sheet` → `<Kind>LiveSheet` (rail, band) → `LiveSheet`
   (shell) → `<Kind>Sheet` (body). A read-only sheet is `<Sheet readOnly>` over
-  `makeReadOnlySheetStore`; build no other.
+  `makeReadOnlySheetStore`; build no other. Which one a `/sheet/` page shows
+  (yours, a crewmate's, not found) is `useLocatedSheet`'s answer, NPC included.
 - `*.model.ts` is any non-component module, not always pure: the `*Actions`,
   `sheetMode`, `pilotSheet`, `readOnlySheetStore`, `requestMove` and
   `assignedCrewControls` models use React or the store.

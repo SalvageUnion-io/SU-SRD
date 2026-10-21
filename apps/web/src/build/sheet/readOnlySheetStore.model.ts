@@ -70,6 +70,13 @@ export type GameListing = {
   softLinks: readonly ServedLink[]
 }
 
+/** A listed row's app id: its `appId`, else its body's own `id`; null when it has neither. */
+export function rowAppId(row: { appId: string | null; body: unknown }): string | null {
+  if (row.appId !== null) return row.appId
+  const id = (row.body as { id?: unknown } | null)?.id
+  return typeof id === 'string' ? id : null
+}
+
 /** `publicSheet.get`'s answer, as far as a sheet reads it. */
 export type PublicSheetAnswer = {
   kind: string

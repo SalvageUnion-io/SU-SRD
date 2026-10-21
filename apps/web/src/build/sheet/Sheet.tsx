@@ -25,7 +25,6 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Button, tokens } from '../../components/index'
-import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -45,6 +44,7 @@ import type { LiveSheetSegment } from './LiveSheet'
 import { MechLiveSheet } from './MechLiveSheet'
 import { PilotLiveSheet } from './PilotLiveSheet'
 import { SheetActionsMenu } from './SheetActionsMenu'
+import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
 import { useSheetMode } from './sheetMode.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
@@ -217,15 +217,7 @@ export function Sheet({
   const resolved = resolveSheetEntity(own, kind, id)
 
   if (!resolved) {
-    // Styled not-found with an exit path — this is the most-visited surface
-    // in the app; a bare one-liner stranded the user.
-    return (
-      <NotFoundPanel
-        title={`${kind} not found`}
-        message={`This ${kind} may have been deleted, or the link may be stale.`}
-        back={back}
-      />
-    )
+    return <SheetFallback kind={kind} status="missing" back={back} />
   }
 
   const { entity } = resolved

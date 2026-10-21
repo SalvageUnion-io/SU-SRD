@@ -116,8 +116,13 @@ describe('the sheet', () => {
     ).toBe(false)
   })
 
-  test('a crewmate’s NPC is read-only and says so', async () => {
-    await renderSheet({ readOnly: true, confirm: undefined, madeBy: 'Sam' })
+  test('a read-only NPC has no corner actions, and says why when told', async () => {
+    await renderSheet({
+      readOnly: true,
+      confirm: undefined,
+      madeBy: 'Sam',
+      readOnlyNote: 'You are reading a crewmate’s NPC.',
+    })
     expect(screen.queryByRole('button', { name: 'Delete Sergeant Kessler' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Share Sergeant Kessler' })).toBeNull()
     expect(screen.getByText(/You are reading a crewmate’s NPC/)).toBeTruthy()
