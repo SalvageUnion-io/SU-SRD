@@ -3,7 +3,7 @@
  * print.css — the app's @media print rules, over the shared `data-print`
  * vocabulary and chrome rule in `base.css`.
  *
- * Do not add a print block to `index.css`: a second `@media print` block can
+ * Do not add a print block to `app.css`: a second `@media print` block can
  * contradict this one (a bare `button` selector there would cancel the escape
  * hatch below).
  *

@@ -22,6 +22,7 @@ describe('historyHits', () => {
       ' * The gauge used to infer the override. Previously it sorted first.',
       ' */',
       'export const A = () => <div>{/* formerly the .pc-* scope, PR #292 */}</div>',
+      '// Print export (#82/#258).',
     ].join('\n')
     expect(hits(source, 'a.tsx')).toEqual([
       [1, 'issue-number', 'issue 1255'],
@@ -31,6 +32,7 @@ describe('historyHits', () => {
       [4, 'previously', 'Previously'],
       [6, 'issue-number', 'PR #292'],
       [6, 'previously', 'formerly'],
+      [7, 'issue-number', '#258'],
     ])
   })
 

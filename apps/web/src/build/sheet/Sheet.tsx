@@ -237,8 +237,8 @@ export function Sheet({
   // Read | Edit is the band's (`sheetMode.model.ts`): Read withdraws every write
   // affordance; Edit gives back the unified edit language (in-place fields,
   // collection add/remove, live pips).
-  // Print/PDF export (#82/#258): the print stylesheet (index.css @media
-  // print) turns the live sheet into a clean paper layout; "Save as PDF"
+  // Print/PDF export: the print stylesheet (`styles/build/print.css`)
+  // turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.
   const printButton = (
     <Button variant="ghost" aria-label={`Print this ${kind} sheet`} onClick={() => window.print()}>

@@ -21,11 +21,11 @@ export type HistoryPhrase = { id: string; pattern: RegExp; instead: string }
 const HISTORY_PHRASES: readonly HistoryPhrase[] = [
   {
     id: 'issue-number',
-    // The word issue, PR or epic before a number, or a bare hash-number. Not a
-    // number in code or quotes (a sample), a crawler's name, or one of React's
-    // error codes.
+    // The word issue, PR or epic before a number, a bare hash-number, or one
+    // joined to another by a slash. Not a number in code or quotes (a
+    // sample), a crawler's name, or one of React's error codes.
     pattern:
-      /\b(?:issues?|PRs?|epic)\s+#?[1-9]\d{2,}\b|(?<![\w&/"`[]|(?:Crawler|React|Scrap) )#[1-9]\d{2,3}\b/gi,
+      /\b(?:issues?|PRs?|epic)\s+#?[1-9]\d{2,}\b|(?<![\w&/"`[]|(?:Crawler|React|Scrap) )#[1-9]\d{2,3}\b|(?<=#\d+\/)#[1-9]\d{2,3}\b/gi,
     instead: 'say what the code does; the issue is in git history',
   },
   {

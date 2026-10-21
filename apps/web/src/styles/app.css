@@ -4,7 +4,7 @@
  * (`apps/web/src/styles/base.css`), which the shell links before this one.
  */
 /* The app's print rules, over the shared `data-print` vocabulary in
-   `base.css`. index.css declares no print rules of its own. */
+   `base.css`. This file declares no print rules of its own. */
 @import './build/print.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
 @import './build/npc.css';
@@ -50,7 +50,7 @@ body {
 
 /*
  * Every heading in the app wears the condensed face. Unlayered, so it beats a
- * package class on a heading; `styles/libHandback.css` hands those classes
+ * package class on a heading; `styles/build/libHandback.css` hands those classes
  * their own type back. Its caps are the heading's own, through the stamp or
  * `capsLabel` (R14), never this rule's.
  */
