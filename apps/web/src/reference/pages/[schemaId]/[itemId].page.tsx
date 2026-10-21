@@ -29,6 +29,7 @@ import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
+import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
@@ -50,7 +51,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
   const fill = bandFillFor(schemaId, item)
-  const pageMeta = resolveEntityPageMeta(item)
+  // A crawler tech level's facts are its body's block of text, the book's
+  // (`CrawlerTechLevelPage`): its band keeps only its Tech Level.
+  const techLevelPage = schemaId === 'crawler-tech-levels'
+  const resolvedMeta = resolveEntityPageMeta(item)
+  const pageMeta = techLevelPage
+    ? {
+        ...resolvedMeta,
+        stats: resolvedMeta.stats.filter((stat) => stat.label === 'Tech Level'),
+        facts: [],
+      }
+    : resolvedMeta
   // A banded d20 table rolls on a page of its own (board 08b), and so does a
   // two-roll columns table; every other entity is the card's page. The table
   // bands in the page's own tone: its band's colour.
@@ -169,7 +180,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
-        {rollPage ?? <EntityView item={item} schemaId={schemaId} />}
+        {rollPage ??
+          (techLevelPage ? (
+            <CrawlerTechLevelPage item={item} />
+          ) : (
+            <EntityView item={item} schemaId={schemaId} />
+          ))}
       </EntityPageFrame>
     ),
   }

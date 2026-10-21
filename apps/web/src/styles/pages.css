@@ -1118,3 +1118,86 @@ a.su-home__discord:hover {
     top: var(--space-24);
   }
 }
+
+/*
+ * A Union Crawler Tech Level's Page (`reference/CrawlerTechLevelPage.tsx`):
+ * the book's block of text on its TitledBox, and the ladder of levels in the
+ * sidebar beside it from `lg`, under it on a phone.
+ */
+.su-tech-level {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-tech-level__lines {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.su-tech-level__line {
+  align-items: baseline;
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-16);
+  padding: var(--space-12) 0;
+}
+
+.su-tech-level__line:first-child {
+  border-top: 0;
+}
+
+.su-tech-level__label {
+  flex: 0 0 14rem;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+.su-tech-level__value {
+  flex: 1 1 16rem;
+  font-size: var(--text-xl);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.su-tech-level__ladder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-tech-level__rungs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* This level, among the ladder's links: the selection ring. */
+.su-tech-level__rungs > [aria-current='page'] {
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
+@media (width >= 64rem) {
+  .su-tech-level {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-40);
+  }
+
+  .su-tech-level > :first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .su-tech-level__ladder {
+    flex: 0 0 24rem;
+  }
+}
