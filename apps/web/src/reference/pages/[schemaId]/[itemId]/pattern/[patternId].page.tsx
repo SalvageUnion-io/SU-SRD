@@ -141,7 +141,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         title={`“${patternName}”`}
         tone={chapter.tone}
         // A bio-chassis's pattern wears its chassis's green band (owner, round 6).
-        fill={bandFillFor(schemaId, host)?.band}
+        fill={bandFillFor(schemaId, host)}
         meta={pageMeta}
         parent={{
           label: 'Pattern of',

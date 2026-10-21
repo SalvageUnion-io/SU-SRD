@@ -122,12 +122,15 @@ export function buildChapters(): SrdChapter[] {
       id: definition.id,
       title: definition.title,
       tone: definition.tone,
-      href: `/#${definition.id}`,
+      href: chapterHref(definition.id),
       rows,
       total: rows.reduce((sum, row) => sum + row.count, 0),
     }
   })
 }
+
+/** A chapter's anchor on the home page. */
+const chapterHref = (id: string): string => `/#${id}`
 
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
@@ -138,7 +141,7 @@ export const CHAPTER_REFS: readonly ChapterRef[] = CHAPTER_DEFINITIONS.map(
     id,
     title,
     tone,
-    href: `/#${id}`,
+    href: chapterHref(id),
   })
 )
 
@@ -164,18 +167,7 @@ export function chapterForSchema(schemaId: string): ChapterRef {
         ?.schemas.some((id) => id === schemaId)
     )
   )
-  if (!definition) return CONTENTS
-  const { id, title, tone } = definition
-  return { id, title, tone, href: `/#${id}` }
-}
-
-/**
- * A show page's band colour when it wears its own rather than its chapter's:
- * the head band (`ChapterBand`'s `fill`), which the page's one footer wears
- * too (`footerMatchCss`: the same ground, owner's call 2026-10-19).
- */
-export type BandFill = {
-  band: string
+  return CHAPTER_REFS.find((ref) => ref.id === definition?.id) ?? CONTENTS
 }
 
 /**
@@ -184,29 +176,22 @@ export type BandFill = {
  * the deeper crawler band, as the Compact paints it (it carries paper); Core is
  * the chapter's own orange (`undefined`).
  */
-function abilityBandFill(entity: RefEntity): BandFill | undefined {
+function abilityBandFill(entity: RefEntity): string | undefined {
   const tone = entityTone('abilities', entity)
   if (tone === 'pilot') return undefined
-  const band = tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
-  return { band }
+  return tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
 }
 
 /**
- * The schemas whose show page wears its tech level's blue: systems and
- * modules, the one place the book sets TL blue as a ground (ruleset §3.8, book
- * pp. 162, 188), whose listings wear TL1's.
- */
-const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
-
-/**
- * The listings that wear TL1's blue: systems and modules, whose pages wear
- * their tech level's, and drones, whose cards' heads are tech-level blue
+ * The listings that wear TL1's blue: systems and modules, the one place the
+ * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones, whose cards' heads are tech-level blue
  * (owner, 2026-10-20: "Drone header should be blue to match drones"), and
  * pilot equipment, whose cards' heads are too (owner, round 10: "headers of
  * TL1 for the index, not pilot orange").
  */
 const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
-  ...TECH_LEVEL_BAND_SCHEMAS,
+  'systems',
+  'modules',
   'drones',
   'equipment',
 ])
@@ -216,8 +201,8 @@ const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
  * listings (owner's calls 2026-10-20). Every other listing wears its
  * chapter's band (`undefined`).
  */
-export function listingBandFillFor(schemaId: string): BandFill | undefined {
-  return TECH_LEVEL_LISTING_SCHEMAS.has(schemaId) ? { band: 'var(--color-tl-1)' } : undefined
+export function listingBandFillFor(schemaId: string): string | undefined {
+  return TECH_LEVEL_LISTING_SCHEMAS.has(schemaId) ? 'var(--color-tl-1)' : undefined
 }
 
 /**
@@ -230,13 +215,13 @@ export function listingBandFillFor(schemaId: string): BandFill | undefined {
  * Every other page wears its chapter's band from the colour map
  * (`undefined`); a listing's is `listingBandFillFor`.
  */
-export function bandFillFor(schemaId: string, entity: RefEntity): BandFill | undefined {
+export function bandFillFor(schemaId: string, entity: RefEntity): string | undefined {
   if (schemaId === 'abilities') return abilityBandFill(entity)
   if (!isSchemaName(schemaId)) return undefined
   const tone = entityTone(schemaId, entity)
   const own = tone.startsWith('tl-') || tone === 'tier-hybrid' || tone === 'class-hybrid'
   // A guide that is not rules blue: a creation guide's entity, Heat's red.
   const guide = schemaId === 'guides' && tone !== 'wk-line'
-  if (own || guide) return { band: `var(--color-${tone})` }
+  if (own || guide) return `var(--color-${tone})`
   return undefined
 }

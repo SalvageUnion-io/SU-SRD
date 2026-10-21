@@ -70,7 +70,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   // bands in the page's own tone: its band's colour.
   const rollTable = rollTablePageData(item)
   const columnsTable = rollTable ? null : columnsTablePageData(item)
-  const pageTone = fill?.band ?? CHAPTER_BAND_COLOR[chapter.tone]
+  const pageTone = fill ?? CHAPTER_BAND_COLOR[chapter.tone]
   const rollPage = rollTable ? (
     <RollTablePage data={rollTable} tone={pageTone} />
   ) : columnsTable ? (
@@ -176,7 +176,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       <EntityPageFrame
         title={itemName}
         tone={chapter.tone}
-        fill={fill?.band}
+        fill={fill}
         meta={pageMeta}
         build={buildLinkFor(schemaId, item)}
         exits={guideExitsFor(schemaId, item)}

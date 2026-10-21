@@ -73,7 +73,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const band: ListingBand = {
     title: pluralName,
     tone: chapter.tone,
-    fill: listingBandFillFor(schemaId)?.band,
+    fill: listingBandFillFor(schemaId),
     trail: [
       { name: SRD_CRUMB.name, url: '/' },
       { name: pluralName, url: schemaHref(schemaId) },

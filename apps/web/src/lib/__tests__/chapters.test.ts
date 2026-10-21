@@ -79,11 +79,11 @@ describe('chapterForSchema', () => {
 
 describe('listingBandFillFor', () => {
   test('the systems and modules indexes wear TL1 blue; every other listing its chapter', () => {
-    expect(listingBandFillFor('systems')).toEqual({ band: 'var(--color-tl-1)' })
-    expect(listingBandFillFor('modules')).toEqual({ band: 'var(--color-tl-1)' })
-    expect(listingBandFillFor('drones')).toEqual({ band: 'var(--color-tl-1)' })
+    expect(listingBandFillFor('systems')).toBe('var(--color-tl-1)')
+    expect(listingBandFillFor('modules')).toBe('var(--color-tl-1)')
+    expect(listingBandFillFor('drones')).toBe('var(--color-tl-1)')
     expect(listingBandFillFor('chassis')).toBeUndefined()
-    expect(listingBandFillFor('equipment')).toEqual({ band: 'var(--color-tl-1)' })
+    expect(listingBandFillFor('equipment')).toBe('var(--color-tl-1)')
   })
 })
 
@@ -95,12 +95,12 @@ describe('bandFillFor', () => {
   }
 
   test('a system or module show page wears its tech level’s blue, head and foot (§3.8)', () => {
-    expect(bandFillFor('systems', systemAt(1))).toEqual({ band: 'var(--color-tl-1)' })
-    expect(bandFillFor('systems', systemAt(6))?.band).toBe('var(--color-tl-6)')
-    expect(bandFillFor('systems', systemAt('B'))?.band).toBe('var(--color-tl-b)')
+    expect(bandFillFor('systems', systemAt(1))).toBe('var(--color-tl-1)')
+    expect(bandFillFor('systems', systemAt(6))).toBe('var(--color-tl-6)')
+    expect(bandFillFor('systems', systemAt('B'))).toBe('var(--color-tl-b)')
     const module = SalvageUnionReference.Modules.all().find((m) => m.techLevel === 2)
     if (!module) throw new Error('no module at tech level 2')
-    expect(bandFillFor('modules', module)?.band).toBe('var(--color-tl-2)')
+    expect(bandFillFor('modules', module)).toBe('var(--color-tl-2)')
   })
 
   test('equipment, drones and vehicles wear their tech level’s band, as their cards do', () => {
@@ -108,9 +108,9 @@ describe('bandFillFor', () => {
     const drone = SalvageUnionReference.Drones.all().find((e) => e.techLevel === 5)
     const vehicle = SalvageUnionReference.Vehicles.all()[0]
     if (!equipment || !drone || !vehicle) throw new Error('fixtures missing')
-    expect(bandFillFor('equipment', equipment)).toEqual({ band: 'var(--color-tl-1)' })
-    expect(bandFillFor('drones', drone)).toEqual({ band: 'var(--color-tl-5)' })
-    expect(bandFillFor('vehicles', vehicle)?.band).toMatch(/^var\(--color-tl-/)
+    expect(bandFillFor('equipment', equipment)).toBe('var(--color-tl-1)')
+    expect(bandFillFor('drones', drone)).toBe('var(--color-tl-5)')
+    expect(bandFillFor('vehicles', vehicle)).toMatch(/^var\(--color-tl-/)
   })
 
   test('a Hybrid Class wears its brown; a Core class and a chassis their chapter’s', () => {
@@ -119,14 +119,14 @@ describe('bandFillFor', () => {
     const core = classes.find((c) => !('hybrid' in c && c.hybrid === true))
     const chassis = SalvageUnionReference.Chassis.all()[0]
     if (!hybrid || !core || !chassis) throw new Error('fixtures missing')
-    expect(bandFillFor('classes', hybrid)).toEqual({ band: 'var(--color-class-hybrid)' })
+    expect(bandFillFor('classes', hybrid)).toBe('var(--color-class-hybrid)')
     expect(bandFillFor('classes', core)).toBeUndefined()
     expect(bandFillFor('chassis', chassis)).toBeUndefined()
     expect(bandFillFor('not-a-schema', chassis)).toBeUndefined()
   })
 
   test('tech level 3 wears its own blue: the foot is the band’s colour, no deeper shade', () => {
-    expect(bandFillFor('systems', systemAt(3))).toEqual({ band: 'var(--color-tl-3)' })
+    expect(bandFillFor('systems', systemAt(3))).toBe('var(--color-tl-3)')
   })
 
   test('an ability’s show page wears its tier’s colour, as its Compact does on the index', () => {
@@ -136,13 +136,9 @@ describe('bandFillFor', () => {
       return ability
     }
     expect(bandFillFor('abilities', inTree('Hacking'))).toBeUndefined()
-    expect(bandFillFor('abilities', inTree('Advanced Hacking'))?.band).toBe(
-      'var(--color-tier-hybrid)'
-    )
-    expect(bandFillFor('abilities', inTree('Cyborg'))?.band).toBe('var(--color-tier-hybrid)')
-    expect(bandFillFor('abilities', inTree('Legendary Hacker'))).toEqual({
-      band: 'var(--color-crawler-band)',
-    })
+    expect(bandFillFor('abilities', inTree('Advanced Hacking'))).toBe('var(--color-tier-hybrid)')
+    expect(bandFillFor('abilities', inTree('Cyborg'))).toBe('var(--color-tier-hybrid)')
+    expect(bandFillFor('abilities', inTree('Legendary Hacker'))).toBe('var(--color-crawler-band)')
   })
 
   test('every other show page wears its chapter’s band', () => {
