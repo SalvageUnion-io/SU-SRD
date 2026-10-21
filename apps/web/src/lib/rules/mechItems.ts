@@ -90,7 +90,7 @@ export function repairScrapCost(salvageValue: number | undefined): number {
  * level ≥ the item's TL whose bucket holds at least `cost` (Scrap TL must be
  * ≥ item TL; higher-TL scrap is allowed). Returns null when no bucket
  * qualifies — the repair still proceeds without a deduction (advisory,
- * never blocks — S12).
+ * never a block).
  */
 export function repairPoolTl(
   pool: ScrapPool,

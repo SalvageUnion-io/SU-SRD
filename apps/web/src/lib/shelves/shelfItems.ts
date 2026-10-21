@@ -1,5 +1,5 @@
 /**
- * What each item in the Training Bay says (board S1) — pure, so the page only lays
+ * What each item in the Training Bay says — pure, so the page only lays
  * it out.
  *
  * The Training Bay is everything a player owns, on their account (ADR-052 §1–2): a
@@ -81,7 +81,7 @@ const UNIT_RELATION = new Set(['pilot', 'mech', 'crawler'])
 
 /**
  * An item's relations split: the units linked to it, each a header-only Mini
- * (`<Entity linked>`; owner, round 4: "no linked units should be chips"), and
+ * (`<Entity linked>`, R5), and
  * the rest (its Game), relation chips (C11).
  */
 export function splitRelations(relations: readonly ShelfRelation[]): {

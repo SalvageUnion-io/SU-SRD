@@ -1,5 +1,5 @@
 /**
- * The two-roll `columns` table's page logic (Callsign Table, board 08b): one
+ * The two-roll `columns` table's page logic (Callsign Table): one
  * d20 picks the column, a second picks the entry down it. Kept apart from the
  * island, as `rollTablePage.ts` is, so it is tested without a DOM and the
  * island's chunk carries no ORM.

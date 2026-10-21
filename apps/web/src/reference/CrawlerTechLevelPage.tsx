@@ -6,13 +6,12 @@ import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 
 /**
- * CrawlerTechLevelPage — a Union Crawler Tech Level's Page (owner,
- * 2026-10-20: "Crawler tech levels need a unique rendering. They are mostly
- * stats, and therefore render as a blank page full of chips ... lets
- * redesign it, taking use of the sidebar space"). The book sets each level
+ * CrawlerTechLevelPage — a Union Crawler Tech Level's Page (R47): mostly
+ * stats, so it is drawn as the book draws it rather than as a page of chips,
+ * and it uses the sidebar. The book sets each level
  * as a block of text (Core Book p.218: "Structure Points: 20 / Upkeep: 5×
  * Tech 1 Scrap ..."), so the level's facts are that block, read as the book
- * reads them, in a plain Box (owner, round 6: "should not be a infobox");
+ * reads them, in a plain Box, never an infobox (R47);
  * the band carries its Tech Level and Structure Points. The
  * sidebar is the ladder, every level a header-only Compact in order, this
  * one marked, the rest linking to their Pages. Every word is the data's
@@ -66,7 +65,7 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
       <Box className="su-tech-level__block">
         {/* The book's lines, "Upkeep: 5× Tech 1 Scrap", each a fact under a
             crawler-pink rule, its label in caps and its figure set large
-            (owner, round 8: "a bit stark ... jazz it up"). */}
+            (R47). */}
         <div className="su-tech-level__lines">
           {bookLines(level).map(({ label, figure, rest }) => (
             <div key={label} className="su-tech-level__line">

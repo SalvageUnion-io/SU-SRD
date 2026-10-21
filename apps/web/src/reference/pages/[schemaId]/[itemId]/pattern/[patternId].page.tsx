@@ -126,7 +126,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       structuredData,
       preloadImage: displayData?.assetUrl,
       preloadImageSrcSet,
-      // The art is the page's hero now, so the preload repeats ITS `sizes`.
+      // The art is the page's hero, so the preload repeats ITS `sizes`.
       preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
         SRD_CRUMB,
@@ -140,7 +140,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       <EntityPageFrame
         title={`“${patternName}”`}
         tone={chapter.tone}
-        // A bio-chassis's pattern wears its chassis's green band (owner, round 6).
+        // A bio-chassis's pattern wears its chassis's green band.
         fill={bandFillFor(schemaId, host)}
         meta={pageMeta}
         parent={{

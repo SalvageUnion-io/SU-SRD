@@ -6,8 +6,8 @@ import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 
 /**
- * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
- * 08b): its chapter's band at the head, the title notched in and, right of
+ * EntityPageFrame — a Workshop Manual page around one entity: its chapter's
+ * band at the head, the title notched in and, right of
  * it, one cluster of everything else the head carries — the parent link, the
  * stamps, then "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the

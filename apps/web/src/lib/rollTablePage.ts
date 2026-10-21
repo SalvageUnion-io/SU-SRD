@@ -1,5 +1,5 @@
 /**
- * The roll-table page's pure logic (board 08b): which row a roll lands on, the
+ * The roll-table page's pure logic: which row a roll lands on, the
  * running list of earlier rolls. Kept apart
  * from the island so it is tested without a DOM, and so the island's chunk
  * carries no ORM: `resultForTable` is the reference package's pure rules
@@ -98,9 +98,9 @@ export function splitRows(rows: RollTableRow[]): boolean {
 
 /**
  * How tightly a wide screen sets the page, so the table and its panel end
- * above the fold (board 08b):
+ * above the fold:
  *
- * - `roomy`: a short table under a short note, set as the board draws it.
+ * - `roomy`: a short table under a short note, set at its full size.
  * - `compact`: a split table, or bands and note that together run long
  *   (Morale's note outruns its five bands): the note in smaller type across a
  *   wider measure, the bands and the panel narrower.

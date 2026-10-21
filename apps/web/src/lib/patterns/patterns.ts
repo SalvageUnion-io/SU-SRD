@@ -17,7 +17,7 @@ import type { CreateInput } from '../../stores/types'
 /** What `patternStore.create` takes: the id and timestamp are minted on create. */
 type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>
 
-/** Who may read a pattern — the three choices of board P1. */
+/** Who may read a pattern — the three choices of Save as pattern. */
 export type PatternVisibility = 'private' | 'link' | 'game'
 
 /** A pattern's address: its public page, which the maker and its readers share. */

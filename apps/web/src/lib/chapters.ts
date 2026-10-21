@@ -1,6 +1,6 @@
 /**
- * The SRD as the Workshop Manual's chapters (board 06, "the manual's contents
- * page"): Pilot Bay, Mech Workshop, Union Crawler, Denizens of the Wasteland,
+ * The SRD as the Workshop Manual's chapters ("the manual's contents page"):
+ * Pilot Bay, Mech Workshop, Union Crawler, Denizens of the Wasteland,
  * and Rules & Reference. Each chapter is one or more of the dataset's catalog
  * categories (`catalog-categories.json`) under the book's own chapter name and
  * colour (ruleset, "The book's colour map").
@@ -39,7 +39,7 @@ type ChapterDefinition = {
   categories: string[]
   /**
    * Schemas to lead with, ahead of the categories' own order. Rules &
-   * Reference leads with what a table reaches for mid-game (board 06).
+   * Reference leads with what a table reaches for mid-game.
    */
   lead?: string[]
 }
@@ -51,7 +51,7 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   {
     id: 'denizens',
     title: 'Denizens of the Wasteland',
-    // The adversary brown its entities' cards wear (owner's call, 2026-10-20).
+    // The adversary brown its entities' cards wear.
     tone: 'adversary',
     categories: ['denizens'],
   },
@@ -185,9 +185,8 @@ function abilityBandFill(entity: RefEntity): string | undefined {
 /**
  * The listings that wear TL1's blue: systems and modules, the one place the
  * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones, whose cards' heads are tech-level blue
- * (owner, 2026-10-20: "Drone header should be blue to match drones"), and
- * pilot equipment, whose cards' heads are too (owner, round 10: "headers of
- * TL1 for the index, not pilot orange").
+ * (R44), and pilot equipment, whose cards' heads are too, never pilot
+ * orange.
  */
 const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
   'systems',
@@ -198,7 +197,7 @@ const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
 
 /**
  * A listing's band when not its chapter's: TL1's blue on the tech-level
- * listings (owner's calls 2026-10-20). Every other listing wears its
+ * listings. Every other listing wears its
  * chapter's band (`undefined`).
  */
 export function listingBandFillFor(schemaId: string): string | undefined {
@@ -208,7 +207,7 @@ export function listingBandFillFor(schemaId: string): string | undefined {
 /**
  * The bands a show page wears when not its chapter's: the entity's own tone
  * (`entityTone`), the colour its card's header and Compact wear, head and foot
- * (owner, round 4: "fix the band colors to always match the entity"). Gear
+ * (R44: a Page's band wears its entity). Gear
  * (systems, modules, drones, equipment, vehicles) wears its tech level's
  * colour; a Hybrid Class its brown; an ability its tier's colour (E12);
  * a creation guide its entity's colour, Heat its red (`guideTone`).

@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import { Button, StartHere } from '../components/index'
 
 /**
- * The home page as the manual's Contents page (board 06): the book's chapters
+ * The home page as the manual's Contents page: the book's chapters
  * as an index, each opened by a band in its colour, then its name and real
  * entry count — no artwork: the index is a contents page, not a gallery; then the
  * rules a table reaches for under an ink band, set as CSS columns (a masonry
@@ -33,8 +33,8 @@ const DISCORD_MARK =
 
 /**
  * The SalvageUnion.io Discord bot, offered straight under "Start here": one full-size
- * button in Discord's blurple (a one-off exception to the tone palette, owner's
- * call 2026-10-14) with Discord's mark, opening the bot's install link. The
+ * button in Discord's blurple (a one-off exception to the tone palette) with
+ * Discord's mark, opening the bot's install link. The
  * site footer links `/discord`, which documents the commands.
  */
 export function DiscordButton({ installHref }: { installHref: string }) {

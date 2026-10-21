@@ -200,7 +200,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             Skip link — WCAG 2.4.1. Must be the FIRST focusable thing in the
             document, so it sits above TopNavigation rather than inside it.
             Without it, a keyboard user traverses the home mark, the main nav
-            and the breadcrumb nav before reaching content, on all 1,036 pages.
+            and the breadcrumb nav before reaching content, on every page.
           */}
           <a href="#main-content" className={SKIP_LINK}>
             Skip to content

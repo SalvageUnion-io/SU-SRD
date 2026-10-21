@@ -1,5 +1,5 @@
 /**
- * The NPC designer's form (board N1; `docs/architecture/npc-builder.md` §4.1):
+ * The NPC designer's form (`docs/architecture/npc-builder.md` §4.1):
  * five steps, a template that fills the stat block, and the projection to the
  * store's create input.
  *

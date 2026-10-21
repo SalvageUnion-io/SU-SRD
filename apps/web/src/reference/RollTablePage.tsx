@@ -1,5 +1,5 @@
 /**
- * The roll-table page (board 08b): a roll table is something you roll on, so
+ * The roll-table page: a roll table is something you roll on, so
  * its page rolls. The page module renders this inside `EntityPageFrame` in
  * place of the entity card.
  *

@@ -137,7 +137,7 @@ describe('rowForRoll', () => {
     expect(rowForRoll(data.table, data.rows, 1)?.label).toBe('Cascade Failure')
   })
 
-  test('a table that prints only its 20 reads "Nothing happens." on 1–19 (round 4)', () => {
+  test('a table that prints only its 20 reads "Nothing happens." on 1–19', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
     expect(rowForRoll(dramatic.table, dramatic.rows, 20)?.key).toBe('20')
     expect(rowForRoll(dramatic.table, dramatic.rows, 5)?.key).toBe('1-19')

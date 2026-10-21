@@ -21,8 +21,8 @@ describe('CrawlerTechLevelPage', () => {
       line.querySelector('.su-tech-level__label')?.textContent,
       line.querySelector('.su-tech-level__value')?.textContent,
     ])
-    // Its Tech Level and Structure Points ride the page's band (round 6); each
-    // fact its label, its figure set large (round 8).
+    // Its Tech Level and Structure Points ride the page's band; each
+    // fact its label, its figure set large.
     expect(lines).toEqual([
       ['Upkeep', '5× Tech 1 Scrap'],
       ['Upgrade', '30× Tech 1 Scrap'],
@@ -33,7 +33,7 @@ describe('CrawlerTechLevelPage', () => {
     ).toEqual(['5×', '30×', '100 – 500'])
   })
 
-  test('its text sits in a plain box, its stats on the band (round 6)', () => {
+  test('its text sits in a plain box, its stats on the band', () => {
     const { container } = render(<CrawlerTechLevelPage item={level('Hamlet Crawler')} />)
     const block = container.querySelector('.su-tech-level__block')
     expect(block).not.toBeNull()

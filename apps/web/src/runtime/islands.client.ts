@@ -183,7 +183,7 @@ registerSiteWorker()
  * the page the reader actually asked for has been dealt with.
  *
  * Hung off `load` rather than `DOMContentLoaded`, and after island mounting, so
- * a background warm of 1,039 pages can never compete with first paint or with
+ * a background warm of every page can never compete with first paint or with
  * the interactive parts of the page. In a browser tab this costs one function
  * call and a `matchMedia` check — see `offlineWarm.client.ts` for why the guard
  * is the first thing it does.

@@ -1,12 +1,12 @@
 /**
  * `/[schemaId]/[itemId]` — an entity's show page (`/chassis/mule/`).
  *
- * The largest route family on the site (~850 of 1,038 pages), so a change here
+ * The largest route family on the site (most of its pages), so a change here
  * reaches almost the whole SRD at once.
  *
- * A Workshop Manual page (boards 07, 08): the entity's chapter band, the card
+ * A Workshop Manual page: the entity's chapter band, the card
  * as the page's body (`presentation="page"`), and the citation on the foot
- * band. A roll table gets its own page to roll on (board 08b).
+ * band. A roll table gets its own page to roll on.
  */
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
@@ -55,7 +55,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const fill = bandFillFor(schemaId, item)
   // A crawler tech level's facts are its body's block of text, the book's
   // (`CrawlerTechLevelPage`): its band keeps its Tech Level and Structure
-  // Points (owner, round 6: "move SP to the page header").
+  // Points (R47).
   const techLevelPage = schemaId === 'crawler-tech-levels'
   const resolvedMeta = resolveEntityPageMeta(item)
   const pageMeta = techLevelPage
@@ -65,7 +65,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         facts: [],
       }
     : resolvedMeta
-  // A banded d20 table rolls on a page of its own (board 08b), and so does a
+  // A banded d20 table rolls on a page of its own, and so does a
   // two-roll columns table; every other entity is the card's page. The table
   // bands in the page's own tone: its band's colour.
   const rollTable = rollTablePageData(item)
@@ -162,7 +162,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       structuredData,
       preloadImage,
       preloadImageSrcSet,
-      // The art is the page's hero now, so the preload repeats ITS `sizes`.
+      // The art is the page's hero, so the preload repeats ITS `sizes`.
       preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
         SRD_CRUMB,

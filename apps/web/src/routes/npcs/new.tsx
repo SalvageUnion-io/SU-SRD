@@ -12,7 +12,7 @@ type NpcsNewSearch = {
 }
 
 /**
- * `/npcs/new` — the NPC designer (boards N1 and N2).
+ * `/npcs/new` — the NPC designer.
  *
  * `?view=any|crew` picks the mode (D8); crew takes `&crawler=<id>` and an
  * optional `&slot=<bayRef|type>`. The crawler sheet's Bays "Crew…" link lands

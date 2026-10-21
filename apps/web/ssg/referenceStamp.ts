@@ -4,8 +4,8 @@
  *
  * Dev pre-bundles the workspace package (`optimizeDeps.include`), and Vite
  * re-bundles only when the lockfile or its config changes, never when a
- * linked package's own files do. A change to the package (round 10: a Hybrid
- * Class's brown) stayed out of the browser until the cache was cleared, while
+ * linked package's own files do. A change to the package (a tone, say)
+ * stays out of the browser until the cache is cleared, while
  * the server's render had it: the listing painted right, then the island's
  * mount repainted it from the stale bundle. The stamp rides the optimizer's
  * config, so any change to the package's sources is a new config hash.

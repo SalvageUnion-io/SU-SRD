@@ -1,5 +1,5 @@
 /**
- * The crew slot form (board N2; P7 D2–D3): what the player writes for one of
+ * The crew slot form: what the player writes for one of
  * a crawler's crew slots, and the NPC it makes.
  *
  * The slot fixes the template — its position and HP come from the bay's (or

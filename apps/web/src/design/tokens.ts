@@ -248,8 +248,8 @@ export const borderWidth = {
  * The base colour values. Not exported directly — `color` below re-exports
  * these alongside the semantic aliases that point at them, so an alias stays an
  * alias (retone `pilot` and `sheetPilot` follows) instead of being a second
- * literal of the same number. That aliasing is why the shadow `su-*` family had
- * to be deleted from theme.css, and it is preserved here rather than flattened.
+ * literal of the same number. theme.css keeps no shadow `su-*` family of
+ * literals for the same reason, and the aliasing is not flattened here.
  */
 const base = {
   // — Tech Level blues —
@@ -284,17 +284,16 @@ const base = {
   // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust.
   //   Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
-  /** The Hybrid Classes' brown (owner, round 6), apart from the tier rust. */
+  /** The Hybrid Classes' brown, apart from the tier rust. */
   classHybrid: 'rgb(107, 68, 35)',
 
-  /** The Heat guide's own red (owner, round 4: "make heat a new red color
-   *  that matches our theme in the header"): its band and its tile. Carries
+  /** The Heat guide's own red (R44): its band and its tile. Carries
    *  paper. */
   heat: 'rgb(166, 38, 34)',
 
   /** Discord's dark blurple (its own button hover): the SRD home page's Discord
    *  block and the Discord page's band and command panels, the one exception
-   *  to the tone palette (owner's calls, 2026-10-14 and 2026-10-20). Its
+   *  to the tone palette. Its
    *  #5865f2 carries paper under 4.5:1. */
   discord: 'rgb(71, 82, 196)',
 
@@ -357,7 +356,7 @@ const base = {
 
   // — Workshop (light) ground: the step off-paper that makes a card read as a
   //   panel —
-  /** The page ground: the book's own paper (ruleset §4.1, board 03). */
+  /** The page ground: the book's own paper (ruleset §4.1). */
   wkBg: 'rgb(239, 236, 230)',
   wkBg2: 'rgb(215, 230, 238)',
   /** The muted secondary-text tone — warm, like the paper — toned to clear
@@ -382,8 +381,8 @@ const base = {
 
   // — Sheet "deep" tones that are literals rather than aliases —
   /** A LITERAL holding ink's value, never an alias of `rust`: rust means "do
-   *  something" and nothing may alias it (ruleset §3.1). Board 03 rules that
-   *  pilot-deep becomes ink. */
+   *  something" and nothing may alias it (ruleset §3.1). Pilot-deep is
+   *  ink. */
   sheetPilotDeep: 'rgb(40, 32, 25)',
   sheetMechDeep: 'rgb(47, 67, 56)',
   sheetCrawlerDeep: 'rgb(126, 42, 91)',
@@ -397,7 +396,7 @@ const base = {
 export const color = {
   ...base,
 
-  // — Sheet tones (Header C live sheets): base + deep pairs —
+  // — Sheet tones (live sheets): base + deep pairs —
   sheetPilot: base.pilot,
   sheetMech: base.mech,
   sheetCrawler: base.crawler,
@@ -407,7 +406,7 @@ export const color = {
 } as const
 
 /**
- * The light speckle (ruleset §3.5 "Texture", board 05c) — the printed book's
+ * The light speckle (ruleset §3.5 "Texture") — the printed book's
  * bands and banners are speckled, so ours are, generated in code.
  *
  * `texture` holds the overlay opacities, which a stylesheet can read too
@@ -430,7 +429,7 @@ export const texture = {
  * The three speckle filters, by the ids the origin named them (`su-blot`,
  * `su-speck`, `su-fleck`). Each is `feTurbulence` noise thresholded to hard
  * specks by an `feColorMatrix` alpha row (`gain · noise + threshold`), then
- * composited onto a flat fill. The thresholds are board 05c's QUIETER set —
+ * composited onto a flat fill. The thresholds are the QUIETER set —
  * the "light speckle" chosen over the heavy one (−17.8 / −14.2 / −14.7).
  *
  * The two grains:

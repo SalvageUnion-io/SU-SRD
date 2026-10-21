@@ -3,12 +3,12 @@
  * Generates `src/generated/navCatalog.ts` — the mobile nav drawer's index,
  * frozen at build time: the SRD's chapters (`src/lib/chapters.ts`), each a
  * section stamp over its schemas' rows and counts, the same index the home
- * page prints (board 06), so the drawer and Contents cannot disagree.
+ * page prints, so the drawer and Contents cannot disagree.
  *
  * Why this exists at all:
  *
  *  - Passing the catalog as an island prop inlines the same 16.6 KB blob into
- *    all 1,039 pages — 17.3 MB, about a third of the built site.
+ *    every page — 17.3 MB as measured, about a third of the built site.
  *  - Computing it at runtime with `useGameData()` buys the bytes back as
  *    LATENCY (the drawer waits on the whole ~1.4 MB corpus), or as a
  *    `guides-*.js` + `catalog-categories-*.js` request on every page — which

@@ -1,8 +1,7 @@
 /**
  * cargoTransfer — the single pure reducer for cargo crossing the CARRIER⇄DEPOT
- * boundary. The prototype's nested-setState
- * transfer logic is reimplemented here as one reducer over both lot lists plus
- * the depot scrap pool; `useCargo` wraps it and persists through the stores.
+ * boundary: one reducer over both lot lists plus the depot scrap pool;
+ * `useCargo` wraps it and persists through the stores.
  *
  * CARRIER and DEPOT, not "mech" and "crawler". The two sides are a *capped*
  * hold and an *unlimited* one, and nothing in the arithmetic below cares which

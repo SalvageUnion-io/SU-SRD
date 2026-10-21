@@ -81,7 +81,7 @@ function groupBySource(items: RefEntity[]): ListingGroup[] {
 
 /**
  * How a Catalog groups its tiles: flat, except the classes, whose Core and
- * Hybrid classes each sit under their own heading (owner, round 6).
+ * Hybrid classes each sit under their own heading.
  */
 export function catalogGroupBy(schemaId: string): GroupBy {
   return schemaId === 'classes' ? 'kind' : 'none'

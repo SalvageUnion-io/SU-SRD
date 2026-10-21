@@ -11,7 +11,7 @@
  *
  * - The app is client-rendered and a crawler runs no JavaScript, so anything a
  *   route sets at runtime is invisible to an unfurl. For the routes a player
- *   shares (`/p/:kind/:appId`, `/invite/:token`, the retired `/join/:code`) the
+ *   shares (`/p/:kind/:appId`, `/invite/:token`) the
  *   Worker swaps the block between the `app:meta` markers for that thing's
  *   link preview (`worker/shellMeta.ts`); keep the markers around it.
  * - No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell

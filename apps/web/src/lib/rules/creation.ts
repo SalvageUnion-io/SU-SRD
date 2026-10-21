@@ -62,7 +62,7 @@ export type StepGateResult = { ok: boolean; reason?: string }
 const OK: StepGateResult = { ok: true }
 
 /**
- * The NPC designer's gates (board N1). This is GM-grade tooling
+ * The NPC designer's gates. This is GM-grade tooling
  * (Adjudicate mode, ARCHITECTURE.md#surfaces): the designer guides and
  * pre-fills rather than enforcing a build budget, so the only hard gates are a
  * name and HP ≥ 1 — and the template step, which is answered by

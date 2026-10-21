@@ -29,7 +29,7 @@ const NEEDS_A_LISTENER =
  * here is silent, shipping a dead button rather than failing a build.
  *
  * Cost is one extra static render per entity page at build time, which is
- * cheap: the full 1,039-page build runs in a few seconds.
+ * cheap: the full build of every page runs in a few seconds.
  *
  * Fails SAFE. If the probe render throws, the answer is "yes, hydrate" — the
  * island path is the status quo and always correct, just heavier. The static

@@ -6,8 +6,7 @@ import { PROSE, PROSE_12 } from '../lib/docPageStyles'
  * DocPanel — a document page's titled block (`/api`'s endpoints, `/discord`'s
  * commands): the house `TitledBox`, its name on the cut-out, its stamps beside
  * it on the band (an endpoint's GET), its prose and samples in the paper body
- * (owner, 2026-10-20: the two pages redrawn "to fit with the new design
- * language"). `flush` lays a table edge to edge under the head.
+ * (R42). `flush` lays a table edge to edge under the head.
  */
 export function DocPanel({
   title,

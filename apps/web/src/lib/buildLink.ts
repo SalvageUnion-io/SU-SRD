@@ -33,7 +33,7 @@ import { itemHref } from './entityHref'
  */
 export type BuildLink = { href: string; label: string; ariaLabel?: string }
 
-/** The page action's one visible label, whatever it builds (owner's call, 2026-10-13). */
+/** The page action's one visible label, whatever it builds. */
 const BUILD_WITH_THIS = 'Build With This'
 
 /**
@@ -80,8 +80,7 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
         ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
     case 'guides': {
-      // A creation guide's band opens the builder for what it creates
-      // (owner, round 4: "contain a button in the header to the `build`").
+      // A creation guide's band opens the builder for what it creates.
       const step = CREATION_GUIDES.find(
         (guide) => 'guideType' in item && guide.guideType === item.guideType
       )

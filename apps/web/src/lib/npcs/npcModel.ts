@@ -199,7 +199,7 @@ export function statFillFromReference(ref: RefNPC): NpcStatFill {
 /* Crawler crew slots                                                         */
 /* -------------------------------------------------------------------------- */
 
-/** One of a crawler's crew slots: the type's NPC or one bay's (board N2). */
+/** One of a crawler's crew slots: the type's NPC or one bay's. */
 export type CrewSlotView = {
   slot: CrewSlot
   /** `slotKey(slot)`: stable across renders. */

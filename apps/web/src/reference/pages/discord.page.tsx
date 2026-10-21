@@ -41,14 +41,9 @@ import { DocPanel } from '../DocPanel'
  * it would run at import time, before the build's `preload()` bootstrap, and
  * throw "Schema not loaded".
  *
- * What they replaced:
- *
- * - the table count was the literal `96`. True at the time, and it would have
- *   gone quietly false the first time a table was added, with nothing anywhere
- *   to notice.
- * - the lookup example was "iron mongrel", a chassis that has never existed —
- *   the same fiction the `/api` page documented. Anyone who typed the example
- *   command got nothing back.
+ * Derived from the data, so the table count and the lookup example never go
+ * stale: the count is every roll table, and the example is a chassis that
+ * exists, so the example command always answers.
  */
 function buildExamples() {
   const rollTableCount = SalvageUnionReference.RollTables.all().length
@@ -207,13 +202,12 @@ function page(): PageResult {
         title="Discord Bot"
         measure="48rem"
         gap={space[32]}
-        // Discord's own colour, the band its page wears (owner, 2026-10-20:
-        // "Header should be discord purple"), its install button on it.
+        // Discord's own colour, the band its page wears (R42), its install
+        // button on it.
         fill={color.discord}
         sidebar={
           // What it sends: the bot's own replies, drawn from its builders,
-          // in the page's sidebar (owner, 2026-10-20: "make use of the
-          // sidebar area").
+          // in the page's sidebar.
           <Stack as="section" gap={16}>
             <Slab as="h2" label="In your server" />
             <DiscordReply sample={DISCORD_SAMPLES.roll} label="The bot's reply to /su roll" />

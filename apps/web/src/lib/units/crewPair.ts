@@ -1,5 +1,5 @@
 /**
- * A pilot and the mech assigned to it, as ONE linked Mini (owner, round 8):
+ * A pilot and the mech assigned to it, as ONE linked Mini:
  * its form follows where the pilot is.
  *
  *  - **Boarded**: the mech's Mini, its live readings (SP, EP, Heat) as its

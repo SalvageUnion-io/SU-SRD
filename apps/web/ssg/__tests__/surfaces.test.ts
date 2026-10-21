@@ -1,5 +1,5 @@
 /**
- * The SRD's surfaces as the brand refresh draws them (boards 06–08b),
+ * The SRD's surfaces as the design system draws them (`docs/design-system/`),
  * asserted on the built HTML each route emits — what a crawler, a no-JS
  * reader and the first paint all get.
  */
@@ -47,7 +47,7 @@ const ldCrumbs = (html: string) =>
 const islands = (html: string, name: string) =>
   html.match(new RegExp(`data-island="${name}"`, 'g'))?.length ?? 0
 
-describe('home: the manual’s Contents page (board 06)', () => {
+describe('home: the manual’s Contents page', () => {
   const html = page('/')
 
   it('is titled "The Salvage Union SRD", in the Contents band', () => {
@@ -161,7 +161,7 @@ describe('a listing (compact cards under a visible heading)', () => {
   })
 })
 
-describe('an entity page (boards 07, 08)', () => {
+describe('an entity page', () => {
   const html = page('/chassis/gopher')
 
   it('notches the name into the chapter band, the page’s one h1', () => {
@@ -269,7 +269,7 @@ describe('a class page links its abilities', () => {
  */
 const RULES_ROLL_BAND = `--su-roll-band:color-mix(in srgb, ${CHAPTER_BAND_COLOR.rules} 25%, var(--color-paper))`
 
-describe('a roll table rolls on its own page (board 08b)', () => {
+describe('a roll table rolls on its own page', () => {
   const html = page('/roll-tables/core-mechanic')
 
   it('mounts the roll island over its server-rendered bands', () => {
@@ -322,7 +322,7 @@ function firstUnder(prefix: string): string {
   throw new Error(`no page under ${prefix}`)
 }
 
-describe('every page ends on one footer (boards 06, 07)', () => {
+describe('every page ends on one footer', () => {
   const book = [
     ['a Pilot Bay entity', firstUnder('/classes/')],
     ['a Mech Workshop entity', '/chassis/gopher'],

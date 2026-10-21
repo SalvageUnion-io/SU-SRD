@@ -1,5 +1,5 @@
 /**
- * `/` — the landing page: the manual's Contents page (board 06).
+ * `/` — the landing page: the manual's Contents page.
  *
  * The title, then the legacy tagline (`Tagline`): beside the title on the
  * Contents band on a desktop, under the notch on a phone. Search is the Union
@@ -42,7 +42,7 @@ const STEP_GUIDES = {
   crawler: 'Create a Crawler',
 } as const
 
-/** The rules a table reaches for mid-session (board 06, "At the table"). */
+/** The rules a table reaches for mid-session ("At the table"). */
 const AT_THE_TABLE: { schema: RefEnumSchemaName; name: string; label: string }[] = [
   { schema: 'roll-tables', name: 'Core Mechanic', label: 'The Core Mechanic' },
   { schema: 'guides', name: 'Heat', label: 'Heat' },

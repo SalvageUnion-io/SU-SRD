@@ -170,7 +170,7 @@ describe('register', () => {
 
   it('defers rendering until `render` is called', () => {
     // `ssg/build.ts` resolves every route up front to know the file set, then
-    // renders. Resolving must not run 1,039 page functions early.
+    // renders. Resolving must not run every page function early.
     const { module, contexts } = spyPage<Record<string, string>, undefined>({ pattern: '/about' })
 
     const routes = register(module).resolve()

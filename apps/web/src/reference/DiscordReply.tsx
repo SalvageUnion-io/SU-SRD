@@ -3,8 +3,8 @@ import type { SampleBlock, SampleButton, SampleReply } from '../generated/discor
 import { MARK_SRC } from '../lib/documentHead'
 
 /**
- * DiscordReply — a screenshot of the bot's reply, drawn (owner, 2026-10-20:
- * "generate the discord screenshots"): the command as typed, then the reply
+ * DiscordReply — a screenshot of the bot's reply, drawn: the command as
+ * typed, then the reply
  * the bot's own builders return (`DISCORD_SAMPLES`, generated from
  * `apps/discord-bot/src/sampleReplies.ts`), in Discord's dark theme, so the
  * picture cannot drift from what the bot sends. Its colours are Discord's,

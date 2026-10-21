@@ -11,7 +11,7 @@
  *
  * Every chunk, stylesheet and font the build emits, the icons, the home page
  * and the builder's shell. An installed app that opens at `/` can switch to the
- * builder offline and back. HTML pages are NOT precached (1,039 of them would
+ * builder offline and back. HTML pages are NOT precached (about a thousand would
  * be a multi-megabyte install): visited pages land in `pages`, and an installed
  * app fills it with every page once per deploy
  * (`src/runtime/offlineWarm.client.ts`).

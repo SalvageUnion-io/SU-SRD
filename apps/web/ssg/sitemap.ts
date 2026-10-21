@@ -33,7 +33,7 @@ import { withTrailingSlash } from './render'
 
 /**
  * URLs per urlset file (the sitemaps.org limit is 50,000). Well above the
- * ~1,036 URLs this site emits, so exactly
+ * thousand or so URLs this site emits, so exactly
  * one `sitemap-0.xml` is produced — but the index file exists precisely because
  * this can chunk, so the chunking is implemented rather than assumed away.
  */

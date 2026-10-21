@@ -21,7 +21,7 @@
  *   Module; 6-10 a System; 2-5 a Module; 1 nothing. Wares are always one Tech
  *   Level above the crawler's.
  *
- * Pool draws follow the app's established convention (bay repair, S12):
+ * Pool draws follow the bay-repair convention:
  * scrap of the crawler's Tech Level *or higher* may pay a TL-denominated
  * cost, drawn from the lowest qualifying bucket upward.
  *
@@ -75,7 +75,7 @@ export type PoolDrawResult = { pool: ScrapPool; draws: PoolDraw[] }
 export type DrawFromPoolOptions = {
   /**
    * Spend whatever the qualifying buckets hold instead of refusing when they
-   * cannot cover the full amount — the bay-repair convention (S12), where a
+   * cannot cover the full amount — the bay-repair convention, where a
    * short pool still repairs and the shortfall is only surfaced on the button.
    *
    * Upkeep, Upgrade-Pool contributions and every other economy draw are

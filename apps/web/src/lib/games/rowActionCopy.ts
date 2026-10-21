@@ -158,7 +158,7 @@ export const ROW_ACTION_COPY = {
   },
 
   /**
-   * "Make a copy" in the Training Bay (board S1): a second build of something already on
+   * "Make a copy" in the Training Bay: a second build of something already on
    * your shelf, in no Game. It names the copy and says
    * the two will not stay in step — for a reader who is already on the shelf.
    */

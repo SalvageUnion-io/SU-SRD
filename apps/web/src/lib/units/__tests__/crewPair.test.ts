@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { crewPair, gauge, pool } from '../crewPair'
 
-/** A pilot and its mech as one linked Mini, its form following where the pilot is (owner, round 8). */
+/** A pilot and its mech as one linked Mini, its form following where the pilot is. */
 
 const PILOT = {
   id: 'p1',

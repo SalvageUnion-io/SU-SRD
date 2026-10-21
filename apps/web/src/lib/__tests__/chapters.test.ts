@@ -10,7 +10,7 @@ import {
 import { listingEntries } from '../listingEntries'
 
 /**
- * The SRD's chapters (board 06): the index the home page prints, the nav
+ * The SRD's chapters: the index the home page prints, the nav
  * drawer freezes and every listing and entity page's band and trail read.
  */
 describe('buildChapters', () => {

@@ -158,7 +158,7 @@ export function describeHeatCheck(effect: HeatCheckEffect): string {
 // ---------------------------------------------------------------------------
 
 export type PlayActionKind = 'chassis' | 'system' | 'module' | 'ability' | 'equipment'
-/** Compact source stamp shown on each action card (mockup `acell`). */
+/** Compact source stamp shown on each action card. */
 export type PlayActionStamp = 'CHS' | 'SYS' | 'MOD' | 'ABL' | 'EQP'
 /** Which resource one activation of this action spends. */
 export type PlayActionCurrency = 'EP' | 'AP'
