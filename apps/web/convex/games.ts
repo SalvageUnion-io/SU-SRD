@@ -169,12 +169,12 @@ export const create = mutation({
  * Every entity falls back to a shelf — the third row of ADR-030 §2's ownership
  * table, `gameId: null` with an owner — rather than dying with the Game:
  *
- * | What                           | Where it lands                  |
- * | ------------------------------ | ------------------------------- |
- * | a pilot or mech with an owner   | that owner's shelf             |
- * | an **unclaimed** pilot or mech  | the deleting Organizer's shelf |
- * | every **crawler**               | the deleting Organizer's shelf |
- * | every **encounter NPC**         | the deleting Organizer's shelf |
+ * | What                                | Where it lands                 |
+ * | ----------------------------------- | ------------------------------ |
+ * | a pilot, mech or NPC with an owner  | that owner's shelf             |
+ * | an **unclaimed** pilot, mech or NPC | the deleting Organizer's shelf |
+ * | every **crawler**                   | the deleting Organizer's shelf |
+ * | every **encounter NPC**             | the deleting Organizer's shelf |
  *
  * The first row is the one that matters most: deleting a campaign must never
  * delete somebody's character.
@@ -199,49 +199,23 @@ export const destroy = mutation({
     const membership = await requireOrganizer(ctx, args.gameId)
     const organizerId = membership.userId
 
-    // Built NPCs are owned like pilots, so they fall back the same way.
-    for (const table of ['pilots', 'mechs', 'npcs'] as const) {
+    // Every entity row falls back to a shelf. Anything already owned keeps its
+    // owner. An unclaimed pilot, mech or NPC has none to keep, and a crawler or
+    // tray NPC never has one inside a Game (`ownerId: null` is what communal
+    // means there, ADR-030 §5, ADR-034 decision 2), so the deleting Organizer
+    // receives each of those: a Game may have several Mediators or none, while
+    // the deleter is exactly one person who exists.
+    for (const table of ['pilots', 'mechs', 'npcs', 'crawlers', 'encounterNpcs'] as const) {
       const rows = await ctx.db
         .query(table)
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
         .collect()
       for (const row of rows) {
-        // An unclaimed entity has no owner to fall back to, so the Organizer
-        // becomes one. Anything already owned keeps its owner untouched.
         await ctx.db.patch(row._id, {
           gameId: null,
           ownerId: row.ownerId ?? organizerId,
         })
       }
-    }
-
-    // The crawler is communal in a Game and owned on a shelf — see above.
-    // `ownerId` is unconditionally the Organizer because a crawler in a Game
-    // never carried one to preserve.
-    const crawlers = await ctx.db
-      .query('crawlers')
-      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-      .collect()
-    for (const crawler of crawlers) {
-      await ctx.db.patch(crawler._id, { gameId: null, ownerId: organizerId })
-    }
-
-    // The Mediator's prepared opposition falls back for the same reason the
-    // crawler does: `encounterNpcs` has a nullable `gameId` and an `ownerId`
-    // (ADR-034 decision 2), so a tray is not something only a Game can hold,
-    // and deleting it would throw
-    // away prep work somebody genuinely built — exactly what the rule above
-    // forbids.
-    //
-    // It goes to the Organizer rather than to whoever mediated: a Game may have
-    // several Mediators or none, while the deleter is by construction exactly
-    // one person who exists.
-    const npcs = await ctx.db
-      .query('encounterNpcs')
-      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-      .collect()
-    for (const npc of npcs) {
-      await ctx.db.patch(npc._id, { gameId: null, ownerId: organizerId })
     }
 
     // A pattern shared with this Game's crew stays its maker's and falls back
