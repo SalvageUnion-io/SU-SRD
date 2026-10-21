@@ -4,7 +4,7 @@
  * it.
  *
  * THE `@layer` ORDER AND THE `layer(...)` IMPORTS ARE LOAD-BEARING — do not
- * simplify either to a bare `@import` (#799, #802).
+ * simplify either to a bare `@import`.
  *
  * The apps' stylesheets are unlayered, and unlayered CSS beats layered CSS
  * whatever the specificity or source order. So an app rule always wins over a

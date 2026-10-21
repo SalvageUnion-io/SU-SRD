@@ -42,7 +42,7 @@
   position: relative;
 }
 
-/* A search field is full width on a phone (owner's rule, 2026-10-20); from
+/* A search field is full width on a phone; from
    `sm` it shares its line with the button. */
 @media (width >= 40rem) {
   .su-hero-search__box {
@@ -50,8 +50,7 @@
   }
 }
 
-/* On a phone its button is the line's width too (owner, 2026-10-20: "search
-   button should be full width"). */
+/* On a phone its button is the line's width too. */
 @media not (width >= 40rem) {
   .su-hero-search > :not(.su-hero-search__box) {
     flex: 1 1 100%;
@@ -86,8 +85,7 @@
  * page ground. Ink on paper throughout; a chapter's colour is only its
  * swatch (ruleset §3.8).
  */
-/* A one-off (owner, round 4: "center and make the 404 text bigger"): the
-   lede centred on the page, a step up. */
+/* A one-off: the lede centred on the page, a step up. */
 .su-not-found__lede {
   font-size: var(--text-2xl);
   line-height: 1.4;

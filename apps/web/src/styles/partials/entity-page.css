@@ -9,15 +9,15 @@
  * width, in pairs: each part of the stat order pairs off its own cells, so a
  * mech reads Structure | Energy, System | Module Slots, Heat | Cargo, and a
  * cell without a partner (`--lone`) spans its row. Every row fills the
- * column's width: there is never an empty cell or a ragged edge (owner's
- * calls, 2026-10-20; ruleset, "The source" 3).
+ * column's width: there is never an empty cell or a ragged edge (ruleset,
+ * "The source" 3).
  * Each cell is a `Stat` (ruleset §3.7: the column is a layout of Stats), its
  * plates set at the book's scale here: the label 14px (§1.3, R17), the
  * numeral in the title face, the 1px frame the Stat cell's own (§7.1).
  * Every Stat fills its cell, its stamp taking what the numeral leaves, so the
  * column reads as even blocks edge to edge, never stamps sized to their
- * labels with paper gaps between them (owner's calls, 2026-10-17 and
- * 2026-10-20). A stamp may still wrap when the cell is narrower than its label.
+ * labels with paper gaps between them. A stamp may still wrap when the cell
+ * is narrower than its label.
  */
 .su-stat-column {
   display: grid;
@@ -109,7 +109,7 @@
 
 /* The stats on a band (`ChapterBand asideAt="notch"`, the reference site's `EntityPageStamps`)
    are the column's compact cells, the value at its label's type size (C1a:
-   one size per strip, owner's call 2026-10-18), chips of the band's line
+   one size per strip), chips of the band's line
    (`.su-entity-stamps > dl`), the same gap apart. */
 .su-chapter-band[data-aside='notch'] .su-stat-column__cell {
   min-height: var(--size-compact);
@@ -129,7 +129,7 @@
 
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
  *
- * Boards 07 and 08. The card hands its title to the page's chapter band and
+ * The card hands its title to the page's chapter band and
  * its footer to the foot band, and lays its body out as a page: the line art
  * as the hero on the left, and on the right the prose, the stat column and,
  * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
@@ -183,7 +183,7 @@
   margin-bottom: 0;
 }
 
-/* The flavour line is set one step under the prose (boards 07, 08). */
+/* The flavour line is set one step under the prose. */
 .su-entity-page__prose [data-prose='flavor'] {
   font-size: var(--text-base);
   font-weight: var(--font-weight-semibold);
@@ -236,9 +236,8 @@
 
 @media (width >= 64rem) {
   /* The taller column sets the row. The art keeps the top left corner
-     whatever stands beside it (owner, round 5: "keep pictures in the top left
-     corner as we had them before for all assets"); a column shorter than its
-     art spreads its blocks evenly down it (round 4, Combat Pilot). */
+     whatever stands beside it (R44); a column shorter than its
+     art spreads its blocks evenly down it (Combat Pilot). */
   .su-entity-page__main--art {
     align-items: stretch;
     flex-direction: row;
@@ -264,8 +263,8 @@
 /*
  * WITH ART (`--art`, from 64rem) the page is two columns: the art (42%) and
  * beside it the prose, stats, actions and nested trays (`CardPage`). The
- * taller column sets the row and the shorter balances in it (owner, round
- * 4): the art centres beside a taller column (Stormterror), a column
+ * taller column sets the row and the shorter balances in it: the art centres
+ * beside a taller column (Stormterror), a column
  * shorter than its art spreads its blocks evenly down it (Combat Pilot).
  * Wide blocks (the roll table, a class's ability trees, the pattern rows,
  * `after`) run under both.
@@ -276,8 +275,8 @@
   }
 
   /* A page with actions beside its art (`--wrap`) floats the art in the top
-     left and lets the column wrap under it (owner, round 6: "actions should
-     wrap under the photo"): the column's wrappers turn to block flow, so each
+     left and lets the column wrap under it (R44): the column's wrappers turn
+     to block flow, so each
      card (a flex box, which never overlaps a float) sits beside the art while
      it lasts and runs the full width under it. */
   .su-entity-page__main--wrap {
@@ -322,7 +321,7 @@
 }
 
 /* An ability's Preceding and Next, siblings on one row, Next's label at the
-   row's end (owner, round 7); one under the other where they do not fit. */
+   row's end; one under the other where they do not fit. */
 .su-entity-page__neighbour-row {
   display: grid;
   gap: var(--space-12) var(--space-32);

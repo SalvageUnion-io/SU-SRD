@@ -12,7 +12,7 @@
  * stays inline.
  */
 
-/* The light speckle (ruleset §3.5, board 05c). `atoms/Speckle.tsx`: one SVG
+/* The light speckle (ruleset §3.5). `atoms/Speckle.tsx`: one SVG
  * layer per grain, laid behind a band's content; the band is
  * `position: relative` with `isolation: isolate`, so `z-index: -1` paints the
  * layer above the band's own fill and below every in-flow child. */

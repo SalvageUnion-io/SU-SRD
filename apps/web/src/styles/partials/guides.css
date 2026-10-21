@@ -57,8 +57,7 @@
 }
 
 /* The two cells stand side by side, so a long name wraps inside its own
-   paper cell and the stamp stays one box (owner, round 4: "the separators
-   are oddly sized"). */
+   paper cell and the stamp stays one box. */
 .su-guide__head > .su-poster-stamp:has(> .su-guide__step-name) {
   align-items: center;
   display: inline-flex;
@@ -70,8 +69,7 @@
 }
 
 /* A higher-level separator (a guide's "Post-Session") stands centred
-   between two rules, apart from its steps' left-hand slabs (owner, round 4:
-   "higher-level separators … should be centered"). */
+   between two rules, apart from its steps' left-hand slabs. */
 .su-guide--page .su-guide__section > .su-slab-section__head::before {
   border-top: var(--bw-hairline) solid var(--color-ink-50);
   content: '';
@@ -524,7 +522,7 @@
   }
 }
 
-/* The link-preview scale (`scale="og"`, OgCard, issue 1280): a band drawn at
+/* The link-preview scale (`scale="og"`, OgCard): a band drawn at
    one fixed size inside a 1200 × 630 card, never responsive. The eyebrow (the
    kicker and its stamps) sits at the top, the notch at the foot, and the band
    fills the height the card gives it. The selectors outrank the responsive

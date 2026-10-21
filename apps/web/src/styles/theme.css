@@ -44,7 +44,7 @@
        note     11.5px small body copy in rails and insets
        caption  13px   small body copy — hints, empty states, subtitles
        lede     15px   emphasized inline values, inset titles
-     Nothing renders under 11px (ruleset §4.6, board 04 "raise the floor"):
+     Nothing renders under 11px (ruleset §4.6, R12):
      `bun run check styling` (tokens/type-floor) rejects any size under it. */
   --text-badge: 11px;
   --text-note: 11.5px;
@@ -107,13 +107,13 @@
   --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 */
   --color-mech: rgb(122, 151, 138); /* #7a978a */
   --color-crawler: rgb(206, 88, 152); /* #ce5898 */
-  /* Ink on colour (ruleset §3.8, board 03). Crawler pink carries neither ink
+  /* Ink on colour (ruleset §3.8). Crawler pink carries neither ink
      (4.2:1) nor paper (3.7:1) at 4.5:1, so a crawler band that carries paper
      text is this deeper pink: paper on it measures 4.6:1. */
   --color-crawler-band: rgb(184, 74, 134); /* #b84a86 */
-  /* The navy band (board 05c) of the NPC designer and sheet and Play's
+  /* The navy band of the NPC designer and sheet and Play's
      Mediator Scene, carrying paper text at 8.8:1. The Denizens chapter's
-     band is the adversary brown its cards wear (owner's call, 2026-10-20). */
+     band is the adversary brown its cards wear. */
   --color-denizen-band: rgb(47, 74, 102); /* #2f4a66 */
   /* The 5th ontology domain — NOT the action rust (#a85222). It is the shared
      header tone for the world/opposition schemas: creatures, bio-titans,
@@ -121,24 +121,24 @@
      the one action colour. */
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 
-  /* Class ability-tier ramp (owner's call, 2026-10-13): Core = pilot orange,
+  /* Class ability-tier ramp: Core = pilot orange,
      Advanced and Hybrid = this rust, Legendary = crawler pink. Core and
      Legendary reuse the ontology hues. The tier rust is its own hue, never
      `var(--color-rust)` or its value: nothing may wear the action colour
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
-  /* A Hybrid Class's brown (owner, round 6: "make hybrid classes brown not
-     orange"), apart from the ability tiers' rust and the adversary brown. It
+  /* A Hybrid Class's brown (R44), apart from the ability tiers' rust and the
+     adversary brown. It
      carries paper text (design/__tests__/contrast.test.ts). */
   --color-class-hybrid: rgb(107, 68, 35); /* #6b4423 */
 
-  /* The Heat guide's own red (owner, round 4): its band and its tile. It
+  /* The Heat guide's own red: its band and its tile. It
      carries paper (design/__tests__/contrast.test.ts). */
   --color-heat: rgb(166, 38, 34); /* #a62622 */
 
   /* Discord's dark blurple (its own button hover): the SRD home's Discord
      block and the Discord page's band and panels, the one exception to the
-     tone palette (owner's calls, 2026-10-14 and 2026-10-20). Discord's #5865f2 carries paper at 4.4:1, under AA; this
+     tone palette. Discord's #5865f2 carries paper at 4.4:1, under AA; this
      carries it at 6:1 (design/__tests__/contrast.test.ts). */
   --color-discord: rgb(71, 82, 196); /* #4752c4 */
 
@@ -203,7 +203,7 @@
      (creature/faction/NPC headers) and never does state's job. */
 
   /* Workshop (light) ground — the step off-paper that makes a card read as a
-     panel. The page ground is the book's own paper (ruleset §4.1, board 03):
+     panel. The page ground is the book's own paper (ruleset §4.1):
      the cover blue stopped being every page's ground and went back to being a
      chapter band (`--color-wk-line`). */
   --color-wk-bg: rgb(239, 236, 230); /* #efece6 */
@@ -215,7 +215,7 @@
      does not apply. The value is chosen against the DARKEST ground it can sit
      on (wk-bg-2), not against paper, because the same token is used on all three:
        #6b6257 → paper 5.73:1 · wk-bg 5.07:1 · wk-bg-2 4.68:1
-     Warm, like the paper it sits on (board 03), and lighter than
+     Warm, like the paper it sits on, and lighter than
      `--color-ink-2` (10.20:1 on paper), so the primary/secondary hierarchy
      holds. `contrast.test.ts` pins all three. */
   --color-wk-muted: rgb(107, 98, 87); /* #6b6257 */
@@ -234,11 +234,11 @@
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
   --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
-  /* Sheet tones (Header C live sheets) — base + deep pairs */
+  /* Sheet tones (live sheets) — base + deep pairs */
   --color-sheet-pilot: var(--color-pilot); /* #ef894f */
   /* A LITERAL, never `var(--color-rust)`: rust means "do something" and
-     nothing else may alias it (ruleset §3.1, the rust allowlist). Board 03
-     rules that pilot-deep becomes ink — frames and deep chrome on a pilot
+     nothing else may alias it (ruleset §3.1, the rust allowlist). Pilot-deep
+     is ink — frames and deep chrome on a pilot
      sheet stay ink — so this holds ink's value, spelled out: the role is the
      sheet's deep tone, not "ink". */
   --color-sheet-pilot-deep: rgb(40, 32, 25); /* #282019 */
@@ -371,8 +371,8 @@
   --space-48: 48px;
   --space-64: 64px;
 
-  /* The light speckle's overlay opacities (ruleset §3.5 "Texture", board
-     05c): ink blot and ink speck on a colour band, paper flecks on an ink
+  /* The light speckle's overlay opacities (ruleset §3.5 "Texture"): ink blot
+     and ink speck on a colour band, paper flecks on an ink
      ground. The SVG filters they modulate (`su-blot`, `su-speck`, `su-fleck`)
      are `speckle` in tokens.ts. Never on paper, buttons, fields, Play
      or tooltips — `bun run check styling` (tokens/texture-placement). */

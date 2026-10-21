@@ -65,9 +65,8 @@
  * foot's type (`EntityCardIdentityFooter`): caption-size body text,
  * `Workshop Manual · p.65 // … (CR) · p.37`. Text, never chips. */
 /* The source on its own cut-out: the page's ground hanging from the band's
-   top edge, ink on it, the head band's notched plate mirrored at the foot
-   (owner's call, 2026-10-19), on its own line at the band's end, above the
-   site links. */
+   top edge, ink on it, the head band's notched plate mirrored at the foot,
+   on its own line at the band's end, above the site links. */
 .su-footer__citation {
   background-color: var(--color-wk-bg);
   color: var(--color-ink);

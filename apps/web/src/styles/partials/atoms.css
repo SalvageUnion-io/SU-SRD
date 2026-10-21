@@ -108,7 +108,7 @@
   height: 1px;
   /* At its containing block's start, never past its right edge: placed where
      its text ran, after a name clipped by an ellipsis, it made a phone page
-     scroll sideways (owner, round 6: "no scrolling sideways"). */
+     scroll sideways (R44: no page scrolls sideways at a phone's width). */
   inset-block-start: 0;
   inset-inline-start: 0;
   margin: -1px; /* design-tokens-ignore: the visually-hidden pattern, not spacing */

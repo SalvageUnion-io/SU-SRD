@@ -50,8 +50,8 @@
   max-width: 240px;
 }
 
-/* On a phone the search takes the column's whole width (owner's rule,
-   2026-10-20: a search field is full width on a phone), on its own line
+/* On a phone the search takes the column's whole width (a search field is
+   full width on a phone), on its own line
    under the filter. */
 .su-play-root--phone .su-play-act-head > div:last-child,
 .su-play-root--phone .su-play-act-tools {
@@ -177,8 +177,8 @@ button.su-play-dt-track__step:disabled {
   justify-content: flex-end;
 }
 
-/* An action it cannot use now is faded (owner, round 10: "inactive actions
-   can be faded"), but no fainter than its name keeps 4.5:1 on its dulled band
+/* An action it cannot use now is faded, but no fainter than its name keeps
+   4.5:1 on its dulled band
    (WCAG 1.4.3): the select dim's saturation, a lighter fade. */
 .su-play-act .su-select-dim {
   opacity: 0.75;

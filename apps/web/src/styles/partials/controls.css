@@ -234,8 +234,8 @@
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);
 }
 
-/* The search's slot: a search field is full width on a phone (owner's rule,
-   2026-10-20), the Filters toggle on the line under it; from `sm` they share
+/* The search's slot: a search field is full width on a phone, the Filters
+   toggle on the line under it; from `sm` they share
    a line. */
 .su-searcher__search-slot {
   flex: 1 1 100%;
@@ -447,8 +447,7 @@
   min-block-size: var(--su-seg-height);
   /* The frame is an inset outline, painted over its options, so the pressed
      plate meets the rule at every zoom: a border left a sliver of the paper
-     ground under it where its 1.5px edge fell between pixels (owner,
-     2026-10-20: "a small gap under Tree"). */
+     ground under it where its 1.5px edge fell between pixels (R42). */
   outline: var(--bw-chrome) solid var(--color-ink);
   outline-offset: calc(-1 * var(--bw-chrome));
   min-inline-size: 0;

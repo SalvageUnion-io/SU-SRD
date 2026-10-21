@@ -143,8 +143,8 @@
 
 /* The name WRAPS at word breaks (never clips): when the controls drop to a
    second row the name keeps its whole title. */
-/* The name is a cut-out (owner, 2026-10-20: "WORM should be a cutout in the
-   roll table"): a square paper tab in ink on the bar's foot, opening into the
+/* The name is a cut-out (R42): a square paper tab in ink on the bar's foot,
+   opening into the
    table's first, paper row, as every titled head's name does. */
 .su-roll__title {
   align-self: flex-end;
@@ -156,14 +156,14 @@
   margin-bottom: calc(-1 * var(--space-8));
   min-width: 0;
   /* One line: short of room the name ends in "…" and its roll keeps its
-     place (owner, round 4: "name should be cut off to leave room for roll"). */
+     place. */
   overflow: hidden;
   padding: var(--space-6) var(--space-8) var(--space-4);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* THE ONE EXCEPTION (owner, 2026-10-20, Worm: "center the cutout text on
+/* THE ONE EXCEPTION (Worm: "center the cutout text on
    table names here, as a one-time expansion, same size as the roll the die
    button. One-off exception."): a table an entity's Page carries centres
    its name's tab on the bar, the Roll button's height, its words centred. */
@@ -251,8 +251,8 @@
 }
 
 /* The rolled row is set in ink, its range cell and pennant on paper. The
-   pennant is pinned to the row's right edge, centred on its height (owner's
-   call, 2026-10-19), out of the flow, so the rolled row keeps exactly its
+   pennant is pinned to the row's right edge, centred on its height, out of
+   the flow, so the rolled row keeps exactly its
    unrolled height. */
 .su-roll__row[data-rolled] {
   color: var(--color-paper);

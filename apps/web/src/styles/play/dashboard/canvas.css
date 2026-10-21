@@ -1,7 +1,7 @@
 /*
  * canvas.css — Play's canvas shell (`PlayCanvas`, play.md §2).
  *
- * The canvas reads as the rest of the app does (owner's call, 2026-10-20): the
+ * The canvas reads as the rest of the app does: the
  * page ground `--color-wk-bg` behind everything, the Play bar and foot in the
  * Cantina's band, and each column a `--color-paper` panel on a 1px hairline,
  * as a sheet's opening panels are. There is NO private token layer: every surface references

@@ -6,7 +6,7 @@
 
 /* ══ The Union bar (`components/compositions/AppBar.tsx`) ═════════════════════════
  *
- * One masthead for both tools (ruleset §3.11, board 05). Everything static is
+ * One masthead for both tools (ruleset §3.11). Everything static is
  * the component's style objects; what is here changes at a breakpoint, on
  * hover or with "you are here".
  *
@@ -147,13 +147,12 @@
 }
 
 /* Two tabs side by side are ruled apart, so two that are not current read as
-   two (owner, 2026-10-20: "a more obvious separation between Reference /
-   Build / Play when two are inactive next to each other"). */
+   two (R42). */
 .su-union-bar__tab + .su-union-bar__tab {
   border-left: var(--bw-chrome) solid var(--su-bar-fg-30);
 }
 
-/* On a phone the switcher is centred on the bar (owner, 2026-10-20), between
+/* On a phone the switcher is centred on the bar, between
    the mark and the controls whatever their width. */
 @media not (width >= 40rem) {
   .su-union-bar__row {
@@ -598,7 +597,7 @@
    bar's control height (the Compact Size, 44px under a coarse pointer), its
    caps type, and its right edge, the bar row's own padding
    (12px under 400px, 16px on a phone, 32px from `sm`), so the two right
-   edges line up at every width (owner's call, 2026-10-17). It narrows the
+   edges line up at every width. It narrows the
    gutter rule above, so it repeats that rule's selector. */
 .su-chapter-band__corner {
   --su-band-corner-control: var(--size-compact);
@@ -651,14 +650,14 @@
 /* `asideAt="notch"` (a show page's stamps and action) and `asideAt="controls"`
    (a page's controls: an index's search and filters, the Training Bay's and a
    Game's buttons): the bottom-right fill (`[data-chip-fill]`,
-   `entity-forms.css`; ruleset §4.7; owner's rule, 2026-10-20). The aside and
+   `entity-forms.css`; ruleset §4.7). The aside and
    any strip in it draw no box, so every stamp and control is an item of the
    title's row: the last (the cost, the action) in the band's bottom-right
    corner, the earlier ones leftward beside the title, and only what
    overfills that line rises in lines over it, each filling from the right.
    The row keeps the band's top room as a floor rather than as padding, so
-   the first lines that rise fill that room before they grow the band (owner's
-   rule, 2026-10-17). `--su-band-title` is a one-line notch's height (its top
+   the first lines that rise fill that room before they grow the band.
+   `--su-band-title` is a one-line notch's height (its top
    padding and 0.92 line), `--su-band-room` the row's usual top padding,
    `--su-band-mid` the middle of the notch's capitals over the band's foot
    (its baseline sits 0.076em above the foot, Barlow Semi Condensed's descent
@@ -728,7 +727,7 @@
 }
 
 /* On a phone a show page's title, stamps and Build With This share one
-   line where they can (owner, 2026-10-20, Mazona: "chips and build with this
+   line where they can (Mazona: "chips and build with this
    should be able to fit into the header here"): the stamps a chip's gap
    apart (4px, as every strip's), the plate's sides 8px (at the file's end,
    after the trail's own padding). */
@@ -751,8 +750,8 @@
   }
 }
 
-/* ON A PHONE, A PAGE'S CONTROLS ABOVE THE TITLE (ruleset §4.7; owner's call,
-   2026-10-20): a band's controls (the Training Bay's and a Game's buttons,
+/* ON A PHONE, A PAGE'S CONTROLS ABOVE THE TITLE (ruleset §4.7, R37): a band's
+   controls (the Training Bay's and a Game's buttons,
    an index's search) are laid by CSS alone, never by the fill's measure, so
    nothing moves when the script lands. They read in source order on lines
    over the title, flush right; the title takes the bottom line, all of it.
@@ -766,8 +765,7 @@
   }
 
   /* The break after the controls: the title starts the bottom line, its
-     cut-out its own width there (owner, round 4: "cutout seems a bit
-     wide"). */
+     cut-out its own width there. */
   .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill]::after {
     flex: 0 0 100%;
     height: 0;
@@ -798,7 +796,7 @@
     max-width: 100%;
   }
 
-  /* An index's controls are the exception (owner's call, 2026-10-20): its
+  /* An index's controls are the exception: its
      search and filters follow the title, under the band on a strip of the
      page ground the band's width, as a notch aside's cluster does (below). */
   .su-chapter-band[data-aside='controls']
@@ -815,8 +813,8 @@
     padding: var(--space-12) var(--space-16) 0;
   }
 
-  /* A lone button there is the line's width (owner, 2026-10-20: the Discord
-     page's install button, "full-width button here"). */
+  /* A lone button there is the line's width (the Discord page's install
+     button). */
   .su-chapter-band[data-aside='controls']
     .su-chapter-band__row[data-chip-fill]
     > .su-chapter-band__aside
@@ -824,9 +822,8 @@
     width: 100%;
   }
 
-  /* A select there is the line's width too, as the buttons over it are
-     (owner, rounds 4 and 5: "Select should be full width"), its chevron's
-     wrapper (`Select`) with it. */
+  /* A select there is the line's width too, as the buttons over it are, its
+     chevron's wrapper (`Select`) with it. */
   .su-chapter-band[data-aside='controls']
     .su-chapter-band__row[data-chip-fill]
     > .su-chapter-band__aside
@@ -932,8 +929,7 @@
   }
 
   /* The aside takes all the room the name leaves, never under 40%, so a
-     busy cluster fills the line beside the name before it rises above it
-     (owner's call, 2026-10-18). */
+     busy cluster fills the line beside the name before it rises above it. */
   .su-chapter-band[data-aside='notch']
     .su-chapter-band__row:not([data-chip-fill])
     > .su-chapter-band__aside {
@@ -946,7 +942,7 @@
        notch's capitals: the notch's baseline sits 0.076em above the band's
        foot (Barlow Semi Condensed's descent less the half-leading of its 0.92
        line) and its capitals' middle 0.352em above that. More lines stack up
-       the band (owner's rule, 2026-10-14). */
+       the band. */
     padding: 0 0 calc(var(--text-chapter) * 0.428 - var(--size-compact) / 2);
   }
 
@@ -1076,7 +1072,7 @@
 
 /* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════
  *
- * A section stamp over compact rows (board 08): each row the full width, the
+ * A section stamp over compact rows: each row the full width, the
  * name at its start and the count at its end, 44px tall — the drawer is a
  * phone's nav, so its rows sit on the touch floor at every pointer.
  */
@@ -1133,7 +1129,7 @@
   color: var(--su-foot-fg);
 }
 
-/* The foot matches the bar on every page (owner's call, 2026-10-19): a page
+/* The foot matches the bar on every page: a page
    with no leading band wears its area's colour at its foot as its bar does,
    Build's pilot orange and Play's deep pink; a leading band, which outranks
    this, sets both to its own (`unionBarMatch.ts`). */
@@ -1200,7 +1196,7 @@
 
 /* A Page band's overflow row (C2b, R37 4.): the page's first row, on the
    page body's measure and gutter, so its chips start on the content's line,
-   never at the window's edge (owner, 2026-10-20, a Sestra Drone's Heat and
+   never at the window's edge (a Sestra Drone's Heat and
    Cargo Capacity). The body under it closes the gap the row opened. */
 .su-chapter-band__overflow {
   margin-inline: auto;

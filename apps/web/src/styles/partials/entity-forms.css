@@ -25,7 +25,7 @@
   text-decoration: none;
 }
 
-/* The frame (owner's call, 2026-10-20): the subtle ink-40 the sheets' panels
+/* The frame: the subtle ink-40 the sheets' panels
    wear (R38), never solid ink or the entity's tone, round a Compact or `Box` with content
    under its head; no edge round one that is its head alone (`data-bodyless`),
    its width kept transparent so nothing moves, and the paper stopping inside
@@ -33,7 +33,7 @@
    book (a HOMEBREW chip marks it); a Play reference unit is dashed. A
    surrounding diagram may colour it through `--su-compact-frame` (srd's ability
    tracks frame their Compacts in the track's hue). Square-cornered, as a show
-   page's band (owner's call, 2026-10-14). */
+   page's band. */
 .su-entity-compact__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
@@ -51,7 +51,7 @@
 }
 
 /* A head alone opens its cut-out onto the ground: no edge under it, whatever
-   frames its other sides (owner, 2026-10-20: "no border beneath Mount"). */
+   frames its other sides (R42). */
 .su-entity-compact__frame[data-bodyless] {
   border-bottom-color: transparent;
 }
@@ -113,8 +113,7 @@
 }
 
 /* The title: one line, and short of room it ends in "…" rather than wrap
-   (owner, round 4: "should ... the name instead of [wrap] for compact/mini
-   entities. rule."; ruleset §4.7). Beside its labels it gives way first (a
+   (ruleset §4.7). Beside its labels it gives way first (a
    high shrink); its chips are never cut (R3). The whole name is the Peek's. */
 .su-entity-compact__title {
   display: block;
@@ -129,8 +128,8 @@
   white-space: nowrap;
 }
 
-/* The Peek shows the whole name (owner, round 4: "ellipses off and show in a
-   peek"): there it wraps at spaces, keeping its longest word whole. */
+/* The Peek shows the whole name: there it wraps at spaces, keeping its
+   longest word whole. */
 [data-peek-popup] .su-entity-compact__title {
   min-width: min-content;
   overflow: visible;
@@ -236,8 +235,8 @@
 }
 
 /* A contentless header's cut-out (a header-only Compact or Mini) is the
-   ground it sits on, not its own paper (owner, round 8: "should match for all
-   contentless headers"): the page's workshop ground, or the paper of the body
+   ground it sits on, not its own paper (R45): the page's workshop ground, or
+   the paper of the body
    or box it stands in, which each set `--su-ground`. */
 :root {
   --su-ground: var(--color-wk-bg);
@@ -264,7 +263,7 @@
 
 /* Taller than its head (a grid sets the height), a bodyless Compact's band fills
    the frame and its name and chips sit at the foot, the tab on the bottom
-   border, so no paper strip opens under the head (owner's call, 2026-10-14). */
+   border, so no paper strip opens under the head. */
 .su-entity-compact__frame[data-bodyless] > .su-entity-compact__main > .su-entity-compact__head {
   flex: 1 1 auto;
   justify-content: flex-end;
@@ -321,8 +320,8 @@
   align-self: flex-start;
 }
 
-/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b; owner's
-   rule, 2026-10-20): every head whose name and chips share a line (a Compact's or
+/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b, R37):
+   every head whose name and chips share a line (a Compact's or
    Card's heading, a CompactIndex's band, a Page's chapter band: `[data-chip-fill]`).
    Chips sit only beside the name, on its line, the last chip (the cost) in
    the corner, filling that line leftward, and never make the head taller:
@@ -376,8 +375,9 @@
   order: calc(3 * var(--su-beside, var(--su-beside-unfitted)) + 1);
 }
 
-/* A Compact's and a catalog tile's name ends in "…" rather than wrap (owner,
-   round 4), so it may narrow past its words to the room its chips leave. */
+/* A Compact's and a catalog tile's name ends in "…" rather than wrap
+   (ruleset §4.7), so it may narrow past its words to the room its chips
+   leave. */
 [data-chip-fill] > [data-fill-name]:is(.su-entity-compact__name, .su-entity-index__notch) {
   min-width: 0;
 }
@@ -629,7 +629,7 @@
 
 /* On a Page band's title line the chips stand on one foot (the fill's
    bottom), so a linked chip's cell stands on its target's foot too, level
-   with its unlinked siblings (owner, 2026-10-20, Hill Worm: "Misalignment
+   with its unlinked siblings (Hill Worm: "Misalignment
    in the chips"); its 24px target rises above it. */
 .su-chapter-band :is(a, button, [role='button']).su-chip-link[data-fill-line] {
   align-items: flex-end;
@@ -668,9 +668,9 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 
 /* THE ART'S CUT-OUT (`Head`'s `art`, E10): the image on its own paper panel at
    the band's left, notched into the band's foot as the name's cut-out is,
-   the two on one foot, the band above and left of it (owner's call,
-   2026-10-20, review: a window banded on all sides floated over the name's
-   foot). It sets the head's height: the band's top padding above it. A
+   the two on one foot, the band above and left of it (never a window banded
+   on all sides over the name's foot). It sets the head's height: the band's
+   top padding above it. A
    listing may size it through `--su-head-art-width` / `--su-head-art-min` on
    an ancestor. The line art is printed on white, so `multiply` lays it onto
    the paper. Dropped under the name, a phone's chip strip is a stacking
@@ -714,9 +714,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 
 /* A Row (a Compact that is its head alone) never grows for its art: the
    panel is a small square on the band, its top on the cut-out's text's top
-   and room under it, not a cut-out of its own (owner, 2026-10-20: "fit the
-   height of the row without increasing it"; /drill/: "smaller, with room on
-   the bottom ... the top should be inline with the cutout text"). */
+   and room under it, not a cut-out of its own (R44). */
 .su-entity-compact__frame[data-bodyless] .su-entity-compact__art {
   align-self: flex-start;
   height: var(--space-20);
@@ -773,8 +771,8 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 .su-entity-index__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  /* The subtle ink-40 (R38) round a CompactIndex with its lead under the band, none round a band alone
-     (owner's call, 2026-10-20), as a Compact's frame. */
+  /* The subtle ink-40 (R38) round a CompactIndex with its lead under the
+     band, none round a band alone, as a Compact's frame. */
   border: var(--bw-entity-compact) solid transparent;
   display: flex;
   flex: 1 1 auto;
@@ -898,15 +896,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* There, with no `wrap-reverse`, the foot is `flex-end`: the notch's own
-   `flex-start` above would hang it from the band's top (owner, 2026-10-20,
-   /factions/: "cutouts are all broken here"). */
+   `flex-start` above would hang it from the band's top (/factions/). */
 .su-entity-index__band:not([data-chip-fill]) > .su-entity-index__notch {
   align-self: flex-end;
 }
 
 /* A header-only tile (a band and nothing under it, /crawler-tech-levels/):
-   its cut-out is its ground's, as a header-only Compact's (owner, round 10:
-   "cutouts not showing background"). */
+   its cut-out is its ground's, as a header-only Compact's (R45). */
 .su-entity-index__band:only-child > .su-entity-index__notch {
   background-color: var(--su-ground);
 }
@@ -999,7 +995,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-entity-mini__pill {
   align-items: stretch;
   align-self: flex-start;
-  /* No ink edge on a head alone (owner's call, 2026-10-20); its width stays,
+  /* No ink edge on a head alone; its width stays,
      so nothing moves. A contentful Mini's pill is inked (below). */
   border-color: transparent;
   border-style: solid;
@@ -1018,8 +1014,8 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   white-space: nowrap;
 }
 
-/* A roll table nested in a Page (`RollMini size="compact"`), one size up (owner, round 6: "should render one size
-   up"): the Compact's 32px head, its name at the Compact's title size, its
+/* A roll table nested in a Page (`RollMini size="compact"`), one size up
+   (R43): the Compact's 32px head, its name at the Compact's title size, its
    Roll the Compact button. */
 .su-roll-token[data-size='compact'] > .su-entity-mini__pill {
   align-items: flex-end;
@@ -1114,7 +1110,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A contentful Mini's head (N3) holds a compact head's budget (C3: economy,
-   facets, traits) on its one line (owner's rule, 2026-10-20): its chips
+   facets, traits) on its one line: its chips
    never make the head taller. The name keeps at least min(9rem, 40%) of the
    pill, ending in "…" below that; what does not fit beside it leaves the
    head (`data-fill-out`) for the body's first row (`chipFit.ts`, C2b). Until
@@ -1284,7 +1280,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A contentful Mini's name stays a cut-out at the pill's foot when its chips
-   take two lines, never stretched to their height (owner, 2026-10-19). */
+   take two lines, never stretched to their height. */
 .su-entity-mini[data-contentful] .su-entity-mini__notch {
   align-self: flex-end;
 }
@@ -1488,7 +1484,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A group of one (a crawler bay, whose crew and sections are inside its
-   Mini's body: owner's review, 2026-10-20) draws no second frame round the
+   Mini's body) draws no second frame round the
    Mini's own. */
 .su-mini-group:has(> :only-child) {
   border-width: 0;
@@ -1532,7 +1528,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A crawler tech level's block reads a size up from a Compact's, the Page's
-   own (owner, round 4: "Bump up the size of the main content by one"): its
+   own: its
    name at the Full title size (`CrawlerTechLevelPage`). */
 .su-tech-level__block .su-entity-compact__title {
   font-size: var(--text-display-lg);

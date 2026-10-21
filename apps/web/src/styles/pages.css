@@ -1,6 +1,6 @@
 /*
- * the reference site's page layouts — the Contents home (board 06), the entity page frame
- * (boards 07, 08), the roll-table page (board 08b), the listing rows and the
+ * the reference site's page layouts — the Contents home, the entity page frame,
+ * the roll-table page, the listing rows and the
  * footer band, and the About and Changelog pages' parts.
  *
  * `global.css` imports it. Classes are `su-*`; the shared parts they compose
@@ -9,7 +9,7 @@
  */
 
 /*
- * The home page — the manual's Contents page (board 06, `index.page.tsx` and
+ * The home page — the manual's Contents page (`index.page.tsx` and
  * `reference/HomeContents.tsx`). At the one page measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
  * tagline, "Start here", then the index.
@@ -50,7 +50,7 @@
   }
 }
 
-/* The home band holds only the title and the tagline (owner, 2026-10-14) and
+/* The home band holds only the title and the tagline and
    is as tall as the app's front-door band: its title opens where the
    app's does under that band's eyebrow (the eyebrow's top padding, its
    caption line, then 12px). */
@@ -78,8 +78,7 @@
 }
 
 /* The index, then the aside: one stack on a phone, the catalogs first and
-   "Start here" (with the Discord button under it) below them (owner,
-   2026-10-15). */
+   "Start here" (with the Discord button under it) below them. */
 .su-home__body {
   display: flex;
   flex-direction: column;
@@ -128,7 +127,7 @@
 }
 
 /* The home page's Discord button (`DiscordButton` in `HomeContents.tsx`): a
-   full-size button in Discord's blurple (a one-off, owner's call 2026-10-14)
+   full-size button in Discord's blurple (a one-off)
    with Discord's mark, the width of "Start here" above it. */
 a.su-home__discord {
   background-color: var(--color-discord);
@@ -161,11 +160,9 @@ a.su-home__discord:hover {
 }
 
 /* A show page's body: a short page's content spread evenly down the height
-   under its band, on a phone and a desktop alike (owner, 2026-10-20, Melee
-   Armament: "vertically center text like this on pages"; round 4, Meld
-   Drone: "space evenly the content rather than just centering it"). The
-   band's overflow row (its first row) stays under the band (round 4: "chips
-   stay near header, not centered"). A long one fills the height, so the
+   under its band, on a phone and a desktop alike (Melee
+   Armament, Meld Drone). The band's overflow row (its first row) stays under
+   the band (R43). A long one fills the height, so the
    spacing leaves it where it was. */
 .su-entity__body {
   display: flex;
@@ -257,7 +254,7 @@ a.su-home__discord:hover {
 }
 
 /*
- * The roll-table page (`RollTableView`, board 08b): the table's prose, the
+ * The roll-table page (`RollTableView`): the table's prose, the
  * table, then the Randsum credit. A roll's result is a toast, not a panel.
  */
 .su-roll-page {
@@ -420,7 +417,7 @@ a.su-home__discord:hover {
 /* On a desktop the trees sit two to a line, each half the measure, read
    across then down; a line's two trees start together. Two columns need
    26rem each, so a measure narrower than that (a squeezed window) keeps one
-   column. Below the desktop the trees stay one column (owner, 2026-10-20). */
+   column. Below the desktop the trees stay one column. */
 @media (width >= 64rem) {
   .su-listing[data-view='tree'] .su-listing__groups {
     align-items: start;
@@ -556,7 +553,7 @@ a.su-home__discord:hover {
 }
 
 /*
- * THE RAIL — one row of 44px controls (origin boards S1 and 05): search, the
+ * THE RAIL — one row of 44px controls: search, the
  * TL badge as a toggle, the Source / Tree menus, then Catalog | Tree on the
  * abilities. On a phone the facets fold behind a Filters button that counts
  * the active ones.
@@ -573,7 +570,7 @@ a.su-home__discord:hover {
   min-height: var(--size-full);
 }
 
-/* A search field is full width on a phone (owner's rule, 2026-10-20); from
+/* A search field is full width on a phone; from
    `sm` it shares the rail's line. */
 @media (width >= 40rem) {
   .su-rail .su-rail__search {
@@ -857,7 +854,7 @@ a.su-home__discord:hover {
    A wrapping flex row, not a grid: the cards on a line share it evenly and
    stretch to its tallest, and a card alone on the last line (Legendary
    under Core and Advanced, the Salvager's lone Core) grows to the full width
-   rather than leaving half a row empty (owner's call, 2026-10-17). */
+   rather than leaving half a row empty. */
 .su-class-brief__cards {
   display: flex;
   flex-wrap: wrap;
@@ -999,7 +996,7 @@ a.su-home__discord:hover {
   container-type: inline-size;
 }
 
-/* A class's Core trees: two across, never more (owner, round 4). */
+/* A class's Core trees: two across, never more. */
 @media (width >= 40rem) {
   .su-class-path__trees--pair {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1029,10 +1026,10 @@ a.su-home__discord:hover {
 
 /* The path's foot: a band in its head's colour (inline), the citation on a
    paper cut-out flush with its top edge and its end, as a page's foot band
-   cites (owner, round 5). */
+   cites. */
 .su-class-path__foot {
   /* No rule above: the cite is a cut-out, its paper flush with the card's
-     body, never boxed off (owner, round 6). */
+     body, never boxed off. */
   display: flex;
   justify-content: flex-end;
   margin: 0;
@@ -1146,8 +1143,7 @@ a.su-home__discord:hover {
 }
 
 /* The level's facts side by side where they fit, each under a crawler-pink
-   rule: its label in caps, its figure in the condensed display face (owner,
-   round 8: "jazz it up"). */
+   rule: its label in caps, its figure in the condensed display face (R47). */
 .su-tech-level__lines {
   display: grid;
   gap: var(--space-16) var(--space-24);

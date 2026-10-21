@@ -38,7 +38,7 @@
 }
 
 /* A crew lead's body (`CrewLeadMini`): its lines, and right of them its HP
-   as Mini HP cells, only as wide as their square block (owner, round 9). */
+   as Mini HP cells, only as wide as their square block. */
 .su-crew-lead__body {
   align-items: start;
   display: grid;
@@ -58,7 +58,7 @@
   grid-column: 1 / -1;
 }
 
-/* Motto, Keepsake and Background side by side, as many as fit (round 4). */
+/* Motto, Keepsake and Background side by side, as many as fit. */
 .su-sheet-pilot-traits {
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }

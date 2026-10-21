@@ -9,7 +9,7 @@
  */
 
 /*
- * The touch floor (ruleset §4.6, ADR-045 D14): every control in the phone form
+ * The touch floor (ruleset §4.6, R12): every control in the phone form
  * is at least 44×44, whichever component drew it. The canvas's own controls
  * are sized for a scaled 1280×800 frame, and a phone is where those sizes stop
  * being enough.

@@ -91,10 +91,9 @@
 }
 
 /* From `sm` a Page's chips stand a rung up, the Compact control height
-   beside its Compact "Build With This" (owner, round 4: "the header chips
-   are also a size too small for the page chips"), wherever the strip lands:
+   beside its Compact "Build With This" (R12), wherever the strip lands:
    the band, or the page's first row it overflows into; a sheet's band chips
-   alike (round 4: "make sure the header chips are the right size"). A phone
+   alike. A phone
    keeps the Full plates, so its band still fits beside the title. */
 @media (width >= 40rem) {
   .su-entity-stamps .su-stat-plate--full,

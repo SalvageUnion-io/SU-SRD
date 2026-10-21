@@ -328,7 +328,7 @@
   color: var(--color-paper-70);
 }
 
-/* The overflow trigger (a listed unit's "⋯", board S1) is an action chip, the
+/* The overflow trigger (a listed unit's "⋯") is an action chip, the
    last of its Compact's chips, so it is exactly a compact chip's height: the 14px
    glyph, 1px of padding and the 1px rule each side make 18px, as the plate's
    16px and its rule do (`.su-stat-cell`). Under a coarse pointer the `mini`

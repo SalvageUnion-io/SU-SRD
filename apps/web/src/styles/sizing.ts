@@ -2,11 +2,9 @@
  * The app's three Sizes — Full, Compact, Mini.
  *
  * One vocabulary for every size axis in the system: there are exactly these
- * three Sizes, and every component's `size` names its steps from them. Before this,
- * axes were spelled `sm | md | lg` (Badge) and `xs | sm | md | lg` (Button),
- * which named a size relative to *that component* rather than to a shared
- * scale — so `sm` meant one thing on a stamp and another on a button, and
- * nothing told you which Size a surface was supposed to be at.
+ * three Sizes, and every component's `size` names its steps from them, never
+ * a size relative to *that component* (`sm | md | lg`): so a step means one
+ * thing on a stamp and on a button, and says which Size a surface is at.
  *
  * The Sizes are defined by INTENT, not by pixel count:
  *

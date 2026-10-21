@@ -22,8 +22,8 @@
 }
 
 /* The band's controls sit right of the notched title on the band's foot, and
-   what does not fit there wraps up over it (owner's rule, 2026-10-17;
-   `.su-chapter-band[data-aside='controls']` in shell.css), so they need
+   what does not fit there wraps up over it
+   (`.su-chapter-band[data-aside='controls']` in shell.css), so they need
    nothing of their own here. */
 
 /* Under a coarse pointer every control on the page is at least 44px tall

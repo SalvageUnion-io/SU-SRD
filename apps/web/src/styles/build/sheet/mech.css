@@ -124,8 +124,8 @@
     min-width: 0;
   }
 
-  /* The chassis column takes the larger share (owner's call, 2026-10-14:
-     more room for the stats and ability), never under 19rem. */
+  /* The chassis column takes the larger share, for the stats and ability,
+     never under 19rem. */
   .su-sheet-mech-hero-chassis {
     flex: 3 1 0%;
     min-width: 19rem;
@@ -133,8 +133,7 @@
 }
 
 /* Every column of the hero spreads its blocks evenly down the row's height,
-   so no column ends on a gap (owner, round 5: "make all stuff space-evenly
-   columnwise to fill gaps"): the photo, the player's fields, the chassis's
+   so no column ends on a gap: the photo, the player's fields, the chassis's
    stats and ability. */
 .su-photo-beside-row:has(.su-sheet-mech-hero-split) > .su-photo-beside-slot,
 .su-sheet-mech-hero-split > *,
