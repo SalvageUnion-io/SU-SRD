@@ -98,7 +98,6 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
           key: `${schemaName}-${name}`,
           name,
           ...(value == null ? {} : { param: String(value) }),
-          schemaName,
           ...(ref ? { ref } : {}),
         }}
       />

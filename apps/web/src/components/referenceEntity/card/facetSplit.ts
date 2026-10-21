@@ -53,7 +53,6 @@ export function splitFacets(cells: readonly CardFacetCell[]): SplitFacets {
         key: cell.key,
         name: cell.label,
         ...(value !== undefined ? { param: value } : {}),
-        ...(mention ? { schemaName: mention.schemaName } : {}),
         ...(ref ? { ref } : {}),
         ...(modified ? { modified: true } : {}),
       })

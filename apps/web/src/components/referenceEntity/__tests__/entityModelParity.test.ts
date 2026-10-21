@@ -140,7 +140,6 @@ function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
       key: `${t.schemaName}-${t.name}`,
       name: t.name,
       ...(t.param !== undefined ? { param: t.param } : {}),
-      schemaName: t.schemaName,
       ...(t.ref ? { ref: t.ref } : {}),
     })),
     ...(cost
