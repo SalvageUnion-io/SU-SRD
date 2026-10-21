@@ -9,28 +9,14 @@
 
 import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel, truncate } from 'salvageunion-reference'
-import type {
-  PageModule,
-  PageResult,
-  RouteContext,
-  StructuredData,
-} from '../../../../../../ssg/types'
-import {
-  assetSrcSetFor,
-  heroImageSizes,
-  isLegalStartingPatternOf,
-  resolveEntityPageMeta,
-} from '../../../../../components/index'
+import type { PageModule, PageResult, RouteContext } from '../../../../../../ssg/types'
+import { isLegalStartingPatternOf, resolveEntityPageMeta } from '../../../../../components/index'
 import { patternBuildLinkFor } from '../../../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../../lib/componentEmbed'
-import {
-  entityTitle,
-  META_DESCRIPTION_MAX,
-  SITE_URL,
-  SRD_CRUMB,
-} from '../../../../../lib/constants'
+import { entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../../lib/entityHref'
+import { entityPageHead } from '../../../../../lib/entityPageHead'
 import { getReferenceEntityData } from '../../../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../../../lib/ogCard'
 import { pageTitle } from '../../../../../lib/pageTitle'
@@ -71,70 +57,26 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     META_DESCRIPTION_MAX
   )
 
-  const structuredData: StructuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemPage',
-    name: summary.name,
-    description: metaDescription,
-    url: canonicalUrl,
-    keywords: [
-      'Salvage Union',
-      'TTRPG',
-      'SRD',
-      'System Reference Document',
-      'Pattern',
-      hostName,
-      patternName,
-    ],
-    isPartOf: {
-      '@type': 'ItemPage',
-      name: pageTitle(hostName),
-      url: hostUrl,
-    },
-    mainEntity: {
-      '@type': 'Thing',
+  return {
+    meta: entityPageHead({
+      title: entityTitle(patternName, `${hostName} Pattern`),
       name: summary.name,
       description: metaDescription,
-      ...(summary.source
-        ? {
-            isPartOf: {
-              '@type': 'Book',
-              name: summary.source,
-              author: { '@type': 'Organization', name: 'Leyline Press' },
-            },
-          }
-        : {}),
-    },
-  }
-
-  // The preload MUST carry the same srcset/sizes as the <img>, or it selects a
-  // different candidate and the page downloads both files. See `cardImageSizes`.
-  const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
-
-  // The preview's words and colour come from the card its image is
-  // screenshotted from.
-  const og = ogMetaFor(ogCardFor(schemaId, itemId, host, pattern, patternId))
-
-  return {
-    meta: {
-      title: entityTitle(patternName, `${hostName} Pattern`),
-      description: metaDescription,
-      ...og,
-      componentEmbed: componentEmbedFor(host, pattern),
       canonical: canonicalUrl,
-      ogType: 'article',
-      structuredData,
-      preloadImage: displayData?.assetUrl,
-      preloadImageSrcSet,
-      // The art is the page's hero, so the preload repeats ITS `sizes`.
-      preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
-      breadcrumbs: [
-        SRD_CRUMB,
+      keywords: ['Pattern', hostName, patternName],
+      parentPage: { type: 'ItemPage', name: pageTitle(hostName), url: hostUrl },
+      source: summary.source,
+      assetUrl: displayData?.assetUrl,
+      // The preview's words and colour come from the card its image is
+      // screenshotted from.
+      og: ogMetaFor(ogCardFor(schemaId, itemId, host, pattern, patternId)),
+      componentEmbed: componentEmbedFor(host, pattern),
+      crumbs: [
         { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },
         { name: hostName, url: hostUrl },
-        { name: patternName, url: canonicalUrl },
       ],
-    },
+      crumb: patternName,
+    }),
     foot: { printings: pageMeta.printings },
     children: (
       <EntityPageFrame

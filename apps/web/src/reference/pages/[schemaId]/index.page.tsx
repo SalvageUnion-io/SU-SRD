@@ -24,7 +24,7 @@ import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types
 import type { ListingBand } from '../../../components/islands/ListingFrame'
 import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
 import { chapterForSchema, listingBandFillFor } from '../../../lib/chapters'
-import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
+import { PUBLISHER, SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
 import { schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
 import { listingEntries } from '../../../lib/listingEntries'
@@ -101,10 +101,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           '@type': 'ItemList',
           numberOfItems: data.length,
         },
-        creator: {
-          '@type': 'Organization',
-          name: 'Leyline Press',
-        },
+        creator: PUBLISHER,
       },
       breadcrumbs: [SRD_CRUMB, { name: pluralName, url: canonicalUrl }],
     },

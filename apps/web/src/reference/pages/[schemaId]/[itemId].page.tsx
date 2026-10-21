@@ -11,18 +11,14 @@
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../ssg/types'
-import {
-  assetSrcSetFor,
-  CHAPTER_BAND_COLOR,
-  heroImageSizes,
-  resolveEntityPageMeta,
-} from '../../../components/index'
+import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
+import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
-import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, SRD_CRUMB } from '../../../lib/constants'
+import { entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
+import { entityPageHead } from '../../../lib/entityPageHead'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { pageTitle } from '../../../lib/pageTitle'
@@ -99,77 +95,36 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     META_DESCRIPTION_MAX
   )
 
-  const structuredData: StructuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemPage',
-    name: itemName,
-    description: metaDescription,
-    url: canonicalUrl,
-    keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName, itemName],
-    isPartOf: {
-      '@type': 'CollectionPage',
-      name: pageTitle(schemaName),
-      url: `${SITE_URL}${schemaHref(schemaId)}`,
-    },
-    mainEntity: {
-      '@type': 'Thing',
+  const listingUrl = `${SITE_URL}${schemaHref(schemaId)}`
+
+  return {
+    meta: entityPageHead({
+      title: entityTitle(itemName, schemaName),
       name: itemName,
       description: metaDescription,
-      ...(displayData?.source
+      canonical: canonicalUrl,
+      keywords: [schemaName, itemName],
+      parentPage: { type: 'CollectionPage', name: pageTitle(schemaName), url: listingUrl },
+      source: displayData?.source,
+      ...(displayData?.techLevel != null
         ? {
-            isPartOf: {
-              '@type': 'Book',
-              name: displayData.source,
-              author: { '@type': 'Organization', name: 'Leyline Press' },
+            additional: {
+              additionalProperty: {
+                '@type': 'PropertyValue',
+                name: 'Tech Level',
+                value: displayData.techLevel,
+              },
             },
           }
         : {}),
-    },
-  }
-
-  if (displayData?.techLevel != null) {
-    structuredData.additionalProperty = {
-      '@type': 'PropertyValue',
-      name: 'Tech Level',
-      value: displayData.techLevel,
-    }
-  }
-
-  // Real artwork (assetUrl) preloads for the on-page view.
-  //
-  // The og:image is deliberately NOT set here: this page always emits the
-  // site-wide default (BaseLayout's DEFAULT_OG_IMAGE), and `scripts/og-screenshots.ts`
-  // rewrites the meta afterwards for each entity whose card PNG actually
-  // rendered. Doing it in that order means a skipped, budget-capped or failed
-  // generation leaves a working default rather than an og:image that 404s.
-  const preloadImage = displayData?.assetUrl
-  // The preload MUST carry the same srcset/sizes as the <img>, or it selects a
-  // different candidate and the page downloads both files. See `cardImageSizes`.
-  const preloadImageSrcSet = assetSrcSetFor(displayData?.assetUrl)
-
-  // The preview's words and colour come from the same card its image is
-  // screenshotted from, so the text beside the image matches it.
-  const og = ogMetaFor(ogCardFor(schemaId, itemId, item))
-
-  return {
-    meta: {
-      title: entityTitle(itemName, schemaName),
-      description: metaDescription,
-      ...og,
+      assetUrl: displayData?.assetUrl,
+      // The preview's words and colour come from the same card its image is
+      // screenshotted from, so the text beside the image matches it.
+      og: ogMetaFor(ogCardFor(schemaId, itemId, item)),
       componentEmbed: componentEmbedFor(item),
-      canonical: canonicalUrl,
-      ogType: 'article',
-      structuredData,
-      preloadImage,
-      preloadImageSrcSet,
-      // The art is the page's hero, so the preload repeats ITS `sizes`.
-      preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
-      breadcrumbs: [
-        SRD_CRUMB,
-        { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },
-        { name: itemName, url: canonicalUrl },
-      ],
-    },
+      crumbs: [{ name: pluralName, url: listingUrl }],
+      crumb: itemName,
+    }),
     foot: { printings: pageMeta.printings },
     // A roll table has no build link or guide exits: both are null for it.
     children: (

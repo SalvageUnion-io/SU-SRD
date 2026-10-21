@@ -20,6 +20,9 @@ export const DEFAULT_DESCRIPTION =
 /** The site in structured data: the home page's WebSite, and what every other page is part of. */
 export const WEBSITE = { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/` } as const
 
+/** The game's publisher in structured data: the books' author, the listings' creator. */
+export const PUBLISHER = { '@type': 'Organization', name: 'Leyline Press' } as const
+
 /** Every trail's first crumb: the SRD's home page. */
 export const SRD_CRUMB = { name: 'Reference', url: `${SITE_URL}/` } as const
 
