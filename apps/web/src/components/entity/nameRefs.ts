@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { EntityRef } from 'salvageunion-reference'
+import type { EntityRef, NameRefCandidate, NameRefIndex } from 'salvageunion-reference'
 
 /**
  * NAME REFERENCES — the entities rules text names in plain words ("This
@@ -12,7 +12,7 @@ import type { EntityRef } from 'salvageunion-reference'
  * follows with its kind's noun ("… Trait", "… Table", "… Range") is that
  * kind's entry; the link is the name alone ("Dependable", not "Dependable
  * Trait") but for a table, whose noun joins it ("the Critical Damage Table"); otherwise the first candidate the
- * index lists wins (the builder orders them, `lib/nameRefIndex.ts`). Some
+ * index lists wins (the package orders them, `nameRefIndex`). Some
  * kinds link only with their noun (`needsNoun`: a one-word ability or table,
  * whose bare word is too often plain English), a range also after its
  * preposition ("within Close").
@@ -34,21 +34,8 @@ import type { EntityRef } from 'salvageunion-reference'
  */
 export const ProseOwnerContext = createContext<string | undefined>(undefined)
 
-/** One entry a name in prose may mean. */
-export type NameRefCandidate = {
-  ref: EntityRef
-  /** The noun the prose follows this kind's name with ("Trait", "Table"). */
-  noun?: string
-  /** The noun joins the link: a table is "the Critical Damage Table". */
-  nounInLink?: boolean
-  /** Links only followed by its noun. */
-  needsNoun?: boolean
-  /** A range: links followed by its noun or after a preposition ("within Close"). */
-  range?: boolean
-}
-
-/** Name (lower case) → the entries it may mean, the default first. */
-export type NameRefIndex = Record<string, NameRefCandidate[]>
+/** The index's shape is the package's, which builds it (`nameRefIndex`). */
+export type { NameRefCandidate, NameRefIndex }
 
 /** A name found in a run of prose and the entry it means. */
 export type NameRefMatch = { start: number; end: number; ref: EntityRef }

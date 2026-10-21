@@ -83,6 +83,7 @@ export {
 } from './helpers'
 export { getInventorySlots } from './inventorySlots'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
+export { type NameRefCandidate, type NameRefIndex, nameRefIndex } from './nameRefIndex'
 export { nameToSlug } from './nameToSlug'
 export { displayTitle } from './naming'
 export { SRD_SITE_URL } from './origin'

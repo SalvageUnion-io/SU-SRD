@@ -6,10 +6,10 @@
  */
 import { describe, expect, test } from 'bun:test'
 import type { RefEntity } from 'salvageunion-reference'
-import { parseTraitReferences } from 'salvageunion-reference'
+import { nameRefIndex, parseTraitReferences } from 'salvageunion-reference'
 import { findNameRefs } from '../../components/index'
 import { getEntitySchemas, SalvageUnionReference } from '../gameData'
-import { ambiguousNames, nameRefIndex, nameRefIndexWithout, nameRefsFor } from '../nameRefIndex'
+import { nameRefIndexWithout, nameRefsFor } from '../nameRefIndex'
 
 /**
  * Terms the book tags with a noun that name no entry, each with why. A new
@@ -46,7 +46,9 @@ describe('nameRefIndex', () => {
   test("links the Dependable Chassis's trait, table and keyword", () => {
     const text =
       'This Chassis gains the Dependable Trait. Additionally, you may re-roll results on the Critical Damage Table and on failed Heat Checks.'
-    expect(findNameRefs(text, nameRefIndex()).map((m) => [m.ref.schemaName, m.ref.name])).toEqual([
+    expect(
+      findNameRefs(text, nameRefIndex().index).map((m) => [m.ref.schemaName, m.ref.name])
+    ).toEqual([
       ['traits', 'dependable'],
       ['roll-tables', 'Critical Damage'],
       ['keywords', 'heat check'],
@@ -54,7 +56,7 @@ describe('nameRefIndex', () => {
   })
 
   test('no two entries of one kind share a name', () => {
-    expect([...ambiguousNames().keys()]).toEqual([])
+    expect([...nameRefIndex().ambiguous.keys()]).toEqual([])
   })
 
   test("an entity's index drops its own name, keeping a namesake that needs its noun", () => {

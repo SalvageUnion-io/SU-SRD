@@ -15,7 +15,13 @@
  */
 
 import type { RefEntity } from 'salvageunion-reference'
-import { getDataMaps, getSchemaCatalog, isSchemaName, toEntityModel } from 'salvageunion-reference'
+import {
+  getDataMaps,
+  getSchemaCatalog,
+  isSchemaName,
+  nameRefIndex,
+  toEntityModel,
+} from 'salvageunion-reference'
 import type { LookupHit } from './lookupCard'
 
 /** A term found in a message: the entry, the words that named it, and the row a label matched. */
@@ -31,19 +37,29 @@ type IndexEntry = { hit: LookupHit; row?: string }
 
 let index: Map<string, IndexEntry> | null = null
 
-/** Every entry's name, and every roll-table row label, lower-cased. Built once. */
+/**
+ * Every entry's name, and every roll-table row label, lower-cased. Built once.
+ *
+ * A name several kinds share means what the SRD's prose links it to: the
+ * package's name index (`nameRefIndex`) and its order of kinds. A name it does
+ * not hold (a kind outside it, or two of one kind) means the first entry in
+ * catalog order.
+ */
 function termIndex(): Map<string, IndexEntry> {
   if (index) return index
   const built = new Map<string, IndexEntry>()
   const { dataMap } = getDataMaps()
+  const hits = new Map<string, LookupHit>()
+  const named: [string, LookupHit][] = []
   const labels: [string, IndexEntry][] = []
   for (const schema of getSchemaCatalog().schemas) {
     if (schema.meta || !isSchemaName(schema.id)) continue
     const schemaName = schema.id
     for (const entity of (dataMap[schemaName] as RefEntity[] | undefined) ?? []) {
       const hit: LookupHit = { schemaName, entity: { ...entity, schemaName } }
+      if ('id' in entity && entity.id) hits.set(`${schemaName}::${entity.id}`, hit)
       const name = 'name' in entity && typeof entity.name === 'string' ? entity.name : ''
-      if (name && !built.has(name.toLowerCase())) built.set(name.toLowerCase(), { hit })
+      if (name) named.push([name.toLowerCase(), hit])
       if (schemaName === 'roll-tables') {
         const table = toEntityModel(hit.entity).table
         for (const row of table?.kind === 'bands' ? table.rows : []) {
@@ -52,6 +68,11 @@ function termIndex(): Map<string, IndexEntry> {
       }
     }
   }
+  for (const [key, [first]] of Object.entries(nameRefIndex().index)) {
+    const hit = first && hits.get(`${first.ref.schemaName}::${first.ref.id}`)
+    if (hit) built.set(key, { hit })
+  }
+  for (const [name, hit] of named) if (!built.has(name)) built.set(name, { hit })
   // A name always beats a row label that happens to read the same.
   for (const [label, entry] of labels) if (!built.has(label)) built.set(label, entry)
   index = built
