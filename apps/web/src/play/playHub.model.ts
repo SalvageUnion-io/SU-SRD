@@ -11,6 +11,7 @@ import type { LinkedUnit } from '../components/entity/LinkedUnits'
 import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
 import { VITAL } from '../lib/units/readings'
+import type { CrewVitals } from './useGameFeed'
 
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
@@ -73,32 +74,34 @@ type ListedRow = { _id: string; appId: string | null; body: unknown }
 export type CrewSources = {
   crawlers: readonly ListedRow[]
   primaryCrawlerId: string | null
-  pilots: readonly {
-    _id: string
-    linkId: string | null
-    appId: string | null
-    ownerId: string | null
-    name: string
-    currentHP: number | null
-    maxHP: number | null
-    currentAP: number | null
-    maxAP: number | null
-    boarded: boolean
-    mechId: string | null
-  }[]
-  mechs: readonly {
-    _id: string
-    linkId: string | null
-    appId: string | null
-    ownerId: string | null
-    name: string
-    currentSP: number | null
-    maxSP: number | null
-    currentEP: number | null
-    maxEP: number | null
-    currentHeat: number | null
-    maxHeat: number | null
-  }[]
+  pilots: readonly Pick<
+    CrewVitals['pilots'][number],
+    | '_id'
+    | 'linkId'
+    | 'appId'
+    | 'ownerId'
+    | 'name'
+    | 'currentHP'
+    | 'maxHP'
+    | 'currentAP'
+    | 'maxAP'
+    | 'boarded'
+    | 'mechId'
+  >[]
+  mechs: readonly Pick<
+    CrewVitals['mechs'][number],
+    | '_id'
+    | 'linkId'
+    | 'appId'
+    | 'ownerId'
+    | 'name'
+    | 'currentSP'
+    | 'maxSP'
+    | 'currentEP'
+    | 'maxEP'
+    | 'currentHeat'
+    | 'maxHeat'
+  >[]
 }
 
 const bodyText = (body: unknown, key: string): string | null => {

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import type { CrewSources } from '../playHub.model'
 import { gameChips, gameCrew, gameDoor, pairedCrew } from '../playHub.model'
 
 /** The Play hub's Your Games: a Game's Compact, its chips and its one door (ADR-052 §4). */
@@ -55,34 +56,38 @@ describe('its one door', () => {
 })
 
 describe('its crew', () => {
-  const pilot = (over: Record<string, unknown>) => ({
-    _id: 'p1',
-    linkId: 'a-p1',
-    appId: 'a-p1',
-    ownerId: 'u1',
-    name: 'Rook',
-    currentHP: null,
-    maxHP: 10,
-    currentAP: null,
-    maxAP: 5,
-    boarded: false,
-    mechId: null,
-    ...over,
-  })
-  const mech = (over: Record<string, unknown>) => ({
-    _id: 'm1',
-    linkId: 'a-m1',
-    appId: 'a-m1',
-    ownerId: 'u1',
-    name: 'Spectrum',
-    currentSP: 6,
-    maxSP: 9,
-    currentEP: null,
-    maxEP: 5,
-    currentHeat: 0,
-    maxHeat: 9,
-    ...over,
-  })
+  type Pilot = CrewSources['pilots'][number]
+  type Mech = CrewSources['mechs'][number]
+  const pilot = (over: Record<string, unknown>): Pilot =>
+    ({
+      _id: 'p1',
+      linkId: 'a-p1',
+      appId: 'a-p1',
+      ownerId: 'u1',
+      name: 'Rook',
+      currentHP: null,
+      maxHP: 10,
+      currentAP: null,
+      maxAP: 5,
+      boarded: false,
+      mechId: null,
+      ...over,
+    }) as Pilot
+  const mech = (over: Record<string, unknown>): Mech =>
+    ({
+      _id: 'm1',
+      linkId: 'a-m1',
+      appId: 'a-m1',
+      ownerId: 'u1',
+      name: 'Spectrum',
+      currentSP: 6,
+      maxSP: 9,
+      currentEP: null,
+      maxEP: 5,
+      currentHeat: 0,
+      maxHeat: 9,
+      ...over,
+    }) as Mech
   const crawler = (id: string, name: string) => ({ _id: id, appId: `a-${id}`, body: { name } })
 
   test('the primary crawler first, then each pilot paired with its mech, then spare mechs', () => {
