@@ -30,8 +30,8 @@ function peekChassisName(entity: RefEntity): string | undefined {
 }
 
 /**
- * A chassis's Peek reads its chassis ability, not its patterns (owner's call,
- * 2026-10-14). The ability nests in the chassis, so it is a contentful Mini
+ * A chassis's Peek reads its chassis ability, not its patterns. The ability
+ * nests in the chassis, so it is a contentful Mini
  * (N3, E19) as any nested action is (`ActionMinis`): its head, then its full
  * text, its `[(CHASSIS)]` naming this chassis ("The Mule"). In the Peek the
  * head reads and the roll table is left out (E16).

@@ -1,5 +1,5 @@
 /**
- * Linked names (owner, 2026-10-20): a card met inside another, nested or the
+ * Linked names: a card met inside another, nested or the
  * Peek's, names its own Page, as a Mini's name does. The Peek's is its
  * plate's one link (R33), out of the tab order.
  */

@@ -27,7 +27,7 @@ function Name({ name }: { name: string }) {
 
 /**
  * ROLL MINI — a roll table as a Mini (EDL E14: "nested: Mini, Table, Roll
- * the Die"; owner's calls, 2026-10-14 and 2026-10-18): the ink pill with the
+ * the Die"): the ink pill with the
  * table's name on the cut-out, at a Mini's height.
  *
  * - **Nested in a card** (`onRoll`): its roll (`RollControl`, Mini) inside its
@@ -63,7 +63,7 @@ export function RollMini({
   peekAt?: string
   /** A choice of table: pressed while it is open, `dim` beside a chosen one. */
   toggle?: { pressed: boolean; onToggle: () => void; dim?: boolean }
-  /** Nested in a Page (a Full host), one size up: a Compact head (owner, round 6). */
+  /** Nested in a Page (a Full host), one size up: a Compact head. */
   size?: 'mini' | 'compact'
 }) {
   const peek = usePeekAttrs(undefined, toggle ? undefined : peekAt)

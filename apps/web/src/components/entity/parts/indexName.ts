@@ -6,8 +6,8 @@ import { capsLabel } from '../../atoms/capsLabel'
  * A catalog index Compact's name on its cut-out of the paper below, in ink (ruleset,
  * "Chapter band"): the index Compact's, and the cards Start Here and the SRD home's
  * Discord band draw from the same `.su-entity-index` classes. One line: short
- * of room it ends in "…", never wraps (owner, round 4: "should ellipses off
- * and show in a peek"; a Compact's and a Mini's names alike, ruleset §4.7).
+ * of room it ends in "…", never wraps, and a Peek shows it whole (a Compact's
+ * and a Mini's names alike, ruleset §4.7).
  */
 export const INDEX_NAME = {
   color: 'var(--color-ink)',

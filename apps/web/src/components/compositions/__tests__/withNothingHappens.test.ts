@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { digestRollTable, withNothingHappens } from '../digestRollTable'
 
-describe('withNothingHappens — a lone 20 gets the rest of the die (round 4)', () => {
+describe('withNothingHappens — a lone 20 gets the rest of the die', () => {
   test('a table printing only its 20 reads "Nothing happens." on 1–19', () => {
     const table = withNothingHappens({ type: 'standard', '20': { value: 'Blinded.' } } as never)
     expect(table).toMatchObject({

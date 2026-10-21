@@ -31,7 +31,7 @@ type UnitRowProps = {
   labels?: ReactNode
   /** What it is built on (a book entity), relation chips after its readings (`chips-and-actions.md` C11). */
   relations?: TagItem[]
-  /** The units it is linked to, header-only Minis leading its body, never chips (round 4). */
+  /** The units it is linked to, header-only Minis leading its body, never chips. */
   linked?: readonly LinkedUnit[]
   /** The host's last chip, on the name's line: the unit's "⋯" menu. */
   trailing?: ReactNode

@@ -10,8 +10,7 @@ const EFFECT = {
 } satisfies CSSProperties
 
 /** On a page, at the page's reading size: the prose column's, as its Bay
-   Info's (owner, round 4: "Bay info and when damaged should be the same size
-   text"). */
+   Info's: the two are one size of text. */
 const EFFECT_PAGE = {
   ...EFFECT,
   fontSize: 'inherit',
@@ -31,9 +30,9 @@ function EffectText({ effect }: { effect: string }) {
  * (hard rule R18, EDL E15): a section of the bay, so a Slab over its effect
  * (ruleset §5, N5), on the bay's own Page, in its card, in a Peek and in the
  * live sheet's bay alike. It is the bay's last section, under its Bay Info
- * and its crew NPC (owner's call, 2026-10-20). On a live sheet it folds
+ * and its crew NPC. On a live sheet it folds
  * (`fold`, the state it starts in); on the reference and inside a Peek it
- * does not (owner, round 4). Only the type size follows the
+ * does not. Only the type size follows the
  * place: the page's reading size on a Page, the card body's elsewhere. Its
  * text comes from `damagedEffectOf` (`whenDamaged.model.ts`), the one reader
  * of its field. The damage reads as a treatment on the bay's rules, not as a

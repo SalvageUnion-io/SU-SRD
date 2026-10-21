@@ -37,7 +37,7 @@ const DULL_GREY = {
 /** A DESTROYED band: flat grey, ink half-mixed into paper, whatever its tone. */
 export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
 
-/** A DAMAGED band (owner, 2026-10-14): its own colour dulled toward grey, not
+/** A DAMAGED band: its own colour dulled toward grey, not
  * replaced by it, so it still reads as the same entity. Every form (Mini,
  * Compact, CompactIndex, Card, Peek) dulls the same band the same way. */
 export function dullBand(band: string): string {
@@ -71,7 +71,7 @@ export function downBand(band: string, down: Down): string {
 }
 
 /**
- * The header's two fills (ruleset §5, board E1): a TONE header for things you
+ * The header's two fills (ruleset §5): a TONE header for things you
  * HAVE (chassis, systems, gear, denizens), an INK header — the book's ink
  * banner — for things you DO (abilities, actions).
  */
@@ -138,7 +138,7 @@ export function resolveCardColors({
 }
 
 /**
- * The frame's weight. It steps with size (ruleset §4.3, board E2): 3px for
+ * The frame's weight. It steps with size (ruleset §4.3): 3px for
  * the large solo card, 2px one size down, 1.5px for a small card (and a
  * head-only card's Mini).
  */
@@ -195,7 +195,7 @@ export function resolveCardInteraction({
     'su-ec-outer',
     disabled && 'su-ec-outer--dim',
     selectable === false && SELECT_DIM,
-    // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
+    // Flat chrome: a clickable card says so with the pointer, not by
     // lifting and scaling off the page.
     isHoverable && 'su-ec-outer--clickable',
     resolvedCardClick && !pointerOnly && FOCUS_RING,
@@ -247,7 +247,7 @@ export function resolveCardInteraction({
   // ring a selected Compact and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
   // The frame is the subtle ink-40 on every card (R38), a user-made one too
-  // (owner's call, 2026-10-20: its HOMEBREW chip marks it); the tone lives in
+  // (its HOMEBREW chip marks it); the tone lives in
   // the header band alone. Longhands, so a caller overriding one side
   // never trips React's shorthand/longhand warning.
   const frame = {

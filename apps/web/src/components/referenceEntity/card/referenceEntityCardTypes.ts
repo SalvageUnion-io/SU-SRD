@@ -47,7 +47,7 @@ export type ReferenceEntityCardProps = {
    * loadout as nested cards (at `extent="head"` the pattern is its Mini). */
   pattern?: RefObjectAnyPattern
   /**
-   * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card
+   * PAGE — the card IS the page: an SRD entity page. The card
    * draws no frame, header or footer, because the page's `ChapterBand`
    * carries the title and stamps and its `ChapterFoot` the citation (both
    * resolved by `resolveEntityPageMeta`). The body lays out as a page: the line
@@ -72,7 +72,7 @@ export type ReferenceEntityCardProps = {
   showChassisAbility?: boolean
   /**
    * Prose the HOST already prints, as `proseKey`s — a nested child hides any
-   * paragraph that would repeat it (board E2). Threaded by the host.
+   * paragraph that would repeat it. Threaded by the host.
    */
   shownProse?: string[]
   /**
@@ -173,7 +173,7 @@ export type ReferenceEntityCardProps = {
   expand?: ReactNode
   /** The state a card's own folding sections start in (a crawler bay's Bay
    * Info and When Damaged), when they fold. On the reference nothing folds
-   * (owner, round 4: "None should be collapsible in reference cards"), so
+   * (R43), so
    * the default is no fold; inside a Peek nothing folds either. */
   sectionFold?: 'open' | 'closed'
 

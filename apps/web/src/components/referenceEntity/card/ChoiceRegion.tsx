@@ -107,8 +107,7 @@ export function ChoiceRegion({
             )
           }
           // On its Page, read-only, it is contentful: its text under its
-          // head, a line wide (owner, 2026-10-20: "those mini entity nests
-          // should be full width and contentful").
+          // head, a line wide (R39).
           return (
             <NestedCard
               size="mini"

@@ -1,6 +1,6 @@
 /**
- * A foot wears the header band (owner, 2026-10-14 for the Peek, 2026-10-19 for
- * every card): the same fill and grain as the card's head, with the foreground
+ * A foot wears the header band, on a Peek and on every card: the same fill
+ * and grain as the card's head, with the foreground
  * measured against it. Neither names the kind (E9).
  */
 import { describe, expect, test } from 'bun:test'
@@ -43,7 +43,7 @@ describe('Peek footer', () => {
     expect(footerOf().textContent).toMatch(/· p\.\d+/)
   })
 
-  // Ruling 2 (2026-10-19): the footer matches the colour, off a Peek too.
+  // The footer matches the colour, off a Peek too.
   test('a card off a Peek wears its head band and grain on its foot too', () => {
     const { container } = render(
       <ReferenceEntityCard data={frost()} size="mini" extent="full" texture />
@@ -56,8 +56,8 @@ describe('Peek footer', () => {
     expect(foot.getAttribute('data-grain')).not.toBeNull()
   })
 
-  // The Peek wears the fill of the Mini or Compact that opened it (owner,
-  // 2026-10-14): an ability's tier tone, not the card's ink banner.
+  // The Peek wears the fill of the Mini or Compact that opened it: an
+  // ability's tier tone, not the card's ink banner.
   test("an ability's Peek wears its tier tone, as its Mini does", () => {
     const { container } = render(<PeekCard entity={scrap()} />)
     expect(container.querySelector('[style*="--color-pilot"]')).not.toBeNull()
@@ -93,8 +93,7 @@ describe('Peek of a chassis ability', () => {
   })
 })
 
-// Owner's call, 2026-10-14: peeking a chassis shows its chassis ability, not
-// its patterns.
+// Peeking a chassis shows its chassis ability, not its patterns.
 describe('Peek of a chassis', () => {
   const mule = () => {
     const chassis = SalvageUnionReference.Chassis.getByName('Mule')
@@ -181,7 +180,7 @@ describe('a Peek holds only Minis', () => {
   })
 })
 
-describe('a Peek prints every stat (owner, 2026-10-19)', () => {
+describe('a Peek prints every stat', () => {
   test("a chassis's Peek carries Heat Capacity and Cargo Capacity, not only its chip set", () => {
     const spectrum = SalvageUnionReference.Chassis.getByName('Spectrum')
     if (!spectrum) throw new Error('fixture missing: Spectrum')

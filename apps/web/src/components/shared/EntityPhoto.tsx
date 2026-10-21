@@ -66,9 +66,9 @@ const EMPTY = {
 const IMG = { height: '100%', objectFit: 'contain', width: '100%' } satisfies CSSProperties
 
 /**
- * Upload, or Replace and Remove side by side, sharing the picture's width
- * (owner's review, 2026-10-20), on the picture itself, along its foot (owner,
- * round 5: "the photo management button live on top the photo itself").
+ * Upload, or Replace and Remove side by side, sharing the picture's width,
+ * on the picture itself, along its foot (R49: its photo's controls sit on
+ * the photo).
  */
 const CONTROLS = {
   bottom: tokens.space[8],

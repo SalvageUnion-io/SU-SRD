@@ -19,7 +19,7 @@ type RollTableIslandProps = {
 }
 
 /**
- * The roll-table page, live (board 08b): Roll marks the row and raises the
+ * The roll-table page, live: Roll marks the row and raises the
  * result as a toast (`toastRoll`) in the page's one toaster (`ToasterMount`). Its props
  * are the page's table, already digested at build time, so the island reads
  * no game data on mount: the dice package (and the roll-table data it reads)

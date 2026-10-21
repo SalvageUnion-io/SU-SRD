@@ -4,8 +4,8 @@ import { RollTableInstrument } from './index'
 import { RollPageFrame } from './RollPageFrame'
 
 /**
- * ColumnsTableView — a two-roll `columns` table's page (Callsign Table, board
- * 08b): roll for the column, then for the entry down it.
+ * ColumnsTableView — a two-roll `columns` table's page (Callsign Table): roll
+ * for the column, then for the entry down it.
  *
  * The page keeps the roll-table page's shape: the prose, then the table, whose
  * Roll the Dice button is the roll. The table is the shared

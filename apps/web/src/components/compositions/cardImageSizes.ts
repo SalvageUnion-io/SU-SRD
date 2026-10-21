@@ -37,7 +37,7 @@ export function cardImageSizes(compact?: boolean): string {
 }
 
 /**
- * The `sizes` of the entity page's HERO art (`CardImage hero`, board 07): half
+ * The `sizes` of the entity page's HERO art (`CardImage hero`): half
  * of the page's 1200px measure beside the stat column from `lg`, the full
  * width of the column under it. The reference site's item pages preload with it.
  */

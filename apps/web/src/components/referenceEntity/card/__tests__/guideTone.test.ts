@@ -1,6 +1,6 @@
 /**
- * A GUIDE WEARS RULES BLUE, as its page's band does (owner's call,
- * 2026-10-14), save where it is about one thing (owner, round 4): a creation
+ * A GUIDE WEARS RULES BLUE, as its page's band does (R44), save where it is
+ * about one thing: a creation
  * guide wears the colour of what it builds, pilot, mech or crawler, and the
  * Heat guide Heat's own red.
  *

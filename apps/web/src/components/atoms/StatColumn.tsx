@@ -12,8 +12,8 @@ import { Stat } from './Stat'
  *
  * Two to a row at every width, in pairs: each part of the stat order
  * (provenance, vitals, capacity) pairs off its own cells from the top, so a
- * mech reads Structure | Energy, System | Module Slots, Heat | Cargo (owner's
- * call, 2026-10-20). A cell left without a partner, its group's last or a
+ * mech reads Structure | Energy, System | Module Slots, Heat | Cargo. A cell
+ * left without a partner, its group's last or a
  * missing stat's neighbour, spans the row, so there is never an empty cell or
  * a ragged edge (`stat-fill.e2e.ts`). The cells keep the stat order: build
  * them from the entity model's `bookStats`.

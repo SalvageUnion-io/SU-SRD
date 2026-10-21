@@ -140,7 +140,7 @@ describe('catalog tiles carry no authorship', () => {
     const text = container.textContent ?? ''
     expect(text).not.toContain(String(chassis.source))
     expect(text).not.toContain(`p.${chassis.page}`)
-    // The TYPE prints once, on the type stamp every card wears (board E1) —
+    // The TYPE prints once, on the type stamp every card wears —
     // never a second time in a footer.
     expect(text.match(/Chassis/g)?.length).toBe(1)
   })

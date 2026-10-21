@@ -41,13 +41,13 @@ describe('When Damaged', () => {
     expect(slab.nextElementSibling?.textContent).toContain(effect)
   })
 
-  test('a bay reads its rules (no Bay Info head, round 5), then When Damaged, then its crew (round 7), never folded on the reference', () => {
+  test('a bay reads its rules (no Bay Info head), then When Damaged, then its crew, never folded on the reference', () => {
     const { bay } = cantina()
     for (const presentation of ['page', undefined] as const) {
       const { unmount, container } = render(
         <ReferenceEntityCard data={bay} presentation={presentation} />
       )
-      // Nothing folds on the reference (owner, round 4): no Collapse control.
+      // Nothing folds on the reference: no Collapse control.
       expect(screen.queryByRole('button', { name: /^Collapse Cantina/ })).toBeNull()
       const text = container.textContent ?? ''
       expect(text).not.toContain('Bay Info')

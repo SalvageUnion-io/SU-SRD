@@ -51,7 +51,7 @@ import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
 /**
  * The schemas whose entity IS a tech level: its name already says the level.
  * A crawler tech level's ("Hamlet Crawler") does not, so its tile shows its TL
- * chip (owner, round 11).
+ * chip.
  */
 const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels'])
 /** Cargo and Heat: a tile's chips sit beside its name, so only its page prints them. */

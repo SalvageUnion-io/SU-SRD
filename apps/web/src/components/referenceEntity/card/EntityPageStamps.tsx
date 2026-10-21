@@ -6,12 +6,12 @@ import { labelChips } from './labelChips'
 
 /**
  * EntityPageStamps — what an entity Page's chapter band carries right of its
- * title (boards 07, 08; EDL E20) — an SRD route's and the app's detail dialog's
+ * title (EDL E20) — an SRD route's and the app's detail dialog's
  * alike — as one `Chips` strip that wraps (`chips-and-actions.md` C2a), in the
  * class order (C2): the Legal Starting Pattern stamp or a player-made page's
  * dashed HOMEBREW stamp (a mark), then every chip
- * the entity carries (E17; the page body holds none, owner's call
- * 2026-10-14): its stats under their full names (Tech Level first; a
+ * the entity carries (E17; the page body holds none): its stats under their
+ * full names (Tech Level first; a
  * chassis's lead its page body instead), its action type and facets
  * (`RNG | Close`), its traits, linking to their entries, what it is built on
  * (a pattern's `CHASSIS | Mazona`, a relation) and what it is linked to (an
@@ -19,9 +19,8 @@ import { labelChips } from './labelChips'
  * pointy box, every chip the same gap apart (the SRD page's "Build With This"
  * is the band's `action`, after them). An ability's level is the band's
  * `lead`, left of the title. Never the kind (E9: the title says it to screen
- * readers). Every chip is at Full, the Page's own size (owner, 2026-10-20:
- * "on full page entities, the header/content chips can be the fuller size";
- * its action cards keep their Compact strips), and what overflows to the
+ * readers). Every chip is at Full, the Page's own size (its action cards
+ * keep their Compact strips), and what overflows to the
  * page's first row keeps its size. The same facts the card's own chips
  * show, resolved by `resolveEntityPageMeta` so the page cannot describe an
  * entity differently from its own card.

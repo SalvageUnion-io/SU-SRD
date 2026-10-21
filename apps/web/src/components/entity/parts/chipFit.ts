@@ -1,6 +1,6 @@
 /**
- * A CONTENTFUL MINI'S OVERFLOW (`chips-and-actions.md` C2b, C5; owner's
- * rule, 2026-10-20): its head is one line, its chips beside the name and
+ * A CONTENTFUL MINI'S OVERFLOW (`chips-and-actions.md` C2b, C5, R37): its
+ * head is one line, its chips beside the name and
  * never on a line of their own, so they never make the head taller. What
  * does not fit there leaves the head for its body's first row (the body's
  * `[data-chip-overflow]`), left-aligned, in class order; the Tech Level, the

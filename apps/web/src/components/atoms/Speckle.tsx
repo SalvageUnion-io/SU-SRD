@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { speckle } from '../../design/tokens'
 
 /**
- * Speckle — the light speckle (ruleset §3.5 "Texture", board 05c) as a layer
+ * Speckle — the light speckle (ruleset §3.5 "Texture") as a layer
  * laid behind a band's content: ink grain on a colour band, paper flecks on an
  * ink ground. Generated from the `speckle` tokens, never a scanned scuff.
  *

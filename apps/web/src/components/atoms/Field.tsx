@@ -50,7 +50,7 @@ type FieldStaticProps = FieldCommon & {
  * The deep-tone outline still comes on hover / focus to mark the one in hand.
  *
  * With NO handler it is the read state, and the read state is typeset, not a
- * form (brand refresh P4, board 10: "print reads, pencil writes"): a small caps
+ * form ("print reads, pencil writes"): a small caps
  * label over the value, no box, and nothing at all when the value is empty.
  */
 type FieldEditableProps = FieldCommon & {
@@ -233,7 +233,7 @@ function FieldLabel({
 /**
  * Form field block (design-spec §2.5 `.field`) — the ONE labelled control, its
  * label the small caps `Eyebrow` over the control in every shape (R16; Edit
- * looks like Read, owner's call 2026-10-14):
+ * looks like Read):
  *
  * 1. **static** — caller passes `children` (an `Input`/`Textarea`/`Select`);
  *    the label is its `<label for>`. Used by the wizard steps and forms.

@@ -1,5 +1,5 @@
 /**
- * THE stat order (owner, 2026-10-14): every surface draws an entity's stats in
+ * THE stat order: every surface draws an entity's stats in
  * one order, a smaller form dropping stats but never moving them. Tech Level
  * leads, then the groups: provenance (TL, Slots, SV), vitals (SP or HP, EP,
  * Bio-Salvage), capacity (SYS, MODS, Heat, Cargo; Upkeep, Upgrade), then the

@@ -84,14 +84,14 @@ type SlabProps = {
   tabIndex?: -1
   /**
    * Where the count sits: at the rule's far end (`end`, the default) or
-   * beside its stamp (`label`) — the app's Shelves (board S1), whose rule runs
+   * beside its stamp (`label`) — the app's Shelves, whose rule runs
    * on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
    */
   countAt?: 'end' | 'label'
   /**
    * `mini`: the head at the Mini Size (18px), for a section inside a
-   * contentful Mini (a crawler bay's Bay Info and When Damaged; owner's
-   * review, 2026-10-20: a Mini's headers and expanders are its Size).
+   * contentful Mini (a crawler bay's Bay Info and When Damaged; R12: a Mini's
+   * headers and expanders are its Size).
    */
   size?: 'mini'
 }
@@ -142,8 +142,8 @@ const COUNT_STAT = {
 /* A label longer than its row wraps between its words rather than pushing the
    rule off the page; a word is never cut (`min-content`). */
 /* At the Compact Size (32px), as its count chips and the controls beside it
-   are, so a head's siblings share one Size (ruleset §4.7; owner, round 5: a
-   Game's "Pilots", "Seats" and "Move in…" all different sizes). */
+   are, so a head's siblings share one Size (ruleset §4.7, R12: a Game's
+   "Pilots", "Seats" and "Move in…" one Size). */
 const LABEL = {
   alignItems: 'center',
   display: 'inline-flex',

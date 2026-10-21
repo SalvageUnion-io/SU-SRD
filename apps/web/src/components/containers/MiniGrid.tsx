@@ -1,6 +1,6 @@
 /**
- * MiniGrid — a list of contentful Minis (N3) as a masonry grid (owner's
- * call, 2026-10-20): a pilot's abilities, an NPC's actions, a mech's systems
+ * MiniGrid — a list of contentful Minis (N3) as a masonry grid: a pilot's
+ * abilities, an NPC's actions, a mech's systems
  * and modules, a pattern's loadout. Each Mini is its head and then its text,
  * so Minis differ in height; the grid deals them into columns that each run
  * their own height, with no ragged gaps between rows.

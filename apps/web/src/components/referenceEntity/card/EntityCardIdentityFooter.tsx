@@ -103,8 +103,7 @@ export function EntityCardIdentityFooter({
       data-grain={onBand ? grain : undefined}
       className={cn(onBand && grainClass(grain))}
       style={{
-        // No ink rule over a card's foot, a user-made one's too (owner's
-        // calls, 2026-10-19 and 2026-10-20).
+        // No ink rule over a card's foot, a user-made one's too.
         background: band?.bandColor,
         color: onBand ? `var(--color-${band?.onBand})` : color.ink2,
         alignItems: 'baseline',
@@ -144,7 +143,7 @@ export function EntityCardIdentityFooter({
         <span style={{ contain: 'inline-size', flex: '1 1 0', minWidth: 0, textAlign: 'right' }}>
           {/* On a band the source sits on its own cut-out: the card's paper
               hanging from the band's top edge, ink on it, the head's notch
-              mirrored at the foot (owner's call, 2026-10-19). */}
+              mirrored at the foot. */}
           <span style={onBand ? { ...CITE, ...CUTOUT } : CITE}>{citation}</span>
         </span>
       )}

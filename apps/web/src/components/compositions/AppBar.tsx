@@ -15,7 +15,7 @@ const LINK = cn('su-union-bar__link', capsLabel())
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
- * "One union, two tools"; origin board 05). Both render modes draw it through
+ * "One union, two tools"). Both render modes draw it through
  * one preset, `unionBar/UnionBar.tsx`.
  *
  * One lockup (the SU mark alone, no wordmark), then the **Reference | Build |
@@ -147,7 +147,7 @@ type AppBarProps = {
 
 // Its ground and ink are `.su-union-bar`'s: a page's leading band recolours
 // them (`unionBarMatch.ts`), which a style object would outrank. No rule under
-// it: the bar meets the page's header with no black border (owner, 2026-10-19).
+// it: the bar meets the page's header with no black border.
 const BAR = {
   isolation: 'isolate',
   position: 'relative',

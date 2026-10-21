@@ -5,7 +5,7 @@ import type { SpeckleGrain } from './Speckle'
  * The Union bar wears the colour of the band a page leads with: its ground,
  * its foreground and its grain, so the site header and the page's band read as
  * one colour, with no rule between them. The site footer wears it too
- * (`footerMatchCss`, owner's call 2026-10-19): a page ends in the colour it
+ * (`footerMatchCss`): a page ends in the colour it
  * leads with, and one with no leading band keeps the footer's ink.
  *
  * A band cannot reach the bar through the cascade (the bar is the page's
@@ -19,8 +19,8 @@ import type { SpeckleGrain } from './Speckle'
  *
  * The rule sets the `--su-bar-*` properties `.su-union-bar` reads
  * (`styles/partials/shell.css`); every colour the bar draws is one of them.
- * The bar matches in every mode, front pages included (owner's call,
- * 2026-10-19); a page with no leading band keeps its area's colour
+ * The bar matches in every mode, front pages included; a page with no
+ * leading band keeps its area's colour
  * (`data-mode`, `compositions/AppBar.tsx`).
  */
 const BAND = ".su-chapter-band[data-layout='bleed']"

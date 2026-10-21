@@ -125,7 +125,7 @@ const ROSTER = {
     'BayInfo',
     'EntityRollMini',
     'EntityChoices',
-    'LinkedUnits', // EDL: a linked unit is its header-only Mini, never a chip (round 4)
+    'LinkedUnits', // EDL: a linked unit is its header-only Mini, never a chip
     'damagedEffectOf',
     'Chips',
     'EntityStat',

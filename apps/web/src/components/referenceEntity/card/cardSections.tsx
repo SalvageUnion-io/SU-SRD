@@ -30,10 +30,10 @@ import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
 import { WhenDamaged } from './WhenDamaged'
 
-/** The body box's padding by size (board E1): tight on top under a "//" line. */
+/** The body box's padding by size: tight on top under a "//" line. */
 /**
  * A crawler type's two nested things say what they are as their first chip,
- * in place of a band over them (owner, round 5): its unique Crawler Ability
+ * in place of a band over them: its unique Crawler Ability
  * and its special NPC (Core Book p.212).
  */
 export const CRAWLER_ABILITY_SEAL = { label: 'Crawler Ability', tone: 'var(--color-ink)' }
@@ -103,13 +103,12 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     nestedHost,
   } = resolved
   const isPattern = !!pattern
-  // A CRAWLER BAY reads as three sections (owner's call, 2026-10-20): its
+  // A CRAWLER BAY reads as three sections: its
   // Bay Info, then its crew NPC, then its When Damaged.
   const isBay = schemaName === 'crawler-bays'
   // ROLL TABLE — the entity's own, or its folded action's, under its ROLL THE
-  // DIE bar (board E4). In a framed card it is a nested element, so it wears
-  // its own box at the nested width (owner's call, 2026-10-14: "nested
-  // elements should not be full-width"); flush on a page.
+  // DIE bar (R8). In a framed card it is a nested element, so it wears
+  // its own box at the nested width, never full-width; flush on a page.
   const ownTable = resolveTable(entity)
   const entityTable = ownTable ?? resolveTable(foldedAction)
   const tableSource = ownTable ? entity : foldedAction
@@ -241,7 +240,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   const bodyContent: ReactNode = (
     <>
-      {/* The reference reads a bay's prose bare; only a sheet's folding bay names it Bay Info (owner, round 5). */}
+      {/* The reference reads a bay's prose bare; only a sheet's folding bay names it Bay Info. */}
       {isBay && sectionFold ? (
         <BayInfo subject={entityName} fold={sectionFold} onPage={onPage}>
           {proseContent}
@@ -292,13 +291,13 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // creature's Stinger) closes on its head with no paper strip under it.
   // A crawler bay's crew NPC is a Peek Mini where it is level 2 (a bay's Card
   // on a sheet, N1). On the bay's Page it is one level deep, so it is drawn
-  // open with all its content (N8, owner 2026-10-20: "the smith should be a
-  // Listing row"), as it is where its crew choices are being made.
+  // open with all its content (N8, R39), as it is where its crew choices are
+  // being made.
   const bayCrewPeek =
     schemaName === 'crawler-bays' && !onSelectionChange && !onPage && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
       : undefined
-  // WHEN DAMAGED — the bay's section above its crew (owner, round 7).
+  // WHEN DAMAGED — the bay's section above its crew.
   const damagedNode: ReactNode =
     !hide?.damagedEffect && damagedEffect ? (
       onPage ? (

@@ -103,7 +103,7 @@ export function choiceKey(name: string, chassisName: string | undefined): string
 }
 
 /**
- * NO REPEATED PROSE (board E2): a nested child hides any paragraph its parent
+ * NO REPEATED PROSE: a nested child hides any paragraph its parent
  * already prints — the Sestra Drone's description, under the Drone Controller
  * ability that says the same thing. `shown` holds the parent's `proseKey`s.
  */

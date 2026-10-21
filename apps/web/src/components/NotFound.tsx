@@ -32,8 +32,8 @@ type NotFoundProps = {
 export function NotFound({ search, didYouMean, back }: NotFoundProps) {
   return (
     <div className="su-not-found">
-      {/* The search is the band's control, as an index's is (owner, 2026-10-20:
-          "search should be in header"); on a phone it leads the body, full
+      {/* The search is the band's control, as an index's is (R37); on a
+          phone it leads the body, full
           width, above the 404's words. */}
       <ChapterBand
         measure={PAGE_MEASURE}

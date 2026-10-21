@@ -6,10 +6,10 @@ import { FOCUS_RING } from '../atoms/interaction'
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
  * do (one product, so one foot): ONE band in the colour of the band the page
- * leads with, as the Union bar wears it (`footerMatchCss`, owner's call
- * 2026-10-19), ink with paper flecks on a page that leads with none.
+ * leads with, as the Union bar wears it (`footerMatchCss`), ink with paper
+ * flecks on a page that leads with none.
  *
- * - **A show page** (entity, pattern, roll table; board 07) merges its entity
+ * - **A show page** (entity, pattern, roll table) merges its entity
  *   foot into it: the citation on one line, the book first and each reprint
  *   after a `//` (`Workshop Manual · p.65 // … (CR) · p.37`, `citeLine`), in
  *   the same words a card's foot cites it, text, never chips, and no kind

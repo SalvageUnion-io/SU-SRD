@@ -66,7 +66,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) is the notch's kicker on a page band, at every width: a line of
  * small caps on the cut-out above the name (`SRD//CHASSIS//`), the cut-out
- * one plate around both (owner's rule, 2026-10-16).
+ * one plate around both.
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
@@ -78,7 +78,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
  * `pilot`, `mech`, `crawler` and `adversary` (Denizens' brown) are the four
  * chapters; `denizen` is the navy of the NPC designer and Play's Scene. `ink` is the
- * dark band of a page that is the player's own (Build's Shelves, board S1): it
+ * dark band of a page that is the player's own (Build's Shelves): it
  * wears paper flecks instead of ink speckle (ruleset §3.5). `build` and `play`
  * are the app's two areas' own bands: the Training Bay's pilot orange and the
  * Cantina's deep crawler pink. Content in `aside` and `eyebrow` is ink on
@@ -312,8 +312,8 @@ export function ChapterBand({
   const lone = !lead
   // The title that is the fill's name holds its line's left, its free room on
   // its right (the fill's `margin-inline-end: auto`, which an inline `margin:
-  // 0` beat: a sheet's name sat right, owner 2026-10-20: "should be
-  // left-adjusted").
+  // 0` beat would set a sheet's name at the right; R40: a name sits at the
+  // left).
   const fillName = fills && lone && !trail
   const placed = fillName ? { ...titleStyle, ...BESIDE_CONTROLS } : titleStyle
   const title = (

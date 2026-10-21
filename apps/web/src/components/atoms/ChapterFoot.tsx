@@ -8,7 +8,7 @@ import { Speckle } from './Speckle'
  * licence) and `end` (the site's own links and the mark).
  *
  * It wears the colour of the band the page leads with, as the Union bar does
- * (owner's call, 2026-10-19): its ground, foreground and grain are the
+ *: its ground, foreground and grain are the
  * `--su-foot-*` properties (`.su-chapter-foot` in `styles/partials/shell.css`),
  * ink with paper flecks until the leading band's rule sets them to its own
  * (`footerMatchCss`, `unionBarMatch.ts`). The band cannot reach the foot
@@ -21,7 +21,7 @@ import { Speckle } from './Speckle'
 export type ChapterFootProps = {
   /**
    * The page's source, on its own cut-out: the page's ground hanging from the
-   * band's top edge at the row's end, above the site links (owner, 2026-10-19).
+   * band's top edge at the row's end, above the site links.
    */
   cite?: ReactNode
   /** The licence, at the row's start. */

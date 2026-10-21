@@ -51,7 +51,7 @@ type SchemaLink = {
 
 /**
  * A section of the drawer's index: an ink section stamp over compact rows
- * (board 08, the SRD's chapters with their counts), the same index the SRD's
+ * (the SRD's chapters with their counts), the same index the SRD's
  * home page prints.
  */
 export type NavDrawerCategory = {

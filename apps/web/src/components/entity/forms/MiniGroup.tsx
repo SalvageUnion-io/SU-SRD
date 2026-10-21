@@ -1,6 +1,6 @@
 /**
  * MiniGroup — an entity's contentful Mini and the Minis that belong to it,
- * held in ONE border (owner's call, 2026-10-20): a crawler bay, then its crew
+ * held in ONE border: a crawler bay, then its crew
  * lead, what it holds and its When Damaged. It is no nesting: the Minis sit
  * side by side in the group, none inside another (a Mini nests nothing, E6),
  * and the border is no frame (no head, no level). It only says they are one

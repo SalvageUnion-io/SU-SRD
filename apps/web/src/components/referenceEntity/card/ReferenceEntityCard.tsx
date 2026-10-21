@@ -84,7 +84,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
 
 /**
  * ReferenceEntityCard — the ONE card that renders ENTITIES, ACTIONS, and
- * NPCs (ruleset §5, boards E1–E4). ONE anatomy across every size × extent ×
+ * NPCs (ruleset §5). ONE anatomy across every size × extent ×
  * context:
  *
  *   cut-out head (title, labels, chip group) · body · footer
@@ -505,7 +505,7 @@ function ReferenceEntityCardInner({
     nestedGroupsNode,
   } = resolveCardSections(bodyInput, resolved)
 
-  // A PAGE (boards 07, 08): the card's parts laid out as a page (`CardPage`).
+  // A PAGE: the card's parts laid out as a page (`CardPage`).
   if (onPage) {
     return (
       <CardPage

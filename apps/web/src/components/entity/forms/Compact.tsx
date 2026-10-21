@@ -166,7 +166,7 @@ export function Compact({
     ) : null
   // Beside chips, or with the host's, the labels are chips: the first items
   // of the chip group, wrapping and centring with the rest, never a line of
-  // their own (owner's rule, 2026-10-14). The host's (an owner chip) lead,
+  // their own. The host's (an owner chip) lead,
   // then the note as a label-only chip (★ Primary), then the HOMEBREW stamp
   // every player-made thing wears (ruleset §3.9).
   const labelsAsChips =
@@ -233,7 +233,7 @@ export function Compact({
         controls={slots.controls}
         labels={labelsAsChips ? undefined : ownLabels}
         // Every Compact wears the cut-out, bodied or not, its chips on the band
-        // beside the name (owner's call, 2026-10-13).
+        // beside the name.
         // What does not fit beside the name: the body's first row, or, with
         // no body, +MORE (C2b, C5).
         overflow={hasBody ? 'body' : 'more'}

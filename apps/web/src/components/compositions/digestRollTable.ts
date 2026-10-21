@@ -18,8 +18,7 @@ export type RollTableType =
 /**
  * A table the book prints with a "20" row only (a weapon's Bio-Talon, its
  * Blinding Blue Laser Rifle) shown with the rest of the die as a row of its
- * own, "1–19: Nothing happens." The display's, never the data's (owner, round
- * 4: "technically … moves us away from the book, but it is a better ux"), so
+ * own (R43), "1–19: Nothing happens." The display's, never the data's, so
  * a roll under 20 lands on a row too. Every other table comes back as it is.
  */
 export function withNothingHappens<T extends RollTableType>(table: T): T {

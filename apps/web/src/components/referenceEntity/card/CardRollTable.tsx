@@ -75,10 +75,10 @@ export function CardRollTable({
   onRollResult?: (text: string, key: string) => void
   /** Nested: the table's Peek address (`tablePeekAddress`); none, and its name only reads. */
   peekAt?: string
-  /** Nested: its head's Size, a Mini, or a Compact in a Full host (owner, round 6). */
+  /** Nested: its head's Size, a Mini, or a Compact in a Full host. */
   nestedSize?: 'mini' | 'compact'
 }) {
-  // A "20"-only table reads with its "1–19: Nothing happens." row (owner, round 4).
+  // A "20"-only table reads with its "1–19: Nothing happens." row.
   const table = withNothingHappens(bookTable)
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>

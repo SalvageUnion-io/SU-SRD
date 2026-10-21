@@ -15,8 +15,8 @@ import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
- * CardPage — the card when it IS the page (`presentation="page"`, boards 07
- * and 08). No frame, header or footer: the page's `ChapterBand` carries
+ * CardPage — the card when it IS the page (`presentation="page"`). No frame,
+ * header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it a chassis's stats, inline and first, then the
  * prose and the chassis ability (every other entity's stats ride the band:
@@ -63,7 +63,7 @@ type CardPageProps = {
   /**
    * A crawler type's: its actions stand bare, no "Actions" band, each wearing
    * this seal as its first chip ("Crawler Ability"; Core Book p.212: "a unique
-   * Ability … as well as a special NPC"; owner, round 5).
+   * Ability … as well as a special NPC").
    */
   actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
@@ -131,7 +131,7 @@ export function CardPage({
     !!hero || stats.length > 0 || !!opening || !!subLine || !!body || leadActions.length > 0
 
   // With art, the page's actions and nested trays stand in the column beside
-  // it (owner, round 4): the art keeps the top left (round 5), a column
+  // it: the art keeps the top left, a column
   // shorter than its art spreads its blocks evenly down it. Without art they
   // follow the main block.
   const beside = (
@@ -159,8 +159,7 @@ export function CardPage({
     </>
   )
 
-  // Preceding and Next side by side on one row, Next's label at its end
-  // (owner, round 7).
+  // Preceding and Next side by side on one row, Next's label at its end.
   const neighbours = abilityTreeNeighbours(entity)
 
   return (
@@ -176,7 +175,7 @@ export function CardPage({
           className={cn(
             'su-entity-page__main',
             !!hero && 'su-entity-page__main--art',
-            // Its actions wrap under the art (owner, round 6).
+            // Its actions wrap under the art.
             !!hero && otherActions.length > 0 && 'su-entity-page__main--wrap'
           )}
         >
@@ -212,11 +211,10 @@ export function CardPage({
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
       {!hero && beside}
-      {/* An ability's neighbours in its tree, under the rest (owner, 2026-10-20),
-          each a collapsed header a line wide that links to its Page (owner,
-          2026-10-20: "should just be a collapsed header not the full
-          content"), at the Page's nested level, a Compact (owner, round 4:
-          "one size level higher"; ruleset N1), a named N8 exception
+      {/* An ability's neighbours in its tree, under the rest,
+          each a collapsed header a line wide that links to its Page, never
+          its full content (R43), at the Page's nested level, a Compact
+          (ruleset N1), a named N8 exception
           (`.su-entity-page__neighbours`). */}
       {neighbours.length > 0 && (
         <div className="su-entity-page__neighbour-row">

@@ -1,6 +1,6 @@
 /**
- * THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b; owner's
- * rule, 2026-10-20): a head's chips sit only beside its name, on the name's
+ * THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b, R37): a
+ * head's chips sit only beside its name, on the name's
  * line, the last of them (the cost, the last slot) in its bottom-right
  * corner, filling that line leftward. They never make the head taller: what
  * does not fit beside the name leaves the head. On a contentful rendering (a
@@ -164,7 +164,7 @@ function widestWord(el: HTMLElement): number {
 
 /**
  * A name that ends in "…" short of room rather than wrap (a Compact's, a
- * catalog tile's: owner, round 4): its title, or the name itself, clips
+ * catalog tile's: owner): its title, or the name itself, clips
  * with an ellipsis.
  */
 function ellipsizes(name: HTMLElement): boolean {
@@ -192,8 +192,7 @@ export function isKept(item: Element, root: Element): boolean {
 }
 
 /**
- * The class that stays ahead of the rest (C2b; owner, 2026-10-20: "TL and
- * Slots should be in the header, others should flow beneath"): the
+ * The class that stays ahead of the rest (C2b, R37): the
  * measures (Slots, SP, HP) keep their place beside the Tech Level while
  * they fit, before the economy and the traits take what room is left. Not
  * kept: a measure that does not fit still leaves, so the head never grows.
@@ -239,8 +238,8 @@ export function overflowPlan(
   for (let i = widths.length - 1; i >= 0; i--) {
     if (kept[i] || first[i]) continue
     const width = widths[i] as number
-    // As many as fit stay (owner, 2026-10-20: "one of these could have fit in
-    // the header"): one too wide leaves, and the next one in still may stay.
+    // As many as fit stay (R37): one too wide leaves, and the next one in
+    // still may stay.
     if (fits(used + gap + width)) used += gap + width
     else out[i] = true
   }
@@ -324,8 +323,7 @@ function planWithRoom(
   // Where even then the name would break inside a word (a crawler's long
   // name in Edit on a phone, beside its Tech Level stepper and type), the
   // name takes the band's width and the rest are the first row, the Tech
-  // Level too (owner, 2026-10-20: "the name should be allowed to be full
-  // width with TL and type moving to content"); the cost and C8's slots stay.
+  // Level too (R37); the cost and C8's slots stay.
   const left = widths.reduce((sum, width, i) => (freed.out[i] ? sum : sum + gap + width), 0)
   if (left + shortest <= room - 1) return freed
   const stays = items.map(

@@ -21,7 +21,7 @@ const EMPTY_FILL = {
   backgroundColor: color.paper,
 } satisfies CSSProperties
 // An unlit pip past the redline keeps the empty ground and takes the
-// status-bad outline (boards D1, D4): the redline reads before the value
+// status-bad outline (ruleset §4.5): the redline reads before the value
 // reaches it — on the sheet and in Play alike, since both draw this gauge.
 const REDLINE_FILL = {
   borderColor: color.statusBad,

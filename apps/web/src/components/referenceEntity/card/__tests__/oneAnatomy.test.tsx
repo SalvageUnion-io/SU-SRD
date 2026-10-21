@@ -1,5 +1,5 @@
 /**
- * ONE ANATOMY, TWO FILLS, LEGIBLE NESTING (boards E1–E4).
+ * ONE ANATOMY, TWO FILLS, LEGIBLE NESTING (ruleset §5).
  *
  * Rendered through the real card with real SRD data:
  * - have vs do picks the header fill by data shape;
@@ -206,7 +206,7 @@ describe('the user-made flag', () => {
     const dashed = [...container.querySelectorAll<HTMLElement>('div')].filter(
       (el) => el.style.borderStyle === 'dashed' || el.style.borderTopStyle === 'dashed'
     )
-    // No dashed frame or foot rule (owner's call, 2026-10-20): the stamp marks it.
+    // No dashed frame or foot rule: the stamp marks it.
     expect(dashed).toEqual([])
   })
 

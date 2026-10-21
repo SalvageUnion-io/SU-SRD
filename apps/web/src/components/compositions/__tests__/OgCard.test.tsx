@@ -18,7 +18,7 @@ import {
 } from '../ogCardText'
 
 /**
- * OgCard (board PV1): the link preview, one layout for both apps.
+ * OgCard: the link preview, one layout for both apps.
  * Each kind's card is read back for what a reader sees in the unfurl (the
  * title, the band's tone, the mark, the chips, the lines and the foot)
  * rather than snapshotted, so a token change does not rewrite every card.

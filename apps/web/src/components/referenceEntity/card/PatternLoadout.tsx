@@ -167,8 +167,8 @@ function PatternDrones({
 
 /**
  * `LoadoutMini` — one installed system/module in a pattern's loadout, on its
- * card and its Page alike: a CONTENTFUL Mini (N3; owner's call, 2026-10-20:
- * "all of em, contentful tokens"), its head (`[kind] name [TL | n]`) and then
+ * card and its Page alike: a CONTENTFUL Mini (N3, R39), its head
+ * (`[kind] name [TL | n]`) and then
  * its text, in the loadout's masonry grid (`MiniGrid`). The part's tone reads
  * at a glance; the Mini opens its Page and Peeks its whole card.
  *
@@ -219,7 +219,7 @@ const LOADOUT_PAGE = {
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
  * Modules) a solid Slab over its parts, each a contentful Mini in a masonry
- * grid (`LoadoutMini`, owner's call, 2026-10-20), as a mech's sheet draws
+ * grid (`LoadoutMini`), as a mech's sheet draws
  * them. Multiples repeat, as on the card's loadout.
  */
 export function PatternLoadoutRows({

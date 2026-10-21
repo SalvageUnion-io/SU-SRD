@@ -45,7 +45,7 @@ describe('SchemaViewerIsland', () => {
   }
 })
 
-describe('SchemaViewerIsland — the classes index (round 6)', () => {
+describe('SchemaViewerIsland — the classes index', () => {
   afterEach(() => {
     cleanup()
     window.location.href = 'http://localhost/'

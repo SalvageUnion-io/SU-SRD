@@ -2,7 +2,7 @@
  * An ability's place in its tree: `TREE | <tree>` opening its class, on the
  * Page band and on every card head with a relation budget (C3); its
  * `Preceding` and `Next` abilities, the book's words (p.23), are its Page's
- * nested references (owner, 2026-10-20), never chips.
+ * nested references, never chips.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'

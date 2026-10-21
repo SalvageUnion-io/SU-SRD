@@ -119,7 +119,7 @@ function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
       key: fact.key,
       label: fact.label,
       shortLabel: fact.short,
-      // A lettered Tech Level reads spelled out on the band (round 5).
+      // A lettered Tech Level reads spelled out on the band.
       value: fact.key === 'tech-level' ? spelled(String(fact.value), model) : fact.value,
       ...(fact.group ? { group: fact.group } : {}),
       ...(fact.hint ? { hoverText: fact.hint } : {}),

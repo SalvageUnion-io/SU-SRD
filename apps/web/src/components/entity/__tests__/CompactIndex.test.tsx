@@ -184,7 +184,7 @@ describe('CompactIndex chips for systems and modules', () => {
   })
 })
 
-describe('CompactIndex with no lead to browse by (round 11)', () => {
+describe('CompactIndex with no lead to browse by', () => {
   const hamlet = () =>
     need(SalvageUnionReference.CrawlerTechLevels.getByName('Hamlet Crawler'), 'hamlet')
 

@@ -68,7 +68,7 @@ export type NestedWrite = {
   hide: ReferenceEntityCardHideConfig | undefined
 }
 
-/** A stack's inset from the frame, by the host's size (board E2). */
+/** A stack's inset from the frame, by the host's size. */
 const STACK_MARGIN: Record<Size, string> = {
   full: `${space[4]} ${space[14]} ${space[14]}`,
   compact: `${space[2]} ${space[12]} ${space[12]}`,
@@ -96,7 +96,7 @@ const stack = (size: Size, flush: boolean): CSSProperties => ({
  * Nested cards that each wear their own type stamp (or GRANTS seal) — a
  * System, a Module, an NPC, a Drone, a Pattern. A tray headed "Systems" or
  * "NPC" would only repeat that stamp, so they stack in the parent's frame
- * without one (board E2). Containment and the stamp show the nesting; there
+ * without one. Containment and the stamp show the nesting; there
  * is no indent and no rail (ruleset §3.10).
  */
 export function CardStack({
@@ -114,8 +114,7 @@ export function CardStack({
 /**
  * What leads a framed card's nested elements. A GAP under the head when no
  * body pads it, so content never touches the header; and the card's own ROLL
- * TABLE, boxed at the nested width (owner's call, 2026-10-14: "nested elements
- * should not be full-width").
+ * TABLE, boxed at the nested width: a nested element is never full-width.
  */
 export function CardLead({
   bare,
@@ -158,9 +157,8 @@ function PeekMinis({ entities }: { entities: ReferenceCardEntity[] }) {
 }
 
 /**
- * A crawler bay's crew NPC as a TOKEN that Peeks its card (owner's call,
- * 2026-10-14: "when nesting an NPC inside of a crawler bay, use a token with
- * peek"). The NPC is embedded in the bay, with no dataset row of its own, so
+ * A crawler bay's crew NPC as a TOKEN that Peeks its card. The NPC is
+ * embedded in the bay, with no dataset row of its own, so
  * it Peeks through the bay's address (`embeddedPeekAddress`).
  */
 export function EmbeddedNpcMinis({
@@ -388,7 +386,7 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
 }
 
 /**
- * ACTIONS nest in their card (owner's call, 2026-10-14): no tray and no
+ * ACTIONS nest in their card: no tray and no
  * "Action" stamp, an action is part of the thing that does it. Their form is
  * the host's level (N1, N3). A Page lays its own out, level 1, as framed
  * cards (`CardPage`), so the actions drawn here are always under a Card or a
@@ -448,8 +446,7 @@ export function ActionMinis({
   hostDown?: Down
   /**
    * A masonry grid (`MiniGrid`) rather than one a line: a live sheet's
-   * actions, where the column has the room for two or three (owner's call,
-   * 2026-10-20).
+   * actions, where the column has the room for two or three.
    */
   grid?: boolean
 }) {

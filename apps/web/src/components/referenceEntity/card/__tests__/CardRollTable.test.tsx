@@ -1,5 +1,5 @@
 /**
- * The embedded roll table (board E4): one bar in every state, the result as a
+ * The embedded roll table (R8): one bar in every state, the result as a
  * toast whether or not the table is open, and the rolled row marked. It is
  * the shared `RollTableInstrument`, banded in its surface's tone, and a
  * columns table is the same instrument.
@@ -79,7 +79,7 @@ describe('CardRollTable', () => {
     expect(trigger?.getAttribute('tabindex')).toBe('0')
   })
 
-  test('nested beside a Full host it is one size up, a Compact head (round 6)', () => {
+  test('nested beside a Full host it is one size up, a Compact head', () => {
     render(
       <CardRollTable
         table={coreMechanic()}

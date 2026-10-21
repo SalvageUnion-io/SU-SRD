@@ -26,7 +26,7 @@ type CardImageProps = {
    */
   aside?: boolean
   /**
-   * HERO mode: the entity page's line art (board 07) — the full width of its
+   * HERO mode: the entity page's line art — the full width of its
    * column, eagerly loaded because it is the page's largest paint, on a paper
    * plate with a hairline frame. Its `sizes` is `heroImageSizes`, which the
    * page's preload must repeat.

@@ -80,8 +80,8 @@ export type EntityProps = EntitySource &
     relations?: TagItem[]
     /**
      * Compact and Mini: the units it is linked to (a pilot's mech), each a
-     * header-only Mini leading its body (`LinkedUnits`), never a relation chip
-     * (owner, round 4). A Compact or Mini with them is contentful.
+     * header-only Mini leading its body (`LinkedUnits`), never a relation
+     * chip. A Compact or Mini with them is contentful.
      */
     linked?: readonly LinkedUnit[]
     /**

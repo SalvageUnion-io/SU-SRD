@@ -1,6 +1,6 @@
 /**
- * REPRINT PROVENANCE — the identity footer's one citation line (ruling
- * 2026-10-19): every printing, the book first, `//` between, no "Also in".
+ * REPRINT PROVENANCE — the identity footer's one citation line: every
+ * printing, the book first, `//` between, no "Also in".
  *
  * 383 records in the dataset carry `additionalSources`: researched provenance
  * for which OTHER book (and page) an entity was reprinted in — the Starter Set

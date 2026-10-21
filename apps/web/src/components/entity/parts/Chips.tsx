@@ -27,7 +27,7 @@ import type { TagItem } from './tagItems'
  *
  * Each class is a LANE (`.su-chip-lane`, `data-chip-class`): `display:
  * contents` in a strip, so every chip is one flex item, the same gap from its
- * neighbours, groups included (owner, 2026-10-15). A lane carries how many
+ * neighbours, groups included. A lane carries how many
  * chips follow it (`--su-lane-end`), so a strip that fills from its
  * bottom-right corner orders its chips from the end (`--su-fill`). The group
  * wraps; it never clips a chip (E18).

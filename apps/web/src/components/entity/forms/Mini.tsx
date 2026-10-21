@@ -43,7 +43,7 @@ export type MiniSlots = {
   /**
    * Paint its band in this tone dulled toward grey, in place of its own: a
    * thing you do in Play wears the unit it comes from (pilot, mech, crawler),
-   * at a distance, never black (owner, round 10).
+   * at a distance, never black.
    */
   tint?: string
   /** The kind, for screen readers (`KindLabel`). */

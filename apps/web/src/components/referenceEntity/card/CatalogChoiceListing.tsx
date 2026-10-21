@@ -139,8 +139,7 @@ export function CatalogChoiceListing({
           </Button>
         )}
         {!insidePeek && options.open && (
-          // The whole qualifying collection is a big grouping: Minis
-          // (owner's call, 2026-10-14).
+          // The whole qualifying collection is a big grouping: Minis.
           <div id={options.panelId} style={LIST}>
             <EntityMiniList entities={entities} label={choice.name} />
           </div>

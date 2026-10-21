@@ -252,7 +252,7 @@ describe('pattern loadout tokens', () => {
     )
   })
 
-  test('each loadout entry is a contentful Mini: its head, then its text (owner, 2026-10-20)', () => {
+  test('each loadout entry is a contentful Mini: its head, then its text', () => {
     const { chassis, pattern } = thunderStorm()
     const { container } = render(
       <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
@@ -530,8 +530,7 @@ describe('pattern rows show what each pattern changes', () => {
     const { container } = render(<ReferenceEntityCard data={mule()} />)
     expect(screen.queryByRole('list', { name: 'Hauler loadout' })).toBeNull()
     expect(container.textContent).not.toContain('Reactor Flare')
-    // Owner, 2026-10-20: "full width and contentful, showing only the special
-    // pattern descriptions".
+    // A host's pattern is contentful with its description alone (R39).
     expect(container.textContent).toContain('designed for hauling cargo')
   })
 })

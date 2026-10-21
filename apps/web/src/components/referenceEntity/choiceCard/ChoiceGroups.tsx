@@ -217,7 +217,7 @@ function ChoiceOption({
     padding: inset,
   } satisfies CSSProperties
   // On the Page the name is a cut-out on the tone head's foot, as every
-  // head's (owner, 2026-10-20, a Custom Sniper Rifle's Modifications: "should
+  // head's (a Custom Sniper Rifle's Modifications: "should
   // have cutouts"), its CHOICE chip in the corner; elsewhere ink on the
   // frame's paper.
   const head = onPage
@@ -378,8 +378,8 @@ function ChoiceOptionGroup({
             name={`${tableName} Table`}
             size={compact ? 'mini' : 'compact'}
             // Collapsed into its header everywhere, a Page included: name and
-            // Roll the Die, its rows its Peek's (owner, round 5); a Compact
-            // head beside a Full host's, a Mini in a card's (round 6).
+            // Roll the Die, its rows its Peek's; a Compact
+            // head beside a Full host's, a Mini in a card's.
             nested
             nestedSize={compact ? 'mini' : 'compact'}
             peekAt={tablePeekAddress(tableEntity)}
@@ -403,8 +403,8 @@ function ChoiceOptionGroup({
   const entities = options.map((option) =>
     renderEntityOption ? resolveOptionEntity(option) : undefined
   )
-  // On its Page an entity option is a contentful Mini a line wide (owner,
-  // 2026-10-20, Bionic Senses: "full width and contentful"), so one column.
+  // On its Page an entity option is a contentful Mini a line wide (R39,
+  // Bionic Senses), so one column.
   const split = !compact && !(onPage && entities.some(Boolean))
   return (
     <div style={toneVar}>

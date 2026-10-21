@@ -63,7 +63,7 @@ const SIZES = `${widthAtLeast('xl')} 22rem, 50vw`
  * in `entity-forms.css`): there the window takes the ink's aspect inside the
  * short band and the canvas's empty margin falls outside it, so a mech is
  * never cut off. At wider widths the window is `display: contents` and the
- * art draws whole at 3:4, as before. Unmeasured art has no window and draws
+ * art draws whole at 3:4. Unmeasured art has no window and draws
  * whole in the band.
  */
 function tileArtWindow(url: string): CSSVarStyle | undefined {
@@ -104,8 +104,7 @@ export function CompactIndex({
 }: CompactIndexProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
-  // Its name may end in "…": the index Compact Peeks the whole entry (owner, round 4:
-  // "should ellipses off and show in a peek").
+  // Its name may end in "…": the index Compact Peeks the whole entry.
   const peek = usePeekAttrs(model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   // An index Compact's budget is a compact head's (C3), in its kind's own context (C4):
@@ -115,8 +114,8 @@ export function CompactIndex({
   const kept = budgetFacts(model.facts, naturalContext(model.kind))
   const leadText = lead ? model.lead : undefined
   // An index Compact with no lead to browse by is still contentful when its budget left
-  // measures out (owner, round 11: the crawler tech levels "should be
-  // contentful"): its head keeps the budget alone (TL, SP), so the name keeps
+  // measures out (R47, the crawler tech levels): its head keeps the budget
+  // alone (TL, SP), so the name keeps
   // its room, and its body is the rest as chips (Upkeep, Upgrade, POP).
   const spared =
     lead && !leadText && model.facts.some((f) => f.key.startsWith(MEASURE_KEY) && !kept.includes(f))

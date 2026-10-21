@@ -9,7 +9,7 @@ import { ReferenceEntityCard } from './ReferenceEntityCard'
  * own `ChoiceRegion`, on the lines under the Mini in its `MiniGroup`, never
  * inside it (E6). Editable (`onSelectionChange`), every choice shows, its
  * options the toggles; read-only, only a choice that has been made does (an
- * unmade pick is a write cue, board 10). Nothing when there is none to show.
+ * unmade pick is a write cue). Nothing when there is none to show.
  */
 export function EntityChoices({
   entity,

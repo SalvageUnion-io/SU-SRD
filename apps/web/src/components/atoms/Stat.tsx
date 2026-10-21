@@ -106,8 +106,7 @@ type HorizontalValueProps = {
   bottomLabel?: StatValue
   /**
    * The label's short form, read in its place on a phone ("SP" for
-   * "Structure Points"; owner, 2026-10-20: "Mobile can use short form
-   * terminology to fit"). One label shows at a time.
+   * "Structure Points", so it fits). One label shows at a time.
    */
   shortLabel?: string
   /**

@@ -1,5 +1,5 @@
 /**
- * The entity card's header GRAIN — the light speckle (ruleset §3.5, board 05c)
+ * The entity card's header GRAIN — the light speckle (ruleset §3.5)
  * on its two header fills (§5):
  *
  *   - `ink`   — ink speckle on a TONE header (things you have);

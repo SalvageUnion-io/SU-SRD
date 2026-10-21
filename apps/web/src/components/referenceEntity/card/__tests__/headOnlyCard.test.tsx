@@ -3,7 +3,7 @@
  * name and chips (a creature's Stinger) draws no paper strip under its cut-out:
  * the lead gap (`CardLead`) opens only when nested content follows the head,
  * so a card with no nested groups must not count an empty fragment as some.
- * What its head cannot hold opens a body (owner, 2026-10-20): its overflow
+ * What its head cannot hold opens a body: its overflow
  * row, hidden while every chip fits.
  */
 import { describe, expect, test } from 'bun:test'

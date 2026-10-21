@@ -1,5 +1,5 @@
 /**
- * THE CARD AS A PAGE (boards 07 and 08) — `presentation="page"`.
+ * THE CARD AS A PAGE — `presentation="page"`.
  *
  * Rendered through the real card with real SRD data:
  * - no frame, seam, header or footer: the page's chapter band carries the
@@ -101,7 +101,7 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta).not.toHaveProperty('cost')
   })
 
-  test('a lettered Tech Level is spelled out on the band (round 5)', () => {
+  test('a lettered Tech Level is spelled out on the band', () => {
     const tl = (entity: Parameters<typeof resolveEntityPageMeta>[0]) =>
       resolveEntityPageMeta(entity).stats.find((s) => s.key === 'tech-level')?.value
     const chassis = need(SalvageUnionReference.Chassis.getByName('Stormterror'), 'Stormterror')
@@ -218,7 +218,7 @@ describe('the card as a page', () => {
     expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
     expect(container.querySelector('.su-entity-page__opening .su-entity-mini')).toBeNull()
     // One contentful Mini per installed part (multiples repeat), each in its
-    // group's masonry grid under its Slab (owner's call, 2026-10-20), never a
+    // group's masonry grid under its Slab, never a
     // framed card or a Compact.
     const parts = (pattern.systems ?? [])
       .concat(pattern.modules ?? [])
@@ -450,7 +450,7 @@ describe('nested cards read at one body size, their host’s', () => {
     expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
   })
 
-  test('a crawler page: its ability and NPC chip what they are, under no band (round 5)', () => {
+  test('a crawler page: its ability and NPC chip what they are, under no band', () => {
     const augmented = SalvageUnionReference.getByNameIn('crawlers', 'Augmented')
     if (!augmented) throw new Error('fixture missing: Augmented')
     const { container } = render(<ReferenceEntityCard data={augmented} presentation="page" />)
@@ -463,7 +463,7 @@ describe('nested cards read at one body size, their host’s', () => {
     expect(npcSeal).toBeTruthy()
   })
 
-  test('a drone page: its choice table is collapsed to its head (round 5)', () => {
+  test('a drone page: its choice table is collapsed to its head', () => {
     const drone = SalvageUnionReference.getByNameIn('drones', 'Sestra Drone')
     if (!drone) throw new Error('fixture missing: Sestra Drone')
     const { container } = render(<ReferenceEntityCard data={drone} presentation="page" />)
@@ -479,7 +479,7 @@ describe('nested cards read at one body size, their host’s', () => {
   })
 })
 
-describe("an ability's Page: Preceding and Next on one row (round 7)", () => {
+describe("an ability's Page: Preceding and Next on one row", () => {
   test('both sections share one row, Next marked to sit at its end', () => {
     const arms = need(SalvageUnionReference.Abilities.getByName('Bionic Arms'), 'bionic arms')
     const { container } = render(<ReferenceEntityCard data={arms} presentation="page" />)

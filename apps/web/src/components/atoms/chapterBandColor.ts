@@ -5,11 +5,11 @@ import { color } from '../../design/tokens'
  * band wears. `rules` is the rules-blue band of Contents, Core Rules,
  * Salvaging, Guides and Keywords; `pilot`, `mech`, `crawler` and `adversary`
  * are the four chapters: the Denizens chapter wears the adversary brown its
- * entities' cards wear (owner's call, 2026-10-20). `denizen` is the navy the
+ * entities' cards wear. `denizen` is the navy the
  * Denizens chapter wore before, kept by the NPC designer and sheet and by
  * Play's Mediator Scene. `ink` is no chapter of the book: it is the dark band
  * of a page that is the player's own rather than the book's — Build's Shelves
- * (board S1) — and it carries paper flecks and paper text (ruleset §3.5).
+ * — and it carries paper flecks and paper text (ruleset §3.5).
  * `build` and `play` are no chapters either: they are the app's two areas'
  * own bands, on their pages that are neither a chapter nor the player's
  * shelves, so they stop wearing the SRD's rules-blue, and the Union bar wears

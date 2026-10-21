@@ -6,7 +6,7 @@ import { footerMatchCss, unionBarMatchCss } from '../unionBarMatch'
 
 /**
  * The Union bar wears the colour of the band a page leads with, and so does
- * the site footer (owner's call, 2026-10-19).
+ * the site footer.
  */
 describe('unionBarMatchCss', () => {
   test('recolours the bar to the band, keyed on the leading band only', () => {
@@ -32,7 +32,7 @@ describe('unionBarMatchCss', () => {
   })
 })
 
-// Rulings 2 and 4 (2026-10-19): the footer matches the leading band, as the bar does.
+// The footer matches the leading band, as the bar does.
 describe('footerMatchCss', () => {
   test('recolours the foot band to the band, keyed on the same leading band', () => {
     const css = footerMatchCss('k1', color.mech, 'ink', 'ink')

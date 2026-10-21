@@ -62,8 +62,8 @@ describe('Footer', () => {
         expect(mark.getAttribute('height')).toBe('40')
       })
 
-      // The site's own pages left the Union bar with its second nav row
-      // (brand refresh P2a); they live here, same tab. The legal prose has no
+      // The site's own pages are not on the Union bar, which has no second
+      // nav row; they live here, same tab. The legal prose has no
       // links: a prose link is an `InlineRef`, which paints rust (ruleset §3.1).
       test('links the site pages, and nothing in the legal prose', () => {
         const { container } = render(
@@ -104,7 +104,7 @@ describe('Footer', () => {
     expect(container.querySelector('.su-footer__citation')).toBeNull()
   })
 
-  // Ruling 4 (2026-10-19): a show page's foot and the app footer are ONE footer.
+  // A show page's foot and the app footer are ONE footer.
   test('a show page merges its citation into the one footer, beside the links and licence', () => {
     const { container } = render(
       <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />
@@ -118,7 +118,7 @@ describe('Footer', () => {
     expect(band.querySelector<HTMLElement>('.su-chapter-foot__row')?.style.maxWidth).toBe('75rem')
   })
 
-  // Ruling 1 (2026-10-19): every printing on ONE line, the book first, `//` between.
+  // Every printing on ONE line, the book first, `//` between.
   test('cites every printing on one line, with no "Also in"', () => {
     const { container } = render(
       <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />
@@ -131,7 +131,7 @@ describe('Footer', () => {
     expect(container.textContent).not.toContain('Also in')
   })
 
-  // Ruling 3 (2026-10-19): no kind on the foot.
+  // No kind on the foot.
   test('names no kind', () => {
     const { container } = render(
       <Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />

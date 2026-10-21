@@ -136,7 +136,7 @@ export function blockPlainText(b: RefObjectContentBlock): string {
 /**
  * What a card hides. CATALOG — the SRD index tile — keeps artwork and
  * description ONLY, so every nested element is suppressed here, not at each
- * call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing
+ * call-site. TERMINAL (ruleset §1, R33): inside a tooltip popup nothing
  * acts, so the roll-table controls go too (the link and the nested Minis
  * are handled where they render).
  */

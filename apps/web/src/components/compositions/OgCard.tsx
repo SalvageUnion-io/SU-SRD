@@ -26,7 +26,7 @@ import {
 } from './ogCardText'
 
 /**
- * OgCard — the link preview (origin boards PV1 and OgCard): a
+ * OgCard — the link preview: a
  * 1200 × 630 picture of the page a link opens, built from the same parts as
  * that page. The chapter band with its speckle and the notched title
  * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
@@ -71,7 +71,7 @@ import {
  *
  * ## The foot rule
  *
- * Board PV1 draws the rule over the Union bar in rust. Rust means action and
+ * The rule over the Union bar is ink, never rust. Rust means action and
  * only action (ruleset §3.1, `tokens/rust-allowlist`), and nothing on a
  * picture can be pressed, so the rule is ink here, as the Union bar's own
  * edge is.

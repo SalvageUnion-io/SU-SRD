@@ -4,7 +4,7 @@ import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { ToneStrip } from '../atoms/ToneStrip'
 
 /**
- * One chapter of the Contents (board 06): the manual's chapter opened by a band
+ * One chapter of the Contents: the manual's chapter opened by a band
  * in its colour, then its name and real entry count, then its rows, each a
  * plain link with its count. The SRD home page's index draws these, and the
  * Mediator's Reference draws the same chapters inside Play (`SrdExplorer`).

@@ -18,10 +18,9 @@ export type LinkedUnit = {
 
 /**
  * The units an entity is linked to (a pilot's mech, a mech's pilot), each a
- * header-only Mini of its kind, never a chip (owner, round 4: "no linked units
- * should be chips. all should be entities"), its name opening that unit's
- * sheet, its readings and pairing as its chips (owner, round 8: "make sure the
- * entities have chips"). They lead the entity's body (`<Entity linked>`): a
+ * header-only Mini of its kind, never a chip (R5), its name opening that
+ * unit's sheet, its readings and pairing as its chips. They lead the entity's
+ * body (`<Entity linked>`): a
  * Compact's children as Minis (E6), and a Mini's the one named exception
  * (hard rules). A pilot and its mech are one Mini (`crewPair`).
  */

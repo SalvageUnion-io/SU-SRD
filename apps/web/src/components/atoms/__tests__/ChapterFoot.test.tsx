@@ -13,7 +13,7 @@ describe('ChapterFoot', () => {
     expect(screen.getByText('Changelog').className).toBe('su-chapter-foot__end')
   })
 
-  // Ruling 2 (2026-10-19): the foot wears the leading band's ground, foreground
+  // The foot wears the leading band's ground, foreground
   // and grain, so it draws no colour of its own and serves both grains.
   test('draws no colour of its own, and serves both grains for the band to pick', () => {
     const { container } = render(<ChapterFoot start="p.18" />)
@@ -24,7 +24,7 @@ describe('ChapterFoot', () => {
     expect(band.querySelector('.su-chapter-foot__grain--ink svg filter')).not.toBeNull()
   })
 
-  test('has no ink rule: the band runs edge to edge on every page (owner, 2026-10-19)', () => {
+  test('has no ink rule: the band runs edge to edge on every page', () => {
     const band = render(<ChapterFoot start="p.1" />).container.firstElementChild as HTMLElement
     expect(band.style.borderTopStyle).toBe('')
     expect(band.style.borderTopWidth).toBe('')

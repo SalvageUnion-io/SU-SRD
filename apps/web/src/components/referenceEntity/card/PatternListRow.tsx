@@ -57,8 +57,7 @@ const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSPr
  * Bio-Titan's) Patterns list: the pattern's Mini, running the list's full
  * width. A pattern the book describes (or a legal starting pattern, which
  * closes on the book's sentence for it) is a CONTENTFUL Mini, its head and
- * then that description alone (owner, 2026-10-20: "full width and contentful,
- * showing only the special pattern descriptions"); its loadout and a
+ * then that description alone (R39); its loadout and a
  * Bio-Titan pattern's actions stay its Peek's and its Page's. Its name is the
  * link to the pattern's Page (`CardTitleLink`), so the prose's own links never
  * nest inside another.
@@ -276,7 +275,7 @@ const PATTERNS_ON_A_PHONE = 2
 
 /**
  * PAGE view — a basic host's patterns under an ink section stamp with its
- * count (boards 07, 08). A phone shows the first two and a "Show all" link;
+ * count. A phone shows the first two and a "Show all" link;
  * the link targets the list (`#patterns`) and `:target` opens the rest, so
  * the reveal ships no JavaScript and the static page stays static.
  */

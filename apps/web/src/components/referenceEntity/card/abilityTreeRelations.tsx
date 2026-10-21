@@ -6,13 +6,12 @@ import { Stat } from '../../atoms/Stat'
 import { EntityStat } from '../../entity'
 
 /**
- * An ability's place in its tree (C11, owner's calls 2026-10-19/20): its
+ * An ability's place in its tree (C11, R43): its
  * relation chip `TREE | Leadership`, which opens the class whose page draws
  * the tree; and, on its Page only, the abilities before and after it, in the
  * book's words ("You must have the preceding Ability in a Core Ability Tree
  * to train the next Ability", Workshop Manual p.23), as nested references
- * under the rest of the page, never chips (owner, 2026-10-20: "drop
- * Preceding and Next from the chips"). The first ability has no Preceding,
+ * under the rest of the page, never chips. The first ability has no Preceding,
  * the last no Next; a tree of one level (Legendary, Generic) has neither.
  *
  * The Page band carries the tree, and every card head whose budget has

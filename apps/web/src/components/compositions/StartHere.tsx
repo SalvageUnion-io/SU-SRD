@@ -10,9 +10,9 @@ import { grainClass } from '../referenceEntity/card/cardGrain'
 /**
  * StartHere — the one onboarding both fronts show: the SRD's home and the app's
  * front door. Three steps in the order a new crew walks them, each a catalog
- * tile (`.su-entity-index`, owner's call 2026-10-14): its chapter's tone band
- * with the step's number at its left, as a tree ability's tier numeral
- * (owner, round 4: "make them left-side numbers"), and the title notched into
+ * tile (`.su-entity-index`): its chapter's tone band
+ * with the step's number at its left, as a tree ability's tier numeral,
+ * and the title notched into
  * its foot, then one line on what the step is. The steps' words are `START_HERE_STEPS`,
  * spelled once here, so the two tools cannot drift into two onboardings again.
  *

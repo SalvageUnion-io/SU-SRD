@@ -1,6 +1,6 @@
 /**
  * SheetSectionCard — a sheet's opening panel: paper in one light hairline all
- * round, no unit-colour rule on top (owner, round 8).
+ * round, no unit-colour rule on top.
  */
 
 import { describe, expect, test } from 'bun:test'

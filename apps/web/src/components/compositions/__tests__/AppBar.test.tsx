@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { AppBar } from '../AppBar'
 
 /**
- * The Union bar (brand refresh P2a, board 05): one lockup, the Reference | Build | Play switcher
+ * The Union bar (ruleset §3.11): one lockup, the Reference | Build | Play switcher
  * with "here" as the inverse stamp, breadcrumbs in the bar on desktop and on
  * their own row on a phone, and the paper flecks behind it all.
  */

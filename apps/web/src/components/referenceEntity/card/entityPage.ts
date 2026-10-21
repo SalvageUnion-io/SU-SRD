@@ -1,5 +1,5 @@
 /**
- * What an entity's PAGE says around its body (boards 07, 08, 08b): the
+ * What an entity's PAGE says around its body: the
  * stamps on its chapter band, and its printings on its foot band.
  *
  * The card at `presentation="page"` hands its title to the page's
@@ -8,7 +8,7 @@
  * kind (for screen readers: never a stamp, E9), the header's tier numeral and
  * TL, and the identity footer's provenance. Every chip the entity carries
  * (E17: its action type, its facts, its traits and its cost) rides the band
- * too, so the page body holds none (owner's call, 2026-10-14). Reading them
+ * too, so the page body holds none. Reading them
  * off the entity model
  * (`toEntityModel`), which the card's helpers read too, keeps a page from
  * describing an entity differently from its own card.
@@ -36,7 +36,7 @@ export type EntityPageMeta = {
    * The book's stat cells the band carries, Tech Level among them in the
    * book's order (Slots Required, Tech Level, Salvage Value). A chassis and
    * its patterns carry only their Tech Level and Salvage Value here: the rest
-   * lead the page body, inline (`pageBodyStats`; owner's call, 2026-10-20).
+   * lead the page body, inline (`pageBodyStats`).
    */
   stats: BookStat[]
   /** An ability's tier numeral (its level in the tree). */
@@ -71,8 +71,7 @@ function isOwnStat(key: string): boolean {
 /**
  * A chassis (its patterns' pages too) keeps its stats in the page body, but
  * for its provenance, Tech Level and Salvage Value, which ride the band
- * beside the title as every other page's do (owner's calls, 2026-10-18 and
- * 2026-10-20).
+ * beside the title as every other page's do.
  */
 function statsInBody(entity: RefMetaEntity): boolean {
   return 'schemaName' in entity && entity.schemaName === 'chassis'
@@ -85,7 +84,7 @@ function isBandStat(stat: BookStat): boolean {
 
 /**
  * A page's band spells a lettered Tech Level out, as it spells every label out:
- * "TECH LEVEL | BIO-CHASSIS" on a bio-chassis, never a bare "B" (owner, round 5).
+ * "TECH LEVEL | BIO-CHASSIS" on a bio-chassis, never a bare "B".
  */
 function spelledTechLevel(value: string, entity: RefMetaEntity): string {
   if (value === 'N') return 'Nanite'

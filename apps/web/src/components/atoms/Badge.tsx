@@ -163,13 +163,12 @@ type BadgeProps = (BadgeChipProps | BadgeStampProps) & { ref?: Ref<HTMLElement> 
  *
  *   `shape="chip"` (default) — the rounded 22px keyword / status chip; `surface`
  *                              picks solid / ghost / outline / tone / quiet.
- *   `shape="stamp"`          — the SQUARE ink label / header / tab (the former
- *                              Stamp); `size` + stamp `surface` + `seam`.
+ *   `shape="stamp"`          — the SQUARE ink label / header / tab; `size` +
+ *                              stamp `surface` + `seam`.
  *
  * **Label-only.** A badge cites categorical metadata at a glance. **A label+value
  * readout is NOT a badge** — it is a Stat (`Stat`), the
- * value-cell law (ruleset §0, §7.1). Pill and Chip were named presets over the
- * chip shape.
+ * value-cell law (ruleset §0, §7.1).
  */
 /**
  * Accepting `ref` is load-bearing, not boilerplate: Stat measures its own label

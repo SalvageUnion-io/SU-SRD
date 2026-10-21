@@ -14,7 +14,7 @@ type RollPageFrameProps = {
 }
 
 /**
- * The roll pages' shared frame (board 08b): the table's prose, the table, and
+ * The roll pages' shared frame: the table's prose, the table, and
  * the Randsum credit, set very small under it. A roll's result is a toast
  * (`toastRoll`), as on every card, raised by the island; the table marks where
  * it landed. `RollTableView` and `ColumnsTableView` differ only in the table.

@@ -126,8 +126,7 @@ export type VitalGaugeProps = {
    *   `compact` — the instrument layout (Play's cue): label · the pips ·
    *          value/max on one line, no big numeral, no caption. Its pips take
    *          the §4.5 row split, each a sixth of the bay wide.
-   *   `mini` — HP cells (a crawler bay's crew lead, owner round 9: "a mini
-   *          sized HP cell display … a square grid"): label · value/max over
+   *   `mini` — HP cells (a crawler bay's crew lead, R46): label · value/max over
    *          a square block of small square cells. No numeral, no caption.
    */
   size?: Extract<Size, 'full' | 'compact' | 'mini'>
@@ -322,7 +321,7 @@ export function VitalGauge({
 
   // MINI — HP cells: the label, a square block of small square cells beneath
   // it (`miniColumns`), lit from the first, and value/max under the block in
-  // smaller type (owner, round 11).
+  // smaller type.
   if (size === 'mini') {
     const cells = Array.from({ length: segCount }, (_, n) => n).map((i) =>
       segment(i, trackSegmentState(i, shown, max, dangerFrom), M_CELL, editable)
@@ -367,7 +366,7 @@ export function VitalGauge({
     )
     const readout = (
       <div style={C_READOUT}>
-        {/* Board D2: the label and the value share one row, the pips sit below. */}
+        {/* The label and the value share one row, the pips sit below. */}
         <div style={C_HEAD}>
           <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
@@ -580,7 +579,7 @@ export function VitalGauge({
       )}
 
       {/* No Current / Max caption, in Read or Edit: the numeral already says
-          current / max (owner's call, 2026-10-14: Edit looks like Read). An
+          current / max, and Edit looks like Read. An
           override note still says where the max came from. */}
       {isOverridden && (
         <div className={capsLabel({ size: 'badge', weight: 'semibold' })} style={CAPTION}>

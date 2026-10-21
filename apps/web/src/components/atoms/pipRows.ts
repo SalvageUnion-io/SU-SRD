@@ -46,7 +46,7 @@ export function pipClickValue(index: number, value: number): number {
  * (full-width bars). 'off' = unlit, 'on' = lit, 'danger' = lit but past the cap
  * (over-capacity) or past the heat redline, 'redline' = UNLIT but inside the
  * redline zone, so the track shows where it turns dangerous before the value
- * reaches it, at Heat 0 as well as at Heat 7 (ruleset §4.5, boards D1 and D4).
+ * reaches it, at Heat 0 as well as at Heat 7 (ruleset §4.5).
  * `dangerFrom` is the first 0-based index that reads danger (default Infinity =
  * never). Each surface keeps its own visual styling; only the state logic + the
  * row split (statBlockRowStarts) are shared.

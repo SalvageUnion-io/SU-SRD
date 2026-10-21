@@ -88,7 +88,7 @@ export type OgCardProps =
       madeBy: string
       /**
        * Whether the notch prints the name in curly quotes. A pattern is quoted
-       * ("TOW RIG", board PV1); an NPC is a person and reads bare. Default true.
+       * ("TOW RIG"); an NPC is a person and reads bare. Default true.
        */
       quoted?: boolean
     })
@@ -176,8 +176,8 @@ export function ogCardTitle(props: OgCardProps): string {
 }
 
 /**
- * The `og:description`: the kicker and the byline, never the body (issue
- * 1280). An invite's summary is its byline: it is what the invite says.
+ * The `og:description`: the kicker and the byline, never the body. An
+ * invite's summary is its byline: it is what the invite says.
  */
 export function ogCardDescription(props: OgCardProps): string {
   if (props.kind === 'private') return PRIVATE_LINE

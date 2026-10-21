@@ -128,8 +128,8 @@ export function GuideSteps({
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 
   // A step's options. On the guide's Page they are one level deep: each a
-  // Compact drawn open with all its content (N8; owner, 2026-10-20: "These should
-  // be listing rows, not tokens"), one a line. Anywhere else (a Peek, a guide
+  // Compact drawn open with all its content (N8, R39), one a line. Anywhere
+  // else (a Peek, a guide
   // nested in a card) they are level 2: Minis.
   const optionTitleAs = stepAs === 'h1' || stepAs === 'h2' ? headingBelow(stepAs) : undefined
   const optionList = (entities: ReferenceCardEntity[], label: string) =>
@@ -211,8 +211,8 @@ export function GuideSteps({
         <div className="su-guide__body">
           {!ladder && stepProse}
           {options}
-          {/* The step's table: the same embedded table an entity owns (board
-              E4), framed because it sits on the page; a wide one scrolls in
+          {/* The step's table: the same embedded table an entity owns (R8),
+              framed because it sits on the page; a wide one scrolls in
               its own box rather than pushing the page sideways. */}
           {table && !insidePeek && (
             <div className="su-guide__table">
