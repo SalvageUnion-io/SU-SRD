@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import type { GalleryPage } from 'gates/lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
+import { resolveSeedPath } from 'gates/lib/seedAccount'
 import type { GalleryArgs } from '../gallery'
 import {
   appRoot,
@@ -13,7 +14,6 @@ import {
   ogSource,
   pageEntity,
   parseGalleryArgs,
-  resolvePath,
   signedInTargets,
   signedOutTargets,
   writeGallery,
@@ -124,11 +124,13 @@ describe('pageEntity', () => {
   })
 })
 
-describe('resolvePath', () => {
+describe('resolveSeedPath', () => {
   test('a placeholder resolves to what the seed made, or to nothing', () => {
-    expect(resolvePath('/build/pilots/new', {})).toBe('/build/pilots/new')
-    expect(resolvePath(':pilot', { pilot: '/build/sheet/pilot/1' })).toBe('/build/sheet/pilot/1')
-    expect(resolvePath(':game', {})).toBeUndefined()
+    expect(resolveSeedPath('/build/pilots/new', {})).toBe('/build/pilots/new')
+    expect(resolveSeedPath(':pilot', { pilot: '/build/sheet/pilot/1' })).toBe(
+      '/build/sheet/pilot/1'
+    )
+    expect(resolveSeedPath(':game', {})).toBeUndefined()
   })
 })
 

@@ -1,8 +1,6 @@
-import type { Page } from '@playwright/test'
 import { scanPages } from 'gates/a11y'
+import { SEED_KEYS, seedAccount } from 'gates/lib/seedAccount'
 import { at } from './_base'
-import { pilotPlayPath, playDoor } from './_play'
-import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
@@ -11,13 +9,14 @@ import { expect, test } from './fixtures'
  *
  * `app-a11y.e2e.ts` scans signed out, where the app is read-only: the Training Bay, the
  * wizards, the live sheets, the Game and Play never render there. This spec
- * signs in through the fixtures account (`fixtures.ts`), sets up the Starter
- * Set table the Play specs play (`setUpTable`), and scans each of those pages
- * with that session: the Play landing, Bonesaw's Play screen and the
- * Mediator's, as they open (On foot, Scene). Play's other states (Boarded,
- * Downtime, solo) are the server's, not a URL's, so the specs that reach them
- * scan them live (`axeViolations`): `play-turn.e2e.ts`, `play-solo.e2e.ts`
- * and `play-mediator.e2e.ts`.
+ * signs in through the fixtures account (`fixtures.ts`), seeds it as the
+ * layout gates' walk does (`gates/lib/seedAccount.ts`), and scans with that
+ * session the Training Bay, each wizard's first step, and every page the
+ * seed made: each kind's sheet, the Game and its invite, the Play hub, and
+ * Play's player, solo and Mediator screens as they open (On foot, Scene).
+ * Play's other states (Boarded, Downtime) are the server's, not a URL's, so
+ * the specs that reach them scan them live (`axeViolations`):
+ * `play-turn.e2e.ts`, `play-solo.e2e.ts` and `play-mediator.e2e.ts`.
  *
  * Like every signed-in spec it SKIPS in a build with no test sign-in seam. The
  * PR tier's build carries the seam but does not list this spec; the nightly
@@ -27,26 +26,9 @@ import { expect, test } from './fixtures'
 // A violation that fires only sometimes must not pass on a retry.
 test.describe.configure({ retries: 0 })
 
-/** The first live sheet of `kind` the Game's roster links to, as the path to open. */
-async function rosterSheet(page: Page, kind: 'pilot' | 'mech' | 'crawler'): Promise<string> {
-  const link = page.locator(`a[href*="/sheet/${kind}/"]`).first()
-  await expect(link, `the roster links a ${kind} sheet`).toBeAttached({ timeout: 20_000 })
-  const href = await link.getAttribute('href')
-  if (!href) throw new Error(`the roster's ${kind} link has no href`)
-  return new URL(href, page.url()).pathname
-}
-
 test('no accessibility violations signed in', async ({ page, browser, baseURL }, testInfo) => {
   test.setTimeout(15 * 60_000)
-  const { gameName } = await setUpTable(page)
-
-  const game = new URL(page.url()).pathname
-  const sheets: string[] = []
-  for (const kind of ['pilot', 'mech', 'crawler'] as const)
-    sheets.push(await rosterSheet(page, kind))
-
-  const play = at(await pilotPlayPath(page, 'Bonesaw'))
-  const mediate = at(await playDoor(page, `Mediate ${gameName}`))
+  const seed = await seedAccount(page)
 
   // The scan opens a context per device; each starts with this session.
   const storageState = await page.context().storageState({ indexedDB: true })
@@ -61,12 +43,8 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
       at('/mechs/new?mode=guided'),
       at('/crawlers/new?mode=guided'),
       at('/npcs/new'),
-      game,
-      // Play: the landing, the player's screen and the Mediator's.
       at('/play/'),
-      play,
-      mediate,
-      ...sheets,
+      ...SEED_KEYS.map((key) => seed[key]),
     ],
     // The reference-data gate's loading screen has no <main>.
     ready: 'main',

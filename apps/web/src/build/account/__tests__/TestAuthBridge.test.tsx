@@ -45,11 +45,18 @@ describe('the global name is shared, not retyped', () => {
     // hand-off spec into a permanent no-op.
     expect(TEST_SIGN_IN_GLOBAL).toBe('__appTestSignIn')
 
-    // `fixtures.ts` is what signs in every durable e2e spec, and it carries
-    // its own copy of the name because Playwright code cannot import app source.
-    const fixtures = await Bun.file(
-      new URL('../../../../e2e/fixtures.ts', import.meta.url).pathname
+    // `gates/lib/testSignIn.ts` is what calls the seam (the e2e fixtures, the
+    // gallery and dev-backend seed, `bun run shot`), and it carries its own
+    // copy of the name and signature because Playwright code and the tools
+    // cannot import app source that reads `import.meta.env`.
+    const caller = await Bun.file(
+      new URL('../../../../../../packages/gates/lib/testSignIn.ts', import.meta.url).pathname
     ).text()
-    expect(fixtures).toContain(`'${TEST_SIGN_IN_GLOBAL}'`)
+    expect(caller).toContain(`'${TEST_SIGN_IN_GLOBAL}'`)
+    // And the same signature as the bridge's own.
+    const flow = `flow?: 'signUp' | 'signIn'`
+    const bridge = await Bun.file(new URL('../TestAuthBridge.tsx', import.meta.url).pathname).text()
+    expect(bridge).toContain(flow)
+    expect(caller).toContain(flow)
   })
 })

@@ -18,11 +18,11 @@
  *   PR's cards, not whatever production last generated. A page whose og:image
  *   is the site default fetches that file from the same build.
  * - `--signed-in` signs a fresh account up through the test seam
- *   (`__appTestSignIn`, `apps/web/e2e/fixtures.ts`), copies Bonesaw, the
- *   Mazona and Tenacity from the Starter Set to its Training Bay, starts a Game and
- *   moves Bonesaw in, then shoots the `signedIn` pages in that one browser
- *   context: the session's refresh token rotates on use, so a second context
- *   restored from it would be signed out.
+ *   (`gates/lib/testSignIn.ts`), seeds it as the layout gates' walk seeds
+ *   theirs (`gates/lib/seedAccount.ts`: Starter Set copies on the Training
+ *   Bay, a Game with Bonesaw in it, an NPC), then shoots the `signedIn` pages in
+ *   that one browser context: the session's refresh token rotates on use, so a
+ *   second context restored from it would be signed out.
  * - A page that fails is listed at the top of the gallery and the run exits 1;
  *   every other page is still shot.
  */
@@ -35,6 +35,10 @@ import type { OgMeta } from 'gates/lib/galleryHtml'
 import { renderGallery } from 'gates/lib/galleryHtml'
 import type { GalleryPage } from 'gates/lib/galleryPages'
 import { APP_BASE, GALLERY_SECTIONS, isAppPath, pageSlug } from 'gates/lib/galleryPages'
+import type { Seed } from 'gates/lib/seedAccount'
+import { resolveSeedPath, seedAccount } from 'gates/lib/seedAccount'
+import type { SeamAccount } from 'gates/lib/testSignIn'
+import { signInThroughSeam } from 'gates/lib/testSignIn'
 import { isSchemaName } from 'salvageunion-reference'
 
 export type GalleryArgs = {
@@ -108,14 +112,6 @@ export function pageEntity(
   return { schema: m[1], item: m[2], ...(m[3] ? { pattern: m[3] } : {}) }
 }
 
-export type Seeded = Record<'pilot' | 'mech' | 'crawler' | 'game', string>
-
-/** A signed-in page's path with its `:kind` placeholder resolved, or undefined if the seed did not make it. */
-export function resolvePath(path: string, seeded: Partial<Seeded>): string | undefined {
-  if (!path.startsWith(':')) return path
-  return seeded[path.slice(1) as keyof Seeded]
-}
-
 const settle = (page: Page, ms: number) => page.waitForTimeout(ms)
 
 /** The page's globals these callbacks touch, run in the browser (tools/ has no DOM lib). */
@@ -123,12 +119,10 @@ type Attr = { getAttribute(name: string): string | null }
 type InPage = {
   document: {
     querySelector(selector: string): Attr | null
-    querySelectorAll(selector: string): Iterable<Attr>
     documentElement: { hasAttribute(name: string): boolean }
     fonts: { ready: Promise<unknown> }
   }
   __ogSetEntity?: (schema: string, item: string, pattern?: string) => void
-  __appTestSignIn?: (email: string, password: string) => Promise<void>
 }
 
 async function readOg(
@@ -195,75 +189,19 @@ export function appRoot(base: string): string {
   return `${base}${APP_BASE}/`
 }
 
-/** A test-seam account: its email and password. */
-export type SeedAccount = { email: string; password: string }
-
 /**
- * Signs a fresh test account up and gives it something to edit. Also
+ * Signs a fresh test account up through the seam and seeds it
+ * (`gates/lib/seedAccount.ts`, the one seed the e2e walk signs in to). Also
  * `tools/dev-backend.ts`'s seed, with its fixed account.
  */
 export async function seed(
   page: Page,
   base: string,
-  account: SeedAccount = { email: `gallery-${Date.now()}@example.com`, password: 'gallery-pass-1' }
-): Promise<Partial<Seeded>> {
+  account: SeamAccount = { email: `gallery-${Date.now()}@example.com`, password: 'gallery-pass-1' }
+): Promise<Seed> {
   await page.goto(appRoot(base), { waitUntil: 'networkidle' })
-  await page.waitForFunction(() => '__appTestSignIn' in (globalThis as unknown as InPage), null, {
-    timeout: 30_000,
-  })
-  await page.evaluate(async ({ email, password }) => {
-    await (globalThis as unknown as InPage).__appTestSignIn?.(email, password)
-  }, account)
-  // The masthead's "Games" menu renders only once connected; outside Play the
-  // bar keeps it hidden, so it is waited for attached (`e2e/fixtures.ts`).
-  await page
-    .getByRole('button', { name: 'Games', includeHidden: true })
-    .first()
-    .waitFor({ state: 'attached', timeout: 30_000 })
-  // Each copied from its Starter Set sheet's "Make a copy", as `e2e/_designRoutes.ts` does.
-  for (const sheet of [
-    'pilot/starter-pilot-bonesaw',
-    'mech/starter-mech-mazona',
-    'crawler/starter-crawler-tenacity',
-  ]) {
-    await page.goto(`${base}${APP_BASE}/starter/${sheet}`, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
-    await page
-      .getByText(/^Copied .* to your Training Bay/)
-      .first()
-      .waitFor({ timeout: 20_000 })
-  }
-  // A Game is started on the Play hub (ADR-052 §4), and opens on its page.
-  await page.goto(`${appRoot(base)}play/`, { waitUntil: 'networkidle' })
-  await page
-    .getByRole('button', { name: /new game/i })
-    .first()
-    .click()
-  await page.getByLabel('New Game name').fill('The Long Haul')
-  await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/play\/games\//, { timeout: 20_000 })
-  const game = new URL(page.url()).pathname
-  await page.goto(appRoot(base), { waitUntil: 'networkidle' })
-  const links = await page.evaluate(() =>
-    [...(globalThis as unknown as InPage).document.querySelectorAll('a[href]')].map(
-      (a) => a.getAttribute('href') ?? ''
-    )
-  )
-  const find = (route: string) => links.find((l) => l.startsWith(`${APP_BASE}${route}`))
-  const seeded: Partial<Seeded> = {
-    pilot: find('/sheet/pilot/'),
-    mech: find('/sheet/mech/'),
-    crawler: find('/sheet/crawler/'),
-    game,
-  }
-  await page.getByRole('button', { name: 'More for Bonesaw' }).click()
-  await page.getByRole('menuitem', { name: 'Move to a Game…' }).first().click()
-  await page.getByRole('dialog').getByRole('button', { name: 'The Long Haul' }).click()
-  const confirm = page.getByRole('dialog').getByRole('button', { name: /^Move/ })
-  if (await confirm.count()) await confirm.first().click()
-  await settle(page, 2000)
-  return seeded
+  await signInThroughSeam(page, account)
+  return await seedAccount(page, base)
 }
 
 /** One page to shoot: its file stem and the URL it is shot from. */
@@ -281,12 +219,12 @@ export function signedOutTargets(base: string): GalleryTarget[] {
 /** The signed-in pages with the seed's placeholders resolved, and a failure for each the seed did not make. */
 export function signedInTargets(
   base: string,
-  seeded: Partial<Seeded>
+  seeded: Partial<Seed>
 ): { targets: GalleryTarget[]; failures: string[] } {
   const targets: GalleryTarget[] = []
   const failures: string[] = []
   for (const page of GALLERY_PAGES.filter((p) => p.signedIn)) {
-    const path = resolvePath(page.path, seeded)
+    const path = resolveSeedPath(page.path, seeded)
     if (path) targets.push({ page, slug: pageSlug(page), url: `${base}${path}` })
     else failures.push(`${page.path}: the seed made no such entity`)
   }
@@ -368,6 +306,8 @@ export async function fetchOgImage(url: string, file: string): Promise<boolean> 
 /** The browser and clock `run` uses, and where its progress dots go; the defaults are real. */
 export type GalleryDeps = {
   launch?: () => Promise<Browser>
+  /** Signs the account up and seeds it (`seed`). */
+  seed?: (page: Page, base: string) => Promise<Partial<Seed>>
   now?: () => Date
   progress?: (dot: string) => void
 }
@@ -377,6 +317,7 @@ async function run(
   args: GalleryArgs,
   {
     launch = launchBrowser,
+    seed: seedWith = seed,
     now = () => new Date(),
     progress = (dot) => process.stdout.write(dot),
   }: GalleryDeps = {}
@@ -414,9 +355,9 @@ async function run(
     if (args.signedIn) {
       const signed = await browser.newContext()
       const sp = await signed.newPage()
-      let seeded: Partial<Seeded> = {}
+      let seeded: Partial<Seed> = {}
       try {
-        seeded = await seed(sp, args.base)
+        seeded = await seedWith(sp, args.base)
       } catch (error) {
         failures.push(failureLine('seed', error))
       }

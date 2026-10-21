@@ -31,12 +31,14 @@
  *   loaded.
  * - There is no `--dark`: neither app has a dark theme, so the capture is
  *   always the paper one.
- * - `--signed-in` signs in as the account `bun run dev:backend`
- *   (`tools/dev-backend.ts`) seeded, on the dev server that command runs (it is
- *   never started here: a signed-out boot has no backend). `:pilot`, `:mech`,
- *   `:crawler` and `:game` are the seeded pages, from `.dev-backend/seed.json`;
- *   `:play` is the seeded pilot's Play screen and `:mediate` the seeded Game's
- *   Mediator screen, both derived from those paths.
+ * - `--signed-in` signs in (`gates/lib/testSignIn.ts`) as the account
+ *   `bun run dev:backend` (`tools/dev-backend.ts`) seeded, on the dev server
+ *   that command runs (it is never started here: a signed-out boot has no
+ *   backend). A `:key` target is a seeded page, from `.dev-backend/seed.json`:
+ *   every key the seed makes (`SEED_KEYS`, `gates/lib/seedAccount.ts`:
+ *   `:pilot`, `:mech`, `:crawler`, `:npc`, `:game`, `:invite`, `:playPlayer`,
+ *   `:playSolo`, `:playMediator`), and `:play` and `:mediate` for the Play
+ *   player's and Mediator's screens.
  * - PNGs go to the gitignored `.shots/` (or `--out`); each path is printed for
  *   the agent to Read.
  * - The browser is `launchBrowser`'s (`packages/gates/lib/chromium.ts`): the
@@ -49,6 +51,9 @@ import { mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { FORCE_ONLINE, launchBrowser } from 'gates/lib/chromium'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
+import type { SeedKey } from 'gates/lib/seedAccount'
+import { SEED_KEYS } from 'gates/lib/seedAccount'
+import { signInThroughSeam } from 'gates/lib/testSignIn'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import { APP_BASE } from '../apps/web/src/lib/appBase'
 import type { SeedFile } from './dev-backend'
@@ -102,19 +107,21 @@ const DEV: Server = {
 const USAGE =
   'usage: bun run shot </route|app:/route|:seeded> [--width phone|column|page] [--out <dir>] [--signed-in]'
 
-/** The seeded pages a `:name` target names (`seed.json`'s keys, and two derived from them). */
-const SEEDED = [':pilot', ':mech', ':crawler', ':game', ':play', ':mediate'] as const
-
-/** The Play screens, from the seeded pilot's sheet and the seeded Game's page. */
-const DERIVED: Partial<
-  Record<SeededTarget, { from: keyof SeedFile; path: (p: string) => string }>
-> = {
-  ':play': { from: 'pilot', path: (p) => p.replace('/sheet/pilot/', '/play/') },
-  ':mediate': { from: 'game', path: (p) => p.replace('/play/games/', '/play/game/') },
+/** Short names for two seeded Play screens. */
+const ALIASES: Readonly<Record<string, SeedKey>> = {
+  play: 'playPlayer',
+  mediate: 'playMediator',
 }
-type SeededTarget = (typeof SEEDED)[number]
-const isSeeded = (target: string): target is SeededTarget =>
-  (SEEDED as readonly string[]).includes(target)
+
+/** The seed key a `:name` target names, or undefined when it names none. */
+function seedKeyOf(target: string): SeedKey | undefined {
+  if (!target.startsWith(':')) return undefined
+  const name = target.slice(1)
+  return ALIASES[name] ?? SEED_KEYS.find((key) => key === name)
+}
+
+/** Every `:name` target, for the usage line. */
+const SEEDED = [...SEED_KEYS, ...Object.keys(ALIASES)].map((key) => `:${key}`)
 
 const isWidth = (value: string): value is Width => Object.hasOwn(WIDTHS, value)
 
@@ -145,7 +152,7 @@ export function parseArgs(argv: readonly string[]): ShotArgs {
   if (!target) throw new Error(USAGE)
   if (target.startsWith(APP_PREFIX) && !target.startsWith(`${APP_PREFIX}/`))
     throw new Error(`an app target is app:/route, not "${target}"\n${USAGE}`)
-  if (isSeeded(target)) {
+  if (seedKeyOf(target)) {
     if (!signedIn) throw new Error(`${target} is a seeded page: add --signed-in\n${USAGE}`)
   } else if (!target.startsWith('/') && !target.startsWith(APP_PREFIX))
     throw new Error(
@@ -162,12 +169,11 @@ export function planShot(
   server: Server
   path: string
 } {
-  if (isSeeded(target)) {
-    const derived = DERIVED[target]
-    const key = derived?.from ?? (target.slice(1) as keyof SeedFile)
+  const key = seedKeyOf(target)
+  if (key) {
     const path = seeded?.[key]
     if (!path) throw new Error(`the seed made no ${key}: rerun bun run dev:backend --fresh`)
-    return { server: DEV, path: derived ? derived.path(path) : path }
+    return { server: DEV, path }
   }
   if (target.startsWith(APP_PREFIX))
     return { server: DEV, path: APP_BASE + target.slice(APP_PREFIX.length) }
@@ -294,34 +300,6 @@ export function readSeedFile(root = CHECKOUT_ROOT): SeedFile {
   }
 }
 
-/** What the sign-in callbacks touch in the page (tools/ has no DOM lib). */
-type SeamPage = {
-  __appTestSignIn?: (email: string, password: string, flow: 'signIn') => Promise<void>
-}
-
-/** Signs the seeded account in through the test seam, on the app's root. */
-async function signIn(
-  page: Awaited<ReturnType<Awaited<ReturnType<typeof launchBrowser>>['newPage']>>,
-  root: string,
-  { email, password }: SeedFile
-): Promise<void> {
-  await page.goto(root, { waitUntil: 'networkidle', timeout: 60_000 })
-  await page.waitForFunction(() => '__appTestSignIn' in (globalThis as SeamPage), null, {
-    timeout: 30_000,
-  })
-  await page.evaluate(
-    async (account) => {
-      await (globalThis as SeamPage).__appTestSignIn?.(account.email, account.password, 'signIn')
-    },
-    { email, password }
-  )
-  // The masthead's "Games" menu renders once connected (`tools/gallery.ts`'s seed).
-  await page
-    .getByRole('button', { name: 'Games', includeHidden: true })
-    .first()
-    .waitFor({ state: 'attached', timeout: 30_000 })
-}
-
 /** The servers and browser `main` uses, and what it prints through. */
 export type ShotDeps = {
   ensure?: typeof ensureServer
@@ -372,7 +350,13 @@ export async function main(
       })
       // A sandbox's Chromium reports itself offline, and the app then waits on nothing.
       await page.addInitScript(FORCE_ONLINE)
-      if (seeded) await signIn(page, `http://localhost:${server.port}${APP_BASE}/`, seeded)
+      if (seeded) {
+        await page.goto(`http://localhost:${server.port}${APP_BASE}/`, {
+          waitUntil: 'networkidle',
+          timeout: 60_000,
+        })
+        await signInThroughSeam(page, seeded, { flow: 'signIn' })
+      }
       const url = `http://localhost:${server.port}${path}`
       const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 })
       if (response && !response.ok()) error(`[shot] warning: ${url} answered ${response.status()}`)

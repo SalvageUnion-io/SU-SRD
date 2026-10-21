@@ -1,5 +1,11 @@
 import type { Page, TestInfo } from '@playwright/test'
 import { test as base, expect } from '@playwright/test'
+import type { SeamAccount } from 'gates/lib/testSignIn'
+import {
+  seamIsPresent as seamPresent,
+  signInThroughSeam,
+  TEST_SIGN_IN_GLOBAL,
+} from 'gates/lib/testSignIn'
 import { at } from './_base'
 import { waitForReady } from './_helpers'
 
@@ -15,7 +21,8 @@ import { waitForReady } from './_helpers'
  * ## How it signs in
  *
  * Through `TestAuthBridge`, the build-time test seam that calls the
- * test-only `password` provider. Each test signs up a fresh account, because a
+ * test-only `password` provider, by `signInThroughSeam`
+ * (`packages/gates/lib/testSignIn.ts`, the one caller of the seam). Each test signs up a fresh account, because a
  * reused one would inherit the last run's roster and assert against it. Two
  * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
  * in the build, and `TEST_AUTH=true` on the deployment. `build-web`
@@ -58,11 +65,8 @@ type AccountFixture = {
   account: 'signed-in' | 'anonymous'
 }
 
-/** Kept in step with `testAuthSeam.model.ts` by `TestAuthBridge.test.tsx`. */
-const TEST_SIGN_IN_GLOBAL = '__appTestSignIn'
-
 /** A fresh account per test — a reused one would inherit the last run's roster. */
-export function uniqueCredentials(): { email: string; password: string } {
+function uniqueCredentials(): SeamAccount {
   // `crypto.randomUUID()`, not `Math.random()`: this stamp is part of a password.
   const stamp = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
   return { email: `e2e-${stamp}@example.invalid`, password: `pw-${stamp}-Aa1!` }
@@ -76,24 +80,13 @@ export function uniqueCredentials(): { email: string; password: string } {
 const SEAM_REGISTER_MS = 15_000
 
 /**
- * Whether the seam is (or within `SEAM_REGISTER_MS` becomes) present.
- *
- * Waited for, never probed once: a single `evaluate` raced the bridge's effect,
- * and every signed-in spec that lost the race threw on its first attempt and
- * passed on the retry. That one race was every flaky test the nightly suite
- * reported from 2026-09-30 to 2026-10-08, one to five a night.
+ * Whether the seam (`__appTestSignIn`, `gates/lib/testSignIn.ts`) is, or within
+ * `SEAM_REGISTER_MS` becomes, present. Waited for, never probed once: a single
+ * `evaluate` raced the bridge's effect, and a spec that lost the race threw on
+ * its first attempt and passed on the retry.
  */
 export async function seamIsPresent(page: Page): Promise<boolean> {
-  return await page
-    .waitForFunction(
-      (name) => typeof (window as unknown as Record<string, unknown>)[name] === 'function',
-      TEST_SIGN_IN_GLOBAL,
-      { timeout: SEAM_REGISTER_MS }
-    )
-    .then(
-      () => true,
-      () => false
-    )
+  return await seamPresent(page, SEAM_REGISTER_MS)
 }
 
 /**
@@ -103,7 +96,7 @@ export async function seamIsPresent(page: Page): Promise<boolean> {
 export function requireSeam(present: boolean, testInfo: TestInfo): void {
   if (!present && process.env.E2E_EXPECT_AUTH_SEAM) {
     throw new Error(
-      'E2E_EXPECT_AUTH_SEAM is set, but no `__appTestSignIn` seam is present. ' +
+      `E2E_EXPECT_AUTH_SEAM is set, but no \`${TEST_SIGN_IN_GLOBAL}\` seam is present. ` +
         'The build was expected to expose it (VITE_TEST_AUTH + TEST_AUTH); ' +
         'either the seam regressed or the build lost a variable.'
     )
@@ -115,28 +108,9 @@ export function requireSeam(present: boolean, testInfo: TestInfo): void {
   )
 }
 
-/** Call the seam with a fresh account and wait until the app is Connected. */
+/** Sign a fresh account up through the seam and wait until the app is Connected. */
 export async function signInFresh(page: Page): Promise<void> {
-  const { email, password } = uniqueCredentials()
-  await page.evaluate(
-    async ([name, e, p]) => {
-      const fn = (window as unknown as Record<string, unknown>)[name as string] as (
-        a: string,
-        b: string
-      ) => Promise<void>
-      await fn(e as string, p as string)
-    },
-    [TEST_SIGN_IN_GLOBAL, email, password]
-  )
-  // The masthead's "Games" menu renders only in `connected` (GamesMenu), which
-  // is the mode whose backend is the account. Waiting on the token alone would
-  // let the test's first write race the backend flip. ("Sign out" lives inside
-  // the closed account menu, so it is no signal.) It sits in Play's nav, which
-  // the bar keeps in the DOM but hides outside Play (`shell.css`), so it is
-  // waited for attached, hidden or not.
-  await expect(
-    page.getByRole('button', { name: 'Games', includeHidden: true }).first()
-  ).toBeAttached({ timeout: 30_000 })
+  await signInThroughSeam(page, uniqueCredentials())
 }
 
 export const test = base.extend<AccountFixture>({

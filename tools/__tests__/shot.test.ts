@@ -73,17 +73,20 @@ describe('planShot', () => {
     expect(() => planShot({ target: ':mech' }, seeded)).toThrow('the seed made no mech')
   })
 
-  test('the Play screens derive from the seeded pilot and Game', () => {
+  test('every key the seed makes is a target, and :play and :mediate name its Play screens', () => {
     const seeded = {
       email: 'a@b',
       password: 'p',
-      pilot: '/build/sheet/pilot/x',
-      game: '/build/play/games/g',
+      npc: '/build/sheet/npc/n',
+      playPlayer: '/build/play/x',
+      playMediator: '/build/play/game/g',
     }
+    expect(planShot({ target: ':npc' }, seeded).path).toBe('/build/sheet/npc/n')
     expect(planShot({ target: ':play' }, seeded).path).toBe('/build/play/x')
+    expect(planShot({ target: ':playPlayer' }, seeded).path).toBe('/build/play/x')
     expect(planShot({ target: ':mediate' }, seeded).path).toBe('/build/play/game/g')
     expect(() => planShot({ target: ':mediate' }, { email: 'a@b', password: 'p' })).toThrow(
-      'the seed made no game'
+      'the seed made no playMediator'
     )
   })
 

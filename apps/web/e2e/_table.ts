@@ -9,37 +9,11 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
  * These are the steps the Play and signed-in a11y specs share.
  */
 
-/** "+ New Game" from the Play hub, named; resolves to the new Game's id. */
-export async function createGame(page: Page, name: string): Promise<string> {
-  await gotoStable(page, '/play/')
-  await waitForReady(page)
-  await page.getByRole('button', { name: '+ New Game' }).click()
-  await page.getByLabel('New Game name').fill(name)
-  await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
-  const id = new URL(page.url()).pathname.split('/').pop()
-  if (!id) throw new Error(`No Game id in ${page.url()}`)
-  // The Game's own page is up: its band names it, as the page's h1.
-  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible({ timeout: 20_000 })
-  return id
-}
-
 /**
- * Copy the Game's invite link from its page ("Copy invite link", the
- * Organiser's) and read its token off the clipboard.
+ * "+ New Game" and the invite link: the seeded account's own steps
+ * (`gates/lib/seedAccount.ts`), so a change to either is made once.
  */
-export async function makeInviteLink(page: Page) {
-  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.getByRole('button', { name: 'Copy invite link' }).click()
-  // The copy control's own swap and its polite status (chrome.md K5), never a toast.
-  await expect(page.getByRole('status').filter({ hasText: /^Copied$/ })).toBeAttached({
-    timeout: 15_000,
-  })
-  const url = (await page.evaluate(() => navigator.clipboard.readText())).trim()
-  const token = /\/invite\/([^/\s]+)$/.exec(url)?.[1]
-  if (!token) throw new Error(`No invite token in "${url}"`)
-  return token
-}
+export { createGame, makeInviteLink } from 'gates/lib/seedAccount'
 
 /** A second, freshly signed-up account in its own browser context. */
 export async function secondAccount(

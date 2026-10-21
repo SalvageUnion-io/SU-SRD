@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Browser } from '@playwright/test'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
+import type { GalleryDeps } from '../gallery'
 import { main, signedInTargets, signedOutTargets } from '../gallery'
 import { fixtureTrees } from './fixtureTree'
 
@@ -133,13 +134,14 @@ const world = (over: Partial<World> = {}): World => ({
   ...over,
 })
 
-const gallery = async (argv: string[], w: World) => {
+const gallery = async (argv: string[], w: World, seed?: GalleryDeps['seed']) => {
   const out = tree({})
   const dots: string[] = []
   const code = await main([...argv, '--out', out, '--sha', 'abc'], {
     launch: fakeBrowser(w),
     now: () => new Date('2026-10-14T12:34:56Z'),
     progress: (d) => dots.push(d),
+    ...(seed ? { seed } : {}),
   })
   const manifest = JSON.parse(readFileSync(join(out, 'gallery.json'), 'utf8'))
   return { code, out, dots, manifest }
@@ -198,36 +200,37 @@ describe('gallery run', () => {
   })
 
   test('signed in: seeds an account, shoots its pages in Edit, and reports what it could not make', async () => {
-    const w = world({
-      links: ['/build/sheet/pilot/p1', '/build/sheet/mech/m1', '/elsewhere'],
-    })
-    const r = await gallery(['--base', SITE, '--signed-in'], w)
+    const w = world()
     const seeded = {
       pilot: '/build/sheet/pilot/p1',
       mech: '/build/sheet/mech/m1',
-      game: '/build/games/g1',
+      game: '/build/play/games/g1',
     }
+    const seeds: string[] = []
+    const r = await gallery(['--base', SITE, '--signed-in'], w, async (_page, base) => {
+      seeds.push(base)
+      return seeded
+    })
     const planned = signedInTargets(SITE, seeded)
     expect(planned.failures.length).toBe(1)
     expect(r.manifest.failures).toEqual(planned.failures)
     expect(r.code).toBe(1)
-    expect(w.calls).toContain('sign-in gallery-N@example.com')
-    // Bonesaw, the Mazona and Tenacity, each copied from its Starter Set sheet.
-    for (const sheet of [
-      'pilot/starter-pilot-bonesaw',
-      'mech/starter-mech-mazona',
-      'crawler/starter-crawler-tenacity',
-    ]) {
-      expect(w.calls).toContain(`goto ${SITE}/build/starter/${sheet}`)
-    }
-    expect(w.calls.filter((c) => c === 'click alertdialog > Make a copy')).toHaveLength(3)
-    expect(w.calls).toContain('fill New Game name The Long Haul')
-    expect(w.calls).toContain('click dialog > The Long Haul')
+    expect(seeds).toEqual([SITE])
     // An edit page switches to Edit before each width is shot.
     const pilot = ALL.find((p) => p.path === ':pilot')
     if (!pilot) throw new Error('no :pilot page')
     expect(w.calls).toContain(`shot ${join(r.out, 'shots', `${pageSlug(pilot)}-desk.jpg`)}`)
     expect(w.calls.filter((c) => c.startsWith('click radio:Edit')).length).toBeGreaterThan(0)
+  })
+
+  test('the default seed signs a fresh account up through the seam on the app root', async () => {
+    const w = world({ broken: new Set([`${SITE}/build/starter/pilot/starter-pilot-bonesaw`]) })
+    const r = await gallery(['--base', SITE, '--signed-in'], w)
+    expect(w.calls).toContain('sign-in gallery-N@example.com')
+    // Then the one account seed (`gates/lib/seedAccount.ts`) copies Bonesaw first.
+    expect(r.manifest.failures).toContain(
+      `seed: net::ERR at ${SITE}/build/starter/pilot/starter-pilot-bonesaw`
+    )
   })
 
   test('a seed that fails is one failure, and every placeholder page is reported unmade', async () => {

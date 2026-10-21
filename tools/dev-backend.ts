@@ -28,10 +28,11 @@
  *   an env file of its own, so an `apps/web/.env.local` naming another
  *   deployment is never read. It does not watch: rerun to push a backend edit.
  *   The dev server (`ssg/dev.ts`) reloads the site's code as usual.
- * - The first start seeds `SEED_ACCOUNT` through the test seam with the
- *   gallery's seed (`tools/gallery.ts`: Bonesaw, the Mazona and Tenacity
- *   copied to the Training Bay, the Game "The Long Haul" with Bonesaw in it)
- *   and writes the account and those four paths to `.dev-backend/seed.json`.
+ * - The first start seeds `SEED_ACCOUNT` through the test seam with the one
+ *   account seed (`packages/gates/lib/seedAccount.ts`, by way of
+ *   `tools/gallery.ts`'s `seed`: what the layout gates' e2e walk signs in to)
+ *   and writes the account and every page it made (`SEED_KEYS`) to
+ *   `.dev-backend/seed.json`.
  *   Where no browser starts (a Remote Control sandbox refuses the full
  *   Chromium's socket), it installs Playwright's chrome-headless-shell into
  *   `.pw-browsers/` first. A seed that still fails is reported and the site
@@ -40,30 +41,31 @@
  *   the background; a second run while both answer exits 0 at once.
  *
  * `bun run shot <target> --signed-in` (`tools/shot.ts`) signs in as the seeded
- * account on that dev server; `:pilot`, `:mech`, `:crawler` and `:game` name the
- * seeded pages.
+ * account on that dev server; a `:key` (`:pilot`, `:game`, `:playMediator`, …)
+ * names a seeded page.
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { Browser } from '@playwright/test'
+import type { Browser, Page } from '@playwright/test'
 import { FORCE_ONLINE, headlessShell, launchBrowser } from 'gates/lib/chromium'
+import type { Seed } from 'gates/lib/seedAccount'
+import type { SeamAccount } from 'gates/lib/testSignIn'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, isPrimaryCheckout, portFor, portOffset } from 'gates/ports'
-import type { SeedAccount, Seeded } from './gallery'
 import { appRoot, seed } from './gallery'
 
 /** Where the backend keeps its state, under the checkout root. */
 export const STATE_DIR = '.dev-backend'
 
 /** The account the seed makes and `bun run shot --signed-in` signs in as. Local only. */
-export const SEED_ACCOUNT: SeedAccount = {
+export const SEED_ACCOUNT: SeamAccount = {
   email: 'agent@example.com',
   password: 'agent-dev-pass-1',
 }
 
 /** What `seed.json` holds: the account, and the seeded pages' app paths. */
-export type SeedFile = SeedAccount & Partial<Seeded>
+export type SeedFile = SeamAccount & Partial<Seed>
 
 /** The backend's API port before this checkout's offset; its HTTP-actions port is the next. */
 const BASE_BACKEND_PORT = 3310
@@ -136,7 +138,8 @@ export type Sys = {
   /** Resolves when the process is asked to stop (SIGINT, SIGTERM). */
   interrupted: () => Promise<void>
   launch: () => Promise<Browser>
-  seed: typeof seed
+  /** Signs the account up and seeds it (`tools/gallery.ts`'s `seed`). */
+  seed: (page: Page, base: string, account: SeamAccount) => Promise<Partial<Seed>>
   log: (line: string) => void
   error: (line: string) => void
 }
