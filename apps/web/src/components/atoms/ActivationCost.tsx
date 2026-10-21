@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 
 /** The box's caps: the recipe's; its face, weight and tracking are `.su-cost`'s. */
@@ -9,15 +10,13 @@ const COST = cn('su-cost', capsLabel({ weight: 'inherit', tracking: 'inherit' })
 type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
-  compact?: boolean
-  /** Beside `mini` chips (a Mini): their type size, so it is no taller than they are. */
-  mini?: boolean
   /**
-   * `og`: the fixed 1200 × 630 link preview's scale (`OgCard`), beside its
-   * chips drawn at their 36px plate, nothing under the 34px source floor
-   * (ruleset §4.6).
+   * The chips' Size it sits beside: `mini` takes their type size, so it is no
+   * taller than they are. `og`: the fixed 1200 × 630 link preview's scale
+   * (`OgCard`), beside its chips drawn at their 36px plate, nothing under the
+   * 34px source floor (ruleset §4.6).
    */
-  scale?: 'page' | 'og'
+  size?: Size | 'og'
 }
 
 /** The point's depth: the right edge runs to a tip at mid-height. */
@@ -67,17 +66,18 @@ const BOX_OG = {
   paddingInlineEnd: `calc(${space[24]} + ${TIP})`,
 } satisfies CSSProperties
 
-export function ActivationCost({
-  cost,
-  currency = 'AP',
-  compact = false,
-  mini = false,
-  scale = 'page',
-}: ActivationCostProps) {
+const BOX_FOR = {
+  full: BOX_FULL,
+  compact: BOX_COMPACT,
+  mini: BOX_MINI,
+  og: BOX_OG,
+} satisfies Record<Size | 'og', CSSProperties>
+
+export function ActivationCost({ cost, currency = 'AP', size = 'full' }: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 
-  const rung = scale === 'og' ? BOX_OG : mini ? BOX_MINI : compact ? BOX_COMPACT : BOX_FULL
+  const rung = BOX_FOR[size]
   // The edge shares the box's type size, so its `em` point matches the box's.
   return (
     <span className="su-cost-edge" style={{ fontSize: rung.fontSize }}>

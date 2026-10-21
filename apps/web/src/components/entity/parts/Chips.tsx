@@ -177,8 +177,7 @@ function CostBox({ cost, size }: { cost: string; size: Size }) {
     <ActivationCost
       cost={cell.value ?? cell.label}
       currency={cell.value ? cell.label : ''}
-      compact={size !== 'full'}
-      mini={size === 'mini'}
+      size={size}
     />
   )
 }

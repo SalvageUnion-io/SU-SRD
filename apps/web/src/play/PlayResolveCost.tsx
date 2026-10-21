@@ -43,7 +43,7 @@ export function ResolveSpend({
     <span style={SPEND}>
       {cost.heat > 0 && <Stat size="compact" label="Heat" value={`+${cost.heat}`} />}
       {cost.uses > 0 && <Stat size="compact" label="Uses" value={cost.uses} />}
-      {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} compact />}
+      {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} size="compact" />}
     </span>
   )
 }

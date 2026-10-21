@@ -239,7 +239,7 @@ function Chips({
           size="full"
         />
       ))}
-      {cost && <ActivationCost cost={cost} currency="" scale="og" />}
+      {cost && <ActivationCost cost={cost} currency="" size="og" />}
     </div>
   )
 }

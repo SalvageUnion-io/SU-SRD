@@ -82,7 +82,7 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
         currency = last
       }
     }
-    return <ActivationCost cost={cost} currency={currency} compact={compact} />
+    return <ActivationCost cost={cost} currency={currency} size={compact ? 'compact' : 'full'} />
   }
   const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
   if (item.type === 'trait' || (item.type === 'keyword' && value == null)) {
