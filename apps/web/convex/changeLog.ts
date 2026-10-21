@@ -16,7 +16,7 @@ import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } fro
  * `ownership`, `proposals` and `botClient` write beside them. There is no
  * device copy; `forEntity` below is what the sheet's drawer reads.
  *
- * Compacts land `state: 'applied'` and `actorId: userId`. A client append is a
+ * Rows land `state: 'applied'` and `actorId: userId`. A client append is a
  * record of something that ALREADY happened, not a request — the proposal
  * lifecycle (`proposed`/`declined`/`superseded`) belongs to `proposals.ts` and
  * is deliberately not reachable from here.
@@ -190,7 +190,7 @@ const MAX_ENTITY_ROWS = 100
  * still awaiting its answer. Declined and superseded proposals are not history
  * of the entity, and are left out.
  *
- * `entityId` is the id the client addresses the entity by (`logIdOf`). Compacts
+ * `entityId` is the id the client addresses the entity by (`logIdOf`). Rows
  * written before every writer used it name the entity by its row id, so both
  * are read.
  *

@@ -35,7 +35,7 @@ import { defaultSeat, readSeat, remount, seatsAt, seatsInGame, writeSeat } from 
  * - **Boarding also needs write access to the mech**, because playing a mech
  *   writes its Heat, EP and SP, and the mech must be where the seat is.
  *   Boarding never assigns: the pilot's `mech-to-pilot` link is untouched.
- * - **Compacts are created lazily**, on the first write, like `downtime`'s row. A
+ * - **Rows are created lazily**, on the first write, like `downtime`'s row. A
  *   pilot without one reads as on foot, at Close, with nothing switched on.
  * - **A change of mount ends a resolve.** The deck it came from is gone, so
  *   board, dismount and eject clear `resolving` whenever the mount moves.
@@ -210,7 +210,7 @@ export const presence = query({
  * Every pilot's seat in the Game, one entry per pilot in it.
  *
  * A pilot with no row yet gets the default seat, so every caller sees the same
- * answer for "never sat down" without inventing it. Compacts for pilots no longer
+ * answer for "never sat down" without inventing it. Rows for pilots no longer
  * in the Game are not returned; the cleanup paths delete them anyway.
  * `lastSeenAt` is the seat owner's last heartbeat (`isPresent` reads it).
  */

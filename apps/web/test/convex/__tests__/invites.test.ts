@@ -260,7 +260,7 @@ describe('games.get and the row summary', () => {
         updatedAt: Date.now(),
       })
     })
-    // Compacts written straight to a table bypass the triggers that keep
+    // Rows written straight to a table bypass the triggers that keep
     // `games.summary` current, so recount it as a roster mutation would.
     await t.run(async (ctx) => {
       await refreshGameSummary(ctx, gameId)

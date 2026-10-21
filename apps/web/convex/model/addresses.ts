@@ -5,11 +5,11 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { oldestOf } from './entities'
 
 /**
- * Compacts by public address: the last segment of a `/p/<kind>/<segment>` link
+ * Rows by public address: the last segment of a `/p/<kind>/<segment>` link
  * (`game-domain/shareAddress`), read on `by_app_id` like every app-id lookup.
  */
 
-/** Compacts a short address's prefix can match before the lookup stops looking. */
+/** Rows a short address's prefix can match before the lookup stops looking. */
 const PREFIX_MATCH_CAP = 8
 
 /**

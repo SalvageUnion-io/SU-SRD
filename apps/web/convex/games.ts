@@ -189,7 +189,7 @@ export const create = mutation({
  * neither container nor owner is the invalid row. The Organizer does not so
  * much *take* the crawler as become the person it is now filed under.
  *
- * Compacts describing the *table* rather than something built on it — the wiring,
+ * Rows describing the *table* rather than something built on it — the wiring,
  * invites, requests, memberships, channel bindings and play state — go with it
  * (`deleteGameApparatus`).
  */

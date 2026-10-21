@@ -172,7 +172,7 @@ describe('an ordinary sheet edit does not touch the Game', () => {
 })
 
 describe('a Game with no stored summary', () => {
-  /** Compacts written straight to the table bypass the triggers. */
+  /** Rows written straight to the table bypass the triggers. */
   async function legacyGame(t: Ctx) {
     const me = await makeUser(t, 'Me')
     const gameId = await t.run(async (ctx) => {
