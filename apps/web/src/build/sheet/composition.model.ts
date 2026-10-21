@@ -55,6 +55,8 @@ export type SheetComposition = {
   crawlerPilots: Pilot[]
   /** Every mech docked in the crawler by its own link (kind=crawler only). */
   crawlerMechs: Mech[]
+  /** Each docked mech's own pilot, by mech id, wherever it crews (kind=crawler only). */
+  crawlerMechPilots: Record<string, Pilot>
   /**
    * The crawler's crew slots filled by built NPCs (kind=crawler only;
    * ADR-044). Not part of `mode`: a crawler crewed only by NPCs is still
@@ -78,6 +80,7 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     crawler: null,
     crawlerPilots: [],
     crawlerMechs: [],
+    crawlerMechPilots: {},
     crew: [],
   }
 
@@ -116,6 +119,12 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     .map((l) => store.get('mech', l.from.id))
     .filter((m): m is Mech => m !== null)
   if (crawlerPilots.length === 0 && crawlerMechs.length === 0) return { ...empty, crawler, crew }
+  const crawlerMechPilots: Record<string, Pilot> = {}
+  for (const mech of crawlerMechs) {
+    const link = links.find((l) => l.type === 'mech-to-pilot' && l.from.id === mech.id)
+    const pilot = link ? store.get('pilot', link.to.id) : null
+    if (pilot) crawlerMechPilots[mech.id] = pilot
+  }
   return {
     mode: 'wired',
     pilot: crawlerPilots[0] ?? null,
@@ -123,6 +132,7 @@ export function resolveSheetComposition({ kind, id, links, store }: ResolveArgs)
     crawler,
     crawlerPilots,
     crawlerMechs,
+    crawlerMechPilots,
     crew,
   }
 }

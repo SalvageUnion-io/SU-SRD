@@ -10,6 +10,7 @@
  * Pure, so every surface that links a pilot and a mech draws the pair alike.
  */
 
+import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { LinkedUnit } from '../../components/index'
 import { relation } from '../../components/index'
 import type { UnitReading } from './unitModel'
@@ -50,8 +51,14 @@ export function crewPair(args: {
   }
 }
 
-/** `current/max` as a reading's value; an absent current is full. */
+/** A pool's `current/max` reading (HP, AP, SP, EP): an absent current is full. */
 export function pool(label: string, current: number | null, max: number | null): UnitReading[] {
   if (max === null) return []
-  return [{ label, value: `${current ?? max}/${max}` }]
+  return [{ label, value: `${resolvePool(current ?? undefined, max)}/${max}` }]
+}
+
+/** A gauge's `current/max` reading (Heat): an absent current is empty. */
+export function gauge(label: string, current: number | null, max: number | null): UnitReading[] {
+  if (max === null) return []
+  return [{ label, value: `${resolveGauge(current ?? undefined, max)}/${max}` }]
 }

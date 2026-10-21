@@ -6,6 +6,7 @@ import {
   DISCORD_NEUTRAL_ACCENT,
   DISCORD_ROLL_ACCENT,
   discordAccent,
+  escapeMarkdown,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
@@ -616,7 +617,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
  */
 export function sheetCard(sheet: SheetResult): ContainerData {
   const body = sheet.body
-  const owner = sheet.ownerName ?? UNCLAIMED
+  const owner = escapeMarkdown(sheet.ownerName ?? UNCLAIMED)
 
   const rendered =
     sheet.table === 'pilots'
@@ -645,8 +646,7 @@ export function sheetCard(sheet: SheetResult): ContainerData {
   }
 
   const url = sheetUrl(sheet.table, sheet.id)
-  // The crawler is communal — it has no owner to name, and saying "Unclaimed"
-  // would report a missing owner rather than an absent concept (ADR-030 §5).
+  // A crawler is communal: no owner to name, so never "Unclaimed" (ADR-030 §5).
   const provenance =
     sheet.table === 'crawlers' ? 'Communal · read-only' : `Owned by **${owner}** · read-only`
   const description = [rendered.subtitle, provenance].filter((line) => line.length > 0).join('\n')

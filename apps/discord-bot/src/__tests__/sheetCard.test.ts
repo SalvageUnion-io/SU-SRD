@@ -213,3 +213,10 @@ describe('robustness', () => {
     expect(cardHeading(card)).toContain('Rustjaw')
   })
 })
+
+describe('provenance', () => {
+  test("escapes the owner's name, so markdown in it reads literally", () => {
+    const card = sheet('pilots', { callsign: 'Vex' }, { ownerName: '*star*_x_' })
+    expect(cardText(card)).toContain('Owned by **\\*star\\*\\_x\\_**')
+  })
+})

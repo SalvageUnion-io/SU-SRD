@@ -9,7 +9,7 @@
 import { sheetPath } from 'game-domain/entityKinds'
 import type { LinkedUnit } from '../components/entity/LinkedUnits'
 import type { PairSide } from '../lib/units/crewPair'
-import { crewPair, pool } from '../lib/units/crewPair'
+import { crewPair, gauge, pool } from '../lib/units/crewPair'
 
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
@@ -122,7 +122,7 @@ export function pairedCrew(
     readings: [
       ...pool('SP', m.currentSP, m.maxSP),
       ...pool('EP', m.currentEP, m.maxEP),
-      ...pool('Heat', m.currentHeat, m.maxHeat),
+      ...gauge('Heat', m.currentHeat, m.maxHeat),
     ],
   })
   const out: { ownerId: string | null; unit: LinkedUnit }[] = []

@@ -16,6 +16,7 @@
 
 import { containerOf } from 'game-domain/container'
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
@@ -225,7 +226,12 @@ export function SheetCrawler({
       key: dockedMech.id,
       kind: 'mech' as const,
       name: dockedMech.name,
-      readings: rowStats(mechRailItems(dockedMech)),
+      readings: rowStats(
+        mechRailItems(
+          dockedMech,
+          pilotingContext(dockedMech, composition.crawlerMechPilots[dockedMech.id]?.abilities)
+        )
+      ),
       href: hrefFor('mech', dockedMech.id),
       owner: ownerOf?.('mech', dockedMech.id)?.label,
       onUnassign: unassignFrom('mech-to-crawler', dockedMech.id),

@@ -140,7 +140,7 @@ export type HomebrewPattern = {
 }
 
 /** Escape what would read as Discord markdown in a player-typed name. */
-function escapeMarkdown(text: string): string {
+export function escapeMarkdown(text: string): string {
   return text.replace(/[\\`*_~|[\]()<>#]/g, '\\$&')
 }
 

@@ -134,15 +134,19 @@ export const dropRetired = internalMutation({
   }> => {
     const apply = args.apply === true
     let invites = 0
+    const now = Date.now()
     for (const invite of await ctx.db.query('invites').collect()) {
       const stale = RETIRED_COLUMNS.filter((column) => invite[column] !== undefined)
       if (stale.length === 0) continue
       invites++
+      // An approval-only link is no candidate for the invite URL; without the
+      // column it would read as one, so it is revoked as the column clears.
+      const revoke = invite.requiresApproval === true && invite.revokedAt === undefined
       if (apply) {
-        await ctx.db.patch(
-          invite._id,
-          Object.fromEntries(stale.map((column) => [column, undefined]))
-        )
+        await ctx.db.patch(invite._id, {
+          ...Object.fromEntries(stale.map((column) => [column, undefined])),
+          ...(revoke ? { revokedAt: now } : {}),
+        })
       }
     }
     const joinRequests = await ctx.db.query('joinRequests').collect()

@@ -353,4 +353,21 @@ describe('dropRetired', () => {
       gameId,
     })
   })
+
+  test('an approval-only standing link is revoked, never made the invite URL', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    await seedLegacyInvite(t, gameId, organizer.userId, 'OPENSTANDING0000', { standing: true })
+    await seedLegacyInvite(t, gameId, organizer.userId, 'APPROVALLINK0000', {
+      standing: true,
+      requiresApproval: true,
+    })
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('OPENSTANDING0000')
+
+    await t.mutation(internal.invites.dropRetired, { apply: true })
+
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('OPENSTANDING0000')
+    const someone = await makeUser(t, 'Someone')
+    expect(await someone.as.query(api.invites.preview, { code: 'APPROVALLINK0000' })).toBeNull()
+  })
 })

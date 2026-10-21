@@ -216,6 +216,17 @@ describe('resolveSheetComposition — every relationship is one hop (ADR-037)', 
     expect(c.crawlerPilots.map((p) => p.id)).toEqual(['p1'])
     expect(c.crawlerMechs.map((m) => m.id)).toEqual(['m2'])
     expect(c.mech?.id).toBe('m2')
+    expect(c.crawlerMechPilots).toEqual({})
+  })
+
+  test("a docked mech carries its own pilot, so its readings count the pilot's abilities", () => {
+    const c = resolveSheetComposition({
+      kind: 'crawler',
+      id: 'c1',
+      links: [link('l1', 'mech-to-crawler', 'm1', 'c1'), link('l2', 'mech-to-pilot', 'm1', 'p1')],
+      store: lookup([crawler, pilot, mech]),
+    })
+    expect(c.crawlerMechPilots.m1?.id).toBe('p1')
   })
 
   test('a crawler with only docked mechs is wired', () => {
