@@ -19,7 +19,12 @@ import type { SheetRow } from './crew'
 import { sheetVitals } from './crew'
 import { oldestByAddress } from './model/addresses'
 import { gamesForUser, userByDiscordId } from './model/bot'
-import { bindChannelAs, resolveCallerGame, unbindChannelAs } from './model/channelBindings'
+import {
+  bindChannelAs,
+  GAME_NOT_FOUND,
+  resolveCallerGame,
+  unbindChannelAs,
+} from './model/channelBindings'
 import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
 
@@ -249,7 +254,7 @@ export const bindChannel = internalMutation({
     if (args.game !== undefined && args.game.trim().length > 0) {
       gameId = await resolveCallerGame(ctx, user._id, args.game)
       if (gameId === null) {
-        return fail('not-found', 'That Game could not be found, or you are not in it.')
+        return fail('not-found', GAME_NOT_FOUND)
       }
     }
     return await bindChannelAs(ctx, user._id, {

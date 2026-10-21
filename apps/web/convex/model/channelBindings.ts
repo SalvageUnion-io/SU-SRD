@@ -1,6 +1,6 @@
 import type {
   BindChannelResult,
-  BotDenialReason,
+  BotFailure,
   ChannelBindingSummary,
   UnbindChannelResult,
 } from 'game-domain/botWire'
@@ -31,10 +31,8 @@ import { getMembership } from './permissions'
 type AnyCtx = QueryCtx | MutationCtx
 type BindingRow = Doc<'channelBindings'>
 
-/** A refusal the bot words for the caller, privately. */
-export type BindingFailure = { ok: false; reason: BotDenialReason; message: string }
-
-const GAME_NOT_FOUND = 'That Game could not be found, or you are not in it.'
+/** The bot's refusal when the caller names a Game they are not in (or none exists). */
+export const GAME_NOT_FOUND = 'That Game could not be found, or you are not in it.'
 
 /** The binding a channel holds, if any. */
 export async function bindingForChannel(
@@ -137,7 +135,7 @@ export async function bindChannelAs(
   ctx: MutationCtx,
   userId: Id<'users'>,
   args: { channelId: string; gameId: Id<'games'> | null; channelName?: string | null }
-): Promise<BindingFailure | ({ ok: true } & BindChannelResult)> {
+): Promise<BotFailure | ({ ok: true } & BindChannelResult)> {
   const { channelId, gameId } = args
   const channelName = channelNameOf(args.channelName)
 
@@ -208,7 +206,7 @@ export async function unbindChannelAs(
   ctx: MutationCtx,
   userId: Id<'users'>,
   channelId: string
-): Promise<BindingFailure | ({ ok: true } & UnbindChannelResult)> {
+): Promise<BotFailure | ({ ok: true } & UnbindChannelResult)> {
   const held = await bindingForChannel(ctx, channelId)
   if (held === null) return { ok: true, unbound: null }
   if (!(await mayManageBinding(ctx, userId, held))) {

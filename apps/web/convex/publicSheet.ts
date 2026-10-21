@@ -269,16 +269,12 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   // module rests on. An unclaimed pilot in the same Game has no owner to ask
   // and is already visible to the table, so it stays allowed.
   //
-  // Both ends are read through an `in` guard because `oldestByAppId` returns the row
-  // union — `crawlers` has no `ownerId` column at all — and narrowing it by the
-  // table argument is not something Convex's index typing survives.
-  //
   // A pilot published in its own right is the third case: its abilities are on
   // its own public page already, so passing them on discloses nothing — and
   // withholding them would read the mech lower than the pilot's public rail
   // shows it, now that the reader's sheet draws both.
-  const mechOwnerId = 'ownerId' in mech ? mech.ownerId : null
-  const pilotOwnerId = 'ownerId' in pilot ? pilot.ownerId : null
+  const mechOwnerId = mech.ownerId
+  const pilotOwnerId = pilot.ownerId
   const sameOwner = pilotOwnerId !== null && pilotOwnerId === mechOwnerId
   const unclaimedInSameGame =
     pilotOwnerId === null && mech.gameId !== null && pilot.gameId === mech.gameId
@@ -511,7 +507,7 @@ export const preview = query({
     }
     const row = await oldestByAddress(ctx, TABLE_OF_KIND[args.kind], args.appId)
     if (row === null || row.publicRead !== true) return null
-    const ownerId = 'ownerId' in row ? row.ownerId : null
+    const ownerId = row.ownerId
     const game = row.gameId !== null ? await ctx.db.get(row.gameId) : null
     return {
       kind: args.kind,

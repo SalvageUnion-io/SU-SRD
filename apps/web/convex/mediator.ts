@@ -19,13 +19,6 @@ import { NotAuthorized, requireMediator, requireUser } from './model/permissions
  * before it happens, which is the one leak that changes how the game is played
  * rather than merely who can edit what.
  *
- * ## There is no presence
- *
- * Who is at the table is not tracked. A presence reader ships with its writer
- * (a heartbeat some client calls) in the same change: a reader with no writer
- * shows "0 at the table" whoever is there, a permanently-false indicator, which
- * is worse than an absent one.
- *
  * ## The tray owes the same edge parse every other write does
  *
  * `encounterNpcs.body` is `v.any()`, so Convex cannot reject a malformed one —

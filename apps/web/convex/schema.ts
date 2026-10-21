@@ -444,7 +444,6 @@ export default defineSchema({
     .index('by_from', ['from.id'])
     .index('by_to', ['to.id']),
 
-  /** Mediator-owned and Mediator-visible. The one thing that must stay hidden. */
   /**
    * An NPC, in exactly one of the two containers everything else uses
    * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions)
@@ -454,16 +453,6 @@ export default defineSchema({
    * opposition** — the one table members cannot read. On a shelf (`gameId:
    * null`, `ownerId` set) it is somebody's own tray, where they prep before a
    * Game exists or after one ends.
-   *
-   * ## Why two columns
-   *
-   * An NPC lives in a Game or on its owner's shelf, so it carries a nullable
-   * `gameId` and an `ownerId`, like `crawlers`. Prep on a shelf survives the
-   * Game it was made for, and there is one tray under one name, held by the
-   * server in either container.
-   *
-   * `gameId == null && ownerId == null` stays the invalid row here as
-   * everywhere else.
    */
   encounterNpcs: defineTable({
     gameId: v.union(v.id('games'), v.null()),
