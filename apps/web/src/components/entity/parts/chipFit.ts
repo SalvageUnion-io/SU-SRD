@@ -19,6 +19,7 @@
 import {
   isFirst,
   isKept,
+  isNotChip,
   OUT_ATTRIBUTE,
   overflowPlan,
   watchChipFill,
@@ -35,9 +36,6 @@ const FITTED_ATTRIBUTE = 'data-chip-fitted'
 /** The share of the pill the name always keeps, and its cap in rem. */
 const NAME_SHARE = 0.4
 const NAME_CAP_REM = 9
-
-/** Nodes beside a chip that are no chip: an open menu's focus guards and portal owner. */
-const NOT_CHIPS = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
 
 /** The room the strip may take: the pill's, less the name's floor and what else stands on the line. */
 export function stripRoom(
@@ -66,7 +64,7 @@ function chipsOf(strip: HTMLElement): HTMLElement[] {
   for (const lane of strip.children) {
     for (const chip of lane.children) {
       if (!(chip instanceof HTMLElement)) continue
-      if (NOT_CHIPS.some((attr) => chip.hasAttribute(attr))) continue
+      if (isNotChip(chip)) continue
       chips.push(chip)
     }
   }

@@ -36,7 +36,12 @@ const FILL_HEAD = '[data-chip-fill]'
 const FILL_NAME = '[data-fill-name]'
 
 /** Nodes beside a chip that are no chip: an open menu's focus guards and portal owner. */
-const NOT_ITEMS = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
+const NOT_CHIP_ATTRIBUTES = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
+
+/** Whether a node in a chip row is one of Base UI's injected nodes rather than a chip. */
+export function isNotChip(el: Element): boolean {
+  return NOT_CHIP_ATTRIBUTES.some((attr) => el.hasAttribute(attr))
+}
 
 /** A header-only head's +MORE (C5): drawn once a chip is out, its last chip. */
 const MORE_ATTRIBUTE = 'data-chip-more'
@@ -74,7 +79,7 @@ function fillItems(container: HTMLElement, name: Element | null): HTMLElement[] 
   const take = (parent: Element) => {
     for (const child of parent.children) {
       if (child === name || !(child instanceof HTMLElement)) continue
-      if (NOT_ITEMS.some((attr) => child.hasAttribute(attr))) continue
+      if (isNotChip(child)) continue
       const display = getComputedStyle(child).display
       if (display === 'none') continue
       if (display === 'contents') take(child)
