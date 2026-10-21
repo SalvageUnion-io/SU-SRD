@@ -9,8 +9,8 @@
 import type { ReactNode } from 'react'
 import { resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import type { Size } from '../../../styles/sizing'
 import { CardImage } from '../../compositions/CardImage'
-import type { CardSize } from '../../containers/displayMode'
 import { embeddedPeekAddress, tablePeekAddress } from '../../entity/peekContext'
 import { BayInfo } from './BayInfo'
 import { resolveBodyLayout } from './bodyBlocks'
@@ -39,7 +39,7 @@ import { WhenDamaged } from './WhenDamaged'
 export const CRAWLER_ABILITY_SEAL = { label: 'Crawler Ability', tone: 'var(--color-ink)' }
 const CRAWLER_NPC_SEAL = { label: 'NPC', tone: 'var(--color-ink)' }
 
-const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
+const BODY_PAD: Record<Size, { ruled: string; open: string }> = {
   full: { ruled: `${space[2]} ${space[14]} ${space[12]}`, open: `${space[12]} ${space[14]}` },
   compact: { ruled: `${space[2]} ${space[12]} ${space[12]}`, open: `${space[12]}` },
   mini: { ruled: `${space[2]} ${space[8]} ${space[8]}`, open: `${space[8]}` },

@@ -7,8 +7,9 @@ import type {
   RefObjectDamage,
   RefObjectTrait,
 } from 'salvageunion-reference'
+import type { Size } from '../../../styles/sizing'
 import type { EntityStatus } from '../../atoms/entityStatus'
-import type { CardExtent, CardSize } from '../../containers/displayMode'
+import type { CardExtent } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -27,7 +28,7 @@ export type ReferenceCardEntity = RefEntity | RefMetaEntity
 
 export type ReferenceEntityCardProps = {
   data: ReferenceCardEntity
-  size?: CardSize
+  size?: Size
   /** How much of the entity renders — orthogonal to `size`, so a `mini` card
    * can still show its whole content. */
   extent?: CardExtent

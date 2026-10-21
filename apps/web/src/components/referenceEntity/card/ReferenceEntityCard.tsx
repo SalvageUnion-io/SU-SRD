@@ -17,9 +17,10 @@ import {
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
+import type { Size } from '../../../styles/sizing'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
-import type { CardExtent, CardSize } from '../../containers/displayMode'
+import type { CardExtent } from '../../containers/displayMode'
 import { resolveCardDisplay } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChipSet } from '../../entity'
@@ -100,7 +101,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * The frame and the footer are ink on paper on every card; the
  * tone lives in the header alone. An entity's own roll table sits inline as a
  * flush band; its actions, like nested ENTITIES, stack framed in
- * the frame, one size step per level (large → medium → a Mini), the
+ * the frame, one size step per level (full → compact → a Mini), the
  * frame stepping 3 → 2 → 1.5px with them.
  *
  * ## How this file is laid out
@@ -218,7 +219,7 @@ function ReferenceEntityCardInner({
   const isAction = schemaName === 'actions'
   // A FRAMED action (one a list or a resolve draws) is never the
   // dominant solo card: a large one renders medium, at depth ≥ 1.
-  const size: CardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
+  const size: Size = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'full'
   const isCatalog = extent === 'catalog'
@@ -625,7 +626,7 @@ export type ReferenceEntityCardWrapperProps = Omit<
   'data' | 'size' | 'extent'
 > & {
   data: ReferenceCardEntity | undefined
-  size?: CardSize
+  size?: Size
   extent?: CardExtent
   /**
    * Let the reader fold this card to its Mini (`extent="head"`) and back;

@@ -13,7 +13,7 @@
  * card, which is what keeps the first clause true under a mini parent.
  */
 import { describe, expect, test } from 'bun:test'
-import type { CardSize } from '../../../containers/displayMode'
+import type { Size } from '../../../../styles/sizing'
 import { nestedChildSize, titleSizeRung } from '../entityCardTone'
 
 // The canonical ladder, largest → smallest. A later position = a smaller title.
@@ -22,7 +22,7 @@ import { nestedChildSize, titleSizeRung } from '../entityCardTone'
 const LADDER_LARGEST_FIRST = ['displayLg', 'title', 'readout', 'lede', 'caption', 'badge'] as const
 
 const FLOOR = 'badge'
-const SIZES: CardSize[] = ['full', 'compact', 'mini']
+const SIZES: Size[] = ['full', 'compact', 'mini']
 const DEPTHS = [0, 1, 2, 3, 4, 5, 6]
 
 const LADDER_CLASSES: readonly string[] = LADDER_LARGEST_FIRST

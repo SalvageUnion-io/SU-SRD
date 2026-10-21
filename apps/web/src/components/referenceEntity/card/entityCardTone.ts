@@ -10,13 +10,13 @@ import {
   schemaDomain,
   tierNumeral,
 } from 'salvageunion-reference'
-import type { CardSize } from '../../containers/displayMode'
+import type { Size } from '../../../styles/sizing'
 /** The six card domains + `action` — the entity model's (`EntityDomain`). */
 export type CardDomain = EntityDomain
 
-/* The sizes a card renders at are NOT declared here. They live once, at the
- * Card layer (`containers/displayMode.ts`), and the entity card imports
- * `CardSize` directly — an alias here would just be the second name that let
+/* The sizes a card renders at are NOT declared here. They live once, as the
+ * app-wide `Size` (`styles/sizing.ts`), and the entity card imports
+ * `Size` directly — an alias here would just be the second name that let
  * `head` and `listing` drift apart in the first place. */
 
 /**
@@ -152,9 +152,9 @@ const TITLE_SIZE_LADDER = ['displayLg', 'title', 'readout', 'lede', 'caption', '
 export type TitleRung = (typeof TITLE_SIZE_LADDER)[number]
 
 /** SIZE as the ladder rung a depth-0 card starts on — see docblock. */
-const SIZE_LADDER_OFFSET: Record<CardSize, number> = { full: 0, compact: 1, mini: 2 }
+const SIZE_LADDER_OFFSET: Record<Size, number> = { full: 0, compact: 1, mini: 2 }
 
-export function titleSizeRung(depth: number, size: CardSize = 'full'): TitleRung {
+export function titleSizeRung(depth: number, size: Size = 'full'): TitleRung {
   const rung = Math.max(depth, 0, SIZE_LADDER_OFFSET[size])
   const index = Math.min(rung, TITLE_SIZE_LADDER.length - 1)
   return TITLE_SIZE_LADDER[index] ?? 'badge'
@@ -165,7 +165,7 @@ export function titleSizeRung(depth: number, size: CardSize = 'full'): TitleRung
  * (board E2) — except inside a mini card, whose children stay mini so a
  * child never outgrows its parent.
  */
-export function nestedChildSize(parentSize: CardSize): CardSize {
+export function nestedChildSize(parentSize: Size): Size {
   return parentSize === 'mini' ? 'mini' : 'compact'
 }
 

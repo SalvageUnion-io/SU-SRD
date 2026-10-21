@@ -11,8 +11,8 @@ import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-ref
 import type { Foreground } from '../../../design/contrast'
 import { foregroundOn } from '../../../design/contrast'
 import { cn } from '../../../lib/cn'
+import type { Size } from '../../../styles/sizing'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
-import type { CardSize } from '../../containers/displayMode'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { onTone, textBand } from '../referenceEntityHelpers'
@@ -142,7 +142,7 @@ export function resolveCardColors({
  * the large solo card, 2px one size down, 1.5px for a small card (and a
  * head-only card's Mini).
  */
-export function resolveFrameWidth(size: CardSize): string {
+export function resolveFrameWidth(size: Size): string {
   if (size === 'mini') return 'var(--bw-chrome)'
   return size === 'full' ? 'var(--bw-entity)' : 'var(--bw-entity-compact)'
 }

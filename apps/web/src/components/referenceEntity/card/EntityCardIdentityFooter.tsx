@@ -3,8 +3,8 @@ import type { Provenance } from 'salvageunion-reference'
 import { citeLine, provenancePrintings } from 'salvageunion-reference'
 import { color, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
+import type { Size } from '../../../styles/sizing'
 import { capsLabel } from '../../atoms/capsLabel'
-import type { CardSize } from '../../containers/displayMode'
 import type { CardColors } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainClass } from './cardGrain'
@@ -26,7 +26,7 @@ type EntityCardIdentityFooterProps = {
    * `undefined` for head/catalog so listings stay uncluttered.
    */
   externalLink?: ReactNode
-  size: CardSize
+  size: Size
   /**
    * USER-MADE credit (ruleset §3.9): "Made by [user]", in the place a page
    * citation takes on a canon card. It replaces the citation: a homebrew card
@@ -44,7 +44,7 @@ type EntityCardIdentityFooterProps = {
   grain?: CardGrain | undefined
 }
 
-const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[12], mini: space[8] }
+const PAD_X: Record<Size, string> = { full: space[14], compact: space[12], mini: space[8] }
 
 const TYPE_CAPS = {
   lineHeight: 1,

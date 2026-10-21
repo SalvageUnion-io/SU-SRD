@@ -3,7 +3,7 @@ import { useContext, useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { entityRef, getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import type { CardSize } from '../../containers/displayMode'
+import type { Size } from '../../../styles/sizing'
 import { MiniGrid } from '../../containers/MiniGrid'
 import { Entity } from '../../entity/Entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -31,7 +31,7 @@ export type NestedCardHost = {
   /** The HOST card's depth — nested cards render one level below it. */
   depth: number
   /** The host's size: a child renders medium, or small inside a small card. */
-  size: CardSize
+  size: Size
   isDown: Down
   /**
    * The host IS the page: its stacks drop the frame inset (see `CardStack`).
@@ -69,7 +69,7 @@ export type NestedWrite = {
 }
 
 /** A stack's inset from the frame, by the host's size (board E2). */
-const STACK_MARGIN: Record<CardSize, string> = {
+const STACK_MARGIN: Record<Size, string> = {
   full: `${space[4]} ${space[14]} ${space[14]}`,
   compact: `${space[2]} ${space[12]} ${space[12]}`,
   mini: `${space[2]} ${space[8]} ${space[8]}`,
@@ -85,7 +85,7 @@ const STACK_MARGIN: Record<CardSize, string> = {
  * prose and from the next stack, and an inline `margin: 0` would beat that
  * rule and butt the cards together. Its cards keep the same page rhythm.
  */
-const stack = (size: CardSize, flush: boolean): CSSProperties => ({
+const stack = (size: Size, flush: boolean): CSSProperties => ({
   display: 'flex',
   flexDirection: 'column',
   gap: flush ? space[12] : space[14],
@@ -104,7 +104,7 @@ export function CardStack({
   flush = false,
   children,
 }: {
-  size: CardSize
+  size: Size
   flush?: boolean
   children: ReactNode
 }) {
@@ -128,7 +128,7 @@ export function CardLead({
   /** Nested elements follow the table. */
   nested: boolean
   table: ReactNode
-  size: CardSize
+  size: Size
 }) {
   return (
     <>
@@ -138,7 +138,7 @@ export function CardLead({
   )
 }
 
-const LEAD_GAP: Record<CardSize, string> = { full: space[12], compact: space[12], mini: space[8] }
+const LEAD_GAP: Record<Size, string> = { full: space[12], compact: space[12], mini: space[8] }
 
 /** Children inside a Peek: one read-only Mini each (E16), one a line (N4). */
 function PeekMinis({ entities }: { entities: ReferenceCardEntity[] }) {
@@ -440,7 +440,7 @@ export function ActionMinis({
 }: {
   actions: readonly ReferenceCardEntity[]
   /** The size a table opens at. */
-  size: CardSize
+  size: Size
   /** The host's display name, whose ` (Host)` suffix the actions drop. */
   hostName: string
   /** What `[(CHASSIS)]` reads as in the text. */

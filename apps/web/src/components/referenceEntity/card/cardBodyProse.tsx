@@ -19,7 +19,7 @@ import type {
   RefObjectContentBlock,
 } from 'salvageunion-reference'
 import { getChoices, isAbility, resolveGrantedEntities } from 'salvageunion-reference'
-import type { CardSize } from '../../containers/displayMode'
+import type { Size } from '../../../styles/sizing'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
 import { choiceKey, hideShownProse, proseKey, resolveBodyBlocks } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
@@ -63,7 +63,7 @@ export type CardBodyInput = Pick<
   pattern: RefObjectAnyPattern | undefined
   entityName: string
   resolvedChassisName: string | undefined
-  size: CardSize
+  size: Size
   depth: number
   compact: boolean
   onPage: boolean

@@ -2,9 +2,9 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { cn } from '../../lib/cn'
 import { revealRolled } from '../../lib/revealRolled'
+import type { Size } from '../../styles/sizing'
 import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
-import type { CardSize } from '../containers/displayMode'
 import { rollBandColor, rollRangeLabel } from './rollTableBands'
 
 // The instrument's caps labels, from the recipe; sizes are the rules' own.
@@ -80,7 +80,7 @@ export type RollTableInstrumentProps = {
   /** The table's name: the accessible name of its rows or grid. */
   name: string
   table: BandsTable | ColumnsTable
-  size: CardSize
+  size: Size
   /** The surface's tone (a CSS colour); its band paints every other row. */
   tone?: string
   /** The roll's words: "Roll the Die:", or "Roll the Dice:" for two dice. */

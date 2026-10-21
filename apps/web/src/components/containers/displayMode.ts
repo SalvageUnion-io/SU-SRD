@@ -24,12 +24,10 @@ import type { Size } from '../../styles/sizing'
  *               foot suppressed; at `mini` the artwork too. The class picker's
  *               options draw it; an SRD index is `<Entity layout="index">`.
  */
-export type CardSize = Size
-
 export type CardExtent = 'full' | 'head' | 'catalog'
 
 /** The two axes together — what every card layer resolves its rendering from. */
-export type CardDisplay = { size: CardSize; extent: CardExtent }
+export type CardDisplay = { size: Size; extent: CardExtent }
 
 /**
  * The defaults for the two axes — a card with neither specified is the dominant
@@ -41,7 +39,7 @@ export function resolveCardDisplay({
   size,
   extent,
 }: {
-  size?: CardSize
+  size?: Size
   extent?: CardExtent
 }): CardDisplay {
   return { size: size ?? 'full', extent: extent ?? 'full' }

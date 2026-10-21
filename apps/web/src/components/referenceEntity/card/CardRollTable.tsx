@@ -3,6 +3,7 @@ import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../lib/dice'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
+import type { Size } from '../../../styles/sizing'
 import {
   digestColumnsTable,
   digestRollTable,
@@ -10,7 +11,6 @@ import {
 } from '../../compositions/digestRollTable'
 import { RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
-import type { CardSize } from '../../containers/displayMode'
 import { toastRoll } from '../../containers/toastRoll'
 import { RollMini } from '../../entity/forms/RollMini'
 
@@ -62,7 +62,7 @@ export function CardRollTable({
   table: RefObjectTable
   /** The table's name, for the bar. */
   name: string
-  size: CardSize
+  size: Size
   /** A damaged host: the table reads, but there is no Roll. */
   disabled: boolean
   /** Start rolled at this die (a restored roll). */
