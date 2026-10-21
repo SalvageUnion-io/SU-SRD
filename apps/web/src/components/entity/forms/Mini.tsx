@@ -141,7 +141,7 @@ function ToggleSurface({
  */
 
 /**
- * TOKEN — the shortform (§3): `name [chips]`, one size, at level 2 (E6) or in
+ * MINI — the shortform (§3): `name [chips]`, one size, at level 2 (E6) or in
  * a slot under 12rem (E3). Its chips are the budget its container's context
  * names (`tokenChips`, C3 and C4), then the cost box; an ability's tier numeral sits before
  * its name, as on its band. Its head is always one row (E18): every chip of

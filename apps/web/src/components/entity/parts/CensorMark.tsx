@@ -10,13 +10,13 @@ const WORD = cn('su-missing-art__word', capsLabel({ tracking: 'snug' }))
 const CODE = cn('su-missing-art__code', capsLabel({ tracking: 'snug' }))
 
 /**
- * CENSOR MARK — what fills an art-less tile's art place in a catalog that has
+ * CENSOR MARK — what fills an art-less index Compact's art place in a catalog that has
  * art, quoting how the Workshop Manual censors its systems and modules
  * (ruleset §1): a torn ink patch reading REDACTED over its page (`file`), a
  * torn strip laid askew (`row`) or a red REMOVED rubber stamp (`removed`),
  * over one of Rainmaker's chassis blueprints faded into the paper.
  *
- * Decoration (`aria-hidden`): the tile's name is its label. Layout is
+ * Decoration (`aria-hidden`): the index Compact's name is its label. Layout is
  * `entity-art.css`'s `.su-missing-art*`.
  */
 export function CensorMark({ mark }: { mark: Mark }) {

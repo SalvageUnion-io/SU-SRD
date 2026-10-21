@@ -43,7 +43,7 @@ export type ReferenceEntityCardProps = {
   readable?: boolean
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
-   * loadout as nested cards (a `size="compact" extent="head"` pattern shows name + description). */
+   * loadout as nested cards (at `extent="head"` the pattern is its Mini). */
   pattern?: RefObjectAnyPattern
   /**
    * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card

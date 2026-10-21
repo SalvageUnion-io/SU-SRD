@@ -25,22 +25,22 @@ import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 export type CompactIndexProps = {
   model: EntityFormModel
-  /** `link` on a listing; a tile has no `select` slot yet. */
+  /** `link` on a listing; an index Compact has no `select` slot yet. */
   mode?: CompactIndexMode
   omit?: readonly EntityOmit[]
   /** The opening prose under the cells, while browsing (E11). */
   lead?: boolean
   /**
-   * The art loads at once and first, for a tile in a listing's opening row:
+   * The art loads at once and first, for an index Compact in a listing's opening row:
    * that art is the page's largest paint, and a lazy image is only requested
    * after layout.
    */
   priority?: boolean
   /**
-   * The catalog has art, so a tile without any keeps the art place and wears a
-   * censor mark there, keeping every tile one height. The number is this
+   * The catalog has art, so an index Compact without any keeps the art place and wears a
+   * censor mark there, keeping every index Compact one height. The number is this
    * entity's place among the catalog's art-less entities, which turns the
-   * marks so neighbours differ. Unset, an art-less tile opens on its band.
+   * marks so neighbours differ. Unset, an art-less index Compact opens on its band.
    */
   missingArt?: number
 }
@@ -50,7 +50,7 @@ type CompactIndexMode = Extract<EntityMode, { kind: 'read' | 'link' }>
 const READ: CompactIndexMode = { kind: 'read' }
 
 /**
- * The 440 derivative is the tile's own rendition: a catalog column tops out
+ * The 440 derivative is the index Compact's own rendition: a catalog column tops out
  * near 22rem, so 440 covers it at 1x–1.25x and 880 at 2x and up. On a phone
  * the art is cropped to its ink in a 2:1 band (`tileArtWindow`), where it
  * draws about half the viewport wide: 50vw is that slot too.
@@ -83,12 +83,12 @@ function tileArtWindow(url: string): CSSVarStyle | undefined {
 const MEASURE_KEY = 'ref-stat-'
 
 /**
- * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
+ * INDEX COMPACT — the catalog form: the artwork is the hero. The art at 3:4 on paper
  * (the line art multiplied onto it); an entity without art wears a censor
  * mark there in a catalog that has art (`missingArt`), and elsewhere has no
- * art place, so its tile opens on the band. Then the tone band with the name notched
+ * art place, so its index Compact opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
- * Manual's chapter band at a tile's scale — with the facts and the cost as
+ * Manual's chapter band at an index Compact's scale — with the facts and the cost as
  * chips (`EP | 2`, `SLOTS | 1`), a compact head's budget, beside the name on
  * the band (the name giving way); then, while
  * browsing, the lead clamped to three lines.
@@ -104,17 +104,17 @@ export function CompactIndex({
 }: CompactIndexProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
-  // Its name may end in "…": the tile Peeks the whole entry (owner, round 4:
+  // Its name may end in "…": the index Compact Peeks the whole entry (owner, round 4:
   // "should ellipses off and show in a peek").
   const peek = usePeekAttrs(model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
-  // A CompactIndex's budget is a compact head's (C3), in its kind's own context (C4):
+  // An index Compact's budget is a compact head's (C3), in its kind's own context (C4):
   // of its measures (its `ref-stat-*` stats) it keeps the one that context
   // names, beside its rank, its other facts (a hybrid's REQ, a crawler's POP),
   // its action's facets and its cost.
   const kept = budgetFacts(model.facts, naturalContext(model.kind))
   const leadText = lead ? model.lead : undefined
-  // A tile with no lead to browse by is still contentful when its budget left
+  // An index Compact with no lead to browse by is still contentful when its budget left
   // measures out (owner, round 11: the crawler tech levels "should be
   // contentful"): its head keeps the budget alone (TL, SP), so the name keeps
   // its room, and its body is the rest as chips (Upkeep, Upgrade, POP).

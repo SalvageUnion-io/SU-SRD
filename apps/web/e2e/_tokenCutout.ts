@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 /**
  * The cut-out head on a CONTENTFUL Mini (N3), as the rendered page draws it.
- * Every Mini, Compact and CompactIndex sets its name on a tab of the paper notched into
+ * Every Mini, Compact and index Compact sets its name on a tab of the paper notched into
  * its band's foot; a contentful Mini's tab opens into its body's paper, as a
  * Compact's opens into its body, so no rule runs between head and body.
  * `findMiniCutoutFaults` returns one line per fault:

@@ -2,7 +2,7 @@ import type { Size } from '../../styles/sizing'
 
 /**
  * THE card sizing vocabulary — owned here and read by every card
- * (`ReferenceEntityCard`, the Peek's compact Card).
+ * (`ReferenceEntityCard`, the Peek's Compact contentful).
  *
  * Two axes, deliberately ORTHOGONAL, so every combination is expressible — a
  * mini card can still show its content.
@@ -12,17 +12,17 @@ import type { Size } from '../../styles/sizing'
  * - `compact` — reduced density; nested cards are always at least this.
  * - `mini`    — the shortform scale.
  *
- * EXTENT — how much of the entity renders, at whatever size:
- * - `full`    — the whole card: header, body, expand slot, footer.
- * - `head`    — the COMPACT CARD: the head row (its art's window) and a paper
- *               body of value cells and the "//" line; the prose, expand and
- *               footer are suppressed. At `mini` this is the shortform token:
- *               one tone-filled pill carrying the type stamp, the name and the
- *               classification tail.
- * - `catalog` — the index tile: artwork + description ONLY, with every nested
- *               element (entities, actions, choices, patterns, roll tables)
- *               suppressed so an index page reads uniformly whatever the entity
- *               type happens to be. At `mini` the artwork is dropped too.
+ * EXTENT — how much of the entity renders, at whatever size (the EDL's
+ * header-only and contentful):
+ * - `full`    — contentful: head, body, nested content, foot. At `compact`
+ *               the EDL's Compact contentful, at `full` its Full contentful.
+ * - `head`    — header-only, and so a Mini at every size (`HeadMini`, N2).
+ *               A header-only Compact is `<Entity size="compact">`, never
+ *               this card.
+ * - `catalog` — artwork and description only: every nested element
+ *               (entities, actions, choices, patterns, roll tables) and the
+ *               foot suppressed; at `mini` the artwork too. The class picker's
+ *               options draw it; an SRD index is `<Entity layout="index">`.
  */
 export type CardSize = Size
 

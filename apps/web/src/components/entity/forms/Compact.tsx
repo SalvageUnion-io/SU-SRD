@@ -99,14 +99,14 @@ const READ: EntityMode = { kind: 'read' }
  */
 
 /**
- * ROW — the workhorse form (entity display language §3): every list of
+ * COMPACT — the workhorse form (entity display language §3): every list of
  * entities. A head (the art's window, by schema and room, E10; tier, name, the
  * chip group — stats, action type and facets, traits, relations, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
  * a paper body: the host's leading content and the lead while browsing
  * (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
- * cut-out notched into the band's foot, as a CompactIndex's. Fill follows kind (E12):
+ * cut-out notched into the band's foot, as an index Compact's. Fill follows kind (E12):
  * a "have" entity's tone, an ability's tier tone (Core orange, Advanced
  * and Hybrid rust, Legendary pink), any other "do" entity's ink banner with paper flecks.
  */

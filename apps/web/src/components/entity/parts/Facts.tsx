@@ -7,7 +7,7 @@ import type { StatItem } from '../../containers/statsBarTypes'
  * rung, the row's content. An editable stat (a sheet's override) grows its
  * stepper, exactly as the card's cluster does. A catalog CompactIndex sets its cells a
  * rung down (`compact`), under the art. A value longer than the row is wide (a
- * hybrid class's requirements in a tile) wraps onto more lines instead of
+ * hybrid class's requirements in an index Compact) wraps onto more lines instead of
  * being clipped by the frame (`wrap`).
  */
 export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size }) {

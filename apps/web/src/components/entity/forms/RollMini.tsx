@@ -26,7 +26,7 @@ function Name({ name }: { name: string }) {
 }
 
 /**
- * ROLL TOKEN — a roll table as a Mini (EDL E14: "nested: Mini, Table, Roll
+ * ROLL MINI — a roll table as a Mini (EDL E14: "nested: Mini, Table, Roll
  * the Die"; owner's calls, 2026-10-14 and 2026-10-18): the ink pill with the
  * table's name on the cut-out, at a Mini's height.
  *

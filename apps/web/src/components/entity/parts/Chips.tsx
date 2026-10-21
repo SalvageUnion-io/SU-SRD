@@ -14,7 +14,7 @@ import type { TagItem } from './tagItems'
 
 /**
  * CHIPS — every chip strip (`chips-and-actions.md` C2a): a Mini's, a Compact's
- * or Card's head, a Page's band, a CompactIndex's, a TitledBox's or Slab's summary.
+ * or a contentful's head, a Page's band, an index Compact's, a TitledBox's or Slab's summary.
  * ONE group (E17), in THE class order (C2): the host's marks (a note,
  * HOMEBREW, Suggested), the rank (`TL | 2`), the measures in the stat order
  * (`SLOTS | 1`, `SP | 12`), the economy (the action type, "Turn Action", then
@@ -74,7 +74,7 @@ export function Chips({
   nodes?: Partial<Record<ChipClass, ReactNode>>
   /** `end` packs the chips to the row's far end (a page's prose column). */
   align?: 'start' | 'end'
-  /** A `span` where the strip sits in phrasing content (a Mini's pill, a CompactIndex's band). */
+  /** A `span` where the strip sits in phrasing content (a Mini's pill, an index Compact's band). */
   as?: 'div' | 'span'
   className?: string
 }) {

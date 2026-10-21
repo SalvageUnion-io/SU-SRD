@@ -25,7 +25,7 @@ type EntitySource =
 /**
  * The form, and the context its container names (C4): the one fact a Mini's
  * lane carries, or the one measure a Compact's head keeps (its kind's own when
- * unnamed). A CompactIndex takes none.
+ * unnamed). An index Compact takes none.
  */
 type EntityFormProps =
   | { size: 'mini'; layout?: never; context: ChipContext }
@@ -38,15 +38,15 @@ export type EntityProps = EntitySource &
     instance?: EntityInstance
     /** Default `read`; `link` on a surface that routes, `select` in a picker. */
     mode?: EntityMode
-    /** Compact and CompactIndex: the opening prose, in browse contexts (E11). */
+    /** Compact and index Compact: the opening prose, in browse contexts (E11). */
     lead?: boolean
     /** Facts the context already states, by key, `kind` under a slab that names it, or `tier`. */
     omit?: readonly EntityOmit[]
     /** Compact only: hover, focus or a long press Peeks it (a Mini always does). */
     peek?: boolean
-    /** CompactIndex only: its art loads at once and first (a listing's opening row). */
+    /** Index Compact only: its art loads at once and first (a listing's opening row). */
     priority?: boolean
-    /** CompactIndex only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
+    /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
     missingArt?: number
     /**
      * Mini only: the Peek address for a record with none of its own (a crawler
@@ -106,7 +106,7 @@ export type EntityProps = EntitySource &
  * `<Entity>` — THE way to draw a game entity (entity display language): the
  * entity resolves once into its model (`toEntityModel`), the FORM picks which
  * parts to draw and the MODE fills the form's slots. It draws the Compact, the
- * Mini and the catalog's CompactIndex; `<Mention>` draws a Mention, and
+ * Mini and the catalog's index Compact; `<Mention>` draws a Mention, and
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {

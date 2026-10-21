@@ -345,8 +345,8 @@ function ReferenceEntityCardInner({
   })
 
   // HEADER-ONLY is the Mini (N2), at every size: this card is its adapter,
-  // translating its props into the Mini's slots. A Compact or Card always has
-  // its body, so there is no head-only Compact.
+  // translating its props into the Mini's slots. A contentful Compact or Full
+  // always has its body; a header-only Compact is `<Entity size="compact">`.
   if (isHead) {
     return (
       <HeadMini

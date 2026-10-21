@@ -29,7 +29,7 @@ import type { SheetPatch } from './sheetViewProps.model'
 /** The callout's one chip: a bare label, saying what the block is. */
 const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
 
-/** Its band: the one label-only cell, Compact as a Compact's head. */
+/** Its band: the one label-only cell, at the Compact Size of a Compact's head. */
 const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="compact" />
 
 /** The body's block: its prose wraps the art floated at its left. */

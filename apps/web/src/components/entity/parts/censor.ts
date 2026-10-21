@@ -1,7 +1,7 @@
 /**
- * Which of the Workshop Manual's censor marks an art-less catalog tile wears,
+ * Which of the Workshop Manual's censor marks an art-less catalog index Compact wears,
  * and how its torn edge is drawn. The mark stands in for art only in a catalog
- * that has some (`CompactIndex`'s `missingArt`), so the tiles keep one height.
+ * that has some (`CompactIndex`'s `missingArt`), so the index Compacts keep one height.
  */
 
 import { assetUrl } from 'salvageunion-reference'

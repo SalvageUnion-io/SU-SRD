@@ -61,7 +61,7 @@ export type HeadProps = {
   labels?: ReactNode
   /**
    * The cut-out (ruleset, "Chapter band"): the name notched into the band's
-   * foot on a tab of the paper below, in ink, as a catalog CompactIndex's; the tier
+   * foot on a tab of the paper below, in ink, as a catalog index Compact's; the tier
    * stays on the band, left of it. Without `chipsBeside` it holds only for a
    * head with no chips: chips that drop under the name would leave the tab
    * mid-band.
