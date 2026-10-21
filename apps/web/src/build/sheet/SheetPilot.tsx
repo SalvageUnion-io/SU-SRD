@@ -148,7 +148,7 @@ export function SheetPilot({
             ),
             extra: (
               <Stat
-                label="Crawler"
+                label="Mock Crawler Level"
                 value={pilot.crawlerLevel ?? 1}
                 max={6}
                 mode="edit"

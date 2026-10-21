@@ -1,14 +1,15 @@
 /**
  * PilotSheetAbilities — the pilot sheet's Abilities (owner's calls,
- * 2026-10-14, 2026-10-19 and 2026-10-20): two sections, each a collapsible
- * `SlabSection` over a masonry grid (`MiniGrid`) of contentful Minis, each
- * ability its head and then its text, in Read and Edit alike.
+ * 2026-10-14, 2026-10-19 and 2026-10-20): two collapsible `SlabSection`s of
+ * contentful Minis, each ability its head and then its text, in Read and Edit
+ * alike.
  *
- *   1. **Abilities**, on top and open by default: every tree the class gives
- *      access to, whole (owner, round 4), tree by tree in training order
- *      (core, advanced, hybrid, legendary), each tree's in its order, the
- *      untaken abilities greyed and read-only; then any the reference does
- *      not know.
+ *   1. **Abilities**, on top and open by default: the trees the class
+ *      itself opens (its Core trees; owner, round 5: no Advanced trees for a
+ *      Core class) and any tree the pilot has taken from, each drawn as the
+ *      class page draws it, on its track with its stems, three across where
+ *      they fit, the untaken abilities greyed and read-only; then any the
+ *      reference does not know.
  *   2. **Generic Abilities**, below and folded by default: the Generic tree
  *      every pilot has.
  *
@@ -18,8 +19,16 @@
  * SLABS, not cards: their entities carry their own frame.
  */
 
-import type { CSSProperties } from 'react'
-import { Button, EmptyState, MiniGrid, SlabSection, tokens } from '../../components/index'
+import type { CSSProperties, ReactNode } from 'react'
+import type { RefAbility } from 'salvageunion-reference'
+import {
+  AbilityTrack,
+  Button,
+  EmptyState,
+  MiniGrid,
+  SlabSection,
+  tokens,
+} from '../../components/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -31,6 +40,38 @@ const SECTIONS = {
   gap: tokens.space[24],
   minWidth: 0,
 } satisfies CSSProperties
+
+/**
+ * One tree on its track under a slab naming it, as the class page's
+ * (`ClassAbilityTree`): each ability the sheet's own item, the untaken greyed.
+ */
+function TreeTrackSection({
+  group,
+  render,
+}: {
+  group: AbilityTreeGroup
+  render: (entry: AbilityEntry) => ReactNode
+}) {
+  const byId = new Map(group.abilities.map((entry) => [entry.ability.id, entry]))
+  const track = group.track ?? 'core'
+  return (
+    <SlabSection
+      title={group.tree}
+      count={track === 'legendary' ? 'Choose 1' : 'Tree'}
+      className="su-ability-tree__group"
+      bodyClassName="su-ability-tree__track"
+    >
+      <AbilityTrack
+        abilities={group.abilities.map((entry) => entry.ability)}
+        track={track}
+        renderAbility={(ability: RefAbility) => {
+          const entry = byId.get(ability.id)
+          return entry ? render(entry) : null
+        }}
+      />
+    </SlabSection>
+  )
+}
 
 type PilotSheetAbilitiesProps = {
   classTrees: AbilityTreeGroup[]
@@ -65,7 +106,7 @@ export function PilotSheetAbilities({
    */
   function renderAbility({ slug, ability, unlearned }: AbilityEntry) {
     return (
-      <li key={slug} className={unlearned ? 'su-pilot-ability--unlearned' : undefined}>
+      <div key={slug} className={unlearned ? 'su-pilot-ability--unlearned' : undefined}>
         <PilotAbilityItem
           ability={ability}
           currentAP={currentAP}
@@ -74,7 +115,7 @@ export function PilotSheetAbilities({
           onToggleUsed={(next) => onToggleUsed(slug, next)}
           readOnly={readOnly || !!unlearned}
         />
-      </li>
+      </div>
     )
   }
 
@@ -98,9 +139,17 @@ export function PilotSheetAbilities({
           }
         >
           {none && <EmptyState variant="quiet" body="No abilities learned yet." />}
-          {(classTrees.length > 0 || unresolvedAbilities.length > 0) && (
-            <MiniGrid label="Tree Abilities" edit={!readOnly}>
-              {classTrees.flatMap((group) => group.abilities.map(renderAbility))}
+          {classTrees.length > 0 && (
+            // The trees as the class page draws them, each on its track with
+            // its stems, side by side, three across where they fit (owner, round 5).
+            <div className="su-pilot-trees">
+              {classTrees.map((group) => (
+                <TreeTrackSection key={group.tree} group={group} render={renderAbility} />
+              ))}
+            </div>
+          )}
+          {unresolvedAbilities.length > 0 && (
+            <MiniGrid label="Unknown Abilities" edit={!readOnly}>
               {unresolvedAbilities.map((slug) => (
                 <li key={slug}>
                   <UnknownItemLine
@@ -118,7 +167,9 @@ export function PilotSheetAbilities({
       {genericAbilities.length > 0 && (
         <SlabSection fold="closed" title="Generic Abilities">
           <MiniGrid label="Generic Abilities" edit={!readOnly}>
-            {genericAbilities.map(renderAbility)}
+            {genericAbilities.map((entry) => (
+              <li key={entry.slug}>{renderAbility(entry)}</li>
+            ))}
           </MiniGrid>
         </SlabSection>
       )}

@@ -59,7 +59,7 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
   return (
     <div className="su-tech-level">
       <TitledBox
-        title={`Tech ${level.techLevel} – ${level.name}`}
+        title={level.name}
         titleAs="h2"
         tone="crawler"
         className="su-tech-level__block"
@@ -67,8 +67,8 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
         // round 4: "move SP and Tech to Chips for the main content as well").
         chips={
           <>
-            <Stat label="Tech Level" value={level.techLevel} size="full" />
-            <Stat label="Structure Points" value={level.structurePoints} size="full" />
+            <Stat label="Tech Level" value={level.techLevel} size="compact" />
+            <Stat label="Structure Points" value={level.structurePoints} size="compact" />
           </>
         }
       >

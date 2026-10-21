@@ -2,6 +2,7 @@ import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
 import {
+  classKind,
   getAssetUrl,
   getEntitySlug,
   getModel,
@@ -116,6 +117,15 @@ type SchemaViewerIslandProps = {
  * listing row renders the same from either copy
  * (`src/lib/__tests__/preloadEquivalence.tsx`).
  */
+/**
+ * Whether this tile opens a run of Hybrid classes: it starts a new row, so the
+ * Hybrids (in their rust) sit apart from the Core classes (owner, round 5).
+ */
+function startsHybridRun(items: RefEntity[], index: number): boolean {
+  const kind = (item: RefEntity | undefined) => (item ? classKind(item) : undefined)
+  return kind(items[index]) === 'HYBRID' && kind(items[index - 1]) !== 'HYBRID' && index > 0
+}
+
 export function SchemaViewerIsland({
   preloadSchemas,
   hasArt = false,
@@ -427,7 +437,10 @@ function SchemaViewer({
                   {view === 'catalog' ? (
                     <ul className="su-listing__tiles">
                       {group.items.map((item: RefEntity, index) => (
-                        <li key={item.id}>
+                        <li
+                          key={item.id}
+                          data-row-break={startsHybridRun(group.items, index) ? '' : undefined}
+                        >
                           <Entity
                             size="compact"
                             layout="index"

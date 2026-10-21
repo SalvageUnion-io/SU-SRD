@@ -31,6 +31,14 @@ import { resolveGuideSteps } from './resolveGuideSteps'
 import { WhenDamaged } from './WhenDamaged'
 
 /** The body box's padding by size (board E1): tight on top under a "//" line. */
+/**
+ * A crawler type's two nested things say what they are as their first chip,
+ * in place of a band over them (owner, round 5): its unique Crawler Ability
+ * and its special NPC (Core Book p.212).
+ */
+export const CRAWLER_ABILITY_SEAL = { label: 'Crawler Ability', tone: 'var(--color-ink)' }
+const CRAWLER_NPC_SEAL = { label: 'NPC', tone: 'var(--color-ink)' }
+
 const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
   full: { ruled: `${space[2]} ${space[14]} ${space[12]}`, open: `${space[12]} ${space[14]}` },
   compact: { ruled: `${space[2]} ${space[12]} ${space[12]}`, open: `${space[12]}` },
@@ -233,7 +241,8 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   const bodyContent: ReactNode = (
     <>
-      {isBay ? (
+      {/* The reference reads a bay's prose bare; only a sheet's folding bay names it Bay Info (owner, round 5). */}
+      {isBay && sectionFold ? (
         <BayInfo subject={entityName} fold={sectionFold} onPage={onPage}>
           {proseContent}
         </BayInfo>
@@ -326,6 +335,9 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
               key={group.label}
               entities={group.entities}
               host={nestedHost}
+              seal={
+                schemaName === 'crawlers' && group.label === 'NPCs' ? CRAWLER_NPC_SEAL : undefined
+              }
               write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
             />
           )

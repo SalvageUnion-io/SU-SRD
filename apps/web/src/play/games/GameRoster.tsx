@@ -381,7 +381,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                     column.kind === 'mech' || caps.canAddCrew ? (
                       <>
                         {column.kind === 'mech' && (
-                          <Button href="/mechs/patterns" variant="ghost" size="mini">
+                          <Button href="/mechs/patterns" variant="ghost" size="compact">
                             Patterns
                           </Button>
                         )}

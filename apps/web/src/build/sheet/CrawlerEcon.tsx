@@ -59,9 +59,11 @@ const FRAME = {
 
 const READOUTS = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: tokens.space[8],
 } satisfies CSSProperties
+
+/** Two readouts a row; a lone one the row's width, so it centres. */
+const readoutColumns = (count: number) => `repeat(${Math.min(count, 2)}, minmax(0, 1fr))`
 
 const LOZ = {
   display: 'flex',
@@ -93,7 +95,8 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
       {gauge}
       {upgrade}
       {readouts.length > 0 && (
-        <div style={READOUTS}>
+        // One readout (the Upkeep) centres in the column (owner, round 5).
+        <div style={{ ...READOUTS, gridTemplateColumns: readoutColumns(readouts.length) }}>
           {readouts.map((item) => (
             <EconLoz key={item.label} item={item} />
           ))}

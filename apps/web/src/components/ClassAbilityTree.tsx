@@ -244,10 +244,12 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   const note = hybrid
     ? toEntityModel(hybrid).lead
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
+  // A Hybrid Class's path wears its rust, the class's own its orange (owner, round 5).
+  const track: TreeTrack = hybrid ? 'hybrid' : 'core'
   const head = (
     <Head
       title={name}
-      paint={tierPaint('core')}
+      paint={tierPaint(track)}
       chips={
         // The kind and whose it is are marks; what it opens from, its relation (C2).
         // The paths are one list of Compacts (Compact frames, one width): its lines
@@ -292,8 +294,13 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
             {path.legendary && <TreeSection {...path.legendary} track="legendary" size="mini" />}
           </div>
         </div>
-        {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
-        <p className="su-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
+        {/* The foot shares the head's colour, its citation on a paper cut-out,
+            as a page's foot band does (owner, round 5); text, never chips (EDL E9). */}
+        <p className="su-class-path__foot" style={{ backgroundColor: TIER_BAND[track] }}>
+          <span className="su-class-path__cite">
+            Workshop Manual · p.{(hybrid ?? classEntity).page}
+          </span>
+        </p>
       </Box>
     </li>
   )

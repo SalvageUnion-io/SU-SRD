@@ -825,11 +825,18 @@
   }
 
   /* A select there is the line's width too, as the buttons over it are
-     (owner, round 4: "Select should be full width"). */
+     (owner, rounds 4 and 5: "Select should be full width"), its chevron's
+     wrapper (`Select`) with it. */
   .su-chapter-band[data-aside='controls']
     .su-chapter-band__row[data-chip-fill]
     > .su-chapter-band__aside
+    > :is(select, span:has(> select)),
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    > span
     > select {
+    display: block;
     width: 100%;
   }
 

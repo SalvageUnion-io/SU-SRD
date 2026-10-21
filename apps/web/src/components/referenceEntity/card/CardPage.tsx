@@ -9,7 +9,7 @@ import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import type { Down } from './cardChrome'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
 import { pageBodyStats } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -61,11 +61,11 @@ type CardPageProps = {
   /** The nested cards. */
   sections: ReactNode
   /**
-   * The actions section's title: "Actions", or a crawler type's "Ability and
-   * NPC" (Core Book p.212: "a unique Ability … as well as a special NPC";
-   * owner, round 4).
+   * A crawler type's: its actions stand bare, no "Actions" band, each wearing
+   * this seal as its first chip ("Crawler Ability"; Core Book p.212: "a unique
+   * Ability … as well as a special NPC"; owner, round 5).
    */
-  actionsTitle?: string
+  actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
   /** `afterExtraContent` and `expand`. */
@@ -93,7 +93,7 @@ export function CardPage({
   table,
   guide,
   sections,
-  actionsTitle = 'Actions',
+  actionSeal,
   patterns,
   after,
   sectionAs,
@@ -104,7 +104,11 @@ export function CardPage({
   const stats = pageBodyStats(entity)
   // `titleAs` is the card title's element: an `h3` only where a section band's
   // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
-  const actionCard = (data: ReferenceCardEntity, index: number, titleAs: 'h3' | undefined) => (
+  const actionCard = (
+    data: ReferenceCardEntity,
+    index: number,
+    titleAs: 'h2' | 'h3' | undefined
+  ) => (
     <NestedCard
       key={cardKey(data, index)}
       data={data}
@@ -114,6 +118,7 @@ export function CardPage({
       // Every action on a page reads at the regular size (14px), the chassis
       // ability's and the rest alike.
       readable
+      parentSeal={actionSeal}
       hostDown={action.hostDown}
       hostName={action.hostName}
       chassisName={action.chassisName}
@@ -126,15 +131,20 @@ export function CardPage({
     !!hero || stats.length > 0 || !!opening || !!subLine || !!body || leadActions.length > 0
 
   // With art, the page's actions and nested trays stand in the column beside
-  // it, so the two columns balance (owner, round 4): art shorter than its
-  // column centres in it, a column shorter than its art spreads its blocks
-  // evenly down it. Without art they follow the main block.
+  // it (owner, round 4): the art keeps the top left (round 5), a column
+  // shorter than its art spreads its blocks evenly down it. Without art they
+  // follow the main block.
   const beside = (
     <>
-      {otherActions.length > 0 && (
+      {otherActions.length > 0 && actionSeal && (
+        <div className="su-entity-page__section-body">
+          {otherActions.map((data, index) => actionCard(data, index, stackedTitleLevel(true)))}
+        </div>
+      )}
+      {otherActions.length > 0 && !actionSeal && (
         <SlabSection
           as={sectionAs}
-          title={actionsTitle}
+          title="Actions"
           page
           className="su-entity-page__section"
           bodyClassName="su-entity-page__section-body"

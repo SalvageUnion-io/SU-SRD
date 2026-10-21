@@ -57,7 +57,7 @@ import {
   resolveHide,
   sectionHeadingLevel,
 } from './cardHelpers'
-import { resolveCardSections } from './cardSections'
+import { CRAWLER_ABILITY_SEAL, resolveCardSections } from './cardSections'
 import { cardStripSlots } from './cardStrip'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import type { AxisMarker } from './entityCardTone'
@@ -520,7 +520,7 @@ function ReferenceEntityCardInner({
         hero={hero ?? heroNode}
         leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
-        actionsTitle={schemaName === 'crawlers' ? 'Ability and NPC' : undefined}
+        actionSeal={schemaName === 'crawlers' ? CRAWLER_ABILITY_SEAL : undefined}
         subLine={
           (subtitleExtra || hasSubLine) && (
             <PageSubLine extra={subtitleExtra}>{suggestedNode}</PageSubLine>

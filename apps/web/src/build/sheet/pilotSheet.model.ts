@@ -268,8 +268,9 @@ export function usePilotSheetModel({
     return entries
   }, [pilot.abilities])
 
-  // Every tree the class opens, whole, each on its track (the SRD's Tree
-  // view): the taken abilities as stored, the rest of each tree `unlearned`.
+  // The class's own trees and every tree taken from, whole, each on its track
+  // (the SRD's Tree view): the taken abilities as stored, the rest of each
+  // class tree `unlearned`.
   // Guarded as the Generic tree is: a snapshot without the ORM prints the
   // taken abilities alone.
   const classTrees = useMemo(() => {
@@ -282,10 +283,12 @@ export function usePilotSheetModel({
         if (!cls) return []
         const origin =
           pilot.originClassRef === undefined ? undefined : resolveClass(pilot.originClassRef)?.name
+        // The class's own trees, never its Advanced or Legendary ones, which
+        // show once taken from (owner, round 5).
         const trees = new Set(
           treesFor(
             cls,
-            true,
+            false,
             classAbilities.map((entry) => entry.ability.tree),
             origin
           )

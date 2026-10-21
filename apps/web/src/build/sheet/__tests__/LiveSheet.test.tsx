@@ -191,6 +191,13 @@ describe('LiveSheet — the chapter band (board 10)', () => {
     expect(within(band).getAllByText('Scrapper')).toHaveLength(1)
   })
 
+  test('a pattern-named mech says so: “its name” and a PATTERN chip (round 5)', () => {
+    renderShell({ variant: 'mech', name: 'Mazona', quoted: true })
+    const title = screen.getByRole('heading', { level: 1, name: /“Mazona”/ })
+    const band = must(title.closest<HTMLElement>('.su-chapter-band'))
+    expect(within(band).getByText('Pattern')).toBeTruthy()
+  })
+
   test('the band’s controls sit in its top-right corner, above the name', () => {
     renderShell({
       band: { actions: <button type="button">Make a copy</button> },

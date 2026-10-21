@@ -9,7 +9,7 @@
  * round 4: the label above, not to the left); Facts' value is the one chip well (`ChipListEditor`). In Edit each
  * one to write is a `Field` in its edit state (its label over the value box
  * a press opens, or over Facts' chip well). HP is never here: a crew lead's
- * is in its Mini's head (`CrewLeadMini`), a built NPC's in its sheet's
+ * is the gauge beside them (`CrewLeadMini`), a built NPC's in its sheet's
  * vital gauge.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
@@ -124,7 +124,7 @@ function NpcRow({
  * A crew lead's id lines: Keepsake and Motto, Detail, Facts, each left out in
  * Read when empty. With `identity` the name leads them, for a head that holds
  * no field (a crew lead's contentful Mini, `CrewLeadMini`): only while it can
- * be written, since in Read that head shows it. HP rides that head in both.
+ * be written, since in Read that head shows it. HP is the gauge beside them.
  */
 export function NpcLines({
   bayName,

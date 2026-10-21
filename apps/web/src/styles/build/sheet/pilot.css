@@ -37,6 +37,28 @@
   }
 }
 
+/* A crew lead's body (`CrewLeadMini`): its lines, and right of them its HP
+   gauge, as tall as they are (owner, round 5: Keepsake and Motto beside HP,
+   a 2x2 cell). */
+.su-crew-lead__body {
+  align-items: start;
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: minmax(0, 1fr) minmax(6rem, 9rem);
+}
+
+.su-crew-lead__body > .su-sheet-npc-lines {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-crew-lead__body .su-sheet-npc-wide {
+  grid-column: auto;
+}
+
+.su-crew-lead__body > .su-crew-lead__hp:only-child {
+  grid-column: 1 / -1;
+}
+
 /* Motto, Keepsake and Background side by side, as many as fit (round 4). */
 .su-sheet-pilot-traits {
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));

@@ -56,7 +56,7 @@ export type AssignedSlot = {
   kind: SheetKind
   /** Assign one that exists (`AssignPicker`). */
   assign: ReactNode
-  /** What stands in while it is empty (a pilot's hand-set crawler level), in the body. */
+  /** What stands in while it is empty (a pilot's mock crawler level): its placeholder's body. */
   extra?: ReactNode
   /** The placeholder's name; `No <Kind> assigned` by default. */
   placeholder?: string
@@ -148,7 +148,7 @@ export function AssignedUnits({
       )}
       {/* Each place to fill, a placeholder of its kind with Assign and
           + Create inside it; what stands in for it (a stepper is not a
-          button's Size, C1a) under it. */}
+          button's Size, C1a) its body (owner, round 5). */}
       {open.map((slot) => (
         <Fragment key={slot.key}>
           <Entity
@@ -158,6 +158,7 @@ export function AssignedUnits({
               kind: slot.kind,
               name: slot.placeholder ?? `No ${KIND_NAME[slot.kind]} assigned`,
             })}
+            {...(slot.extra ? { body: { text: false, children: slot.extra } } : {})}
             controls={
               <>
                 {slot.assign}
@@ -167,7 +168,6 @@ export function AssignedUnits({
               </>
             }
           />
-          {slot.extra}
         </Fragment>
       ))}
     </SlabSection>

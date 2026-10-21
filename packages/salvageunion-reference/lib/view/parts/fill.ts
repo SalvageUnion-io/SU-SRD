@@ -103,6 +103,8 @@ export function entityTone(
     const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)
     if (tone) return tone
   }
+  // A bio-chassis wears the bio gear's mutant green, not chassis green (owner, round 5).
+  if (schemaName === 'chassis' && getTechLevel(entity) === 'B') return 'tl-b'
   if (getBlackMarket(entity) === true) return 'ink-2'
   // A Hybrid Class wears its tier's rust, apart from the Core classes'
   // orange (owner, round 4: "color hybrid classes a different color").

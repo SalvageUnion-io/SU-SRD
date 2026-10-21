@@ -1,11 +1,10 @@
 /**
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
- * Poster identity band: Type (Name too, in Edit; Tech Level is the band's TL
- * chip), then the
- * crawler type's special ability as a library Compact (a Peek of its card; no
- * lead off an SRD index, EDL E11) beside the type's crew NPC, then the
- * Description panel.
+ * Poster identity band: the Description first (Name and Type before it in
+ * Edit; Read leaves the Type to the band's TYPE chip, the Tech Level to its TL
+ * chip), then the crawler type's special ability as a library Compact (a Peek
+ * of its card; no lead off an SRD index, EDL E11) beside the type's crew NPC.
  *
  * FIELD-section archetype (unified edit language). The parent
  * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
@@ -84,11 +83,6 @@ export function CrawlerIdentityPanel({
 
   const type = crawler.type ? resolveCrawlerType(crawler.type) : null
   const abilities = resolveCrawlerTypeAbilities(crawler.type)
-  // Read names the type as its Mini, which opens and Peeks it.
-  const readType =
-    !canEdit && type ? (
-      <Entity size="mini" context="browse" entity={type} mode={{ kind: 'link' }} />
-    ) : null
 
   /** Persist the crawler name (required — never write empty). */
   function saveName(next: string) {
@@ -103,10 +97,10 @@ export function CrawlerIdentityPanel({
 
   return (
     <section aria-label="Crawler identity" style={PANEL}>
-      {/* In Edit the picture sits beside the Name and Type only; the type's
-          internals and the Description run the card's full width under both
-          (owner's review, 2026-10-20: no empty column under the photo). Read
-          has only the Type there, so the rest stays beside the photo. */}
+      {/* The Description leads, beside the picture, after the Name and Type
+          in Edit; the type's internals run the card's full width under both in
+          Edit (owner's review, 2026-10-20: no empty column under the photo),
+          and stay beside the photo in Read. */}
       <PhotoBeside
         photo={photo}
         belowBeside={!canEdit}
@@ -143,15 +137,6 @@ export function CrawlerIdentityPanel({
                 }
               />
             )}
-
-            {/* Description panel — same FIELD section (edits with Identity). */}
-            <Field
-              label="Description"
-              value={crawler.description ?? ''}
-              multiline
-              placeholder={canEdit ? 'Describe your crawler…' : '—'}
-              onSave={canEdit ? saveDescription : undefined}
-            />
           </>
         }
       >
@@ -160,11 +145,22 @@ export function CrawlerIdentityPanel({
               Edit keeps the field to rename it, as a pilot's Name. Tech Level
               is not here: it is the band's TL chip, beside the type's. */}
           {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
+          {/* Read leaves the Type out: the band's TYPE chip names it (owner,
+              round 5: "reductive"); Edit keeps it to change it. */}
+          {canEdit && (
+            <Field
+              label="Type"
+              value={type?.name ?? ''}
+              onEditClick={() => setTypePickerOpen(true)}
+            />
+          )}
+          {/* The Description leads the hero (owner, round 5). */}
           <Field
-            label="Type"
-            value={type?.name ?? ''}
-            readValue={readType}
-            onEditClick={canEdit ? () => setTypePickerOpen(true) : undefined}
+            label="Description"
+            value={crawler.description ?? ''}
+            multiline
+            placeholder={canEdit ? 'Describe your crawler…' : '—'}
+            onSave={canEdit ? saveDescription : undefined}
           />
         </div>
       </PhotoBeside>

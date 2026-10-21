@@ -155,7 +155,8 @@ type LiveSheetProps = {
   userMade?: { madeBy: string }
   /**
    * The name is a mech's pattern name, which the book prints in quotes: the
-   * band's title and the condensed bar read “Mazona”.
+   * band's title and the condensed bar read “Mazona”, and the band carries a
+   * PATTERN chip (owner, round 5).
    */
   quoted?: boolean
 }
@@ -461,10 +462,12 @@ export function LiveSheet({
         }
         aside={
           <>
-            {(stamp || rank || out || userMade || source) && (
+            {(stamp || rank || out || userMade || source || quoted) && (
               <Cluster gap={8}>
                 {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
                 {source === 'starter' && <Stat label="Starter Kit" />}
+                {/* Its name is a pattern's: it says so (owner, round 5). */}
+                {quoted && <Stat label="Pattern" />}
                 {rank}
                 {stamp &&
                   (stamp.entityRef ? (

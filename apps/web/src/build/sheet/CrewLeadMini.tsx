@@ -4,14 +4,13 @@
  * level 2 and is a Mini (N1), never a titled box (N5).
  *
  * The head is the NPC's: its name, then the role it holds as a relation chip
- * once it has a name of its own (`ROLE | Doc`, first, next to the name), then
- * its HP, always in the head (owner, 2026-10-20): live in Read (`HP | 3/4`,
- * its state slot), and in Edit the HP stepper in the head's uses slot (C8),
- * as a sheet item's Uses, so the name alone is the Peek trigger. It Peeks the
- * bay's crew NPC, or opens a built NPC's sheet. The body is what the sheet
- * tracks about them: Keepsake, Motto, Detail and Facts (`NpcLines`), each left
- * out in Read when empty; in Edit their fields, led by the name, which a head
- * cannot hold.
+ * once it has a name of its own (`THE | Doc`, next to the name; owner, round
+ * 5), so the name alone is the Peek trigger. It Peeks the bay's crew NPC, or
+ * opens a built NPC's sheet. The body is what the sheet tracks about them:
+ * Keepsake, Motto, Detail and Facts (`NpcLines`), each left out in Read when
+ * empty, in Edit their fields, led by the name, which a head cannot hold;
+ * and right of them its HP, a sheet's vital gauge (owner, round 5), set by
+ * its track in Edit.
  *
  * Handler absence is the read-only encoding, as on `NpcLines`.
  */
@@ -20,7 +19,7 @@ import { useMemo, useState } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel, EntityMode } from '../../components/index'
-import { Entity, relation, Stat, Toggle } from '../../components/index'
+import { Entity, relation, Toggle, VitalGauge } from '../../components/index'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
 
@@ -55,7 +54,8 @@ function crewHead(model: EntityFormModel): { model: EntityFormModel; hpHint?: st
 /** Its role as a chip, once it has a name of its own: unnamed, the head's title is the role. */
 function roleChip(title: string | undefined, name: string) {
   const named = name.trim() !== '' && name.trim() !== title
-  return title && named ? [relation('crew-role', 'Role', title)] : undefined
+  // "THE | Doc": the role it holds, as the book names it (owner, round 5).
+  return title && named ? [relation('crew-role', 'The', title)] : undefined
 }
 
 /** Its lines as Read shows them: no handlers, so each is a row and an empty one is left out. */
@@ -82,19 +82,18 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
   const [open, setOpen] = useState(false)
   const { model, hpHint } = useMemo(() => crewHead(base), [base])
   const relations = roleChip(title, name)
-  const hpReading =
+  // Its HP is a gauge right of its lines, as a sheet's vitals (owner, round 5:
+  // "a 2x2 cell like the SP / pilot HP sheets"): set in Edit, read in Read.
+  const hpGauge =
     maxHp > 0 ? (
-      <Stat
-        key="crew-hp"
-        label="HP"
-        value={hp}
-        max={maxHp}
-        size="compact"
-        {...(hpHint ? { hoverText: hpHint } : {})}
-        {...(editing
-          ? { mode: 'edit' as const, onChange: onHpChange, stepperLabel: `${bayName} crew HP` }
-          : {})}
-      />
+      <div className="su-crew-lead__hp" title={hpHint}>
+        <VitalGauge
+          label="HP"
+          value={hp}
+          max={maxHp}
+          {...(editing ? { onChange: onHpChange } : { readOnly: true })}
+        />
+      </div>
     ) : undefined
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew lead so the several on one crawler stay distinguishable; a <section> here would become a region landmark once named
@@ -107,7 +106,6 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
         mode={mode}
         peekAt={peekAt}
         {...(relations ? { relations } : {})}
-        {...(hpReading ? (editing ? { uses: hpReading } : { state: hpReading }) : {})}
         {...(editing
           ? {
               controls: (
@@ -125,12 +123,16 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
           : {})}
         body={{
           text: false,
-          children:
-            editing && !open ? (
-              <NpcLines {...readLines(props)} />
-            ) : (
-              <NpcLines {...props} identity />
-            ),
+          children: (
+            <div className="su-crew-lead__body">
+              {editing && !open ? (
+                <NpcLines {...readLines(props)} />
+              ) : (
+                <NpcLines {...props} identity />
+              )}
+              {hpGauge}
+            </div>
+          ),
         }}
       />
     </div>

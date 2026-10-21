@@ -38,6 +38,26 @@ describe('AssignedUnits', () => {
     expect(list.querySelector('.su-chip-link')).toBeNull()
   })
 
+  test('Edit: an empty place is a placeholder Mini, what stands in for it its body (round 5)', () => {
+    render(
+      <AssignedUnits
+        editable
+        units={[]}
+        slots={[
+          {
+            key: 'crawler',
+            kind: 'crawler',
+            assign: <button type="button">Assign</button>,
+            extra: <span>Mock Crawler Level</span>,
+          },
+        ]}
+      />
+    )
+    const body = document.querySelector('.su-entity-mini__body')
+    expect(body?.textContent).toContain('Mock Crawler Level')
+    expect(screen.getByText('No Crawler assigned')).toBeTruthy()
+  })
+
   test('Read leaves the section out with nothing linked', () => {
     const { container } = render(<AssignedUnits editable={false} units={[]} />)
     expect(container.textContent).toBe('')

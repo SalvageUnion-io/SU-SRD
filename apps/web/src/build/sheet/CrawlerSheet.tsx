@@ -334,7 +334,7 @@ export function CrawlerSheet({
    * A bay's contents belong in the bay, not in a section elsewhere on the
    * sheet describing it from a distance.
    */
-  function renderBay(entry: CrawlerBayEntry, i: number, inSidebar = false) {
+  function renderBay(entry: CrawlerBayEntry, i: number) {
     const kind = bayKind(entry)
     // A link names a bay by its slug, so only the first entry of a bay listed
     // twice is the slot it crews (ADR-044's known limit).
@@ -358,7 +358,6 @@ export function CrawlerSheet({
         contents={
           kind === 'armament' ? armamentContents : kind === 'storage' ? storageContents : undefined
         }
-        inSidebar={inSidebar}
       />
     )
   }
@@ -431,7 +430,7 @@ export function CrawlerSheet({
               {storageBays.length > 0
                 ? storageBays.map(({ entry, i }) => (
                     <div key={`storage-${i}`} style={SHRINK}>
-                      {renderBay(entry, i, true)}
+                      {renderBay(entry, i)}
                     </div>
                   ))
                 : storageContents && (

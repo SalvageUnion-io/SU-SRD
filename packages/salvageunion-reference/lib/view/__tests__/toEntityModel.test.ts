@@ -197,8 +197,9 @@ describe('entityTone', () => {
     expect(entityTone('systems', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
   })
 
-  test('a chassis is mech; an action is ink', () => {
+  test('a chassis is mech, a bio-chassis bio gear’s green (round 5); an action is ink', () => {
     expect(entityTone('chassis', as(base))).toBe('mech')
+    expect(entityTone('chassis', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
     expect(entityTone('actions', as(base))).toBe('ink')
   })
 

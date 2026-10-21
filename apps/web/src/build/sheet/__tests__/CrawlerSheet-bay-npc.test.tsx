@@ -156,7 +156,9 @@ describe('CrawlerSheet — crew lead identity (CrewLeadMini)', () => {
     const head = crewMini('Dax Orsund')
     expect(inset.contains(head)).toBe(true)
     expect(within(head as HTMLElement).getByText('Princeps')).toBeTruthy()
-    expect(head.textContent).toContain('4/4')
+    // Its HP is the gauge beside its lines (round 5), never in the head.
+    expect(head.textContent).not.toContain('HP')
+    expect(within(inset).getByRole('img', { name: 'HP 4 of 4' })).toBeTruthy()
     // The body, under the head and outside it.
     const body = inset.querySelector('.su-entity-mini__body') as HTMLElement
     expect(within(body).getByText('A stern veteran.')).toBeTruthy()
@@ -268,11 +270,11 @@ describe('CrawlerSheet — crew HP editing (CrewLeadMini)', () => {
     expandCards()
 
     const inset = screen.getByLabelText('Command Bay crew lead')
-    // Crew HP is a stepper in the Mini's head (starts full at 4/4, max 4); it
-    // adjusts it by 1. Decrementing from 4 persists npcCurrentHP: 3.
-    const decrease = within(inset).getByRole('button', { name: 'Decrease Command Bay crew HP' })
+    // Crew HP is the gauge beside its lines (starts full at 4/4, max 4); its
+    // track steps by 1. Stepping down from 4 persists npcCurrentHP: 3.
+    const gauge = within(inset).getByRole('slider', { name: 'HP' })
     await act(async () => {
-      fireEvent.click(decrease)
+      fireEvent.keyDown(gauge, { key: 'ArrowDown' })
     })
 
     expect(updateCrawlerBay).toHaveBeenCalledWith(
@@ -294,23 +296,21 @@ describe('CrawlerSheet — crew HP editing (CrewLeadMini)', () => {
     expect(crewMini('Dax Orsund').getAttribute('data-peek')).toBe('crawler-bays:command-bay/npc')
   })
 
-  test('Edit puts the fields in the Mini body, and HP in its head', async () => {
+  test('Edit puts the fields and the HP gauge in the Mini body', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
     const head = crewMini('Dax Orsund')
-    // The name alone is the Peek trigger; the head's HP stepper sits beside it.
+    // The name alone is the Peek trigger; the HP gauge is the body's.
     expect(head.querySelector('[data-peek]')?.getAttribute('data-peek')).toBe(
       'crawler-bays:command-bay/npc'
     )
     expect(head.querySelector('input, textarea')).toBeNull()
-    expect(head.textContent).toContain('4/4')
+    expect(head.textContent).not.toContain('HP')
     openCrewDetails()
-    expect(
-      within(head as HTMLElement).getByRole('button', { name: 'Decrease Command Bay crew HP' })
-    ).toBeTruthy()
     const body = screen
       .getByLabelText('Command Bay crew lead')
       .querySelector('.su-entity-mini__body') as HTMLElement
+    expect(within(body).getByRole('slider', { name: 'HP' })).toBeTruthy()
     for (const field of ['name', 'keepsake', 'motto', 'detail']) {
       expect(within(body).getByLabelText(`Edit command bay crew ${field}`)).toBeTruthy()
     }

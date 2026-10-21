@@ -151,9 +151,10 @@ export function SheetCrawler({
     ...(trading.present && tl !== undefined
       ? [
           {
+            // Its Trade action only: the rail reads no Trade (owner, round 5).
             label: 'Trade',
             value: tradingSourceTl(tl),
-            caption: 'Wares',
+            actionOnly: true,
             action: editable
               ? {
                   label: 'Trade',

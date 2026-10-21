@@ -223,10 +223,18 @@ const foldOf = (title: string) => {
     open: button.getAttribute('aria-expanded') === 'true',
     shown: body !== null && body !== undefined && !body.hidden,
     grid: body?.querySelector<HTMLElement>(':scope > ul.su-mini-grid') ?? null,
+    trees: body?.querySelector<HTMLElement>(':scope > .su-pilot-trees') ?? null,
   }
 }
 
-describe('PilotSheet — the abilities are two folding masonry grids of contentful Minis', () => {
+/** The class's trees (round 5): each on its track, the trees side by side. */
+const treesOf = (): HTMLElement => {
+  const trees = document.querySelector<HTMLElement>('.su-pilot-trees')
+  if (!trees) throw new Error('no pilot trees')
+  return trees
+}
+
+describe('PilotSheet — the abilities fold: the trees on their tracks, the Generic a masonry grid', () => {
   for (const readOnly of [false, true]) {
     test(`tree abilities on top and open, Generic abilities under them and folded (${readOnly ? 'Read' : 'Edit'})`, () => {
       const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
@@ -246,17 +254,17 @@ describe('PilotSheet — the abilities are two folding masonry grids of contentf
       expect(trees.shown).toBe(true)
       expect(generic.open).toBe(false)
       expect(generic.shown).toBe(false)
-      // Each body is a masonry grid of contentful Minis, one ability a cell.
-      for (const grid of [trees.grid, generic.grid]) {
-        expect(grid).toBeTruthy()
-        const cells = Array.from(grid?.children ?? [])
-        expect(cells.length).toBeGreaterThan(0)
-        for (const cell of cells) {
+      // The trees each a track of contentful Minis, one ability a tier
+      // (round 5); the Generic tree a masonry grid of them, one a cell.
+      const tiers = Array.from(trees.trees?.querySelectorAll('.su-ability-track__tier') ?? [])
+      const cells = Array.from(generic.grid?.children ?? [])
+      for (const group of [tiers, cells]) {
+        expect(group.length).toBeGreaterThan(0)
+        for (const cell of group) {
           expect(cell.tagName).toBe('LI')
           expect(cell.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
         }
       }
-      expect(trees.grid?.getAttribute('aria-label')).toBe('Tree Abilities')
     })
   }
 })
@@ -292,13 +300,11 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
   })
 })
 
-/** The tree abilities' names, in the grid's order. */
+/** The tree abilities' names, tree by tree, each tree's in its order. */
 const treeAbilityNames = () =>
-  Array.from(
-    screen
-      .getByRole('list', { name: 'Tree Abilities' })
-      .querySelectorAll(':scope > li .su-entity-mini__name')
-  ).map((name) => name.textContent ?? '')
+  Array.from(treesOf().querySelectorAll('.su-ability-track__tier .su-entity-mini__name')).map(
+    (name) => name.textContent ?? ''
+  )
 
 describe('PilotSheet — the tree abilities, tree by tree', () => {
   test("only the Abilities taken, each a contentful Mini, in its tree's order", () => {
@@ -311,9 +317,8 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     expect(names[0]).toContain('Engineering Expertise')
     expect(names[1]).toContain('Mech Acquisition')
     // Each its head and then its text.
-    const grid = screen.getByRole('list', { name: 'Tree Abilities' })
     expect(
-      grid.querySelectorAll('.su-entity-mini[data-contentful] .su-entity-mini__body')
+      treesOf().querySelectorAll('.su-entity-mini[data-contentful] .su-entity-mini__body')
     ).toHaveLength(2)
     // The Generic tree is its own grid, never in this one.
     expect(names.some((name) => name.startsWith('Repair'))).toBe(false)
@@ -341,8 +346,7 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
 
-    const grid = screen.getByRole('list', { name: 'Tree Abilities' })
-    const more = within(grid).getByRole('button', { name: 'More for Talk Shop' })
+    const more = within(treesOf()).getByRole('button', { name: 'More for Talk Shop' })
     expect(more.closest('[data-chip-group]')).toBeTruthy()
     await choose('Talk Shop', /spend 3 ap/i)
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 2 }, LIVE_SHEET_MANUAL)
@@ -392,5 +396,20 @@ describe("PilotSheet — a hybrid's Add Abilities offers its origin's trees", ()
   test('a Ranger with no recorded origin is offered Survey Drone', async () => {
     const dialog = await offered(makePilot({ classRef: RANGER_ID, abilities: [] }))
     expect(dialog.queryAllByRole('button', { name: /^Survey Drone$/ })).not.toHaveLength(0)
+  })
+})
+
+describe("PilotSheet — the class's own trees (round 5)", () => {
+  test('a Core class shows its Core trees whole, the untaken greyed, never its Advanced tree', () => {
+    const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    const names = treeAbilityNames()
+    // Its Core trees whole: Talk Shop's tree-mates are there, greyed.
+    expect(names.some((n) => n.startsWith('Engineering Expertise'))).toBe(true)
+    expect(names.some((n) => n.startsWith('Union Engineer'))).toBe(false)
+    const unlearned = treesOf().querySelectorAll('.su-pilot-ability--unlearned')
+    expect(unlearned.length).toBe(names.length - 1)
+    // Each tree on its track, under a slab naming it.
+    expect(treesOf().querySelectorAll('.su-ability-track').length).toBeGreaterThan(1)
   })
 })

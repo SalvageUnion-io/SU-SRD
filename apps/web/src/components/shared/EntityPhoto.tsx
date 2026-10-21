@@ -42,9 +42,9 @@ type EntityPhotoProps = {
 const FIGURE = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[8],
   margin: 0,
   minWidth: 0,
+  position: 'relative',
 } satisfies CSSProperties
 
 const FRAME = {
@@ -65,8 +65,18 @@ const EMPTY = {
 
 const IMG = { height: '100%', objectFit: 'contain', width: '100%' } satisfies CSSProperties
 
-/** Replace and Remove side by side under the picture, sharing its width (owner's review, 2026-10-20). */
-const CONTROLS = { display: 'flex', gap: tokens.space[8] } satisfies CSSProperties
+/**
+ * Upload, or Replace and Remove side by side, sharing the picture's width
+ * (owner's review, 2026-10-20), on the picture itself, along its foot (owner,
+ * round 5: "the photo management button live on top the photo itself").
+ */
+const CONTROLS = {
+  bottom: tokens.space[8],
+  display: 'flex',
+  gap: tokens.space[8],
+  insetInline: tokens.space[8],
+  position: 'absolute',
+} satisfies CSSProperties
 
 const CONTROL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
@@ -146,7 +156,6 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
         <div style={CONTROLS}>
           <Button
             size="compact"
-            variant="ghost"
             disabled={busy}
             onClick={() => input.current?.click()}
             aria-label={`${photo ? 'Replace' : 'Upload'} ${name}'s photo`}
@@ -158,7 +167,6 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
           {photo && (
             <Button
               size="compact"
-              variant="ghost"
               disabled={busy}
               onClick={() => void removal.run()}
               aria-label={`Remove ${name}'s photo`}

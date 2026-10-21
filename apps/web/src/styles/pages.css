@@ -454,6 +454,11 @@ a.su-home__discord:hover {
   min-width: 0;
 }
 
+/* The Hybrid classes open a row of their own, apart from the Core classes. */
+.su-listing__tiles > li[data-row-break] {
+  grid-column-start: 1;
+}
+
 /* The browser skips laying out and painting a tile until it nears the
    viewport: an index ships every tile as HTML (200–290 KB), and laying them
    all out was most of what still blocked the main thread on load. The
@@ -1027,13 +1032,22 @@ a.su-home__discord:hover {
   }
 }
 
+/* The path's foot: a band in its head's colour (inline), the citation on a
+   paper cut-out flush with its top edge and its end, as a page's foot band
+   cites (owner, round 5). */
 .su-class-path__foot {
   border-top: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink-2);
-  font-size: var(--text-caption);
+  display: flex;
+  justify-content: flex-end;
   margin: 0;
-  padding: var(--space-8) var(--space-12);
-  text-align: right;
+  padding: 0 var(--space-12) var(--space-12);
+}
+
+.su-class-path__cite {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+  padding: var(--space-4) var(--space-8);
 }
 
 /*

@@ -95,7 +95,7 @@ export function AddFromHangar({ gameId, kind, gameName, confirm }: AddFromHangar
   return (
     <>
       <Button
-        size="mini"
+        size="compact"
         aria-haspopup="dialog"
         aria-label={title}
         onClick={() => {

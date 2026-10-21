@@ -141,9 +141,15 @@ const COUNT_STAT = {
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
 /* A label longer than its row wraps between its words rather than pushing the
    rule off the page; a word is never cut (`min-content`). */
+/* At the Compact Size (32px), as its count chips and the controls beside it
+   are, so a head's siblings share one Size (ruleset §4.7; owner, round 5: a
+   Game's "Pilots", "Seats" and "Move in…" all different sizes). */
 const LABEL = {
+  alignItems: 'center',
+  display: 'inline-flex',
   flexShrink: 1,
   minWidth: 'min-content',
+  minHeight: 'var(--size-compact)',
   fontSize: fontSize.sm,
   lineHeight: 1.625,
   paddingBottom: space[2],
@@ -154,8 +160,6 @@ const LABEL = {
 /** The Mini Size's stamp: the Mini's 18px, its chip type. */
 const LABEL_MINI = {
   ...LABEL,
-  alignItems: 'center',
-  display: 'inline-flex',
   fontSize: fontSize.xs,
   lineHeight: 1,
   minHeight: 'var(--size-mini)',

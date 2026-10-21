@@ -40,7 +40,7 @@ describe('LinkedCrewMini', () => {
     const lead = screen.getByRole('group', { name: 'Med Bay crew lead' })
     expect(lead.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
     expect(within(lead).getByText('Bleed later.')).toBeTruthy()
-    expect(lead.querySelector('.su-entity-mini__head')?.textContent).toContain('4/4')
+    expect(within(lead).getByRole('img', { name: 'HP 4 of 4' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' }).getAttribute('href')).toBe(
       '/sheet/npc/n1'
     )

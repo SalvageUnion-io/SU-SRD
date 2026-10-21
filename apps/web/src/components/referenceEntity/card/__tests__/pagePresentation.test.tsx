@@ -101,6 +101,18 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     expect(meta).not.toHaveProperty('cost')
   })
 
+  test('a lettered Tech Level is spelled out on the band (round 5)', () => {
+    const tl = (entity: Parameters<typeof resolveEntityPageMeta>[0]) =>
+      resolveEntityPageMeta(entity).stats.find((s) => s.key === 'tech-level')?.value
+    const chassis = need(SalvageUnionReference.Chassis.getByName('Stormterror'), 'Stormterror')
+    expect(tl(chassis)).toBe('Bio-Chassis')
+    const bioSystem = SalvageUnionReference.Systems.all().find((s) => s.techLevel === 'B')
+    if (bioSystem) expect(tl(bioSystem)).toBe('Bio-Tech')
+    const nanite = SalvageUnionReference.Systems.all().find((s) => s.techLevel === 'N')
+    if (nanite) expect(tl(nanite)).toBe('Nanite')
+    expect(tl(gopher())).toBe('2')
+  })
+
   test('a pattern is a "Pattern" to screen readers', () => {
     const chassis = gopher()
     const pattern = need(chassis.patterns?.[0], 'gopher pattern')
@@ -436,6 +448,27 @@ describe('nested cards read at one body size, their host’s', () => {
     if (!battle) throw new Error('fixture missing: Battle')
     const { container } = render(<ReferenceEntityCard data={battle} presentation="page" />)
     expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
+  })
+
+  test('a crawler page: its ability and NPC chip what they are, under no band (round 5)', () => {
+    const augmented = SalvageUnionReference.getByNameIn('crawlers', 'Augmented')
+    if (!augmented) throw new Error('fixture missing: Augmented')
+    const { container } = render(<ReferenceEntityCard data={augmented} presentation="page" />)
+    const text = container.textContent ?? ''
+    expect(text).not.toContain('Ability and NPC')
+    expect(text).toContain('Crawler Ability')
+    const npcSeal = Array.from(container.querySelectorAll('.su-badge-stamp')).find(
+      (el) => el.textContent === 'NPC'
+    )
+    expect(npcSeal).toBeTruthy()
+  })
+
+  test('a drone page: its choice table is collapsed to its head (round 5)', () => {
+    const drone = SalvageUnionReference.getByNameIn('drones', 'Sestra Drone')
+    if (!drone) throw new Error('fixture missing: Sestra Drone')
+    const { container } = render(<ReferenceEntityCard data={drone} presentation="page" />)
+    expect(container.querySelector('.su-roll-token')).not.toBeNull()
+    expect(container.querySelector('.su-roll__rows')).toBeNull()
   })
 
   test('a drone page: its systems read at the page’s card size too', () => {

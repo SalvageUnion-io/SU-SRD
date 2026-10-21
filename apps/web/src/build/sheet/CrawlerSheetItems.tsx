@@ -126,8 +126,6 @@ type CrawlerBayCardProps = {
    * it was, and comes back when the link goes (Q2).
    */
   assigned?: CrewAssignment
-  /** In the sheet's sidebar (ruleset §1.2): Bay Info stands open; When Damaged still folds, open once damaged. */
-  inSidebar?: boolean
 }
 
 /**
@@ -138,7 +136,7 @@ type CrawlerBayCardProps = {
  * 2026-10-20) its Bay Info, folded, its choices (the Armament Bay's weapon
  * pick), its roll table, what it holds, its crew lead's collapsed Mini
  * (`CrewLeadMini`) and its When Damaged, open once it is damaged; the
- * sections at the Mini Size. In the sidebar only When Damaged folds.
+ * sections at the Mini Size, the sidebar's Storage Bay's alike.
  * The bay's full rules open in a detail modal from the function action.
  */
 export function CrawlerBayCard({
@@ -155,7 +153,6 @@ export function CrawlerBayCard({
   contents,
   onFunction,
   assigned,
-  inSidebar = false,
 }: CrawlerBayCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -283,8 +280,8 @@ export function CrawlerBayCard({
   const { normal } = splitBayContent(bay.content)
   const damagedText = damagedEffectOf(bay) ?? ''
   const tokenData = { ...bay, npc: undefined, content: normal } as unknown as RefMetaEntity
-  // In the sidebar nothing folds (ruleset §1.2): its sections stand open.
-  const infoFold = inSidebar ? undefined : 'closed'
+  // Its Bay Info folds, the sidebar's Storage Bay's too (owner, round 5).
+  const infoFold = 'closed'
 
   // The bay is a CONTENTFUL Mini (owner's call, 2026-10-20): its head (its
   // condition steps from the state slot, C8; a bay is Intact or Damaged,

@@ -132,6 +132,22 @@
   }
 }
 
+/* Every column of the hero spreads its blocks evenly down the row's height,
+   so no column ends on a gap (owner, round 5: "make all stuff space-evenly
+   columnwise to fill gaps"): the photo, the player's fields, the chassis's
+   stats and ability. */
+.su-photo-beside-row:has(.su-sheet-mech-hero-split) > .su-photo-beside-slot,
+.su-sheet-mech-hero-split > *,
+.su-sheet-mech-hero-split > :first-child > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.su-sheet-mech-hero-split > :first-child > * {
+  flex: 1 1 auto;
+}
+
 /* Appearance takes the identity card's remaining height (`Field` takes a
    className, no style). */
 .su-sheet-mech-fill {

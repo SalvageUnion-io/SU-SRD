@@ -135,7 +135,7 @@ export function RosterColumn({
             {/* One create CTA per column: the header link shows only when the
                   column has rows; the empty state renders its own create CTA. */}
             {create !== undefined && !empty && (
-              <Button href={create.href} onClick={create.onClick} size="mini">
+              <Button href={create.href} onClick={create.onClick} size="compact">
                 + {create.label}
               </Button>
             )}

@@ -103,6 +103,23 @@ select.su-container-select {
   color: var(--color-paper);
 }
 
+/* A Game's members (`TheGame`): each crewmate's units fill its card's width
+   in two columns, typically Pilot // Mech (owner, round 5). */
+.su-game-members .su-entity-linked {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(100%, max(10rem, 50% - var(--space-4))), 1fr)
+    );
+  width: 100%;
+}
+
+.su-game-members .su-entity-linked > * {
+  min-width: 0;
+  width: 100%;
+}
+
 /* A Game page's column with nothing in it (no proposals yet) draws no cell,
    so no gap stands for it (owner, round 4: "weird whitespace"). */
 .su-hub-column:empty {

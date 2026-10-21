@@ -96,6 +96,13 @@ function headFactCount(model: EntityModel): number {
 }
 
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
+/** The band's Tech Level, a letter spelled out. */
+function spelled(value: string, model: EntityModel): string {
+  if (value === 'N') return 'Nanite'
+  if (value !== 'B') return value
+  return model.ref.schemaName === 'chassis' ? 'Bio-Chassis' : 'Bio-Tech'
+}
+
 function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
   // The band carries every chip: stats, action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
@@ -112,7 +119,8 @@ function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
       key: fact.key,
       label: fact.label,
       shortLabel: fact.short,
-      value: fact.value,
+      // A lettered Tech Level reads spelled out on the band (round 5).
+      value: fact.key === 'tech-level' ? spelled(String(fact.value), model) : fact.value,
       ...(fact.group ? { group: fact.group } : {}),
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     })),

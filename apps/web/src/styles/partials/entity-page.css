@@ -235,10 +235,10 @@
 }
 
 @media (width >= 64rem) {
-  /* The taller column sets the row; the shorter balances in it (owner,
-     round 4): art shorter than its column centres beside it (Stormterror),
-     a column shorter than its art spreads its blocks evenly down it
-     (Combat Pilot). */
+  /* The taller column sets the row. The art keeps the top left corner
+     whatever stands beside it (owner, round 5: "keep pictures in the top left
+     corner as we had them before for all assets"); a column shorter than its
+     art spreads its blocks evenly down it (round 4, Combat Pilot). */
   .su-entity-page__main--art {
     align-items: stretch;
     flex-direction: row;
@@ -246,7 +246,7 @@
   }
 
   .su-entity-page__main--art > .su-entity-page__art {
-    align-self: center;
+    align-self: flex-start;
     flex: 1 1 0;
     min-width: 0;
   }

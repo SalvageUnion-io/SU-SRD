@@ -1,8 +1,8 @@
 /**
  * CrewLeadMini — a crawler bay's crew lead as a CONTENTFUL Mini (N3):
- * - the head names the NPC, chips the role it holds (`ROLE | Doc`) once it
- *   has a name of its own, and reads its HP live (`HP | 3/4`);
- * - in Edit the head keeps HP, as its stepper (the uses slot), never in the body;
+ * - the head names the NPC and chips the role it holds (`THE | Doc`) once it
+ *   has a name of its own; its HP is a sheet's gauge beside its lines, read
+ *   live, set by its track in Edit (round 5);
  * - the body holds what the sheet tracks (Keepsake, Motto, Detail, Facts),
  *   each left out in Read when empty;
  * - the group is named for its bay, so several crew leads stay distinguishable;
@@ -35,21 +35,19 @@ function head(group: HTMLElement): HTMLElement {
   return found
 }
 
-describe('CrewLeadMini — the head', () => {
-  test('a named crew lead: its role a chip beside its HP, read live', () => {
+describe('CrewLeadMini — the head and its HP', () => {
+  test('a named crew lead: its role a THE chip, its HP a gauge beside its lines (round 5)', () => {
     render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     const band = head(group)
     // The role rides the head's chips, not a stamp before the name.
     expect(band.querySelector('.su-entity-mini__kind')).toBeNull()
     expect(band.querySelector('.su-entity-mini__name')?.textContent).toContain('Ambrose')
-    expect(within(band).getByText('Role')).toBeTruthy()
+    expect(within(band).getByText('The')).toBeTruthy()
     expect(within(band).getByText('Doc')).toBeTruthy()
-    // First, next to the name: before the HP reading.
-    const text = band.textContent ?? ''
-    expect(text.indexOf('Role')).toBeLessThan(text.indexOf('HP'))
-    expect(band.textContent).toContain('HP')
-    expect(band.textContent).toContain('3/4')
+    expect(band.textContent).not.toContain('HP')
+    // The HP reads live in the body, a sheet's gauge.
+    expect(within(group).getByRole('img', { name: 'HP 3 of 4' })).toBeTruthy()
     // A contentful Mini, never a titled box (N5).
     expect(group.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
     expect(group.querySelector('.su-box')).toBeNull()
@@ -58,26 +56,25 @@ describe('CrewLeadMini — the head', () => {
   test('a crew lead with no name of its own chips no role: its title is the role', () => {
     render(<CrewLeadMini {...BASE} name="Doc" model={crew('Doc')} />)
     const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
-    expect(within(band).queryByText('Role')).toBeNull()
+    expect(within(band).queryByText('The')).toBeNull()
   })
 
-  test('in Edit the head holds the HP stepper, and the body none', () => {
+  test('in Edit its HP gauge is the control, beside its lines', () => {
     render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} onHpChange={() => {}} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
-    const band = head(group)
-    expect(band.textContent).toContain('3/4')
-    expect(within(band).getByRole('button', { name: 'Decrease Med Bay crew HP' })).toBeTruthy()
+    expect(head(group).textContent).not.toContain('HP')
     const body = group.querySelector<HTMLElement>('.su-entity-mini__body')
-    expect(body?.textContent ?? '').not.toContain('HP')
+    if (!body) throw new Error('no Mini body')
+    expect(within(body).getByRole('slider', { name: 'HP' })).toBeTruthy()
   })
 
-  test('a crew lead with no HP to track has no HP chip', () => {
+  test('a crew lead with no HP to track has no HP gauge', () => {
     render(<CrewLeadMini {...BASE} maxHp={0} hp={0} name="Ambrose" model={crew('Ambrose')} />)
-    const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
-    expect(within(band).queryByText('HP')).toBeNull()
+    const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
+    expect(within(group).queryByText('HP')).toBeNull()
   })
 
-  test("a bay's SRD crew NPC keeps its book HP label, read at the sheet's value", () => {
+  test("a bay's SRD crew NPC reads one HP, at the sheet's value", () => {
     const bay = SalvageUnionReference.CrawlerBays.getByName('Med Bay')
     const npc = bay?.npc
     if (!npc) throw new Error('fixture missing: the Med Bay crew NPC')
@@ -91,10 +88,10 @@ describe('CrewLeadMini — the head', () => {
         entity={{ ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity}
       />
     )
-    const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
-    expect(band.textContent).toContain(`2/${npc.hitPoints}`)
+    const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
+    expect(within(group).getByRole('img', { name: `HP 2 of ${npc.hitPoints}` })).toBeTruthy()
     // One HP reading, not the book's beside the sheet's.
-    expect(band.textContent?.match(/HP/g)).toHaveLength(1)
+    expect(head(group).textContent).not.toContain('HP')
   })
 })
 

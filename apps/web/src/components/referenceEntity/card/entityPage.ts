@@ -83,12 +83,22 @@ function isBandStat(stat: BookStat): boolean {
   return stat.group === 'provenance'
 }
 
-function bookStatsOf(model: EntityModel): BookStat[] {
+/**
+ * A page's band spells a lettered Tech Level out, as it spells every label out:
+ * "TECH LEVEL | BIO-CHASSIS" on a bio-chassis, never a bare "B" (owner, round 5).
+ */
+function spelledTechLevel(value: string, entity: RefMetaEntity): string {
+  if (value === 'N') return 'Nanite'
+  if (value !== 'B') return value
+  return statsInBody(entity) ? 'Bio-Chassis' : 'Bio-Tech'
+}
+
+function bookStatsOf(model: EntityModel, entity: RefMetaEntity): BookStat[] {
   return model.bookStats.map((fact) => ({
     key: fact.key,
     label: fact.label,
     shortLabel: fact.short,
-    value: fact.value,
+    value: fact.key === 'tech-level' ? spelledTechLevel(String(fact.value), entity) : fact.value,
     ...(fact.group ? { group: fact.group } : {}),
     ...(fact.hint ? { hoverText: fact.hint } : {}),
   }))
@@ -97,7 +107,7 @@ function bookStatsOf(model: EntityModel): BookStat[] {
 /** The stats that lead a page's body, inline: a chassis's, less its Tech Level and Salvage Value; nothing else's. */
 export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
   return statsInBody(entity)
-    ? bookStatsOf(toEntityModel(entity)).filter((stat) => !isBandStat(stat))
+    ? bookStatsOf(toEntityModel(entity), entity).filter((stat) => !isBandStat(stat))
     : []
 }
 
@@ -111,7 +121,9 @@ export function resolveEntityPageMeta(
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    stats: statsInBody(entity) ? bookStatsOf(model).filter(isBandStat) : bookStatsOf(model),
+    stats: statsInBody(entity)
+      ? bookStatsOf(model, entity).filter(isBandStat)
+      : bookStatsOf(model, entity),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
     facts: factCells(

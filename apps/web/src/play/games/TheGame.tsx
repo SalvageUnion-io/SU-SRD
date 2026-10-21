@@ -149,7 +149,7 @@ export function TheGame({
       }
     >
       {appointing && <Stat label="Mediator" value="Nobody yet" size="compact" wrap />}
-      <ul aria-label="Members" style={LINES}>
+      <ul aria-label="Members" className="su-game-members" style={LINES}>
         {members?.map((m) => (
           <li key={m.userId}>
             <Entity
