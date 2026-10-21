@@ -17,7 +17,7 @@
 import { SRD_SITE_URL } from '../origin'
 import type { RefMetaEntity, RefObjectAnyPattern } from '../schemas/index'
 import { discordAccent } from './discordAccents'
-import type { DiscordBlock, DiscordCard } from './discordCard'
+import type { DiscordBlock, DiscordCard, DiscordCardParts } from './discordCard'
 import { discordCard, discordCardParts } from './discordCard'
 import { toEntityModel } from './toEntityModel'
 
@@ -111,9 +111,21 @@ type DiscordEntryCardOptions = {
 }
 
 /**
- * An entry's (or one of its patterns') Discord card, shed to the shared budget.
- * With `srdOrigin`, its links point there, and the budget is measured on those
- * links, since a longer origin can shed a part production's keeps.
+ * A card's parts, shed to the shared budget. With `srdOrigin`, its links point
+ * there, and the budget is measured on those links, since a longer origin can
+ * shed a part production's keeps.
+ */
+function cardWithinBudget(parts: DiscordCardParts, srdOrigin?: string): DiscordCard {
+  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
+    return discordCard(parts, { fits: fitsDiscordEntryBudget })
+  }
+  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
+  return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
+}
+
+/**
+ * An entry's (or one of its patterns') Discord card, shed to the shared budget
+ * (`cardWithinBudget`), its links at `srdOrigin` when given.
  */
 export function discordEntryCard(
   entity: RefMetaEntity,
@@ -123,12 +135,7 @@ export function discordEntryCard(
   const parts = discordCardParts(
     toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
   )
-  const { srdOrigin } = options
-  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
-    return discordCard(parts, { fits: fitsDiscordEntryBudget })
-  }
-  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
-  return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
+  return cardWithinBudget(parts, options.srdOrigin)
 }
 
 /** A player's saved pattern: where its page is, and who made it. */
@@ -172,10 +179,5 @@ export function discordHomebrewPatternCard(
     head,
     cite: `-# Homebrew // Made by ${escapeMarkdown(homebrew.madeBy)}`,
   }
-  const { srdOrigin } = options
-  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
-    return discordCard(own, { fits: fitsDiscordEntryBudget })
-  }
-  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
-  return rebase(discordCard(own, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
+  return cardWithinBudget(own, options.srdOrigin)
 }
