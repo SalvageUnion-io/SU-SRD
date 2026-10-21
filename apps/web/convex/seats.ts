@@ -48,8 +48,9 @@ import { defaultSeat, readSeat, remount, seatsAt, seatsInGame, writeSeat } from 
 /*
  * ## Who may read and write which seat
  *
- * Exported for `downtime.ts`'s solo Downtime as well. Here rather than in
- * `model/seats.ts` because it needs `assertMayWrite`, and `ownableWrites`
+ * `shelfRowOf` and `writablePilot` are exported for `downtime.ts`'s solo
+ * Downtime too, though this is a function module. They are here rather than in
+ * `model/seats.ts` because they need `assertMayWrite`, and `ownableWrites`
  * already imports the seat cleanup from there.
  *
  * - **A Game seat** (`gameId` given) is written by whoever may write its pilot

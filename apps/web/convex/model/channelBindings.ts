@@ -73,7 +73,7 @@ async function mayManageBinding(
   return membership !== null && mayBindChannel(membership)
 }
 
-/** A binding as the bot and the landing page read it. */
+/** A binding as the bot reads it (the web reads `channelBindings.ts`'s `viewOf`). */
 export async function summarize(ctx: AnyCtx, binding: BindingRow): Promise<ChannelBindingSummary> {
   const game = binding.gameId === undefined ? null : await ctx.db.get(binding.gameId)
   return {

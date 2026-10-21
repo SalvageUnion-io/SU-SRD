@@ -24,6 +24,9 @@ import { gameSummary } from './schema'
  * The personal **Shelf** is the other container and is not a Game: it is simply
  * the absence of one (`gameId: null` on an entity), which is why there is no
  * `shelves` table.
+ *
+ * What goes when a Game is deleted is `GAME_APPARATUS_TABLES` and
+ * `deleteGameApparatus` in `model/seats.ts`, next to the seat cleanup.
  */
 
 /** Shape returned to the client for a Game the caller belongs to. */
