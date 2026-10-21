@@ -62,10 +62,10 @@ export type CrewLine = {
    */
   unit: string
   /**
-   * The mech assigned to them, as its Mini reads it: its name, its SP
+   * The mech assigned to them, as its Mini reads it: its row id, name, SP
    * (`6/9`) and whether they are aboard. Null with none.
    */
-  unitMech: { name: string; sp: string; boarded: boolean } | null
+  unitMech: { id: string; name: string; sp: string; boarded: boolean } | null
   /**
    * Their mech: its SP and Heat while their seat has them aboard, else one
    * line for the mech assigned to them, parked, with what is wrong with it.
@@ -239,6 +239,7 @@ export function crewLines(
         mech === undefined
           ? null
           : {
+              id: mech._id,
               name: mech.name,
               sp: vitalText('pool', mech.currentSP, mech.maxSP),
               boarded: p.boarded,

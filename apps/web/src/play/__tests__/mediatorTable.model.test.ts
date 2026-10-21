@@ -46,7 +46,7 @@ describe('mediatorSeats', () => {
       'Heat 3/10',
     ])
     expect(seat('Bonesaw').mount).toBe('Boarded · Buzzard')
-    expect(seat('Bonesaw').mech).toEqual({ name: 'Buzzard', sp: '14/20', boarded: true })
+    expect(seat('Bonesaw').mech).toMatchObject({ name: 'Buzzard', sp: '14/20', boarded: true })
   })
 
   test('on foot, the pilot’s own; the vital that needs the Mediator is flagged', () => {

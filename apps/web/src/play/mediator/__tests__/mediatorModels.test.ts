@@ -1,6 +1,6 @@
 /**
  * The Mediator's pure halves in Play
- * (docs/architecture/play.md): the seat cards (§10), the proposal targets
+ * (docs/architecture/play.md): the seats (§10), the proposal targets
  * and values (§15), how a sent proposal reads, and the Opposition's
  * instances (§15). The Morale roll and what an NPC tracks
  * are rules: `src/lib/rules/opposition.ts`.
@@ -14,33 +14,34 @@ import {
   proposalTargets,
 } from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { mediatorSeats } from '../mediatorTable.model'
 import { instanceName, newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { proposalLine } from '../proposalLine.model'
-import { tableSeats } from '../seatCards.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
-describe('the seat cards', () => {
-  const cards = tableSeats(TABLE_CREW, TABLE_SEATS, TABLE_MEMBERS)
+describe('the seats, in one layer over the crew lines', () => {
+  const NOW = 0
+  const seats = mediatorSeats(TABLE_CREW, TABLE_SEATS, TABLE_MEMBERS, NOW)
 
   test('one per claimed pilot, in join order — never re-sorted by the numbers', () => {
-    // Hotdog is unclaimed: an open seat on the Game page, not a card here.
-    expect(cards.map((c) => c.name)).toEqual(['Bonesaw', 'Pickle', 'Judge', 'Driftwood'])
+    // Hotdog is unclaimed: an open seat on the Game page, not a seat here.
+    expect(seats.map((c) => c.name)).toEqual(['Bonesaw', 'Pickle', 'Judge', 'Driftwood'])
   })
 
-  test('crewLines verbatim: vitals, where they are, then Fine or the first problem', () => {
-    const [bonesaw, pickle, judge, driftwood] = cards
-    expect(bonesaw).toMatchObject({ hp: '8/10', ap: '3/5', status: 'Fine', attention: false })
-    expect(bonesaw?.unit).toBe('On foot · Scrapper parked')
-    expect(pickle).toMatchObject({ unit: 'In Spectrum · SP 6/9', status: 'Overheating' })
-    expect(judge).toMatchObject({ unit: 'On foot', status: 'Ejected', attention: true })
-    expect(driftwood?.unit).toBe('In Mazona · SP 9/9')
+  test('the crew lines verbatim: where they are, then nothing wrong or the first problem', () => {
+    const [bonesaw, pickle, judge, driftwood] = seats
+    expect(bonesaw).toMatchObject({ problem: null, attention: false })
+    expect(bonesaw?.label).toContain('HP 8 of 10, AP 3 of 5, On foot, Scrapper parked')
+    expect(pickle).toMatchObject({ problem: 'Overheating' })
+    expect(judge).toMatchObject({ mount: 'On foot', problem: 'Ejected', attention: true })
+    expect(driftwood?.label).toContain('In Mazona, SP 9 of 9')
   })
 
-  test('a tap targets the pilot row, and the card reads its whole line aloud', () => {
-    expect(cards[1]?.rowId).toBe('row-pickle')
-    expect(cards[1]?.label).toBe(
-      'Pickle, HP 10 of 10, AP 5 of 5, In Spectrum, SP 6 of 9, needs attention: overheating'
+  test('a tap targets the pilot row, and the seat reads its whole line aloud', () => {
+    expect(seats[1]?.rowId).toBe('row-pickle')
+    expect(seats[1]?.label).toBe(
+      'Pickle, away, HP 10 of 10, AP 5 of 5, In Spectrum, SP 6 of 9, needs attention: overheating'
     )
   })
 
@@ -51,12 +52,14 @@ describe('the seat cards', () => {
         p.name === 'Judge' ? { ...p, status: { dead: false, injured: true, ejected: true } } : p
       ),
     }
-    const judge = tableSeats(crew, TABLE_SEATS, TABLE_MEMBERS).find((c) => c.name === 'Judge')
-    expect(judge?.status).toBe('Injured +1')
+    const judge = mediatorSeats(crew, TABLE_SEATS, TABLE_MEMBERS, NOW).find(
+      (c) => c.name === 'Judge'
+    )
+    expect(judge?.problem).toBe('Injured +1')
   })
 
   test('nothing to show before the crew arrives', () => {
-    expect(tableSeats(null, [], [])).toEqual([])
+    expect(mediatorSeats(null, [], [], NOW)).toEqual([])
   })
 })
 

@@ -19,7 +19,7 @@
  * why before pressing, not after.
  *
  * It also declares the crew read types (`CrewRow`, `CrewLink`, `BoardSources`)
- * that `crew.model.ts`, `seatCards.model.ts` and `mediatorTable.model.ts` import.
+ * that `crew.model.ts` and `mediatorTable.model.ts` import.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'

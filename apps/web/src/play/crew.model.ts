@@ -14,11 +14,21 @@ import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
 import { crewLines, vitalCurrent } from './useGameFeed'
 
-/** What is wrong, in words, or null for "Fine". A parked mech's trouble is its own line. */
-function crewProblem(c: CrewLine): string | null {
-  if (c.problems.length > 0) return c.problems.join(' · ')
-  if (c.mechAttention && c.mech) return c.mech
-  return null
+/**
+ * What needs looking at, in words: the line's problems, else its parked mech's
+ * line when that is what draws the outline. Play's Crew and the Mediator's
+ * seats both read it.
+ */
+export function problemsOf(line: CrewLine): string[] {
+  if (line.problems.length > 0) return line.problems
+  if (line.mechAttention && line.mech) return [line.mech]
+  return []
+}
+
+/** What is wrong, in words, or null for "Fine". */
+function crewProblem(line: CrewLine): string | null {
+  const problems = problemsOf(line)
+  return problems.length === 0 ? null : problems.join(' · ')
 }
 
 /** The one vital a crew line shows: `SP 22`, `▲ HP 4`, or a word (`▲ Shut down`). */
@@ -30,10 +40,8 @@ type CrewVital = {
   attention: boolean
 }
 
-/** One crewmate as the Crew list draws them. */
-export type CrewSeatLine = {
-  pilotId: string
-  name: string
+/** One crewmate as the Crew list draws them: their crew line, and how the list reads it. */
+export type CrewSeatLine = CrewLine & {
   /** Their seat beat within `PRESENCE_STALE_MS`. */
   present: boolean
   /** "Boarded · Atlas", or "On foot". */
@@ -43,8 +51,6 @@ export type CrewSeatLine = {
   vital: CrewVital
   /** What is wrong, in words, or null: the line's accessible name says it. */
   problem: string | null
-  /** What they are resolving, in words, or null. */
-  resolving: string | null
 }
 
 type CrewPilot = CrewVitals['pilots'][number]
@@ -105,14 +111,12 @@ export function crewSeatLines(
     const boardedIn = pilot.boarded ? (mech?.name ?? 'a mech') : null
     return [
       {
-        pilotId: line.pilotId,
-        name: line.name,
+        ...line,
         present: isPresent(pilot.lastSeenAt, now),
         mount: boardedIn === null ? 'On foot' : `Boarded · ${boardedIn}`,
         boardedIn,
         vital: crewVital(pilot, mech, line.attention),
         problem: crewProblem(line),
-        resolving: line.resolving,
       },
     ]
   })

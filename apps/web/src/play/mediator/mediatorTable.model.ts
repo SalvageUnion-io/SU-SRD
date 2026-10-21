@@ -5,18 +5,20 @@
  * Game's members (the order they joined: a seat that moves mid-fight is a seat
  * you lose).
  *
- * It builds on the two crew readings already shared by every screen at the
- * table, so the Mediator and the players give one answer: `tableSeats()` (the
- * seats' order, the proposal target, the problems)
- * and `crewSeatLines()` (Play's Crew list: presence and the vital that needs
- * looking at). On top of those it lists every live vital.
+ * It builds on the crew reading every screen at the table shares,
+ * `crewSeatLines()` (presence, the vital that needs looking at, `problemsOf`),
+ * so the Mediator and the players give one answer. On top of it each seat
+ * carries what the Mediator does with it: the pilot row a tap aims Propose
+ * at, every live vital, and the whole line read aloud. The order is stable,
+ * the owner's membership `joinedAt` then the name, and never follows the
+ * numbers. An unclaimed pilot (a pre-gen) is an open seat on the Game page,
+ * not a seat here.
  */
 
 import type { BoardSources } from '../boardMenu.model'
-import { crewSeatLines } from '../crew.model'
+import { crewSeatLines, problemsOf } from '../crew.model'
 import type { CrewVitals } from '../useGameFeed'
 import { vitalText } from '../useGameFeed'
-import { tableSeats } from './seatCards.model'
 
 /** One vital chip on a seat: `HP | 7/10`, or a word (`▲ Ejected`) with no value. */
 type SeatVital = {
@@ -40,7 +42,7 @@ export type MediatorSeat = {
   /** "Boarded · Buzzard", or "On foot". */
   mount: string
   /** The mech assigned to them, as the seat's mount Mini reads it; null with none. */
-  mech: { name: string; sp: string; boarded: boolean } | null
+  mech: { id: string; name: string; sp: string; boarded: boolean } | null
   /** Every live vital: HP and AP, and aboard the mech's SP, EP and Heat. */
   vitals: SeatVital[]
   /** The ▲ and the red ring: something needs the Mediator. */
@@ -85,6 +87,11 @@ function seatVitals(
 }
 
 /** The table's seats, in the order their players joined, each with every live vital. */
+/** "HP 8/10" read aloud: "HP 8 of 10". */
+function spoken(text: string): string {
+  return text.replace(/(\d+)\/(\d+)/g, '$1 of $2')
+}
+
 export function mediatorSeats(
   crew: CrewVitals | null,
   seats: BoardSources['seats'],
@@ -92,38 +99,48 @@ export function mediatorSeats(
   now: number
 ): MediatorSeat[] {
   if (crew === null) return []
-  const lines = new Map(crewSeatLines(crew, seats, null, now).map((l) => [l.pilotId, l]))
+  const joined = new Map(members.map((m) => [m.userId, m.joinedAt]))
   const pilots = new Map<string, CrewPilot>()
   for (const p of crew.pilots) if (p.linkId !== null) pilots.set(p.linkId, p)
   const mechs = new Map<string, CrewMech>()
   for (const m of crew.mechs) if (m.linkId !== null) mechs.set(m.linkId, m)
 
-  return tableSeats(crew, seats, members).flatMap((card): MediatorSeat[] => {
-    const pilot = pilots.get(card.pilotId)
-    const line = lines.get(card.pilotId)
-    if (pilot === undefined || line === undefined) return []
+  // No pilot is "self" here: the Mediator reads the whole table alike.
+  const seated = crewSeatLines(crew, seats, null, now).flatMap((line) => {
+    const pilot = pilots.get(line.pilotId)
+    if (pilot === undefined || pilot.ownerId === null) return []
     const mech = pilot.mechId === null ? undefined : mechs.get(pilot.mechId)
-    const problem = card.status === 'Fine' ? null : card.status
-    return [
-      {
-        pilotId: card.pilotId,
-        rowId: card.rowId,
-        ownerId: pilot.ownerId,
-        name: card.name,
-        present: line.present,
-        mount: line.mount,
-        mech: card.unitMech,
-        vitals: seatVitals(pilot, mech, line.vital),
-        attention: card.attention,
-        problem,
-        resolving: card.resolving,
-        // The seat card's line ("Bonesaw, HP 8 of 10, …") with whether they are here.
-        label: [card.name, line.present ? 'here' : 'away', card.label.slice(card.name.length + 2)]
-          .filter((part) => part !== '')
-          .join(', '),
-      },
-    ]
+    const problems = problemsOf(line)
+    const seat: MediatorSeat = {
+      pilotId: line.pilotId,
+      rowId: pilot._id,
+      ownerId: pilot.ownerId,
+      name: line.name,
+      present: line.present,
+      mount: line.mount,
+      mech: line.unitMech,
+      vitals: seatVitals(pilot, mech, line.vital),
+      attention: line.attention,
+      // The first problem, and how many more.
+      problem:
+        problems.length === 0
+          ? null
+          : `${problems[0]}${problems.length > 1 ? ` +${problems.length - 1}` : ''}`,
+      resolving: line.resolving,
+      label: [
+        line.name,
+        line.present ? 'here' : 'away',
+        spoken(`HP ${line.hp}`),
+        spoken(`AP ${line.ap}`),
+        spoken(line.unit.replace(' · ', ', ')),
+        problems.length === 0 ? 'fine' : `needs attention: ${problems.join(', ').toLowerCase()}`,
+      ].join(', '),
+    }
+    return [{ seat, joinedAt: joined.get(pilot.ownerId) ?? Number.POSITIVE_INFINITY }]
   })
+  return seated
+    .sort((a, b) => a.joinedAt - b.joinedAt || a.seat.name.localeCompare(b.seat.name))
+    .map(({ seat }) => seat)
 }
 
 /** "3 of 4 here": how many seats are here, of how many. */
