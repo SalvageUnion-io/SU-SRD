@@ -8,7 +8,7 @@
  *                   [--sha <sha>] [--pr <n>] [--linkable]
  *
  * `--base` is the site's origin; every page's path is on it, the app's
- * under `/build` (`BUILDER_BASE`). `gallery.yml` (dispatched by hand) runs it
+ * under `/build` (`APP_BASE`). `gallery.yml` (dispatched by hand) runs it
  * against a branch's own build, served on localhost (the one `dist`, its
  * App built against a throwaway Convex backend with the test sign-in), and
  * `gallery-pages.yml` publishes the result to GitHub Pages.
@@ -34,7 +34,7 @@ import { launchBrowser } from 'gates/lib/chromium'
 import type { OgMeta } from 'gates/lib/galleryHtml'
 import { renderGallery } from 'gates/lib/galleryHtml'
 import type { GalleryPage } from 'gates/lib/galleryPages'
-import { BUILDER_BASE, GALLERY_SECTIONS, isBuilderPath, pageSlug } from 'gates/lib/galleryPages'
+import { APP_BASE, GALLERY_SECTIONS, isAppPath, pageSlug } from 'gates/lib/galleryPages'
 import { isSchemaName } from 'salvageunion-reference'
 
 export type GalleryArgs = {
@@ -191,8 +191,8 @@ async function shootPage(page: Page, url: string, file: (view: string) => string
 }
 
 /** The app's root page on `base`, with its trailing slash. */
-export function builderRoot(base: string): string {
-  return `${base}${BUILDER_BASE}/`
+export function appRoot(base: string): string {
+  return `${base}${APP_BASE}/`
 }
 
 /** A test-seam account: its email and password. */
@@ -207,7 +207,7 @@ export async function seed(
   base: string,
   account: SeedAccount = { email: `gallery-${Date.now()}@example.com`, password: 'gallery-pass-1' }
 ): Promise<Partial<Seeded>> {
-  await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
+  await page.goto(appRoot(base), { waitUntil: 'networkidle' })
   await page.waitForFunction(() => '__appTestSignIn' in (globalThis as unknown as InPage), null, {
     timeout: 30_000,
   })
@@ -226,7 +226,7 @@ export async function seed(
     'mech/starter-mech-mazona',
     'crawler/starter-crawler-tenacity',
   ]) {
-    await page.goto(`${base}${BUILDER_BASE}/starter/${sheet}`, { waitUntil: 'networkidle' })
+    await page.goto(`${base}${APP_BASE}/starter/${sheet}`, { waitUntil: 'networkidle' })
     await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
     await page
@@ -235,7 +235,7 @@ export async function seed(
       .waitFor({ timeout: 20_000 })
   }
   // A Game is started on the Play hub (ADR-052 §4), and opens on its page.
-  await page.goto(`${builderRoot(base)}play/`, { waitUntil: 'networkidle' })
+  await page.goto(`${appRoot(base)}play/`, { waitUntil: 'networkidle' })
   await page
     .getByRole('button', { name: /new game/i })
     .first()
@@ -244,13 +244,13 @@ export async function seed(
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/play\/games\//, { timeout: 20_000 })
   const game = new URL(page.url()).pathname
-  await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
+  await page.goto(appRoot(base), { waitUntil: 'networkidle' })
   const links = await page.evaluate(() =>
     [...(globalThis as unknown as InPage).document.querySelectorAll('a[href]')].map(
       (a) => a.getAttribute('href') ?? ''
     )
   )
-  const find = (route: string) => links.find((l) => l.startsWith(`${BUILDER_BASE}${route}`))
+  const find = (route: string) => links.find((l) => l.startsWith(`${APP_BASE}${route}`))
   const seeded: Partial<Seeded> = {
     pilot: find('/sheet/pilot/'),
     mech: find('/sheet/mech/'),
@@ -306,7 +306,7 @@ export function ogSource(
   | { kind: 'card'; entity: NonNullable<ReturnType<typeof pageEntity>> }
   | { kind: 'file'; url: string }
   | undefined {
-  const entity = isBuilderPath(page.path) ? undefined : pageEntity(page.path)
+  const entity = isAppPath(page.path) ? undefined : pageEntity(page.path)
   if (entity) return { kind: 'card', entity }
   // The image's own path, base included, on the origin the gallery shot.
   if (image) return { kind: 'file', url: `${new URL(base).origin}${new URL(image).pathname}` }

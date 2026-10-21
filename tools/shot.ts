@@ -50,6 +50,7 @@ import { join, resolve } from 'node:path'
 import { FORCE_ONLINE, launchBrowser } from 'gates/lib/chromium'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
+import { APP_BASE } from '../apps/web/src/lib/appBase'
 import type { SeedFile } from './dev-backend'
 import { STATE_DIR } from './dev-backend'
 
@@ -76,8 +77,8 @@ export type Server = {
 /** The prefix that makes a target an app route. */
 const APP_PREFIX = 'app:'
 
-/** The app's base path (`APP_BASE` in `apps/web/src/lib/appBase.ts`, ADR-048). */
-export const APP_BASE = '/build'
+/** The app's base path (ADR-048), from its one home; re-exported for the tests. */
+export { APP_BASE }
 
 /**
  * Where the signed-out boot's Convex client points: a closed port on this

@@ -6,7 +6,7 @@ import type { GalleryPage } from 'gates/lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
 import type { GalleryArgs } from '../gallery'
 import {
-  builderRoot,
+  appRoot,
   capturedAtStamp,
   failureLine,
   fetchOgImage,
@@ -258,9 +258,9 @@ describe('ogSource', () => {
   })
 })
 
-describe('builderRoot', () => {
+describe('appRoot', () => {
   test("opens the app's root on the base, with its trailing slash", () => {
-    expect(builderRoot('http://localhost:4321')).toBe('http://localhost:4321/build/')
+    expect(appRoot('http://localhost:4321')).toBe('http://localhost:4321/build/')
   })
 })
 

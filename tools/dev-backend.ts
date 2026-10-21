@@ -51,7 +51,7 @@ import type { Browser } from '@playwright/test'
 import { FORCE_ONLINE, headlessShell, launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, isPrimaryCheckout, portFor, portOffset } from 'gates/ports'
 import type { SeedAccount, Seeded } from './gallery'
-import { builderRoot, seed } from './gallery'
+import { appRoot, seed } from './gallery'
 
 /** Where the backend keeps its state, under the checkout root. */
 export const STATE_DIR = '.dev-backend'
@@ -479,7 +479,7 @@ export async function main(
     if (!existsSync(seedFile)) await seedOnce(sys, root, base, seedFile)
     sys.log(
       [
-        `[dev-backend] ready: ${builderRoot(base)} on ${backendUrl_}`,
+        `[dev-backend] ready: ${appRoot(base)} on ${backendUrl_}`,
         `  sign in: __appTestSignIn('${SEED_ACCOUNT.email}', '${SEED_ACCOUNT.password}', 'signIn')`,
         `  shoot:   bun run shot :pilot --signed-in   (seeded pages: ${join(STATE_DIR, 'seed.json')})`,
         `  logs:    ${join(STATE_DIR, 'backend.log')}, ${join(STATE_DIR, 'dev.log')}`,

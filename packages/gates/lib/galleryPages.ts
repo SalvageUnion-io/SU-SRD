@@ -1,19 +1,21 @@
 /**
  * The pages the screenshot gallery shoots (`tools/gallery.ts`): the screens worth a
  * reviewer's look, grouped the way the gallery prints them. Every path is on
- * the one site, the app's under `BUILDER_BASE`; `signedIn` pages are
+ * the one site, the app's under `APP_BASE`; `signedIn` pages are
  * reached through a seeded test account (`tools/gallery.ts` copies three
  * Starter Set characters to its Training Bay), and their `path` may name a seeded
  * entity by kind (`:pilot`, `:mech`, `:crawler`, `:game`), resolved once the
  * seed has run.
  */
 
-/** Where the app is served on the site (ADR-048). */
-export const BUILDER_BASE = '/build'
+import { APP_BASE } from '../../../apps/web/src/lib/appBase'
 
-/** True for a path the app serves (under `BUILDER_BASE`). */
-export const isBuilderPath = (path: string): boolean =>
-  path === BUILDER_BASE || path.startsWith(`${BUILDER_BASE}/`)
+/** Where the app is served on the site (ADR-048), from its one home. */
+export { APP_BASE }
+
+/** True for a path the app serves (under `APP_BASE`). */
+export const isAppPath = (path: string): boolean =>
+  path === APP_BASE || path.startsWith(`${APP_BASE}/`)
 
 export type GalleryPage = {
   path: string
@@ -38,7 +40,7 @@ export type GallerySection = {
 const srd = (path: string, name: string, note: string, chips: readonly string[] = []) =>
   ({ path, name, note, chips }) satisfies GalleryPage
 
-/** An app page: its route under `BUILDER_BASE`, or a seeded `:kind`. */
+/** An app page: its route under `APP_BASE`, or a seeded `:kind`. */
 const app = (
   route: string,
   name: string,
@@ -46,7 +48,7 @@ const app = (
   extra: Partial<Pick<GalleryPage, 'signedIn' | 'edit' | 'chips'>> = {}
 ) =>
   ({
-    path: route.startsWith(':') ? route : `${BUILDER_BASE}${route}`,
+    path: route.startsWith(':') ? route : `${APP_BASE}${route}`,
     name,
     note,
     ...extra,

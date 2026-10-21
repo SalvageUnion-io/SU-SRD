@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { GalleryRun } from '../lib/galleryHtml'
 import { escapeHtml, renderGallery } from '../lib/galleryHtml'
 import type { GalleryPage, GallerySection } from '../lib/galleryPages'
-import { BUILDER_BASE, GALLERY_SECTIONS, isBuilderPath, pageSlug } from '../lib/galleryPages'
+import { APP_BASE, GALLERY_SECTIONS, isAppPath, pageSlug } from '../lib/galleryPages'
 
 const ALL_PAGES = GALLERY_SECTIONS.flatMap((s) => s.pages)
 
@@ -13,10 +13,10 @@ describe('the page list', () => {
   })
 
   test('an app page is the base or under it; an SRD page that shares its prefix is not', () => {
-    expect(isBuilderPath(BUILDER_BASE)).toBe(true)
-    expect(isBuilderPath(`${BUILDER_BASE}/pilots/new`)).toBe(true)
-    expect(isBuilderPath(`${BUILDER_BASE}er/`)).toBe(false)
-    expect(isBuilderPath('/chassis/mule/')).toBe(false)
+    expect(isAppPath(APP_BASE)).toBe(true)
+    expect(isAppPath(`${APP_BASE}/pilots/new`)).toBe(true)
+    expect(isAppPath(`${APP_BASE}er/`)).toBe(false)
+    expect(isAppPath('/chassis/mule/')).toBe(false)
   })
 })
 
