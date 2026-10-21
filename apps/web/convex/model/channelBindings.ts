@@ -35,10 +35,7 @@ type BindingRow = Doc<'channelBindings'>
 export const GAME_NOT_FOUND = 'That Game could not be found, or you are not in it.'
 
 /** The binding a channel holds, if any. */
-export async function bindingForChannel(
-  ctx: AnyCtx,
-  channelId: string
-): Promise<BindingRow | null> {
+async function bindingForChannel(ctx: AnyCtx, channelId: string): Promise<BindingRow | null> {
   return await ctx.db
     .query('channelBindings')
     .withIndex('by_channel', (q) => q.eq('channelId', channelId))
@@ -66,7 +63,7 @@ export async function personalBinding(
 }
 
 /** Whether `userId` may unbind (or take over) this binding. */
-export async function mayManageBinding(
+async function mayManageBinding(
   ctx: AnyCtx,
   userId: Id<'users'>,
   binding: BindingRow
@@ -117,7 +114,7 @@ export async function resolveCallerGame(
 const CHANNEL_NAME_MAX = 100
 
 /** A channel name as stored: trimmed, without a leading `#`, at most Discord's cap; null when empty. */
-export function channelNameOf(raw: string | null | undefined): string | null {
+function channelNameOf(raw: string | null | undefined): string | null {
   const name = (raw ?? '').trim().replace(/^#+/, '').trim().slice(0, CHANNEL_NAME_MAX)
   return name.length === 0 ? null : name
 }

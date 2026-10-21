@@ -20,7 +20,7 @@ export const STALE_WRITE_REFUSAL =
   'This sheet changed before your edit reached it, so the edit was not saved. It now shows the latest version — make your change again.'
 
 /** The refusal's `ConvexError` data: the copy, plus the row the server holds. */
-export type StaleWriteData = { message: string; updatedAt: number; body: Value }
+type StaleWriteData = { message: string; updatedAt: number; body: Value }
 
 /** The refusal to throw, server-side. */
 export function staleWriteError(row: {

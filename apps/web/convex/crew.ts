@@ -98,7 +98,7 @@ export const mechDerived = mirrors<MechDerived>()(
 )
 
 /** The records a derivation reads: one container's pilots, crawlers, links and seats. */
-export type CrewRecords = {
+type CrewRecords = {
   pilots: Doc<'pilots'>[]
   crawlers: Doc<'crawlers'>[]
   links: Doc<'softLinks'>[]
@@ -111,7 +111,7 @@ export type CrewRecords = {
  * Bodies are parsed once: a mech's maxima read the abilities of the pilot
  * flying it, so every pilot is parsed up front and looked up by row.
  */
-export function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
+function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
   loadReferenceData()
 
   const crawlerTech = new Map<string, { techLevel: string }>()

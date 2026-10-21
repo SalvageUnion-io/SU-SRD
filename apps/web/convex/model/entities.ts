@@ -86,7 +86,7 @@ export const PARSERS = {
   mechPatterns: MechPatternSchema,
 } as const
 
-export type ParsedTable = keyof typeof PARSERS
+type ParsedTable = keyof typeof PARSERS
 
 /** Parse a body against its Zod schema, or throw with a legible reason. */
 export function parseBody(table: ParsedTable, body: unknown): unknown {
@@ -238,7 +238,7 @@ export function bodyAppId(body: unknown): string | undefined {
 }
 
 /** The two tables whose rows are identified by the id inside their body. */
-export type BodyIdTable = 'mechPatterns' | 'encounterNpcs'
+type BodyIdTable = 'mechPatterns' | 'encounterNpcs'
 
 /**
  * One of the owner's own patterns or NPCs, addressed by the id in its body:
@@ -311,7 +311,7 @@ export function patternVisibilityOf(row: Doc<'mechPatterns'>): PatternVisibility
  * One pattern by the id inside its body, whoever made it — the pattern page's
  * address. A duplicate resolves to the oldest row, as in `oldestByAppId`.
  */
-export async function patternByAppId(
+async function patternByAppId(
   ctx: QueryCtx | MutationCtx,
   appId: string
 ): Promise<Doc<'mechPatterns'> | null> {
@@ -588,7 +588,7 @@ export async function pruneLinksAcrossContainers(
 /* -------------------------------------------------------------------------- */
 
 /** What a table holds, as the hub states it. Stored on `games.summary`. */
-export type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
+type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
 
 /**
  * A crawler's display name, read defensively.
@@ -610,7 +610,7 @@ function crawlerNameOf(body: unknown): string | null {
  * path: it is paid here, inside the mutation that changed the roster, rather
  * than by every subscriber of `games.listMine` on every write to any sheet.
  */
-export async function computeGameSummary(
+async function computeGameSummary(
   ctx: QueryCtx | MutationCtx,
   gameId: Id<'games'>
 ): Promise<GameSummaryFields> {
@@ -660,7 +660,7 @@ async function crawlersIn(ctx: QueryCtx | MutationCtx, gameId: Id<'games'>) {
  * gets — a crawler deleted or moved without the bookkeeping below (a dashboard
  * edit) still leaves the Game a sensible primary.
  */
-export function effectivePrimary(
+function effectivePrimary(
   stored: Id<'crawlers'> | null | undefined,
   oldestFirst: readonly Doc<'crawlers'>[]
 ): Doc<'crawlers'> | null {

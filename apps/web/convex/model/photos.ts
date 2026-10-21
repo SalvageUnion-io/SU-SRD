@@ -35,7 +35,7 @@ function uploadUrlOf(body: unknown): string | undefined {
 }
 
 /** Delete a photo's file and its row. */
-export async function deletePhoto(ctx: MutationCtx, row: Doc<'photos'>): Promise<void> {
+async function deletePhoto(ctx: MutationCtx, row: Doc<'photos'>): Promise<void> {
   await ctx.storage.delete(row.storageId)
   await ctx.db.delete(row._id)
 }
@@ -77,7 +77,7 @@ export async function trackPhoto(
 export const UNUSED_PHOTO_TTL_MS = 24 * 60 * 60 * 1000
 
 /** The sweep's per-run cap, so one run stays well inside a mutation's limits. */
-export const SWEEP_BATCH = 100
+const SWEEP_BATCH = 100
 
 /**
  * Delete files claimed more than a day ago that no entity holds — an upload

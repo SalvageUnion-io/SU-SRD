@@ -68,7 +68,7 @@ export const preview = query({
   },
 })
 
-export type RedeemResult = { kind: 'joined' | 'already'; gameId: Id<'games'> }
+type RedeemResult = { kind: 'joined' | 'already'; gameId: Id<'games'> }
 
 /**
  * Open the URL: join the Game as a player.

@@ -43,7 +43,7 @@ const bindingView = v.object({
   boundAt: v.number(),
 })
 
-export type BindingView = Infer<typeof bindingView>
+type BindingView = Infer<typeof bindingView>
 
 function viewOf(row: Doc<'channelBindings'>): BindingView {
   return { channelId: row.channelId, channelName: row.channelName ?? null, boundAt: row.boundAt }
@@ -183,7 +183,7 @@ const RELAY_TIMEOUT_MS = 10_000
  * back as `{ ok: false, message }`, worded for the roller: an unset variable,
  * an unreachable Worker, a refusal from Discord.
  */
-export async function relayPostRoll(request: PostRollRelayRequest): Promise<PostRollRelayResponse> {
+async function relayPostRoll(request: PostRollRelayRequest): Promise<PostRollRelayResponse> {
   const botUrl = process.env.BOT_URL?.replace(/\/+$/, '')
   const secret = process.env.BOT_SECRET
   if (!botUrl || !secret) {

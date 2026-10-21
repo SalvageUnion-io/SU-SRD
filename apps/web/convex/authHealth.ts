@@ -41,7 +41,7 @@ export const IN_FLIGHT_MS = 15 * 60 * 1000
  */
 export const FAILING_ATTEMPTS = 4
 
-export type SignInCounts = {
+type SignInCounts = {
   /** Signed verifiers in the window that the callback never consumed. */
   stranded: number
   /** Sessions created in the window: sign-ins that completed. */

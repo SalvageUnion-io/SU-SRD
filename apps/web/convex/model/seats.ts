@@ -31,7 +31,7 @@ export type SeatState = Pick<
 >
 
 /** Everything a seat write may change: its play state and, solo, its Downtime. */
-export type SeatChange = Partial<SeatState & Pick<Doc<'seats'>, 'downtime'>>
+type SeatChange = Partial<SeatState & Pick<Doc<'seats'>, 'downtime'>>
 
 /**
  * What a pilot with no seat row is: on foot, at Close range, nothing switched
