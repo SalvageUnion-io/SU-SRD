@@ -135,10 +135,11 @@ type CrawlerBayCardProps = {
  * border (`MiniGroup`; owner's calls, 2026-10-20): its head (its
  * condition stepping Intact ↔ Damaged from its state slot, its function and
  * Repair in its chip group, C8), then in its body (owner's review,
- * 2026-10-20) its Bay Info, folded, its choices (the Armament Bay's weapon
- * pick), its roll table, what it holds, its crew lead's collapsed Mini
- * (`CrewLeadMini`) after its When Damaged, open once it is damaged; the
- * sections at the Mini Size, the sidebar's Storage Bay's alike.
+ * 2026-10-20) its Bay Info, folded, and its When Damaged, open once it is
+ * damaged, first (owner, round 10); then its choices (the Armament Bay's
+ * weapon pick), its roll table, what it holds and its crew lead's collapsed
+ * Mini (`CrewLeadMini`); every section at the Mini Size, the sidebar's
+ * Storage Bay's alike.
  * The bay's full rules open in a detail modal from the function action.
  */
 export function CrawlerBayCard({
@@ -290,8 +291,9 @@ export function CrawlerBayCard({
   // condition steps from the state slot, C8; a bay is Intact or Damaged,
   // never Destroyed; its function and Repair are the last slot), then in its
   // body everything that is the bay's (owner's review, 2026-10-20): its Bay
-  // Info, its choices and roll table, what it holds, its crew lead's
-  // its When Damaged and its crew lead's collapsed Mini, each section at the Mini Size.
+  // Info and When Damaged first (owner, round 10), then its choices and roll
+  // table, what it holds and its crew lead's collapsed Mini, each section at
+  // the Mini Size.
   const line = (
     <SheetItemLine
       token={
@@ -308,15 +310,8 @@ export function CrawlerBayCard({
                 <BayInfo subject={bay.name} fold={infoFold} size="mini">
                   <Content body={normal as ComponentProps<typeof Content>['body']} />
                 </BayInfo>
-                <EntityChoices
-                  entity={bay as unknown as RefMetaEntity}
-                  selections={selections}
-                  onSelectionChange={readOnly ? undefined : setSelections}
-                  techLevel={crawlerTl}
-                />
-                <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
-                {contents}
-                {/* When Damaged above the crew (owner, round 7). */}
+                {/* Bay Info and When Damaged first, then everything else (owner,
+                    round 10). */}
                 {damagedText && (
                   <WhenDamaged
                     key={condition}
@@ -328,6 +323,14 @@ export function CrawlerBayCard({
                     size="mini"
                   />
                 )}
+                <EntityChoices
+                  entity={bay as unknown as RefMetaEntity}
+                  selections={selections}
+                  onSelectionChange={readOnly ? undefined : setSelections}
+                  techLevel={crawlerTl}
+                />
+                <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
+                {contents}
                 {crew}
               </>
             ),

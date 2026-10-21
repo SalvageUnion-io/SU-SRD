@@ -1,5 +1,5 @@
 /**
- * CrawlerSheet — a bay reads as Bay Info, its crew, When Damaged.
+ * CrawlerSheet — a bay reads as Bay Info, When Damaged, then everything else.
  *
  * On a sheet both folding sections start shut: the crew Mini and the roll
  * bar stay in view, and the bay's rules and its damaged clause wait until the
@@ -76,6 +76,22 @@ describe('a crawler bay on the sheet', () => {
     const damaged = fold('Pilot Bay', 'When Damaged')
     expect(info.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(damaged.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test('Bay Info and When Damaged come before the roll table and the rest (round 10)', () => {
+    render(<CrawlerSheet crawler={crawler} store={store()} />)
+    const damaged = fold('Trading Bay', 'When Damaged')
+    const roll = screen.getByRole('button', { name: 'Roll the die on Trading Bay' })
+    expect(damaged.compareDocumentPosition(roll) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test("the Storage Bay's Scrap Pool and Crawler Hold head at its sections' Mini Size (round 10)", () => {
+    const withStorage: Crawler = { ...crawler, crawlerBays: [{ bayRef: 'storage-bay' }] }
+    render(<CrawlerSheet crawler={withStorage} store={store()} />)
+    for (const title of ['Scrap Pool', 'Crawler Hold']) {
+      const section = screen.getByText(title).closest('.su-slab-section')
+      expect(section?.classList.contains('su-slab-section--mini')).toBe(true)
+    }
   })
 
   test('each fold opens its own section of its own bay, and shuts it again', () => {

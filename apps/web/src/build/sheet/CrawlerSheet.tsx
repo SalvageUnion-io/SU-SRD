@@ -296,11 +296,12 @@ export function CrawlerSheet({
     <Stack gap={16} style={SHRINK}>
       {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
           bucket bay-repair spends), a section of the bay under its Slab, as
-          the Crawler Hold below it is (N5). Per-tech-level `Stat` steppers let
+          the Crawler Hold below it is (N5), both at the Mini Size of the
+          bay's other sections (owner, round 10). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
-        <SlabSection title="Scrap Pool" bodyStyle={POOL_ROW}>
+        <SlabSection title="Scrap Pool" size="mini" bodyStyle={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat
               key={t}

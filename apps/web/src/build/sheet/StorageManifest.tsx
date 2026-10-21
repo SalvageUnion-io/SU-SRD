@@ -260,7 +260,8 @@ export function StorageManifest({
           {holdBody}
         </TitledBox>
       ) : (
-        <SlabSection title="Crawler Hold" id={holdId}>
+        // The Storage Bay's other sections' Mini Size (owner, round 10).
+        <SlabSection title="Crawler Hold" id={holdId} size="mini">
           {holdBody}
         </SlabSection>
       )}
