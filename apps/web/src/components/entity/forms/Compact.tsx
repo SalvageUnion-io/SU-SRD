@@ -61,6 +61,12 @@ type RowSlots = {
    * mount and vitals): plain content and chips, never an entity (N1).
    */
   leading?: ReactNode
+  /**
+   * The units it is linked to, as header-only Minis (`LinkedUnits`), leading
+   * the body: they make the Compact contentful, and a link or select Compact
+   * with them covered, so their links never nest in its own.
+   */
+  linked?: ReactNode
 }
 
 export type RowProps = {
@@ -134,7 +140,7 @@ export function Compact({
     ...(slots.relations ? { relations: slots.relations } : {}),
   }
   const leadText = lead ? model.lead : undefined
-  const hasBody = !!slots.leading || !!leadText
+  const hasBody = !!slots.leading || !!leadText || !!slots.linked
   const affordance =
     mode.kind === 'select' && mode.role === 'toggle' ? (
       // A toggle's control is a real checkbox; the seal still marks the pick.
@@ -189,6 +195,7 @@ export function Compact({
   // card's `CLASS | Engineer`).
   const covered =
     (!!slots.controls && mode.kind !== 'read') ||
+    (!!slots.linked && mode.kind !== 'read') ||
     ((!!slots.extraLabels || !!slots.trailing || !!slots.state || !!slots.relations?.length) &&
       mode.kind === 'link')
 
@@ -235,6 +242,7 @@ export function Compact({
       />
       {hasBody && (
         <CompactBody style={down ? { opacity: 0.6 } : undefined}>
+          {slots.linked}
           {slots.leading}
           {leadText && <Lead text={leadText} />}
         </CompactBody>

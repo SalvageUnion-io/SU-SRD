@@ -26,6 +26,7 @@ import {
 } from 'salvageunion-reference/rules'
 import type { ProvenanceLine, TreeTrack } from '../../components/index'
 import { linesFromBreakdown, trackForTree } from '../../components/index'
+import { resolveClass } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import type { ClassLike } from '../pilot/abilityTrees.model'
@@ -45,12 +46,16 @@ import type { SheetStoreState } from './sheetViewProps.model'
  */
 const GENERIC_TREE = 'Generic'
 
-/** One learned ability, keyed by the slug the pilot record actually stores. */
-export type AbilityEntry = { slug: string; ability: RefAbility }
+/**
+ * One ability, keyed by the slug the pilot record actually stores. `unlearned`
+ * marks one of the class's trees the pilot has not taken: the sheet prints it
+ * greyed, read-only, so the whole tree reads (owner, round 4).
+ */
+export type AbilityEntry = { slug: string; ability: RefAbility; unlearned?: true }
 
 /**
- * One tree the pilot has trained in: its taken Abilities in the tree's own
- * order, and the track the SRD's Tree view draws it on (`trackForTree`);
+ * One tree the pilot's class gives access to: all its Abilities in the tree's
+ * own order, the untaken ones `unlearned`, and the track the SRD's Tree view draws it on (`trackForTree`);
  * none for a tree with no tiers.
  */
 export type AbilityTreeGroup = {
@@ -123,7 +128,11 @@ export type PilotSheetModel = {
   abilityTrees: Set<string> | null
   /** The abilities this pilot owns (its class's trees), in stored order. */
   classAbilities: AbilityEntry[]
-  /** Those abilities by tree, on their tracks: the Abilities section's trees. */
+  /**
+   * Every tree the class gives access to (core, advanced, legendary, a hybrid's
+   * origin trees, any tree already learned from), whole, by tree on their
+   * tracks: the Abilities section's trees, the untaken abilities `unlearned`.
+   */
   classTrees: AbilityTreeGroup[]
   /** The whole Generic tree, from reference data: its own section after them, as Minis. */
   genericAbilities: AbilityEntry[]
@@ -235,13 +244,13 @@ export function usePilotSheetModel({
    */
   const genericAbilities = useMemo(
     () =>
-      readReference(
+      readReference<AbilityEntry[]>(
         'pilotSheetModel.genericAbilities',
         () =>
           SalvageUnionReference.Abilities.all()
             .filter((ability) => ability.tree === GENERIC_TREE)
             .map((ability) => ({ slug: getEntitySlug(ability), ability })),
-        [] as AbilityEntry[]
+        []
       ),
     []
   )
@@ -259,8 +268,37 @@ export function usePilotSheetModel({
     return entries
   }, [pilot.abilities])
 
-  // The trees those abilities come from, each on its track (the SRD's Tree view).
-  const classTrees = useMemo(() => groupAbilityTrees(classAbilities), [classAbilities])
+  // Every tree the class opens, whole, each on its track (the SRD's Tree
+  // view): the taken abilities as stored, the rest of each tree `unlearned`.
+  // Guarded as the Generic tree is: a snapshot without the ORM prints the
+  // taken abilities alone.
+  const classTrees = useMemo(() => {
+    const taken = new Set(classAbilities.map((entry) => entry.ability.id))
+    const unlearned = readReference<AbilityEntry[]>(
+      'pilotSheetModel.classTrees',
+      (): AbilityEntry[] => {
+        // The stored ref is an id, a name or a slug (`resolveClass`).
+        const cls: ClassLike | undefined = resolveClass(pilot.classRef)
+        if (!cls) return []
+        const origin =
+          pilot.originClassRef === undefined ? undefined : resolveClass(pilot.originClassRef)?.name
+        const trees = new Set(
+          treesFor(
+            cls,
+            true,
+            classAbilities.map((entry) => entry.ability.tree),
+            origin
+          )
+        )
+        trees.delete(GENERIC_TREE)
+        return SalvageUnionReference.Abilities.all()
+          .filter((ability) => trees.has(ability.tree) && !taken.has(ability.id))
+          .map((ability) => ({ slug: getEntitySlug(ability), ability, unlearned: true as const }))
+      },
+      [] as AbilityEntry[]
+    )
+    return groupAbilityTrees([...classAbilities, ...unlearned])
+  }, [classAbilities, pilot.classRef, pilot.originClassRef])
 
   /** Slugs that resolved to no SRD ability — rendered as bare fallback rows. */
   const unresolvedAbilities = pilot.abilities.filter(

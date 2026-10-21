@@ -102,6 +102,7 @@ describe('head-only-token (N2)', () => {
       [`${C}/entity/Entity.tsx`]: 'export function Entity() {\n  return <Compact />\n}\n',
       [`${C}/entity/forms/Mini.tsx`]: 'export const Mini = () => <Compact />\n',
       [`${C}/sheet/PilotSheetItems.tsx`]: 'export const Item = () => <Entity size="compact" />\n',
+      [`${CARD}/CardPage.tsx`]: 'export const CardPage = () => <Entity size="compact" />\n',
     }
     expect(found('head-only-token', files)).toEqual([
       `${C}/entity/PeekCard.tsx:1 a Compact inside an entity`,

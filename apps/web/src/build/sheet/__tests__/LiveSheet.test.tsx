@@ -237,7 +237,7 @@ describe('LiveSheet — the chapter band (board 10)', () => {
 })
 
 describe('LiveSheet — the condensed bar’s linked units', () => {
-  test('each other unit is its relation chip, MECH | its name, linking to its sheet (C11)', () => {
+  test('each other unit is its header-only Mini, linking to its sheet, never a chip (round 4)', () => {
     renderShell({
       segments: [
         { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
@@ -249,12 +249,8 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
     })
     const link = bar().getByRole('link', { name: /Iron Jaw/ })
     expect(link.getAttribute('href')).toContain('/sheet/mech/m')
-    expect(link.hasAttribute('data-tag')).toBe(true)
-    expect(link.textContent?.replace(/\s+/g, '')).toBe('MechIronJaw')
-    // A chip, not a Mini beside the strip.
-    expect(
-      document.querySelector('section[aria-label="Sheet controls"] .su-entity-mini')
-    ).toBeNull()
+    expect(link.hasAttribute('data-tag')).toBe(false)
+    expect(link.closest('.su-entity-mini')).not.toBeNull()
     // The sheet being read is not linked from its own bar.
     expect(bar().queryByRole('link', { name: /Mara Vex/ })).toBeNull()
   })

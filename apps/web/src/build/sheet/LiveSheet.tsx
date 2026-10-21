@@ -41,9 +41,8 @@ import {
   EntitySurfaceProvider,
   HomebrewStamp,
   KindLabel,
-  relation,
+  LinkedUnits,
   Stat,
-  Tags,
   tokens,
 } from '../../components/index'
 import type { BandStamp } from './bandStamps.model'
@@ -77,7 +76,7 @@ const BAND_TONE = {
 export type LiveSheetSegment = {
   key: SheetVariant
   label: string
-  /** The unit's own name: its relation chip in the condensed bar. */
+  /** The unit's own name: its Mini in the condensed bar. */
   name: string
   href: string
   /** The segment matching the sheet being viewed — rust fill, no nav. */
@@ -128,6 +127,13 @@ type LiveSheetProps = {
    * shown when it only repeats the name (the Starter Set's Scrapper).
    */
   kindDetail?: BandStamp
+  /**
+   * Where it came from, when not a blank build (owner, round 4: "add a
+   * 'Starter kit' or 'Homebrew' chip to entities sourced from there"): the
+   * Starter Set (`seedRef`) is a STARTER KIT chip, a saved pattern
+   * (`sourcePattern`) the HOMEBREW stamp.
+   */
+  source?: 'starter' | 'homebrew' | undefined
   /**
    * The unit's rank chip (chips-and-actions C2: mark · rank · … · relation):
    * a crawler's `TL | 1`, ahead of what it is built as. The caller draws it,
@@ -310,6 +316,7 @@ export function LiveSheet({
   actions,
   band,
   kindDetail,
+  source,
   rank,
   out,
   userMade,
@@ -403,26 +410,27 @@ export function LiveSheet({
             )}
           </div>
 
-          {/* Each LINKED UNIT as its relation chip (`chips-and-actions.md`
-            C11), `PILOT | Bonesaw`, on the right beside the sheet actions: a
+          {/* Each LINKED UNIT as its header-only Mini, never a chip (owner,
+            round 4: "no linked units should be chips"), on the right beside the sheet actions: a
             hop straight to that pilot / mech / crawler, not a jump link to a
             section at the foot of the page. They ride the condensed state with
-            the name and vitals, at the strip's chip size (C1a): at rest the
+            the name and vitals: at rest the
             linked units are on screen in their own section, so the bar has
             nothing to add.
 
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
           <div style={BAR_END}>
-            {condensed && segments && (
-              <Tags
-                tags={segments
+            {condensed && segments && segments.some((segment) => !segment.active) && (
+              <LinkedUnits
+                linked={segments
                   .filter((segment) => !segment.active)
-                  .map((segment) =>
-                    relation(segment.key, segment.label, segment.name, { href: segment.href })
-                  )}
-                linkable
-                size="compact"
+                  .map((segment) => ({
+                    key: segment.key,
+                    kind: segment.key,
+                    name: segment.name,
+                    href: segment.href,
+                  }))}
               />
             )}
           </div>
@@ -453,9 +461,10 @@ export function LiveSheet({
         }
         aside={
           <>
-            {(stamp || rank || out || userMade) && (
+            {(stamp || rank || out || userMade || source) && (
               <Cluster gap={8}>
-                {userMade && <HomebrewStamp size="full" />}
+                {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
+                {source === 'starter' && <Stat label="Starter Kit" />}
                 {rank}
                 {stamp &&
                   (stamp.entityRef ? (

@@ -102,3 +102,9 @@ select.su-container-select {
 [data-ground='ink'] .su-import-summary {
   color: var(--color-paper);
 }
+
+/* A Game page's column with nothing in it (no proposals yet) draws no cell,
+   so no gap stands for it (owner, round 4: "weird whitespace"). */
+.su-hub-column:empty {
+  display: none;
+}

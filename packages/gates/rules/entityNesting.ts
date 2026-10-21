@@ -35,9 +35,8 @@
  * rule reads that from the code's own guard: an element under `onPage`
  * (`if (onPage)`, `host.onPage ? … :`, `onPage && …`), past an early
  * `if (nestsMinis(host)) return …`, or on a card with `presentation="page"`
- * is level 1. A dialog is level 0 again: whatever sits in a `*.Portal`, or
- * in a component that portals its children (`ModalShell`), is not inside the
- * entity that opened it.
+ * is level 1, and so is all of `CardPage.tsx`, the Page's body (`PAGE_BODY`).
+ * A dialog (in a `*.Portal`, `ModalShell`) is level 0 again.
  *
  * ## What it does not see
  *
@@ -80,6 +79,7 @@ const ENTITY_DIRS = [`${COMPONENTS}/referenceEntity/`, `${COMPONENTS}/entity/`] 
 const FORM_LAYER = [`${COMPONENTS}/entity/forms/`, `${COMPONENTS}/entity/Entity.tsx`] as const
 /** The card adapter: its head extent is the head-only form. */
 export const ADAPTER = `${COMPONENTS}/referenceEntity/card/ReferenceEntityCard.tsx`
+const PAGE_BODY = `${COMPONENTS}/referenceEntity/card/CardPage.tsx`
 /** The nested-group module: where a card decides how its children draw. */
 export const NESTED_GROUPS = `${COMPONENTS}/referenceEntity/card/NestedCards.tsx`
 
@@ -438,7 +438,7 @@ function scanHeadOnly(c: Corpus, known: TitledComponents): Finding[] {
   const rowHeads = adapterDrawsCompact(c)
   for (const file of c.files) {
     if (isExempt(EXEMPTIONS, file.rel, 'head-only-token')) continue
-    const nested = inEntityDirs(file.rel) && !inFormLayer(file.rel)
+    const nested = inEntityDirs(file.rel) && !inFormLayer(file.rel) && file.rel !== PAGE_BODY
     walk(file.program, (node, ancestors) => {
       const line = () => file.lineOf(node.start)
       if (node.type === 'JSXElement') {

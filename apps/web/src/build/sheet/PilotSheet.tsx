@@ -10,11 +10,12 @@
  *     tree the pilot trained in, its taken Abilities as Compacts on the SRD's
  *     track, open; then the Generic tree as Minis, folded; each with Spend AP
  *     (fixed costs only) and a used/recharge toggle on its line in Edit;
- *   - ability-granted Partners, then Assigned Units, the last region;
+ *   - ability-granted Partners;
  *   - and in the permanent right sidebar (`SheetColumns`, ruleset §1.2),
  *     what the pilot carries: Inventory, each piece of equipment a contentful
  *     Mini (its head, then its text), a generic entry its Mini, the slots'
- *     SlotGrid under them; in Edit each item's controls in its chip group.
+ *     SlotGrid under them; in Edit each item's controls in its chip group;
+ *     then Assigned Units, the mech and crawler they field (round 4).
  * Read leaves an empty section out (ruleset §1.2).
  *
  * Read | Edit (`sheetMode.model.ts`) reaches here as `readOnly`: Read withdraws every
@@ -58,6 +59,7 @@ import { useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
+import { Entity } from '../../components/entity/Entity'
 import {
   Button,
   Conditions,
@@ -72,6 +74,7 @@ import {
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
+import { resolveClass } from '../../lib/classRef'
 import { classArt } from '../../lib/photos/defaultArt'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
@@ -89,11 +92,11 @@ import { SheetPickerModal } from './SheetSection'
 import { SheetVitalGauge } from './SheetVitalGauge'
 
 // ---------------------------------------------------------------------------
-// TpBlock — pilot Training Points, in the Vitals card's dashed-topped `.vrow`
-// beside Conditions.
+// TpBlock — pilot Training Points, straight under the AP gauge.
 //
-// A label-first chip (`TRAINING POINTS | 3`) with the +/- steppers while the
-// sheet writes it, as every stat reads.
+// A counter, not a gauge (ruleset §2.1: no cap, no track): the label-first
+// chip (`TRAINING POINTS | 3`), with the +/- steppers while the sheet writes
+// it, as every stat reads.
 // ---------------------------------------------------------------------------
 
 function TpBlock({
@@ -115,19 +118,6 @@ function TpBlock({
   )
 }
 
-/**
- * TP in the read state (board 10): a counter, not a gauge (ruleset §2.1: no
- * cap, no track), so the label-first `TRAINING POINTS | 2` chip. No stepper;
- * Edit gives the stepper box back (`TpBlock`).
- */
-function TpReadRow({ value }: { value: number }) {
-  return (
-    <div>
-      <Stat label="Training Points" value={value} />
-    </div>
-  )
-}
-
 /** The inventory's slots under its pills: the SlotGrid, set to the left. */
 const SLOTS = { display: 'flex', marginTop: tokens.space[8] } satisfies CSSProperties
 
@@ -144,15 +134,13 @@ const MIN_W_0 = { minWidth: 0 } satisfies CSSProperties
 /** The Conditions label's place over the chip row. */
 const CONDITIONS_LABEL = { display: 'block', marginBottom: tokens.space[8] } satisfies CSSProperties
 
-const TP_AND_CONDITIONS = {
-  alignItems: 'flex-start',
+/** TP under the AP gauge: the vitals' own row, no rule between them. */
+const TP_ROW = {
+  borderTopWidth: 0,
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-  minWidth: 0,
+  marginTop: tokens.space[8],
+  paddingTop: 0,
 } satisfies CSSProperties
-
-const CONDITIONS_CELL = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties // wraps under TP
 
 const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
 
@@ -175,9 +163,10 @@ type PilotSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Assigned Units rail content (mech + crawler rail row/RailEmpty), built
-   * by SheetPilot from `composition` — PilotSheet has no composition access
-   * of its own, so this is passed straight through into the R3 section.
+   * The Assigned Units section (mech + crawler), built by SheetPilot from
+   * `composition` — PilotSheet has no composition access of its own, so this
+   * is passed straight through, into the sidebar under Inventory. Undefined
+   * when Read has nothing linked.
    */
   linkedUnits?: ReactNode
 }
@@ -205,6 +194,7 @@ export function PilotSheet({
   })
 
   const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
+  const pilotClass = resolveClass(pilot.classRef)
   const empty = pilot.equipment.length === 0 && model.genericInventory.length === 0
 
   return (
@@ -288,41 +278,52 @@ export function PilotSheet({
                   }
                   readOnly={readOnly}
                 />
-                {readOnly ? (
-                  <>
-                    <TpReadRow value={tp} />
-                    {/* Read leaves an empty field out: Conditions prints only
+                {/* TP stands right under AP, in the same row of the vitals
+                    (owner, round 4: "should be closer to the other stats"). */}
+                <div style={TP_ROW}>
+                  <TpBlock
+                    value={tp}
+                    onChange={
+                      readOnly ? undefined : (v) => actions.patchPilot({ trainingPoints: v })
+                    }
+                    editable={!readOnly}
+                  />
+                </div>
+                {/* Read leaves an empty field out: Conditions prints only
                     when there is one to read. */}
-                    {pilot.conditions.length > 0 && (
-                      <div style={MIN_W_0}>
-                        <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
-                          Conditions
-                        </Eyebrow>
-                        <Conditions conditions={[...pilot.conditions]} />
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  // TP and Conditions SHARE a row: TP is a single narrow plate and
-                  // Conditions a short chip list, so neither needs a row of its own.
-                  <div style={TP_AND_CONDITIONS}>
-                    <TpBlock
-                      value={tp}
-                      onChange={(v) => actions.patchPilot({ trainingPoints: v })}
-                      editable
-                    />
-                    <div style={CONDITIONS_CELL}>
+                {readOnly ? (
+                  pilot.conditions.length > 0 && (
+                    <div style={MIN_W_0}>
                       <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
                         Conditions
                       </Eyebrow>
-                      <ChipListEditor
-                        items={pilot.conditions}
-                        onChange={actions.handleConditionsChange}
-                        noun="condition"
-                        draftWidth={CONDITION_DRAFT}
-                        unique
-                      />
+                      <Conditions conditions={[...pilot.conditions]} />
                     </div>
+                  )
+                ) : (
+                  <div style={MIN_W_0}>
+                    <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
+                      Conditions
+                    </Eyebrow>
+                    <ChipListEditor
+                      items={pilot.conditions}
+                      onChange={actions.handleConditionsChange}
+                      noun="condition"
+                      draftWidth={CONDITION_DRAFT}
+                      unique
+                    />
+                  </div>
+                )}
+                {/* The class, its header-only Mini under the stats, linking to
+                    its Page (owner, round 4: "add a cutout like 'class'"). */}
+                {pilotClass && (
+                  <div style={MIN_W_0}>
+                    <Entity
+                      size="mini"
+                      context="browse"
+                      entity={pilotClass}
+                      mode={{ kind: 'link' }}
+                    />
                   </div>
                 )}
               </>
@@ -332,98 +333,108 @@ export function PilotSheet({
         // ===== Inventory, the sidebar (ruleset §1.2) ===== None in Read
         // when nothing is carried: an empty section is left out, as an empty
         // field is.
+        // Assigned Units follow it there (owner, round 4: "move assigned
+        // units to the sidebar"): what the pilot carries, then what they field.
         aside={
-          readOnly && empty ? undefined : (
-            <SlabSection
-              title="Inventory"
-              count={{
-                label: 'Slots',
-                value: model.slotsUsed,
-                max: model.slotsCap,
-                state: model.overCapacity ? 'critical' : undefined,
-              }}
-              actions={
-                readOnly ? undefined : (
-                  <Button size="compact" onClick={() => setPicker('equipment')}>
-                    Manage Equipment
-                  </Button>
-                )
-              }
-            >
-              {empty ? (
-                <EmptyState variant="quiet" body="Nothing carried." />
-              ) : (
-                // One item a line, in Read and Edit alike: each piece of
-                // equipment a contentful Mini (its head, then its text), a
-                // generic entry its Mini; in Edit their controls ride the
-                // chip group (`SheetItemLine`), as a mech's Systems do.
-                <ul
-                  aria-label={`${pilot.name}'s equipment`}
-                  data-sheet-carried=""
-                  className={
-                    readOnly ? 'su-entity-mini-list' : 'su-entity-mini-list su-sheet-items'
+          readOnly && empty && !linkedUnits ? undefined : (
+            <>
+              {!(readOnly && empty) && (
+                <SlabSection
+                  title="Inventory"
+                  count={{
+                    label: 'Slots',
+                    value: model.slotsUsed,
+                    max: model.slotsCap,
+                    state: model.overCapacity ? 'critical' : undefined,
+                  }}
+                  actions={
+                    readOnly ? undefined : (
+                      <Button size="compact" onClick={() => setPicker('equipment')}>
+                        Manage Equipment
+                      </Button>
+                    )
                   }
                 >
-                  {model.ordinaryEquipment.map((slug) => (
-                    <li key={slug}>
-                      <PilotEquipmentItem
-                        slug={slug}
-                        pilotId={pilot.id}
-                        seedSelections={pilot.equipmentChoices?.[slug]}
-                        condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                        usesLeft={pilot.equipmentUses?.[slug]}
-                        onConditionChange={(itemSlug, next) => {
-                          void actions.handleEquipmentConditionChange(itemSlug, next)
-                        }}
-                        onUsesChange={(itemSlug, next) => {
-                          void actions.handleUsesChange(itemSlug, next)
-                        }}
-                        onRemove={readOnly ? undefined : () => actions.toggleEquipment(slug)}
-                        readOnly={readOnly}
-                        scalingParent={model.scalingParent}
-                        store={store}
+                  {empty ? (
+                    <EmptyState variant="quiet" body="Nothing carried." />
+                  ) : (
+                    // One item a line, in Read and Edit alike: each piece of
+                    // equipment a contentful Mini (its head, then its text), a
+                    // generic entry its Mini; in Edit their controls ride the
+                    // chip group (`SheetItemLine`), as a mech's Systems do.
+                    <ul
+                      aria-label={`${pilot.name}'s equipment`}
+                      data-sheet-carried=""
+                      className={
+                        readOnly ? 'su-entity-mini-list' : 'su-entity-mini-list su-sheet-items'
+                      }
+                    >
+                      {model.ordinaryEquipment.map((slug) => (
+                        <li key={slug}>
+                          <PilotEquipmentItem
+                            slug={slug}
+                            pilotId={pilot.id}
+                            seedSelections={pilot.equipmentChoices?.[slug]}
+                            condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
+                            usesLeft={pilot.equipmentUses?.[slug]}
+                            onConditionChange={(itemSlug, next) => {
+                              void actions.handleEquipmentConditionChange(itemSlug, next)
+                            }}
+                            onUsesChange={(itemSlug, next) => {
+                              void actions.handleUsesChange(itemSlug, next)
+                            }}
+                            onRemove={readOnly ? undefined : () => actions.toggleEquipment(slug)}
+                            readOnly={readOnly}
+                            scalingParent={model.scalingParent}
+                            store={store}
+                          />
+                        </li>
+                      ))}
+                      {model.genericInventory.map((entry, index) => (
+                        <li key={entry.id}>
+                          <GenericEntryLine
+                            entry={entry}
+                            readOnly={readOnly}
+                            onRemove={
+                              readOnly
+                                ? undefined
+                                : () => {
+                                    void actions.handleGenericInventoryChange(
+                                      model.genericInventory.filter((_, i) => i !== index)
+                                    )
+                                  }
+                            }
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {!empty && (
+                    <div style={SLOTS}>
+                      <SlotGrid
+                        used={model.slotsUsed}
+                        cap={model.slotsCap}
+                        label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled${model.overCapacity ? ' — over capacity' : ''}`}
+                        readOnly
                       />
-                    </li>
-                  ))}
-                  {model.genericInventory.map((entry, index) => (
-                    <li key={entry.id}>
-                      <GenericEntryLine
-                        entry={entry}
-                        readOnly={readOnly}
-                        onRemove={
-                          readOnly
-                            ? undefined
-                            : () => {
-                                void actions.handleGenericInventoryChange(
-                                  model.genericInventory.filter((_, i) => i !== index)
-                                )
-                              }
-                        }
+                    </div>
+                  )}
+                  {!readOnly && (
+                    <div style={ADDER_ROW}>
+                      <GenericEntryAdder
+                        onAdd={(entry) => {
+                          void actions.handleGenericInventoryChange([
+                            ...model.genericInventory,
+                            entry,
+                          ])
+                        }}
                       />
-                    </li>
-                  ))}
-                </ul>
+                    </div>
+                  )}
+                </SlabSection>
               )}
-              {!empty && (
-                <div style={SLOTS}>
-                  <SlotGrid
-                    used={model.slotsUsed}
-                    cap={model.slotsCap}
-                    label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled${model.overCapacity ? ' — over capacity' : ''}`}
-                    readOnly
-                  />
-                </div>
-              )}
-              {!readOnly && (
-                <div style={ADDER_ROW}>
-                  <GenericEntryAdder
-                    onAdd={(entry) => {
-                      void actions.handleGenericInventoryChange([...model.genericInventory, entry])
-                    }}
-                  />
-                </div>
-              )}
-            </SlabSection>
+              {linkedUnits}
+            </>
           )
         }
       >
@@ -468,10 +479,6 @@ export function PilotSheet({
             </Stack>
           </SlabSection>
         )}
-
-        {/* ===== Assigned Units — the assigned mech and the home crawler: the
-          last region, as on every sheet (`AssignedUnits`, built by SheetPilot) ===== */}
-        {linkedUnits}
       </SheetColumns>
 
       {/* The ONE shared picker modal — abilities & equipment '+ Add' both open

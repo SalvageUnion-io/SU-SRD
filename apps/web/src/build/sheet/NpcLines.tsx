@@ -4,9 +4,9 @@
  * (`CrewLeadMini`, N3: a bay's crew lead and a crawler type's special NPC).
  * Each crew lead has a name, keepsake, motto, detail, facts and 4 HP.
  *
- * In Read each is a row, its small caps label then its value, as Detail's
- * prose (owner, 2026-10-20: NPC details are rows, never `[label | value]`
- * chips); Facts' value is the one chip well (`ChipListEditor`). In Edit each
+ * In Read each is its small caps label over its value, as Detail's prose
+ * (owner, 2026-10-20: NPC details are rows, never `[label | value]` chips;
+ * round 4: the label above, not to the left); Facts' value is the one chip well (`ChipListEditor`). In Edit each
  * one to write is a `Field` in its edit state (its label over the value box
  * a press opens, or over Facts' chip well). HP is never here: a crew lead's
  * is in its Mini's head (`CrewLeadMini`), a built NPC's in its sheet's
@@ -26,10 +26,12 @@ import { Field, tokens } from '../../components/index'
 import { ChipListEditor } from './ChipListEditor'
 import { FACT_DRAFT } from './chipWell.model'
 
+/** Its label over its value (owner, round 4: "Put the label above, not to the left"). */
 const ROW = {
-  alignItems: 'baseline',
   display: 'flex',
-  gap: tokens.space[6],
+  flexDirection: 'column',
+  gap: tokens.space[2],
+  minWidth: 0,
 } satisfies CSSProperties
 
 const ROW_LABEL = {

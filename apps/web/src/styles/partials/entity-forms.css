@@ -112,9 +112,10 @@
   min-width: 0;
 }
 
-/* The title: it wraps at spaces, never clipped (a name is never cut to "…").
-   Beside its labels it gives way first (a high shrink), but keeps its longest
-   word whole. */
+/* The title: one line, and short of room it ends in "…" rather than wrap
+   (owner, round 4: "should ... the name instead of [wrap] for compact/mini
+   entities. rule."; ruleset §4.7). Beside its labels it gives way first (a
+   high shrink); its chips are never cut (R3). The whole name is the Peek's. */
 .su-entity-compact__title {
   display: block;
   flex: 0 100 auto;
@@ -122,8 +123,19 @@
   font-weight: var(--font-weight-extrabold);
   line-height: 1.05;
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The Peek shows the whole name (owner, round 4: "ellipses off and show in a
+   peek"): there it wraps at spaces, keeping its longest word whole. */
+[data-peek-popup] .su-entity-compact__title {
   min-width: min-content;
+  overflow: visible;
   overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* An ability's tier numeral, at the left, on the band: the title's face in
@@ -219,8 +231,12 @@
   display: flex;
   flex: 0 100 auto;
   margin-left: calc(-1 * var(--space-2));
-  min-width: min-content;
+  min-width: 0;
   padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
+[data-peek-popup] .su-entity-compact__notch {
+  min-width: min-content;
 }
 
 /* Taller than its head (a grid sets the height), a bodyless Compact's band fills
@@ -335,6 +351,12 @@
   max-width: 100%;
   min-width: min-content;
   order: calc(3 * var(--su-beside, var(--su-beside-unfitted)) + 1);
+}
+
+/* A Compact's and a catalog tile's name ends in "…" rather than wrap (owner,
+   round 4), so it may narrow past its words to the room its chips leave. */
+[data-chip-fill] > [data-fill-name]:is(.su-entity-compact__name, .su-entity-index__notch) {
+  min-width: 0;
 }
 
 /* Every item `chipFill.ts` measured (a chip, a label, a band's control), at
@@ -848,6 +870,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-entity-index__notch {
   align-self: flex-start;
   background-color: var(--color-paper);
+  min-width: 0;
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
@@ -1430,4 +1453,26 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   [data-fill-out][data-fill-out][data-fill-out],
 .su-chip-more[hidden][hidden][hidden][hidden] {
   display: none;
+}
+
+/* An entity's linked units (`LinkedUnits`): header-only Minis in a wrapping
+   row leading its body, raised above a covered Compact's surface so each
+   opens its own sheet. */
+.su-entity-linked {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.su-entity-compact[data-covered] .su-entity-linked {
+  position: relative;
+  z-index: 1;
+}
+
+/* A crawler tech level's block reads a size up from a Compact's, the Page's
+   own (owner, round 4: "Bump up the size of the main content by one"): its
+   name at the Full title size (`CrawlerTechLevelPage`). */
+.su-tech-level__block .su-entity-compact__title {
+  font-size: var(--text-display-lg);
 }

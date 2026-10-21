@@ -1,7 +1,10 @@
 /**
  * TheGame — "The Game" on a Game's own page (board M2;
- * docs/architecture/play.md §16): who mediates, who organises,
- * and, for the Organizer, **Hand over** and **Delete this Game**: a chip and
+ * docs/architecture/play.md §16): its people, each a social card (owner,
+ * round 4: "social cards, compact contentful, for each user"): a contentful
+ * Compact in Discord's colour, their Discord picture and name, chips for
+ * their roles, and the pilots and mechs they hold in this Game as header-only
+ * Minis linking to them. And, for the Organizer, **Hand over** and **Delete this Game**: a chip and
  * the ⋯ menu on the section's head, as every contextual action is.
  *
  * Appointing the Mediator is the Organizer's (`games.setMediator`,
@@ -20,9 +23,11 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import type { EntityFormModel, LinkedUnit } from '../../components/index'
 import {
   Button,
   ConfirmDialog,
+  Entity,
   Field,
   HeaderMenu,
   Select,
@@ -32,16 +37,33 @@ import {
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { ownableRows, rosterSheetHref } from '../../lib/games/gameRoster'
 import { HUB_BODY } from './hubStyles.model'
 
 const { space } = tokens
 
-/** Who mediates and who organises, a line each. */
+/** The members' cards, one a line. */
 const LINES = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[8],
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
 } satisfies CSSProperties
+
+/** A member as an entity: their Discord name and picture, in Discord's colour. */
+function memberModel(name: string, avatarUrl: string | undefined): EntityFormModel {
+  return {
+    ref: { schemaName: 'classes', id: `member/${name}`, slug: name, name, synthetic: true },
+    title: name,
+    kind: { stamp: 'Member', type: 'Member', domain: 'pilot', nature: 'have' },
+    tone: 'discord',
+    facts: [],
+    traits: [],
+    art: avatarUrl ? { kind: 'image', url: avatarUrl } : { kind: 'none' },
+  }
+}
 
 export function TheGame({
   gameId,
@@ -57,6 +79,7 @@ export function TheGame({
 }) {
   const id = useId()
   const members = useQuery(api.games.members, { gameId })
+  const listing = useQuery(api.entities.listForGame, { gameId })
   const setMediator = useMutation(api.games.setMediator)
   const { canWrite } = useConnection()
   const [handing, setHanding] = useState(false)
@@ -65,9 +88,26 @@ export function TheGame({
   const name = (m: { userId: string; displayName: string }) =>
     m.userId === viewerId ? `${m.displayName} (you)` : m.displayName
   const mediators = members?.filter((m) => m.mediator) ?? []
-  const organizers = members?.filter((m) => m.organizer) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
+
+  // What each member holds here, by their id: their pilots, then their mechs.
+  const held = new Map<string, LinkedUnit[]>()
+  for (const kind of ['pilot', 'mech'] as const) {
+    const rows = ownableRows({
+      kind,
+      rows: (kind === 'pilot' ? listing?.pilots : listing?.mechs) ?? [],
+      viewerId,
+      members: members ?? [],
+      localIds: new Set(),
+    })
+    for (const row of rows) {
+      if (row.ownerId === null) continue
+      const list = held.get(row.ownerId) ?? []
+      list.push({ key: row.serverId, kind, name: row.name, href: rosterSheetHref(row) })
+      held.set(row.ownerId, list)
+    }
+  }
 
   return (
     <SlabSection
@@ -108,21 +148,28 @@ export function TheGame({
         ) : undefined
       }
     >
-      {/* Each a Stat with a text value (ruleset §3.7, §6.2). */}
-      <div style={LINES}>
-        <Stat
-          label="Mediator"
-          value={mediators.length === 0 ? 'Nobody yet' : mediators.map(name).join(', ')}
-          size="compact"
-          wrap
-        />
-        <Stat
-          label="Organiser"
-          value={organizers.map(name).join(', ') || '—'}
-          size="compact"
-          wrap
-        />
-      </div>
+      {appointing && <Stat label="Mediator" value="Nobody yet" size="compact" wrap />}
+      <ul aria-label="Members" style={LINES}>
+        {members?.map((m) => (
+          <li key={m.userId}>
+            <Entity
+              size="compact"
+              context="roster"
+              model={memberModel(name(m), m.avatarUrl)}
+              omit={['kind']}
+              labels={
+                m.mediator || m.organizer ? (
+                  <>
+                    {m.mediator && <Stat label="Mediator" size="compact" />}
+                    {m.organizer && <Stat label="Organiser" size="compact" />}
+                  </>
+                ) : undefined
+              }
+              {...(held.get(m.userId)?.length ? { linked: held.get(m.userId) } : {})}
+            />
+          </li>
+        ))}
+      </ul>
       <ConfirmDialog
         open={handing}
         onOpenChange={setHanding}

@@ -3,7 +3,11 @@ import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../lib/dice'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
-import { digestColumnsTable, digestRollTable } from '../../compositions/digestRollTable'
+import {
+  digestColumnsTable,
+  digestRollTable,
+  withNothingHappens,
+} from '../../compositions/digestRollTable'
 import { RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
@@ -44,7 +48,7 @@ function TraitText({ text }: { text: string }) {
  * roll in its strip, so the rows never open in the card.
  */
 export function CardRollTable({
-  table,
+  table: bookTable,
   name,
   size,
   disabled,
@@ -71,6 +75,8 @@ export function CardRollTable({
   /** Nested: the table's Peek address (`tablePeekAddress`); none, and its name only reads. */
   peekAt?: string
 }) {
+  // A "20"-only table reads with its "1–19: Nothing happens." row (owner, round 4).
+  const table = withNothingHappens(bookTable)
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
     defaultRoll != null && !isColumns

@@ -51,20 +51,20 @@
   -webkit-touch-callout: none;
 }
 
-/* The flowing entity page's art (see `.su-entity-page--flow`), after the
+/* The art column of an entity page with art (`.su-entity-page--art`), after the
    hero's own rules: capped so a tall portrait does not hold the wide blocks
    (a class's ability tree) far down the page. */
 @media (width >= 64rem) {
-  .su-entity-page--flow .su-entity-hero {
+  .su-entity-page--art .su-entity-hero {
     --su-hero-max-h: 32rem;
   }
 
-  /* Cropped art floats at its own width (up to the 42% column), so the text
+  /* Cropped art takes its own width (up to the 42% column), so the column
      beside it starts where the art ends. */
-  .su-entity-page--flow
+  .su-entity-page--art
     > .su-entity-page__main--art
     > .su-entity-page__art:has(.su-entity-hero--crop) {
+    flex: 0 1 auto;
     max-width: 42%;
-    width: auto;
   }
 }

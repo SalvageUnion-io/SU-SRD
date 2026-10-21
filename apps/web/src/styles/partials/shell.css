@@ -765,13 +765,18 @@
     justify-content: flex-end;
   }
 
+  /* The break after the controls: the title starts the bottom line, its
+     cut-out its own width there (owner, round 4: "cutout seems a bit
+     wide"). */
   .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill]::after {
-    display: none;
+    flex: 0 0 100%;
+    height: 0;
+    order: 1;
   }
 
   .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
-    flex: 1 1 100%;
-    margin-inline-end: 0;
+    flex: 0 1 auto;
+    margin-inline-end: auto;
     order: 2;
   }
 
@@ -816,6 +821,15 @@
     .su-chapter-band__row[data-chip-fill]
     > .su-chapter-band__aside
     > .su-btn:only-child {
+    width: 100%;
+  }
+
+  /* A select there is the line's width too, as the buttons over it are
+     (owner, round 4: "Select should be full width"). */
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    > select {
     width: 100%;
   }
 

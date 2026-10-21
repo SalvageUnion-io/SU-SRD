@@ -41,15 +41,21 @@ describe('When Damaged', () => {
     expect(slab.nextElementSibling?.textContent).toContain(effect)
   })
 
-  test('a bay reads Bay Info, then its crew, then When Damaged, open on the reference', () => {
+  test('a bay reads Bay Info, then its crew, then When Damaged, never folded on the reference', () => {
     const { bay } = cantina()
     for (const presentation of ['page', undefined] as const) {
-      const { unmount } = render(<ReferenceEntityCard data={bay} presentation={presentation} />)
-      const info = screen.getByRole('button', { name: 'Collapse Cantina Bay Info' })
-      const damaged = screen.getByRole('button', { name: 'Collapse Cantina When Damaged' })
-      const crew = screen.getByText(bay.npc?.position ?? '')
-      expect(info.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-      expect(crew.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      const { unmount, container } = render(
+        <ReferenceEntityCard data={bay} presentation={presentation} />
+      )
+      // Nothing folds on the reference (owner, round 4): no Collapse control.
+      expect(screen.queryByRole('button', { name: /^Collapse Cantina/ })).toBeNull()
+      const text = container.textContent ?? ''
+      const info = text.indexOf('Bay Info')
+      const crew = text.indexOf(bay.npc?.position ?? '')
+      const damaged = text.indexOf('When Damaged')
+      expect(info).toBeGreaterThanOrEqual(0)
+      expect(crew).toBeGreaterThan(info)
+      expect(damaged).toBeGreaterThan(crew)
       unmount()
     }
   })

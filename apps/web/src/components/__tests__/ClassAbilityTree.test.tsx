@@ -197,9 +197,9 @@ describe('ClassAbilityTree advancement paths', () => {
     expect(link?.firstElementChild?.classList.contains('su-entity-compact__head')).toBe(true)
   })
 
-  test('the Core trees run in one column; the class’s own path leads the Hybrid Classes', () => {
+  test('the Core trees run two across; the class’s own path leads the Hybrid Classes', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const core = document.querySelector('.su-ability-tree__row--stack')
+    const core = document.querySelector('.su-class-path__trees--pair')
     expect(core?.querySelectorAll(':scope > .su-ability-tree__group').length).toBeGreaterThan(1)
     expect(core?.querySelector('.su-class-path')).toBeNull()
     const kinds = [...document.querySelectorAll('.su-class-paths > .su-class-path')].map((path) =>

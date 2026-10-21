@@ -262,21 +262,15 @@ export function CrawlerSheet({
         <EmptyState variant="quiet" body="No weapons mounted." />
       )
     ) : (
-      // Contentful Minis in a masonry grid across the bay, each Peeking its
-      // whole card (owner's call, 2026-10-20).
+      // Header-only Minis across the bay, each Peeking its whole card (owner,
+      // round 4: "Armament bay can be a header only mini").
       <MiniGrid label="Weapons mounted">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
             <li key={slug}>
               {system ? (
-                <Entity
-                  size="mini"
-                  context="loadout"
-                  entity={system}
-                  mode={{ kind: 'link' }}
-                  body={{}}
-                />
+                <Entity size="mini" context="loadout" entity={system} mode={{ kind: 'link' }} />
               ) : (
                 <UnknownItemLine
                   slug={slug}

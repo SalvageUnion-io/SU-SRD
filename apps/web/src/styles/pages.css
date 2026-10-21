@@ -160,23 +160,27 @@ a.su-home__discord:hover {
   flex-direction: column;
 }
 
-/* A show page's body: a short page's content centred in the height under
-   its band, on a phone and a desktop alike (owner, 2026-10-20, Melee
-   Armament: "vertically center text like this on pages"), the band's
-   overflow row (its first row) moving with it. A long one fills the height,
-   so the centring leaves it where it was. */
+/* A show page's body: a short page's content spread evenly down the height
+   under its band, on a phone and a desktop alike (owner, 2026-10-20, Melee
+   Armament: "vertically center text like this on pages"; round 4, Meld
+   Drone: "space evenly the content rather than just centering it"). The
+   band's overflow row (its first row) stays under the band (round 4: "chips
+   stay near header, not centered"). A long one fills the height, so the
+   spacing leaves it where it was. */
 .su-entity__body {
   display: flex;
   flex-direction: column;
-  margin-block: auto;
+  flex-grow: 1;
+  justify-content: space-evenly;
 }
 
-.su-entity > .su-chapter-band__overflow:not([hidden]) {
-  margin-top: auto;
+.su-entity__body > .su-entity-page {
+  flex-grow: 1;
+  justify-content: space-evenly;
 }
 
-.su-entity > .su-chapter-band__overflow:not([hidden]) + .su-entity__body {
-  margin-top: 0;
+.su-entity__body .su-entity-page__wide:empty {
+  display: none;
 }
 
 /*
@@ -832,12 +836,6 @@ a.su-home__discord:hover {
   }
 }
 
-/* A Core class's Core trees, one column the page's width. */
-.su-ability-tree__row--stack {
-  flex-direction: column;
-  flex-wrap: nowrap;
-}
-
 /*
  * The training brief (Workshop Manual p.23, "Gaining Abilities"): a dashed
  * slab with the ability limit at its end, then tier cards, each band in its
@@ -894,11 +892,11 @@ a.su-home__discord:hover {
 }
 
 @media (width >= 64rem) {
-  .su-entity-page--flow:has(.su-class-brief) > .su-entity-page__wide {
+  .su-entity-page--art:has(.su-class-brief) > .su-entity-page__wide {
     clear: none;
   }
 
-  .su-entity-page--flow:has(.su-class-brief) > .su-entity-page__wide:empty {
+  .su-entity-page--art:has(.su-class-brief) > .su-entity-page__wide:empty {
     display: none;
   }
 
@@ -999,6 +997,13 @@ a.su-home__discord:hover {
    it and every tree ends on one line. */
 .su-class-path__trees {
   container-type: inline-size;
+}
+
+/* A class's Core trees: two across, never more (owner, round 4). */
+@media (width >= 40rem) {
+  .su-class-path__trees--pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @container (width >= 40rem) {
@@ -1137,7 +1142,7 @@ a.su-home__discord:hover {
 
 .su-tech-level__line {
   border-top: var(--bw-hairline) solid var(--color-ink-15);
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   line-height: 1.4;
   margin: 0;
   padding: var(--space-12) 0;

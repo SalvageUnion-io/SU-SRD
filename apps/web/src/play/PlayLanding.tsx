@@ -176,11 +176,26 @@ function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
               <UnitRow
                 kind="pilot"
                 name={pilot.name}
-                labels={
-                  <Badge shape="stamp" size="compact" surface="inverse">
-                    {pilot.mechName ?? 'No Mech'}
-                  </Badge>
-                }
+                // Its mech, the header-only Mini of a linked unit, never a
+                // chip (owner, round 4); with none, the stamp says so.
+                {...(pilot.mechName === null
+                  ? {
+                      labels: (
+                        <Badge shape="stamp" size="compact" surface="inverse">
+                          No Mech
+                        </Badge>
+                      ),
+                    }
+                  : {
+                      linked: [
+                        {
+                          key: 'mech',
+                          kind: 'mech' as const,
+                          name: pilot.mechName,
+                          ...(pilot.mechId ? { href: `/sheet/mech/${pilot.mechId}` } : {}),
+                        },
+                      ],
+                    })}
                 controls={
                   <Button
                     href={`/play/${pilot.pilotId}`}
@@ -273,7 +288,9 @@ function PlayGameItem({
         ))}
         trailing={
           door ? (
-            <Button href={door.href} aria-label={door.ariaLabel} variant="primary" size="mini">
+            // Ink on the Game's pink, as its stamps are (owner, round 4:
+            // "'Mediate' color looks odd against pink"), a chip's height.
+            <Button href={door.href} aria-label={door.ariaLabel} variant="ink" size="mini">
               {door.label}
             </Button>
           ) : undefined

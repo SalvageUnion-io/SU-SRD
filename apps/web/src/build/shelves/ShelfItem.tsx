@@ -23,6 +23,7 @@ import type { HeaderMenuItem } from '../../components/index'
 import { HeaderMenu, relation, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
 import type { ShelfChip, ShelfReading, ShelfRelation } from '../../lib/shelves/shelfItems'
+import { splitRelations } from '../../lib/shelves/shelfItems'
 import type { UnitKind } from '../../lib/units/unitModel'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
@@ -44,7 +45,7 @@ type ShelfItemProps = {
   href?: string
   userMade?: boolean
   chips: ShelfChip[]
-  /** The units linked to it, as relation chips after its readings (C11). */
+  /** What it is linked to: its units as Minis leading its body, its Game a relation chip (C11). */
   relations?: ShelfRelation[]
   /** The "⋯" menu's rows, grouped; empty renders no menu. */
   menu: HeaderMenuItem[][]
@@ -62,6 +63,8 @@ export function ShelfItem({
   menu,
 }: ShelfItemProps) {
   const hasMenu = menu.some((section) => section.length > 0)
+  // Its linked units are Minis in its body, its Game a relation chip.
+  const { linked, chips: unitChips } = splitRelations(relations)
   const factLabel = FACT_LABEL[kind]
   const fact = note && factLabel ? { label: factLabel, value: note } : undefined
   return (
@@ -74,7 +77,8 @@ export function ShelfItem({
         // A line with nowhere to open is not a link.
         mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
         userMade={userMade}
-        relations={relations.map((r) => relation(r.key, r.label, r.value, { href: r.href }))}
+        relations={unitChips.map((r) => relation(r.key, r.label, r.value, { href: r.href }))}
+        linked={linked}
         labels={
           chips.length > 0
             ? chips.map((chip) => (

@@ -212,7 +212,6 @@ function ReferenceEntityCardInner({
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as RefEnumSchemaName | 'actions' | undefined
-
   if (!schemaName) {
     console.warn('ReferenceEntityCard: data does not have a schemaName property', data)
     return null
@@ -495,7 +494,7 @@ function ReferenceEntityCardInner({
     onSelectionChange,
     afterExtraContent,
     showChassisAbility,
-    sectionFold: insidePeek ? undefined : (sectionFold ?? 'open'),
+    sectionFold: insidePeek ? undefined : sectionFold,
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)
@@ -521,6 +520,7 @@ function ReferenceEntityCardInner({
         hero={hero ?? heroNode}
         leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
+        actionsTitle={schemaName === 'crawlers' ? 'Ability and NPC' : undefined}
         subLine={
           (subtitleExtra || hasSubLine) && (
             <PageSubLine extra={subtitleExtra}>{suggestedNode}</PageSubLine>

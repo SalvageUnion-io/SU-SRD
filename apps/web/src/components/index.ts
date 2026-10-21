@@ -124,7 +124,11 @@ export type {
   DigestedColumnsColumn,
   RollTableType,
 } from './compositions/digestRollTable'
-export { digestColumnsTable, digestRollTable } from './compositions/digestRollTable'
+export {
+  digestColumnsTable,
+  digestRollTable,
+  withNothingHappens,
+} from './compositions/digestRollTable'
 export { EntitySearcher } from './compositions/EntitySearcher'
 export type { FooterFoot } from './compositions/Footer'
 export { Footer } from './compositions/Footer'
@@ -258,6 +262,8 @@ export { Mention } from './entity/forms/Mention'
 // MiniGroup — an entity's contentful Mini and the Minis that belong to it
 // in one subtle border (a crawler bay and its crew), no nesting
 export { MiniGroup } from './entity/forms/MiniGroup'
+export type { LinkedUnit } from './entity/LinkedUnits'
+export { LinkedUnits } from './entity/LinkedUnits'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
 export { SELECT_DIM } from './entity/modes/selectedRing'
 export type { NameRefCandidate, NameRefIndex, NameRefMatch } from './entity/nameRefs'

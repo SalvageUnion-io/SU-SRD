@@ -56,6 +56,32 @@
   padding: var(--space-2) var(--space-8);
 }
 
+/* The two cells stand side by side, so a long name wraps inside its own
+   paper cell and the stamp stays one box (owner, round 4: "the separators
+   are oddly sized"). */
+.su-guide__head > .su-poster-stamp:has(> .su-guide__step-name) {
+  align-items: center;
+  display: inline-flex;
+}
+
+.su-guide__head > .su-poster-stamp > .su-guide__step-name {
+  display: block;
+  margin-inline-start: var(--space-8);
+}
+
+/* A higher-level separator (a guide's "Post-Session") stands centred
+   between two rules, apart from its steps' left-hand slabs (owner, round 4:
+   "higher-level separators … should be centered"). */
+.su-guide--page .su-guide__section > .su-slab-section__head::before {
+  border-top: var(--bw-hairline) solid var(--color-ink-50);
+  content: '';
+  flex: 1 1 0;
+}
+
+.su-guide--page .su-guide__section > .su-slab-section__head > :last-child {
+  flex: 1 1 0;
+}
+
 /* A step's body, and the prose a ladder stands beside (below). */
 .su-guide__body,
 .su-guide__ladder-prose {
@@ -364,7 +390,7 @@
    plate hugs the art: a small even inset inside the hairline, and the art's
    white canvas multiplied onto the paper so no second ground shows around it.
    `--su-hero-max-h` is the tallest the art draws: most of a phone's screen;
-   beside the flowing page's text, capped lower (see `.su-entity-page--flow`
+   beside the flowing page's text, capped lower (see `.su-entity-page--art`
    below). */
 .su-entity-hero {
   --su-hero-inset: var(--space-6);

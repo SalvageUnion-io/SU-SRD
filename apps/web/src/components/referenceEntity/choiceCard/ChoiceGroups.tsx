@@ -377,8 +377,11 @@ function ChoiceOptionGroup({
             table={table}
             name={`${tableName} Table`}
             size={compact ? 'mini' : 'compact'}
-            nested
-            peekAt={tablePeekAddress(tableEntity)}
+            // On a Page it stands at the Page's nested level, its rows open
+            // (owner, round 4: "roll table should be one level higher,
+            // matching Hover Locomotion"); in a card it is a Mini.
+            nested={!onPage}
+            {...(onPage ? {} : { peekAt: tablePeekAddress(tableEntity) })}
             disabled={false}
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
           />

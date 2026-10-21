@@ -130,7 +130,13 @@ export function liveLabel(here: number | null, of: number | null = null): string
 }
 
 /** One shelf pilot the landing's Solo section offers, with the mech assigned to it. */
-export type SoloPilot = { pilotId: string; name: string; mechName: string | null }
+export type SoloPilot = {
+  pilotId: string
+  name: string
+  mechName: string | null
+  /** The mech's id: its Mini opens its sheet. */
+  mechId: string | null
+}
 
 /**
  * The shelf's pilots, each with its assigned mech (`mech-to-pilot`), in the
@@ -151,6 +157,7 @@ export function soloPilots(
         pilotId: pilot.id,
         name: pilot.name,
         mechName: (link && mechNames.get(link.from.id)) ?? null,
+        mechId: link && mechNames.has(link.from.id) ? link.from.id : null,
       }
     })
 }

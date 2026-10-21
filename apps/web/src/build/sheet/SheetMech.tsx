@@ -191,6 +191,7 @@ export function SheetMech({
       strip={strip}
       segments={segments}
       band={band}
+      source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       out={
         mech.destroyed

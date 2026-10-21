@@ -128,7 +128,7 @@ for (const width of [375, 1440]) {
 }
 
 // The long names (Electro-Magnetic Shield Projector, System and Software
-// Hacker): every compact card holds its parts — the name wraps inside it, and
+// Hacker): every compact card holds its parts — the name ends in "…" inside it, and
 // its chips and cells stay inside instead of being pushed past its edge. A
 // systems CompactIndex's frame; an ability Compact's head, on the Tree.
 for (const [schema, part] of [

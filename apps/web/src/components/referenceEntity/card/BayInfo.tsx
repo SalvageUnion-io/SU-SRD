@@ -11,10 +11,10 @@ const CARD_BODY = {
 
 /**
  * BAY INFO — a crawler bay's own rules, the first of its sections: the bay's
- * prose and choices under a Slab that folds (owner's call, 2026-10-20), then
- * its crew NPC, then its WHEN DAMAGED (`WhenDamaged`). `fold` is the state it
- * starts in, the card's `sectionFold`: open on the reference, closed on a
- * live sheet; with none (inside a Peek) it does not fold.
+ * prose and choices under a Slab, then its crew NPC, then its WHEN DAMAGED
+ * (`WhenDamaged`). On a live sheet it folds (`fold`, the state it starts
+ * in); on the reference and inside a Peek it does not (owner, round 4:
+ * "sections should not be collapsible in reference").
  */
 export function BayInfo({
   subject,

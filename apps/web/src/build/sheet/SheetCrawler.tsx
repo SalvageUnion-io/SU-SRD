@@ -305,6 +305,7 @@ export function SheetCrawler({
         strip={strip}
         segments={segments}
         band={band}
+        source={crawler.seedRef ? 'starter' : undefined}
         kindDetail={crawlerStamp(crawler.type)}
         // The crawler's rung is the band's TL chip, ahead of its type (C2's
         // rank before relation); Edit grows its stepper on the chip, a Free

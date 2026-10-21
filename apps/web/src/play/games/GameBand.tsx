@@ -57,7 +57,7 @@ export function GameBand({
                 <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                   You mediate
                 </Badge>
-                <Button href={`/play/game/${gameId}`} variant="primary" size="compact">
+                <Button href={`/play/game/${gameId}`} variant="ink" size="compact">
                   Mediate
                 </Button>
               </Cluster>

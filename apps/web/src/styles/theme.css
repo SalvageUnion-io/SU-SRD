@@ -128,6 +128,10 @@
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
 
+  /* The Heat guide's own red (owner, round 4): its band and its tile. It
+     carries paper (design/__tests__/contrast.test.ts). */
+  --color-heat: rgb(166, 38, 34); /* #a62622 */
+
   /* Discord's dark blurple (its own button hover): the SRD home's Discord
      block and the Discord page's band and panels, the one exception to the
      tone palette (owner's calls, 2026-10-14 and 2026-10-20). Discord's #5865f2 carries paper at 4.4:1, under AA; this

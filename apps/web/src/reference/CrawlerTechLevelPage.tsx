@@ -1,6 +1,6 @@
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { Entity, Slab, TitledBox } from '../components/index'
+import { Entity, Slab, Stat, TitledBox } from '../components/index'
 import { itemHref } from '../lib/entityHref'
 
 /**
@@ -34,11 +34,11 @@ function population({ populationMin, populationMax }: TechLevel): string {
     : `${NUMBER.format(populationMin)} – ${NUMBER.format(populationMax)}`
 }
 
-/** The book's lines for one level, label first, in its order. */
+/** The book's lines for one level, label first, in its order; its Tech Level
+ * and Structure Points are the box's chips (owner, round 4). */
 function bookLines(level: TechLevel): { label: string; value: string }[] {
   const scrap = `Tech ${level.techLevel} Scrap`
   return [
-    { label: 'Structure Points', value: String(level.structurePoints) },
     { label: 'Upkeep', value: `${level.upkeepCost}× ${scrap}` },
     {
       label: 'Upgrade',
@@ -63,6 +63,14 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
         titleAs="h2"
         tone="crawler"
         className="su-tech-level__block"
+        // Its stats are chips beside the name, as an entity's are (owner,
+        // round 4: "move SP and Tech to Chips for the main content as well").
+        chips={
+          <>
+            <Stat label="Tech Level" value={level.techLevel} size="full" />
+            <Stat label="Structure Points" value={level.structurePoints} size="full" />
+          </>
+        }
       >
         {/* The book's lines as it prints them, "Upkeep: 5× Tech 1 Scrap". */}
         <div className="su-tech-level__lines">

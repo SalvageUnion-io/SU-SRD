@@ -33,6 +33,15 @@ describe('buildLinkFor', () => {
     expect(buildLinkFor('classes', advanced)).toBeNull()
   })
 
+  test('a creation guide opens the builder for what it creates; another guide gets none', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    const mech = must(guides.find((g) => g.guideType === 'mech-creation'))
+    expect(buildLinkFor('guides', mech)).toMatchObject({ label: 'Build a mech' })
+    expect(buildLinkFor('guides', mech)?.href).toContain('/mechs/new')
+    const other = must(guides.find((g) => !String(g.guideType).endsWith('-creation')))
+    expect(buildLinkFor('guides', other)).toBeNull()
+  })
+
   test('every crawler type opens the crawler wizard on it', () => {
     for (const type of SalvageUnionReference.Crawlers.all()) {
       expect(buildLinkFor('crawlers', type)?.href).toBe(

@@ -4,10 +4,11 @@
  * `SlabSection` over a masonry grid (`MiniGrid`) of contentful Minis, each
  * ability its head and then its text, in Read and Edit alike.
  *
- *   1. **Abilities**, on top and open by default: the tree abilities, tree by
- *      tree in the order the pilot trained them (core, advanced, hybrid,
- *      legendary), each tree's in its order; then any the reference does not
- *      know.
+ *   1. **Abilities**, on top and open by default: every tree the class gives
+ *      access to, whole (owner, round 4), tree by tree in training order
+ *      (core, advanced, hybrid, legendary), each tree's in its order, the
+ *      untaken abilities greyed and read-only; then any the reference does
+ *      not know.
  *   2. **Generic Abilities**, below and folded by default: the Generic tree
  *      every pilot has.
  *
@@ -58,23 +59,28 @@ export function PilotSheetAbilities({
   onToggleUsed,
   onRemoveUnknown,
 }: PilotSheetAbilitiesProps) {
-  /** One learned ability, its contentful Mini, wherever its tree puts it. */
-  function renderAbility({ slug, ability }: AbilityEntry) {
+  /**
+   * One ability, its contentful Mini, wherever its tree puts it; one the pilot
+   * has not taken greyed, with no controls.
+   */
+  function renderAbility({ slug, ability, unlearned }: AbilityEntry) {
     return (
-      <li key={slug}>
+      <li key={slug} className={unlearned ? 'su-pilot-ability--unlearned' : undefined}>
         <PilotAbilityItem
           ability={ability}
           currentAP={currentAP}
           used={usedAbilities?.includes(slug) ?? false}
           onSpend={onSpend}
           onToggleUsed={(next) => onToggleUsed(slug, next)}
-          readOnly={readOnly}
+          readOnly={readOnly || !!unlearned}
         />
       </li>
     )
   }
 
-  const none = classTrees.length === 0 && unresolvedAbilities.length === 0
+  const none =
+    !classTrees.some((group) => group.abilities.some((entry) => !entry.unlearned)) &&
+    unresolvedAbilities.length === 0
   return (
     <div style={SECTIONS}>
       {/* Read leaves an empty section out (ruleset §1.2): an empty state only
@@ -91,9 +97,8 @@ export function PilotSheetAbilities({
             )
           }
         >
-          {none ? (
-            <EmptyState variant="quiet" body="No abilities learned yet." />
-          ) : (
+          {none && <EmptyState variant="quiet" body="No abilities learned yet." />}
+          {(classTrees.length > 0 || unresolvedAbilities.length > 0) && (
             <MiniGrid label="Tree Abilities" edit={!readOnly}>
               {classTrees.flatMap((group) => group.abilities.map(renderAbility))}
               {unresolvedAbilities.map((slug) => (

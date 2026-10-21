@@ -1,12 +1,14 @@
 import type { Page } from '@playwright/test'
 
 /**
- * Hard rule R5, a linked unit is a relation chip (`chips-and-actions.md` C11),
- * as the rendered page draws it: what a Compact is linked to rides its chip group
- * as a relation chip, so no entity hangs under a Compact.
+ * Hard rule R5, a linked unit is its header-only Mini, never a chip (owner,
+ * round 4: "no linked units should be chips. all should be entities"), as the
+ * rendered page draws it: what a Compact is linked to leads its body
+ * (`LinkedUnits`, `[data-entity-linked]`), so no entity hangs under a Compact.
  *
  * - `nested` — an entity (a Compact or a Mini) inside a Compact's frame but outside
- *   its head: a Compact's body holds a lead or a stamp, never an entity (E3).
+ *   its head and its linked units: a Compact's body holds a lead, a stamp or
+ *   its linked units' Minis, never another entity (E3).
  * - `under` — a Mini straight after a Compact, the next thing in the Compact's own
  *   container (a wrapper with nothing else in it counts as the Compact): a linked
  *   unit hung under the Compact it belongs to, where its relation chip should be.
@@ -25,6 +27,7 @@ export const RELATION_SELECTORS = {
   entity: '.su-entity-compact__frame, .su-entity-mini',
   token: '.su-entity-mini',
   tokenName: '.su-entity-mini__name',
+  linked: '[data-entity-linked]',
 }
 
 export function scanRelations(a: typeof RELATION_SELECTORS): RelationFinding[] {
@@ -38,7 +41,7 @@ export function scanRelations(a: typeof RELATION_SELECTORS): RelationFinding[] {
     const name = text(row.querySelector(a.title)) || 'a Compact'
     const head = row.querySelector(a.head)
     for (const inner of row.querySelectorAll(a.entity)) {
-      if (head?.contains(inner) || hidden(inner)) continue
+      if (head?.contains(inner) || hidden(inner) || inner.closest(a.linked)) continue
       found.push({ rule: 'nested', detail: `“${name}” holds an entity in its body` })
       break
     }

@@ -76,6 +76,7 @@
 /* The instrument's roll (`RollControl`): the shared Button, or before the
    script runs the stamp, at the bar's far right. */
 .su-roll__roll {
+  flex: none;
   margin-left: auto;
 }
 
@@ -154,8 +155,12 @@
   line-height: 1.1;
   margin-bottom: calc(-1 * var(--space-8));
   min-width: 0;
-  overflow-wrap: break-word;
+  /* One line: short of room the name ends in "…" and its roll keeps its
+     place (owner, round 4: "name should be cut off to leave room for roll"). */
+  overflow: hidden;
   padding: var(--space-6) var(--space-8) var(--space-4);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* THE ONE EXCEPTION (owner, 2026-10-20, Worm: "center the cutout text on

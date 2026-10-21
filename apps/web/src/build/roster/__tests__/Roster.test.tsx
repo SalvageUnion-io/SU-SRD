@@ -344,7 +344,7 @@ describe('Training Bay — items', () => {
     expect(line?.textContent).not.toContain('Unassigned')
   })
 
-  test('linked units are each other’s relation chips, MECH | and PILOT | (C11)', async () => {
+  test('linked units are each other’s header-only Minis, never chips (round 4)', async () => {
     const store = useEntityStore.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
@@ -357,10 +357,14 @@ describe('Training Bay — items', () => {
 
     await renderShelves()
 
-    const chipText = (chip: Element) => (chip.textContent ?? '').trim()
-    const relations = Array.from(document.querySelectorAll('[data-tag]')).map(chipText)
-    expect(relations).toContain('MechIron Fist')
-    expect(relations).toContain('PilotMara Vex')
+    // Each a header-only Mini in the other's body, never a chip (round 4).
+    const linked = Array.from(document.querySelectorAll('[data-entity-linked]')).map((el) =>
+      (el.textContent ?? '').trim()
+    )
+    expect(linked).toContain('Iron Fist (Mech)')
+    expect(linked).toContain('Mara Vex (Pilot)')
+    const chips = Array.from(document.querySelectorAll('[data-tag]')).map((el) => el.textContent)
+    expect(chips.some((text) => /Iron Fist|Mara Vex/.test(text ?? ''))).toBe(false)
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 

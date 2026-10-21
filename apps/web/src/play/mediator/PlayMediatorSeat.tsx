@@ -21,7 +21,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, Entity, relation, Stat, tokens } from '../../components/index'
+import { Button, Entity, Stat, tokens } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { MediatorSeat } from './mediatorTable.model'
 
@@ -87,8 +87,11 @@ export function PlayMediatorSeat({
           label: `${seat.label}. Aim Propose here`,
         }}
         dim={dim}
-        // The mech they are aboard or have parked is a relation chip (C11), never a Mini under it (R5).
-        {...(seat.mech === null ? {} : { relations: [relation('mech', 'Mech', seat.mech.name)] })}
+        // The mech they are aboard or have parked, its header-only Mini in the
+        // seat's body, never a chip (owner, round 4).
+        {...(seat.mech === null
+          ? {}
+          : { linked: [{ key: 'mech', kind: 'mech' as const, name: seat.mech.name }] })}
         state={
           <>
             <Stat size="mini" label={away ? 'Away' : 'Here'} />

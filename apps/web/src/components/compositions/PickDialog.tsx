@@ -10,6 +10,7 @@ import { RadioCardGroup } from '../containers/RadioCardGroup'
 import { SlabSection } from '../containers/SlabSection'
 import type { TagItem } from '../entity'
 import { Entity } from '../entity/Entity'
+import type { LinkedUnit } from '../entity/LinkedUnits'
 import type { EntityFormModel } from '../entity/types'
 
 /** One thing on offer: its Compact, and what the Compact carries beside its name. */
@@ -23,6 +24,8 @@ type PickChoice = {
   labels?: ReactNode
   /** What the move or link would touch (`GAME | Rust Belt`), as relation chips (C11). */
   relations?: TagItem[]
+  /** The units it is linked to, header-only Minis leading its body (`<Entity linked>`). */
+  linked?: readonly LinkedUnit[]
 }
 
 /** A run of choices; with a `title` it stands under its Slab (Pilots, Mechs). */
@@ -149,6 +152,7 @@ export function PickDialog({
                   {...(choice.relations && choice.relations.length > 0
                     ? { relations: choice.relations }
                     : {})}
+                  {...(choice.linked?.length ? { linked: choice.linked } : {})}
                 />
               ))
               return group.title ? (

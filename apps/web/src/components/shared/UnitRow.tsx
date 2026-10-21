@@ -16,7 +16,7 @@ import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
-import type { EntityMode, TagItem } from '../index'
+import type { EntityMode, LinkedUnit, TagItem } from '../index'
 import { Button, Entity, relation, Stat } from '../index'
 
 type UnitRowProps = {
@@ -29,8 +29,10 @@ type UnitRowProps = {
   userMade?: boolean
   /** Labels after the note (an owner seal, ★ Primary). */
   labels?: ReactNode
-  /** The units it is linked to, relation chips after its readings (`chips-and-actions.md` C11). */
+  /** What it is built on (a book entity), relation chips after its readings (`chips-and-actions.md` C11). */
   relations?: TagItem[]
+  /** The units it is linked to, header-only Minis leading its body, never chips (round 4). */
+  linked?: readonly LinkedUnit[]
   /** The host's last chip, on the name's line: the unit's "⋯" menu. */
   trailing?: ReactNode
   /** The unit's sheet: a View control. Omit when there is nothing to open. */
@@ -51,6 +53,7 @@ export function UnitRow({
   userMade = false,
   labels,
   relations,
+  linked,
   trailing,
   href,
   onUnassign,
@@ -108,6 +111,7 @@ export function UnitRow({
       mode={mode}
       labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks.map(cell)] : labels}
       {...(allRelations.length > 0 ? { relations: allRelations } : {})}
+      {...(linked?.length ? { linked } : {})}
       {...(state.length > 0 ? { state: state.map(cell) } : {})}
       trailing={trailing}
       controls={all}

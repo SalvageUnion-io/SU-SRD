@@ -229,19 +229,24 @@
 .su-entity-page__main:not(.su-entity-page__main--art)
   .su-entity-page__prose
   > :not(.su-entity-page__tags),
-.su-entity-page:not(.su-entity-page--flow)
+.su-entity-page:not(.su-entity-page--art)
   > :not(.su-entity-page__main, .su-entity-page__wide, .su-guide) {
   max-width: 52rem;
 }
 
 @media (width >= 64rem) {
+  /* The taller column sets the row; the shorter balances in it (owner,
+     round 4): art shorter than its column centres beside it (Stormterror),
+     a column shorter than its art spreads its blocks evenly down it
+     (Combat Pilot). */
   .su-entity-page__main--art {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: row;
-    gap: var(--space-40);
+    gap: var(--space-32);
   }
 
   .su-entity-page__main--art > .su-entity-page__art {
+    align-self: center;
     flex: 1 1 0;
     min-width: 0;
   }
@@ -251,73 +256,23 @@
     flex: 1 1 0;
     flex-direction: column;
     gap: var(--space-12);
+    justify-content: space-evenly;
     min-width: 0;
   }
 }
 
 /*
- * WITH ART, the page FLOWS around it (`--flow`, from 64rem): the art floats
- * left and everything after it — the prose column, then the actions and the
- * nested trays — runs down beside it, taking the full width once it passes
- * the art's foot, so a short page (an NPC, a creature) leaves no column of
- * empty paper beside the image. Each card and tray is its own formatting
- * context, so one that starts beside the art narrows as a whole instead of
- * running under it. Wide blocks — the roll table, a class's ability tree,
- * the pattern rows, `after` — start below the art (`clear`), never squeezed.
+ * WITH ART (`--art`, from 64rem) the page is two columns: the art (42%) and
+ * beside it the prose, stats, actions and nested trays (`CardPage`). The
+ * taller column sets the row and the shorter balances in it (owner, round
+ * 4): the art centres beside a taller column (Stormterror), a column
+ * shorter than its art spreads its blocks evenly down it (Combat Pilot).
+ * Wide blocks (the roll table, a class's ability trees, the pattern rows,
+ * `after`) run under both.
  */
 @media (width >= 64rem) {
-  .su-entity-page--flow {
-    display: flow-root;
-  }
-
-  .su-entity-page--flow > * + * {
-    margin-top: var(--space-12);
-  }
-
-  .su-entity-page--flow > .su-entity-page__main--art {
-    display: block;
-  }
-
-  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__art {
-    float: left;
-    margin: 0 var(--space-32) var(--space-12) 0;
-    width: 42%;
-  }
-
-  /* The prose column is no column here: a flex box beside the float would
-     keep the whole of it narrow down the page. As blocks, the opening, stats
-     and chassis abilities each narrow only while the art is beside them. */
-  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side {
-    display: block;
-  }
-
-  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side > * + * {
-    margin-top: var(--space-12);
-  }
-
-  .su-entity-page--flow .su-entity-page__section {
-    display: block;
-  }
-
-  .su-entity-page--flow .su-entity-page__section > * + * {
-    margin-top: var(--space-12);
-  }
-
-  .su-entity-page--flow .su-entity-page__section-body {
-    display: block;
-  }
-
-  .su-entity-page--flow .su-entity-page__section-body > * + * {
-    margin-top: var(--space-12);
-  }
-
-  .su-entity-page--flow .su-entity-page__section-body > * {
-    display: flow-root;
-  }
-
-  .su-entity-page--flow > .su-entity-page__table,
-  .su-entity-page--flow > .su-entity-page__wide {
-    clear: left;
+  .su-entity-page--art > .su-entity-page__main--art > .su-entity-page__art {
+    flex: 0 0 42%;
   }
 }
 

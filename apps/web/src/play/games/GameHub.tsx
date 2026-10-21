@@ -106,13 +106,14 @@ function GameSections({ game }: { game: Game }) {
   return (
     <>
       <Grid min={HUB_COLUMN_MIN} gap={24} style={HUB_COLUMNS}>
-        <div style={HUB_COLUMN}>
+        {/* A column with nothing in it takes no row on a phone (`.su-hub-column`). */}
+        <div className="su-hub-column" style={HUB_COLUMN}>
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
         </div>
-        <div style={HUB_COLUMN}>
+        <div className="su-hub-column" style={HUB_COLUMN}>
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (

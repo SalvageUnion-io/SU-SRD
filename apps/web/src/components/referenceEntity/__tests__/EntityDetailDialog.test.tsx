@@ -74,8 +74,8 @@ describe('the detail dialog is the Page', () => {
     if (!page) throw new Error('no page')
     const side = page.querySelector<HTMLElement>('.su-entity-page__side')
     expect(side?.firstElementChild?.classList.contains('su-entity-page__stats')).toBe(true)
-    // With art the page flows round it from 64rem (`.su-entity-page--flow`).
-    expect(page.classList.contains('su-entity-page--flow')).toBe(true)
+    // With art the page flows round it from 64rem (`.su-entity-page--art`).
+    expect(page.classList.contains('su-entity-page--art')).toBe(true)
     expect(page.querySelector('.su-entity-page__art')).toBeTruthy()
     // A chassis's stats are its body's, but for its Tech Level and Salvage
     // Value, the band's (E20): the only stats on the band's `Chips` strip.

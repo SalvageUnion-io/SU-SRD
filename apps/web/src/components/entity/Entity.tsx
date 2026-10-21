@@ -11,6 +11,8 @@ import { Compact } from './forms/Compact'
 import { CompactIndex } from './forms/CompactIndex'
 import type { MiniBody } from './forms/Mini'
 import { Mini } from './forms/Mini'
+import type { LinkedUnit } from './LinkedUnits'
+import { LinkedUnits } from './LinkedUnits'
 import type { TagItem } from './parts/tagItems'
 import type { EntityFormModel, EntityMode, EntityOmit } from './types'
 
@@ -70,6 +72,12 @@ export type EntityProps = EntitySource &
      */
     relations?: TagItem[]
     /**
+     * Compact and Mini: the units it is linked to (a pilot's mech), each a
+     * header-only Mini leading its body (`LinkedUnits`), never a relation chip
+     * (owner, round 4). A Compact or Mini with them is contentful.
+     */
+    linked?: readonly LinkedUnit[]
+    /**
      * Mini and Compact: the host's state chip after the cost (C8) — a live reading,
      * a damaged thing's condition on a surface that only reads it (a crawler bay).
      */
@@ -111,10 +119,11 @@ export function Entity(props: EntityProps) {
     controls,
     labels,
     relations,
+    linked,
     state,
     trailing,
     uses,
-    body,
+    body: ownBody,
     dim,
   } = props
   const { entity, pattern } = props
@@ -124,6 +133,20 @@ export function Entity(props: EntityProps) {
     [ownModel, entity, instance, pattern]
   )
   if (!model) return null
+  const linkedNode = linked?.length ? <LinkedUnits linked={linked} /> : undefined
+  // A Mini's linked units lead its body, a header-only Mini's its whole body.
+  const body: MiniBody | undefined = linkedNode
+    ? {
+        ...ownBody,
+        text: ownBody?.text ?? false,
+        children: (
+          <>
+            {linkedNode}
+            {ownBody?.children}
+          </>
+        ),
+      }
+    : ownBody
   if (props.layout === 'index') {
     return (
       <CompactIndex
@@ -148,9 +171,10 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels || relations || trailing || state
+            titleAs || controls || labels || relations || trailing || state || linkedNode
               ? {
                   ...(titleAs ? { titleAs } : {}),
+                  ...(linkedNode ? { linked: linkedNode } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
                   ...(relations ? { relations } : {}),

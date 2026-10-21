@@ -5,7 +5,12 @@
 
 import type { RefEntity, RefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
-import { digestColumnsTable, digestRollTable, mentionRef } from '../components/index'
+import {
+  digestColumnsTable,
+  digestRollTable,
+  mentionRef,
+  withNothingHappens,
+} from '../components/index'
 import type { ColumnsTablePageData } from './columnsTablePage'
 import { nameRefIndexWithout } from './nameRefIndex'
 import type { RollTablePageData } from './rollTablePage'
@@ -32,7 +37,7 @@ function rollTableParts(item: RefEntity) {
  */
 export function rollTablePageData(item: RefEntity): RollTablePageData | null {
   const parts = rollTableParts(item)
-  const table = parts?.table
+  const table = parts?.table ? withNothingHappens(parts.table) : undefined
   if (!parts || !table || table.type === 'columns') return null
   const rows = digestRollTable(table).map(({ key, label, value }) => ({
     key,

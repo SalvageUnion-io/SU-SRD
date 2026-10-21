@@ -216,7 +216,10 @@ describe('the sections under the roster (board M2)', () => {
     expect(screen.getByRole('button', { name: 'Appoint' })).toBeTruthy()
     await openGameMenu()
     expect(screen.getByRole('menuitem', { name: 'Delete this Game…' })).toBeTruthy()
-    expect(screen.getByText('Organiser')).toBeTruthy()
+    // Each member is a social card (round 4): their name, their roles as chips.
+    const members = screen.getByRole('list', { name: 'Members' })
+    expect(within(members).getByText('Ash (you)')).toBeTruthy()
+    expect(within(members).getByText('Beefcake')).toBeTruthy()
   })
 
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
@@ -309,8 +312,11 @@ describe('the seats, on the Pilots rows', () => {
 
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     const text = drawnText(pilots)
-    // A pilot's row: its HP, then its mech as a relation chip (C11).
-    expect(text).toContain('HP4/10MechSpectrum')
+    // A pilot's row: its HP, then its mech as its header-only Mini, never a
+    // chip (round 4).
+    expect(text).toContain('HP4/10')
+    expect(text).not.toContain('MechSpectrum')
+    expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('Spectrum')
     expect(text).toContain('HP8/8')
     // The count is the label-first chip, `SEATS | 1/2`.
     expect(within(pilots).getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')

@@ -103,14 +103,26 @@ describe('bandFillFor', () => {
     expect(bandFillFor('modules', module)?.band).toBe('var(--color-tl-2)')
   })
 
-  test('equipment, drones and vehicles wear their chapter’s band, not their tech level’s', () => {
+  test('equipment, drones and vehicles wear their tech level’s band, as their cards do', () => {
     const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
-    const drone = SalvageUnionReference.Drones.all()[0]
+    const drone = SalvageUnionReference.Drones.all().find((e) => e.techLevel === 5)
     const vehicle = SalvageUnionReference.Vehicles.all()[0]
     if (!equipment || !drone || !vehicle) throw new Error('fixtures missing')
-    expect(bandFillFor('equipment', equipment)).toBeUndefined()
-    expect(bandFillFor('drones', drone)).toBeUndefined()
-    expect(bandFillFor('vehicles', vehicle)).toBeUndefined()
+    expect(bandFillFor('equipment', equipment)).toEqual({ band: 'var(--color-tl-1)' })
+    expect(bandFillFor('drones', drone)).toEqual({ band: 'var(--color-tl-5)' })
+    expect(bandFillFor('vehicles', vehicle)?.band).toMatch(/^var\(--color-tl-/)
+  })
+
+  test('a Hybrid Class wears its tier’s rust; a Core class and a chassis their chapter’s', () => {
+    const classes = SalvageUnionReference.Classes.all()
+    const hybrid = classes.find((c) => 'hybrid' in c && c.hybrid === true)
+    const core = classes.find((c) => !('hybrid' in c && c.hybrid === true))
+    const chassis = SalvageUnionReference.Chassis.all()[0]
+    if (!hybrid || !core || !chassis) throw new Error('fixtures missing')
+    expect(bandFillFor('classes', hybrid)).toEqual({ band: 'var(--color-tier-hybrid)' })
+    expect(bandFillFor('classes', core)).toBeUndefined()
+    expect(bandFillFor('chassis', chassis)).toBeUndefined()
+    expect(bandFillFor('not-a-schema', chassis)).toBeUndefined()
   })
 
   test('tech level 3 wears its own blue: the foot is the band’s colour, no deeper shade', () => {

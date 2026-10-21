@@ -27,6 +27,7 @@ import { Button, PickDialog, relation, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../lib/entities'
+import { splitRelations } from '../../lib/shelves/shelfItems'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
@@ -120,9 +121,15 @@ export function AddFromHangar({ gameId, kind, gameName, confirm }: AddFromHangar
                   id: key(choice),
                   label: choice.name,
                   model: unitRowModel({ kind: choice.kind, name: choice.name }),
-                  relations: choice.relations.map((r) =>
-                    relation(r.key, r.label, r.value, { href: r.href })
-                  ),
+                  ...(() => {
+                    const { linked, chips } = splitRelations(choice.relations)
+                    return {
+                      relations: chips.map((r) =>
+                        relation(r.key, r.label, r.value, { href: r.href })
+                      ),
+                      linked,
+                    }
+                  })(),
                 })),
               }))
         }

@@ -319,7 +319,8 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     )
   }
 
-  // The Core trees run in one column, full width; then every path the class
+  // The Core trees two across (owner, round 4: "two columns of trees"), on
+  // the path cards' shared rows; then every path the class
   // advances along, its own (Legendary) first, then each Hybrid Class, all
   // the same card with their trees side by side.
   return (
@@ -327,7 +328,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
         <SlabSection title="Core trees" page>
-          <div className="su-ability-tree__row su-ability-tree__row--stack">
+          <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
             ))}

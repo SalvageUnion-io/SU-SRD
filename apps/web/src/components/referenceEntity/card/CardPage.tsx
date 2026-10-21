@@ -60,6 +60,12 @@ type CardPageProps = {
   guide?: ReactNode
   /** The nested cards. */
   sections: ReactNode
+  /**
+   * The actions section's title: "Actions", or a crawler type's "Ability and
+   * NPC" (Core Book p.212: "a unique Ability … as well as a special NPC";
+   * owner, round 4).
+   */
+  actionsTitle?: string
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
   /** `afterExtraContent` and `expand`. */
@@ -87,6 +93,7 @@ export function CardPage({
   table,
   guide,
   sections,
+  actionsTitle = 'Actions',
   patterns,
   after,
   sectionAs,
@@ -118,11 +125,35 @@ export function CardPage({
   const hasMain =
     !!hero || stats.length > 0 || !!opening || !!subLine || !!body || leadActions.length > 0
 
+  // With art, the page's actions and nested trays stand in the column beside
+  // it, so the two columns balance (owner, round 4): art shorter than its
+  // column centres in it, a column shorter than its art spreads its blocks
+  // evenly down it. Without art they follow the main block.
+  const beside = (
+    <>
+      {otherActions.length > 0 && (
+        <SlabSection
+          as={sectionAs}
+          title={actionsTitle}
+          page
+          className="su-entity-page__section"
+          bodyClassName="su-entity-page__section-body"
+        >
+          {otherActions.map((data, index) =>
+            actionCard(data, index, nestedTitleLevel(!!sectionAs))
+          )}
+        </SlabSection>
+      )}
+      {guide}
+      {sections}
+    </>
+  )
+
   return (
     <div
       className={cn(
         'su-entity-page',
-        !!hero && 'su-entity-page--flow',
+        !!hero && 'su-entity-page--art',
         !!guide && 'su-entity-page--guide'
       )}
     >
@@ -154,30 +185,18 @@ export function CardPage({
             {/* A pattern page's Systems and Modules follow its chassis
                 ability: pattern → chassis ability → Systems → Modules. */}
             {loadout}
+            {hero && beside}
           </div>
         </div>
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
-      {otherActions.length > 0 && (
-        <SlabSection
-          as={sectionAs}
-          title="Actions"
-          page
-          className="su-entity-page__section"
-          bodyClassName="su-entity-page__section-body"
-        >
-          {otherActions.map((data, index) =>
-            actionCard(data, index, nestedTitleLevel(!!sectionAs))
-          )}
-        </SlabSection>
-      )}
-      {guide}
-      {sections}
+      {!hero && beside}
       {/* An ability's neighbours in its tree, under the rest (owner, 2026-10-20),
-          each a collapsed header: a header-only Mini a line wide that links
-          to its Page (owner, 2026-10-20: "should just be a collapsed header
-          not the full content"; N2: a head alone is a Mini), a named N8
-          exception (`.su-entity-page__neighbours`). */}
+          each a collapsed header a line wide that links to its Page (owner,
+          2026-10-20: "should just be a collapsed header not the full
+          content"), at the Page's nested level, a Compact (owner, round 4:
+          "one size level higher"; ruleset N1), a named N8 exception
+          (`.su-entity-page__neighbours`). */}
       {abilityTreeNeighbours(entity).map(({ label, abilities }) => (
         <SlabSection
           key={label}
@@ -190,7 +209,7 @@ export function CardPage({
           {abilities.map((ability) => (
             <Entity
               key={ability.id}
-              size="mini"
+              size="compact"
               context="play"
               entity={ability}
               mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}

@@ -24,6 +24,7 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
+import type { LinkedUnit } from '../../components/index'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
@@ -67,6 +68,28 @@ export type ShelfChip = { key: string; label: string; value?: string }
  * where it opens (a unit's sheet, a Game's page in Play).
  */
 export type ShelfRelation = { key: string; label: string; value: string; href: string }
+
+/** A relation that names a unit, by its key: drawn as that unit's Mini, never a chip. */
+const UNIT_RELATION = new Set(['pilot', 'mech', 'crawler'])
+
+/**
+ * An item's relations split: the units linked to it, each a header-only Mini
+ * (`<Entity linked>`; owner, round 4: "no linked units should be chips"), and
+ * the rest (its Game), relation chips (C11).
+ */
+export function splitRelations(relations: readonly ShelfRelation[]): {
+  linked: LinkedUnit[]
+  chips: ShelfRelation[]
+} {
+  const linked: LinkedUnit[] = []
+  const chips: ShelfRelation[] = []
+  for (const r of relations) {
+    if (UNIT_RELATION.has(r.key)) {
+      linked.push({ key: r.key, kind: r.key as LinkedUnit['kind'], name: r.value, href: r.href })
+    } else chips.push(r)
+  }
+  return { linked, chips }
+}
 
 /** One reading on an item's line: `HP 8/10`, `TL 1`. */
 export type ShelfReading = { label: string; value: string }

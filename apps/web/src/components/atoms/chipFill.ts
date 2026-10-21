@@ -157,6 +157,23 @@ function widestWord(el: HTMLElement): number {
   return widest
 }
 
+/**
+ * A name that ends in "…" short of room rather than wrap (a Compact's, a
+ * catalog tile's: owner, round 4): its title, or the name itself, clips
+ * with an ellipsis.
+ */
+function ellipsizes(name: HTMLElement): boolean {
+  for (let el: Element | null = name; el; el = el.firstElementChild) {
+    if (getComputedStyle(el).textOverflow === 'ellipsis') return true
+  }
+  return false
+}
+
+/** The narrowest an ellipsizing name gets: half its line, or its longest word. */
+function clippedName(name: HTMLElement, fullName: number, room: number): number {
+  return Math.min(fullName, Math.max(widestWord(name), room / 2))
+}
+
 /** An item's chip class within `root`: its own, or its lane's; '' for none. */
 function classOfItem(item: Element, root: Element): string {
   const lane = item.closest('[data-chip-class]')
@@ -284,7 +301,9 @@ function planWithRoom(
   if (!hasRow) return plan
   const kept = widths.reduce((sum, width, i) => (plan.out[i] ? sum : sum + gap + width), 0)
   const unclassed = items.map((item) => classOfItem(item, container) === '' && copiesWhole(item))
-  const shortest = Math.max(oneLineWidth(name, 'min-content'), widestWord(name))
+  const shortest = ellipsizes(name)
+    ? nameWidth
+    : Math.max(oneLineWidth(name, 'min-content'), widestWord(name))
   if (kept + shortest <= room - 1) return plan
   const freed = unclassed.some((u, i) => u && !plan.out[i])
     ? overflowPlan(
@@ -357,7 +376,11 @@ function fitChipFill(container: HTMLElement): void {
   const gap = Number.parseFloat(s.columnGap) || 0
   const widths = items.map((item) => outerWidth(item, room))
   const moreWidth = moreItem ? outerWidth(moreItem, room) : undefined
-  const nameWidth = oneLineWidth(name)
+  // A name that ends in "…" gives way to its chips down to half its line (or
+  // its longest word, if wider): the chips stay beside it and it clips (R3:
+  // a chip is never cut, only the name flexes); past that they go out.
+  const fullName = oneLineWidth(name)
+  const nameWidth = ellipsizes(name) ? clippedName(name, fullName, room) : fullName
   // A head laid by CSS alone (a Page's controls band on a phone, its
   // controls over its title) sends nothing out; nor does one with nowhere to send it.
   // Nor does one not laid out (a closed tab): it fits once drawn.
@@ -394,7 +417,7 @@ function fitChipFill(container: HTMLElement): void {
   // wraps in the room they leave, and where its longest word leaves too
   // little, the corner chip wraps its value in what is left (E18: it wraps,
   // never clipped).
-  const wraps = shown.length > 0 && nameWidth + chipsWidth > room - 1
+  const wraps = shown.length > 0 && fullName + chipsWidth > room - 1
   const corner = shown[shown.length - 1]
   const last = shownWidths[shownWidths.length - 1] ?? 0
   // The name keeps its widest word whole where the corner chip can wrap its
@@ -402,9 +425,14 @@ function fitChipFill(container: HTMLElement): void {
   // Mech | Crawler) cannot, and would be drawn over the name.
   const cornerWraps =
     !!corner && !corner.matches(LIVE_CONTROL) && !corner.querySelector(LIVE_CONTROL)
-  const shortest = wraps
-    ? Math.max(oneLineWidth(name, 'min-content'), cornerWraps ? widestWord(name) : 0)
-    : 0
+  // A name that ends in "…" gives the chips shown all they need (R3: a chip
+  // is never cut, only the name flexes): the corner never wraps beside it.
+  const clips = nameWidth < fullName || ellipsizes(name)
+  const shortest = !wraps
+    ? 0
+    : clips
+      ? 0
+      : Math.max(oneLineWidth(name, 'min-content'), cornerWraps ? widestWord(name) : 0)
   const squeezed = wraps && room - chipsWidth - 1 < shortest
   if (corner && squeezed) corner.setAttribute(CORNER_ATTRIBUTE, '')
   if (fitted?.at === at) return

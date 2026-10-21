@@ -20,6 +20,7 @@ import { factCells } from '../parts/factCells'
 import { INDEX_NAME, INDEX_NAME_CAPS } from '../parts/indexName'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
+import { usePeekAttrs } from '../peekContext'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 export type CompactIndexProps = {
@@ -103,6 +104,9 @@ export function CompactIndex({
 }: CompactIndexProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
+  // Its name may end in "…": the tile Peeks the whole entry (owner, round 4:
+  // "should ellipses off and show in a peek").
+  const peek = usePeekAttrs(model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   // A CompactIndex's budget is a compact head's (C3), in its kind's own context (C4):
   // of its measures (its `ref-stat-*` stats) it keeps the one that context
@@ -142,6 +146,7 @@ export function CompactIndex({
     <LinkSurface
       target={target}
       label={model.title}
+      peek={peek}
       className={
         art.kind === 'image' || mark ? 'su-entity-index' : 'su-entity-index su-entity-index--bare'
       }

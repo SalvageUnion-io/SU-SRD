@@ -21,7 +21,7 @@ import {
   entityTone,
   getModel,
   getSchemaCatalog,
-  getTechLevel,
+  isSchemaName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { ChapterTone } from '../components/index'
@@ -194,7 +194,7 @@ function abilityBandFill(entity: RefEntity): BandFill | undefined {
 /**
  * The schemas whose show page wears its tech level's blue: systems and
  * modules, the one place the book sets TL blue as a ground (ruleset §3.8, book
- * pp. 162, 188). Equipment, drones and vehicles wear their chapter's band.
+ * pp. 162, 188), whose listings wear TL1's.
  */
 const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
 
@@ -218,16 +218,22 @@ export function listingBandFillFor(schemaId: string): BandFill | undefined {
 }
 
 /**
- * The bands a show page wears when not its chapter's: a system's or module's,
- * its tech level's colour, head and foot, as its card's header and Compact do; an
- * ability's, its tier's colour (E12). Every other page wears its chapter's
- * band from the colour map (`undefined`); a listing's is `listingBandFillFor`.
+ * The bands a show page wears when not its chapter's: the entity's own tone
+ * (`entityTone`), the colour its card's header and Compact wear, head and foot
+ * (owner, round 4: "fix the band colors to always match the entity"). Gear
+ * (systems, modules, drones, equipment, vehicles) wears its tech level's
+ * colour; a Hybrid Class its tier's rust; an ability its tier's colour (E12);
+ * a creation guide its entity's colour, Heat its red (`guideTone`).
+ * Every other page wears its chapter's band from the colour map
+ * (`undefined`); a listing's is `listingBandFillFor`.
  */
 export function bandFillFor(schemaId: string, entity: RefEntity): BandFill | undefined {
   if (schemaId === 'abilities') return abilityBandFill(entity)
-  if (!TECH_LEVEL_BAND_SCHEMAS.has(schemaId)) return undefined
-  const techLevel = getTechLevel(entity)
-  if (techLevel == null) return undefined
-  const band = `var(--color-tl-${String(techLevel).toLowerCase()})`
-  return { band }
+  if (!isSchemaName(schemaId)) return undefined
+  const tone = entityTone(schemaId, entity)
+  const own = tone.startsWith('tl-') || tone === 'tier-hybrid'
+  // A guide that is not rules blue: a creation guide's entity, Heat's red.
+  const guide = schemaId === 'guides' && tone !== 'wk-line'
+  if (own || guide) return { band: `var(--color-${tone})` }
+  return undefined
 }

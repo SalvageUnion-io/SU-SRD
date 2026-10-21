@@ -169,10 +169,14 @@ describe('entityTone', () => {
     }
   })
 
-  test('a guide wears rules blue whatever its type', () => {
-    for (const guideType of ['character-creation', 'downtime', 'gameplay']) {
+  test('a guide wears rules blue, a creation guide its unit, Heat its red (round 4)', () => {
+    for (const guideType of ['downtime', 'gameplay']) {
       expect(entityTone('guides', as({ ...base, guideType }))).toBe('wk-line')
     }
+    expect(entityTone('guides', as({ ...base, guideType: 'character-creation' }))).toBe('pilot')
+    expect(entityTone('guides', as({ ...base, guideType: 'mech-creation' }))).toBe('mech')
+    expect(entityTone('guides', as({ ...base, guideType: 'crawler-creation' }))).toBe('crawler')
+    expect(entityTone('guides', as({ ...base, name: 'Heat', guideType: 'gameplay' }))).toBe('heat')
   })
 
   test('black-market goods with no tech level are ink-2', () => {

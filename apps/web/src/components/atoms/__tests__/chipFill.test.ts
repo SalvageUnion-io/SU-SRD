@@ -195,6 +195,17 @@ describe('watchChipFill', () => {
     expect(prop(el, '--su-name-basis')).toBe('90px')
   })
 
+  test('a name that ends in "…" gives way to its chips, down to half its line, and no chip wraps', () => {
+    const { el } = head([40], { room: 200, name: 180, shortest: 60, cost: 40, route: 'body' })
+    const name = el.querySelector<HTMLElement>('[data-fill-name]') as HTMLElement
+    name.style.textOverflow = 'ellipsis'
+    watchChipFill(el)
+    // Half the line (100) and both chips (44 + 44) fit: nothing leaves.
+    expect(out(el)).toEqual([])
+    expect(el.querySelector('[data-fill-corner]')).toBeNull()
+    expect(prop(el, '--su-name-basis')).toBe(`${200 - 88 - 1}px`)
+  })
+
   test("a static page's heads each fit on the page's load", () => {
     const { el } = head([50, 40, 30], { room: 200, name: 100, cost: 20, route: 'body' })
     watchStaticChipFill()

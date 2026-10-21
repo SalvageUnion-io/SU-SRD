@@ -16,6 +16,20 @@ export type RollTableType =
   | { type: 'standard' | 'alternate' | 'flat' | 'full'; [key: string]: TableContent }
 
 /**
+ * A table the book prints with a "20" row only (a weapon's Bio-Talon, its
+ * Blinding Blue Laser Rifle) shown with the rest of the die as a row of its
+ * own, "1–19: Nothing happens." The display's, never the data's (owner, round
+ * 4: "technically … moves us away from the book, but it is a better ux"), so
+ * a roll under 20 lands on a row too. Every other table comes back as it is.
+ */
+export function withNothingHappens<T extends RollTableType>(table: T): T {
+  if (!table || table.type === 'columns') return table
+  const keys = Object.keys(table).filter((key) => key !== 'type')
+  if (keys.length !== 1 || keys[0] !== '20') return table
+  return { ...table, '1-19': { value: 'Nothing happens.' } }
+}
+
+/**
  * A banded d20 table as rows, highest range first — the order the book prints.
  * Shared by Play's table (`PlayRollTable`) and the entity card's embedded table (`CardRollTable`).
  */

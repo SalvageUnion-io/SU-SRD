@@ -90,10 +90,36 @@
   min-width: 0;
 }
 
-/* The chips on the band are the body's chips (owner, 2026-10-20: "header
-   chips need to match body chips in sizing"): the card heads' Compact strip,
-   so what overflows into the page's first row is the same size it was on
-   the band. */
+/* From `sm` a Page's chips stand a rung up, the Compact control height
+   beside its Compact "Build With This" (owner, round 4: "the header chips
+   are also a size too small for the page chips"), wherever the strip lands:
+   the band, or the page's first row it overflows into; a sheet's band chips
+   alike (round 4: "make sure the header chips are the right size"). A phone
+   keeps the Full plates, so its band still fits beside the title. */
+@media (width >= 40rem) {
+  .su-entity-stamps .su-stat-plate--full,
+  .su-chapter-band__aside .su-stat-plate--full,
+  .su-chapter-band__overflow .su-stat-plate--full,
+  .su-tech-level__block .su-stat-plate--full {
+    font-size: var(--text-base);
+    padding-block: calc(var(--space-8) - var(--bw-hairline));
+    padding-inline: var(--space-8);
+  }
+
+  /* The cost box's rung is its inline style (`ActivationCost`), so only
+     `!important` reaches its type size from here; its `em` point follows. */
+  .su-entity-stamps .su-cost-edge,
+  .su-entity-stamps .su-cost,
+  .su-chapter-band__overflow .su-cost-edge,
+  .su-chapter-band__overflow .su-cost {
+    font-size: var(--text-base) !important;
+  }
+
+  .su-entity-stamps .su-cost,
+  .su-chapter-band__overflow .su-cost {
+    padding-block: var(--space-8);
+  }
+}
 
 /* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
  *

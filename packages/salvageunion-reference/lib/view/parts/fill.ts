@@ -7,19 +7,33 @@
 import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields'
 import { isAbility } from '../../entityGuards'
 import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
-import { isDoEntity, isHybridTree, schemaDomain } from './kind'
+import { classKind, isDoEntity, isHybridTree, schemaDomain } from './kind'
 
 /** The rules-blue token (`--color-wk-line`): the Rules · Salvaging chapter's band. */
 const RULES_BLUE = 'wk-line'
 
 /**
- * A guide's tone token, or `undefined` for every other entity: rules blue for
- * every guide, as its page's band is (owner's call, 2026-10-14), so the guides
- * index reads as one chapter. A guide is the record with a `guideType`.
+ * A guide's tone token, or `undefined` for every other entity. A creation
+ * guide wears the colour of what it creates (owner, round 4: "'Create a
+ * <Entity>' guides should be colored after the entity"): Create a Pilot
+ * pilot orange, Create a Mech mech green, Create a Crawler crawler pink.
+ * Heat wears its own red (owner, round 4); every other guide rules blue, as
+ * its page's band is (owner's call, 2026-10-14). A guide is the record with
+ * a `guideType`.
  */
+const CREATION_TONE: Readonly<Record<string, string>> = {
+  'character-creation': 'pilot',
+  'mech-creation': 'mech',
+  'crawler-creation': 'crawler',
+}
+
 export function guideTone(entity: RefMetaEntity): string | undefined {
   if (entity == null || typeof entity !== 'object' || !('guideType' in entity)) return undefined
-  return typeof entity.guideType === 'string' ? RULES_BLUE : undefined
+  if (typeof entity.guideType !== 'string') return undefined
+  const creation = CREATION_TONE[entity.guideType]
+  if (creation) return creation
+  if ('name' in entity && entity.name === 'Heat') return 'heat'
+  return RULES_BLUE
 }
 
 /** The numeric tech-level ramp: TL1–6 own a band each. */
@@ -90,6 +104,9 @@ export function entityTone(
     if (tone) return tone
   }
   if (getBlackMarket(entity) === true) return 'ink-2'
+  // A Hybrid Class wears its tier's rust, apart from the Core classes'
+  // orange (owner, round 4: "color hybrid classes a different color").
+  if (schemaName === 'classes' && classKind(entity) === 'HYBRID') return 'tier-hybrid'
   const bySchema = SCHEMA_TONE[schemaName]
   if (bySchema) return bySchema
   if (schemaName === 'abilities') return abilityTierTone(entity)

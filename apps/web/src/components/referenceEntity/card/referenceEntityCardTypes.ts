@@ -171,8 +171,9 @@ export type ReferenceEntityCardProps = {
    * (e.g. a crawler bay's crew inset). */
   expand?: ReactNode
   /** The state a card's own folding sections start in (a crawler bay's Bay
-   * Info and When Damaged): open by default, as the reference reads them; a
-   * live sheet starts them closed. Inside a Peek nothing folds. */
+   * Info and When Damaged), when they fold. On the reference nothing folds
+   * (owner, round 4: "None should be collapsible in reference cards"), so
+   * the default is no fold; inside a Peek nothing folds either. */
   sectionFold?: 'open' | 'closed'
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───

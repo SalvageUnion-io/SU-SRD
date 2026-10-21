@@ -68,6 +68,14 @@ const FIELD_COLUMN = {
   minWidth: 0,
 } satisfies CSSProperties
 
+/** The traits' row; its columns are `.su-sheet-pilot-traits`. */
+const TRAITS_ROW = {
+  columnGap: tokens.space[16],
+  display: 'grid',
+  minWidth: 0,
+  rowGap: tokens.space[12],
+} satisfies CSSProperties
+
 const BIO = {
   display: 'flex',
   flex: '1 1 0%',
@@ -293,7 +301,13 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
               />
             </div>
           )}
-          <div style={FIELD_COLUMN}>
+          {/* With nothing beside them (Read, most often), the three short
+              traits share one row, so the card spends no height on their gaps
+              (owner, round 4: "less whitespace"); the Bio runs under. */}
+          <div
+            className={leftColumn ? undefined : 'su-sheet-pilot-traits'}
+            style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}
+          >
             <Field
               label="Motto"
               value={pilot.motto}

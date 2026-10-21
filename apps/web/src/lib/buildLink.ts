@@ -79,6 +79,14 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
         label: BUILD_WITH_THIS,
         ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
+    case 'guides': {
+      // A creation guide's band opens the builder for what it creates
+      // (owner, round 4: "contain a button in the header to the `build`").
+      const step = CREATION_GUIDES.find(
+        (guide) => 'guideType' in item && guide.guideType === item.guideType
+      )
+      return step ? { href: wizardHref(step.build.path), label: step.build.label } : null
+    }
     default:
       return null
   }

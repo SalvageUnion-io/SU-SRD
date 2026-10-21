@@ -31,7 +31,6 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 type ColumnCreate = { href: string; label: string; onClick?: () => void }
 
 /** The switch row; it hides from `md` up (`.su-segment-switch`, styles/controls.css). */
-const SWITCH = { marginTop: space[20] } satisfies CSSProperties
 
 /** The switch spans the row: each segment takes its share. */
 const FILL = { width: '100%' } satisfies CSSProperties
@@ -50,7 +49,7 @@ export function SegmentSwitch({
   onChange: (kind: SegmentKind) => void
 }) {
   return (
-    <div className="su-segment-switch" style={SWITCH}>
+    <div className="su-segment-switch">
       <Segmented label="Show" fill style={FILL}>
         {SEGMENTS.map((seg) => (
           <SegmentedOption

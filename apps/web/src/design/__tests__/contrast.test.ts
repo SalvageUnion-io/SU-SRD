@@ -268,6 +268,8 @@ describe('ink on colour — the refresh pairs', () => {
     // The ability tiers' Compact banners and tree tracks: Advanced and Hybrid
     // rust; Core is pilot, Legendary the crawler band (above).
     { band: 'tierHybrid', ground: color.tierHybrid, text: 'paper' },
+    // The Heat guide's band (owner, round 4).
+    { band: 'heat', ground: color.heat, text: 'paper' },
     // The SRD home's Discord button (`DiscordButton`).
     { band: 'discord', ground: color.discord, text: 'paper' },
   ] as const

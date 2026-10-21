@@ -98,7 +98,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
 
   return (
     <>
-      <Button variant="primary" size="compact" onClick={openPicker}>
+      <Button variant="ink" size="compact" onClick={openPicker}>
         Play
       </Button>
       <PickDialog

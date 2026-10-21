@@ -137,10 +137,10 @@ describe('rowForRoll', () => {
     expect(rowForRoll(data.table, data.rows, 1)?.label).toBe('Cascade Failure')
   })
 
-  test('a table that prints only its 20 has no row for anything else', () => {
+  test('a table that prints only its 20 reads "Nothing happens." on 1–19 (round 4)', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
     expect(rowForRoll(dramatic.table, dramatic.rows, 20)?.key).toBe('20')
-    expect(rowForRoll(dramatic.table, dramatic.rows, 5)).toBeUndefined()
+    expect(rowForRoll(dramatic.table, dramatic.rows, 5)?.key).toBe('1-19')
   })
 })
 
@@ -163,12 +163,13 @@ describe('rollAnnouncement — what a roll’s toast reads', () => {
     expect(announced.text).toBe(plainText(row.value))
   })
 
-  test('a roll with no row lands on no range and reads "No effect"', () => {
+  test('a roll under a lone 20 lands on 1–19, "Nothing happens."', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
-    expect(rollAnnouncement(dramatic, 5)).toEqual({
+    expect(rollAnnouncement(dramatic, 5)).toMatchObject({
       table: dramatic.name,
       roll: 5,
-      text: 'No effect',
+      range: '1–19',
+      text: 'Nothing happens.',
     })
   })
 })

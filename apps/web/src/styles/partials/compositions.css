@@ -28,6 +28,18 @@
   }
 }
 
+/* A step's number, at the band's left on the name's line, as a tree
+   ability's tier numeral (`.su-entity-compact__tier`): the title's face in
+   the band's own foreground. */
+.su-start-here__number {
+  align-self: flex-end;
+  flex: none;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.05;
+  margin-bottom: var(--space-2);
+}
+
 /* A step that opens its guide underlines its title on hover. A class because
    a style object has no `:hover`. */
 .su-start-here__step:hover .su-start-here__title {
@@ -117,6 +129,9 @@
   --su-track-stem-x: 50%;
   display: grid;
   grid-auto-rows: 1fr;
+  /* One column its container's width, never its picks' widest chip line:
+     a pick's chips wrap on a phone rather than push past its card. */
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* A track of contentful Minis (a class page's path card, N3) runs its stem

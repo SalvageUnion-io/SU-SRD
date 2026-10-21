@@ -36,3 +36,8 @@
     grid-column: span 2 / span 2;
   }
 }
+
+/* Motto, Keepsake and Background side by side, as many as fit (round 4). */
+.su-sheet-pilot-traits {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}

@@ -73,7 +73,6 @@ import {
   FieldError,
   HeaderMenu,
   RosterSkeleton,
-  relation,
   Text,
   tokens,
 } from '../../components/index'
@@ -205,8 +204,8 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
   const seatOf = new Map<string, SeatRow>(seats?.rows.map((seat) => [seat.key, seat]) ?? [])
   const crawlerOf = new Map((listing?.crawlers ?? []).map((c) => [c._id as string, readCrawler(c)]))
 
-  /** A row's readings and relations: a pilot's seat (HP, its mech), a crawler's vitals. */
-  function rowChips(row: RosterRow): Pick<Parameters<typeof UnitRow>[0], 'readings' | 'relations'> {
+  /** A row's readings and linked units: a pilot's seat (HP, its mech), a crawler's vitals. */
+  function rowChips(row: RosterRow): Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'> {
     if (row.kind === 'crawler') {
       const reading = crawlerOf.get(row.serverId)
       return reading ? { readings: crawlerVitals(reading) } : {}
@@ -217,11 +216,15 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     const { mech, mechHref } = seat.pilot
     return {
       ...(seat.hp === null ? {} : { readings: [{ label: 'HP', value: seat.hp }] }),
-      // The mech the pilot is assigned, a relation chip opening its sheet (C11);
-      // on foot the lane stays empty (C6).
+      // The mech the pilot is assigned, its header-only Mini opening its sheet,
+      // never a chip (owner, round 4); on foot there is none.
       ...(mech === null
         ? {}
-        : { relations: [relation('mech', 'Mech', mech, { href: mechHref ?? undefined })] }),
+        : {
+            linked: [
+              { key: 'mech', kind: 'mech' as const, name: mech, href: mechHref ?? undefined },
+            ],
+          }),
     }
   }
 

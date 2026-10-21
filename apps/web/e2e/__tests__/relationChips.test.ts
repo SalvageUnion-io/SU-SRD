@@ -39,6 +39,14 @@ describe('relation scan', () => {
     expect(scan()).toEqual([])
   })
 
+  test('a linked unit’s Mini leading a Compact’s body passes (round 4)', () => {
+    document.body.innerHTML = row(
+      'Bonesaw',
+      `<div class="su-entity-linked" data-entity-linked="">${token('Mazona')}</div>`
+    )
+    expect(scan()).toEqual([])
+  })
+
   test('a TitledBox wears the frame class but is no Compact', () => {
     document.body.innerHTML = `<section class="su-entity-compact su-box">${row('When Damaged', `<div>${token('Mazona')}</div>`)}</section>`
     expect(scan()).toEqual([])

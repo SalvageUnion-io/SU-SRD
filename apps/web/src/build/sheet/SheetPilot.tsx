@@ -158,7 +158,12 @@ export function SheetPilot({
           },
         ]),
   ]
-  const rail = <AssignedUnits units={units} slots={slots} editable={editable} />
+  // Nothing linked in Read draws no section (`AssignedUnits`), so none reaches
+  // the sidebar either: an empty sidebar would hold its column open.
+  const rail =
+    editable || units.length > 0 ? (
+      <AssignedUnits units={units} slots={slots} editable={editable} />
+    ) : undefined
 
   return (
     <LiveSheet
@@ -167,6 +172,7 @@ export function SheetPilot({
       strip={strip}
       segments={segments}
       band={band}
+      source={pilot.seedRef ? 'starter' : undefined}
       kindDetail={pilotStamp(pilot.classRef)}
       out={
         isPilotDead(statInput)

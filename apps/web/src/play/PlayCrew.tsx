@@ -19,7 +19,7 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { EmptyState, Entity, MiniGrid, relation, Stat, tokens } from '../components/index'
+import { EmptyState, Entity, MiniGrid, Stat, tokens } from '../components/index'
 import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
@@ -90,10 +90,11 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
         onOpen,
         attrs: { 'aria-label': `${crewLineLabel(line)}. Open their sheet` },
       }}
-      // The mech they are aboard is a relation chip (C11), never a stamp.
+      // The mech they are aboard, its header-only Mini in the line's body,
+      // never a chip (owner, round 4).
       {...(line.boardedIn === null
         ? {}
-        : { relations: [relation('mech', 'Mech', line.boardedIn)] })}
+        : { linked: [{ key: 'mech', kind: 'mech' as const, name: line.boardedIn }] })}
       state={
         <>
           {line.boardedIn === null ? <Stat size="mini" label="On foot" /> : null}

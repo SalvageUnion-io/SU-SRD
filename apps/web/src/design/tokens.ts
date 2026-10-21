@@ -282,6 +282,11 @@ const base = {
   //   Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
 
+  /** The Heat guide's own red (owner, round 4: "make heat a new red color
+   *  that matches our theme in the header"): its band and its tile. Carries
+   *  paper. */
+  heat: 'rgb(166, 38, 34)',
+
   /** Discord's dark blurple (its own button hover): the SRD home page's Discord
    *  block and the Discord page's band and command panels, the one exception
    *  to the tone palette (owner's calls, 2026-10-14 and 2026-10-20). Its
