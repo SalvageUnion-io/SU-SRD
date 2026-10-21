@@ -19,12 +19,11 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { HeaderMenuItem } from '../../components/index'
+import type { HeaderMenuItem, LinkedUnit } from '../../components/index'
 import { HeaderMenu, relation, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
-import type { ShelfChip, ShelfReading, ShelfRelation } from '../../lib/shelves/shelfItems'
-import { splitRelations } from '../../lib/shelves/shelfItems'
-import type { UnitKind } from '../../lib/units/unitModel'
+import type { ShelfChip, ShelfRelation } from '../../lib/shelves/shelfItems'
+import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
@@ -41,11 +40,13 @@ type ShelfItemProps = {
   /** What it is built as ("Engineer"), never its kind: a fact chip, else a stamp. */
   note?: string | undefined
   name: string
-  reading?: ShelfReading
+  reading?: UnitReading | undefined
   href?: string
   userMade?: boolean
   chips: ShelfChip[]
-  /** What it is linked to: its units as Minis leading its body, its Game a relation chip (C11). */
+  /** The units linked to it, as Minis leading its body (`crewLinked`). */
+  linked?: LinkedUnit[]
+  /** The Game it is in, as a relation chip (C11). */
   relations?: ShelfRelation[]
   /** The "⋯" menu's rows, grouped; empty renders no menu. */
   menu: HeaderMenuItem[][]
@@ -59,12 +60,11 @@ export function ShelfItem({
   href,
   userMade,
   chips,
+  linked = [],
   relations = [],
   menu,
 }: ShelfItemProps) {
   const hasMenu = menu.some((section) => section.length > 0)
-  // Its linked units are Minis in its body, its Game a relation chip.
-  const { linked, chips: unitChips } = splitRelations(relations)
   const factLabel = FACT_LABEL[kind]
   const fact = note && factLabel ? { label: factLabel, value: note } : undefined
   return (
@@ -77,7 +77,7 @@ export function ShelfItem({
         // A line with nowhere to open is not a link.
         mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
         userMade={userMade}
-        relations={unitChips.map((r) => relation(r.key, r.label, r.value, { href: r.href }))}
+        relations={relations.map((r) => relation(r.key, r.label, r.value, { href: r.href }))}
         linked={linked}
         labels={
           chips.length > 0

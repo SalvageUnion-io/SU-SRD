@@ -1,22 +1,20 @@
 import { describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { crawlerFixture, FIXTURE_NOW, mechFixture } from '../../../components/__tests__/fixtures'
+import { crawlerFixture, FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import {
   chassisFact,
   crawlerChips,
   crawlerIsKept,
   crawlerReading,
+  crewLinked,
   gameRelation,
   linkChip,
-  mechRelations,
   npcChips,
   patternChips,
   patternReading,
-  pilotRelations,
   shelfFilters,
   shownUnder,
-  splitRelations,
 } from '../shelfItems'
 
 /**
@@ -105,42 +103,45 @@ describe('its Game', () => {
   })
 })
 
-describe('a unit’s relations', () => {
-  test('a pilot’s mech is a relation', () => {
+describe('a unit’s crew link', () => {
+  test('a pilot’s mech is a Mini of its own kind, opening its sheet', () => {
     expect(
-      pilotRelations({
-        pilot: { id: 'p1' },
+      crewLinked({
+        kind: 'pilot',
+        id: 'p1',
         softLinks: [LINK],
-        mechNames: new Map([['m1', 'Scrapper']]),
+        names: new Map([['m1', 'Scrapper']]),
       })
-    ).toEqual([{ key: 'mech', label: 'Mech', value: 'Scrapper', href: '/sheet/mech/m1' }])
+    ).toEqual([
+      { key: 'mech:m1', kind: 'mech', name: 'Scrapper', href: '/sheet/mech/m1', readings: [] },
+    ])
   })
 
-  test('a mech’s pilot is a relation', () => {
-    const mech = mechFixture({ id: 'm1', gameId: null, sourcePattern: 'pat-tow-rig' })
+  test('a mech’s pilot is a Mini of its own kind', () => {
     expect(
-      mechRelations({ mech, softLinks: [LINK], pilotNames: new Map([['p1', 'Bonesaw']]) })
-    ).toEqual([{ key: 'pilot', label: 'Pilot', value: 'Bonesaw', href: '/sheet/pilot/p1' }])
+      crewLinked({ kind: 'mech', id: 'm1', softLinks: [LINK], names: new Map([['p1', 'Bonesaw']]) })
+    ).toMatchObject([{ kind: 'pilot', name: 'Bonesaw', href: '/sheet/pilot/p1' }])
   })
 
   test('a linked unit carries its own stat chips onto its Mini', () => {
     const SP = [{ label: 'SP', value: '9/13' }]
-    const [mech] = pilotRelations({
-      pilot: { id: 'p1' },
+    const [mech] = crewLinked({
+      kind: 'pilot',
+      id: 'p1',
       softLinks: [LINK],
-      mechNames: new Map([['m1', 'Scrapper']]),
-      mechReadings: new Map([['m1', SP]]),
+      names: new Map([['m1', 'Scrapper']]),
+      readings: new Map([['m1', SP]]),
     })
     expect(mech?.readings).toEqual(SP)
-    expect(splitRelations(mech ? [mech] : []).linked[0]?.readings).toEqual(SP)
   })
 
-  test('an unlinked unit, or one whose partner cannot be named, has no relation', () => {
-    const mech = mechFixture({ id: 'm1' })
-    expect(mechRelations({ mech, softLinks: [], pilotNames: new Map() })).toEqual([])
-    expect(mechRelations({ mech, softLinks: [LINK], pilotNames: new Map() })).toEqual([])
+  test('an unlinked unit, or one whose partner cannot be named, has none', () => {
+    expect(crewLinked({ kind: 'mech', id: 'm1', softLinks: [], names: new Map() })).toEqual([])
+    expect(crewLinked({ kind: 'mech', id: 'm1', softLinks: [LINK], names: new Map() })).toEqual([])
   })
+})
 
+describe('a crawler’s chips', () => {
   test('a crawler in a Game you mediate says so; in one you only play, it does not', () => {
     expect(
       chipLabels(

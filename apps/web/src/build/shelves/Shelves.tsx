@@ -83,17 +83,16 @@ import {
   crawlerFact,
   crawlerIsKept,
   crawlerReading,
+  crewLinked,
   encounterNpcChips,
   encounterNpcReading,
   gameRelation,
   linkChip,
-  mechRelations,
   npcChips,
   npcReading,
   patternChips,
   patternReading,
   pilotFact,
-  pilotRelations,
   shelfFilters,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
@@ -434,10 +433,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   reading={rowStats(pilotRailItems(p))[0]}
                   href={`/sheet/pilot/${p.id}`}
                   chips={linkChip(sharedByLink, p.id)}
-                  relations={[
-                    ...pilotRelations({ pilot: p, softLinks, mechNames, mechReadings }),
-                    ...gameRelation(p, games),
-                  ]}
+                  linked={crewLinked({
+                    kind: 'pilot',
+                    id: p.id,
+                    softLinks,
+                    names: mechNames,
+                    readings: mechReadings,
+                  })}
+                  relations={gameRelation(p, games)}
                   menu={unitMenu('pilot', p, p)}
                 />
               ))}
@@ -459,10 +462,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   reading={rowStats(mechRailItems(m))[0]}
                   href={`/sheet/mech/${m.id}`}
                   chips={linkChip(sharedByLink, m.id)}
-                  relations={[
-                    ...mechRelations({ mech: m, softLinks, pilotNames, pilotReadings }),
-                    ...gameRelation(m, games),
-                  ]}
+                  linked={crewLinked({
+                    kind: 'mech',
+                    id: m.id,
+                    softLinks,
+                    names: pilotNames,
+                    readings: pilotReadings,
+                  })}
+                  relations={gameRelation(m, games)}
                   menu={unitMenu('mech', m, m)}
                 />
               ))}

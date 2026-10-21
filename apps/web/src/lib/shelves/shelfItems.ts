@@ -18,7 +18,6 @@ import type { ContainerFields } from 'game-domain/container'
 import { gamePath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
-import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -30,6 +29,9 @@ import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
 import { patternChassis, patternLoadout, slotsUsed } from '../patterns/patterns'
 import { readReference } from '../readReference'
+import { pairSide } from '../units/crewPair'
+import { VITAL, vitalReading } from '../units/readings'
+import type { UnitReading } from '../units/unitModel'
 
 /** The Showing select: everything you own, what is in no Game, or one Game's (`game:<id>`). */
 export type ShelfFilter = 'everything' | 'not-in-game' | `game:${string}`
@@ -63,49 +65,19 @@ export type PatternSharing = {
 export type ShelfChip = { key: string; label: string; value?: string }
 
 /**
- * A unit or Game linked to the item, as its relation chip
- * (`chips-and-actions.md` C11): what it is (`Mech`, `Game`), its name, and
- * where it opens (a unit's sheet, a Game's page in Play).
+ * The Game an item is in, as its relation chip (`chips-and-actions.md` C11):
+ * what it is (`Game`), its name, and where it opens (its page in Play). A
+ * linked unit is a Mini, never a chip (`crewLinked`).
  */
 export type ShelfRelation = {
   key: string
   label: string
   value: string
   href: string
-  /** A linked unit's own stat chips (`SP 9/13`), on its Mini. */
-  readings?: readonly ShelfReading[]
 }
 
-/** A relation that names a unit, by its key: drawn as that unit's Mini, never a chip. */
-const UNIT_RELATION = new Set(['pilot', 'mech', 'crawler'])
-
-/**
- * An item's relations split: the units linked to it, each a header-only Mini
- * (`<Entity linked>`, R5), and
- * the rest (its Game), relation chips (C11).
- */
-export function splitRelations(relations: readonly ShelfRelation[]): {
-  linked: LinkedUnit[]
-  chips: ShelfRelation[]
-} {
-  const linked: LinkedUnit[] = []
-  const chips: ShelfRelation[] = []
-  for (const r of relations) {
-    if (UNIT_RELATION.has(r.key)) {
-      linked.push({
-        key: r.key,
-        kind: r.key as LinkedUnit['kind'],
-        name: r.value,
-        href: r.href,
-        ...(r.readings ? { readings: r.readings } : {}),
-      })
-    } else chips.push(r)
-  }
-  return { linked, chips }
-}
-
-/** One reading on an item's line: `HP 8/10`, `TL 1`. */
-export type ShelfReading = { label: string; value: string }
+/** Who can see an item, in the words its chip wears. */
+const WHO = { link: 'Shared by link', me: 'Only me' } as const
 
 /** Whether an item shows under the Showing select. A unit in a Game shows under Everything. */
 export function shownUnder(filter: ShelfFilter, entity: ContainerFields): boolean {
@@ -152,7 +124,7 @@ export function crawlerFact(crawler: Pick<Crawler, 'type'>): string | undefined 
 }
 
 /** A crawler's reading is its tech level: `TL 1`. */
-export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): ShelfReading | undefined {
+export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): UnitReading | undefined {
   const tl = crawler.techLevel.replace(/[^0-9]/g, '')
   return tl ? { label: 'TL', value: tl } : undefined
 }
@@ -160,11 +132,10 @@ export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): ShelfReadin
 /** A pattern's reading is how full its system slots are: `SYS 12/12`. */
 export function patternReading(
   pattern: Pick<MechPattern, 'chassisRef' | 'systems' | 'modules'>
-): ShelfReading | undefined {
+): UnitReading | undefined {
   const chassis = patternChassis(pattern)
   if (chassis === null || typeof chassis.systemSlots !== 'number') return undefined
-  const used = slotsUsed(patternLoadout(pattern).systems)
-  return { label: 'SYS', value: `${used}/${chassis.systemSlots}` }
+  return vitalReading('SYS', slotsUsed(patternLoadout(pattern).systems), chassis.systemSlots)
 }
 
 /**
@@ -186,55 +157,37 @@ export function gameRelation(
 type Names = ReadonlyMap<string, string>
 
 /** Each unit's stat chips by its id, for the Mini that links it. */
-type Readings = ReadonlyMap<string, readonly ShelfReading[]>
+type Readings = ReadonlyMap<string, readonly UnitReading[]>
 
-const withReadings = (readings: Readings | undefined, id: string) => {
-  const found = readings?.get(id)
-  return found ? { readings: found } : {}
-}
-
-/** The mech a pilot is assigned to, as its relation: `MECH | Scrapper`. */
-export function pilotRelations(args: {
-  pilot: Pick<Pilot, 'id'>
+/**
+ * The unit a pilot or mech is crewed with by its `mech-to-pilot` link — a
+ * pilot's mech, a mech's pilot — as that side's Mini (`pairSide`), with its own
+ * stat chips. One whose name this browser cannot read is left out.
+ */
+export function crewLinked(args: {
+  kind: 'pilot' | 'mech'
+  id: string
   softLinks: readonly SoftLink[]
-  mechNames: Names
-  mechReadings?: Readings
-}): ShelfRelation[] {
-  const link = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === args.pilot.id)
-  const name = link && args.mechNames.get(link.from.id)
-  return link && name
-    ? [
-        {
-          key: 'mech',
-          label: 'Mech',
-          value: name,
-          href: `/sheet/mech/${link.from.id}`,
-          ...withReadings(args.mechReadings, link.from.id),
-        },
-      ]
-    : []
-}
-
-/** The pilot a mech carries, as its relation: `PILOT | Bonesaw`. */
-export function mechRelations(args: {
-  mech: Pick<Mech, 'id'>
-  softLinks: readonly SoftLink[]
-  pilotNames: Names
-  pilotReadings?: Readings
-}): ShelfRelation[] {
-  const link = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.from.id === args.mech.id)
-  const name = link && args.pilotNames.get(link.to.id)
-  return link && name
-    ? [
-        {
-          key: 'pilot',
-          label: 'Pilot',
-          value: name,
-          href: `/sheet/pilot/${link.to.id}`,
-          ...withReadings(args.pilotReadings, link.to.id),
-        },
-      ]
-    : []
+  names: Names
+  readings?: Readings
+}): LinkedUnit[] {
+  const { kind, id } = args
+  const link = args.softLinks.find(
+    (l) => l.type === 'mech-to-pilot' && (kind === 'pilot' ? l.to.id : l.from.id) === id
+  )
+  if (link === undefined) return []
+  const other = kind === 'pilot' ? 'mech' : 'pilot'
+  const otherId = kind === 'pilot' ? link.from.id : link.to.id
+  const name = args.names.get(otherId)
+  if (name === undefined) return []
+  return [
+    pairSide(other, {
+      id: otherId,
+      name,
+      href: `/sheet/${other}/${otherId}`,
+      readings: args.readings?.get(otherId),
+    }),
+  ]
 }
 
 /** A crawler in a Game you mediate says so. */
@@ -255,28 +208,25 @@ export function patternChips(sharing: PatternSharing | undefined): ShelfChip[] {
   if (sharing === undefined) return []
   const who =
     sharing.visibility === 'link'
-      ? 'Shared by link'
+      ? WHO.link
       : sharing.visibility === 'game'
         ? sharing.gameName
           ? `Shared with ${sharing.gameName}`
           : 'Shared with a crew'
-        : 'Only me'
+        : WHO.me
   return [{ key: 'who', label: who }]
 }
 
 /** An NPC's reading is its hit (or structure) points: `HP 6/6`. */
-export function npcReading(npc: Pick<Npc, 'hitPoints' | 'damageType' | 'currentHP'>): ShelfReading {
-  return {
-    label: npc.damageType,
-    value: `${resolvePool(npc.currentHP, npc.hitPoints)}/${npc.hitPoints}`,
-  }
+export function npcReading(npc: Pick<Npc, 'hitPoints' | 'damageType' | 'currentHP'>): UnitReading {
+  return vitalReading(npc.damageType, resolvePool(npc.currentHP, npc.hitPoints), npc.hitPoints)
 }
 
 /** An encounter-tray NPC's reading, on the same footing. */
 export function encounterNpcReading(
   npc: Pick<EncounterNpc, 'currentHp' | 'maxHp' | 'statKind'>
-): ShelfReading {
-  return { label: npc.statKind === 'sp' ? 'SP' : 'HP', value: `${npc.currentHp}/${npc.maxHp}` }
+): UnitReading {
+  return vitalReading(npc.statKind === 'sp' ? VITAL.sp : VITAL.hp, npc.currentHp, npc.maxHp)
 }
 
 /**
@@ -284,7 +234,7 @@ export function encounterNpcReading(
  * (`shelf.sharedByLink`): the words a pattern shared by link wears.
  */
 export function linkChip(sharedByLink: readonly string[] | undefined, id: string): ShelfChip[] {
-  return sharedByLink?.includes(id) ? [{ key: 'link', label: 'Shared by link' }] : []
+  return sharedByLink?.includes(id) ? [{ key: 'link', label: WHO.link }] : []
 }
 
 /**
@@ -293,12 +243,12 @@ export function linkChip(sharedByLink: readonly string[] | undefined, id: string
  * its Game relation (`gameRelation`) already says, so no chip repeats it.
  */
 export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolean }): ShelfChip[] {
-  if (args.sharedByLink) return [{ key: 'who', label: 'Shared by link' }]
-  if (typeof args.npc.gameId !== 'string') return [{ key: 'who', label: 'Only me' }]
+  if (args.sharedByLink) return [{ key: 'who', label: WHO.link }]
+  if (typeof args.npc.gameId !== 'string') return [{ key: 'who', label: WHO.me }]
   return []
 }
 
 /** The personal tray's NPCs live in the Training Bay alone, so only the owner sees them. */
 export function encounterNpcChips(): ShelfChip[] {
-  return [{ key: 'who', label: 'Only me' }]
+  return [{ key: 'who', label: WHO.me }]
 }

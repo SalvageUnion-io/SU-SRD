@@ -7,7 +7,9 @@
  *  - **Not boarded** (or with no mech): the pilot's Mini, its readings (HP,
  *    AP) as its chips and a relation chip naming its mech (`MECH | Mule`).
  *
- * Pure, so every surface that links a pilot and a mech draws the pair alike.
+ * Pure, so every surface that links a pilot and a mech draws the pair alike:
+ * the Play hub and a Game's roster as one Mini (`crewPair`), the Training
+ * Bay as the other side's Mini on each item (`pairSide`).
  */
 
 import type { LinkedUnit } from '../../components/index'
@@ -22,6 +24,20 @@ export type PairSide = {
   readings?: readonly UnitReading[]
 }
 
+/**
+ * One side of the pair as a Mini of its own kind, with no relation: where the
+ * item it hangs on already is the other side (a Training Bay pilot's mech).
+ */
+export function pairSide(kind: 'pilot' | 'mech', side: PairSide): LinkedUnit {
+  return {
+    key: `${kind}:${side.id}`,
+    kind,
+    name: side.name,
+    href: side.href,
+    readings: side.readings ?? [],
+  }
+}
+
 export function crewPair(args: {
   pilot: PairSide
   mech: PairSide | null
@@ -30,20 +46,12 @@ export function crewPair(args: {
   const { pilot, mech, boarded } = args
   if (boarded && mech !== null) {
     return {
-      key: `mech:${mech.id}`,
-      kind: 'mech',
-      name: mech.name,
-      href: mech.href,
-      readings: mech.readings ?? [],
+      ...pairSide('mech', mech),
       relations: [relation(`pilot-${pilot.id}`, 'Pilot', pilot.name, { href: pilot.href })],
     }
   }
   return {
-    key: `pilot:${pilot.id}`,
-    kind: 'pilot',
-    name: pilot.name,
-    href: pilot.href,
-    readings: pilot.readings ?? [],
+    ...pairSide('pilot', pilot),
     ...(mech === null
       ? {}
       : { relations: [relation(`mech-${mech.id}`, 'Mech', mech.name, { href: mech.href })] }),
