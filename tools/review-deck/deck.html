@@ -362,7 +362,10 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   })
   $('approve').addEventListener('click', () => {
     const v = current(view[pos]) || {}
-    save({ verdict: v.verdict === 'approve' ? '' : 'approve', comment: $('comment').value })
+    const approving = v.verdict !== 'approve'
+    save({ verdict: approving ? 'approve' : '', comment: $('comment').value })
+    // An approval moves on to the next slide; save has already taken this one.
+    if (approving && pos < view.length - 1) { pos++; render() }
   })
   $('changes').addEventListener('click', () => {
     const v = current(view[pos]) || {}
