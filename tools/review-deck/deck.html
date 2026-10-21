@@ -526,7 +526,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
         return data.slides.filter((s) => re.test(`${s.family} ${s.url} ${s.where}`)).map((s) => Object.assign(Object.create(s), { base: s, upd: u }))
       })
       if (updSlides.length) renderSections()
-    }).catch(() => {})
+    }).catch(() => { /* no components.json: no Component updates section */ })
     view = m.slides.slice()
     render()
     openCommented()
