@@ -1,6 +1,6 @@
 /**
- * playActions — Play's thin, PURE driver over the existing rules engine
- * (docs/architecture/play.md §14). Nothing here touches React or the store: every function takes the
+ * actionPatches — the thin, PURE driver over the rules engine that Play and
+ * the pilot sheet share (docs/architecture/play.md §14). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
  * `Partial<Pilot>` write-through patch the caller (`useActionsDeck`, `PlayReactorRow`)
  * hands to `storeState.update(...)`. This keeps the button/action handlers trivially testable

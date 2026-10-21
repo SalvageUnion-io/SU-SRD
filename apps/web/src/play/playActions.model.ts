@@ -16,8 +16,8 @@
 
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
-import type { PlayAction } from '../lib/rules/playActions'
-import { actionInRange, actionReachable } from '../lib/rules/playActions'
+import type { PlayAction } from '../lib/rules/actionPatches'
+import { actionInRange, actionReachable } from '../lib/rules/actionPatches'
 import type { Situation } from './situation.model'
 
 /** An action's type, as the list sorts and filters it. */

@@ -1,7 +1,7 @@
 /**
  * PlayReactorRow — the mech's Reactor as a row of the Actions list (play.md
  * §5): the Heat Check on the Reactor Overload table, Push, Vent and Shut
- * down, writing the reactor's patches (`lib/rules/playActions`).
+ * down, writing the reactor's patches (`lib/rules/actionPatches`).
  *
  * The roll is the table's (`PlayRollInstrument`, R8): its stamp is the one
  * roll control, "Heat Check:", or "Push:" while Push is pressed (+2 Heat,
@@ -38,7 +38,7 @@ import {
   mechPush,
   shutdownTogglePatch,
   VENT_PATCH,
-} from '../lib/rules/playActions'
+} from '../lib/rules/actionPatches'
 import { runWrite } from '../lib/runWrite'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import { NeedChip } from './PlayActionRow'

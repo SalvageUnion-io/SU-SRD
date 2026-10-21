@@ -11,7 +11,7 @@ import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
-import type { PlayAction } from '../playActions'
+import type { PlayAction } from '../actionPatches'
 import {
   actionInRange,
   actionReachable,
@@ -30,7 +30,7 @@ import {
   pushPatch,
   shutdownTogglePatch,
   VENT_PATCH,
-} from '../playActions'
+} from '../actionPatches'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {

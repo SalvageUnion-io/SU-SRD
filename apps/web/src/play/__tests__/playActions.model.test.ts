@@ -8,7 +8,7 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import type { RefMetaAction } from 'salvageunion-reference'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
-import type { PlayAction } from '../../lib/rules/playActions'
+import type { PlayAction } from '../../lib/rules/actionPatches'
 import type { ListEntry } from '../playActions.model'
 import {
   actionTypeOf,

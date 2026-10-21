@@ -28,14 +28,14 @@ import {
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import {
   buildMechActions,
   buildPilotActions,
   hasCurrencyChoice,
   hasVariableHot,
   hotHeatFor,
-} from '../../lib/rules/playActions'
+} from '../../lib/rules/actionPatches'
+import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
 import type { ActionsDeckProps, ResolveModel } from '../useActionsDeck'
