@@ -51,7 +51,7 @@ function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
   }
   const npc =
     part === 'npc'
-      ? nestedEntityGroups(host).find((group) => group.label === 'NPCs')?.entities[0]
+      ? nestedEntityGroups(host).find((group) => group.kind === 'npc')?.entities[0]
       : undefined
   return npc ? { kind: 'entity', entity: npc as RefEntity } : undefined
 }

@@ -324,7 +324,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       {damagedNode}
       {!isPattern &&
         inFlowGroups.map((group) =>
-          bayCrewPeek && group.label === 'NPCs' ? (
+          bayCrewPeek && group.kind === 'npc' ? (
             <EmbeddedNpcMinis
               key={group.label}
               entities={group.entities}
@@ -337,9 +337,9 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
               entities={group.entities}
               host={nestedHost}
               seal={
-                schemaName === 'crawlers' && group.label === 'NPCs' ? CRAWLER_NPC_SEAL : undefined
+                schemaName === 'crawlers' && group.kind === 'npc' ? CRAWLER_NPC_SEAL : undefined
               }
-              write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
+              write={group.kind === 'npc' ? { selections, onSelectionChange, hide } : undefined}
             />
           )
         )}
