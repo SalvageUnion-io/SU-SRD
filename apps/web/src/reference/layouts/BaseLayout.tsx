@@ -13,11 +13,9 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta } from '../../../ssg/types'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import type { FooterFoot } from '../../components/index'
-import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../../components/index'
+import { BreadcrumbTrail, ChapterBandTrail, Footer, SkipLink } from '../../components/index'
 import { color } from '../../design/tokens'
-import { cn } from '../../lib/cn'
 import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../../lib/constants'
 import { SITE_LINKS } from '../../lib/docPages'
 import { metaTags, SITE_ICONS, THEME_COLOR } from '../../lib/documentHead'
@@ -27,8 +25,6 @@ import { pageTitle } from '../../lib/pageTitle'
 import { SITE_MANIFEST } from '../../pwa'
 import { Island } from '../../runtime/Island'
 import { TopNavigation } from '../TopNavigation'
-
-const SKIP_LINK = cn('su-skip-link', capsLabel())
 
 /** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({
@@ -99,7 +95,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
         {/* The link-preview block every document carries (`metaTags`). All OG
-            images the site emits are 1200×630 (the default banner). */}
+            images the site emits are 1200×630 (the default banner). With it,
+            Discord's Component Embed: a pasted link to this page renders as
+            the bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
         {metaTags({
           title: ogTitle,
           description,
@@ -109,24 +107,21 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           type: ogType,
           themeColor,
           image: { url: ogImageUrl, alt: ogImageAlt ?? ogTitle },
-        }).map(({ tag: Tag, attrs }) => (
-          <Tag key={`${Tag}:${attrs.name ?? attrs.property ?? attrs.rel}`} {...attrs} />
-        ))}
+          ...(componentEmbed ? { componentEmbed } : {}),
+        }).map((head) => {
+          const { attrs } = head
+          const key = `${head.tag}:${attrs.name ?? attrs.property ?? attrs.rel ?? attrs.id}`
+          return head.tag === 'script' ? (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: the Component Embed's JSON, script-escaped by `metaTags`
+            <script key={key} {...attrs} dangerouslySetInnerHTML={{ __html: head.text }} />
+          ) : (
+            <head.tag key={key} {...attrs} />
+          )
+        })}
         {SITE_ICONS.map((icon) => (
           <link key={icon.href} {...icon} />
         ))}
         <link rel="manifest" href={SITE_MANIFEST} />
-
-        {/* Discord's Component Embed: a pasted link to this page renders as the
-            bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
-        {componentEmbed ? (
-          <script
-            id="discord:component-embed"
-            type="application/json"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: Component Embed JSON, JSON.stringify + script-escaped
-            dangerouslySetInnerHTML={{ __html: escapeJsonForScript(componentEmbed) }}
-          />
-        ) : null}
 
         {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
 
@@ -202,9 +197,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             Without it, a keyboard user traverses the home mark, the main nav
             and the breadcrumb nav before reaching content, on every page.
           */}
-          <a href="#main-content" className={SKIP_LINK}>
-            Skip to content
-          </a>
+          <SkipLink />
           {/* The 404's own search stands in for the Union bar's: two fields on
               one page would both claim ⌘K. Its pathname is `/404/` though it
               is emitted as `404.html`. */}

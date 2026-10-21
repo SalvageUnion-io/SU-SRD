@@ -5,9 +5,11 @@
  * browser-chrome colour, one link-preview block (`metaTags`), which the
  * Worker also writes into the shell for a shared page (`worker/shellMeta.ts`).
  *
- * No imports: the Vite config loads the shell, and with it this module,
- * before any `import.meta.env` exists, and the Worker bundles it.
+ * One import, itself import-free: the Vite config loads the shell, and with it
+ * this module, before any `import.meta.env` exists, and the Worker bundles it.
  */
+
+import { escapeJsonForScript } from './escapeJsonForScript'
 
 /**
  * The site's name: every title's suffix (`pageTitle`), `og:site_name`, and the
@@ -54,10 +56,20 @@ export type PreviewMeta = {
   themeColor: string
   /** The card's image, always 1200×630; without one the unfurl is text. */
   image?: { url: string; alt: string }
+  /**
+   * The page's Discord Component Embed JSON (`componentEmbedFor`): Discord
+   * draws it in place of the preview. Written as data, never run.
+   */
+  componentEmbed?: string
 }
 
-/** One element of the head, as its tag name and attributes. */
-export type HeadTag = { tag: 'meta' | 'link'; attrs: Record<string, string> }
+/**
+ * One element of the head, as its tag name and attributes; a script carries
+ * its text too, already safe to sit inside the element.
+ */
+export type HeadTag =
+  | { tag: 'meta' | 'link'; attrs: Record<string, string> }
+  | { tag: 'script'; attrs: Record<string, string>; text: string }
 
 const meta = (attrs: Record<string, string>): HeadTag => ({ tag: 'meta', attrs })
 
@@ -90,6 +102,16 @@ export function metaTags(page: PreviewMeta): HeadTag[] {
       : [meta({ name: 'twitter:card', content: 'summary' })]),
     meta({ name: 'twitter:title', content: page.title }),
     meta({ name: 'twitter:description', content: preview }),
+    ...(page.componentEmbed
+      ? [
+          {
+            tag: 'script' as const,
+            attrs: { id: 'discord:component-embed', type: 'application/json' },
+            // Every `<` escaped, so a player-typed name cannot end the element.
+            text: escapeJsonForScript(page.componentEmbed),
+          },
+        ]
+      : []),
   ]
 }
 
@@ -105,9 +127,13 @@ export function escapeMarkup(value: string): string {
 /** Head tags as markup, one per line, for a document written as a string. */
 export function renderTags(tags: readonly HeadTag[], indent = ''): string {
   return tags
-    .map(({ tag, attrs }) => {
-      const pairs = Object.entries(attrs).map(([key, value]) => `${key}="${escapeMarkup(value)}"`)
-      return `<${tag} ${pairs.join(' ')} />`
+    .map((head) => {
+      const pairs = Object.entries(head.attrs).map(
+        ([key, value]) => `${key}="${escapeMarkup(value)}"`
+      )
+      return head.tag === 'script'
+        ? `<script ${pairs.join(' ')}>${head.text}</script>`
+        : `<${head.tag} ${pairs.join(' ')} />`
     })
     .join(`\n${indent}`)
 }
