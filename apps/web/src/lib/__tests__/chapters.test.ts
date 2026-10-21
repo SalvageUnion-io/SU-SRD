@@ -83,7 +83,7 @@ describe('listingBandFillFor', () => {
     expect(listingBandFillFor('modules')).toEqual({ band: 'var(--color-tl-1)' })
     expect(listingBandFillFor('drones')).toEqual({ band: 'var(--color-tl-1)' })
     expect(listingBandFillFor('chassis')).toBeUndefined()
-    expect(listingBandFillFor('equipment')).toBeUndefined()
+    expect(listingBandFillFor('equipment')).toEqual({ band: 'var(--color-tl-1)' })
   })
 })
 

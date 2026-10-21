@@ -361,8 +361,9 @@ describe('Training Bay — items', () => {
     const linked = Array.from(document.querySelectorAll('[data-entity-linked]')).map((el) =>
       (el.textContent ?? '').trim()
     )
-    expect(linked).toContain('Iron Fist (Mech)')
-    expect(linked).toContain('Mara Vex (Pilot)')
+    // Each opens on its name; its stat chips follow (`Iron Fist (Mech)SP0/0`).
+    expect(linked.some((text) => text.startsWith('Iron Fist (Mech)'))).toBe(true)
+    expect(linked.some((text) => text.startsWith('Mara Vex (Pilot)'))).toBe(true)
     const chips = Array.from(document.querySelectorAll('[data-tag]')).map((el) => el.textContent)
     expect(chips.some((text) => /Iron Fist|Mara Vex/.test(text ?? ''))).toBe(false)
     expect(screen.queryByText(/^Assigned: /)).toBeNull()

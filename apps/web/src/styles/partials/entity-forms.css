@@ -904,6 +904,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   align-self: flex-end;
 }
 
+/* A header-only tile (a band and nothing under it, /crawler-tech-levels/):
+   its cut-out is its ground's, as a header-only Compact's (owner, round 10:
+   "cutouts not showing background"). */
+.su-entity-index__band:only-child > .su-entity-index__notch {
+  background-color: var(--su-ground);
+}
+
 .su-entity-index__cells {
   align-content: flex-start;
   display: flex;

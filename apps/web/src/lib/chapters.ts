@@ -201,11 +201,14 @@ const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'module
 /**
  * The listings that wear TL1's blue: systems and modules, whose pages wear
  * their tech level's, and drones, whose cards' heads are tech-level blue
- * (owner, 2026-10-20: "Drone header should be blue to match drones").
+ * (owner, 2026-10-20: "Drone header should be blue to match drones"), and
+ * pilot equipment, whose cards' heads are too (owner, round 10: "headers of
+ * TL1 for the index, not pilot orange").
  */
 const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
   ...TECH_LEVEL_BAND_SCHEMAS,
   'drones',
+  'equipment',
 ])
 
 /**

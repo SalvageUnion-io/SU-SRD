@@ -137,3 +137,14 @@
     gap: var(--space-16);
   }
 }
+
+/* A Peek's art keeps the top left corner, its prose flowing around it, as on
+   the page (owner, round 10: "image should still be top left corner, content
+   flowing around it"): past a phone a Peek stands its full width, narrower
+   than the card's 40rem but wide enough beside an art lead. */
+@media (width >= 48rem) {
+  [data-peek-popup] .su-ec-art--float {
+    float: left;
+    margin-inline: 0 var(--space-16);
+  }
+}

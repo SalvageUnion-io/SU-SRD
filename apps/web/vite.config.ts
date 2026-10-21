@@ -35,6 +35,7 @@ import {
   shellOrigin,
   siteManifest,
 } from './ssg/appPlugins'
+import { referenceStamp } from './ssg/referenceStamp'
 
 const HERE = import.meta.dirname
 const OUT_DIR = join(HERE, 'dist')
@@ -107,13 +108,20 @@ export default defineConfig({
   // names both apps' sources: `ssg/dev.ts` serves no index.html for Vite's
   // default scan, and deps discovered on first request re-ran the optimizer
   // mid-navigation (504 "Outdated Optimize Dep"). `vite build` has no dep
-  // optimizer, so none of this reaches production.
+  // optimizer, so none of this reaches production. The package's stamp rides
+  // the bundle's intro so a change to its sources re-bundles it
+  // (`referenceStamp`): Vite would otherwise keep serving the stale copy.
   optimizeDeps: {
     include: [
       'salvageunion-reference',
       'salvageunion-reference/rules',
       'salvageunion-reference/zod',
     ],
+    rolldownOptions: {
+      output: {
+        intro: `/* salvageunion-reference ${referenceStamp(join(HERE, '../../packages/salvageunion-reference'))} */`,
+      },
+    },
     entries: [
       'src/main.tsx',
       'src/routes/**/*.{ts,tsx}',
