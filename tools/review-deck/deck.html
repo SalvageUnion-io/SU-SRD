@@ -167,7 +167,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
         </div>
         <label class="label" for="comment">Comment</label>
         <textarea id="comment" placeholder="What should change on this screen?"></textarea>
-        <button class="btn" id="saveComment" type="button">Save comment</button>
+        <button class="btn" id="saveComment" type="button">Save and next</button>
         <div class="status" id="status"></div>
       </section>
     </aside>
@@ -372,7 +372,10 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     save({ verdict: v.verdict === 'changes' ? '' : 'changes', comment: $('comment').value })
     if (v.verdict !== 'changes') $('comment').focus()
   })
-  $('saveComment').addEventListener('click', () => save({ comment: $('comment').value }))
+  $('saveComment').addEventListener('click', () => {
+    save({ comment: $('comment').value })
+    if (pos < view.length - 1) { pos++; render() }
+  })
   $('cell').addEventListener('click', () => { $('shot').classList.toggle('zoom'); if (view[pos]) showShot(view[pos]) })
   $('img').addEventListener('error', () => setStatus('This shot did not load. Reload the page.', true))
   document.addEventListener('keydown', (e) => {
