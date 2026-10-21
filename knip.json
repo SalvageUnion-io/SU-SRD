@@ -49,9 +49,8 @@
         "src/routes/**/*.tsx",
         // The app's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
         "src/main.tsx",
-        // The Playwright specs and the review shoot, which its own config runs.
-        "e2e/**/*.e2e.ts",
-        "e2e/review/*.review.ts"
+        // The Playwright specs.
+        "e2e/**/*.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.

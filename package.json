@@ -72,6 +72,7 @@
     "assets:upload": "bun tools/upload-lp-assets.ts",
     "assets:crop": "bun tools/art-crop.ts",
     "gallery": "bun tools/gallery.ts",
+    "gallery:deck": "bun apps/web/scripts/galleryDeck.ts",
     "shot": "bun tools/shot.ts"
   }
 }

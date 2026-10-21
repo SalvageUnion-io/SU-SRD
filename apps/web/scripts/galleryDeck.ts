@@ -1,49 +1,35 @@
-// The whole-site review pass behind the "SalvageUnion.io 4.0 review" deck
-// (tools/review-deck/README.md). Run by `review.config.ts` only, never by the
-// suite. Every screen type at 1440 and 390, viewport shots at several scroll
-// depths, each view checked against the canon's gates (rule violations) and
-// for blind spots (possible issues), marked on the shot.
+#!/usr/bin/env bun
+/**
+ * bun run gallery:deck <out-dir> [route-filter,…]
+ *
+ * The screenshot gallery's review-deck mode (tools/review-deck/README.md):
+ * every screen type at 1440 and 390, viewport shots at several scroll depths,
+ * each view checked against the canon's gates (rule violations) and for blind
+ * spots (possible issues), marked on the shot. It signs in and seeds as the
+ * gallery does (`seed`, tools/gallery.ts) and opens the views through the
+ * design walk (`visitDesignViews`), against the server `bun run dev:backend`
+ * keeps up. Writes <out-dir>/*.jpg and <out-dir>/manifest.jsonl for
+ * `tools/review-deck/stage.ts`.
+ */
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import type { Page } from '@playwright/test'
-import { seedAccount } from 'gates/lib/seedAccount'
+import { FORCE_ONLINE, launchBrowser } from 'gates/lib/chromium'
+import { portFor } from 'gates/ports'
 import { nameToSlug } from 'salvageunion-reference'
-import { walkDesignRoutes } from '../_designRoutes'
-import type { DesignRoute } from '../_designTable'
-import { designRoutes, REFERENCE_CORPUS } from '../_designTable'
-import { test as signedIn } from '../fixtures'
+import { seed } from '../../../tools/gallery'
+import { findChipStripFaults } from '../e2e/_chipStrips'
+import { visitDesignViews } from '../e2e/_designRoutes'
+import type { DesignRoute } from '../e2e/_designTable'
+import { designRoutes, REFERENCE_CORPUS } from '../e2e/_designTable'
+import { findFrameFaults } from '../e2e/_entityFrames'
+import { findNestingFindings } from '../e2e/_nestingDepth'
+import { findRhythmFindings } from '../e2e/_pageRhythm'
+import { findSiblingMismatches, findTabSizeFaults } from '../e2e/_siblingHeights'
+import { findMiniCutoutFaults } from '../e2e/_tokenCutout'
 
-const OUT = process.env.REVIEW_OUT ?? '/tmp/site-review'
-const ONLY = process.env.REVIEW_ONLY
+/** Viewport shots per view at most, down the page. */
 const MAX_SHOTS = { page: 6, phone: 8 } as const
-
-// Chromium in the sandbox cannot watch the network (netlink), so it believes it is offline.
-const test = signedIn.extend({
-  context: async ({ context }, use) => {
-    await context.addInitScript(() => {
-      Object.defineProperty(Navigator.prototype, 'onLine', { get: () => true, configurable: true })
-    })
-    // Art comes through Node's fetch, which takes the sandbox's egress proxy.
-    await context.route('https://assets.salvageunion.io/**', async (route) => {
-      try {
-        const r = await fetch(route.request().url())
-        await route.fulfill({
-          status: r.status,
-          headers: {
-            'content-type': r.headers.get('content-type') ?? 'application/octet-stream',
-            'access-control-allow-origin': '*',
-            'cache-control': 'max-age=3600',
-          },
-          body: Buffer.from(await r.arrayBuffer()),
-        })
-      } catch (e) {
-        appendFileSync(join(OUT, 'errors.txt'), `route ${route.request().url()}: ${e}\n`)
-        await route.abort()
-      }
-    })
-    await use(context)
-  },
-})
 
 const BOTH = ['page', 'phone'] as const
 const ref = (path: string, family: DesignRoute['family'] = 'reference-page'): DesignRoute => ({
@@ -69,8 +55,8 @@ const META = new Set(['actions', 'ability-tree-requirements', 'catalog-categorie
  * other kind (its shortest, middle and longest entry by data size), the
  * patterns, and the pages with no data behind them.
  */
-function siteRoutes(): DesignRoute[] {
-  const dir = join(import.meta.dirname, '../../../../packages/salvageunion-reference/data')
+export function siteRoutes(): DesignRoute[] {
+  const dir = join(import.meta.dirname, '../../../packages/salvageunion-reference/data')
   const routes: DesignRoute[] = [
     ref('/', 'reference-index'),
     ref('/about/'),
@@ -93,7 +79,9 @@ function siteRoutes(): DesignRoute[] {
     const picks =
       schema === 'guides'
         ? named
-        : [...new Set([0, Math.floor(bySize.length / 2), bySize.length - 1])].map((i) => bySize[i]!)
+        : [...new Set([0, Math.floor(bySize.length / 2), bySize.length - 1])].flatMap(
+            (i) => bySize[i] ?? []
+          )
     for (const row of picks) routes.push(ref(`/${schema}/${nameToSlug(row.name as string)}/`))
   }
   routes.push(
@@ -110,7 +98,7 @@ function siteRoutes(): DesignRoute[] {
 }
 
 /** The app's screens: every design route, a Peek, the Starter Set's sheets. */
-function appRoutes(): DesignRoute[] {
+export function appRoutes(): DesignRoute[] {
   return [
     ...designRoutes.filter(
       (r) =>
@@ -177,7 +165,9 @@ function measure(): ShotInfo {
     const mids = rects.map((r) => (r.top + r.bottom) / 2).sort((a, b) => a - b)
     const lineH = Math.min(...rects.map((r) => r.height))
     let lines = 1
-    for (let i = 1; i < mids.length; i++) if (mids[i]! - mids[i - 1]! > lineH * 0.6) lines++
+    mids.forEach((mid, i) => {
+      if (i > 0 && mid - (mids[i - 1] ?? mid) > lineH * 0.6) lines++
+    })
     if (lines > 1)
       mark(host, { kind: 'rule', rule: 'R37 chips', what: `${what}: chips on ${lines} lines` })
     else if (name) {
@@ -211,11 +201,11 @@ function measure(): ShotInfo {
   const boxes = items.map((e) => e.getBoundingClientRect())
   for (let i = 0; i < items.length; i++) {
     for (let j = i + 1; j < items.length; j++) {
-      const a = items[i]!
-      const b = items[j]!
-      if (a.contains(b) || b.contains(a)) continue
-      const ra = boxes[i]!
-      const rb = boxes[j]!
+      const a = items[i]
+      const b = items[j]
+      const ra = boxes[i]
+      const rb = boxes[j]
+      if (!a || !b || !ra || !rb || a.contains(b) || b.contains(a)) continue
       const w = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left)
       const h = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top)
       if (w <= 2 || h <= 2) continue
@@ -290,96 +280,62 @@ function measure(): ShotInfo {
 }
 
 /** The canon's gates on the whole view: one line per finding, by rule. */
-async function viewRules(page: Page, where: string): Promise<{ rule: string; line: string }[]> {
-  const out: { rule: string; line: string }[] = []
+async function viewRules(
+  page: Page,
+  out: string,
+  where: string
+): Promise<{ rule: string; line: string }[]> {
+  const found: { rule: string; line: string }[] = []
   const take = async (rule: string | ((line: string) => string), run: () => Promise<string[]>) => {
     try {
       for (const line of await run())
-        out.push({ rule: typeof rule === 'string' ? rule : rule(line), line })
+        found.push({ rule: typeof rule === 'string' ? rule : rule(line), line })
     } catch (e) {
-      appendFileSync(join(OUT, 'errors.txt'), `${where}: detector failed: ${e}\n`)
+      appendFileSync(join(out, 'errors.txt'), `${where}: detector failed: ${e}\n`)
     }
-  }
-  // The gates are loaded by name: one the branch has dropped or renamed is
-  // skipped (and noted), so the shoot runs on any commit.
-  // biome-ignore lint/suspicious/noExplicitAny: a gate module's shape is checked by name.
-  const gate = async (name: string): Promise<Record<string, any> | null> => {
-    try {
-      return await import(`../${name}`)
-    } catch {
-      appendFileSync(join(OUT, 'errors.txt'), `gate ${name} not on this commit\n`)
-      return null
-    }
-  }
-  const [strips, frames, nesting, siblings, rhythm, cutouts] = await Promise.all(
-    [
-      '_chipStrips',
-      '_entityFrames',
-      '_nestingDepth',
-      '_siblingHeights',
-      '_pageRhythm',
-      '_tokenCutout',
-    ].map(gate)
-  )
-  const call = (m: Record<string, unknown> | null | undefined, ...names: string[]) => {
-    const fn = names.map((n) => m?.[n]).find((f) => typeof f === 'function') as
-      | ((page: Page) => Promise<unknown[]>)
-      | undefined
-    return fn ? () => fn(page) : async () => []
   }
   // R37's overflow and +MORE kinds are the canon now, not faults (C2b, C5).
   await take(
     (l) => `R37 chips · ${l.split(':')[0]}`,
     async () =>
-      ((await call(strips, 'findChipStripFaults')()) as string[]).filter(
-        (l) => !/^(more-contentful|overflow|align):/.test(l)
-      )
+      (await findChipStripFaults(page)).filter((l) => !/^(more-contentful|overflow|align):/.test(l))
   )
-  await take('R38 frames', async () => (await call(frames, 'findFrameFaults')()) as string[])
+  await take('R38 frames', () => findFrameFaults(page))
   await take(
     (l) => `R39 nesting · ${l.split(' ')[0]}`,
-    async () =>
-      (
-        (await call(nesting, 'findNestingFindings')()) as {
-          rule: string
-          chain: string
-          detail: string
-        }[]
-      ).map((f) => `${f.rule} ${f.chain}: ${f.detail}`)
+    async () => (await findNestingFindings(page)).map((f) => `${f.rule} ${f.chain}: ${f.detail}`)
   )
   await take('§4.7 sibling heights', async () =>
-    (
-      (await call(siblings, 'findSiblingMismatches')()) as {
-        line: string
-        controls: { what: string; height: number }[]
-      }[]
-    ).map((m) => `${m.line}: ${m.controls.map((c) => `${c.what} ${c.height}px`).join(', ')}`)
+    (await findSiblingMismatches(page)).map(
+      (m) => `${m.line}: ${m.controls.map((c) => `${c.what} ${c.height}px`).join(', ')}`
+    )
   )
-  await take('§4.7 tab size', async () => (await call(siblings, 'findTabSizeFaults')()) as string[])
+  await take('§4.7 tab size', () => findTabSizeFaults(page))
   await take(
     (l) => `Page rhythm · ${l.split(':')[0]}`,
-    async () =>
-      ((await call(rhythm, 'findRhythmFindings')()) as { rule: string; detail: string }[]).map(
-        (f) => `${f.rule}: ${f.detail}`
-      )
+    async () => (await findRhythmFindings(page)).map((f) => `${f.rule}: ${f.detail}`)
   )
-  await take(
-    'Square cut-outs',
-    async () => (await call(cutouts, 'findMiniCutoutFaults', 'findTokenCutoutFaults')()) as string[]
-  )
+  await take('Square cut-outs', () => findMiniCutoutFaults(page))
   const hscroll = await page.evaluate(() => {
     const doc = document.scrollingElement ?? document.documentElement
     return doc.scrollWidth > innerWidth + 1 ? doc.scrollWidth - innerWidth : 0
   })
   if (hscroll > 0)
-    out.push({ rule: 'Horizontal scroll', line: `the page scrolls ${hscroll}px sideways` })
-  return out
+    found.push({ rule: 'Horizontal scroll', line: `the page scrolls ${hscroll}px sideways` })
+  return found
 }
 
 /** The issue rules (blind spots), as against the canon's. */
 const ISSUE_RULES = new Set(['Horizontal scroll'])
 
-async function shootView(page: Page, base: string, phone: boolean, where: string, family: string) {
+async function shootView(
+  page: Page,
+  out: string,
+  base: string,
+  phone: boolean,
+  where: string,
+  family: string
+) {
   const vh = page.viewportSize()?.height ?? 900
   const measureTotal = () =>
     page.evaluate(() => {
@@ -399,7 +355,7 @@ async function shootView(page: Page, base: string, phone: boolean, where: string
       return best.scrollHeight - best.clientHeight + innerHeight
     })
   await page.waitForTimeout(800)
-  const rules = await viewRules(page, where)
+  const rules = await viewRules(page, out, where)
   let total = await measureTotal()
   const max = phone ? MAX_SHOTS.phone : MAX_SHOTS.page
   const step = () => Math.max(Math.round(vh * 0.85), Math.ceil((total - vh) / (max - 1)))
@@ -423,7 +379,7 @@ async function shootView(page: Page, base: string, phone: boolean, where: string
     last = y >= total - vh - 2 || k + 1 >= max
     const info = await page.evaluate(measure)
     const file = `${base}-${String(k).padStart(2, '0')}.jpg`
-    await page.screenshot({ path: join(OUT, file), type: 'jpeg', quality: 70 })
+    await page.screenshot({ path: join(out, file), type: 'jpeg', quality: 70 })
     const entry = {
       file,
       key: file.replace(/^\d+-/, ''),
@@ -446,7 +402,7 @@ async function shootView(page: Page, base: string, phone: boolean, where: string
           .map((m) => ({ rule: m.rule, line: m.what })),
       ],
     }
-    appendFileSync(join(OUT, 'manifest.jsonl'), `${JSON.stringify(entry)}\n`)
+    appendFileSync(join(out, 'manifest.jsonl'), `${JSON.stringify(entry)}\n`)
     k++
   }
   await page.evaluate(() => {
@@ -460,40 +416,83 @@ async function shootView(page: Page, base: string, phone: boolean, where: string
   })
 }
 
-test('site review shots', async ({ page }) => {
-  test.setTimeout(240 * 60_000)
-  mkdirSync(OUT, { recursive: true })
-  writeFileSync(join(OUT, 'manifest.jsonl'), '')
-  page.on('console', (m) => {
-    if (m.type() === 'error')
-      appendFileSync(join(OUT, 'console.txt'), `${m.text().slice(0, 300)}\n`)
-  })
+/** Shoot every review view (or those whose path holds a `filter` entry) into `out`. */
+export async function shootDeck(base: string, out: string, filter = ''): Promise<void> {
+  mkdirSync(out, { recursive: true })
+  writeFileSync(join(out, 'manifest.jsonl'), '')
   const all = [...siteRoutes(), ...appRoutes()]
-  const routes = ONLY ? all.filter((r) => ONLY.split(',').some((o) => r.path.includes(o))) : all
+  const routes = filter ? all.filter((r) => filter.split(',').some((o) => r.path.includes(o))) : all
   writeFileSync(
-    join(OUT, 'routes.json'),
+    join(out, 'routes.json'),
     JSON.stringify(
       routes.map((r) => r.path),
       null,
       2
     )
   )
-  const seed = await seedAccount(page)
-  let i = 0
-  await walkDesignRoutes(
-    page,
-    async ({ where, width, family }) => {
-      i++
-      const slug = `${String(i).padStart(3, '0')}-${where
-        .replace(/[^A-Za-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .toLowerCase()
-        .slice(0, 80)}`
-      await shootView(page, slug, `${width}`.includes('phone'), where, family).catch((e) =>
-        appendFileSync(join(OUT, 'errors.txt'), `${where}: ${e}\n`)
-      )
-      return []
-    },
-    { seed, routes }
+  const browser = await launchBrowser()
+  try {
+    const context = await browser.newContext({
+      baseURL: base,
+      serviceWorkers: 'block',
+      bypassCSP: true,
+    })
+    await context.addInitScript(FORCE_ONLINE)
+    // Art comes through Bun's fetch, which takes the sandbox's egress proxy.
+    await context.route('https://assets.salvageunion.io/**', async (route) => {
+      try {
+        const r = await fetch(route.request().url())
+        await route.fulfill({
+          status: r.status,
+          headers: {
+            'content-type': r.headers.get('content-type') ?? 'application/octet-stream',
+            'access-control-allow-origin': '*',
+            'cache-control': 'max-age=3600',
+          },
+          body: Buffer.from(await r.arrayBuffer()),
+        })
+      } catch (e) {
+        appendFileSync(join(out, 'errors.txt'), `route ${route.request().url()}: ${e}\n`)
+        await route.abort()
+      }
+    })
+    const page = await context.newPage()
+    page.on('console', (m) => {
+      if (m.type() === 'error')
+        appendFileSync(join(out, 'console.txt'), `${m.text().slice(0, 300)}\n`)
+    })
+    const seeded = await seed(page, base)
+    let i = 0
+    await visitDesignViews(
+      page,
+      async ({ where, width, family }) => {
+        i++
+        const slug = `${String(i).padStart(3, '0')}-${where
+          .replace(/[^A-Za-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .toLowerCase()
+          .slice(0, 80)}`
+        await shootView(page, out, slug, `${width}`.includes('phone'), where, family).catch((e) =>
+          appendFileSync(join(out, 'errors.txt'), `${where}: ${e}\n`)
+        )
+      },
+      { seed: seeded, routes }
+    )
+  } finally {
+    await browser.close()
+  }
+}
+
+if (import.meta.main) {
+  const [out, filter = ''] = process.argv.slice(2)
+  if (!out) throw new Error('usage: bun run gallery:deck <out-dir> [route-filter,…]')
+  const base = `http://localhost:${portFor()}`
+  if (
+    !(await fetch(base).then(
+      (r) => r.ok,
+      () => false
+    ))
   )
-})
+    throw new Error(`nothing answers on ${base}: start \`bun run dev:backend\` first`)
+  await shootDeck(base, resolve(out), filter)
+}

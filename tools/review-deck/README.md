@@ -7,18 +7,17 @@ artifact's `verdicts` collection. Runs in the cloud environment.
 
 ## Files
 
-- `apps/web/e2e/review/site.review.ts`: the shoot. Every index, every guide,
-  the shortest, middle and longest show page of each other kind, the patterns,
-  the data-less pages, the known outliers, every app screen (`designRoutes`:
-  sheets in Read and Edit, wizards, the Game, Play) and the Starter Set's
-  sheets. On each view it runs the canon's gates (`_chipStrips`, `_entityFrames`,
-  `_nestingDepth`, `_siblingHeights`, `_pageRhythm`, `_tokenCutout`; a gate the
-  commit lacks is skipped and noted in `errors.txt`) as **rule violations**, and
-  looks for blind spots (overlaps, clipped text, a word broken over lines,
-  broken art, sideways scroll) as **possible issues**, outlined on the shot
-  (magenta for a rule, blue for an issue).
-- `apps/web/review.config.ts`: its Playwright config; the suite never runs it.
-- `shoot.ts`: runs the spec against `bun run dev:backend`'s server.
+- `bun run gallery:deck` (`apps/web/scripts/galleryDeck.ts`): the screenshot
+  gallery's deck mode, the shoot. It signs in and seeds as the gallery does and
+  opens views through the design walk. It shoots every index, every guide, the
+  shortest, middle and longest show page of each other kind, the patterns, the
+  data-less pages, the known outliers, every app screen (`designRoutes`) and the
+  Starter Set's sheets. On each view it runs the canon's gates (`_chipStrips`,
+  `_entityFrames`, `_nestingDepth`, `_siblingHeights`, `_pageRhythm`,
+  `_tokenCutout`) as **rule violations**. It also looks for blind spots
+  (overlaps, clipped text, a word broken over lines, broken art, sideways
+  scroll) as **possible issues**. Each is outlined on the shot: magenta for a
+  rule, blue for an issue.
 - `stage.ts`: lays out the artifact folder. Stacks shots four to a plain JPEG
   (`shots/sheet-NNN.jpg`: a version holds at most 511 files, and plain image
   files load in a signed-out browser where base64 did not), writes
@@ -34,7 +33,7 @@ artifact's `verdicts` collection. Runs in the cloud environment.
 
 ```bash
 bun run dev:backend &                                   # local Convex + seeded account + dev server
-bun tools/review-deck/shoot.ts .shots/runs/<name> [/chassis/,/classes/]   # ~1h for the whole site
+bun run gallery:deck .shots/runs/<name> [/chassis/,/classes/]   # ~1h for the whole site
 # Baseline: read the live deck's manifest.json and shots/sheet-*.jpg with the
 # Artifact tool (action read, paths, out_dir .shots/published), then:
 bun tools/review-deck/baseline.ts .shots/published .shots/baseline
