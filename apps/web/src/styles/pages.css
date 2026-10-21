@@ -160,11 +160,23 @@ a.su-home__discord:hover {
   flex-direction: column;
 }
 
-/* A show page's body: the rest of the height, its content from the top. */
+/* A show page's body: a short page's content centred in the height under
+   its band, on a phone and a desktop alike (owner, 2026-10-20, Melee
+   Armament: "vertically center text like this on pages"), the band's
+   overflow row (its first row) moving with it. A long one fills the height,
+   so the centring leaves it where it was. */
 .su-entity__body {
   display: flex;
-  flex: 1;
   flex-direction: column;
+  margin-block: auto;
+}
+
+.su-entity > .su-chapter-band__overflow:not([hidden]) {
+  margin-top: auto;
+}
+
+.su-entity > .su-chapter-band__overflow:not([hidden]) + .su-entity__body {
+  margin-top: 0;
 }
 
 /*

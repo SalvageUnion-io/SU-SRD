@@ -106,10 +106,13 @@ export function ChoiceRegion({
               </div>
             )
           }
+          // On its Page, read-only, it is contentful: its text under its
+          // head, a line wide (owner, 2026-10-20: "those mini entity nests
+          // should be full width and contentful").
           return (
             <NestedCard
               size="mini"
-              extent="head"
+              extent={option.onPage ? 'full' : 'head'}
               depth={depth + 1}
               data={option.entity}
               chassisName={chassisName}

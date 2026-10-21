@@ -81,6 +81,7 @@ describe('listingBandFillFor', () => {
   test('the systems and modules indexes wear TL1 blue; every other listing its chapter', () => {
     expect(listingBandFillFor('systems')).toEqual({ band: 'var(--color-tl-1)' })
     expect(listingBandFillFor('modules')).toEqual({ band: 'var(--color-tl-1)' })
+    expect(listingBandFillFor('drones')).toEqual({ band: 'var(--color-tl-1)' })
     expect(listingBandFillFor('chassis')).toBeUndefined()
     expect(listingBandFillFor('equipment')).toBeUndefined()
   })

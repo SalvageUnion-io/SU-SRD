@@ -9,6 +9,7 @@ import type { CSSVarStyle } from '../../../styles/cssVars'
 import { capsLabel } from '../../atoms/capsLabel'
 import { Field } from '../../atoms/Field'
 import { Input, Textarea } from '../../atoms/inputs'
+import { Stat } from '../../atoms/Stat'
 import { ToggleCard } from '../../atoms/ToggleCard'
 import { SlabSection } from '../../containers/SlabSection'
 import { SelectedSeal } from '../../entity/modes/select'
@@ -73,6 +74,8 @@ type ChoiceGroupsProps = {
 /** An option that IS an entity, with its selection state, for `renderEntityOption`. */
 type EntityOption = {
   entity: RefEntity
+  /** The choice is its entity's own Page's: the option's Mini is contentful. */
+  onPage: boolean
   label: string
   chosen: boolean
   /** Static (readable, not choosable). */
@@ -115,6 +118,16 @@ const optionCellStyle = {
   breakInside: 'avoid',
   paddingTop: space[12],
 } satisfies CSSProperties
+
+/** An option's name on its Page: the paper cut-out on its head's foot. */
+const CUT_OUT = {
+  backgroundColor: color.paper,
+  color: color.ink,
+  padding: `${space[4]} ${space[8]} ${space[2]}`,
+} satisfies CSSProperties
+
+/** The head's corner chip, on the name's line. */
+const CORNER = { alignSelf: 'center', flex: 'none' } satisfies CSSProperties
 
 /** Off a Page, an option's text at the card body's size. */
 const optionTextStyle = {
@@ -203,17 +216,19 @@ function ChoiceOption({
     lineHeight: 1.15,
     padding: inset,
   } satisfies CSSProperties
-  // On the Page the name is the tone head; elsewhere ink on the frame's paper.
+  // On the Page the name is a cut-out on the tone head's foot, as every
+  // head's (owner, 2026-10-20, a Custom Sniper Rifle's Modifications: "should
+  // have cutouts"), its CHOICE chip in the corner; elsewhere ink on the
+  // frame's paper.
   const head = onPage
     ? {
-        ...name,
-        alignItems: 'center',
+        alignItems: 'flex-end',
         backgroundColor: band ?? 'var(--color-ink)',
-        borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
         color: band ? onBand : color.paper,
         display: 'flex',
         gap: space[8],
         justifyContent: 'space-between',
+        padding: `${space[8]} ${padX} 0`,
       }
     : {
         ...name,
@@ -239,9 +254,22 @@ function ChoiceOption({
       {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
       <div data-option-frame="" style={frame}>
         <div data-option-head={onPage || undefined} className={NAME_CAPS} style={head}>
-          {label}
-          {/* Level 1 on its Page: select mode's seal on the head's right (R15). */}
-          {onPage && chosen && <SelectedSeal word="Chosen" />}
+          {onPage ? (
+            <>
+              <span style={{ ...name, ...CUT_OUT }}>{label}</span>
+              {/* Level 1 on its Page: select mode's seal on the head's right
+                  (R15); unchosen, the CHOICE chip says it is one to pick. */}
+              <span style={CORNER}>
+                {chosen ? (
+                  <SelectedSeal word="Chosen" />
+                ) : (
+                  <Stat label="Choice" size="compact" hollow />
+                )}
+              </span>
+            </>
+          ) : (
+            label
+          )}
         </div>
         {description && <div style={body}>{parsedDescription}</div>}
       </div>
@@ -368,6 +396,12 @@ function ChoiceOptionGroup({
   // (deselecting a chosen option stays available).
   const atCap = multi && typeof cap === 'number' && selected.length >= cap
   const options = getChoiceCardOptions(choice)
+  const entities = options.map((option) =>
+    renderEntityOption ? resolveOptionEntity(option) : undefined
+  )
+  // On its Page an entity option is a contentful Mini a line wide (owner,
+  // 2026-10-20, Bionic Senses: "full width and contentful"), so one column.
+  const split = !compact && !(onPage && entities.some(Boolean))
   return (
     <div style={toneVar}>
       {counter && !readOnly && (
@@ -382,22 +416,24 @@ function ChoiceOptionGroup({
           {counter}
         </div>
       )}
-      {/* Masonry columns: one, or two from `sm` unless compact — a class
+      {/* Masonry columns: one, or two from `sm` unless compact or a Page's
+          entity options — a class
           (`.su-choice-options`), since the column count is responsive. */}
       <div
-        className={cn('su-choice-options', !compact && 'su-choice-options--split')}
+        className={cn('su-choice-options', split && 'su-choice-options--split')}
         style={{ gap: space[6] }}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const chosen = selected.includes(option.value)
           const disabled = !readOnly && atCap && !chosen
           const onToggle = () => onToggleOption(option.value)
-          const entity = renderEntityOption ? resolveOptionEntity(option) : undefined
+          const entity = entities[index]
           return (
             <div key={option.value} style={optionCellStyle}>
               {entity && renderEntityOption ? (
                 renderEntityOption({
                   entity,
+                  onPage: !!onPage,
                   label: option.label,
                   chosen,
                   readOnly: !!readOnly,

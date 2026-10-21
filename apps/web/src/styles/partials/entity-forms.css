@@ -834,6 +834,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
+/* There, with no `wrap-reverse`, the foot is `flex-end`: the notch's own
+   `flex-start` above would hang it from the band's top (owner, 2026-10-20,
+   /factions/: "cutouts are all broken here"). */
+.su-entity-index__band:not([data-chip-fill]) > .su-entity-index__notch {
+  align-self: flex-end;
+}
+
 .su-entity-index__cells {
   align-content: flex-start;
   display: flex;

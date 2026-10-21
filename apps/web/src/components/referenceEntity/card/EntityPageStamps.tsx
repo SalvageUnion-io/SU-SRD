@@ -19,8 +19,10 @@ import { labelChips } from './labelChips'
  * pointy box, every chip the same gap apart (the SRD page's "Build With This"
  * is the band's `action`, after them). An ability's level is the band's
  * `lead`, left of the title. Never the kind (E9: the title says it to screen
- * readers). Every chip is the body's chip, a card head's Compact strip, so
- * what overflows to the page's first row keeps its size. The same facts the card's own chips
+ * readers). Every chip is at Full, the Page's own size (owner, 2026-10-20:
+ * "on full page entities, the header/content chips can be the fuller size";
+ * its action cards keep their Compact strips), and what overflows to the
+ * page's first row keeps its size. The same facts the card's own chips
  * show, resolved by `resolveEntityPageMeta` so the page cannot describe an
  * entity differently from its own card.
  *
@@ -56,7 +58,7 @@ export function EntityPageStamps({
     // Its fill, gap and alignment are `.su-entity-stamps`'.
     <Chips
       className="su-entity-stamps"
-      size="compact"
+      size="full"
       linkable
       chips={{
         durations: meta.actionTypes,
@@ -71,18 +73,18 @@ export function EntityPageStamps({
               key="parent"
               label={parent.label}
               entityRef={parent.ref}
-              size="compact"
+              size="full"
               {...(parent.href ? { href: parent.href } : {})}
             />
           ),
-          ...relationChips(meta.relations, 'compact'),
+          ...relationChips(meta.relations, 'full'),
         ],
       }}
       marks={
         legalStartingPattern || homebrew
           ? labelChips(
               { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-              'compact'
+              'full'
             )
           : undefined
       }

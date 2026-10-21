@@ -1,9 +1,12 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
+import { itemHref } from '../../../lib/entityHref'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
 import { SlabSection } from '../../containers/SlabSection'
+import { Entity } from '../../entity/Entity'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
@@ -26,6 +29,9 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * the parts out as a page. Layout is `index.css`'s `.su-entity-page*`, which
  * keeps this DOM order at every width, so tab order matches what you see.
  */
+
+/** A neighbour's Section names its relation, so its Compact drops the type stamp. */
+const NEIGHBOUR_OMIT = ['kind'] as const
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -167,7 +173,10 @@ export function CardPage({
       )}
       {guide}
       {sections}
-      {/* An ability's neighbours in its tree, under the rest (owner, 2026-10-20). */}
+      {/* An ability's neighbours in its tree, under the rest (owner, 2026-10-20),
+          each a collapsed header: a header-only Compact that links to its
+          Page and Peeks it (owner, 2026-10-20: "should just be a collapsed
+          header not the full content"). */}
       {abilityTreeNeighbours(entity).map(({ label, abilities }) => (
         <SlabSection
           key={label}
@@ -177,7 +186,17 @@ export function CardPage({
           className="su-entity-page__section"
           bodyClassName="su-entity-page__section-body"
         >
-          {abilities.map((data, index) => actionCard(data, index, nestedTitleLevel(!!sectionAs)))}
+          {abilities.map((ability) => (
+            <Entity
+              key={ability.id}
+              size="compact"
+              entity={ability}
+              mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
+              omit={NEIGHBOUR_OMIT}
+              peek
+              titleAs={nestedTitleLevel(!!sectionAs)}
+            />
+          ))}
         </SlabSection>
       ))}
       <div className="su-entity-page__wide">

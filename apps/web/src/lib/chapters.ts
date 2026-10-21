@@ -199,12 +199,22 @@ function abilityBandFill(entity: RefEntity): BandFill | undefined {
 const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
 
 /**
- * A listing's band when not its chapter's: the systems' and modules' index
- * wears TL1's blue, the tech-level ground their pages and cards wear (owner's
- * call 2026-10-20). Every other listing wears its chapter's band (`undefined`).
+ * The listings that wear TL1's blue: systems and modules, whose pages wear
+ * their tech level's, and drones, whose cards' heads are tech-level blue
+ * (owner, 2026-10-20: "Drone header should be blue to match drones").
+ */
+const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
+  ...TECH_LEVEL_BAND_SCHEMAS,
+  'drones',
+])
+
+/**
+ * A listing's band when not its chapter's: TL1's blue on the tech-level
+ * listings (owner's calls 2026-10-20). Every other listing wears its
+ * chapter's band (`undefined`).
  */
 export function listingBandFillFor(schemaId: string): BandFill | undefined {
-  return TECH_LEVEL_BAND_SCHEMAS.has(schemaId) ? { band: 'var(--color-tl-1)' } : undefined
+  return TECH_LEVEL_LISTING_SCHEMAS.has(schemaId) ? { band: 'var(--color-tl-1)' } : undefined
 }
 
 /**
