@@ -67,7 +67,14 @@ export type ShelfChip = { key: string; label: string; value?: string }
  * (`chips-and-actions.md` C11): what it is (`Mech`, `Game`), its name, and
  * where it opens (a unit's sheet, a Game's page in Play).
  */
-export type ShelfRelation = { key: string; label: string; value: string; href: string }
+export type ShelfRelation = {
+  key: string
+  label: string
+  value: string
+  href: string
+  /** A linked unit's own stat chips (`SP 9/13`), on its Mini. */
+  readings?: readonly ShelfReading[]
+}
 
 /** A relation that names a unit, by its key: drawn as that unit's Mini, never a chip. */
 const UNIT_RELATION = new Set(['pilot', 'mech', 'crawler'])
@@ -85,7 +92,13 @@ export function splitRelations(relations: readonly ShelfRelation[]): {
   const chips: ShelfRelation[] = []
   for (const r of relations) {
     if (UNIT_RELATION.has(r.key)) {
-      linked.push({ key: r.key, kind: r.key as LinkedUnit['kind'], name: r.value, href: r.href })
+      linked.push({
+        key: r.key,
+        kind: r.key as LinkedUnit['kind'],
+        name: r.value,
+        href: r.href,
+        ...(r.readings ? { readings: r.readings } : {}),
+      })
     } else chips.push(r)
   }
   return { linked, chips }
@@ -172,16 +185,33 @@ export function gameRelation(
 
 type Names = ReadonlyMap<string, string>
 
+/** Each unit's stat chips by its id, for the Mini that links it. */
+type Readings = ReadonlyMap<string, readonly ShelfReading[]>
+
+const withReadings = (readings: Readings | undefined, id: string) => {
+  const found = readings?.get(id)
+  return found ? { readings: found } : {}
+}
+
 /** The mech a pilot is assigned to, as its relation: `MECH | Scrapper`. */
 export function pilotRelations(args: {
   pilot: Pick<Pilot, 'id'>
   softLinks: readonly SoftLink[]
   mechNames: Names
+  mechReadings?: Readings
 }): ShelfRelation[] {
   const link = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === args.pilot.id)
   const name = link && args.mechNames.get(link.from.id)
   return link && name
-    ? [{ key: 'mech', label: 'Mech', value: name, href: `/sheet/mech/${link.from.id}` }]
+    ? [
+        {
+          key: 'mech',
+          label: 'Mech',
+          value: name,
+          href: `/sheet/mech/${link.from.id}`,
+          ...withReadings(args.mechReadings, link.from.id),
+        },
+      ]
     : []
 }
 
@@ -190,11 +220,20 @@ export function mechRelations(args: {
   mech: Pick<Mech, 'id'>
   softLinks: readonly SoftLink[]
   pilotNames: Names
+  pilotReadings?: Readings
 }): ShelfRelation[] {
   const link = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.from.id === args.mech.id)
   const name = link && args.pilotNames.get(link.to.id)
   return link && name
-    ? [{ key: 'pilot', label: 'Pilot', value: name, href: `/sheet/pilot/${link.to.id}` }]
+    ? [
+        {
+          key: 'pilot',
+          label: 'Pilot',
+          value: name,
+          href: `/sheet/pilot/${link.to.id}`,
+          ...withReadings(args.pilotReadings, link.to.id),
+        },
+      ]
     : []
 }
 

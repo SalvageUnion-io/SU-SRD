@@ -16,6 +16,7 @@ import {
   pilotRelations,
   shelfFilters,
   shownUnder,
+  splitRelations,
 } from '../shelfItems'
 
 /**
@@ -120,6 +121,18 @@ describe('a unit’s relations', () => {
     expect(
       mechRelations({ mech, softLinks: [LINK], pilotNames: new Map([['p1', 'Bonesaw']]) })
     ).toEqual([{ key: 'pilot', label: 'Pilot', value: 'Bonesaw', href: '/sheet/pilot/p1' }])
+  })
+
+  test('a linked unit carries its own stat chips onto its Mini', () => {
+    const SP = [{ label: 'SP', value: '9/13' }]
+    const [mech] = pilotRelations({
+      pilot: { id: 'p1' },
+      softLinks: [LINK],
+      mechNames: new Map([['m1', 'Scrapper']]),
+      mechReadings: new Map([['m1', SP]]),
+    })
+    expect(mech?.readings).toEqual(SP)
+    expect(splitRelations(mech ? [mech] : []).linked[0]?.readings).toEqual(SP)
   })
 
   test('an unlinked unit, or one whose partner cannot be named, has no relation', () => {

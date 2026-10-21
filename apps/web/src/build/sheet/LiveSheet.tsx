@@ -463,7 +463,7 @@ export function LiveSheet({
         aside={
           <>
             {(stamp || rank || out || userMade || source || quoted) && (
-              <Cluster gap={8}>
+              <Cluster gap={8} className="su-sheet-band-stamps">
                 {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
                 {source === 'starter' && <Stat label="Starter Kit" />}
                 {/* Its name is a pattern's: it says so (owner, round 5). */}

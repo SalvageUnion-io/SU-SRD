@@ -186,6 +186,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // whichever way the toggle is set.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
+  // A linked unit's Mini carries its own stat chips (owner, round 8).
+  const pilotReadings = new Map(allPilots.map((p) => [p.id, rowStats(pilotRailItems(p))]))
+  const mechReadings = new Map(allMechs.map((m) => [m.id, rowStats(mechRailItems(m))]))
   const patternSource = allMechs.find((m) => m.id === savingPattern)
 
   // The Showing select: a Game you have since left falls back to Everything.
@@ -433,7 +436,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   href={`/sheet/pilot/${p.id}`}
                   chips={linkChip(sharedByLink, p.id)}
                   relations={[
-                    ...pilotRelations({ pilot: p, softLinks, mechNames }),
+                    ...pilotRelations({ pilot: p, softLinks, mechNames, mechReadings }),
                     ...gameRelation(p, games),
                   ]}
                   menu={unitMenu('pilot', p, p)}
@@ -458,7 +461,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   href={`/sheet/mech/${m.id}`}
                   chips={linkChip(sharedByLink, m.id)}
                   relations={[
-                    ...mechRelations({ mech: m, softLinks, pilotNames }),
+                    ...mechRelations({ mech: m, softLinks, pilotNames, pilotReadings }),
                     ...gameRelation(m, games),
                   ]}
                   menu={unitMenu('mech', m, m)}

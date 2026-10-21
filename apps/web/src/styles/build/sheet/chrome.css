@@ -155,3 +155,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* A sheet band's stamps share one height (ruleset §4.7): the HOMEBREW stamp,
+   a plate with no height of its own, stands as tall as the Compact chips
+   beside it, its word on their centre line. On a phone the chips draw at its
+   own height already. */
+@media (width >= 40rem) {
+  .su-sheet-band-stamps > .su-badge-stamp {
+    align-items: center;
+    align-self: stretch;
+    display: inline-flex;
+  }
+}

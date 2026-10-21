@@ -48,11 +48,13 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
     .getByRole('list', { name: 'Where to' })
     .getByRole('button', { name: 'Dustbowl Run' })
     .click()
-  // Its Game is a relation chip opening the Game's page in Play.
+  // Its Game is a relation chip opening the Game's page in Play. A Training
+  // Bay row is header-only, so a chip that does not fit beside the name goes
+  // into its +MORE (chip law, C5): the chip is there, maybe not drawn.
   const chip = pilots.locator('[data-chip-class="relation"] a[data-tag]', {
     hasText: 'Dustbowl Run',
   })
-  await expect(chip).toBeVisible({ timeout: 15_000 })
+  await expect(chip).toBeAttached({ timeout: 15_000 })
   await expect(chip).toHaveAttribute('href', new RegExp(`/play/games/${gameId}$`))
 
   // Still in the Training Bay under Everything and under its Game; under Not in a Game it is not.

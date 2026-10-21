@@ -35,10 +35,11 @@
 
 /* A pilot's untaken ability in one of its class's trees (owner, round 4:
    "show the full trees … with unselected ones greyed out"): the whole Mini
-   dulled toward grey, as a destroyed entity is, but still readable. */
+   dulled toward grey, as a destroyed entity is, but still readable: no
+   fainter than its lead's words keep 4.5:1 on paper (WCAG 1.4.3). */
 .su-pilot-ability--unlearned {
   filter: grayscale(1);
-  opacity: 0.5;
+  opacity: 0.75;
 }
 
 /* A stem is the track's colour only between two abilities the pilot has
