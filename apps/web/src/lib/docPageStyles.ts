@@ -41,6 +41,9 @@ export function proseColumn(gap: string): CSSProperties {
   return { ...PROSE, display: 'flex', flexDirection: 'column', gap }
 }
 
+/** A section's prose column, its blocks 12px apart (a `DocPanel`'s body too). */
+export const PROSE_12 = proseColumn(space[12])
+
 /** A bulleted list, its items a column. */
 export function bulletList(gap: string, indent: 'padding' | 'margin'): CSSProperties {
   return {
@@ -74,6 +77,10 @@ export const SMALL_PRINT = {
 
 /** A bold prose link (`InlineRef`). */
 export const BOLD = { fontWeight: weight.bold } satisfies CSSProperties
+
+/** Bold text that may break anywhere: a long path, URL or command as typed,
+ *  which would otherwise push a phone-width page sideways. Never in caps. */
+export const BREAKABLE_BOLD = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
 export const ITALIC = { fontStyle: 'italic' } satisfies CSSProperties
 

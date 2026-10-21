@@ -16,7 +16,15 @@ import { borderWidth, color, font, fontSize, radius, space, weight } from '../..
 import { apiSampleChassis } from '../../lib/apiSample'
 import { cn } from '../../lib/cn'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
-import { ASIDE, BOLD, ITALIC, inlineCode, PROSE, proseColumn } from '../../lib/docPageStyles'
+import {
+  ASIDE,
+  BOLD,
+  BREAKABLE_BOLD,
+  ITALIC,
+  inlineCode,
+  PROSE,
+  PROSE_12,
+} from '../../lib/docPageStyles'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { getEntitySchemas } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
@@ -27,20 +35,11 @@ const TITLE = pageTitle('API Reference')
 const DESCRIPTION =
   'Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.'
 
-const baseUrl = SITE_URL
-
-const PROSE_12 = proseColumn(space[12])
-/** An endpoint's example URL: a long one breaks at phone width. */
-const EXAMPLE_LINK = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
-
 const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
 
 /** An endpoint's method, its one stamp beside its name, as an action's type is. */
 const GET = <Chips chips={{ durations: ['GET'], facts: [], tags: [] }} size="compact" />
-
-/** An endpoint's path, its body's first line: case matters, so never in caps. */
-const PATH = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
 /** A `<pre>` code sample; the padding is per sample. */
 const CODE_SAMPLE = {
@@ -219,7 +218,7 @@ function page(): PageResult {
             ), so you can fetch from any origin, including browser JavaScript.
           </p>
           <p>
-            <strong>Base URL:</strong> <code style={CODE}>{baseUrl}</code>
+            <strong>Base URL:</strong> <code style={CODE}>{SITE_URL}</code>
           </p>
           <p style={ASIDE}>
             <strong>Tip:</strong> every page on this site has its data under{' '}
@@ -237,7 +236,7 @@ function page(): PageResult {
           <Slab as="h2" label="Endpoints" />
 
           <DocPanel title="Every entity of a schema" chips={GET}>
-            <p style={PATH}>
+            <p style={BREAKABLE_BOLD}>
               <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
               </code>
@@ -246,18 +245,18 @@ function page(): PageResult {
             <p>
               <strong>Example:</strong>{' '}
               <InlineRef
-                href={`${baseUrl}/schema/chassis.json`}
+                href={`${SITE_URL}/schema/chassis.json`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={EXAMPLE_LINK}
+                style={BREAKABLE_BOLD}
               >
-                {baseUrl}/schema/chassis.json
+                {SITE_URL}/schema/chassis.json
               </InlineRef>
             </p>
             <CodeSample>{samples.schemaArray}</CodeSample>
           </DocPanel>
           <DocPanel title="A schema's JSON Schema" chips={GET}>
-            <p style={PATH}>
+            <p style={BREAKABLE_BOLD}>
               <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
               </code>
@@ -270,18 +269,18 @@ function page(): PageResult {
             <p>
               <strong>Example:</strong>{' '}
               <InlineRef
-                href={`${baseUrl}/schema/chassis.schema.json`}
+                href={`${SITE_URL}/schema/chassis.schema.json`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={EXAMPLE_LINK}
+                style={BREAKABLE_BOLD}
               >
-                {baseUrl}/schema/chassis.schema.json
+                {SITE_URL}/schema/chassis.schema.json
               </InlineRef>
             </p>
             <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
           </DocPanel>
           <DocPanel title="One entity" chips={GET}>
-            <p style={PATH}>
+            <p style={BREAKABLE_BOLD}>
               <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
                 <span style={ITALIC}>{'{itemId}'}</span>.json
@@ -296,12 +295,12 @@ function page(): PageResult {
             <p>
               <strong>Example:</strong>{' '}
               <InlineRef
-                href={`${baseUrl}/schema/chassis/item/${samples.slug}.json`}
+                href={`${SITE_URL}/schema/chassis/item/${samples.slug}.json`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={EXAMPLE_LINK}
+                style={BREAKABLE_BOLD}
               >
-                {baseUrl}/schema/chassis/item/{samples.slug}.json
+                {SITE_URL}/schema/chassis/item/{samples.slug}.json
               </InlineRef>
             </p>
             <CodeSample>{samples.entity}</CodeSample>

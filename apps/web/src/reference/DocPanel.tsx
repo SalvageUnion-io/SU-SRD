@@ -1,9 +1,6 @@
 import type { ReactNode } from 'react'
 import { TitledBox } from '../components/index'
-import { space } from '../design/tokens'
-import { PROSE, proseColumn } from '../lib/docPageStyles'
-
-const BODY = proseColumn(space[12])
+import { PROSE, PROSE_12 } from '../lib/docPageStyles'
 
 /**
  * DocPanel — a document page's titled block (`/api`'s endpoints, `/discord`'s
@@ -34,7 +31,7 @@ export function DocPanel({
       {...(tone ? { tone } : {})}
       {...(chips ? { chips } : {})}
       body={flush ? 'flush' : 'padded'}
-      bodyStyle={flush ? PROSE : BODY}
+      bodyStyle={flush ? PROSE : PROSE_12}
     >
       {children}
     </TitledBox>

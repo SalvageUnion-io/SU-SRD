@@ -18,7 +18,16 @@ import { DISCORD_COMMANDS } from '../../generated/discordCommands'
 import { DISCORD_SAMPLES } from '../../generated/discordSamples'
 import { appPath } from '../../lib/appBase'
 import { DISCORD_INSTALL_URL, SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
-import { ASIDE, BOLD, bulletList, ITALIC, inlineCode, proseColumn } from '../../lib/docPageStyles'
+import {
+  ASIDE,
+  BOLD,
+  BREAKABLE_BOLD,
+  bulletList,
+  ITALIC,
+  inlineCode,
+  PROSE_12,
+  proseColumn,
+} from '../../lib/docPageStyles'
 import { SalvageUnionReference } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
 import { DiscordReply } from '../DiscordReply'
@@ -55,14 +64,10 @@ const TITLE = pageTitle('Discord Bot')
 const DESCRIPTION =
   'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 
-const PROSE_12 = proseColumn(space[12])
 const PROSE_16 = proseColumn(space[16])
 const CODE = inlineCode()
 const LIST_4 = bulletList(space[4], 'margin')
 const LIST_8 = bulletList(space[8], 'margin')
-
-/** A command as typed, its panel's first line: never in caps. */
-const USAGE = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
 /** The site's search shortcut, as a key cap in prose. */
 const KEY_CAP = {
@@ -247,7 +252,7 @@ function page(): PageResult {
 
           {reference.map((command) => (
             <DocPanel key={command.name} title={`/su ${command.name}`} tone="discord">
-              <p style={USAGE}>
+              <p style={BREAKABLE_BOLD}>
                 <code>
                   <Usage command={command} />
                 </code>
