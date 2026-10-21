@@ -192,8 +192,9 @@ describe('a pattern page names and links its base chassis', () => {
   const html = page('/chassis/mazona/pattern/buzzard')
 
   it('links back to the chassis in the band, beside the title and never above it', () => {
-    const link = html.indexOf('href="/chassis/mazona/" aria-label="Pattern of: Mazona"')
+    const link = html.indexOf('aria-label="Pattern of: Mazona"')
     expect(link).toBeGreaterThan(-1)
+    expect(html.slice(html.lastIndexOf('<a ', link), link)).toContain('href="/chassis/mazona/"')
     expect(html.slice(link, link + 600)).toContain('su-stat-plate--label')
     // The title leads the heading order; the band's cluster follows it.
     expect(link).toBeGreaterThan(html.indexOf('<h1'))
