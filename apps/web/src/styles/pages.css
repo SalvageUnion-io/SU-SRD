@@ -150,9 +150,9 @@ a.su-home__discord:hover {
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
  * page so the site footer's citation band closes it at the foot. The band
  * always sits flush under the site bar; the body takes the rest of the
- * height and starts under the band at any length: a short page is never
- * centred (ruleset §1.7, hard rule R17), and the foot stays at the window's
- * bottom edge.
+ * height and starts under the band: a short page spreads its body evenly
+ * down that height, its overflow row kept under the band (ruleset §1.7,
+ * hard rule R17), and the foot stays at the window's bottom edge.
  */
 .su-entity {
   display: flex;

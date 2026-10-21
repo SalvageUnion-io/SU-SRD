@@ -1,6 +1,6 @@
 # Chrome
 
-The law for what frames the content: grounds, the breakpoint ladder, motion, lift, notices, loading, dialogs, empty and error states, focus, tabs and icons. It extends [ruleset.md](ruleset.md) §4 and §5; each law's gate is in [hard-rules.md](hard-rules.md).
+The law for what frames the content: grounds, the breakpoint ladder, motion, lift, notices, loading, dialogs, empty and error states, focus, tabs and icons. It is [ruleset.md](ruleset.md) §8, extending §4; each law's gate is in [hard-rules.md](hard-rules.md).
 Status: agreed (2026-10-18).
 
 ## Foundations

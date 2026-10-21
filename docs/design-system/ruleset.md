@@ -31,8 +31,8 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    6. **Peek — the glance** — a Compact contentful (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links (but its name's, to its Page), nested Peeks or steppers; level 1 on its plate (EDL E6, E16, E19).
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
-      The body starts under the band at any length (a short page is never centred); level-1 blocks sit one 12px gap apart.
-   8. **Entity forms** — Mention, the Sizes and Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
+      The body starts under the band; short, it spreads evenly down the height, the overflow row kept under the band; level-1 blocks sit one 12px gap apart.
+   8. **Entity forms** — Mention, the Sizes and Page, their modes and E rules: [entity-display-language.md](entity-display-language.md).
    9. **Manage — the owner's desk** — the Training Bay, the Play hub, a Game's page, the invite screen: paper under the area's band (Build `build`, Play `play`), level 0, Slab sections, Compacts that link (a Game, seat or proposal too).
       No stepper or in-place edit; acts are Buttons in a Compact's chip group or under a Slab, destruction `confirm`. Rust is a door into play or a make (Play, Mediate, New Game); Open and filters are ink.
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Compact → Peek).
@@ -92,7 +92,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs, at the line's Size, stroke 2 (chrome.md K11). The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (pills, HOMEBREW; never above it or riding the frame, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
    - **Actions nest** — no Actions tray or stamp. On a Page, level 1: Compact contentful, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Minis (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Mini, E14).
-   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, EDL E6), frames 3 → 2px; nothing titled at level 2 or deeper; one level deep is an open Compact (N8; R39's exception).
+   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels, frames 3 → 2px, under N1–N8 (EDL E6).
      A child hides prose its parent shows.
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab over content if a section of the parent (When Damaged, Crawler Hold, Scrap Pool), an unlabelled Callout if a note; never a `TitledBox` or its variants. On an SRD Page a level-1 block may stay a TitledBox.
    - **A container of entities is untitled** (N6) — a wizard step is its title and content; the entities in it are the titled things. A dialog's head is its chrome (level 0).
@@ -107,4 +107,4 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.
    2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels sit right of its title).
-8. **§8 Chrome** — [chrome.md](chrome.md) K1–K10.
+8. **§8 Chrome** — [chrome.md](chrome.md)'s K rules.
