@@ -17,7 +17,7 @@
  *   line's controls in its Mini's chip group.
  * - **Play** (`play`) marks it one of Play's lists (`data-play-list`, play.md
  *   §12): its Minis' chips stay Mini on Play's phone, their heads and
- *   controls each taking a 44px hit area (`play/dashboard/phone.css`).
+ *   controls each taking a 44px hit area (`styles/play/phone.css`).
  *
  * Each child is one `li`; it may hold what belongs on the Mini's line under
  * it (an action's roll table), never a second Mini.

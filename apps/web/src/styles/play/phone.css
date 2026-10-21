@@ -1,12 +1,60 @@
 /*
- * play/phone.css — Play's phone form (play.md §11, `PlayPhone`): tabs under
- * the pinned vitals, below the canvas's floor.
+ * phone.css — Play's phone form (ADR-045, play.md §11, `PlayPhone`): tabs
+ * under the pinned vitals, below the canvas's floor.
  *
- * Only what a style object cannot say lives here (ADR-046): rules over the
- * column components the tabs reuse, which are laid out for a 1280×800 canvas.
- * The touch floor is `.su-play-root--phone`'s (the host's scope,
- * `dashboard/phone.css`): every control at least 44×44.
+ * Only what a style object cannot say lives here (ADR-046): rules over
+ * descendants. `.su-play-root--phone` scopes the phone form (the host
+ * `PlayCanvas` renders it below its floor), and holds the touch floor first;
+ * `.su-play-phone` fits the column components the tabs reuse, which are
+ * laid out for a 1280×800 canvas.
  */
+
+/*
+ * The touch floor (ruleset §4.6, R12): every control in the phone form
+ * is at least 44×44, whichever component drew it. The canvas's own controls
+ * are sized for a scaled 1280×800 frame, and a phone is where those sizes stop
+ * being enough.
+ *
+ * A control in a chip group (a Mini's Use, a "⋯", a linked chip) keeps the
+ * strip's Size (C1a: one height, one centre line) and takes a centred 44px
+ * hit area instead, as a Mini control does under a coarse pointer
+ * (`partials/pointer-motion.css`).
+ */
+.su-play-root--phone
+:is(button, a[href], [role='button'], [role='tab'], summary):not(
+  [data-chip-group] *,
+  .su-mini-grid[data-play-list] :is(.su-entity-mini, .su-hit-area)
+) {
+  min-height: var(--size-full);
+  min-width: var(--size-full);
+}
+
+/*
+ * A Mini in one of Play's lists (a `MiniGrid` marked `data-play-list`: the
+ * Actions, the Crew, the Tables) keeps a Mini's height, its chips Mini
+ * (ruleset §4.7), so the list reads as the sheet's do. Its surface, when it is
+ * the control (a crewmate's sheet, a table's toggle), takes the same centred
+ * 44px hit area as its chip group's controls.
+ */
+.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button']),
+.su-play-root--phone
+  .su-mini-grid[data-play-list]
+  :is(.su-entity-mini, .su-hit-area):is(button, a[href], [role='button']) {
+  position: relative;
+}
+
+.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button'])::after,
+.su-play-root--phone
+  .su-mini-grid[data-play-list]
+  :is(.su-entity-mini, .su-hit-area):is(button, a[href], [role='button'])::after {
+  content: '';
+  height: max(100%, var(--size-full));
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--size-full));
+}
 
 /*
  * The Situation switch shares the screen's width (`Segmented`'s `fill`), but

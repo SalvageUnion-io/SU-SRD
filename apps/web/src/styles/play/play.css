@@ -1,11 +1,15 @@
 /*
- * play.css — Play's stylesheet bundle (docs/architecture/play.md): one part
- * per column, as `dashboard.css` bundles the canvas's.
+ * play.css — Play's one stylesheet bundle (docs/architecture/play.md §2): the
+ * canvas's `.su-play-root` scope and its instruments first, then one part per
+ * column, then the phone form.
  *
- * The app's own stylesheet: imported by `play/PlayFrame.tsx`
- * (both Play screens) and `PlayLanding.tsx`, never by a library component.
- * It loads after `dashboard.css`, whose canvas the frame lays on.
+ * The app's own stylesheet: imported by `play/PlayFrame.tsx` (both Play
+ * screens), `PlayLanding.tsx` and `GamePage.tsx`, never by a library
+ * component. The canvas's rules are scoped to `PlayCanvas`'s classes, so the
+ * hub pages, which draw no canvas, take none of them.
  */
+@import './canvas.css';
+@import './instruments.css';
 @import './bar.css';
 @import './units.css';
 @import './actions.css';

@@ -9,8 +9,8 @@
  * Muted text on the light grounds is `--color-wk-muted` (5.13:1 on
  * band-cream, 5.73:1 on paper), never an ink alpha (contrast.test.ts).
  *
- * The layout shell lives beside this file: `.su-play-root`/`.su-play-canvas`
- * (canvas.css).
+ * The layout shell is `.su-play-root`/`.su-play-canvas` (canvas.css), before
+ * this file in `play.css`.
  */
 
 /* A scrolling body: the SRD Explorer's panes. */
