@@ -12,24 +12,25 @@ the public API and the only list of exports; its rules:
   exports go unused.
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm)
   (boards: [sources.md](../../../../docs/design-system/sources.md)), codified by
-  [`ruleset.md`](../../../../docs/design-system/ruleset.md); entity forms (Compact,
-  index Compact, Mini, Mention, Peek in `entity/`; contentful forms and Page
-  are `ReferenceEntityCard`) by the [EDL](../../../../docs/design-system/entity-display-language.md).
+  [`ruleset.md`](../../../../docs/design-system/ruleset.md); entity forms by the
+  [EDL](../../../../docs/design-system/entity-display-language.md).
 
 ## Groups
 
 Folder = group, and the groups are membership tests:
 
-- **Atoms** — one presentational job, **no Salvage Union knowledge** (an atom may
-  compose a lower atom; domain knowledge makes a Composition).
+- **Atoms** — one presentational job, **no Salvage Union rules** (a reference
+  type or label table is fine: `StatusBadge`, `VitalGauge`, `StatColumn`,
+  `provenanceLines`); domain knowledge makes a Composition.
 - **Containers** — content-agnostic wrappers and state shells.
 - **Compositions** — know Salvage Union entities, or assemble a product surface.
 - Other folders hold one shared surface each (`shared/`, …); an
   area's own surfaces live in it, and the library never imports an area.
 
 Name components for what they are: no `-Display` / `-View` / `-Renderer`
-suffixes or `Reference*` prefixes. **`ReferenceEntityCard` is the sanctioned
-exception, do not re-flag it**; record any new one here. A module only tests
+suffixes or `Reference*` prefixes. Exceptions, do not re-flag:
+`ReferenceEntityCard`, `ReferenceAbilityTrack`, `ReferenceSurface`,
+`RollTableView`, `ColumnsTableView`; record any new one here. A module only tests
 import ships nowhere: delete it.
 
 Test: `bun --filter web test src/components`.
