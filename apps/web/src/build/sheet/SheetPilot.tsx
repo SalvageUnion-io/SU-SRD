@@ -10,6 +10,7 @@
 
 import { containerOf } from 'game-domain/container'
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
@@ -21,6 +22,7 @@ import { pilotStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
+import { crawlerRailItems, mechRailItems, rowStats } from './railStats.model'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
@@ -77,15 +79,18 @@ export function SheetPilot({
     { key: 'ap', label: 'AP', value: ap, max: maxAP },
   ]
 
-  // Assigned units (hard rule R5): each a relation chip, the same in Read and
-  // Edit; Edit adds Change and Unassign after it, and Assign / + Create for an
+  // Assigned units: each a contentful Mini with its vitals, the same in Read
+  // and Edit; Edit adds Change and Unassign after it, and Assign / + Create for an
   // empty place (the crawler's with the hand-set crawler level until one is).
   const units: AssignedUnit[] = []
   if (composition.mech) {
     units.push({
       key: 'mech',
-      label: 'Mech',
+      kind: 'mech',
       name: composition.mech.name,
+      readings: rowStats(
+        mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
+      ),
       href: hrefFor('mech', composition.mech.id),
       change: (
         <AssignPicker
@@ -99,13 +104,14 @@ export function SheetPilot({
       onUnassign: unassign(mechLinkId),
     })
   } else if (withheldMech) {
-    units.push({ key: 'mech', label: 'Mech', name: withheldMech.name ?? 'Not shared' })
+    units.push({ key: 'mech', kind: 'mech', name: withheldMech.name ?? 'Not shared' })
   }
   if (composition.crawler) {
     units.push({
       key: 'crawler',
-      label: 'Crawler',
+      kind: 'crawler',
       name: composition.crawler.name,
+      readings: rowStats(crawlerRailItems(composition.crawler)),
       href: hrefFor('crawler', composition.crawler.id),
       change: (
         <AssignPicker
@@ -119,7 +125,7 @@ export function SheetPilot({
       onUnassign: unassign(crawlerLinkId),
     })
   } else if (withheldCrawler) {
-    units.push({ key: 'crawler', label: 'Crawler', name: withheldCrawler.name ?? 'Not shared' })
+    units.push({ key: 'crawler', kind: 'crawler', name: withheldCrawler.name ?? 'Not shared' })
   }
   const slots: AssignedSlot[] = [
     ...(composition.mech || withheldMech

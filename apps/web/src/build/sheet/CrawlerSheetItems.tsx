@@ -126,7 +126,7 @@ type CrawlerBayCardProps = {
    * it was, and comes back when the link goes (Q2).
    */
   assigned?: CrewAssignment
-  /** In the sheet's sidebar, where nothing folds (ruleset §1.2): Bay Info and When Damaged stand open. */
+  /** In the sheet's sidebar (ruleset §1.2): Bay Info stands open; When Damaged still folds, open once damaged. */
   inSidebar?: boolean
 }
 
@@ -138,7 +138,7 @@ type CrawlerBayCardProps = {
  * 2026-10-20) its Bay Info, folded, its choices (the Armament Bay's weapon
  * pick), its roll table, what it holds, its crew lead's collapsed Mini
  * (`CrewLeadMini`) and its When Damaged, open once it is damaged; the
- * sections at the Mini Size. In the sidebar nothing folds.
+ * sections at the Mini Size. In the sidebar only When Damaged folds.
  * The bay's full rules open in a detail modal from the function action.
  */
 export function CrawlerBayCard({
@@ -322,7 +322,9 @@ export function CrawlerBayCard({
                     key={condition}
                     effect={damagedText}
                     subject={bay.name}
-                    fold={inSidebar ? undefined : damaged ? 'open' : 'closed'}
+                    // Its When Damaged folds in the sidebar too (owner, 2026-10-20:
+                    // When Damaged "in the storage bay should be collapsible").
+                    fold={damaged ? 'open' : 'closed'}
                     size="mini"
                   />
                 )}

@@ -11,6 +11,7 @@
  */
 
 import { containerOf } from 'game-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -32,6 +33,7 @@ import { mechStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
+import { crawlerRailItems, pilotRailItems, rowStats } from './railStats.model'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetMechProps = SheetViewCommonProps & {
@@ -106,15 +108,21 @@ export function SheetMech({
   const self = { type: 'mech', id: mech.id } as const
   const container = containerOf(mech)
 
-  // Assigned units (hard rule R5): each a relation chip, the same in Read and
-  // Edit; Edit adds Change and Unassign after it, and Assign / + Create for an
+  // Assigned units: each a contentful Mini with its vitals, the same in Read
+  // and Edit; Edit adds Change and Unassign after it, and Assign / + Create for an
   // empty place.
   const units: AssignedUnit[] = []
   if (composition.pilot) {
     units.push({
       key: 'pilot',
-      label: 'Pilot',
+      kind: 'pilot',
       name: composition.pilot.name,
+      readings: rowStats(
+        pilotRailItems(
+          composition.pilot,
+          resolveEffectiveCrawlerLevel(composition.pilot, composition.crawler)
+        )
+      ),
       href: hrefFor('pilot', composition.pilot.id),
       change: (
         <AssignPicker
@@ -128,13 +136,14 @@ export function SheetMech({
       onUnassign: unassign(pilotLinkId),
     })
   } else if (withheldPilot) {
-    units.push({ key: 'pilot', label: 'Pilot', name: withheldPilot.name ?? 'Not shared' })
+    units.push({ key: 'pilot', kind: 'pilot', name: withheldPilot.name ?? 'Not shared' })
   }
   if (composition.crawler) {
     units.push({
       key: 'crawler',
-      label: 'Crawler',
+      kind: 'crawler',
       name: composition.crawler.name,
+      readings: rowStats(crawlerRailItems(composition.crawler)),
       href: hrefFor('crawler', composition.crawler.id),
       change: (
         <AssignPicker
@@ -148,7 +157,7 @@ export function SheetMech({
       onUnassign: unassign(crawlerLinkId),
     })
   } else if (withheldCrawler) {
-    units.push({ key: 'crawler', label: 'Crawler', name: withheldCrawler.name ?? 'Not shared' })
+    units.push({ key: 'crawler', kind: 'crawler', name: withheldCrawler.name ?? 'Not shared' })
   }
   const slots: AssignedSlot[] = [
     ...(composition.pilot || withheldPilot

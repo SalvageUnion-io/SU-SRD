@@ -15,6 +15,7 @@
  */
 
 import { containerOf } from 'game-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
@@ -39,7 +40,7 @@ import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './controlPrimitives'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { bayStates } from './railStats.model'
+import { bayStates, mechRailItems, pilotRailItems, rowStats } from './railStats.model'
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
@@ -213,32 +214,36 @@ export function SheetCrawler({
     />
   )
 
-  // Assigned units (hard rule R5): every docked mech and every crew pilot a
-  // relation chip, the same in Read and Edit; Edit adds Unassign after each
+  // Assigned units: every docked mech and every crew pilot a contentful Mini
+  // with its vitals, the same in Read and Edit; Edit adds Unassign after each
   // (one this sheet holds), and Assign / + Create for the next of each kind.
   const units: AssignedUnit[] = [
     ...composition.crawlerMechs.map((dockedMech) => ({
       key: dockedMech.id,
-      label: 'Mech',
+      kind: 'mech' as const,
       name: dockedMech.name,
+      readings: rowStats(mechRailItems(dockedMech)),
       href: hrefFor('mech', dockedMech.id),
       onUnassign: unassignFrom('mech-to-crawler', dockedMech.id),
     })),
     ...withheldMechs.map((unit) => ({
       key: unit.key,
-      label: 'Mech',
+      kind: 'mech' as const,
       name: unit.name ?? 'Not shared',
     })),
     ...composition.crawlerPilots.map((crewPilot) => ({
       key: crewPilot.id,
-      label: 'Pilot',
+      kind: 'pilot' as const,
       name: crewPilot.name,
+      readings: rowStats(
+        pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
+      ),
       href: hrefFor('pilot', crewPilot.id),
       onUnassign: unassignFrom('pilot-to-crawler', crewPilot.id),
     })),
     ...withheldPilots.map((unit) => ({
       key: unit.key,
-      label: 'Pilot',
+      kind: 'pilot' as const,
       name: unit.name ?? 'Not shared',
     })),
   ]

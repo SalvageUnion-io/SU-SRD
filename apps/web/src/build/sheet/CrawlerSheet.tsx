@@ -429,15 +429,22 @@ export function CrawlerSheet({
         // to go somewhere: they are crawler-level data (the pool is what bay
         // REPAIRS spend), so hiding them with the bay would strand them; they
         // render under a Storage Bay Slab instead. -----
+        // The Assigned Units follow it there (owner, 2026-10-20: "also a
+        // good place for the sidebar").
         aside={
-          storageBays.length > 0 ? (
-            storageBays.map(({ entry, i }) => (
-              <div key={`storage-${i}`} style={SHRINK}>
-                {renderBay(entry, i, true)}
-              </div>
-            ))
-          ) : storageContents ? (
-            <SlabSection title="Storage Bay">{storageContents}</SlabSection>
+          storageBays.length > 0 || storageContents || linkedUnits ? (
+            <>
+              {storageBays.length > 0
+                ? storageBays.map(({ entry, i }) => (
+                    <div key={`storage-${i}`} style={SHRINK}>
+                      {renderBay(entry, i, true)}
+                    </div>
+                  ))
+                : storageContents && (
+                    <SlabSection title="Storage Bay">{storageContents}</SlabSection>
+                  )}
+              {linkedUnits}
+            </>
           ) : undefined
         }
       >
@@ -474,9 +481,6 @@ export function CrawlerSheet({
             </MiniGrid>
           </SlabSection>
         )}
-
-        {/* Assigned Units — the last region (`AssignedUnits`, built by SheetCrawler). */}
-        {linkedUnits}
       </SheetColumns>
 
       {/* The weapons picker — the existing master-detail modal, mounted

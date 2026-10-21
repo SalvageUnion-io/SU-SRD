@@ -310,12 +310,18 @@ export function ChapterBand({
   const rowRef = useRef<HTMLDivElement>(null)
   useChipFill(rowRef, fills)
   const lone = !lead
+  // The title that is the fill's name holds its line's left, its free room on
+  // its right (the fill's `margin-inline-end: auto`, which an inline `margin:
+  // 0` beat: a sheet's name sat right, owner 2026-10-20: "should be
+  // left-adjusted").
+  const fillName = fills && lone && !trail
+  const placed = fillName ? { ...titleStyle, ...BESIDE_CONTROLS } : titleStyle
   const title = (
     <Tag
       id={id}
-      data-fill-name={fills && lone && !trail ? '' : undefined}
+      data-fill-name={fillName ? '' : undefined}
       className={cn('su-chapter-band__title', TITLE_CAPS)}
-      style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
+      style={titleSize ? { ...placed, fontSize: titleSize } : placed}
     >
       {children}
     </Tag>
