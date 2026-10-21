@@ -93,8 +93,6 @@ describe('UnionBarSlots', () => {
     expect(current()).toEqual(['Build'])
     rerender(<UnionBarSlots pathname="/play/games/g1" />)
     expect(current()).toEqual(['Play'])
-    rerender(<UnionBarSlots pathname="/games/g1" />)
-    expect(current()).toEqual(['Play'])
   })
 
   test('the bar wears the mode, which shows its nav: Play’s on Play’s routes, Build’s everywhere else', () => {
@@ -184,11 +182,9 @@ describe('UnionBarSlots', () => {
 })
 
 describe('the bar’s rules', () => {
-  test('a Play screen, the addresses that redirect into one and the link-preview surface draw no bar', () => {
+  test('a Play screen and the link-preview surface draw no bar', () => {
     expect(hidesUnionBar('/play/abc')).toBe(true)
     expect(hidesUnionBar('/play/game/g1')).toBe(true)
-    expect(hidesUnionBar('/dashboard/abc')).toBe(true)
-    expect(hidesUnionBar('/mediator/g1')).toBe(true)
     expect(hidesUnionBar('/og/pilot/abc')).toBe(true)
     expect(hidesUnionBar('/sheet/pilot/abc')).toBe(false)
   })
@@ -209,7 +205,6 @@ describe('the bar’s rules', () => {
     expect(unionHere('/play/')).toEqual({ mode: 'play', nav: 'games' })
     expect(unionHere('/play/games/g1')).toEqual({ mode: 'play', nav: 'games' })
     expect(unionHere('/play/game/g1')).toEqual({ mode: 'play', nav: 'games' })
-    expect(unionHere('/games/g1')).toEqual({ mode: 'play', nav: 'games' })
     // A solo Cockpit is Play's, under no nav item (and draws no bar).
     expect(unionHere('/play/p1')).toEqual({ mode: 'play', nav: null })
     // An invite joins a Game: Play's, under no nav item (ADR-052 §4).

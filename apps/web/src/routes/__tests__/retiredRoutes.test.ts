@@ -1,9 +1,11 @@
 /**
- * `/dashboard/$pilotId` and `/mediator/$gameId` are retired: Play replaced
- * the Dashboard and the Mediator Dashboard, so each address redirects to its
- * Play screen, keeping its id (an old mech-keyed id included: `PlayGate`
- * resolves it to the pilot). Build's Game page, `/games/$gameId`, is retired
- * too: a Game's page is Play's (ADR-052 §5).
+ * Retired app addresses are not routes: the Worker 301s each to where it lives
+ * now (`retiredTarget`, `lib/redirects.ts`), keeping its id. Play replaced the
+ * Dashboard and the Mediator Dashboard (`/dashboard/$pilotId` → the pilot's
+ * Play screen, an old mech-keyed id included: `PlayGate` resolves it to the
+ * pilot; `/mediator/$gameId` → the Game's Play screen), and Build's Game page,
+ * `/games/$gameId`, became the Game's page in Play (ADR-052 §5). Each target
+ * is a live route of the real generated tree.
  *
  * The site's search page, `/search`, is retired: the bar's dropdown is the
  * search (EDL "Which form, where"). Not an app route, so the Worker answers
@@ -15,52 +17,52 @@ import { describe, expect, test } from 'bun:test'
 import { APP_BASE } from '../../lib/appBase'
 import type { Env } from '../../worker/index'
 import worker from '../../worker/index'
-import { land, landOn } from './landOn'
+import { land } from './landOn'
 
-describe('the retired Dashboard routes', () => {
-  test('the Dashboard redirects to the pilot’s Play screen, keeping the id', async () => {
-    expect(await landOn('/dashboard/p1')).toBe('/play/p1')
-  })
+/** Asked of the Worker: a miss, as Static Assets hands it one. */
+async function redirectOf(path: string) {
+  const asked: string[] = []
+  const env = {
+    ASSETS: {
+      fetch: async (request: Request) => {
+        asked.push(new URL(request.url).pathname)
+        return new Response(null, { status: 404 })
+      },
+    },
+  } as unknown as Env
+  const res = await worker.fetch(new Request(`https://salvageunion.io${path}`), env)
+  return { status: res.status, location: res.headers.get('location'), asked }
+}
 
-  test('the Mediator Dashboard redirects to the Game’s Play screen, keeping the id', async () => {
-    expect(await landOn('/mediator/g1')).toBe('/play/game/g1')
-  })
-})
-
-describe('the retired Build Game page', () => {
-  test('redirects to the Game’s page in Play, keeping the id', async () => {
-    expect(await landOn('/games/g1')).toBe('/play/games/g1')
-  })
-
-  test('/build/games/$gameId redirects to /build/play/games/$gameId, the address a browser holds', async () => {
-    expect(await land(`${APP_BASE}/games/g1`, APP_BASE)).toEqual({
-      pathname: '/play/games/g1',
-      address: `${APP_BASE}/play/games/g1`,
-      leaf: '/play/games/$gameId',
+describe('the retired app addresses', () => {
+  for (const [from, to, leaf] of [
+    ['/dashboard/p1', '/play/p1', '/play/$pilotId'],
+    ['/mediator/g1', '/play/game/g1', '/play/game/$gameId'],
+    ['/games/g1', '/play/games/g1', '/play/games/$gameId'],
+    ['/games/g1/', '/play/games/g1', '/play/games/$gameId'],
+  ] as const) {
+    test(`${from} 301s to ${to}, keeping the id`, async () => {
+      const { status, location, asked } = await redirectOf(`${APP_BASE}${from}`)
+      expect(status).toBe(301)
+      expect(location).toBe(`${APP_BASE}${to}`)
+      expect(asked).toEqual([])
     })
-  })
 
-  test('a trailing slash lands on the same Game', async () => {
-    expect(await landOn(`${APP_BASE}/games/g1/`, APP_BASE)).toBe(`${APP_BASE}/play/games/g1`)
+    test(`${to} is a live route`, async () => {
+      expect(await land(`${APP_BASE}${to}`, APP_BASE)).toEqual({
+        pathname: to,
+        address: `${APP_BASE}${to}`,
+        leaf,
+      })
+    })
+  }
+
+  test('/ is the Training Bay', async () => {
+    expect(await land('/')).toEqual({ pathname: '/', leaf: '/' })
   })
 })
 
 describe('the retired search page', () => {
-  /** Asked of the Worker: a miss, as Static Assets hands it one. */
-  async function redirectOf(path: string) {
-    const asked: string[] = []
-    const env = {
-      ASSETS: {
-        fetch: async (request: Request) => {
-          asked.push(new URL(request.url).pathname)
-          return new Response(null, { status: 404 })
-        },
-      },
-    } as unknown as Env
-    const res = await worker.fetch(new Request(`https://salvageunion.io${path}`), env)
-    return { status: res.status, location: res.headers.get('location'), asked }
-  }
-
   for (const [from, to] of [
     ['/search/?q=mule', '/?q=mule'],
     ['/search?q=mule%20pattern', '/?q=mule%20pattern'],

@@ -4,8 +4,7 @@
  * link's chassis, pattern, class or crawler type — dropped when it names
  * nothing legal), where each callback navigates, the NPC designer's view and
  * crew in the URL, and `/sheet/$kind/$id` choosing its page or saying the kind
- * is not a sheet. Also Play's two screens and the
- * retired `/dashboard/$pilotId`, which lands on Play.
+ * is not a sheet. Also Play's two screens.
  *
  * The screens themselves have their own suites, so each is replaced here by a
  * stub that shows what the route handed it and offers the route's callbacks as

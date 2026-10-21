@@ -14,9 +14,8 @@ export const slotSelector = (slot: UnionSlot): string => `[data-union-slot="${sl
 
 /**
  * Set on `<html>` while the page draws no Union bar: a Play screen, which
- * draws its own (the Play bar, ADR-045 §6), the retired Dashboard addresses
- * that redirect into one (`/dashboard/*`, `/mediator/*`), and a link
- * preview's render surface (`/og/*`). The Play landing (`/play/`) and a
+ * draws its own (the Play bar, ADR-045 §6), and a link preview's render
+ * surface (`/og/*`). The Play landing (`/play/`) and a
  * Game's page (`/play/games/*`, the Manage context, ADR-052 §7) keep the bar:
  * its Play tab is how you got there. The Worker sets it on the shell it
  * serves for those paths, so the bar never flashes there; the app sets it as
@@ -26,7 +25,4 @@ export const BAR_HIDDEN_ATTRIBUTE = 'data-union-bar-hidden'
 
 /** Whether a route (a path inside the app) draws no Union bar. */
 export const hidesUnionBar = (path: string): boolean =>
-  (/^\/play\/[^/]/.test(path) && !path.startsWith('/play/games/')) ||
-  path.startsWith('/dashboard/') ||
-  path.startsWith('/mediator/') ||
-  path.startsWith('/og/')
+  (/^\/play\/[^/]/.test(path) && !path.startsWith('/play/games/')) || path.startsWith('/og/')

@@ -174,7 +174,6 @@ describe('signed in and connected', () => {
     }
     expect(current('/play/')).toBe('page')
     expect(current('/play/games/g1')).toBe('page')
-    expect(current('/games/g1')).toBe('page')
     expect(current('/')).toBeNull()
   })
 

@@ -15,11 +15,8 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
-import { Route as DashboardPilotIdRouteImport } from './routes/dashboard/$pilotId'
-import { Route as GamesGameIdRouteImport } from './routes/games_/$gameId'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
-import { Route as MediatorGameIdRouteImport } from './routes/mediator/$gameId'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
 import { Route as OgPrivateRouteImport } from './routes/og/private'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
@@ -65,16 +62,6 @@ const CrawlersNewRoute = CrawlersNewRouteImport.update({
   path: '/crawlers/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardPilotIdRoute = DashboardPilotIdRouteImport.update({
-  id: '/dashboard/$pilotId',
-  path: '/dashboard/$pilotId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GamesGameIdRoute = GamesGameIdRouteImport.update({
-  id: '/games_/$gameId',
-  path: '/games/$gameId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
@@ -83,11 +70,6 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const MechsNewRoute = MechsNewRouteImport.update({
   id: '/mechs/new',
   path: '/mechs/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MediatorGameIdRoute = MediatorGameIdRouteImport.update({
-  id: '/mediator/$gameId',
-  path: '/mediator/$gameId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NpcsNewRoute = NpcsNewRouteImport.update({
@@ -168,11 +150,8 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
   '/crawlers/new': typeof CrawlersNewRoute
-  '/dashboard/$pilotId': typeof DashboardPilotIdRoute
-  '/games/$gameId': typeof GamesGameIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
-  '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
   '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
@@ -195,11 +174,8 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
   '/crawlers/new': typeof CrawlersNewRoute
-  '/dashboard/$pilotId': typeof DashboardPilotIdRoute
-  '/games/$gameId': typeof GamesGameIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
-  '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
   '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
@@ -223,11 +199,8 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
   '/crawlers/new': typeof CrawlersNewRoute
-  '/dashboard/$pilotId': typeof DashboardPilotIdRoute
-  '/games_/$gameId': typeof GamesGameIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
-  '/mediator/$gameId': typeof MediatorGameIdRoute
   '/npcs/new': typeof NpcsNewRoute
   '/og/private': typeof OgPrivateRoute
   '/pilots/new': typeof PilotsNewRoute
@@ -252,11 +225,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-out'
     | '/crawlers/new'
-    | '/dashboard/$pilotId'
-    | '/games/$gameId'
     | '/invite/$token'
     | '/mechs/new'
-    | '/mediator/$gameId'
     | '/npcs/new'
     | '/og/private'
     | '/pilots/new'
@@ -279,11 +249,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-out'
     | '/crawlers/new'
-    | '/dashboard/$pilotId'
-    | '/games/$gameId'
     | '/invite/$token'
     | '/mechs/new'
-    | '/mediator/$gameId'
     | '/npcs/new'
     | '/og/private'
     | '/pilots/new'
@@ -306,11 +273,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-out'
     | '/crawlers/new'
-    | '/dashboard/$pilotId'
-    | '/games_/$gameId'
     | '/invite/$token'
     | '/mechs/new'
-    | '/mediator/$gameId'
     | '/npcs/new'
     | '/og/private'
     | '/pilots/new'
@@ -334,11 +298,8 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SignOutRoute: typeof SignOutRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
-  DashboardPilotIdRoute: typeof DashboardPilotIdRoute
-  GamesGameIdRoute: typeof GamesGameIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MechsNewRoute: typeof MechsNewRoute
-  MediatorGameIdRoute: typeof MediatorGameIdRoute
   NpcsNewRoute: typeof NpcsNewRoute
   OgPrivateRoute: typeof OgPrivateRoute
   PilotsNewRoute: typeof PilotsNewRoute
@@ -399,20 +360,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrawlersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/$pilotId': {
-      id: '/dashboard/$pilotId'
-      path: '/dashboard/$pilotId'
-      fullPath: '/dashboard/$pilotId'
-      preLoaderRoute: typeof DashboardPilotIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/games_/$gameId': {
-      id: '/games_/$gameId'
-      path: '/games/$gameId'
-      fullPath: '/games/$gameId'
-      preLoaderRoute: typeof GamesGameIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/invite/$token': {
       id: '/invite/$token'
       path: '/invite/$token'
@@ -425,13 +372,6 @@ declare module '@tanstack/react-router' {
       path: '/mechs/new'
       fullPath: '/mechs/new'
       preLoaderRoute: typeof MechsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mediator/$gameId': {
-      id: '/mediator/$gameId'
-      path: '/mediator/$gameId'
-      fullPath: '/mediator/$gameId'
-      preLoaderRoute: typeof MediatorGameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/npcs/new': {
@@ -542,11 +482,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SignOutRoute: SignOutRoute,
   CrawlersNewRoute: CrawlersNewRoute,
-  DashboardPilotIdRoute: DashboardPilotIdRoute,
-  GamesGameIdRoute: GamesGameIdRoute,
   InviteTokenRoute: InviteTokenRoute,
   MechsNewRoute: MechsNewRoute,
-  MediatorGameIdRoute: MediatorGameIdRoute,
   NpcsNewRoute: NpcsNewRoute,
   OgPrivateRoute: OgPrivateRoute,
   PilotsNewRoute: PilotsNewRoute,

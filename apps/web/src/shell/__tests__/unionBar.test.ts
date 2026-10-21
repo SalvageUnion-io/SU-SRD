@@ -121,7 +121,6 @@ describe('the shell’s Union bar, marked for its route', () => {
       '/pilots/new',
       '/play/',
       '/play/games/g1',
-      '/games/g1',
       '/invite/t1',
     ]) {
       expect(hereIn(markUnionRoute(renderUnionBar(), route))).toEqual(

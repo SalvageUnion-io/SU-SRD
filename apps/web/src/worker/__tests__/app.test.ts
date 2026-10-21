@@ -204,9 +204,9 @@ describe('a navigation gets the shell', () => {
   }
 })
 
-/** A Play screen, the addresses that redirect into one and the link-preview surface draw no Union bar, from the first paint. */
+/** A Play screen and the link-preview surface draw no Union bar, from the first paint. */
 describe('a route that draws no Union bar', () => {
-  for (const path of ['/play/abc', '/dashboard/abc', '/mediator/g1', '/og/pilot/abc']) {
+  for (const path of ['/play/abc', '/play/game/g1', '/og/pilot/abc']) {
     it(`gets a shell marked to hide it for ${path}`, async () => {
       const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
       expect(res.status).toBe(200)
@@ -216,8 +216,8 @@ describe('a route that draws no Union bar', () => {
   }
 
   it('leaves a file alone', async () => {
-    const env = envWith({ [`${BASE}/dashboard/x.png`]: { body: 'png', type: 'image/png' } })
-    const res = await worker.fetch(req('/dashboard/x.png'), env)
+    const env = envWith({ [`${BASE}/play/x.png`]: { body: 'png', type: 'image/png' } })
+    const res = await worker.fetch(req('/play/x.png'), env)
     expect(await res.text()).toBe('png')
   })
 })
@@ -298,7 +298,13 @@ describe('only the public client routes are indexable', () => {
     })
   }
 
-  for (const path of ['/sheet/pilot/xyz', '/games/g1', '/pilots/new', '/settings', '/s/AAAAAAAA']) {
+  for (const path of [
+    '/sheet/pilot/xyz',
+    '/play/games/g1',
+    '/pilots/new',
+    '/settings',
+    '/s/AAAAAAAA',
+  ]) {
     it(`marks ${path} noindex, keeping the shell and its headers`, async () => {
       const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
       expect(res.status).toBe(200)
@@ -365,6 +371,10 @@ describe('a retired address 301s to where it lives now', () => {
     ['/games/g1/view/pilot/row-1', '/sheet/pilot/row-1'],
     ['/join/A1B2C3D4', '/invite/A1B2C3D4'],
     ['/join/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
+    ['/games/g1', '/play/games/g1'],
+    ['/games/g1/', '/play/games/g1'],
+    ['/dashboard/p1', '/play/p1'],
+    ['/mediator/g1', '/play/game/g1'],
   ]
   for (const [from, to] of cases) {
     it(`${BASE}${from} → ${BASE}${to}`, async () => {
@@ -378,7 +388,7 @@ describe('a retired address 301s to where it lives now', () => {
   }
 
   it('leaves a live route under a retired prefix alone', async () => {
-    for (const path of ['/games/g1', '/join/a/b']) {
+    for (const path of ['/games/g1/view', '/join/a/b', '/dashboard/p1/x']) {
       const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
       expect(res.status).toBe(200)
     }

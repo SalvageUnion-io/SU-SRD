@@ -6,8 +6,8 @@ paths:
 # TanStack Router (the client app)
 
 - **Directory routes only**, one segment per directory (`p/$kind/$appId.tsx`),
-  never dot names. A trailing `_` un-nests a segment (`games_/$gameId.tsx` →
-  URL `/games/$gameId`).
+  never dot names. A trailing `_` un-nests a segment (`games_/$gameId.tsx` would
+  be URL `/games/$gameId`).
 - **`Route = createFileRoute('/path')({ … })` is the only export**, its
   component a local function: anything else exported keeps the page's graph in
   the entry chunk. A body worth testing lives in its area

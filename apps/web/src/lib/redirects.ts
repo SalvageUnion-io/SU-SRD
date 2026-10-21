@@ -141,6 +141,14 @@ export function retiredDocPage(path: string): string | null {
  *     crew view; the live read-only sheet takes the same row id)
  *   - `/join/:code`                           → `/invite/:code` (an invite's
  *     token is its old join code, so the invite page joins or explains)
+ *   - `/games/:gameId`                        → `/play/games/:gameId` (Build's
+ *     Game page; a Game's page is Play's, ADR-052 §5)
+ *   - `/dashboard/:pilotId`                   → `/play/:pilotId` (Play replaced
+ *     the Dashboard; `PlayGate` resolves an old mech-keyed id to its pilot)
+ *   - `/mediator/:gameId`                     → `/play/game/:gameId` (Play
+ *     replaced the Mediator Dashboard)
+ *
+ * A trailing slash names the same address.
  *
  * A path under one of these prefixes that names none of these shapes keeps its
  * own path: it never matched a route before either, and lands on the app's
@@ -155,8 +163,11 @@ export function retiredTarget(path: string): string | null {
   const parts = path.split('/').filter((part) => part.length > 0)
   const [first, second, third, fourth, fifth] = parts
   if (first === 'games' && parts.length === 1) return '/'
+  if (first === 'games' && parts.length === 2) return `/play/games/${second}`
   if (first === 'games' && parts.length === 5 && third === 'view')
     return `/sheet/${fourth}/${fifth}`
   if (first === 'join' && parts.length === 2) return `/invite/${second}`
+  if (first === 'dashboard' && parts.length === 2) return `/play/${second}`
+  if (first === 'mediator' && parts.length === 2) return `/play/game/${second}`
   return null
 }

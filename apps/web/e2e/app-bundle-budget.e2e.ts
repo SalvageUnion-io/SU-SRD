@@ -73,8 +73,8 @@ test.use({ account: 'anonymous' })
  *
  * ## Play (ADR-051), 2026-10-17
  *
- * Play replaced the Dashboard and the Mediator dashboard; `/dashboard/:id`
- * redirects there, so the Dashboard's budget went with it. Both Play routes
+ * Play replaced the Dashboard and the Mediator dashboard; the Worker 301s
+ * `/dashboard/:id` there, so the Dashboard's budget went with it. Both Play routes
  * were measured at ~2.43 MB (`/play/:pilotId` 2,429,094 B, `/play/game/:gameId`
  * 2,431,749 B) on a local production build, beside a roster of 2,178,292 B on
  * the same build, and their ceilings sit ~20% above that: 2,920,000 B. Re-take

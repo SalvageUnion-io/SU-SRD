@@ -154,10 +154,14 @@ describe('retiredTarget', () => {
     expect(retiredTarget('/games')).toBe('/')
     expect(retiredTarget('/games/g1/view/pilot/row-1')).toBe('/sheet/pilot/row-1')
     expect(retiredTarget('/join/ABCD')).toBe('/invite/ABCD')
+    expect(retiredTarget('/games/g1')).toBe('/play/games/g1')
+    expect(retiredTarget('/games/g1/')).toBe('/play/games/g1')
+    expect(retiredTarget('/dashboard/p1')).toBe('/play/p1')
+    expect(retiredTarget('/mediator/g1')).toBe('/play/game/g1')
   })
 
   it('leaves a live route under a retired prefix alone', () => {
-    for (const path of ['/games/g1', '/join/a/b', '/sheet/pilot/x']) {
+    for (const path of ['/games/g1/view', '/join/a/b', '/dashboard', '/sheet/pilot/x']) {
       expect(retiredTarget(path)).toBeNull()
     }
   })

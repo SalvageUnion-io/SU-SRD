@@ -53,11 +53,11 @@ const isPlayRoute = (path: string): boolean =>
   path === '/play' || path.startsWith('/play/') || path.startsWith('/invite/')
 
 /**
- * Whether a route is a Game's: its page in Play, a Mediator's Cockpit, or the
- * old address that redirects to its page. Games ▾ is current on all of them.
+ * Whether a route is a Game's: its page in Play or a Mediator's Cockpit.
+ * Games ▾ is current on both.
  */
 const isGameRoute = (path: string): boolean =>
-  path.startsWith('/games/') || path.startsWith('/play/games/') || path.startsWith('/play/game/')
+  path.startsWith('/play/games/') || path.startsWith('/play/game/')
 
 /**
  * Where a route (a path inside the app) is in the bar: its mode, and the nav

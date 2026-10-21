@@ -23,7 +23,7 @@
  * Disconnected is not a refusal: when the Game's answer has not arrived and
  * cannot until the connection is back, it opens on the local pilot, read-only.
  *
- * A mech-keyed URL (`/play/<mech id>`, which `/dashboard/<mech id>` redirects to)
+ * A mech-keyed URL (`/play/<mech id>`, where the Worker 301s `/dashboard/<mech id>`)
  * resolves through the mech's `mech-to-pilot` link and is replaced with the
  * pilot's URL.
  */
