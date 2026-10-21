@@ -1,11 +1,10 @@
 import type { CSSProperties } from 'react'
-import { Button, Field, tokens } from '../../components/index'
+import { Field, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
-import type { MechRollField, MechRollTableDeps } from './mechRollTables.model'
-import { rollForMechField } from './mechRollTables.model'
+import { RollTableButton } from './RollTableButton'
+import type { MechRollField, RollTableDeps } from './rollTableHelpers.model'
+import { MECH_ROLL_TABLE_NAMES } from './rollTableHelpers.model'
 import { stepColumnStyle } from './wizardStyles.model'
-
-const rollButtonStyle = { flexShrink: 0 } satisfies CSSProperties
 
 const noteStyle = {
   color: 'currentcolor',
@@ -26,7 +25,7 @@ type MechFlavorStepProps = {
   /** Optional helper line under the field (e.g. the name-IS-pattern note). */
   note?: string
   /** Injectable roll deps for testing. */
-  _rollDeps?: MechRollTableDeps
+  _deps?: RollTableDeps
 }
 
 /**
@@ -44,13 +43,8 @@ export function MechFlavorStep({
   placeholder,
   multiline = false,
   note,
-  _rollDeps,
+  _deps,
 }: MechFlavorStepProps) {
-  function handleRoll() {
-    const result = rollForMechField(field, _rollDeps)
-    if (result !== null) onChange(result)
-  }
-
   return (
     <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
       <Field
@@ -60,9 +54,7 @@ export function MechFlavorStep({
         multiline={multiline}
         placeholder={placeholder}
         labelAction={
-          <Button size="compact" glyph="⚄" onClick={handleRoll} style={rollButtonStyle}>
-            Roll
-          </Button>
+          <RollTableButton table={MECH_ROLL_TABLE_NAMES[field]} onRoll={onChange} _deps={_deps} />
         }
       />
       {note && <p style={noteStyle}>{note}</p>}

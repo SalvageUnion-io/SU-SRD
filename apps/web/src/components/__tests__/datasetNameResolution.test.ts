@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { MECH_ROLL_TABLE_NAMES } from '../../build/wizard/mechRollTables.model'
-import { PILOT_ROLL_TABLE_NAMES } from '../../build/wizard/rollTableHelpers.model'
+import {
+  CRAWLER_NAME_TABLE,
+  MECH_ROLL_TABLE_NAMES,
+  PILOT_ROLL_TABLE_NAMES,
+} from '../../build/wizard/rollTableHelpers.model'
 
 /**
  * Registries in this package bind code to a dataset entity's `name` — the most
@@ -44,5 +47,13 @@ describe('hard-coded dataset names resolve', () => {
           "mech wizard's Roll button for this field would render dead"
       ).toBeDefined()
     }
+  })
+
+  test('crawler wizard name table', () => {
+    expect(
+      SalvageUnionReference.RollTables.getByName(CRAWLER_NAME_TABLE),
+      `CRAWLER_NAME_TABLE = "${CRAWLER_NAME_TABLE}" resolves no roll table — the ` +
+        "crawler wizard's Roll button would render dead"
+    ).toBeDefined()
   })
 })

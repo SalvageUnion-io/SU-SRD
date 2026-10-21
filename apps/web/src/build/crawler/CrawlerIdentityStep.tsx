@@ -1,16 +1,14 @@
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
-import { Button, Field, Input, SlabSection, tokens } from '../../components/index'
+import { Field, Input, SlabSection, tokens } from '../../components/index'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
-import { rollCrawlerName } from './crawlerRollTables.model'
+import { RollTableButton } from '../wizard/RollTableButton'
+import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
+import { CRAWLER_NAME_TABLE } from '../wizard/rollTableHelpers.model'
 import '../../styles/build/wizard.css'
 
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
-
-/** The Roll button keeps its width beside the field label. */
-const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
 
 /** The Scrap Pool's hint, above its buckets. */
 const SCRAP_HINT = {
@@ -32,7 +30,7 @@ type CrawlerIdentityStepProps = {
   scrapPool: ScrapPoolForm
   onChange: (patch: Partial<CrawlerWizardFormState>) => void
   /** Injectable roll deps for testing. */
-  _rollDeps?: CrawlerRollTableDeps
+  _deps?: RollTableDeps
 }
 
 function parseCount(raw: string): number {
@@ -56,13 +54,9 @@ export function CrawlerIdentityStep({
   description,
   scrapPool,
   onChange,
-  _rollDeps,
+  _deps,
 }: CrawlerIdentityStepProps) {
   const scrapId = useId()
-  function handleRoll() {
-    const result = rollCrawlerName(_rollDeps)
-    if (result !== null) onChange({ name: result })
-  }
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={COLUMN}>
@@ -72,9 +66,11 @@ export function CrawlerIdentityStep({
         onSave={(next) => onChange({ name: next })}
         placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
         labelAction={
-          <Button size="compact" glyph="⚄" onClick={handleRoll} style={NO_SHRINK}>
-            Roll
-          </Button>
+          <RollTableButton
+            table={CRAWLER_NAME_TABLE}
+            onRoll={(next) => onChange({ name: next })}
+            _deps={_deps}
+          />
         }
       />
 

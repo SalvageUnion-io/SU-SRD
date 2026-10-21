@@ -19,6 +19,19 @@ export const PILOT_ROLL_TABLE_NAMES = {
 
 export type PilotRollField = keyof typeof PILOT_ROLL_TABLE_NAMES
 
+/** Roll-table names for the mech wizard's flavor fields (Mech Workshop steps
+ *  6–8: Quirks p.208, Mech Appearance p.208, Mech Pattern Names p.209). */
+export const MECH_ROLL_TABLE_NAMES = {
+  quirk: 'Quirks',
+  appearance: 'Mech Appearance',
+  patternName: 'Mech Pattern Names',
+} as const
+
+export type MechRollField = keyof typeof MECH_ROLL_TABLE_NAMES
+
+/** The crawler wizard's name table (Union Crawler step 5, p.212; the table p.226). */
+export const CRAWLER_NAME_TABLE = 'Crawler Name'
+
 /**
  * Dependency interface for roll table lookup — injectable for testing.
  */
