@@ -23,13 +23,16 @@ const AXE_PATH = require.resolve('axe-core/axe.min.js')
  * adds 2.2's new AA criteria — target size (2.5.8) among them, which is the
  * one a phone layout most readily fails.
  */
-export const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
+const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
 
 /**
  * axe over the page as it stands, with {@link AXE_TAGS}, injecting axe-core
  * first when the page has none: one line per violation, its id and the nodes
  * it names. For a spec that scans a live page state rather than a URL list
  * (`apps/web/e2e/_play.ts`).
+ *
+ * @public Imported by the Play specs through `e2e/_play.ts`, which sits
+ * outside knip's project.
  */
 export async function runAxeOnPage(page: Page): Promise<string[]> {
   if ((await page.evaluate(() => 'axe' in globalThis)) === false) {
