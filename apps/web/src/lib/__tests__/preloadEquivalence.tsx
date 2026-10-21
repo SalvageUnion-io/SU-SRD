@@ -9,8 +9,12 @@ import {
   resetAllForTesting,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { EntitySurfaceProvider, ReferenceEntityCard, Skeleton } from '../../components/index'
-import { EntityIndexCompact } from '../../components/islands/EntityIndexCompact'
+import {
+  Entity,
+  EntitySurfaceProvider,
+  ReferenceEntityCard,
+  Skeleton,
+} from '../../components/index'
 import { itemHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
@@ -73,10 +77,12 @@ function renderIndexCompact(schemaId: string, entity: RefEntity): string {
   return normalize(
     renderToStaticMarkup(
       <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-        <EntityIndexCompact
+        <Entity
+          size="compact"
           entity={entity}
-          href={itemHref(schemaId, getEntitySlug(entity))}
+          mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(entity)) }}
           omit={['kind']}
+          lead
         />
       </EntitySurfaceProvider>
     )

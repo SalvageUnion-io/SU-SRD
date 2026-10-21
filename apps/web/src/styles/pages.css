@@ -312,7 +312,7 @@ a.su-home__discord:hover {
 
 /*
  * A schema listing (`SchemaViewerIsland`): the filter rail, then the entities
- * as compact cards (`EntityIndexCompact`, `extent="head"`) in groups the book
+ * as compact cards (`<Entity size="compact">` in link mode) in groups the book
  * prints them in, each under a solid slab. Each listing sets how narrow a card
  * may get: chassis, with a long row of value cells, take two across; the rest
  * three. The server renders the same grid as plain named rows

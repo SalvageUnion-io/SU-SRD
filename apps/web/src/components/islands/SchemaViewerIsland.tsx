@@ -42,7 +42,6 @@ import {
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
-import { EntityIndexCompact } from './EntityIndexCompact'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -455,10 +454,14 @@ function SchemaViewer({
                     <ul className="su-listing__cards" data-entity-fit="">
                       {group.items.map((item: RefEntity) => (
                         <li key={item.id}>
-                          <EntityIndexCompact
+                          {/* One card, one click (ruleset §1, E2, E11): a
+                              Compact in link mode, the whole row an `<a>`. */}
+                          <Entity
+                            size="compact"
                             entity={item}
-                            href={itemHref(schemaId, getEntitySlug(item))}
+                            mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                             omit={omit}
+                            lead
                           />
                         </li>
                       ))}

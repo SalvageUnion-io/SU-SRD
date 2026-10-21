@@ -23,7 +23,7 @@ const abilityHref = (ability: RefAbility) => itemHref('abilities', getEntitySlug
  * numeral before its name.
  *
  * At level 1 (the class page's own trees, the abilities listing) each is a
- * Compact (the listing row's shape, `EntityIndexCompact`). Inside a class page's
+ * Compact (the listing row's shape). Inside a class page's
  * path card, a level-1 frame, the track is level 2, so each is a contentful
  * Mini (`size="mini"`, N1, N3): its one-row head (tier, name, chips), then
  * its text, held by a border in its tone.
