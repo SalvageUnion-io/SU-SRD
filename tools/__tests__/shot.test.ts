@@ -28,7 +28,7 @@ describe('parseArgs', () => {
   test('defaults to the page width and .shots/', () => {
     const args = parseArgs(['/chassis/mule/'])
     expect(args).toMatchObject({ target: '/chassis/mule/', width: 'page' })
-    expect(WIDTHS[args.width]).toBe(1200)
+    expect(WIDTHS[args.width]).toBe(1440)
     expect(args.out.endsWith('.shots')).toBe(true)
   })
 
@@ -71,6 +71,20 @@ describe('planShot', () => {
     const seeded = { email: 'a@b', password: 'p', pilot: '/build/sheet/pilot/x' }
     expect(planShot({ target: ':pilot' }, seeded).path).toBe('/build/sheet/pilot/x')
     expect(() => planShot({ target: ':mech' }, seeded)).toThrow('the seed made no mech')
+  })
+
+  test('the Play screens derive from the seeded pilot and Game', () => {
+    const seeded = {
+      email: 'a@b',
+      password: 'p',
+      pilot: '/build/sheet/pilot/x',
+      game: '/build/play/games/g',
+    }
+    expect(planShot({ target: ':play' }, seeded).path).toBe('/build/play/x')
+    expect(planShot({ target: ':mediate' }, seeded).path).toBe('/build/play/game/g')
+    expect(() => planShot({ target: ':mediate' }, { email: 'a@b', password: 'p' })).toThrow(
+      'the seed made no game'
+    )
   })
 
   test("a /route goes to this checkout's dev server as is", () => {
@@ -358,7 +372,7 @@ describe('main', () => {
     expect(r.out).toEqual([file])
     const url = `http://localhost:${portFor()}/chassis/mule/`
     expect(r.err).toEqual([`[shot] warning: ${url} answered 404`])
-    expect(calls[0]).toBe('page 375')
+    expect(calls[0]).toBe('page 390')
     expect(calls[1]).toBe('init Object.defineProperty(')
     expect(calls[2]).toBe(`goto ${url}`)
     expect(calls).toContain('settle')

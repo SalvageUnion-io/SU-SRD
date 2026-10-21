@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import type { DesignWidth } from 'gates/lib/designViewports'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { at, BASE } from './_base'
 import type {
   DesignDebt,
@@ -7,15 +9,8 @@ import type {
   DesignFinding,
   DesignRoute,
   DesignSeedKey,
-  DesignWidth,
 } from './_designTable'
-import {
-  againstBaseline,
-  DESIGN_FAMILIES,
-  DESIGN_VIEWPORTS,
-  designRoutes,
-  gamePageRoute,
-} from './_designTable'
+import { againstBaseline, DESIGN_FAMILIES, designRoutes, gamePageRoute } from './_designTable'
 import { gotoStable, waitForReady } from './_helpers'
 import { holdPending } from './_pendingRules'
 import { CANVAS, MID, PHONE, pilotPlayPath, playDoor } from './_play'

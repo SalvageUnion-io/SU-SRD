@@ -4,14 +4,10 @@
  * family is held to, and every path it names the seed makes. A new family in
  * `DESIGN_FAMILIES` with no entry fails here, before a browser runs.
  */
+
 import { describe, expect, test } from 'bun:test'
-import type {
-  DesignContext,
-  DesignDebt,
-  DesignFamily,
-  DesignFinding,
-  DesignWidth,
-} from '../_designTable'
+import type { DesignWidth } from 'gates/lib/designViewports'
+import type { DesignContext, DesignDebt, DesignFamily, DesignFinding } from '../_designTable'
 import {
   againstBaseline,
   DESIGN_FAMILIES,

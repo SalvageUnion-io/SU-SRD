@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { DESIGN_VIEWPORTS } from './_designTable'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { gotoStable, waitForReady } from './_helpers'
 import { describeRhythm, findRhythmFindings } from './_pageRhythm'
 import { expect, test } from './fixtures'

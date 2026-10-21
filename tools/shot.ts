@@ -24,14 +24,19 @@
  *   names this checkout; a server from another checkout is refused, never
  *   screenshotted. With none answering, this starts one and stops it
  *   afterwards.
- * - `--width` is the viewport width (`WIDTHS`). The capture is the full page,
- *   scrolled through first so lazy images (`loading="lazy"` art) have loaded.
+ * - `--width` is the viewport width (`WIDTHS`): `phone` and `page` are the
+ *   layout gates' widths (`DESIGN_VIEWPORTS`, 390 and 1440), so a shot shows
+ *   what a gate measured; `column` (480) is shot's own. The capture is the full
+ *   page, scrolled through first so lazy images (`loading="lazy"` art) have
+ *   loaded.
  * - There is no `--dark`: neither app has a dark theme, so the capture is
  *   always the paper one.
  * - `--signed-in` signs in as the account `bun run dev:backend`
  *   (`tools/dev-backend.ts`) seeded, on the dev server that command runs (it is
  *   never started here: a signed-out boot has no backend). `:pilot`, `:mech`,
- *   `:crawler` and `:game` are the seeded pages, from `.dev-backend/seed.json`.
+ *   `:crawler` and `:game` are the seeded pages, from `.dev-backend/seed.json`;
+ *   `:play` is the seeded pilot's Play screen and `:mediate` the seeded Game's
+ *   Mediator screen, both derived from those paths.
  * - PNGs go to the gitignored `.shots/` (or `--out`); each path is printed for
  *   the agent to Read.
  * - The browser is `launchBrowser`'s (`packages/gates/lib/chromium.ts`): the
@@ -43,14 +48,19 @@
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { FORCE_ONLINE, launchBrowser } from 'gates/lib/chromium'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { SeedFile } from './dev-backend'
 import { STATE_DIR } from './dev-backend'
 
 const REPO = resolve(import.meta.dir, '..')
 
-/** The viewport widths `--width` names. */
-export const WIDTHS = { phone: 375, column: 480, page: 1200 } as const
+/** The viewport widths `--width` names: the gates' `phone` and `page`, and a column. */
+export const WIDTHS = {
+  phone: DESIGN_VIEWPORTS.phone.width,
+  column: 480,
+  page: DESIGN_VIEWPORTS.page.width,
+} as const
 type Width = keyof typeof WIDTHS
 
 export type ShotArgs = { target: string; width: Width; out: string; signedIn: boolean }
@@ -91,8 +101,16 @@ const DEV: Server = {
 const USAGE =
   'usage: bun run shot </route|app:/route|:seeded> [--width phone|column|page] [--out <dir>] [--signed-in]'
 
-/** The seeded pages a `:name` target names (`seed.json`'s keys). */
-const SEEDED = [':pilot', ':mech', ':crawler', ':game'] as const
+/** The seeded pages a `:name` target names (`seed.json`'s keys, and two derived from them). */
+const SEEDED = [':pilot', ':mech', ':crawler', ':game', ':play', ':mediate'] as const
+
+/** The Play screens, from the seeded pilot's sheet and the seeded Game's page. */
+const DERIVED: Partial<
+  Record<SeededTarget, { from: keyof SeedFile; path: (p: string) => string }>
+> = {
+  ':play': { from: 'pilot', path: (p) => p.replace('/sheet/pilot/', '/play/') },
+  ':mediate': { from: 'game', path: (p) => p.replace('/play/games/', '/play/game/') },
+}
 type SeededTarget = (typeof SEEDED)[number]
 const isSeeded = (target: string): target is SeededTarget =>
   (SEEDED as readonly string[]).includes(target)
@@ -144,10 +162,11 @@ export function planShot(
   path: string
 } {
   if (isSeeded(target)) {
-    const path = seeded?.[target.slice(1) as keyof SeedFile]
-    if (!path)
-      throw new Error(`the seed made no ${target.slice(1)}: rerun bun run dev:backend --fresh`)
-    return { server: DEV, path }
+    const derived = DERIVED[target]
+    const key = derived?.from ?? (target.slice(1) as keyof SeedFile)
+    const path = seeded?.[key]
+    if (!path) throw new Error(`the seed made no ${key}: rerun bun run dev:backend --fresh`)
+    return { server: DEV, path: derived ? derived.path(path) : path }
   }
   if (target.startsWith(APP_PREFIX))
     return { server: DEV, path: APP_BASE + target.slice(APP_PREFIX.length) }

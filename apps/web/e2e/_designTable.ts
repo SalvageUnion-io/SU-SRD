@@ -1,3 +1,4 @@
+import type { DesignWidth } from 'gates/lib/designViewports'
 import { at } from './_base'
 
 /**
@@ -49,19 +50,6 @@ export const DESIGN_FAMILIES = {
 } as const satisfies Record<string, DesignContext>
 
 export type DesignFamily = keyof typeof DESIGN_FAMILIES
-
-/**
- * The two widths every family is held at. `page` is a desktop window, and for
- * Play its canvas at the design size (`_play.ts`'s `CANVAS`, 1280 × 800), where
- * a measured px is a drawn px. `phone` is a phone, and for Play its phone form,
- * every tab of it.
- */
-export type DesignWidth = 'phone' | 'page'
-
-export const DESIGN_VIEWPORTS: Record<DesignWidth, { width: number; height: number }> = {
-  page: { width: 1440, height: 900 },
-  phone: { width: 390, height: 844 },
-}
 
 /**
  * The families held at one width only, and why. Every other family has an
