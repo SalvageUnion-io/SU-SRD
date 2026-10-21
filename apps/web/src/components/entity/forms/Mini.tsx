@@ -134,7 +134,7 @@ function ToggleSurface({
 
 /*
  * The pill, its note stamp and its name are `.su-entity-mini__*` classes
- * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
+ * (`styles/partials/entity-forms.css`), not style objects: a page lists tokens by the dozen,
  * so inline they repeated on every one (ADR-046, repeated elements). The
  * pill's paint and a caller's frame stay inline; a player-made pill's dashes
  * ride `data-user-made`.

@@ -13,7 +13,7 @@ type StepButtonProps = ComponentPropsWithRef<'button'> & {
 
 /**
  * The static type and alignment. The plate, radius and tap floor stay in
- * `.su-step-btn` (`styles/index.css`): the plate has a hover, the tap floor a
+ * `.su-step-btn` (`styles/partials/atoms-badges.css`): the plate has a hover, the tap floor a
  * breakpoint, and an inline style would outrank both.
  */
 const STEP_BUTTON = {

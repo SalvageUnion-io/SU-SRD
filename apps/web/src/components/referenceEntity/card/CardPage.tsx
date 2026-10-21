@@ -26,7 +26,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * (`opening`), then the base chassis's prose under its own slab.
  *
  * The card decides what each part is (`ReferenceEntityCardInner`); this lays
- * the parts out as a page. Layout is `index.css`'s `.su-entity-page*`, which
+ * the parts out as a page. Layout is `.su-entity-page*` (`styles/partials/entity-page.css`), which
  * keeps this DOM order at every width, so tab order matches what you see.
  */
 

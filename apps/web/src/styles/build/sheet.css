@@ -5,7 +5,7 @@
  * style object over the UI library's `tokens`.
  *
  * Unlayered, so it sits over the shared `su-base` layer.
- * The app loads it from `index.css`.
+ * The app loads it from `app.css`.
  */
 @import './sheet/chrome.css';
 @import './sheet/pilot.css';

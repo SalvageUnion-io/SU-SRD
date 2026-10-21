@@ -1,7 +1,7 @@
 /*
  * screens.css — the stateful/responsive half of the
  * app components listed below; their static styling is style objects over
- * src/components tokens. Loaded by `index.css`.
+ * src/components tokens. Loaded by `app.css`.
  *
  *   - `build/account/SignInControl.tsx` — `.su-sign-in-control--bar`, the
  *     ghost Button in the Union bar's foreground (hover included).

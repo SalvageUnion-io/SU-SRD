@@ -44,7 +44,7 @@ const TAG = cn('su-roll__tag', capsLabel({ weight: 'inherit' }))
  *   In a narrow frame the columns stack, each range over its entries two up.
  *
  * Presentational: rolling, and what a roll reads as, belong to the host. The
- * layout is `index.css`'s `.su-roll*`, sized by `size` and, on a page that
+ * layout is `.su-roll*` (`styles/partials/roll-table.css`), sized by `size` and, on a page that
  * must end above the fold, `density` and `split`.
  */
 

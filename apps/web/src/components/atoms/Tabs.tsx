@@ -24,7 +24,7 @@ import { capsLabel } from './capsLabel'
  *
  * Styling follows the per-property split (ADR-046): static geometry and type as style
  * objects, every colour (each of which changes on hover, focus or selection)
- * in `.su-tab` in `styles/index.css`.
+ * in `.su-tab` in `styles/partials/controls.css`.
  */
 
 type TabsProps<Value extends string> = {

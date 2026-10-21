@@ -7,7 +7,7 @@
  * bundler in the loop, where cyclic module initialisation is TDZ-sensitive and
  * depends on evaluation order.
  *
- * Their skin is the `.su-text-input` class (`styles/index.css`), all of it: callers
+ * Their skin is the `.su-text-input` class (`styles/partials/atoms-fields.css`), all of it: callers
  * restyle both by className and by `style`.
  *
  * ## Both are 16px, and that is a functional requirement

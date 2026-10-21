@@ -224,9 +224,7 @@
  * a worded one only in geometry: same frame, variants, focus ring and disabled
  * treatment, including the visible focus ring a hand-rolled square forgets.
  *
- * A square of the Compact Size, past the WCAG 2.5.8 24px minimum. On a line
- * of another Size it takes that Size (`.su-size-mini`, `.su-size-full`), never
- * a call site's own height.
+ * A square of the Compact Size, past the WCAG 2.5.8 24px minimum.
  */
 .su-btn--icon-only {
   flex-shrink: 0;

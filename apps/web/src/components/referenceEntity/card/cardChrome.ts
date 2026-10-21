@@ -190,7 +190,7 @@ export function resolveCardInteraction({
   const pointerOnly = !onCardClick && !!clickControl && !clickControl.hidden
   const isHoverable = !!resolvedCardClick || !!cardClickable
   // Classes, not a style object: a caller's `className` may override any of
-  // these (`.su-ec-outer` in `styles/index.css`).
+  // these (`.su-ec-outer` in `styles/partials/reference-card.css`).
   const outerClassName = cn(
     'su-ec-outer',
     disabled && 'su-ec-outer--dim',

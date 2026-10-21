@@ -8,7 +8,7 @@
  * responsive or stateful value (resting value included, since an inline
  * `style=` beats every rule here) and child-selector stacks.
  *
- * Imported by each component that uses it, not from `index.css`. Unlayered, like the app's other stylesheets.
+ * Imported by each component that uses it, not from `app.css`. Unlayered, like the app's other stylesheets.
  *
  * The breakpoints: sm 40rem, md 48rem, lg 64rem.
  */

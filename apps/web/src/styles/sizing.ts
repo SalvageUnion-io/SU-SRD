@@ -50,7 +50,7 @@ export type Size = 'full' | 'compact' | 'mini'
 export const DEFAULT_SIZE: Size = 'compact'
 
 /**
- * Type scale per Size, as `.su-rung-*` classes (rules in `styles/index.css`,
+ * Type scale per Size, as `.su-rung-*` classes (rules in `styles/partials/atoms.css`,
  * over the `theme.css` type tokens). A class-string export, so stylesheet-only
  * and its class names are public API (ADR-046).
  *

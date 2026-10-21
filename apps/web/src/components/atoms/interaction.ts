@@ -9,7 +9,7 @@ import type { KeyboardEvent } from 'react'
  *
  * Each is a string you drop into `className`: it composes through `cn()` and
  * works on any element, in this package or in either app. The rules live in
- * `src/styles/index.css`.
+ * `src/styles/partials/foundation.css`.
  *
  * They are stylesheet-only because a consuming app puts them on elements the
  * library never renders, and a string constant cannot carry a style object —

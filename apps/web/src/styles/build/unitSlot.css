@@ -1,7 +1,7 @@
 /*
  * unitSlot.css — the stateful/responsive half of the
  * app components listed below; their static styling is style objects over
- * src/components tokens. Loaded by `index.css`.
+ * src/components tokens. Loaded by `app.css`.
  *
  *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
  *     laid over the whole Compact, its linked chips raised above it.

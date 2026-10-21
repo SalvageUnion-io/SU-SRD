@@ -16,7 +16,7 @@
  * references out of those files.
  *
  * Every header band on a listing wears one, so the image is a stylesheet class
- * (`.su-grain--ink` / `.su-grain--paper` in `styles/index.css`), not an inline
+ * (`.su-grain--ink` / `.su-grain--paper` in `styles/partials/card-chrome.css`), not an inline
  * style (ADR-046, repeated elements): inline, its ~1.9 KB data URI on every
  * band was over a tenth of srd's HTML. The classes read `styles/grain/*.svg`,
  * which the bundler inlines into the built stylesheet once; those files are

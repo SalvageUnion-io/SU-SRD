@@ -157,7 +157,7 @@ export type VitalGaugeProps = {
  * Styling follows the per-property split (ADR-046): static geometry, type and colour as
  * the style objects below; the hover-only halves (the segment lift, the muted
  * glyphs that ink on hover, the provenance triggers, which take no `style`) as
- * `.su-vital-gauge__*` in `styles/index.css`.
+ * `.su-vital-gauge__*` in `styles/partials/atoms.css`.
  */
 
 // — full —

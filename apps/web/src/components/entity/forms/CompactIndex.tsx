@@ -92,7 +92,7 @@ const MEASURE_KEY = 'ref-stat-'
  * chips (`EP | 2`, `SLOTS | 1`), a compact head's budget, beside the name on
  * the band (the name giving way); then, while
  * browsing, the lead clamped to three lines.
- * Layout is `index.css`'s `.su-entity-index*`.
+ * Layout is `.su-entity-index*` (`styles/partials/entity-forms.css`).
  */
 export function CompactIndex({
   model,

@@ -76,7 +76,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * a crawler's tech-level ladder too, down its own column), its roll table and any sub-guide as its
  * Mini — every one through the primitive its kind already has.
  *
- * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
+ * Layout is `.su-guide*` (`styles/partials/guides.css`). On a page (`CardPage`'s `guide`) the
  * steps stand beside the prose rather than inside the card body, and take the
  * page's reading size and measure there. There (`page`) a long guide also gets
  * its hierarchy and its way around: a section's slab is the page's H2, every

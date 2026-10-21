@@ -27,7 +27,7 @@ import { speckle } from '../../design/tokens'
  *
  * ## The layer is a class
  *
- * `.su-grain-layer` (`styles/index.css`) places each layer: it repeats on every
+ * `.su-grain-layer` (`styles/partials/card-chrome.css`) places each layer: it repeats on every
  * band of every page, so it is a stylesheet rule, not a style object
  * (ADR-046, repeated elements).
  */

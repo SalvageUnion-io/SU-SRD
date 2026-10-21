@@ -40,7 +40,7 @@ type InlineRefProps = {
  * The distinguishing rule is the border + navigability; the Peek is a
  * composition concern (`Mention`). The word keeps its prose's own type and
  * colour, so a reference reads on any ground — paper prose, an ink roll band,
- * a tone header (`.su-inline-ref` in `index.css`). Extra attributes (a Peek
+ * a tone header (`.su-inline-ref` in `styles/partials/inline-ref.css`). Extra attributes (a Peek
  * trigger's `data-peek`) reach the element in every state.
  */
 export function InlineRef({ children, href, onOpen, title, className, ...rest }: InlineRefProps) {

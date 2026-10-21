@@ -10,7 +10,7 @@
 type TextVariant = 'default' | 'body' | 'hint' | 'flavor'
 
 /**
- * Each variant is a `.su-text--*` class in `styles/index.css`, not a style
+ * Each variant is a `.su-text--*` class in `styles/partials/atoms-leaves.css`, not a style
  * object: callers restyle Text through `className` all the time (`text-paper`,
  * `text-sm`, `text-left`, `mb-2`…), and an inline style would beat every one of
  * those overrides. A stylesheet class keeps them winning.

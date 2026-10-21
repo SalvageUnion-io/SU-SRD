@@ -12,7 +12,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  *
  * Three axes and a `(opts) => string` signature: a class string, so it can sit
  * on an element the library does not render (a Base UI trigger, a router link).
- * The rules behind the names live in `src/styles/index.css`.
+ * The rules behind the names live in `src/styles/partials/button.css`.
  *
  * **ALL of the styling lives there, geometry and type included** — not just the
  * stateful half the split rule would send to a stylesheet. That is not an
@@ -65,7 +65,7 @@ const SURFACE = {
   paper: '',
   // Play's canvas — condensed-caps typography; the ghost recolour (the one
   // variant the HUD uses) is the compound selector
-  // `.su-btn--instrument.su-btn--ghost` in index.css, whose two-class
+  // `.su-btn--instrument.su-btn--ghost` in `partials/button.css`, whose two-class
   // specificity beats plain `.su-btn--ghost` without relying on source order.
   instrument: `su-btn--instrument ${capsLabel()}`,
 } as const

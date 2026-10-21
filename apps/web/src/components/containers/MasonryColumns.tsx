@@ -4,7 +4,7 @@ import { widthAtLeast } from '../../design/tokens'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { RadioCardGroup } from './RadioCardGroup'
 
-/** `.su-masonry` (`styles/index.css`): it collapses to one block in print. */
+/** `.su-masonry` (`styles/partials/containers.css`): it collapses to one block in print. */
 const FLOW = 'su-masonry'
 
 type MasonryColumnsProps = {
@@ -55,7 +55,7 @@ function useColumnCount(): number {
  * within a breakpoint costs nothing. Cards are distributed round-robin, so
  * columns balance by count rather than exact height.
  *
- * Print collapses to a single stacked column (`.su-masonry` in `styles/index.css`).
+ * Print collapses to a single stacked column (`.su-masonry` in `styles/partials/containers.css`).
  */
 export function MasonryColumns({
   children,

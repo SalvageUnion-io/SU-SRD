@@ -5,7 +5,7 @@ import { capsLabel } from './capsLabel'
  * The poster wrapping-stamp shape (clean-pilot.html `.sect`/`.stamp`) — the
  * multi-line ink label whose background is cloned across each wrapped line
  * (`box-decoration-break: clone`, `display: inline`; the `.su-poster-stamp`
- * rule in `styles/index.css`), at the wide poster tracking.
+ * rule in `styles/partials/atoms.css`), at the wide poster tracking.
  *
  * Distinct from the `Badge` `shape="stamp"` atom (a single-line `inline-block`
  * chip locked to `line-height: 1` and `tracking-caps-tight`). Compose this with

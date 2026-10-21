@@ -24,7 +24,7 @@ type StampSize = Size
 type StampSurface = 'solid' | 'inverse' | 'dashed'
 
 /*
- * Every chip and stamp property lives in a `.su-badge*` class (`styles/index.css`),
+ * Every chip and stamp property lives in a `.su-badge*` class (`styles/partials/atoms-badges.css`),
  * not a style object, although none of them has a stateful variant. Badge is the
  * most-overridden atom in the system: call sites restyle padding, display, size,
  * tracking, colour and the inset ring through `className`, and a caller's utility

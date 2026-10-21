@@ -14,7 +14,7 @@ import type { Paint } from './paint'
 const NAME_CAPS = capsLabel({ weight: 'inherit' })
 
 /*
- * The band's parts are `.su-entity-compact__*` classes (`styles/index.css`), not
+ * The band's parts are `.su-entity-compact__*` classes (`styles/partials/entity-forms.css`), not
  * style objects: a listing repeats them on every row, so inline they were a
  * large share of each page (ADR-046, repeated elements). What varies by row
  * (the paint) stays inline.

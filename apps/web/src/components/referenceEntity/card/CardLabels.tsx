@@ -5,7 +5,7 @@ import type { LabelsProps } from './labelChips'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 
 /*
- * The cluster's layout is `.su-ec-labels*` classes (`styles/index.css`), not
+ * The cluster's layout is `.su-ec-labels*` classes (`styles/partials/atoms-badges.css`), not
  * style objects: every head band of a listing carries one (ADR-046, repeated
  * elements).
  *

@@ -14,7 +14,7 @@ import { cn } from '../../lib/cn'
  * ## Emits `.su-*` class names
  *
  * A `(opts) => string` recipe; the rules behind the names it returns live in
- * `src/styles/index.css`.
+ * `src/styles/partials/controls.css`.
  *
  * It stays a class-string emitter rather than becoming a `CSSProperties` object,
  * even though every property it sets is static and the split rule would
