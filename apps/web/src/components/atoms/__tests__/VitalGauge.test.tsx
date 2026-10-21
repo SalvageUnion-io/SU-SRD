@@ -372,3 +372,28 @@ describe('VitalGauge steppers (the compact rung)', () => {
     cleanup()
   })
 })
+
+describe('VitalGauge — mini HP cells', () => {
+  test('read-only: label, value/max and one square cell per point in a square block', () => {
+    render(<VitalGauge size="mini" label="HP" value={3} max={9} readOnly />)
+    const gauge = screen.getByRole('img', { name: 'HP 3 of 9' })
+    expect(gauge.getAttribute('data-size')).toBe('mini')
+    expect(gauge.textContent).toContain('3/9')
+    const cells = gauge.querySelectorAll<HTMLElement>('[data-pip]')
+    expect(cells).toHaveLength(9)
+    expect(gauge.querySelectorAll('[data-pip="on"]')).toHaveLength(3)
+    expect(cells[0]?.style.width).toBe(cells[0]?.style.height)
+    const grid = must(cells[0]?.parentElement)
+    expect(grid.style.gridTemplateColumns).toBe('repeat(3, 8px)')
+  })
+
+  test('editable: the cells are one slider, a click sets the value', () => {
+    const onChange = mock((_: number) => {})
+    render(<VitalGauge size="mini" label="HP" value={1} max={4} onChange={onChange} />)
+    const slider = screen.getByRole('slider', { name: 'HP' })
+    fireEvent.click(pip(slider, 2))
+    expect(onChange).toHaveBeenCalledWith(3)
+    fireEvent.keyDown(slider, { key: 'ArrowRight' })
+    expect(onChange).toHaveBeenLastCalledWith(2)
+  })
+})

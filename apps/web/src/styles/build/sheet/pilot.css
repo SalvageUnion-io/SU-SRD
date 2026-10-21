@@ -38,13 +38,12 @@
 }
 
 /* A crew lead's body (`CrewLeadMini`): its lines, and right of them its HP
-   gauge, as tall as they are (owner, round 5: Keepsake and Motto beside HP,
-   a 2x2 cell). */
+   as Mini HP cells, only as wide as their square block (owner, round 9). */
 .su-crew-lead__body {
   align-items: start;
   display: grid;
   gap: var(--space-12);
-  grid-template-columns: minmax(0, 1fr) minmax(6rem, 9rem);
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .su-crew-lead__body > .su-sheet-npc-lines {

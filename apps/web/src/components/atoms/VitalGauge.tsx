@@ -5,7 +5,7 @@ import { borderWidth, color, fontSize, radius, space, tracking, weight } from '.
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
-import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
+import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 import { POSTER_STAMP } from './posterStamp'
 import { StepButton } from './SmallButtons'
 import type { ProvenanceLine } from './StatProvenance'
@@ -35,6 +35,17 @@ import {
   STAMP,
   SUB_LABEL,
 } from './vitalGaugeFull'
+import {
+  M_CELL,
+  M_CELL_SIDE,
+  M_GRID,
+  M_HEAD,
+  M_LABEL,
+  M_SHELL,
+  M_VALUE,
+  miniColumns,
+} from './vitalGaugeMini'
+import { segment } from './vitalGaugeSegment'
 
 /**
  * The two fields of a `StatBreakdown` the gauge reads: the override flag and
@@ -116,8 +127,11 @@ export type VitalGaugeProps = {
    *   `compact` — the instrument layout (Play's cue): label · the pips ·
    *          value/max on one line, no big numeral, no caption. Its pips take
    *          the §4.5 row split, each a sixth of the bay wide.
+   *   `mini` — HP cells (a crawler bay's crew lead, owner round 9: "a mini
+   *          sized HP cell display … a square grid"): label · value/max over
+   *          a square block of small square cells. No numeral, no caption.
    */
-  size?: Extract<Size, 'full' | 'compact'>
+  size?: Extract<Size, 'full' | 'compact' | 'mini'>
   /** Extra inline style on the root — chiefly to pin the `--tone` / `--tone-deep`
    * vars for a one-off tone (Play's vitals pass their tone here). */
   style?: CSSProperties
@@ -146,14 +160,6 @@ export type VitalGaugeProps = {
  * glyphs that ink on hover, the provenance triggers, which take no `style`) as
  * `.su-vital-gauge__*` in `styles/index.css`.
  */
-
-/** An editable segment's static half; the hover lift is `.su-vital-gauge__pip`. */
-const PIP_EDITABLE = {
-  cursor: 'pointer',
-  transitionProperty: 'transform, translate, scale, rotate',
-  transitionDuration: 'var(--dur-base)',
-  transitionTimingFunction: 'var(--ease)',
-} satisfies CSSProperties
 
 // — full —
 const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
@@ -315,26 +321,37 @@ export function VitalGauge({
     </div>
   )
 
-  // An empty segment is paper, outlined.
-  const emptyFill = {
-    borderColor: color.ink50,
-    backgroundColor: color.paper,
-  } satisfies CSSProperties
-  // An unlit pip past the redline keeps the empty ground and takes the
-  // status-bad outline (boards D1, D4): the redline reads before the value
-  // reaches it — on the sheet and in Play alike, since both draw this gauge.
-  const redlineFill = {
-    borderColor: color.statusBad,
-    backgroundColor: color.paper,
-  } satisfies CSSProperties
-  const segFill = (state: ReturnType<typeof trackSegmentState>): CSSProperties =>
-    state === 'off'
-      ? emptyFill
-      : state === 'redline'
-        ? redlineFill
-        : state === 'danger'
-          ? { borderColor: color.statusBad, backgroundColor: color.statusBad }
-          : { borderColor: 'var(--tone-deep)', backgroundColor: 'var(--tone)' }
+  // MINI — HP cells: label and value/max on one row, a square block of small
+  // square cells beneath (`miniColumns`), lit from the first.
+  if (size === 'mini') {
+    const cells = Array.from({ length: segCount }, (_, n) => n).map((i) =>
+      segment(i, trackSegmentState(i, shown, max, dangerFrom), M_CELL, editable)
+    )
+    const gridStyle = {
+      ...M_GRID,
+      gridTemplateColumns: `repeat(${miniColumns(segCount)}, ${M_CELL_SIDE})`,
+    } satisfies CSSProperties
+    return (
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
+      <div
+        role={editable ? 'group' : 'img'}
+        aria-label={summary}
+        data-size="mini"
+        className={className}
+        style={{ ...M_SHELL, ...style }}
+      >
+        <div style={M_HEAD}>
+          <span className={capsLabel({ size: 'badge' })} style={{ ...M_LABEL, color: color.ink }}>
+            {label}
+          </span>
+          <span style={{ ...M_VALUE, color: isOver ? color.statusBad : color.ink }}>
+            {shown}/{max}
+          </span>
+        </div>
+        {editable ? slider(gridStyle, cells) : <div style={gridStyle}>{cells}</div>}
+      </div>
+    )
+  }
 
   // COMPACT — the instrument bar (Play's cue): label and value/max on one row,
   // the §4.5 pip rows beneath. No big numeral or caption.
@@ -343,23 +360,9 @@ export function VitalGauge({
       <>
         {statBlockRowStarts(segCount).map((segRow) => (
           <div key={segRow.start} style={C_ROW}>
-            {Array.from({ length: segRow.count }, (_, c) => {
-              const i = segRow.start + c
-              const state = trackSegmentState(i, shown, max, dangerFrom)
-              const on = segmentLit(state)
-              const segStyle = { ...C_PIP, ...segFill(state) } satisfies CSSProperties
-              return editable ? (
-                <span
-                  key={i}
-                  data-pip={on ? 'on' : 'off'}
-                  data-pip-index={i}
-                  className="su-vital-gauge__pip"
-                  style={{ ...segStyle, ...PIP_EDITABLE }}
-                />
-              ) : (
-                <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
-              )
-            })}
+            {Array.from({ length: segRow.count }, (_, c) => segRow.start + c).map((i) =>
+              segment(i, trackSegmentState(i, shown, max, dangerFrom), C_PIP, editable)
+            )}
           </div>
         ))}
       </>
@@ -437,31 +440,14 @@ export function VitalGauge({
     flexDirection: 'column',
     gap: trackGap,
   } satisfies CSSProperties
+  const pipBase = { ...PIP, ...(isDense ? PIP_DENSE : PIP_ROOMY) } satisfies CSSProperties
   const fullRows = (
     <>
       {statBlockRowStarts(segCount).map((segRow) => (
         <div key={segRow.start} style={{ display: 'flex', gap: trackGap }}>
-          {Array.from({ length: segRow.count }).map((_, c) => {
-            const i = segRow.start + c
-            const state = trackSegmentState(i, shown, max, dangerFrom)
-            const on = segmentLit(state)
-            const segStyle = {
-              ...PIP,
-              ...(isDense ? PIP_DENSE : PIP_ROOMY),
-              ...segFill(state),
-            } satisfies CSSProperties
-            return editable ? (
-              <span
-                key={i}
-                data-pip={on ? 'on' : 'off'}
-                data-pip-index={i}
-                className="su-vital-gauge__pip"
-                style={{ ...segStyle, ...PIP_EDITABLE }}
-              />
-            ) : (
-              <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
-            )
-          })}
+          {Array.from({ length: segRow.count }, (_, c) => segRow.start + c).map((i) =>
+            segment(i, trackSegmentState(i, shown, max, dangerFrom), pipBase, editable)
+          )}
         </div>
       ))}
     </>

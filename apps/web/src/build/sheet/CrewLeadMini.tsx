@@ -9,8 +9,8 @@
  * opens a built NPC's sheet. The body is what the sheet tracks about them:
  * Keepsake, Motto, Detail and Facts (`NpcLines`), each left out in Read when
  * empty, in Edit their fields, led by the name, which a head cannot hold;
- * and right of them its HP, a sheet's vital gauge (owner, round 5), set by
- * its track in Edit.
+ * and right of them its HP, Mini HP cells in a square block (owner, round
+ * 9), set by its cells in Edit.
  *
  * Handler absence is the read-only encoding, as on `NpcLines`.
  */
@@ -82,13 +82,14 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
   const [open, setOpen] = useState(false)
   const { model, hpHint } = useMemo(() => crewHead(base), [base])
   const relations = roleChip(title, name)
-  // Its HP is a gauge right of its lines, as a sheet's vitals (owner, round 5:
-  // "a 2x2 cell like the SP / pilot HP sheets"): set in Edit, read in Read.
+  // Its HP right of its lines, as Mini HP cells (owner, round 9: "a mini sized
+  // HP cell display … a square grid"): set in Edit, read in Read.
   const hpGauge =
     maxHp > 0 ? (
       <div className="su-crew-lead__hp" title={hpHint}>
         <VitalGauge
           label="HP"
+          size="mini"
           value={hp}
           max={maxHp}
           {...(editing ? { onChange: onHpChange } : { readOnly: true })}

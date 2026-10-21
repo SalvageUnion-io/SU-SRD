@@ -1,8 +1,8 @@
 /**
  * CrewLeadMini — a crawler bay's crew lead as a CONTENTFUL Mini (N3):
  * - the head names the NPC and chips the role it holds (`THE | Doc`) once it
- *   has a name of its own; its HP is a sheet's gauge beside its lines, read
- *   live, set by its track in Edit (round 5);
+ *   has a name of its own; its HP is Mini HP cells beside its lines, read
+ *   live, set by its cells in Edit (round 9);
  * - the body holds what the sheet tracks (Keepsake, Motto, Detail, Facts),
  *   each left out in Read when empty;
  * - the group is named for its bay, so several crew leads stay distinguishable;
@@ -46,8 +46,10 @@ describe('CrewLeadMini — the head and its HP', () => {
     expect(within(band).getByText('The')).toBeTruthy()
     expect(within(band).getByText('Doc')).toBeTruthy()
     expect(band.textContent).not.toContain('HP')
-    // The HP reads live in the body, a sheet's gauge.
-    expect(within(group).getByRole('img', { name: 'HP 3 of 4' })).toBeTruthy()
+    // The HP reads live in the body, as Mini HP cells (round 9).
+    const hp = within(group).getByRole('img', { name: 'HP 3 of 4' })
+    expect(hp.getAttribute('data-size')).toBe('mini')
+    expect(hp.querySelectorAll('[data-pip]')).toHaveLength(4)
     // A contentful Mini, never a titled box (N5).
     expect(group.querySelector('.su-entity-mini[data-contentful]')).toBeTruthy()
     expect(group.querySelector('.su-box')).toBeNull()

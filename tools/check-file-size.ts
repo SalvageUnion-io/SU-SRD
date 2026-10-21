@@ -50,7 +50,6 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 662,
   'apps/web/src/lib/rules/creation.ts': 722,
   'apps/web/src/stores/entityStore.ts': 712,
-  'apps/web/src/components/atoms/VitalGauge.tsx': 608,
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 692,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 613,
