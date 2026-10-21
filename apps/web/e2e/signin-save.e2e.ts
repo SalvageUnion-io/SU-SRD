@@ -24,7 +24,7 @@ test.use({ account: 'anonymous' })
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
  * The PR-blocking CI suite builds with neither, so this skips there with
- * a stated reason rather than failing — the same trade `offline.e2e.ts` makes for
+ * a stated reason rather than failing — the same trade `app-offline.e2e.ts` makes for
  * the dev-server case: a spec that went red in the ordinary run would be
  * deleted the first time it annoyed somebody.
  *

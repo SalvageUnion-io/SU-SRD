@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import { at } from './_base'
 
 /**
  * Hard rule R33, "A Peek is terminal" (ruleset §1.6; EDL E16), on the rendered
@@ -67,7 +68,7 @@ const PAGES = [
   '/keywords/',
   // A Starter Set sheet: a crawler bay's roll Mini, folded off its own page,
   // and its actions' Mentions.
-  '/build/starter/crawler/starter-crawler-tenacity',
+  at('/starter/crawler/starter-crawler-tenacity'),
 ]
 
 /** Every kind that Peeks, found when this gate landed. */

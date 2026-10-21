@@ -211,13 +211,14 @@ jobs:
       # runs only nightly, where e2e-nightly.yml runs the whole suite; the
       # performance budget runs below. A file filter is a pattern, so `smoke.e2e.ts` runs the
       # reference pages' and the app's smoke (`reference-smoke.e2e.ts`,
-      # `app-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
-      # `offline`; Play's are named whole, because `play-` alone would also
-      # match `display-verification.e2e.ts`. Add a spec to this line; do NOT
+      # `app-smoke.e2e.ts`), and likewise `bundle-budget` and `a11y`;
+      # `app-offline` and Play's are named whole (`play-` alone would also
+      # match `display-verification.e2e.ts`). Add a spec to this line; do NOT
       # add a step or a job.
       # The a11y specs are WCAG 2.2 AA on the pages each lists, at desktop and
-      # as a phone: they block on any violation. `offline.e2e.ts` proves the one
-      # install: opened at `/`, the reference and the builder both open offline.
+      # as a phone: they block on any violation. `app-offline.e2e.ts` proves the
+      # app works offline, and the one install: opened at `/`, the reference
+      # and the app both open offline.
       # The build carries the seam, so the signed-in tests in these specs run
       # signed in (`play-*`, the Play lines of `sibling-heights.e2e.ts`,
       # `nesting-depth.e2e.ts`'s wizards and sheet), and
@@ -227,7 +228,7 @@ jobs:
         working-directory: apps/web
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts token-cutout.e2e.ts nesting-depth.e2e.ts roll-instrument.e2e.ts search-width.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts play-join.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts app-offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts token-cutout.e2e.ts nesting-depth.e2e.ts roll-instrument.e2e.ts search-width.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts play-join.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()

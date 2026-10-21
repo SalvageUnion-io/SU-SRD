@@ -6,7 +6,9 @@ import { expect, test } from './fixtures'
 
 /**
  * Offline — the one spec that proves the app is actually a PWA rather than merely
- * configured as one, and that pins what offline means for a player's data.
+ * configured as one, and that pins what offline means for a player's data. It
+ * also proves the one install: one service worker precaches the reference and
+ * the app (`src/pwa.ts`), so opened at `/`, both open with the network cut.
  *
  * ADR-034 decision 3 says an installed app works offline. The app ships a
  * service worker and a manifest, and this is the spec that exercises them —
@@ -95,6 +97,38 @@ async function requireServiceWorker(page: Page): Promise<void> {
   )
   expect(controlled, 'no service worker took control of the page').toBe(true)
 }
+
+test.describe('the one install', () => {
+  // Anonymous on purpose: a visitor's install, opened at the reference's root.
+  test.use({ account: 'anonymous', serviceWorkers: 'allow' })
+
+  test('opened at /, the reference and the app both open offline', async ({ page, context }) => {
+    await page.goto('/')
+    const active = await serviceWorkerReady(page)
+    test.skip(
+      !active && !process.env.CI,
+      'No service worker: this is a dev-server run. Runs for real against the CI preview build.'
+    )
+    expect(active, 'no service worker became active').toBe(true)
+    // With no app tab open, the worker claims the page it installed from.
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, {
+      timeout: 20_000,
+    })
+
+    await context.setOffline(true)
+    try {
+      await page.goto(at('/'))
+      await expect(page.locator('#root')).not.toBeEmpty()
+      await expect(page).toHaveTitle(/Training Bay/i)
+
+      await page.goto('/')
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      await expect(page).toHaveTitle(/Salvage Union/i)
+    } finally {
+      await context.setOffline(false)
+    }
+  })
+})
 
 test.describe('signed out: the shell', () => {
   // Anonymous on purpose: these are about the offline shell a visitor gets.

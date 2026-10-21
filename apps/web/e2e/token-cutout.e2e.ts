@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { at } from './_base'
 import { findMiniCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
 
 /**
@@ -13,9 +14,9 @@ import { findMiniCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
  * by reading nothing. There is no allowlist: every fault fails.
  */
 const PAGES = [
-  '/build/starter/crawler/starter-crawler-tenacity',
-  '/build/starter/pilot/starter-pilot-bonesaw',
-  '/build/starter/mech/starter-mech-mule',
+  at('/starter/crawler/starter-crawler-tenacity'),
+  at('/starter/pilot/starter-pilot-bonesaw'),
+  at('/starter/mech/starter-mech-mule'),
   '/chassis/mule/',
   '/chassis/mule/pattern/crusher/',
   '/classes/hacker/',

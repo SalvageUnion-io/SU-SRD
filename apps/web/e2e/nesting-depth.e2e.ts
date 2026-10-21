@@ -45,8 +45,8 @@ const PAGES = [
   '/roll-tables/core-mechanic/',
   '/roll-tables/mechapult/',
   '/guides/create-a-pilot/',
-  '/build/',
-  '/build/starter',
+  at('/'),
+  at('/starter'),
   ...[
     'pilot/starter-pilot-bonesaw',
     'pilot/starter-pilot-driftwood',
@@ -62,7 +62,7 @@ const PAGES = [
     'mech/starter-mech-spectrum',
     'mech/starter-mech-thresher',
     'crawler/starter-crawler-tenacity',
-  ].map((sheet) => `/build/starter/${sheet}`),
+  ].map((sheet) => at(`/starter/${sheet}`)),
 ]
 
 /**

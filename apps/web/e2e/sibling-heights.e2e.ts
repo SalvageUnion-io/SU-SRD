@@ -38,12 +38,12 @@ const PAGES = [
   '/roll-tables/core-mechanic/',
   '/roll-tables/mechapult/',
   '/guides/create-a-pilot/',
-  '/build/',
-  '/build/starter',
-  '/build/starter/pilot/starter-pilot-bonesaw',
-  '/build/starter/mech/starter-mech-mazona',
-  '/build/starter/crawler/starter-crawler-tenacity',
-  '/build/play/',
+  at('/'),
+  at('/starter'),
+  at('/starter/pilot/starter-pilot-bonesaw'),
+  at('/starter/mech/starter-mech-mazona'),
+  at('/starter/crawler/starter-crawler-tenacity'),
+  at('/play/'),
 ]
 
 /** Desktop, and a phone's width (the phone project runs only the smoke specs). */
@@ -81,13 +81,13 @@ test('siblings on one line share one height', async ({ page }) => {
  * on the front door and Patterns, Play's on the hub.
  */
 const BAR_ROUTES = [
-  { path: '/build/', mode: 'build', nav: ['Training Bay', 'Patterns', 'Starter Set'] },
+  { path: at('/'), mode: 'build', nav: ['Training Bay', 'Patterns', 'Starter Set'] },
   {
-    path: '/build/mechs/patterns/',
+    path: at('/mechs/patterns/'),
     mode: 'build',
     nav: ['Training Bay', 'Patterns', 'Starter Set'],
   },
-  { path: '/build/play/', mode: 'play', nav: ['Solo'] },
+  { path: at('/play/'), mode: 'play', nav: ['Solo'] },
 ] as const
 
 test('the Union bar holds one height in Build and in Play', async ({ page }) => {
