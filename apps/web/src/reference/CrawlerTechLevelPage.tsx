@@ -1,6 +1,8 @@
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { Box, Entity, Slab } from '../components/index'
+import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 
 /**
@@ -35,20 +37,22 @@ function population({ populationMin, populationMax }: TechLevel): string {
     : `${NUMBER.format(populationMin)} – ${NUMBER.format(populationMax)}`
 }
 
+/** One of the book's lines: its label, its figure set large, the words after it. */
+type BookLine = { label: string; figure?: string; rest?: string }
+
 /** The book's lines for one level, label first, in its order; its Tech Level
  * and Structure Points are the band's. */
-function bookLines(level: TechLevel): { label: string; value: string }[] {
+function bookLines(level: TechLevel): BookLine[] {
   const scrap = `Tech ${level.techLevel} Scrap`
   return [
-    { label: 'Upkeep', value: `${level.upkeepCost}× ${scrap}` },
-    {
-      label: 'Upgrade',
-      value:
-        level.upgradeCost == null
-          ? `Tech ${level.techLevel} is the highest level of Union Crawler and it cannot be upgraded further.`
-          : `${level.upgradeCost}× ${scrap}`,
-    },
-    { label: 'Approximate Population', value: population(level) },
+    { label: 'Upkeep', figure: `${level.upkeepCost}×`, rest: scrap },
+    level.upgradeCost == null
+      ? {
+          label: 'Upgrade',
+          rest: `Tech ${level.techLevel} is the highest level of Union Crawler and it cannot be upgraded further.`,
+        }
+      : { label: 'Upgrade', figure: `${level.upgradeCost}×`, rest: scrap },
+    { label: 'Approximate Population', figure: population(level) },
   ]
 }
 
@@ -60,12 +64,19 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
   return (
     <div className="su-tech-level">
       <Box className="su-tech-level__block">
-        {/* The book's lines as it prints them, "Upkeep: 5× Tech 1 Scrap". */}
+        {/* The book's lines, "Upkeep: 5× Tech 1 Scrap", each a fact under a
+            crawler-pink rule, its label in caps and its figure set large
+            (owner, round 8: "a bit stark ... jazz it up"). */}
         <div className="su-tech-level__lines">
-          {bookLines(level).map(({ label, value }) => (
-            <p key={label} className="su-tech-level__line">
-              <strong>{label}:</strong> {value}
-            </p>
+          {bookLines(level).map(({ label, figure, rest }) => (
+            <div key={label} className="su-tech-level__line">
+              <span className={cn(capsLabel(), 'su-tech-level__label')}>{label}</span>
+              <p className="su-tech-level__value">
+                {figure && <span className="su-tech-level__figure">{figure}</span>}
+                {figure && rest ? ' ' : ''}
+                {rest}
+              </p>
+            </div>
           ))}
         </div>
       </Box>

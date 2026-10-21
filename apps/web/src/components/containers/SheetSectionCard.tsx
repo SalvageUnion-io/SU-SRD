@@ -1,11 +1,11 @@
 /**
  * SheetSectionCard — a live sheet's opening panel (Identity, Vitals), in Read
- * and Edit alike (board 10): a flat paper panel in a light hairline under a
- * one-unit-colour top rule. It prints no title: the section is named for assistive tech, and the
+ * and Edit alike (board 10): a flat paper panel in a light hairline, no
+ * unit-colour rule on top (owner, round 8: "top border should not be pink").
+ * It prints no title: the section is named for assistive tech, and the
  * contents say what they are. A titled container is a `TitledBox`.
  *
- * Themes per sheet through the `--tone` CSS var, never per-section colour
- * classes, and keeps the `.su-sheet-section` print class for the page-break rule.
+ * Keeps the `.su-sheet-section` print class for the page-break rule.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
@@ -30,16 +30,15 @@ type SheetSectionCardProps = {
 }
 
 /**
- * The panel: paper, a light hairline and a unit-colour rule on top (ruleset
- * §4.3; owner's call, 2026-10-20: the opening panels keep 3.x's quiet frame,
- * not a Box's 2px ink, so the sheet's content carries the weight).
+ * The panel: paper in a light hairline all round (ruleset §4.3; owner's
+ * call, 2026-10-20: the opening panels keep 3.x's quiet frame, not a Box's
+ * 2px ink, so the sheet's content carries the weight; round 8: no unit-colour
+ * rule on top).
  */
 const PAPER_PANEL = {
   backgroundColor: color.paper,
   borderColor: color.ink40,
   borderStyle: 'solid',
-  borderTopColor: 'var(--tone)',
-  borderTopWidth: borderWidth.entity,
   borderWidth: borderWidth.hairline,
   display: 'flex',
   flexDirection: 'column',

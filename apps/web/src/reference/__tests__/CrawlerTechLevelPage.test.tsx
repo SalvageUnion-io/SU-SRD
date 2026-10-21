@@ -17,13 +17,20 @@ function level(name: string) {
 describe('CrawlerTechLevelPage', () => {
   test('reads the level as the book prints it', () => {
     const { container } = render(<CrawlerTechLevelPage item={level('Hamlet Crawler')} />)
-    const lines = [...container.querySelectorAll('.su-tech-level__line')].map((p) => p.textContent)
-    // Its Tech Level and Structure Points ride the page's band (round 6).
-    expect(lines).toEqual([
-      'Upkeep: 5× Tech 1 Scrap',
-      'Upgrade: 30× Tech 1 Scrap',
-      'Approximate Population: 100 – 500',
+    const lines = [...container.querySelectorAll('.su-tech-level__line')].map((line) => [
+      line.querySelector('.su-tech-level__label')?.textContent,
+      line.querySelector('.su-tech-level__value')?.textContent,
     ])
+    // Its Tech Level and Structure Points ride the page's band (round 6); each
+    // fact its label, its figure set large (round 8).
+    expect(lines).toEqual([
+      ['Upkeep', '5× Tech 1 Scrap'],
+      ['Upgrade', '30× Tech 1 Scrap'],
+      ['Approximate Population', '100 – 500'],
+    ])
+    expect(
+      [...container.querySelectorAll('.su-tech-level__figure')].map((f) => f.textContent)
+    ).toEqual(['5×', '30×', '100 – 500'])
   })
 
   test('its text sits in a plain box, its stats on the band (round 6)', () => {
@@ -38,7 +45,7 @@ describe('CrawlerTechLevelPage', () => {
     const { container } = render(<CrawlerTechLevelPage item={level('Megacity Crawler')} />)
     const text = container.textContent ?? ''
     expect(text).toContain('Tech 6 is the highest level of Union Crawler')
-    expect(text).toContain('Approximate Population: 25,000 +')
+    expect(text).toContain('Approximate Population25,000 +')
   })
 
   test('the ladder marks this level and links the other five', () => {

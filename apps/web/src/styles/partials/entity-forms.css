@@ -235,6 +235,29 @@
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
+/* A contentless header's cut-out (a header-only Compact or Mini) is the
+   ground it sits on, not its own paper (owner, round 8: "should match for all
+   contentless headers"): the page's workshop ground, or the paper of the body
+   or box it stands in, which each set `--su-ground`. */
+:root {
+  --su-ground: var(--color-wk-bg);
+}
+
+:is(
+  .su-box__body,
+  .su-entity-compact__body,
+  .su-entity-mini__body,
+  .su-ec-frame,
+  [data-peek-popup],
+  dialog
+) {
+  --su-ground: var(--color-paper);
+}
+
+.su-entity-compact__frame[data-bodyless] .su-entity-compact__notch {
+  background-color: var(--su-ground);
+}
+
 [data-peek-popup] .su-entity-compact__notch {
   min-width: min-content;
 }
@@ -1241,6 +1264,11 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   margin-right: auto;
   min-width: 0;
   padding: var(--space-2) var(--space-6);
+}
+
+/* A header-only Mini's cut-out is its ground's (`--su-ground`, above). */
+.su-entity-mini:not([data-contentful]) .su-entity-mini__notch {
+  background-color: var(--su-ground);
 }
 
 /* A contentful Mini's name stays a cut-out at the pill's foot when its chips
