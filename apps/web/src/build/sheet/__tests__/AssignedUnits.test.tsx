@@ -10,6 +10,21 @@ import { AssignedUnits } from '../AssignedUnits'
 import { LinkedUnitLink } from '../LinkedUnitLink'
 
 describe('AssignedUnits', () => {
+  test('a unit held in a Game wears its owner chip on its head (round 7)', () => {
+    render(
+      <AssignedUnits
+        editable={false}
+        units={[
+          { key: 'p1', kind: 'pilot', name: 'Bonesaw', href: '/p1', owner: 'You' },
+          { key: 'p2', kind: 'pilot', name: 'Mara', href: '/p2' },
+        ]}
+      />
+    )
+    const [mine, other] = screen.getAllByRole('listitem')
+    expect(mine?.querySelector('.su-entity-mini__pill')?.textContent).toContain('You')
+    expect(other?.textContent).not.toContain('You')
+  })
+
   test('Read: a grid of Minis, each linking to its sheet, its vitals under its name', () => {
     render(
       <AssignedUnits

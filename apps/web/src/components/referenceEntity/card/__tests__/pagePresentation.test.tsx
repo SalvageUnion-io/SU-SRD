@@ -478,3 +478,18 @@ describe('nested cards read at one body size, their host’s', () => {
     expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
   })
 })
+
+describe("an ability's Page: Preceding and Next on one row (round 7)", () => {
+  test('both sections share one row, Next marked to sit at its end', () => {
+    const arms = need(SalvageUnionReference.Abilities.getByName('Bionic Arms'), 'bionic arms')
+    const { container } = render(<ReferenceEntityCard data={arms} presentation="page" />)
+    const row = container.querySelector('.su-entity-page__neighbour-row')
+    const sections = [...(row?.children ?? [])]
+    expect(sections.map((s) => s.querySelector('.su-slab-section__head')?.textContent)).toEqual([
+      'Preceding',
+      'Next',
+    ])
+    expect(sections[1]?.classList.contains('su-entity-page__section--end')).toBe(true)
+    expect(sections[0]?.classList.contains('su-entity-page__section--end')).toBe(false)
+  })
+})

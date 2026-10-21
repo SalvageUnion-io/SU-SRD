@@ -298,7 +298,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     schemaName === 'crawler-bays' && !onSelectionChange && !onPage && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
       : undefined
-  // WHEN DAMAGED — the bay's last section, under its crew.
+  // WHEN DAMAGED — the bay's section above its crew (owner, round 7).
   const damagedNode: ReactNode =
     !hide?.damagedEffect && damagedEffect ? (
       onPage ? (
@@ -321,6 +321,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       <DroneCards drones={droneInfos} host={nestedHost} />
       {droneSystems.length > 0 && <NestedCardGroup entities={droneSystems} host={nestedHost} />}
       {droneModules.length > 0 && <NestedCardGroup entities={droneModules} host={nestedHost} />}
+      {damagedNode}
       {!isPattern &&
         inFlowGroups.map((group) =>
           bayCrewPeek && group.label === 'NPCs' ? (
@@ -342,7 +343,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             />
           )
         )}
-      {damagedNode}
     </>
   ) : null
   return {

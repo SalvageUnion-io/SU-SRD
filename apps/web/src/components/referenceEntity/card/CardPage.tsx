@@ -159,6 +159,10 @@ export function CardPage({
     </>
   )
 
+  // Preceding and Next side by side on one row, Next's label at its end
+  // (owner, round 7).
+  const neighbours = abilityTreeNeighbours(entity)
+
   return (
     <div
       className={cn(
@@ -214,27 +218,34 @@ export function CardPage({
           content"), at the Page's nested level, a Compact (owner, round 4:
           "one size level higher"; ruleset N1), a named N8 exception
           (`.su-entity-page__neighbours`). */}
-      {abilityTreeNeighbours(entity).map(({ label, abilities }) => (
-        <SlabSection
-          key={label}
-          as={sectionAs}
-          title={label}
-          page
-          className="su-entity-page__section"
-          bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
-        >
-          {abilities.map((ability) => (
-            <Entity
-              key={ability.id}
-              size="compact"
-              context="play"
-              entity={ability}
-              mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
-              omit={NEIGHBOUR_OMIT}
-            />
+      {neighbours.length > 0 && (
+        <div className="su-entity-page__neighbour-row">
+          {neighbours.map(({ label, abilities }) => (
+            <SlabSection
+              key={label}
+              as={sectionAs}
+              title={label}
+              page
+              className={cn(
+                'su-entity-page__section',
+                label === 'Next' && 'su-entity-page__section--end'
+              )}
+              bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
+            >
+              {abilities.map((ability) => (
+                <Entity
+                  key={ability.id}
+                  size="compact"
+                  context="play"
+                  entity={ability}
+                  mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
+                  omit={NEIGHBOUR_OMIT}
+                />
+              ))}
+            </SlabSection>
           ))}
-        </SlabSection>
-      ))}
+        </div>
+      )}
       <div className="su-entity-page__wide">
         <PatternLinkRows
           chassis={entity}

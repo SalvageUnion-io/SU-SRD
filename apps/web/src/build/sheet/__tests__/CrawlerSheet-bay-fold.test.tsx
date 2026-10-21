@@ -69,13 +69,13 @@ describe('a crawler bay on the sheet', () => {
     expect(shown('Trading Scrap')).toBe(false)
   })
 
-  test('Bay Info leads, then the crew, then When Damaged', () => {
+  test('Bay Info leads, then When Damaged, then the crew (round 7)', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
     const info = fold('Pilot Bay', 'Bay Info')
     const crew = screen.getByRole('group', { name: 'Pilot Bay crew lead' })
     const damaged = fold('Pilot Bay', 'When Damaged')
-    expect(info.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(crew.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(info.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(damaged.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   test('each fold opens its own section of its own bay, and shuts it again', () => {

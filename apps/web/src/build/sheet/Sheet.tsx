@@ -48,6 +48,7 @@ import { SheetModeToggle } from './SheetModeToggle'
 import { SheetPilot } from './SheetPilot'
 import { useSheetMode } from './sheetMode.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
+import type { OwnerOf } from './unitOwners.model'
 
 // Re-exported so existing consumers (tests) keep their import.
 
@@ -145,6 +146,8 @@ type SheetProps = {
   withheld?: readonly WithheldUnit[]
   /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
+  /** Who holds each unit in the Game: the owner chips on its Assigned units. */
+  ownerOf?: OwnerOf
 }
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
@@ -169,6 +172,7 @@ export function Sheet({
   others,
   hrefFor = sheetPath,
   withheld = NONE_WITHHELD,
+  ownerOf,
   bandActions,
 }: SheetProps) {
   const storeState = store()
@@ -372,6 +376,7 @@ export function Sheet({
     editable: !readOnly,
     readOnly,
     trackable: !readOnlyProp && !writesBlocked,
+    ownerOf,
     crawlerReadOnly,
     store,
     storeState,

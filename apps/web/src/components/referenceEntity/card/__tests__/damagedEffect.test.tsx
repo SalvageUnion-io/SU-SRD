@@ -41,7 +41,7 @@ describe('When Damaged', () => {
     expect(slab.nextElementSibling?.textContent).toContain(effect)
   })
 
-  test('a bay reads its rules (no Bay Info head, round 5), then its crew, then When Damaged, never folded on the reference', () => {
+  test('a bay reads its rules (no Bay Info head, round 5), then When Damaged, then its crew (round 7), never folded on the reference', () => {
     const { bay } = cantina()
     for (const presentation of ['page', undefined] as const) {
       const { unmount, container } = render(
@@ -53,8 +53,8 @@ describe('When Damaged', () => {
       expect(text).not.toContain('Bay Info')
       const crew = text.indexOf(bay.npc?.position ?? '')
       const damaged = text.indexOf('When Damaged')
-      expect(crew).toBeGreaterThanOrEqual(0)
-      expect(damaged).toBeGreaterThan(crew)
+      expect(damaged).toBeGreaterThanOrEqual(0)
+      expect(crew).toBeGreaterThan(damaged)
       unmount()
     }
   })

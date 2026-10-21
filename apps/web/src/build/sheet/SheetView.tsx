@@ -52,6 +52,8 @@ import { Sheet } from './Sheet'
 import { SheetSkeleton } from './SheetSkeleton'
 import { READ_ONLY_BANNER } from './sheetChrome.model'
 import { SheetModeContext, useSheetModeStore } from './sheetMode.model'
+import type { OwnerOf } from './unitOwners.model'
+import { ownersFromListing } from './unitOwners.model'
 
 type SheetViewProps = { kind: SheetKind; id: string }
 
@@ -98,6 +100,15 @@ export function SheetView({ kind, id }: SheetViewProps) {
   const table = useQuery(api.games.get, online && tableId !== null ? { gameId: tableId } : 'skip')
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
 
+  // Who holds each listed pilot and mech: the owner chips on a crawler's
+  // Assigned units (owner, round 7).
+  const me = useQuery(api.account.me, gameId === null ? 'skip' : {})
+  const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
+  const ownerOf = useMemo<OwnerOf | undefined>(
+    () => (listing && members ? ownersFromListing(listing, members, me?._id ?? null) : undefined),
+    [listing, members, me]
+  )
+
   const store = useMemo(
     () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
     [listing]
@@ -128,7 +139,13 @@ export function SheetView({ kind, id }: SheetViewProps) {
   if (held !== null && (located == null || located.mayEdit)) {
     return (
       <SheetModeContext.Provider value={sheetMode}>
-        <Sheet kind={kind} id={id} others={others} crawlerReadOnly={crawlerReadOnly} />
+        <Sheet
+          kind={kind}
+          id={id}
+          others={others}
+          crawlerReadOnly={crawlerReadOnly}
+          ownerOf={ownerOf}
+        />
       </SheetModeContext.Provider>
     )
   }
@@ -163,7 +180,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
         back={crew}
       />
     ) : (
-      <Sheet kind={kind} id={id} store={store} back={crew} readOnly />
+      <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} />
     )
   }
 
@@ -183,7 +200,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
           ? 'This is the crew’s crawler. Only the Mediator changes it; ask at the table.'
           : 'You are reading a crewmate’s sheet. Only whoever holds it can make changes.'}
       </div>
-      <Sheet kind={kind} id={id} store={store} back={crew} readOnly />
+      <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} />
     </div>
   )
 }

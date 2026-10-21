@@ -122,6 +122,15 @@ function listing(over: Record<string, unknown> = {}) {
   }
 }
 
+/** The viewer, as `account.me` serves it. */
+const ME = { _id: 'u-me' }
+
+/** The Game's members, as `games.members` serves them: whose each unit is. */
+const MEMBERS = [
+  { userId: 'u-me', displayName: 'Jrvs', mediator: true, organizer: true, joinedAt: 0 },
+  { userId: 'u-them', displayName: 'Mara', mediator: false, organizer: false, joinedAt: 0 },
+]
+
 /** The Game as `games.get` serves it; `tableRunner` is who keeps its crawler. */
 function runsTable(tableRunner: boolean) {
   return { _id: GAME, name: 'Tenacity', mediator: tableRunner, organizer: false, tableRunner }
@@ -143,6 +152,8 @@ describe("a crewmate's sheet", () => {
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -160,6 +171,8 @@ describe("a crewmate's sheet", () => {
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -181,6 +194,8 @@ describe("a crewmate's sheet", () => {
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -196,6 +211,8 @@ describe('your own sheet', () => {
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
 
@@ -233,6 +250,8 @@ describe('your own sheet', () => {
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games:get': runsTable(false),
       'entities:listForGame': listing({ softLinks: [] }),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
 
@@ -274,6 +293,8 @@ describe('your own sheet', () => {
       'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: true },
       'games:get': runsTable(true),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('crawler', CRAWLER.id)
 
@@ -292,6 +313,14 @@ describe('your own sheet', () => {
       '/sheet/mech/m-theirs'
     )
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
+    // Each wears whose it is on its head (round 7): yours, or the crewmate's name.
+    const ownerOf = (name: string) =>
+      [...document.querySelectorAll('[data-assigned-unit]')]
+        .find((unit) => unit.querySelector('.su-entity-mini__name')?.textContent?.startsWith(name))
+        ?.querySelector('.su-entity-mini__pill')?.textContent ?? ''
+    expect(ownerOf('Roach-Boy')).toContain('You')
+    expect(ownerOf('Ash Vey')).toContain('Mara')
+    expect(ownerOf('Iron Mongrel')).toContain('Mara')
   })
 })
 
@@ -303,6 +332,8 @@ describe("a player's view of the Game's crawler", () => {
       'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('crawler', CRAWLER.id)
 
@@ -342,6 +373,8 @@ describe("your own mech's hold, against the Game's crawler", () => {
     setQueryAnswers({
       'entities:locate': { id: MY_MECH.id, gameId: GAME, mayEdit: true },
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
       'games:get': runsTable(tableRunner),
     })
     await view('mech', MY_MECH.id)
@@ -367,6 +400,8 @@ describe('the tab title', () => {
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
     expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
@@ -382,6 +417,8 @@ describe('the tab title', () => {
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
     expect(document.title).toBe('Sheet · Training Bay · SalvageUnion.io')
@@ -394,6 +431,8 @@ describe('addresses', () => {
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
       'entities:listForGame': listing(),
+      'account:me': ME,
+      'games:members': MEMBERS,
     })
     await view('pilot', 'row-theirs')
 

@@ -44,6 +44,8 @@ export type AssignedUnit = {
   name: string
   /** Its sheet; without one the chip opens nothing (a withheld unit). */
   href?: string
+  /** Who holds it in the Game (YOU, a crewmate, UNCLAIMED): a chip on its head (owner, round 7). */
+  owner?: string | undefined
   /** Edit: Change, the picker that replaces it (before Unassign). */
   change?: ReactNode
   /** Edit: take the link off (never the unit). */
@@ -106,6 +108,7 @@ export function AssignedUnits({
                 context="roster"
                 model={unitRowModel({ kind: unit.kind, name: unit.name, note: unit.note })}
                 {...(unit.href ? { mode: { kind: 'link' as const, href: unit.href } } : {})}
+                {...(unit.owner ? { state: <Stat label={unit.owner} size="mini" /> } : {})}
                 body={{
                   text: false,
                   children: unit.readings?.length ? (

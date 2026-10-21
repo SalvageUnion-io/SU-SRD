@@ -137,7 +137,7 @@ type CrawlerBayCardProps = {
  * Repair in its chip group, C8), then in its body (owner's review,
  * 2026-10-20) its Bay Info, folded, its choices (the Armament Bay's weapon
  * pick), its roll table, what it holds, its crew lead's collapsed Mini
- * (`CrewLeadMini`) and its When Damaged, open once it is damaged; the
+ * (`CrewLeadMini`) after its When Damaged, open once it is damaged; the
  * sections at the Mini Size, the sidebar's Storage Bay's alike.
  * The bay's full rules open in a detail modal from the function action.
  */
@@ -291,7 +291,7 @@ export function CrawlerBayCard({
   // never Destroyed; its function and Repair are the last slot), then in its
   // body everything that is the bay's (owner's review, 2026-10-20): its Bay
   // Info, its choices and roll table, what it holds, its crew lead's
-  // collapsed Mini and its When Damaged, each section at the Mini Size.
+  // its When Damaged and its crew lead's collapsed Mini, each section at the Mini Size.
   const line = (
     <SheetItemLine
       token={
@@ -316,7 +316,7 @@ export function CrawlerBayCard({
                 />
                 <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
                 {contents}
-                {crew}
+                {/* When Damaged above the crew (owner, round 7). */}
                 {damagedText && (
                   <WhenDamaged
                     key={condition}
@@ -328,6 +328,7 @@ export function CrawlerBayCard({
                     size="mini"
                   />
                 )}
+                {crew}
               </>
             ),
           }}

@@ -58,6 +58,7 @@ export function SheetCrawler({
   editable,
   readOnly,
   trackable = editable,
+  ownerOf,
   store,
   storeState,
   holds,
@@ -226,6 +227,7 @@ export function SheetCrawler({
       name: dockedMech.name,
       readings: rowStats(mechRailItems(dockedMech)),
       href: hrefFor('mech', dockedMech.id),
+      owner: ownerOf?.('mech', dockedMech.id)?.label,
       onUnassign: unassignFrom('mech-to-crawler', dockedMech.id),
     })),
     ...withheldMechs.map((unit) => ({
@@ -241,6 +243,7 @@ export function SheetCrawler({
         pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
       ),
       href: hrefFor('pilot', crewPilot.id),
+      owner: ownerOf?.('pilot', crewPilot.id)?.label,
       onUnassign: unassignFrom('pilot-to-crawler', crewPilot.id),
     })),
     ...withheldPilots.map((unit) => ({

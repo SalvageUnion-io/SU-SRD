@@ -320,3 +320,15 @@
 .su-entity-page__wide:empty {
   display: none;
 }
+
+/* An ability's Preceding and Next, siblings on one row, Next's label at the
+   row's end (owner, round 7); one under the other where they do not fit. */
+.su-entity-page__neighbour-row {
+  display: grid;
+  gap: var(--space-12) var(--space-32);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.su-entity-page__section--end > .su-slab-section__head {
+  flex-direction: row-reverse;
+}

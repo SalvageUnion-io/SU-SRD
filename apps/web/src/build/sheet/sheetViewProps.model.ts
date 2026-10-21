@@ -13,6 +13,7 @@ import type { ReactNode } from 'react'
 import type { EntityState, useEntityStore } from '../../stores/entityStore'
 import type { EntityLookup, SheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
+import type { OwnerOf } from './unitOwners.model'
 
 /** The store-state surface the views actually touch (injectable in tests). */
 export type SheetStoreState = EntityState
@@ -48,6 +49,8 @@ export type SheetViewCommonProps = {
    * steps (a crawler bay's condition; owner, round 6). Absent, as `editable`.
    */
   trackable?: boolean
+  /** Who holds each unit in the Game (`unitOwners.model.ts`); absent outside one. */
+  ownerOf?: OwnerOf
   /**
    * The viewer may not write the Game's crawler (a player: the Mediator keeps
    * it, ADR-038 §5). Closes the cargo moves and scrap draws that would write
