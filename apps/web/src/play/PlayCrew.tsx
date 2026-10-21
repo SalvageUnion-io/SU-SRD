@@ -2,8 +2,9 @@
  * PlayCrew — the Crew section of the Cockpit's right column (play.md §7),
  * Game only: one Mini per other seat at the table, in the Mini grid
  * (`MiniGrid`; ruleset §1.3: Play's lists are Minis), its Mini chips what
- * the table needs at a glance: the mech aboard as a relation chip (`MECH | Atlas`, C11, R5;
- * "On foot" else), whether they are here ("Here", or "Away" once their seat
+ * the table needs at a glance: the pair as `crewPair` draws it (aboard, the
+ * mech with `PILOT | Rook`; on foot, the pilot with `MECH | Atlas` for theirs,
+ * C11, R5, and "On foot"), whether they are here ("Here", or "Away" once their seat
  * stops beating), and one vital: the one that needs looking at (▲, critical,
  * as `crewLines()` decides), else, while they are here, their SP aboard or HP
  * on foot.
@@ -19,11 +20,12 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { EmptyState, Entity, MiniGrid, relation, Stat, tokens } from '../components/index'
+import { EmptyState, Entity, MiniGrid, Stat, tokens } from '../components/index'
+import { crewPair } from '../lib/units/crewPair'
 import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
-import { crewLineLabel, crewSeatLines } from './crew.model'
+import { crewLineLabel, crewSeatLines, pairedMech } from './crew.model'
 import { PlayCrewSheet } from './PlayCrewSheet'
 import type { CrewVitals } from './useGameFeed'
 import { usePresenceClock } from './usePresenceClock'
@@ -80,23 +82,24 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
 
 function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) {
   const { vital } = line
+  // A pilot and its mech are one Mini (`crewPair`): aboard, their mech with a
+  // PILOT chip naming them; on foot, the pilot with a MECH chip for theirs.
+  const pair = crewPair({
+    pilot: { id: line.pilotId, name: line.name },
+    mech: pairedMech(line),
+    boarded: line.boardedIn !== null,
+  })
   return (
     <Entity
       size="mini"
       context="roster"
-      // Aboard, the line is their mech with a PILOT chip naming them; on foot,
-      // the pilot: a pilot and its mech are one Mini (`crewPair`).
-      model={
-        line.boardedIn === null
-          ? unitRowModel({ kind: 'pilot', name: line.name })
-          : unitRowModel({ kind: 'mech', name: line.boardedIn })
-      }
+      model={unitRowModel({ kind: pair.kind, name: pair.name })}
       mode={{
         kind: 'link',
         onOpen,
         attrs: { 'aria-label': `${crewLineLabel(line)}. Open their sheet` },
       }}
-      {...(line.boardedIn === null ? {} : { relations: [relation('pilot', 'Pilot', line.name)] })}
+      {...(pair.relations ? { relations: [...pair.relations] } : {})}
       state={
         <>
           {line.boardedIn === null ? <Stat size="mini" label="On foot" /> : null}

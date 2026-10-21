@@ -10,6 +10,7 @@
  */
 
 import { isPresent } from 'game-domain/schemas/seat'
+import type { PairSide } from '../lib/units/crewPair'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
 import { crewLines, vitalCurrent } from './useGameFeed'
@@ -120,6 +121,16 @@ export function crewSeatLines(
       },
     ]
   })
+}
+
+/**
+ * The mech side of a crewmate's pair (`crewPair`): the mech assigned to them,
+ * or, aboard one the crew read does not list, that mech by name; null on foot
+ * with none.
+ */
+export function pairedMech(line: CrewSeatLine): PairSide | null {
+  if (line.unitMech !== null) return { id: line.unitMech.id, name: line.unitMech.name }
+  return line.boardedIn === null ? null : { id: `${line.pilotId}:mech`, name: line.boardedIn }
 }
 
 /** The words a screen reader hears for one line, the whole of it in one go. */

@@ -29,7 +29,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
-import { gamePath } from 'game-domain/entityKinds'
+import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { isPresent } from 'game-domain/schemas/seat'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
@@ -47,7 +47,6 @@ import {
   ModalShell,
   PageShell,
   Pending,
-  relation,
   Stat,
   tokens,
 } from '../components/index'
@@ -58,9 +57,11 @@ import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
+import { crewPair } from '../lib/units/crewPair'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { PlayRefusal } from './PlayRefusal'
+import type { SoloPilot } from './play.model'
 import { gamePilots, soloPilots } from './play.model'
 import { gameChips, gameCrew, gameDoor } from './playHub.model'
 import { usePresenceClock } from './usePresenceClock'
@@ -204,47 +205,58 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         >
           {solo.map((pilot) => (
             <li key={pilot.pilotId} style={ITEM}>
-              <UnitRow
-                kind="pilot"
-                name={pilot.name}
-                readings={pilot.readings}
-                // The pair rule (`crewPair`): a pilot not aboard
-                // is the pilot, its HP and AP, with a MECH chip naming its
-                // mech; with none, the stamp says so.
-                {...(pilot.mechName === null
-                  ? {
-                      labels: (
-                        <Badge shape="stamp" size="compact" surface="inverse">
-                          No Mech
-                        </Badge>
-                      ),
-                    }
-                  : {
-                      relations: [
-                        relation(
-                          'mech',
-                          'Mech',
-                          pilot.mechName,
-                          pilot.mechId ? { href: `/sheet/mech/${pilot.mechId}` } : {}
-                        ),
-                      ],
-                    })}
-                controls={
-                  <Button
-                    href={`/play/${pilot.pilotId}`}
-                    aria-label={`Play ${pilot.name} solo`}
-                    variant="ink"
-                    size="mini"
-                  >
-                    Play solo
-                  </Button>
-                }
-              />
+              <SoloPilotRow pilot={pilot} />
             </li>
           ))}
         </Shelf>
       </div>
     </PageShell>
+  )
+}
+
+/**
+ * A shelf pilot under Play solo, by the pair rule (`crewPair`): not aboard,
+ * it is the pilot, its HP and AP, with a MECH chip naming its mech; with
+ * none, the stamp says so.
+ */
+function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
+  const pair = crewPair({
+    pilot: { id: pilot.pilotId, name: pilot.name, readings: pilot.readings },
+    mech:
+      pilot.mechName === null
+        ? null
+        : {
+            id: pilot.mechId ?? pilot.mechName,
+            name: pilot.mechName,
+            href: pilot.mechId === null ? undefined : sheetPath('mech', pilot.mechId),
+          },
+    boarded: false,
+  })
+  return (
+    <UnitRow
+      kind={pair.kind}
+      name={pair.name}
+      readings={pair.readings}
+      {...(pair.relations
+        ? { relations: [...pair.relations] }
+        : {
+            labels: (
+              <Badge shape="stamp" size="compact" surface="inverse">
+                No Mech
+              </Badge>
+            ),
+          })}
+      controls={
+        <Button
+          href={`/play/${pilot.pilotId}`}
+          aria-label={`Play ${pilot.name} solo`}
+          variant="ink"
+          size="mini"
+        >
+          Play solo
+        </Button>
+      }
+    />
   )
 }
 

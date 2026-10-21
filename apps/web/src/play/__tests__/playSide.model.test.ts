@@ -7,7 +7,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
 import { channelButtonLabel, channelTag, postLabel } from '../channels.model'
-import { crewLineLabel, crewSeatLines, hereCount } from '../crew.model'
+import { crewLineLabel, crewSeatLines, hereCount, pairedMech } from '../crew.model'
 import { mineText, playFeedEntries } from '../feed.model'
 import { liveLabel, playReadOnly } from '../play.model'
 import type { PlayRoll } from '../playRolls.model'
@@ -100,6 +100,20 @@ describe('the Crew (play.md §7)', () => {
       'Rook, here, On foot, Injured',
       'Wren, away, Boarded · Mule, SP 26, fine',
     ])
+  })
+
+  test('the pair (crewPair): aboard their mech; on foot their assigned mech, for its MECH chip', () => {
+    const crew = crewAt(NOW)
+    const atlas = crew.mechs[0]
+    const rook = crew.pilots[2]
+    if (atlas === undefined || rook === undefined) throw new Error('fixture')
+    // Mags climbs out of Atlas, which stays assigned to them.
+    crew.pilots[1] = { ...(crew.pilots[1] ?? rook), boarded: false }
+    const [mags, onFootRook, wren] = crewSeatLines(crew, [], 'bonesaw', NOW)
+    expect(mags && pairedMech(mags)).toMatchObject({ name: 'Atlas' })
+    expect(mags?.boardedIn).toBeNull()
+    expect(onFootRook && pairedMech(onFootRook)).toBeNull()
+    expect(wren && pairedMech(wren)).toMatchObject({ name: 'Mule' })
   })
 
   test('no crew read yet: no lines', () => {

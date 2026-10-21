@@ -21,7 +21,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, Entity, relation, Stat, tokens } from '../../components/index'
+import { Button, Entity, Stat, tokens } from '../../components/index'
+import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { MediatorSeat } from './mediatorTable.model'
 
@@ -68,6 +69,13 @@ export function PlayMediatorSeat({
 }: PlayMediatorSeatProps) {
   const away = !seat.present
   const flagged = seat.vitals.find((v) => v.attention)
+  // Aboard, the seat is their mech with a PILOT chip naming them; else the
+  // pilot with a MECH chip for the one assigned: one Mini (`crewPair`).
+  const pair = crewPair({
+    pilot: { id: seat.pilotId, name: seat.name },
+    mech: seat.mech,
+    boarded: seat.mech?.boarded ?? false,
+  })
   return (
     <li
       className="su-play-seat"
@@ -78,14 +86,7 @@ export function PlayMediatorSeat({
       <Entity
         size="mini"
         context="roster"
-        // Aboard, the seat is their mech with a PILOT chip naming them; else
-        // the pilot with a MECH chip for the one assigned: a pilot and its
-        // mech are one Mini (`crewPair`).
-        model={
-          seat.mech?.boarded
-            ? unitRowModel({ kind: 'mech', name: seat.mech.name })
-            : unitRowModel({ kind: 'pilot', name: seat.name })
-        }
+        model={unitRowModel({ kind: pair.kind, name: pair.name })}
         mode={{
           kind: 'select',
           role: 'toggle',
@@ -94,15 +95,7 @@ export function PlayMediatorSeat({
           label: `${seat.label}. Aim Propose here`,
         }}
         dim={dim}
-        {...(seat.mech === null
-          ? {}
-          : {
-              relations: [
-                seat.mech.boarded
-                  ? relation('pilot', 'Pilot', seat.name)
-                  : relation('mech', 'Mech', seat.mech.name),
-              ],
-            })}
+        {...(pair.relations ? { relations: [...pair.relations] } : {})}
         state={
           <>
             <Stat size="mini" label={away ? 'Away' : 'Here'} />
