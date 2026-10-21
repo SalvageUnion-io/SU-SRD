@@ -8,8 +8,10 @@ import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { TagItem } from './tagItems'
 
 /**
- * One TAG (E9, E17): a trait as a chip like every other, the horizontal
- * `Stat` cell with its parameter, `[Burn | 2]`. It behaves as a Mention does:
+ * One TAG (E9, E17): a trait or a relation as a chip like every other, the
+ * horizontal `Stat` cell with its parameter, `[Burn | 2]`, `[CLASS | Engineer]`
+ * (`relation()`, C11: what a unit is built on, what a pattern is a pattern of).
+ * It behaves as a Mention does:
  * where the tag sits outside a link (`linkable`), it opens its glossary
  * entry — the page where the surface has a route (the SRD), else the Page
  * opener (The app) — and it Peeks on hover, focus or long-press wherever it names
@@ -22,11 +24,18 @@ export function Tag({
   tag,
   linkable = false,
   size = 'full',
+  wrap = false,
 }: {
   tag: TagItem
   linkable?: boolean
   /** The chip's size: `full` in a body, `compact` in a head band. */
   size?: Size
+  /**
+   * Alone on its line in a wrapping row, the chip narrows and its value wraps
+   * rather than being cut (E18): a relation in a Page's band or a sheet's
+   * stamps, whose value is a name of any length.
+   */
+  wrap?: boolean
 }) {
   const { hrefFor, openPage, linkAs } = useEntitySurface()
   const insidePeek = useInsidePeek()
@@ -42,18 +51,27 @@ export function Tag({
       value={tag.param?.trim() ? tag.param : undefined}
       size={size}
       state={tag.modified ? 'modified' : 'default'}
+      wrap={wrap}
     />
   )
+  const param = tag.param?.trim()
   const shared = {
     'data-tag': '',
     ...peek,
     ...(tag.modified ? { 'data-modified': '' } : {}),
   }
+  // A link or button is named for both halves: `Class: Engineer`, not "ClassEngineer".
+  const named = param ? { 'aria-label': `${tag.name}: ${param}` } : {}
   if (href) {
     // A root-relative path goes through the app's router link, as a link-mode form's does.
     const Anchor = linkAs && href.startsWith('/') ? linkAs : 'a'
     return (
-      <Anchor href={href} className={cn('su-chip-link su-hit-area', FOCUS_RING)} {...shared}>
+      <Anchor
+        href={href}
+        className={cn('su-chip-link su-hit-area', FOCUS_RING)}
+        {...shared}
+        {...named}
+      >
         {cell}
       </Anchor>
     )
@@ -67,6 +85,7 @@ export function Tag({
           open()
         }}
         {...shared}
+        {...named}
       >
         {cell}
       </ChipButton>

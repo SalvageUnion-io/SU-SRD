@@ -128,10 +128,10 @@ const ROSTER = {
     'LinkedUnits', // EDL: a linked unit is its header-only Mini, never a chip
     'damagedEffectOf',
     'Chips',
-    'EntityStat',
     'Art',
     'Head',
     'KindLabel',
+    'Tag',
     'Tags',
     'traitTags',
     'relation',

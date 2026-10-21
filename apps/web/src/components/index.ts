@@ -225,24 +225,23 @@ export { toastRoll } from './containers/toastRoll'
 // never taken by their paths.
 // - `Chips`: every chip strip, in the class order (C2a), a host's own strip
 //   (a Play unit box's relation chips, C11) included.
-// - `EntityStat`: a fact whose value is an entity (`CLASS | Engineer`); the
-//   chip opens and Peeks it.
 // - `Art`: a Compact's art window in its head, a `TitledBox`'s `art` (a sheet's chassis callout).
 // - `Head`: a Compact's band, cut out, the name on a paper tab and the
 //   chips right of it; a page's own cut-out card (the changelog, a class's
 //   paths) heads with it.
-// - `TagItem`, `Tags`, `relation`, `traitTags`: one trait or relation as a
-//   chip (an SRD page's band sets its entity's traits with them).
+// - `TagItem`, `Tag`, `Tags`, `relation`, `traitTags`: one trait or relation as a
+//   chip (an SRD page's band sets its entity's traits with them; a sheet's
+//   `CLASS | Engineer` is one relation `Tag`, which opens and Peeks it).
 // - `mentionRef`: the glossary entry a `[[Name]]` names, a trait or a keyword.
 export type { TagItem } from './entity'
 export {
   Art,
   Chips,
-  EntityStat,
   Head,
   KindLabel,
   mentionRef,
   relation,
+  Tag,
   Tags,
   traitTags,
 } from './entity'

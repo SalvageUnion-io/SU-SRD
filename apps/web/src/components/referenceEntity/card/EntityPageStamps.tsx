@@ -1,5 +1,5 @@
 import type { EntityRef } from 'salvageunion-reference'
-import { Chips, EntityStat } from '../../entity'
+import { Chips, relation, Tag } from '../../entity'
 import { relationChips } from './abilityTreeRelations'
 import type { EntityPageMeta } from './entityPage'
 import { labelChips } from './labelChips'
@@ -68,12 +68,15 @@ export function EntityPageStamps({
       nodes={{
         relation: [
           parent && (
-            <EntityStat
+            <Tag
               key="parent"
-              label={parent.label}
-              entityRef={parent.ref}
+              tag={relation('parent', parent.label, parent.ref.name, {
+                ref: parent.ref,
+                href: parent.href,
+              })}
+              linkable
               size="full"
-              {...(parent.href ? { href: parent.href } : {})}
+              wrap
             />
           ),
           ...relationChips(meta.relations, 'full'),

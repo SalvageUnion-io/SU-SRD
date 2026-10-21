@@ -30,12 +30,13 @@ import {
   ChapterBand,
   Cluster,
   cn,
-  EntityStat,
   EntitySurfaceProvider,
   HomebrewStamp,
   KindLabel,
   LinkedUnits,
+  relation,
   Stat,
+  Tag,
   tokens,
 } from '../../components/index'
 import type { BandStamp } from './bandStamps.model'
@@ -454,7 +455,13 @@ export function LiveSheet({
                 {rank}
                 {stamp &&
                   (stamp.entityRef ? (
-                    <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
+                    <Tag
+                      tag={relation('stamp', stamp.label, stamp.entityRef.name, {
+                        ref: stamp.entityRef,
+                      })}
+                      linkable
+                      wrap
+                    />
                   ) : (
                     <Stat label={stamp.label} value={stamp.name} wrap />
                   ))}

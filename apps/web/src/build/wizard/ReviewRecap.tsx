@@ -1,7 +1,7 @@
 /**
  * A wizard's Review recap, in the shared primitives (ruleset §3.7, EDL E3):
  * each `label | value` a horizontal Stat, the unit's class, chassis or type a
- * chip that opens and Peeks it (`EntityStat`), and every list of entities a
+ * relation chip that opens and Peeks it (`Tag`), and every list of entities a
  * Slab over its Minis, one a line — never names joined with commas.
  */
 
@@ -10,7 +10,7 @@ import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel } from '../../components/index'
-import { Entity, EntityStat, SlabSection, Stat, tokens } from '../../components/index'
+import { Entity, relation, SlabSection, Stat, Tag, tokens } from '../../components/index'
 
 /** The recap: its facts, then its lists, down one column. */
 const RECAP = {
@@ -65,7 +65,7 @@ export function RecapEntity({
 }) {
   const entityRef = useMemo(() => (entity ? toEntityModel(entity).ref : undefined), [entity])
   if (!entityRef) return <RecapStat label={label} value={null} required={required} />
-  return <EntityStat label={label} entityRef={entityRef} />
+  return <Tag tag={relation(label, label, entityRef.name, { ref: entityRef })} linkable wrap />
 }
 
 /**

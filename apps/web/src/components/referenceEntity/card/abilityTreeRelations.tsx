@@ -3,7 +3,7 @@ import type { EntityRef, RefAbility, RefClass, RefMetaEntity } from 'salvageunio
 import { getEntitySlug, isAbility, SalvageUnionReference } from 'salvageunion-reference'
 import type { Size } from '../../../styles/sizing'
 import { Stat } from '../../atoms/Stat'
-import { EntityStat } from '../../entity'
+import { relation, Tag } from '../../entity'
 
 /**
  * An ability's place in its tree (C11, R43): its
@@ -80,7 +80,7 @@ export function abilityTreeNeighbours(
 
 /**
  * The relations as chips, one node each (so `Chips` counts each in its lane):
- * each that has an entity opens and Peeks it (`EntityStat`).
+ * each that has an entity is its relation `Tag`, which opens and Peeks it.
  */
 export function relationChips(
   relations: readonly EntityRelation[],
@@ -88,7 +88,13 @@ export function relationChips(
 ): ReactNode[] {
   return relations.map(({ label, value, ref }) =>
     ref ? (
-      <EntityStat key={`${label}-${value}`} label={label} entityRef={ref} size={size} />
+      <Tag
+        key={`${label}-${value}`}
+        tag={relation(`${label}-${value}`, label, value, { ref })}
+        linkable
+        size={size}
+        wrap
+      />
     ) : (
       <Stat key={`${label}-${value}`} label={label} value={value} size={size} wrap />
     )

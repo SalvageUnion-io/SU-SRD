@@ -94,7 +94,7 @@ function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
  * notched in and the chips clustered beside it (E20), the body, and the foot, in the band's colour, its
  * citations on one line in the card footer's plain text ("Workshop Manual · p.128"). A
  * pattern's Page leads the cluster with its chassis (`PATTERN OF | Mule`), the
- * `EntityStat` chip the SRD's pattern page carries: the surface opens it (The app's
+ * relation `Tag` the SRD's pattern page carries: the surface opens it (The app's
  * Page opener, so in the dialog) and Peeks it. Its own component so a closed
  * dialog resolves none of it: a list renders a dialog per Compact.
  *
