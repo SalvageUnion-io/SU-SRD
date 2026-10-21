@@ -11,6 +11,7 @@ import type {
   SheetResult,
   UnbindChannelResult,
 } from 'game-domain/botWire'
+import { SHEET_KINDS, TABLE_OF_KIND } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
@@ -27,6 +28,7 @@ import {
 } from './model/channelBindings'
 import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
+import { literalUnion } from './model/validators'
 
 /**
  * The Discord bot as a Game participant — **bot-facing half** (ADR-030).
@@ -172,7 +174,7 @@ const SHEET_NOT_FOUND = 'That sheet could not be found, or it is not yours to re
 export const sheet = internalQuery({
   args: {
     discordId: v.string(),
-    table: v.union(v.literal('pilots'), v.literal('mechs'), v.literal('crawlers')),
+    table: literalUnion(SHEET_KINDS.map((kind) => TABLE_OF_KIND[kind])),
     entityId: v.string(),
   },
   handler: async (ctx, args): Promise<BotFailure | BotSuccess<SheetResult>> => {

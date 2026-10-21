@@ -207,6 +207,17 @@ export const presence = query({
   },
 })
 
+/** A seat as `forGame` returns it, and `solo` with its solo fields. */
+const seatRead = v.object({
+  pilotId: v.string(),
+  mount: seatMount,
+  range: seatRange,
+  activeEffects: v.array(v.string()),
+  resolving: v.union(seatResolving, v.null()),
+  lastSeenAt: v.union(v.number(), v.null()),
+  updatedAt: v.union(v.number(), v.null()),
+})
+
 /**
  * Every pilot's seat in the Game, one entry per pilot in it.
  *
@@ -217,17 +228,7 @@ export const presence = query({
  */
 export const forGame = query({
   args: { gameId: v.id('games') },
-  returns: v.array(
-    v.object({
-      pilotId: v.string(),
-      mount: seatMount,
-      range: seatRange,
-      activeEffects: v.array(v.string()),
-      resolving: v.union(seatResolving, v.null()),
-      lastSeenAt: v.union(v.number(), v.null()),
-      updatedAt: v.union(v.number(), v.null()),
-    })
-  ),
+  returns: v.array(seatRead),
   handler: async (ctx, args) => {
     await requireMember(ctx, args.gameId)
     const [pilots, rows] = await Promise.all([
@@ -281,17 +282,7 @@ type SoloSeatRead = SeatRead & {
 export const solo = query({
   args: { pilotId: v.string() },
   returns: v.union(
-    v.object({
-      pilotId: v.string(),
-      mount: seatMount,
-      range: seatRange,
-      activeEffects: v.array(v.string()),
-      resolving: v.union(seatResolving, v.null()),
-      ejected: v.boolean(),
-      downtime: v.union(soloDowntime, v.null()),
-      lastSeenAt: v.union(v.number(), v.null()),
-      updatedAt: v.union(v.number(), v.null()),
-    }),
+    seatRead.extend({ ejected: v.boolean(), downtime: v.union(soloDowntime, v.null()) }),
     v.null()
   ),
   handler: async (ctx, args): Promise<SoloSeatRead | null> => {

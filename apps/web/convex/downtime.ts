@@ -6,6 +6,7 @@ import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { mutation } from './model/entities'
 import { requireMediator, requireMember, requireUser } from './model/permissions'
+import { downtimeClaim } from './model/playTables'
 import { loadReferenceData } from './model/referenceData'
 import type { SeatPlace } from './model/seats'
 import { readSeat, writeSeat } from './model/seats'
@@ -111,7 +112,7 @@ const DOWNTIME_STATE = v.object({
   /** Solo only: the steps marked done this Downtime (`soloMarkStepDone`). */
   doneSteps: v.optional(v.array(v.number())),
   /** A Game's only: each step a pilot has claimed this Downtime (`claimStep`). */
-  claimed: v.optional(v.array(v.object({ pilotId: v.string(), stepIndex: v.number() }))),
+  claimed: v.optional(v.array(downtimeClaim)),
 })
 
 /** The table's current Downtime, plus who has finished the current step. */
