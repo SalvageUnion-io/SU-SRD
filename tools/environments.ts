@@ -135,9 +135,9 @@ export const MAIN_RULESET: RulesetSpec = {
   rules: [
     'deletion',
     'non_fast_forward',
-    'required_linear_history',
     'required_status_checks',
     'code_scanning',
+    'pull_request',
   ],
   requiredChecks: ['CI Success', 'PR title is a conventional commit'],
   codeScanning: [
