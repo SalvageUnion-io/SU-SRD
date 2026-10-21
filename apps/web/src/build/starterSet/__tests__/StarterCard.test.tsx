@@ -30,7 +30,7 @@ describe('StarterCard', () => {
     )
     const sheet = screen.getByRole('link', { name: 'Read Bonesaw' })
     expect(sheet.getAttribute('href')).toContain('/starter/pilot/')
-    const chip = screen.getByRole('button', { name: /class\s*engineer/i })
+    const chip = screen.getByRole('button', { name: /class:?\s*engineer/i })
     // The chip is not inside the sheet's link.
     expect(sheet.contains(chip)).toBe(false)
     expect(chip.hasAttribute('data-peek')).toBe(true)
@@ -45,7 +45,7 @@ describe('StarterCard', () => {
         <StarterCard kind="mech" build={build('mech', 'Mule')} />
       </EntitySurfaceProvider>
     )
-    expect(screen.getByRole('button', { name: /chassis\s*mule/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /chassis:?\s*mule/i })).toBeTruthy()
     expect(container.textContent).toMatch(/TL\s*1/)
   })
 
