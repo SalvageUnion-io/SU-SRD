@@ -27,7 +27,7 @@ afterAll(() => {
 const C = 'apps/web/src/components'
 const CARD = `${C}/referenceEntity/card`
 
-/** An adapter whose head extent is the Mini (today's) or still a Compact (the audit's). */
+/** An adapter that draws no Compact (today's), or one that still does (the audit's). */
 const TOKEN_ADAPTER = 'export function ReferenceEntityCard() {\n  return <Mini />\n}\n'
 const ROW_ADAPTER =
   'export function ReferenceEntityCard({ size }) {\n' +
@@ -52,33 +52,11 @@ function found(rule: string, files: Record<string, string>): string[] {
 }
 
 describe('head-only-token (N2)', () => {
-  const callers = {
-    [`${CARD}/GuideSteps.tsx`]: [
-      'export function GuideSteps({ NestedCard }) {',
-      '  return <>',
-      '    <NestedCard size="compact" extent="head" />',
-      '    <NestedCard size="mini" extent="head" />',
-      '    <NestedCard size="compact" extent="full" />',
-      '  </>',
-      '}',
-    ].join('\n'),
-    [`${C}/crawler/CrewStep.tsx`]:
-      "export const CrewStep = ({ open }) => <ReferenceEntityCard size=\"compact\" extent={open ? 'full' : 'head'} />\n",
-    [ADAPTER.replace('ReferenceEntityCard.tsx', 'Fold.tsx')]:
-      "export function fold(size, extent, folded) {\n  return resolveCardDisplay({ size, extent: folded ? 'head' : extent })\n}\n",
-  }
-
-  test('while the adapter draws a Compact, every head that is not mini is a finding', () => {
-    expect(found('head-only-token', { [ADAPTER]: ROW_ADAPTER, ...callers })).toEqual([
-      `${C}/crawler/CrewStep.tsx:1 <ReferenceEntityCard extent="head"> without size="mini": the adapter draws it as a head-only Compact`,
-      `${CARD}/Fold.tsx:2 a card display: extent "head" without size "mini", a head-only Compact`,
-      `${CARD}/GuideSteps.tsx:3 <NestedCard extent="head"> without size="mini": the adapter draws it as a head-only Compact`,
+  test('an adapter that draws a Compact is a finding; one that draws none passes', () => {
+    expect(found('head-only-token', { [ADAPTER]: ROW_ADAPTER })).toEqual([
       `${CARD}/ReferenceEntityCard.tsx:3 the adapter draws a Compact`,
     ])
-  })
-
-  test('once the adapter draws every head as a Mini, the callers pass', () => {
-    expect(found('head-only-token', { [ADAPTER]: TOKEN_ADAPTER, ...callers })).toEqual([])
+    expect(found('head-only-token', { [ADAPTER]: TOKEN_ADAPTER })).toEqual([])
   })
 
   test('a Compact inside an entity fails; on a Page, in a dialog or outside the entity trees it passes', () => {
@@ -225,7 +203,6 @@ describe('nested-card-level (N3)', () => {
         '  const { NestedCard } = host',
         '  return <>',
         '    <NestedCard data={data} presentation="page" />',
-        '    <NestedCard data={data} size="mini" extent="head" />',
         '  </>',
         '}',
       ].join('\n'),

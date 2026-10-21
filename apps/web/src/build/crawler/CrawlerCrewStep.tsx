@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { RefCrawler, RefEntity } from 'salvageunion-reference'
+import type { RefCrawler, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
-import { Field, navigateControl, ReferenceEntityCard, tokens } from '../../components/index'
+import { Entity, Field, navigateControl, ReferenceEntityCard, tokens } from '../../components/index'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
@@ -113,13 +113,22 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
         const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
         return (
           <section key={source.ref} className="su-wiz-stack su-wiz-stack--12">
-            <ReferenceEntityCard
-              data={source.entity}
-              size={isOpen ? 'compact' : 'mini'}
-              extent={isOpen ? 'full' : 'head'}
-              hide={{ actions: true, choices: true }}
-              controls={[navigateControl(() => toggle(source.ref))]}
-            />
+            {isOpen ? (
+              <ReferenceEntityCard
+                data={source.entity}
+                size="compact"
+                hide={{ actions: true, choices: true }}
+                controls={[navigateControl(() => toggle(source.ref))]}
+              />
+            ) : (
+              // Shut, the row is its Mini, which opens it.
+              <Entity
+                size="mini"
+                context="browse"
+                entity={source.entity as RefMetaEntity}
+                mode={{ kind: 'link', onOpen: () => toggle(source.ref) }}
+              />
+            )}
             {isOpen && (
               <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
                 <Field

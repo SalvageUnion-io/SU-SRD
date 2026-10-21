@@ -1,15 +1,15 @@
 /**
  * expandCards — open every collapsed entity card in the current render.
  *
- * Live-sheet entity cards ship COLLAPSED (listing / `extent="head"`), so their
+ * Live-sheet entity cards ship COLLAPSED, so their
  * body — choices, uses counters, crew insets, the action foot — is not in the
  * DOM until the reader opens them. Tests that assert on body content call this
  * once after rendering; it is a no-op for any card that is already open.
  *
- * A folded card's one control is its chevron: a disclosure button named
- * "<entity> details" with `aria-expanded="false"`, the same affordance a
- * keyboard or screen-reader user activates. A pilot's equipment row folds
- * through its own "Expand <item>" disclosure, so both names count.
+ * A folded card's one control is a disclosure button with
+ * `aria-expanded="false"`, the same affordance a keyboard or screen-reader
+ * user activates: "<entity> details", or a pilot's equipment row's
+ * "Expand <item>", so both names count.
  */
 
 import { act, fireEvent, screen } from '@testing-library/react'

@@ -15,6 +15,7 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Entity } from '../../../entity/Entity'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { hideShownProse, proseKey } from '../bodyBlocks'
 import { isDoEntity } from '../entityCardTone'
@@ -236,9 +237,9 @@ describe('the user-made flag', () => {
     expect(screen.getAllByText('From Veteran')).toHaveLength(1)
   })
 
-  test('names the shortform pill user-made, at the smallest extent', () => {
+  test("names a user-made Mini's pill user-made", () => {
     const { container } = render(
-      <ReferenceEntityCard data={drill()} size="mini" extent="head" userMade />
+      <Entity size="mini" context="browse" entity={drill()} instance={{ userMade: true }} />
     )
     const pill = container.querySelector<HTMLElement>('[title^="Made by a player"]')
     // The HOMEBREW stamp leads its chips, so it says so in a word as well.

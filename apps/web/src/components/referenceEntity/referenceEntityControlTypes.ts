@@ -47,12 +47,6 @@ export type ReferenceEntityControl = {
   onClick?: () => void
   /** Required for button controls (omit for the item variants above). */
   ariaLabel?: string
-  /** A DISCLOSURE button's state (`aria-expanded`) — a folded card's chevron. */
-  ariaExpanded?: boolean
-  /** The id of the element the disclosure shows or hides (`aria-controls`).
-   * On a card the card wrapper itself takes this id: the fold chevron
-   * controls the whole card (`resolveCardInteraction`). */
-  ariaControls?: string
   /** Tooltip text (the `title` attribute). Defaults to `ariaLabel` when unset —
    * set it when you want a richer hover hint than the concise accessible name. */
   title?: string

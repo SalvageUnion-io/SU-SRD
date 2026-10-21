@@ -1,5 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import { useContext, useEffect, useRef } from 'react'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
@@ -8,11 +9,13 @@ import { capsLabel } from '../../atoms/capsLabel'
 import { Slab } from '../../atoms/Slab'
 import { Callout } from '../../containers/Callout'
 import { SlabSection } from '../../containers/SlabSection'
+import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
+import { conditionOf } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import { EntityMiniList } from './EntityMiniList'
 import { watchGuideContents } from './guideContents'
@@ -226,13 +229,11 @@ export function GuideSteps({
             </div>
           )}
           {subGuide && (
-            <NestedCard
+            <Entity
               size="mini"
-              extent="head"
-              depth={depth + 1}
-              hostDown={isDown}
-              data={subGuide}
-              chassisName={chassisName}
+              context="browse"
+              entity={subGuide as RefMetaEntity}
+              instance={isDown ? { condition: conditionOf(isDown) } : undefined}
             />
           )}
         </div>

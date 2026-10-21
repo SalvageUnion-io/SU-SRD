@@ -16,7 +16,6 @@ import {
   resolveGrantedEntities,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { useDisclosure } from '../../../lib/useDisclosure'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { CardExtent } from '../../containers/displayMode'
@@ -28,9 +27,7 @@ import { EntitySurfaceProvider } from '../../entity/EntitySurface'
 import { useEntityExternalLink, useEntitySurface } from '../../entity/entitySurfaceContext'
 import { SelectedSeal } from '../../entity/modes/select'
 import { InsidePeekContext } from '../../entity/peekContext'
-import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
-import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { treeRelationNodes } from './abilityTreeRelations'
 import { CardHead } from './CardHead'
 import { CardOuter } from './CardOuter'
@@ -67,9 +64,8 @@ import {
   resolveTierNumeral,
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
-import { HeadMini } from './HeadMini'
 import { labelChips } from './labelChips'
-import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN } from './legalStartingPattern'
+import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
 import { PatternLoadoutRows } from './PatternLoadout'
@@ -323,14 +319,10 @@ function ReferenceEntityCardInner({
       ? formatCost(costSource.activationCost, resolveActivationCurrency(costSource.actionSource))
       : undefined
 
-  const isHead = extent === 'head'
-  // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`). A
-  // Mini draws no controls, so a head's controls reach it only as a card click:
-  // each stands hidden, and the Mini itself takes the click's role, name and
-  // state (a folded card's disclosure).
+  // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`).
   const { outer, frameStyle } = resolveCardInteraction({
     onCardClick,
-    controls: isHead ? controls?.map((c) => ({ ...c, hidden: true })) : controls,
+    controls,
     cardClickable,
     disabled,
     selectable,
@@ -338,29 +330,8 @@ function ReferenceEntityCardInner({
     selectionRole,
     cardClickLabel,
     selected,
-    frameWidth: resolveFrameWidth(isHead ? 'mini' : size),
+    frameWidth: resolveFrameWidth(size),
   })
-
-  // HEADER-ONLY is the Mini (N2), at every size: this card is its adapter,
-  // translating its props into the Mini's slots. A contentful Compact or Full
-  // always has its body; a header-only Compact is `<Entity size="compact">`.
-  if (isHead) {
-    return (
-      <HeadMini
-        entity={entity}
-        pattern={pattern}
-        instance={{ title: name, ...(userMade ? { userMade } : {}) }}
-        note={isLegalStartingPatternCard ? LEGAL_STARTING_PATTERN : undefined}
-        slots={{
-          outer,
-          frameStyle,
-          down: isDown,
-          kind,
-          cost: isAction ? costLabel : undefined,
-        }}
-      />
-    )
-  }
 
   // SUGGESTED — an ink stamp leading the "//" line, marking a recommended
   // pick. A recommendation is not an action, so it is never rust (§3.1).
@@ -627,15 +598,6 @@ export type ReferenceEntityCardWrapperProps = Omit<
   data: ReferenceCardEntity | undefined
   size?: ReferenceEntityCardProps['size']
   extent?: CardExtent
-  /**
-   * Let the reader fold this card to its Mini (`extent="head"`) and back;
-   * folded is the DEFAULT, so a long collection reads as a list of names.
-   * The affordance is ONE `controls` entry (`foldControl`): open, a chevron
-   * with `aria-expanded` and `aria-controls` (the card wrapper's id,
-   * `resolveCardInteraction`); folded, the Mini itself is the disclosure
-   * button, since a Mini draws no controls.
-   */
-  collapsible?: boolean
 }
 
 /**
@@ -648,34 +610,13 @@ export function ReferenceEntityCard({
   data,
   size,
   extent,
-  collapsible = false,
-  controls,
   texture,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
-  // Hook before the nullable-data guard — a conditional hook would break the
-  // rules of hooks the first time a caller passed `undefined`.
-  const fold = useDisclosure(!collapsible)
   if (!data) return null
-
-  const folded = collapsible && !fold.open
-  // Folding only overrides the EXTENT axis, so a collapsed card keeps
-  // whatever size it was given.
-  const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })
-
-  const label = getReferenceEntityName(data)
-  const foldControls: ReferenceEntityControl[] = !collapsible
-    ? []
-    : [foldControl({ subject: label ?? '', disclosure: fold, cardClick: true })]
-
+  const display = resolveCardDisplay({ size, extent })
   const inner = (
-    <ReferenceEntityCardInner
-      data={data}
-      size={display.size}
-      extent={display.extent}
-      controls={foldControls.length > 0 ? [...(controls ?? []), ...foldControls] : controls}
-      {...rest}
-    />
+    <ReferenceEntityCardInner data={data} size={display.size} extent={display.extent} {...rest} />
   )
   // A card that is the pick is the one control in its frame (`PickSurface`).
   const card = rest.selectionRole ? <PickSurface>{inner}</PickSurface> : inner

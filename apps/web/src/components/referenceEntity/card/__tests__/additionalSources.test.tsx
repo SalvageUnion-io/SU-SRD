@@ -92,13 +92,6 @@ describe('the one citation line', () => {
 })
 
 describe('reprint provenance across the size / extent axes', () => {
-  test('the head extent shows no footer, so no reprint line', () => {
-    const kit = equipmentNamed('First Aid Kit')
-    const { container } = render(<ReferenceEntityCard data={kit} extent="head" />)
-    expect(container.textContent ?? '').not.toContain('Also in')
-    expect(container.textContent ?? '').not.toContain('Salvage Union Starter Set')
-  })
-
   test('the catalog extent shows no footer, so no reprint line', () => {
     const kit = equipmentNamed('First Aid Kit')
     const { container } = render(<ReferenceEntityCard data={kit} size="compact" extent="catalog" />)

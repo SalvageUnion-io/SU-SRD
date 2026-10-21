@@ -102,6 +102,8 @@ export type EntityProps = EntitySource &
     body?: MiniBody
     /** Mini only: its host's one dim (`SELECT_DIM`), an unchosen toggle or a Play action not on hand. */
     dim?: boolean
+    /** Mini only: read-only, a choice's picked option, ringed (R15). */
+    chosen?: boolean
   }
 
 /**
@@ -133,6 +135,7 @@ export function Entity(props: EntityProps) {
     uses,
     body: ownBody,
     dim,
+    chosen,
   } = props
   const { entity, pattern } = props
   const ownModel = props.model
@@ -217,6 +220,7 @@ export function Entity(props: EntityProps) {
           }
           body={body}
           dim={dim}
+          chosen={chosen}
         />
       )
     default: {

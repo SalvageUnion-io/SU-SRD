@@ -44,7 +44,7 @@ export type ReferenceEntityCardProps = {
   readable?: boolean
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
-   * loadout as nested cards (at `extent="head"` the pattern is its Mini). */
+   * loadout as nested cards. */
   pattern?: RefObjectAnyPattern
   /**
    * PAGE — the card IS the page: an SRD entity page. The card
@@ -133,8 +133,8 @@ export type ReferenceEntityCardProps = {
   /** Draw select mode's ink ring (`SELECTED_RING`) — non-layout-shifting. */
   selected?: boolean
   /** The word on the ink seal a `selected` Card wears on its head band's
-   * right (hard rule R15): "Selected" by default. A Mini (`extent="head"`) is
-   * ring only, never sealed. */
+   * right (hard rule R15): "Selected" by default. A Mini (`<Entity size="mini">`)
+   * is ring only, never sealed. */
   selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */
   suggested?: boolean

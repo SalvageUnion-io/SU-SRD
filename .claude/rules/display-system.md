@@ -16,10 +16,10 @@ Architecture: `docs/ARCHITECTURE.md#display`; laws: the ruleset and the
   stamp or linked units give it a body), index `layout="index"`; Compact or
   Full contentful `ReferenceEntityCard` (`size`), a Page with
   `presentation="page"`. Never hand-assembled markup.
-- **Extent:** the EDL's header-only / contentful is the card's `extent`
-  (`containers/displayMode.ts`): `head` is header-only (always a Mini),
-  `full` contentful, `catalog` the class picker's art and text; Mini `body`
-  and Compact `bodyless` say the same.
+- **Extent:** the EDL's header-only / contentful. Header-only is `<Entity>`
+  (a Mini without `body`, a Compact `bodyless`); the card is always
+  contentful (`extent` in `containers/displayMode.ts`: `full`, or `catalog`,
+  the class picker's art and text).
 - **One card shell:** every other frame is `Box` (`containers/`): titled,
   `TitledBox`; a note, `Callout`. Never route the entity card through `Box`.
 - **Customise by slot, never by schema:** generic slot props and `hide`;

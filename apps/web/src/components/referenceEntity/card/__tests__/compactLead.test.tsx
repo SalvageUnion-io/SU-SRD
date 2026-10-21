@@ -62,13 +62,6 @@ describe('the row lead', () => {
     expect(text).toContain('Vulnerable')
     expect(text).not.toContain('[[')
   })
-
-  test('the compact card prints no prose', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={gopher()} size="compact" extent="head" />
-    )
-    expect(lead(container)).toBeNull()
-  })
 })
 
 describe("an ability's row wears its tier; its card keeps the ink banner", () => {

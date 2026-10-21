@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useLayoutEffect, useRef } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
@@ -10,9 +10,6 @@ import { ChipOverflowRow } from '../../atoms/chipOverflow'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Stat } from '../../atoms/Stat'
 import { Content } from '../../referenceEntity/Content'
-import type { CardOuterProps } from '../../referenceEntity/card/CardOuter'
-import { CardOuter } from '../../referenceEntity/card/CardOuter'
-import type { Down } from '../../referenceEntity/card/cardChrome'
 import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
 import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
 import { LinkSurface } from '../modes/link'
@@ -34,28 +31,21 @@ import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 /** The pill sets its name and chips in the caps recipe. */
 const PILL = cn('su-entity-mini__pill', capsLabel())
 
-/** The adapter's resolved parts (`ReferenceEntityCard` `extent="head"`, any size: N2). */
+/** The host's parts in the Mini's chip group and lanes (`<Entity size="mini">` fills them). */
 export type MiniSlots = {
-  outer?: CardOuterProps
   /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
   peekAt?: string
-  frameStyle?: CSSProperties
   /**
    * Paint its band in this tone dulled toward grey, in place of its own: a
    * thing you do in Play wears the unit it comes from (pilot, mech, crawler),
    * at a distance, never black.
    */
   tint?: string
-  /** The kind, for screen readers (`KindLabel`). */
-  kind?: string
-  /** A read cost ("1 EP"), as its chip. */
-  cost?: string
   /**
    * What it is linked to, as relation chips before the cost (C11): a crewmate's
    * `MECH | Scrapper`. Where its host names it (Play's Crew, R5), never a stamp.
    */
   relations?: TagItem[]
-  down?: Down
   /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
   state?: ReactNode
   /** Its state chip is a control (a condition that steps): the Mini then acts, as with `uses`. */
@@ -164,7 +154,8 @@ function ToggleSurface({
  * surface (or, with controls, its name) is pressed while chosen, the ring on
  * its pill, never a seal; a radio or checkbox select stays a Compact's (N7).
  * `dim` is its host's one dim (`SELECT_DIM`): an unchosen toggle beside a
- * chosen one, a Play action not on hand.
+ * chosen one, a Play action not on hand. Read-only, a `chosen` Mini (a choice's
+ * picked option) wears the same ring with no surface to press.
  */
 export function Mini({
   model,
@@ -175,6 +166,7 @@ export function Mini({
   slots = {},
   body,
   dim = false,
+  chosen = false,
 }: {
   model: EntityFormModel
   /** Where it is drawn (C4): picks the one fact its context lane carries. */
@@ -188,6 +180,8 @@ export function Mini({
   body?: MiniBody
   /** Its host's one dim (`SELECT_DIM`): unchosen beside a chosen toggle, not on hand. */
   dim?: boolean
+  /** Read-only, a choice's picked option: select's ring on its pill (R15), never a seal. */
+  chosen?: boolean
 }) {
   const contentfulRef = useRef<HTMLDivElement>(null)
   // Every commit: the chips may have changed (C2b's fit starts from them all).
@@ -200,7 +194,7 @@ export function Mini({
   const headMode = body && insidePeek ? READ : mode
   const toggle = headMode.kind === 'select' && headMode.role === 'toggle' ? headMode : null
   const target = useLinkTarget(headMode, model.ref)
-  const down = slots.down ?? downOf(instance?.condition)
+  const down = downOf(instance?.condition)
   const peek = usePeekAttrs(model.ref, slots.peekAt, down)
   const paint = slots.tint
     ? paintFor(slots.tint, { down: down === 'destroyed' ? down : true, texture: false })
@@ -212,8 +206,7 @@ export function Mini({
     contentful: !!body,
     ...(instance?.count !== undefined ? { count: instance.count } : {}),
   })
-  const cost = slots.cost ?? chips.cost
-  const own = tokenChipSet(chips, cost)
+  const own = tokenChipSet(chips, chips.cost)
   const quantity = own.quantity
   const set = slots.relations?.length ? { ...own.set, relations: slots.relations } : own.set
   const state = [
@@ -261,9 +254,8 @@ export function Mini({
       style={{
         backgroundColor: paint.background,
         color: paint.color,
-        ...slots.frameStyle,
-        // A chosen toggle wears select's ring on its pill, never a seal (R15).
-        ...(toggle?.selected ? SELECTED_RING : {}),
+        // A chosen toggle or option wears select's ring on its pill, never a seal (R15).
+        ...(toggle?.selected || chosen ? SELECTED_RING : {}),
       }}
     >
       {model.kind.note && (
@@ -282,14 +274,14 @@ export function Mini({
             'su-entity-mini__name su-entity-mini__link',
             <>
               {title}
-              <KindLabel kind={slots.kind ?? model.kind.type} />
+              <KindLabel kind={model.kind.type} />
             </>,
             peek
           )
         ) : (
           <span className="su-entity-mini__name">
             {title}
-            <KindLabel kind={slots.kind ?? model.kind.type} />
+            <KindLabel kind={model.kind.type} />
           </span>
         )}
       </span>
@@ -312,12 +304,12 @@ export function Mini({
   // Header-only, the surface is the Mini; contentful, it is the head. A head
   // that acts (a link, a toggle, or a Peek's long press) takes the coarse
   // pointer's 44px hit area, as the header-only Mini does (ruleset §4.6).
-  const headActs = (!slots.outer && (!!target.href || !!toggle)) || PEEK_ATTRIBUTE in peek
+  const headActs = !!target.href || !!toggle || PEEK_ATTRIBUTE in peek
   const surfaceClass = body
     ? cn('su-entity-mini__head', headActs && !acts && 'su-hit-area')
     : cn('su-entity-mini', dimClass)
   // A Mini with controls: a plain frame, its name the link (above).
-  if (acts && !slots.outer && !body) {
+  if (acts && !body) {
     return (
       <div className={cn('su-entity-mini', dimClass)} data-acts="">
         {pill}
@@ -326,11 +318,7 @@ export function Mini({
   }
   // A contentful Mini with controls (a sheet item in Edit): its head is a
   // plain frame too, its name the link, so no control sits inside a link.
-  const head = slots.outer ? (
-    <CardOuter {...slots.outer} className={cn(slots.outer.className, surfaceClass)} peek={peek}>
-      {pill}
-    </CardOuter>
-  ) : acts ? (
+  const head = acts ? (
     // Contentful with controls: the name inside is the link and the Peek
     // trigger, so the head is a plain frame around the pill.
     <div className={surfaceClass} data-acts="">

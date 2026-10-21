@@ -19,8 +19,7 @@ export type Disclosure = {
  * THE show/hide fold: open state plus the toggle's `aria-expanded` /
  * `aria-controls`. The caller draws its own button (spreading `toggleProps`)
  * and gives `panelId` to the panel, which it either hides (`hidden={!open}`,
- * keeping the panel's own state) or unmounts while shut. A card's Compact ⇄ Card
- * fold builds its chevron from one (`foldControl`).
+ * keeping the panel's own state) or unmounts while shut.
  */
 export function useDisclosure(defaultOpen: boolean | (() => boolean) = false): Disclosure {
   const [open, setOpen] = useState(defaultOpen)

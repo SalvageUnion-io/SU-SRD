@@ -1,13 +1,14 @@
 /**
  * Hard rule R15, one select mode (EDL Modes): a selected Card (level 1) wears
  * the ink ring AND the "Selected" seal, with no caller having to ask for the
- * seal; a selected Mini (level 2, `extent="head"`) wears the ring alone; an
+ * seal; a chosen Mini (level 2, `<Entity size="mini" chosen>`) wears the ring alone; an
  * option the picker cannot take wears the one select dim. Before this a wizard
  * Card was ringed but never sealed, since no caller passed `selectionSeal`.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Entity } from '../../../entity/Entity'
 import { SELECT_DIM } from '../../../entity/modes/selectedRing'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -59,11 +60,9 @@ describe('a selected Card (level 1)', () => {
   })
 })
 
-describe('a selected Mini (level 2)', () => {
+describe('a chosen Mini (level 2)', () => {
   test('wears the ring on its pill and no seal', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={hauler()} extent="head" size="mini" depth={1} selected />
-    )
+    const { container } = render(<Entity size="mini" context="browse" entity={hauler()} chosen />)
     expect(container.querySelector<HTMLElement>('.su-entity-mini__pill')?.style.boxShadow).toBe(
       RING
     )

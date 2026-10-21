@@ -308,8 +308,7 @@ export { WhenDamaged } from './referenceEntity/card/WhenDamaged'
 export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'
 // Interactive choice cards (granted-equipment choices)
 export type { ChoiceSelections } from './referenceEntity/choiceCard/choiceSelectionHelpers'
-// Entity controls: the live presets (navigateControl, foldControl — built on useDisclosure).
-export { foldControl } from './referenceEntity/foldControl'
+// Entity controls: the live preset (navigateControl).
 export { quotePatternName } from './referenceEntity/pattern/quotePatternName'
 export { navigateControl } from './referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './referenceEntity/referenceEntityControlTypes'

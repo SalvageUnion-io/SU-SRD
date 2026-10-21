@@ -84,11 +84,11 @@ async function clickNext(): Promise<void> {
   })
 }
 
-/** Expand a crew roster row by clicking its entity card (cardClick → button). */
+/** Expand a crew roster row by pressing its shut Mini, a button named for the entity. */
 async function expandRow(name: string): Promise<void> {
   const card = screen
     .getAllByRole('button')
-    .find((b) => (b.textContent ?? '').includes(name) && b.getAttribute('aria-label') === null)
+    .find((b) => (b.getAttribute('aria-label') ?? '').startsWith(name))
   if (!card) throw new Error(`No clickable roster card for "${name}"`)
   await act(async () => {
     fireEvent.click(card)

@@ -76,8 +76,6 @@ function controlChip(control: ReferenceEntityControl): ReactNode {
     className: control.className,
     title: control.title ?? control.ariaLabel,
     'aria-label': control.ariaLabel,
-    'aria-expanded': control.ariaExpanded,
-    'aria-controls': control.ariaControls,
     disabled: isDisabled,
     'aria-disabled': isDisabled || undefined,
     onClick: isDisabled ? undefined : (e: MouseEvent) => onClickWithStop(e, onClick),

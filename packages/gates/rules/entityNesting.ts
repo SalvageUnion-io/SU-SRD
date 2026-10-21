@@ -14,9 +14,8 @@
  *     its head alone is a Mini; a Compact or Card keeps its body. The finding is
  *     a Compact form (`<Compact>`, `<Entity size="compact">`) drawn inside an entity's own
  *     components (`components/referenceEntity/`, `components/entity/`, the
- *     form layer that defines the forms aside), and, while the card adapter
- *     (`ReferenceEntityCard`) can still draw a Compact, every `extent="head"`
- *     that does not ask for the Mini (`size="mini"`).
+ *     form layer that defines the forms aside), the card adapter
+ *     (`ReferenceEntityCard`) included.
  *   - **N5 no titled box inside an entity** (`no-titled-box`) — a `TitledBox`,
  *     `Inset`, `InfoCutout`, `RecoveryPanel` or labelled `Callout` drawn in an
  *     entity's own components, or reaching a card's `expand` /
@@ -77,7 +76,7 @@ const COMPONENTS = `${SRC}/components`
 const ENTITY_DIRS = [`${COMPONENTS}/referenceEntity/`, `${COMPONENTS}/entity/`] as const
 /** The form layer defines Compact and Mini; drawing them there is not nesting. */
 const FORM_LAYER = [`${COMPONENTS}/entity/forms/`, `${COMPONENTS}/entity/Entity.tsx`] as const
-/** The card adapter: its head extent is the head-only form. */
+/** The card adapter (`ReferenceEntityCard`): it draws Cards and Pages, never a Compact. */
 export const ADAPTER = `${COMPONENTS}/referenceEntity/card/ReferenceEntityCard.tsx`
 const PAGE_BODY = `${COMPONENTS}/referenceEntity/card/CardPage.tsx`
 /** The nested-group module: where a card decides how its children draw. */
@@ -87,8 +86,6 @@ export const NESTED_GROUPS = `${COMPONENTS}/referenceEntity/card/NestedCards.tsx
 const TITLED = new Set(['TitledBox', 'Inset', 'InfoCutout', 'RecoveryPanel'])
 /** A card's slots for content of the caller's: inside the card's frame. */
 const SLOTS = ['expand', 'afterExtraContent'] as const
-/** The cards whose `extent` and `size` pick the form. */
-const CARDS = new Set(['ReferenceEntityCard', 'NestedCard'])
 
 /**
  * Sanctioned exceptions: none. The milestone that wrote these rules fixed
@@ -413,29 +410,8 @@ function compactForm(element: Node): boolean {
   return stringValues(attributeValue(size)).values.includes('compact')
 }
 
-/** `extent` may be `'head'` while `size` is not certainly `'mini'`. */
-function headWithoutMini(extent: Node | null, size: Node | null | undefined): boolean {
-  if (!stringValues(extent).values.includes('head')) return false
-  if (size === undefined) return true
-  const { values, open } = stringValues(size)
-  return open || values.length === 0 || values.some((v) => v !== 'mini')
-}
-
-function adapterDrawsCompact(c: Corpus): boolean {
-  const adapter = c.files.find((f) => f.rel === ADAPTER)
-  let draws = false
-  if (adapter) {
-    walk(adapter.program, (node) => {
-      if (node.type === 'JSXElement' && compactForm(node)) draws = true
-      return undefined
-    })
-  }
-  return draws
-}
-
 function scanHeadOnly(c: Corpus, known: TitledComponents): Finding[] {
   const out: Finding[] = []
-  const rowHeads = adapterDrawsCompact(c)
   for (const file of c.files) {
     if (isExempt(EXEMPTIONS, file.rel, 'head-only-token')) continue
     const nested = inEntityDirs(file.rel) && !inFormLayer(file.rel) && file.rel !== PAGE_BODY
@@ -447,44 +423,6 @@ function scanHeadOnly(c: Corpus, known: TitledComponents): Finding[] {
             file.rel === ADAPTER ? 'the adapter draws a Compact' : 'a Compact inside an entity'
           if (!onPageGuarded(node, ancestors, file))
             out.push({ file: file.rel, line: line(), detail })
-        }
-        const extent = attribute(node, 'extent')
-        const size = attribute(node, 'size')
-        if (
-          rowHeads &&
-          CARDS.has(elementName(node)) &&
-          extent &&
-          headWithoutMini(attributeValue(extent), size ? attributeValue(size) : undefined)
-        ) {
-          out.push({
-            file: file.rel,
-            line: line(),
-            detail: `<${elementName(node)} extent="head"> without size="mini": the adapter draws it as a head-only Compact`,
-          })
-        }
-      }
-      // The fold: `resolveCardDisplay({ size, extent: folded ? 'head' : extent })`.
-      if (
-        rowHeads &&
-        node.type === 'CallExpression' &&
-        isNode(node.callee) &&
-        node.callee.name === 'resolveCardDisplay'
-      ) {
-        const arg = Array.isArray(node.arguments) ? node.arguments[0] : undefined
-        const props = isNode(arg) && Array.isArray(arg.properties) ? arg.properties : []
-        const prop = (key: string): Node | null | undefined => {
-          const p = (props as unknown[]).find(
-            (x): x is Node => isNode(x) && isNode(x.key) && x.key.name === key
-          )
-          return p && isNode(p.value) ? p.value : undefined
-        }
-        const extent = prop('extent')
-        if (extent && headWithoutMini(extent, prop('size'))) {
-          out.push({
-            file: file.rel,
-            line: line(),
-            detail: 'a card display: extent "head" without size "mini", a head-only Compact',
-          })
         }
       }
       return undefined
@@ -501,11 +439,8 @@ function scanNestedCardLevel(c: Corpus, known: TitledComponents): Finding[] {
   const out: Finding[] = []
   walk(file.program, (node, ancestors) => {
     if (node.type !== 'JSXElement' || elementName(node) !== 'NestedCard') return undefined
-    // A Page in a dialog is level 0; a head is a Mini (N2 checks that).
+    // A Page in a dialog is level 0.
     if (pagePresentation(node) || inPortal(ancestors, known.portals)) return undefined
-    const extent = attribute(node, 'extent')
-    const { values, open } = stringValues(extent ? attributeValue(extent) : null)
-    if (extent && !open && values.every((v) => v === 'head')) return undefined
     if (onPageGuarded(node, ancestors, file)) return undefined
     out.push({
       file: file.rel,
@@ -526,7 +461,7 @@ const RULES: NestingRule[] = [
     id: 'head-only-token',
     mode: 'zero',
     rule: 'ruleset §5 N2 (EDL E3, E6): only a Mini draws an entity as its head alone; inside an entity, a nested entity is a Mini',
-    fix: 'Follow N2: draw the head as a Mini (`<Entity size="mini">`, or `size="mini" extent="head"`), and keep the adapter (ReferenceEntityCard) drawing every head as a Mini. A Compact belongs at level 1 only, under `onPage` (N1).',
+    fix: 'Follow N2: draw the head as a Mini (`<Entity size="mini">`); the adapter (ReferenceEntityCard) never draws a Compact. A Compact belongs at level 1 only, under `onPage` (N1).',
     scan: scanHeadOnly,
   },
   {

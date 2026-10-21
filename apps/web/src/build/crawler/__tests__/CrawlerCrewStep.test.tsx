@@ -27,11 +27,11 @@ function bayByName(name: string) {
   return must(crewedBays().find((b) => b.name === name))
 }
 
-/** Expand a roster row by clicking its entity card (cardClick → role=button). */
+/** Expand a roster row by pressing its shut Mini, a button named for the entity. */
 function expandRow(name: string): void {
   const card = screen
     .getAllByRole('button')
-    .find((b) => (b.textContent ?? '').includes(name) && b.getAttribute('aria-label') === null)
+    .find((b) => (b.getAttribute('aria-label') ?? '').startsWith(name))
   if (!card) throw new Error(`No clickable roster card for "${name}"`)
   fireEvent.click(card)
 }

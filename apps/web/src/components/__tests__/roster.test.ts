@@ -142,7 +142,6 @@ const ROSTER = {
     'HomebrewStamp',
     'USER_MADE_HATCH',
     'quotePatternName',
-    'foldControl',
     'navigateControl',
     'useDetailModal',
   ],

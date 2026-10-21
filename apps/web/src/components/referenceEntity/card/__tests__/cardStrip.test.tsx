@@ -100,8 +100,8 @@ describe("a card's head carries its controls", () => {
 // Print reads, pencil writes (ruleset §1): a card with no status control is a
 // read, so its condition is a read-out, never a control.
 describe('read-state condition', () => {
-  test.each(['head', 'full'] as const)('Intact prints nothing on a read %s card', (extent) => {
-    render(<ReferenceEntityCard data={equipment()} extent={extent} status="intact" />)
+  test('Intact prints nothing on a read card', () => {
+    render(<ReferenceEntityCard data={equipment()} status="intact" />)
     expect(screen.queryByText('Intact')).toBeNull()
     expect(screen.queryByText('Damaged')).toBeNull()
     expect(screen.queryByText('Destroyed')).toBeNull()

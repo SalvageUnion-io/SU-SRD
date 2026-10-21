@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
@@ -15,8 +15,11 @@ import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
 import { Head, paintFor } from '../../entity'
+import { Entity } from '../../entity/Entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
+import { quotePatternName } from '../pattern/quotePatternName'
 import type { Down } from './cardChrome'
+import { conditionOf } from './cardChrome'
 import { labelChips } from './labelChips'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
@@ -49,8 +52,7 @@ const DESCRIPTION_ONLY = {
   nested: true,
 } as const
 
-/** The anchor around a pattern's Mini fills its line, as the Mini does (N4). */
-const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
+const READ = { kind: 'read' } as const
 
 /**
  * `PatternListRow` — one entry of a host card's (a chassis's or a
@@ -62,12 +64,10 @@ const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSPr
  * link to the pattern's Page (`CardTitleLink`), so the prose's own links never
  * nest inside another.
  *
- * A pattern with no description is a header-only Mini inside a real `<a>`:
+ * A pattern with no description is a header-only link Mini, a real `<a>`:
  * a pattern page is a page like any other entity's, so the entry has to open
  * in a new tab on middle-click, show its destination on hover, and be
- * followable by a crawler. The anchor carries the interaction; the Mini
- * inside it takes `cardClickable` for the hover affordance ONLY, which is why
- * it doesn't also become a `role=button` nested inside a link.
+ * followable by a crawler.
  *
  * On a surface with no routes (any app whose patterns have no pages) the row
  * renders inert, not a link to nowhere.
@@ -101,28 +101,26 @@ function PatternListRow({
       />
     )
   }
-  const card = (
-    <NestedCard
-      data={chassis}
-      pattern={pattern}
+  const condition = hostDown ? conditionOf(hostDown) : undefined
+  return (
+    <Entity
       size="mini"
-      extent="head"
-      depth={depth}
-      hostDown={hostDown}
-      cardClickable={!!href}
+      context="browse"
+      entity={chassis as RefMetaEntity}
+      pattern={pattern}
+      instance={{ title: quotePatternName(pattern.name), ...(condition ? { condition } : {}) }}
+      mode={
+        href
+          ? {
+              kind: 'link',
+              href,
+              attrs: {
+                'aria-label': `${normalizePatternName(pattern.name)} — ${chassisName} pattern`,
+              },
+            }
+          : READ
+      }
     />
-  )
-  return href ? (
-    <a
-      href={href}
-      aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
-      className={FOCUS_RING}
-      style={LINK}
-    >
-      {card}
-    </a>
-  ) : (
-    card
   )
 }
 

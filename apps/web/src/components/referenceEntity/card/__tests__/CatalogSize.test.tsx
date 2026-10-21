@@ -71,13 +71,7 @@ describe('ReferenceEntityCard size="compact" extent="catalog"', () => {
   test('a SMALL card can still render its whole content — size is not extent', () => {
     const bay = armamentBay()
 
-    // `mini` + `head` is the shortform token: the body is gone.
-    const token = render(<ReferenceEntityCard data={bay} size="mini" extent="head" />)
-    expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeNull()
-    token.unmount()
-
-    // `mini` + `full` is the same small scale WITH the content — the
-    // combination the old conflated enum could not express at all.
+    // A `mini` card keeps its content: the small scale, contentful.
     render(<ReferenceEntityCard data={bay} size="mini" extent="full" />)
     expect(screen.getByText(bay.name)).toBeTruthy()
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()

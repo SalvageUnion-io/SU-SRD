@@ -181,8 +181,7 @@ export function resolveCardInteraction({
 } {
   const clickControl = controls?.find((c) => c.cardClick)
   const resolvedCardClick = onCardClick ?? clickControl?.onClick
-  // ONE CONTROL: when the click comes from a control the card SHOWS (a folded
-  // card's chevron), that control is the keyboard and screen-reader path, and
+  // ONE CONTROL: when the click comes from a control the card SHOWS, that control is the keyboard and screen-reader path, and
   // the wrapper is a pointer convenience only — no role, no tab stop, no name.
   // A `role="button"` wrapper around a visible button made two tab stops named
   // the same, nested one interactive inside another, and turned the card's
@@ -208,10 +207,6 @@ export function resolveCardInteraction({
   // instead of its full text content. Navigation/add cards leave both unset and
   // stay a plain role=button.
   const label = cardClickLabel ? { 'aria-label': cardClickLabel } : {}
-  // A DISCLOSURE control in the card's head (the fold chevron) controls the
-  // whole card, so the wrapper takes the id its `aria-controls` names.
-  const id = controls?.find((c) => c.ariaExpanded !== undefined)?.ariaControls
-  const idAttr = id ? { id } : {}
   const outer: CardOuterProps =
     resolvedCardClick && selectionRole === 'radio'
       ? {
@@ -222,24 +217,15 @@ export function resolveCardInteraction({
       : {
           className: outerClassName,
           interaction: !resolvedCardClick
-            ? idAttr
+            ? {}
             : pointerOnly
-              ? { ...idAttr, onClick: resolvedCardClick }
+              ? { onClick: resolvedCardClick }
               : {
-                  ...idAttr,
                   role: 'button' as const,
                   tabIndex: 0,
                   onClick: resolvedCardClick,
                   onKeyDown: activateOnKey(resolvedCardClick),
                   ...label,
-                  // A hidden disclosure control (a chevron-less folded Compact)
-                  // hands its name and state to the card that now stands in for it.
-                  ...(clickControl?.hidden && clickControl.ariaExpanded !== undefined
-                    ? {
-                        'aria-expanded': clickControl.ariaExpanded,
-                        ...(cardClickLabel ? {} : { 'aria-label': clickControl.ariaLabel }),
-                      }
-                    : {}),
                   ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
                 },
         }
