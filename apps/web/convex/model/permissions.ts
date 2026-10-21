@@ -84,19 +84,15 @@ export async function getMembership(
 }
 
 /**
- * ## The `…As` variants
+ * ## Explicit actors
  *
- * Every check below comes in two forms: one that reads the actor from the
- * Convex auth token, and one taking the actor explicitly. They exist for the
- * Discord bot (ADR-030), which authenticates over HTTP with a bot
- * credential and resolves its actor from a linked Discord id — so it has a
- * `userId` in hand but no token for `getAuthUserId` to read.
- *
- * The split is deliberately at the *actor*, not at the *rule*. The token-based
- * functions are thin wrappers that resolve an actor and delegate, so there is
- * exactly one implementation of "what may a Mediator do" and the bot cannot
- * drift from it. Adding a rule here reaches every caller; adding one anywhere
- * else is a bug.
+ * Each check reads the actor from the Convex auth token. A check the Discord
+ * bot needs (ADR-030) also comes with the actor passed in (`requireMemberAs`):
+ * the bot authenticates over HTTP with a bot credential and resolves its actor
+ * from a linked Discord id, so it has a `userId` but no token for
+ * `getAuthUserId` to read. The token-based check delegates to it, so there is
+ * one implementation of each rule. Add an `…As` form only when the bot calls
+ * it.
  */
 
 /** Membership in `gameId` for an explicit actor, or a throw. */
@@ -115,23 +111,14 @@ export async function requireMember(ctx: AnyCtx, gameId: Id<'games'>): Promise<D
   return await requireMemberAs(ctx, gameId, await requireUser(ctx))
 }
 
-/** Membership with `mediator: true` for an explicit actor, or a throw. */
-export async function requireMediatorAs(
-  ctx: AnyCtx,
-  gameId: Id<'games'>,
-  userId: Id<'users'>
-): Promise<Doc<'memberships'>> {
-  const membership = await requireMemberAs(ctx, gameId, userId)
-  if (!membership.mediator) throw new NotAuthorized('Only the Mediator can do that')
-  return membership
-}
-
 /** Membership with `mediator: true`, or a throw. */
 export async function requireMediator(
   ctx: AnyCtx,
   gameId: Id<'games'>
 ): Promise<Doc<'memberships'>> {
-  return await requireMediatorAs(ctx, gameId, await requireUser(ctx))
+  const membership = await requireMember(ctx, gameId)
+  if (!membership.mediator) throw new NotAuthorized('Only the Mediator can do that')
+  return membership
 }
 
 /** Membership with `organizer: true`, or a throw. Administrative acts only. */
