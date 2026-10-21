@@ -11,6 +11,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 import { changeLogEntityType, changeLogState } from './schema'
 
@@ -235,12 +236,10 @@ export const pending = query({
 /** The most proposals one `sent` read returns, whatever the caller asks for. */
 const MAX_SENT = 100
 
-/** What the Mediator's surfaces read a sheet by: its name, by kind. */
+/** What the proposal surfaces read a sheet by (`entityNameOf`). */
 function targetName(doc: Doc<'pilots'> | Doc<'mechs'> | null, entityType: string): string | null {
   if (doc === null) return null
-  const body = doc.body as Record<string, unknown> | null
-  const name = entityType === 'pilot' ? body?.callsign : body?.name
-  return typeof name === 'string' ? name : null
+  return entityNameOf(entityType === 'pilot' ? 'pilot' : 'mech', doc.body)
 }
 
 /**

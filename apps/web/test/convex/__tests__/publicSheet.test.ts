@@ -277,6 +277,38 @@ describe('a published mech carries its pilot’s contributions', () => {
     expect(result?.pilotAbilities).toEqual(['beefcake'])
   })
 
+  test('names a published linked pilot by its callsign', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId: null,
+        ownerId: owner.userId,
+        appId: 'pilot-app',
+        publicRead: true,
+        body: { callsign: 'Vex', name: 'Kestrel Vance' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('mechs', {
+        gameId: null,
+        ownerId: owner.userId,
+        appId: 'mech-app',
+        publicRead: true,
+        body: { name: 'Rustjaw', chassisRef: 'mule' },
+        updatedAt: Date.now(),
+      })
+      await ctx.db.insert('softLinks', {
+        gameId: null,
+        from: { type: 'mech', id: 'mech-app' },
+        to: { type: 'pilot', id: 'pilot-app' },
+        type: 'mech-to-pilot',
+      })
+    })
+
+    const result = await t.query(api.publicSheet.get, { kind: 'mech', appId: 'mech-app' })
+    expect(result?.linked.map((unit) => unit.name)).toEqual(['Vex'])
+  })
+
   test('an unpiloted mech reports no abilities rather than failing', async () => {
     const t = testConvex()
     const owner = await makeUser(t, 'Owner')

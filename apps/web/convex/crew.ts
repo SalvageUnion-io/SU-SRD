@@ -17,6 +17,7 @@ import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { linkIdOf } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
@@ -352,7 +353,7 @@ export const vitals = query({
           linkId: id,
           ownerId: p.ownerId,
           ownerName: p.ownerId === null ? null : (names.get(p.ownerId) ?? null),
-          name: ((p.body as Record<string, unknown> | null)?.callsign as string) ?? 'Pilot',
+          name: entityNameOf('pilot', p.body) ?? 'Pilot',
           currentHP: num(p.body, 'currentHP'),
           currentAP: num(p.body, 'currentAP'),
           /** True when their seat has them aboard `mechId`. */
@@ -373,7 +374,7 @@ export const vitals = query({
           linkId: id,
           ownerId: m.ownerId,
           ownerName: m.ownerId === null ? null : (names.get(m.ownerId) ?? null),
-          name: ((m.body as Record<string, unknown> | null)?.name as string) ?? 'Mech',
+          name: entityNameOf('mech', m.body) ?? 'Mech',
           currentSP: num(m.body, 'currentSP'),
           currentEP: num(m.body, 'currentEP'),
           currentHeat: num(m.body, 'currentHeat'),

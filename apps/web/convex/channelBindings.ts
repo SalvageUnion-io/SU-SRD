@@ -12,6 +12,7 @@ import { action, internalQuery, query } from './_generated/server'
 import { displayNameOf } from './account'
 import { bindingForGame, personalBinding } from './model/channelBindings'
 import { oldestByAppId } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { getMembership, requireMemberAs, requireUser } from './model/permissions'
 
 /**
@@ -113,15 +114,6 @@ export const current = query({
   },
 })
 
-/** A pilot's name as the card prints it: callsign first, as the crew calls them. */
-function pilotName(row: Doc<'pilots'>): string | null {
-  const body = row.body as { callsign?: unknown; name?: unknown }
-  for (const value of [body.callsign, body.name]) {
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-  }
-  return null
-}
-
 /**
  * Who the card says rolled: the pilot (`pilotId`, an app id) when the caller
  * may read it here (theirs, or in this Game), otherwise the account's name.
@@ -136,7 +128,7 @@ async function rollerName(
     const pilot = (await oldestByAppId(ctx, 'pilots', pilotId)) as Doc<'pilots'> | null
     const readable =
       pilot !== null && (pilot.ownerId === userId || (gameId !== null && pilot.gameId === gameId))
-    const name = readable ? pilotName(pilot) : null
+    const name = readable ? entityNameOf('pilot', pilot.body) : null
     if (name !== null) return name
   }
   return displayNameOf(await ctx.db.get(userId), 'Crewmate')

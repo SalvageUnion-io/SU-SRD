@@ -19,6 +19,7 @@ import {
   resolveLinkEnd,
   sameContainerRows,
 } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { inviteByCode, isCurrent } from './model/invites'
 import { patternEmbedJson } from './model/patternEmbed'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
@@ -197,10 +198,10 @@ async function assignmentsOf(
   return { links, linked: [...linked.values()], withheld: [...withheld.values()] }
 }
 
-/** A body's display name, or its kind when it carries none. */
+/** A body's display name (`entityNameOf`), or its kind when it carries none. */
 function nameOf(body: unknown, kind: Kind): string {
-  const name = (body as { name?: unknown } | null)?.name
-  if (typeof name === 'string' && name.length > 0) return name
+  const name = entityNameOf(kind, body)
+  if (name !== null) return name
   return kind === 'pilot'
     ? 'Pilot'
     : kind === 'mech'

@@ -36,6 +36,28 @@ describe('vitals', () => {
     expect(crew.pilots[0]?.ownerName).toBe('Player')
   })
 
+  test('names a pilot by callsign, then by name, as every server surface does', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedTable(t)
+    await t.run(async (ctx) => {
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: player.userId,
+        body: { callsign: '  Wrench ', name: 'Ada Kell' },
+        updatedAt: 1,
+      })
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: player.userId,
+        body: { callsign: ' ', name: 'Bo Lin' },
+        updatedAt: 2,
+      })
+    })
+
+    const crew = await organizer.as.query(api.crew.vitals, { gameId })
+    expect(crew.pilots.map((p) => p.name).sort()).toEqual(['Bo Lin', 'Wrench'])
+  })
+
   test('reads the field names the Zod schema actually defines', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)

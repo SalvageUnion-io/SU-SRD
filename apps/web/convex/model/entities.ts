@@ -19,6 +19,7 @@ import {
   internalMutation as rawInternalMutation,
   mutation as rawMutation,
 } from '../_generated/server'
+import { entityNameOf } from './entityName'
 import { PHOTO_TABLES, trackPhoto } from './photos'
 
 /**
@@ -591,18 +592,6 @@ export async function pruneLinksAcrossContainers(
 type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
 
 /**
- * A crawler's display name, read defensively.
- *
- * The name lives in the opaque body Convex cannot validate (ADR-030), so the
- * shape is not trusted — the same move `crew.vitals` makes for pilot and mech
- * names.
- */
-function crawlerNameOf(body: unknown): string | null {
-  const name = (body as Record<string, unknown> | null | undefined)?.name
-  return typeof name === 'string' && name.length > 0 ? name : null
-}
-
-/**
  * Count a Game from its rows.
  *
  * Convex has no count API, so each count is a `by_game` scan whose rows are
@@ -634,7 +623,7 @@ async function computeGameSummary(
     memberCount: members.length,
     pilotCount: pilots.length,
     mechCount: mechs.length,
-    crawlerName: crawler === null ? null : crawlerNameOf(crawler.body),
+    crawlerName: crawler === null ? null : entityNameOf('crawler', crawler.body),
   }
 }
 
@@ -887,7 +876,7 @@ triggers.register('crawlers', async (ctx, change) => {
   // shows it. Everything else about it — scrap, cargo, bays — does not.
   const renamed =
     change.operation === 'update' &&
-    crawlerNameOf(change.oldDoc.body) !== crawlerNameOf(change.newDoc.body)
+    entityNameOf('crawler', change.oldDoc.body) !== entityNameOf('crawler', change.newDoc.body)
   const touched = containersTouched(
     change.oldDoc?.gameId,
     change.newDoc?.gameId,

@@ -30,6 +30,7 @@ import type * as model_bot from "../model/bot.js";
 import type * as model_channelBindings from "../model/channelBindings.js";
 import type * as model_crawlerWrites from "../model/crawlerWrites.js";
 import type * as model_entities from "../model/entities.js";
+import type * as model_entityName from "../model/entityName.js";
 import type * as model_invites from "../model/invites.js";
 import type * as model_linkWrites from "../model/linkWrites.js";
 import type * as model_ownableWrites from "../model/ownableWrites.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   "model/channelBindings": typeof model_channelBindings;
   "model/crawlerWrites": typeof model_crawlerWrites;
   "model/entities": typeof model_entities;
+  "model/entityName": typeof model_entityName;
   "model/invites": typeof model_invites;
   "model/linkWrites": typeof model_linkWrites;
   "model/ownableWrites": typeof model_ownableWrites;
