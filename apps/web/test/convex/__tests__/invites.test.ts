@@ -3,7 +3,7 @@ import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { refreshGameSummary } from '../../../convex/model/entities'
 import type { Ctx } from '../fixtures'
-import { makeUser } from '../fixtures'
+import { makeUser, seedRawPilot } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -16,17 +16,6 @@ async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   return { organizer, gameId }
-}
-
-async function seedPilot(t: Ctx, gameId: Id<'games'>, ownerId: Id<'users'> | null) {
-  return await t.run(async (ctx) =>
-    ctx.db.insert('pilots', {
-      gameId,
-      ownerId,
-      body: { callsign: 'Roach-Boy' },
-      updatedAt: Date.now(),
-    })
-  )
 }
 
 /** An invite row as an older door minted it, straight into the table. */
@@ -244,8 +233,8 @@ describe('games.get and the row summary', () => {
   test('summarize carries the crawler name and the entity counts', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
-    await seedPilot(t, gameId, null)
-    await seedPilot(t, gameId, null)
+    await seedRawPilot(t, gameId, null)
+    await seedRawPilot(t, gameId, null)
     await t.run(async (ctx) => {
       await ctx.db.insert('mechs', {
         gameId,

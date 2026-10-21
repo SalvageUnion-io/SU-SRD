@@ -23,7 +23,7 @@ const MED_BAY: CrewSlot = { kind: 'bay', bayRef: 'med-bay' }
 const MECH_BAY: CrewSlot = { kind: 'bay', bayRef: 'mech-bay' }
 
 /** A crawler with two bays, its Med Bay crew already named inline. */
-function crawlerBody(id: string, gameId: Id<'games'> | null) {
+function bayedCrawlerBody(id: string, gameId: Id<'games'> | null) {
   return {
     ...crawlerFixture({ id, name: `Crawler ${id}` }),
     gameId,
@@ -35,11 +35,12 @@ function crawlerBody(id: string, gameId: Id<'games'> | null) {
   }
 }
 
-async function addCrawler(user: User, id: string, gameId: Id<'games'> | null) {
+/** A crawler with `bayedCrawlerBody`'s bays, through `createCrawler`. */
+async function addBayedCrawler(user: User, id: string, gameId: Id<'games'> | null) {
   await user.as.mutation(api.entities.createCrawler, {
     gameId,
     appId: id,
-    body: crawlerBody(id, gameId),
+    body: bayedCrawlerBody(id, gameId),
   })
 }
 
@@ -171,7 +172,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
   test('the owner of a Training Bay crawler crews a bay, and the inline crew is untouched', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
-    await addCrawler(me, 'c1', null)
+    await addBayedCrawler(me, 'c1', null)
     await addNpc(me, 'n1', null)
     const before = await crawlerBodyOf(t, 'c1')
 
@@ -184,7 +185,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
   test('unassigning deletes only the link: the book line is back byte for byte', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
-    await addCrawler(me, 'c1', null)
+    await addBayedCrawler(me, 'c1', null)
     await addNpc(me, 'n1', null)
     const before = await crawlerBodyOf(t, 'c1')
 
@@ -198,7 +199,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
   test('an NPC fills one slot, and a slot holds one NPC', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
-    await addCrawler(me, 'c1', null)
+    await addBayedCrawler(me, 'c1', null)
     await addNpc(me, 'n1', null)
     await addNpc(me, 'n2', null)
 
@@ -219,7 +220,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
   test('the type slot needs a typed crawler; a bay slot needs that bay', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
-    await addCrawler(me, 'c1', null)
+    await addBayedCrawler(me, 'c1', null)
     await addNpc(me, 'n1', null)
 
     await crew(me, 'n1', 'c1', { kind: 'type' })
@@ -233,7 +234,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
   test('a crew link names its slot, and no other link may', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
-    await addCrawler(me, 'c1', null)
+    await addBayedCrawler(me, 'c1', null)
     await addNpc(me, 'n1', null)
 
     await expect(
@@ -256,7 +257,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
   test('a Training Bay NPC cannot crew a Game crawler', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedTable(t)
-    await addCrawler(organizer, 'c1', gameId)
+    await addBayedCrawler(organizer, 'c1', gameId)
     await addNpc(organizer, 'n1', null)
 
     await expect(crew(organizer, 'n1', 'c1', MED_BAY)).rejects.toThrow(ConvexError)
@@ -268,7 +269,7 @@ describe('in a Game, only the table runner assigns crew (ADR-044)', () => {
   test('a player offers an NPC by moving it in; the table runner assigns it', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
-    await addCrawler(organizer, 'c1', gameId)
+    await addBayedCrawler(organizer, 'c1', gameId)
     await addNpc(player, 'n1', null)
     await moveNpc(player, 'n1', gameId)
 
@@ -288,7 +289,7 @@ describe('in a Game, only the table runner assigns crew (ADR-044)', () => {
   test('moving the NPC out of the Game prunes its slot', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
-    await addCrawler(organizer, 'c1', gameId)
+    await addBayedCrawler(organizer, 'c1', gameId)
     await addNpc(player, 'n1', gameId)
     await crew(organizer, 'n1', 'c1', MED_BAY)
 
@@ -300,7 +301,7 @@ describe('in a Game, only the table runner assigns crew (ADR-044)', () => {
   test("deleting the NPC cascades to its slot, whoever's crawler it was", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
-    await addCrawler(organizer, 'c1', gameId)
+    await addBayedCrawler(organizer, 'c1', gameId)
     await addNpc(player, 'n1', gameId)
     await crew(organizer, 'n1', 'c1', MED_BAY)
 
@@ -312,7 +313,7 @@ describe('in a Game, only the table runner assigns crew (ADR-044)', () => {
   test('the crew link syncs down with its slot', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
-    await addCrawler(organizer, 'c1', gameId)
+    await addBayedCrawler(organizer, 'c1', gameId)
     await addNpc(player, 'n1', gameId)
     await crew(organizer, 'n1', 'c1', MED_BAY)
 

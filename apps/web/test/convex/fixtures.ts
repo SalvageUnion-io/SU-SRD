@@ -51,6 +51,27 @@ export async function seedTable(t: Ctx, { discord = false }: { discord?: boolean
   return { organizer, player, gameId }
 }
 
+/**
+ * A bare pilot row inserted straight into the table, around every mutation:
+ * for a suite about rows (ownership, deletion, membership) rather than the
+ * write path, which `addPilot` takes.
+ */
+export async function seedRawPilot(
+  t: Ctx,
+  gameId: Id<'games'> | null,
+  ownerId: Id<'users'> | null
+) {
+  return await t.run(
+    async (ctx) =>
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId,
+        body: { callsign: 'Roach-Boy' },
+        updatedAt: Date.now(),
+      })
+  )
+}
+
 /** Every `seats` row. */
 export async function seatRows(t: Ctx) {
   return await t.run(async (ctx) => await ctx.db.query('seats').collect())
