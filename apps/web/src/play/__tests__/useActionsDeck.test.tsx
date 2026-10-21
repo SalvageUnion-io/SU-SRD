@@ -117,10 +117,10 @@ async function clickRolling(text: string): Promise<void> {
 function ActionsDeck({
   initial = null,
   written = [],
-  mount = 'mech',
+  situation = 'boarded',
   ...props
-}: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'mount'> & {
-  mount?: ActionsDeckProps['mount']
+}: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'situation'> & {
+  situation?: ActionsDeckProps['situation']
   initial?: SeatResolving | null
   written?: (SeatResolving | null)[]
 }) {
@@ -128,14 +128,14 @@ function ActionsDeck({
   const deck = useActionsDeck({
     rollFor: rollFourteen,
     ...props,
-    mount,
+    situation,
     resolving,
     onResolving: (next) => {
       written.push(next)
       setResolving(next)
     },
   })
-  const onFoot = mount === 'pilot'
+  const onFoot = situation === 'onFoot'
   const actions = [
     ...(onFoot || !props.mech ? [] : buildMechActions(props.mech)),
     ...(props.pilot ? buildPilotActions(props.pilot) : []),
@@ -339,7 +339,7 @@ describe('the resolve', () => {
       },
     }).getState()
     const { container } = render(
-      <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+      <ActionsDeck mech={mech} pilot={pilot} situation="boarded" store={store} />
     )
     clickActionByName(container, mod.actionName)
     // Both radios render; pick AP, then Activate → a pilot AP spend, not a mech write.
@@ -412,7 +412,7 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
       },
     }).getState()
     const { container } = render(
-      <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
+      <ActionsDeck mech={mech} pilot={pilot} situation="boarded" store={store} />
     )
     clickActionByName(container, mod.actionName)
     fireEvent.click(screen.getByLabelText('1 AP'))
@@ -474,14 +474,14 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
   /** The hook alone; `seen` holds the resolve model of the latest render. */
   function Harness({
     seen,
-    mount = 'mech',
+    situation = 'boarded',
     ...props
-  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'mount'> & {
-    mount?: ActionsDeckProps['mount']
+  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'situation'> & {
+    situation?: ActionsDeckProps['situation']
     seen: { view: ResolveModel | null }
   }) {
     const [resolving, setResolving] = useState<SeatResolving | null>(null)
-    const deck = useActionsDeck({ ...props, mount, resolving, onResolving: setResolving })
+    const deck = useActionsDeck({ ...props, situation, resolving, onResolving: setResolving })
     seen.view = deck.resolve
     const action = props.mech
       ? buildMechActions(props.mech).find((a) => typeof a.action.activationCost === 'number')

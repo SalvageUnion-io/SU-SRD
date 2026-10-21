@@ -68,13 +68,6 @@ export type SeatHandle = {
   clearResolving: () => void
 }
 
-/**
- * Which entity the seat runs: the boarded mech, the pilot on foot, or the
- * crawler in Downtime. Derived, never stored: mount comes from the seat, and
- * Downtime from the Game's `downtime` row (`useGameDowntime`).
- */
-export type MountState = 'mech' | 'pilot' | 'downtime'
-
 /** A pilot with no seat row: on foot, at Close, nothing switched on or resolving. */
 export const DEFAULT_SEAT: SeatView = {
   mount: { kind: 'foot' },

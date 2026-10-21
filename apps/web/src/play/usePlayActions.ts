@@ -30,7 +30,6 @@ import { reportingRoll } from './playRolls.model'
 import type { Play } from './situation.model'
 import type { ResolveModel } from './useActionsDeck'
 import { useActionsDeck } from './useActionsDeck'
-import type { MountState } from './useSeat'
 
 /** What a test injects: the store the writes go to, and the dice. */
 export type PlayActionsDeps = {
@@ -133,13 +132,11 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
       meta(resolvingName.current ?? tableName)
     )
 
-  const mount: MountState =
-    situation === 'onFoot' ? 'pilot' : situation === 'boarded' ? 'mech' : 'downtime'
   const deck = useActionsDeck({
     mech: situation === 'onFoot' ? null : mech,
     pilot,
     crawler,
-    mount,
+    situation,
     resolving,
     onResolving: (next) =>
       next === null ? play.seat.clearResolving() : play.seat.setResolving(next),

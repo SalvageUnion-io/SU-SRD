@@ -18,6 +18,7 @@ import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
 import { foregroundOn } from '../design/contrast'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
 import type { EntityState } from '../stores/entityStore'
+import type { Situation } from './situation.model'
 
 /** The store surface Play writes through: injectable, so a test can assert the patches. */
 export type PlayStore = Pick<EntityState, 'get' | 'update' | 'transfer'>
@@ -52,7 +53,7 @@ export function playStamp(target: Pick<PlayTarget, 'gameId'>): string | undefine
 }
 
 /** A Play screen's phase: the player's Situation, or the Mediator's Scene. */
-export type PlayPhase = 'onFoot' | 'boarded' | 'downtime' | 'scene'
+export type PlayPhase = Situation | 'scene'
 
 /**
  * The band the bar and foot wear in each phase: the

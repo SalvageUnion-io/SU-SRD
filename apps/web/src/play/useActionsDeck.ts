@@ -17,11 +17,11 @@
  * log (`playRolls.model.ts`). What only this screen needs (a Hot X, the
  * EP-or-AP choice, the Push readout) stays component state.
  *
- * On foot (`mount === 'pilot'`) the deck is the pilot's abilities + equipment on
+ * On foot (`situation === 'onFoot'`) the deck is the pilot's abilities + equipment on
  * the AP economy. Boarded, it is BOTH: the mech's chassis + systems + modules on
  * EP *and* the pilot's own actions on AP — the pilot is in the cockpit, so their
  * abilities and equipment never leave the table. `PlayAction.currency` (not the
- * mount) decides what an activation spends and whether it touches Heat.
+ * Situation) decides what an activation spends and whether it touches Heat.
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
@@ -63,7 +63,7 @@ import { runWrite } from '../lib/runWrite'
 import { useEntityStore } from '../stores/entityStore'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import type { PlayStore } from './play.model'
-import type { MountState } from './useSeat'
+import type { Situation } from './situation.model'
 
 export type ResolveModel =
   | { kind: 'idle' }
@@ -148,8 +148,8 @@ export type ActionsDeckProps = {
   pilot?: Pilot | null
   /** The pilot's crawler — its tier drives Stat Training (max AP). */
   crawler?: Crawler | null
-  /** Which entity owns the cockpit: the boarded mech, the pilot on foot, or Downtime. */
-  mount: MountState
+  /** What the pilot is doing: on foot, Boarded or in Downtime. */
+  situation: Situation
   /** The resolve in progress, read from the seat. */
   resolving: SeatResolving | null
   /** Record the resolve on the seat; null when it is over. */
@@ -178,7 +178,7 @@ export function useActionsDeck({
   mech,
   pilot,
   crawler,
-  mount,
+  situation,
   resolving,
   onResolving,
   store,
@@ -190,7 +190,7 @@ export function useActionsDeck({
   // On foot the mech's actions are unreachable; boarded, the pilot's own actions
   // ride along with the mech's in one deck (SU pilots keep their abilities and
   // equipment in the cockpit).
-  const onFoot = mount === 'pilot'
+  const onFoot = situation === 'onFoot'
   const pilotDeck = pilot ? buildPilotActions(pilot) : []
   const deck = onFoot || !mech ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]
 
