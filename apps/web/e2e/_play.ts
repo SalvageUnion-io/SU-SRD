@@ -1,6 +1,6 @@
-import { createRequire } from 'node:module'
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { runAxeOnPage } from 'gates/a11y'
 import { gotoStable, waitForReady } from './_helpers'
 
 /**
@@ -164,17 +164,8 @@ export async function expectNoPageScroll(page: Page, state: string): Promise<voi
 }
 
 /**
- * axe-core from the local install, resolved from `gates`, which depends on it
- * (`apps/web` does not, so a bare resolve only works where installs hoist).
- */
-const AXE_PATH = createRequire(import.meta.resolve('gates/a11y')).resolve('axe-core/axe.min.js')
-
-/** The rule tags `gates/a11y` runs: WCAG 2.2 AA and best practice. */
-const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
-
-/**
- * axe over the page as it stands, at the design size and as a phone, with the
- * tags `gates/a11y`'s scans run (`a11y-signed-in.e2e.ts`). A Play state is the
+ * axe over the page as it stands, at the design size and as a phone, through
+ * `gates/a11y`'s `runAxeOnPage` (the tags its scans run). A Play state is the
  * server's, not a URL's, so the scan reads the live page rather than opening a
  * fresh one. Returns one line per violation; the spec asserts none.
  */
@@ -189,22 +180,7 @@ export async function axeViolations(page: Page, state: string): Promise<string[]
     await page.evaluate(() =>
       Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined)))
     )
-    if ((await page.evaluate(() => 'axe' in window)) === false) {
-      await page.addScriptTag({ path: AXE_PATH })
-    }
-    const ids = await page.evaluate(async (tags) => {
-      type Axe = {
-        run: (
-          context: Document,
-          options: { runOnly: string[] }
-        ) => Promise<{ violations: { id: string; nodes: { target: string[] }[] }[] }>
-      }
-      const axe = (window as unknown as { axe: Axe }).axe
-      const result = await axe.run(document, { runOnly: tags })
-      return result.violations.map(
-        (v) => `${v.id} (${v.nodes.map((n) => n.target.join(' ')).join(', ')})`
-      )
-    }, AXE_TAGS)
+    const ids = await runAxeOnPage(page)
     for (const id of ids) found.push(`${state} (${viewport.name}): ${id}`)
   }
   await page.setViewportSize({ width: CANVAS.width, height: CANVAS.height })
