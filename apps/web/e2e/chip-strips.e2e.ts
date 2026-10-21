@@ -64,7 +64,7 @@ test('every chip strip is one size, one gap, its cost in the corner', async ({ p
 })
 
 /**
- * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
+ * Every context (hard rule R0): each of `designRoutes` (`_designTable.ts`),
  * signed in and seeded, at page and phone widths, Play's phone form tab by
  * tab. A fault's rule is its kind: `size`, `gap`, `flush`, `cost`, `clip`
  * or `lines`. The seeded Game's long name holds a Training Bay Compact's Game chip

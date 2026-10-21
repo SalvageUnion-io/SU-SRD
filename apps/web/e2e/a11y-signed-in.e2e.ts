@@ -9,7 +9,7 @@ import { expect, test } from './fixtures'
  * WCAG 2.2 AA on the pages only an account reaches, at desktop and as a
  * Pixel 7 (`packages/gates/lib/a11yScan.ts`). Fails on any violation.
  *
- * `a11y.e2e.ts` scans signed out, where the app is read-only: the Training Bay, the
+ * `app-a11y.e2e.ts` scans signed out, where the app is read-only: the Training Bay, the
  * wizards, the live sheets, the Game and Play never render there. This spec
  * signs in through the fixtures account (`fixtures.ts`), sets up the Starter
  * Set table the Play specs play (`setUpTable`), and scans each of those pages

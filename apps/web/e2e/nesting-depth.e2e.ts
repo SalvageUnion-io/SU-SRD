@@ -246,7 +246,7 @@ test.describe('signed in', () => {
   })
 
   /**
-   * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
+   * Every context (hard rule R0): each of `designRoutes` (`_designTable.ts`),
    * seeded, at page and phone widths, Play's phone form tab by tab, under
    * N1–N8.
    *

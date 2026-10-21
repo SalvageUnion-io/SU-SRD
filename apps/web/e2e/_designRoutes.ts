@@ -22,7 +22,7 @@ import { CANVAS, MID, PHONE, pilotPlayPath, playDoor } from './_play'
 import { createGame, makeInviteLink } from './_table'
 
 /**
- * Walking `designRoutes` (`_helpers.ts`, hard rule R0) for a layout gate: seed
+ * Walking `designRoutes` (`_designTable.ts`, hard rule R0) for a layout gate: seed
  * an account, open every route at each of its widths, put it in the state it
  * names (Edit, a Peek open, each of Play's phone tabs) and hand each view to
  * the gate's scan. The gate's findings are then held against its baseline
