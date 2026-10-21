@@ -1,4 +1,5 @@
-import { gotoStable, waitForReady } from './_helpers'
+import { walkDesignRoutes } from './_designRoutes'
+import { corpusRoutes } from './_designTable'
 import { findStatFillFaults, measureStatColumns } from './_statFill'
 import { expect, test } from './fixtures'
 
@@ -7,39 +8,33 @@ import { expect, test } from './fixtures'
  * `StatColumn` draws rows that run edge to edge, a short last row's cells
  * growing to share the line, so there is never an empty cell or a ragged edge.
  *
- * Each surface that draws one, at widths that give the page's column one to
- * five cells a row and the phone's two: two chassis and a pattern (`CardPage`'s
- * column; a homebrew pattern's Page is the same one) and the mech sheet's hero
- * (the compact column, two a line). An NPC's or a crawler's stats ride its
- * band as chips, not a grid. There is no allowlist: every finding fails, and
- * each surface must draw a stat column.
+ * Each surface that draws one, the reference corpus's `stat-column` pages
+ * (`_designTable.ts`): two chassis and a pattern (`CardPage`'s column; a
+ * homebrew pattern's Page is the same one) and the mech sheet's hero (the
+ * compact column, two a line), at R0's phone and page and the widths between
+ * that give the page's column one to five cells a row. An NPC's or a
+ * crawler's stats ride its band as chips, not a grid. There is no allowlist:
+ * every finding fails, and each surface must draw a stat column.
  */
-const REFERENCE = ['/chassis/mazona/', '/chassis/mazona/pattern/buzzard/', '/chassis/big-brother/']
-
-/** The app's mech sheet: its hero's compact column. */
-const MECH_SHEET = '/starter/mech/starter-mech-mazona'
-
-const WIDTHS = [390, 700, 900, 1100, 1440]
-
 test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 
 test('every stat grid fills its width at every width', async ({ page }) => {
   test.setTimeout(5 * 60_000)
-  const failures: string[] = []
-  for (const width of WIDTHS) {
-    await page.setViewportSize({ width, height: 900 })
-    for (const path of REFERENCE) {
-      await page.goto(path, { waitUntil: 'networkidle' })
+  const found = await walkDesignRoutes(
+    page,
+    async ({ where }) => {
+      await expect(
+        page.locator('.su-stat-column').first(),
+        `${where} draws a stat column`
+      ).toBeVisible()
       const columns = await measureStatColumns(page)
-      expect(columns.length, `${path} draws a stat column at ${width}px`).toBeGreaterThan(0)
-      failures.push(...findStatFillFaults(columns).map((f) => `${path} at ${width}px: ${f}`))
-    }
-    await gotoStable(page, MECH_SHEET)
-    await waitForReady(page)
-    await expect(page.locator('.su-stat-column').first()).toBeVisible()
-    const columns = await measureStatColumns(page)
-    failures.push(...findStatFillFaults(columns).map((f) => `${MECH_SHEET} at ${width}px: ${f}`))
-  }
-  expect(failures, 'a stat grid short of its width').toEqual([])
+      return findStatFillFaults(columns).map((f) => ({ rule: 'fill', line: `${where}: ${f}` }))
+    },
+    { routes: corpusRoutes('stat-column'), widths: ['phone', 700, 900, 1100, 'page'] }
+  )
+  expect(
+    found.map((f) => f.line),
+    'a stat grid short of its width'
+  ).toEqual([])
 })

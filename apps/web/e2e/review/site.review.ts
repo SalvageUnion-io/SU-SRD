@@ -6,11 +6,11 @@
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Page } from '@playwright/test'
+import { seedAccount } from 'gates/lib/seedAccount'
 import { nameToSlug } from 'salvageunion-reference'
-import { at } from '../_base'
-import { seedDesignAccount, walkDesignRoutes } from '../_designRoutes'
+import { walkDesignRoutes } from '../_designRoutes'
 import type { DesignRoute } from '../_designTable'
-import { designRoutes } from '../_designTable'
+import { designRoutes, REFERENCE_CORPUS } from '../_designTable'
 import { test as signedIn } from '../fixtures'
 
 const OUT = process.env.REVIEW_OUT ?? '/tmp/site-review'
@@ -52,26 +52,11 @@ const ref = (path: string, family: DesignRoute['family'] = 'reference-page'): De
   widths: BOTH,
 })
 
+/** Outliers the reference corpus does not hold: long names, many chips, art-less. */
 const OUTLIERS = [
-  '/chassis/mazona/',
-  '/chassis/big-brother/',
-  '/chassis/mule/',
   '/chassis/cranium-bio-mech/',
-  '/systems/salvaging-drill/',
-  '/systems/50-cal-machine-gun/',
   '/systems/aerosolised-nerve-gas-sprayer/',
-  '/modules/survey-scanner/',
-  '/classes/hacker/',
   '/classes/fabricator/',
-  '/bio-titans/tyrant/',
-  '/npcs/saboteur/',
-  '/drones/pest-drone/',
-  '/vehicles/fighting-box-wheel/',
-  '/crawler-bays/armoury/',
-  '/creatures/irradiated-scorpion/',
-  '/abilities/mass-field-maintenance/',
-  '/roll-tables/core-mechanic/',
-  '/roll-tables/mechapult/',
   '/roll-tables/callsign-table/',
   '/guides/heat/',
 ]
@@ -116,9 +101,11 @@ function siteRoutes(): DesignRoute[] {
     ref('/chassis/mule/pattern/crusher/'),
     ref('/bio-titans/typhon/pattern/hill-worm/')
   )
-  // Known outliers: the pages the layout gates hold (`chip-strips.e2e.ts`)
-  // and those earlier reviews turned up (long names, many chips, art-less).
-  for (const path of OUTLIERS) if (!routes.some((r) => r.path === path)) routes.push(ref(path))
+  // Known outliers: the reference corpus the layout gates hold
+  // (`REFERENCE_CORPUS`, `_designTable.ts`) and those earlier reviews turned up.
+  const srd = REFERENCE_CORPUS.filter((p) => p.family.startsWith('reference-')).map((p) => p.path)
+  for (const path of [...srd, ...OUTLIERS])
+    if (!routes.some((r) => r.path === path)) routes.push(ref(path))
   return routes
 }
 
@@ -129,9 +116,9 @@ function appRoutes(): DesignRoute[] {
       (r) =>
         r.family !== 'reference-page' && r.family !== 'reference-index' && r.family !== 'listing'
     ),
-    { family: 'starter-set', path: at('/starter/pilot/starter-pilot-bonesaw'), widths: BOTH },
-    { family: 'starter-set', path: at('/starter/mech/starter-mech-mazona'), widths: BOTH },
-    { family: 'starter-set', path: at('/starter/crawler/starter-crawler-tenacity'), widths: BOTH },
+    ...REFERENCE_CORPUS.filter(
+      (p) => p.family === 'starter-set' && p.path.includes('/starter/')
+    ).map((p): DesignRoute => ({ family: p.family, path: p.path, widths: BOTH })),
   ]
 }
 
@@ -491,11 +478,10 @@ test('site review shots', async ({ page }) => {
       2
     )
   )
-  const seed = await seedDesignAccount(page)
+  const seed = await seedAccount(page)
   let i = 0
   await walkDesignRoutes(
     page,
-    seed,
     async ({ where, width, family }) => {
       i++
       const slug = `${String(i).padStart(3, '0')}-${where
@@ -508,6 +494,6 @@ test('site review shots', async ({ page }) => {
       )
       return []
     },
-    routes
+    { seed, routes }
   )
 })

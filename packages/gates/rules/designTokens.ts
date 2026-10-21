@@ -107,7 +107,7 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
   // Play and the Peek are NOT here (R10): their
   // brand-colour bands wear the speckle as the sheet's do; Play's ink-deep
   // ground, its cream and paper columns are paper-like grounds the
-  // `PAPER_GROUND` line check and the e2e (`texture.e2e.ts`) hold clean.
+  // `PAPER_GROUND` line check and the e2e (`_texture.ts`, `design-walk.e2e.ts`) hold clean.
   // Buttons: Button, its recipe, and every *Button component.
   /Button\w*\.tsx?$/,
   /\/buttonVariants\.ts$/,

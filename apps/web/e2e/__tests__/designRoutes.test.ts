@@ -2,18 +2,28 @@
  * Hard rule R0, "Every layout gate sees every context": `designRoutes`
  * (`_designTable.ts`) has an entry for every route family, at every width the
  * family is held to, and every path it names the seed makes. A new family in
- * `DESIGN_FAMILIES` with no entry fails here, before a browser runs.
+ * `DESIGN_FAMILIES` with no entry fails here, before a browser runs. The
+ * signed-out reference corpus beside it lists each page once, and every
+ * trait a gate walks by picks a page.
  */
 
 import { describe, expect, test } from 'bun:test'
 import type { DesignWidth } from 'gates/lib/designViewports'
-import type { DesignContext, DesignDebt, DesignFamily, DesignFinding } from '../_designTable'
+import { SEED_KEYS } from 'gates/lib/seedAccount'
+import type {
+  CorpusTrait,
+  DesignContext,
+  DesignDebt,
+  DesignFamily,
+  DesignFinding,
+} from '../_designTable'
 import {
   againstBaseline,
+  corpusRoutes,
   DESIGN_FAMILIES,
-  DESIGN_SEED_KEYS,
   designRoutes,
   ONE_WIDTH,
+  REFERENCE_CORPUS,
 } from '../_designTable'
 
 const FAMILIES = Object.keys(DESIGN_FAMILIES) as DesignFamily[]
@@ -56,7 +66,7 @@ describe('designRoutes', () => {
   })
 
   test('every seeded path is one the seed makes', () => {
-    const keys = new Set<string>(DESIGN_SEED_KEYS)
+    const keys = new Set<string>(SEED_KEYS)
     for (const route of designRoutes) {
       if (route.path.startsWith(':')) expect(keys.has(route.path.slice(1))).toBe(true)
       else expect(route.path.startsWith('/')).toBe(true)
@@ -65,6 +75,25 @@ describe('designRoutes', () => {
 
   test('the Peek is the only entry that opens one', () => {
     expect(designRoutes.filter((r) => r.peek).map((r) => r.family)).toEqual(['peek'])
+  })
+})
+
+describe('REFERENCE_CORPUS', () => {
+  test('lists each page once, signed out: no seeded path', () => {
+    const paths = REFERENCE_CORPUS.map((p) => p.path)
+    expect(new Set(paths).size).toBe(paths.length)
+    for (const path of paths) expect(path.startsWith('/')).toBe(true)
+  })
+
+  test.each(['contentful-mini', 'stat-column', 'search', 'rhythm', 'seam'] as CorpusTrait[])(
+    'some page is picked for %s',
+    (trait) => {
+      expect(corpusRoutes(trait).length).toBeGreaterThan(0)
+    }
+  )
+
+  test('a walk holds every page at page and phone unless it names its widths', () => {
+    for (const route of corpusRoutes()) expect([...route.widths]).toEqual([...WIDTHS])
   })
 })
 

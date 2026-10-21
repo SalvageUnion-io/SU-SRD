@@ -62,26 +62,12 @@ export const ONE_WIDTH: Partial<Record<DesignFamily, { width: DesignWidth; why: 
   },
 }
 
-/** The paths the seed makes (`seedDesignAccount`, `_designRoutes.ts`), named in a route as `:key`. */
-export const DESIGN_SEED_KEYS = [
-  'pilot',
-  'mech',
-  'crawler',
-  'npc',
-  'game',
-  'invite',
-  'playPlayer',
-  'playSolo',
-  'playMediator',
-] as const
-
-export type DesignSeedKey = (typeof DESIGN_SEED_KEYS)[number]
-
 export type DesignRoute = {
   family: DesignFamily
   /**
    * What the browser opens: an SRD path as it is (`/chassis/mazona/`), an app
-   * route through `at()`, or `:key`, a path the seed made (`:pilot`).
+   * route through `at()`, or `:key`, a path the seed made (`:pilot`,
+   * `SEED_KEYS` in `gates/lib/seedAccount.ts`).
    */
   path: string
   widths: readonly DesignWidth[]
@@ -91,19 +77,14 @@ export type DesignRoute = {
   peek?: { schema: string; name: string }
 }
 
-/** A Game's own page, in Play (`/play/games/$gameId`, ADR-052 §5): the one place to repoint it. */
-export function gamePageRoute(gameId: string): string {
-  return `/play/games/${gameId}`
-}
-
 const BOTH: readonly DesignWidth[] = ['page', 'phone']
 
 /**
- * The one route list the layout gates run over (hard rule R0:
- * `chip-strips.e2e.ts`, `nesting-depth.e2e.ts`, `sibling-heights.e2e.ts`):
- * Reference, Listing, Peek, each Live Sheet in Read and Edit, the three
- * wizards, Manage and Play, at phone and page widths, signed in. The account
- * is seeded as `tools/gallery.ts --signed-in` seeds it (`seedDesignAccount`).
+ * The one route list the layout gates run over (hard rule R0,
+ * `design-walk.e2e.ts`): Reference, Listing, Peek, each Live Sheet in Read
+ * and Edit, the three wizards, Manage and Play, at phone and page widths,
+ * signed in. The account is the one seed (`gates/lib/seedAccount.ts`), as
+ * `tools/gallery.ts --signed-in` and `bun run dev:backend` seed it.
  */
 export const designRoutes: readonly DesignRoute[] = [
   // Reference: an SRD Page and an index.
@@ -145,6 +126,132 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'play-solo', path: ':playSolo', widths: BOTH },
   { family: 'play-mediator', path: ':playMediator', widths: BOTH },
 ]
+
+/**
+ * What a reference corpus page is picked for, by the gate that must find it
+ * there: a gate that reads one thing walks the pages that draw it, and fails
+ * on a page that draws none, so it never passes by reading nothing.
+ *
+ * - `contentful-mini`: a contentful Mini (N3) of each kind a sheet or a Page
+ *   draws: a crawler's type ability, bays and crew, a pilot's abilities and
+ *   equipment, a mech's chassis ability, systems and modules, a pattern's
+ *   loadout, a class's ability track (`token-cutout.e2e.ts`).
+ * - `stat-column`: a `StatColumn` grid: two chassis and a pattern (`CardPage`'s
+ *   column) and the mech sheet's hero, its compact column (`stat-fill.e2e.ts`).
+ * - `search`: a search field on its own line: an SRD listing's rail
+ *   (`search-width.e2e.ts`).
+ * - `rhythm`: a Page of each length and layout: short and long SRD Pages, a
+ *   class page (`ClassAbilityTree`), a guide (`GuideSteps`) (`page-rhythm.e2e.ts`).
+ * - `seam`: a border-riding stamp: a guide step's "Note" (`GuideSteps`), the one
+ *   outside `designRoutes` since a field's label is the Eyebrow over its
+ *   control (R16) (`design-walk.e2e.ts`'s value cells).
+ */
+export type CorpusTrait = 'contentful-mini' | 'stat-column' | 'search' | 'rhythm' | 'seam'
+
+/** One signed-out page of the reference corpus: its family, its path, what it is picked for. */
+export type CorpusPage = {
+  family: DesignFamily
+  path: string
+  traits?: readonly CorpusTrait[]
+}
+
+const STARTER_SHEETS = [
+  'pilot/starter-pilot-bonesaw',
+  'pilot/starter-pilot-driftwood',
+  'pilot/starter-pilot-hotdog',
+  'pilot/starter-pilot-judge',
+  'pilot/starter-pilot-nobody',
+  'pilot/starter-pilot-pickle',
+  'pilot/starter-pilot-razor',
+  'mech/starter-mech-bobcat',
+  'mech/starter-mech-mazona',
+  'mech/starter-mech-mule',
+  'mech/starter-mech-scrapper',
+  'mech/starter-mech-spectrum',
+  'mech/starter-mech-thresher',
+  'crawler/starter-crawler-tenacity',
+] as const
+
+/** Traits a Starter Set sheet carries, by sheet; the rest carry none. */
+const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly CorpusTrait[]>> = {
+  'pilot/starter-pilot-bonesaw': ['contentful-mini'],
+  'mech/starter-mech-mazona': ['stat-column'],
+  'mech/starter-mech-mule': ['contentful-mini'],
+  'crawler/starter-crawler-tenacity': ['contentful-mini'],
+}
+
+const page = (path: string, ...traits: CorpusTrait[]): CorpusPage => ({
+  family: 'reference-page',
+  path,
+  ...(traits.length ? { traits } : {}),
+})
+const index = (path: string, ...traits: CorpusTrait[]): CorpusPage => ({
+  family: 'reference-index',
+  path,
+  ...(traits.length ? { traits } : {}),
+})
+
+/**
+ * The signed-out pages the page-level gates walk beside `designRoutes` (hard
+ * rule R0's one route list, signed out): the outliers among the SRD's Pages
+ * and indexes (long names, many chips, deep nesting, every kind of entity
+ * once), the guides and roll tables, and the app's signed-out screens: the
+ * Training Bay, the Starter Set and every one of its sheets, the Play hub.
+ * A gate walks it whole, or the pages with the trait it reads
+ * (`corpusRoutes`), at the widths it names.
+ */
+export const REFERENCE_CORPUS: readonly CorpusPage[] = [
+  index('/'),
+  index('/chassis/', 'search'),
+  index('/systems/', 'search'),
+  index('/modules/'),
+  index('/abilities/', 'search'),
+  index('/creatures/'),
+  page('/chassis/mazona/', 'stat-column', 'rhythm'),
+  page('/chassis/mazona/pattern/buzzard/', 'stat-column', 'rhythm'),
+  page('/chassis/big-brother/', 'stat-column', 'rhythm'),
+  page('/chassis/big-brother/pattern/drontek/'),
+  page('/chassis/mule/', 'contentful-mini'),
+  page('/chassis/mule/pattern/crusher/', 'contentful-mini'),
+  page('/systems/salvaging-drill/', 'rhythm'),
+  page('/systems/50-cal-machine-gun/'),
+  page('/modules/survey-scanner/'),
+  page('/abilities/mass-field-maintenance/'),
+  page('/classes/hacker/', 'contentful-mini', 'rhythm'),
+  page('/classes/engineer/'),
+  page('/bio-titans/tyrant/', 'rhythm'),
+  page('/npcs/saboteur/', 'rhythm'),
+  page('/drones/pest-drone/', 'rhythm'),
+  page('/vehicles/fighting-box-wheel/'),
+  page('/crawler-bays/armoury/', 'rhythm'),
+  page('/creatures/irradiated-scorpion/'),
+  page('/roll-tables/core-mechanic/'),
+  page('/roll-tables/mechapult/'),
+  page('/guides/create-a-pilot/', 'rhythm'),
+  page('/guides/crawler-downtime/', 'seam'),
+  { family: 'training-bay', path: at('/') },
+  { family: 'starter-set', path: at('/starter') },
+  ...STARTER_SHEETS.map(
+    (sheet): CorpusPage => ({
+      family: 'starter-set',
+      path: at(`/starter/${sheet}`),
+      ...(STARTER_TRAITS[sheet] ? { traits: STARTER_TRAITS[sheet] } : {}),
+    })
+  ),
+  { family: 'play-hub', path: at('/play/') },
+]
+
+/**
+ * The corpus as routes a walk opens (`walkDesignRoutes`): every page, or those
+ * with `trait`, held at `page` and `phone` unless the walk names its widths.
+ */
+export function corpusRoutes(trait?: CorpusTrait): DesignRoute[] {
+  return REFERENCE_CORPUS.filter((p) => !trait || p.traits?.includes(trait)).map((p) => ({
+    family: p.family,
+    path: p.path,
+    widths: BOTH,
+  }))
+}
 
 /** One finding a gate made, on one view, under one of the gate's rules. */
 export type DesignFinding = { family: DesignFamily; rule: string; line: string }

@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
-import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
-import type { DesignDebt } from './_designTable'
+import { walkDesignRoutes } from './_designRoutes'
+import { corpusRoutes } from './_designTable'
 import { findFrameFaults } from './_entityFrames'
 import { editSheet, fillIdentity, openSheetFor, waitForReady } from './_helpers'
 import { describeFindings, findNestingFindings } from './_nestingDepth'
@@ -19,60 +19,19 @@ import { expect, test } from './fixtures'
  * (`_pendingRules.ts`), which the report shows. Every entity frame's colour
  * (`_entityFrames.ts`, R38) is read on the same pages.
  *
- * Signed out: sibling-heights' pages, the pages the nesting audit measured,
- * every Starter Set sheet, and a Peek of a chassis, a Bio-Titan and an
- * equipment item. Signed in (`fixtures.ts`; the PR tier's build carries the
- * seam): every step of the three wizards, and a built crawler's sheet in Read
- * and Edit.
+ * Signed out: the reference corpus (`REFERENCE_CORPUS`, `_designTable.ts`:
+ * every Starter Set sheet among it) at page and phone widths, and a Peek of a
+ * chassis, a Bio-Titan and an equipment item. Signed in (`fixtures.ts`; the PR
+ * tier's build carries the seam): every step of the three wizards, and a built
+ * crawler's sheet in Read and Edit. Every signed-in context (`designRoutes`) is
+ * `design-walk.e2e.ts`'s.
  */
-const PAGES = [
-  '/',
-  '/chassis/',
-  '/chassis/mazona/',
-  '/chassis/mazona/pattern/buzzard/',
-  '/chassis/big-brother/',
-  '/chassis/big-brother/pattern/drontek/',
-  '/systems/',
-  '/systems/salvaging-drill/',
-  '/abilities/',
-  '/classes/hacker/',
-  '/classes/engineer/',
-  '/bio-titans/tyrant/',
-  '/npcs/saboteur/',
-  '/drones/pest-drone/',
-  '/vehicles/fighting-box-wheel/',
-  '/crawler-bays/armoury/',
-  '/roll-tables/core-mechanic/',
-  '/roll-tables/mechapult/',
-  '/guides/create-a-pilot/',
-  at('/'),
-  at('/starter'),
-  ...[
-    'pilot/starter-pilot-bonesaw',
-    'pilot/starter-pilot-driftwood',
-    'pilot/starter-pilot-hotdog',
-    'pilot/starter-pilot-judge',
-    'pilot/starter-pilot-nobody',
-    'pilot/starter-pilot-pickle',
-    'pilot/starter-pilot-razor',
-    'mech/starter-mech-bobcat',
-    'mech/starter-mech-mazona',
-    'mech/starter-mech-mule',
-    'mech/starter-mech-scrapper',
-    'mech/starter-mech-spectrum',
-    'mech/starter-mech-thresher',
-    'crawler/starter-crawler-tenacity',
-  ].map((sheet) => at(`/starter/${sheet}`)),
-]
 
 /**
  * An entity's, a pattern's or a guide's Page, where an entity one level deep
  * is a Compact drawn open (N8): not an index, a table, the Training Bay or a sheet.
  */
 const ONE_DEEP = /^\/(?!build\/|roll-tables\/)[a-z-]+\/[a-z0-9-]+\/(?:pattern\/[a-z0-9-]+\/)?$/
-
-/** Desktop, and a phone's width: a Mini's line is narrower there. */
-const WIDTHS = [1440, 390]
 
 /**
  * Each Peek opens from the bar search's result Mini: its schema and a name
@@ -96,25 +55,24 @@ test.describe('signed out', () => {
 
   test('every page nests three levels deep at most', async ({ page }) => {
     test.setTimeout(15 * 60_000)
-    const found: { rule: string; line: string }[] = []
-    for (const width of WIDTHS) {
-      await page.setViewportSize({ width, height: 900 })
-      for (const path of PAGES) {
-        await page.goto(path, { waitUntil: 'networkidle' })
-        const where = `${path} at ${width}px`
+    const found = await walkDesignRoutes(
+      page,
+      async ({ path, where }) => {
+        const lines: { rule: string; line: string }[] = []
         const findings = await findNestingFindings(page, { oneDeep: ONE_DEEP.test(path) })
         for (const rule of new Set(findings.map((f) => f.rule))) {
-          const lines = describeFindings(
+          const described = describeFindings(
             where,
             findings.filter((f) => f.rule === rule)
           )
-          found.push(...lines.map((line) => ({ rule, line })))
+          lines.push(...described.map((line) => ({ rule, line })))
         }
-        for (const fault of await findFrameFaults(page)) {
-          found.push({ rule: ruleOfFault(fault), line: `${where}, ${fault}` })
-        }
-      }
-    }
+        for (const fault of await findFrameFaults(page))
+          lines.push({ rule: ruleOfFault(fault), line: `${where}, ${fault}` })
+        return lines
+      },
+      { routes: corpusRoutes() }
+    )
     const failures = holdPending('nesting-depth', found).map((f) => f.line)
     expect(failures, 'entities nested past the three levels').toEqual([])
   })
@@ -243,31 +201,5 @@ test.describe('signed in', () => {
     failures.push(...(await scan(page, "the Armament Bay's picker")))
     await page.keyboard.press('Escape')
     expect(failures, 'entities nested past the three levels').toEqual([])
-  })
-
-  /**
-   * Every context (hard rule R0): each of `designRoutes` (`_designTable.ts`),
-   * seeded, at page and phone widths, Play's phone form tab by tab, under
-   * N1–N8.
-   *
-   * `BASELINE` is the debt this pass found when it landed, by route family and
-   * rule, each to be fixed and deleted here. A finding off it fails; an entry
-   * nothing matches is noted on the report as paid off.
-   */
-  const BASELINE: readonly DesignDebt[] = []
-
-  test('every context nests three levels deep at most', async ({ page }) => {
-    test.setTimeout(20 * 60_000)
-    const seed = await seedDesignAccount(page)
-    const findings = await walkDesignRoutes(page, seed, async ({ where }) => {
-      const lines = new Map<string, string>()
-      for (const f of await findNestingFindings(page)) {
-        lines.set(`${where}: ${f.rule} ${f.chain}: ${f.detail}`, f.rule)
-      }
-      for (const fault of await findFrameFaults(page))
-        lines.set(`${where}, ${fault}`, ruleOfFault(fault))
-      return [...lines].map(([line, rule]) => ({ rule, line }))
-    })
-    expectWithinBaseline('nesting-depth', findings, BASELINE)
   })
 })

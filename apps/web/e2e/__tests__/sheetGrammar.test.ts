@@ -2,7 +2,7 @@
  * The sheet-grammar scan (`_sheetGrammar.ts`, hard rule R11) on hand-written
  * markup in `LiveSheet`'s class names: the shell, the hero and its vitals,
  * Read's typeset body, Edit's one remove control and the sidebar. The browser run
- * (`sheet-grammar.e2e.ts`) walks every sheet kind; this holds what each rule
+ * (`design-walk.e2e.ts`) walks every sheet kind; this holds what each rule
  * finds without one.
  */
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'

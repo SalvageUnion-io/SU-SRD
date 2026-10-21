@@ -1,74 +1,44 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { at } from './_base'
-import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
-import type { DesignDebt } from './_designTable'
-import { DESIGN_FAMILIES, designRoutes } from './_designTable'
-import { waitForReady } from './_helpers'
+import { walkDesignRoutes } from './_designRoutes'
+import { corpusRoutes } from './_designTable'
 import { holdPending, ruleOfFault } from './_pendingRules'
 import { board, CANVAS, openPlay, PHONE, pilotPlayPath } from './_play'
 import { findSiblingMismatches, findTabSizeFaults } from './_siblingHeights'
 import { setUpTable } from './_table'
-import { findTypeFloorFaults } from './_typeFloor'
 import { test as signedIn } from './fixtures'
 
-/** A touch phone (`pointer: coarse`): a Pixel 7's viewport with touch on. */
-const PHONE_TOUCH = { viewport: { width: 412, height: 839 }, hasTouch: true, isMobile: true }
-
 /**
- * The sibling-height law (ruleset §4.7) on one of each page shape, at desktop
- * and as a phone: no line of controls whose heights differ. A failure names the
- * page, the line and every control on it with its height; give the odd one the
- * line's Size (`styles/sizing.ts`), never a height of its own.
+ * The sibling-height law (ruleset §4.7) on the signed-out reference corpus
+ * (`REFERENCE_CORPUS`, `_designTable.ts`) at page and phone widths: no line of
+ * controls whose heights differ. A failure names the page, the line and every
+ * control on it with its height; give the odd one the line's Size
+ * (`styles/sizing.ts`), never a height of its own. Every signed-in context
+ * (`designRoutes`, R12's whole-page pass and the touch floor) is
+ * `design-walk.e2e.ts`'s.
  */
-const PAGES = [
-  '/',
-  '/chassis/',
-  '/chassis/mazona/',
-  '/chassis/mazona/pattern/buzzard/',
-  '/systems/',
-  '/systems/salvaging-drill/',
-  '/abilities/',
-  '/classes/hacker/',
-  '/bio-titans/tyrant/',
-  '/npcs/saboteur/',
-  '/drones/pest-drone/',
-  '/vehicles/fighting-box-wheel/',
-  '/crawler-bays/armoury/',
-  '/roll-tables/core-mechanic/',
-  '/roll-tables/mechapult/',
-  '/guides/create-a-pilot/',
-  at('/'),
-  at('/starter'),
-  at('/starter/pilot/starter-pilot-bonesaw'),
-  at('/starter/mech/starter-mech-mazona'),
-  at('/starter/crawler/starter-crawler-tenacity'),
-  at('/play/'),
-]
-
-/** Desktop, and a phone's width (the phone project runs only the smoke specs). */
-const WIDTHS = [1440, 390]
 
 test.describe.configure({ retries: 0 })
 
 test('siblings on one line share one height', async ({ page }) => {
-  test.setTimeout(10 * 60_000)
-  const failures: string[] = []
-  const tabSize: { rule: string; line: string }[] = []
-  for (const width of WIDTHS) {
-    await page.setViewportSize({ width, height: 900 })
-    for (const path of PAGES) {
-      await page.goto(path, { waitUntil: 'networkidle' })
-      for (const m of await findSiblingMismatches(page)) {
-        const controls = m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')
-        failures.push(`${path} at ${width}px, ${m.line}: ${controls}`)
-      }
-      for (const fault of await findTabSizeFaults(page)) {
-        tabSize.push({ rule: ruleOfFault(fault), line: `${path} at ${width}px, ${fault}` })
-      }
-    }
-  }
-  failures.push(...holdPending('sibling-heights', tabSize).map((f) => f.line))
+  test.setTimeout(15 * 60_000)
+  const found = await walkDesignRoutes(
+    page,
+    async ({ where }) => [
+      ...(await findSiblingMismatches(page)).map((m) => ({
+        rule: 'sibling',
+        line: `${where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
+      })),
+      ...(await findTabSizeFaults(page)).map((fault) => ({
+        rule: ruleOfFault(fault),
+        line: `${where}, ${fault}`,
+      })),
+    ],
+    { routes: corpusRoutes() }
+  )
+  const failures = holdPending('sibling-heights', found).map((f) => f.line)
   expect(failures, 'controls on one line at different heights').toEqual([])
 })
 
@@ -92,8 +62,9 @@ const BAR_ROUTES = [
 
 test('the Union bar holds one height in Build and in Play', async ({ page }) => {
   const failures: string[] = []
-  for (const width of WIDTHS) {
-    await page.setViewportSize({ width, height: 900 })
+  for (const viewport of Object.values(DESIGN_VIEWPORTS)) {
+    const { width } = viewport
+    await page.setViewportSize(viewport)
     for (const { path, mode, nav } of BAR_ROUTES) {
       await page.goto(path, { waitUntil: 'networkidle' })
       const bar = page.locator('.su-union-bar')
@@ -139,8 +110,8 @@ test('the Union bar holds one height in Build and in Play', async ({ page }) => 
  * closed. On the canvas a unit box is scanned whole (its head and every body
  * row: the vitals, the pilot's class / TP / injuries, the mech's range;
  * Sheet and Board are chips on the head); on a phone only its head, since the touch floor lifts every
- * button there to 44px beside chips that keep their drawn Size (the `every context`
- * pass below scans each phone tab whole, against its baseline). Play needs an account,
+ * button there to 44px beside chips that keep their drawn Size (`design-walk.e2e.ts`
+ * scans each phone tab whole, against its baseline). Play needs an account,
  * so this signs in, sets up the Starter Set table (`setUpTable`) and opens
  * Bonesaw's screen, on foot, then Boarded with an action open, at the
  * canvas's design size (scale 1, so a measured px is a drawn px) and as a
@@ -230,79 +201,4 @@ signedIn('Play: the bar, unit boxes and action rows share one height', async ({ 
   failures.push(...(await playMismatches(page, 'Boarded, an action open')))
 
   expect(failures, 'Play controls on one line at different heights').toEqual([])
-})
-
-/**
- * Every context (hard rule R0, R12): the whole page of each of `designRoutes`
- * (`_helpers.ts`), signed in and seeded, at page and phone widths, and on
- * Play's phone form every tab scanned whole (unit boxes, Crew, Tables), not
- * only the unit heads. Each view is held to two rules:
- *
- * - `sibling`: no line whose controls differ in height (§4.7).
- * - `type-floor`: no text drawn under 11px (§4.6, `_typeFloor.ts`), its
- *   computed size times every scale above it. Play is swept again in a
- *   mid-size window (`MID`, 1024 × 700), under its canvas's design size,
- *   where a canvas scaled to fit would draw its 11px text at 8.8px: there
- *   the phone form is up (ADR-045 decision 1), and every tab is scanned.
- *
- * Then, under a coarse pointer (a touch phone), every menu item a seeded page
- * opens is on the 44px floor (§4.6): the Training Bay's ⋯ and the Play bar's.
- *
- * No baseline: a finding fails.
- */
-const BASELINE: readonly DesignDebt[] = []
-
-signedIn('every context: siblings on one line share one height', async ({ page, browser }) => {
-  signedIn.setTimeout(20 * 60_000)
-  const seed = await seedDesignAccount(page)
-  const typeFloor = async ({ where }: { where: string }) =>
-    (await findTypeFloorFaults(page)).map((fault) => ({
-      rule: 'type-floor',
-      line: `${where}: ${fault}`,
-    }))
-  const findings = await walkDesignRoutes(page, seed, async (view) => [
-    ...(await findSiblingMismatches(page)).map((m) => ({
-      rule: 'sibling',
-      line: `${view.where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
-    })),
-    ...(await typeFloor(view)),
-    ...(await findTabSizeFaults(page)).map((fault) => ({
-      rule: ruleOfFault(fault),
-      line: `${view.where}, ${fault}`,
-    })),
-  ])
-  const play = designRoutes.filter((r) => DESIGN_FAMILIES[r.family] === 'play')
-  findings.push(...(await walkDesignRoutes(page, seed, typeFloor, play, { widths: ['mid'] })))
-  expectWithinBaseline('sibling-heights', findings, BASELINE)
-
-  // A coarse pointer: the seeded session in a touch phone's context.
-  const touch = await browser.newContext({
-    storageState: await page.context().storageState({ indexedDB: true }),
-    ...PHONE_TOUCH,
-  })
-  const phone = await touch.newPage()
-  const short: string[] = []
-  const menus = [
-    { path: at('/'), trigger: /^More for / },
-    { path: seed.playMediator, trigger: /^More$/ },
-  ]
-  for (const { path, trigger } of menus) {
-    await phone.goto(path)
-    await waitForReady(phone)
-    expect(
-      await phone.evaluate(() => matchMedia('(pointer: coarse)').matches),
-      'the touch context reports a coarse pointer'
-    ).toBe(true)
-    await phone.getByRole('button', { name: trigger }).filter({ visible: true }).first().click()
-    const items = phone.getByRole('menuitem')
-    await expect(items.first(), `${path}: its menu opens`).toBeVisible()
-    for (const item of await items.all()) {
-      const box = await item.boundingBox()
-      const height = Math.round(box?.height ?? 0)
-      if (height < 44) short.push(`${path}: ${height}px menu item "${await item.textContent()}"`)
-    }
-    await phone.keyboard.press('Escape')
-  }
-  await touch.close()
-  expect(short, 'menu items under 44px on a coarse pointer').toEqual([])
 })

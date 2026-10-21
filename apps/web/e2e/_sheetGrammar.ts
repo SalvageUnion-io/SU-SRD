@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 /**
  * Hard rule R11, one Live Sheet grammar (ruleset §0, §1.2): the scan a sheet's
- * view is held to, Read or Edit, whichever kind it is (`sheet-grammar.e2e.ts`).
+ * view is held to, Read or Edit, whichever kind it is (`design-walk.e2e.ts`).
  *
  * - `shell` — the page is `LiveSheet`'s (`main[data-variant]`), its chapter
  *   band's corner holds the sheet's actions, and on a sheet the viewer may
