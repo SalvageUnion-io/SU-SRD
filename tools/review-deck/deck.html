@@ -91,6 +91,7 @@ select { border: 2px solid var(--ink); background: var(--sheet); color: var(--in
 .verdict .btn.approve[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--sheet); }
 .verdict .btn.changes[aria-pressed="true"] { background: var(--warn); border-color: var(--warn); color: var(--sheet); }
 textarea { width: 100%; min-height: 90px; resize: vertical; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); padding: 8px; font: inherit; font-size: 14px; border-radius: 0; }
+.prior { font-size: 14px; padding-left: 10px; border-left: 4px solid var(--warn); overflow-wrap: anywhere; white-space: pre-wrap; }
 .status { font-size: 13px; color: var(--muted); min-height: 1.4em; }
 .status.bad { color: var(--warn); }
 .legend { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -123,6 +124,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     <button class="btn" id="next" type="button" aria-label="Next slide">Next &rarr;</button>
     <label class="label" for="filter">Show</label>
     <select id="filter">
+      <option value="commented">Commented last round</option>
       <option value="all">Every slide</option>
       <option value="rules">Rule violations</option>
       <option value="issues">Possible issues</option>
@@ -159,6 +161,10 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
         <ul class="finds issues" id="issues"></ul>
         <div class="legend"><span><i class="sw"></i>breaks a rule</span><span><i class="sw i"></i>possible issue</span></div>
       </section>
+      <section id="priorBox" hidden>
+        <div class="label">Last round</div>
+        <div class="prior" id="prior"></div>
+      </section>
       <section>
         <div class="label">Verdict</div>
         <div class="verdict">
@@ -189,6 +195,24 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   const keyOf = (s) => s.file.replace(/\.[a-z]+$/, '')
   // A verdict counts on the shoot it was given on.
   const current = (s) => { const v = verdicts[keyOf(s)]; return v && (!v.commit || v.commit === data.commit) ? v : null }
+  // The same view in an earlier shoot, whose file number may differ: its name less the number.
+  const viewOf = (id) => id.replace(/^\d+-/, '')
+  const byView = {}
+  // What was said on this screen in the last round: an earlier shoot's verdict, or the one a
+  // verdict on this shoot kept when it replaced it.
+  const prior = (s) => {
+    const v = verdicts[keyOf(s)] || byView[viewOf(keyOf(s))]
+    const p = v && v.commit && v.commit !== data.commit ? v : v?.previous
+    return p && ((p.comment || '').trim() || p.verdict === 'changes') ? p : null
+  }
+  let chosen = false
+  // Open on what was commented last round, until the reviewer picks another view.
+  function openCommented() {
+    if (chosen || !data.slides.length || !data.slides.some((s) => prior(s))) return
+    chosen = true
+    $('filter').value = 'commented'
+    applyFilter()
+  }
   const hasRule = (s, r) => (s.rules || []).some((x) => x.rule === r) || (s.issues || []).some((x) => x.rule === r)
 
   function setStatus(t, bad) { const el = $('status'); el.textContent = t; el.className = `status${bad ? ' bad' : ''}` }
@@ -214,6 +238,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     view = data.slides.filter((s) => {
       const v = current(s)
       if (ruleFilter && !hasRule(s, ruleFilter)) return false
+      if (f === 'commented') return prior(s) !== null
       if (f === 'rules') return (s.rules || []).length > 0
       if (f === 'issues') return (s.issues || []).length > 0
       if (f === 'changed') return s.changed === true
@@ -330,6 +355,9 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     $('approve').setAttribute('aria-pressed', String(v.verdict === 'approve'))
     $('changes').setAttribute('aria-pressed', String(v.verdict === 'changes'))
     $('comment').value = v.comment || ''
+    const p = prior(s)
+    $('priorBox').hidden = !p
+    $('prior').textContent = p ? `${p.verdict === 'changes' ? 'Changes requested' : p.verdict === 'approve' ? 'Approved' : 'Comment'} on ${p.commit}: ${(p.comment || '').trim() || '(no comment)'}` : ''
     $('jump').value = s.where
     setStatus(db ? (v.at ? `Saved ${new Date(v.at).toLocaleString()}` : '') : 'Verdicts are not saving in this view: open the artifact signed in to record them.', !db)
     for (const b of [$('approve'), $('changes'), $('saveComment')]) b.disabled = !db || !canWrite
@@ -340,7 +368,9 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     const s = view[pos]
     if (!s || !db) return
     const k = keyOf(s)
-    const next = { ...(current(s) || {}), ...patch, file: s.file, where: s.where, depth: s.depth, commit: data.commit || '', at: new Date().toISOString(), by: me || '' }
+    const was = verdicts[k] || byView[viewOf(k)]
+    const previous = was && was.commit !== data.commit ? { verdict: was.verdict || '', comment: was.comment || '', commit: was.commit || '' } : was?.previous
+    const next = { ...(current(s) || {}), ...patch, ...(previous ? { previous } : {}), file: s.file, where: s.where, depth: s.depth, commit: data.commit || '', at: new Date().toISOString(), by: me || '' }
     verdicts[k] = next
     render()
     setStatus('Saving…')
@@ -355,10 +385,11 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
 
   $('prev').addEventListener('click', () => { if (pos > 0) { pos--; render() } })
   $('next').addEventListener('click', () => { if (pos < view.length - 1) { pos++; render() } })
-  $('filter').addEventListener('change', applyFilter)
+  $('filter').addEventListener('change', () => { chosen = true; applyFilter(); $('filter').blur() })
   $('jump').addEventListener('change', () => {
     const i = view.findIndex((s) => s.where === $('jump').value)
     if (i >= 0) { pos = i; render() }
+    $('jump').blur()
   })
   $('approve').addEventListener('click', () => {
     const v = current(view[pos]) || {}
@@ -374,12 +405,16 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   })
   $('saveComment').addEventListener('click', () => {
     save({ comment: $('comment').value })
+    $('comment').blur()
     if (pos < view.length - 1) { pos++; render() }
   })
   $('cell').addEventListener('click', () => { $('shot').classList.toggle('zoom'); if (view[pos]) showShot(view[pos]) })
   $('img').addEventListener('error', () => setStatus('This shot did not load. Reload the page.', true))
   document.addEventListener('keydown', (e) => {
-    if (e.target && /TEXTAREA|SELECT|INPUT/.test(e.target.tagName)) return
+    // Arrows move between slides everywhere but while typing a comment.
+    if (e.target && /TEXTAREA|INPUT/.test(e.target.tagName)) return
+    if (e.target && e.target.tagName === 'SELECT' && !/^Arrow(Left|Right)$/.test(e.key)) return
+    if (/^Arrow(Left|Right)$/.test(e.key)) e.preventDefault()
     if (e.key === 'ArrowRight' || e.key === 'j') $('next').click()
     else if (e.key === 'ArrowLeft' || e.key === 'k') $('prev').click()
     else if (e.key === 'a' && !$('approve').disabled) $('approve').click()
@@ -400,6 +435,8 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     buildSummary()
     view = m.slides.slice()
     render()
+    openCommented()
+    window.focus()
   }).catch(() => { $('meta').textContent = 'The shot list did not load. Reload the page.' })
 
   ;(async () => {
@@ -415,6 +452,10 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     db.collection('verdicts').onSnapshot((snap) => {
       for (const doc of snap.docs) verdicts[doc.id] = { ...doc.data() }
       for (const ch of snap.docChanges()) if (ch.type === 'removed') delete verdicts[ch.doc.id]
+      for (const id of Object.keys(byView)) delete byView[id]
+      for (const [id, v] of Object.entries(verdicts)) if (v.commit !== data.commit) byView[viewOf(id)] = v
+      // Open on what was commented last round, until the reviewer picks another view.
+      openCommented()
       const active = document.activeElement === $('comment')
       const keep = $('comment').value
       render()
