@@ -9,7 +9,7 @@ import type { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
+import { CONDITION_LABELS } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
   mechMaxEP,
@@ -21,6 +21,8 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import type { StatState } from '../../components/index'
+import type { VitalReading } from '../../lib/units/readings'
+import { VITAL, vitalReading } from '../../lib/units/readings'
 
 /**
  * One reading on a rail line — plain builders below, NOT components.
@@ -52,11 +54,7 @@ export type RailStat = {
  */
 type Piloting = ReturnType<typeof pilotingContext>
 
-/** The stats' short names, from the reference vocabulary. */
-const { short: SP } = STAT_LABELS.structurePoints
-const { short: EP } = STAT_LABELS.energyPoints
-const { short: HEAT } = STAT_LABELS.heatCapacity
-const { short: HP } = STAT_LABELS.hitPoints
+const { sp: SP, ep: EP, heat: HEAT, hp: HP, ap: AP } = VITAL
 
 /**
  * Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12".
@@ -94,7 +92,7 @@ export function pilotRailItems(pilot: Pilot, crawlerTechLevel?: number): RailSta
   const maxAP = Math.max(0, pilotMaxAP(input))
   return [
     { label: HP, value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
-    { label: 'AP', value: resolvePool(pilot.currentAP, maxAP), max: maxAP },
+    { label: AP, value: resolvePool(pilot.currentAP, maxAP), max: maxAP },
   ]
 }
 
@@ -118,16 +116,9 @@ export function bayStates(crawler: Crawler): StatState[] {
 }
 
 /**
- * A rail stat as a `UnitRow` reading: `SP 9/13`, `Bays 4/5 Intact`.
- *
- * `UnitRow` (the library Compact the linked-unit slots use) takes flat
- * `label | value` pairs, while a rail stat carries its own max and sometimes a
- * trailing word, so both fold into the value here rather than the row growing
- * a shape only these call sites would use.
+ * Rail stats as a unit's readings: `SP 9/13`, `Bays 4/5 Intact` — the same
+ * `current/max` reading every unit surface shows (`lib/units/readings.ts`).
  */
-export function rowStats(items: RailStat[]): { label: string; value: string }[] {
-  return items.map((item) => ({
-    label: item.label,
-    value: `${item.value}/${item.max}${item.suffix ? ` ${item.suffix}` : ''}`,
-  }))
+export function rowStats(items: RailStat[]): VitalReading[] {
+  return items.map((item) => vitalReading(item.label, item.value, item.max, item.suffix))
 }

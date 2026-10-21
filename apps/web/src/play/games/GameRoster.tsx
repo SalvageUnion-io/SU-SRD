@@ -60,6 +60,7 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import { gauge, pool } from '../../lib/units/crewPair'
+import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
@@ -185,9 +186,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                 href: mechHref ?? undefined,
                 readings: mechLive
                   ? [
-                      ...pool('SP', mechLive.currentSP, mechLive.maxSP),
-                      ...pool('EP', mechLive.currentEP, mechLive.maxEP),
-                      ...gauge('Heat', mechLive.currentHeat, mechLive.maxHeat),
+                      ...pool(VITAL.sp, mechLive.currentSP, mechLive.maxSP),
+                      ...pool(VITAL.ep, mechLive.currentEP, mechLive.maxEP),
+                      ...gauge(VITAL.heat, mechLive.currentHeat, mechLive.maxHeat),
                     ]
                   : [],
               },

@@ -10,6 +10,7 @@ import { sheetPath } from 'game-domain/entityKinds'
 import type { LinkedUnit } from '../components/entity/LinkedUnits'
 import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
+import { VITAL } from '../lib/units/readings'
 
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
@@ -120,9 +121,9 @@ export function pairedCrew(
     name: m.name,
     href: sheetPath('mech', m.linkId ?? m.appId ?? m._id),
     readings: [
-      ...pool('SP', m.currentSP, m.maxSP),
-      ...pool('EP', m.currentEP, m.maxEP),
-      ...gauge('Heat', m.currentHeat, m.maxHeat),
+      ...pool(VITAL.sp, m.currentSP, m.maxSP),
+      ...pool(VITAL.ep, m.currentEP, m.maxEP),
+      ...gauge(VITAL.heat, m.currentHeat, m.maxHeat),
     ],
   })
   const out: { ownerId: string | null; unit: LinkedUnit }[] = []
@@ -137,7 +138,10 @@ export function pairedCrew(
           id: p._id,
           name: p.name,
           href: sheetPath('pilot', p.linkId ?? p.appId ?? p._id),
-          readings: [...pool('HP', p.currentHP, p.maxHP), ...pool('AP', p.currentAP, p.maxAP)],
+          readings: [
+            ...pool(VITAL.hp, p.currentHP, p.maxHP),
+            ...pool(VITAL.ap, p.currentAP, p.maxAP),
+          ],
         },
         mech: mech === undefined ? null : mechSide(mech),
         boarded: p.boarded,
