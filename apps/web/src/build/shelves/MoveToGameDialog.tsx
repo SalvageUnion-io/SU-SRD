@@ -16,6 +16,7 @@
 
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo, sameContainer } from 'game-domain/container'
+import type { EntityKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { ModalShell, toast, tokens } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
@@ -24,7 +25,6 @@ import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
-import type { AssignableType } from '../../stores/types'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
 
@@ -40,7 +40,7 @@ const BODY = {
 } satisfies CSSProperties
 
 export type MoveSubject = {
-  type: AssignableType
+  type: EntityKind
   id: string
   entity: ContainerFields & { name: string }
 }

@@ -19,6 +19,8 @@
  */
 
 import { useQuery } from 'convex/react'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { isSheetKind } from 'game-domain/entityKinds'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { shareSegment } from 'game-domain/shareAddress'
@@ -29,13 +31,6 @@ import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
-
-const KINDS = ['pilot', 'mech', 'crawler'] as const
-type PublicKind = (typeof KINDS)[number]
-
-function isPublicKind(value: string): value is PublicKind {
-  return (KINDS as readonly string[]).includes(value)
-}
 
 function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }) {
   return (
@@ -73,7 +68,7 @@ function useCanonicalAddress(
 }
 
 /** The half that talks to Convex, reached only with a known kind. */
-function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: PublicKind }) {
+function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: SheetKind }) {
   const result = useQuery(api.publicSheet.get, { kind, appId })
   useCanonicalAddress(appId, result, onAddress)
 
@@ -135,7 +130,7 @@ export function PublicSheetView({
   if (kind === 'npc') return <PublicNpcQuery appId={appId} onAddress={onAddress} />
   // A hand-typed path earns an explanation and a way back, not a validation
   // error from the server.
-  if (!isPublicKind(kind)) return <NotAvailable />
+  if (!isSheetKind(kind)) return <NotAvailable />
 
   return <PublicSheetQuery kind={kind} appId={appId} onAddress={onAddress} />
 }

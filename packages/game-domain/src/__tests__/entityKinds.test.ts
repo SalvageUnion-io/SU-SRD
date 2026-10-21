@@ -4,6 +4,7 @@ import {
   ENTITY_KINDS,
   gamePath,
   isEntityKind,
+  isSheetKind,
   kindOf,
   publicPath,
   sheetPath,
@@ -21,6 +22,12 @@ describe('kinds and tables', () => {
     expect(isEntityKind('npc')).toBe(true)
     expect(isEntityKind('pattern')).toBe(false)
     expect(isEntityKind('toString')).toBe(false)
+  })
+
+  test('a sheet kind is one a player fields: never an NPC', () => {
+    expect(isSheetKind('crawler')).toBe(true)
+    expect(isSheetKind('npc')).toBe(false)
+    expect(isSheetKind('toString')).toBe(false)
   })
 })
 

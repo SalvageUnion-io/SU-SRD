@@ -17,7 +17,6 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import type { EntityKind } from 'game-domain/entityKinds'
 import { isEntityKind } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { NpcSheetView } from '../../../build/npc/NpcSheetView'
@@ -27,17 +26,12 @@ import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { areaTitle } from '../../../lib/pageTitle'
 import { useEntityStore } from '../../../stores/entityStore'
 
-/**
- * A sheet kind is exactly a store-entity kind. Partners are NOT among them:
- * one renders in place on its host's sheet as a decorated reference entity, so
- * it never needed a route, and `EntityRef` never needed widening (ADR-028).
+/*
+ * The route's `$kind` is any store-entity kind (`isEntityKind`), NPCs
+ * included. Partners are NOT among them: one renders in place on its host's
+ * sheet as a decorated reference entity, so it never needed a route, and
+ * `EntityRef` never needed widening (ADR-028).
  */
-type SheetKind = EntityKind
-
-/** Route-param guard: narrows the raw `$kind` segment to a sheet kind. */
-function isSheetKind(kind: string): kind is SheetKind {
-  return isEntityKind(kind)
-}
 
 function SheetKindNotFound() {
   const params = Route.useParams()
@@ -56,7 +50,7 @@ function SheetKindNotFound() {
 
 export const Route = createFileRoute('/sheet/$kind/$id')({
   loader: async ({ params }) => {
-    if (!isSheetKind(params.kind)) {
+    if (!isEntityKind(params.kind)) {
       throw notFound()
     }
     const store = useEntityStore.getState()
@@ -82,7 +76,7 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
 function SheetPage() {
   const { kind, id } = Route.useParams()
   // The loader already 404s unknown kinds; this re-narrow keeps it cast-free.
-  if (!isSheetKind(kind)) return <SheetKindNotFound />
+  if (!isEntityKind(kind)) return <SheetKindNotFound />
   if (kind === 'npc') return <NpcSheetView id={id} />
 
   return <SheetView kind={kind} id={id} />

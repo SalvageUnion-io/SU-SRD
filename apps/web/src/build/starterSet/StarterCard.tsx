@@ -14,13 +14,13 @@
  * cover over the whole card and the chips are raised above it.
  */
 
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { Entity } from '../../components/index'
-import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import type { StarterBuild } from './starterShelves.model'
 
 type StarterCardProps = {
-  kind: StarterKind
+  kind: SheetKind
   build: StarterBuild
   /** The host's controls, the chip group's last slot ("Copy to…"). */
   controls?: ReactNode

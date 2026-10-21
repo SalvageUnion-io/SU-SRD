@@ -14,6 +14,7 @@
  * shell behind the UI library's ConfirmDialog) and Field/Input chrome.
  */
 
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -28,7 +29,6 @@ import {
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
-import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
 import '../../styles/build/wizard.css'
 import { dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
@@ -36,7 +36,7 @@ import { dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
 
 type BlankCreateDialogProps = {
-  kind: BlankCreateKind
+  kind: SheetKind
   open: boolean
   /** Dismissed without creating — navigate back to the chooser. */
   onClose: () => void
@@ -46,7 +46,7 @@ type BlankCreateDialogProps = {
   gameId?: string | undefined
 }
 
-const KIND_LABEL: Record<BlankCreateKind, string> = {
+const KIND_LABEL: Record<SheetKind, string> = {
   pilot: 'Pilot',
   mech: 'Mech',
   crawler: 'Crawler',

@@ -12,17 +12,17 @@
  * The title is the ChapterBand every page wears.
  */
 
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { Button, ChapterBand, TitledBox, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
-import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { cn } from '../../lib/cn'
 
 type CreateModeChooserProps = {
-  kind: BlankCreateKind
+  kind: SheetKind
   /** Chosen the Guided door — navigate to ?mode=guided. */
   onGuided: () => void
   /** Chosen the Blank door — navigate to ?mode=blank. */
@@ -31,14 +31,14 @@ type CreateModeChooserProps = {
   gameId?: string | undefined
 }
 
-const KIND_LABEL: Record<BlankCreateKind, string> = {
+const KIND_LABEL: Record<SheetKind, string> = {
   pilot: 'Pilot',
   mech: 'Mech',
   crawler: 'Crawler',
 }
 
 /** Guided-door copy + Core Book citation per kind (mockup Screen 04). */
-const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
+const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
     body: 'Step through the Pilot Bay rules, one card at a time — class, abilities, equipment, identity.',
     cite: 'The Pilot Bay begins on p. 18.',

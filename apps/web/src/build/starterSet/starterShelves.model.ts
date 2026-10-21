@@ -7,6 +7,7 @@
  * is on its sheet, not its Compact.
  */
 
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { Photo } from 'game-domain/schemas/photo'
 import { photoUrl } from 'game-domain/schemas/photo'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
@@ -17,7 +18,6 @@ import type { EntityFormModel, TagItem } from '../../components/index'
 import { relation } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
-import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
@@ -33,7 +33,7 @@ export type StarterBuild = {
   relations: TagItem[]
 }
 
-export type StarterShelf = { kind: StarterKind; title: string; builds: StarterBuild[] }
+export type StarterShelf = { kind: SheetKind; title: string; builds: StarterBuild[] }
 
 const NO_ART: EntityFormModel['art'] = { kind: 'none' }
 

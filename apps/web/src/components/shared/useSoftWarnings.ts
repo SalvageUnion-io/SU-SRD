@@ -19,6 +19,7 @@
  *   module mocking (NO mock.module() in tests).
  */
 
+import type { EntityKind } from 'game-domain/entityKinds'
 import { useRef, useState } from 'react'
 import type {
   MechSnapshot,
@@ -30,13 +31,13 @@ import { evaluateSoftWarnings as defaultEvaluate } from 'salvageunion-reference/
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { AssignableType, EntityForType } from '../../stores/types'
+import type { EntityForType } from '../../stores/types'
 
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
-type UseSoftWarningsOptions<T extends Exclude<AssignableType, 'npc'>> = {
+type UseSoftWarningsOptions<T extends Exclude<EntityKind, 'npc'>> = {
   entityType: T
   entityId: string
   /**
@@ -74,7 +75,7 @@ type UseSoftWarningsOptions<T extends Exclude<AssignableType, 'npc'>> = {
   store?: typeof useEntityStore
 }
 
-type UseSoftWarningsResult<T extends Exclude<AssignableType, 'npc'>> = {
+type UseSoftWarningsResult<T extends Exclude<EntityKind, 'npc'>> = {
   warnings: SoftWarning[]
   /**
    * Compute a preview of the given patch against the current entity state.
@@ -100,7 +101,7 @@ type UseSoftWarningsResult<T extends Exclude<AssignableType, 'npc'>> = {
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useSoftWarnings<T extends Exclude<AssignableType, 'npc'>>(
+export function useSoftWarnings<T extends Exclude<EntityKind, 'npc'>>(
   opts: UseSoftWarningsOptions<T>
 ): UseSoftWarningsResult<T> {
   const {

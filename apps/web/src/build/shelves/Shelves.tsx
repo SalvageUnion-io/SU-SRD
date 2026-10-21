@@ -39,6 +39,7 @@
  */
 
 import { useQuery } from 'convex/react'
+import type { EntityKind } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
@@ -98,7 +99,6 @@ import {
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
-import type { AssignableType } from '../../stores/types'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
@@ -164,7 +164,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const [importResult, setImportResult] = useState<string | null>(null)
   // Menu items have no line of their own, so a failed export is a toast.
   const exportOne = useServerAction(
-    async (type: AssignableType, id: string, name: string) => {
+    async (type: EntityKind, id: string, name: string) => {
       const bundle = await buildEntityExport(type, id, useEntityStore.getState())
       downloadJson(exportFileName(type, name), bundle)
     },
@@ -221,13 +221,13 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   /** Write verbs exist only where a write could land. */
   const writable = (run: () => void): (() => void) | undefined => (canWrite ? run : undefined)
 
-  async function exportUnit(type: AssignableType, id: string, name: string) {
+  async function exportUnit(type: EntityKind, id: string, name: string) {
     const result = await exportOne.run(type, id, name)
     if (result.ok) toast.success(`Exported ${name}.`)
   }
 
   function unitMenu(
-    type: AssignableType,
+    type: EntityKind,
     unit: { id: string; name: string; gameId?: string | null },
     copyBody: Record<string, unknown>
   ): HeaderMenuItem[][] {

@@ -27,9 +27,6 @@ import {
 import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from './mechFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from './pilotFormState'
 
-/** The three entity kinds a Blank create can produce. */
-export type BlankCreateKind = SheetKind
-
 export type BlankPilotSeed = {
   name: string
   callsign: string
@@ -84,7 +81,7 @@ export async function createBlank(
   where?: BlankWhere
 ): Promise<string>
 export async function createBlank(
-  kind: BlankCreateKind,
+  kind: SheetKind,
   seed: BlankSeed,
   where: BlankWhere = {}
 ): Promise<string> {

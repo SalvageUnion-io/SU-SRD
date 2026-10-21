@@ -1,4 +1,3 @@
-import type { EntityKind } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
@@ -31,6 +30,3 @@ export type CreateInput<T extends EntityType> = Omit<
   EntityForType<T>,
   'id' | 'createdAt' | 'updatedAt'
 >
-
-/** The entity types that carry a container (SoftLink does not). */
-export type AssignableType = EntityKind

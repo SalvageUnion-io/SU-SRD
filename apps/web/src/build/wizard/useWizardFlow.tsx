@@ -18,6 +18,7 @@
  */
 
 import { moveTo } from 'game-domain/container'
+import type { EntityKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { toast } from '../../components/index'
@@ -25,7 +26,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
-import type { AssignableType, CreateInput } from '../../stores/types'
+import type { CreateInput } from '../../stores/types'
 import { OffRulesEscape } from './OffRulesEscape'
 
 /**
@@ -46,7 +47,7 @@ type WizardValidationSchema = {
 export type WizardFlowOptions<
   TStep extends string,
   TForm extends { name: string },
-  T extends AssignableType,
+  T extends EntityKind,
 > = {
   entityType: T
   /** Noun used in the success toast when the form has no name yet. */
@@ -110,7 +111,7 @@ export type WizardFlow<TStep extends string> = {
 export function useWizardFlow<
   TStep extends string,
   TForm extends { name: string },
-  T extends AssignableType,
+  T extends EntityKind,
 >({
   entityType,
   noun,

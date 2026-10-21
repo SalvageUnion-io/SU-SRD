@@ -59,6 +59,7 @@
 import { useQuery } from 'convex/react'
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo } from 'game-domain/container'
+import type { EntityKind } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import { Field, FieldError } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
@@ -67,7 +68,6 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
-import type { AssignableType } from '../../stores/types'
 import { ContainerPicker } from './ContainerPicker'
 import { requestMove } from './requestMove.model'
 
@@ -78,7 +78,7 @@ import { requestMove } from './requestMove.model'
 const SELECT = { width: 'auto' } as const
 
 type MoveToContainerControlProps = {
-  entityType: AssignableType
+  entityType: EntityKind
   entityId: string
   /** The entity's current container field (`gameId`). */
   entity: ContainerFields & { name: string }

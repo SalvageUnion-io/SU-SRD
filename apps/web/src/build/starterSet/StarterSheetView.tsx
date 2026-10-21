@@ -12,6 +12,7 @@
  * the sheet need no account; "Make a copy" (signed in) is the way to play one.
  */
 
+import { isSheetKind } from 'game-domain/entityKinds'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import {
   STARTER_CRAWLERS,
@@ -21,7 +22,7 @@ import {
 } from 'game-domain/starterSet/starterSet'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { isStarterKind, starterTemplate } from '../../lib/starterSet/starterTemplates'
+import { starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
 import { MakeACopy } from './MakeACopy'
@@ -39,9 +40,9 @@ const starterHref = (kind: EntityRef['type'], id: string) => `/starter/${kind}/$
 
 export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
   const { confirm, dialog } = useConfirm()
-  const template = isStarterKind(kind) ? starterTemplate(kind, id) : null
+  const template = isSheetKind(kind) ? starterTemplate(kind, id) : null
 
-  if (!isStarterKind(kind) || template === null) {
+  if (!isSheetKind(kind) || template === null) {
     return (
       <NotFoundPanel
         title="That isn’t in the Starter Set"

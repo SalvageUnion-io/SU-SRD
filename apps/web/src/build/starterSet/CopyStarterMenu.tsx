@@ -15,18 +15,18 @@
 
 import { useQuery } from 'convex/react'
 import { SHELF } from 'game-domain/container'
+import type { SheetKind } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import { HeaderMenu, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
-import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 
 type CopyStarterMenuProps = {
-  kind: StarterKind
+  kind: SheetKind
   templateId: string
   name: string
   /** Opens the confirm. Owned by an ancestor that outlives the control. */

@@ -16,16 +16,16 @@
  * the designer picks. `kind="npc"` is the guided wizard at every `mode`.
  */
 
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { SignInToBuild } from '../account/SignInToBuild'
 import { BlankCreateDialog } from './BlankCreateDialog'
 import { CreateModeChooser } from './CreateModeChooser'
 
 type NewEntityScreenProps = {
-  kind: BlankCreateKind | 'npc'
+  kind: SheetKind | 'npc'
   mode: CreateMode
   /** The existing guided wizard — rendered UNCHANGED when mode==='guided'. */
   wizard: ReactNode

@@ -25,11 +25,12 @@
  * never has.
  */
 
+import type { SheetKind } from 'game-domain/entityKinds'
+import { isSheetKind } from 'game-domain/entityKinds'
 import { color } from '../design/tokens'
 import { urlsetXml } from '../lib/sitemapXml'
-import type { StarterKind, StarterPage } from '../lib/starterSet/starterTemplates'
+import type { StarterPage } from '../lib/starterSet/starterTemplates'
 import {
-  isStarterKind,
   STARTER_SET_ADVENTURE,
   STARTER_SET_PUBLISHER,
   STARTER_SET_TITLE,
@@ -57,13 +58,13 @@ const STARTER_SET: PublicPage = {
 }
 
 /** The band each kind's sheet wears, as its unfurl's side bar. */
-const TONE: Record<StarterKind, string> = {
+const TONE: Record<SheetKind, string> = {
   pilot: color.pilot,
   mech: color.mech,
   crawler: color.crawlerBand,
 }
 
-function fromStarter(page: StarterPage, kind: StarterKind): PublicPage {
+function fromStarter(page: StarterPage, kind: SheetKind): PublicPage {
   return {
     path: page.path,
     words: { title: page.title, description: page.description, themeColor: TONE[kind] },
@@ -103,7 +104,7 @@ export type PublicShell = { file: string; html: string }
 export function publicShells(shell: string, origin: string, base: string): PublicShell[] {
   const builds = starterPages().flatMap((page) => {
     const kind = page.path.split('/')[2] ?? ''
-    return isStarterKind(kind) ? [fromStarter(page, kind)] : []
+    return isSheetKind(kind) ? [fromStarter(page, kind)] : []
   })
   return [STARTER_SET, ...builds].map((page) => ({
     file: `${page.path.slice(1)}.html`,

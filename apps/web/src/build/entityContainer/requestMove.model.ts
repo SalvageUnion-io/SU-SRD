@@ -16,14 +16,14 @@
 
 import type { Container } from 'game-domain/container'
 import { sameContainer } from 'game-domain/container'
+import type { EntityKind } from 'game-domain/entityKinds'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { useEntityStore } from '../../stores/entityStore'
-import type { AssignableType } from '../../stores/types'
 
 export function requestMove(args: {
-  entityType: AssignableType
+  entityType: EntityKind
   entityId: string
   name: string
   current: Container

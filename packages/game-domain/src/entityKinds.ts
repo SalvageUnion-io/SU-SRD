@@ -30,6 +30,9 @@ export type EntityTable = (typeof TABLE_OF_KIND)[EntityKind]
 /** The three kinds a player fields: what the roster lists and the bot reads. */
 export type SheetKind = Exclude<EntityKind, 'npc'>
 
+/** Every {@link SheetKind}: a pilot, mech or crawler. */
+export const SHEET_KINDS = ['pilot', 'mech', 'crawler'] as const satisfies readonly SheetKind[]
+
 /** The table a {@link SheetKind}'s rows live in. */
 export type SheetTable = (typeof TABLE_OF_KIND)[SheetKind]
 
@@ -57,6 +60,11 @@ export function kindOf(table: EntityTable): EntityKind {
 /** Whether `value` names a kind with a sheet. */
 export function isEntityKind(value: string): value is EntityKind {
   return Object.hasOwn(TABLE_OF_KIND, value)
+}
+
+/** Whether `value` names a kind a player fields (never an NPC). */
+export function isSheetKind(value: string): value is SheetKind {
+  return (SHEET_KINDS as readonly string[]).includes(value)
 }
 
 /**
