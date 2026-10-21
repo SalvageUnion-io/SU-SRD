@@ -11,7 +11,7 @@ import type { Play } from '../situation.model'
 
 /**
  * The Situation (play.md §3) through the whole Cockpit: the seat and the
- * Downtime it reads (`usePlaySeat`, `usePlayDowntime`), the Situation they
+ * Downtime it reads (`useSeatAt`, `usePlayDowntime`), the Situation they
  * make (`usePlaySituation`), the switch that changes it, the one `Play`
  * object every column is handed, and the presence heartbeat.
  *

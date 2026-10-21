@@ -1,6 +1,6 @@
 /**
  * usePlaySituation — the pilot's play as the whole Cockpit reads it
- * (play.md §3): the seat (`usePlaySeat`), the Downtime (`usePlayDowntime`),
+ * (play.md §3): the seat (`useSeatAt`), the Downtime (`usePlayDowntime`),
  * the Situation they make, the mechs Board offers and the writes that change
  * the Situation. `PlayCockpit` calls it once and hands the `Play` object to
  * the Situation switch and to every column, so all of them agree.
@@ -21,14 +21,14 @@ import type { Play } from './situation.model'
 import { situationOf, soloMechOptions } from './situation.model'
 import { useGameBoardSources } from './useBoardSources'
 import { usePlayDowntime } from './usePlayDowntime'
-import { usePlaySeat } from './usePlaySeat'
+import { useSeatAt } from './useSeat'
 
 export function usePlaySituation(target: PlayTarget): Play {
   const connection = useConnection()
   const { canWrite } = connection
   const store = useEntityStore()
   const pilot = store.get('pilot', target.pilotId)
-  const seat = usePlaySeat(target)
+  const seat = useSeatAt({ gameId: target.gameId as Id<'games'> | null, pilotId: target.pilotId })
   const downtime = usePlayDowntime(target)
   const sources = useGameBoardSources(target.gameId as Id<'games'> | null)
 

@@ -117,8 +117,10 @@ async function clickRolling(text: string): Promise<void> {
 function ActionsDeck({
   initial = null,
   written = [],
+  mount = 'mech',
   ...props
-}: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & {
+}: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'mount'> & {
+  mount?: ActionsDeckProps['mount']
   initial?: SeatResolving | null
   written?: (SeatResolving | null)[]
 }) {
@@ -126,13 +128,14 @@ function ActionsDeck({
   const deck = useActionsDeck({
     rollFor: rollFourteen,
     ...props,
+    mount,
     resolving,
     onResolving: (next) => {
       written.push(next)
       setResolving(next)
     },
   })
-  const onFoot = props.mount === 'pilot'
+  const onFoot = mount === 'pilot'
   const actions = [
     ...(onFoot || !props.mech ? [] : buildMechActions(props.mech)),
     ...(props.pilot ? buildPilotActions(props.pilot) : []),
@@ -471,12 +474,14 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
   /** The hook alone; `seen` holds the resolve model of the latest render. */
   function Harness({
     seen,
+    mount = 'mech',
     ...props
-  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving'> & {
+  }: Omit<ActionsDeckProps, 'resolving' | 'onResolving' | 'mount'> & {
+    mount?: ActionsDeckProps['mount']
     seen: { view: ResolveModel | null }
   }) {
     const [resolving, setResolving] = useState<SeatResolving | null>(null)
-    const deck = useActionsDeck({ ...props, resolving, onResolving: setResolving })
+    const deck = useActionsDeck({ ...props, mount, resolving, onResolving: setResolving })
     seen.view = deck.resolve
     const action = props.mech
       ? buildMechActions(props.mech).find((a) => typeof a.action.activationCost === 'number')

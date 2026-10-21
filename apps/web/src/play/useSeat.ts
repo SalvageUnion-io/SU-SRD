@@ -12,11 +12,11 @@
  * shown.
  *
  * A pilot on the shelf has a solo seat (`seats.solo`, writes with `gameId`
- * null): `useSeatAt` reads either, and Play's `usePlaySeat` picks which.
+ * null): `useSeatAt` reads it when `gameId` is null.
  *
  * ## When there is no seat to read
  *
- * Outside a Game without the solo seat, or before the first answer arrives,
+ * Before the first answer arrives, or for a pilot no longer on the shelf,
  * the seat reads as the default: on foot, at Close, with nothing switched on.
  *
  * Offline the subscription keeps the last answer it had, and writes are
@@ -146,26 +146,23 @@ export function reportBlockedWrite({
 
 /** Which seat `useSeatAt` reads and writes. */
 export type SeatAddress = {
-  /** The Game whose seat it is; null for none (or, with `solo`, the solo seat). */
+  /**
+   * The Game whose seat it is; null for the pilot's solo seat (`seats.solo`,
+   * writes with `gameId` null).
+   */
   gameId: Id<'games'> | null
   pilotId: string | null
-  /**
-   * With `gameId` null, read and write the pilot's solo seat (`seats.solo`,
-   * writes with `gameId` null). Without it, no Game means no seat: the
-   * default, and every write a no-op.
-   */
-  solo: boolean
 }
 
 /**
- * One seat, a Game's or a solo one, and the writes that change it, each with
- * the same optimistic update on whichever answer holds it (`forGame` or
- * `solo`).
+ * The seat Play runs (play.md §3): a Game's, or with no Game the pilot's solo
+ * seat, and the writes that change it, each with the same optimistic update
+ * on whichever answer holds it (`forGame` or `solo`).
  */
-export function useSeatAt({ gameId, pilotId, solo }: SeatAddress): SeatHandle {
+export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
   const { mode, canWrite: connectionWrites, outdated } = useConnection()
   const signedIn = mode === 'connected' || mode === 'disconnected'
-  const soloSeat = solo && gameId === null
+  const soloSeat = gameId === null
 
   const seats = useQuery(api.seats.forGame, signedIn && gameId !== null ? { gameId } : 'skip')
   const soloRow = useQuery(
@@ -216,7 +213,7 @@ export function useSeatAt({ gameId, pilotId, solo }: SeatAddress): SeatHandle {
   function send(
     write: (args: { gameId: Id<'games'> | null; pilotId: string }) => Promise<unknown>
   ) {
-    if (pilotId === null || (gameId === null && !soloSeat)) return
+    if (pilotId === null) return
     if (!connectionWrites) {
       reportBlockedWrite({ mode, outdated })
       return

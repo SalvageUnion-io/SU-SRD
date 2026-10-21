@@ -148,8 +148,8 @@ export type ActionsDeckProps = {
   pilot?: Pilot | null
   /** The pilot's crawler — its tier drives Stat Training (max AP). */
   crawler?: Crawler | null
-  /** Which entity owns the cockpit; defaults to the boarded mech. */
-  mount?: MountState
+  /** Which entity owns the cockpit: the boarded mech, the pilot on foot, or Downtime. */
+  mount: MountState
   /** The resolve in progress, read from the seat. */
   resolving: SeatResolving | null
   /** Record the resolve on the seat; null when it is over. */
@@ -178,7 +178,7 @@ export function useActionsDeck({
   mech,
   pilot,
   crawler,
-  mount = 'mech',
+  mount,
   resolving,
   onResolving,
   store,

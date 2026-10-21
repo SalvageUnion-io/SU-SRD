@@ -31,7 +31,6 @@ import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import { Ellipsis } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Button, HeaderMenu, tokens } from '../components/index'
@@ -55,11 +54,9 @@ import { usePresenceClock } from './usePresenceClock'
 
 type PlayCockpitProps = {
   target: PlayTarget
-  /** In place of the Situation switch, in the bar after the LIVE stamp. */
-  situation?: ReactNode
 }
 
-export function PlayCockpit({ target, situation }: PlayCockpitProps) {
+export function PlayCockpit({ target }: PlayCockpitProps) {
   const { mode } = useConnection()
   const play = usePlaySituation(target)
   usePlayPresence(target)
@@ -82,7 +79,7 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
       live={mode === 'connected' && target.gameId !== null}
       here={seats === undefined ? null : hereCount(seats, now)}
       readOnly={play.readOnly}
-      situation={phone ? undefined : (situation ?? <PlaySituationSwitch play={play} />)}
+      situation={phone ? undefined : <PlaySituationSwitch play={play} />}
       channel={
         <PlayChannelButton
           owner={
@@ -103,7 +100,7 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
       centre={<PlayActionsColumn target={target} play={play} />}
       end={<PlaySideColumn target={target} play={play} />}
       foot={<PlayFoot solo={target.gameId === null} tone={PHASE_TONE[play.situation]} />}
-      phone={<PlayCockpitPhone target={target} play={play} bar={bar(true)} situation={situation} />}
+      phone={<PlayCockpitPhone target={target} play={play} bar={bar(true)} />}
     />
   )
 }

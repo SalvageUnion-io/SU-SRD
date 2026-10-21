@@ -33,13 +33,11 @@ import { usePlayUnits } from './usePlayUnits'
 type PlayCockpitPhoneProps = PlayColumnProps & {
   /** The Play bar, in its phone form. */
   bar: ReactNode
-  /** In place of the Situation switch. */
-  situation?: ReactNode
   /** The Act tab's store and dice (a test injects its own). */
   actions?: PlayActionsDeps
 }
 
-export function PlayCockpitPhone({ target, play, bar, situation, actions }: PlayCockpitPhoneProps) {
+export function PlayCockpitPhone({ target, play, bar, actions }: PlayCockpitPhoneProps) {
   const [tab, setTab] = useState<PlayerPhoneTab>('act')
   const side = usePlaySide({ target, play })
   const units = usePlayUnits(play)
@@ -59,7 +57,7 @@ export function PlayCockpitPhone({ target, play, bar, situation, actions }: Play
       pinned={
         <>
           <PlayPinnedVitals units={pinned} />
-          {situation ?? <PlaySituationSwitch play={play} fill />}
+          <PlaySituationSwitch play={play} fill />
         </>
       }
       tabs={tabs}

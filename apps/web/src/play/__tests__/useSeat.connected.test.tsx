@@ -119,7 +119,7 @@ function connection(mode: ConnectionMode) {
 let handle: ReturnType<typeof useSeatAt> | null = null
 
 function Probe() {
-  handle = useSeatAt({ gameId: GAME_ID as Id<'games'>, pilotId: rook.id, solo: false })
+  handle = useSeatAt({ gameId: GAME_ID as Id<'games'>, pilotId: rook.id })
   return null
 }
 
