@@ -49,7 +49,7 @@ export function tableSeats(
 
   const cards: Array<SeatCard & { joinedAt: number }> = []
   // No pilot is "self" here: the Mediator reads the whole table alike.
-  for (const line of crewLines(crew, seats, '')) {
+  for (const line of crewLines(crew, seats, null)) {
     const row = rows.get(line.pilotId)
     if (row === undefined || row.ownerId === null) continue
     const problems = problemsOf(line)

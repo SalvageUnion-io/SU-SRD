@@ -12,6 +12,7 @@
 import { useState } from 'react'
 import type { PlayBinding } from '../channels.model'
 import { playFeedEntries } from '../feed.model'
+import { mediatorTarget } from '../play.model'
 import { usePlayRollLog } from '../playRolls.model'
 import type { PlayRollDispatch } from '../usePlayChannel'
 import { postDefault, usePlayRollDispatch } from '../usePlayChannel'
@@ -34,7 +35,7 @@ export function usePlayMediatorSide(
   mediator: PlayMediator,
   binding: PlayBinding | null | undefined
 ): PlayMediatorSideState {
-  const target = { gameId: mediator.gameId, pilotId: '', mediator: true }
+  const target = mediatorTarget(mediator.gameId)
   const [post, setPost] = useState(() => postDefault(target))
   const dispatch = usePlayRollDispatch({ target, rollerName: ROLLER, post, binding, log: false })
 

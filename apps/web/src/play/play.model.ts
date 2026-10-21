@@ -38,6 +38,17 @@ export type PlayTarget = {
   mediator: boolean
 }
 
+/** The Mediator's screen, as the hooks it shares with a player's take it: their Game, no pilot. */
+export type MediatorTarget = { gameId: string; pilotId: null; mediator: true }
+
+/** The screen a shared Play hook serves: a pilot's, or the Mediator's (`pilotId` null). */
+export type PlayScreen = Pick<PlayTarget, 'gameId' | 'pilotId' | 'mediator'> | MediatorTarget
+
+/** The Mediator's target for their Game. */
+export function mediatorTarget(gameId: string): MediatorTarget {
+  return { gameId, pilotId: null, mediator: true }
+}
+
 /**
  * The Play bar's title: the Game's name, or the pilot's from the shelf (its
  * Solo chip says the rest, `playStamp`).

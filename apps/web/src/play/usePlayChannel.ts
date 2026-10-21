@@ -27,7 +27,7 @@ import { useConnection } from '../lib/connection/connectionContext'
 import { failureMessage } from '../lib/connection/useServerAction'
 import { commitChangeLog } from '../stores/entityBackend'
 import type { PlayBinding } from './channels.model'
-import type { PlayTarget } from './play.model'
+import type { PlayScreen, PlayTarget } from './play.model'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, onPlayRoll, playRollDescription, rollLogEntry } from './playRolls.model'
 
@@ -55,7 +55,7 @@ export function postDefault(target: Pick<PlayTarget, 'gameId' | 'mediator'>): bo
 }
 
 type DispatchArgs = {
-  target: Pick<PlayTarget, 'gameId' | 'pilotId'>
+  target: Pick<PlayScreen, 'gameId' | 'pilotId'>
   /** Who the Game's log says rolled: the pilot's name. */
   rollerName: string
   /** The screen's Post toggle. */
@@ -114,8 +114,8 @@ export function usePlayRollDispatch({
       settle(roll.id, { kind: 'posting' })
       action({
         ...(t.gameId === null ? {} : { gameId: t.gameId as Id<'games'> }),
-        // The Mediator's screen plays no pilot (''): the card names the account.
-        ...(t.pilotId === '' ? {} : { pilotId: t.pilotId }),
+        // The Mediator's screen plays no pilot: the card names the account.
+        ...(t.pilotId === null ? {} : { pilotId: t.pilotId }),
         roll: { tableName: roll.tableName || roll.label, rolls: roll.rolls },
         post: true,
       })

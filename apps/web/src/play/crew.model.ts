@@ -95,7 +95,7 @@ function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: bool
 export function crewSeatLines(
   crew: CrewVitals | null,
   seats: BoardSources['seats'],
-  selfPilotId: string,
+  selfPilotId: string | null,
   now: number
 ): CrewSeatLine[] {
   if (crew === null) return []

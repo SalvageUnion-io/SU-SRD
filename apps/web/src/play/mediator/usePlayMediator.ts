@@ -31,7 +31,7 @@ import { rollMorale } from '../../lib/rules/opposition'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { useEntityStore } from '../../stores/entityStore'
 import type { PlayReadOnly } from '../play.model'
-import { playReadOnly } from '../play.model'
+import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
 import type { PlayDowntime } from '../situation.model'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
@@ -116,7 +116,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const sent = useQuery(api.proposals.sent, { gameId: id, limit: sentLimit })
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
-  const downtime = usePlayDowntime({ gameId, pilotId: '', mediator: true })
+  const downtime = usePlayDowntime(mediatorTarget(gameId))
 
   const addNpc = useMutation(api.mediator.addNpc)
   const updateNpc = useMutation(api.mediator.updateNpc)

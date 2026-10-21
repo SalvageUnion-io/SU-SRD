@@ -99,7 +99,7 @@ export function mediatorSeats(
   now: number
 ): MediatorSeat[] {
   if (crew === null) return []
-  const lines = new Map(crewSeatLines(crew, seats, '', now).map((l) => [l.pilotId, l]))
+  const lines = new Map(crewSeatLines(crew, seats, null, now).map((l) => [l.pilotId, l]))
   const pilots = new Map<string, CrewPilot>()
   for (const p of crew.pilots) if (p.linkId !== null) pilots.set(p.linkId, p)
   const mechs = new Map<string, CrewMech>()

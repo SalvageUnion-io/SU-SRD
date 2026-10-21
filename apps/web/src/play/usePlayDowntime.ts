@@ -19,15 +19,13 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'
-import type { PlayTarget } from './play.model'
+import type { PlayScreen } from './play.model'
 import type { PlayDowntime } from './situation.model'
 import type { DowntimeView } from './useGameDowntime'
 import { NOT_RUNNING, useGameDowntime } from './useGameDowntime'
 import { reportBlockedWrite, reportRefusedWrite } from './useSeat'
 
-export function usePlayDowntime(
-  target: Pick<PlayTarget, 'gameId' | 'pilotId' | 'mediator'>
-): PlayDowntime {
+export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const { mode, canWrite, outdated } = useConnection()
   const gameId = target.gameId as Id<'games'> | null
   const solo = gameId === null
@@ -36,7 +34,7 @@ export function usePlayDowntime(
   const game = useGameDowntime(gameId)
   const soloState = useQuery(
     api.downtime.soloState,
-    signedIn && solo ? { pilotId: target.pilotId } : 'skip'
+    signedIn && solo && target.pilotId !== null ? { pilotId: target.pilotId } : 'skip'
   )
   const soloBegin = useMutation(api.downtime.soloBegin)
   const soloAdvance = useMutation(api.downtime.soloAdvance)
@@ -57,13 +55,16 @@ export function usePlayDowntime(
       end: game.end,
       markDone: game.markDone,
       doneSteps:
-        pilotId === ''
+        pilotId === null
           ? null
           : game.claimed.filter((c) => c.pilotId === pilotId).map((c) => c.stepIndex),
-      markStepDone: pilotId === '' ? null : (stepIndex) => game.claimStep(pilotId, stepIndex),
+      markStepDone: pilotId === null ? null : (stepIndex) => game.claimStep(pilotId, stepIndex),
       spendUpkeep: game.spendUpkeep,
     }
   }
+
+  // Solo is always a pilot's screen: the Mediator's has a Game.
+  const soloPilot = target.pilotId ?? ''
 
   // `soloState` answers null for a pilot no longer on the shelf: not running.
   const downtime: DowntimeView =
@@ -87,7 +88,7 @@ export function usePlayDowntime(
   /** Send one solo write, or say why it cannot be sent. */
   function send(write: (args: { pilotId: string }) => Promise<unknown>): void {
     if (!writable()) return
-    write({ pilotId: target.pilotId }).catch(reportRefusedWrite)
+    write({ pilotId: soloPilot }).catch(reportRefusedWrite)
   }
 
   return {
@@ -102,7 +103,7 @@ export function usePlayDowntime(
     markStepDone: async (stepIndex) => {
       if (!writable()) return false
       try {
-        return await soloMarkStepDone({ pilotId: target.pilotId, stepIndex })
+        return await soloMarkStepDone({ pilotId: soloPilot, stepIndex })
       } catch (err) {
         reportRefusedWrite(err)
         return false
@@ -111,7 +112,7 @@ export function usePlayDowntime(
     spendUpkeep: async () => {
       if (!writable()) return false
       try {
-        return await soloSpendUpkeep({ pilotId: target.pilotId })
+        return await soloSpendUpkeep({ pilotId: soloPilot })
       } catch (err) {
         reportRefusedWrite(err)
         return false

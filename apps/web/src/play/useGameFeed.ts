@@ -180,7 +180,8 @@ function parkedProblems(status: CrewMech['status']): string[] {
 export function crewLines(
   crew: CrewVitals | null,
   seats: BoardSources['seats'],
-  pilotId: string
+  /** The pilot this screen plays; null for the Mediator's, which plays none. */
+  pilotId: string | null
 ): CrewLine[] {
   if (crew === null) return []
   const mechs = new Map<string, CrewMech>()
