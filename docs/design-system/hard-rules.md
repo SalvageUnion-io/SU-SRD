@@ -35,7 +35,7 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 
 ## Primitives
 
-- **R38 One subtle frame** (§4.3, EDL E21) — every entity's frame (Compact, index Compact, contentful card, choice option, Mini pill, contentful Mini body, MiniGroup) is `--color-ink-40`, never solid ink or the entity's tone; only `--su-compact-frame` colours one (an ability tree's tier, a pattern's colour).
+- **R38 One subtle frame** (§4.3, EDL E21) — every entity's frame (Compact, index Compact, contentful card, choice option, Mini pill, contentful Mini body, MiniGroup) is `--color-ink-40`, never solid ink or the entity's tone; only `--su-compact-frame` colours one (an ability tree's tier, a pattern's colour, R51).
   Gate: `chrome-tokens/entity-frame-ink` (zero, `packages/gates/rules/entityFrames.ts`): solid ink on a stylesheet rule whose subject is an entity frame, and a `borderColor` in the frame's style objects (`ENTITY_FRAME_STYLE_FILES`) other than ink-40, clear or `--su-compact-frame`. `_entityFrames.ts` (`nesting-depth.e2e.ts` signed out, `design-walk.e2e.ts` over R0) reads every frame's computed edges (`frame:`). Both fail.
 - **R39 One level deep is a Compact** (EDL E6, N8) — on an entity's, a pattern's or a guide's Page, an entity nested one level deep (a bay's Smith, a guide's options) is a Compact drawn open with all its content, never a Mini. The named exceptions (owner, 2026-10-20): a pattern's loadout on a chassis's or a pattern's Page, a class's ability trees, and a choice's entity options on its Page (contentful Minis a line wide) stay Minis. A host's patterns are Minis a line wide, contentful with their description alone where they have one, the name linking to the pattern's Page.
   Gate: `_nestingDepth.ts`'s N8 (`nesting-depth.e2e.ts`, signed out, on the Pages `ONE_DEEP` matches): a Mini in `main` with no entity frame around it, outside a search list, a Peek, a dialog and the exception (`n8Except`: `.su-pattern-loadout`, `.su-entity-page__loadout`, `.su-ability-tree`). It fails. No static rule: a Mini's level flows through props the source cannot see.
@@ -57,7 +57,7 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
   Gate: unit tests (`Box.test.tsx`, `AssignedUnits.test.tsx`, `unitOwners.model.test.ts`); the rest is review.
 - **R50 A Game's people are social cards** — Compacts in Discord's colour, their roles chips and their units Minis.
   Gate: unit tests (`GameHub.connected.test.tsx`, `Roster.test.tsx`); the rest is review.
-- **R51 An infobox's frame is its head's colour** (§4.3; owner, 2026-10-22) — a headed box that is no entity (`TitledBox`, a Start Here step) frames its body in its band's paint (a lone head: R42).
+- **R51 An infobox's frame is its head's colour** (§4.3; owner, 2026-10-22) — a headed box that is no entity (`TitledBox`, a Start Here step) frames its body in its band's paint.
   Gate: unit tests (`TitledBox.test.tsx`, `StartHere.test.tsx`).
 
 - **R1 One section head, the solid Slab; one section, `SlabSection`** (§3.9, §5.7, §6.4) — a dashed head reads as user-made; a section a Slab heads is the Slab, one gap and its body; its stamp is Compact, as its count chips and controls are.
