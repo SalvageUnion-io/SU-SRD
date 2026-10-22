@@ -103,7 +103,7 @@ function page(): PageResult {
                 total={chapter.total}
               />
             ))}
-            {/* Players' own patterns, not the book's (ADR-059): a count would go
+            {/* Players' own patterns, not the book's (ADR-061): a count would go
                 stale between builds, so the row has none. */}
             <ContentsChapter
               id="homebrew"

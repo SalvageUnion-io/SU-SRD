@@ -29,6 +29,7 @@ const { ShelfSync } = await import('../ShelfSync')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
 const { useEncounterStore } = await import('../../../stores/encounterStore')
+const { usePrepStore } = await import('../../../stores/prepStore')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 
@@ -77,10 +78,11 @@ const npc = {
 }
 
 /** Serve one `listMine` answer and let this tab's sync settle on it. */
-function serve(roster: Partial<typeof EMPTY_ROSTER>) {
+function serve(roster: Partial<typeof EMPTY_ROSTER>, encounters: unknown[] = []) {
   setQueryAnswers({
     'entities:listMine': { ...EMPTY_ROSTER, ...roster },
     'entities:listWiring': EMPTY_WIRING,
+    'shelf:encounters': encounters,
   })
 }
 
@@ -118,6 +120,28 @@ describe('the stores wait for the first answer', () => {
 })
 
 describe('a delete made in another tab leaves this one', () => {
+  test('an encounter on the shelf', async () => {
+    const encounter = {
+      id: 'enc-1',
+      schemaVersion: 1,
+      name: 'Ambush',
+      opposition: [],
+      tables: [],
+      notes: '',
+      createdAt: FIXTURE_NOW,
+      updatedAt: FIXTURE_NOW,
+    }
+    serve({}, [{ body: encounter, updatedAt: 1 }])
+    const view = render(<ShelfSync />)
+    await waitFor(() => expect(usePrepStore.getState().get('enc-1')).not.toBeNull())
+
+    serve({})
+    await act(async () => view.rerender(<ShelfSync />))
+
+    await waitFor(() => expect(usePrepStore.getState().encounters).toEqual([]))
+    expect(mutations).toEqual([])
+  })
+
   test('a pattern', async () => {
     serve({ mechPatterns: [{ body: pattern }] as never[] })
     const view = render(<ShelfSync />)

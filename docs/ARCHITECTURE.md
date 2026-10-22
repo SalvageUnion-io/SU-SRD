@@ -160,7 +160,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
-    Amends ADR-030's visibility rule; amended by ADR-036, ADR-059.
+    Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
 34. **ADR-034 Persistence requires an account**
@@ -207,7 +207,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Supersedes ADR-038 §1 and its layout; amends ADR-030, ADR-045; amended by ADR-052. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
-    Amends ADR-030 §6, ADR-051 §1.
+    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059.
 53. **ADR-053 Canon as gates**
     Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
     hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
@@ -224,6 +224,11 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
     Built: offline, the player's own sheets come back from the device, read-only; Convex stays of record.
     Amends ADR-030 §1 and ADR-034.
-59. **ADR-059 Homebrew on the SRD** · [full text](adr/059-homebrew.md)
+59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
+    Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy.
+    Amends ADR-052 §1.
+60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
+    Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.
+61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
     Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.

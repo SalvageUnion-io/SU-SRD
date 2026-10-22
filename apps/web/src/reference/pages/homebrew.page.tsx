@@ -1,5 +1,5 @@
 /**
- * `/homebrew` — Homebrew (ADR-059): every mech pattern a player shares with
+ * `/homebrew` — Homebrew (ADR-061): every mech pattern a player shares with
  * everyone on the Reference, under the hatched band players' own things wear.
  * The page is static; its list is `HomebrewIsland`, read from the Worker on
  * load, so a pattern shared a minute ago is here without a rebuild.

@@ -3,6 +3,25 @@
 import { messages } from './define'
 
 export const mediatorCopy = messages({
+  runAnEncounter: 'Run an encounter',
+  running: 'Running',
+  endEncounter: 'End {name}',
+  end: 'End',
+  notes: 'Notes',
+  onlyYou: 'Only you',
+  noEncountersYet: 'No encounters yet. Prep one in your',
+  trainingBay: 'Training Bay',
+  noEncountersTail: ': its opposition, the tables to hand and your notes.',
+  runLede:
+    'From your Training Bay. Running one copies its opposition in at full HP, so the saved encounter stays as you built it.',
+  encounter: 'Encounter',
+  theOppositionOnTheTray: 'The Opposition on the tray',
+  addToIt: 'Add to it',
+  closeDialog: 'Close',
+  runNamed: 'Run {name}',
+  runningPending: 'Running…',
+  runningAdded: 'Running {name}: {added} added to the Opposition.',
+  clearItFirst: 'Clear it first (removes {count} on the tray)',
   onTheField: 'On the field',
   drawFrom: 'Draw from',
   nameOptional: 'Name (optional)',

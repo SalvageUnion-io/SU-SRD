@@ -1,5 +1,5 @@
 /**
- * Homebrew's app surfaces (ADR-059): a shared pattern's page controls (Report
+ * Homebrew's app surfaces (ADR-061): a shared pattern's page controls (Report
  * and the admin's Hide), the report dialog, and the admin's queue at
  * `/admin/homebrew`. Pins what each shows to whom and which server write each
  * control makes.

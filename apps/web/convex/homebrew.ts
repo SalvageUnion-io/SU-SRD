@@ -12,7 +12,7 @@ import { deletePatternReports, hiddenPatternIds, moderationOf } from './model/ho
 import { NotAuthorized, requireUser } from './model/permissions'
 
 /**
- * Homebrew (ADR-059): the players' own mech patterns, on the SRD beside the
+ * Homebrew (ADR-061): the players' own mech patterns, on the SRD beside the
  * book's.
  *
  * - **Two opt-ins.** A pattern is homebrew when its maker shares it with

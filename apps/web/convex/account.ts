@@ -94,8 +94,9 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
-    /** Their reports of Homebrew patterns (ADR-059): what they said, and when. */
+    /** Their reports of Homebrew patterns (ADR-061): what they said, and when. */
     homebrewReports: v.array(v.object({ reason: v.string(), at: v.number() })),
+    encounters: v.array(v.any()),
     games: v.array(
       v.object({
         gameId: v.id('games'),
@@ -124,6 +125,10 @@ export const exportMine = query({
       .query('mechPatterns')
       .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
       .collect()
+    const encounters = await ctx.db
+      .query('encounters')
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+      .collect()
     const memberships = await ctx.db
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -140,6 +145,7 @@ export const exportMine = query({
       npcs: npcs.map((n) => n.body),
       mechPatterns: mechPatterns.map((p) => p.body),
       homebrewReports: reports.map((r) => ({ reason: r.reason, at: r.at })),
+      encounters: encounters.map((e) => e.body),
       games: memberships.map((m) => ({
         gameId: m.gameId,
         mediator: m.mediator,
@@ -252,9 +258,14 @@ export const deleteAccount = mutation({
         .query('npcs')
         .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
+      ctx.db
+        .query('encounters')
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+        .collect(),
     ])
-    const [pilots, mechs, patterns, npcs] = personal
+    const [pilots, mechs, patterns, npcs, encounters] = personal
     for (const row of patterns) await ctx.db.delete(row._id)
+    for (const row of encounters) await ctx.db.delete(row._id)
     // A deleted NPC's crew link goes with it, so its bay falls back to the
     // book's line (ADR-044).
     for (const row of npcs) {

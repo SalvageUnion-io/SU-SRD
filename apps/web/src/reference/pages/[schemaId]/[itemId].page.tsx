@@ -146,7 +146,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ) : (
             <EntityView item={item} schemaId={schemaId} />
           ))}
-        {/* A chassis's players' patterns, under the book's (ADR-059). */}
+        {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
           <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>
             <HomebrewIsland chassisRef={itemId} />

@@ -1,5 +1,5 @@
 /**
- * HomebrewModerationScreen — `/admin/homebrew` (ADR-059): the site admin's
+ * HomebrewModerationScreen — `/admin/homebrew` (ADR-061): the site admin's
  * queue under a hatched band. Anyone else is told the page is not theirs;
  * the queue itself is never sent to them (`homebrew.moderation`).
  */

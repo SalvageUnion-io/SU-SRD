@@ -1,6 +1,6 @@
 /**
  * HomebrewControls — what a shared pattern's own page offers about Homebrew
- * (ADR-059), in its corner beside Make a copy: Report for a signed-in reader
+ * (ADR-061), in its corner beside Make a copy: Report for a signed-in reader
  * who did not make it, and a site admin's Hide or Put back. Nothing while it
  * is not homebrew (not shared by link), so a private page reads as before.
  */

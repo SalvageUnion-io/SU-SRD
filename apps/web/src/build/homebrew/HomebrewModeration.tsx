@@ -1,5 +1,5 @@
 /**
- * HomebrewModeration — a site admin's queue (ADR-059) at `/admin/homebrew`:
+ * HomebrewModeration — a site admin's queue (ADR-061) at `/admin/homebrew`:
  * the homebrew patterns readers reported, most reported first, with their
  * reasons, to hide or dismiss; and the patterns taken down, to put back.
  * `homebrew.moderation` answers null to everyone else, and the server

@@ -10,7 +10,8 @@
  * (`hasAssignedUnits`).
  *
  * The one section every kind draws, pilot, mech and crawler, with its one
- * body class (`.su-sheet-linked`); what it lists is `assignedUnitsFor`.
+ * body class (`.su-sheet-linked`); what it lists is `assignedUnitsFor`. It
+ * sits in the sheet's sidebar, which never folds (R11), so it has no fold.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
@@ -55,7 +56,6 @@ export function AssignedUnits({
   const open = editable ? slots : []
   return (
     <SlabSection
-      fold="open"
       id="linked-units"
       title={buildSheetCopy('assignedUnits')}
       bodyClassName="su-sheet-linked"

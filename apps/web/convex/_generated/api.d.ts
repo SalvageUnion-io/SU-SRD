@@ -45,6 +45,7 @@ import type * as model_patternEmbed from "../model/patternEmbed.js";
 import type * as model_permissions from "../model/permissions.js";
 import type * as model_photos from "../model/photos.js";
 import type * as model_playTables from "../model/playTables.js";
+import type * as model_prepTables from "../model/prepTables.js";
 import type * as model_referenceData from "../model/referenceData.js";
 import type * as model_seats from "../model/seats.js";
 import type * as model_signalTables from "../model/signalTables.js";
@@ -103,6 +104,7 @@ declare const fullApi: ApiFromModules<{
   "model/permissions": typeof model_permissions;
   "model/photos": typeof model_photos;
   "model/playTables": typeof model_playTables;
+  "model/prepTables": typeof model_prepTables;
   "model/referenceData": typeof model_referenceData;
   "model/seats": typeof model_seats;
   "model/signalTables": typeof model_signalTables;

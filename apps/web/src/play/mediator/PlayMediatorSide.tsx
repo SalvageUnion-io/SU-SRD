@@ -1,8 +1,11 @@
 /**
- * PlayMediatorSide — the Mediator's right column (play.md §10): the player's Tables and Feed sections, then the Propose dock.
+ * PlayMediatorSide — the Mediator's right column (play.md §10): the running encounter's Notes, the player's Tables and Feed sections, then the Propose dock.
  *
- *  - **Tables** (`PlayTablesSection`, the player's): pinned for the Game's
- *    state, Find for the rest, and the screen's Post toggle, private by
+ *  - **Notes** (ADR-059): the running encounter's, the Mediator's alone,
+ *    shown only while one with notes is running.
+ *
+ *  - **Tables** (`PlayTablesSection`, the player's): the running encounter's,
+ *    then those pinned for the Game's state, Find for the rest, and the screen's Post toggle, private by
  *    default for the Mediator (`postDefault`, `postsByDefault`).
  *  - **Feed** (`PlayFeedSection`, the player's): the crew's rolls and the alerts
  *    sent, with this screen's own rolls (Opposition, Morale, tables), newest
@@ -22,7 +25,7 @@
 import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
-import { Button, ModalShell, tokens } from '../../components/index'
+import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayBinding } from '../channels.model'
 import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
@@ -46,6 +49,17 @@ const SECTION = {
   minWidth: 0,
 } satisfies CSSProperties
 
+/** The running encounter's notes (ADR-059), as the Mediator wrote them. */
+const NOTES = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  lineHeight: 1.45,
+  margin: 0,
+  overflowWrap: 'anywhere',
+  whiteSpace: 'pre-line',
+} satisfies CSSProperties
+
 /** The dock sits at the column's foot. */
 const DOCK = { ...SECTION, marginTop: 'auto' } satisfies CSSProperties
 
@@ -57,13 +71,25 @@ export function MediatorTablesAndFeed({
   mediator: PlayMediator
   side: SideFeed
 }) {
+  const running = mediator.prep.running
   return (
     <>
+      {running !== null && running.notes.trim() !== '' && (
+        <SlabSection
+          as="h2"
+          id="mediate-notes"
+          title={mediatorCopy('notes')}
+          actions={<Stat label={mediatorCopy('onlyYou')} size="compact" />}
+        >
+          <p style={NOTES}>{running.notes}</p>
+        </SlabSection>
+      )}
       <PlayTablesSection
         side={side}
         idPrefix="mediate"
         downtime={mediator.downtime.downtime.running}
         solo={false}
+        prepared={running?.tables}
       />
       <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
     </>

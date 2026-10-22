@@ -149,6 +149,7 @@ export const playCopy = messages({
   rollATable2: 'Roll a table',
   tablesFound: 'Tables found',
   pinnedTables: 'Pinned tables',
+  thisEncountersTables: "This encounter's tables",
   noChannelIsBoundYet:
     'No channel is bound yet, so rolls stay in Play. Connect one from the channel button.',
   sheet: 'Sheet',

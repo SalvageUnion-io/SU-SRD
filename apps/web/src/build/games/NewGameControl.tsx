@@ -175,7 +175,7 @@ function ConnectedNewGameControl() {
   return (
     <>
       {/* A make, so rust (ruleset §1.9). */}
-      <Button variant="primary" size="compact" onClick={() => setOpen(true)}>
+      <Button variant="primary" size="mini" onClick={() => setOpen(true)}>
         {buildGamesCopy('newGame2')}
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />

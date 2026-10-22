@@ -1,5 +1,5 @@
 /**
- * Homebrew on the SRD (ADR-059): on a chassis page, a "Show Homebrew" switch
+ * Homebrew on the SRD (ADR-061): on a chassis page, a "Show Homebrew" switch
  * that is off until a reader turns it on, remembered in this browser, and
  * lists that chassis's shared patterns while on; on `/homebrew/`, every one.
  */

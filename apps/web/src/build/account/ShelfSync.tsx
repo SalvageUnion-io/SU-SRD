@@ -74,6 +74,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
 import { registerSync } from '../../stores/rowArrival'
 import { applyMine, applyWiring } from '../../stores/shelfApply'
+import { EncounterSync } from './EncounterSync'
 
 function ConnectedShelfSync() {
   // `undefined` while in flight — the Convex convention, not a loading flag.
@@ -165,6 +166,7 @@ export function ShelfSync() {
     <>
       <ConnectedShelfSync />
       <ConnectedWiringSync />
+      <EncounterSync />
     </>
   )
 }

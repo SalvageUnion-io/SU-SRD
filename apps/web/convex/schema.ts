@@ -7,6 +7,7 @@ import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { homebrewTables } from './model/homebrewTables'
 import { playTables } from './model/playTables'
+import { prepTables } from './model/prepTables'
 import { signalTables } from './model/signalTables'
 import { literalUnion } from './model/validators'
 
@@ -59,8 +60,10 @@ import { literalUnion } from './model/validators'
  * crew statuses `crew.vitals` returns (both helpers: `model/validators.ts`).
  *
  * Play's tables (the seat, the Game's Downtime and the Discord channel
- * bindings) and their validators are `model/playTables.ts`, and Homebrew's
- * moderation is `model/homebrewTables.ts`, both spread in below.
+ * bindings) and their validators are `model/playTables.ts`, spread in below.
+ * The Mediator's prep (encounters, and the one a Game runs) is
+ * `model/prepTables.ts`, and Homebrew's moderation is
+ * `model/homebrewTables.ts`, both spread in after it.
  *
  * The function modules take their arguments and declare their `returns`
  * against these same validators, never a hand-copied union.
@@ -462,7 +465,7 @@ export default defineSchema({
      */
     builtCount: v.optional(v.number()),
     /**
-     * Shared with everyone on the Reference as Homebrew (ADR-059): its maker's
+     * Shared with everyone on the Reference as Homebrew (ADR-061): its maker's
      * second opt-in, held only while `publicRead` is.
      */
     homebrew: v.optional(v.boolean()),
@@ -471,7 +474,7 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_app_id', ['appId'])
     .index('by_game', ['gameId'])
-    // Homebrew (ADR-059): every pattern shared on the Reference, newest share first.
+    // Homebrew (ADR-061): every pattern shared on the Reference, newest share first.
     .index('by_homebrew', ['homebrew', 'sharedAt']),
 
   /**
@@ -553,6 +556,7 @@ export default defineSchema({
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
   ...playTables,
+  ...prepTables,
 
   ...homebrewTables,
   ...signalTables,
