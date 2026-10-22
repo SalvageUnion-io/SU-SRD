@@ -13,7 +13,7 @@
  *
  * A generic "this is permanent" would be both frightening and wrong. Deleting a
  * Game destroys the *table* and nothing anybody built: pilots and mechs fall
- * back to their owners' shelves, and the crawler plus anything unclaimed comes
+ * back to their owners' shelves, and the crawler plus anything unassigned comes
  * to the shelves of whoever is doing the deleting. The dialog names those
  * outcomes with the actual counts in front of the reader, because "4 pilots"
  * and "2 mechs" is what makes the sentence checkable against the row they just
@@ -136,8 +136,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               <li>
                 <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? `Anything unclaimed comes to you, in your ${PRODUCT.build}.`
-                    : `${game.crawlerName} and anything unclaimed come to you, in your ${PRODUCT.build}.`}
+                    ? `Anything unassigned comes to you, in your ${PRODUCT.build}.`
+                    : `${game.crawlerName} and anything unassigned come to you, in your ${PRODUCT.build}.`}
                 </Text>
               </li>
             </ul>

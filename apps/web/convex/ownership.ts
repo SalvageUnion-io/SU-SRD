@@ -3,37 +3,31 @@ import type { OwnableTable } from 'game-domain/entityKinds'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { loadOwnable, logIdOf, mutation } from './model/entities'
-import { NotAuthorized, requireMember, requireUser } from './model/permissions'
+import { getMembership, isTableRunner, NotAuthorized, requireMember } from './model/permissions'
 import { ownableTable } from './schema'
 
 /**
- * Entity ownership (ADR-030 §3–4).
+ * Who a pilot or mech in a Game is assigned to (ADR-030 §3–4, as amended).
  *
  * `ownerId` is nullable and a null owner is a **normal state**, not an error:
- * an unclaimed entity arises when a player leaves a Game, when the Mediator
+ * an unassigned entity arises when a player leaves a Game, when the Mediator
  * pre-builds a character, or when a Game is seeded from a template. Every
- * surface that renders an owner must render "Unclaimed" rather than a blank.
+ * surface that renders an owner must render "Unassigned" rather than a blank.
  *
  * This module is the whole of the write path for the `ownerId` column, and
  * every act in it lands in the Change Log.
  *
- * ## Players self-claim what is offered (amends ADR-030 §4)
+ * ## Assign, never claim
  *
- * See the ADR-030 amendment. The reason is what the unclaimed state is *for*:
- * a Mediator pre-builds characters, or a template seeds six of them, precisely
- * so people can arrive and take one. Making the Mediator hand each one over
- * individually adds a round trip to the table's first ten minutes and buys
- * nothing — an unclaimed entity is already an offer to the crew, and `claim` is
- * a player accepting it.
- *
- * Claiming touches only what is *free*. An entity somebody already holds cannot
- * be taken — it must be released first, by its owner or the Mediator — so no
- * player can ever pull a character out from under a crewmate.
- *
- * There is no table-runner `assign` (placing an entity with a *particular*
- * person) and no `leaveGame`. Nobody can place a character with a particular
- * person: it is released (by its owner or the Mediator) and any member claims
- * it.
+ * A pilot or mech in a Game is the crew's: what a member holds is an
+ * **assignment**, not ownership. The member it is assigned to edits it, the
+ * rest of the crew reads it (ADR-030 §5), and the table runner (the Mediator,
+ * or the Organizer while nobody mediates) may assign it to anyone in the Game,
+ * reassigning what somebody holds. A player may assign a *free* one to
+ * themselves: a pre-gen or a spare mech is an offer to the crew, and a round
+ * trip through the Mediator for each seat buys nothing. A player never takes
+ * what a crewmate holds; it is unassigned first, by its holder or the table
+ * runner.
  */
 
 /**
@@ -71,86 +65,101 @@ async function logOwnershipChange(
   })
 }
 
+/** Why a shelved entity has nobody to be assigned to or from. */
+const ON_SHELF = 'That build is in somebody’s Training Bay, not in a Game'
+
 /**
- * Pick up an unclaimed entity in a Game you belong to.
+ * Assign a pilot or mech in a Game to a member (`userId`, the caller when
+ * absent).
  *
- * Membership is the whole check *plus* the entity being free — see the module
- * header for why that pair is the entire rule. Note what is deliberately absent:
- * any crawler check. Claiming adds nothing to the Game — it only puts a name to
- * something the table already holds — so it leaves the entity's assignments
- * exactly as they were (ADR-037).
+ * - **To yourself, when it is free:** any member. This is how a player sits
+ *   down with a pre-gen or boards a spare mech.
+ * - **To anyone, held or not:** the table runner only. Reassigning is how a
+ *   Game recovers from somebody vanishing mid-campaign, or hands a pre-gen to
+ *   the player who asked for it at the table.
  *
- * Racing is resolved by the transaction: two players claiming the same pre-gen
- * in the same instant serialize, and the second one finds it owned and is told
- * so, rather than silently overwriting the first.
+ * The assignee must be a member of the entity's Game. Note what is deliberately
+ * absent: any crawler check. Assigning adds nothing to the Game — it only puts
+ * a name to something the table already holds — so it leaves the entity's
+ * crawler and pilot links exactly as they were (ADR-037).
+ *
+ * Racing is resolved by the transaction: two players assigning themselves the
+ * same pre-gen in the same instant serialize, and the second one finds it held
+ * and is told so, rather than silently overwriting the first.
  */
-export const claim = mutation({
-  args: { table: ownableTable, entityId: v.string() },
+export const assign = mutation({
+  args: {
+    table: ownableTable,
+    entityId: v.string(),
+    userId: v.optional(v.id('users')),
+  },
   handler: async (ctx, args): Promise<void> => {
     const doc = await loadOwnable(ctx, args.table, args.entityId)
-    if (doc.gameId === null) {
-      throw new NotAuthorized('That build is in somebody’s Training Bay, not in a Game')
-    }
+    if (doc.gameId === null) throw new NotAuthorized(ON_SHELF)
 
     const membership = await requireMember(ctx, doc.gameId)
+    const assignee = args.userId ?? membership.userId
+    if (doc.ownerId === assignee) return
 
-    if (doc.ownerId === membership.userId) return
-    if (doc.ownerId !== null) {
-      throw new NotAuthorized(
-        'A crewmate already holds that — it has to be released before anyone else can take it'
-      )
+    const self = assignee === membership.userId
+    if (!self || doc.ownerId !== null) {
+      if (!(await isTableRunner(ctx, doc.gameId, membership))) {
+        throw new NotAuthorized(
+          self
+            ? 'A crewmate already holds that — it has to be unassigned before anyone else can take it'
+            : 'Only the Mediator can assign that to somebody else'
+        )
+      }
+    }
+    if (!self && (await getMembership(ctx, doc.gameId, assignee)) === null) {
+      throw new NotAuthorized('They are not in this Game')
     }
 
-    await ctx.db.patch(doc._id, { ownerId: membership.userId, updatedAt: Date.now() })
+    await ctx.db.patch(doc._id, { ownerId: assignee, updatedAt: Date.now() })
     await logOwnershipChange(ctx, {
       table: args.table,
       entityId: logIdOf(doc),
       gameId: doc.gameId,
-      before: null,
-      after: membership.userId,
+      before: doc.ownerId,
+      after: assignee,
       actorId: membership.userId,
     })
   },
 })
 
 /**
- * Give up something you own; it returns to unclaimed within the same Game.
+ * Hand back something assigned to you; it stays in the Game, unassigned.
  *
- * Releasing is always available to the owner and never requires the Mediator —
- * ownership is voluntary in the outward direction. The Mediator may also
- * release on a player's behalf, which is how a Game recovers from someone
- * vanishing mid-campaign.
+ * Always open to its holder and never requires the Mediator: an assignment is
+ * voluntary in the outward direction. The table runner may also unassign on a
+ * player's behalf.
  */
-export const release = mutation({
+export const unassign = mutation({
   args: { table: ownableTable, entityId: v.string() },
   handler: async (ctx, args): Promise<void> => {
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
       /*
-       * A shelved entity is NOT unclaimed.
+       * A shelved entity is NOT unassigned.
        *
        * ADR-030 §2 allows three states, and they are not interchangeable:
-       * `gameId` set + `ownerId` null is **unclaimed** — in a Game, waiting for
-       * somebody to take it; `gameId` null + `ownerId` set is **on the owner's
-       * shelf** — already somebody's. Both null is the one invalid combination,
-       * which is exactly what releasing a shelved entity would produce, and is
-       * why this refuses rather than no-ops.
-       *
-       * The message matters now that it reaches a player: `NotAuthorized`
-       * extends `ConvexError`, so this string is shown rather than redacted, and
-       * it was teaching the wrong model to the person least able to check it.
+       * `gameId` set + `ownerId` null is **unassigned** — in a Game, waiting
+       * for somebody to take it; `gameId` null + `ownerId` set is **on the
+       * owner's shelf** — already somebody's. Both null is the one invalid
+       * combination, which is exactly what unassigning a shelved entity would
+       * produce, and is why this refuses rather than no-ops. `NotAuthorized`
+       * reaches the player, so the message teaches the model.
        */
       throw new NotAuthorized(
-        'A build in your Training Bay is already yours — there is no crew here to release it to. Move it into a Game first.'
+        'A build in your Training Bay is already yours — there is no crew here to hand it to. Move it into a Game first.'
       )
     }
     if (doc.ownerId === null) return
 
-    const userId = await requireUser(ctx)
     const membership = await requireMember(ctx, doc.gameId)
-    const isOwner = doc.ownerId === userId
-    if (!isOwner && !membership.mediator) {
-      throw new NotAuthorized('Only the owner or the Mediator can release this')
+    const isHolder = doc.ownerId === membership.userId
+    if (!isHolder && !(await isTableRunner(ctx, doc.gameId, membership))) {
+      throw new NotAuthorized('Only its holder or the Mediator can unassign this')
     }
 
     await ctx.db.patch(doc._id, { ownerId: null, updatedAt: Date.now() })
@@ -160,7 +169,7 @@ export const release = mutation({
       gameId: doc.gameId,
       before: doc.ownerId,
       after: null,
-      actorId: userId,
+      actorId: membership.userId,
     })
   },
 })

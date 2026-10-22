@@ -274,7 +274,7 @@ beforeAll(async () => {
     'softLink',
     softLinkFixture('mech-to-pilot', 'ps-buzzard', 'ps-bonesaw', 'ps-l1')
   )
-  // A Game: Rook, assigned Atlas; the Game also holds an unclaimed spare.
+  // A Game: Rook, assigned Atlas; the Game also holds an unassigned spare.
   await store.adopt('pilot', pilotFixture({ id: 'pg-rook', name: 'Rook', gameId: GAME_ID }))
   await store.adopt('mech', mechFixture({ id: 'pg-atlas', name: 'Atlas', gameId: GAME_ID }))
   await store.adopt('softLink', softLinkFixture('mech-to-pilot', 'pg-atlas', 'pg-rook', 'pg-l1'))
@@ -447,16 +447,16 @@ describe('in a Game: the Game’s seat, and Downtime is the Mediator’s', () =>
     expect(pressed()).toEqual(['Downtime'])
   })
 
-  test('Board lists the Game’s mechs; a spare is claimed first, behind a confirm', async () => {
+  test('Board lists the Game’s mechs; a spare is assigned to you first, behind a confirm', async () => {
     await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID })
     await click(situationGroup().getByRole('button', { name: /^Board/ }))
     const menu = within(screen.getByRole('menu'))
     expect(menu.getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
       'Atlas',
-      'Claim and board Mule',
+      'Assign and board Mule',
     ])
-    await click(menu.getByRole('menuitem', { name: 'Claim and board Mule' }))
-    expect(screen.getByRole('alertdialog').textContent).toContain('Mule is an unclaimed spare')
+    await click(menu.getByRole('menuitem', { name: 'Assign and board Mule' }))
+    expect(screen.getByRole('alertdialog').textContent).toContain('Mule is an unassigned spare')
   })
 
   test('the Mediator playing a pilot starts the Game’s Downtime from the switch', async () => {

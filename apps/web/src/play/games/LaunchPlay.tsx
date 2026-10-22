@@ -122,16 +122,16 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
                       row.owner === null ? undefined : (
                         <OwnerSeal
                           owner={row.owner}
-                          claimable={false}
+                          assignable={false}
                           disabled
-                          onClaim={() => undefined}
+                          onAssign={() => undefined}
                         />
                       ),
                   })),
                 },
               ]
         }
-        empty="None of this Game's pilots is saved in this browser. Create or claim one from the roster, then play."
+        empty="None of this Game's pilots is saved in this browser. Create one, or take one from the roster, then play."
         selected={selected}
         onSelect={setPicked}
         confirmLabel="Play"

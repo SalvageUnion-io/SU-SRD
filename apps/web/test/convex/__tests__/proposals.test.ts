@@ -128,7 +128,7 @@ describe('the Mediator proposes; the player writes', () => {
     ).rejects.toThrow(/mediator/i)
   })
 
-  test('an unclaimed entity cannot be proposed to', async () => {
+  test('an unassigned entity cannot be proposed to', async () => {
     const t = testConvex()
     const { gm, gameId } = await seedTable(t)
     const orphan = await t.run(
@@ -143,7 +143,7 @@ describe('the Mediator proposes; the player writes', () => {
         field: 'currentSP',
         after: 1,
       })
-    ).rejects.toThrow(/unclaimed/i)
+    ).rejects.toThrow(/unassigned/i)
   })
 })
 
@@ -256,6 +256,17 @@ describe('pending is scoped to the asker', () => {
 
     // Showing it would leak an edit in flight against a crewmate.
     expect(await bystander.as.query(api.proposals.pending, { gameId })).toHaveLength(0)
+  })
+  test('a Game deleted under an open page reads empty, not as an error', async () => {
+    // The page's subscription re-runs before it hears the Game is gone; the
+    // Workers Issue this was ("Not a member of this Game", proposals:pending)
+    // reported that race as a defect.
+    const t = testConvex()
+    const { gm, player, gameId } = await seedTable(t)
+    await gm.as.mutation(api.games.destroy, { gameId })
+
+    expect(await player.as.query(api.proposals.pending, { gameId })).toEqual([])
+    expect(await gm.as.query(api.proposals.sent, { gameId })).toEqual([])
   })
 })
 

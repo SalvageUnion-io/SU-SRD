@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
-import { ownerChipFor, UNCLAIMED_LABEL } from '../ownerChip'
+import { ownerChipFor, UNASSIGNED_LABEL } from '../ownerChip'
 
 /**
  * Owner chips (ADR-030 §6).
  *
- * The case that carries the most weight is the difference between *unclaimed*
+ * The case that carries the most weight is the difference between *unassigned*
  * and *owned but unresolved*. Both have no name to show, and collapsing them
  * would tell a Mediator that a pilot is free to hand out when it already
  * belongs to somebody — a data-integrity error dressed as a label.
@@ -15,16 +15,16 @@ const lookup = (viewerId: string | null, names: Array<[string, string]> = []) =>
   namesById: new Map(names),
 })
 
-describe('unclaimed is a rendered state, not a blank', () => {
-  test('null owner reads as Unclaimed', () => {
+describe('unassigned is a rendered state, not a blank', () => {
+  test('null owner reads as Unassigned', () => {
     const chip = ownerChipFor(null, lookup('u1'))
-    expect(chip.label).toBe(UNCLAIMED_LABEL)
-    expect(chip.unclaimed).toBe(true)
+    expect(chip.label).toBe(UNASSIGNED_LABEL)
+    expect(chip.unassigned).toBe(true)
   })
 
   test('undefined owner reads the same way', () => {
     // A row written before ownership existed must not render an empty chip.
-    expect(ownerChipFor(undefined, lookup('u1')).label).toBe(UNCLAIMED_LABEL)
+    expect(ownerChipFor(undefined, lookup('u1')).label).toBe(UNASSIGNED_LABEL)
   })
 
   test('the label is never empty', () => {
@@ -36,19 +36,19 @@ describe('unclaimed is a rendered state, not a blank', () => {
   })
 })
 
-describe('owned-but-unresolved is not unclaimed', () => {
+describe('owned-but-unresolved is not unassigned', () => {
   test('an owner with no known name still reads as owned', () => {
     const chip = ownerChipFor('u-nobody-knows', lookup('u1'))
-    // The important assertion: NOT unclaimed. Offering this to a Mediator as
+    // The important assertion: NOT unassigned. Offering this to a Mediator as
     // assignable would hand out a pilot that already belongs to someone.
-    expect(chip.unclaimed).toBe(false)
+    expect(chip.unassigned).toBe(false)
     expect(chip.label).toBe('Crewmate')
   })
 
   test('a resolvable owner shows their display name', () => {
     const chip = ownerChipFor('u2', lookup('u1', [['u2', 'Beefcake']]))
     expect(chip.label).toBe('Beefcake')
-    expect(chip.unclaimed).toBe(false)
+    expect(chip.unassigned).toBe(false)
     expect(chip.mine).toBe(false)
   })
 })

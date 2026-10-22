@@ -1,6 +1,6 @@
 /**
  * unitOwners — who holds each pilot and mech a Game lists, as the roster's
- * owner seal reads it: YOU, a crewmate's name, UNCLAIMED.
+ * owner seal reads it: YOU, a crewmate's name, UNASSIGNED.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -26,14 +26,14 @@ describe('ownersFromListing', () => {
     'u1'
   )
 
-  test('the viewer reads You, a crewmate their name, nobody Unclaimed', () => {
+  test('the viewer reads You, a crewmate their name, nobody Unassigned', () => {
     expect(ownerOf('pilot', 'p1')?.label).toBe('You')
     expect(ownerOf('pilot', 'p2')?.label).toBe('Mara')
-    expect(ownerOf('pilot', 'p3')?.label).toBe('Unclaimed')
+    expect(ownerOf('pilot', 'p3')?.label).toBe('Unassigned')
   })
 
-  test('an owner the roster cannot name is a crewmate, never unclaimed', () => {
-    expect(ownerOf('mech', 'm1')).toEqual({ label: 'Crewmate', unclaimed: false, mine: false })
+  test('an owner the roster cannot name is a crewmate, never unassigned', () => {
+    expect(ownerOf('mech', 'm1')).toEqual({ label: 'Crewmate', unassigned: false, mine: false })
   })
 
   test('a unit the Game does not list has no chip, and kinds never mix', () => {

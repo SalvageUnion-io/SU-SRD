@@ -51,7 +51,7 @@ function build(
     holds: (_kind, id) => (options.held ?? []).includes(id),
     hrefFor: (kind, id) => `/${kind}/${id}`,
     ownerOf: (kind, id) =>
-      kind === 'crawler' ? undefined : { label: `owner-${id}`, unclaimed: false, mine: false },
+      kind === 'crawler' ? undefined : { label: `owner-${id}`, unassigned: false, mine: false },
     editable: options.editable ?? true,
     unassign,
     picker: (pick, opts) => `${pick}:${opts.filled ? 'change' : 'assign'}`,

@@ -83,7 +83,7 @@ describe('vitals', () => {
     expect(crew.mechs[0]?.currentHeat).toBe(2)
   })
 
-  test('an unclaimed pilot has a null owner name rather than a missing row', async () => {
+  test('an unassigned pilot has a null owner name rather than a missing row', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedTable(t)
     await t.run(async (ctx) => {
@@ -96,7 +96,7 @@ describe('vitals', () => {
     })
 
     const crew = await organizer.as.query(api.crew.vitals, { gameId })
-    // Unclaimed pre-gens must still appear — they are what the Mediator hands
+    // Unassigned pre-gens must still appear — they are what the Mediator hands
     // out, so hiding them would hide the onboarding path.
     expect(crew.pilots).toHaveLength(1)
     expect(crew.pilots[0]?.ownerId).toBeNull()
@@ -121,6 +121,10 @@ describe('vitals', () => {
     const { gameId } = await seedTable(t)
     const outsider = await makeUser(t, 'Outsider')
 
-    await expect(outsider.as.query(api.crew.vitals, { gameId })).rejects.toThrow(/not a member/i)
+    expect(await outsider.as.query(api.crew.vitals, { gameId })).toEqual({
+      viewerId: outsider.userId,
+      pilots: [],
+      mechs: [],
+    })
   })
 })

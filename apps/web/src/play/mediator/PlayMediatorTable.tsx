@@ -45,7 +45,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
       ) : seats.length === 0 ? (
         <EmptyState
           variant="inline"
-          body="No one has a seat yet. A player takes one by claiming a Pilot in this Game."
+          body="No one has a seat yet. A player takes one when a Pilot in this Game is assigned to them."
         />
       ) : (
         <ul className="su-entity-mini-list su-play-seats" aria-label="Seats" data-play-list="">
