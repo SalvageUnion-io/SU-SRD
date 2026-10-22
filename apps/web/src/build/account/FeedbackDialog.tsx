@@ -13,9 +13,10 @@ import {
   tokens,
 } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { buildAccountCopy } from '../../messages/build-account'
 
 /**
- * "Suggest or report" (ADR-054): a player's note, filed as a labelled issue on
+ * "Suggest or report" (ADR-055): a player's note, filed as a labelled issue on
  * the public SU-SRD repository with no name on it (`convex/feedback.ts`). The
  * dialog says so above the box, before anybody types.
  *
@@ -57,43 +58,49 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     if (length < MIN) throw new Error('short')
     await submit({ kind, text, page: window.location.pathname })
     setText('')
-    toast.success('Thank you! Your note is on its way to the workshop.')
+    toast.success(buildAccountCopy('feedbackThanks'))
   }
 
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Suggest or report"
-      confirmLabel="Send"
-      pendingLabel="Sending…"
+      title={buildAccountCopy('suggestOrReport')}
+      confirmLabel={buildAccountCopy('send')}
+      pendingLabel={buildAccountCopy('sending')}
       onConfirm={send}
       describeError={(err) =>
         length < MIN
-          ? `Say a little more: at least ${MIN} characters.`
-          : failureMessage(err, 'Your note could not be sent. Try again.')
+          ? buildAccountCopy('sayALittleMore', { min: MIN })
+          : failureMessage(err, buildAccountCopy('yourNoteCouldNotBeSent'))
       }
       body={
         <Stack gap={12}>
           <p style={NOTE}>
-            Your note becomes a public{' '}
+            {buildAccountCopy('yourNoteBecomesAPublic')}{' '}
             <InlineRef href={ISSUES_URL} target="_blank" rel="noopener noreferrer">
-              GitHub issue
+              {buildAccountCopy('githubIssue')}
             </InlineRef>
-            , without your name. Please leave out anything private.
+            {buildAccountCopy('withoutYourNamePlease')}
           </p>
-          <Segmented label="Kind of note" size="compact">
+          <Segmented label={buildAccountCopy('kindOfNote')} size="compact">
             <SegmentedOption pressed={kind === 'suggestion'} onClick={() => setKind('suggestion')}>
-              Suggestion
+              {buildAccountCopy('suggestion')}
             </SegmentedOption>
             <SegmentedOption pressed={kind === 'report'} onClick={() => setKind('report')}>
-              Report a problem
+              {buildAccountCopy('reportAProblem')}
             </SegmentedOption>
           </Segmented>
           <Textarea
-            aria-label={kind === 'report' ? 'What went wrong, and where' : 'Your idea'}
+            aria-label={
+              kind === 'report'
+                ? buildAccountCopy('whatWentWrongAndWhere')
+                : buildAccountCopy('yourIdea')
+            }
             placeholder={
-              kind === 'report' ? 'What went wrong, and on which page?' : 'What would you like?'
+              kind === 'report'
+                ? buildAccountCopy('whatWentWrongAndOnWhichPage')
+                : buildAccountCopy('whatWouldYouLike')
             }
             rows={6}
             maxLength={MAX}
@@ -102,7 +109,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             onChange={(e) => setText(e.target.value)}
           />
           <p style={COUNT} aria-live="polite">
-            {length} / {MAX}
+            {buildAccountCopy('noteLength', { length, max: MAX })}
           </p>
         </Stack>
       }

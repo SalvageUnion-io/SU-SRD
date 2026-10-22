@@ -15,6 +15,7 @@ import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
 import { useState } from 'react'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
 import type { PlayMediator } from './usePlayMediator'
@@ -28,18 +29,18 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
   return (
     <>
       <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
-        Tell the table
+        {mediatorCopy('tellTheTable')}
       </Button>
       <HeaderMenu
         variant="overflow"
         size="compact"
-        label="More"
+        label={mediatorCopy('more')}
         trigger={null}
         sections={[
           [
             {
               id: 'game',
-              label: 'Game page',
+              label: mediatorCopy('gamePage'),
               hint: mediator.gameName,
               onSelect: () => {
                 if (router) {
@@ -50,11 +51,20 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
                 } else window.location.assign(gameHref)
               },
             },
-            { id: 'reference', label: 'Reference', onSelect: () => setReference(true) },
+            {
+              id: 'reference',
+              label: mediatorCopy('reference'),
+              onSelect: () => setReference(true),
+            },
           ],
         ]}
       />
-      <ModalShell open={telling} onOpenChange={setTelling} title="Tell the table" width="default">
+      <ModalShell
+        open={telling}
+        onOpenChange={setTelling}
+        title={mediatorCopy('tellTheTable')}
+        width="default"
+      >
         <TellTheTable
           alerts={mediator.alerts}
           now={mediator.now}
@@ -64,7 +74,12 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
       </ModalShell>
       {/* Bare: the explorer wears the dialog's head, so a category's search
           and filters sit under it rather than in a second titled box. */}
-      <ModalShell open={reference} onOpenChange={setReference} title="Reference" bare>
+      <ModalShell
+        open={reference}
+        onOpenChange={setReference}
+        title={mediatorCopy('reference')}
+        bare
+      >
         <SrdExplorer onClose={() => setReference(false)} />
       </ModalShell>
     </>

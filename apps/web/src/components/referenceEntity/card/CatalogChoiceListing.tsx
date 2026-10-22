@@ -5,6 +5,7 @@ import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Button } from '../../atoms/Button'
 import { SlabSection } from '../../containers/SlabSection'
 import { InsidePeekContext } from '../../entity/peekContext'
@@ -101,7 +102,9 @@ export function CatalogChoiceListing({
           onClick={() => setModalOpen(true)}
           style={chooseButtonStyle}
         >
-          {chosen ? `Change — ${chosen}` : `Choose ${choice.name}…`}
+          {chosen
+            ? referenceEntityCopy('change', { chosen })
+            : referenceEntityCopy('choose', { name: choice.name })}
         </Button>
         <CatalogChoiceModal
           open={modalOpen}
@@ -135,7 +138,7 @@ export function CatalogChoiceListing({
       <SlabSection title={label}>
         {!insidePeek && (
           <Button size="compact" {...options.toggleProps}>
-            {options.open ? 'Hide options' : 'Show options'}
+            {options.open ? referenceEntityCopy('hideOptions') : referenceEntityCopy('showOptions')}
           </Button>
         )}
         {!insidePeek && options.open && (

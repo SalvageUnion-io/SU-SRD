@@ -36,7 +36,7 @@ export const BOT_PATH_PREFIX = '/bot/'
  * Every operation the bot may invoke through that door. The writes never touch
  * anybody's sheet: `bindChannel` and `unbindChannel` (`/su bind`, `/su
  * unbind`) are the bot's own apparatus, `usage` bumps a weekly command tally
- * and `feedback` hands on a `/su feedback` note (ADR-054).
+ * and `feedback` hands on a `/su feedback` note (ADR-055).
  */
 export const BOT_OP_NAMES = [
   'me',
@@ -299,7 +299,7 @@ export function bearerToken(header: string | null): string | null {
 }
 
 /**
- * `usage`: one answered command, for the weekly tallies (ADR-054). `name` is
+ * `usage`: one answered command, for the weekly tallies (ADR-055). `name` is
  * the command as `interactionName` spells it (`su roll`); `guildId` the server
  * it ran in, absent in a DM. Nothing about who ran it.
  */

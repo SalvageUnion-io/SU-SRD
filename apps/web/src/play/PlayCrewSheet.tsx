@@ -21,6 +21,7 @@ import {
 } from '../build/sheet/readOnlySheetStore.model'
 import { Sheet } from '../build/sheet/Sheet'
 import { Callout, ModalShell, Pending } from '../components/index'
+import { playCopy } from '../messages/play'
 
 type PlayCrewSheetProps = {
   gameId: string
@@ -37,7 +38,7 @@ export function PlayCrewSheet({ gameId, pilotId, name, onClose }: PlayCrewSheetP
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
-      title={`${name} · read-only`}
+      title={playCopy('readOnly', { name })}
     >
       {pilotId !== null && <CrewSheetBody gameId={gameId} pilotId={pilotId} />}
     </ModalShell>
@@ -50,10 +51,10 @@ function CrewSheetBody({ gameId, pilotId }: { gameId: string; pilotId: string })
     () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
     [listing]
   )
-  if (store === null) return <Pending label="their sheet" />
+  if (store === null) return <Pending label={playCopy('theirSheet')} />
   return (
     <>
-      <Callout>You are reading a crewmate’s sheet. Only whoever holds it can make changes.</Callout>
+      <Callout>{playCopy('youAreReadingACrewmates')}</Callout>
       <Sheet kind="pilot" id={pilotId} store={store} readOnly />
     </>
   )

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
 import { PopoverPanel } from '../containers/PopoverPanel'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
@@ -131,7 +132,7 @@ export function StatProvenance({
           // restyle it through `className`). `FOCUS_RING` was the three classes
           // spelled out by hand; imported so the ring can never drift.
           className={cn(TRIGGER_CLASS, className)}
-          aria-label={`${statLabel}: how this is derived`}
+          aria-label={atomsCopy('howThisIsDerived', { statLabel })}
         >
           {children}
         </button>
@@ -175,7 +176,7 @@ export function StatProvenance({
           </li>
         ))}
         <li style={{ ...ROW, ...RULED, fontWeight: weight.semibold, paddingBottom: 0 }}>
-          <span>Showing</span>
+          <span>{atomsCopy('showing')}</span>
           <span>
             {total}
             {overridden ? ' *' : ''}

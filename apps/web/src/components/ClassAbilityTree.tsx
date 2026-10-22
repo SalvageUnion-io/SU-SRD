@@ -6,6 +6,7 @@ import { resolveClassPlan } from '../lib/classPaths'
 import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
+import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { Box } from './containers/Box'
 import type { TreeTrack } from './index'
@@ -88,7 +89,7 @@ const BOOK = {
 
 function briefCards(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefCard[] {
   const legendary: BriefCard = {
-    label: 'Legendary',
+    label: componentsCopy('legendary'),
     tier: 'legendary',
     cost: '3',
     value: [BOOK.legendary],
@@ -96,17 +97,22 @@ function briefCards(plan: Exclude<ClassPlan, { kind: 'none' }>): BriefCard[] {
   if (plan.kind === 'hybrid') {
     return [
       // The book's verb: "to advance into the Class".
-      { label: 'Advance', tier: 'core', value: [BOOK.advance] },
-      { label: 'Hybrid', tier: 'hybrid', cost: '2', value: [BOOK.advanced] },
+      { label: componentsCopy('advance'), tier: 'core', value: [BOOK.advance] },
+      { label: componentsCopy('hybrid'), tier: 'hybrid', cost: '2', value: [BOOK.advanced] },
       legendary,
     ]
   }
-  const core: BriefCard = { label: 'Core', tier: 'core', cost: '1', value: [BOOK.core] }
+  const core: BriefCard = {
+    label: componentsCopy('core'),
+    tier: 'core',
+    cost: '1',
+    value: [BOOK.core],
+  }
   if (plan.paths.length === 0) return [core]
   return [
     core,
     {
-      label: 'Advanced',
+      label: componentsCopy('advanced'),
       tier: 'advanced',
       cost: '2',
       value: [`${BOOK.advance} ${BOOK.advanced}`],
@@ -153,14 +159,18 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
  */
 function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   return (
-    <aside className="su-class-brief" aria-label="Training">
+    <aside className="su-class-brief" aria-label={componentsCopy('training')}>
       {/* The limit rides the slab's own row, centred on its label and rule. */}
       <Slab
-        label="Training"
+        label={componentsCopy('training')}
         count={`p.${GAINING_ABILITIES_PAGE}`}
         flush
         actions={
-          <Stat label="Abilities" value={`Up to ${plan.classEntity.maxAbilities}`} size="compact" />
+          <Stat
+            label={componentsCopy('abilities')}
+            value={`Up to ${plan.classEntity.maxAbilities}`}
+            size="compact"
+          />
         }
       />
       <ul className="su-class-brief__cards">
@@ -187,7 +197,8 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       </ul>
       {plan.kind === 'hybrid' && (
         <p className="su-class-brief__trees">
-          <span className={TREES_LABEL}>Trees</span> <MentionProse parts={hybridTrees(plan)} />
+          <span className={TREES_LABEL}>{componentsCopy('trees')}</span>{' '}
+          <MentionProse parts={hybridTrees(plan)} />
         </p>
       )}
     </aside>
@@ -213,7 +224,7 @@ function PathRequirement({ path }: { path: ClassPath }) {
       {trees.map((tree, index) => (
         <Stat
           key={tree}
-          label={index === 0 ? 'REQ' : 'or'}
+          label={index === 0 ? componentsCopy('req') : 'or'}
           value={tree}
           size="compact"
           className="su-class-path__req-cell"
@@ -295,7 +306,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
             as a page's foot band does; text, never chips (EDL E9). */}
         <p className="su-class-path__foot" style={{ backgroundColor: TIER_BAND[track] }}>
           <span className="su-class-path__cite">
-            Workshop Manual · p.{(hybrid ?? classEntity).page}
+            {componentsCopy('workshopManualP', { page: (hybrid ?? classEntity).page })}
           </span>
         </p>
       </Box>
@@ -312,7 +323,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     return (
       <div className="su-ability-tree">
         <ClassBrief plan={plan} />
-        <SlabSection title="Abilities" page>
+        <SlabSection title={componentsCopy('abilities')} page>
           <div className="su-class-path__trees" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
@@ -331,7 +342,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     <div className="su-ability-tree">
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
-        <SlabSection title="Core trees" page>
+        <SlabSection title={componentsCopy('coreTrees')} page>
           <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
@@ -340,7 +351,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
         </SlabSection>
       )}
       {plan.paths.length > 0 && (
-        <SlabSection title="Advancement" page>
+        <SlabSection title={componentsCopy('advancement')} page>
           <ul className="su-class-paths">
             {[...plan.paths]
               .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
@@ -366,7 +377,7 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   const groups = branches.flatMap(({ group, owner }) => (group ? [{ group, owner }] : []))
   if (groups.length === 0) return null
   return (
-    <SlabSection title="Required Trees" page>
+    <SlabSection title={componentsCopy('requiredTrees')} page>
       <div className="su-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />

@@ -21,6 +21,7 @@ import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { RollMini } from '../components/entity/forms/RollMini'
 import { CHAPTER_BAND_COLOR, Checkbox, MiniGrid, SearchField, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
 import { PlayRollTable } from './PlayRollTable'
@@ -83,8 +84,8 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
     <div style={STACK}>
       <SearchField
         type="search"
-        placeholder="Roll a table…"
-        aria-label="Roll a table"
+        placeholder={playCopy('rollATable')}
+        aria-label={playCopy('rollATable2')}
         // It controls the found list only while there is one to point at.
         aria-controls={found.length > 0 ? findId : undefined}
         value={query}
@@ -94,9 +95,20 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         }}
       />
       {found.length > 0 && (
-        <TableMinis id={findId} label="Tables found" names={found} open={open} onPick={pick} />
+        <TableMinis
+          id={findId}
+          label={playCopy('tablesFound')}
+          names={found}
+          open={open}
+          onPick={pick}
+        />
       )}
-      <TableMinis label="Pinned tables" names={pinnedTables(downtime)} open={open} onPick={pick} />
+      <TableMinis
+        label={playCopy('pinnedTables')}
+        names={pinnedTables(downtime)}
+        open={open}
+        onPick={pick}
+      />
       {table && (
         <PlayRollTable
           key={table.name}
@@ -121,11 +133,7 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         />
         <span id={`${postId}-label`}>{postLabel(solo, binding)}</span>
       </div>
-      {binding === null && (
-        <p style={HINT}>
-          No channel is bound yet, so rolls stay in Play. Connect one from the channel button.
-        </p>
-      )}
+      {binding === null && <p style={HINT}>{playCopy('noChannelIsBoundYet')}</p>}
     </div>
   )
 }

@@ -18,9 +18,10 @@ import {
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { buildAccountCopy } from '../../messages/build-account'
 
 /**
- * The admin metrics page (ADR-054), at `/admin/metrics`: aggregate counts
+ * The admin metrics page (ADR-055), at `/admin/metrics`: aggregate counts
  * only, for the accounts `ADMIN_DISCORD_IDS` names. Everybody else, signed in
  * or not, is told there is nothing here; the query itself answers them null.
  *
@@ -33,22 +34,22 @@ type Counts = NonNullable<Metrics['snapshot']>['counts']
 
 /** The totals, in reading order, with the words each wears. */
 const TOTALS: ReadonlyArray<[keyof Counts, string]> = [
-  ['accounts', 'Accounts'],
-  ['pilots', 'Pilots'],
-  ['mechs', 'Mechs'],
-  ['crawlers', 'Crawlers'],
-  ['npcs', 'NPCs'],
-  ['patterns', 'Patterns'],
-  ['games', 'Games'],
-  ['sharedGames', 'Games with 2+'],
-  ['botGuilds', 'Bot servers'],
-  ['botGuildsThisWeek', 'Bot servers, 7 days'],
+  ['accounts', buildAccountCopy('accounts')],
+  ['pilots', buildAccountCopy('pilots')],
+  ['mechs', buildAccountCopy('mechs')],
+  ['crawlers', buildAccountCopy('crawlers')],
+  ['npcs', buildAccountCopy('npcs')],
+  ['patterns', buildAccountCopy('patterns')],
+  ['games', buildAccountCopy('games')],
+  ['sharedGames', buildAccountCopy('gamesWithTwoOrMore')],
+  ['botGuilds', buildAccountCopy('botServers')],
+  ['botGuildsThisWeek', buildAccountCopy('botServersSevenDays')],
 ]
 
 /** A tally key as a row label: `downtime:game` → "Downtime at a Game", `bot:su roll` → "/su roll". */
 function tallyLabel(key: string): string {
-  if (key === 'downtime:game') return 'Downtime at a Game'
-  if (key === 'downtime:solo') return 'Downtime solo'
+  if (key === 'downtime:game') return buildAccountCopy('downtimeAtAGame')
+  if (key === 'downtime:solo') return buildAccountCopy('downtimeSolo')
   if (key.startsWith('bot:')) return `/${key.slice(4)}`
   return key
 }
@@ -83,9 +84,7 @@ function weekLabel(weekStart: number): string {
 
 function WeeklyTable({ weeks }: { weeks: Metrics['weeks'] }) {
   if (weeks.length === 0) {
-    return (
-      <EmptyState variant="quiet" body="Nothing tallied yet: no Downtime and no bot command." />
-    )
+    return <EmptyState variant="quiet" body={buildAccountCopy('nothingTalliedYet')} />
   }
   const keys = [...new Set(weeks.flatMap((week) => Object.keys(week.counts)))].sort()
   return (
@@ -94,7 +93,7 @@ function WeeklyTable({ weeks }: { weeks: Metrics['weeks'] }) {
         <thead>
           <tr>
             <th scope="col" style={LABEL_CELL}>
-              Week of
+              {buildAccountCopy('weekOf')}
             </th>
             {weeks.map((week) => (
               <th key={week.weekStart} scope="col" style={CELL}>
@@ -125,19 +124,20 @@ function WeeklyTable({ weeks }: { weeks: Metrics['weeks'] }) {
 function AdminMetrics() {
   const metrics = useQuery(api.metrics.forAdmin, {})
   const refresh = useServerAction(useMutation(api.metrics.refresh), {
-    failure: 'A fresh snapshot could not be started. Try again.',
+    failure: buildAccountCopy('aFreshSnapshotCouldNot'),
   })
 
-  if (metrics === undefined) return <Pending label="the metrics" />
-  if (metrics === null) return <EmptyState variant="quiet" body="There is nothing here for you." />
+  if (metrics === undefined) return <Pending label={buildAccountCopy('theMetrics')} />
+  if (metrics === null)
+    return <EmptyState variant="quiet" body={buildAccountCopy('thereIsNothingHereFor')} />
 
   const { snapshot, weeks } = metrics
   return (
     <Stack gap={32}>
-      <SlabSection as="h2" id="metrics-totals" title="Totals">
+      <SlabSection as="h2" id="metrics-totals" title={buildAccountCopy('totals')}>
         <Stack gap={12}>
           {snapshot === null ? (
-            <EmptyState variant="quiet" body="No snapshot yet. The first is taken tonight." />
+            <EmptyState variant="quiet" body={buildAccountCopy('noSnapshotYet')} />
           ) : (
             <>
               <Cluster gap={8}>
@@ -146,7 +146,7 @@ function AdminMetrics() {
                 ))}
               </Cluster>
               <Text variant="hint" style={NOTE}>
-                Taken {new Date(snapshot.takenAt).toLocaleString()}.
+                {buildAccountCopy('takenAt', { when: new Date(snapshot.takenAt).toLocaleString() })}
               </Text>
             </>
           )}
@@ -157,12 +157,12 @@ function AdminMetrics() {
               disabled={refresh.pending}
               onClick={() => void refresh.run({})}
             >
-              Take a snapshot now
+              {buildAccountCopy('takeASnapshotNow')}
             </Button>
           </Cluster>
         </Stack>
       </SlabSection>
-      <SlabSection as="h2" id="metrics-weekly" title="Each week">
+      <SlabSection as="h2" id="metrics-weekly" title={buildAccountCopy('eachWeek')}>
         <WeeklyTable weeks={weeks} />
       </SlabSection>
     </Stack>
@@ -172,7 +172,7 @@ function AdminMetrics() {
 function MetricsBody() {
   const { mode } = useConnection()
   if (mode === 'connected') return <AdminMetrics />
-  return <EmptyState variant="quiet" body="There is nothing here for you." />
+  return <EmptyState variant="quiet" body={buildAccountCopy('thereIsNothingHereFor')} />
 }
 
 export function MetricsScreen() {
@@ -182,7 +182,7 @@ export function MetricsScreen() {
       stack={false}
       band={
         <ChapterBand tone="ink" measure={PAGE_MEASURE}>
-          Metrics
+          {buildAccountCopy('metrics')}
         </ChapterBand>
       }
     >

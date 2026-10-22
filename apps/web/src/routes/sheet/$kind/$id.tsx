@@ -24,6 +24,7 @@ import { SheetSkeleton } from '../../../build/sheet/SheetSkeleton'
 import { SheetView } from '../../../build/sheet/SheetView'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { areaTitle } from '../../../lib/pageTitle'
+import { routesSheetCopy } from '../../../messages/routes-sheet'
 import { useEntityStore } from '../../../stores/entityStore'
 
 /*
@@ -37,13 +38,8 @@ function SheetKindNotFound() {
   const params = Route.useParams()
   return (
     <NotFoundPanel
-      title="Sheet not found"
-      message={
-        <>
-          &ldquo;{params.kind}&rdquo; is not a sheet type. Sheets exist for pilots, mechs, crawlers
-          and NPCs.
-        </>
-      }
+      title={routesSheetCopy('sheetNotFound')}
+      message={routesSheetCopy('isNotASheetType', { kind: params.kind })}
     />
   )
 }

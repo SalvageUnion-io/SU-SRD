@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactElement } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
 import type { Size } from '../../styles/sizing'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
@@ -351,7 +352,7 @@ function HorizontalValue({
       {cell}
       <StepButton
         fit="cell"
-        aria-label={`Decrease ${stepName}`}
+        aria-label={atomsCopy('decrease', { stepName })}
         onClick={press(Math.max(min, numericValue - step))}
         disabled={atMin}
         style={stepStyle}
@@ -360,7 +361,7 @@ function HorizontalValue({
       </StepButton>
       <StepButton
         fit="cell"
-        aria-label={`Increase ${stepName}`}
+        aria-label={atomsCopy('increase', { stepName })}
         onClick={press(Math.min(top, numericValue + step))}
         disabled={atMax}
         style={stepStyle}

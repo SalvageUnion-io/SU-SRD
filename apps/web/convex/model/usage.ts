@@ -1,7 +1,7 @@
 import type { MutationCtx } from '../_generated/server'
 
 /**
- * The weekly usage tallies (ADR-054): one counter per signal per week, bumped
+ * The weekly usage tallies (ADR-055): one counter per signal per week, bumped
  * by the write that is the signal (a Downtime begun, a bot command answered).
  * A counter, never a log: it records that something happened, not who did it.
  */

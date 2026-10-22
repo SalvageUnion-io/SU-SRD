@@ -2,7 +2,7 @@ import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
 
 /**
- * The tables behind the site's usage signals and feedback (ADR-054), spread
+ * The tables behind the site's usage signals and feedback (ADR-055), spread
  * into `schema.ts` like `playTables`. None of them holds anything about a
  * person but `feedback`, and that only until the day is out.
  */

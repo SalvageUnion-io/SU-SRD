@@ -7,6 +7,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { pageTitle } from '../../lib/pageTitle'
+import { routesSCopy } from '../../messages/routes-s'
 
 export const Route = createFileRoute('/s/$id')({
   head: () => ({ meta: [{ title: pageTitle('Retired link') }] }),
@@ -16,13 +17,8 @@ export const Route = createFileRoute('/s/$id')({
 function RetiredShareLink() {
   return (
     <NotFoundPanel
-      title="This share link has been retired"
-      message={
-        <>
-          Snapshot links no longer show a sheet. If someone sent you this one, ask them to share
-          their live public sheet instead — that link stays up to date as they play.
-        </>
-      }
+      title={routesSCopy('thisShareLinkHasBeen')}
+      message={routesSCopy('snapshotLinksNoLongerShow')}
     />
   )
 }

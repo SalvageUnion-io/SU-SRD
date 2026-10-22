@@ -27,6 +27,7 @@ import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
+import { crawlerCopy } from '../../messages/build-crawler'
 import type { EntityState } from '../../stores/entityStore'
 import '../../styles/build/wizard.css'
 
@@ -99,7 +100,7 @@ export function CrawlerTypeEditModal({
         onOpenChange={(next) => {
           if (!next) onClose()
         }}
-        title="Change Crawler Type"
+        title={crawlerCopy('changeCrawlerType')}
         width="page"
         bare
       >
@@ -115,15 +116,15 @@ export function CrawlerTypeEditModal({
           // Five types — a Tech-Level / status facet row would be chrome over a
           // list short enough to read whole.
           facets={{ status: false, techLevel: false, traits: false }}
-          chosenLabel="Chosen"
-          title="Change Crawler Type"
-          subtitle="Resets the special NPC · keeps bays and their crew"
-          emptyMessage="No matching crawler types."
+          chosenLabel={crawlerCopy('chosen')}
+          title={crawlerCopy('changeCrawlerType')}
+          subtitle={crawlerCopy('resetsTheSpecialNpcKeeps')}
+          emptyMessage={crawlerCopy('noMatchingCrawlerTypes')}
           onClose={onClose}
           railActions={
             <>
               <Button variant="ghost" size="compact" onClick={onClose}>
-                Cancel
+                {crawlerCopy('cancel')}
               </Button>
               <Button
                 variant="primary"
@@ -131,7 +132,7 @@ export function CrawlerTypeEditModal({
                 disabled={!changed}
                 onClick={() => setConfirming(true)}
               >
-                Change type…
+                {crawlerCopy('changeType')}
               </Button>
             </>
           }
@@ -141,7 +142,7 @@ export function CrawlerTypeEditModal({
       <ConfirmDialog
         open={confirming && changed}
         onOpenChange={setConfirming}
-        title="Change crawler type?"
+        title={crawlerCopy('changeCrawlerType2')}
         tone="danger"
         body={
           <p style={CONFIRM_COPY}>
@@ -150,8 +151,8 @@ export function CrawlerTypeEditModal({
             type's Keepsake/Motto. Your bays and their crew are kept.
           </p>
         }
-        confirmLabel="Change type"
-        pendingLabel="Changing…"
+        confirmLabel={crawlerCopy('changeType2')}
+        pendingLabel={crawlerCopy('changing')}
         onConfirm={applyChange}
       />
     </>

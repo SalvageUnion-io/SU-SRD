@@ -91,7 +91,7 @@ async function dispatch(
   // The same count, kept: Workers Analytics Engine (`USAGE` in wrangler.jsonc).
   // blob1 is the name, double1 the interaction type; never anything about who.
   env.USAGE?.writeDataPoint({ indexes: [name ?? ''], blobs: [name ?? ''], doubles: [raw.type] })
-  // And the weekly tally the admin metrics read (ADR-054): a command answered,
+  // And the weekly tally the admin metrics read (ADR-055): a command answered,
   // and the server it ran in. Off the response path; an outage only loses a count.
   if (raw.type === InteractionType.ApplicationCommand && name !== null) {
     ctx.waitUntil(site().usage(name, raw.guild_id ?? null))

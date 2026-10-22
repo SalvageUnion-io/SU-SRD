@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { CHAPTER_BAND_COLOR, EmptyState, InlineMarkdown, TitledBox } from '../components/index'
 import { color, font, fontSize, space } from '../design/tokens'
+import { referenceCopy } from '../messages/reference'
 
 const LIST = {
   display: 'flex',
@@ -49,7 +50,7 @@ const BAND = {
  */
 export function Changelog({ entries }: ChangelogProps) {
   if (entries.length === 0) {
-    return <EmptyState variant="quiet" body="No changelog entries yet." />
+    return <EmptyState variant="quiet" body={referenceCopy('noChangelogEntriesYet')} />
   }
 
   return (

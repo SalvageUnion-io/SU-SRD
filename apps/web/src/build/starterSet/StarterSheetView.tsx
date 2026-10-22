@@ -23,6 +23,7 @@ import {
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { starterTemplate } from '../../lib/starterSet/starterTemplates'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
 import { MakeACopy } from './MakeACopy'
@@ -45,9 +46,9 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
   if (!isSheetKind(kind) || template === null) {
     return (
       <NotFoundPanel
-        title="That isn’t in the Starter Set"
-        message="No Starter Set build lives at this address."
-        back={{ href: '/starter', label: 'Starter Set' }}
+        title={buildStarterSetCopy('thatIsntInTheStarter')}
+        message={buildStarterSetCopy('noStarterSetBuildLives')}
+        back={{ href: '/starter', label: buildStarterSetCopy('starterSet2') }}
       />
     )
   }
@@ -59,7 +60,7 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
         id={id}
         store={STARTER_STORE}
         hrefFor={starterHref}
-        back={{ href: '/starter', label: 'Starter Set' }}
+        back={{ href: '/starter', label: buildStarterSetCopy('starterSet2') }}
         readOnly
         bandActions={
           <MakeACopy kind={kind} templateId={id} name={template.name} confirm={confirm} />

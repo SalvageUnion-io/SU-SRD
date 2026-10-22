@@ -57,6 +57,7 @@ import { LinkRefused } from '../../lib/links/linkRefused'
 import { readReference } from '../../lib/readReference'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { wiringCopy } from '../../messages/build-wiring'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from './useSoftLinks'
@@ -98,60 +99,60 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
     assignAria: 'Assign mech to pilot',
     change: 'Change Mech',
     changeAria: 'Change mech for this pilot',
-    title: 'Assign Mech to Pilot',
+    title: wiringCopy('assignMechToPilot'),
     confirm: 'Assign',
     confirmAria: 'Confirm mech assignment',
     pending: 'Assigning…',
-    note: 'A pilot flies one mech and a mech carries one pilot — picking a mech already flown moves it to this pilot.',
+    note: wiringCopy('aPilotFliesOneMech'),
   },
   'pilot.crawler': {
     assign: 'Assign Crawler',
     assignAria: 'Assign crawler to pilot',
     change: 'Change Crawler',
     changeAria: 'Change crawler for this pilot',
-    title: 'Assign Pilot to Crawler',
+    title: wiringCopy('assignPilotToCrawler'),
     confirm: 'Assign',
     confirmAria: 'Confirm crawler assignment',
     pending: 'Assigning…',
-    note: 'A pilot crews one crawler — picking another moves them there. Their mech is assigned separately.',
+    note: wiringCopy('aPilotCrewsOneCrawler'),
   },
   'mech.pilot': {
     assign: 'Assign Pilot',
     assignAria: 'Assign pilot to mech',
     change: 'Change Pilot',
     changeAria: 'Change pilot for this mech',
-    title: 'Assign Pilot to Mech',
+    title: wiringCopy('assignPilotToMech'),
     confirm: 'Assign',
     confirmAria: 'Confirm pilot assignment',
     pending: 'Assigning…',
-    note: 'A mech carries one pilot and a pilot flies one mech — picking a pilot already in another mech moves them here.',
+    note: wiringCopy('aMechCarriesOnePilot'),
   },
   'mech.crawler': {
     assign: 'Assign Crawler',
     assignAria: 'Assign crawler to mech',
     change: 'Change Crawler',
     changeAria: 'Change crawler for this mech',
-    title: 'Assign Mech to Crawler',
+    title: wiringCopy('assignMechToCrawler'),
     confirm: 'Assign',
     confirmAria: 'Confirm crawler assignment',
     pending: 'Assigning…',
-    note: 'A mech is assigned to one crawler, on its own — its pilot is assigned separately.',
+    note: wiringCopy('aMechIsAssignedTo'),
   },
   'crawler.pilot': {
     assign: '+ Add Crew',
-    title: 'Add Pilot to Crew',
+    title: wiringCopy('addPilotToCrew'),
     confirm: 'Add to Crew',
     confirmAria: 'Confirm crew assignment',
     pending: 'Adding…',
-    note: 'A pilot crews one crawler — adding one already assigned to another moves them here.',
+    note: wiringCopy('aPilotCrewsOneCrawler2'),
   },
   'crawler.mech': {
     assign: '+ Assign Mech',
-    title: 'Assign Mech to Crawler',
+    title: wiringCopy('assignMechToCrawler'),
     confirm: 'Assign',
     confirmAria: 'Confirm mech assignment',
     pending: 'Assigning…',
-    note: 'A mech is assigned to one crawler — assigning one from another bay moves it here. Its pilot is assigned separately.',
+    note: wiringCopy('aMechIsAssignedTo2'),
   },
 }
 
@@ -179,7 +180,7 @@ function chassisName(chassisRef: string): string | undefined {
 const pilotCandidate = (p: Pilot): Candidate => ({
   id: p.id,
   name: p.name,
-  readings: p.callsign ? [{ label: 'Callsign', value: p.callsign }] : [],
+  readings: p.callsign ? [{ label: wiringCopy('callsign'), value: p.callsign }] : [],
 })
 
 const mechCandidate = (m: Mech): Candidate => ({
@@ -190,7 +191,11 @@ const mechCandidate = (m: Mech): Candidate => ({
 
 const crawlerCandidate = (c: Crawler): Candidate => {
   const tl = parseCrawlerTechLevel(c.techLevel)
-  return { id: c.id, name: c.name, readings: tl === undefined ? [] : [{ label: 'TL', value: tl }] }
+  return {
+    id: c.id,
+    name: c.name,
+    readings: tl === undefined ? [] : [{ label: wiringCopy('tl'), value: tl }],
+  }
 }
 
 /**

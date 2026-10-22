@@ -16,6 +16,7 @@ import { selectMode } from './selectMode'
 import { srdCss } from './srdCss'
 import { stylingOwnership } from './stylingOwnership'
 import { toneGround } from './toneGround'
+import { uiStrings } from './uiStrings'
 
 export const RULE_SETS: readonly RuleSet[] = [
   designTokens,
@@ -29,4 +30,5 @@ export const RULE_SETS: readonly RuleSet[] = [
   selectMode,
   controlLaws,
   copyTerms,
+  uiStrings,
 ]

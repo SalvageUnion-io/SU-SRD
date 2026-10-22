@@ -1,5 +1,5 @@
 /**
- * `/roadmap` — what is being built now, next and later (ADR-054).
+ * `/roadmap` — what is being built now, next and later (ADR-055).
  *
  * Hand-written, and edited in the repository each release: the lists below are
  * the page. No dates, and nothing a publisher has not announced: a roadmap is
@@ -14,11 +14,11 @@ import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
 import { BOLD, bulletList, PROSE, PROSE_12 } from '../../lib/docPageStyles'
 import { DOC_PAGES } from '../../lib/docPages'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import { DocPage } from '../DocPage'
 
-const TITLE = pageTitle('Roadmap')
-const DESCRIPTION =
-  'What is being built for SalvageUnion.io now, what comes next, and what is further out.'
+const TITLE = pageTitle(pagesCopy('roadmap'))
+const DESCRIPTION = pagesCopy('roadmapDescription')
 
 const LIST = bulletList(space[8], 'margin')
 
@@ -27,60 +27,25 @@ type Item = { name: string; detail: string }
 
 /** Being built for the next release. */
 const NOW: readonly Item[] = [
-  {
-    name: 'A front door for the Starter Set',
-    detail: 'one page for new box owners, with the boxed crew ready to copy into The Cantina',
-  },
-  {
-    name: 'Suggest or report',
-    detail:
-      'send an idea or a problem from the app’s account menu, or with /su feedback in Discord',
-  },
-  {
-    name: 'Sheets at a table with no signal',
-    detail:
-      'your own sheets and the reference stay readable offline; changes wait until you are back',
-  },
-  {
-    name: 'A phone table mode for Play',
-    detail: 'the screen stays awake, with a big roll button and quick HP, AP and Heat',
-  },
-  {
-    name: 'A homebrew library',
-    detail: 'browse the patterns, NPCs and crawler bays players choose to share, and copy them',
-  },
-  {
-    name: 'A Mediator prep kit',
-    detail: 'build an encounter before the session, then launch it into a Game',
-  },
-  {
-    name: 'Data out',
-    detail: 'a versioned, documented dataset API, and Export to Foundry for Pilots and Mechs',
-  },
-  {
-    name: 'Shared Mechs and Crawlers in a Game',
-    detail: 'clearer rules for who looks after the crew’s machines',
-  },
+  { name: pagesCopy('roadmapStarterSet'), detail: pagesCopy('roadmapStarterSetDetail') },
+  { name: pagesCopy('roadmapFeedback'), detail: pagesCopy('roadmapFeedbackDetail') },
+  { name: pagesCopy('roadmapOffline'), detail: pagesCopy('roadmapOfflineDetail') },
+  { name: pagesCopy('roadmapTableMode'), detail: pagesCopy('roadmapTableModeDetail') },
+  { name: pagesCopy('roadmapHomebrew'), detail: pagesCopy('roadmapHomebrewDetail') },
+  { name: pagesCopy('roadmapPrepKit'), detail: pagesCopy('roadmapPrepKitDetail') },
+  { name: pagesCopy('roadmapDataOut'), detail: pagesCopy('roadmapDataOutDetail') },
+  { name: pagesCopy('roadmapSharedMachines'), detail: pagesCopy('roadmapSharedMachinesDetail') },
 ]
 
 /** Planned once the current work is out. */
 const NEXT: readonly Item[] = [
-  {
-    name: 'The bot in Discord’s App Directory',
-    detail: 'add it to your server from Discord itself',
-  },
-  {
-    name: 'An Owlbear Rodeo extension',
-    detail: 'your linked sheets beside the map at an online table',
-  },
+  { name: pagesCopy('roadmapAppDirectory'), detail: pagesCopy('roadmapAppDirectoryDetail') },
+  { name: pagesCopy('roadmapOwlbear'), detail: pagesCopy('roadmapOwlbearDetail') },
 ]
 
 /** Further out, and less certain. */
 const LATER: readonly Item[] = [
-  {
-    name: 'The interface in other languages',
-    detail: 'the groundwork lands now; languages follow',
-  },
+  { name: pagesCopy('roadmapLanguages'), detail: pagesCopy('roadmapLanguagesDetail') },
 ]
 
 function Items({ items }: { items: readonly Item[] }) {
@@ -108,43 +73,43 @@ function page(): PageResult {
         url: `${SITE_URL}/roadmap/`,
         isPartOf: WEBSITE,
       },
-      breadcrumbs: [SRD_CRUMB, { name: 'Roadmap', url: `${SITE_URL}/roadmap/` }],
+      breadcrumbs: [SRD_CRUMB, { name: pagesCopy('roadmap'), url: `${SITE_URL}/roadmap/` }],
     },
     children: (
-      <DocPage title="Roadmap" measure="48rem" gap={space[32]}>
+      <DocPage title={pagesCopy('roadmap')} measure="48rem" gap={space[32]}>
         <p style={PROSE}>
-          What we are building, and what we would like to build after it. Plans change, so there are
-          no dates; this page is updated with each release, and the{' '}
+          {pagesCopy('roadmapIntro')}{' '}
           <InlineRef href={DOC_PAGES.changelog.href} style={BOLD}>
-            Changelog
+            {pagesCopy('changelog')}
           </InlineRef>{' '}
-          says what has shipped.
+          {pagesCopy('roadmapSaysWhatHasShipped')}
         </p>
 
-        <SlabSection as="h2" title="Now" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('roadmapNow')} bodyStyle={PROSE_12} page>
           <Items items={NOW} />
         </SlabSection>
 
-        <SlabSection as="h2" title="Next" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('roadmapNext')} bodyStyle={PROSE_12} page>
           <Items items={NEXT} />
         </SlabSection>
 
-        <SlabSection as="h2" title="Later" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('roadmapLater')} bodyStyle={PROSE_12} page>
           <Items items={LATER} />
         </SlabSection>
 
-        <SlabSection as="h2" title="Tell us" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('roadmapTellUs')} bodyStyle={PROSE_12} page>
           <p>
-            Something missing, or something broken? Signed in to{' '}
+            {pagesCopy('roadmapSomethingMissing')}{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
-              the app
+              {pagesCopy('roadmapTheApp')}
             </InlineRef>
-            , choose <strong>Suggest or report</strong> in your account menu, or type{' '}
-            <code>/su feedback</code> where the{' '}
+            {pagesCopy('roadmapChoose')} <strong>{pagesCopy('roadmapFeedback')}</strong>{' '}
+            {pagesCopy('roadmapInYourAccountMenu')} <code>{pagesCopy('suFeedback')}</code>{' '}
+            {pagesCopy('roadmapWhereThe')}{' '}
             <InlineRef href={DOC_PAGES.discord.href} style={BOLD}>
-              Discord bot
+              {pagesCopy('discordBot')}
             </InlineRef>{' '}
-            is. Each note becomes a public issue on GitHub, without your name.
+            {pagesCopy('roadmapIsEachNote')}
           </p>
         </SlabSection>
       </DocPage>

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { sharedCopy } from '../../messages/components-shared'
 import { Banner, tokens } from '../index'
 
 /**
@@ -35,7 +36,7 @@ const STRIP = {
 const NOT_CONNECTED = [
   {
     severity: 'warn' as const,
-    message: 'Not connected — your Games are read-only until the connection returns',
+    message: sharedCopy('notConnectedYourGamesAre'),
   },
 ]
 

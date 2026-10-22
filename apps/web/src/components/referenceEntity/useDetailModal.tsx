@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { entityRef } from 'salvageunion-reference'
+import { referenceEntityCopy } from '../../messages/components-reference-entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
@@ -54,7 +55,7 @@ export function useDetailModal(
     key: 'detail',
     icon: DetailIcon,
     onClick: linksOut ? () => window.location.assign(href) : () => setOpen(true),
-    ariaLabel: 'View details',
+    ariaLabel: referenceEntityCopy('viewDetails'),
     hidden: true,
     cardClick: true,
   }

@@ -31,6 +31,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import { createBlank } from '../../lib/wizard/blankCreate'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
@@ -72,7 +73,7 @@ function chassisOptions(): RefOption[] {
         .sort((a, b) => byTechLevelThenName(a, b))
         .map((c) => ({
           value: nameToSlug(c.name),
-          label: `${c.name} · TL ${String(c.techLevel)}`,
+          label: buildWizardCopy('tl', { name: c.name, string: String(c.techLevel) }),
         })),
     []
   )
@@ -85,7 +86,10 @@ function techLevelOptions(): RefOption[] {
     () =>
       [...SalvageUnionReference.CrawlerTechLevels.all()]
         .sort((a, b) => a.techLevel - b.techLevel)
-        .map((t) => ({ value: String(t.techLevel), label: `TL ${t.techLevel} · ${t.name}` })),
+        .map((t) => ({
+          value: String(t.techLevel),
+          label: buildWizardCopy('tl2', { techLevel: t.techLevel, name: t.name }),
+        })),
     []
   )
 }
@@ -149,15 +153,13 @@ export function BlankCreateDialog({
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title={`Blank ${label}`}
+      title={buildWizardCopy('blank', { label })}
       width="narrow"
     >
       <div style={dialogBodyStyle}>
-        <p style={noteStyle}>
-          An empty sheet — no steps, no limits. Fill in the rest on the live sheet.
-        </p>
+        <p style={noteStyle}>{buildWizardCopy('anEmptySheetNoSteps')}</p>
 
-        <Field label="Name" required htmlFor={`blank-${kind}-name`}>
+        <Field label={buildWizardCopy('name')} required htmlFor={`blank-${kind}-name`}>
           <Input
             id={`blank-${kind}-name`}
             value={name}
@@ -168,12 +170,12 @@ export function BlankCreateDialog({
         </Field>
 
         {kind === 'pilot' && (
-          <Field label="Callsign" required htmlFor="blank-pilot-callsign">
+          <Field label={buildWizardCopy('callsign')} required htmlFor="blank-pilot-callsign">
             <Input
               id="blank-pilot-callsign"
               value={callsign}
               onChange={(e) => setCallsign(e.target.value)}
-              placeholder="Callsign"
+              placeholder={buildWizardCopy('callsign')}
               autoComplete="off"
             />
           </Field>
@@ -181,7 +183,11 @@ export function BlankCreateDialog({
 
         {(kind === 'pilot' || kind === 'mech') && (
           <Field
-            label={kind === 'pilot' ? 'Class (optional)' : 'Chassis (optional)'}
+            label={
+              kind === 'pilot'
+                ? buildWizardCopy('classOptional')
+                : buildWizardCopy('chassisOptional')
+            }
             htmlFor={`blank-${kind}-pick`}
           >
             <Select
@@ -189,7 +195,7 @@ export function BlankCreateDialog({
               value={refPick}
               onChange={(e) => setRefPick(e.target.value)}
             >
-              <option value="">None — decide on the sheet</option>
+              <option value="">{buildWizardCopy('noneDecideOnTheSheet')}</option>
               {pickOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -200,7 +206,7 @@ export function BlankCreateDialog({
         )}
 
         {kind === 'crawler' && (
-          <Field label="Tech Level" htmlFor="blank-crawler-tl">
+          <Field label={buildWizardCopy('techLevel')} htmlFor="blank-crawler-tl">
             <Select
               id="blank-crawler-tl"
               value={String(techLevel)}
@@ -219,16 +225,16 @@ export function BlankCreateDialog({
 
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
-            Cancel
+            {buildWizardCopy('cancel')}
           </Button>
           <Button
             variant="primary"
             size="compact"
             onClick={() => void handleCreate()}
             disabled={pending || !canSubmit}
-            aria-label={`Create blank ${label.toLowerCase()}`}
+            aria-label={buildWizardCopy('createBlank', { lowerCase: label.toLowerCase() })}
           >
-            {pending ? 'Creating…' : `Create ${label}`}
+            {pending ? buildWizardCopy('creating') : buildWizardCopy('create', { label })}
           </Button>
         </DialogActions>
       </div>

@@ -10,7 +10,7 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * "Suggest or report" and `/su feedback` (ADR-054): a note is held only until
+ * "Suggest or report" and `/su feedback` (ADR-055): a note is held only until
  * it is filed as a GitHub issue, carries no name, and one sender gets a few a day.
  */
 

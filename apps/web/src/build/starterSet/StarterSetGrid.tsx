@@ -7,6 +7,7 @@
 
 import type { CSSProperties } from 'react'
 import { Grid, Slab, Stack, tokens } from '../../components/index'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
 
@@ -30,7 +31,7 @@ export function StarterSetGrid() {
           as="section"
           gap={12}
           key={shelf.kind}
-          aria-label={`Starter Set ${shelf.title.toLowerCase()}`}
+          aria-label={buildStarterSetCopy('starterSet', { lowerCase: shelf.title.toLowerCase() })}
         >
           {/* Each kind's section stamp is a Slab, as on `/starter` (ruleset
               §3.2: slabs section). */}

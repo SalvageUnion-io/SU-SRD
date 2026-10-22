@@ -4,6 +4,7 @@ import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Box, EmptyState, FieldError, ReferenceEntityCard, tokens } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import '../../styles/build/wizard.css'
+import { pilotCopy } from '../../messages/build-pilot'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.su-wiz-review-grid`. */
@@ -50,15 +51,15 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
       {/* The recap: Stats, the class as its chip, the picks as Minis. */}
       <Box className="su-wiz-review-panel--start" bodyClassName="su-wiz-review-panel">
         <Recap>
-          <RecapStat label="Name" value={form.name.trim()} required />
-          <RecapStat label="Callsign" value={form.callsign.trim()} required />
-          <RecapEntity label="Class" entity={selectedClass} required />
-          <RecapStat label="Motto" value={form.motto} />
-          <RecapStat label="Keepsake" value={form.keepsake} />
-          <RecapStat label="Appearance" value={form.appearance} />
-          <RecapStat label="Background" value={form.background} />
-          <RecapMinis label="Abilities" entities={chosenAbilities} />
-          <RecapMinis label="Equipment" entities={chosenEquipment} />
+          <RecapStat label={pilotCopy('name')} value={form.name.trim()} required />
+          <RecapStat label={pilotCopy('callsign')} value={form.callsign.trim()} required />
+          <RecapEntity label={pilotCopy('class')} entity={selectedClass} required />
+          <RecapStat label={pilotCopy('motto')} value={form.motto} />
+          <RecapStat label={pilotCopy('keepsake')} value={form.keepsake} />
+          <RecapStat label={pilotCopy('appearance')} value={form.appearance} />
+          <RecapStat label={pilotCopy('background')} value={form.background} />
+          <RecapMinis label={pilotCopy('abilities')} entities={chosenAbilities} />
+          <RecapMinis label={pilotCopy('equipment')} entities={chosenEquipment} />
         </Recap>
         {submitError && <FieldError>{submitError}</FieldError>}
       </Box>
@@ -86,7 +87,11 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           />
         ))}
         {chosenAbilities.length === 0 && chosenEquipment.length === 0 && (
-          <EmptyState variant="quiet" body="No abilities or equipment chosen." bodyInk="inherit" />
+          <EmptyState
+            variant="quiet"
+            body={pilotCopy('noAbilitiesOrEquipmentChosen')}
+            bodyInk="inherit"
+          />
         )}
       </div>
     </div>

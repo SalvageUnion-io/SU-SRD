@@ -13,6 +13,7 @@
 import type { CSSProperties } from 'react'
 import { SlabSection, tokens } from '../../components/index'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 const PANEL = {
@@ -33,7 +34,7 @@ export function StarterShelf() {
     <SlabSection
       as="h2"
       id="shelf-starter"
-      title="Starter Set"
+      title={buildShelvesCopy('starterSet')}
       count="read-only"
       countAt="label"
       fold="closed"

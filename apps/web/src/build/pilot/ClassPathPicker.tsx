@@ -26,6 +26,7 @@ import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { pilotCopy } from '../../messages/build-pilot'
 
 /** The caps note under a class card ("current", "via Hacker", …). */
 const OPTION_NOTE = {
@@ -153,9 +154,9 @@ function Ledger({
 }) {
   return (
     <Stack gap={12}>
-      <LedgerList label="Gain" items={consequence.gain} allClasses={allClasses} />
-      <LedgerList label="Lose" items={consequence.lose} allClasses={allClasses} />
-      <LedgerList label="Keep" items={consequence.keep} allClasses={allClasses} />
+      <LedgerList label={pilotCopy('gain')} items={consequence.gain} allClasses={allClasses} />
+      <LedgerList label={pilotCopy('lose')} items={consequence.lose} allClasses={allClasses} />
+      <LedgerList label={pilotCopy('keep')} items={consequence.keep} allClasses={allClasses} />
     </Stack>
   )
 }
@@ -177,7 +178,7 @@ export function ClassPathPicker({
 
   return (
     <div className="su-wiz-class-path" style={PICKER}>
-      <RadioCardGroup label="Class">
+      <RadioCardGroup label={pilotCopy('class')}>
         {groups.map((group) => (
           <div key={group.kind} style={GROUP}>
             <Slab label={group.label} />
@@ -211,14 +212,14 @@ export function ClassPathPicker({
               <>
                 <Callout tone="ink">
                   <p style={ORIGIN_COPY}>
-                    <strong>Where did they come from?</strong> A {consequence.title} is reached from{' '}
-                    {consequence.originChoices.join(' or ')}. This pilot is neither, so the sheet
-                    needs to know which —{' '}
-                    <strong>each answer seals a different pair of trees.</strong> You can leave it
+                    <strong>{pilotCopy('whereDidTheyComeFrom')}</strong> A {consequence.title} is
+                    reached from {consequence.originChoices.join(' or ')}. This pilot is neither, so
+                    the sheet needs to know which —{' '}
+                    <strong>{pilotCopy('eachAnswerSealsADifferent')}</strong> You can leave it
                     unanswered; nothing will be sealed.
                   </p>
                 </Callout>
-                <RadioCardGroup label="Origin class">
+                <RadioCardGroup label={pilotCopy('originClass')}>
                   {originChoiceClasses.map((cls) => (
                     <div key={cls.id} className="su-wiz-class-card">
                       <Entity
@@ -230,7 +231,7 @@ export function ClassPathPicker({
                           role: 'radio',
                           selected: cls.id === answeredOrigin,
                           onSelect: () => onAnswerOrigin(cls.id),
-                          label: `Came from ${cls.name}`,
+                          label: pilotCopy('cameFrom', { name: cls.name }),
                         }}
                       />
                     </div>

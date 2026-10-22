@@ -22,12 +22,13 @@ import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import type { StatItem } from '../../components/index'
 import { Art, Button, Chips, Content, Field, TitledBox, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 /** The callout's one chip: a bare label, saying what the block is. */
-const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
+const KIND: StatItem[] = [{ key: 'kind', label: buildSheetCopy('chassis'), value: undefined }]
 
 /** Its band: the one label-only cell, at the Compact Size of a Compact's head. */
 const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="compact" />
@@ -73,9 +74,9 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
 
   if (!model) {
     return (
-      <section aria-label="Chassis">
+      <section aria-label={buildSheetCopy('chassis')}>
         <Field
-          label="Chassis"
+          label={buildSheetCopy('chassis')}
           value={chassisName}
           onEditClick={patch ? () => setPickerOpen(true) : undefined}
         />
@@ -89,13 +90,13 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
       <TitledBox
         as="section"
         title={chassisName}
-        label="Chassis"
+        label={buildSheetCopy('chassis')}
         tone={model.tone}
         chips={KIND_CHIPS}
         controls={
           patch && (
             <Button variant="default" size="mini" onClick={() => setPickerOpen(true)}>
-              Change Chassis
+              {buildSheetCopy('changeChassis')}
             </Button>
           )
         }

@@ -23,6 +23,7 @@ import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
 import { Button, ModalShell, tokens } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayBinding } from '../channels.model'
 import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
@@ -90,7 +91,7 @@ export function PlayMediatorProposeSection({
 }: ProposeProps) {
   const [allOpen, setAllOpen] = useState(false)
   return (
-    <section aria-label="Propose" style={docked ? DOCK : SECTION}>
+    <section aria-label={mediatorCopy('propose')} style={docked ? DOCK : SECTION}>
       <ProposeDock
         targets={proposalTargets(mediator.crew)}
         targetId={targetId}
@@ -103,14 +104,14 @@ export function PlayMediatorProposeSection({
         // The dock's last chip (C8, hard rule R6), never a line under it.
         controls={
           <Button size="mini" onClick={() => setAllOpen(true)}>
-            All proposals
+            {mediatorCopy('allProposals')}
           </Button>
         }
       />
       <ModalShell
         open={allOpen}
         onOpenChange={setAllOpen}
-        title="Proposals you sent"
+        title={mediatorCopy('proposalsYouSent')}
         width="default"
       >
         <ProposalsList

@@ -210,5 +210,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 53. **ADR-053 Canon as gates**
     Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
     hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
-54. **ADR-054 Usage signals and feedback** · [full text](adr/054-usage-signals-feedback.md)
+54. **ADR-054 One message catalogue** · [full text](adr/054-message-catalogue.md)
+    Built: UI words are keys in `apps/web/src/messages/`, values as `{name}`; English only; the `ui-strings` gate ratchets the rest.
+55. **ADR-055 Usage signals and feedback** · [full text](adr/055-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.

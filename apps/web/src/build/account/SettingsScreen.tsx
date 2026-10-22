@@ -20,6 +20,7 @@ import {
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { buildAccountCopy } from '../../messages/build-account'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -93,20 +94,21 @@ function SignedInAccount() {
   // `ConfirmDialog`).
   const eraseFailure = useRef('')
 
-  if (me === undefined) return <Pending label="your account" />
-  if (me === null) return <EmptyState variant="quiet" body="No account is held for this sign-in." />
+  if (me === undefined) return <Pending label={buildAccountCopy('yourAccount')} />
+  if (me === null)
+    return <EmptyState variant="quiet" body={buildAccountCopy('noAccountIsHeldFor')} />
 
   const value = name ?? me.displayName ?? ''
 
   return (
     <Stack gap={32}>
-      <Section id="settings-name" title="Display name">
+      <Section id="settings-name" title={buildAccountCopy('displayName')}>
         {/* No `Field` wrapper: the stamp already reads "Display name". A blank
             name falls back to the Discord one, which the placeholder says. */}
         <Cluster gap={8}>
           <Input
-            aria-label="Display name"
-            placeholder="Your Discord name"
+            aria-label={buildAccountCopy('displayName')}
+            placeholder={buildAccountCopy('yourDiscordName')}
             style={GROW}
             value={value}
             onChange={(e) => setName(e.target.value)}
@@ -118,15 +120,15 @@ function SignedInAccount() {
             disabled={save.pending}
             onClick={() => void save.run({ displayName: value })}
           >
-            {save.pending ? 'Saving…' : 'Save'}
+            {save.pending ? buildAccountCopy('saving') : buildAccountCopy('save')}
           </Button>
         </Cluster>
         <FieldError>{save.error}</FieldError>
       </Section>
 
-      <Section id="settings-data" title="Your data">
+      <Section id="settings-data" title={buildAccountCopy('yourData')}>
         <Text variant="hint" style={NOTE}>
-          Everything you own. Crewmates' characters and shared crawlers are theirs.
+          {buildAccountCopy('everythingYouOwnCrewmatesCharacters')}
         </Text>
         <Cluster gap={8}>
           <Button
@@ -134,19 +136,18 @@ function SignedInAccount() {
             disabled={exported === undefined}
             onClick={() => exported && download('salvageunion-account-export.json', exported)}
           >
-            Download my data
+            {buildAccountCopy('downloadMyData')}
           </Button>
         </Cluster>
       </Section>
 
-      <Section id="settings-delete" title="Delete account">
+      <Section id="settings-delete" title={buildAccountCopy('deleteAccount')}>
         <Text variant="hint" style={NOTE}>
-          Deletes your pilots and mechs. Games you are in survive: their crawler stays, and one you
-          organise passes to its longest-standing member. This cannot be undone.
+          {buildAccountCopy('deletesYourPilotsAndMechs')}
         </Text>
         <Cluster gap={8}>
           <Button variant="primary" className={ACTION} onClick={() => setConfirming(true)}>
-            Delete my account
+            {buildAccountCopy('deleteMyAccount')}
           </Button>
         </Cluster>
         <ConfirmDialog
@@ -155,11 +156,11 @@ function SignedInAccount() {
             if (!open) erase.clearError()
             setConfirming(open)
           }}
-          title="Delete your account?"
+          title={buildAccountCopy('deleteYourAccount')}
           tone="danger"
-          body="Everything you own is deleted for good. The Games you are in carry on without you. This cannot be undone."
-          confirmLabel="Permanently delete"
-          pendingLabel="Deleting…"
+          body={buildAccountCopy('everythingYouOwnIsDeleted')}
+          confirmLabel={buildAccountCopy('permanentlyDelete')}
+          pendingLabel={buildAccountCopy('deleting')}
           onConfirm={async () => {
             const result = await erase.run({})
             if (!result.ok) {
@@ -180,18 +181,13 @@ function SettingsBody() {
   if (mode === 'connected') return <SignedInAccount />
 
   if (mode === 'disconnected') {
-    return (
-      <EmptyState
-        variant="quiet"
-        body="Your account is unreachable right now. Reconnect to change your settings."
-      />
-    )
+    return <EmptyState variant="quiet" body={buildAccountCopy('yourAccountIsUnreachableRight')} />
   }
 
   return (
     <EmptyState
       variant="quiet"
-      body={`You are not signed in. Signed out, the app is read-only: building anything needs an account.`}
+      body={buildAccountCopy('youAreNotSignedIn')}
       action={<SignInControl />}
     />
   )
@@ -204,7 +200,7 @@ export function SettingsScreen() {
       stack={false}
       band={
         <ChapterBand tone="ink" measure={PAGE_MEASURE}>
-          Settings
+          {buildAccountCopy('settings')}
         </ChapterBand>
       }
     >

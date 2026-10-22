@@ -9,6 +9,7 @@
 
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { READ_ONLY_BANNER } from './readOnlyBanner.model'
 
 const WHY: Record<EntityKind, string> = {
@@ -23,7 +24,7 @@ export function CrewSheetBanner({ kind, children }: { kind: EntityKind; children
     <div className="su-page-gutters">
       <div
         role="note"
-        aria-label="Read-only crew sheet"
+        aria-label={buildSheetCopy('readOnlyCrewSheet')}
         // Its gutter is `.su-sheet-gutter`.
         className="su-sheet-gutter"
         style={READ_ONLY_BANNER}

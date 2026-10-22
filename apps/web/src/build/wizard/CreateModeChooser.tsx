@@ -19,6 +19,7 @@ import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { cn } from '../../lib/cn'
+import { buildWizardCopy } from '../../messages/build-wizard'
 
 type CreateModeChooserProps = {
   kind: SheetKind
@@ -39,15 +40,15 @@ const KIND_LABEL: Record<SheetKind, string> = {
 /** Guided-door copy + Core Book citation per kind. */
 const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
-    body: 'Step through the Pilot Bay rules, one card at a time — class, abilities, equipment, identity.',
+    body: buildWizardCopy('stepThroughThePilotBay'),
     cite: 'The Pilot Bay begins on p. 18.',
   },
   mech: {
-    body: 'Step through the Mech Bay rules, one card at a time — chassis, pattern, systems and modules.',
+    body: buildWizardCopy('stepThroughTheMechBay'),
     cite: 'The Mech Bay begins on p. 94.',
   },
   crawler: {
-    body: 'Step through crawler creation, one card at a time — type, armament, crew, identity.',
+    body: buildWizardCopy('stepThroughCrawlerCreationOne'),
     cite: 'Union Crawlers begin on p. 212.',
   },
 }
@@ -89,7 +90,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
     <section
       className={`su-sheet--${kind}`}
       style={screenStyle}
-      aria-label={`New ${label.toLowerCase()} — choose how to create`}
+      aria-label={buildWizardCopy('newChooseHowToCreate', { lowerCase: label.toLowerCase() })}
     >
       {/* The page title as every other page sets it: the notched ChapterBand
           in the kind's chapter colour, and beside it the Game the build was
@@ -99,27 +100,25 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
         asideAt="notch"
         aside={gameId === undefined ? undefined : <WizardGameChip gameId={gameId} />}
       >
-        New {label}
+        {buildWizardCopy('new', { label })}
       </ChapterBand>
 
       <div className="su-wiz-chooser-body" style={bodyStyle}>
         {/* The two doors. */}
         <div className="su-wiz-chooser-doors">
-          <TitledBox title="Guided" tone={kind}>
+          <TitledBox title={buildWizardCopy('guided')} tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
             <Button variant="primary" style={doorAct} onClick={onGuided}>
-              Start guided
+              {buildWizardCopy('startGuided')}
             </Button>
           </TitledBox>
 
-          <TitledBox title="Blank">
-            <p style={doorText}>
-              An empty sheet. No steps, no limits. Fill it in on the live sheet.
-            </p>
-            <p style={doorCite}>For veterans, imports, and homebrew.</p>
+          <TitledBox title={buildWizardCopy('blank2')}>
+            <p style={doorText}>{buildWizardCopy('anEmptySheetNoSteps2')}</p>
+            <p style={doorCite}>{buildWizardCopy('forVeteransImportsAndHomebrew')}</p>
             <Button variant="ghost" style={doorAct} onClick={onBlank}>
-              Start blank
+              {buildWizardCopy('startBlank')}
             </Button>
           </TitledBox>
         </div>
@@ -133,8 +132,8 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
             style={patternLinkStyle}
           >
             A third door in the Blank family —{' '}
-            <span style={patternAccentStyle}>Instantiate from Pattern</span> · stamp a saved
-            pattern, then edit freely
+            <span style={patternAccentStyle}>{buildWizardCopy('instantiateFromPattern')}</span> ·
+            stamp a saved pattern, then edit freely
           </AppLink>
         )}
       </div>

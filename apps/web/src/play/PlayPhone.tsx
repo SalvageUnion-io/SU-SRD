@@ -24,6 +24,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
 import { Box, heatDangerFrom, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
 import type { PhoneTab, PinnedUnit } from './playPhone.model'
 
@@ -122,7 +123,7 @@ export function PlayPhone<Value extends string>({
             <div style={PANEL_BODY}>{panels[t.value]}</div>
           </TabPanel>
         ))}
-        <TabList label="Play" style={TAB_LIST}>
+        <TabList label={playCopy('play')} style={TAB_LIST}>
           {tabs.map((t) => (
             <Tab key={t.value} value={t.value} style={TAB}>
               {t.label}
@@ -181,13 +182,13 @@ const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
   if (units.length === 0) return null
   return (
-    <section aria-label="Pinned vitals" style={UNITS}>
+    <section aria-label={playCopy('pinnedVitals')} style={UNITS}>
       {units.map((unit) => (
         <Box key={unit.kind} frameColor={`var(--color-${unit.kind})`} body="flush" bodyStyle={UNIT}>
           <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
             {unit.name}
           </p>
-          <ul aria-label={`${unit.name}’s vitals`} style={CELLS}>
+          <ul aria-label={playCopy('sVitals', { name: unit.name })} style={CELLS}>
             {unit.vitals.map((v) => (
               <li key={v.label} style={CELL}>
                 <PlayVital

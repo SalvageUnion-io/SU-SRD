@@ -69,7 +69,7 @@ export type SiteClient = {
   ): Promise<SiteResult<BindChannelResult>>
   /** `/su unbind`: release whatever `channelId` is bound to. */
   unbindChannel(discordId: string, channelId: string): Promise<SiteResult<UnbindChannelResult>>
-  /** One answered command for the weekly tallies (ADR-054): its name and server, never who. */
+  /** One answered command for the weekly tallies (ADR-055): its name and server, never who. */
   usage(name: string, guildId: string | null): Promise<SiteResult<BotUsageResult>>
   /** `/su feedback`: hand a note on to be filed as a GitHub issue. */
   feedback(
