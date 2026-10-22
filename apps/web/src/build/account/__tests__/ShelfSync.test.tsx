@@ -81,6 +81,7 @@ function serve(roster: Partial<typeof EMPTY_ROSTER>) {
   setQueryAnswers({
     'entities:listMine': { ...EMPTY_ROSTER, ...roster },
     'entities:listWiring': EMPTY_WIRING,
+    'shelf:encounters': [],
   })
 }
 

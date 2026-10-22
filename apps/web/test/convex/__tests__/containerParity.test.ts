@@ -88,6 +88,7 @@ describe('container parity — every local store can reach the server', () => {
       softLinks: { fn: 'commitSoftLink', consumer: 'entityStore.ts' },
       mechPatterns: { fn: 'commitPatternWrite', consumer: 'patternStore.ts' },
       encounterNpcs: { fn: 'commitNpcWrite', consumer: 'encounterStore.ts' },
+      encounters: { fn: 'commitEncounterWrite', consumer: 'prepStore.ts' },
       changeLog: { fn: 'commitChangeLog', consumer: 'entityChangeLog.ts' },
     }
 
@@ -166,6 +167,7 @@ describe('container parity — every local store can reach the server', () => {
       'softLinks',
       'mechPatterns',
       'encounterNpcs',
+      'encounters',
       'changeLog',
     ])
     const unmapped = KIND_NAMES.filter((name) => tables.has(name) && !mapped.has(name))

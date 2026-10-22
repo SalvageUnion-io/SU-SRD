@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { instanceName } from 'game-domain/games/encounters'
 import {
   clampProposalValue,
   fieldLabel,
@@ -15,7 +16,7 @@ import {
 } from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mediatorSeats } from '../mediatorTable.model'
-import { instanceName, newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
+import { newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { proposalLine } from '../proposalLine.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'

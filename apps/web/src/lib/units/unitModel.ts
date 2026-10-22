@@ -12,7 +12,7 @@ import { nameToSlug } from 'salvageunion-reference'
 import type { EntityFormModel } from '../../components/index'
 import { syntheticModel } from './syntheticModel'
 
-export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
+export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc' | 'encounter'
 
 /**
  * A reading's chip class (`chips-and-actions.md` C2): its rank (`TL | 2`), a
@@ -58,6 +58,8 @@ const KIND: Record<
   crawler: { schemaName: 'crawlers', tone: 'crawler', domain: 'crawler', label: 'Crawler' },
   pattern: { schemaName: 'chassis', tone: 'mech', domain: 'mech', label: 'Pattern' },
   npc: { schemaName: 'npcs', tone: 'adversary', domain: 'actor', label: 'NPC' },
+  // A Mediator's prepared encounter (ADR-053) wears the Opposition's tone.
+  encounter: { schemaName: 'npcs', tone: 'adversary', domain: 'actor', label: 'Encounter' },
 }
 
 export function unitRowModel({

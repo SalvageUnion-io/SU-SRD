@@ -371,6 +371,22 @@ export async function commitNpcWrite(
 }
 
 /**
+ * Commit one encounter write (ADR-053). Shelf only and always the owner's,
+ * like a pattern; a Game runs a copy through `mediator.runEncounter`.
+ */
+export async function commitEncounterWrite(
+  op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
+): Promise<void> {
+  if (selectBackend() !== 'remote') return
+
+  if (op.kind === 'delete') {
+    await convexClient.mutation(api.shelf.removeEncounter, { encounterId: op.id })
+    return
+  }
+  await convexClient.mutation(api.shelf.upsertEncounter, { body: op.record })
+}
+
+/**
  * Write one soft link, and fail if it does not land.
  *
  * Addressed by its endpoints because the server has no `appId` column for links

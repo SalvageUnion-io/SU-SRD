@@ -6,6 +6,7 @@ import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { playTables } from './model/playTables'
+import { prepTables } from './model/prepTables'
 import { literalUnion } from './model/validators'
 
 /**
@@ -58,6 +59,8 @@ import { literalUnion } from './model/validators'
  *
  * Play's tables (the seat, the Game's Downtime and the Discord channel
  * bindings) and their validators are `model/playTables.ts`, spread in below.
+ * The Mediator's prep (encounters, and the one a Game runs) is
+ * `model/prepTables.ts`, spread in after it.
  *
  * The function modules take their arguments and declare their `returns`
  * against these same validators, never a hand-copied union.
@@ -543,4 +546,5 @@ export default defineSchema({
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
   ...playTables,
+  ...prepTables,
 })

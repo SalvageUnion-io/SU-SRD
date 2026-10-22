@@ -21,6 +21,8 @@
 import { useMutation, useQuery } from 'convex/react'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
+import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -30,6 +32,7 @@ import { failureMessage } from '../../lib/connection/useServerAction'
 import { rollMorale } from '../../lib/rules/opposition'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { useEntityStore } from '../../stores/entityStore'
+import { usePrepStore } from '../../stores/prepStore'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -64,6 +67,8 @@ export type PlayMediator = {
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
   tray: TrayWrites
+  /** The Mediator's prep (ADR-053): their encounters, and the one this Game is running. */
+  prep: MediatorPrep
   /** Newest first; null while the first answer is on its way. */
   sent: SentProposal[] | null
   sentLimit: number
@@ -78,6 +83,24 @@ export type PlayMediator = {
   now: number
   canWrite: boolean
   readOnly: PlayReadOnly | null
+}
+
+/** The Mediator's encounters, and the one the Game is running (ADR-053). */
+type MediatorPrep = {
+  /** Theirs, from their shelf; a Game runs a copy, never holds one. */
+  encounters: Encounter[]
+  /** The one running; null when none is (or while it loads). */
+  running: RunningEncounter | null
+  /** Run one: its opposition joins the tray (`clear` empties the tray first). */
+  run: (encounterId: string, clear: boolean) => Promise<{ added: number }>
+  /** Stop running it: its notes and tables leave Play; the Opposition stays. */
+  end: () => Promise<void>
+}
+
+/** A running encounter as the server keeps it, or null when it does not read. */
+function readRunning(body: unknown): RunningEncounter | null {
+  const parsed = RunningEncounterSchema.safeParse(body)
+  return parsed.success ? parsed.data : null
 }
 
 /** The Game's primary crawler: from the store when it is held (live), else the listing. */
@@ -112,6 +135,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const seats = useQuery(api.seats.forGame, { gameId: id })
   const listing = useQuery(api.entities.listForGame, { gameId: id })
   const npcs = useQuery(api.mediator.npcs, { gameId: id })
+  const running = useQuery(api.mediator.running, { gameId: id })
+  const encounters = usePrepStore((s) => s.encounters)
   const patterns = useQuery(api.mediator.patterns, { gameId: id })
   const sent = useQuery(api.proposals.sent, { gameId: id, limit: sentLimit })
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
@@ -121,6 +146,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const addNpc = useMutation(api.mediator.addNpc)
   const updateNpc = useMutation(api.mediator.updateNpc)
   const removeNpc = useMutation(api.mediator.removeNpc)
+  const runEncounter = useMutation(api.mediator.runEncounter)
+  const endEncounter = useMutation(api.mediator.endEncounter)
   const proposeMutation = useMutation(api.proposals.propose)
   const broadcastMutation = useMutation(api.proposals.broadcast)
 
@@ -190,6 +217,14 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,
+    prep: {
+      encounters,
+      running: running == null ? null : readRunning(running),
+      run: (encounterId, clear) => runEncounter({ gameId: id, encounterId, clear }),
+      end: async () => {
+        await endEncounter({ gameId: id })
+      },
+    },
     sent: sent ?? null,
     sentLimit,
     moreSent: () => setSentLimit((n) => n + PROPOSALS_PAGE),

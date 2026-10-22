@@ -10,6 +10,7 @@
 import { useEncounterStore } from './encounterStore'
 import { useEntityStore } from './entityStore'
 import { usePatternStore } from './patternStore'
+import { usePrepStore } from './prepStore'
 import { forgetVersions } from './serverVersions'
 
 /**
@@ -29,4 +30,5 @@ export function forgetLoadedRows(): void {
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: true })
   useEncounterStore.setState({ encounterNpcs: [], hydrated: true })
+  usePrepStore.setState({ encounters: [], hydrated: true })
 }

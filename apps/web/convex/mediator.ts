@@ -1,7 +1,9 @@
 import { ConvexError, v } from 'convex/values'
+import { runningFrom, trayNpcsFor } from 'game-domain/games/encounters'
+import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
 import type { Doc, Id } from './_generated/dataModel'
-import type { MutationCtx } from './_generated/server'
+import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { bodyAppId, mutation, parseBody } from './model/entities'
@@ -195,3 +197,93 @@ export const amMediator = query({
     return membership?.mediator ?? false
   },
 })
+
+/**
+ * The encounter this Game is running (ADR-053): its name, tables and notes,
+ * or null when none is. Mediator-only, like the tray it was run into.
+ */
+export const running = query({
+  args: { gameId: v.id('games') },
+  // The body, parsed when it was written, or null.
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    await requireMediator(ctx, args.gameId)
+    const row = await runningRow(ctx, args.gameId)
+    return row?.body ?? null
+  },
+})
+
+/**
+ * Run one of the caller's shelf encounters in this Game (ADR-053): its
+ * opposition joins the tray as fresh NPCs at full HP or SP, named apart from
+ * those already there, and its name, tables and notes become the Game's
+ * running encounter, in place of any it was running. The shelf encounter is
+ * copied, never moved, so it stays as it was built.
+ *
+ * `clear` empties the tray first. It is the Mediator's own choice, made in
+ * the dialog that names what it removes (ADR-007); nothing is cleared for them.
+ */
+export const runEncounter = mutation({
+  args: { gameId: v.id('games'), encounterId: v.string(), clear: v.boolean() },
+  handler: async (ctx, args): Promise<{ added: number }> => {
+    const { userId } = await requireMediator(ctx, args.gameId)
+    const row = await ctx.db
+      .query('encounters')
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId).eq('appId', args.encounterId))
+      .first()
+    if (row === null) throw new ConvexError('That encounter is not on your shelf')
+    const encounter = EncounterSchema.parse(row.body)
+
+    const tray = await ctx.db
+      .query('encounterNpcs')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    if (args.clear) for (const npc of tray) await ctx.db.delete(npc._id)
+    const taken = args.clear ? [] : tray.map((npc) => nameOf(npc.body))
+
+    const now = new Date().toISOString()
+    const fielded = trayNpcsFor(encounter.opposition, taken, now)
+    for (const npc of fielded) {
+      const appId = crypto.randomUUID()
+      await ctx.db.insert('encounterNpcs', {
+        gameId: args.gameId,
+        ownerId: null,
+        appId,
+        body: parseBody('encounterNpcs', { ...npc, id: appId }),
+      })
+    }
+
+    const body = RunningEncounterSchema.parse(runningFrom(encounter, now))
+    const current = await runningRow(ctx, args.gameId)
+    if (current === null) await ctx.db.insert('runningEncounters', { gameId: args.gameId, body })
+    else await ctx.db.patch(current._id, { body })
+    return { added: fielded.length }
+  },
+})
+
+/**
+ * Stop running the Game's encounter: its notes and tables leave Play. The
+ * Opposition it fielded stays on the tray, each NPC the Mediator's to remove.
+ */
+export const endEncounter = mutation({
+  args: { gameId: v.id('games') },
+  handler: async (ctx, args): Promise<void> => {
+    await requireMediator(ctx, args.gameId)
+    const current = await runningRow(ctx, args.gameId)
+    if (current !== null) await ctx.db.delete(current._id)
+  },
+})
+
+/** The Game's running-encounter row, one at most. */
+async function runningRow(ctx: QueryCtx | MutationCtx, gameId: Id<'games'>) {
+  return await ctx.db
+    .query('runningEncounters')
+    .withIndex('by_game', (q) => q.eq('gameId', gameId))
+    .first()
+}
+
+/** A tray body's name, read without trusting its shape. */
+function nameOf(body: unknown): string {
+  const name = (body as { name?: unknown } | null)?.name
+  return typeof name === 'string' ? name : ''
+}

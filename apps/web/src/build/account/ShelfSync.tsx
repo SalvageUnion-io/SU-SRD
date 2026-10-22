@@ -77,6 +77,7 @@ import { usePatternStore } from '../../stores/patternStore'
 import { rowMayBePruned } from '../../stores/pruneRules'
 import { registerSync } from '../../stores/rowArrival'
 import { noteVersion, serverVersions } from '../../stores/serverVersions'
+import { EncounterSync } from './EncounterSync'
 
 /** The body ids a served answer carries. */
 function servedIds(rows: readonly ServedRow[]): Set<string> {
@@ -328,6 +329,7 @@ export function ShelfSync() {
     <>
       <ConnectedShelfSync />
       <ConnectedWiringSync />
+      <EncounterSync />
     </>
   )
 }

@@ -206,4 +206,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Supersedes ADR-038 §1 and its layout; amends ADR-030, ADR-045; amended by ADR-052. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
-    Amends ADR-030 §6, ADR-051 §1.
+    Amends ADR-030 §6, ADR-051 §1; amended by ADR-053.
+53. **ADR-053 The Mediator's prep kit** · [full text](adr/053-mediator-prep-kit.md)
+    Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy.
+    Amends ADR-052 §1.
