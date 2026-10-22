@@ -3,13 +3,13 @@
  * kinds a player can share (pilot, mech, crawler, built NPC and mech pattern).
  *
  * Every kind answers the same three-way question, "Who can see it": Only me,
- * My Game's crew, or Anyone with the link. What differs is which answers a
+ * My Game's crew, or Public (anyone with the link). What differs is which answers a
  * kind can take, and why:
  *
  *  - **A sheet** (pilot, mech, crawler, NPC) lives in one container
  *    (ADR-030 §2). In a Game, its crew can see it because it is there; on the
  *    shelf, only its owner can. So the crew answer follows the container, and
- *    the one switch is "Anyone with the link" (`publicSheet.setPublic`).
+ *    the one switch is "Public" (`publicSheet.setPublic`).
  *  - **A pattern** never moves into a Game, so its crew answer is its own
  *    choice of Game (`shelf.setPatternVisibility`).
  *
@@ -37,7 +37,7 @@ export type VisibilityChoice = {
 const LABEL: Record<Visibility, string> = {
   private: 'Only me',
   game: 'My Game’s crew',
-  link: 'Anyone with the link',
+  link: 'Public',
 }
 
 /**

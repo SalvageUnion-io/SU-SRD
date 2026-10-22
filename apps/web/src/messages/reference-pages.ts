@@ -175,7 +175,7 @@ export const pagesCopy = messages({
   homebrewDescription:
     'Mech patterns Salvage Union players built and shared: homebrew, not from the book.',
   homebrewLede:
-    'Mech patterns players built in the Training Bay and shared with everyone on the Reference. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. To add one of yours, share it with anyone with the link, then with everyone on the Reference, from its Share settings.',
+    'Mech patterns players built in the Training Bay and shared with everyone on the Reference. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. To add one of yours, make it Public, then share it with everyone on the Reference, from its Share settings.',
   roadmapFeedback: 'Suggest or report',
   roadmapCustomBays: 'Custom crawler bays',
   roadmapPrintableSheets: 'Printable sheets',

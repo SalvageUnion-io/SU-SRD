@@ -21,5 +21,5 @@ One component per job, chosen by the job (R16).
 - **K8 Empty and error states** — `EmptyState`: the stamp on a Page or sheet section, quiet in app chrome, inline in a framed list; "No <things> yet."
   A crash is `RecoveryPanel`, a missing record `NotFoundPanel`, a failed act `toast.error`; the one retry verb is "Try again".
 - **K9 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink (ruleset §3.1), Play included; no outline, underline, dashed or colour-only variant.
-- **K10 Tabs, Segmented, Toggle** — `Tabs` switch what a region shows, `Segmented` sets a value, `Toggle` is one on/off; a tab or segment label never ellipsizes (EDL E18).
+- **K10 Tabs, Segmented, Toggle, Switch** — `Tabs` pick a view, `Segmented` sets a value, `Toggle` one press, `Switch` a setting; a tab or segment label never ellipsizes (EDL E18).
 - **K11 Icons** — the line's Size: Mini 12px, Compact 14px, Full 18px (`iconSize`), stroke 2. ⋯ is `Ellipsis`, close is `X`, back is `ChevronLeft` and the place's name ("Training Bay"), never an arrow character.

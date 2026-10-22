@@ -84,6 +84,7 @@ export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
 export { StatusBadge } from './atoms/StatusBadge'
+export { Switch } from './atoms/Switch'
 export { Tab, TabList, TabPanel, Tabs } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'

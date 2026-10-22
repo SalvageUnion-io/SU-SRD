@@ -1,13 +1,13 @@
 /**
  * ShareSettings — who can see one player thing, set where it stands: the
- * "Who can see it" answers (`WhoCanSee`), and, while anyone with the link may
- * read it, the link, a copy button and a QR of it.
+ * "Who can see it" answers (`WhoCanSee`), and, while it is Public, the link, a
+ * copy button and a QR of it inside that answer's frame.
  *
  * One control for the five kinds a player can share (`lib/sharing/visibility.ts`).
  * Each answer writes as it is picked, server first:
  *
  *  - **A sheet** (pilot, mech, crawler, built NPC) switches `publicRead` with
- *    `publicSheet.setPublic` (ADR-032): "Anyone with the link" sets it, the
+ *    `publicSheet.setPublic` (ADR-032): "Public" sets it, the
  *    answer its container gives clears it. Whether it is public is read back
  *    from `publicSheet.get`, the query its public page reads, so the control
  *    and the page cannot disagree.
@@ -39,7 +39,7 @@ import {
   FieldError,
   Select,
   Stack,
-  Toggle,
+  Switch,
   tokens,
   useCopied,
 } from '../../components/index'
@@ -135,10 +135,15 @@ function SheetShareSettings({
           void share.run(next)
         }}
         disabled={busy}
+        details={{
+          link: (
+            <ShareLink
+              url={appUrl(publicPath(kind, appId, name))}
+              clipboardWriter={clipboardWriter}
+            />
+          ),
+        }}
       />
-      {value === 'link' && (
-        <ShareLink url={appUrl(publicPath(kind, appId, name))} clipboardWriter={clipboardWriter} />
-      )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
   )
@@ -179,6 +184,17 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
         value={value}
         onChange={(next) => choose(next)}
         disabled={busy}
+        details={{
+          link: (
+            <>
+              <ShareOnReference appId={appId} shared={mine?.homebrew === true} />
+              <ShareLink
+                url={appUrl(publicPath('pattern', appId, name))}
+                clipboardWriter={clipboardWriter}
+              />
+            </>
+          ),
+        }}
       >
         {value === 'game' && gameChoices.length > 1 && (
           <Field label={buildSharingCopy('whichGame')} htmlFor={`share-game-${appId}`}>
@@ -199,15 +215,6 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
           </Field>
         )}
       </WhoCanSee>
-      {value === 'link' && (
-        <>
-          <ShareOnReference appId={appId} shared={mine?.homebrew === true} />
-          <ShareLink
-            url={appUrl(publicPath('pattern', appId, name))}
-            clipboardWriter={clipboardWriter}
-          />
-        </>
-      )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
   )
@@ -223,9 +230,9 @@ function ShareOnReference({ appId, shared }: { appId: string; shared: boolean })
   return (
     <Stack gap={4}>
       <div>
-        <Toggle pressed={shared} disabled={write.pending} onClick={() => void write.run(!shared)}>
+        <Switch checked={shared} disabled={write.pending} onClick={() => void write.run(!shared)}>
           {buildSharingCopy('shareOnReference')}
-        </Toggle>
+        </Switch>
       </div>
       <p style={QR_NOTE}>{buildSharingCopy('shareOnReferenceHint')}</p>
       {write.error !== null && <FieldError spaceAbove={8}>{write.error}</FieldError>}
