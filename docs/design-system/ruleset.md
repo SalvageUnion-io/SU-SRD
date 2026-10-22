@@ -33,7 +33,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
 2. **§2 The rendering matrix** — one primitive per role on every surface; the surface picks its skin.
    1. **Vitals** — `VitalGauge`; a `Stat` in listings. TP is a counter, no gauge.
    2. **Caps and slots** — `Stat`; an override is a dashed, logged control.
-   3. **Condition** — `StatusBadge`: a tri-state control (Destroyed greys the card), a glyph in listings, absent from Reference.
+   3. **Condition** — `StatusBadge`: a tri-state control, a glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` (E14): the result a readout plus a marked row (§3.4); Reference toasts it.
    5. **Cargo** — `SlotGrid`; Reference shows the cap only.
    6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Bio · SYS, MODS, Heat, Cargo; Upkeep, Upgrade · action type, RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`), the last read chip; action slots follow it (C8).
@@ -41,12 +41,12 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — painted only by `Button` / `buttonVariants` and `InlineRef`, never aliased; destruction is rust behind `ConfirmDialog`; no state colour fills a button. Focus, selection and chrome accents are ink.
    2. **§3.2 Stamps label · slabs section · tags cite** — a section head is a Slab (R1), a related thing a relation chip (C11).
-   3. **§3.3 State is a treatment, not a hue** — strike / X / redline ride on the ontology hue; `status-bad` is the one damaged / redline / over-cap colour.
+   3. **§3.3 State is a treatment, not a hue** — strike / X / redline ride on the ontology hue; `status-bad` is the one damaged / redline / over-cap colour. Damaged dulls a band toward grey, Destroyed greys it; a Peek wears its trigger's band.
    4. **§3.4 Roll-tier colours are Discord-bot-only** — the web marks every outcome alike; the bot's are warm (brick, ember, ochre, olive, slate).
    5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers, paper flecks on ink headers and unit stamps; never on paper, cream, the page ground, buttons or fields.
       2. **One shading exemption** — `.su-pilot-panel` on `/about`; no precedent.
-   6. **§3.6 Copy is 1:1 with SRD data.**
+   6. **§3.6 Copy is 1:1 with SRD data** — a name it prints is a Mention (E4): a trait's name alone, a table's with "Table".
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`; game data renders through the shared primitives, never one-off markup.
    8. **§3.8 Ink on colour** — ink text on pilot and mech; no pair under 4.5 : 1. Paper on crawler uses `--color-crawler-band`, as on Denizens brown and NPC navy; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for canon (pattern, NPC): a solid frame, the dashed HOMEBREW stamp, "Made by [user]", at every size. Dashed is otherwise only a Play reference unit (ADR-051 §5), an edit field and an empty slot; a Slab is always solid.
@@ -68,12 +68,12 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
    6. **§4.6 The floors: type and touch** — nothing under 11px as seen (a 1200px link preview: 34px). Coarse-pointer targets are 44px, menu items too; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini a 44px hit area).
       A line's controls share one Size; chip values match labels, one gap apart, filled as C2b. A Button beside Tabs is their Size.
-5. **§5 The irreducible set** — an ontology, not a roster: 11 atoms and one technique.
+5. **§5 The irreducible set** — 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`. 2. **Frame** — `Box`, `TitledBox` (cut-out); a note is a `Callout`. 3. **Badge** — the stamp-chip family.
    4. **Well** — labelled value: `Stat`, label first (steppers when edited). 5. **Gauge** — segmented current/max: `VitalGauge`. 6. **Btn** — the only mutator: `Button`.
    7. **Slab** — solid section stamp + leader rule, every section head. 8. **RollTable** — banded d20 map: `RollTableInstrument`. 9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells. 11. **Icons** — `currentColor` `lucide-react` and local glyphs at the line's Size, stroke 2 (K11). The technique: StampSeam (§7.2), `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — flush header (title, labels right of it, chip group: E9, E17), body only if prose or children remain, foot; tone header for things you have, ink banner for things you do (E12).
+   - **The entity card: one anatomy, two header fills** — flush header (title, chip group: E9, E17), body only if prose or children remain, foot; tone header for things you have, ink banner for things you do (E12).
    - **Actions nest** — no tray: on a Page, Compact contentful under an Actions slab; in a card or Peek, contentful Minis (N3), never folded.
    - **Nesting** — children stack in the parent's frame under their own titles, one tone each, three levels (E6); a child hides prose its parent shows.
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab if a section (When Damaged), an unlabelled Callout if a note; an SRD Page's level-1 block may stay a TitledBox.
