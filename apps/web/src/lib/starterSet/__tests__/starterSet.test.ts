@@ -340,4 +340,33 @@ describe('copyStarterCrew — the whole crew in one go', () => {
       )
     ).toBe(true)
   })
+
+  /**
+   * A refusal part way (a dropped connection, a refused mech) must not leave
+   * half a crew behind: "Try again" would then copy the whole crew a second
+   * time beside the leftovers.
+   */
+  test('a refusal part way leaves nothing behind, so a retry copies the crew once', async () => {
+    const real = useEntityStore.getState().create
+    let mechs = 0
+    useEntityStore.setState({
+      create: ((type, data) =>
+        type === 'mech' && ++mechs === 2
+          ? Promise.reject(new Error('refused'))
+          : real(type, data)) as typeof real,
+    })
+    try {
+      await expect(copyStarterCrew(SHELF)).rejects.toThrow('refused')
+    } finally {
+      useEntityStore.setState({ create: real })
+    }
+    const state = useEntityStore.getState()
+    expect(state.list('pilot')).toHaveLength(0)
+    expect(state.list('mech')).toHaveLength(0)
+    expect(state.list('crawler')).toHaveLength(0)
+    expect(state.softLinks).toHaveLength(0)
+
+    await copyStarterCrew(SHELF)
+    expect(useEntityStore.getState().list('pilot')).toHaveLength(STARTER_PILOTS.length)
+  })
 })

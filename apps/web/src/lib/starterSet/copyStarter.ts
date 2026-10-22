@@ -69,30 +69,48 @@ export type CrewCopy = { builds: number; links: number }
  * does not run) refuses before anything else is made. Links go last, through
  * the assignment model like any other link: both ends are in `to`, so none
  * straddles two containers.
+ *
+ * All or nothing: when any create is refused part way, the copies already made
+ * are deleted again (which takes their links with them) before the refusal is
+ * passed on, so a retry starts from an empty slate rather than doubling the
+ * crew.
  */
 export async function copyStarterCrew(to: Container): Promise<CrewCopy> {
-  const copies = new Map<string, string>()
-  for (const kind of CREW_ORDER) {
-    for (const template of starterTemplates(kind)) {
-      const copy = await copyStarter(kind, template.id, to)
-      copies.set(template.id, copy.id)
-    }
-  }
-
+  const copies = new Map<string, { kind: SheetKind; id: string }>()
   const store = useEntityStore.getState()
-  let links = 0
-  for (const link of STARTER_SOFT_LINKS) {
-    const from = copies.get(link.from.id)
-    const toId = copies.get(link.to.id)
-    if (from === undefined || toId === undefined) continue
-    await store.create('softLink', {
-      from: { type: link.from.type, id: from },
-      to: { type: link.to.type, id: toId },
-      type: link.type,
-    })
-    links += 1
+  try {
+    for (const kind of CREW_ORDER) {
+      for (const template of starterTemplates(kind)) {
+        const copy = await copyStarter(kind, template.id, to)
+        copies.set(template.id, { kind, id: copy.id })
+      }
+    }
+
+    let links = 0
+    for (const link of STARTER_SOFT_LINKS) {
+      const from = copies.get(link.from.id)
+      const toCopy = copies.get(link.to.id)
+      if (from === undefined || toCopy === undefined) continue
+      await store.create('softLink', {
+        from: { type: link.from.type, id: from.id },
+        to: { type: link.to.type, id: toCopy.id },
+        type: link.type,
+      })
+      links += 1
+    }
+    return { builds: copies.size, links }
+  } catch (error) {
+    await undoCopies([...copies.values()])
+    throw error
   }
-  return { builds: copies.size, links }
+}
+
+/** Delete what a refused crew copy made, newest first; a delete that fails too is left for the player. */
+async function undoCopies(made: { kind: SheetKind; id: string }[]): Promise<void> {
+  const store = useEntityStore.getState()
+  for (const { kind, id } of made.reverse()) {
+    await store.delete(kind, id).catch(() => undefined)
+  }
 }
 
 /** The crawler first (the one a destination may refuse), then the pilots, then their mechs. */
