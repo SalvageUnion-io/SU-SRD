@@ -3,12 +3,13 @@
  * and, on a creation guide, the foot that ends the page on its exits.
  */
 
-import { describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveEntityPageMeta } from '../../components/index'
 import { appPath } from '../../lib/appBase'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
+import { beginIslandCollection, endIslandCollection } from '../../runtime/Island'
 import { EntityPageFrame } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {
@@ -31,6 +32,10 @@ function renderGuide(name: string) {
     </EntityPageFrame>
   )
 }
+
+// The frame's Share is an island, which renders only inside a page's collection window.
+beforeEach(beginIslandCollection)
+afterEach(endIslandCollection)
 
 describe('EntityPageFrame', () => {
   test('a creation guide ends on its exits: build, the next guide, and the Starter Set', () => {
@@ -79,6 +84,34 @@ describe('EntityPageFrame', () => {
     expect(link.getAttribute('href')).toBe(`${appPath('/mechs/new?mode=guided&chassis=mule')}`)
     // Chip-sized on a phone, it reaches 44px under a coarse pointer by its hit area.
     expect(link.className).toContain('su-hit-area')
+  })
+
+  test('every show page carries Share, before "Build With This" where it has one', () => {
+    const mule = must(SalvageUnionReference.Chassis.getByName('Mule'))
+    render(
+      <EntityPageFrame
+        title={mule.name}
+        tone="mech"
+        meta={resolveEntityPageMeta(mule)}
+        build={buildLinkFor('chassis', mule)}
+      >
+        <p>Mule body</p>
+      </EntityPageFrame>
+    )
+    const share = screen.getByRole('button', { name: 'Share this page' })
+    const build = screen.getByRole('link', { name: 'Build With This: a mech' })
+    // Both are the band's action, Build With This last (EDL E20).
+    expect(share.closest('.su-chapter-band__action')).toBe(
+      build.closest('.su-chapter-band__action')
+    )
+    expect(share.compareDocumentPosition(build) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // The server draws it; the client adopts that markup (`hydrate`).
+    expect(share.closest('[data-island]')?.getAttribute('data-island')).toBe('SharePageIsland')
+  })
+
+  test('a page with nothing to build still carries Share', () => {
+    renderGuide('Heat')
+    expect(screen.getByRole('button', { name: 'Share this page' })).toBeDefined()
   })
 
   test('a pattern page links back to its parent beside the title', () => {
