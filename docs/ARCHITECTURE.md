@@ -207,5 +207,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1.
-53. **ADR-053 Usage signals and feedback** · [full text](adr/053-usage-signals-feedback.md)
+53. **ADR-053 Canon as gates**
+    Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
+    hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
+54. **ADR-054 Usage signals and feedback** · [full text](adr/054-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.

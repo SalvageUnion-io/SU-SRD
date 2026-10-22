@@ -15,7 +15,7 @@ import {
 import { failureMessage } from '../../lib/connection/useServerAction'
 
 /**
- * "Suggest or report" (ADR-053): a player's note, filed as a labelled issue on
+ * "Suggest or report" (ADR-054): a player's note, filed as a labelled issue on
  * the public SU-SRD repository with no name on it (`convex/feedback.ts`). The
  * dialog says so above the box, before anybody types.
  *

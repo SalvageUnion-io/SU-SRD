@@ -9,7 +9,7 @@ import { internalMutation, mutation } from './model/entities'
 import { metricsCounts } from './model/signalTables'
 
 /**
- * Usage metrics (ADR-053): aggregate counts only, read by the admin page
+ * Usage metrics (ADR-054): aggregate counts only, read by the admin page
  * (`/build/admin/metrics`) and the Monday report from one query.
  *
  * Convex has no count, and the totals span tables that grow without bound, so

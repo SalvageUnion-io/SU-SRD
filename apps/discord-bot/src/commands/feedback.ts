@@ -4,7 +4,7 @@ import type { CommandExecuteInteraction } from './interactions'
 import { site } from './siteReply'
 
 /**
- * `/su feedback`: suggest an idea or report a problem (ADR-053).
+ * `/su feedback`: suggest an idea or report a problem (ADR-054).
  *
  * The note goes to the app, which files it as a labelled issue on the public
  * SU-SRD repository without the sender's name; the description says so before

@@ -9,7 +9,7 @@ import { requireUser } from './model/permissions'
 import { feedbackKind } from './model/signalTables'
 
 /**
- * "Suggest or report" and `/su feedback` (ADR-053): a player's note becomes a
+ * "Suggest or report" and `/su feedback` (ADR-054): a player's note becomes a
  * labelled issue on the public SU-SRD repository, with no name on it.
  *
  * A note is written to `feedback` first and filed by an action, so a GitHub

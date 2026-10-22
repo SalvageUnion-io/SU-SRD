@@ -20,7 +20,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 
 /**
- * The admin metrics page (ADR-053), at `/admin/metrics`: aggregate counts
+ * The admin metrics page (ADR-054), at `/admin/metrics`: aggregate counts
  * only, for the accounts `ADMIN_DISCORD_IDS` names. Everybody else, signed in
  * or not, is told there is nothing here; the query itself answers them null.
  *
