@@ -1,7 +1,7 @@
 /**
  * The contentful Mini cut-out scan (`_tokenCutout.ts`) on hand-written markup
  * in the Mini's class names: a tab of paper with the paint over it, opening
- * into a paper body bordered in the band's colour, passes; each way the head
+ * into a paper body, passes; each way the head
  * goes flat is its own fault.
  *
  * happy-dom lays nothing out, so every box is stubbed: an element's
@@ -50,7 +50,6 @@ type Parts = {
   /** The tab's top and foot; the pill runs 0 to 24 with a 1.5px edge on top. */
   tab?: [number, number]
   bodyTop?: number
-  bodyEdge?: string
   bodyBg?: string
 }
 
@@ -59,14 +58,13 @@ const token = ({
   notchBg = PAPER,
   tab = [5, 24],
   bodyTop = 24,
-  bodyEdge = BAND,
   bodyBg = PAPER,
 }: Parts = {}) => {
   const name = '<span class="su-entity-mini__name">Mule</span>'
   const head = notch
     ? `<span class="su-entity-mini__notch" data-box="${tab.join(' ')}" style="background-color: ${notchBg}">${name}</span>`
     : name
-  return `<div class="su-entity-mini" data-contentful><span class="su-entity-mini__head"><span class="su-entity-mini__pill" data-box="0 24" style="background-color: ${BAND}; border-top-width: 1.5px">${head}</span></span><div class="su-entity-mini__body" data-box="${bodyTop} 80" style="border-left-color: ${bodyEdge}; background-color: ${bodyBg}">Text</div></div>`
+  return `<div class="su-entity-mini" data-contentful><span class="su-entity-mini__head"><span class="su-entity-mini__pill" data-box="0 24" style="background-color: ${BAND}; border-top-width: 1.5px">${head}</span></span><div class="su-entity-mini__body" data-box="${bodyTop} 80" style="background-color: ${bodyBg}">Text</div></div>`
 }
 
 const scan = () => scanMiniCutouts({ a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
@@ -95,11 +93,6 @@ describe('token cut-out scan', () => {
   test("a rule under the tab, the pill's edge, is found", () => {
     document.body.innerHTML = withPaper(token({ tab: [5, 22.5] }))
     expect(scan()).toEqual(["open: Mule's tab stops 1.5px above its body"])
-  })
-
-  test("a body bordered off the band's colour is found", () => {
-    document.body.innerHTML = withPaper(token({ bodyEdge: 'rgb(40, 32, 25)' }))
-    expect(scan()).toEqual([`band: Mule's body is bordered rgb(40, 32, 25), its band ${BAND}`])
   })
 
   test("a body on the page's ground, not the tab's paper, is found", () => {

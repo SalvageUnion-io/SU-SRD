@@ -13,9 +13,10 @@ import type { Page } from '@playwright/test'
  *   head reads as a flat bar with the name on it.
  * - **open** the tab does not meet the body: a rule (the pill's edge) or a
  *   gap runs between them.
- * - **band** the body is not bordered in the band's colour (the pill's paint).
  * - **ground** the body is not the paper, so the tab stands on it as a box
  *   instead of being cut from it.
+ *
+ * The body's frame is R38's (the subtle ink-40), read by `_entityFrames.ts`.
  *
  * A Mini that is not drawn (a closed tab, a collapsed section) is not read,
  * nor a body that is empty (`:empty` hides it).
@@ -80,10 +81,6 @@ export function scanMiniCutouts({
     if (!body || !br || br.height === 0) continue
     if (Math.abs(br.top - nr.bottom) > 0.5) {
       faults.push(`open: ${name}'s tab stops ${(br.top - nr.bottom).toFixed(1)}px above its body`)
-    }
-    const edge = getComputedStyle(body).borderLeftColor
-    if (edge !== ps.backgroundColor) {
-      faults.push(`band: ${name}'s body is bordered ${edge}, its band ${ps.backgroundColor}`)
     }
     const ground = getComputedStyle(body).backgroundColor
     if (ground !== paper) {

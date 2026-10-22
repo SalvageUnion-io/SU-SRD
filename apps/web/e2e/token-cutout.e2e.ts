@@ -7,7 +7,7 @@ import { findMiniCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
  * Every contentful Mini (N3) wears the cut-out head every Mini, Compact and
  * index Compact wears: its name on a paper tab notched into its band's foot, the paint
  * showing over it, the tab opening into its body's paper with no rule
- * between, the body bordered in the band's colour (`_tokenCutout.ts`). The
+ * between (`_tokenCutout.ts`). The
  * pages are the reference corpus's `contentful-mini` ones (`_designTable.ts`),
  * signed out, at page and phone widths: every kind a sheet or a page draws as
  * one. Each page must draw at least one, so the gate never passes by reading
