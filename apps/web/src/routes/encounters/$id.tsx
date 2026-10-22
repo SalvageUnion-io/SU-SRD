@@ -1,5 +1,5 @@
 /**
- * One encounter — /encounters/:id — the Mediator's prep (ADR-058), on its
+ * One encounter — /encounters/:id — the Mediator's prep (ADR-059), on its
  * owner's shelf. The loader waits for the encounters, and the patterns its
  * picker fields; the page reads them from the stores.
  */

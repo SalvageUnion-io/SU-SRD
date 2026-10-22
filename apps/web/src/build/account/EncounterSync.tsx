@@ -1,5 +1,5 @@
 /**
- * EncounterSync — brings the Mediator's encounters down (ADR-058), as
+ * EncounterSync — brings the Mediator's encounters down (ADR-059), as
  * `ShelfSync` brings patterns: from `shelf.encounters`, each row adopted when
  * it is newer than the one this tab last saw (`planRowSync`), and forgotten
  * when the server no longer has it. Encounters are personal and shelf-only,

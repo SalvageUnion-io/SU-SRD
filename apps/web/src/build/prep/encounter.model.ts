@@ -1,5 +1,5 @@
 /**
- * An encounter's view-model (ADR-058), pure: its address, a blank one, and the
+ * An encounter's view-model (ADR-059), pure: its address, a blank one, and the
  * edits the encounter page makes to its opposition and its tables. The
  * opposition is drawn with the Opposition's own model (`opposition.model.ts`),
  * so an encounter fields exactly what Play's + Add would.

@@ -59,6 +59,8 @@ type AuthState = {
    * false: only `ConnectionProvider`'s floor subscription ever sets it.
    */
   outdated?: boolean
+  /** A session token is on the device: an offline boot is Disconnected (ADR-058). */
+  storedSession?: boolean
 }
 
 /**
@@ -103,6 +105,7 @@ function currentMode(): ConnectionMode {
     authSettled: authState.authSettled ?? true,
     signedIn: authState.signedIn,
     online: authState.online,
+    storedSession: authState.storedSession,
   })
 }
 
@@ -116,7 +119,8 @@ function currentMode(): ConnectionMode {
  * Anonymous (`solo`) is `signedOut` unconditionally
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions)
  * decision 1). There is no build flag and no exemption for a browser that
- * already holds rows (ADR-035): there is no device cache to read signed out.
+ * already holds rows (ADR-035): the device copy is read only for a session on
+ * the device (ADR-058), never signed out.
  */
 export function backendForMode(mode: ConnectionMode): BackendKind {
   if (mode === 'solo') return 'signedOut'
@@ -371,7 +375,7 @@ export async function commitNpcWrite(
 }
 
 /**
- * Commit one encounter write (ADR-058). Shelf only and always the owner's,
+ * Commit one encounter write (ADR-059). Shelf only and always the owner's,
  * like a pattern; a Game runs a copy through `mediator.runEncounter`.
  */
 export async function commitEncounterWrite(

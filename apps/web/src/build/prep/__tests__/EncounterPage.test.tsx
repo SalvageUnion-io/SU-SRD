@@ -1,5 +1,5 @@
 /**
- * EncounterPage and the Encounters shelf (ADR-058): an encounter's name,
+ * EncounterPage and the Encounters shelf (ADR-059): an encounter's name,
  * opposition, tables and notes, each edit written through the prep store, and
  * the shelf's New, Make a copy and Delete.
  *

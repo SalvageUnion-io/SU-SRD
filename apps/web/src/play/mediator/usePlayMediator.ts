@@ -67,7 +67,7 @@ export type PlayMediator = {
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
   tray: TrayWrites
-  /** The Mediator's prep (ADR-058): their encounters, and the one this Game is running. */
+  /** The Mediator's prep (ADR-059): their encounters, and the one this Game is running. */
   prep: MediatorPrep
   /** Newest first; null while the first answer is on its way. */
   sent: SentProposal[] | null
@@ -85,7 +85,7 @@ export type PlayMediator = {
   readOnly: PlayReadOnly | null
 }
 
-/** The Mediator's encounters, and the one the Game is running (ADR-058). */
+/** The Mediator's encounters, and the one the Game is running (ADR-059). */
 type MediatorPrep = {
   /** Theirs, from their shelf; a Game runs a copy, never holds one. */
   encounters: Encounter[]

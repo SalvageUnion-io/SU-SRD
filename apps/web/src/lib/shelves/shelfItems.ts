@@ -254,7 +254,7 @@ export function encounterNpcChips(): ShelfChip[] {
   return [{ key: 'who', label: WHO.me }]
 }
 
-/** An encounter's reading: what it fields, `OPPOSITION | 4` (ADR-058). */
+/** An encounter's reading: what it fields, `OPPOSITION | 4` (ADR-059). */
 export function encounterReading(encounter: Pick<Encounter, 'opposition'>): UnitReading {
   return { label: 'Opposition', value: encounter.opposition.length }
 }

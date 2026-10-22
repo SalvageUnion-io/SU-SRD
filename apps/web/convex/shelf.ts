@@ -22,7 +22,7 @@ import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions
 /**
  * The server-first writes for the shelf-only collections: saved mech
  * patterns, the personal NPC tray (ADR-034) and the Mediator's encounters
- * (ADR-058).
+ * (ADR-059).
  *
  * Each is owned by one account, live on its shelf (`gameId: null`), and are
  * addressed by the id inside their body rather than by an `appId` the client
@@ -282,7 +282,7 @@ export const removeEncounterNpc = mutation({
 })
 
 /**
- * The caller's encounters (ADR-058), for `EncounterSync` to bring down. Bodies
+ * The caller's encounters (ADR-059), for `EncounterSync` to bring down. Bodies
  * only, as `entities.listMine` serves patterns: each is addressed by the id
  * inside it, and versioned by its own `updatedAt`.
  */
@@ -317,7 +317,7 @@ async function findOwnEncounter(ctx: QueryCtx | MutationCtx, ownerId: Id<'users'
 }
 
 /**
- * Write one encounter (ADR-058), addressed by the id inside its body, as a
+ * Write one encounter (ADR-059), addressed by the id inside its body, as a
  * pattern is: the same write twice is a patch, not a duplicate. Shelf only
  * and always the caller's; a Game reaches an encounter only by running a copy
  * of it (`mediator.runEncounter`).

@@ -1,5 +1,5 @@
 /**
- * EncounterShelf — the Training Bay's Encounters (ADR-058): the Mediator's
+ * EncounterShelf — the Training Bay's Encounters (ADR-059): the Mediator's
  * prep, each an opposition, tables to hand and notes, run later from a Game's
  * Play. User-made and only ever its maker's, so dashed and "Only me".
  *

@@ -1,7 +1,7 @@
 /**
  * PlayMediatorSide — the Mediator's right column (play.md §10): the running encounter's Notes, the player's Tables and Feed sections, then the Propose dock.
  *
- *  - **Notes** (ADR-058): the running encounter's, the Mediator's alone,
+ *  - **Notes** (ADR-059): the running encounter's, the Mediator's alone,
  *    shown only while one with notes is running.
  *
  *  - **Tables** (`PlayTablesSection`, the player's): the running encounter's,
@@ -49,7 +49,7 @@ const SECTION = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The running encounter's notes (ADR-058), as the Mediator wrote them. */
+/** The running encounter's notes (ADR-059), as the Mediator wrote them. */
 const NOTES = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,

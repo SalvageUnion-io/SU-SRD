@@ -1,6 +1,6 @@
 /**
  * EncounterPage — `/encounters/:id`, one of the Mediator's encounters
- * (ADR-058), built ahead of the session and run later from a Game's Play.
+ * (ADR-059), built ahead of the session and run later from a Game's Play.
  *
  * Under the navy band of the Mediator's Scene (and the NPC designer), a
  * user-made page: its name, then

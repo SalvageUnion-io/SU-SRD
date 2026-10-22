@@ -1,7 +1,7 @@
 /**
  * PlayTables — the Tables section of the Cockpit's right column (play.md §8):
  * "Roll a table…" to find any roll table, the tables found, the Mediator's
- * running encounter's own (ADR-058) and the tables the Situation needs pinned
+ * running encounter's own (ADR-059) and the tables the Situation needs pinned
  * (`pinnedTables`), each a list of roll table Minis
  * in the Mini grid (`MiniGrid`; ruleset §1.3: Play's lists are Minis), the open table drawn by
  * the shared roll instrument (`PlayRollTable`, `RollTableInstrument`
@@ -62,7 +62,7 @@ type PlayTablesProps = {
   onPostChange: (post: boolean) => void
   /** The bound channel: undefined while unknown, null when none. */
   binding: PlayBinding | null | undefined
-  /** The Mediator's running encounter's own tables (ADR-058), above the Situation's. */
+  /** The Mediator's running encounter's own tables (ADR-059), above the Situation's. */
   prepared?: readonly string[] | undefined
 }
 

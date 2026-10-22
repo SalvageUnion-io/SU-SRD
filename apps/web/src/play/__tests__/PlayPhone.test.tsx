@@ -306,3 +306,24 @@ describe('Act: resolve stays inline', () => {
     expect(panel.getByRole('button', { name: /^Next: Step \d+$/ })).toBeTruthy()
   })
 })
+
+describe('table mode', () => {
+  test('its one screen in place of the tabs, which stay mounted; only the switch stays pinned', async () => {
+    localStorage.setItem('su:play-table-mode', 'on')
+    const { resetTableMode } = await import('../useTableMode')
+    resetTableMode()
+    try {
+      await renderPhone({ situation: 'boarded' })
+      const table = screen.getByRole('region', { name: 'Table mode' })
+      expect(table.closest('[role="tabpanel"]')).toBeNull()
+      expect(screen.getByRole('button', { name: 'Roll the die' })).toBeTruthy()
+      expect(screen.getByRole('list', { name: 'Buzzard’s vitals' })).toBeTruthy()
+      expect(screen.queryByRole('region', { name: 'Pinned vitals' })).toBeNull()
+      expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
+      expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(4)
+    } finally {
+      localStorage.removeItem('su:play-table-mode')
+      resetTableMode()
+    }
+  })
+})

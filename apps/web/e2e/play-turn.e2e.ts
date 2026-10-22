@@ -146,3 +146,36 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', { tag: '@
   const { down, across } = await pageOverflow(page)
   expect(Math.max(down, across), 'the phone page scrolls (px)').toBeLessThanOrEqual(0)
 })
+
+test('table mode on a 390 × 844 phone: one tap a roll, one tap a vital, remembered', {
+  tag: '@pr',
+}, async ({ page }) => {
+  test.setTimeout(6 * 60_000)
+  await setUpTable(page)
+  const play = await pilotPlayPath(page, 'Bonesaw')
+  await page.setViewportSize({ width: PHONE.width, height: PHONE.height })
+  await openPlay(page, play, { dice: true })
+
+  const toggle = page.getByRole('button', { name: 'Table mode' })
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false', { timeout: 30_000 })
+  await toggle.click()
+  const table = page.getByRole('region', { name: 'Table mode' })
+  await expect(table).toBeVisible()
+  await expect(page.getByRole('tablist', { name: 'Play' })).toBeHidden()
+
+  // One tap: the Core Mechanic, on the Feed like any roll (every d20 is 14).
+  await table.getByRole('button', { name: 'Roll the die' }).click()
+  await expect(table.getByRole('status')).toHaveAccessibleName(/^Rolled 14, /)
+
+  // One tap: HP down one, written as the Units column writes it.
+  const hp = table.getByRole('group', { name: /^HP / })
+  const before = await hp.getAttribute('aria-label')
+  await table.getByRole('button', { name: 'Decrease HP' }).click()
+  await expect(hp).not.toHaveAttribute('aria-label', before ?? '')
+
+  // The device remembers it, and the page still never scrolls.
+  await page.reload()
+  await expect(page.getByRole('region', { name: 'Table mode' })).toBeVisible({ timeout: 30_000 })
+  const { down, across } = await pageOverflow(page)
+  expect(Math.max(down, across), 'the phone page scrolls (px)').toBeLessThanOrEqual(0)
+})
