@@ -105,13 +105,15 @@ function unobserve(el: Element, head: HTMLElement): void {
   resize = undefined
 }
 
-/** A face loads when text first uses it: every chip's width changes, so fit again. */
+/**
+ * A face loads when text first uses it: every chip's width changes, so fit
+ * again, once a load. Refitting on `ready` too fitted every head of a page
+ * two and three times on its load (TBT on /abilities/).
+ */
 function watchFonts(): void {
   if (fontsWatched || typeof document === 'undefined' || !document.fonts) return
   fontsWatched = true
-  const refit = () => fitInTurns([...live.keys()])
-  void document.fonts.ready.then(refit)
-  document.fonts.addEventListener?.('loadingdone', refit)
+  document.fonts.addEventListener?.('loadingdone', () => fitInTurns([...live.keys()]))
 }
 
 /**
@@ -180,7 +182,7 @@ function watchQuietly(
 
 /** How long one task may fit for: a task over 50ms blocks the page (TBT). */
 const TURN_MS = 30
-/** How many heads fit between looks at the clock. */
+/** Up to this many heads fit at once, without turns. */
 const STEP = 4
 
 /**
@@ -188,19 +190,41 @@ const STEP = 4
  * gates' settle) can wait for every head to be fitted.
  */
 const FITTING_ATTRIBUTE = 'data-chip-fitting'
-/** The fits still queued, across every `fitInTurns`. */
-let queued = 0
+/** The heads off screen waiting for a turn, each once however often it is asked for. */
+const queue = new Set<HTMLElement>()
+let scheduled = false
 
-function markQueued(delta: number): void {
-  queued += delta
-  if (typeof document === 'undefined') return
-  document.documentElement.toggleAttribute(FITTING_ATTRIBUTE, queued > 0)
+/**
+ * One turn: queued heads fitted one at a time, the clock read after each (one
+ * head of a page can take a third of `TURN_MS` on a slow phone), then the
+ * next turn, until none is left.
+ */
+function turn(): void {
+  scheduled = false
+  const start = performance.now()
+  for (const head of queue) {
+    queue.delete(head)
+    fitAll([head])
+    if (performance.now() - start > TURN_MS) break
+  }
+  schedule()
+}
+
+function schedule(): void {
+  if (typeof document !== 'undefined')
+    document.documentElement.toggleAttribute(FITTING_ATTRIBUTE, queue.size > 0)
+  if (scheduled || queue.size === 0) return
+  scheduled = true
+  setTimeout(turn, 0)
 }
 
 /**
  * Fit many watched heads a turn at a time: those on screen first, now (a
  * shift in view counts against the page, one off screen does not), the rest
- * in tasks of at most `TURN_MS`, so the main thread is never held long (TBT).
+ * in tasks of about `TURN_MS`, so the main thread is never held long (TBT).
+ * One the browser skips (`content-visibility: auto`, a listing's later trees
+ * and tiles) is off screen and not measured: its box laid out a skipped tree,
+ * each head's in turn (TBT on /abilities/).
  */
 function fitInTurns(containers: HTMLElement[]): void {
   if (containers.length <= STEP || typeof setTimeout === 'undefined') {
@@ -209,23 +233,15 @@ function fitInTurns(containers: HTMLElement[]): void {
   }
   const height = typeof innerHeight === 'number' ? innerHeight : 0
   const now: HTMLElement[] = []
-  const later: HTMLElement[] = []
   for (const head of containers) {
-    const r = head.getBoundingClientRect()
-    if (r.bottom > 0 && r.top < height) now.push(head)
-    else later.push(head)
+    queue.delete(head)
+    const skipped = head.checkVisibility?.({ contentVisibilityAuto: true }) === false
+    const r = skipped ? undefined : head.getBoundingClientRect()
+    if (r && r.bottom > 0 && r.top < height) now.push(head)
+    else queue.add(head)
   }
   fitAll(now)
-  if (later.length === 0) return
-  markQueued(1)
-  const next = () => {
-    const start = performance.now()
-    do fitAll(later.splice(0, STEP))
-    while (later.length > 0 && performance.now() - start < TURN_MS)
-    if (later.length > 0) setTimeout(next, 0)
-    else markQueued(-1)
-  }
-  setTimeout(next, 0)
+  schedule()
 }
 
 /**
