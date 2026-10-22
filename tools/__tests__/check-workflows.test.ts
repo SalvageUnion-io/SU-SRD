@@ -187,6 +187,10 @@ function ctx(overrides: {
       'jobs:\n  pr-title:\n    steps:\n      - run: echo ok\n'
     ),
     yaml(
+      '.github/workflows/claude-review.yml',
+      'jobs:\n  review:\n    steps:\n      - run: echo ok\n'
+    ),
+    yaml(
       '.github/workflows/nightly.yml',
       'jobs:\n  a:\n    steps:\n      - uses: ./.github/actions/setup-bun\n'
     ),

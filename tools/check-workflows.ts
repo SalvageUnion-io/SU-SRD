@@ -126,14 +126,13 @@ const workflowsOnly = (ctx: WorkflowContext) =>
 const AGGREGATOR = 'quality-checks'
 
 /**
- * The workflow behind each gate the `main` ruleset (`MAIN_RULESET` in
- * tools/environments.ts) holds outside ci.yml: a required status context that
- * `needs:` cannot reach, or a code-scanning tool. Deleting the workflow while
- * the ruleset still waits on it leaves every PR waiting on a result that never
- * arrives.
+ * The workflow behind each gate the `main` ruleset (`MAIN_RULESET` in tools/environments.ts)
+ * holds outside ci.yml: a required context `needs:` cannot reach, or a code-scanning tool.
+ * Delete the workflow while the ruleset waits on it, and every PR waits for ever.
  */
 const GATE_WORKFLOWS: Record<string, string> = {
   'PR title is a conventional commit': '.github/workflows/pr-title.yml',
+  'Claude review': '.github/workflows/claude-review.yml',
   CodeQL: '.github/workflows/codeql.yml',
 }
 
