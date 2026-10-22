@@ -13,10 +13,9 @@
  *    the band's foot, **Import**, **Export all** and the **Showing** select
  *    (Everything, Not in a Game, then one entry per Game); what does not fit
  *    beside the name wraps up over it (`asideAt="controls"`).
- *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
- *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
- *    folded, the Starter Set, read-only, as the front door shows it
- *    (`StarterShelf`).
+ *  - **Three rows of shelves**: Pilots, Mechs and Crawlers; then the user-made,
+ *    dashed NPCs, Patterns and Encounters (ruleset §3.9, `EncounterShelf`); then,
+ *    folded, the read-only Starter Set, as the front door shows it (`StarterShelf`).
  *
  * Each item is a library Compact (`UnitRow`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
@@ -103,6 +102,7 @@ import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
+import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
 import { Shelf } from './Shelf'
@@ -576,6 +576,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 />
               ))}
             </Shelf>
+            <EncounterShelf confirm={confirm} />
           </Grid>
         </>
       )}

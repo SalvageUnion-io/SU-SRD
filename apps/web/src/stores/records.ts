@@ -12,6 +12,7 @@
  */
 
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { EncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
 import { MechSchema } from 'game-domain/schemas/mech'
 import { NpcSchema } from 'game-domain/schemas/npc'
@@ -40,6 +41,7 @@ export const RECORD_KINDS = {
   softLink: kind('softLinks', SoftLinkSchema, false),
   mechPattern: kind('mechPatterns', MechPatternSchema, false),
   encounterNpc: kind('encounterNpcs', EncounterNpcSchema, true),
+  encounter: kind('encounters', EncounterSchema, true),
 }
 
 /** A new record: a fresh UUID, `createdAt` (and `updatedAt`), strict-parsed. */

@@ -16,6 +16,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
 import { Route as AdminMetricsRouteImport } from './routes/admin/metrics'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
+import { Route as EncountersIdRouteImport } from './routes/encounters/$id'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
@@ -66,6 +67,11 @@ const AdminMetricsRoute = AdminMetricsRouteImport.update({
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
   id: '/crawlers/new',
   path: '/crawlers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EncountersIdRoute = EncountersIdRouteImport.update({
+  id: '/encounters/$id',
+  path: '/encounters/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/sign-out': typeof SignOutRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/encounters/$id': typeof EncountersIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/sign-out': typeof SignOutRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/encounters/$id': typeof EncountersIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -208,6 +216,7 @@ export interface FileRoutesById {
   '/sign-out': typeof SignOutRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/encounters/$id': typeof EncountersIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/sign-out'
     | '/admin/metrics'
     | '/crawlers/new'
+    | '/encounters/$id'
     | '/invite/$token'
     | '/mechs/new'
     | '/npcs/new'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/sign-out'
     | '/admin/metrics'
     | '/crawlers/new'
+    | '/encounters/$id'
     | '/invite/$token'
     | '/mechs/new'
     | '/npcs/new'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/sign-out'
     | '/admin/metrics'
     | '/crawlers/new'
+    | '/encounters/$id'
     | '/invite/$token'
     | '/mechs/new'
     | '/npcs/new'
@@ -311,6 +323,7 @@ export interface RootRouteChildren {
   SignOutRoute: typeof SignOutRoute
   AdminMetricsRoute: typeof AdminMetricsRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
+  EncountersIdRoute: typeof EncountersIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MechsNewRoute: typeof MechsNewRoute
   NpcsNewRoute: typeof NpcsNewRoute
@@ -378,6 +391,13 @@ declare module '@tanstack/react-router' {
       path: '/crawlers/new'
       fullPath: '/crawlers/new'
       preLoaderRoute: typeof CrawlersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/encounters/$id': {
+      id: '/encounters/$id'
+      path: '/encounters/$id'
+      fullPath: '/encounters/$id'
+      preLoaderRoute: typeof EncountersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -503,6 +523,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignOutRoute: SignOutRoute,
   AdminMetricsRoute: AdminMetricsRoute,
   CrawlersNewRoute: CrawlersNewRoute,
+  EncountersIdRoute: EncountersIdRoute,
   InviteTokenRoute: InviteTokenRoute,
   MechsNewRoute: MechsNewRoute,
   NpcsNewRoute: NpcsNewRoute,
