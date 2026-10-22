@@ -241,24 +241,19 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
         await waitForReady(page)
 
         await expect(page).toHaveTitle(/SalvageUnion\.io/)
-        // DIAGNOSTIC (temporary): what the offline reload booted with.
-        await page.waitForTimeout(3000)
-        console.log(
-          'OFFLINE-DIAG',
-          JSON.stringify(
-            await page.evaluate(() => ({
-              onLine: navigator.onLine,
-              url: location.href,
-              controlled: Boolean(navigator.serviceWorker?.controller),
-              keys: Object.keys(localStorage),
-              jwt: Object.keys(localStorage)
-                .filter((k) => k.startsWith('__convexAuthJWT'))
-                .map((k) => (localStorage.getItem(k) ?? '').split('.')[1]?.length),
-              body: document.body.innerText.slice(0, 600),
-            }))
-          )
-        )
-        await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+        // DIAGNOSTIC (temporary): what the offline reload shows when the banner never comes.
+        try {
+          await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+        } catch (error) {
+          const diag = await page.evaluate(() => ({
+            onLine: navigator.onLine,
+            path: location.pathname,
+            controlled: Boolean(navigator.serviceWorker?.controller),
+            session: Object.keys(localStorage).some((k) => k.startsWith('__convexAuthJWT')),
+            body: document.body.innerText.slice(0, 400),
+          }))
+          throw new Error(`offline reload shows ${JSON.stringify(diag)}`, { cause: error })
+        }
         await expect(page.getByText('Kept On This Device').first()).toBeVisible()
         await expect(page.getByRole('group', { name: /read or edit this/i })).toHaveCount(0)
 
