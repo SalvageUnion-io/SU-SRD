@@ -129,6 +129,17 @@ describe('toEntityModel', () => {
     expect(npcs.items[0]?.id.startsWith(`${crawler.id}/`)).toBe(true)
   })
 
+  test('a crawler never counts its bays: no fact names them (R46)', () => {
+    const crawlers = (getModel('crawlers')?.all() ?? []) as RefMetaEntity[]
+    expect(crawlers.length).toBeGreaterThan(0)
+    for (const crawler of crawlers) {
+      const bays = toEntityModel(crawler).facts.filter((fact) =>
+        /\bbays?\b/i.test(`${fact.key} ${fact.label} ${fact.short}`)
+      )
+      expect(bays).toEqual([])
+    }
+  })
+
   test('every guide leads with prose, from its first step when it has no preamble', () => {
     for (const guide of SalvageUnionReference.Guides.all()) {
       expect(toEntityModel(guide).lead, `no lead for "${guide.name}"`).toBeTruthy()

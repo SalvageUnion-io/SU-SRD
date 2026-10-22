@@ -1,6 +1,6 @@
 # Chrome
 
-The law for what frames the content: grounds, the breakpoint ladder, motion, lift, notices, loading, dialogs, empty and error states, focus, tabs and icons. It is [ruleset.md](ruleset.md) §8, extending §4; each law's gate is in [hard-rules.md](hard-rules.md).
+The law for what frames the content: grounds, the breakpoint ladder, motion, lift, notices, loading, dialogs, empty and error states, focus, tabs, icons and link previews. It is [ruleset.md](ruleset.md) §8, extending §4; each law's gate is in [hard-rules.md](hard-rules.md).
 Status: agreed (2026-10-18).
 
 ## Foundations
@@ -23,3 +23,4 @@ One component per job, chosen by the job (R16).
 - **K9 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink (ruleset §3.1), Play included; no outline, underline, dashed or colour-only variant.
 - **K10 Tabs, Segmented, Toggle** — `Tabs` switch what a region shows, `Segmented` sets a value, `Toggle` is one on/off; a tab or segment label never ellipsizes (EDL E18).
 - **K11 Icons** — the line's Size: Mini 12px, Compact 14px, Full 18px (`iconSize`), stroke 2. ⋯ is `Ellipsis`, close is `X`, back is `ChevronLeft` and the place's name ("Training Bay"), never an arrow character.
+- **K12 Link previews** — a page's 1200 × 630 card is its Page in small: its band and name, chips beside the name, its cite and path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color is the band.
