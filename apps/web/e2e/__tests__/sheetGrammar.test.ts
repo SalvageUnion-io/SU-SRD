@@ -101,6 +101,11 @@ describe('hero and vitals', () => {
     expect(details(sheet({ body }))).toEqual(['vitals: pilot: a gauge that is no SheetVitalGauge'])
   })
 
+  test("a Mini's own gauge in the opening (a crew lead's HP cells) is the entity's", () => {
+    const body = `<div class="su-sheet-hero"><div class="su-sheet-vitals"></div><div class="su-entity-mini"><span data-pip></span></div></div>`
+    expect(details(sheet({ body }))).toEqual([])
+  })
+
   test('each vital is captioned in the full words of the one map', () => {
     const body = `<div class="su-sheet-hero"><div class="su-sheet-vitals">${vital('sp', 'SP')}${vital('heat', 'HEAT heat   capacity')}${vital('morale', 'Morale')}</div></div>`
     expect(details(sheet({ body, kind: 'mech' }))).toEqual([
@@ -232,6 +237,18 @@ describe('the sidebar', () => {
         '[data-sheet-aside]': [924, 424, 352, 600],
       })
     ).toEqual(['aside: pilot: a section in the sidebar folds'])
+  })
+
+  test("an entity's own sections fold in the sidebar (a bay's Bay Info, R46)", () => {
+    wide(true)
+    const bay = `<div class="su-entity-mini"><div class="su-slab-section__head su-slab-section__head--fold"></div></div>${CARRIED}`
+    expect(
+      laidOut(sheet({ body: columns(bay) }), {
+        '.su-sheet-columns__hero': [0, 0, 900, 400],
+        '.su-sheet-columns__main': [0, 424, 900, 800],
+        '[data-sheet-aside]': [924, 424, 352, 600],
+      })
+    ).toEqual([])
   })
 
   test('what the unit carries is in the sidebar, and a sheet carrying nothing has none', () => {
