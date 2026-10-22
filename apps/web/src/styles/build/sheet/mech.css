@@ -38,14 +38,15 @@
   display: flex;
 }
 
+/* Hidden at the phone rule's own weight, which would otherwise win. */
 @media (width >= 40rem) {
-  .su-sheet-live-segments {
+  .su-sheet-live-segments:not([data-fill-out]) {
     display: none;
   }
 }
 
 @media print {
-  .su-sheet-live-segments {
+  .su-sheet-live-segments:not([data-fill-out]) {
     display: none;
   }
 }

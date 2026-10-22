@@ -115,11 +115,13 @@
    * App chrome and interactive-only surfaces have no meaning on paper. The
    * `:not([data-print='keep'])` on buttons is the escape hatch: a control that
    * carries printed STATE (a ticked box, a filled pip button) opts back in.
+   * A chip that Peeks its entry (`.su-chip-link`, a button: `CLASS | Engineer`)
+   * is read content, so it prints as its words.
    * ------------------------------------------------------------------------- */
   header,
   [role='dialog'],
   [data-sonner-toaster],
-  button:not([data-print='keep']) {
+  button:not([data-print='keep'], .su-chip-link) {
     display: none !important;
   }
 
