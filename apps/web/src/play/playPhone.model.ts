@@ -1,5 +1,5 @@
 /**
- * Play's phone form (play.md §11, ADR-051 §10, wireframe phone): below the
+ * Play's phone form (play.md §11, ADR-051 §10): below the
  * canvas's floor Play is tabs, not a second layout, under the live vitals
  * pinned for the Situation.
  *

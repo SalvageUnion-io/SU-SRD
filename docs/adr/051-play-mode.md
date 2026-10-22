@@ -1,8 +1,7 @@
 # ADR-051: Play Is the Third Mode, Laid Out as a Cockpit
 
 Built: the `dashboard-cockpit` milestone (tracker #1633); Play as built is
-[play.md](../architecture/play.md), wireframes
-[`docs/wireframes/dashboard-cockpit/`](../wireframes/dashboard-cockpit/).
+[play.md](../architecture/play.md).
 
 - **Supersedes** [ADR-038](038-dashboard-game-surface.md) §1 (Game-only; Play
   also runs solo, §4), §3's Major and Minor slots (one Units column, §2, §5),

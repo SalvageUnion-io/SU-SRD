@@ -2,7 +2,7 @@
  * PlayFoot — the Cockpit's foot: whether play is being saved
  * (`SavedIndicator`, which says Saved, Connecting… or Offline ·
  * read-only from the one connection source) and the connection line, who
- * play is reaching (`connectionLine`) beside it, on the left (the wireframes),
+ * play is reaching (`connectionLine`) beside it, on the left,
  * then the screen's own `note` at the end (the Mediator's: players see the
  * Opposition only through what is posted).
  */

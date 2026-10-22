@@ -5,7 +5,7 @@
  * `h1`, and the ways into the Cockpit beside it on the band's foot, wrapping up
  * over the name when they do not fit (`asideAt="controls"`).
  *
- * Every member gets one way into the Cockpit (wireframe play-entry). The
+ * Every member gets one way into the Cockpit. The
  * Mediator's is a **Mediate** chip after a **YOU MEDIATE** stamp, opening
  * Play's Mediator screen (`/play/game/$gameId`, play.md §10); a player's is
  * the hub's `actions`, a **Play** chip that asks which pilot to play

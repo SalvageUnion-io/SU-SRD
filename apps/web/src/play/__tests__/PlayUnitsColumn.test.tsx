@@ -1,5 +1,5 @@
 /**
- * The Units column (play.md §4, wireframe pin 4) in each Situation: which
+ * The Units column (play.md §4) in each Situation: which
  * unit is live (− / +) and which is for reference (dashed, read-only, Board
  * its one control), the hangar's Minis, the mech's Downtime restore preview,
  * a Game crawler read from the listing, and Sheet, which opens the sheet in Build.

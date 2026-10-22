@@ -1,6 +1,6 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10, wireframe pins 3–4): "Opposition", a Slab with + Add, then each NPC,
+ * §10): "Opposition", a Slab with + Add, then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1),
  * then the chosen one's actions (`PlayNpcActions`).
  *

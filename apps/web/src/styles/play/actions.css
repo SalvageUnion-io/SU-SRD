@@ -9,8 +9,8 @@
  */
 
 /*
- * The "Actions" Slab carries the type filter and Find on its heading line
- * (wireframe pin 5). Where the column is too narrow for one line the tools
+ * The "Actions" Slab carries the type filter and Find on its heading line.
+ * Where the column is too narrow for one line the tools
  * wrap under the heading, held to the column's width, and then onto two
  * lines themselves, so neither is ever pushed out of reach. The Slab's row
  * and its trailing box keep their own inline layout; these only add what

@@ -14,8 +14,7 @@ import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * A boarded turn in Play (play.md §3, §5, §8; wireframes player-boarded and
- * phone): Board from the Situation switch, Use an action from the flattened
+ * A boarded turn in Play (play.md §3, §5, §8): Board from the Situation switch, Use an action from the flattened
  * list, Activate, Roll and Apply in its row, and the roll on the Feed. Once on
  * the 1280 × 800 canvas and once on a 390 × 844 phone, where the list is the
  * Act tab and the Feed is on Tables. The page never scrolls on the way.

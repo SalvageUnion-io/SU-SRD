@@ -1,6 +1,5 @@
 /**
- * PlayMediatorSeat — one seat at the Mediator's table (play.md §10, wireframe
- * pin 2): the pilot's Mini, one a line (ruleset §1.3: Play's lists are
+ * PlayMediatorSeat — one seat at the Mediator's table (play.md §10): the pilot's Mini, one a line (ruleset §1.3: Play's lists are
  * Minis), its chips what the table needs at a glance: the mech as a relation
  * chip (C11, R5), whether they are here ("Here", or "Away" once their seat
  * stops beating) and the vital needing the Mediator (▲, critical). Its body

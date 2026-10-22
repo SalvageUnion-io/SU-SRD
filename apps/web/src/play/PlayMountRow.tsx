@@ -87,7 +87,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         tint="mech"
         dim={away || off || (!boarded && main === undefined)}
         // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
-        // the line carries only its controls (wireframe pin 5).
+        // the line carries only its controls.
         {...(away ? { state: <NeedChip need={need} /> } : { controls })}
       />
       <ConfirmDialog

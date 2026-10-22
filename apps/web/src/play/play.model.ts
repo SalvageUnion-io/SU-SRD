@@ -82,7 +82,7 @@ export const PHASE_TONE = {
 } as const satisfies Record<PlayPhase, ChapterTone>
 
 /**
- * The foot's connection line, as the wireframes word it: connected, a Game's
+ * The foot's connection line: connected, a Game's
  * screen reaches its table live and a solo one shares nothing; offline,
  * nothing does (the Saved indicator beside it says the screen is read-only).
  */

@@ -13,8 +13,7 @@ import { expect, test } from './fixtures'
 
 /**
  * The Mediator runs the table from Play, and the player answers from theirs
- * (play.md §8, §10; wireframes mediator-scene, mediator-downtime and
- * player-downtime).
+ * (play.md §8, §10).
  *
  * The Organizer makes a Game and appoints themselves Mediator; a player joins
  * by a link and builds a pilot in it. Each opens Play from the Play landing:

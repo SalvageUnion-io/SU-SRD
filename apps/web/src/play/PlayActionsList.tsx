@@ -1,6 +1,5 @@
 /**
- * PlayActionsList — the Actions column outside Downtime (play.md §5,
- * wireframe pins 5–7): what is on hand ("On hand · In <mech>" or "On foot"),
+ * PlayActionsList — the Actions column outside Downtime (play.md §5): what is on hand ("On hand · In <mech>" or "On foot"),
  * then the collapsed Not on hand group, each line saying what it needs. Every
  * line is a contentful Mini (ruleset §1.3, ADR-051 §6) in the Mini grid
  * (`MiniGrid`), its list marked `data-play-list` for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride

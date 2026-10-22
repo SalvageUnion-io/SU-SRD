@@ -1,6 +1,6 @@
 /**
  * PlayNpcActions — the chosen NPC's actions under the Opposition (play.md
- * §10, wireframe pin 4), flattened like a player's list (`npcActions`, sorted
+ * §10), flattened like a player's list (`npcActions`, sorted
  * by action type): each a Mini one a line in the Actions column's own list
  * (ruleset §1.3, Play's lists are Minis), its chips in
  * the shared stat order, cost last, with Use after it (C8), then the Morale

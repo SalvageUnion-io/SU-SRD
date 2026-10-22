@@ -1,6 +1,5 @@
 /**
- * PlayUnitsColumn — the Cockpit's left column (~300px, play.md §4, wireframe
- * pin 4): the pilot, the mech and the crawler, live or for reference, with the
+ * PlayUnitsColumn — the Cockpit's left column (~300px, play.md §4): the pilot, the mech and the crawler, live or for reference, with the
  * pilot's other mechs between them as the hangar.
  *
  * - **Pilot** — always live (while writes may go): HP, AP, class, TP, injuries.

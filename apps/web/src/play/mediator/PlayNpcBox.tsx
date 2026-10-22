@@ -1,6 +1,5 @@
 /**
- * PlayNpcBox — one of the Opposition on the Mediator's screen (play.md §10,
- * wireframe pin 3): a unit box in the adversary tone, level 1 in the centre
+ * PlayNpcBox — one of the Opposition on the Mediator's screen (play.md §10): a unit box in the adversary tone, level 1 in the centre
  * column, as the Units column draws a pilot or a mech. Inside it (level 2,
  * plain content): its HP or SP as a live vital (`PlayVital`, − / +, through
  * `mediator.updateNpc`), and its last Morale roll.

@@ -3,7 +3,7 @@ import { axeViolations, board, expectNoPageScroll, openPlay, playDoor, situation
 import { expect, test } from './fixtures'
 
 /**
- * Solo Play (play.md §3, §6; wireframes player-solo and player-solo-downtime):
+ * Solo Play (play.md §3, §6):
  * a pilot and a mech on the shelf, played without a Game, through each
  * Situation — On foot, Boarded, and a Downtime the player runs themselves.
  *

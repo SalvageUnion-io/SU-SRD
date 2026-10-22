@@ -1,5 +1,5 @@
 /**
- * The Mediator's table for Play's Mediator tests (wireframe mediator-scene):
+ * The Mediator's table for Play's Mediator tests:
  * Bonesaw boarded in Buzzard and rolling, Mags boarded in Atlas, Rook on foot
  * and hurt (▲ HP 4/10), all three here; Wren boarded in Mule and away; and
  * Hotdog, an unclaimed pre-gen, who is no seat.

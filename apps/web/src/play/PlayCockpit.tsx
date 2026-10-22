@@ -14,7 +14,7 @@
  *
  * The bar's LIVE stamp counts who is here in a Game ("● Live · 4 here",
  * `hereCount` over the seats' `lastSeenAt` from `seats.forGame`, play.md §7);
- * a solo screen, which shares nothing, has none (the solo wireframes). Either
+ * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
  * The channel button shows where rolls post, or Connect (`PlayChannelButton`,

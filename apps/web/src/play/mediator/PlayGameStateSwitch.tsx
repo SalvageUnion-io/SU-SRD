@@ -1,6 +1,6 @@
 /**
  * PlayGameStateSwitch — the Mediator's game state in the Play bar (play.md
- * §10, wireframe pin 1): one Compact `Segmented` control, Scene | Begin
+ * §10): one Compact `Segmented` control, Scene | Begin
  * Downtime, in the Situation switch's place.
  *
  *  - **Begin Downtime** starts it at the first step, which moves every

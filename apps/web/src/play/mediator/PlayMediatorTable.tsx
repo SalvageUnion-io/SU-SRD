@@ -1,6 +1,5 @@
 /**
- * PlayMediatorTable — the Mediator's left column (play.md §10, wireframe pin
- * 2): "The table", a Slab, with one seat per player directly under it
+ * PlayMediatorTable — the Mediator's left column (play.md §10): "The table", a Slab, with one seat per player directly under it
  * (`PlayMediatorSeat`, a Mini one a line), then the Game's crawler as the Units
  * column's own crawler box (`PlayCrawlerUnit`), live for the Mediator, who
  * runs it (ADR-038 §5).

@@ -137,7 +137,7 @@ describe('a solo Downtime, end to end', () => {
         'Applies, each line can be unticked if your table rules it differently.'
       )
     ).toBeTruthy()
-    // Skip, Apply & mark done and Next step, as the solo wireframe draws them.
+    // Skip, Apply & mark done and Next step.
     expect(
       within(stepBox())
         .getAllByRole('button')

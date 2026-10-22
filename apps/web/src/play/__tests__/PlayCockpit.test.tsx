@@ -80,7 +80,7 @@ describe('the Cockpit frame', () => {
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
     expect(bar.getByText('Solo')).toBeTruthy()
-    // A solo screen shares nothing: no LIVE stamp (the solo wireframes).
+    // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Live/)).toBeNull()
     expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
     // Nothing bound: the channel button is Connect.

@@ -1,6 +1,5 @@
 /**
- * PlayDowntimeColumn — the Actions column while Downtime runs (play.md §6,
- * wireframe pin 8): the ten guide
+ * PlayDowntimeColumn — the Actions column while Downtime runs (play.md §6): the ten guide
  * steps (Tally Salvage … Prepare for the next Salvage Run) as a track, the
  * current step as one box (`PlayDowntimeStep`), then the Downtime actions on
  * hand and the field actions collapsed below them.

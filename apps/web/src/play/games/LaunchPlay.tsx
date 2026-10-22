@@ -2,7 +2,7 @@
  * LaunchPlay — a player's way into Play from the Game hub: a **Play** chip
  * button in the Game band (`GameBand`'s `actions`), and a dialog that asks
  * which pilot to play. The Mediator's chip is the band's own **Mediate** link
- * to Play's Mediator screen instead (wireframe play-entry).
+ * to Play's Mediator screen instead.
  *
  * The button is always there: Play runs a Game with or without a Mediator
  * (ADR-051 §4).

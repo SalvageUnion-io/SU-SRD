@@ -21,7 +21,6 @@ export const COLLAPSED_DOCS: Record<string, number> = {
   'docs/design-system/entity-display-language.md': 6_000,
   'docs/design-system/hard-rules.md': 48_700,
   'docs/design-system/ruleset.md': 13_350,
-  'docs/design-system/sources.md': 3_600,
   'docs/ops/cloud-environment.md': 3_800,
 }
 

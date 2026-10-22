@@ -199,7 +199,7 @@ describe('the list', () => {
     expect(away.getAllByText('needs Downtime').length).toBeGreaterThan(0)
   })
 
-  test('the type filter and Find sit on the "Actions" heading line (wireframe pin 5)', () => {
+  test('the type filter and Find sit on the "Actions" heading line', () => {
     renderBoarded()
     const head = screen.getByRole('heading', { level: 2, name: 'Actions' }).parentElement
     expect(head?.classList.contains('su-play-act-head')).toBe(true)

@@ -1,6 +1,6 @@
 /**
  * PlayMediatorDowntime — the Mediator's centre column while Downtime runs
- * (play.md §10, wireframe mediator-downtime): the ten guide steps as the
+ * (play.md §10): the ten guide steps as the
  * player's track (`PlayDowntimeTrack`, a step a press away), then the current
  * step as one box (level 1) with each seat as a full-width Mini saying
  * whether they are done (level 2), and its way through (`DowntimeStepNav`:

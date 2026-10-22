@@ -1,6 +1,5 @@
 /**
- * The Mediator's Play screen (`PlayMediatorCockpit`, play.md §10, wireframes
- * mediator-scene and mediator-downtime) against answered queries: the bar
+ * The Mediator's Play screen (`PlayMediatorCockpit`, play.md §10) against answered queries: the bar
  * (MEDIATOR, "3 of 4 here", Scene / Downtime, Tell the table), the table's
  * seats (presence, mount, every vital, ▲, what they are doing) and the live
  * crawler, the Opposition (HP / SP, Morale, Rename, Remove, + Add, the chosen

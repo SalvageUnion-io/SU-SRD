@@ -15,6 +15,11 @@
  * `DISCORD_TOKEN_REF`, the reference `apps/discord-bot/.env.example` uses.
  * Without the flag nothing leaves the machine.
  *
+ * The profile slots: Discord's banner `banner.png` (680 × 240, 17:6; the title
+ * sits right because the avatar covers the bottom left), the app icon and
+ * avatar `icon.png` (1024², also Ko-fi's avatar) and Ko-fi's cover
+ * `kofi-cover.png` (1500 × 500, centred because Ko-fi crops a phone's sides).
+ *
  * Not covered: the default link preview (`og-image.png`) carries no mark, and
  * Ko-fi has no API, so its avatar (`icon.png`) and cover go up by hand.
  */

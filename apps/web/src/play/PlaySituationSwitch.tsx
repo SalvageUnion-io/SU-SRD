@@ -1,6 +1,5 @@
 /**
- * PlaySituationSwitch — the Play bar's Situation (play.md §3, wireframe pin
- * 2): one Compact `Segmented` control, On foot | Board | Downtime.
+ * PlaySituationSwitch — the Play bar's Situation (play.md §3): one Compact `Segmented` control, On foot | Board | Downtime.
  *
  *  - **On foot** climbs out (Dismount). Eject is not here: it is the Mount
  *    row's, behind its confirm (ADR-007).

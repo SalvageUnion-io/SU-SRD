@@ -1,5 +1,5 @@
 /**
- * The Units column's unit boxes (play.md §4, wireframe pin 4): the pilot,
+ * The Units column's unit boxes (play.md §4): the pilot,
  * the mech and the crawler, each one `TitledBox` in its tone, and the mechs
  * left in the hangar as Minis. Exported one by one so the Mediator's screen
  * (play.md §10) draws the same boxes with its own `live` flag.
@@ -384,8 +384,7 @@ export function PlayCrawlerUnit({
   const tl = crawlerTechLevelOf(crawler)
   const chips = bayChips(crawler)
   const write = writer(store, 'crawler', crawler.id)
-  // Solid while it is the Downtime's unit, whoever may write it (wireframes
-  // player-downtime and player-solo-downtime); dashed for reference otherwise.
+  // Solid while it is the Downtime's unit, whoever may write it; dashed for reference otherwise.
   const solid = live || downtime
   return (
     <TitledBox

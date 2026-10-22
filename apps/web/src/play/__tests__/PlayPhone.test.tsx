@@ -1,6 +1,5 @@
 /**
- * Play's phone form for the player (play.md §11, ADR-051 §10, wireframe
- * phone): `PlayCockpitPhone` over a stand-in `Play` (`useHarnessPlay`).
+ * Play's phone form for the player (play.md §11, ADR-051 §10): `PlayCockpitPhone` over a stand-in `Play` (`useHarnessPlay`).
  *
  *  - The tabs: Act, Units, Tables, Crew, in that order (Crew a Game's only);
  *    a switch opens one panel and keeps the others mounted, hidden.

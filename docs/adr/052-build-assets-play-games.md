@@ -1,8 +1,6 @@
 # ADR-052: Build Owns Your Assets; Play Owns Games and the Dashboards
 
-Decided and built: the `build-play-split` milestone (tracker #1666); wireframes
-[`docs/wireframes/build-play-split/`](../wireframes/build-play-split/). Where a
-wireframe and this text differ, this text wins. The area names (Build is the
+Decided and built: the `build-play-split` milestone (tracker #1666). The area names (Build is the
 Training Bay, Play is The Cantina) are [ADR-051](051-play-mode.md) §1.
 
 - **Amends** [ADR-030](030-accounts-games-server-of-record.md) §6 and its

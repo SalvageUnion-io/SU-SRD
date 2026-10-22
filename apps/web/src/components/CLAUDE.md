@@ -10,8 +10,7 @@ the public API and the only list of exports; its rules:
   the areas and `shared/` wire data.
 - **Never rely on an import running code:** bundlers drop a module whose
   exports go unused.
-- **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm)
-  (boards: [sources.md](../../../../docs/design-system/sources.md)), codified by
+- **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm), codified by
   [`ruleset.md`](../../../../docs/design-system/ruleset.md); entity forms by the
   [EDL](../../../../docs/design-system/entity-display-language.md).
 

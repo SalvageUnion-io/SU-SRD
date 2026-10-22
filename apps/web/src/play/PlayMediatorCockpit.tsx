@@ -1,6 +1,5 @@
 /**
- * PlayMediatorCockpit — the Mediator's Play screen for one Game (play.md §10,
- * wireframes mediator-scene and mediator-downtime), on the player's frame
+ * PlayMediatorCockpit — the Mediator's Play screen for one Game (play.md §10), on the player's frame
  * (`PlayFrame`). Who may open it is `PlayMediatorGate`'s question, asked
  * before this renders.
  *

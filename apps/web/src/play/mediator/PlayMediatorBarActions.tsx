@@ -1,5 +1,5 @@
 /**
- * The end of the Mediator's Play bar (play.md §10, wireframe pin 1), after the
+ * The end of the Mediator's Play bar (play.md §10), after the
  * channel button: **Tell the table** and ⋯.
  *
  *  - **Tell the table** opens its form (`TellTheTable`)

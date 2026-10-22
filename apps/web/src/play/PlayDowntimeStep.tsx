@@ -1,6 +1,5 @@
 /**
- * PlayDowntimeStep — the current Downtime step as one level-1 box (play.md §6,
- * wireframe pin 8): the step's name, who moves the table on, and exactly what
+ * PlayDowntimeStep — the current Downtime step as one level-1 box (play.md §6): the step's name, who moves the table on, and exactly what
  * the step will apply (`playDowntime.model.ts`), each line untickable
  * (ADR-007), then Skip and Apply & mark done.
  *
@@ -21,11 +20,6 @@
  * when it is already paid, and the Scrap is drawn only when it answers true.
  * Restore never confirms: its patches only heal, repair and recharge, and
  * refuse a Destroyed mech: nothing destructive, so nothing to confirm (ADR-007).
- *
- * The two Downtime wireframes swap these labels: player-downtime.png (a Game)
- * draws "You run it", and player-solo-downtime.png "Mediator advances · 2 of
- * 4 done" beside a Next step. The step box keeps the rule above (the Game's
- * step is the Mediator's to advance), not those drawings.
  *
  * What it applies lands on the Feed as a change (`recordPlayChange`).
  * Inside the box, the lines are plain content (labels and Stat chips), never

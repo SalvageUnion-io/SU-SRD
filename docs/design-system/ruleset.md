@@ -1,6 +1,6 @@
 # The Primitives Ruleset — Salvage Union Design System
 
-Canon for every primitive and surface: if a component contradicts a rule, the component is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) (board index: [sources.md](sources.md)) outranks this file, which is amended to match it.
+Canon for every primitive and surface: if a component contradicts a rule, the component is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks this file, which is amended to match it.
 The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 
 ## The source: the Workshop Manual

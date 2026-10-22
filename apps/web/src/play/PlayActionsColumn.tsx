@@ -4,7 +4,7 @@
  * Outside Downtime it is one flattened Actions list (`PlayActionsList`): every
  * action of the pilot and the mech, the Reactor and Mount, sorted by action
  * type (Turn, Short, Long, Reaction, Free, Downtime), with a type filter and
- * Find on the "Actions" heading line (wireframe pin 5); what is on hand first, what is not collapsed below with its reason.
+ * Find on the "Actions" heading line; what is on hand first, what is not collapsed below with its reason.
  * Every line is a Mini (ruleset §1.3); Use opens the action in place as its
  * Mini's contentful body: Activate, Roll, Push?, Apply, on the seat's
  * `resolving`.

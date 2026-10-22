@@ -1,6 +1,5 @@
 /**
- * PlayMediatorSide — the Mediator's right column (play.md §10, wireframe pins
- * 5–6): the player's Tables and Feed sections, then the Propose dock.
+ * PlayMediatorSide — the Mediator's right column (play.md §10): the player's Tables and Feed sections, then the Propose dock.
  *
  *  - **Tables** (`PlayTablesSection`, the player's): pinned for the Game's
  *    state, Find for the rest, and the screen's Post toggle, private by
@@ -46,7 +45,7 @@ const SECTION = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The dock sits at the column's foot, as the wireframe draws it. */
+/** The dock sits at the column's foot. */
 const DOCK = { ...SECTION, marginTop: 'auto' } satisfies CSSProperties
 
 /** The Mediator's Tables and Feed sections, as the canvas and the phone's Tables tab stack them. */
@@ -77,7 +76,7 @@ type ProposeProps = {
   onTarget: (id: string | null) => void
   /** Propose's To field, which picking a seat focuses. */
   toRef: RefObject<HTMLInputElement | null>
-  /** Sits at the foot of its column, as the canvas's wireframe draws it. */
+  /** Sits at the foot of its column. */
   docked?: boolean
 }
 

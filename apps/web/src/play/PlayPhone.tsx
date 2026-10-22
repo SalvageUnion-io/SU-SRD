@@ -1,5 +1,5 @@
 /**
- * PlayPhone — Play's phone form (play.md §11, ADR-051 §10, wireframe phone):
+ * PlayPhone — Play's phone form (play.md §11, ADR-051 §10):
  * what `PlayFrame` hands `PlayCanvas` for below the canvas's floor.
  * Tabs, not a second layout:
  *

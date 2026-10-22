@@ -1,6 +1,6 @@
 /**
  * PlayCockpitPhone — the player's Play screen below the canvas's floor
- * (play.md §11, wireframe phone): `PlayPhone` with the player's tabs.
+ * (play.md §11): `PlayPhone` with the player's tabs.
  *
  *  - **Act** — the Actions column (`PlayActionsColumn`): the flattened list,
  *    resolving inline in its row; in Downtime the step track, the step box and
