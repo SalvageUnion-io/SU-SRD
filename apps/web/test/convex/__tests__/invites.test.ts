@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { api, internal } from '../../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { refreshGameSummary } from '../../../convex/model/entities'
 import type { Ctx } from '../fixtures'
@@ -26,7 +26,6 @@ async function seedLegacyInvite(
   code: string,
   extra: {
     standing?: boolean
-    requiresApproval?: boolean
     target?: { kind: 'discord'; discordId: string }
   }
 ) {
@@ -37,9 +36,6 @@ async function seedLegacyInvite(
       code,
       createdBy,
       createdAt: now,
-      expiresAt: now + 1000 * 60 * 60 * 24 * 7,
-      role: 'player',
-      requiresApproval: extra.requiresApproval ?? false,
       standing: extra.standing,
       target: extra.target,
     })
@@ -134,10 +130,6 @@ describe('codes from retired invite kinds', () => {
     await seedLegacyInvite(t, gameId, organizer.userId, 'OLDSTANDING00000', { standing: true })
     await seedLegacyInvite(t, gameId, organizer.userId, 'NEWSTANDING00000', { standing: true })
     await seedLegacyInvite(t, gameId, organizer.userId, 'MINTEDBYCREATE00', {})
-    await seedLegacyInvite(t, gameId, organizer.userId, 'APPROVALLINK0000', {
-      standing: true,
-      requiresApproval: true,
-    })
     await seedLegacyInvite(t, gameId, organizer.userId, 'ADDRESSEDTOSAM00', {
       target: { kind: 'discord', discordId: 'snowflake-sam' },
     })
@@ -149,12 +141,7 @@ describe('codes from retired invite kinds', () => {
       'joined'
     )
 
-    for (const code of [
-      'OLDSTANDING00000',
-      'MINTEDBYCREATE00',
-      'APPROVALLINK0000',
-      'ADDRESSEDTOSAM00',
-    ]) {
+    for (const code of ['OLDSTANDING00000', 'MINTEDBYCREATE00', 'ADDRESSEDTOSAM00']) {
       const someone = await makeUser(
         t,
         `Someone ${code}`,
@@ -194,38 +181,16 @@ describe('preview', () => {
 })
 
 describe('deleting a game', () => {
-  test('sweeps its invites, and any redemptions and asks older doors left', async () => {
+  test('sweeps its invites', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const joiner = await makeUser(t, 'Sam')
     const code = await organizer.as.mutation(api.invites.link, { gameId })
     await joiner.as.mutation(api.invites.redeem, { code })
-    await t.run(async (ctx) => {
-      const invite = await ctx.db.query('invites').first()
-      if (invite === null) throw new Error('expected an invite')
-      await ctx.db.insert('inviteRedemptions', {
-        inviteId: invite._id,
-        gameId,
-        userId: joiner.userId,
-        redeemedAt: Date.now(),
-      })
-      await ctx.db.insert('joinRequests', {
-        gameId,
-        inviteId: invite._id,
-        userId: joiner.userId,
-        requestedAt: Date.now(),
-        state: 'pending',
-      })
-    })
 
     await organizer.as.mutation(api.games.destroy, { gameId })
 
-    const leftovers = await t.run(async (ctx) => ({
-      invites: (await ctx.db.query('invites').collect()).length,
-      redemptions: (await ctx.db.query('inviteRedemptions').collect()).length,
-      requests: (await ctx.db.query('joinRequests').collect()).length,
-    }))
-    expect(leftovers).toEqual({ invites: 0, redemptions: 0, requests: 0 })
+    expect(await t.run(async (ctx) => (await ctx.db.query('invites').collect()).length)).toBe(0)
   })
 })
 
@@ -277,86 +242,5 @@ describe('games.get and the row summary', () => {
     const stranger = await makeUser(t, 'Stranger')
     // A bookmarked URL for a game you left is an ordinary thing to visit.
     expect(await stranger.as.query(api.games.get, { gameId })).toBeNull()
-  })
-})
-
-describe('dropRetired', () => {
-  test('reports without changing anything, then clears the retired columns and rows', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    const code = await organizer.as.mutation(api.invites.link, { gameId })
-    await seedLegacyInvite(t, gameId, organizer.userId, 'OLDCODE1', { requiresApproval: true })
-    const joiner = await makeUser(t, 'Ash')
-    await t.run(async (ctx) => {
-      const legacy = await ctx.db
-        .query('invites')
-        .withIndex('by_code', (q) => q.eq('code', 'OLDCODE1'))
-        .unique()
-      if (legacy === null) throw new Error('no legacy invite')
-      await ctx.db.insert('joinRequests', {
-        gameId,
-        inviteId: legacy._id,
-        userId: joiner.userId,
-        requestedAt: Date.now(),
-        state: 'pending',
-      })
-      await ctx.db.insert('inviteRedemptions', {
-        gameId,
-        inviteId: legacy._id,
-        userId: joiner.userId,
-        redeemedAt: Date.now(),
-      })
-      await ctx.db.insert('channelBindings', {
-        gameId,
-        channelId: 'chan-1',
-        boundBy: organizer.userId,
-        boundAt: Date.now(),
-      })
-    })
-
-    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1 }
-    expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
-    expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
-
-    expect(await t.mutation(internal.invites.dropRetired, { apply: true })).toEqual(counts)
-    expect(await t.mutation(internal.invites.dropRetired, {})).toEqual({
-      invites: 0,
-      joinRequests: 0,
-      inviteRedemptions: 0,
-    })
-    // A channel binding is live again (`/su bind`): the repair leaves it alone.
-    const bindings = await t.run(async (ctx) => ctx.db.query('channelBindings').collect())
-    expect(bindings.map((row) => row.channelId)).toEqual(['chan-1'])
-    const legacy = await t.run(async (ctx) =>
-      ctx.db
-        .query('invites')
-        .withIndex('by_code', (q) => q.eq('code', 'OLDCODE1'))
-        .unique()
-    )
-    expect(legacy?.requiresApproval).toBeUndefined()
-    expect(legacy?.expiresAt).toBeUndefined()
-    expect(legacy?.role).toBeUndefined()
-    // The live link still opens.
-    expect(await joiner.as.mutation(api.invites.redeem, { code })).toEqual({
-      kind: 'joined',
-      gameId,
-    })
-  })
-
-  test('an approval-only standing link is revoked, never made the invite URL', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seedGame(t)
-    await seedLegacyInvite(t, gameId, organizer.userId, 'OPENSTANDING0000', { standing: true })
-    await seedLegacyInvite(t, gameId, organizer.userId, 'APPROVALLINK0000', {
-      standing: true,
-      requiresApproval: true,
-    })
-    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('OPENSTANDING0000')
-
-    await t.mutation(internal.invites.dropRetired, { apply: true })
-
-    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('OPENSTANDING0000')
-    const someone = await makeUser(t, 'Someone')
-    expect(await someone.as.query(api.invites.preview, { code: 'APPROVALLINK0000' })).toBeNull()
   })
 })
