@@ -16,7 +16,8 @@ import { getItemStaticPaths } from '../../lib/staticPaths'
 type Params = { schemaId: string; itemId: string }
 type Props = ReturnType<typeof getItemStaticPaths>[number]['props']
 
-function committedRow(item: RefEntity): Record<string, unknown> {
+/** The row as `data/` commits it: the model's copy less its `schemaName`. */
+export function committedRow(item: RefEntity): Record<string, unknown> {
   return Object.fromEntries(Object.entries(item).filter(([key]) => key !== 'schemaName'))
 }
 

@@ -23,39 +23,50 @@ export const pagesCopy = messages({
   close: 'Close',
   shmeppyCom: 'Shmeppy.com',
   documentationForThePublicJson:
-    'Documentation for the public JSON API endpoints available at salvageunion.io.',
-  jsonApiReference: 'JSON API Reference',
+    'Documentation for the versioned public JSON API at salvageunion.io/api/v1.',
+  datasetApi: 'Dataset API',
   overview: 'Overview',
   allGameDataOnSalvageunion:
-    'All game data on salvageunion.io is available as machine-readable JSON. The API is static — every endpoint is a plain file served directly from the site. No authentication is required.',
+    'All game data on SalvageUnion.io is available as machine-readable JSON. The API is static: every endpoint is a plain file served directly from the site. No authentication is required.',
   accessControlAllowOrigin: 'Access-Control-Allow-Origin: *',
-  baseUrl: 'Base URL:',
+  everyEndpointSitsUnder: 'Every endpoint sits under',
+  startAtTheManifest: 'Start at the manifest:',
   tip: 'Tip:',
-  schema: '/schema/',
-  schemaChassisJson: '/schema/chassis.json',
-  schemaChassisItemJson: '/schema/chassis/item/{slug}.json',
+  versionsAndStability: 'Versions and stability',
+  thisIsVersion1:
+    'This is version 1. Within v1, changes only add: new schemas, new optional fields, new entities and corrected text. A field is never removed, renamed or retyped, and an entity whose slug changes keeps answering at its old URL with a redirect.',
+  aBreakingChangeShips:
+    'A breaking change ships as a new version at /api/v2/, served beside v1 rather than in its place.',
+  theManifestGivesEachSchema:
+    'The manifest gives each schema a sha256 of its data, so a client can tell what changed since it last looked without downloading everything.',
+  theOlderUnversionedUrls:
+    'The older, unversioned /schema/ URLs, such as {data} and {item}, keep working and serve the same files on the same terms. New code should use v1.',
   endpoints: 'Endpoints',
+  theManifest: 'The manifest',
+  listsEverySchema:
+    'Lists every schema with its name, item count, data hash and the URLs of its data and its JSON Schema. Start here.',
   everyEntityOfASchema: 'Every entity of a schema',
   returnsTheFullDataArray:
     'Returns the full data array for a schema. Each element is a game entity.',
   example: 'Example:',
-  schemaChassisJson2: '{siteUrl}/schema/chassis.json',
   aSchemasJsonSchema: "A schema's JSON Schema",
   returnsTheJsonSchemaDefinition:
-    "Returns the JSON Schema definition for a schema, generated from the Zod validation schemas used in this site's codebase. Useful for validating data or understanding the shape of entity objects.",
-  schemaChassisSchemaJson: '{siteUrl}/schema/chassis.schema.json',
+    "Returns the JSON Schema definition for a schema, generated from the Zod validation schemas used in this site's codebase. Its $id is its own URL. Useful for validating data or understanding the shape of entity objects.",
   oneEntity: 'One entity',
-  schemaChassisItemJson2: '{siteUrl}/schema/chassis/item/{slug}.json',
   usageExample: 'Usage example',
   fetchAllChassisDataIn: 'Fetch all chassis data in browser JavaScript:',
   availableSchemas: 'Available Schemas',
   theFollowingSchemaIdsAre:
     'The following schema IDs are available. Use them in the endpoint patterns above.',
+  oneMoreActions:
+    'One more, actions, is served whole at {path} with its schema, but has no page and no per-entity files. Systems, Modules, Equipment and Abilities list their actions by name, and each action holds its type, cost, Range, Damage and Traits.',
   schemaIds: 'Schema IDs',
   schemaId: 'Schema ID',
   name: 'Name',
   description: 'Description',
   items: 'Items',
+  everyEndpointIncludesHeaders:
+    'All {v1} and /schema/ endpoints include the following response headers:',
   corsPolicy: 'CORS policy',
   noPreflightRequestsAreRequired: 'No preflight requests are required for standard GET requests.',
   licensing: 'Licensing',
