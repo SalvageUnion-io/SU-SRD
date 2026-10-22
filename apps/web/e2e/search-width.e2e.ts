@@ -7,8 +7,8 @@ import { expect, test } from './fixtures'
 /**
  * A search field is full width on a phone (`_searchWidth.ts`), on the
  * signed-out pages that draw one: an SRD listing's rail (the reference
- * corpus's `search` pages, `_designTable.ts`), and the header's search opened
- * from its magnifier. Play's phone form is held to it in `play-turn.e2e.ts`.
+ * corpus's `search` pages, `_designTable.ts`), and the header's search, a
+ * row of its own under the bar. Play's phone form is held to it in `play-turn.e2e.ts`.
  * Each page must draw a field, so the gate never passes by reading nothing.
  */
 
@@ -33,11 +33,9 @@ for (const viewport of [DESIGN_VIEWPORTS.phone, { width: 600, height: 900 }]) {
   }) => {
     await page.setViewportSize(viewport)
     await page.goto(corpusRoutes('search')[0]?.path ?? '/chassis/', { waitUntil: 'networkidle' })
-    await page
-      .getByRole('button', { name: /search/i })
-      .first()
-      .click()
-    await expect(page.getByRole('combobox').first()).toBeVisible()
+    await expect(
+      page.locator('.su-union-bar').getByRole('combobox', { name: /search the reference/i })
+    ).toBeVisible()
     expect(await findSearchWidths(page), 'the header search narrower than its line').toEqual([])
   })
 }
