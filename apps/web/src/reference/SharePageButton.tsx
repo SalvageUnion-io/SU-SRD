@@ -19,6 +19,8 @@ export function SharePageButton() {
         aria-label={referenceCopy('shareThisPage')}
         className="su-page-action su-share-page su-hit-area"
         {...{ [SHARE_PAGE_ATTRIBUTE]: '' }}
+        data-share-failed={referenceCopy('shareFailed')}
+        data-copy-failed={referenceCopy('copyLinkFailed')}
       >
         <Share2 aria-hidden="true" size={tokens.iconSize.compact} className="su-share-page__rest" />
         <Check aria-hidden="true" size={tokens.iconSize.compact} className="su-share-page__done" />
