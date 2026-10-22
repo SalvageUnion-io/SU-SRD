@@ -5,7 +5,7 @@ import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * `GET /homebrew/patterns.json` (ADR-056): the SRD's pages read homebrew from
+ * `GET /homebrew/patterns.json` (ADR-057): the SRD's pages read homebrew from
  * their own origin, and the Worker reads it from Convex.
  */
 

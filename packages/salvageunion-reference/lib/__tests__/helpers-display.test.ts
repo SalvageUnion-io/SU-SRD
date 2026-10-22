@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { getSources } from '../entityFields'
 import {
   extractStaticEntitySummary,
   getDisplayName,
@@ -144,6 +145,19 @@ describe('facets', () => {
       { id: 'b', source: 'Alpha' },
     ])
     expect(getUniqueSources(entities)).toEqual(['Alpha', 'Zephyr'])
+  })
+
+  test('a reprint counts as a source: the Starter Set lists what it reprints', () => {
+    const entities = malformed<RefEntity[]>([
+      {
+        id: 'a',
+        source: 'Salvage Union Workshop Manual',
+        additionalSources: [{ source: 'Alpha', booklet: 'PC', page: 1 }],
+      },
+      { id: 'b', source: 'Zephyr' },
+    ])
+    expect(getUniqueSources(entities)).toEqual(['Salvage Union Workshop Manual', 'Alpha', 'Zephyr'])
+    expect(getSources(entities[0] as RefEntity)).toEqual(['Salvage Union Workshop Manual', 'Alpha'])
   })
 
   test('trees are unique, sorted, and entities without one are skipped', () => {

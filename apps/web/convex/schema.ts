@@ -465,7 +465,7 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_app_id', ['appId'])
     .index('by_game', ['gameId'])
-    // Homebrew (ADR-056): every pattern shared by link, newest share first.
+    // Homebrew (ADR-057): every pattern shared by link, newest share first.
     .index('by_public', ['publicRead', 'sharedAt']),
 
   /**

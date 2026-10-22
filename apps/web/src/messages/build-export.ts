@@ -8,6 +8,9 @@ export const buildExportCopy = messages({
   exportAll: 'Export all',
   exported: 'Exported {name}.',
   export: 'Export',
+  exportedToFoundry: 'Exported {name}. In Foundry, make an empty {kind} and choose Import Data.',
+  exportToFoundryLabel: 'Export this {kind} to Foundry VTT',
+  exportToFoundry: 'Export to Foundry',
   importing: 'Importing…',
   import: 'Import',
 })

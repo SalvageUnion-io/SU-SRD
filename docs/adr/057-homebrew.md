@@ -1,4 +1,4 @@
-# ADR-056: Homebrew on the SRD
+# ADR-057: Homebrew on the SRD
 
 Decided and built for 4.1.0. Amends [ADR-032](032-public-read-only-sheets.md)
 (a pattern shared by link is also listed) and narrows the "net-new homebrew

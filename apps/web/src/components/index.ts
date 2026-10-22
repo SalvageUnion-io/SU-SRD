@@ -156,6 +156,7 @@ export { RollTableInstrument } from './compositions/RollTableInstrument'
 // SearchListbox — the one list a search's results hang in (Minis or Compacts, `form`).
 export { SearchListbox } from './compositions/SearchListbox'
 // StartHere — the one onboarding block, on the SRD's home and the app's front door
+export type { StartHereStep } from './compositions/StartHere'
 export { StartHere } from './compositions/StartHere'
 export type { TreeTrack } from './compositions/treeTrack'
 export { trackForTree } from './compositions/treeTrack'

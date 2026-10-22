@@ -12,7 +12,7 @@ import { deletePatternReports, hiddenPatternIds, moderationOf } from './model/ho
 import { requireUser } from './model/permissions'
 
 /**
- * Homebrew (ADR-056): the players' own mech patterns, on the SRD beside the
+ * Homebrew (ADR-057): the players' own mech patterns, on the SRD beside the
  * book's.
  *
  * - **Public is the link.** Every saved pattern its maker shares with "Anyone

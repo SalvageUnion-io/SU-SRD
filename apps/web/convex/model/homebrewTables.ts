@@ -2,7 +2,7 @@ import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
 
 /**
- * Homebrew's moderation tables (ADR-056), spread into `schema.ts`.
+ * Homebrew's moderation tables (ADR-057), spread into `schema.ts`.
  *
  * Homebrew itself is no table: it is every saved pattern its maker shares with
  * "Anyone with the link" (`mechPatterns.publicRead`). These hold only what a

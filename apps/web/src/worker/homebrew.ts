@@ -1,5 +1,5 @@
 /**
- * `GET /homebrew/patterns.json` — Homebrew for the SRD's pages (ADR-056):
+ * `GET /homebrew/patterns.json` — Homebrew for the SRD's pages (ADR-057):
  * every pattern shared by link, or one chassis's (`?chassis=<ref>`), read
  * from `homebrew.patterns` over Convex's HTTP API. The SRD's pages are static
  * and may fetch only their own origin, so this is how they reach it.

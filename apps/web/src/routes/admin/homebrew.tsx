@@ -4,7 +4,7 @@ import { HomebrewModerationScreen } from '../../build/homebrew/HomebrewModeratio
 import { areaTitle } from '../../lib/pageTitle'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 
-/** `/admin/homebrew` — a site admin's Homebrew queue (ADR-056). */
+/** `/admin/homebrew` — a site admin's Homebrew queue (ADR-057). */
 export const Route = createFileRoute('/admin/homebrew')({
   head: () => ({
     meta: [{ title: areaTitle(PRODUCT.build, buildHomebrewCopy('moderationTitle')) }],
