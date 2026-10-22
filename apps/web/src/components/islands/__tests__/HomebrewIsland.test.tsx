@@ -66,6 +66,27 @@ describe('on a chassis page', () => {
     expect(screen.getAllByText(/^homebrew$/i)).toHaveLength(3)
   })
 
+  test('one "Show all" under it counts the book’s and the homebrew; a phone waits on the rest', async () => {
+    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
+    answer(() => new Response(JSON.stringify(ROWS)))
+    const { container } = render(<HomebrewIsland chassisRef="mule" bookPatterns={1} />)
+    expect(screen.queryByRole('link', { name: /show all/i })).toBeNull()
+    await settle()
+    const more = screen.getByRole('link', { name: 'Show all 3 patterns' })
+    expect(more.getAttribute('href')).toBe('#patterns')
+    // The book's one shows, then the first homebrew; the second waits for "Show all".
+    expect(container.querySelectorAll('.su-homebrew__more')).toHaveLength(1)
+  })
+
+  test('with no book patterns, "Show all" opens the Homebrew section', async () => {
+    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
+    answer(() => new Response(JSON.stringify([...ROWS, { ...ROWS[0], appId: 'pat-c' }])))
+    render(<HomebrewIsland chassisRef="mule" />)
+    await settle()
+    const more = screen.getByRole('link', { name: 'Show all 3 patterns' })
+    expect(more.getAttribute('href')).toBe('#homebrew-patterns')
+  })
+
   test('remembered on, it lists at once; none shared, it says so; turned off, it hides them', async () => {
     localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
     answer(() => new Response('[]'))
