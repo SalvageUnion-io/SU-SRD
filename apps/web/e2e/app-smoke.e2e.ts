@@ -13,7 +13,9 @@ test.use({ account: 'anonymous' })
  * in, with no create affordance. The populated roster and the build flows are
  * covered, signed in, by the other e2e specs in the nightly suite.
  */
-test('the roster loads and asks a signed-out visitor to sign in', async ({ page }) => {
+test('the roster loads and asks a signed-out visitor to sign in', { tag: '@pr' }, async ({
+  page,
+}) => {
   await openApp(page, '/')
 
   // App title is present

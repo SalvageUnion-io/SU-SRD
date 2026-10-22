@@ -43,7 +43,7 @@ import { portFor } from 'gates/ports'
  *
  * Signed out, the app is read-only, so every spec that builds something
  * signs in through `e2e/fixtures.ts`. Both CI builds that run them, ci.yml's
- * `build-web` (the PR tier, its listed specs) and the nightly `e2e` job (the
+ * `build-web` (the PR tier, its `@pr` tests) and the nightly `e2e` job (the
  * whole suite), carry the seam against a throwaway Convex backend; a build
  * without it SKIPS those specs. Locally, `bun run dev` always carries the seam on a local Convex
  * deployment, so those specs need the one-time "Local backend" setup in

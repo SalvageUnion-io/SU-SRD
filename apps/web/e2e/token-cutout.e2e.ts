@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test'
-import { walkDesignRoutes } from './_designRoutes'
+import { expectCorpusClean } from './_designRoutes'
 import { corpusRoutes } from './_designTable'
-import { findMiniCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
+import { findTokenCutouts, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
+import { test } from './fixtures'
 
 /**
  * Every contentful Mini (N3) wears the cut-out head every Mini, Compact and
@@ -13,24 +13,14 @@ import { findMiniCutoutFaults, TOKEN_CUTOUT_SELECTORS } from './_tokenCutout'
  * one. Each page must draw at least one, so the gate never passes by reading
  * nothing. There is no allowlist: every fault fails.
  */
+test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 
-test('every contentful Mini wears the cut-out head', async ({ page }) => {
+test('every contentful Mini wears the cut-out head', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(5 * 60_000)
-  const found = await walkDesignRoutes(
-    page,
-    async ({ where }) => {
-      const tokens = page.locator(TOKEN_CUTOUT_SELECTORS.token)
-      await expect(tokens.first(), `${where} draws a contentful Mini`).toBeVisible()
-      return (await findMiniCutoutFaults(page)).map((fault) => ({
-        rule: 'cutout',
-        line: `${where}, ${fault}`,
-      }))
-    },
-    { routes: corpusRoutes('contentful-mini') }
-  )
-  expect(
-    found.map((f) => f.line),
-    'contentful Minis off the cut-out'
-  ).toEqual([])
+  await expectCorpusClean(page, 'token-cutout', () => findTokenCutouts(page), {
+    routes: corpusRoutes('contentful-mini'),
+    draws: TOKEN_CUTOUT_SELECTORS.token,
+    message: 'contentful Minis off the cut-out',
+  })
 })

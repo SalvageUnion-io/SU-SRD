@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
 
 /**
  * Hard rule R5, a linked unit is its header-only Mini, never a chip, as the
@@ -65,6 +66,7 @@ export function scanRelations(a: typeof RELATION_SELECTORS): RelationFinding[] {
   return found
 }
 
-export async function findRelationFindings(page: Page): Promise<RelationFinding[]> {
-  return page.evaluate(scanRelations, RELATION_SELECTORS)
+/** Every linked unit drawn as an entity, not a relation chip. */
+export async function findRelationChips(page: Page): Promise<Finding[]> {
+  return await page.evaluate(scanRelations, RELATION_SELECTORS)
 }

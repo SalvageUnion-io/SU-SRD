@@ -85,6 +85,20 @@ export function sheetLink(page: Page, name: string, kind = '') {
     .first()
 }
 
+/**
+ * A Play hub door's path, read off its link: "Play Bonesaw in <Game>", "Play
+ * Mira Voss solo" or "Mediate <Game>" (`PlayLanding`), so Play is reached the
+ * way a player reaches it. The browser path, the app's base included.
+ */
+export async function playDoor(page: Page, name: string | RegExp, base = ''): Promise<string> {
+  await openApp(page, '/play/', base)
+  const door = page.getByRole('link', { name }).first()
+  await door.waitFor({ timeout: 30_000 })
+  const href = await door.getAttribute('href')
+  if (!href) throw new Error(`"${name}" on the Play hub has no href`)
+  return new URL(href, page.url()).pathname
+}
+
 /** Copy a Starter Set build (`pilot/starter-pilot-bonesaw`) to the Training Bay from its sheet's "Make a copy". */
 export async function copyStarter(
   page: Page,

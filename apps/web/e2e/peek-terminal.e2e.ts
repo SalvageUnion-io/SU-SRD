@@ -1,5 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { at } from './_base'
+import { searchPeekTrigger } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -166,7 +168,7 @@ async function peekAt(page: Page, trigger: Locator, where: string): Promise<stri
 test.use({ account: 'anonymous' })
 
 test.describe.configure({ retries: 0 })
-test.use({ viewport: { width: 1440, height: 900 } })
+test.use({ viewport: DESIGN_VIEWPORTS.page })
 
 test('a Peek of every kind is terminal', async ({ page }) => {
   test.setTimeout(10 * 60_000)
@@ -176,13 +178,7 @@ test('a Peek of every kind is terminal', async ({ page }) => {
   // The Union bar's search: a Mini per schema.
   for (const { schema, name } of SEARCH) {
     await page.goto('/chassis/', { waitUntil: 'networkidle' })
-    const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
-    await search.click()
-    await search.fill(name)
-    const trigger = page
-      .locator(`[role="option"][data-peek^="${schema}:"]`)
-      .filter({ hasText: name })
-      .first()
+    const trigger = await searchPeekTrigger(page, { schema, name })
     const found = await trigger.waitFor({ state: 'visible', timeout: 10_000 }).then(
       () => true,
       () => false

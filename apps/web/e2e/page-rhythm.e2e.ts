@@ -1,9 +1,9 @@
-import type { Page } from '@playwright/test'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
-import { walkDesignRoutes } from './_designRoutes'
+import { expectCorpusClean } from './_designRoutes'
 import { corpusRoutes } from './_designTable'
-import { gotoStable, waitForReady } from './_helpers'
-import { describeRhythm, findRhythmFindings } from './_pageRhythm'
+import { place } from './_findings'
+import { openApp } from './_helpers'
+import { findRhythm } from './_pageRhythm'
 import { expect, test } from './fixtures'
 
 /**
@@ -25,24 +25,13 @@ const APP_PAGE = { sheet: '/starter/mech/starter-mech-mazona', token: 'Mini Mort
 test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 
-async function scan(page: Page, where: string): Promise<string[]> {
-  return describeRhythm(where, await findRhythmFindings(page))
-}
-
 test('each kind of SRD Page keeps one rhythm', async ({ page }) => {
   test.setTimeout(5 * 60_000)
-  const found = await walkDesignRoutes(
-    page,
-    async ({ where }) => {
-      await expect(page.locator('.su-entity__body .su-entity-page')).toBeVisible()
-      return (await scan(page, where)).map((line) => ({ rule: 'rhythm', line }))
-    },
-    { routes: corpusRoutes('rhythm') }
-  )
-  expect(
-    found.map((f) => f.line),
-    'a Page off its rhythm'
-  ).toEqual([])
+  await expectCorpusClean(page, 'page-rhythm', () => findRhythm(page), {
+    routes: corpusRoutes('rhythm'),
+    draws: '.su-entity__body .su-entity-page',
+    message: 'a Page off its rhythm',
+  })
 })
 
 for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
@@ -50,12 +39,12 @@ for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
     test.use({ viewport })
 
     test("the app's Page keeps one rhythm", async ({ page }) => {
-      await gotoStable(page, APP_PAGE.sheet)
-      await waitForReady(page)
+      await openApp(page, APP_PAGE.sheet)
       const token = page.locator('.su-entity-mini').filter({ hasText: APP_PAGE.token }).first()
       await token.locator('.su-entity-mini__name').click()
       await expect(page.locator('.su-entity-dialog__body .su-entity-page')).toBeVisible()
-      const failures = await scan(page, `the ${APP_PAGE.token} Page at ${width}`)
+      const where = `the ${APP_PAGE.token} Page at ${width}`
+      const failures = place(where, await findRhythm(page)).map((f) => f.line)
       expect(failures, "the app's Page off its rhythm").toEqual([])
     })
   })

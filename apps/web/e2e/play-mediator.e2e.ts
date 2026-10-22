@@ -50,115 +50,118 @@ function seat(page: Page) {
   })
 }
 
-test('the Mediator runs the table from Play, and the player answers', async ({
-  page,
-  browser,
-}, info) => {
-  test.setTimeout(10 * 60_000)
-  const a11y: string[] = []
-  await createGame(page, GAME)
-  await page.getByRole('button', { name: 'Appoint' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  await expect(page.getByText('You mediate')).toBeVisible({ timeout: 15_000 })
-  const token = await makeInviteLink(page)
+test(
+  'the Mediator runs the table from Play, and the player answers',
+  { tag: '@pr' },
+  async ({ page, browser }, info) => {
+    test.setTimeout(10 * 60_000)
+    const a11y: string[] = []
+    await createGame(page, GAME)
+    await page.getByRole('button', { name: 'Appoint' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
+    await expect(page.getByText('You mediate')).toBeVisible({ timeout: 15_000 })
+    const token = await makeInviteLink(page)
 
-  const player = await secondAccount(browser, info)
-  try {
-    // Joining lands on the Game's page in Play; its Create Pilot builds into it.
-    const gameId = await joinByInvite(player.page, token)
-    await buildPilot(player.page, 'Mira Voss', 'Sparks', gameId)
+    const player = await secondAccount(browser, info)
+    try {
+      // Joining lands on the Game's page in Play; its Create Pilot builds into it.
+      const gameId = await joinByInvite(player.page, token)
+      await buildPilot(player.page, 'Mira Voss', 'Sparks', gameId)
 
-    // --- Both screens, from the Play landing ---
-    const playerPath = await playDoor(player.page, `Play Mira Voss in ${GAME}`)
-    await openPlay(player.page, playerPath)
-    await expect(situation(player.page).getByRole('button', { name: 'On foot' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    )
-    await expectNoPageScroll(player.page, 'player in a Game, On foot')
-    a11y.push(...(await axeViolations(player.page, 'player in a Game, On foot')))
+      // --- Both screens, from the Play landing ---
+      const playerPath = await playDoor(player.page, `Play Mira Voss in ${GAME}`)
+      await openPlay(player.page, playerPath)
+      await expect(situation(player.page).getByRole('button', { name: 'On foot' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+      await expectNoPageScroll(player.page, 'player in a Game, On foot')
+      a11y.push(...(await axeViolations(player.page, 'player in a Game, On foot')))
 
-    const mediatorPath = await playDoor(page, `Mediate ${GAME}`)
-    await openPlay(page, mediatorPath)
-    const bar = page.locator('.su-play-root header')
-    await expect(bar.getByRole('heading', { name: GAME })).toBeVisible()
-    await expect(bar.getByText('Mediator', { exact: true })).toBeVisible()
-    await expect(seat(page)).toBeVisible({ timeout: 30_000 })
-    await expectNoPageScroll(page, 'Mediator, Scene')
-    a11y.push(...(await axeViolations(page, 'Mediator, Scene')))
+      const mediatorPath = await playDoor(page, `Mediate ${GAME}`)
+      await openPlay(page, mediatorPath)
+      const bar = page.locator('.su-play-root header')
+      await expect(bar.getByRole('heading', { name: GAME })).toBeVisible()
+      await expect(bar.getByText('Mediator', { exact: true })).toBeVisible()
+      await expect(seat(page)).toBeVisible({ timeout: 30_000 })
+      await expectNoPageScroll(page, 'Mediator, Scene')
+      a11y.push(...(await axeViolations(page, 'Mediator, Scene')))
 
-    // --- 1. Propose → accept ---
-    await seat(page).click()
-    await expect(seat(page)).toHaveAttribute('aria-pressed', 'true')
-    await page.getByLabel('To', { exact: true }).fill('4')
-    await page.getByLabel('Reason (optional)').fill('Rifle Squad volley')
-    await page.getByRole('button', { name: 'Propose', exact: true }).click()
-    const newest = page.getByRole('region', { name: 'Newest proposals' })
-    await expect(newest.getByText(/HP → 4/)).toBeVisible({ timeout: 15_000 })
-    await expect(newest.getByText('Pending', { exact: true })).toBeVisible()
+      // --- 1. Propose → accept ---
+      await seat(page).click()
+      await expect(seat(page)).toHaveAttribute('aria-pressed', 'true')
+      await page.getByLabel('To', { exact: true }).fill('4')
+      await page.getByLabel('Reason (optional)').fill('Rifle Squad volley')
+      await page.getByRole('button', { name: 'Propose', exact: true }).click()
+      const newest = page.getByRole('region', { name: 'Newest proposals' })
+      await expect(newest.getByText(/HP → 4/)).toBeVisible({ timeout: 15_000 })
+      await expect(newest.getByText('Pending', { exact: true })).toBeVisible()
 
-    const accept = player.page.getByRole('button', { name: /^Accept: Mediator proposes .*HP → 4/ })
-    await expect(accept).toBeVisible({ timeout: 20_000 })
-    await expect(player.page.getByText('“Rifle Squad volley”')).toBeVisible()
-    await accept.click()
-    await expect(accept).toHaveCount(0, { timeout: 15_000 })
-    await expect(newest.getByText('Applied', { exact: true })).toBeVisible({ timeout: 20_000 })
+      const accept = player.page.getByRole('button', {
+        name: /^Accept: Mediator proposes .*HP → 4/,
+      })
+      await expect(accept).toBeVisible({ timeout: 20_000 })
+      await expect(player.page.getByText('“Rifle Squad volley”')).toBeVisible()
+      await accept.click()
+      await expect(accept).toHaveCount(0, { timeout: 15_000 })
+      await expect(newest.getByText('Applied', { exact: true })).toBeVisible({ timeout: 20_000 })
 
-    // --- 2. Begin Downtime → the player applies a step → Advance ---
-    await gameState(page).getByRole('button', { name: 'Begin Downtime' }).click()
-    await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible({
-      timeout: 15_000,
-    })
-    await expect(page.getByRole('heading', { name: /^Downtime · Step 1 of \d+$/ })).toBeVisible()
+      // --- 2. Begin Downtime → the player applies a step → Advance ---
+      await gameState(page).getByRole('button', { name: 'Begin Downtime' }).click()
+      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible({
+        timeout: 15_000,
+      })
+      await expect(page.getByRole('heading', { name: /^Downtime · Step 1 of \d+$/ })).toBeVisible()
 
-    // The player's screen follows the table, and the Downtime is not theirs to end.
-    await expect(
-      situation(player.page).getByRole('button', { name: 'Downtime, set by the Mediator' })
-    ).toHaveAttribute('aria-pressed', 'true', { timeout: 20_000 })
-    await expect(
-      player.page.getByRole('heading', { name: /^Downtime · Step 1 of \d+$/ })
-    ).toBeVisible()
-    await expectNoPageScroll(player.page, 'player in a Game, Downtime')
-    a11y.push(...(await axeViolations(player.page, 'player in a Game, Downtime')))
-    await expectNoPageScroll(page, 'Mediator, Downtime')
-    a11y.push(...(await axeViolations(page, 'Mediator, Downtime')))
+      // The player's screen follows the table, and the Downtime is not theirs to end.
+      await expect(
+        situation(player.page).getByRole('button', { name: 'Downtime, set by the Mediator' })
+      ).toHaveAttribute('aria-pressed', 'true', { timeout: 20_000 })
+      await expect(
+        player.page.getByRole('heading', { name: /^Downtime · Step 1 of \d+$/ })
+      ).toBeVisible()
+      await expectNoPageScroll(player.page, 'player in a Game, Downtime')
+      a11y.push(...(await axeViolations(player.page, 'player in a Game, Downtime')))
+      await expectNoPageScroll(page, 'Mediator, Downtime')
+      a11y.push(...(await axeViolations(page, 'Mediator, Downtime')))
 
-    // The step box: the innermost region carrying its stamp (the Actions
-    // column around it carries the text too).
-    const step = player.page
-      .getByRole('region')
-      .filter({ hasText: /Mediator advances · \d+ of \d+ done/ })
-      .last()
-    await step.getByRole('button', { name: /^(Apply & mark done|Mark done)$/ }).click()
-    await expect(step.getByText('Done ✓')).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(/^1 of \d+ done$/)).toBeVisible({ timeout: 20_000 })
-    await expect(
-      page.getByRole('list', { name: 'Who is done' }).getByText('Done', { exact: true })
-    ).toBeVisible()
+      // The step box: the innermost region carrying its stamp (the Actions
+      // column around it carries the text too).
+      const step = player.page
+        .getByRole('region')
+        .filter({ hasText: /Mediator advances · \d+ of \d+ done/ })
+        .last()
+      await step.getByRole('button', { name: /^(Apply & mark done|Mark done)$/ }).click()
+      await expect(step.getByText('Done ✓')).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText(/^1 of \d+ done$/)).toBeVisible({ timeout: 20_000 })
+      await expect(
+        page.getByRole('list', { name: 'Who is done' }).getByText('Done', { exact: true })
+      ).toBeVisible()
 
-    await page.getByRole('button', { name: 'Next: Step 2' }).click()
-    await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 2' })).toBeVisible({
-      timeout: 15_000,
-    })
-    await expect(
-      player.page.getByRole('heading', { name: /^Downtime · Step 2 of \d+$/ })
-    ).toBeVisible({ timeout: 20_000 })
+      await page.getByRole('button', { name: 'Next: Step 2' }).click()
+      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 2' })).toBeVisible({
+        timeout: 15_000,
+      })
+      await expect(
+        player.page.getByRole('heading', { name: /^Downtime · Step 2 of \d+$/ })
+      ).toBeVisible({ timeout: 20_000 })
 
-    // Back brings the table back; Scene ends it, behind its confirm.
-    await page.getByRole('button', { name: 'Back to Step 1' }).click()
-    await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible()
-    await gameState(page).getByRole('button', { name: 'Scene' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'End Downtime' }).click()
-    await expect(gameState(page).getByRole('button', { name: 'Begin Downtime' })).toBeVisible({
-      timeout: 15_000,
-    })
-    await expect(situation(player.page).getByRole('button', { name: 'On foot' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-      { timeout: 20_000 }
-    )
-  } finally {
-    await player.context.close()
+      // Back brings the table back; Scene ends it, behind its confirm.
+      await page.getByRole('button', { name: 'Back to Step 1' }).click()
+      await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible()
+      await gameState(page).getByRole('button', { name: 'Scene' }).click()
+      await page.getByRole('alertdialog').getByRole('button', { name: 'End Downtime' }).click()
+      await expect(gameState(page).getByRole('button', { name: 'Begin Downtime' })).toBeVisible({
+        timeout: 15_000,
+      })
+      await expect(situation(player.page).getByRole('button', { name: 'On foot' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+        { timeout: 20_000 }
+      )
+    } finally {
+      await player.context.close()
+    }
+    expect(a11y, 'accessibility violations on the Play screens').toEqual([])
   }
-  expect(a11y, 'accessibility violations on the Play screens').toEqual([])
-})
+)

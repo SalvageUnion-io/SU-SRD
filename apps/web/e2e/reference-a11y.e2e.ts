@@ -1,5 +1,6 @@
-import { expect, test } from '@playwright/test'
 import { scanPages } from 'gates/a11y'
+import { expectNoA11yViolations } from './_a11y'
+import { test } from './fixtures'
 
 /**
  * WCAG 2.2 AA on every page in `PAGES`, at desktop and as a Pixel 7
@@ -20,18 +21,15 @@ const PAGES = [
   '/guides/activating-and-shutting-down-a-mech/',
 ]
 
+test.use({ account: 'anonymous' })
+
 // A violation that fires only sometimes must not pass on a retry.
 test.describe.configure({ retries: 0 })
 
-test('no accessibility violations', async ({ browser, baseURL }, testInfo) => {
+test('no accessibility violations', { tag: '@pr' }, async ({ browser, baseURL }, testInfo) => {
   test.setTimeout(10 * 60_000)
-  const { results, violations } = await scanPages({ browser, baseURL: baseURL ?? '', pages: PAGES })
-  await testInfo.attach('a11y-report.json', {
-    body: JSON.stringify(results, null, 2),
-    contentType: 'application/json',
-  })
-  expect(
-    violations,
-    'accessibility violations: the attached a11y-report.json has the details'
-  ).toEqual([])
+  await expectNoA11yViolations(
+    testInfo,
+    await scanPages({ browser, baseURL: baseURL ?? '', pages: PAGES })
+  )
 })

@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
 import { NESTING_SELECTORS } from './_nestingDepth'
 
 /**
  * The form fits the place (hard rule R35; EDL E2, E11, E19) as the rendered
- * page draws it. `findFormFindings` reads the page and returns each place it
+ * page draws it. `findFormFits` reads the page and returns each place it
  * breaks:
  *
  * - **E2** a list item that holds an entity draws it as something other than
@@ -26,7 +27,7 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  *
  * A Mention is prose, not a list's entity, so it is not read.
  */
-export type FormFinding = {
+type FormFinding = {
   rule: 'E2' | 'E3' | 'E11' | 'E19'
   /** What breaks it, `a Card (Hover Drone (Action)) in a list item`. */
   detail: string
@@ -218,10 +219,12 @@ function scanForms({
   return found
 }
 
-export function findFormFindings(
+/** Every form that does not fit its place, under its EDL rule. */
+export async function findFormFits(
   page: Page,
   place: FormPlace,
   abilities: string[]
-): Promise<FormFinding[]> {
-  return page.evaluate(scanForms, { a: FORM_SELECTORS, place, abilities })
+): Promise<Finding[]> {
+  const found = await page.evaluate(scanForms, { a: FORM_SELECTORS, place, abilities })
+  return found.map((f) => ({ rule: f.rule, detail: `${f.rule} ${f.detail}` }))
 }

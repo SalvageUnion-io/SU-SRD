@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
-import { buildPilot, editSheet, openSheetFor, waitForReady } from './_helpers'
+import { buildPilot, editSheet, openApp, openSheetFor, waitForReady } from './_helpers'
 import { serviceWorkerReady } from './_serviceWorker'
 import { expect, test } from './fixtures'
 
@@ -88,7 +88,15 @@ async function ensureServiceWorkerControls(page: Page): Promise<boolean> {
     .catch(() => false)
 }
 
-/** Skip on a dev server, fail in CI: see the first anonymous test for why. */
+/**
+ * A service worker controls the page (`ensureServiceWorkerControls`), or the
+ * test ends: skipped on a dev server, where vite-plugin-pwa emits no worker,
+ * and failed in CI. Never skippable in CI: unconditional, the skip went silent
+ * exactly when the thing it proves broke, nightly green with the offline
+ * guarantee unverified. The assertion says WHY the rest would fail: without
+ * it the first thing to break is `page.reload()` under `setOffline(true)`,
+ * which reads as a network fault and never names the worker.
+ */
 async function requireServiceWorker(page: Page): Promise<void> {
   const controlled = await ensureServiceWorkerControls(page)
   test.skip(
@@ -98,7 +106,7 @@ async function requireServiceWorker(page: Page): Promise<void> {
   expect(controlled, 'no service worker took control of the page').toBe(true)
 }
 
-test.describe('the one install', () => {
+test.describe('the one install', { tag: '@pr' }, () => {
   // Anonymous on purpose: a visitor's install, opened at the reference's root.
   test.use({ account: 'anonymous', serviceWorkers: 'allow' })
 
@@ -130,31 +138,14 @@ test.describe('the one install', () => {
   })
 })
 
-test.describe('signed out: the shell', () => {
+test.describe('signed out: the shell', { tag: '@pr' }, () => {
   // Anonymous on purpose: these are about the offline shell a visitor gets.
   test.use({ account: 'anonymous', serviceWorkers: 'allow' })
 
   test('the app opens and reads with the network cut', async ({ page, context }) => {
-    await page.goto(at('/'))
-    await waitForReady(page)
+    await openApp(page, '/')
 
-    const controlled = await ensureServiceWorkerControls(page)
-    // NOT skippable in CI. The convenience of skipping on a dev-server run, where
-    // vite-plugin-pwa emits no worker, is worth keeping — but unconditional it
-    // meant this spec went silent exactly when the thing it proves broke. If the
-    // worker stops registering or activating, `controlled` is false, both tests
-    // here skip, and nightly is green with the offline guarantee unverified.
-    test.skip(
-      !controlled && !process.env.CI,
-      'No service worker controls the page — this is a dev-server run, where vite-plugin-pwa emits none. Runs for real against the CI preview build.'
-    )
-    // In CI the skip above does not fire, so say WHY the rest is about to fail.
-    // Without this the first thing to break is `page.reload()` under
-    // `setOffline(true)`, which throws `net::ERR_INTERNET_DISCONNECTED` — that
-    // reads as a network or proxy fault, and nothing in the output mentions the
-    // service worker at all. The point of running this in CI is to learn that the
-    // worker stopped controlling the page; the failure has to say so.
-    expect(controlled, 'no service worker took control of the page').toBe(true)
+    await requireServiceWorker(page)
 
     // Cut the network at the browser, not the app: `setOffline` fails real
     // requests, which is what a service worker either answers from cache or does
@@ -176,17 +167,9 @@ test.describe('signed out: the shell', () => {
     page,
     context,
   }) => {
-    await page.goto(at('/'))
-    await waitForReady(page)
+    await openApp(page, '/')
 
-    const controlled = await ensureServiceWorkerControls(page)
-    // See the note on the first test: the skip is a local convenience only, and
-    // the assertion is what makes a CI failure legible.
-    test.skip(
-      !controlled && !process.env.CI,
-      'No service worker controls the page — dev-server run.'
-    )
-    expect(controlled, 'no service worker took control of the page').toBe(true)
+    await requireServiceWorker(page)
 
     await context.setOffline(true)
 
@@ -206,7 +189,7 @@ test.describe('signed out: the shell', () => {
   })
 })
 
-test.describe('signed in: what a player keeps', () => {
+test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
   /**
    * Mid-session: the sheet a player has open survives the network
    * dropping. Writes are blocked, not queued (ADR-030 §1), so the sheet leaves
