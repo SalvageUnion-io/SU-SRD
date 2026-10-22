@@ -19,7 +19,7 @@ import {
   mutation as rawMutation,
 } from '../_generated/server'
 import { entityNameOf } from './entityName'
-import { linkWithdrawn, withdrawListing } from './library'
+import { deletePatternReports } from './homebrew'
 import { PHOTO_TABLES, trackPhoto } from './photos'
 
 /**
@@ -818,19 +818,9 @@ for (const table of PHOTO_TABLES) {
   })
 }
 
-// A Homebrew library listing is only as public as its source (`model/library.ts`):
-// withdrawing the link, or deleting the thing, takes the listing with it.
+// A deleted pattern takes its Homebrew reports and takedown with it (`model/homebrew.ts`).
 triggers.register('mechPatterns', async (ctx, change) => {
-  const gone = change.operation === 'delete'
-  if (!gone && !linkWithdrawn(change.oldDoc, change.newDoc)) return
-  await withdrawListing(ctx, 'pattern', change.oldDoc ?? {}, { gone })
-})
-
-triggers.register('npcs', async (ctx, change) => {
-  const gone = change.operation === 'delete'
-  if (!gone && !linkWithdrawn(change.oldDoc, change.newDoc)) return
-  const { appId = bodyAppId(change.oldDoc?.body), ownerId } = change.oldDoc ?? {}
-  await withdrawListing(ctx, 'npc', { appId, ownerId }, { gone })
+  if (change.operation === 'delete') await deletePatternReports(ctx, change.id, { all: true })
 })
 
 /**

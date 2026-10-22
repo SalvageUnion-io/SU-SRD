@@ -1,38 +1,38 @@
-# ADR-056: The Homebrew Library
+# ADR-056: Homebrew on the SRD
 
 Decided and built for 4.1.0. Amends [ADR-032](032-public-read-only-sheets.md)
-(a second account-free surface) and narrows the "net-new homebrew authoring is
-out of scope" line of [ADR-021](021-cantina-surface-taxonomy.md) and
-[ADR-030](030-accounts-games-server-of-record.md): sharing what players
+(a pattern shared by link is also listed) and narrows the "net-new homebrew
+authoring is out of scope" line of [ADR-021](021-cantina-surface-taxonomy.md)
+and [ADR-030](030-accounts-games-server-of-record.md): showing what players
 already make is in scope; new authoring surfaces still are not.
 
-1. **What is listed.** Saved mech patterns and built NPCs (ADR-044), the two
-   kinds a player makes that could pass for the book (ruleset §3.9). Custom
-   crawler bays (#403) are not part of this decision.
-2. **Opt-in, on top of the link.** Only a thing its maker shares with
-   "Anyone with the link" (ADR-032) can be listed, by its maker alone, from
-   the same Share dialog ("List it in the Homebrew library",
-   `library.setListed`). Listing parses the body, as publishing does.
-3. **A listing is never more public than its source.** `libraryEntries`
-   holds only kind, app id, maker and moderation state; every read goes back
-   to the source row for its body and checks `publicRead`. Triggers on
-   `mechPatterns` and `npcs` delete the listing when the link is withdrawn or
-   the thing is deleted, however that happens.
-4. **Public browsing.** `/build/library` lists what is listed, newest first,
-   with no account (`library.list`, unauthenticated). Each entry opens the
-   thing's public page; Make a copy writes a new thing with a new id to the
-   reader's own Training Bay, linked to nothing.
-5. **Report and takedown.** A signed-in reader reports a listing with a reason,
-   once each (`libraryReports`). An admin (`model/admin.ts`, by Discord id in
-   `ADMIN_DISCORD_IDS`) reads the queue on the library page and hides a
-   listing; a hidden listing stays hidden if its maker withdraws and re-shares
-   the link. Admin is a site role, unrelated to a Game's Organizer.
+1. **What is homebrew.** A saved mech pattern its maker shares with "Anyone
+   with the link" (ADR-032). No second opt-in: sharing by link is the
+   choice, and withdrawing the link takes it off the SRD at once. Patterns
+   only for now; NPCs and custom crawler bays (#403) are not part of this.
+2. **Where it shows.** On the SRD, never mixed into the book's data: a
+   Homebrew category at `/homebrew/` (on the home Contents) lists every one,
+   and a chassis page's "Show Homebrew" switch lists that chassis's under the
+   book's patterns. The switch is the reader's, held in their browser
+   (`su:show-homebrew`), and off until they turn it on. Every row wears the
+   HOMEBREW stamp and opens the pattern's own page in the app.
+3. **How the SRD reads it.** The SRD is static and its CSP allows only its own
+   origin, so the Worker serves `GET /homebrew/patterns.json` (one chassis
+   with `?chassis=`) from `homebrew.patterns` over Convex's HTTP API, cached
+   for a minute. `homebrew.patterns` is unauthenticated and serves only what
+   the link already serves.
+4. **Report and takedown.** On a homebrew pattern's page a signed-in reader
+   reports it with a reason, once each (`homebrewReports`). A site admin
+   (`model/admin.ts`, by Discord id in `ADMIN_DISCORD_IDS`) reads the queue at
+   `/build/admin/homebrew` and hides a pattern from the SRD
+   (`homebrewModeration`, keyed by the pattern's row), which re-sharing does
+   not undo. Admin is a site role, unrelated to a Game's Organizer.
 
 ## Consequences
 
 - New per-person storage: a report's reason and its reporter. Account
-  deletion removes a player's reports and their listings; the account export
-  includes their reports.
-- `library.list` reads at most 240 listings; pagination comes when the library
-  outgrows one page.
-- The library page is indexable and in the app's sitemap; listings are not.
+  deletion removes a player's reports; deleting a pattern removes its reports
+  and takedown; the account export includes a player's reports.
+- `homebrew.patterns` reads at most 500 patterns, newest share first;
+  pagination comes when homebrew outgrows that.
+- Patterns already shared by link before 4.1 appear on the SRD when it ships.

@@ -150,4 +150,10 @@ export const pagesCopy = messages({
   atTheTable: 'At the table',
   gettingStarted: 'Getting started',
   ogCardRender: 'OG card render',
+  homebrew: 'Homebrew',
+  homebrewPatternsRow: 'Mech Patterns',
+  homebrewDescription:
+    'Mech patterns Salvage Union players built and shared: homebrew, not from the book.',
+  homebrewLede:
+    'Mech patterns players built in the Training Bay and shared with anyone with the link. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. Share one of your own from its Share settings.',
 })

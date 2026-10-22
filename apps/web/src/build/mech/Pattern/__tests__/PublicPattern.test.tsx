@@ -10,7 +10,7 @@ import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
 import type { ConnectionState } from '../../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
 
-/** `library.status` for a thing not in the Homebrew library. */
+/** `homebrew.status` for a pattern that is not homebrew. */
 const NOT_LISTED = { listed: false, hidden: false, reported: false, mine: false, admin: false }
 
 const visibilityWrites: unknown[] = []
@@ -99,7 +99,7 @@ beforeEach(() => {
 describe('a shared pattern reads like the book and says a player made it', () => {
   test('laid out as the book pattern page: HOMEBREW stamp, the maker credited on the foot, their notes as its description', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     const { container } = renderAs(SIGNED_OUT)
@@ -119,7 +119,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 
   test('the foot forgets the credit once the page is gone', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     const { unmount } = renderAs(SIGNED_OUT)
@@ -129,7 +129,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 
   test('the chassis and the loadout come from the reference', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     renderAs(SIGNED_OUT)
@@ -142,7 +142,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 
   test('signed out, it offers sign-in rather than a build that would be refused', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     renderAs(SIGNED_OUT)
@@ -153,7 +153,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 
   test('a pattern the reader may not see is not there at all', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': null,
     })
     renderAs(SIGNED_OUT)
@@ -164,7 +164,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 describe('signed in', () => {
   test('Build With This makes a fresh mech that records its source, and opens it', async () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     renderAs(CONNECTED)
@@ -183,7 +183,7 @@ describe('signed in', () => {
 
   test('Copy to my shelf saves it under a new id', async () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     renderAs(CONNECTED)
@@ -200,7 +200,7 @@ describe('signed in', () => {
 
   test('its maker keeps the copy action, and is told who can see it', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer({ mine: true, visibility: 'link' }),
     })
     renderAs(CONNECTED)
@@ -211,7 +211,7 @@ describe('signed in', () => {
 
   test('its maker changes who can see it from the Share dialog every player thing opens', async () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer({ mine: true, visibility: 'link' }),
       'shelf:patternSharing': [
         { appId: 'pat-tow-rig', visibility: 'link', gameId: null, gameName: null, builtCount: 3 },
@@ -234,7 +234,7 @@ describe('signed in', () => {
 
   test('a reader who is not its maker is never offered Share', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer({ visibility: null }),
     })
     renderAs(CONNECTED)
@@ -243,7 +243,7 @@ describe('signed in', () => {
 
   test('the stat column spells stat names out', () => {
     setQueryAnswers({
-      'library:status': NOT_LISTED,
+      'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer(),
     })
     renderAs(SIGNED_OUT)

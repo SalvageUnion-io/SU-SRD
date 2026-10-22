@@ -16,8 +16,8 @@
  * and copying it to your own shelf, need an account, as every write does. Its
  * maker changes who can see it with the Share button every player thing
  * carries: the same "Who can see it" dialog a sheet opens (`ShareStatusDialog`).
- * Listed in the Homebrew library, its corner also offers Report, and a site
- * admin's Hide (`LibraryPageControls`, ADR-056).
+ * Shared by link it is homebrew, so its corner also offers Report, and a
+ * site admin's Hide (`HomebrewControls`, ADR-056).
  */
 
 import { useNavigate } from '@tanstack/react-router'
@@ -57,7 +57,7 @@ import { useEntityStore } from '../../../stores/entityStore'
 import { useCitePageCredit } from '../../../stores/pageCredit'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'
-import { LibraryPageControls } from '../../library/LibraryPageControls'
+import { HomebrewControls } from '../../homebrew/HomebrewControls'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
@@ -225,7 +225,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                     {mechCopy('share')}
                   </Button>
                 )}
-                <LibraryPageControls kind="pattern" appId={pattern.id} name={pattern.name} />
+                <HomebrewControls appId={pattern.id} name={pattern.name} />
               </>
             ) : undefined
           }

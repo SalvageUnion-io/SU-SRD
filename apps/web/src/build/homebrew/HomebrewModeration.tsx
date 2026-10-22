@@ -1,9 +1,9 @@
 /**
- * LibraryModeration — a site admin's queue on the Homebrew library page
- * (ADR-056): the listings readers reported, most reported first, with their
- * reasons, to hide or dismiss; and the listings taken down, to put back.
- * Rendered only for a site admin (`library.moderation` answers null to
- * everyone else, and the server refuses their writes either way).
+ * HomebrewModeration — a site admin's queue (ADR-056) at `/admin/homebrew`:
+ * the homebrew patterns readers reported, most reported first, with their
+ * reasons, to hide or dismiss; and the patterns taken down, to put back.
+ * `homebrew.moderation` answers null to everyone else, and the server
+ * refuses their writes either way.
  */
 
 import { useMutation } from 'convex/react'
@@ -14,10 +14,11 @@ import { api } from '../../../convex/_generated/api'
 import { Button, Cluster, SlabSection, Stack, Text, toast, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { LIBRARY_NOUN } from '../../lib/library/library'
+import { buildHomebrewCopy } from '../../messages/build-homebrew'
 
-type Queue = NonNullable<FunctionReturnType<typeof api.library.moderation>>
+type Queue = NonNullable<FunctionReturnType<typeof api.homebrew.moderation>>
 type Moderated = Queue['reported'][number]
+type Verb = 'hide' | 'dismiss' | 'restore'
 
 const LIST = {
   display: 'flex',
@@ -38,49 +39,51 @@ const REASONS = {
 
 const NAME = { fontFamily: tokens.font.body, fontWeight: 600 } satisfies CSSProperties
 
-export function LibraryModeration({ queue }: { queue: Queue }) {
-  const setHidden = useMutation(api.library.setHidden)
-  const dismiss = useMutation(api.library.dismissReports)
+export function HomebrewModeration({ queue }: { queue: Queue }) {
+  const setHidden = useMutation(api.homebrew.setHidden)
+  const dismiss = useMutation(api.homebrew.dismissReports)
   const act = useServerAction(
-    async (verb: 'hide' | 'dismiss' | 'restore', item: Moderated) => {
-      const target = { kind: item.kind, appId: item.appId }
-      if (verb === 'dismiss') await dismiss(target)
-      else await setHidden({ ...target, hidden: verb === 'hide' })
+    async (verb: Verb, item: Moderated) => {
+      if (verb === 'dismiss') await dismiss({ appId: item.appId })
+      else await setHidden({ appId: item.appId, hidden: verb === 'hide' })
       return verb
     },
-    { failure: 'That did not save. Try again.', toastId: 'library-moderation' }
+    { failure: buildHomebrewCopy('didNotSave'), toastId: 'homebrew-moderation' }
   )
 
-  async function run(verb: 'hide' | 'dismiss' | 'restore', item: Moderated) {
+  async function run(verb: Verb, item: Moderated) {
     const result = await act.run(verb, item)
     if (!result.ok) return
-    const done = { hide: 'Hid', dismiss: 'Dismissed the reports on', restore: 'Put back' }[verb]
-    toast.success(`${done} ${item.name}.`)
+    const name = item.name
+    if (verb === 'hide') toast.success(buildHomebrewCopy('hidFromHomebrew', { name }))
+    else if (verb === 'dismiss') toast.success(buildHomebrewCopy('dismissedReportsOn', { name }))
+    else toast.success(buildHomebrewCopy('putBack', { name }))
   }
 
   const line = (item: Moderated) => (
     <Cluster gap={8}>
-      <AppLink href={publicPath(item.kind, item.appId, item.name)} style={NAME}>
+      <AppLink href={publicPath('pattern', item.appId, item.name)} style={NAME}>
         {item.name}
       </AppLink>
-      <Text variant="hint">
-        {LIBRARY_NOUN[item.kind].one} by {item.madeBy}
-      </Text>
+      <Text variant="hint">{buildHomebrewCopy('patternBy', { name: item.madeBy })}</Text>
     </Cluster>
   )
 
   return (
     <Stack gap={24}>
-      <SlabSection title="Reported" count={queue.reported.length}>
+      <SlabSection title={buildHomebrewCopy('reportedSection')} count={queue.reported.length}>
         {queue.reported.length === 0 ? (
-          <Text variant="hint">No open reports.</Text>
+          <Text variant="hint">{buildHomebrewCopy('noOpenReports')}</Text>
         ) : (
           <ul style={LIST}>
             {queue.reported.map((item) => (
-              <li key={`${item.kind}:${item.appId}`}>
+              <li key={item.appId}>
                 <Stack gap={8}>
                   {line(item)}
-                  <ul style={REASONS} aria-label={`Why ${item.name} was reported`}>
+                  <ul
+                    style={REASONS}
+                    aria-label={buildHomebrewCopy('whyReported', { name: item.name })}
+                  >
                     {item.reasons.map((reason, i) => (
                       // Reasons repeat; their order is the server's, newest first.
                       // biome-ignore lint/suspicious/noArrayIndexKey: a list that never reorders in place
@@ -93,7 +96,7 @@ export function LibraryModeration({ queue }: { queue: Queue }) {
                       disabled={act.pending}
                       onClick={() => void run('hide', item)}
                     >
-                      Hide
+                      {buildHomebrewCopy('hide')}
                     </Button>
                     <Button
                       size="compact"
@@ -101,7 +104,9 @@ export function LibraryModeration({ queue }: { queue: Queue }) {
                       disabled={act.pending}
                       onClick={() => void run('dismiss', item)}
                     >
-                      Dismiss {item.reportCount === 1 ? 'report' : `${item.reportCount} reports`}
+                      {item.reportCount === 1
+                        ? buildHomebrewCopy('dismissOne')
+                        : buildHomebrewCopy('dismissMany', { count: item.reportCount })}
                     </Button>
                   </Cluster>
                 </Stack>
@@ -111,10 +116,10 @@ export function LibraryModeration({ queue }: { queue: Queue }) {
         )}
       </SlabSection>
       {queue.hidden.length > 0 && (
-        <SlabSection title="Taken down" count={queue.hidden.length}>
+        <SlabSection title={buildHomebrewCopy('takenDown')} count={queue.hidden.length}>
           <ul style={LIST}>
             {queue.hidden.map((item) => (
-              <li key={`${item.kind}:${item.appId}`}>
+              <li key={item.appId}>
                 <Cluster gap={8}>
                   {line(item)}
                   <Button
@@ -123,7 +128,7 @@ export function LibraryModeration({ queue }: { queue: Queue }) {
                     disabled={act.pending}
                     onClick={() => void run('restore', item)}
                   >
-                    Put back
+                    {buildHomebrewCopy('putBackButton')}
                   </Button>
                 </Cluster>
               </li>

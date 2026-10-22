@@ -215,6 +215,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
     Amends ADR-030 §2, §4–6.
-56. **ADR-056 The Homebrew library** · [full text](adr/056-homebrew.md)
-    Built: makers list link-shared patterns and NPCs at `/build/library`; anyone browses and copies; readers report; an admin hides.
+56. **ADR-056 Homebrew on the SRD** · [full text](adr/056-homebrew.md)
+    Built: link-shared patterns at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.

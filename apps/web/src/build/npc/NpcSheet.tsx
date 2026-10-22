@@ -23,7 +23,7 @@
 
 import type { Npc } from 'game-domain/schemas/npc'
 import type { CrewSlot } from 'game-domain/schemas/softLink'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
@@ -83,8 +83,6 @@ type NpcSheetProps = {
    * a crewmate's reads it on the crew sheet's banner instead (`CrewSheetBanner`).
    */
   readOnlyNote?: string
-  /** A read-only page's own corner actions: a shared NPC's Make a copy and Report. */
-  readOnlyActions?: ReactNode
 }
 
 /** The opening's fields: the identity lines, then the traits. */
@@ -116,7 +114,6 @@ export function NpcSheet({
   confirm,
   onDeleted,
   readOnlyNote,
-  readOnlyActions,
 }: NpcSheetProps) {
   const [shareOpen, setShareOpen] = useState(false)
   const { canWrite, settling } = useConnection()
@@ -155,9 +152,7 @@ export function NpcSheet({
     ) : undefined
 
   // The corner (as on every sheet): Share inline, the admin moves under "⋯".
-  const actions = readOnlyProp ? (
-    readOnlyActions
-  ) : (
+  const actions = readOnlyProp ? undefined : (
     <div style={ACTIONS}>
       {!writesBlocked && (
         <Button

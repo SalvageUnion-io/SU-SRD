@@ -103,6 +103,14 @@ function page(): PageResult {
                 total={chapter.total}
               />
             ))}
+            {/* Players' own patterns, not the book's (ADR-056): a count would go
+                stale between builds, so the row has none. */}
+            <ContentsChapter
+              id="homebrew"
+              title={pagesCopy('homebrew')}
+              tone="mech"
+              rows={[{ label: pagesCopy('homebrewPatternsRow'), href: '/homebrew/' }]}
+            />
             <ContentsChapter
               id="at-the-table"
               title={pagesCopy('atTheTable')}

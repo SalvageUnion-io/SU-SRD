@@ -163,17 +163,11 @@ export async function serveApp(
 
 /**
  * The client routes search may index: the app's front door, the public
- * Starter Set, the Homebrew library (ADR-056), and a sheet its owner chose to
- * make public (ADR-032).
+ * Starter Set, and a sheet its owner chose to make public (ADR-032).
  */
 function indexable(path: string): boolean {
   return (
-    path === '/' ||
-    path === '/starter' ||
-    path.startsWith('/starter/') ||
-    path === '/library' ||
-    path === '/library/' ||
-    path.startsWith('/p/')
+    path === '/' || path === '/starter' || path.startsWith('/starter/') || path.startsWith('/p/')
   )
 }
 

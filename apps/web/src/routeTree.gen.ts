@@ -14,9 +14,9 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
+import { Route as AdminHomebrewRouteImport } from './routes/admin/homebrew'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
-import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
 import { Route as OgPrivateRouteImport } from './routes/og/private'
@@ -58,6 +58,11 @@ const SignOutRoute = SignOutRouteImport.update({
   path: '/sign-out',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminHomebrewRoute = AdminHomebrewRouteImport.update({
+  id: '/admin/homebrew',
+  path: '/admin/homebrew',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
   id: '/crawlers/new',
   path: '/crawlers/new',
@@ -66,11 +71,6 @@ const CrawlersNewRoute = CrawlersNewRouteImport.update({
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LibraryIndexRoute = LibraryIndexRouteImport.update({
-  id: '/library/',
-  path: '/library/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MechsNewRoute = MechsNewRouteImport.update({
@@ -155,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
@@ -163,7 +164,6 @@ export interface FileRoutesByFullPath {
   '/pilots/new': typeof PilotsNewRoute
   '/play/$pilotId': typeof PlayPilotIdRoute
   '/s/$id': typeof SIdRoute
-  '/library/': typeof LibraryIndexRoute
   '/play/': typeof PlayIndexRoute
   '/starter/': typeof StarterIndexRoute
   '/og/$kind/$id': typeof OgKindIdRoute
@@ -180,6 +180,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
@@ -188,7 +189,6 @@ export interface FileRoutesByTo {
   '/pilots/new': typeof PilotsNewRoute
   '/play/$pilotId': typeof PlayPilotIdRoute
   '/s/$id': typeof SIdRoute
-  '/library': typeof LibraryIndexRoute
   '/play': typeof PlayIndexRoute
   '/starter': typeof StarterIndexRoute
   '/og/$kind/$id': typeof OgKindIdRoute
@@ -206,6 +206,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
@@ -214,7 +215,6 @@ export interface FileRoutesById {
   '/pilots/new': typeof PilotsNewRoute
   '/play/$pilotId': typeof PlayPilotIdRoute
   '/s/$id': typeof SIdRoute
-  '/library/': typeof LibraryIndexRoute
   '/play/': typeof PlayIndexRoute
   '/starter/': typeof StarterIndexRoute
   '/og/$kind/$id': typeof OgKindIdRoute
@@ -233,6 +233,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
     | '/crawlers/new'
     | '/invite/$token'
     | '/mechs/new'
@@ -241,7 +242,6 @@ export interface FileRouteTypes {
     | '/pilots/new'
     | '/play/$pilotId'
     | '/s/$id'
-    | '/library/'
     | '/play/'
     | '/starter/'
     | '/og/$kind/$id'
@@ -258,6 +258,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
     | '/crawlers/new'
     | '/invite/$token'
     | '/mechs/new'
@@ -266,7 +267,6 @@ export interface FileRouteTypes {
     | '/pilots/new'
     | '/play/$pilotId'
     | '/s/$id'
-    | '/library'
     | '/play'
     | '/starter'
     | '/og/$kind/$id'
@@ -283,6 +283,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
     | '/crawlers/new'
     | '/invite/$token'
     | '/mechs/new'
@@ -291,7 +292,6 @@ export interface FileRouteTypes {
     | '/pilots/new'
     | '/play/$pilotId'
     | '/s/$id'
-    | '/library/'
     | '/play/'
     | '/starter/'
     | '/og/$kind/$id'
@@ -309,6 +309,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SignOutRoute: typeof SignOutRoute
+  AdminHomebrewRoute: typeof AdminHomebrewRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MechsNewRoute: typeof MechsNewRoute
@@ -317,7 +318,6 @@ export interface RootRouteChildren {
   PilotsNewRoute: typeof PilotsNewRoute
   PlayPilotIdRoute: typeof PlayPilotIdRoute
   SIdRoute: typeof SIdRoute
-  LibraryIndexRoute: typeof LibraryIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
   StarterIndexRoute: typeof StarterIndexRoute
   OgKindIdRoute: typeof OgKindIdRoute
@@ -366,6 +366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignOutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/homebrew': {
+      id: '/admin/homebrew'
+      path: '/admin/homebrew'
+      fullPath: '/admin/homebrew'
+      preLoaderRoute: typeof AdminHomebrewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crawlers/new': {
       id: '/crawlers/new'
       path: '/crawlers/new'
@@ -378,13 +385,6 @@ declare module '@tanstack/react-router' {
       path: '/invite/$token'
       fullPath: '/invite/$token'
       preLoaderRoute: typeof InviteTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/library/': {
-      id: '/library/'
-      path: '/library'
-      fullPath: '/library/'
-      preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mechs/new': {
@@ -501,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SignOutRoute: SignOutRoute,
+  AdminHomebrewRoute: AdminHomebrewRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   InviteTokenRoute: InviteTokenRoute,
   MechsNewRoute: MechsNewRoute,
@@ -509,7 +510,6 @@ const rootRouteChildren: RootRouteChildren = {
   PilotsNewRoute: PilotsNewRoute,
   PlayPilotIdRoute: PlayPilotIdRoute,
   SIdRoute: SIdRoute,
-  LibraryIndexRoute: LibraryIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
   StarterIndexRoute: StarterIndexRoute,
   OgKindIdRoute: OgKindIdRoute,

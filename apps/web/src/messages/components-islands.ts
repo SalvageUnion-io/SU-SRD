@@ -27,4 +27,12 @@ export const islandsCopy = messages({
   clearFilters: 'Clear filters',
   remove: 'Remove {name}',
   searchTheReference: 'Search the Reference',
+  homebrewBy: 'By',
+  homebrewNoun: 'homebrew',
+  homebrewFailed: 'Homebrew did not load. Try again later.',
+  homebrewPatterns: 'Homebrew Patterns',
+  showHomebrew: 'Show Homebrew',
+  homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
+  homebrewOff: 'Patterns players built on this chassis and shared by link. Not from the book.',
+  homebrewNone: 'No player has shared a pattern yet.',
 })

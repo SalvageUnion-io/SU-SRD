@@ -44,7 +44,7 @@ const SCAN_FLOOR = 630
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 664,
   'apps/web/convex/entities.ts': 850,
-  'apps/web/convex/model/entities.ts': 841,
+  'apps/web/convex/model/entities.ts': 831,
   'apps/web/src/build/npc/CrewBoard.tsx': 625,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 658,
   'apps/web/src/lib/rules/creation.ts': 722,

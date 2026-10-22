@@ -1565,6 +1565,77 @@
         }
       }
     },
+    "homebrew:dismissReports": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:moderation": {
+      "type": "object",
+      "value": {}
+    },
+    "homebrew:patterns": {
+      "type": "object",
+      "value": {
+        "chassisRef": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "homebrew:report": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "reason": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:setHidden": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "hidden": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:status": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "invites:link": {
       "type": "object",
       "value": {
@@ -1606,184 +1677,6 @@
           "fieldType": {
             "type": "id",
             "tableName": "games"
-          },
-          "optional": false
-        }
-      }
-    },
-    "library:dismissReports": {
-      "type": "object",
-      "value": {
-        "kind": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pattern"
-              },
-              {
-                "type": "literal",
-                "value": "npc"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "appId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "library:list": {
-      "type": "object",
-      "value": {
-        "kind": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pattern"
-              },
-              {
-                "type": "literal",
-                "value": "npc"
-              }
-            ]
-          },
-          "optional": true
-        }
-      }
-    },
-    "library:moderation": {
-      "type": "object",
-      "value": {}
-    },
-    "library:report": {
-      "type": "object",
-      "value": {
-        "kind": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pattern"
-              },
-              {
-                "type": "literal",
-                "value": "npc"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "appId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "reason": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "library:setHidden": {
-      "type": "object",
-      "value": {
-        "kind": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pattern"
-              },
-              {
-                "type": "literal",
-                "value": "npc"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "appId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "hidden": {
-          "fieldType": {
-            "type": "boolean"
-          },
-          "optional": false
-        }
-      }
-    },
-    "library:setListed": {
-      "type": "object",
-      "value": {
-        "kind": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pattern"
-              },
-              {
-                "type": "literal",
-                "value": "npc"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "appId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "listed": {
-          "fieldType": {
-            "type": "boolean"
-          },
-          "optional": false
-        }
-      }
-    },
-    "library:status": {
-      "type": "object",
-      "value": {
-        "kind": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pattern"
-              },
-              {
-                "type": "literal",
-                "value": "npc"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "appId": {
-          "fieldType": {
-            "type": "string"
           },
           "optional": false
         }

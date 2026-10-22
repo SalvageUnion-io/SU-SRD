@@ -46,6 +46,7 @@ import { fileURLToPath } from 'node:url'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
+import { HOMEBREW_PATTERNS_PATH } from '../src/lib/homebrew/endpoint'
 import { DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
 import type { BuildAssets } from './document'
 import type { EndpointRegistration, ResolvedEndpoint } from './endpoints'
@@ -255,6 +256,18 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
   } catch {
     // Undecodable: serve the raw path so route matching simply misses and the
     // request 404s like any other unknown URL.
+  }
+
+  // Homebrew is the Worker's in production (`src/worker/homebrew.ts`); here
+  // the same handler reads the local Convex the app talks to.
+  if (pathname === HOMEBREW_PATTERNS_PATH) {
+    const { serveHomebrew } = await import('../src/worker/homebrew')
+    const answer = await serveHomebrew(url, { CONVEX_URL: process.env.VITE_CONVEX_URL })
+    res.statusCode = answer.status
+    res.setHeader('Content-Type', answer.headers.get('content-type') ?? 'application/json')
+    res.setHeader('Cache-Control', 'no-store')
+    res.end(await answer.text())
+    return
   }
 
   try {

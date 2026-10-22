@@ -128,12 +128,6 @@ describe('a Starter Set build’s pre-rendered shell', () => {
 })
 
 describe('the Starter Set’s pre-rendered shell, and the front door', () => {
-  it('gives the Homebrew library its own title and canonical', () => {
-    const html = shellFor('/library')
-    expect(title(html)).toBe('Homebrew Library · Training Bay · SalvageUnion.io')
-    expect(canonical(html)).toEqual([`${PROD}${BASE}/library`])
-  })
-
   it('gives the Starter Set its own title and canonical', () => {
     const html = shellFor('/starter')
     expect(title(html)).toBe('Starter Set · Training Bay · SalvageUnion.io')
@@ -144,7 +138,6 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it('writes one shell per page, at its route plus `.html`', () => {
     expect(publicShells(SHELL, PROD, BASE).map((shell) => shell.file)).toEqual([
       'starter.html',
-      'library.html',
       ...STARTER_PILOTS.map((t) => `starter/pilot/${t.id}.html`),
       ...STARTER_MECHS.map((t) => `starter/mech/${t.id}.html`),
       ...STARTER_CRAWLERS.map((t) => `starter/crawler/${t.id}.html`),
@@ -207,7 +200,7 @@ describe('sitemap.xml', () => {
   const locs = (origin = PROD) =>
     [...sitemapXml(origin, BASE).matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1] ?? '')
 
-  it('lists the front door, the Starter Set, the Homebrew library and every build, and nothing else', () => {
+  it('lists the front door, the Starter Set and every build, and nothing else', () => {
     expect(sitemapXml(PROD, BASE)).toStartWith('<?xml version="1.0" encoding="UTF-8"?><urlset ')
     const builds = [
       ...STARTER_PILOTS.map((t) => `/starter/pilot/${t.id}`),
@@ -217,7 +210,6 @@ describe('sitemap.xml', () => {
     expect(locs()).toEqual([
       `${PROD}${BASE}/`,
       `${PROD}${BASE}/starter`,
-      `${PROD}${BASE}/library`,
       ...builds.map((p) => `${PROD}${BASE}${p}`),
     ])
   })

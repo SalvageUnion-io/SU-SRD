@@ -16,6 +16,7 @@ export function DocPage({
   fill,
   controls,
   sidebar,
+  userMade = false,
   children,
 }: {
   title: string
@@ -29,12 +30,15 @@ export function DocPage({
   controls?: ReactNode
   /** A column beside the reading column on a wide screen (`.su-doc-page__grid`), after it on a narrow one. */
   sidebar?: ReactNode
+  /** The band's hatch for players' own things (ruleset §3.9): `/homebrew`. */
+  userMade?: boolean
   children: ReactNode
 }) {
   return (
     <div style={DOC_PAGE}>
       <ChapterBand
         measure={PAGE_MEASURE}
+        userMade={userMade}
         {...(fill ? { fill } : {})}
         {...(controls ? { aside: controls, asideAt: 'controls' as const } : {})}
       >

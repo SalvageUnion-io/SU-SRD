@@ -1,8 +1,7 @@
 /**
  * The public pages search may list: the front door, the Starter Set and each
- * of its builds, and the Homebrew library. Every one is the same for every visitor and needs no account
- * (ADR-021: signed-out surfaces), and none is a player's own thing (the
- * library lists players' things, but the page itself is the site's), so what
+ * of its builds. Every one is the same for every visitor and needs no account
+ * (ADR-021: signed-out surfaces), and none is a player's own thing, so what
  * each says is known without asking Convex.
  *
  * So the build pre-renders them (`publicShells`, from `vite.config.ts`):
@@ -28,9 +27,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
-import { PRODUCT } from 'game-domain/product'
 import { color } from '../design/tokens'
-import { areaTitle } from '../lib/pageTitle'
 import { urlsetXml } from '../lib/sitemapXml'
 import type { StarterPage } from '../lib/starterSet/starterTemplates'
 import {
@@ -60,17 +57,6 @@ const STARTER_SET: PublicPage = {
   },
 }
 
-/** The Homebrew library (ADR-056): what is listed changes, what the page is does not. */
-const LIBRARY: PublicPage = {
-  path: '/library',
-  words: {
-    title: areaTitle(PRODUCT.build, 'Homebrew Library'),
-    description:
-      'Mech patterns and NPCs Salvage Union players made and shared. Read any of them free; copy one to your Training Bay to build from it.',
-    themeColor: color.pilot,
-  },
-}
-
 /** The band each kind's sheet wears, as its unfurl's side bar. */
 const TONE: Record<SheetKind, string> = {
   pilot: color.pilot,
@@ -87,12 +73,7 @@ function fromStarter(page: StarterPage, kind: SheetKind): PublicPage {
 
 /** Every public page's path inside the app: the front door, the Starter Set, then each build. */
 function publicPaths(): string[] {
-  return [
-    FRONT_DOOR_PATH,
-    STARTER_SET.path,
-    LIBRARY.path,
-    ...starterPages().map((page) => page.path),
-  ]
+  return [FRONT_DOOR_PATH, STARTER_SET.path, ...starterPages().map((page) => page.path)]
 }
 
 /** `origin` + base + an app path: the address a canonical and the sitemap name. */
@@ -125,7 +106,7 @@ export function publicShells(shell: string, origin: string, base: string): Publi
     const kind = page.path.split('/')[2] ?? ''
     return isSheetKind(kind) ? [fromStarter(page, kind)] : []
   })
-  return [STARTER_SET, LIBRARY, ...builds].map((page) => ({
+  return [STARTER_SET, ...builds].map((page) => ({
     file: `${page.path.slice(1)}.html`,
     html: applyMeta(shell, publicMeta(page, origin, base)),
   }))
