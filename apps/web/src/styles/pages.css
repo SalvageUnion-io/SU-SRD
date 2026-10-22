@@ -1217,3 +1217,57 @@ a.su-home__discord:hover {
     flex: 0 0 24rem;
   }
 }
+
+/* The roadmap's swimlanes (`reference/pages/roadmap.page.tsx`): in each lane, Now, Next and Later
+   stack on a phone, where a column with nothing in it is left out, and stand side by side from
+   `sm` (40rem) up, a hairline between them and every column kept, so the lanes line up. */
+.su-roadmap__lane {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-roadmap__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-roadmap__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-roadmap__empty {
+  color: var(--color-wk-muted);
+}
+
+@media not (width >= 40rem) {
+  .su-roadmap__cell[data-empty] {
+    display: none;
+  }
+}
+
+@media (width >= 40rem) {
+  .su-roadmap__lane {
+    gap: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .su-roadmap__cell {
+    padding-inline: var(--space-12);
+  }
+
+  .su-roadmap__cell:first-child {
+    padding-inline-start: 0;
+  }
+
+  .su-roadmap__cell:last-child {
+    padding-inline-end: 0;
+  }
+
+  .su-roadmap__cell + .su-roadmap__cell {
+    border-inline-start: var(--bw-hairline) solid var(--color-wk-faint);
+  }
+}

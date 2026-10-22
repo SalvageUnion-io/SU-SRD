@@ -11,11 +11,14 @@ import { PROSE, PROSE_12 } from '../lib/docPageStyles'
 export function DocPanel({
   title,
   tone,
+  titleAs = 'h3',
   chips,
   flush = false,
   children,
 }: {
   title: string
+  /** The title's heading level: `h3` under a page's sections, `h2` straight under its title. */
+  titleAs?: 'h2' | 'h3'
   /** The band's tone token (`--color-<tone>`); ink by default. */
   tone?: string
   chips?: ReactNode
@@ -26,7 +29,7 @@ export function DocPanel({
     <TitledBox
       as="section"
       title={title}
-      titleAs="h3"
+      titleAs={titleAs}
       {...(tone ? { tone } : {})}
       {...(chips ? { chips } : {})}
       body={flush ? 'flush' : 'padded'}
