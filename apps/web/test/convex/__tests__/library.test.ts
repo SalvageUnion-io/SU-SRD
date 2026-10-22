@@ -140,6 +140,29 @@ describe('listing', () => {
     expect(entries).toEqual([])
   })
 
+  test('another account’s row under the same app id never touches the listing', async () => {
+    const t = testConvex()
+    const maker = await makeUser(t, 'Rosa')
+    const other = await makeUser(t, 'Other')
+    await sharedNpc(maker)
+    await maker.as.mutation(api.library.setListed, { kind: 'npc', appId: NPC_ID, listed: true })
+    // Writes refuse a second owner's row, but rows older than that rule can hold one.
+    await t.run(async (ctx) => {
+      const { _id, _creationTime, ...row } = (await ctx.db.query('npcs').first())!
+      await ctx.db.insert('npcs', { ...row, ownerId: other.userId })
+    })
+
+    await other.as.mutation(api.library.setListed, { kind: 'npc', appId: NPC_ID, listed: false })
+    await other.as.mutation(api.account.deleteAccount, {})
+    expect(await t.run(async (ctx) => (await ctx.db.query('npcs').collect()).length)).toBe(1)
+
+    expect(await listedIds(t)).toEqual([NPC_ID])
+    expect(await maker.as.query(api.library.status, { kind: 'npc', appId: NPC_ID })).toMatchObject({
+      listed: true,
+      mine: true,
+    })
+  })
+
   test('delisting takes it out at once', async () => {
     const t = testConvex()
     const maker = await makeUser(t, 'Rosa')

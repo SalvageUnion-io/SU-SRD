@@ -22,16 +22,23 @@ export type LibrarySource = Doc<'mechPatterns'> | Doc<'npcs'>
 /** The table each listed kind lives in. */
 export const LIBRARY_TABLE = { pattern: 'mechPatterns', npc: 'npcs' } as const
 
-/** The one listing of a thing, or null. */
+/**
+ * The listing of a thing, or null. Given its maker, only that maker's: two
+ * accounts can hold rows under one app id, and one maker's listing, delisting
+ * or deletion never reaches the other's. Without one (a reader's view, which
+ * knows only the app id), the oldest.
+ */
 export async function entryFor(
   ctx: AnyCtx,
   kind: LibraryKind,
-  appId: string
+  appId: string,
+  ownerId?: Id<'users'>
 ): Promise<Doc<'libraryEntries'> | null> {
-  return await ctx.db
+  const entries = ctx.db
     .query('libraryEntries')
     .withIndex('by_kind_app_id', (q) => q.eq('kind', kind).eq('appId', appId))
-    .first()
+  if (ownerId === undefined) return await entries.first()
+  return (await entries.take(16)).find((entry) => entry.ownerId === ownerId) ?? null
 }
 
 /**
@@ -79,18 +86,18 @@ export async function deleteListing(ctx: MutationCtx, entry: Doc<'libraryEntries
 }
 
 /**
- * Take a thing out of the library when its link is withdrawn (`gone: false`)
- * or the thing is deleted (`gone: true`). A hidden listing survives the
- * first, so the takedown stands if the link comes back.
+ * Take a maker's thing out of the library when its link is withdrawn
+ * (`gone: false`) or the thing is deleted (`gone: true`). A hidden listing
+ * survives the first, so the takedown stands if the link comes back.
  */
 export async function withdrawListing(
   ctx: MutationCtx,
   kind: LibraryKind,
-  appId: string | undefined,
+  source: { appId?: string; ownerId?: Id<'users'> | null },
   { gone }: { gone: boolean }
 ) {
-  if (appId === undefined) return
-  const entry = await entryFor(ctx, kind, appId)
+  if (source.appId === undefined || source.ownerId == null) return
+  const entry = await entryFor(ctx, kind, source.appId, source.ownerId)
   if (entry === null) return
   if (entry.hidden && !gone) return
   await deleteListing(ctx, entry)

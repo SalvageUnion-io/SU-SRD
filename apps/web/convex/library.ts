@@ -125,7 +125,9 @@ export const status = query({
   handler: async (ctx, args): Promise<LibraryStatus> => {
     const userId = await getAuthUserId(ctx)
     const admin = userId !== null && (await isAdmin(ctx, userId))
-    const entry = await entryFor(ctx, args.kind, args.appId)
+    // The caller's own listing first: their Share toggle reads this.
+    const own = userId === null ? null : await entryFor(ctx, args.kind, args.appId, userId)
+    const entry = own ?? (await entryFor(ctx, args.kind, args.appId))
     if (entry === null) return { listed: false, hidden: false, reported: false, mine: false, admin }
     const live = (await listedSource(ctx, entry)) !== null
     const told = admin || entry.ownerId === userId
@@ -166,7 +168,7 @@ export const setListed = mutation({
     const noun = NOUN[args.kind]
     const row = await sourceOf(ctx, args.kind, userId, args.appId)
     if (row === null) throw new NotAuthorized(`That ${noun} no longer exists`)
-    const entry = await entryFor(ctx, args.kind, args.appId)
+    const entry = await entryFor(ctx, args.kind, args.appId, userId)
 
     if (!args.listed) {
       if (entry !== null && !entry.hidden) await deleteListing(ctx, entry)

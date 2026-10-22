@@ -823,14 +823,14 @@ for (const table of PHOTO_TABLES) {
 triggers.register('mechPatterns', async (ctx, change) => {
   const gone = change.operation === 'delete'
   if (!gone && !linkWithdrawn(change.oldDoc, change.newDoc)) return
-  await withdrawListing(ctx, 'pattern', change.oldDoc?.appId, { gone })
+  await withdrawListing(ctx, 'pattern', change.oldDoc ?? {}, { gone })
 })
 
 triggers.register('npcs', async (ctx, change) => {
   const gone = change.operation === 'delete'
   if (!gone && !linkWithdrawn(change.oldDoc, change.newDoc)) return
-  const row = change.oldDoc
-  await withdrawListing(ctx, 'npc', row?.appId ?? bodyAppId(row?.body), { gone })
+  const { appId = bodyAppId(change.oldDoc?.body), ownerId } = change.oldDoc ?? {}
+  await withdrawListing(ctx, 'npc', { appId, ownerId }, { gone })
 })
 
 /**
