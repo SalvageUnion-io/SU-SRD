@@ -3,7 +3,7 @@ import { TitledBox } from '../components/index'
 import { PROSE, PROSE_12 } from '../lib/docPageStyles'
 
 /**
- * DocPanel — a document page's titled block (`/api`'s endpoints, `/discord`'s
+ * DocPanel — a document page's titled block (`/api`'s endpoints, `/bot`'s
  * commands): the house `TitledBox`, its name on the cut-out, its stamps beside
  * it on the band (an endpoint's GET), its prose and samples in the paper body
  * (R42). `flush` lays a table edge to edge under the head.

@@ -1,5 +1,5 @@
 /**
- * The `/su` command list the SRD's `/discord` page renders: read from the
+ * The `/su` command list the SRD's `/bot` page renders: read from the
  * registered builder, and committed in the web app as generated data.
  */
 import { describe, expect, test } from 'bun:test'

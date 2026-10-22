@@ -1,5 +1,5 @@
 /**
- * The `/su` command list as the SRD's `/discord` page documents it, read from
+ * The `/su` command list as the SRD's `/bot` page documents it, read from
  * the registered builder (`suCommand.data`) so the page cannot fall behind the
  * bot: a subcommand added, renamed or re-described here is on the page after
  * `bun --filter discord-bot gen:command-list`, and `commandList.test.ts` fails until it is.
@@ -71,7 +71,7 @@ export function renderCommandListModule(entries: CommandListEntry[] = commandLis
 // Regenerate with: bun --filter discord-bot gen:command-list
 //
 // Every /su subcommand, read from the bot's registered builder, for the
-// /discord page. apps/discord-bot/src/__tests__/commandList.test.ts fails if
+// /bot page. apps/discord-bot/src/__tests__/commandList.test.ts fails if
 // this file goes stale.
 
 export type DiscordCommand = {

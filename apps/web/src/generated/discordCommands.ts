@@ -2,7 +2,7 @@
 // Regenerate with: bun --filter discord-bot gen:command-list
 //
 // Every /su subcommand, read from the bot's registered builder, for the
-// /discord page. apps/discord-bot/src/__tests__/commandList.test.ts fails if
+// /bot page. apps/discord-bot/src/__tests__/commandList.test.ts fails if
 // this file goes stale.
 
 export type DiscordCommand = {
