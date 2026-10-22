@@ -14,7 +14,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { PlayCanvas } from '../PlayCanvas'
-import { isPhoneForm, layoutWidth, pageZoom } from '../playCanvas.model'
+import { canvasFit, isPhoneForm, layoutWidth, pageZoom } from '../playCanvas.model'
 import { phoneViewport } from './phoneViewport'
 
 describe('isPhoneForm — the canvas never draws its 11px text smaller (ADR-045 §1)', () => {
@@ -36,6 +36,41 @@ describe('isPhoneForm — the canvas never draws its 11px text smaller (ADR-045 
   })
   test('a landscape phone gets it too', () => {
     expect(isPhoneForm(852, 393)).toBe(true)
+  })
+})
+
+describe('canvasFit — the canvas fills its host edge to edge, never letterboxed (ADR-038 §9)', () => {
+  test('a wide host keeps the scale its height allows and widens the canvas', () => {
+    expect(canvasFit(1440, 800)).toEqual({ scale: 1, width: 1440, height: 800 })
+    const fit = canvasFit(1920, 1000)
+    expect(fit.scale).toBe(1.25)
+    expect(fit.width).toBe(1536)
+    expect(fit.height).toBe(800)
+  })
+
+  test('a tall host keeps the scale its width allows and lengthens the canvas', () => {
+    expect(canvasFit(1280, 1024)).toEqual({ scale: 1, width: 1280, height: 1024 })
+  })
+
+  test('at its scale the canvas covers the host, within a pixel', () => {
+    for (const [w, h] of [
+      [1366, 900],
+      [2560, 1300],
+      [3840, 2160],
+      [7680, 2160],
+    ] as const) {
+      const fit = canvasFit(w, h)
+      expect(w - fit.width * fit.scale).toBeLessThan(fit.scale)
+      expect(h - fit.height * fit.scale).toBeLessThan(fit.scale)
+      expect(fit.width).toBeGreaterThanOrEqual(1280)
+      expect(fit.height).toBeGreaterThanOrEqual(800)
+    }
+  })
+
+  test('the scale is capped on a giant panel, and the canvas grows instead', () => {
+    const fit = canvasFit(7680, 4320)
+    expect(fit.scale).toBe(2.6)
+    expect(fit.width).toBe(Math.floor(7680 / 2.6))
   })
 })
 
