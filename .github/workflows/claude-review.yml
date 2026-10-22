@@ -5,10 +5,12 @@ name: Claude review
 # nothing, so "every check green" includes "the review is clean". AGENTS.md
 # (Merging) says when a thread may merge on that alone.
 #
-# It is its own workflow, not a ci.yml job: it is not in `CI Success` and not
-# in the `main` ruleset, so a review that is wrong never blocks a merge the
-# owner wants. A fork's PR gets no secrets on `pull_request`, so it is skipped
-# rather than run without its token; the owner reviews those by hand.
+# It is its own workflow, not a ci.yml job, and the `main` ruleset requires it
+# (tools/environments.ts, MAIN_RULESET). The action runs only a copy of this
+# file identical to main's, so a PR that edits it cannot review itself and
+# merges only once the owner lifts the requirement. A fork's PR gets no secrets
+# on `pull_request`, so it is skipped rather than run without its token; the
+# owner reviews those by hand.
 #
 # The token is CLAUDE_CODE_OAUTH_TOKEN (`/install-github-app` or
 # `claude setup-token`), the one repository-level secret
@@ -81,7 +83,10 @@ jobs:
             `git diff HEAD^1 HEAD -- <path>` shows one file's change. When
             there are too many files to read them all, read the riskiest
             first (code over docs, backend and auth over styling) and list
-            only what you read.
+            only what you read. The action puts the base branch's `.claude/`,
+            `CLAUDE.md` and `.mcp.json` in the working tree (the PR's own copies
+            are in `.claude-pr/`), so judge those files from the diff, never
+            from `git status`.
 
             Report only what should block a merge:
             - a correctness bug, with the input or state that triggers it;

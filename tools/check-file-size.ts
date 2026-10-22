@@ -55,7 +55,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 1_022,
   'tools/check-rules-fidelity.ts': 1_014,
-  'tools/check-workflows.ts': 797,
+  'tools/check-workflows.ts': 796,
 }
 
 const SOURCE = /\.(tsx?|m?js)$/
