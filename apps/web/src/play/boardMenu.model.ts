@@ -8,13 +8,13 @@
  * one state:
  *
  *   - **yours:** boards;
- *   - **spare** (unclaimed): "Claim and board", behind a confirm. It claims
- *     through `ownership.claim`, then boards. It draws no `mech-to-pilot` link
+ *   - **spare** (unassigned): "Assign and board", behind a confirm. It
+ *     assigns the mech to the player through `ownership.assign`, then boards. It draws no `mech-to-pilot` link
  *     (ADR-038 §5), so the assigned mech stays the assigned one afterwards;
  *   - **others** (another player's), **destroyed**, **aboard** (another seat is
  *     boarded in it): listed, disabled, with the reason.
  *
- * Pure, and none of it is a boundary: `seats.board` and `ownership.claim`
+ * Pure, and none of it is a boundary: `seats.board` and `ownership.assign`
  * refuse what they refuse whatever this says. It mirrors them so a player sees
  * why before pressing, not after.
  *
@@ -63,7 +63,7 @@ type BoardState = 'yours' | 'spare' | 'others' | 'destroyed' | 'aboard'
 export type BoardOption = {
   /** The mech's app id: what a seat and a link end address it by. */
   mechId: string
-  /** The Convex row id `ownership.claim` takes, or null when known only locally. */
+  /** The Convex row id `ownership.assign` takes, or null when known only locally. */
   serverId: string | null
   name: string
   state: BoardState
@@ -71,14 +71,14 @@ export type BoardOption = {
   note: string | null
 }
 
-/** Whether choosing this option does anything: your own boards, a spare is claimed first. */
+/** Whether choosing this option does anything: your own boards, a spare is assigned to you first. */
 export function boardable(option: BoardOption): boolean {
   return option.state === 'yours' || option.state === 'spare'
 }
 
 /**
  * The Board menu's one section, as the Mount row and the Situation switch
- * both offer it: each mech, a spare as "Claim and board", one that cannot be
+ * both offer it: each mech, a spare as "Assign and board", one that cannot be
  * boarded listed with why and choosing nothing.
  */
 export function boardMenuSections(
@@ -88,7 +88,7 @@ export function boardMenuSections(
   return [
     mechs.map((option) => ({
       id: option.mechId,
-      label: option.state === 'spare' ? `Claim and board ${option.name}` : option.name,
+      label: option.state === 'spare' ? `Assign and board ${option.name}` : option.name,
       hint: option.state === 'spare' ? undefined : (option.note ?? undefined),
       onSelect: boardable(option) ? () => choose(option) : undefined,
     })),
@@ -138,7 +138,7 @@ function stateOf(args: {
 }): Pick<BoardOption, 'state' | 'note'> {
   if (args.destroyed) return { state: 'destroyed', note: 'Destroyed' }
   if (args.aboard !== null) return { state: 'aboard', note: `${args.aboard} is aboard` }
-  if (args.owner === 'spare') return { state: 'spare', note: 'Unclaimed spare' }
+  if (args.owner === 'spare') return { state: 'spare', note: 'Unassigned spare' }
   if (args.owner === 'others') return { state: 'others', note: 'Another player’s mech' }
   return { state: 'yours', note: null }
 }

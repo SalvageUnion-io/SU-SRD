@@ -59,9 +59,9 @@ export function usePlaySituation(target: PlayTarget): Play {
     board: (mechId) => {
       if (mechId !== boardedMechId) seat.board(mechId)
     },
-    claimAndBoard: (option) => {
+    assignAndBoard: (option) => {
       if (option.serverId !== null) {
-        seat.claimAndBoard({ mechId: option.mechId, serverId: option.serverId })
+        seat.assignAndBoard({ mechId: option.mechId, serverId: option.serverId })
       }
     },
     canChangeDowntime,

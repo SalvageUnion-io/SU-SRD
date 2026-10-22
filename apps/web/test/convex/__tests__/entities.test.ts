@@ -143,9 +143,14 @@ describe('reading is per-game, writing is per-entity', () => {
     const { gameId } = await seedGame(t)
     const outsider = await makeUser(t, 'Outsider')
 
-    await expect(outsider.as.query(api.entities.listForGame, { gameId })).rejects.toThrow(
-      /not a member/i
-    )
+    expect(await outsider.as.query(api.entities.listForGame, { gameId })).toEqual({
+      pilots: [],
+      mechs: [],
+      crawlers: [],
+      npcs: [],
+      softLinks: [],
+      primaryCrawlerId: null,
+    })
   })
 
   test("a crewmate cannot write another player's pilot", async () => {
@@ -164,7 +169,7 @@ describe('reading is per-game, writing is per-entity', () => {
     ).rejects.toThrow(/another player/i)
   })
 
-  test('an unclaimed entity cannot be edited until it is assigned', async () => {
+  test('an unassigned entity cannot be edited until it is assigned', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
     const pilotId = await t.run(
@@ -178,7 +183,7 @@ describe('reading is per-game, writing is per-entity', () => {
         })
     )
 
-    // Editing an unclaimed pre-gen would let anyone quietly take it without
+    // Editing an unassigned pre-gen would let anyone quietly take it without
     // going through a claim, which is the act the Change Log records.
     await expect(
       organizer.as.mutation(api.entities.upsertByAppId, {
@@ -188,7 +193,7 @@ describe('reading is per-game, writing is per-entity', () => {
         body: pilotBody({ name: 'Mine now' }),
         expectedUpdatedAt: null,
       })
-    ).rejects.toThrow(/unclaimed/i)
+    ).rejects.toThrow(/unassigned/i)
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect((row?.body as { name: string } | undefined)?.name).toBe('Roach-Boy')
   })

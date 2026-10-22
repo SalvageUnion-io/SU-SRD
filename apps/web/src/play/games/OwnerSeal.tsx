@@ -7,9 +7,9 @@ import { playGamesCopy } from '../../messages/play-games'
  * The pressable seal is a `ChipButton`: a 24px target (WCAG 2.5.8) around the
  * chip drawn at its siblings' height. Its
  * cursor, lift and fade change on hover or when disabled, so they are
- * `.su-owner-seal__claim`'s (styles/controls.css).
+ * `.su-owner-seal__assign`'s (styles/controls.css).
  */
-const CLAIM = {
+const ASSIGN = {
   transitionDuration: tokens.duration.base,
   transitionProperty: 'transform, translate, scale, rotate',
   transitionTimingFunction: tokens.ease,
@@ -17,7 +17,7 @@ const CLAIM = {
 
 /**
  * The ownership seal: one stamp right of the row's name saying who holds
- * this character — `UNCLAIMED`, `YOU`, or a crewmate's name.
+ * this character — `UNASSIGNED`, `YOU`, or a crewmate's name.
  *
  * ## One mark, three states
  *
@@ -29,42 +29,42 @@ const CLAIM = {
  * the first of the Compact's chips, wrapping and centring with them, under the
  * same rules.
  *
- * ## Why UNCLAIMED is the pressable one
+ * ## Why UNASSIGNED is the pressable one
  *
- * An unclaimed pre-gen is an *offer*, so the thing that announces it is also
+ * An unassigned pre-gen is an *offer*, so the thing that announces it is also
  * the thing you press. The other two states are statements of fact with nothing
  * to do — pressing "MARA" should not do anything, and it does not.
  *
- * It opens a confirm rather than claiming outright: taking a character is a
+ * It opens a confirm rather than assigning outright: taking a character is a
  * commitment at the table, and the modal is where the surface says what happens
- * next (it becomes yours, and it lands in this browser).
+ * next (you edit it, and it lands in this browser).
  */
 export function OwnerSeal({
   owner,
-  claimable,
+  assignable,
   disabled,
-  onClaim,
+  onAssign,
 }: {
   owner: OwnerChip
-  claimable: boolean
+  assignable: boolean
   disabled: boolean
-  onClaim: () => void
+  onAssign: () => void
 }) {
   // The label-only chip, at the Compact's chip rung.
   const stamp = <Stat label={owner.label} size="compact" />
 
-  if (!claimable) {
+  if (!assignable) {
     // Inert: a fact about the row, not a control.
     return stamp
   }
 
   return (
     <ChipButton
-      onClick={onClaim}
+      onClick={onAssign}
       disabled={disabled}
-      aria-label={playGamesCopy('pickThisUp', { label: owner.label })}
-      className="su-owner-seal__claim"
-      style={CLAIM}
+      aria-label={playGamesCopy('assignThisToYou', { label: owner.label })}
+      className="su-owner-seal__assign"
+      style={ASSIGN}
     >
       {stamp}
     </ChipButton>

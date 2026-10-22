@@ -216,7 +216,7 @@ export function publicSheetUrl(
  * Addressed by the Convex row id, which every reader can open: the app's
  * `entities.locate` resolves a row id for anyone allowed to see the row, opens
  * it editable for its owner and read-only for everyone else, and puts the
- * client id back in the address bar. An unclaimed pre-gen has a row id too, so
+ * client id back in the address bar. An unassigned pre-gen has a row id too, so
  * it links like everything else.
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
@@ -303,7 +303,7 @@ export function bodyName(body: EntityBody, keys: BodyKey[]): string {
 }
 
 /** ADR-030: an entity with no owner is a STATE, never a blank. */
-const UNCLAIMED = 'Unclaimed'
+const UNASSIGNED = 'Unassigned'
 
 /** A pilot is critical when dead (the server's status) or on 0 HP, a Critical Injury. */
 function pilotCritical(stats: { hp: number | null; dead: boolean }): boolean {
@@ -617,7 +617,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
  */
 export function sheetCard(sheet: SheetResult): ContainerData {
   const body = sheet.body
-  const owner = escapeMarkdown(sheet.ownerName ?? UNCLAIMED)
+  const owner = escapeMarkdown(sheet.ownerName ?? UNASSIGNED)
 
   const rendered =
     sheet.table === 'pilots'
@@ -646,7 +646,7 @@ export function sheetCard(sheet: SheetResult): ContainerData {
   }
 
   const url = sheetUrl(sheet.table, sheet.id)
-  // A crawler is communal: no owner to name, so never "Unclaimed" (ADR-030 §5).
+  // A crawler is communal: no owner to name, so never "Unassigned" (ADR-030 §5).
   const provenance =
     sheet.table === 'crawlers' ? 'Communal · read-only' : `Owned by **${owner}** · read-only`
   const description = [rendered.subtitle, provenance].filter((line) => line.length > 0).join('\n')

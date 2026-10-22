@@ -123,9 +123,9 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
                       row.owner === null ? undefined : (
                         <OwnerSeal
                           owner={row.owner}
-                          claimable={false}
+                          assignable={false}
                           disabled
-                          onClaim={() => undefined}
+                          onAssign={() => undefined}
                         />
                       ),
                   })),

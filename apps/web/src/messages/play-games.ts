@@ -14,8 +14,9 @@ export const playGamesCopy = messages({
   deleting: 'Deleting…',
   thisEndsTheTableFor: 'This ends the table for all {value} of you. It cannot be undone.',
   nothingAnybodyBuiltIsDestroyed: 'Nothing anybody built is destroyed:',
-  anythingUnclaimedComesToYou: 'Anything unclaimed comes to you, in your {build}.',
-  andAnythingUnclaimedComeTo: '{crawlerName} and anything unclaimed come to you, in your {build}.',
+  anythingUnassignedComesToYou: 'Anything unassigned comes to you, in your {build}.',
+  andAnythingUnassignedComeTo:
+    '{crawlerName} and anything unassigned come to you, in your {build}.',
   theCrewItsInviteLink:
     "The crew, its invite link, the opposition tray and the assignments between everyone's builds go with the Game.",
   youMediate: 'You mediate',
@@ -34,7 +35,9 @@ export const playGamesCopy = messages({
     "A Game's page is read from the server. Your own builds stay in the {build} meanwhile.",
   hp: 'HP',
   openSheet: 'Open sheet',
-  offerToTheCrew: 'Offer to the crew',
+  unassign: 'Unassign',
+  assignToMe: 'Assign to me',
+  assignTo: 'Assign to {name}',
   makePrimary: 'Make primary',
   moveToYour: 'Move to your {build}',
   delete2: 'Delete…',
@@ -58,8 +61,8 @@ export const playGamesCopy = messages({
   joinAGame: 'Join a Game',
   chooseThePilotToPlay: 'Choose the pilot to play.',
   noneOfThisGamesPilots:
-    "None of this Game's pilots is saved in this browser. Create or claim one from the roster, then play.",
-  pickThisUp: '{label} — pick this up',
+    "None of this Game's pilots is saved in this browser. Create one, or take one from the roster, then play.",
+  assignThisToYou: '{label} — assign this to you',
   awaitingYourAnswer: 'Awaiting your answer',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
   apply: 'Apply',

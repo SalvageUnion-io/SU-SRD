@@ -58,7 +58,8 @@ export const mediatorCopy = messages({
   proposalsYouSent: 'Proposals you sent',
   theTable: 'The table',
   theTableAppearsOnceThe: "The table appears once the Game's roster arrives.",
-  noOneHasASeat: 'No one has a seat yet. A player takes one by claiming a Pilot in this Game.',
+  noOneHasASeat:
+    'No one has a seat yet. A player takes one when a Pilot in this Game is assigned to them.',
   seats: 'Seats',
   thisGameHasNoUnion: 'This Game has no Union Crawler yet.',
   raiseOneFromTheGame: 'Raise one from the Game page',

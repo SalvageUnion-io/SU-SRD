@@ -45,8 +45,8 @@ import {
 import {
   getMembership,
   isTableRunner,
+  membershipOrNull,
   NotAuthorized,
-  requireMember,
   requireTableRunner,
   requireUser,
 } from './model/permissions'
@@ -129,10 +129,20 @@ const servedLinkValidator = v.object({
 /** An owned row as `listMine` serves it: its app id, its version and its body. */
 const versionedRow = v.object({ appId: nullableAppId, updatedAt: v.number(), body: v.any() })
 
+const EMPTY = {
+  pilots: [],
+  mechs: [],
+  crawlers: [],
+  npcs: [],
+  softLinks: [],
+  primaryCrawlerId: null,
+}
+
 /**
  * Everything in a Game the caller can see: all pilots, mechs and built NPCs,
  * plus the crawler. NPCs ride here because a bay crewed by another member's
- * NPC is read from this listing, never cached (ADR-044).
+ * NPC is read from this listing, never cached (ADR-044). `EMPTY` to a caller no
+ * longer in the Game (`membershipOrNull`).
  */
 export const listForGame = query({
   args: { gameId: v.id('games') },
@@ -151,7 +161,7 @@ export const listForGame = query({
     primaryCrawlerId: v.union(v.id('crawlers'), v.null()),
   }),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return EMPTY
 
     const [pilots, mechs, crawlers, npcs, softLinks, primary] = await Promise.all([
       ctx.db
@@ -301,28 +311,16 @@ export const locate = query({
 })
 
 /**
- * Everything this account owns, for filling the local cache.
- *
- * ## Why it exists
+ * Everything this account holds — owns on its shelf, or is assigned in a Game
+ * (ADR-030 §4) — for filling the local cache.
  *
  * It is the way down outside a Game (`listForGame` is scoped to one): without
- * it a signed-in player opening the app on a second device would see an **empty
- * roster**. A cache is something that can be *filled*, and this is what fills
- * it ([ADR-034](../../../docs/ARCHITECTURE.md#decisions) decision 2).
- *
- * ## Owned, not shelved
- *
- * Deliberately every row the caller **owns**, whether it is on their shelf or
- * in a Game, rather than the shelf alone. A Game entity you own is still yours
- * and still belongs on your roster; scoping this to `gameId === null` would make
- * a build vanish from the local cache the moment it was taken into a campaign,
- * and reappear when the campaign ended.
- *
- * Unclaimed rows are excluded by construction — they have no `ownerId`, so the
- * index cannot return them. That is right: an unclaimed pre-gen sitting in a
- * Game belongs to the Game's view (`listForGame`), not to anybody's roster.
- *
- * The crawler is included on the same rule: it has an owner too.
+ * it a second device would see an **empty roster**
+ * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions) decision 2). It takes
+ * every row by `ownerId`, in a Game or not: scoping it to the shelf would drop a
+ * build from the cache the moment it went into a campaign. Unassigned rows have
+ * no `ownerId`, so the index cannot return them; they are the Game's view
+ * (`listForGame`). The crawler is included on the same rule: it has an owner too.
  */
 export const listMine = query({
   args: {},

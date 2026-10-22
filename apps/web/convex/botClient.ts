@@ -280,7 +280,7 @@ export const unbindChannel = internalMutation({
 })
 
 /**
- * One answered command, for the weekly tallies (ADR-055): `bot:<name>` this
+ * One answered command, for the weekly tallies (ADR-056): `bot:<name>` this
  * week, and the server it ran in. Nothing about who ran it.
  */
 export const usage = internalMutation({

@@ -14,7 +14,7 @@ can see it" control: Only me, My Game's crew, Anyone with the link.
    it **off is always permitted**, even with a null `ownerId`
    (`ownership.release` and the leave-Game sweep null it), so a published sheet
    can never be stuck public. A published mech carries the abilities of an
-   **unclaimed** pilot flying it, never a claimed crewmate's.
+   **unassigned** pilot flying it, never an assigned crewmate's.
 3. **Addressed by `appId`, at `/p/:kind/:appId`**, not the row id: the owner
    and the bot already hold the app id.
 4. **One unauthenticated Convex query, returning one entity**, or `null` (not a

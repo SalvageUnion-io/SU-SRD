@@ -4,7 +4,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { NotAuthorized } from './permissions'
 
 /**
- * The site's administrators (ADR-055): the accounts whose Discord id is listed
+ * The site's administrators (ADR-056): the accounts whose Discord id is listed
  * in the deployment's `ADMIN_DISCORD_IDS` (comma-separated). Not a role on a
  * Game and not a column: one environment variable, so granting it is a
  * deployment act and no mutation can hand it out. Unset, nobody is an admin.
