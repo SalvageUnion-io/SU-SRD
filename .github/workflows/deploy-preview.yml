@@ -1,7 +1,8 @@
 name: Deploy preview (Cloudflare)
 
-# A Cloudflare Worker Preview per pull request into `main`, once it carries the
-# `preview` label: one su-srd Preview, as production is one su-srd Worker.
+# A Cloudflare Worker Preview per pull request into `main` or a `su-io-*`
+# release branch, once it carries the `preview` label: one su-srd Preview, as
+# production is one su-srd Worker.
 #
 #   site     https://pr-<n>-su-srd.alxjrvs.workers.dev
 #   App  https://pr-<n>-su-srd.alxjrvs.workers.dev/build, against the
@@ -41,7 +42,7 @@ name: Deploy preview (Cloudflare)
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'su-io-*']
     types: [labeled, synchronize, reopened, closed]
 
 # One run per PR at a time. Never cancelled mid-upload; GitHub keeps one
