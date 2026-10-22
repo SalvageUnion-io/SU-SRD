@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import type { Finding } from './_findings'
 
 /**
  * Hard rule R10, "A surface sets its texture once" (ruleset §1.3, §3.5.1; EDL
@@ -28,14 +29,12 @@ const OVERLAY = '[data-peek-popup], [role="dialog"], [role="alertdialog"], [role
 /** An entity band: a Compact's, TitledBox's or card's head (`Head`). */
 const BAND = '.su-entity-compact__head'
 
-type Fault = { rule: string; line: string }
-
 /**
  * The texture faults in the Cockpit and the overlays over it, one line each:
  * a brand-colour band with no speckle (`speckled`), and speckle on a ground
  * that never wears it (`clean`).
  */
-export async function findGrainFaults(page: Page): Promise<Fault[]> {
+export async function findGrain(page: Page): Promise<Finding[]> {
   return await page.evaluate(
     ({ cockpit, overlay, band }) => {
       // The grounds that never wear it, as the browser computes them.
@@ -56,24 +55,24 @@ export async function findGrainFaults(page: Page): Promise<Fault[]> {
         const text = (el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 40)
         return `${where} "${text}"`
       }
-      const out: { rule: string; line: string }[] = []
+      const out: { rule: string; detail: string }[] = []
       for (const el of document.querySelectorAll(band)) {
         if (!inScope(el)) continue
         const bg = getComputedStyle(el).backgroundColor
         if (transparent(bg) || clean.has(bg)) continue
         if (!el.hasAttribute('data-grain'))
-          out.push({ rule: 'speckled', line: `${name(el)}: a ${bg} band with no speckle` })
+          out.push({ rule: 'speckled', detail: `${name(el)}: a ${bg} band with no speckle` })
       }
       for (const el of document.querySelectorAll('[data-grain]')) {
         if (!inScope(el)) continue
         const bg = getComputedStyle(el).backgroundColor
         if (clean.has(bg))
-          out.push({ rule: 'clean', line: `${name(el)}: speckle on a ${bg} ground` })
+          out.push({ rule: 'clean', detail: `${name(el)}: speckle on a ${bg} ground` })
         if (
           el.closest('button, input, textarea, select') ||
           el.querySelector('input, textarea, select')
         )
-          out.push({ rule: 'clean', line: `${name(el)}: speckle on a button or a field` })
+          out.push({ rule: 'clean', detail: `${name(el)}: speckle on a button or a field` })
       }
       return out
     },
@@ -92,15 +91,15 @@ async function rest(page: Page): Promise<void> {
  * first trigger, and the Mediator's More menu and its Reference. Each is
  * closed again, so the walk goes on from the screen it found.
  */
-export async function readOverlays(page: Page): Promise<{ what: string; faults: Fault[] }[]> {
-  const read: { what: string; faults: Fault[] }[] = []
+export async function readOverlays(page: Page): Promise<{ what: string; findings: Finding[] }[]> {
+  const read: { what: string; findings: Finding[] }[] = []
   const trigger = page.locator(`${COCKPIT} [data-peek]`).first()
   if (await trigger.isVisible().catch(() => false)) {
     const address = await trigger.getAttribute('data-peek')
     await trigger.hover()
     const popup = page.locator('[data-peek-popup]')
     await expect(popup.locator('.su-entity-compact__head, .su-roll').first()).toBeVisible()
-    read.push({ what: `the ${address} Peek`, faults: await findGrainFaults(page) })
+    read.push({ what: `the ${address} Peek`, findings: await findGrain(page) })
     await page.mouse.move(0, 0)
     await page.keyboard.press('Escape')
     await expect(popup).toHaveCount(0)
@@ -110,7 +109,7 @@ export async function readOverlays(page: Page): Promise<{ what: string; faults: 
     await more.click()
     const menu = page.getByRole('menu')
     await expect(menu).toBeVisible()
-    read.push({ what: 'the More menu', faults: await findGrainFaults(page) })
+    read.push({ what: 'the More menu', findings: await findGrain(page) })
     const reference = menu.getByRole('menuitem', { name: 'Reference' })
     if (await reference.isVisible().catch(() => false)) {
       await reference.click()
@@ -118,12 +117,12 @@ export async function readOverlays(page: Page): Promise<{ what: string; faults: 
       await expect(dialog).toBeVisible()
       await dialog.getByRole('combobox', { name: 'Search the Reference' }).fill('drill')
       await rest(page)
-      read.push({ what: "the Reference's results", faults: await findGrainFaults(page) })
+      read.push({ what: "the Reference's results", findings: await findGrain(page) })
       const result = dialog.getByRole('option').first()
       if (await result.isVisible().catch(() => false)) {
         await result.click()
         await rest(page)
-        read.push({ what: "the Reference's entity", faults: await findGrainFaults(page) })
+        read.push({ what: "the Reference's entity", findings: await findGrain(page) })
       }
       await page.keyboard.press('Escape')
       await expect(dialog).toHaveCount(0)
@@ -134,10 +133,11 @@ export async function readOverlays(page: Page): Promise<{ what: string; faults: 
   return read
 }
 
-/** Manage's band: present, and speckled; or what is wrong with it. */
-export async function findBandFault(page: Page): Promise<string | null> {
+/** Manage's band: present, and speckled; or a `band` finding for what is wrong with it. */
+export async function findBand(page: Page): Promise<Finding[]> {
   const band = page.locator('.su-chapter-band').first()
-  if ((await band.count()) === 0) return 'no ChapterBand'
-  const layers = await band.locator('.su-grain-layer').count()
-  return layers > 0 ? null : `the band "${(await band.innerText()).trim().slice(0, 40)}" is flat`
+  if ((await band.count()) === 0) return [{ rule: 'band', detail: 'no ChapterBand' }]
+  if ((await band.locator('.su-grain-layer').count()) > 0) return []
+  const name = (await band.innerText()).trim().slice(0, 40)
+  return [{ rule: 'band', detail: `the band "${name}" is flat` }]
 }

@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
 
 /**
  * Hard rule R29, "Tabs, Segmented, Toggle by job" (chrome K10, EDL E18), on the
@@ -20,9 +21,9 @@ import type { Page } from '@playwright/test'
 const LABELS = '[role="tab"], .su-seg__option, .su-union-bar__tab'
 
 /** Every shown tab or segment label on the page that does not fit, by rule. */
-export async function findTabLabelFaults(page: Page): Promise<{ rule: string; line: string }[]> {
+export async function findTabLabels(page: Page): Promise<Finding[]> {
   return await page.evaluate((selector) => {
-    const out: { rule: string; line: string }[] = []
+    const out: { rule: string; detail: string }[] = []
     const shown = (el: Element) => {
       const r = el.getBoundingClientRect()
       return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'
@@ -41,7 +42,7 @@ export async function findTabLabelFaults(page: Page): Promise<{ rule: string; li
       if (el.scrollWidth > el.clientWidth + 1 || ellipsized) {
         out.push({
           rule: 'cut',
-          line: `${label} is cut: ${el.scrollWidth}px of label in ${el.clientWidth}px`,
+          detail: `${label} is cut: ${el.scrollWidth}px of label in ${el.clientWidth}px`,
         })
         continue
       }
@@ -54,7 +55,7 @@ export async function findTabLabelFaults(page: Page): Promise<{ rule: string; li
       if (outOfRow || outOfView) {
         out.push({
           rule: 'hidden',
-          line: `${label} sits outside its ${outOfView ? 'viewport' : 'row'}`,
+          detail: `${label} sits outside its ${outOfView ? 'viewport' : 'row'}`,
         })
       }
     }

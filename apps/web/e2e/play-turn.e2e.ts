@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { escapeRegExp, pageOverflow } from './_helpers'
 import {
   axeViolations,
   board,
@@ -9,7 +10,7 @@ import {
   pilotPlayPath,
   situation,
 } from './_play'
-import { searchWidthFaults } from './_searchWidth'
+import { findSearchWidths } from './_searchWidth'
 import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
@@ -87,11 +88,7 @@ async function expectOnFeed(page: Page, action: string): Promise<void> {
   })
 }
 
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-test('a boarded turn on the canvas: board, use, roll, apply', async ({ page }) => {
+test('a boarded turn on the canvas: board, use, roll, apply', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(8 * 60_000)
   await setUpTable(page)
   const play = await pilotPlayPath(page, 'Bonesaw')
@@ -118,7 +115,9 @@ test('a boarded turn on the canvas: board, use, roll, apply', async ({ page }) =
   expect(a11y, 'accessibility violations on the Play screen').toEqual([])
 })
 
-test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', async ({ page }) => {
+test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', { tag: '@pr' }, async ({
+  page,
+}) => {
   test.setTimeout(6 * 60_000)
   await setUpTable(page)
   const play = await pilotPlayPath(page, 'Bonesaw')
@@ -133,7 +132,7 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', async ({ 
   const pinned = page.getByRole('region', { name: 'Pinned vitals' })
   await expect(pinned.getByRole('list', { name: 'Bonesaw’s vitals' })).toBeVisible()
   // The Act tab's Find spans its line (a search is full width on a phone).
-  expect(await searchWidthFaults(page), 'Act tab searches narrower than their line').toEqual([])
+  expect(await findSearchWidths(page), 'Act tab searches narrower than their line').toEqual([])
 
   const action = await boardedTurn(page)
   // Boarded, the mech's vitals are pinned too.
@@ -141,12 +140,9 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', async ({ 
 
   await tabs.getByRole('tab', { name: 'Tables' }).click()
   await expectOnFeed(page, action)
-  expect(await searchWidthFaults(page), 'Tables tab searches narrower than their line').toEqual([])
+  expect(await findSearchWidths(page), 'Tables tab searches narrower than their line').toEqual([])
 
   // The phone form fits the screen: only the open panel scrolls.
-  const overflow = await page.evaluate(() => {
-    const root = document.scrollingElement ?? document.documentElement
-    return Math.max(root.scrollHeight - innerHeight, root.scrollWidth - innerWidth)
-  })
-  expect(overflow, 'the phone page scrolls (px)').toBeLessThanOrEqual(0)
+  const { down, across } = await pageOverflow(page)
+  expect(Math.max(down, across), 'the phone page scrolls (px)').toBeLessThanOrEqual(0)
 })

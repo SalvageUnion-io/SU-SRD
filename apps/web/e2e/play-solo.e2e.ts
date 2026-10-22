@@ -16,7 +16,7 @@ import { expect, test } from './fixtures'
  * PR, and the nightly `e2e` job again.
  */
 
-test('solo: On foot, Boarded and Downtime fit and pass axe', async ({ page }) => {
+test('solo: On foot, Boarded and Downtime fit and pass axe', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(10 * 60_000)
   const a11y: string[] = []
   await buildPilot(page, 'Rook Hale', 'Rook')

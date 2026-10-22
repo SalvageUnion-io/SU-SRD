@@ -1,9 +1,10 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
 import { NESTING_SELECTORS } from './_nestingDepth'
 
 /**
  * A Page's rhythm (hard rule R17; ruleset §1.7, §4.6, §7.1) as the rendered
- * page draws it. `findRhythmFindings` reads every Page body on the page (an
+ * page draws it. `findRhythm` reads every Page body on the page (an
  * SRD show page's, the app's detail dialog's) and returns each place it breaks:
  *
  * - **start** the body's first block more than `start` px under the band: the
@@ -23,7 +24,7 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * phone's "On this page" list, and the prose's text, its
  * run of paragraphs one block. A block inside another block is the outer one's.
  */
-export type RhythmFinding = {
+type RhythmFinding = {
   rule: 'start' | 'gap' | 'stat-frame' | 'stat-label'
   /** What breaks it, `The Armoury (TitledBox) 20px under the prose`. */
   detail: string
@@ -216,16 +217,8 @@ function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
   return found
 }
 
-export function findRhythmFindings(page: Page): Promise<RhythmFinding[]> {
-  return page.evaluate(scanRhythm, RHYTHM_SELECTORS)
-}
-
-/** One line per distinct finding, with how many times the page draws it. */
-export function describeRhythm(where: string, findings: RhythmFinding[]): string[] {
-  const counts = new Map<string, number>()
-  for (const f of findings) {
-    const line = `${where}: ${f.rule} ${f.detail}`
-    counts.set(line, (counts.get(line) ?? 0) + 1)
-  }
-  return [...counts].map(([line, n]) => (n > 1 ? `${line} (×${n})` : line))
+/** Every place the Page breaks its rhythm, under its rule. */
+export async function findRhythm(page: Page): Promise<Finding[]> {
+  const found = await page.evaluate(scanRhythm, RHYTHM_SELECTORS)
+  return found.map((f) => ({ rule: f.rule, detail: `${f.rule} ${f.detail}` }))
 }

@@ -1,11 +1,10 @@
 import type { Page } from '@playwright/test'
-import { at } from './_base'
-import { walkDesignRoutes } from './_designRoutes'
-import { corpusRoutes } from './_designTable'
-import { findFrameFaults } from './_entityFrames'
-import { editSheet, fillIdentity, openSheetFor, waitForReady } from './_helpers'
-import { describeFindings, findNestingFindings } from './_nestingDepth'
-import { holdPending, ruleOfFault } from './_pendingRules'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
+import { expectCorpusClean } from './_designRoutes'
+import { findFrames } from './_entityFrames'
+import { place } from './_findings'
+import { editSheet, openPeekFromSearch, openSheetFor, runWizard, waitForReady } from './_helpers'
+import { findNesting } from './_nestingDepth'
 import { expect, test } from './fixtures'
 
 /**
@@ -47,123 +46,62 @@ test.describe.configure({ retries: 0 })
 
 /** The findings on the page as it stands, one line each, under `where`. */
 async function scan(page: Page, where: string): Promise<string[]> {
-  return describeFindings(where, await findNestingFindings(page))
+  return place(where, await findNesting(page)).map((f) => f.line)
 }
 
-test.describe('signed out', () => {
+test.describe('signed out', { tag: '@pr' }, () => {
   test.use({ account: 'anonymous' })
 
   test('every page nests three levels deep at most', async ({ page }) => {
     test.setTimeout(15 * 60_000)
-    const found = await walkDesignRoutes(
+    await expectCorpusClean(
       page,
-      async ({ path, where }) => {
-        const lines: { rule: string; line: string }[] = []
-        const findings = await findNestingFindings(page, { oneDeep: ONE_DEEP.test(path) })
-        for (const rule of new Set(findings.map((f) => f.rule))) {
-          const described = describeFindings(
-            where,
-            findings.filter((f) => f.rule === rule)
-          )
-          lines.push(...described.map((line) => ({ rule, line })))
-        }
-        for (const fault of await findFrameFaults(page))
-          lines.push({ rule: ruleOfFault(fault), line: `${where}, ${fault}` })
-        return lines
-      },
-      { routes: corpusRoutes() }
+      'nesting-depth',
+      async ({ path }) => [
+        ...(await findNesting(page, { oneDeep: ONE_DEEP.test(path) })),
+        ...(await findFrames(page)),
+      ],
+      { message: 'entities nested past the three levels' }
     )
-    const failures = holdPending('nesting-depth', found).map((f) => f.line)
-    expect(failures, 'entities nested past the three levels').toEqual([])
   })
 
   test('a Peek holds only Minis', async ({ page }) => {
     test.setTimeout(5 * 60_000)
-    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.setViewportSize(DESIGN_VIEWPORTS.page)
     const failures: string[] = []
-    for (const { schema, name } of PEEKS) {
-      // The Union bar's combobox, which mounts its island on intent.
+    for (const peek of PEEKS) {
       await page.goto('/chassis/', { waitUntil: 'networkidle' })
-      const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
-      await search.click()
-      await search.fill(name)
-      const trigger = page
-        .locator(`[role="option"][data-peek^="${schema}:"]`)
-        .filter({ hasText: name })
-        .first()
-      await expect(trigger, `a ${schema} Mini for ${name} to Peek`).toBeVisible()
-      await trigger.hover()
-      const popup = page.locator('[data-peek-popup]')
-      await expect(popup.locator('.su-entity-compact__head').first()).toBeVisible()
-      failures.push(...(await scan(page, `the ${name} Peek`)))
+      await openPeekFromSearch(page, peek)
+      failures.push(...(await scan(page, `the ${peek.name} Peek`)))
     }
     expect(failures, 'entities nested past the three levels in a Peek').toEqual([])
   })
 })
 
 /**
- * Walk a wizard from its first step, scanning each as it lands and again once
- * its gate is met: fill the identity fields a step asks for, then take the
- * named pick or the last option on offer, as `runWizard` (`_helpers.ts`)
- * does. Stops on the Review step, or creates the unit when `create` is set.
+ * Walk a wizard from its first step (`runWizard`), scanning each step as it
+ * lands and again once its gate is met. Stops on the Review step, or creates
+ * the unit when `create` is set.
  */
 async function walkWizard(
   page: Page,
   kind: 'pilots' | 'mechs' | 'crawlers',
   options: { identity: Record<string, string>; prefer: string[]; create?: RegExp }
 ): Promise<string[]> {
-  await page.goto(at(`/${kind}/new?mode=guided`))
-  await waitForReady(page)
   const failures: string[] = []
-  for (let step = 0; step < 16; step++) {
-    const heading = page.locator('.su-wiz-main h1').first()
-    const title = ((await heading.textContent({ timeout: 15_000 })) ?? '').trim()
-    const where = `/${kind}/new, ${title.replace(/^Step \d+ of \d+ · /, '')}`
-    failures.push(...(await scan(page, where)))
-    const create = options.create && page.getByRole('button', { name: options.create }).first()
-    if (create && (await create.isVisible().catch(() => false))) {
-      await create.click()
-      await page.waitForURL((url) => !url.pathname.includes('/new'), { timeout: 30_000 })
-      return failures
-    }
-    // The wizard's own Next, in its footer pill: an ability's NEXT tree chip
-    // on a step reads "Next: <ability>" too.
-    const next = page
-      .locator('.su-wiz-pill')
-      .getByRole('button', { name: /^Next(: |$)/ })
-      .first()
-    if (!(await next.isVisible().catch(() => false))) return failures
-    if (await next.isDisabled()) {
-      for (const [label, value] of Object.entries(options.identity))
-        await fillIdentity(page, label, value)
-      for (let round = 0; round < 6 && (await next.isDisabled()); round++) {
-        const unselected = page.locator('[aria-pressed="false"], [aria-checked="false"]')
-        const wanted = options.prefer.map((want) => unselected.filter({ hasText: want }).first())
-        let picked = false
-        for (const candidate of wanted) {
-          if (!(await candidate.isVisible().catch(() => false))) continue
-          await candidate.click()
-          picked = true
-          break
-        }
-        if (!picked) {
-          const count = await unselected.count()
-          if (count === 0) break
-          await unselected.nth(count - 1).click()
-        }
-        await page.waitForTimeout(350)
-      }
-      await expect(next, `${kind} step ${step} unlocks after picking`).toBeEnabled()
-      failures.push(...(await scan(page, `${where}, picked`)))
-    }
-    await next.click()
-    // The next step is in once its heading is.
-    await expect(heading).not.toHaveText(title)
-  }
+  await runWizard(page, kind, {
+    identity: options.identity,
+    create: options.create,
+    prefer: options.prefer,
+    onStep: async (title, state) => {
+      const where = `/${kind}/new, ${title}${state === 'picked' ? ', picked' : ''}`
+      failures.push(...(await scan(page, where)))
+    },
+  })
   return failures
 }
 
-test.describe('signed in', () => {
+test.describe('signed in', { tag: '@pr' }, () => {
   test('the pilot wizard nests three levels deep at most', async ({ page }) => {
     test.setTimeout(5 * 60_000)
     const failures = await walkWizard(page, 'pilots', {

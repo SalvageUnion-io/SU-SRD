@@ -18,15 +18,16 @@ import { FORCE_ONLINE, launchBrowser } from 'gates/lib/chromium'
 import { portFor } from 'gates/ports'
 import { nameToSlug } from 'salvageunion-reference'
 import { seed } from '../../../tools/gallery'
-import { findChipStripFaults } from '../e2e/_chipStrips'
+import { findChipStrips } from '../e2e/_chipStrips'
 import { visitDesignViews } from '../e2e/_designRoutes'
 import type { DesignRoute } from '../e2e/_designTable'
 import { designRoutes, REFERENCE_CORPUS } from '../e2e/_designTable'
-import { findFrameFaults } from '../e2e/_entityFrames'
-import { findNestingFindings } from '../e2e/_nestingDepth'
-import { findRhythmFindings } from '../e2e/_pageRhythm'
-import { findSiblingMismatches, findTabSizeFaults } from '../e2e/_siblingHeights'
-import { findMiniCutoutFaults } from '../e2e/_tokenCutout'
+import { findFrames } from '../e2e/_entityFrames'
+import type { Finding } from '../e2e/_findings'
+import { findNesting } from '../e2e/_nestingDepth'
+import { findRhythm } from '../e2e/_pageRhythm'
+import { findSiblingHeights, findTabSizes } from '../e2e/_siblingHeights'
+import { findTokenCutouts } from '../e2e/_tokenCutout'
 
 /** Viewport shots per view at most, down the page. */
 const MAX_SHOTS = { page: 6, phone: 8 } as const
@@ -286,36 +287,34 @@ async function viewRules(
   where: string
 ): Promise<{ rule: string; line: string }[]> {
   const found: { rule: string; line: string }[] = []
-  const take = async (rule: string | ((line: string) => string), run: () => Promise<string[]>) => {
+  const take = async (rule: string | ((f: Finding) => string), run: () => Promise<Finding[]>) => {
     try {
-      for (const line of await run())
-        found.push({ rule: typeof rule === 'string' ? rule : rule(line), line })
+      for (const f of await run())
+        found.push({ rule: typeof rule === 'string' ? rule : rule(f), line: f.detail })
     } catch (e) {
       appendFileSync(join(out, 'errors.txt'), `${where}: detector failed: ${e}\n`)
     }
   }
   // R37's overflow and +MORE kinds are the canon now, not faults (C2b, C5).
   await take(
-    (l) => `R37 chips · ${l.split(':')[0]}`,
+    (f) => `R37 chips · ${f.rule}`,
     async () =>
-      (await findChipStripFaults(page)).filter((l) => !/^(more-contentful|overflow|align):/.test(l))
+      (await findChipStrips(page)).filter(
+        (f) => !['more-contentful', 'overflow', 'align'].includes(f.rule)
+      )
   )
-  await take('R38 frames', () => findFrameFaults(page))
+  await take('R38 frames', () => findFrames(page))
   await take(
-    (l) => `R39 nesting · ${l.split(' ')[0]}`,
-    async () => (await findNestingFindings(page)).map((f) => `${f.rule} ${f.chain}: ${f.detail}`)
+    (f) => `R39 nesting · ${f.rule}`,
+    () => findNesting(page)
   )
-  await take('§4.7 sibling heights', async () =>
-    (await findSiblingMismatches(page)).map(
-      (m) => `${m.line}: ${m.controls.map((c) => `${c.what} ${c.height}px`).join(', ')}`
-    )
-  )
-  await take('§4.7 tab size', () => findTabSizeFaults(page))
+  await take('§4.7 sibling heights', () => findSiblingHeights(page))
+  await take('§4.7 tab size', () => findTabSizes(page))
   await take(
-    (l) => `Page rhythm · ${l.split(':')[0]}`,
-    async () => (await findRhythmFindings(page)).map((f) => `${f.rule}: ${f.detail}`)
+    (f) => `Page rhythm · ${f.rule}`,
+    () => findRhythm(page)
   )
-  await take('Square cut-outs', () => findMiniCutoutFaults(page))
+  await take('Square cut-outs', () => findTokenCutouts(page))
   const hscroll = await page.evaluate(() => {
     const doc = document.scrollingElement ?? document.documentElement
     return doc.scrollWidth > innerWidth + 1 ? doc.scrollWidth - innerWidth : 0

@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test'
-import { findAbilityTreeFaults } from './_abilityTrees'
-import { walkDesignRoutes } from './_designRoutes'
+import { findAbilityTrees } from './_abilityTrees'
+import { expectCorpusClean } from './_designRoutes'
 import { corpusRoutes } from './_designTable'
+import { test } from './fixtures'
 
 /**
  * Ability trees keep their layout (`_abilityTrees.ts`) wherever they render:
@@ -12,23 +12,17 @@ import { corpusRoutes } from './_designTable'
  * at the page width, a laptop's and a phone's. Each page must draw a tree, so
  * the gate never passes by reading nothing. There is no allowlist.
  */
+test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 
-test('every ability tree is its own column, three across at most', async ({ page }) => {
+test('every ability tree is its own column, three across at most', { tag: '@pr' }, async ({
+  page,
+}) => {
   test.setTimeout(5 * 60_000)
-  const found = await walkDesignRoutes(
-    page,
-    async ({ where }) => {
-      await expect(page.locator('.su-ability-track').first(), `${where} draws a tree`).toBeVisible()
-      return (await findAbilityTreeFaults(page)).map((fault) => ({
-        rule: 'tree',
-        line: `${where}, ${fault}`,
-      }))
-    },
-    { routes: corpusRoutes('ability-trees'), widths: ['page', 1024, 'phone'] }
-  )
-  expect(
-    found.map((f) => f.line),
-    'ability trees off their columns'
-  ).toEqual([])
+  await expectCorpusClean(page, 'ability-trees', () => findAbilityTrees(page), {
+    routes: corpusRoutes('ability-trees'),
+    widths: ['page', 1024, 'phone'],
+    draws: '.su-ability-track',
+    message: 'ability trees off their columns',
+  })
 })

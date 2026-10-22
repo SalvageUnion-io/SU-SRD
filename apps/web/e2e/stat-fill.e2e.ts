@@ -1,7 +1,7 @@
-import { walkDesignRoutes } from './_designRoutes'
+import { expectCorpusClean } from './_designRoutes'
 import { corpusRoutes } from './_designTable'
-import { findStatFillFaults, measureStatColumns } from './_statFill'
-import { expect, test } from './fixtures'
+import { findStatFill } from './_statFill'
+import { test } from './fixtures'
 
 /**
  * Ruleset "The source" 3, a stat grid fills its width (`_statFill.ts`): every
@@ -21,20 +21,10 @@ test.describe.configure({ retries: 0 })
 
 test('every stat grid fills its width at every width', async ({ page }) => {
   test.setTimeout(5 * 60_000)
-  const found = await walkDesignRoutes(
-    page,
-    async ({ where }) => {
-      await expect(
-        page.locator('.su-stat-column').first(),
-        `${where} draws a stat column`
-      ).toBeVisible()
-      const columns = await measureStatColumns(page)
-      return findStatFillFaults(columns).map((f) => ({ rule: 'fill', line: `${where}: ${f}` }))
-    },
-    { routes: corpusRoutes('stat-column'), widths: ['phone', 700, 900, 1100, 'page'] }
-  )
-  expect(
-    found.map((f) => f.line),
-    'a stat grid short of its width'
-  ).toEqual([])
+  await expectCorpusClean(page, 'stat-fill', () => findStatFill(page), {
+    routes: corpusRoutes('stat-column'),
+    widths: ['phone', 700, 900, 1100, 'page'],
+    draws: '.su-stat-column',
+    message: 'a stat grid short of its width',
+  })
 })

@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * The frame-colour law (ruleset §4.3, EDL E21) as the
@@ -6,7 +8,7 @@ import type { Page } from '@playwright/test'
  * a choice option's `Box`, a Mini's pill and a contentful Mini's body, a
  * MiniGroup's) wears the subtle `--color-ink-40` the sheets' panels wear,
  * never solid ink or the entity's tone. Only `--su-compact-frame` colours one: an
- * ability tree's tier, a pattern's colour. `findFrameFaults` returns one
+ * ability tree's tier, a pattern's colour. `findFrames` returns one
  * `frame:` line per frame whose drawn edges are another colour, and each
  * fails; the static half is `chrome-tokens/entity-frame-ink`.
  */
@@ -57,6 +59,6 @@ function scanFrames({ frames, subtle }: { frames: string; subtle: string }): str
 }
 
 /** Every entity frame on the page that is not the subtle ink-40. */
-export function findFrameFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scanFrames, { frames: ENTITY_FRAMES, subtle: SUBTLE })
+export async function findFrames(page: Page): Promise<Finding[]> {
+  return fromFaults(await page.evaluate(scanFrames, { frames: ENTITY_FRAMES, subtle: SUBTLE }))
 }

@@ -1,13 +1,16 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import { visit } from 'gates/lib/appPage'
 import type { DesignWidth } from 'gates/lib/designViewports'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import type { Seed } from 'gates/lib/seedAccount'
 import { resolveSeedPath } from 'gates/lib/seedAccount'
 import { BASE } from './_base'
 import type { DesignDebt, DesignFamily, DesignFinding, DesignRoute } from './_designTable'
-import { againstBaseline, DESIGN_FAMILIES, designRoutes } from './_designTable'
-import { editSheet, waitForReady } from './_helpers'
+import { againstBaseline, corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
+import type { Finding, Placed } from './_findings'
+import { place } from './_findings'
+import { editSheet, openPeekFromSearch, waitForReady } from './_helpers'
 import { holdPending } from './_pendingRules'
 import { CANVAS, MID, PHONE } from './_play'
 
@@ -41,8 +44,8 @@ export type DesignView = {
   where: string
 }
 
-/** What a gate's scan reads off one view: a rule and a line for each finding. */
-export type DesignScan = (view: DesignView) => Promise<{ rule: string; line: string }[]>
+/** What a gate's scan reads off one view: its findings, placed on the view (`place`). */
+export type DesignScan = (view: DesignView) => Promise<Placed[]>
 
 /** Let the page come to rest: game data, the network, the fonts, any "Loading …", the chip fits. */
 async function settle(page: Page): Promise<void> {
@@ -66,24 +69,10 @@ async function edit(page: Page): Promise<void> {
   await settle(page)
 }
 
-/** Open a Peek from the Union bar's search, as `nesting-depth.e2e.ts`'s Peek pass does. */
-async function openPeek(page: Page, { schema, name }: { schema: string; name: string }) {
-  const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
-  await search.click()
-  await search.fill(name)
-  const trigger = page
-    .locator(`[role="option"][data-peek^="${schema}:"]`)
-    .filter({ hasText: name })
-    .first()
-  await expect(trigger, `a ${schema} Mini for ${name} to Peek`).toBeVisible()
-  await trigger.hover()
-  await expect(page.locator('[data-peek-popup] .su-entity-compact__head').first()).toBeVisible()
-}
-
 /** Open a route and put it in its state; resolves when the page is at rest. */
 async function open(page: Page, route: DesignRoute, path: string): Promise<void> {
   if (DESIGN_FAMILIES[route.family] === 'play') {
-    await page.goto(path)
+    await visit(page, path)
     await waitForReady(page)
     await expect(page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
   } else {
@@ -92,7 +81,7 @@ async function open(page: Page, route: DesignRoute, path: string): Promise<void>
   }
   await settle(page)
   if (route.edit === true) await edit(page)
-  if (route.peek) await openPeek(page, route.peek)
+  if (route.peek) await openPeekFromSearch(page, route.peek)
 }
 
 /** The viewport a route is held at: Play's `page` is its canvas at the design size. */
@@ -199,4 +188,43 @@ export function expectWithinBaseline(
       `${gate}, off its baseline`
     )
     .toEqual([])
+}
+
+/**
+ * A signed-out corpus gate (hard rule R0): walk `routes` (the whole reference
+ * corpus by default, `corpusRoutes`) and fail on every finding `find` makes on
+ * a view, bar a pending rule's (`holdPending`). There is no baseline. With
+ * `draws`, every view must show what it matches, so the gate never passes by
+ * reading nothing.
+ */
+export async function expectCorpusClean(
+  page: Page,
+  gate: string,
+  find: (view: DesignView) => Promise<Finding[]>,
+  {
+    routes = corpusRoutes(),
+    widths,
+    draws,
+    message,
+  }: {
+    routes?: readonly DesignRoute[]
+    widths?: readonly DesignWalkWidth[]
+    draws?: string
+    message: string
+  }
+): Promise<void> {
+  const found = await walkDesignRoutes(
+    page,
+    async (view) => {
+      if (draws) {
+        await expect(page.locator(draws).first(), `${view.where} draws ${draws}`).toBeVisible()
+      }
+      return place(view.where, await find(view))
+    },
+    { routes, widths }
+  )
+  expect(
+    holdPending(gate, found).map((f) => f.line),
+    message
+  ).toEqual([])
 }

@@ -1,7 +1,8 @@
-import { expect, test } from '@playwright/test'
-import { walkDesignRoutes } from './_designRoutes'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
+import { expectCorpusClean } from './_designRoutes'
 import { corpusRoutes } from './_designTable'
-import { searchWidthFaults } from './_searchWidth'
+import { findSearchWidths } from './_searchWidth'
+import { expect, test } from './fixtures'
 
 /**
  * A search field is full width on a phone (`_searchWidth.ts`), on the
@@ -14,32 +15,29 @@ import { searchWidthFaults } from './_searchWidth'
 /** Two phones, both under `sm`: R0's phone and a wide one. */
 const WIDTHS = ['phone', 600] as const
 
-test('every search field on a phone spans its line', async ({ page }) => {
+test.use({ account: 'anonymous' })
+
+test('every search field on a phone spans its line', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(3 * 60_000)
-  const failures: string[] = []
-  for (const width of WIDTHS) {
-    const found = await walkDesignRoutes(
-      page,
-      async ({ where }) => {
-        await expect(
-          page.locator('.su-search-field:visible').first(),
-          `${where} draws a search`
-        ).toBeVisible()
-        return (await searchWidthFaults(page)).map((fault) => ({
-          rule: 'width',
-          line: `${where}: ${fault}`,
-        }))
-      },
-      { routes: corpusRoutes('search'), widths: [width] }
-    )
-    failures.push(...found.map((f) => f.line))
-    // The header's search, opened from its magnifier, on the last page walked.
+  await expectCorpusClean(page, 'search-width', () => findSearchWidths(page), {
+    routes: corpusRoutes('search'),
+    widths: WIDTHS,
+    draws: '.su-search-field:visible',
+    message: 'search fields narrower than their line on a phone',
+  })
+})
+
+for (const viewport of [DESIGN_VIEWPORTS.phone, { width: 600, height: 900 }]) {
+  test(`the header's search spans its line at ${viewport.width}px`, { tag: '@pr' }, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport)
+    await page.goto(corpusRoutes('search')[0]?.path ?? '/chassis/', { waitUntil: 'networkidle' })
     await page
       .getByRole('button', { name: /search/i })
       .first()
       .click()
     await expect(page.getByRole('combobox').first()).toBeVisible()
-    for (const fault of await searchWidthFaults(page)) failures.push(`header at ${width}: ${fault}`)
-  }
-  expect(failures, 'search fields narrower than their line on a phone').toEqual([])
-})
+    expect(await findSearchWidths(page), 'the header search narrower than its line').toEqual([])
+  })
+}

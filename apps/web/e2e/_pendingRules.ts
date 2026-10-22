@@ -7,16 +7,12 @@ import { test } from '@playwright/test'
  * The work that makes the screens hold a rule deletes its entry here, in the
  * same change, and from then on its findings fail.
  *
- * Keyed by the finding's rule: the text before a fault's first `:`
- * (`_chipStrips.ts`), or a nesting finding's `rule`.
+ * Keyed by the finding's rule (`_findings.ts`).
  */
 const PENDING_RULES: Readonly<Record<string, string>> = {
   align: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
   'tab-size': "R41 (§4.7): a Button beside Tabs is the Tabs' Size",
 }
-
-/** The rule a `_chipStrips.ts`-style fault names: the text before its first `:`. */
-export const ruleOfFault = (fault: string): string => fault.slice(0, fault.indexOf(':'))
 
 /**
  * The findings that fail: every one whose rule is not pending. The pending

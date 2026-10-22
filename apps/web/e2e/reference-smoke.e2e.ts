@@ -1,4 +1,8 @@
-import { expect, test } from '@playwright/test'
+import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
+import { escapeRegExp, pageOverflow } from './_helpers'
+import { expect, test } from './fixtures'
+
+test.use({ account: 'anonymous' })
 
 /**
  * Smoke suite — proves the static build serves, islands hydrate, and the core
@@ -7,7 +11,10 @@ import { expect, test } from '@playwright/test'
  */
 
 // (a) Landing page loads and search returns results.
-test('landing page loads and search returns results', async ({ page, isMobile }) => {
+test('landing page loads and search returns results', { tag: '@pr' }, async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Salvage Union/i)
 
@@ -34,7 +41,7 @@ test('landing page loads and search returns results', async ({ page, isMobile })
 })
 
 // (b) A schema index page renders its entities.
-test('chassis schema index renders entities', async ({ page }) => {
+test('chassis schema index renders entities', { tag: '@pr' }, async ({ page }) => {
   await page.goto('/chassis/')
   await expect(page).toHaveTitle(/Chassis/i)
 
@@ -48,7 +55,7 @@ test('chassis schema index renders entities', async ({ page }) => {
 })
 
 // (c) An individual entity page renders.
-test('a chassis entity page renders its card', async ({ page }) => {
+test('a chassis entity page renders its card', { tag: '@pr' }, async ({ page }) => {
   await page.goto('/chassis/mule/')
   // Title is server-rendered, so this asserts the static page exists.
   await expect(page).toHaveTitle(/Mule/i)
@@ -63,7 +70,7 @@ test('a chassis entity page renders its card', async ({ page }) => {
 })
 
 // (d) The home page is the manual's Contents page.
-test('the home page indexes the book’s chapters', async ({ page }) => {
+test('the home page indexes the book’s chapters', { tag: '@pr' }, async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'The Salvage Union SRD' })).toBeVisible()
   for (const chapter of [
@@ -77,7 +84,7 @@ test('the home page indexes the book’s chapters', async ({ page }) => {
     await expect(
       page.getByRole('heading', {
         level: 2,
-        name: new RegExp(`^${chapter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+        name: new RegExp(`^${escapeRegExp(chapter)}`),
       })
     ).toBeVisible()
   }
@@ -88,7 +95,9 @@ test('the home page indexes the book’s chapters', async ({ page }) => {
 // stats lead the body, inline, clear of the title (the phone bug was a stat
 // strip over it), beside the art from `sm`, and nothing scrolls sideways.
 for (const width of [375, 1440]) {
-  test(`an entity page at ${width}px keeps its stats clear of its title`, async ({ page }) => {
+  test(`an entity page at ${width}px keeps its stats clear of its title`, { tag: '@pr' }, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/gopher/')
     const title = page.getByRole('heading', { level: 1, name: 'Gopher' })
@@ -101,10 +110,7 @@ for (const width of [375, 1440]) {
     if (titleBox && statsBox) {
       expect(statsBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height)
     }
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - window.innerWidth
-    )
-    expect(overflow).toBeLessThanOrEqual(0)
+    expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
     if (width === 1440) {
       // The line-art hero on the left, the stats on the right.
       const art = await page.locator('.su-entity-page__art').first().boundingBox()
@@ -116,7 +122,9 @@ for (const width of [375, 1440]) {
 
 // A listing tile names its entity: the name never loses a character to the cells.
 for (const width of [375, 1440]) {
-  test(`a chassis listing tile at ${width}px shows its name in full`, async ({ page }) => {
+  test(`a chassis listing tile at ${width}px shows its name in full`, { tag: '@pr' }, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/')
     const row = page.locator('a[aria-label="Scrapper"][href*="/chassis/"]')
@@ -135,7 +143,9 @@ for (const [schema, part] of [
   ['systems', '.su-listing__tiles a[aria-label] .su-entity-index__frame'],
   ['abilities', '.su-listing__cards a[aria-label] [data-fill]'],
 ] as const) {
-  test(`every ${schema} listing card at 375px keeps its parts inside it`, async ({ page }) => {
+  test(`every ${schema} listing card at 375px keeps its parts inside it`, { tag: '@pr' }, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 900 })
     await page.goto(`/${schema}/`)
     const headers = page.locator(part)
@@ -159,24 +169,13 @@ for (const [schema, part] of [
   })
 }
 
-// (f) A roll table rolls on its own page.
-test('a roll table page rolls and marks the result', async ({ page }) => {
-  await page.goto('/roll-tables/core-mechanic/')
-  // The ROLL THE DIE stamp is the roll: a button once the island mounts (the
-  // server markup's stamp is a plain label), and the page's only one.
-  const roll = page.getByRole('button', { name: 'Roll the die on Core Mechanic' })
-  await expect(roll).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('main').getByRole('button', { name: /^Roll/ })).toHaveCount(1)
-  await roll.click()
-  await expect(page.getByText(/^Rolled \d+$/)).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
-})
+// (f) A roll table rolling on its own page: `roll-instrument.e2e.ts`.
 
 // (g) Every listing is the Catalog at every width: one flat grid of CompactIndexes, no
 // group headings and no view toggle, each art box 3:4 before its image loads
 // (on a phone, at 40rem and below, a 2:1 band).
 for (const width of [1440, 390]) {
-  test(`the /chassis/ Catalog is one flat grid at ${width}px`, async ({ page }) => {
+  test(`the /chassis/ Catalog is one flat grid at ${width}px`, { tag: '@pr' }, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/')
     const tile = page.locator('.su-listing__tiles a.su-entity-index').first()
@@ -196,8 +195,10 @@ for (const width of [1440, 390]) {
 
 // (h) The abilities open on their Tree (each tree on its track), one column;
 // their Catalog is one flat grid of CompactIndexes, under no tree heading.
-test('the abilities open on their Tree and offer a flat Catalog', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 })
+test('the abilities open on their Tree and offer a flat Catalog', { tag: '@pr' }, async ({
+  page,
+}) => {
+  await page.setViewportSize(DESIGN_VIEWPORTS.page)
   await page.goto('/abilities/')
   const tree = page.getByRole('button', { name: 'Tree' })
   await expect(tree).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 })

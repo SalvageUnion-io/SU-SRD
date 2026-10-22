@@ -41,7 +41,7 @@ test.use({ account: 'anonymous' })
 
 test.describe.configure({ retries: 0 })
 
-test('no accessibility violations', async ({ browser, baseURL }, testInfo) => {
+test('no accessibility violations', { tag: '@pr' }, async ({ browser, baseURL }, testInfo) => {
   test.setTimeout(10 * 60_000)
   const scan = await scanPages({
     browser,

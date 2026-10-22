@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { seedDice } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -25,7 +26,7 @@ const PAGES = [
 test.use({ account: 'anonymous' })
 
 for (const path of PAGES) {
-  test(`${path} shows its table's bands without a click`, async ({ page }) => {
+  test(`${path} shows its table's bands without a click`, { tag: '@pr' }, async ({ page }) => {
     await page.goto(path)
     const instrument = page.locator('main .su-roll').first()
     await expect(instrument).toBeVisible({ timeout: 30_000 })
@@ -67,24 +68,23 @@ async function markStyle(page: Page) {
   })
 }
 
-/** Every `Math.random()` draw returns `draw`, so every d20 is `floor(draw * 20) + 1`. */
-async function seed(page: Page, die: number) {
-  await page.evaluate((d) => {
-    Math.random = () => (d - 1) / 20 + 0.001
-  }, die)
-}
-
-test('two outcomes mark their rows with identical computed styles (§3.4)', async ({ page }) => {
+test('two outcomes mark their rows with identical computed styles (§3.4)', { tag: '@pr' }, async ({
+  page,
+}) => {
   await page.goto('/roll-tables/core-mechanic/')
   const roll = page.getByRole('button', { name: 'Roll the die on Core Mechanic' })
   await expect(roll).toBeVisible({ timeout: 30_000 })
+  // The ROLL THE DIE stamp is the roll: a button once the island mounts (the
+  // server markup's stamp is a plain label), and the page's only one.
+  await expect(page.locator('main').getByRole('button', { name: /^Roll/ })).toHaveCount(1)
 
-  await seed(page, 14)
+  await seedDice(page, 14)
   await roll.click()
   await expect(page.locator('main .su-roll__tag')).toHaveText('Rolled 14')
+  await expect(page.getByRole('link', { name: 'Randsum.dev' })).toBeVisible()
   const success = await markStyle(page)
 
-  await seed(page, 1)
+  await seedDice(page, 1)
   await roll.click()
   await expect(page.locator('main .su-roll__tag')).toHaveText('Rolled 1')
   const cascade = await markStyle(page)

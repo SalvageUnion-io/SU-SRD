@@ -1,9 +1,11 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * Ability trees as the rendered page draws them (`AbilityTrack`): on a class
  * page, the abilities index's Tree view and the pilot sheet.
- * `findAbilityTreeFaults` returns one line per fault:
+ * `findAbilityTrees` returns one `tree` finding per fault:
  *
  * - **across** more than `MAX_ACROSS` trees start on one line of one layout.
  * - **column** a tree's tiers stand further apart than its track's gap (and
@@ -100,11 +102,12 @@ export function scanAbilityTrees({
   return faults
 }
 
-/** Every ability tree's layout fault on the page. */
-export function findAbilityTreeFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scanAbilityTrees, {
+/** Every ability tree's layout fault on the page, each a `tree` finding. */
+export async function findAbilityTrees(page: Page): Promise<Finding[]> {
+  const faults = await page.evaluate(scanAbilityTrees, {
     a: ABILITY_TREE_SELECTORS,
     maxAcross: MAX_ACROSS,
     slack: SLACK,
   })
+  return fromFaults(faults, 'tree')
 }

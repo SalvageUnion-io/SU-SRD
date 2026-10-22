@@ -110,7 +110,7 @@ function report(label: string, totals: JsTotals, ceiling: number): void {
   test.info().annotations.push({ type: 'bundle-budget', description: line })
 }
 
-test.describe('bundle-size budget', () => {
+test.describe('bundle-size budget', { tag: '@pr' }, () => {
   test('roster stays under budget and route components are split out', async ({ page }) => {
     const CEILING = 2_440_000
     const totals = await captureRouteJs(page, '/')

@@ -1,11 +1,13 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * The cut-out head on a CONTENTFUL Mini (N3), as the rendered page draws it.
  * Every Mini, Compact and index Compact sets its name on a tab of the paper notched into
  * its band's foot; a contentful Mini's tab opens into its body's paper, as a
  * Compact's opens into its body, so no rule runs between head and body.
- * `findMiniCutoutFaults` returns one line per fault:
+ * `findTokenCutouts` returns one finding per fault:
  *
  * - **tab** the name is not on the cut-out (`.su-entity-mini__notch`).
  * - **paper** the tab is not the paper.
@@ -91,6 +93,10 @@ export function scanMiniCutouts({
 }
 
 /** Every contentful Mini's cut-out fault on the page. */
-export function findMiniCutoutFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scanMiniCutouts, { a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
+export async function findTokenCutouts(page: Page): Promise<Finding[]> {
+  const faults = await page.evaluate(scanMiniCutouts, {
+    a: TOKEN_CUTOUT_SELECTORS,
+    minStrip: MIN_STRIP,
+  })
+  return fromFaults(faults, 'cutout')
 }
