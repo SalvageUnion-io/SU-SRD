@@ -32,15 +32,15 @@ export type OgCardStat = { label: string; value?: string }
 
 type OgCardBase = {
   /**
-   * The kind, "Chassis", "Pilot · Engineer": printed on the card's foot line
-   * before its cite or byline, as a Page's foot names its kind (EDL E9), never
-   * above the title (E20).
+   * The kind, "Chassis", "Pilot · Engineer": the `og:description`'s lead, and
+   * printed on the foot line before a built thing's byline (never on a
+   * reference entity's foot, E9), never above the title (E20).
    */
   kicker: string
   /** The notched title: the thing's name. */
   title: string
   /**
-   * The address the foot prints. The Cantina prints host and path; the SRD prints the
+   * The address the foot prints. The app prints host and path; the SRD prints the
    * bare path (`/chassis/scrapper`), since its wordmark already names the host
    * (see `ogReferenceAddressFits`).
    */
@@ -56,7 +56,7 @@ export type OgCardProps =
       stats: OgCardStat[]
       /** The cost as the book's pointy box prints it, last: "2 EP". */
       cost?: string
-      /** The page cite: "Workshop Manual · p.104". */
+      /** The page cite, every printing on one line: "Workshop Manual · p.104 // … · p.12". */
       cite?: string
     })
   | (OgCardBase & {
@@ -88,7 +88,7 @@ export type OgCardProps =
       madeBy: string
       /**
        * Whether the notch prints the name in curly quotes. A pattern is quoted
-       * ("TOW RIG", board PV1); an NPC is a person and reads bare. Default true.
+       * ("TOW RIG"); an NPC is a person and reads bare. Default true.
        */
       quoted?: boolean
     })
@@ -104,7 +104,7 @@ export type OgCardProps =
 
 export type OgCardKind = OgCardProps['kind']
 
-/** The kinds the SRD renders; every other kind is the Cantina's. */
+/** The kinds the SRD renders; every other kind is the app's. */
 export const REFERENCE_KINDS: ReadonlySet<OgCardKind> = new Set(['thing', 'do'])
 
 /**
@@ -134,13 +134,18 @@ export function ogCardThemeColor(props: OgCardProps): string {
   return (color as Record<string, string>)[key] ?? band
 }
 
+/** The cards that preview a reference entity's page: their foot is its foot band. */
+const ENTITY_FOOT: ReadonlySet<OgCardProps['kind']> = new Set(['thing', 'do'])
+
 /**
- * The card's foot, set as an entity page's footer is: the kind on the left in
- * caps, and on the right the cite, the byline or "Made by [user]".
+ * The card's foot, set as an entity page's footer is: on the right the cite,
+ * the byline or "Made by [user]", and the kind in caps on the left but on a
+ * reference entity's card, whose foot, like its page's, names no kind (ruleset
+ * Source 2, E9).
  */
 export function footOf(props: OgCardProps): { kind?: string; byline?: string } {
   const byline = bylineOf(props)
-  const kind = props.kind === 'private' ? undefined : props.kicker
+  const kind = props.kind === 'private' || ENTITY_FOOT.has(props.kind) ? undefined : props.kicker
   return { ...(kind ? { kind } : {}), ...(byline ? { byline } : {}) }
 }
 
@@ -171,8 +176,8 @@ export function ogCardTitle(props: OgCardProps): string {
 }
 
 /**
- * The `og:description`: the kicker and the byline, never the body (issue
- * 1280). An invite's summary is its byline: it is what the invite says.
+ * The `og:description`: the kicker and the byline, never the body. An
+ * invite's summary is its byline: it is what the invite says.
  */
 export function ogCardDescription(props: OgCardProps): string {
   if (props.kind === 'private') return PRIVATE_LINE
@@ -234,7 +239,7 @@ const BAND_HEADROOM = 24
  * A chip's width in px, measured in the real face at the preview's 36px
  * plate: about 21px a character, plus the two cells' padding for a
  * `label | value` chip or one cell's for a bare label. The cost's pointy box
- * is 44px and carries its point; the User-made stamp is 36px and dashed.
+ * is 44px and carries its point; the HOMEBREW stamp is 36px and dashed.
  */
 function chipWidth(chip: OgCardChip): number {
   return Math.ceil(CHIP_SLACK * chipAdvance(chip))
@@ -361,7 +366,7 @@ const STACK_GAIN = 0.75
 /**
  * The reference foot's room for the address, in px: the card less its gutters,
  * the mark, the `PRODUCT.wordmark` and the gap, measured in the real
- * face. The Cantina's shorter wordmark leaves it more.
+ * face. The app's area names are shorter and leave it more.
  */
 const REFERENCE_ADDRESS_ROOM = 672
 /** The foot's address size: the 34px source floor. */

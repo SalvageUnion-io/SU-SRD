@@ -13,13 +13,16 @@ export type UnionSlot = (typeof UNION_SLOTS)[number]
 export const slotSelector = (slot: UnionSlot): string => `[data-union-slot="${slot}"]`
 
 /**
- * Set on `<html>` while the page draws no Union bar: the Dashboard, which draws
- * its own (ADR-045 §6), and a link preview's render surface (`/og/*`). The
- * Worker sets it on the shell it serves for those paths, so the bar never
- * flashes there; the app sets it as it routes.
+ * Set on `<html>` while the page draws no Union bar: a Play screen, which
+ * draws its own (the Play bar, ADR-045 §6), and a link preview's render
+ * surface (`/og/*`). The Play landing (`/play/`) and a
+ * Game's page (`/play/games/*`, the Manage context, ADR-052 §7) keep the bar:
+ * its Play tab is how you got there. The Worker sets it on the shell it
+ * serves for those paths, so the bar never flashes there; the app sets it as
+ * it routes.
  */
 export const BAR_HIDDEN_ATTRIBUTE = 'data-union-bar-hidden'
 
 /** Whether a route (a path inside the app) draws no Union bar. */
 export const hidesUnionBar = (path: string): boolean =>
-  path.startsWith('/dashboard/') || path.startsWith('/og/')
+  (/^\/play\/[^/]/.test(path) && !path.startsWith('/play/games/')) || path.startsWith('/og/')

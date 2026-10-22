@@ -10,7 +10,7 @@
  *
  * Why a build step and not a review habit: like the design-token drift, none of
  * these violations fail typecheck. A stray app `@theme` block compiles. Dead CSS
- * compiles. A Dashboard `su-dash-*` class referenced but never defined renders
+ * compiles. A canvas `su-play-*` class referenced but never defined renders
  * unstyled — no error, just a wrong-looking element.
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
@@ -24,6 +24,7 @@ import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { scanEntityMarkupIn, stripCssComments, stripTsComments } from './entityMarkup'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
@@ -36,14 +37,14 @@ const LIB_CSS = new Set(
 )
 const notLib = (rel: string) =>
   !LIB_CSS.has(rel) && !rel.startsWith('apps/web/src/styles/partials/')
-const DASHBOARD_DIR = 'apps/web/src/styles/cantina/dashboard'
+const PLAY_STYLES_DIR = 'apps/web/src/styles/play'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
   root: string
   appCss: string[]
   appSource: string[]
-  /** su-dash-* usage is checked repo-wide (the app, the library and the tests). */
+  /** su-play-* usage is checked repo-wide (the app, the library and the tests). */
   allTs: string[]
   read: (rel: string) => string
 }
@@ -84,22 +85,7 @@ function appOf(relPath: string): string | null {
 const EXEMPTIONS: Exemption[] = []
 
 // ── shared CSS helpers ───────────────────────────────────────────────────────
-
-/** Strip /* … *\/ comments so regexes never match commented-out CSS. */
-function stripCssComments(css: string): string {
-  return css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-}
-
-/**
- * Strip both block and line comments from TS/TSX so class-name extraction never
- * mistakes PROSE for a live reference: documentation of a removed class must
- * not read as a usage.
- * Line comments are only stripped when `//` follows whitespace or line-start, so
- * `https://…` and `'a//b'` string contents are left intact.
- */
-function stripTsComments(src: string): string {
-  return stripCssComments(src).replace(/(^|\s)\/\/[^\n]*/g, '$1')
-}
+// The comment strippers live in `entityMarkup.ts`, with the R7 rule.
 
 /**
  * Walk a CSS file line-by-line tracking brace depth and, per open block, whether
@@ -233,24 +219,17 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// The Dashboard's `.su-dash-*` classes (The Cantina's own stylesheets).
-
-const DASHBOARD_CSS_FILES = [
-  'DashboardCanvas.css',
-  'DashboardGrid.css',
-  'instruments.css',
-  'DashboardPhone.css',
-].map((f) => `${DASHBOARD_DIR}/${f}`)
+// Play's `.su-play-*` classes (its own stylesheets, `styles/play/**`).
 
 function scanDashContract(c: Corpus): Finding[] {
   const out: Finding[] = []
 
-  // DEFINED: `.su-dash-*` class selectors in the dashboard CSS files (exact).
+  // DEFINED: `.su-play-*` class selectors in Play's stylesheets (exact).
   const defined = new Map<string, { file: string; line: number }>()
-  for (const relPath of DASHBOARD_CSS_FILES) {
+  for (const relPath of listFiles(c.root, [PLAY_STYLES_DIR], ['.css'])) {
     const css = stripCssComments(c.read(relPath))
     css.split('\n').forEach((line, i) => {
-      for (const m of line.matchAll(/\.(su-dash-[a-z0-9-]+)/g)) {
+      for (const m of line.matchAll(/\.(su-play-[a-z0-9-]+)/g)) {
         const name = m[1]
         if (name !== undefined && !defined.has(name))
           defined.set(name, { file: relPath, line: i + 1 })
@@ -258,16 +237,16 @@ function scanDashContract(c: Corpus): Finding[] {
     })
   }
 
-  // USED: exact `su-dash-*` tokens appearing in any .tsx/.ts (incl. tests)
+  // USED: exact `su-play-*` tokens appearing in any .tsx/.ts (incl. tests)
   // repo-wide. Exact-token extraction (not prefix matching) is
-  // load-bearing: `su-dash-display` and `su-dash-display-light` are DIFFERENT
+  // load-bearing: `su-play-step` and `su-play-step-num` are DIFFERENT
   // classes, and a prefix match would let one usage falsely "cover" the other.
   //
   // Two precision guards keep this to genuine className references:
   //  - block comments are stripped, so a JSDoc line documenting a REMOVED class
   //    is not mistaken for a live usage.
-  //  - a `su-dash-*` string sitting in a NON-class attribute
-  //    (`name="su-dash-deck-currency"`
+  //  - a `su-play-*` string sitting in a NON-class attribute
+  //    (`name="su-play-deck-currency"`
   //    is a radio-group name, not a class) is skipped — it is not part of the
   //    class contract and must not gate it.
   const used = new Map<string, { file: string; line: number }>()
@@ -275,7 +254,7 @@ function scanDashContract(c: Corpus): Finding[] {
     stripTsComments(c.read(relPath))
       .split('\n')
       .forEach((line, i) => {
-        for (const m of line.matchAll(/\bsu-dash-[a-z0-9-]+/g)) {
+        for (const m of line.matchAll(/\bsu-play-[a-z0-9-]+/g)) {
           const before = line.slice(0, m.index)
           // Skip non-class attribute values (form name/id/htmlFor/key).
           if (/\b(?:name|id|htmlFor|key)\s*=\s*["'`{]$/.test(before)) continue
@@ -290,17 +269,17 @@ function scanDashContract(c: Corpus): Finding[] {
       out.push({
         file: where.file,
         line: where.line,
-        detail: `dashboard class '${name}' used but not defined in styles/dashboard/*.css`,
+        detail: `Play class '${name}' used but not defined in styles/play/**/*.css`,
       })
     }
   }
-  // (b) defined-but-unused — dead dashboard CSS.
+  // (b) defined-but-unused — dead Play CSS.
   for (const [name, where] of defined) {
     if (!used.has(name)) {
       out.push({
         file: where.file,
         line: where.line,
-        detail: `dashboard class '.${name}' defined but never referenced`,
+        detail: `Play class '.${name}' defined but never referenced`,
       })
     }
   }
@@ -315,7 +294,7 @@ const STYLESHEET_ENTRY = 'apps/web/src/styles/entry.css'
 /** The consumer (the base stylesheet, `apps/web/src/styles/baseStylesheet.ts`), then the apps' own, which must not import it again. */
 const ENTRY_CONSUMERS = [
   'apps/web/src/styles/base.css',
-  'apps/web/src/styles/cantina.css',
+  'apps/web/src/styles/app.css',
   'apps/web/src/styles/global.css',
 ] as const
 
@@ -547,8 +526,8 @@ const RULES: OwnershipRule[] = [
   {
     id: 'dash-class-contract',
     mode: 'zero',
-    rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/cantina/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
+    rule: 'source-of-truth §the Play class contract is closed and bidirectional',
+    fix: 'used-but-undefined: define the `su-play-*` class in apps/web/src/styles/play/**/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-play-step and su-play-step-num are different classes.',
     scan: scanDashContract,
   },
   {
@@ -571,6 +550,13 @@ const RULES: OwnershipRule[] = [
     rule: '.claude/rules/styling.md §the written form: a style object is `const NAME = { … } satisfies CSSProperties`',
     fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME: CSSProperties = { … }`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class.',
     scan: scanStyleObjectAnnotation,
+  },
+  {
+    id: 'entity-markup',
+    mode: 'zero',
+    rule: 'hard-rules R7 §Entity markup lives only in entity/: components/entity/ draws it and entity-forms.css styles it (EDL E15)',
+    fix: "Draw the entity through its form (`Compact`, `CompactFrame`, `CompactBody`, `Entity`) and say what the host needs with the form's props (`Box`'s `reference`, `fill` or `shrink`, `Compact`'s `dim`); a rule about a form's own parts goes in `styles/partials/entity-forms.css`, and a cascade handback names a part by `[data-handback]`. Never select or draw a `su-entity-compact__*` / `su-entity-mini__*` element anywhere else in apps/web/src.",
+    scan: (c) => scanEntityMarkupIn(c.root, c.appSource, c.read),
   },
 ]
 
@@ -605,7 +591,7 @@ function preflight(root: string): void {
     'apps/discord-bot':
       'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
-    'packages/cantina-domain':
+    'packages/game-domain':
       'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/gates': 'the gates themselves; no components and no stylesheet.',

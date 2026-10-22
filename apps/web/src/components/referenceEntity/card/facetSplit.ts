@@ -1,8 +1,8 @@
 import type { FacetCell, RefEnumSchemaName } from 'salvageunion-reference'
 import { glossaryRef } from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
-import { actionTypeStamps } from '../../entity/parts/actionStamps'
-import type { TagItem } from '../../entity/parts/tagItems'
+import type { TagItem } from '../../entity'
+import { actionTypeStamps } from '../../entity'
 
 /**
  * One facet of the card — an action's type, range or damage, a trait, a
@@ -53,7 +53,6 @@ export function splitFacets(cells: readonly CardFacetCell[]): SplitFacets {
         key: cell.key,
         name: cell.label,
         ...(value !== undefined ? { param: value } : {}),
-        ...(mention ? { schemaName: mention.schemaName } : {}),
         ...(ref ? { ref } : {}),
         ...(modified ? { modified: true } : {}),
       })

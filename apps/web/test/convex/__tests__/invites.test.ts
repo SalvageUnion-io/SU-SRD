@@ -3,7 +3,7 @@ import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { refreshGameSummary } from '../../../convex/model/entities'
 import type { Ctx } from '../fixtures'
-import { makeUser } from '../fixtures'
+import { makeUser, seedRawPilot } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -16,17 +16,6 @@ async function seedGame(t: Ctx) {
   const organizer = await makeUser(t, 'Organizer')
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   return { organizer, gameId }
-}
-
-async function seedPilot(t: Ctx, gameId: Id<'games'>, ownerId: Id<'users'> | null) {
-  return await t.run(async (ctx) =>
-    ctx.db.insert('pilots', {
-      gameId,
-      ownerId,
-      body: { callsign: 'Roach-Boy' },
-      updatedAt: Date.now(),
-    })
-  )
 }
 
 /** An invite row as an older door minted it, straight into the table. */
@@ -244,8 +233,8 @@ describe('games.get and the row summary', () => {
   test('summarize carries the crawler name and the entity counts', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedGame(t)
-    await seedPilot(t, gameId, null)
-    await seedPilot(t, gameId, null)
+    await seedRawPilot(t, gameId, null)
+    await seedRawPilot(t, gameId, null)
     await t.run(async (ctx) => {
       await ctx.db.insert('mechs', {
         gameId,
@@ -325,7 +314,7 @@ describe('dropRetired', () => {
       })
     })
 
-    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1, channelBindings: 1 }
+    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1 }
     expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
     expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
 
@@ -334,8 +323,10 @@ describe('dropRetired', () => {
       invites: 0,
       joinRequests: 0,
       inviteRedemptions: 0,
-      channelBindings: 0,
     })
+    // A channel binding is live again (`/su bind`): the repair leaves it alone.
+    const bindings = await t.run(async (ctx) => ctx.db.query('channelBindings').collect())
+    expect(bindings.map((row) => row.channelId)).toEqual(['chan-1'])
     const legacy = await t.run(async (ctx) =>
       ctx.db
         .query('invites')
@@ -350,5 +341,22 @@ describe('dropRetired', () => {
       kind: 'joined',
       gameId,
     })
+  })
+
+  test('an approval-only standing link is revoked, never made the invite URL', async () => {
+    const t = testConvex()
+    const { organizer, gameId } = await seedGame(t)
+    await seedLegacyInvite(t, gameId, organizer.userId, 'OPENSTANDING0000', { standing: true })
+    await seedLegacyInvite(t, gameId, organizer.userId, 'APPROVALLINK0000', {
+      standing: true,
+      requiresApproval: true,
+    })
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('OPENSTANDING0000')
+
+    await t.mutation(internal.invites.dropRetired, { apply: true })
+
+    expect(await organizer.as.mutation(api.invites.link, { gameId })).toBe('OPENSTANDING0000')
+    const someone = await makeUser(t, 'Someone')
+    expect(await someone.as.query(api.invites.preview, { code: 'APPROVALLINK0000' })).toBeNull()
   })
 })

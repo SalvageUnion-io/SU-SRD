@@ -154,7 +154,7 @@ describe('XML shape', () => {
     )
   })
 
-  it("writes sitemap-index.xml pointing at every urlset chunk, then The Cantina's", async () => {
+  it("writes sitemap-index.xml pointing at every urlset chunk, then the app's", async () => {
     const { index } = await emit(['/about'])
 
     expect(index).toBe(

@@ -1,5 +1,5 @@
 /**
- * The Convex client every Cantina unit test gets in place of a real one.
+ * The Convex client every app unit test gets in place of a real one.
  *
  * `src/lib/connection/convexClient.ts` constructs a `ConvexReactClient` at
  * import, and a unit test has no deployment to reach: a real client would

@@ -15,6 +15,7 @@
 
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { gamesCommand, meCommand } from './account'
+import { bindCommand, unbindCommand } from './bind'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 import { lookupCommand } from './lookup'
 import { rollCommand } from './roll'
@@ -26,13 +27,16 @@ export const suCommand = {
     .setDescription('Salvage Union reference tools')
     .addSubcommand((sub) => rollCommand.subcommand(sub))
     .addSubcommand((sub) => lookupCommand.subcommand(sub))
-    // The Cantina (ADR-030). Always registered, never conditional
+    // The app (ADR-030). Always registered, never conditional
     // on configuration: a command that vanishes depending on how the bot was
-    // deployed is harder to explain than one that answers that Cantina
+    // deployed is harder to explain than one that answers that app
     // is unavailable or not configured for this bot.
     .addSubcommand((sub) => meCommand.subcommand(sub))
     .addSubcommand((sub) => gamesCommand.subcommand(sub))
-    .addSubcommand((sub) => sheetCommand.subcommand(sub)),
+    .addSubcommand((sub) => sheetCommand.subcommand(sub))
+    // Which channel Play's rolls post to: a Game's, or one person's solo play.
+    .addSubcommand((sub) => bindCommand.subcommand(sub))
+    .addSubcommand((sub) => unbindCommand.subcommand(sub)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     switch (interaction.options.getSubcommand()) {
@@ -46,6 +50,10 @@ export const suCommand = {
         return gamesCommand.execute(interaction)
       case 'sheet':
         return sheetCommand.execute(interaction)
+      case 'bind':
+        return bindCommand.execute(interaction)
+      case 'unbind':
+        return unbindCommand.execute(interaction)
       default:
         // Unreachable while the builder above and this switch agree; loud
         // beats silent if they ever drift.
@@ -61,6 +69,8 @@ export const suCommand = {
         return lookupCommand.autocomplete(interaction)
       case 'sheet':
         return sheetCommand.autocomplete(interaction)
+      case 'bind':
+        return bindCommand.autocomplete(interaction)
       default:
         await interaction.respond([])
     }

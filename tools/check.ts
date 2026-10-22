@@ -140,7 +140,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'doc-drift',
     guards:
       'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; each Area carries a slug anchor and is cited by it, never by number; doc size budgets and session loads; no code comment narrates history',
-    fix: 'fix the path, script or link; mark a deliberately historical path beside it ("`x.ts` (since deleted)"); state the current design instead of a retired claim; keep entry N of ## Decisions as ADR-N, and link a docs/adr/NNN-slug.md full text (no front-matter; the status lives in the entry) from its headline; add the amending ADR to the amended one\'s entry; cite an Area as ARCHITECTURE.md#<its anchor>, and end a new Area\'s headline with <a id="slug"></a>; cut an entry to two lines or a doc to its size budget; rewrite a history comment as what is true now (packages/gates/lib/commentHistory.ts lists the phrases)',
+    fix: 'each failure prints its own fix; `bun tools/check-doc-drift.ts --only=<id>` reruns one check (ids and fixes: tools/docDriftChecks.ts)',
     cmd: ['bun', 'tools/check-doc-drift.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -175,7 +175,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'client-contract',
     guards:
-      'a Convex argument change that refuses calls an open Cantina tab still makes raises the build floor',
+      'a Convex argument change that refuses calls an open app tab still makes raises the build floor',
     fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
     areas: ['code'],
@@ -184,8 +184,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in apps/web/src/components/',
-    fix: 'move shared logic to cantina-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
+      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
+    fix: 'move shared logic to game-domain or salvageunion-reference; move a rule to a lib/rules home, or name a view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -220,13 +220,9 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'styling',
     guards:
-      'design tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5)',
+      'every rule set but copy: design and chrome tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5), chrome laws (R19, R28), select mode (R15), control laws (R23, R29)',
     fix: "follow the rule's printed fix; `bun tools/check-rule-sets.ts --only=<set> --report` lists every finding",
-    cmd: [
-      'bun',
-      'tools/check-rule-sets.ts',
-      '--only=tokens,styling,srd-css,tone-ground,class-prefix,entity-nesting',
-    ],
+    cmd: ['bun', 'tools/check-rule-sets.ts', '--group=styling'],
     profiles: ALL,
   },
   {
@@ -234,7 +230,7 @@ export const CHECKS: readonly CheckSpec[] = [
     guards:
       'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
     fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-rule-sets.ts --only=copy --update-baseline` (tools/baselines/rule-sets.json)',
-    cmd: ['bun', 'tools/check-rule-sets.ts', '--only=copy'],
+    cmd: ['bun', 'tools/check-rule-sets.ts', '--group=copy'],
     areas: ['code'],
     profiles: ALL,
   },

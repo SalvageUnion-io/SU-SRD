@@ -9,7 +9,7 @@ import type { testConvex } from './harness'
  * mutations the client store calls, so every row carries the `appId` the links
  * address it by (ADR-037).
  *
- * The bodies are the Cantina's entity fixtures (`src/components/__tests__/fixtures.ts`,
+ * The bodies are the app's entity fixtures (`src/components/__tests__/fixtures.ts`,
  * stamped with its `FIXTURE_NOW`) with the ids and names these suites assert
  * on, so a suite never keeps its own copy of a sheet that drifts from the
  * schema while the shared one is held to it.
@@ -38,14 +38,43 @@ export async function makeUser(t: Ctx, name: string, discordId?: string) {
   return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
-/** A Game run by `organizer` (table runner while it has no Mediator), joined by `player`. */
-export async function seedTable(t: Ctx) {
-  const organizer = await makeUser(t, 'Organizer')
-  const player = await makeUser(t, 'Player')
+/**
+ * A Game run by `organizer` (table runner while it has no Mediator), joined by
+ * `player`. `discord` links both to Discord (`d-org`, `d-player`).
+ */
+export async function seedTable(t: Ctx, { discord = false }: { discord?: boolean } = {}) {
+  const organizer = await makeUser(t, 'Organizer', discord ? 'd-org' : undefined)
+  const player = await makeUser(t, 'Player', discord ? 'd-player' : undefined)
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
   return { organizer, player, gameId }
+}
+
+/**
+ * A bare pilot row inserted straight into the table, around every mutation:
+ * for a suite about rows (ownership, deletion, membership) rather than the
+ * write path, which `addPilot` takes.
+ */
+export async function seedRawPilot(
+  t: Ctx,
+  gameId: Id<'games'> | null,
+  ownerId: Id<'users'> | null
+) {
+  return await t.run(
+    async (ctx) =>
+      await ctx.db.insert('pilots', {
+        gameId,
+        ownerId,
+        body: { callsign: 'Roach-Boy' },
+        updatedAt: Date.now(),
+      })
+  )
+}
+
+/** Every `seats` row. */
+export async function seatRows(t: Ctx) {
+  return await t.run(async (ctx) => await ctx.db.query('seats').collect())
 }
 
 /** Any field, including ones a stored body carries that the schema type omits (`gameId`). */

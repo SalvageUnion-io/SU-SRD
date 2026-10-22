@@ -3,8 +3,8 @@ import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import type { SchemaList } from '../../lib/useGameData'
 import { EntityCardStatic } from '../EntityCardStatic'
 import { GameDataGate } from '../GameDataGate'
-import type { PageRefIndex } from '../index'
-import { Toaster } from '../index'
+import type { NameRefIndex, PageRefIndex } from '../index'
+import { ToasterMount } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
@@ -17,6 +17,8 @@ type ReferenceEntityIslandProps = {
   preloadSchemas?: SchemaList
   /** The pages its text cites, built at build time, to link "p. N". */
   pageRefs?: PageRefIndex
+  /** The names its prose uses, built at build time, to link them. */
+  nameRefs?: NameRefIndex
 }
 
 /**
@@ -39,6 +41,7 @@ export function ReferenceEntityIsland({
   pattern,
   preloadSchemas,
   pageRefs,
+  nameRefs,
 }: ReferenceEntityIslandProps) {
   // The static SEO/no-JS fallback (`StaticEntityContent`) stays on screen,
   // for JS readers too, until the card can draw: the gate and the Suspense
@@ -50,9 +53,10 @@ export function ReferenceEntityIsland({
       <GameDataGate schemas={preloadSchemas} fallback={null}>
         <Suspense fallback={null}>
           <DropStaticFallback />
-          <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
-          {/* Where a roll on the card's tables lands (`toastRoll`). */}
-          <Toaster />
+          <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={nameRefs} />
+          {/* Where a roll on the card's tables lands (`toastRoll`): the
+              page's one toaster. */}
+          <ToasterMount />
         </Suspense>
       </GameDataGate>
     </IslandErrorBoundary>

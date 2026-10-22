@@ -12,9 +12,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { CROSS_CONTAINER_REFUSAL } from 'cantina-domain/links/linkRules'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import { ConvexError } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL } from 'game-domain/links/linkRules'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
 import { useEntityStore } from '../entityStore'

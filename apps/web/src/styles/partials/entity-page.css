@@ -5,50 +5,48 @@
 
 /* ══ The stat column (`components/atoms/StatColumn.tsx`) ═══════════════════
  *
- * The book's framed numeral beside its ink stamp. Two cells to a row on a
- * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
- * The cells fill the rows from the top down in the stat order, every row
- * full but the last, whose cells centre under the others (owner's call,
- * 2026-10-17). A grid cannot centre a short last row, so the column is a
- * wrapping flex line whose cells take the width a grid column would: its
- * container's width (`cqi`) shared among `--su-stat-cols` cells.
- * `row-reverse` draws the numeral first while the source reads label, value.
- * The stamp is sized to its label, not to the cell: the rest of the cell is
- * paper, so a column of stats reads as numerals with tags (the book's weight)
- * rather than as solid ink bars that outweigh the title and the art. It may
- * still shrink and wrap when the cell is narrower than the label.
+ * The book's framed numeral beside its ink stamp, two cells to a row at every
+ * width, in pairs: each part of the stat order pairs off its own cells, so a
+ * mech reads Structure | Energy, System | Module Slots, Heat | Cargo, and a
+ * cell without a partner (`--lone`) spans its row. Every row fills the
+ * column's width: there is never an empty cell or a ragged edge (ruleset,
+ * "The source" 3).
+ * Each cell is a `Stat` (ruleset §3.7: the column is a layout of Stats), its
+ * plates set at the book's scale here: the label 14px (§1.3, R17), the
+ * numeral in the title face, the 1px frame the Stat cell's own (§7.1).
+ * Every Stat fills its cell, its stamp taking what the numeral leaves, so the
+ * column reads as even blocks edge to edge, never stamps sized to their
+ * labels with paper gaps between them. A stamp may still wrap when the cell
+ * is narrower than its label.
  */
 .su-stat-column {
-  --su-stat-cols: 2;
-  --su-stat-gap: var(--space-8);
-  container-type: inline-size;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6) var(--su-stat-gap);
-  justify-content: center;
+  display: grid;
+  gap: var(--space-6) var(--space-8);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
 }
 
 .su-stat-column__cell {
   display: flex;
-  flex: 0 0 calc((100cqi - (var(--su-stat-cols) - 1) * var(--su-stat-gap)) / var(--su-stat-cols));
   min-height: 40px;
   min-width: 0;
 }
 
-/* In a page's body column (`CardPage`'s `__stats`), a last row of ONE cell
-   takes the whole row rather than centring alone (owner's call,
-   2026-10-18); a longer last row centres. Each column count is a step
-   (`--su-stat-cols`), so each names its own lone last cell. A band's cells
-   are chips (`.su-entity-stamps`): none of them grows. */
-.su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-  flex-grow: 1;
+.su-stat-column__cell--lone {
+  grid-column: 1 / -1;
 }
 
-.su-stat-column__value {
+/* Two classes: `.su-stat-cell` (atoms.css) comes later and sizes a Stat to its content. */
+.su-stat-column .su-stat-column__stat {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  width: auto;
+}
+
+.su-stat-column__stat > .su-stat-plate--value {
   align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
   color: var(--color-ink);
   display: flex;
   flex: none;
@@ -61,168 +59,77 @@
   width: 42px;
 }
 
-.su-stat-column__label {
+.su-stat-column__stat > .su-stat-plate--label {
   align-items: center;
   background-color: var(--color-ink);
   color: var(--color-paper);
   display: flex;
-  flex: 0 1 auto;
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
+  flex: 1 1 auto;
+  font-size: var(--text-sm);
   line-height: 1.1;
   min-width: 0;
   padding: 0 var(--space-8);
-  text-transform: uppercase;
 }
 
-/* From `sm`, as many 200px cells a row as fit, as `auto-fill` would: n
-   cells and their n - 1 gaps of 14px fit from n × 214px - 14px. */
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-stat-column {
-    --su-stat-cols: 1;
-    --su-stat-gap: var(--space-14);
+    column-gap: var(--space-14);
   }
 
-  .su-stat-column__value {
+  .su-stat-column__stat > .su-stat-plate--value {
     width: 52px;
   }
 
-  .su-stat-column__label {
-    font-size: var(--text-sm);
+  .su-stat-column__stat > .su-stat-plate--label {
     padding: 0 var(--space-12);
   }
 }
 
-@container (min-width: 414px) {
-  @media (min-width: 40rem) {
-    .su-stat-column__cell {
-      --su-stat-cols: 2;
-    }
-  }
-}
-
-@container (min-width: 628px) {
-  @media (min-width: 40rem) {
-    .su-stat-column__cell {
-      --su-stat-cols: 3;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(3n + 1) {
-      flex-grow: 1;
-    }
-  }
-}
-
-@container (min-width: 842px) {
-  @media (min-width: 40rem) {
-    .su-stat-column__cell {
-      --su-stat-cols: 4;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(4n + 1) {
-      flex-grow: 1;
-    }
-  }
-}
-
-@container (min-width: 1056px) {
-  @media (min-width: 40rem) {
-    .su-stat-column__cell {
-      --su-stat-cols: 5;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(5n + 1) {
-      flex-grow: 1;
-    }
-  }
-}
-
-@container (min-width: 1270px) {
-  @media (min-width: 40rem) {
-    .su-stat-column__cell {
-      --su-stat-cols: 6;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(6n + 1) {
-      flex-grow: 1;
-    }
-  }
-}
-
-/* The compact column (`StatColumn compact`): the band's smaller cells, two a
-   line at every width, for a narrow column beside other content (the Cantina mech
+/* The compact column (`StatColumn compact`): the band's smaller cells, paired
+   as the column's, for a narrow column beside other content (the app mech
    sheet's hero, beside the player's fields). */
 .su-stat-column.su-stat-column--compact {
-  container-type: normal;
-  display: grid;
   gap: var(--space-4) var(--space-6);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .su-stat-column--compact .su-stat-column__cell {
-  flex: none;
-  min-height: 32px;
+  min-height: 32px; /* design-tokens-ignore: a read-out, not a control; `--size-compact` lifts to 44px on touch */
 }
 
-.su-stat-column--compact .su-stat-column__value {
+.su-stat-column--compact .su-stat-column__stat > .su-stat-plate--value {
   font-size: var(--text-readout);
   width: 36px;
 }
 
-.su-stat-column--compact .su-stat-column__label {
+.su-stat-column--compact .su-stat-column__stat > .su-stat-plate--label {
   flex: 1 1 auto;
   font-size: var(--text-badge);
   padding: 0 var(--space-8);
 }
 
-/* A chassis page's stats (and its patterns', `CardPage`'s `__stats`): one
-   width, every stamp filling its cell, so the column reads as even blocks
-   rather than stamps sized to their labels (owner's call, 2026-10-17). */
-.su-entity-page__stats .su-stat-column__label {
-  flex: 1 1 auto;
-}
-
-/* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
+/* The stats on a band (`ChapterBand asideAt="notch"`, the reference site's `EntityPageStamps`)
    are the column's compact cells, the value at its label's type size (C1a:
-   one size per strip, owner's call 2026-10-18), chips of the band's line
+   one size per strip), chips of the band's line
    (`.su-entity-stamps > dl`), the same gap apart. */
 .su-chapter-band[data-aside='notch'] .su-stat-column__cell {
   min-height: var(--size-compact);
 }
 
-.su-chapter-band[data-aside='notch'] .su-stat-column__value {
+.su-chapter-band[data-aside='notch'] .su-stat-column__stat > .su-stat-plate--value {
   font-size: var(--text-badge);
   min-width: 28px;
   padding-inline: var(--space-6);
   width: auto;
 }
 
-.su-chapter-band[data-aside='notch'] .su-stat-column__label {
+.su-chapter-band[data-aside='notch'] .su-stat-column__stat > .su-stat-plate--label {
   font-size: var(--text-badge);
   padding: 0 var(--space-8);
 }
 
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
  *
- * Boards 07 and 08. The card hands its title to the page's chapter band and
+ * The card hands its title to the page's chapter band and
  * its footer to the foot band, and lays its body out as a page: the line art
  * as the hero on the left, and on the right the prose, the stat column and,
  * beneath the stats, the chassis ability. Everything the entity carries after that (its table,
@@ -234,16 +141,18 @@
  * column is `display: contents` on a phone, so its children join the page's
  * flex column; from `lg` it runs beside (and flows around) the art.
  */
+/* One rhythm (ruleset §1.7, hard rule R17): every level-1 block on the page,
+   and the Slab that heads one, sits one 12px gap from the next. */
 .su-entity-page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-24);
+  gap: var(--space-12);
 }
 
 .su-entity-page__main {
   display: flex;
   flex-direction: column;
-  gap: var(--space-20);
+  gap: var(--space-12);
 }
 
 .su-entity-page__side {
@@ -264,18 +173,24 @@
   display: flex;
   flex-direction: column;
   font-size: var(--text-lg);
-  gap: var(--space-8);
+  gap: var(--space-12);
   line-height: 1.6;
 }
 
-/* The flavour line is set one step under the prose (boards 07, 08). */
+/* The prose's blocks (a run of prose, a crawler bay's Bay Info) take the
+   column's gap, not a card body's margin. */
+.su-entity-page__prose > .su-ec-block:not(:last-child) {
+  margin-bottom: 0;
+}
+
+/* The flavour line is set one step under the prose. */
 .su-entity-page__prose [data-prose='flavor'] {
   font-size: var(--text-base);
   font-weight: var(--font-weight-semibold);
 }
 
 /* A phone reads at 17px (SrdMobile). */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-entity-page__opening,
   .su-entity-page__prose {
     font-size: 17px;
@@ -285,10 +200,11 @@
 .su-entity-page__lead {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: var(--space-12);
 }
 
-.su-entity-page__section {
+/* A Page section (a `SlabSection`, 12px under its Slab): its cards 12px apart. */
+.su-entity-page__section-body {
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
@@ -313,19 +229,23 @@
 .su-entity-page__main:not(.su-entity-page__main--art)
   .su-entity-page__prose
   > :not(.su-entity-page__tags),
-.su-entity-page:not(.su-entity-page--flow)
+.su-entity-page:not(.su-entity-page--art)
   > :not(.su-entity-page__main, .su-entity-page__wide, .su-guide) {
   max-width: 52rem;
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
+  /* The taller column sets the row. The art keeps the top left corner
+     whatever stands beside it (R44); a column shorter than its
+     art spreads its blocks evenly down it (Combat Pilot). */
   .su-entity-page__main--art {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: row;
-    gap: var(--space-40);
+    gap: var(--space-32);
   }
 
   .su-entity-page__main--art > .su-entity-page__art {
+    align-self: flex-start;
     flex: 1 1 0;
     min-width: 0;
   }
@@ -334,69 +254,80 @@
     display: flex;
     flex: 1 1 0;
     flex-direction: column;
-    gap: var(--space-24);
+    gap: var(--space-12);
+    justify-content: space-evenly;
     min-width: 0;
   }
 }
 
 /*
- * WITH ART, the page FLOWS around it (`--flow`, from 64rem): the art floats
- * left and everything after it — the prose column, then the actions and the
- * nested trays — runs down beside it, taking the full width once it passes
- * the art's foot, so a short page (an NPC, a creature) leaves no column of
- * empty paper beside the image. Each card and tray is its own formatting
- * context, so one that starts beside the art narrows as a whole instead of
- * running under it. Wide blocks — the roll table, a class's ability tree,
- * the pattern rows, `after` — start below the art (`clear`), never squeezed.
+ * WITH ART (`--art`, from 64rem) the page is two columns: the art (42%) and
+ * beside it the prose, stats, actions and nested trays (`CardPage`). The
+ * taller column sets the row and the shorter balances in it: the art centres
+ * beside a taller column (Stormterror), a column
+ * shorter than its art spreads its blocks evenly down it (Combat Pilot).
+ * Wide blocks (the roll table, a class's ability trees, the pattern rows,
+ * `after`) run under both.
  */
-@media (min-width: 64rem) {
-  .su-entity-page--flow {
+@media (width >= 64rem) {
+  .su-entity-page--art > .su-entity-page__main--art > .su-entity-page__art {
+    flex: 0 0 42%;
+  }
+
+  /* A page with actions beside its art (`--wrap`) floats the art in the top
+     left and lets the column wrap under it (R44): the column's wrappers turn
+     to block flow, so each
+     card (a flex box, which never overlaps a float) sits beside the art while
+     it lasts and runs the full width under it. */
+  .su-entity-page__main--wrap {
     display: flow-root;
   }
 
-  .su-entity-page--flow > * + * {
-    margin-top: var(--space-24);
-  }
-
-  .su-entity-page--flow > .su-entity-page__main--art {
-    display: block;
-  }
-
-  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__art {
+  .su-entity-page--art > .su-entity-page__main--wrap > .su-entity-page__art {
     float: left;
-    margin: 0 var(--space-32) var(--space-16) 0;
+    margin: 0 var(--space-32) var(--space-12) 0;
     width: 42%;
   }
 
-  /* The prose column is no column here: a flex box beside the float would
-     keep the whole of it narrow down the page. As blocks, the opening, stats
-     and chassis abilities each narrow only while the art is beside them. */
-  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side {
+  .su-entity-page__main--wrap
+    :is(
+      .su-entity-page__side,
+      .su-entity-page__opening,
+      .su-entity-page__prose,
+      .su-entity-page__lead,
+      .su-entity-page__section,
+      .su-entity-page__section-body
+    ) {
     display: block;
   }
 
-  .su-entity-page--flow > .su-entity-page__main--art > .su-entity-page__side > * + * {
-    margin-top: var(--space-24);
-  }
-
-  .su-entity-page--flow .su-entity-page__section {
-    display: block;
-  }
-
-  .su-entity-page--flow .su-entity-page__section > * + * {
+  .su-entity-page__main--wrap
+    :is(
+      .su-entity-page__side,
+      .su-entity-page__opening,
+      .su-entity-page__prose,
+      .su-entity-page__lead,
+      .su-entity-page__section,
+      .su-entity-page__section-body
+    )
+    > *
+    + * {
     margin-top: var(--space-12);
-  }
-
-  .su-entity-page--flow .su-entity-page__section > :not(:first-child) {
-    display: flow-root;
-  }
-
-  .su-entity-page--flow > .su-entity-page__table,
-  .su-entity-page--flow > .su-entity-page__wide {
-    clear: left;
   }
 }
 
 .su-entity-page__wide:empty {
   display: none;
+}
+
+/* An ability's Preceding and Next, siblings on one row, Next's label at the
+   row's end; one under the other where they do not fit. */
+.su-entity-page__neighbour-row {
+  display: grid;
+  gap: var(--space-12) var(--space-32);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.su-entity-page__section--end > .su-slab-section__head {
+  flex-direction: row-reverse;
 }

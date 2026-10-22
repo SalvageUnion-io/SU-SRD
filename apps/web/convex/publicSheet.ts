@@ -1,25 +1,27 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import type { EntityKind } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
+import type { EntityKind } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
+import { oldestByAddress, patternByAddress } from './model/addresses'
 import {
   linksTouching,
   mayReadPattern,
   mutation,
   oldestByAppId,
   parseBody,
-  patternByAppId,
   patternVisibility,
   patternVisibilityOf,
   resolveLinkEnd,
   sameContainerRows,
 } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { inviteByCode, isCurrent } from './model/invites'
+import { patternEmbedJson } from './model/patternEmbed'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 import { entityRef, entityRefType, softLinkType } from './schema'
 
@@ -105,6 +107,8 @@ type PublicWithheld = Infer<typeof publicWithheld>
 /** One published sheet, as `get` serves it. */
 const publicSheet = v.object({
   kind: kindValidator,
+  /** Its full app id: the address may carry only a short one (`shareAddress`). */
+  appId: v.string(),
   body: v.any(),
   /** A mech's pilot's abilities, for its maxima (`pilotAbilitiesForMech`). */
   pilotAbilities: v.optional(v.array(v.string())),
@@ -128,13 +132,16 @@ export const get = query({
   args: { kind: kindValidator, appId: v.string() },
   returns: v.union(publicSheet, v.null()),
   handler: async (ctx, args): Promise<Infer<typeof publicSheet> | null> => {
-    const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)
+    // `appId` is the address segment: a short address or a full app id.
+    const row = await oldestByAddress(ctx, TABLE_OF_KIND[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
     if (row === null || row.publicRead !== true) return null
+    const appId = row.appId ?? args.appId
 
     return {
       kind: args.kind,
+      appId,
       body: row.body,
       ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
       ...(args.kind === 'npc'
@@ -142,7 +149,7 @@ export const get = query({
             madeBy: displayNameOf(row.ownerId ? await ctx.db.get(row.ownerId) : null, 'a player'),
           }
         : {}),
-      ...(await assignmentsOf(ctx, row, args.appId)),
+      ...(await assignmentsOf(ctx, row, appId)),
     }
   },
 })
@@ -191,10 +198,10 @@ async function assignmentsOf(
   return { links, linked: [...linked.values()], withheld: [...withheld.values()] }
 }
 
-/** A body's display name, or its kind when it carries none. */
+/** A body's display name (`entityNameOf`), or its kind when it carries none. */
 function nameOf(body: unknown, kind: Kind): string {
-  const name = (body as { name?: unknown } | null)?.name
-  if (typeof name === 'string' && name.length > 0) return name
+  const name = entityNameOf(kind, body)
+  if (name !== null) return name
   return kind === 'pilot'
     ? 'Pilot'
     : kind === 'mech'
@@ -263,16 +270,12 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   // module rests on. An unclaimed pilot in the same Game has no owner to ask
   // and is already visible to the table, so it stays allowed.
   //
-  // Both ends are read through an `in` guard because `oldestByAppId` returns the row
-  // union — `crawlers` has no `ownerId` column at all — and narrowing it by the
-  // table argument is not something Convex's index typing survives.
-  //
   // A pilot published in its own right is the third case: its abilities are on
   // its own public page already, so passing them on discloses nothing — and
   // withholding them would read the mech lower than the pilot's public rail
   // shows it, now that the reader's sheet draws both.
-  const mechOwnerId = 'ownerId' in mech ? mech.ownerId : null
-  const pilotOwnerId = 'ownerId' in pilot ? pilot.ownerId : null
+  const mechOwnerId = mech.ownerId
+  const pilotOwnerId = pilot.ownerId
   const sameOwner = pilotOwnerId !== null && pilotOwnerId === mechOwnerId
   const unclaimedInSameGame =
     pilotOwnerId === null && mech.gameId !== null && pilot.gameId === mech.gameId
@@ -357,7 +360,7 @@ export const setPublic = mutation({
     await assertMayPublish(ctx, table, row, userId, args.isPublic)
 
     // Parse before publishing, exactly as every other mutation parses before
-    // persisting (ADR-030): the Zod schemas in `cantina-domain/schemas/` are the
+    // persisting (ADR-030): the Zod schemas in `game-domain/schemas/` are the
     // source of truth and Convex stores bodies opaquely. A body that cannot be
     // parsed would hand the public route something it will refuse to
     // render, so this fails HERE — where the owner is standing and
@@ -382,6 +385,8 @@ export const setPublic = mutation({
 
 /** One readable pattern, as its page draws it. */
 const patternAnswer = v.object({
+  /** Its full app id: the address may carry only a short one (`shareAddress`). */
+  appId: v.string(),
   body: v.any(),
   /** The maker's display name: the page's only credit (ruleset §3.9). */
   madeBy: v.string(),
@@ -408,7 +413,8 @@ export const pattern = query({
   args: { appId: v.string() },
   returns: v.union(patternAnswer, v.null()),
   handler: async (ctx, args): Promise<PatternAnswer | null> => {
-    const row = await patternByAppId(ctx, args.appId)
+    // `appId` is the address segment: a short address or a full app id.
+    const row = await patternByAddress(ctx, args.appId)
     if (row === null) return null
     const userId = await getAuthUserId(ctx)
     if (!(await mayReadPattern(ctx, row, userId))) return null
@@ -416,6 +422,7 @@ export const pattern = query({
     const maker = await ctx.db.get(row.ownerId)
     const mine = row.ownerId === userId
     return {
+      appId: row.appId,
       body: row.body,
       madeBy: displayNameOf(maker, 'a player'),
       sharedAt: row.sharedAt ?? null,
@@ -446,6 +453,12 @@ const previewAnswer = v.object({
    * cell reads as empty), as `assignmentsOf` withholds it from the page.
    */
   mechChassisRef: v.optional(v.union(v.string(), v.null())),
+  /**
+   * A pattern's Discord Component Embed JSON (`model/patternEmbed.ts`), when
+   * the caller names the app's address (`appUrl`): the card its page unfurls
+   * as in Discord, as a book pattern's page carries its own.
+   */
+  componentEmbed: v.optional(v.string()),
 })
 type PreviewAnswer = Infer<typeof previewAnswer>
 
@@ -466,22 +479,36 @@ type PreviewAnswer = Infer<typeof previewAnswer>
  * as a missing one.
  */
 export const preview = query({
-  args: { kind: previewKindValidator, appId: v.string() },
+  args: {
+    kind: previewKindValidator,
+    appId: v.string(),
+    /**
+     * The app's address as the unfurl bot reached it (`https://salvageunion.io/build`):
+     * a pattern's answer then carries its Discord card, its links on that origin.
+     */
+    appUrl: v.optional(v.string()),
+  },
   returns: v.union(previewAnswer, v.null()),
   handler: async (ctx, args): Promise<PreviewAnswer | null> => {
     if (args.kind === 'pattern') {
-      const row = await patternByAppId(ctx, args.appId)
+      const row = await patternByAddress(ctx, args.appId)
       if (row === null || row.publicRead !== true) return null
+      const ownerName = displayNameOf(await ctx.db.get(row.ownerId), 'a player')
+      const componentEmbed =
+        args.appUrl === undefined
+          ? null
+          : patternEmbedJson(row.body, ownerName, args.appUrl, row.appId)
       return {
         kind: 'pattern',
         body: row.body,
-        ownerName: displayNameOf(await ctx.db.get(row.ownerId), 'a player'),
+        ownerName,
         gameName: null,
+        ...(componentEmbed ? { componentEmbed } : {}),
       }
     }
-    const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)
+    const row = await oldestByAddress(ctx, TABLE_OF_KIND[args.kind], args.appId)
     if (row === null || row.publicRead !== true) return null
-    const ownerId = 'ownerId' in row ? row.ownerId : null
+    const ownerId = row.ownerId
     const game = row.gameId !== null ? await ctx.db.get(row.gameId) : null
     return {
       kind: args.kind,
@@ -489,7 +516,7 @@ export const preview = query({
       ownerName: ownerId ? displayNameOf(await ctx.db.get(ownerId), null) : null,
       gameName: game?.name ?? null,
       ...(args.kind === 'pilot'
-        ? { mechChassisRef: await publishedMechOf(ctx, row, args.appId) }
+        ? { mechChassisRef: await publishedMechOf(ctx, row, row.appId ?? args.appId) }
         : {}),
     }
   },

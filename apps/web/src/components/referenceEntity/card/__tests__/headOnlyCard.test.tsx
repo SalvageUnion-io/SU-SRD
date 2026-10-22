@@ -3,6 +3,8 @@
  * name and chips (a creature's Stinger) draws no paper strip under its cut-out:
  * the lead gap (`CardLead`) opens only when nested content follows the head,
  * so a card with no nested groups must not count an empty fragment as some.
+ * What its head cannot hold opens a body: its overflow
+ * row, hidden while every chip fits.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -23,7 +25,9 @@ describe('a head-only card', () => {
     )
     const frame = title?.closest('.su-ec-frame')
     expect(frame).toBeTruthy()
-    expect(frame?.children).toHaveLength(1)
+    const [, ...under] = [...(frame?.children ?? [])]
+    expect(under.map((el) => el.hasAttribute('data-chip-overflow'))).toEqual([true])
+    expect((under[0] as HTMLElement).hidden).toBe(true)
     expect(frame?.querySelector('[aria-hidden="true"][style*="height"]')).toBeNull()
   })
 })

@@ -63,7 +63,7 @@ describe('rendered pages', () => {
   it('draws a rules-text trait as a Mention linked to its page, with its Peek', () => {
     const html = renderRoute('/roll-tables/mechapult')
     expect(renderedBody(html)).toMatch(
-      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
+      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link su-focus-ring" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
     )
     expect(findRawMarkup(html)).toBeUndefined()
   })
@@ -74,10 +74,16 @@ describe('rendered pages', () => {
     [
       'a hybrid class, its trees and their owners',
       '/classes/fabricator',
-      'su-entity-row__title" title="Hybrid"><span>Hybrid<',
+      // The Compact title's attributes are its classes' and the hand-back's to
+      // change; the hybrid's own title is what this pins.
+      'title="Hybrid"><span>Hybrid</span>',
     ],
     ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
-    ['a static fallback with a Traits line', '/abilities/auto-turret', 'su-static__label">Traits:'],
+    [
+      'a static fallback with a Traits line',
+      '/abilities/auto-turret',
+      'su-static__label su-caps su-caps--w-bold su-caps--t-snug">Traits:',
+    ],
   ])('renders %s without raw markup', (_label, route, marker) => {
     const html = renderRoute(route)
     expect(renderedBody(html)).toContain(marker)

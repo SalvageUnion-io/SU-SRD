@@ -6,7 +6,7 @@
  * entities) with the d20 outcomes silently missing.
  */
 import { describe, expect, test } from 'bun:test'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
@@ -15,9 +15,6 @@ import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The stamp is the roll: "Roll the die on <table>". */
 const ROLL_BUTTON = /^Roll the die on /
-
-/** On a Page every table starts hidden: open it to read its rows (a card's Peeks them). */
-const openTable = () => fireEvent.click(screen.getByRole('button', { name: /^Show the .* table$/ }))
 
 const find = <T extends { name?: string }>(items: readonly T[], name: string): T => {
   const match = items.find((item) => item.name === name)
@@ -30,8 +27,8 @@ describe('roll tables reach the card by reference, not just inline', () => {
     const ability = find(SalvageUnionReference.Abilities.all(), 'System and Software Hacker')
     render(<ReferenceEntityCard data={ability} presentation="page" />)
 
-    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
-    openTable()
+    // Its Next ability, nested on the page, rolls a table of its own.
+    expect(screen.getAllByLabelText(ROLL_BUTTON).length).toBeGreaterThan(0)
     expect(screen.getByText('The System or Module is destroyed.')).toBeTruthy()
   })
 
@@ -40,15 +37,14 @@ describe('roll tables reach the card by reference, not just inline', () => {
     render(<ReferenceEntityCard data={system} presentation="page" />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
-    openTable()
     expect(screen.getByText(/The Mechapult explodes and is destroyed\./)).toBeTruthy()
   })
 
-  test("in a card the table is a roll Token whose name Peeks the table's rows", () => {
+  test("in a card the table is a roll Mini whose name Peeks the table's rows", () => {
     const system = find(SalvageUnionReference.Systems.all(), 'Mechapult')
     const { container } = render(<ReferenceEntityCard data={system} />)
 
-    // No Table toggle: the Roll is the Token's one control, its rows its Peek's.
+    // No Table toggle: the Roll is the Mini's one control, its rows its Peek's.
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Show the .* table$/ })).toBeNull()
     const trigger = container.querySelector('.su-roll-token [data-peek]')
@@ -77,23 +73,22 @@ describe('roll tables reach the card by reference, not just inline', () => {
     render(<ReferenceEntityCard data={rollTable} presentation="page" />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
-    openTable()
     expect(screen.getByText('An Intact Mech Chassis is available for trade.')).toBeTruthy()
   })
 
-  test('a NON-self action keeps its table under its own Token — printed once', () => {
+  test('a NON-self action keeps its table under its own Mini — printed once', () => {
     // "Trade Caravan" hosts "Improved Trading Bay", which names a table. In a
-    // card the action is a contentful Token (N3) with its folded table on the
+    // card the action is a contentful Mini (N3) with its folded table on the
     // line under it, so pulling the table up to the host as well would print
     // the same table twice.
     const crawler = find(SalvageUnionReference.Crawlers.all(), 'Trade Caravan')
     const { container } = render(<ReferenceEntityCard data={crawler} />)
 
     expect(screen.getAllByLabelText(ROLL_BUTTON)).toHaveLength(1)
-    // Beside the Token, never inside it: a Token nests nothing (E6).
-    expect(container.querySelector('.su-entity-token[data-contentful] .su-roll-token')).toBeNull()
+    // Beside the Mini, never inside it: a Mini nests nothing (E6).
+    expect(container.querySelector('.su-entity-mini[data-contentful] .su-roll-token')).toBeNull()
     expect(
-      container.querySelector('.su-entity-token[data-contentful] + .su-roll-token')
+      container.querySelector('.su-entity-mini[data-contentful] + .su-roll-token')
     ).not.toBeNull()
   })
 
@@ -106,7 +101,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
     expect(abilities.length).toBeGreaterThan(0)
 
     // On its Page: a granting ability's table rides the granted entity, a
-    // level-1 card there and a Token inside any other card (N1).
+    // level-1 card there and a Mini inside any other card (N1).
     for (const ability of abilities) {
       render(<ReferenceEntityCard data={ability} presentation="page" />)
       expect(screen.getAllByLabelText(ROLL_BUTTON).length).toBeGreaterThan(0)

@@ -9,7 +9,11 @@
 
 import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
-import type { CardTitleTag, ReferenceCardEntity } from './referenceEntityCardTypes'
+import type {
+  CardTitleTag,
+  ReferenceCardEntity,
+  ReferenceEntityCardHideConfig,
+} from './referenceEntityCardTypes'
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
@@ -19,7 +23,7 @@ export const MAX_DEPTH = 3
  * What a card's own `[(CHASSIS)]` tokens read: a chassis's name, or a vehicle's
  * (the E-Boat's item reuses the Kraken's chassis text); nothing otherwise.
  */
-export function chassisTokenName(schemaName: string, name: string): string | undefined {
+export function chassisMiniName(schemaName: string, name: string): string | undefined {
   return schemaName === 'chassis' || schemaName === 'vehicles' ? name : undefined
 }
 
@@ -127,4 +131,34 @@ export function choiceRendersNothing(
 /** A content block's plain text, or '' for anything that is not plain prose. */
 export function blockPlainText(b: RefObjectContentBlock): string {
   return b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
+}
+
+/**
+ * What a card hides. TERMINAL (ruleset §1, R33): inside a tooltip popup
+ * nothing acts, so the roll-table controls go too (the link and the nested
+ * Minis are handled where they render).
+ */
+export function resolveHide(
+  hideProp: ReferenceEntityCardHideConfig | undefined,
+  insidePeek: boolean
+): ReferenceEntityCardHideConfig | undefined {
+  return insidePeek ? { ...hideProp, rollTable: true } : hideProp
+}
+
+/** Where a card stands, for whether its name links (`namesOwnPage`). */
+type CardPlace = {
+  onPage: boolean
+  depth: number
+  insidePeek: boolean
+  /** The card is itself a control (a click, a select, a pick's role). */
+  interactive: boolean
+}
+
+/**
+ * Whether a card names its own Page (`CardTitleLink`): one met inside another,
+ * nested (depth > 0) or the Peek's own card, and not itself a control.
+ */
+export function namesOwnPage({ onPage, depth, insidePeek, interactive }: CardPlace) {
+  if (onPage || interactive) return false
+  return insidePeek ? depth === 0 : depth > 0
 }

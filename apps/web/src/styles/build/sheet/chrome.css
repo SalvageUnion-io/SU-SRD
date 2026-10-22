@@ -1,0 +1,170 @@
+/* The chrome sheet group's rules: only what a style object cannot express. */
+
+/* SheetColumns (`SheetColumns.tsx`, every kind): the opening, the permanent
+   right sidebar of what the unit carries, and the main column. On a phone one
+   column, the sidebar straight under the opening; from the 64rem rung (K2) the
+   opening keeps the sheet's width and the sidebar is a column beside the main
+   column under it, never folded. Each region is its own inline-size
+   container, so what is inside it queries its own width. */
+.su-sheet-columns {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-areas: 'hero' 'aside' 'main';
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-sheet-columns__hero,
+.su-sheet-columns__main,
+.su-sheet-aside {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.su-sheet-columns__hero {
+  grid-area: hero;
+}
+
+.su-sheet-columns__main,
+.su-sheet-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-sheet-columns__main {
+  grid-area: main;
+}
+
+.su-sheet-columns__main:empty {
+  display: none;
+}
+
+.su-sheet-aside {
+  grid-area: aside;
+}
+
+@media (width >= 64rem) {
+  .su-sheet-columns:has(> .su-sheet-aside):has(> .su-sheet-columns__main:not(:empty)) {
+    align-items: start;
+    grid-template-areas: 'hero hero' 'main aside';
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+}
+
+/* ShareStatusDialog + ShareSettings (components/sharing). */
+.su-sheet-share-body {
+  padding: var(--space-16);
+}
+
+@media (width >= 40rem) {
+  .su-sheet-share-body {
+    padding: var(--space-20);
+  }
+}
+
+/* LinkQr: the tile is a Box at the code's 84px, under the Compact's 12rem floor. */
+.su-sheet-qr-tile {
+  min-width: 0;
+}
+
+/* LinkQr: the encoder's SVG fills the tile. */
+.su-sheet-qr > svg {
+  height: 100%;
+  width: 100%;
+}
+
+/* ChangeLogDrawer. */
+.su-sheet-changelog-body {
+  padding: var(--space-16);
+}
+
+@media (width >= 40rem) {
+  .su-sheet-changelog-body {
+    padding: var(--space-20);
+  }
+}
+
+/* PublicSheet's read-only banner: the sheet's side gutter from `sm`. */
+.su-sheet-public-banner {
+  padding-inline: var(--space-16);
+}
+
+@media (width >= 40rem) {
+  .su-sheet-public-banner {
+    padding-inline: var(--space-32);
+  }
+}
+
+/* SheetSkeleton: the live sheet's gutters, the slab rhythm and the slab grid. */
+.su-sheet-skeleton-bar {
+  padding-inline: var(--space-16);
+}
+
+.su-sheet-skeleton-hero {
+  padding-inline: var(--space-16);
+  padding-top: var(--space-16);
+}
+
+.su-sheet-skeleton-frame {
+  padding: var(--space-20);
+}
+
+.su-sheet-skeleton-title {
+  width: 50%;
+}
+
+.su-sheet-skeleton-body {
+  padding: var(--space-16) var(--space-16) var(--space-32);
+}
+
+.su-sheet-skeleton-slab {
+  margin-top: var(--space-28);
+}
+
+.su-sheet-skeleton-slab:first-child {
+  margin-top: 0;
+}
+
+.su-sheet-skeleton-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (width >= 40rem) {
+  .su-sheet-skeleton-bar {
+    padding-inline: var(--space-32);
+  }
+
+  .su-sheet-skeleton-hero {
+    padding-inline: var(--space-32);
+    padding-top: var(--space-24);
+  }
+
+  .su-sheet-skeleton-frame {
+    padding: var(--space-24);
+  }
+
+  .su-sheet-skeleton-title {
+    width: 40%;
+  }
+
+  .su-sheet-skeleton-body {
+    padding: var(--space-24) var(--space-32) var(--space-64);
+  }
+
+  .su-sheet-skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A sheet band's stamps share one height (ruleset §4.7): the HOMEBREW stamp,
+   a plate with no height of its own, stands as tall as the Compact chips
+   beside it, its word on their centre line, never stretched to the band's
+   line. On a phone the chips draw at its own height already. */
+@media (width >= 40rem) {
+  .su-sheet-band-stamps > .su-chip-lane > .su-badge-stamp {
+    align-items: center;
+    align-self: flex-start;
+    display: inline-flex;
+    height: var(--size-compact);
+  }
+}

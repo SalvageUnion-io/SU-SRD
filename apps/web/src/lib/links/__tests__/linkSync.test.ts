@@ -4,9 +4,9 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Container } from 'cantina-domain/container'
-import { SHELF } from 'cantina-domain/container'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Container } from 'game-domain/container'
+import { SHELF } from 'game-domain/container'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import type { ServedCrawler, ServedLink } from '../linkSync'
 import {
@@ -85,7 +85,7 @@ describe('planLinkSync', () => {
     expect(plan.prune).toEqual(['old'])
   })
 
-  test('a Hangar link is covered: every one is drawn from an entity the caller owns', () => {
+  test('a Training Bay link is covered: every one is drawn from an entity the caller owns', () => {
     const plan = planLinkSync({
       local: [local('old', 'ps', 'cs')],
       served: [],

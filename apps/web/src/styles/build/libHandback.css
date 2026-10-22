@@ -1,0 +1,24 @@
+/*
+ * libHandback.css — src/components classes handed back their own values over
+ * the app's element rules. Loaded by `app.css`.
+ *
+ * The app's stylesheets are unlayered and the UI library's classes sit in the
+ * `su-base` layer, so an app rule on an element (`app.css`'s `h1`…`h6` face)
+ * beats a class on that element whatever the specificity. `revert-layer` in a
+ * class rule here outranks the element rule and hands the property back to
+ * the class.
+ *
+ * The titles a caller can render as a heading (`titleAs`): an entity form's
+ * (`Head`'s), which names itself by `data-handback` (the entity forms' markup
+ * is `components/entity/`'s own, hard rule R7). Its
+ * print sizes are handed back in `print.css`. The
+ * ChapterBand's notched title is always a heading, set as on the SRD. An
+ * `Eyebrow` a caller renders as `h2`/`h3` keeps its own snug tracking.
+ */
+[data-handback],
+.su-chapter-band__title,
+.su-eyebrow {
+  font-family: revert-layer;
+  font-weight: revert-layer;
+  letter-spacing: revert-layer;
+}

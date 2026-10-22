@@ -1,7 +1,7 @@
 /**
  * The entity model on its own terms. Parity with today's card helpers is
  * the UI library's `entityModelParity.test.ts`; this pins what the model
- * promises any reader (the SRD, the Cantina, the Discord bot).
+ * promises any reader (the SRD, the app, the Discord bot).
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -169,10 +169,14 @@ describe('entityTone', () => {
     }
   })
 
-  test('a guide wears rules blue whatever its type', () => {
-    for (const guideType of ['character-creation', 'downtime', 'gameplay']) {
+  test('a guide wears rules blue, a creation guide its unit, Heat its red', () => {
+    for (const guideType of ['downtime', 'gameplay']) {
       expect(entityTone('guides', as({ ...base, guideType }))).toBe('wk-line')
     }
+    expect(entityTone('guides', as({ ...base, guideType: 'character-creation' }))).toBe('pilot')
+    expect(entityTone('guides', as({ ...base, guideType: 'mech-creation' }))).toBe('mech')
+    expect(entityTone('guides', as({ ...base, guideType: 'crawler-creation' }))).toBe('crawler')
+    expect(entityTone('guides', as({ ...base, name: 'Heat', guideType: 'gameplay' }))).toBe('heat')
   })
 
   test('black-market goods with no tech level are ink-2', () => {
@@ -193,9 +197,19 @@ describe('entityTone', () => {
     expect(entityTone('systems', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
   })
 
-  test('a chassis is mech; an action is ink', () => {
+  test('a chassis is mech, a bio-chassis bio gear’s green; an action is ink', () => {
     expect(entityTone('chassis', as(base))).toBe('mech')
+    expect(entityTone('chassis', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
     expect(entityTone('actions', as(base))).toBe('ink')
+  })
+
+  test('a Hybrid class wears its own brown, a Core class pilot orange', () => {
+    const classes = SalvageUnionReference.Classes.all()
+    const hybrid = classes.find((c) => 'hybrid' in c && c.hybrid === true)
+    const core = classes.find((c) => !('hybrid' in c && c.hybrid === true))
+    if (!hybrid || !core) throw new Error('fixtures missing')
+    expect(entityTone('classes', hybrid)).toBe('class-hybrid')
+    expect(entityTone('classes', core)).not.toBe('class-hybrid')
   })
 
   test('abilities take their tier tone: core, advanced or hybrid, legendary', () => {
@@ -221,7 +235,7 @@ describe('headerFill (E12)', () => {
     expect(headerFill(mule, 'page')).toBe('tone')
   })
 
-  test('an ability is ink on a card or page; its Row wears its tier tone', () => {
+  test('an ability is ink on a card or page; its Compact wears its tier tone', () => {
     const ability = need(SalvageUnionReference.Abilities.all()[0], 'an ability')
     expect(headerFill(ability, 'row')).toBe('tone')
     expect(headerFill(ability, 'card')).toBe('ink')

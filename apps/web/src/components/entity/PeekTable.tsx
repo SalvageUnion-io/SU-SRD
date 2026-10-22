@@ -6,9 +6,9 @@ import { InsidePeekContext } from './peekContext'
 
 /**
  * The PEEK of a roll table a record carries (`<schema>:<id>/table`, a folded
- * roll Token's trigger): the table instrument, its rows open, read-only and
+ * roll Mini's trigger): the table instrument, its rows open, read-only and
  * terminal (E16). No roll and no toggle, so its bar reads the roll stamp; the
- * Token it Peeks holds the Roll. Its text is plain: nothing in a Peek links.
+ * Mini it Peeks holds the Roll. Its text is plain: nothing in a Peek links.
  */
 export function PeekTable({ name, table }: { name: string; table: RefObjectTable }) {
   return (
@@ -18,7 +18,7 @@ export function PeekTable({ name, table }: { name: string; table: RefObjectTable
         title={name}
         size="mini"
         frame="box"
-        stamp={table.type === 'columns' ? 'Roll twice:' : undefined}
+        stamp={table.type === 'columns' ? 'Roll the Dice:' : undefined}
         table={
           table.type === 'columns'
             ? { kind: 'columns', columns: digestColumnsTable(table) }

@@ -22,7 +22,7 @@ export type EntityLinkAttrs = Omit<HTMLAttributes<HTMLElement>, 'children' | 'cl
  * - `link`: the whole surface opens the entity, with no chevron. It
  *   resolves through the surface (`hrefFor`, then `openPage`); `href` or
  *   `onOpen` overrides it for a target the surface cannot name (a search
- *   result's page, the Cantina's detail modal).
+ *   result's page, the app's detail modal).
  * - `select`: the whole surface toggles; an ink ring and a "Selected" seal.
  */
 export type EntityMode =
@@ -40,12 +40,12 @@ export type EntityMode =
     }
 
 /**
- * What a Row or a Token draws: the model's identity, kind, fill, facts,
- * traits, lead and art, and a contentful Token its prose. A full
+ * What a Compact or a Mini draws: the model's identity, kind, fill, facts,
+ * traits, lead and art, and a contentful Mini its prose. A full
  * `EntityModel` is one; so is the slim copy a build-time index carries (the
  * SRD's search index), which has no prose, children or table to ship.
  */
-export type EntityRowModel = Pick<
+export type EntityFormModel = Pick<
   EntityModel,
   'ref' | 'title' | 'kind' | 'tone' | 'facts' | 'traits' | 'art'
 > &

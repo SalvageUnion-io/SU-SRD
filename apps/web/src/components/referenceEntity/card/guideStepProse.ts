@@ -20,7 +20,7 @@ import type { RefObjectContentBlock } from 'salvageunion-reference'
  *   paragraph explaining it (Salvaging), "Out of Bounds" (Safety Protocols),
  *   "In Combat" (Tough Choices). The book prints these as run-in heads; as a
  *   bare label they read as one more paragraph, and as a sub-heading as a
- *   dashed slab — a second section head inside the step's own. `Content` renders a `label` block's
+ *   Slab — a second section head inside the step's own. `Content` renders a `label` block's
  *   `label` as the ink stamp over its `value`, so the pair folds into that one
  *   block: the head becomes the stamp, the paragraph its text, in a chunk of
  *   its own. A label with nothing to fold onto stays as it is.

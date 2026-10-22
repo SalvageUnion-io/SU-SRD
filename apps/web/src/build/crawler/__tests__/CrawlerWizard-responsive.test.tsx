@@ -1,0 +1,43 @@
+/**
+ * CrawlerWizard responsive layout tests.
+ *
+ * The builder sits on the shared WizShell skeleton: a 196px
+ * stepper rail beside the panes on desktop (lg:flex-row), stacked full-width
+ * with a horizontal stepper on mobile. Asserts the responsive scaffolding is
+ * present on initial render.
+ *
+ * Conventions:
+ *  - toBeTruthy() not toBeInTheDocument()
+ *  - No mock.module()
+ *  - className string assertions for layout classes (happy-dom has no layout engine)
+ */
+
+import { describe, expect, test } from 'bun:test'
+import { act, render } from '@testing-library/react'
+import { CrawlerWizard } from '../CrawlerWizard'
+
+async function renderBuilder() {
+  const result = render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
+  // Flush the mount-effect preload chain so its setState lands inside act.
+  await act(async () => {})
+  return result
+}
+
+describe('CrawlerWizard — responsive wizard layout', () => {
+  test('renders the WizShell row layout (stacked on mobile, rail beside panes at lg)', async () => {
+    const { container } = await renderBuilder()
+    // The rail/pane row: a column on a phone, a row from lg (`.su-wiz-body` in
+    // styles/wizard.css).
+    const shell = container.querySelector('.su-wiz-body')
+    expect(shell).toBeTruthy()
+  })
+
+  test('renders a stepper navigation rail with all six book-order steps', async () => {
+    const { container } = await renderBuilder()
+    const stepper = container.querySelector('nav[aria-label="Steps"]')
+    expect(stepper).toBeTruthy()
+    for (const label of ['Crawler Type', 'Statistics', 'Armament Bay', 'Crew', 'Name', 'Review']) {
+      expect(stepper?.textContent).toContain(label)
+    }
+  })
+})

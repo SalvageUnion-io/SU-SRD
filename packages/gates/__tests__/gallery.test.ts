@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { GalleryRun } from '../lib/galleryHtml'
 import { escapeHtml, renderGallery } from '../lib/galleryHtml'
 import type { GalleryPage, GallerySection } from '../lib/galleryPages'
-import { GALLERY_SECTIONS, pageSlug } from '../lib/galleryPages'
+import { APP_BASE, GALLERY_SECTIONS, isAppPath, pageSlug } from '../lib/galleryPages'
 
 const ALL_PAGES = GALLERY_SECTIONS.flatMap((s) => s.pages)
 
@@ -10,6 +10,13 @@ describe('the page list', () => {
   test('every page has its own file stem', () => {
     const slugs = GALLERY_SECTIONS.flatMap((s) => s.pages).map(pageSlug)
     expect(new Set(slugs).size).toBe(slugs.length)
+  })
+
+  test('an app page is the base or under it; an SRD page that shares its prefix is not', () => {
+    expect(isAppPath(APP_BASE)).toBe(true)
+    expect(isAppPath(`${APP_BASE}/pilots/new`)).toBe(true)
+    expect(isAppPath(`${APP_BASE}er/`)).toBe(false)
+    expect(isAppPath('/chassis/mule/')).toBe(false)
   })
 })
 
@@ -38,7 +45,7 @@ describe('renderGallery', () => {
     expect(html).toContain(`shots/${pageSlug(first)}-desk.jpg`)
     expect(html).toContain('&lt;Contents&gt;')
     expect(html).toContain('1 not captured')
-    expect(html).not.toContain('id="cantina-edit"')
+    expect(html).not.toContain('id="app-edit"')
   })
 
   test('escapes markup', () => {
@@ -67,13 +74,13 @@ describe('renderGallery, page by page', () => {
     note: 'A "note"',
     chips: ['Art'],
   }
-  const cantinaIn: GalleryPage = {
+  const appIn: GalleryPage = {
     path: '/build/pilots/new',
     name: 'New',
     note: '',
     signedIn: true,
   }
-  const cantinaOut: GalleryPage = { path: '/build/starter', name: 'Starter', note: '' }
+  const appOut: GalleryPage = { path: '/build/starter', name: 'Starter', note: '' }
   const render = (pages: GalleryPage[], r: GalleryRun, og = new Map()) =>
     renderGallery(
       { sections: [section(pages)], shot: new Set(pages.map(pageSlug)), og, failures: [] },
@@ -81,7 +88,7 @@ describe('renderGallery, page by page', () => {
     )
 
   test('a linkable run links each signed-out page on the base, never a signed-in one', () => {
-    const html = render([srdPage, cantinaIn, cantinaOut], run())
+    const html = render([srdPage, appIn, appOut], run())
     expect(html).toContain('<a class="shot__frames" href="http://site/chassis/">')
     expect(html).toContain('href="http://site/build/starter"')
     expect(html).not.toContain('href="http://site/build/pilots/new"')
@@ -112,13 +119,13 @@ describe('renderGallery, page by page', () => {
 
   test('link previews: signed-out pages only, their og text, or the name and no image', () => {
     const og = new Map([
-      [pageSlug(cantinaOut), { title: 'The Cantina', description: 'Builder', image: true }],
+      [pageSlug(appOut), { title: 'The app', description: 'Builder', image: true }],
     ])
-    const html = render([srdPage, cantinaIn, cantinaOut], run(), og)
+    const html = render([srdPage, appIn, appOut], run(), og)
     expect(html).toContain('Link previews <small>2 pages</small>')
     expect(html).toContain('salvageunion.io/chassis/')
     expect(html).toContain('salvageunion.io/build/starter')
-    expect(html).toContain(`shots/${pageSlug(cantinaOut)}-og.png`)
+    expect(html).toContain(`shots/${pageSlug(appOut)}-og.png`)
     expect(html).toContain('<strong>Chassis</strong>')
     expect(html).toContain('No og:image')
     expect(html).toContain('<span>Builder</span>')
@@ -138,7 +145,7 @@ describe('renderGallery, page by page', () => {
 describe('pageSlug', () => {
   test('home, query strings, signed-in and case', () => {
     expect(pageSlug({ path: '/' })).toBe('home')
-    expect(pageSlug({ path: '/search?q=drill' })).toBe('search-q-drill')
+    expect(pageSlug({ path: '/chassis/?view=list' })).toBe('chassis-view-list')
     expect(pageSlug({ path: '/build/', signedIn: true })).toBe('in-build')
     expect(pageSlug({ path: ':Pilot' })).toBe('pilot')
     expect(pageSlug({ path: '/schema/Chassis/item/“x”/' })).toBe('schema-chassis-item-x')

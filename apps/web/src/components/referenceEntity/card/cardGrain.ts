@@ -1,24 +1,24 @@
 /**
- * The entity card's header GRAIN — the light speckle (ruleset §3.5, board 05c)
+ * The entity card's header GRAIN — the light speckle (ruleset §3.5)
  * on its two header fills (§5):
  *
  *   - `ink`   — ink speckle on a TONE header (things you have);
  *   - `paper` — paper flecks on an INK header (things you do).
  *
  * Built from the `speckle` tokens as a self-contained SVG image, so it needs no
- * page-level `<defs>` (srd renders most cards to static HTML, and a card can
+ * page-level `<defs>` (the reference site renders most cards to static HTML, and a card can
  * mount anywhere): each layer is a rect run through its `feTurbulence` filter,
  * and the image has no intrinsic size, so it fills whatever band it is the
  * background of. Grain, not shading — nothing interpolates between colours.
  *
- * Never on paper, buttons, fields, the Dashboard or tooltips: the card turns it
- * off there (`texture={false}`), and `tokens/texture-placement` keeps the token
+ * On every brand-colour band, a Peek's and the Cockpit's too (R10); never on paper,
+ * buttons or fields: `tokens/texture-placement` keeps the token
  * references out of those files.
  *
  * Every header band on a listing wears one, so the image is a stylesheet class
- * (`.su-grain--ink` / `.su-grain--paper` in `styles/index.css`), not an inline
+ * (`.su-grain--ink` / `.su-grain--paper` in `styles/partials/card-chrome.css`), not an inline
  * style (ADR-046, repeated elements): inline, its ~1.9 KB data URI on every
- * band was over a tenth of srd's HTML. The classes read `styles/grain/*.svg`,
+ * band was over a tenth of the reference site's HTML. The classes read `styles/grain/*.svg`,
  * which the bundler inlines into the built stylesheet once; those files are
  * this function's output, and `__tests__/stylesheetParity.test.ts` fails when
  * one drifts from the `speckle` tokens.

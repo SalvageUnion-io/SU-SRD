@@ -1,6 +1,6 @@
 /**
  * Turn a picked image file into the `upload` photo an entity body stores
- * (`cantina-domain/schemas/photo`), through `convex/photos.ts`.
+ * (`game-domain/schemas/photo`), through `convex/photos.ts`.
  *
  * The file is scaled and re-encoded here first. A phone photo is 4–12 MB and
  * 4000px wide; a sheet shows it at a few hundred pixels. Re-encoding also
@@ -12,7 +12,7 @@
  * field goes through the entity's own store write like any other.
  */
 
-import type { Photo } from 'cantina-domain/schemas/photo'
+import type { Photo } from 'game-domain/schemas/photo'
 
 /**
  * A photo the browser or the server would not take, in words for the player:

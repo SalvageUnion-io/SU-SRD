@@ -1,0 +1,54 @@
+/*
+ * play/mediator.css — the Mediator's Play screen (play.md §10): the table's
+ * seats and the Opposition's boxes. A part of `styles/play/play.css`,
+ * which `PlayFrame` loads; never imported by a library component.
+ *
+ * Only what has a state lives here (a seat needing the Mediator, a seat away,
+ * the chosen NPC) and the repeated lists; everything else is a style object.
+ */
+
+/* The Opposition: a list without bullets or indent. */
+.su-play-npcs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* The table's seats, a Mini list (`.su-entity-mini-list`) whose Minis hold
+   bodies: a wider gap, and room for the attention ring and the selection
+   ring, which sit outside each seat's Mini. */
+.su-entity-mini-list.su-play-seats {
+  gap: var(--space-12);
+  padding: var(--space-4);
+}
+
+.su-play-seat {
+  border-radius: var(--radius-card);
+  min-width: 0;
+}
+
+/* Something needs the Mediator: a ring in the bad hue around the whole seat,
+   outside the Compact's frame so nothing changes size. The ▲ always comes with it. */
+.su-play-seat[data-attention] {
+  outline: 2px solid var(--color-status-bad);
+  outline-offset: 2px;
+}
+
+/* The Opposition: two boxes a row where the centre has the room. */
+.su-play-npcs {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  padding: var(--space-4);
+}
+
+.su-play-npc {
+  border-radius: var(--radius-card);
+  min-width: 0;
+}
+
+/* The NPC whose actions are listed: the ink selection ring (ruleset §3.1). */
+.su-play-npc[data-chosen] {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}

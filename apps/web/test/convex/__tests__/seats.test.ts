@@ -2,7 +2,15 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx, User } from '../fixtures'
-import { addMech, addPilot, makeUser, mechBody, moveOwnable, seedTable } from '../fixtures'
+import {
+  addMech,
+  addPilot,
+  makeUser,
+  mechBody,
+  moveOwnable,
+  seatRows,
+  seedTable,
+} from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -16,10 +24,6 @@ import { testConvex } from '../harness'
 async function seatOf(user: User, gameId: Id<'games'>, pilotId: string) {
   const seats = await user.as.query(api.seats.forGame, { gameId })
   return seats.find((s) => s.pilotId === pilotId)
-}
-
-async function seatRows(t: Ctx) {
-  return await t.run(async (ctx) => await ctx.db.query('seats').collect())
 }
 
 async function serverId(t: Ctx, table: 'pilots' | 'mechs', appId: string): Promise<string> {
@@ -52,6 +56,7 @@ describe('reading seats', () => {
       range: 'Close',
       activeEffects: [],
       resolving: null,
+      lastSeenAt: null,
       updatedAt: null,
     })
     // Reading creates nothing; rows are created on the first write.

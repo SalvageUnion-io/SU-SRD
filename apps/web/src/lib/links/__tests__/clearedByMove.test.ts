@@ -4,9 +4,9 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Container } from 'cantina-domain/container'
-import { SHELF } from 'cantina-domain/container'
-import type { LinkShape } from 'cantina-domain/links/linkRules'
+import type { Container } from 'game-domain/container'
+import { SHELF } from 'game-domain/container'
+import type { LinkShape } from 'game-domain/links/linkRules'
 import type { HeldEntities } from '../clearedByMove'
 import { assignmentsClearedByMove, linksClearedByMove } from '../clearedByMove'
 

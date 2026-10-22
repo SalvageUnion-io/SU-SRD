@@ -1,19 +1,19 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { SheetTable } from '../cantina/types'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import { bodyName, sheetCard } from '../gameCards'
-import { cantina, respondWithCantina } from './cantinaReply'
+import type { SheetTable } from '../play/types'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { respondWithSite, site } from './siteReply'
 
 /**
- * `/su sheet` — the one Cantina command (ADR-030).
+ * `/su sheet` — the one app command (ADR-030).
  *
  * The picker offers what is **yours**: every pilot, mech and crawler you own,
  * and the crawler of each Game you are in. Anything else — a crewmate's
  * sheet, a stranger's published one — is reached by pasting its link, the
- * `/sheet/…` or `/p/…` address the Cantina shows. The server decides what the caller
+ * `/sheet/…` or `/p/…` address the app shows. The server decides what the caller
  * may read (theirs, a Game they belong to, or published), so the link is an
  * address, never a permission.
  *
@@ -22,7 +22,7 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
  * sheet on any surface, so there is deliberately no `/su damage` here.
  */
 
-/** A Cantina sheet address: `/sheet/<kind>/<rowId>` or the public `/p/<kind>/<appId>`. */
+/** An app sheet address: `/sheet/<kind>/<rowId>` or the public `/p/<kind>/<appId>`. */
 const SHEET_LINK = /\/(?:sheet|p)\/(pilot|mech|crawler)\/([^/?#\s>]+)/
 
 /**
@@ -77,7 +77,7 @@ export const sheetCommand = {
    * matches nothing, and Discord sends the typed text as the value.
    */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    const result = await cantina().mineForAutocomplete(interaction.user.id)
+    const result = await site().mineForAutocomplete(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -126,7 +126,7 @@ export const sheetCommand = {
     // and `sheetVisibility.test.ts` holds it, because "someone adds
     // visibility: 'public' to make sharing easier" is exactly the plausible
     // future change that would break it silently.
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.sheet(interaction.user.id, target.table, target.entityId),
       render: (value) => sheetCard(value),
     })

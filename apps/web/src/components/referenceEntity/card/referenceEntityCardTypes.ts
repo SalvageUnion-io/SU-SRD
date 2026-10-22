@@ -7,13 +7,15 @@ import type {
   RefObjectDamage,
   RefObjectTrait,
 } from 'salvageunion-reference'
+import type { Size } from '../../../styles/sizing'
 import type { EntityStatus } from '../../atoms/entityStatus'
-import type { CardFootMeta } from '../../containers/Card'
-import type { CardExtent, CardSize } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { Down } from './cardChrome'
+
+/** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
+export type CardFootMeta = { label: string; value: ReactNode }
 
 /**
  * What a card can render: the plain reference union PLUS the meta union —
@@ -25,10 +27,9 @@ export type ReferenceCardEntity = RefEntity | RefMetaEntity
 
 export type ReferenceEntityCardProps = {
   data: ReferenceCardEntity
-  size?: CardSize
-  /** How much of the entity renders — orthogonal to `size`, so a `mini` card
-   * can still show its whole content. */
-  extent?: CardExtent
+  /** How big it renders (default `full`); at any size the card is contentful,
+   * so a `mini` card still shows its whole content. */
+  size?: Size
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
    * header, one step down per level). Threaded through the recursion. */
   depth?: number
@@ -41,10 +42,10 @@ export type ReferenceEntityCardProps = {
   readable?: boolean
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
-   * loadout as nested cards (a `size="compact" extent="head"` pattern shows name + description). */
+   * loadout as nested cards. */
   pattern?: RefObjectAnyPattern
   /**
-   * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card
+   * PAGE — the card IS the page: an SRD entity page. The card
    * draws no frame, header or footer, because the page's `ChapterBand`
    * carries the title and stamps and its `ChapterFoot` the citation (both
    * resolved by `resolveEntityPageMeta`). The body lays out as a page: the line
@@ -55,23 +56,28 @@ export type ReferenceEntityCardProps = {
    */
   presentation?: 'card' | 'page'
   /**
+   * PAGE only: the hero in place of the entity's own art — a saved pattern's
+   * page shows its maker's photo, and lets its maker change it.
+   */
+  hero?: ReactNode
+  /**
    * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability
-   * as a page does, nested in the pick as a contentful Token (N3, E19: The
-   * Cantina's mech-builder pick cards, where choosing needs it). It shows
+   * as a page does, nested in the pick as a contentful Mini (N3, E19: The
+   * app's mech-builder pick cards, where choosing needs it). It shows
    * even under `hide.actions`, which a picker
    * sets. Off everywhere else; nested cards never inherit it.
    */
   showChassisAbility?: boolean
   /**
    * Prose the HOST already prints, as `proseKey`s — a nested child hides any
-   * paragraph that would repeat it (board E2). Threaded by the host.
+   * paragraph that would repeat it. Threaded by the host.
    */
   shownProse?: string[]
   /**
    * USER-MADE (ruleset §3.9): something a player made that could pass
    * for the book — a mech pattern, an NPC. A dashed ink frame, a dashed
-   * User-made stamp in the header's labels, a dashed footer rule and a dashed pill, at
-   * every size and extent. Canon-built units (pilots, mechs, crawlers) never
+   * HOMEBREW stamp in the header's labels, a dashed footer rule and a dashed pill, at
+   * every size. Canon-built units (pilots, mechs, crawlers) never
    * set it.
    */
   userMade?: boolean
@@ -91,8 +97,8 @@ export type ReferenceEntityCardProps = {
   kicker?: string
   /**
    * The light speckle on the header (ruleset §3.5) — on by default. `false`
-   * turns it off for this card and every card nested in it: the Dashboard and
-   * tooltips stay flat.
+   * turns it off for this card and every card nested in it: a peek and the
+   * Mediator's SRD explorer stay flat.
    */
   texture?: boolean
   /** The SUMMONING (parent) entity's display name — threaded so a nested
@@ -115,22 +121,23 @@ export type ReferenceEntityCardProps = {
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
   hide?: ReferenceEntityCardHideConfig
-  /** Intact/Damaged/Destroyed chip in the header stat axis beside the title.
-   * A damaged/destroyed status also greys the whole tone (header band flat
-   * grey; sub-header + footer + frame the darker grey shade). */
+  /** The condition: damaged or destroyed greys the whole tone (header band
+   * flat grey; sub-header + footer + frame the darker grey shade) and reads
+   * as the `StatusBadge` in the head's state slot (C8). A control with
+   * `status` is the one that steps it. */
   status?: EntityStatus
-  /** Cycle handler (Intact → Damaged → Destroyed) — makes the chip a button. */
-  onStatusClick?: () => void
   /** Whole-card opacity-50 (an unavailable/inactive item). */
   disabled?: boolean
-  /** Draw the canonical ink selection border (SELECTION_RING) — non-layout-shifting. */
+  /** Draw select mode's ink ring (`SELECTED_RING`) — non-layout-shifting. */
   selected?: boolean
-  /** When `selected`, stamp this label as an `ok`-tone "chosen" seal riding the
-   * top-right frame (e.g. "Equipped ✓"). Picker-cell affordance. */
+  /** The word on the ink seal a `selected` Card wears on its head band's
+   * right (hard rule R15): "Selected" by default. A Mini (`<Entity size="mini">`)
+   * is ring only, never sealed. */
   selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */
   suggested?: boolean
-  /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
+  /** Off: select mode's one dim (`SELECT_DIM`, hard rule R15) — an option the
+   * picker cannot take, demotes, or has not chosen. */
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */
   onCardClick?: () => void
@@ -157,11 +164,16 @@ export type ReferenceEntityCardProps = {
   /** Parent entity for choice-cap resolution (`cardinality.max.scalesWith`, e.g. techLevel) —
    * when a host (mech/pilot) supplies the scaling field instead of the entity.
    * Its `techLevel` also drives `perTechLevel` datavalue scaling (e.g. Custom
-   * Sniper Rifle damage) — the crawler level in the Cantina. */
+   * Sniper Rifle damage) — the crawler level in the app. */
   scalingParent?: Record<string, unknown>
   /** Extra content on the accent field after the body box, before the footer
    * (e.g. a crawler bay's crew inset). */
   expand?: ReactNode
+  /** The state a card's own folding sections start in (a crawler bay's Bay
+   * Info and When Damaged), when they fold. On the reference nothing folds
+   * (R43), so
+   * the default is no fold; inside a Peek nothing folds either. */
+  sectionFold?: 'open' | 'closed'
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string
@@ -177,7 +189,7 @@ export type ReferenceEntityCardProps = {
    * its other producer is a pattern's Systems/Modules loadout
    * (`PatternLoadout`). A pattern card renders with the CHASSIS as its
    * `data`, so it inherits the chassis artwork and would otherwise satisfy an
-   * inferred gate — flipping every Cantina mech-wizard pattern card on an
+   * inferred gate — flipping every app mech-wizard pattern card on an
    * artwork-bearing chassis to a layout meant only for class pages. Only the
    * class consumers set this. */
   asideLead?: boolean
@@ -202,7 +214,7 @@ export type ReferenceEntityCardHideConfig = {
   patterns?: boolean
   /**
    * Suppress the entity's (or its folded action's) roll table. Needed where the
-   * whole card is itself a control — the Dashboard's Actions deck wraps each
+   * whole card is itself a control — a list that wraps each
    * tile in a `role="button"` — since even the hidden table carries its own
    * Show/Roll buttons, which may not nest inside a button and whose clicks would
    * bubble into the card's own handler.
@@ -219,6 +231,8 @@ export type ReferenceEntityCardHideConfig = {
    * sheet, drawn as the SRD's bay Page draws it, wears none.
    */
   axisMarkers?: boolean
+  /** Suppress the nested groups (its drones, their Systems and Modules, a bay's When Damaged). */
+  nested?: boolean
 }
 
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */

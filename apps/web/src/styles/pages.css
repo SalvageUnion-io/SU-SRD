@@ -1,6 +1,6 @@
 /*
- * srd's page layouts — the Contents home (board 06), the entity page frame
- * (boards 07, 08), the roll-table page (board 08b), the listing rows and the
+ * the reference site's page layouts — the Contents home, the entity page frame,
+ * the roll-table page, the listing rows and the
  * footer band, and the About and Changelog pages' parts.
  *
  * `global.css` imports it. Classes are `su-*`; the shared parts they compose
@@ -9,10 +9,10 @@
  */
 
 /*
- * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). At the one page measure: the index in columns and
+ * The home page — the manual's Contents page (`index.page.tsx` and
+ * `reference/HomeContents.tsx`). At the one page measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
- * search, "Start here", then the index.
+ * tagline, "Start here", then the index.
  */
 .su-home__lede {
   display: flex;
@@ -24,11 +24,11 @@
 
 /* Below the desktop the lede has no room beside the title, so it follows the
    title instead of riding above it (the band's own stack is column-reverse):
-   the title notched into the band's foot, then the lede and search on the
+   the title notched into the band's foot, then the lede (the tagline) on the
    page ground the notch is cut from. The aside spans the row's padding so the
    ground runs edge to edge, and the row drops its gap so the notch sits flush
    on the band's foot. */
-@media (max-width: 63.99rem) {
+@media not (width >= 64rem) {
   .su-home__band .su-chapter-band__row {
     align-items: flex-start;
     flex-direction: column;
@@ -43,30 +43,30 @@
   }
 }
 
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+@media (width >= 40rem) and (not (width >= 64rem)) {
   .su-home__band .su-chapter-band__aside {
     margin-inline: calc(-1 * var(--space-24));
     padding-inline: var(--space-24);
   }
 }
 
-/* The home band holds only the title and the search (owner, 2026-10-14) and
-   is as tall as the Cantina's front-door band: its title opens where the
-   Cantina's does under that band's eyebrow (the eyebrow's top padding, its
+/* The home band holds only the title and the tagline and
+   is as tall as the app's front-door band: its title opens where the
+   app's does under that band's eyebrow (the eyebrow's top padding, its
    caption line, then 12px). */
-@media (max-width: 39.99rem) {
+@media not (width >= 40rem) {
   .su-home__band .su-chapter-band__row {
     padding-top: calc(var(--space-48) + var(--space-8));
   }
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-home__band .su-chapter-band__row {
     padding-top: var(--space-64);
   }
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-home__band .su-chapter-band__title {
     flex: none;
   }
@@ -78,8 +78,7 @@
 }
 
 /* The index, then the aside: one stack on a phone, the catalogs first and
-   "Start here" (with the Discord button under it) below them (owner,
-   2026-10-15). */
+   "Start here" (with the Discord button under it) below them. */
 .su-home__body {
   display: flex;
   flex-direction: column;
@@ -108,7 +107,7 @@
 }
 
 /* A desktop pins the aside to a 20rem sidebar at the right of the index. */
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-home__body {
     align-items: start;
     column-gap: var(--space-28);
@@ -127,75 +126,8 @@
   }
 }
 
-/* A chapter of the index: its colour band, its name and count, its rows. */
-.su-contents__chapter {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.su-contents__heading {
-  align-items: baseline;
-  border-top: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-12);
-  justify-content: space-between;
-  line-height: 1.1;
-  margin: 0;
-  padding: var(--space-6) 0;
-}
-
-.su-contents__total {
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-}
-
-.su-contents__rows {
-  display: flex;
-  flex-direction: column;
-}
-
-.su-contents__rows > li {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
-}
-
-.su-contents__row {
-  align-items: center;
-  color: var(--color-ink);
-  display: flex;
-  font-size: var(--text-base);
-  gap: var(--space-12);
-  justify-content: space-between;
-  min-height: 36px;
-  text-decoration: none;
-}
-
-.su-contents__row:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.su-contents__count {
-  color: var(--color-ink-2);
-  font-family: var(--font-cond);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-semibold);
-}
-
-/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. A phone
-   width takes it too: the pointer query alone flips during a full-page
-   capture, so the page was laid out at 44px rows and painted at 36px. */
-@media (pointer: coarse), (max-width: 40rem) {
-  .su-contents__row {
-    min-height: 44px;
-  }
-}
-
 /* The home page's Discord button (`DiscordButton` in `HomeContents.tsx`): a
-   full-size button in Discord's blurple (a one-off, owner's call 2026-10-14)
+   full-size button in Discord's blurple (a one-off)
    with Discord's mark, the width of "Start here" above it. */
 a.su-home__discord {
   background-color: var(--color-discord);
@@ -217,8 +149,9 @@ a.su-home__discord:hover {
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
  * page so the site footer's citation band closes it at the foot. The band
  * always sits flush under the site bar; the body takes the rest of the
- * height, and a page too short to fill the screen centres its content in
- * that space, while a long one runs on from the band as before.
+ * height and starts under the band: a short page spreads its body evenly
+ * down that height, its overflow row kept under the band (ruleset §1.7,
+ * hard rule R17), and the foot stays at the window's bottom edge.
  */
 .su-entity {
   display: flex;
@@ -226,12 +159,25 @@ a.su-home__discord:hover {
   flex-direction: column;
 }
 
-/* A show page's body: the rest of the height, its content centred in it. */
+/* A show page's body: a short page's content spread evenly down the height
+   under its band, on a phone and a desktop alike (Melee
+   Armament, Meld Drone). The band's overflow row (its first row) stays under
+   the band (R43). A long one fills the height, so the
+   spacing leaves it where it was. */
 .su-entity__body {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  justify-content: center;
+  flex-grow: 1;
+  justify-content: space-evenly;
+}
+
+.su-entity__body > .su-entity-page {
+  flex-grow: 1;
+  justify-content: space-evenly;
+}
+
+.su-entity__body .su-entity-page__wide:empty {
+  display: none;
 }
 
 /*
@@ -255,7 +201,7 @@ a.su-home__discord:hover {
   color: var(--color-ink);
   display: inline-flex;
   font-family: var(--font-cond);
-  min-height: 44px;
+  min-height: var(--size-full);
   text-underline-offset: 3px;
 }
 
@@ -276,8 +222,8 @@ a.su-home__discord:hover {
 }
 
 /*
- * The SEO / no-JS entity fallback (`StaticEntityContent`): plain reading
- * prose, a label/value stat list, a real roll table and named sections. Its
+ * The SEO / no-JS entity fallback (`StaticEntityContent`): reading prose,
+ * `Stat` chips, the roll instrument and named sections (R18). Its
  * references are src/components `InlineRef`s.
  */
 .su-static {
@@ -290,45 +236,10 @@ a.su-home__discord:hover {
   max-width: 52rem;
 }
 
-.su-static__label {
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-snug);
-  text-transform: uppercase;
-}
-
 .su-static__stats {
-  display: grid;
-  gap: var(--space-4) var(--space-16);
-  grid-template-columns: auto 1fr;
-}
-
-.su-static__table-wrap {
-  overflow-x: auto;
-}
-
-.su-static__table {
-  border-collapse: collapse;
-  text-align: left;
-  width: 100%;
-}
-
-.su-static__table th,
-.su-static__table td {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
-  padding: var(--space-4) var(--space-8);
-  vertical-align: top;
-}
-
-.su-static__table thead th {
-  border-bottom: var(--bw-chrome) solid var(--color-ink);
-  font-family: var(--font-cond);
-  text-transform: uppercase;
-}
-
-.su-static__table tbody th {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
 }
 
 .su-static__section {
@@ -343,7 +254,7 @@ a.su-home__discord:hover {
 }
 
 /*
- * The roll-table page (`RollTableView`, board 08b): the table's prose, the
+ * The roll-table page (`RollTableView`): the table's prose, the
  * table, then the Randsum credit. A roll's result is a toast, not a panel.
  */
 .su-roll-page {
@@ -367,7 +278,7 @@ a.su-home__discord:hover {
   margin: 0;
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-roll-page {
     gap: var(--space-12);
   }
@@ -398,7 +309,7 @@ a.su-home__discord:hover {
 
 /*
  * A schema listing (`SchemaViewerIsland`): the filter rail, then the entities
- * as compact cards (`EntityListingRow`, `extent="head"`) in groups the book
+ * as compact cards (`<Entity size="compact">` in link mode) in groups the book
  * prints them in, each under a solid slab. Each listing sets how narrow a card
  * may get: chassis, with a long row of value cells, take two across; the rest
  * three. The server renders the same grid as plain named rows
@@ -409,6 +320,12 @@ a.su-home__discord:hover {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+}
+
+/* The island draws the band and the listing under it, so its placeholder is
+   no box of its own: the band and the page body are the shell's rows. */
+.su-listing-shell > [data-island] {
+  display: contents;
 }
 
 .su-listing-page {
@@ -442,13 +359,13 @@ a.su-home__discord:hover {
   gap: var(--space-6);
 }
 
-/* An entity grid (`data-entity-grid`): every Row in it is one height, at
+/* An entity grid (`data-entity-grid`): every Compact in it is one height, at
    every width, and its heads end on one line (the UI library's entity forms).
    Its row tracks are the UI library's (`[data-entity-grid]`): equal (`1fr`),
-   each Row stretched to fill its cell, or a line's own height where a Row is
+   each Compact stretched to fill its cell, or a line's own height where a Compact is
    its head alone. Setting them here, unlayered, would override that. */
 .su-listing__cards {
-  /* The Row's art column, wider here so the line art reads at a glance; the
+  /* The Compact's art window, wider here so the line art reads at a glance; the
      art fills it top to bottom. */
   --su-head-art-min: 7rem;
   --su-head-art-min-phone: 6rem;
@@ -459,10 +376,10 @@ a.su-home__discord:hover {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--srd-listing-min)), 1fr));
 }
 
-/* A listing's Rows (`data-entity-fit`): each as wide as its title on one line
+/* A listing's Compacts (`data-entity-fit`): each as wide as its title on one line
    (the UI library's entity forms), no narrower than the listing's measure,
    growing to fill its line, so a short group never leaves the line's end
-   empty; a phone stacks them. Rows on a line share its height. */
+   empty; a phone stacks them. Compacts on a line share its height. */
 .su-listing__cards[data-entity-fit] {
   align-items: stretch;
   display: flex;
@@ -474,14 +391,14 @@ a.su-home__discord:hover {
   min-width: min(100%, var(--srd-listing-min));
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-listing__cards[data-entity-fit] > * {
     flex-basis: 100%;
   }
 }
 
 /* The abilities' Tree (`data-view="tree"`) is one flat column: its tracks,
-   and a tree's plain rows, a Row a line, each its own height. */
+   and a tree's plain rows, a Compact a line, each its own height. */
 :where(.su-listing[data-view='tree']) .su-listing__cards {
   grid-auto-rows: auto;
   grid-template-columns: minmax(0, 1fr);
@@ -497,28 +414,25 @@ a.su-home__discord:hover {
   min-width: 0;
 }
 
-.su-listing__fallback-row {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-bold);
-  min-height: 44px;
-  overflow: hidden;
-  padding: 0 var(--space-12);
-  text-decoration: none;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+/* On a desktop the trees sit two to a line, each half the measure, read
+   across then down; a line's two trees start together. Two columns need
+   26rem each, so a measure narrower than that (a squeezed window) keeps one
+   column. Below the desktop the trees stay one column. */
+@media (width >= 64rem) {
+  .su-listing[data-view='tree'] .su-listing__groups {
+    align-items: start;
+    column-gap: var(--space-24);
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(max(26rem, calc((100% - var(--space-24)) / 2)), 1fr)
+      );
+  }
 }
 
 /*
- * THE CATALOG (`data-view="catalog"`): the Tiles (the UI library's
- * `.su-entity-tile`), every listing's view at every width, one flat grid
+ * THE CATALOG (`data-view="catalog"`): the CompactIndexes (the UI library's
+ * `.su-entity-index`), every listing's view at every width, one flat grid
  * (`lib/listingView.ts`). It fills its line to the page's margin: as many
  * 17rem-or-wider tracks as the measure holds (four at the page's), stretched
  * to share the room, the remainder on a shorter last line. Every tile on the
@@ -550,14 +464,14 @@ a.su-home__discord:hover {
 .su-listing__tiles > li:nth-child(n + 5) {
   content-visibility: auto;
   contain-intrinsic-size: auto calc(36rem + 8px);
-  margin: -4px;
-  padding: 4px;
+  margin: calc(-1 * var(--space-4));
+  padding: var(--space-4);
 }
 
-/* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
+/* On a phone a tile's art is a 2:1 band (`.su-entity-index__art`,
    the UI library's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
    the reserve and the skeleton's art box take that shape. */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-listing__tiles > li:nth-child(n + 5) {
     contain-intrinsic-size: auto calc(19.375rem + 8px);
   }
@@ -573,20 +487,20 @@ a.su-home__discord:hover {
 }
 
 /* The Tree view's trees, after the first two, skip layout and paint the same
-   way: the abilities index draws 36 trees of Rows, and laying them all out
+   way: the abilities index draws 36 trees of Compacts, and laying them all out
    was what still blocked its main thread on load. The reserved height is a
-   tree's (one track of Rows) until it has been laid out once: about 18.5rem
+   tree's (one track of Compacts) until it has been laid out once: about 18.5rem
    at desktop widths, where most trees measure 294px, and 25rem on a phone,
-   where their Rows wrap to 380–420px. The same 4px reach keeps the Rows'
+   where their Compacts wrap to 380–420px. The same 4px reach keeps the Compacts'
    focus rings inside the paint containment. */
 .su-listing[data-view='tree'] .su-listing__group:nth-child(n + 3) {
   content-visibility: auto;
   contain-intrinsic-size: auto calc(18.5rem + 8px);
-  margin: -4px;
-  padding: 4px;
+  margin: calc(-1 * var(--space-4));
+  padding: var(--space-4);
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-listing[data-view='tree'] .su-listing__group:nth-child(n + 3) {
     contain-intrinsic-size: auto calc(25rem + 8px);
   }
@@ -639,7 +553,7 @@ a.su-home__discord:hover {
 }
 
 /*
- * THE RAIL — one row of 44px controls (origin boards S1 and 05): search, the
+ * THE RAIL — one row of 44px controls: search, the
  * TL badge as a toggle, the Source / Tree menus, then Catalog | Tree on the
  * abilities. On a phone the facets fold behind a Filters button that counts
  * the active ones.
@@ -648,23 +562,25 @@ a.su-home__discord:hover {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-10) var(--space-12);
+  gap: var(--space-12);
 }
 
 .su-rail .su-rail__search {
-  flex: 1 1 16rem;
-  max-width: 22rem;
-  min-height: 44px;
+  flex: 1 1 100%;
+  min-height: var(--size-full);
+}
+
+/* A search field is full width on a phone; from
+   `sm` it shares the rail's line. */
+@media (width >= 40rem) {
+  .su-rail .su-rail__search {
+    flex: 1 1 16rem;
+    max-width: 22rem;
+  }
 }
 
 .su-rail form.su-rail__search {
   display: flex;
-}
-
-/* The search page's field fills its form, at the rail's 44px. */
-.su-rail__search > .su-rail__field {
-  flex: 1 1 auto;
-  min-height: 44px;
 }
 
 /* The field's clear button, in ink like the rest of the rail (the browser's
@@ -689,22 +605,9 @@ a.su-home__discord:hover {
   display: contents;
 }
 
+/* The Filters toggle is a Full `Button`; the rail shows it only when narrow. */
 .su-rail__filters {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  cursor: pointer;
   display: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-8);
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: 44px;
-  padding: 0 var(--space-14);
-  text-transform: uppercase;
 }
 
 .su-rail__count {
@@ -725,8 +628,7 @@ a.su-home__discord:hover {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
   max-width: 16rem;
-  min-height: 44px;
-  text-transform: uppercase;
+  min-height: var(--size-full);
   width: auto;
 }
 
@@ -746,7 +648,7 @@ a.su-home__discord:hover {
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
-  padding: 0 var(--space-10);
+  padding: 0 var(--space-8);
 }
 
 /* What is filtered: the count, a token per filter, Clear all. On an index it
@@ -758,7 +660,7 @@ a.su-home__discord:hover {
   color: var(--color-ink-2);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6) var(--space-10);
+  gap: var(--space-6) var(--space-8);
 }
 
 .su-rail > .su-rail__status {
@@ -781,46 +683,10 @@ a.su-home__discord:hover {
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
-}
-
-.su-rail__token {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-6);
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: 32px;
-  padding: 0 var(--space-6) 0 var(--space-10);
-  text-transform: uppercase;
-}
-
-.su-rail__token:hover {
-  background-color: var(--color-band-cream);
-}
-
-.su-rail__clear {
-  background: none;
-  border: 0;
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  font-weight: var(--font-weight-semibold);
-  min-height: 32px;
-  padding: 0 var(--space-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 /* Phone: search takes the row, then Filters and Catalog | Tree; the facets open beneath. */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-rail .su-rail__search {
     flex-basis: 100%;
     max-width: none;
@@ -841,7 +707,7 @@ a.su-home__discord:hover {
     display: flex;
     flex-basis: 100%;
     flex-wrap: wrap;
-    gap: var(--space-10);
+    gap: var(--space-8);
     padding: var(--space-12);
   }
 
@@ -861,6 +727,64 @@ a.su-home__discord:hover {
   }
 }
 
+/* On a listing's band (its `controls`): the rail and its facets draw no box,
+   so each control is an item of the title's row, which fills from the band's
+   bottom right (`.su-chapter-band__row[data-chip-fill]`, ruleset §4.7): the
+   last control in the corner beside the title, the rest leftward, and only
+   what overfills that line rises over the title, each line from the right. */
+.su-chapter-band .su-rail,
+.su-chapter-band .su-rail__facets {
+  display: contents;
+}
+
+/* The title's free room (its auto margin) parts the controls from it: no
+   spring, which would take that room and push the corner's control in. */
+.su-chapter-band .su-rail__spring {
+  display: none;
+}
+
+/* Narrower than on the page, so a Tech Level row and a menu fit beside it. */
+.su-chapter-band .su-rail .su-rail__search {
+  flex-basis: 12rem;
+}
+
+/* On a phone the rail is the strip under the band (`shell.css`): the search a
+   line of its own, the band's width, then Filters across the whole line (and
+   Catalog | Tree after it). Open, the facets are a line too. */
+@media not (width >= 40rem) {
+  .su-chapter-band .su-rail {
+    display: flex;
+  }
+
+  .su-chapter-band .su-rail .su-rail__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .su-chapter-band .su-rail__filters {
+    flex: 1 1 auto;
+  }
+
+  .su-chapter-band .su-rail__facets {
+    display: none;
+  }
+
+  .su-chapter-band .su-rail[data-open] .su-rail__facets {
+    display: flex;
+  }
+}
+
+.su-chapter-band[data-ground='ink'] :is(.su-rail__status, .su-rail__tally) {
+  color: var(--color-paper);
+}
+
+/* Under the band on a phone the rail is on the page ground: ink again. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-ground='ink'] :is(.su-rail__status, .su-rail__tally) {
+    color: var(--color-ink-2);
+  }
+}
+
 @media print {
   .su-rail {
     display: none;
@@ -869,23 +793,19 @@ a.su-home__discord:hover {
 
 /*
  * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
- * training brief, then sections under dashed slabs — a Core class's Core trees
+ * training brief, then sections under Slabs — a Core class's Core trees
  * (stacked, beside its own path from 64rem) and its Hybrid Classes; a Hybrid Class's
  * own tree + Legendary tree (two across) and the Core trees it branches into.
  *
  * Each tree draws the book's track: the UI library's `AbilityTrack`
  * (`.su-ability-track`, `partials/compositions.css`).
  */
+/* The class page keeps the Page's one rhythm (ruleset §1.7, hard rule R17):
+   every block, its slab included, one 12px gap from the next. */
 .su-ability-tree {
   display: flex;
   flex-direction: column;
-  gap: var(--space-32);
-}
-
-.su-ability-tree__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-12);
 }
 
 /* The trees side by side, each as wide as its longest title on one line
@@ -896,7 +816,7 @@ a.su-home__discord:hover {
 .su-class-path__trees {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-16);
+  gap: var(--space-12);
   min-width: 0;
 }
 
@@ -906,24 +826,11 @@ a.su-home__discord:hover {
   min-width: min(100%, 16rem);
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-ability-tree__row > *,
   .su-class-path__trees > * {
     flex-basis: 100%;
   }
-}
-
-/* A Core class's Core trees, one column the page's width. */
-.su-ability-tree__row--stack {
-  flex-direction: column;
-  flex-wrap: nowrap;
-}
-
-.su-ability-tree__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  padding-top: var(--space-8);
 }
 
 /*
@@ -941,26 +848,28 @@ a.su-home__discord:hover {
   gap: var(--space-12);
 }
 
-/* The tier cards: side by side while each keeps 9.5rem, stacked on a phone.
+/* The tier cards: side by side while each keeps 12.5rem, the widest tier's
+   head (LEGENDARY and its 3 TP, which never clip: R3; a card's container
+   query hides its content's width from the row), stacked on a phone.
    A wrapping flex row, not a grid: the cards on a line share it evenly and
    stretch to its tallest, and a card alone on the last line (Legendary
    under Core and Advanced, the Salvager's lone Core) grows to the full width
-   rather than leaving half a row empty (owner's call, 2026-10-17). */
+   rather than leaving half a row empty. */
 .su-class-brief__cards {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-10);
+  gap: var(--space-12);
 }
 
 /* A tier card: a `TitledBox`, its cut-out head in the tier's book hue (§3.8)
    opening into the body, no rule between them. */
 .su-class-brief__card {
   display: flex;
-  flex: 1 1 9.5rem;
-  min-width: min(100%, 9.5rem);
+  flex: 1 1 12.5rem;
+  min-width: min(100%, 12.5rem);
 }
 
-/* The card is a `TitledBox`; it takes its track's width, under a Row's 12rem floor. */
+/* The card is a `TitledBox`; it takes its track's width, under a Compact's 12rem floor. */
 .su-class-brief__card > .su-box {
   flex: 1 1 auto;
   min-width: 0;
@@ -979,19 +888,12 @@ a.su-home__discord:hover {
   margin: 0;
 }
 
-.su-class-brief__trees-label {
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-snug);
-  text-transform: uppercase;
-}
-
-@media (min-width: 64rem) {
-  .su-entity-page--flow:has(.su-class-brief) > .su-entity-page__wide {
+@media (width >= 64rem) {
+  .su-entity-page--art:has(.su-class-brief) > .su-entity-page__wide {
     clear: none;
   }
 
-  .su-entity-page--flow:has(.su-class-brief) > .su-entity-page__wide:empty {
+  .su-entity-page--art:has(.su-class-brief) > .su-entity-page__wide:empty {
     display: none;
   }
 
@@ -1006,7 +908,7 @@ a.su-home__discord:hover {
 
   .su-ability-tree:has(> .su-class-brief) > :not(.su-class-brief) {
     clear: left;
-    margin-top: var(--space-32);
+    margin-top: var(--space-12);
   }
 }
 
@@ -1015,22 +917,15 @@ a.su-home__discord:hover {
  * Legendary Abilities and "Hybrid Classes"), one card each, full width under
  * its Core trees: the class's own Advanced tree first, then each Hybrid Class.
  * Every card is the same shell, one column — a pilot head with the name on
- * the paper cut-out at the band's foot (a Row's) and, right of it, what opens
+ * the paper cut-out at the band's foot (a Compact's) and, right of it, what opens
  * the path and its kind; then the body, what the path is over its trees
- * (their Rows on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
+ * (their Compacts on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
  * the class's own path has no page, so its head links nowhere.
  */
 .su-class-paths {
   display: flex;
   flex-direction: column;
-  gap: var(--space-20);
-}
-
-.su-class-path {
-  background: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  overflow: hidden;
+  gap: var(--space-12);
 }
 
 /* A Hybrid Class's head opens its page: the whole cut-out head is the link. */
@@ -1040,18 +935,25 @@ a.su-home__discord:hover {
   text-decoration: none;
 }
 
+/* The one focus ring (chrome K9), on the whole path: the head is the link,
+   and the frame's clip would cut a ring drawn round the head alone. */
 .su-class-path__link:focus-visible {
-  outline: var(--bw-chrome) solid var(--color-ink);
-  outline-offset: calc(-1 * var(--space-4));
+  outline: 3px solid transparent;
+}
+
+.su-class-path:has(.su-class-path__link:focus-visible) {
+  box-shadow: var(--focus-ring-shadow);
 }
 
 .su-class-path__body {
-  padding: var(--space-14);
+  padding: var(--space-12);
 }
 
 /* The requirement as ONE chip: its cells (REQ | tree, then OR | tree for each
-   other tree) butt into one rounded cell, sharing their inner edges. */
-.su-class-path__req-chip {
+   other tree) butt into one rounded cell, sharing their inner edges. Not once
+   it left its head (`data-fill-out`, C2b): this sheet is unlayered, so its
+   `display` would beat the out state and draw the chip twice. */
+.su-class-path__req-chip:not([data-fill-out]) {
   display: inline-flex;
   flex-wrap: wrap;
 }
@@ -1081,11 +983,12 @@ a.su-home__discord:hover {
    Class's): as many as fit at 16rem, one each on a phone. */
 .su-class-path__trees {
   display: grid;
-  gap: var(--space-8) var(--space-24);
+  gap: var(--space-12) var(--space-24);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
-/* Side by side (two 16rem columns and their gap fit), the trees share rows:
+/* Side by side (from `sm`, where two 16rem columns and their gap fit), the
+   trees share rows:
    each tree is its slab and three tiers on the trees' own grid, so a
    Legendary tree's two picks and its "or" line up with the three tiers beside
    it and every tree ends on one line. */
@@ -1093,12 +996,25 @@ a.su-home__discord:hover {
   container-type: inline-size;
 }
 
-@container (min-width: 33.5rem) {
+/* A class's Core trees: two across, never more. */
+@media (width >= 40rem) {
+  .su-class-path__trees--pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (width >= 40rem) {
   .su-class-path__trees > .su-ability-tree__group {
     display: grid;
     grid-row: span 4;
     grid-template-rows: subgrid;
-    row-gap: var(--space-14);
+    row-gap: var(--space-12);
+  }
+
+  /* The tree's body (a SlabSection's) steps aside, so its track's tiers sit
+     on the trees' own rows. */
+  .su-class-path__trees > .su-ability-tree__group > .su-ability-tree__track {
+    display: contents;
   }
 
   .su-class-path__trees .su-ability-track {
@@ -1108,13 +1024,23 @@ a.su-home__discord:hover {
   }
 }
 
+/* The path's foot: a band in its head's colour (inline), the citation on a
+   paper cut-out flush with its top edge and its end, as a page's foot band
+   cites. */
 .su-class-path__foot {
-  border-top: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink-2);
-  font-size: var(--text-caption);
+  /* No rule above: the cite is a cut-out, its paper flush with the card's
+     body, never boxed off. */
+  display: flex;
+  justify-content: flex-end;
   margin: 0;
-  padding: var(--space-8) var(--space-14);
-  text-align: right;
+  padding: 0 var(--space-12) var(--space-12);
+}
+
+.su-class-path__cite {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+  padding: var(--space-4) var(--space-8);
 }
 
 /*
@@ -1128,7 +1054,7 @@ a.su-home__discord:hover {
 /* `/about`: the map lightbox (a native `<dialog>`) — its scrim, its close
    button's ground, its credit link's underline. */
 .su-about-lightbox::backdrop {
-  background-color: color-mix(in oklab, var(--color-ink) 70%, transparent);
+  background-color: var(--color-ink-75);
 }
 
 @media (hover: hover) {
@@ -1137,7 +1063,7 @@ a.su-home__discord:hover {
   }
 }
 
-/* `/api`: the schema table's Panel clips the table to its frame, and the
+/* `/api`: the schema table's Box clips the table to its frame, and the
    description column is dropped below 40rem. */
 .su-api__schemas {
   overflow: hidden;
@@ -1147,13 +1073,13 @@ a.su-home__discord:hover {
   display: none;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-api__wide-cell {
     display: table-cell;
   }
 }
 
-/* The changelog page's entries (`components/Changelog.tsx`). The bullets' spacing and marker colour
+/* The changelog page's entries (`reference/Changelog.tsx`). The bullets' spacing and marker colour
    are child and pseudo-element selectors. */
 .su-changelog__items > :not(:last-child) {
   margin-block-end: var(--space-4);
@@ -1169,8 +1095,120 @@ a.su-home__discord:hover {
   grid-template-columns: none;
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .su-colophon {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A document page with a sidebar (`DocPage`'s `sidebar`: the Discord page's
+   screenshots): beside the reading column from 64rem, after it below. */
+.su-doc-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.su-doc-page__sidebar {
+  min-width: 0;
+  padding-top: var(--space-8);
+}
+
+@media (width >= 64rem) {
+  .su-doc-page__grid {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .su-doc-page__grid > :first-child {
+    flex: 1 1 auto;
+  }
+
+  .su-doc-page__sidebar {
+    flex: 0 0 24rem;
+    position: sticky;
+    top: var(--space-24);
+  }
+}
+
+/*
+ * A Union Crawler Tech Level's Page (`reference/CrawlerTechLevelPage.tsx`):
+ * the book's block of text on its TitledBox, and the ladder of levels in the
+ * sidebar beside it from `lg`, under it on a phone.
+ */
+.su-tech-level {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+/* The level's facts side by side where they fit, each under a crawler-pink
+   rule: its label in caps, its figure in the condensed display face (R47). */
+.su-tech-level__lines {
+  display: grid;
+  gap: var(--space-16) var(--space-24);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+}
+
+.su-tech-level__line {
+  border-top: var(--space-4) solid var(--color-crawler-band);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-8);
+}
+
+.su-tech-level__label {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+.su-tech-level__value {
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.su-tech-level__figure {
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+}
+
+.su-tech-level__ladder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-tech-level__rungs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* This level, among the ladder's links: the selection ring. */
+.su-tech-level__rungs > [aria-current='page'] {
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
+@media (width >= 64rem) {
+  .su-tech-level {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-40);
+  }
+
+  .su-tech-level > :first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .su-tech-level__ladder {
+    flex: 0 0 24rem;
   }
 }

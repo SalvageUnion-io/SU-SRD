@@ -1,5 +1,5 @@
 /**
- * The crew slot form (board N2; P7 D2–D3): what the player writes for one of
+ * The crew slot form: what the player writes for one of
  * a crawler's crew slots, and the NPC it makes.
  *
  * The slot fixes the template — its position and HP come from the bay's (or
@@ -10,7 +10,7 @@
  * under its name (today only the Augmented A.I.'s "A.I. Personality").
  */
 
-import type { Npc } from 'cantina-domain/schemas/npc'
+import type { Npc } from 'game-domain/schemas/npc'
 import type { CreateInput } from '../../stores/types'
 import type { CrewSlotView, NpcView } from '../npcs/npcModel'
 

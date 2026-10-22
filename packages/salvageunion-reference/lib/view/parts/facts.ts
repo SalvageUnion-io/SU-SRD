@@ -89,13 +89,14 @@ type StatConfig = {
 }
 
 /**
- * Every stat, in THE order (owner, 2026-10-14): one order for every form and
+ * Every stat, in THE order: one order for every form and
  * surface, a smaller form dropping stats but never moving them. Tech Level
  * leads it (`techLevelFact`, added by the caller), then four groups:
  * provenance (Tech Level, Slots Required, Salvage Value: the book's gear
- * sidebar, Workshop Manual pp.163, 191), vitals (SP or HP, EP, Heat: the
- * chassis spread, p.100; Bio-Salvage after the HP it comes from), capacity
- * (System and Module Slots, Cargo; a crawler's Upkeep and Upgrade), then an
+ * sidebar, Workshop Manual pp.163, 191), vitals (SP or HP, EP; Bio-Salvage
+ * after the HP it comes from), capacity (System and Module Slots, then Heat
+ * beside Cargo, the two capacities; a crawler's
+ * Upkeep and Upgrade), then an
  * action's facets (`facetCells`). A hint the Core Book prints (Mech stats
  * p.96–97, Hit Points p.20) is a `bookQuote`; the rest are written here.
  */
@@ -143,15 +144,6 @@ const STATS: StatConfig[] = [
     ),
   },
   {
-    key: 'heatCapacity',
-    getter: getHeatCapacity,
-    group: 'vitals',
-    hint: bookQuote(
-      { source: 'Salvage Union Workshop Manual', page: 97 },
-      'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.'
-    ),
-  },
-  {
     key: 'bioSalvageValue',
     getter: getBioSalvageValue,
     group: 'vitals',
@@ -173,6 +165,15 @@ const STATS: StatConfig[] = [
     hint: bookQuote(
       { source: 'Salvage Union Workshop Manual', page: 97 },
       "Each Module has a Module Slot value which represents how much space it takes up on a Mech, conversely a Mech's Module Slot value represents how many Modules it can mount."
+    ),
+  },
+  {
+    key: 'heatCapacity',
+    getter: getHeatCapacity,
+    group: 'capacity',
+    hint: bookQuote(
+      { source: 'Salvage Union Workshop Manual', page: 97 },
+      'Your Mech generates Heat when you activate some Systems and Modules or when you Push your reactor, its Heat Capacity represents its ability to operate under these conditions. If you reach your Heat Capacity your reactor will be at risk of overloading, with potentially catastrophic results.'
     ),
   },
   {
@@ -216,8 +217,9 @@ function statValue(
 }
 
 /**
- * A chassis's chips, the same in every form but its Page (owner's call,
- * 2026-10-14): TL, SV, SP, EP, SYS, MODS. Cargo and Heat are its Page's.
+ * A chassis's chips in a Compact, CompactIndex or Mini: TL,
+ * SV, SP, EP, SYS, MODS. Its Page and its Peek print every stat, Cargo and
+ * Heat too.
  */
 const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
   'salvageValue',
@@ -230,6 +232,8 @@ const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
 type StatOptions = {
   schemaName?: RefEnumSchemaName | 'actions'
   techLevel?: number | 'B' | 'N'
+  /** Every stat, a chassis's included: the Peek's. */
+  every?: boolean
 }
 
 /** Every stat the entity has, in THE order (`STATS`), with the names it prints. */
@@ -251,10 +255,10 @@ function orderedStats(
 /**
  * The entity's stats as every form but a Page prints them, in THE order
  * (`STATS`), the Tech Level not among them (`techLevelFact` leads them). A
- * chassis keeps its chip set (`CHASSIS_CHIPS`).
+ * chassis keeps its chip set (`CHASSIS_CHIPS`) but in a Peek (`every`).
  */
 export function entityStats(entity: RefMetaEntity, options: StatOptions): Fact[] {
-  const chassis = options.schemaName === 'chassis'
+  const chassis = options.schemaName === 'chassis' && !options.every
   return orderedStats(entity, options)
     .filter(({ config }) => !chassis || CHASSIS_CHIPS.has(config.key))
     .map(({ config, value, names }) => ({

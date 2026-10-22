@@ -1,0 +1,52 @@
+/*
+ * Play's instrument rules — the `.su-play-*` pieces inside the canvas that a
+ * style object cannot say (ADR-046): the resolve's cost choice and Hot(X)
+ * projection (`PlayResolveCost`; the Hot(X) stepper is `Stat`'s own) and the
+ * SRD Explorer's scrolling body.
+ *
+ * Every rule references the canonical `--color-*` / `--bw-*` / `--radius-*` /
+ * `--text-*` / `--tracking-*` tokens (src/components theme.css) directly.
+ * Muted text on the light grounds is `--color-wk-muted` (5.13:1 on
+ * band-cream, 5.73:1 on paper), never an ink alpha (contrast.test.ts).
+ *
+ * The layout shell is `.su-play-root`/`.su-play-canvas` (canvas.css), before
+ * this file in `play.css`.
+ */
+
+/* A scrolling body: the SRD Explorer's panes. */
+.su-play-display-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-12);
+}
+
+/* ---- The resolve's cost choice and Hot(X) projection ---- */
+.su-play-deck-cost-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin: 0;
+  padding: var(--space-8) var(--space-12);
+  border: var(--bw-chrome) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+}
+.su-play-deck-cost-choice-lab {
+  padding: 0;
+  font-size: var(--text-note);
+  color: var(--color-wk-muted);
+}
+.su-play-deck-hotx {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+.su-play-deck-hotx-proj {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+.su-play-deck-hotx-proj.su-play-deck-hotx-proj--over {
+  color: var(--color-status-bad);
+}

@@ -36,7 +36,7 @@ export type BudgetConfig = {
   max: number
 }
 
-/** One facet row: its label and its chips, rendered through the shared FilterRow. */
+/** One facet row: its label and its chips, a Field over its Segmented. */
 export type FacetRowConfig = {
   label: string
   chips: Array<{

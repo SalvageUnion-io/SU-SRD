@@ -1,30 +1,30 @@
 /**
  * The site's one search: the reference pages hydrate it as an island (the
- * Union bar's field, the home and 404 hero), and the Cantina renders the same
+ * Union bar's field, the home and 404 hero), and the app renders the same
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
- * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed
- * in the same tab.
+ * field, which is the whole search (there is no results page, EDL "Which
+ * form, where"); Cmd/Ctrl+K focuses it. Every result is a reference page,
+ * followed in the same tab; Enter with no row highlighted opens the first.
+ *
+ * The hero, and the bar on the home page, open on the address's `?q=`: the
+ * retired search page's address lands on the home page with it
+ * (`retiredSitePage`, `lib/redirects.ts`), as does the 404 hero's
+ * no-JavaScript form, and the island mounts at once for it (`mountNow.ts`).
  */
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { color, fontSize, layer, space, weight } from '../../design/tokens'
+import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
+import { SearchListbox } from '../compositions/SearchListbox'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
-import {
-  EmptyState,
-  Entity,
-  Pending,
-  SearchField,
-  useModKeyHint,
-  useSearchCombobox,
-} from '../index'
+import { SearchField, useModKeyHint, useSearchCombobox } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -33,15 +33,12 @@ type SearchIslandProps = {
    *  Override in tests to spy on navigation without happy-dom limitations. */
   navigate?: (url: string) => void
   /**
-   * `bar` (default) — the Union bar's compact field. `hero` — the home page's
-   * wide field and Search button on the Contents band (board 06), over the
+   * `bar` (default) — the Union bar's compact field. `hero` — the 404's wide
+   * field and Search button on its band, over the
    * same `HeroSearchForm` the page server-renders.
    */
   variant?: 'bar' | 'hero'
 }
-
-/** The results column's inset; `.su-entity-token-list` sets Tokens one a line, full width. */
-const RESULTS = { padding: space[8] } satisfies CSSProperties
 
 /** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
 const LISTBOX = {
@@ -57,31 +54,6 @@ const LISTBOX = {
 const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties
 
 const LISTBOX_BAR = { ...LISTBOX, right: 0, width: '20rem' } satisfies CSSProperties
-
-const SMALL = { fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' } satisfies CSSProperties
-
-/** The loading and empty states' place in the listbox. */
-const STATUS = {
-  paddingBlock: space[12],
-  paddingInline: space[16],
-} satisfies CSSProperties
-
-/** A category result; its hover ground is `.su-search__category` (pages.css). */
-const CATEGORY = {
-  ...SMALL,
-  display: 'block',
-  paddingBlock: space[12],
-  paddingInline: space[16],
-} satisfies CSSProperties
-
-const CATEGORY_TITLE = { color: color.ink, fontWeight: weight.medium } satisfies CSSProperties
-
-const CATEGORY_GROUP = {
-  color: color.wkMuted,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-  marginTop: space[2],
-} satisfies CSSProperties
 
 const RELATIVE = { position: 'relative' } satisfies CSSProperties
 
@@ -130,6 +102,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     selectedIndex,
     handleInput,
     handleKeyDown,
+    submit,
     listboxId,
     optionId,
     inputProps,
@@ -158,19 +131,24 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         inputRef.current?.blur()
         return
       }
-      // Enter with no highlighted row → the full results page (uncapped), rather
-      // than jumping to the first dropdown hit. Arrow-selected Enter still opens
-      // that specific result (handled by the shared hook below).
-      if (e.key === 'Enter' && selectedIndex < 0) {
-        e.preventDefault()
-        const term = query.trim()
-        if (term) doNavigate(`/search?q=${encodeURIComponent(term)}`)
-        return
-      }
+      // Arrows move the highlight; Enter opens it, or the first result.
       handleKeyDown(e)
     },
-    [isOpen, results, handleKeyDown, selectedIndex, query, doNavigate]
+    [isOpen, results, handleKeyDown]
   )
+
+  // The hero, and the bar on the home page, open on the address's query
+  // (`/?q=mule`), once, as if typed.
+  const prefilled = useRef(false)
+  useEffect(() => {
+    if (prefilled.current || !(hero || window.location.pathname === '/')) return
+    prefilled.current = true
+    const term = new URLSearchParams(window.location.search).get('q')?.trim()
+    if (!term) return
+    load()
+    handleInput(term)
+    inputRef.current?.focus()
+  }, [hero, load, handleInput])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -217,7 +195,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // so the mounter carries what a reader typed there, with focus and
       // caret, onto this one (`mountIsland`).
       name={hero ? 'q' : 'srd-search'}
-      placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the SRD'}
+      placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the Reference'}
       shortcut={shortcut}
       value={query}
       onChange={(e) => onInput(e.target.value)}
@@ -226,77 +204,51 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         load()
         setDismissedResults(null)
       }}
-      // The bar's width is the Union bar's (The Cantina's trigger shares it), a class
+      // The bar's width is the Union bar's (The app's trigger shares it), a class
       // so the mobile sheet can widen it.
       className={hero ? undefined : 'su-union-bar__search-input'}
       containerClassName={hero ? 'su-hero-search__field' : undefined}
-      glyphSize={hero ? 18 : undefined}
+      glyph={hero ? 'full' : undefined}
       {...inputProps}
-      aria-label="Search the SRD"
+      aria-label="Search the Reference"
       role="combobox"
       aria-expanded={isOpen}
       aria-controls={listboxId}
     />
   )
 
+  // HEADER SEARCH (entity display language, "Which form, where"): every
+  // entity result is a Mini in link mode, one a line; a category is a plain
+  // link.
   const listbox = isOpen && (
-    <div id={listboxId} role="listbox" style={hero ? LISTBOX_HERO : LISTBOX_BAR}>
-      {!ready ? (
-        <div style={STATUS}>
-          <Pending label="search index" />
-        </div>
-      ) : results.length > 0 ? (
-        // HEADER SEARCH (entity display language, "Which form, where"): every
-        // entity result is a Token in link mode, one a line; a category is a
-        // plain link. The full /search page keeps its Rows.
-        <DocumentLinks>
-          <div className="su-entity-token-list" style={RESULTS}>
-            {results.map((result, index) => {
-              const option = {
-                id: optionId(index),
-                role: 'option',
-                'aria-selected': index === selectedIndex,
-              } as const
-              const model = result.kind === 'entity' ? models.get(result.id) : undefined
-              return model ? (
-                <Entity
-                  key={result.id}
-                  form="token"
-                  context="browse"
-                  model={model}
-                  mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
-                />
-              ) : (
-                <a
-                  key={result.id}
-                  {...option}
-                  href={resultUrl(result)}
-                  className="su-search__category"
-                  style={CATEGORY}
-                >
-                  <div style={CATEGORY_TITLE}>{result.title}</div>
-                  <div style={CATEGORY_GROUP}>{result.group}</div>
-                </a>
-              )
-            })}
-          </div>
-        </DocumentLinks>
-      ) : (
-        <div style={STATUS}>
-          <EmptyState variant="inline" body="No results found" />
-        </div>
-      )}
-    </div>
+    <DocumentLinks>
+      <SearchListbox
+        id={listboxId}
+        size="mini"
+        ready={ready}
+        results={results}
+        selectedIndex={selectedIndex}
+        optionId={optionId}
+        modelOf={(result) => models.get(result.id)}
+        target={{ href: resultUrl }}
+        style={hero ? LISTBOX_HERO : LISTBOX_BAR}
+      />
+    </DocumentLinks>
   )
 
   if (hero) {
     // The form's own submit — Enter with the listbox closed, or the Search
-    // button — opens the full results page, as Enter does in the bar.
+    // button — opens the first result, as Enter does in the bar; with none,
+    // the field takes focus and its panel shows what the search found.
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      const term = query.trim()
-      if (term) doNavigate(`/search?q=${encodeURIComponent(term)}`)
-      else inputRef.current?.focus()
+      const first = query.trim() ? results[0] : undefined
+      if (first) {
+        submit(first)
+        return
+      }
+      setDismissedResults(null)
+      inputRef.current?.focus()
     }
     return (
       <IslandErrorBoundary>

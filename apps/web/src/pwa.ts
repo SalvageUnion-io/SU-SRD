@@ -11,7 +11,7 @@
  *
  * Every chunk, stylesheet and font the build emits, the icons, the home page
  * and the builder's shell. An installed app that opens at `/` can switch to the
- * builder offline and back. HTML pages are NOT precached (1,039 of them would
+ * builder offline and back. HTML pages are NOT precached (about a thousand would
  * be a multi-megabyte install): visited pages land in `pages`, and an installed
  * app fills it with every page once per deploy
  * (`src/runtime/offlineWarm.client.ts`).
@@ -69,7 +69,7 @@ export const SITE_MANIFEST = '/site.webmanifest'
 
 /**
  * The one service worker: where it is served and what it controls, the whole
- * origin. `vite.config.ts` builds it here, so the Cantina's
+ * origin. `vite.config.ts` builds it here, so the app's
  * `virtual:pwa-register` registers it here, and the reference pages'
  * `registerSiteWorker` (`lib/sw/siteWorker.ts`) does the same.
  */

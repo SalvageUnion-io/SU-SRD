@@ -1,10 +1,10 @@
 /**
- * A crawler bay's WHEN DAMAGED (ruleset N5): on the bay's own Page a titled
- * box at level 1; inside a card (a sheet's bay, a Peek) a Slab over the
- * effect, never a box inside the entity.
+ * A crawler bay's WHEN DAMAGED is one block in every context (hard rule R18,
+ * ruleset N5): a Slab over the effect, on the bay's own Page as in a card (a
+ * sheet's bay, a Peek), never a box.
  */
 import { describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -26,12 +26,36 @@ describe('When Damaged', () => {
     expect(label.closest('.su-ec-block')?.textContent).toContain(effect)
   })
 
-  test('on the bay’s Page it stays a titled box', () => {
-    const { bay } = cantina()
+  test('on the bay’s Page it is the same block: a Slab over the effect, no box', () => {
+    const { bay, effect } = cantina()
     const { container } = render(<ReferenceEntityCard data={bay} presentation="page" />)
-    const notch = Array.from(container.querySelectorAll('.su-box .su-entity-row__notch')).find(
+    const notch = Array.from(container.querySelectorAll('.su-box .su-entity-compact__notch')).find(
       (n) => n.textContent === 'When Damaged'
     )
-    expect(notch).toBeTruthy()
+    expect(notch).toBeUndefined()
+    // On a Page it is a page section: the Slab, then its body.
+    const slab = Array.from(container.querySelectorAll('[data-slab]')).find(
+      (el) => el.textContent === 'When Damaged'
+    )
+    if (!slab) throw new Error('no When Damaged Slab')
+    expect(slab.nextElementSibling?.textContent).toContain(effect)
+  })
+
+  test('a bay reads its rules (no Bay Info head), then When Damaged, then its crew, never folded on the reference', () => {
+    const { bay } = cantina()
+    for (const presentation of ['page', undefined] as const) {
+      const { unmount, container } = render(
+        <ReferenceEntityCard data={bay} presentation={presentation} />
+      )
+      // Nothing folds on the reference: no Collapse control.
+      expect(screen.queryByRole('button', { name: /^Collapse Cantina/ })).toBeNull()
+      const text = container.textContent ?? ''
+      expect(text).not.toContain('Bay Info')
+      const crew = text.indexOf(bay.npc?.position ?? '')
+      const damaged = text.indexOf('When Damaged')
+      expect(damaged).toBeGreaterThanOrEqual(0)
+      expect(crew).toBeGreaterThan(damaged)
+      unmount()
+    }
   })
 })

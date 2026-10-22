@@ -91,7 +91,7 @@ export type TechScaling = {
    * EFFECTIVE tech level — the value that scales this entity: the Modification
    * choice cap (`cardinality.max.scalesWith: techLevel`) AND any `perTechLevel` datavalue
    * (e.g. Custom Sniper Rifle damage). The host `scalingParent.techLevel`
-   * (controlled from without — the crawler level in the Cantina) wins over the
+   * (controlled from without — the crawler level in the app) wins over the
    * entity's own base TL. Floors at the base TL — a granted item is never below
    * its own tech level.
    */
@@ -162,13 +162,9 @@ export function resolveTechScaling(
 /**
  * The header's stat cluster.
  *
- * Stat LABELS are size-aware: `asCompact` abbreviates (SP, Cargo, …) for a
- * compact/nested/listing card, while a non-compact card keeps the full labels
- * (which may wrap two lines, which is fine). The card builds this TWICE for a
- * non-compact card, because the header measures itself and falls back to the
- * compact cells when it is too narrow to seat its value boxes (see
- * `narrowStats` on EntityCardHeader) — and those read "SV / SYS / MODS", not
- * the two-line long form.
+ * Stat LABELS are size-aware: `asCompact` (the default) abbreviates (SP,
+ * Cargo, …); `asCompact: false` keeps the full value box's labels, which may
+ * wrap two lines.
  */
 export function buildHeaderStats(options: {
   entity: RefMetaEntity
@@ -181,6 +177,8 @@ export function buildHeaderStats(options: {
    * the full card, the Page and the Peek.
    */
   budget?: boolean
+  /** Every stat, a chassis's included: the Peek prints them all. */
+  every?: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
   techLevel: number | 'B' | 'N' | undefined
@@ -195,6 +193,7 @@ export function buildHeaderStats(options: {
         // Never 'actions' here — an action takes the `none` branch above.
         schemaName: schemaName === 'actions' ? undefined : schemaName,
         techLevel,
+        every: options.every,
       })
   // TECH LEVEL is a header headline stat (value box), NOT a label pill — a
   // size-aware label ("Tech Level" full / "TL" compact), placed first in the

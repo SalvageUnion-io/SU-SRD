@@ -16,48 +16,22 @@
 
 import { SRD_SITE_URL } from '../origin'
 import type { RefMetaEntity, RefObjectAnyPattern } from '../schemas/index'
+import { toComponentsV2 } from './componentsV2'
 import { discordAccent } from './discordAccents'
-import type { DiscordBlock, DiscordCard } from './discordCard'
+import type { DiscordCard, DiscordCardParts } from './discordCard'
 import { discordCard, discordCardParts } from './discordCard'
 import { toEntityModel } from './toEntityModel'
 
 /** Discord's ceiling for a Component Embed's whole payload, in UTF-8 bytes. */
 export const COMPONENT_EMBED_MAX_BYTES = 3000
 
-/** Discord's component type ids (Components V2). */
-const TYPE = { section: 9, text: 10, thumbnail: 11, separator: 14, container: 17 } as const
-
-function toRaw(block: DiscordBlock): Record<string, unknown> {
-  switch (block.kind) {
-    case 'text':
-      return { type: TYPE.text, content: block.content }
-    case 'separator':
-      return { type: TYPE.separator, divider: true, spacing: 1 }
-    case 'section':
-      return {
-        type: TYPE.section,
-        components: block.text.map((content) => ({ type: TYPE.text, content })),
-        ...(block.thumbnail
-          ? {
-              accessory: {
-                type: TYPE.thumbnail,
-                media: { url: block.thumbnail.url },
-                description: block.thumbnail.description,
-              },
-            }
-          : {}),
-      }
-  }
-}
-
-/** A card as a Component Embed's JSON: one Container, its accent the card's tone. */
+/**
+ * A card as a Component Embed's JSON: one Container, its accent the card's
+ * tone, written by the serialiser every bot reply goes through too.
+ */
 export function componentEmbedJson(card: DiscordCard): string {
   return JSON.stringify({
-    component: {
-      type: TYPE.container,
-      accent_color: discordAccent(card.tone),
-      components: card.blocks.map(toRaw),
-    },
+    component: toComponentsV2({ accent: discordAccent(card.tone), blocks: card.blocks }),
   })
 }
 
@@ -111,9 +85,21 @@ type DiscordEntryCardOptions = {
 }
 
 /**
- * An entry's (or one of its patterns') Discord card, shed to the shared budget.
- * With `srdOrigin`, its links point there, and the budget is measured on those
- * links, since a longer origin can shed a part production's keeps.
+ * A card's parts, shed to the shared budget. With `srdOrigin`, its links point
+ * there, and the budget is measured on those links, since a longer origin can
+ * shed a part production's keeps.
+ */
+function cardWithinBudget(parts: DiscordCardParts, srdOrigin?: string): DiscordCard {
+  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
+    return discordCard(parts, { fits: fitsDiscordEntryBudget })
+  }
+  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
+  return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
+}
+
+/**
+ * An entry's (or one of its patterns') Discord card, shed to the shared budget
+ * (`cardWithinBudget`), its links at `srdOrigin` when given.
  */
 export function discordEntryCard(
   entity: RefMetaEntity,
@@ -123,10 +109,49 @@ export function discordEntryCard(
   const parts = discordCardParts(
     toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
   )
-  const { srdOrigin } = options
-  if (srdOrigin === undefined || srdOrigin === SRD_SITE_URL) {
-    return discordCard(parts, { fits: fitsDiscordEntryBudget })
+  return cardWithinBudget(parts, options.srdOrigin)
+}
+
+/** A player's saved pattern: where its page is, and who made it. */
+export type HomebrewPattern = {
+  /** The pattern's own page in the app (`/p/pattern/:id`), absolute. */
+  url: string
+  /** The maker's display name, as the page credits them. */
+  madeBy: string
+}
+
+/** Escape what would read as Discord markdown in a player-typed name. */
+export function escapeMarkdown(text: string): string {
+  return text.replace(/[\\`*_~|[\]()<>#]/g, '\\$&')
+}
+
+/**
+ * A player's saved pattern as the card its book patterns get, for its page's
+ * Component Embed: the same blocks, read off its chassis and the pattern's
+ * name, description and loadout, marked as homebrew three ways, as its page
+ * is (ruleset §3.9): HOMEBREW leads the kicker, the title links to its own
+ * page, and the foot credits "Homebrew // Made by [user]" where a book card
+ * cites its printings.
+ */
+export function discordHomebrewPatternCard(
+  chassis: RefMetaEntity,
+  pattern: RefObjectAnyPattern,
+  homebrew: HomebrewPattern,
+  options: DiscordEntryCardOptions = {}
+): DiscordCard {
+  const parts = discordCardParts(toEntityModel(chassis, undefined, { pattern }))
+  const bookUrl = parts.url
+  const head = parts.head.map((line) => {
+    if (line.startsWith('-# ')) return `-# HOMEBREW · ${line.slice(3)}`
+    if (line.startsWith('## ') && bookUrl)
+      return line.replace(`](${bookUrl})`, `](${homebrew.url})`)
+    return line
+  })
+  const own = {
+    ...parts,
+    url: homebrew.url,
+    head,
+    cite: `-# Homebrew // Made by ${escapeMarkdown(homebrew.madeBy)}`,
   }
-  const rebase = (card: DiscordCard) => withSrdOrigin(card, srdOrigin)
-  return rebase(discordCard(parts, { fits: (card) => fitsDiscordEntryBudget(rebase(card)) }))
+  return cardWithinBudget(own, options.srdOrigin)
 }

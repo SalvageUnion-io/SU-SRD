@@ -1,6 +1,6 @@
 /**
  * The WCAG 2.2 AA scan the web app runs as Playwright specs
- * (`e2e/reference-a11y.e2e.ts`, `e2e/cantina-a11y.e2e.ts`, the Cantina's signed-in
+ * (`e2e/reference-a11y.e2e.ts`, `e2e/app-a11y.e2e.ts`, the app's signed-in
  * `e2e/a11y-signed-in.e2e.ts`): axe-core
  * over the spec's page list, at a 1280×900 desktop and again as a Pixel 7. Any violation, on any
  * page or device, fails the spec.
@@ -17,6 +17,35 @@ import { devices } from '@playwright/test'
 /** axe-core from the local install: the scan needs no network egress. */
 const require = createRequire(import.meta.url)
 const AXE_PATH = require.resolve('axe-core/axe.min.js')
+
+/**
+ * The rule tags every scan runs: WCAG 2.2 AA and best practice. `wcag22aa`
+ * adds 2.2's new AA criteria — target size (2.5.8) among them, which is the
+ * one a phone layout most readily fails.
+ */
+const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
+
+/**
+ * axe over the page as it stands, with {@link AXE_TAGS}, injecting axe-core
+ * first when the page has none: one line per violation, its id and the nodes
+ * it names. For a spec that scans a live page state rather than a URL list
+ * (`apps/web/e2e/_play.ts`).
+ *
+ * @public Imported by the Play specs through `e2e/_play.ts`, which sits
+ * outside knip's project.
+ */
+export async function runAxeOnPage(page: Page): Promise<string[]> {
+  if ((await page.evaluate(() => 'axe' in globalThis)) === false) {
+    await page.addScriptTag({ path: AXE_PATH })
+  }
+  return await page.evaluate(async (tags) => {
+    const { axe, document } = globalThis as unknown as InPage
+    const result = await axe.run(document, { runOnly: tags })
+    return result.violations.map(
+      (v) => `${v.id} (${v.nodes.map((n) => n.target.join(' ')).join(', ')})`
+    )
+  }, AXE_TAGS)
+}
 
 /**
  * Every page is scanned at a desktop, then as a phone. A phone lays the apps
@@ -108,7 +137,7 @@ function unsettled(): string {
   if (waiting.length > 0) return `unmounted island(s): ${waiting.join(', ')}`
   const skeleton = document.querySelector('[role="status"][aria-label="Loading"]')
   if (skeleton !== null) return 'a loading skeleton is still showing'
-  // A router's pending screen (The Cantina's `RoutePending`) is a `<main>` too, so it
+  // A router's pending screen (The app's `RoutePending`) is a `<main>` too, so it
   // satisfies a `ready: 'main'` wait while the route itself has not drawn.
   return document.querySelector('[aria-busy="true"]') === null ? '' : 'a region is still busy'
 }
@@ -122,16 +151,12 @@ function twoFrames(): Promise<void> {
 }
 
 /**
- * Runs axe over the document and keeps the first five nodes per violation.
- * Runs in the page.
+ * Runs axe over the document with `tags` ({@link AXE_TAGS}) and keeps the
+ * first five nodes per violation. Runs in the page.
  */
-async function runAxe(): Promise<Omit<PageResult, 'page' | 'device'>> {
+async function runAxe(tags: string[]): Promise<Omit<PageResult, 'page' | 'device'>> {
   const { axe, document } = globalThis as unknown as InPage
-  const res = await axe.run(document, {
-    // `wcag22aa` adds 2.2's new AA criteria — target size (2.5.8) among
-    // them, which is the one a phone layout most readily fails.
-    runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
-  })
+  const res = await axe.run(document, { runOnly: tags })
   return {
     violations: res.violations.length,
     passes: res.passes.length,
@@ -226,7 +251,7 @@ async function scanAs(
       await waitUntilSettled(page, inFlight, ready)
       // `addScriptTag` resolves once the script has run, so `window.axe` exists.
       await page.addScriptTag({ path: AXE_PATH })
-      results.push({ page: pathname, device, ...(await page.evaluate(runAxe)) })
+      results.push({ page: pathname, device, ...(await page.evaluate(runAxe, AXE_TAGS)) })
     } catch (err) {
       console.error(`a11y: error scanning ${pathname} (${device}): ${err}`)
       results.push({

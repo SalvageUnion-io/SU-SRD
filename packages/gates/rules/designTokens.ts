@@ -19,15 +19,25 @@
  * ## Every rule is zero
  *
  * Every rule here is `zero`: any finding fails, and none has a baseline entry.
+ * `raw-spacing` and `off-scale-space` (R13) were ratchets, burned to zero
+ * before 4.0.0; the 10px rung `off-scale-space` counted is gone from the scale.
  * `rust-allowlist` (§3.1), `type-floor` (§4.6) and `texture-placement` (§3.5)
  * hold the Workshop Manual canon the ruleset ratifies. The Discord bot's
  * hex-integer accents are exempt from `raw-color` below (Discord's API takes
- * integers, not CSS). Making a rule stricter means fixing or exempting what
- * it newly finds in the same commit; there is no baseline to raise.
+ * integers, not CSS). Making a zero rule stricter means fixing or exempting
+ * what it newly finds in the same commit; there is no baseline to raise.
  */
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import {
+  castsShadow,
+  declaration,
+  declaredValue,
+  keepLengthLiteral,
+  logicalLine,
+  outsideTokens,
+} from '../lib/cssDeclarations'
 import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
@@ -46,7 +56,7 @@ const SCAN_DIRS = [
   // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
-  'packages/cantina-domain/src',
+  'packages/game-domain/src',
 ]
 
 // greembeem (a MediaWiki-palette novelty page) ships as a static file under
@@ -64,6 +74,12 @@ type TokenRule = Rule & {
    * the file's path and the rest of the line.
    */
   keep?: (match: string, line: string, file: string) => boolean
+  /**
+   * Read a declaration whose value starts on the next line (Biome puts each
+   * layer of a multi-layer `box-shadow` on its own) as one line, joined up to
+   * its `;`. The finding is reported on the declaration's first line.
+   */
+  joinValue?: boolean
 }
 
 /**
@@ -83,28 +99,34 @@ const TYPE_FLOOR_PX = 11
 
 /**
  * Where the light speckle may never sit (ruleset §3.5 "Texture"): buttons,
- * fields, the Dashboard and tooltips, by the files that draw them. Paper, the
+ * fields, Play and tooltips, by the files that draw them. Paper, the
  * fifth surface, is not a file — it is caught on the line instead (see
  * `PAPER_GROUND`).
  */
 const TEXTURE_FORBIDDEN: readonly RegExp[] = [
-  // The Dashboard: The Cantina's cockpit and its stylesheets.
-  /\/dashboard\//,
-  /\/Dashboard\w*\.(?:tsx?|css)$/,
+  // Play and the Peek are NOT here (R10): their
+  // brand-colour bands wear the speckle as the sheet's do; Play's ink-deep
+  // ground, its cream and paper columns are paper-like grounds the
+  // `PAPER_GROUND` line check and the e2e (`_texture.ts`, `design-walk.e2e.ts`) hold clean.
   // Buttons: Button, its recipe, and every *Button component.
   /Button\w*\.tsx?$/,
   /\/buttonVariants\.ts$/,
   // Fields: the input primitives.
-  /\/(?:atoms|containers)\/(?:Field|FieldError|InlineEditField|inputs|Sel|Radio|RadioCardGroup|CountStepper)\.tsx$/,
+  /\/(?:atoms|containers)\/(?:Field|FieldError|inputs|Radio|RadioCardGroup)\.tsx$/,
   /\/SearchField\.tsx$/,
-  // Tooltips: the tooltip primitive, and the Peek (the entity's compact card).
+  // Tooltips: the tooltip primitive.
   /Tooltip\w*\.tsx$/,
-  /\/entity\/Peek\w*\.tsx$/,
 ]
 
 /** A paper GROUND on the same line — the speckle never sits on paper. */
 const PAPER_GROUND =
   /(?<![\w-])bg-paper(?![\w-])|background(?:-color|Color)?\s*:\s*(?:var\(--color-paper\)|color\.paper\b)/
+
+/** Local stacking (chrome K4): a literal z-index up to this is a page's own. */
+const LOCAL_Z_MAX = 3
+
+/** The three Size heights (ruleset §4.7), the values `--size-*` owns, in px or rem. */
+const SIZE_LITERAL = /(?<![\w.#-])(?:(?:18|32|44)px|(?:1\.125|2|2\.75)rem)(?![\w-])/
 
 const TOKEN_RULES: TokenRule[] = [
   {
@@ -172,7 +194,7 @@ const TOKEN_RULES: TokenRule[] = [
     id: 'type-floor',
     mode: 'zero',
     rule: 'ruleset §4.6 — the 11px type floor, no exceptions',
-    // Board 04 ("raise the floor"): the four rungs under 11px carried most of
+    // The floor (R12): the four rungs under 11px carried most of
     // the stamps and stat labels — exactly the words a player squints at
     // mid-combat. They were retired into `badge`, and this keeps them retired:
     // a retired rung's NAME is a finding (in any spelling — utility, custom
@@ -194,8 +216,8 @@ const TOKEN_RULES: TokenRule[] = [
     // Rust had leaked into chrome as a brand accent — the ".io" and "Beta"
     // marks, section headings, the "you are here" state, link text, focus and
     // selection rings — and `--color-sheet-pilot-deep` aliased it outright, so
-    // nothing on screen said "this does something" any more (board 03, issue
-    // register #7). Every spelling of the rust family counts: the custom
+    // nothing on screen said "this does something" any more. Every spelling
+    // of the rust family counts: the custom
     // property (rust, rust-hi, rust-25), a utility-style class under any
     // variant prefix, and the `color.rust*` token keys.
     fix: 'Rust is painted only by `Button` / `buttonVariants` (every action) and `InlineRef` (an inline link). A link in prose is `InlineRef`; a heading or a "here" state is ink (an ink Slab, an inverse stamp); a focus or selection ring is ink. Never alias a token to rust.',
@@ -205,16 +227,16 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'texture-placement',
     mode: 'zero',
-    rule: 'ruleset §3.5 — the speckle sits on bands and ink, never on paper, buttons, fields, the Dashboard or tooltips',
-    // The light speckle (board 05c) is ink grain on a colour band and paper
-    // flecks on an ink ground. On a button it reads as dirt on the one thing
-    // that must read clean; on a field it fights the text being typed; on a
-    // tooltip it is noise at glance size; the Dashboard is an instrument; and
-    // on paper there is no band for it to belong to. A texture reference —
+    rule: 'ruleset §3.5.1 — the speckle sits on every brand-colour band and ink header, Play and the Peek included, never on paper, buttons, fields or tooltips',
+    // The light speckle is ink grain on a colour band and paper
+    // flecks on an ink ground, in every context (R10). On a button it reads
+    // as dirt on the one thing that must read clean; on a field it fights the
+    // text being typed; on a tooltip it is noise at glance size; and on paper
+    // there is no band for it to belong to. A texture reference —
     // a filter id, a `--texture-*` property or the `texture` / `speckle`
     // tokens — is a finding in a file that draws one of those surfaces, or on
     // a line that also paints a paper ground.
-    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar), never on paper, a button, a field, the Dashboard or a tooltip.',
+    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar, a Play unit box’s band), never on paper, cream, Play’s ink-deep ground, a button, a field or a tooltip.',
     pattern:
       /\bsu-(?:blot|speck|fleck)\b|--texture-[a-z-]+|\b(?:texture|speckle)\.(?:blotOpacity|speckOpacity|fleckOpacity|filters|grains)\b|\btokens\.(?:texture|speckle)\b/g,
     keep: (_match, line, file) =>
@@ -229,12 +251,139 @@ const TOKEN_RULES: TokenRule[] = [
     // second "ground" on a quiet chip and a search row, which put the cool
     // palette back on a warm page. Every spelling counts: the custom property,
     // a utility-style class under any prefix, and the `color.wkBg2` token key.
-    // "Print" means the print stylesheet only (`apps/web/src/styles/cantina/print.css`,
+    // "Print" means the print stylesheet only (`apps/web/src/styles/build/print.css`,
     // all of it inside `@media print`), which whites the token out for paper;
     // theme.css / tokens.ts still DEFINE it and are exempt below like every
     // other definition rule.
     fix: 'Use the workshop ground: `color.wkBg` / `var(--color-wk-bg)` for the step off paper, or `color.paper` / `var(--color-paper)` for the surface itself.',
     pattern: /--color-wk-bg-2(?![\w-])|(?<![\w-])[a-z]+(?:-[trblxy])?-wk-bg-2(?![\w-])|\bwkBg2\b/g,
+  },
+  {
+    id: 'raw-tracking',
+    mode: 'zero',
+    rule: 'ruleset §4.2 — the tracking ladder is tokens only (R13)',
+    // Letter-spacing is a five-rung ladder; a literal `0.1em` is a sixth rung
+    // nobody chose. `0`, `normal` and the CSS-wide keywords are not tracking.
+    fix: 'Use a rung of the ladder: `tracking.<rung>` in a style object, `var(--tracking-<rung>)` in a stylesheet — `capsTight` (0.04em) the label default, `capsSnug` (0.06em) at the 11px floor, `caps` (0.08em) chips, `capsWide` (0.12em) header stamps, `eyebrow` (0.22em) the brand caption. Body text takes no tracking (`normal`).',
+    pattern: declaration('letter-spacing', 'letterSpacing'),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'size-literal',
+    mode: 'zero',
+    rule: 'ruleset §4.7 — a control height is a Size token (R13)',
+    // 44, 32 and 18px (2.75, 2 and 1.125rem) are the Full, Compact and Mini
+    // Sizes. Spelled as a literal, a height stops following the Size: under a
+    // coarse pointer `--size-compact` lifts to 44px, and a literal 32px stays
+    // behind.
+    fix: 'Use the Size: `size.full` / `var(--size-full)` (44px, the touch floor), `size.compact` / `var(--size-compact)` (32px), `size.mini` / `var(--size-mini)` (18px). An icon takes `iconSize`, not a height.',
+    // Heights, and `min-width` (the touch floor's other half); a plain width
+    // is a column or a box, not a Size.
+    pattern: declaration(
+      '(?:min-|max-)?(?:height|block-size)|min-width',
+      '(?:min|max)?(?:[hH]eight|[bB]lockSize)|minWidth'
+    ),
+    keep: (match) => SIZE_LITERAL.test(outsideTokens(declaredValue(match))),
+  },
+  {
+    id: 'ink-mix',
+    mode: 'zero',
+    rule: 'ruleset §4.1 — the ink ramp is warm ink at opacity, one rung per shade (R13)',
+    // A `color-mix()` of ink is a shade the ramp does not list: a second
+    // spelling of `--color-ink-NN`, or an opaque grey, which §4.1 rules out.
+    fix: 'Use a rung of the ink ramp: `color.ink<NN>` / `var(--color-ink-<NN>)` (85, 75, 60, 55, 50, 40, 35, 30, 20, 15, 10, 8, 5). It is translucent over whatever ground it sits on; a shade with no rung takes the nearest one.',
+    pattern:
+      /color-mix\(\s*in\s+[a-z]+\s*,\s*(?:var\(--color-ink(?:-[a-z0-9]+)?\)|\$\{(?:tokens\.)?color\.ink\w*\})/g,
+  },
+  {
+    id: 'raw-border-width',
+    mode: 'zero',
+    rule: 'ruleset §4.3 — the border map, one meaning per weight (R13)',
+    // Outlines are not on the map: the forced-colours fallback is a
+    // transparent outline, and focus is R28's ring.
+    fix: 'Use the weight for the role: `borderWidth.entity` / `var(--bw-entity)` (3px, a full card), `entityCompact` / `--bw-entity-compact` (2px, a Card below full, a Compact), `pill` / `--bw-pill` (2px), `chrome` / `--bw-chrome` (1.5px, controls), `hairline` / `--bw-hairline` (1px, value-cell frames and table rules).',
+    pattern: declaration(
+      'border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-width)?',
+      'border(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?(?:Width)?'
+    ),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'raw-radius',
+    mode: 'zero',
+    rule: 'ruleset §4.4 — square entity frames, 3px for everything that frames or floats (R13)',
+    fix: 'Use `radius.card` / `var(--radius-card)` (3px: a button, field, Box, dialog, popup, toast), `calc(var(--radius-card) - <frame>)` inside a frame; an entity frame or stamp sets none (square); `pip` and `badge` for those two.',
+    pattern: declaration(
+      'border(?:-(?:top|bottom|start|end)-(?:left|right|start|end))?-radius',
+      'border(?:Top|Bottom|Start|End)?(?:Left|Right|Start|End)?Radius'
+    ),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'radius-panel',
+    mode: 'zero',
+    rule: 'ruleset §4.4 — one rounding for a frame: 3px, `radius.card` (R13)',
+    // The 6px `panel` rung was a second frame rounding: a Panel, a pick card
+    // and a doc page's aside wore it while every other frame was 3px. Its
+    // token is deleted; this keeps a spelling of it from coming back, in a
+    // style object or as a stylesheet's custom property.
+    fix: 'Use `radius.card` / `var(--radius-card)` (3px): a frame that is no entity (a Box, a pick card, a dialog, a button) is 3px; an entity frame or stamp sets none (square).',
+    pattern: /\bradius\.panel\b|--radius-panel(?![\w-])/g,
+  },
+  {
+    id: 'raw-shadow',
+    mode: 'zero',
+    rule: 'chrome K4 / ruleset §4.4 — one lift, in warm ink, for whatever floats (R26)',
+    // Four hand-rolled lifts (two of them neutral black) were four depths of
+    // "floating". The focus ring is `--focus-ring-shadow`, a custom property,
+    // so it never reaches this pattern; rings and inset frames cast nothing
+    // (`castsShadow`). A multi-layer value Biome splits over lines is read
+    // whole (`joinValue`).
+    fix: 'Use the lift: `shadow.lift` in a style object, `var(--shadow-lift)` in a stylesheet — for a popup, Peek plate, toast, dialog or sticky bar. Focus is `var(--focus-ring-shadow)`. A ring or frame is a spread-only (`0 0 0 Npx`) or inset box-shadow, which casts nothing.',
+    pattern: declaration('box-shadow', 'boxShadow'),
+    keep: (match) => castsShadow(declaredValue(match)),
+    joinValue: true,
+  },
+  {
+    id: 'raw-z-index',
+    mode: 'zero',
+    rule: 'chrome K4 — above the page, z-index comes from `layer` (R26)',
+    // 0–3 is a component's own stacking (a stamp over the frame it rides);
+    // anything above competes with the page's layers and belongs to one.
+    fix: 'Above the page, use a layer: `layer.<name>` / `var(--z-<name>)` — sticky (40), popover (45), overlay (50), menu (60), skip (100). Within a component, stack with 0–3.',
+    pattern: declaration('z-index|zIndex', 'zIndex'),
+    keep: (match) =>
+      (outsideTokens(declaredValue(match)).match(/-?\d+/g) ?? []).some(
+        (n) => Number(n) > LOCAL_Z_MAX
+      ),
+  },
+  {
+    id: 'raw-spacing',
+    mode: 'zero',
+    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block, 16 or 24px between (R13)',
+    // A literal off the scale (3px, 7px, 22px, 0.6em…) is a layout move to
+    // review, not a find-and-replace. A fit that is not spacing (a -1px
+    // overlap, a face's side bearing, room under a pinned bar) takes a
+    // `design-tokens-ignore` with its reason on the line.
+    fix: 'Use the scale: `space[N]` / `var(--space-N)` — 2, 4, 6, 8 or 12 inside a block (12 the card gutter), 16 or 24 between blocks. An off-scale literal moves to the nearest rung; check the page with `bun run shot`. A component fit, not spacing, takes `design-tokens-ignore: <reason>` on its line.',
+    pattern: declaration(
+      '(?:padding|margin)(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?|(?:row-|column-)?gap',
+      '(?:padding|margin)(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?|(?:row|column)?[gG]ap'
+    ),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'off-scale-space',
+    mode: 'zero',
+    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block; `space[10]` is off it (R13)',
+    // The token scale named a 10px rung (`space[10]`, `--space-10`), which
+    // `raw-spacing`, reading literals, never saw: the chip wells drew 10px of
+    // padding beside 8px through a token. Burned to zero, the rung is gone;
+    // this keeps it from coming back.
+    fix: 'Move to a rung on the scale: `space[8]` / `var(--space-8)` or `space[12]` / `var(--space-12)`, and check the page with `bun run shot`.',
+    pattern: /(?<![\w-])(?:space\[10\]|--space-10)(?![\w-])/g,
+    // Where the rung is defined: the token files, not a use.
+    skip: ['apps/web/src/styles/theme.css', 'apps/web/src/design/tokens.ts'],
   },
 ]
 
@@ -259,7 +408,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/components/atoms/Button.tsx',
     rules: ['rust-allowlist'],
     reason:
-      'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, the Dashboard cost-pennant button included, is painted here or by buttonVariants.',
+      'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, in Play too, is painted here or by buttonVariants.',
   },
   {
     file: 'apps/web/src/components/atoms/buttonVariants.ts',
@@ -286,34 +435,28 @@ const EXEMPTIONS: Exemption[] = [
       "Not a web surface. The bot's embed accent is rust in lockstep with theme.css (`themeLockstep.test.ts`), and Discord renders it as a container edge, not a button or a link; the matches here are the doc comments that cite `--color-rust` as that lockstep's source. Discord's own palette rules are the bot's (ruleset §3.4), not this allowlist's.",
   },
   {
-    file: 'apps/web/src/components/atoms/Slab.tsx',
-    rules: ['gradient'],
-    reason:
-      'Named exemption: the Slab dashed leader (a repeating-linear-gradient) is a deliberate control-panel shape built on ink tokens, kept on purpose.',
-  },
-  {
     file: 'apps/web/src/components/atoms/userMadeHatch.ts',
     rules: ['gradient'],
     reason:
       'The user-made hatch (ruleset §3.5 and §3.9): a HARD-STOP `repeating-linear-gradient(135deg, …)` — coincident stops on `--color-ink-20` over the band\'s own colour — so it paints rules and never blends. Ruled in the ruleset before it was built ("it joins EXEMPTIONS when it lands"); alone in its file so the exemption covers this one constant.',
   },
   {
-    file: 'apps/web/src/components/catalog/catalogColors.ts',
-    rules: ['gradient'],
-    reason:
-      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into the shared library to be shared with the Dashboard's SRD Explorer.",
-  },
-  {
-    file: 'apps/web/src/components/atoms/CatalogTile.tsx',
-    rules: ['gradient'],
-    reason:
-      'Named exemption in ruleset §3.5: the catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps. The ramp is a wayfinding cue, not decoration. The only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
-  },
-  {
     file: 'apps/web/src/styles/global.css',
-    rules: ['gradient', 'raw-color'],
+    rules: ['gradient', 'raw-color', 'raw-border-width', 'raw-shadow'],
     reason:
-      'Ruleset §3.5 THE one-off: the .su-pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+      'Ruleset §3.5 THE one-off: the .su-pilot-panel junk slab on srd /about (a torn-off hull panel with the dedication carved into it) is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of salvaged junk rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust, the painted hull, the rivet heads and the carved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. raw-border-width rides along for the same picture: the plate bevel is four light-catch and underside edges of 1 and 2px, drawn as borders, not frame weights, and raw-shadow for its rivets, whose inset bevels are the lighting of the picture, not a lift. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+  },
+  {
+    file: 'apps/web/src/components/referenceEntity/card/cardChrome.ts',
+    rules: ['ink-mix'],
+    reason:
+      "A down entity's band: a damaged band dulls toward a grey and a destroyed one goes flat grey, ink mixed into PAPER, not over transparent. A band carries text, so it must be opaque: `foregroundOn` and `contrast.test.ts` read these `color-mix(in srgb, …)` values to hold its contrast, which a translucent rung over an unknown ground would not let them do. Not a shade of ink at opacity, so not the ramp's to spell.",
+  },
+  {
+    file: 'apps/web/src/styles/discord-reply.css',
+    rules: ['raw-color', 'raw-border-width', 'raw-radius', 'raw-spacing'],
+    reason:
+      "EXTERNAL BRAND colours, not ours: the /discord page's screenshots (`reference/DiscordReply.tsx`) draw the bot's reply as Discord shows it, in Discord's dark-theme greys, its blurple and its link blue, with its 4px accent stripe and 3px button corners. A picture of Discord is recognisable BECAUSE it is Discord's, so resolving it to our tokens would misrepresent the app it pictures (the KofiButton rule for third-party marks). Alone in its file so the exemption covers the picture only.",
   },
   {
     file: 'apps/web/src/components/atoms/KofiButton.tsx',
@@ -322,10 +465,10 @@ const EXEMPTIONS: Exemption[] = [
       "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set.",
   },
   {
-    file: 'apps/web/src/styles/cantina/print.css',
-    rules: ['raw-color', 'cool-ground'],
+    file: 'apps/web/src/styles/build/print.css',
+    rules: ['raw-color', 'cool-ground', 'raw-border-width'],
     reason:
-      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
+      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint. raw-border-width rides along for the same paper: a printed frame is a 1px rule of real ink, not a screen border weight.',
   },
 ]
 
@@ -359,7 +502,8 @@ export function scanTokenSources(sources: ReadonlyMap<string, string>): Record<s
     for (const rule of TOKEN_RULES) {
       if (isExempt(EXEMPTIONS, rel, rule.id)) continue
       if (rule.skip?.some((s) => rel.includes(s))) continue
-      lines.forEach((line, i) => {
+      lines.forEach((raw, i) => {
+        const line = rule.joinValue ? logicalLine(lines, i) : raw
         // A line may opt out with a cited reason.
         if (line.includes('design-tokens-ignore')) return
         for (const match of line.match(rule.pattern) ?? []) {

@@ -1,8 +1,8 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
-import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'cantina-domain/links/linkRules'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'game-domain/links/linkRules'
 import type { Doc, Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import {
@@ -59,7 +59,7 @@ import { crewSlot, entityRef, entityRefType, ownableTable, softLinkType } from '
  * ## Every write Zod-parses before it persists
  *
  * The schema stores entity bodies as `v.any()` so the Zod schemas in
- * `cantina-domain/schemas/` stay the single source of truth rather than being forked
+ * `game-domain/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price of that is
  * stated plainly in the schema header: **Convex cannot reject a malformed body,
  * so the mutation has to.** `parseBody` and its `PARSERS` map live in
@@ -306,7 +306,7 @@ export const locate = query({
  * ## Why it exists
  *
  * It is the way down outside a Game (`listForGame` is scoped to one): without
- * it a signed-in player opening the Cantina on a second device would see an **empty
+ * it a signed-in player opening the app on a second device would see an **empty
  * roster**. A cache is something that can be *filled*, and this is what fills
  * it ([ADR-034](../../../docs/ARCHITECTURE.md#decisions) decision 2).
  *
@@ -379,7 +379,7 @@ export const listMine = query({
     // A template pre-gen (no `appId`) was seeded with the template's own body,
     // which says `gameId: null`, while the row sits in its Game. The column is
     // where it is, so a claimed pre-gen comes down in its Game: cached as on the
-    // shelf, the Dashboard refused it and its next write moved it out.
+    // shelf, Play refused it and its next write moved it out.
     const versioned = (r: ContainedRow) => ({
       appId: r.appId ?? null,
       updatedAt: r.updatedAt,
@@ -560,7 +560,7 @@ export const remove = mutation({
  */
 export const createCrawler = mutation({
   args: {
-    /** The Game this crawler is raised in, or `null` to raise it on your Hangar. */
+    /** The Game this crawler is raised in, or `null` to raise it on your Training Bay. */
     gameId: v.union(v.id('games'), v.null()),
     /** The app-level UUID this row carries — see `pilots.appId`. */
     appId: v.optional(v.string()),

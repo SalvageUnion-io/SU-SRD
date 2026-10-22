@@ -1,6 +1,6 @@
 {
   "copy": {
-    "lowercase-term": 250,
-    "banned-variant": 3
+    "lowercase-term": 190,
+    "banned-variant": 2
   }
 }

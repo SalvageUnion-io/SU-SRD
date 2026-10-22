@@ -17,26 +17,21 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import type { EntityKind } from 'cantina-domain/entityKinds'
-import { isEntityKind } from 'cantina-domain/entityKinds'
-import { NpcSheetView } from '../../../components/npc/NpcSheetView'
+import { isEntityKind } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
+import { NpcSheetView } from '../../../build/npc/NpcSheetView'
+import { SheetSkeleton } from '../../../build/sheet/SheetSkeleton'
+import { SheetView } from '../../../build/sheet/SheetView'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
-import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
-import { SheetView } from '../../../components/sheet/SheetView'
-import { pageTitle } from '../../../lib/pageTitle'
+import { areaTitle } from '../../../lib/pageTitle'
 import { useEntityStore } from '../../../stores/entityStore'
 
-/**
- * A sheet kind is exactly a store-entity kind. Partners are NOT among them:
- * one renders in place on its host's sheet as a decorated reference entity, so
- * it never needed a route, and `EntityRef` never needed widening (ADR-028).
+/*
+ * The route's `$kind` is any store-entity kind (`isEntityKind`), NPCs
+ * included. Partners are NOT among them: one renders in place on its host's
+ * sheet as a decorated reference entity, so it never needed a route, and
+ * `EntityRef` never needed widening (ADR-028).
  */
-type SheetKind = EntityKind
-
-/** Route-param guard: narrows the raw `$kind` segment to a sheet kind. */
-function isSheetKind(kind: string): kind is SheetKind {
-  return isEntityKind(kind)
-}
 
 function SheetKindNotFound() {
   const params = Route.useParams()
@@ -55,12 +50,12 @@ function SheetKindNotFound() {
 
 export const Route = createFileRoute('/sheet/$kind/$id')({
   loader: async ({ params }) => {
-    if (!isSheetKind(params.kind)) {
+    if (!isEntityKind(params.kind)) {
       throw notFound()
     }
     const store = useEntityStore.getState()
     // Hydrate ALL entity kinds (not just the viewed one): wired compositions
-    // resolve linked entities (rail chips, Hold ← Load targets) from the
+    // resolve linked entities (rail chips, Hold Load targets) from the
     // other kinds' stores via SoftLinks.
     await Promise.all([
       store.hydrate('pilot'),
@@ -72,7 +67,7 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
   },
   // The generic title. The entity's own name comes from the store in
   // `SheetView`, so the tab follows a rename: a loader reads no player entity.
-  head: () => ({ meta: [{ title: pageTitle('Sheet') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Sheet') }] }),
   component: SheetPage,
   pendingComponent: SheetSkeleton,
   notFoundComponent: SheetKindNotFound,
@@ -81,7 +76,7 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
 function SheetPage() {
   const { kind, id } = Route.useParams()
   // The loader already 404s unknown kinds; this re-narrow keeps it cast-free.
-  if (!isSheetKind(kind)) return <SheetKindNotFound />
+  if (!isEntityKind(kind)) return <SheetKindNotFound />
   if (kind === 'npc') return <NpcSheetView id={id} />
 
   return <SheetView kind={kind} id={id} />

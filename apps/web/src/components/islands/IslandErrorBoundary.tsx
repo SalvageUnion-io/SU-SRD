@@ -26,7 +26,7 @@ type State = { error: Error | null }
  * the only remaining content).
  *
  * The recovery UI is the shared src/components `RecoveryPanel` (also used by
- * cantina's root error component); the island-specific action here is a full
+ * the app's root error component); the island-specific action here is a full
  * page reload.
  */
 export class IslandErrorBoundary extends Component<Props, State> {
@@ -54,7 +54,7 @@ export class IslandErrorBoundary extends Component<Props, State> {
           <RecoveryPanel
             title="Something went wrong"
             message="Something went wrong rendering this entry."
-            action={{ label: 'Reload page', onClick: () => window.location.reload() }}
+            action={{ label: 'Try again', onClick: () => window.location.reload() }}
           />
         </div>
       )

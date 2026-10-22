@@ -26,7 +26,7 @@ describe('OgCardIsland', () => {
   test('?brand draws the site’s own preview, with the SRD kicker, and needs no entity', () => {
     const { container } = renderAt('?brand')
     expect(container.querySelector('[data-brand-card]')).not.toBeNull()
-    expect(screen.getByText('SRD and Character Manager')).toBeTruthy()
+    expect(screen.getByText('Reference and Character Manager')).toBeTruthy()
     expect(container.querySelector('[data-og-card]')).toBeNull()
   })
 

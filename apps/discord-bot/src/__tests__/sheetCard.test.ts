@@ -7,11 +7,11 @@
  * `armour-plating`.
  */
 import { describe, expect, test } from 'bun:test'
-import type { EntityBody, SheetResult, SheetTable } from '../cantina/types'
-import { CANTINA_ORIGIN, sheetCard } from '../gameCards'
+import { APP_ORIGIN, sheetCard } from '../gameCards'
+import type { EntityBody, SheetResult, SheetTable } from '../play/types'
 import { blockStarting, cardHeading, cardText, cardTexts, cardUrl } from './cardText'
 
-const WEB = CANTINA_ORIGIN
+const WEB = APP_ORIGIN
 
 function sheet(table: SheetTable, body: EntityBody, overrides: Partial<SheetResult> = {}) {
   return sheetCard({
@@ -211,5 +211,12 @@ describe('robustness', () => {
       systemConditions: 42,
     })
     expect(cardHeading(card)).toContain('Rustjaw')
+  })
+})
+
+describe('provenance', () => {
+  test("escapes the owner's name, so markdown in it reads literally", () => {
+    const card = sheet('pilots', { callsign: 'Vex' }, { ownerName: '*star*_x_' })
+    expect(cardText(card)).toContain('Owned by **\\*star\\*\\_x\\_**')
   })
 })

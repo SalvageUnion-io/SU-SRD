@@ -18,9 +18,9 @@ const EMPTY: Form = { name: '', items: [] }
 
 describe('wizardDraft', () => {
   test('keys one draft slot per wizard kind', () => {
-    expect(wizardDraftKey('pilot')).toBe('cantina-wizard-draft:pilot:new')
-    expect(wizardDraftKey('mech')).toBe('cantina-wizard-draft:mech:new')
-    expect(wizardDraftKey('crawler')).toBe('cantina-wizard-draft:crawler:new')
+    expect(wizardDraftKey('pilot')).toBe('app-wizard-draft:pilot:new')
+    expect(wizardDraftKey('mech')).toBe('app-wizard-draft:mech:new')
+    expect(wizardDraftKey('crawler')).toBe('app-wizard-draft:crawler:new')
   })
 
   test('a dirty form persists and reads back; pristine forms never write', () => {

@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { createMemoryHistory, createRouter } from '@tanstack/react-router'
-import { routeTree } from '../../routeTree.gen'
+import { landOn } from './landOn'
 
 /**
  * `/account` became `/settings`. The old address must keep working — it is in
@@ -11,15 +10,6 @@ import { routeTree } from '../../routeTree.gen'
  * rendering, which is all a redirect needs and keeps the app shell (Convex,
  * the reference-data gate) out of this test.
  */
-
-async function landOn(path: string): Promise<string> {
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [path] }),
-  })
-  await router.load()
-  return router.state.location.pathname
-}
 
 describe('/account', () => {
   test('redirects to /settings', async () => {

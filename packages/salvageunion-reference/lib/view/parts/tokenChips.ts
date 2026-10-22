@@ -2,10 +2,11 @@ import type { EntityDomain, EntityModel, Fact } from '../types'
 import { splitStatLine } from './facts'
 
 /**
- * Where a Token is drawn, named by its container (`chips-and-actions.md`, C4):
+ * Where a Mini is drawn, named by its container (`chips-and-actions.md`, C4):
  * the context picks the one fact its lane carries.
  *
- * - `loadout` — what it takes: its Slots (a system, module or bay), a unit's SP.
+ * - `loadout` — what it takes: its Slots (a system, module or bay), a unit's SP,
+ *   a cargo lot's Units.
  * - `play` — what it does: its action type, or how many actions it has.
  * - `inventory` — how many are carried, when more than one.
  * - `roster` — a unit's lead vital, as its live reading (`HP | 10/10`).
@@ -14,29 +15,29 @@ import { splitStatLine } from './facts'
 export type ChipContext = 'loadout' | 'play' | 'inventory' | 'roster' | 'browse'
 
 /** One label-first chip (`TL | 2`), or a label alone (`BASE`). */
-export type TokenChipCell = { label: string; value?: string }
+export type MiniChipCell = { label: string; value?: string }
 
-/** A Token's context lane, as data: the web draws an action type as its stamps. */
-export type TokenLane =
-  | { kind: 'cell'; cell: TokenChipCell }
+/** A Mini's context lane, as data: the web draws an action type as its stamps. */
+export type MiniLane =
+  | { kind: 'cell'; cell: MiniChipCell }
   | { kind: 'actionType'; actionType?: string; mechActionType?: string }
 
 /**
- * A Token's chips, in the class order (C2): rank, the context lane, then a
+ * A Mini's chips, in the class order (C2): rank, the context lane, then a
  * contentful head's economy (its action type, unless the lane is it), action
  * facets and traits, then the cost.
  */
-export type TokenChips = {
-  rank?: TokenChipCell
-  lane?: TokenLane
-  economy?: TokenLane
-  facets?: TokenChipCell[]
-  traits?: TokenChipCell[]
+export type MiniChips = {
+  rank?: MiniChipCell
+  lane?: MiniLane
+  economy?: MiniLane
+  facets?: MiniChipCell[]
+  traits?: MiniChipCell[]
   cost?: string
 }
 
-/** The parts of a model a Token's chips read. */
-export type TokenChipSource = Pick<EntityModel, 'facts'> &
+/** The parts of a model a Mini's chips read. */
+export type MiniChipSource = Pick<EntityModel, 'facts'> &
   Partial<
     Pick<
       EntityModel,
@@ -44,8 +45,8 @@ export type TokenChipSource = Pick<EntityModel, 'facts'> &
     >
   >
 
-/** What a thing takes in a loadout, first present wins (by the chip's short label). */
-const TAKES = ['Slots', 'SP', 'HP'] as const
+/** What a thing takes in a loadout, first present wins (by the chip's short label): a cargo lot's Units last. */
+const TAKES = ['Slots', 'SP', 'HP', 'Units'] as const
 
 /** A unit's lead vital, first present wins. */
 const VITALS = ['SP', 'HP'] as const
@@ -53,24 +54,24 @@ const VITALS = ['SP', 'HP'] as const
 const RANK_KEY = 'tech-level'
 
 /**
- * A Token's chips (C3: a static budget): its rank, the one fact its context
+ * A Mini's chips (C3: a static budget): its rank, the one fact its context
  * names, and its read cost. The rank is the Tech Level, or a class's kind
  * where it has none; an ability's tier is its numeral before the name, never
  * a chip. `omit` drops a fact the container already states (C10), by key.
- * A contentful Token stands for the card it replaces (N3), as a compact Card
- * or Row head does, so its head adds the economy: the action type (unless the
+ * A contentful Mini stands for the card it replaces (N3), as a compact Card
+ * or Compact head does, so its head adds the economy: the action type (unless the
  * lane already is it), every action facet (`RNG | C`, `DMG | 2`) and the
- * traits. The host adds the state chip (a condition, a count); what a Token
+ * traits. The host adds the state chip (a condition, a count); what a Mini
  * leaves out, its Peek shows.
  */
 export function tokenChips(
-  model: TokenChipSource,
+  model: MiniChipSource,
   context: ChipContext,
   options: { omit?: readonly string[]; count?: number; contentful?: boolean } = {}
-): TokenChips {
+): MiniChips {
   const omit = options.omit ?? []
   const kept = model.facts.filter((fact) => !omit.includes(fact.key))
-  const byShort = (shorts: readonly string[]): TokenChipCell | undefined => {
+  const byShort = (shorts: readonly string[]): MiniChipCell | undefined => {
     for (const short of shorts) {
       const fact = kept.find((f) => f.short === short)
       if (fact) return { label: fact.short, value: fact.shortValue ?? fact.value }
@@ -78,7 +79,7 @@ export function tokenChips(
     return undefined
   }
   const tl = kept.find((fact) => fact.key === RANK_KEY)
-  const rank: TokenChipCell | undefined = tl
+  const rank: MiniChipCell | undefined = tl
     ? { label: tl.short, value: tl.shortValue ?? tl.value }
     : !model.tier && model.kind?.classKind
       ? { label: model.kind.classKind }
@@ -104,12 +105,12 @@ export function tokenChips(
 }
 
 function contextLane(
-  model: TokenChipSource,
+  model: MiniChipSource,
   context: ChipContext,
-  byShort: (shorts: readonly string[]) => TokenChipCell | undefined,
+  byShort: (shorts: readonly string[]) => MiniChipCell | undefined,
   count: number | undefined
-): TokenLane | undefined {
-  const cell = (found: TokenChipCell | undefined): TokenLane | undefined =>
+): MiniLane | undefined {
+  const cell = (found: MiniChipCell | undefined): MiniLane | undefined =>
     found ? { kind: 'cell', cell: found } : undefined
   switch (context) {
     case 'loadout':
@@ -136,7 +137,7 @@ function contextLane(
  * self-action's type is the entity's own, so one listed action beside it is
  * still a count, or its type would read as the entity's.
  */
-function economyLane(model: TokenChipSource): TokenLane | undefined {
+function economyLane(model: MiniChipSource): MiniLane | undefined {
   const actions = model.actions?.length ?? 0
   if (actions > 1 || (actions === 1 && model.folded)) {
     return { kind: 'cell', cell: { label: 'Actions', value: String(actions) } }
@@ -150,7 +151,7 @@ function economyLane(model: TokenChipSource): TokenLane | undefined {
 }
 
 /**
- * The one measure a context keeps on a compact Card or Row head (C3), by short
+ * The one measure a context keeps on a compact Card or Compact head (C3), by short
  * label, from those the head has: what a loadout weighs, a roster's vital.
  * The head keeps it and its Tech Level and drops every other measure.
  */
@@ -176,9 +177,9 @@ export function naturalContext(kind: {
 }
 
 /**
- * A compact Card or Row head's facts (C3): of its stats, the Tech Level and
+ * A compact Card or Compact head's facts (C3): of its stats, the Tech Level and
  * the one measure its context keeps; then every action facet and datavalue,
- * as a contentful Token's head keeps them.
+ * as a contentful Mini's head keeps them.
  */
 export function budgetFacts(facts: readonly Fact[], context: ChipContext): Fact[] {
   const { stats, action } = splitStatLine(facts)

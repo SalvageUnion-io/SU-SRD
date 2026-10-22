@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SignOutHandoff } from '../components/account/AccountHandoff'
+import { SignOutHandoff } from '../build/account/AccountHandoff'
 import { pageTitle } from '../lib/pageTitle'
 
 /** The SRD account menu's Sign out, then back to the page it was on (`AccountHandoff.tsx`). */

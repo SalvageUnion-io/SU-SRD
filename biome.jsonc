@@ -95,6 +95,11 @@
         "!**/__tests__/**",
         "!**/apps/web/src/components/shared/RouteErrors.tsx"
       ]
+    },
+    {
+      // The detail view is a Page, never a new tab (hard rule R34).
+      "path": "./packages/gates/biome/noWindowOpen.grit",
+      "includes": ["**/apps/web/src/**"]
     }
   ],
   "files": {
@@ -115,7 +120,6 @@
       "!.claude",
       "!**/node_modules",
       "!**/dist",
-      "!**/build",
       // `wrangler dev` writes its bundled Worker — plus the miniflare error
       // middleware it injects — into `.wrangler/tmp/`: generated JS nobody
       // wrote. Biome does NOT read `.gitignore` (there is no `vcs` block in
@@ -123,6 +127,7 @@
       // fails depending on whether someone happens to have a server up.
       "!**/.wrangler",
       "!**/.vite",
+      "!**/.convex",
       "!**/coverage",
       "!**/playwright-report",
       "!**/test-results",
@@ -374,8 +379,8 @@
       "includes": [
         "apps/web/**",
         "!apps/web/ssg/**",
-        "!apps/web/src/pages/**",
-        "!apps/web/src/endpoints/**",
+        "!apps/web/src/reference/pages/**",
+        "!apps/web/src/reference/endpoints/**",
         "!apps/web/src/runtime/**",
         "!apps/web/src/components/islands/**"
       ],
@@ -420,8 +425,117 @@
       }
     },
     {
+      // R7 (docs/design-system/hard-rules.md): entity markup lives only in
+      // `components/entity/`. The app takes a form (`Compact`, `CompactFrame`,
+      // `Entity`) or a shared part from the entity module's face
+      // (`components/entity/index.ts`, or the components barrel), never an
+      // entity part (`Head`, `Chips`, `paint`) by its path. Its stylesheets'
+      // half is the `styling` rule set's `entity-markup`. Restates the root
+      // rule's options in full: Biome overrides REPLACE a rule's options, so
+      // it comes before the static-page and display-layer overrides below,
+      // which restate this pattern for their own files.
+      "includes": ["apps/web/src/**", "!apps/web/src/components/entity/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // A Live Sheet's carried things are Minis (hard rule R35, ruleset §6.6):
+      // an item the reference does not hold is a Mini from a synthetic model
+      // in `SheetItemLine`, never a `Panel`. Restates the override above in
+      // full, its RadioCardGroup and StepButton bans included (Biome overrides
+      // REPLACE a rule's options), and adds the ban.
+      "includes": ["apps/web/src/build/sheet/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  },
+                  {
+                    "group": ["**/components/index", "**/components", "**/atoms/Panel"],
+                    "importNamePattern": "Panel",
+                    "message": "R35 (ruleset §6.6): a sheet's carried thing is a Mini in `SheetItemLine` (a synthetic model, `syntheticItemModel`), never a `Panel`."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       // A static page: what the SSG renders and the islands it hydrates. It
-      // ships at most 20 KB of JS, so it never imports the Cantina's router,
+      // ships at most 20 KB of JS, so it never imports the app's router,
       // stores or shell, or Convex. A relative import does not say what it
       // reaches, so the rule names those folders; `reference-bundle-budget.e2e.ts` and
       // the Vite pass's chunk groups (`ssg/appGraph.ts`) catch what a shared
@@ -432,12 +546,10 @@
       // merging — see the note at the root declaration.
       "includes": [
         "apps/web/ssg/**",
-        "apps/web/src/pages/**",
-        "apps/web/src/endpoints/**",
-        "apps/web/src/layouts/**",
+        "apps/web/src/reference/**",
         "apps/web/src/runtime/**",
         "apps/web/src/components/islands/**",
-        "!apps/web/ssg/cantinaPlugins.ts"
+        "!apps/web/ssg/appPlugins.ts"
       ],
       "linter": {
         "rules": {
@@ -473,7 +585,21 @@
                       "**/shell/**",
                       "**/main"
                     ],
-                    "message": "A static page never imports Convex or the Cantina's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
+                    "message": "A static page never imports Convex or the app's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
                   }
                 ]
               }
@@ -521,6 +647,181 @@
                   {
                     "group": ["**/convex/**", "**/stores/**"],
                     "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // R24 (hard-rules.md, ruleset §6.6): the files that may take
+      // `RadioCardGroup`, which the three overrides above refuse everywhere
+      // else in apps/web/src. A pick dialog is `PickDialog`; the wizards keep
+      // their own steps' radio groups (a class, a crawler type, an NPC's
+      // template) and `MasonryColumns`' `radio` grid; the barrel exports it, and
+      // its own test drives it.
+      // Each restates the options of the override it stands in for, without
+      // the ban: Biome overrides REPLACE a rule's options.
+      "includes": [
+        "apps/web/src/build/wizard/CrawlerTypeStep.tsx",
+        "apps/web/src/build/pilot/ClassPathPicker.tsx",
+        "apps/web/src/build/npc/AnyNpcDesigner.tsx",
+        "apps/web/src/components/index.ts",
+        "apps/web/src/components/containers/__tests__/RadioCardGroup.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // R24's display-layer half: `PickDialog` and the wizards' grid.
+      "includes": [
+        "apps/web/src/components/compositions/PickDialog.tsx",
+        "apps/web/src/components/containers/MasonryColumns.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
+                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
+                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
+                  "zustand": "The display layer takes its data as props; a product folder wires the stores."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/convex/**", "**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // The one stepper's two hosts (hard rule R12, ruleset §6.2, §6.3): `Stat`
+      // draws a count's − / +, `VitalGauge` a vital's, both with `StepButton`.
+      // Listed after the display-layer override, which bans `StepButton`, so
+      // this narrower match wins for these two files; it restates that
+      // override's options, the RadioCardGroup ban included, without the
+      // StepButton ban (Biome overrides REPLACE a rule's options).
+      "includes": [
+        "apps/web/src/components/atoms/Stat.tsx",
+        "apps/web/src/components/atoms/VitalGauge.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
+                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
+                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
+                  "zustand": "The display layer takes its data as props; a product folder wires the stores."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/convex/**", "**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   }
                 ]
               }
@@ -572,7 +873,7 @@
                   },
                   {
                     "group": ["**/src/**"],
-                    "message": "Convex never imports the client (apps/web/src): shared logic lives in cantina-domain or salvageunion-reference (`check rules-home`)."
+                    "message": "Convex never imports the client (apps/web/src): shared logic lives in game-domain or salvageunion-reference (`check rules-home`)."
                   }
                 ]
               }

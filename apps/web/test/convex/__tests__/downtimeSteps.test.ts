@@ -1,13 +1,14 @@
 import { describe, expect, test } from 'bun:test'
-import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
+import { downtimeGuideSteps } from 'game-domain/rules/downtime'
 import { api } from '../../../convex/_generated/api'
 import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
  * Convex reads how many steps the Crawler Downtime procedure has from the
- * dataset's guide (`convex/model/referenceData.ts`), the one `DowntimeWizard`
- * renders, never a hard-coded count. What is left to check is that it does,
+ * dataset's guide (`convex/model/referenceData.ts`), the one Play's Downtime
+ * renders (`PlayDowntimeColumn`, `PlayMediatorDowntime`), never a hard-coded
+ * count. What is left to check is that it does,
  * and that the guide is still the book's.
  *
  * The book is the source: Core Book p.227-228 walks ten named steps, "Tally
@@ -28,7 +29,7 @@ describe('Convex Downtime steps come from the dataset', () => {
     await gm.as.mutation(api.downtime.begin, { gameId })
     const steps = downtimeGuideSteps().length
     for (let i = 0; i < steps + 3; i++) await gm.as.mutation(api.downtime.advance, { gameId })
-    expect((await gm.as.query(api.downtime.state, { gameId })).stepIndex).toBe(steps - 1)
+    expect((await gm.as.query(api.downtime.state, { gameId }))?.stepIndex).toBe(steps - 1)
   })
 
   test('the guide still starts and ends where the book does', () => {

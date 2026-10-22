@@ -1,0 +1,36 @@
+/*
+ * screens.css — the stateful/responsive half of the
+ * app components listed below; their static styling is style objects over
+ * src/components tokens. Loaded by `app.css`.
+ *
+ *   - `build/account/SignInControl.tsx` — `.su-sign-in-control--bar`, the
+ *     ghost Button in the Union bar's foreground (hover included).
+ *
+ * These rules are unlayered, so they outrank the UI library's `su-base` layer —
+ * which is what the overrides above rely on.
+ */
+
+/* Sign in on the Union bar: dressed as the Union bar's "Buy the game"
+   beside it (`.su-union-bar__buy`), so the bar's outlined controls are one
+   kind: a rule in the bar's 60% foreground that goes full on hover, the same type and
+   padding. Background is restated at rest and on hover so the ghost
+   variant's ink-wash hover never shows through. */
+.su-sign-in-control--bar {
+  background-color: transparent;
+  border-color: var(--su-bar-fg-60);
+  color: var(--su-bar-fg);
+  font-size: var(--text-caption);
+  padding-inline: var(--space-14);
+}
+@media (hover: hover) {
+  .su-sign-in-control--bar:hover {
+    background-color: transparent;
+    border-color: var(--su-bar-fg);
+  }
+}
+
+/* A Play screen and the link-preview surface draw no Union bar
+   (`hidesUnionBar`); the shell's is in the document, so it is hidden. */
+html[data-union-bar-hidden] .su-union-bar {
+  display: none;
+}

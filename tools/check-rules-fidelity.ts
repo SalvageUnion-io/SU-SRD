@@ -209,7 +209,7 @@ function loadBook(spec: BookSpec, layer: Layer, path: string): Book {
   }
 }
 
-/** Token range of pages [page - NEAR, page + NEAR]. */
+/** Mini range of pages [page - NEAR, page + NEAR]. */
 function pageWindow(b: Book, page: number): [number, number] {
   let lo = -1
   let hi = -1

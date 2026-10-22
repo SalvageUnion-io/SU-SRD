@@ -1,9 +1,7 @@
 /**
  * A Union Crawler TECH LEVEL is a table row in the book (p.218) with no prose at
  * all: its whole content is Structure Points, Upkeep, Upgrade and a population
- * band. Four of those six fields reached no renderer, so every card in the
- * schema — catalog tile AND full page — showed nothing but a name, a TL and an
- * SP. These tests pin each field to a surface so that cannot silently return.
+ * band. These tests pin each field to the card so none goes unrendered.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render } from '@testing-library/react'
@@ -21,10 +19,8 @@ const textOf = (node: Parameters<typeof render>[0]) =>
   (render(node).container.textContent ?? '').replace(/\s+/g, ' ')
 
 describe('crawler tech level card', () => {
-  test('the CATALOG tile carries every stored field', () => {
-    const text = textOf(
-      <ReferenceEntityCard data={tier('Hamlet Crawler')} size="compact" extent="catalog" />
-    )
+  test('the card carries every stored field', () => {
+    const text = textOf(<ReferenceEntityCard data={tier('Hamlet Crawler')} />)
     expect(text).toContain('Hamlet Crawler')
     expect(text).toContain('TL')
     expect(text).toContain('SP')
@@ -33,8 +29,8 @@ describe('crawler tech level card', () => {
     expect(text).toContain('POP100–500')
   })
 
-  test('the FULL card carries them in the same value cells', () => {
-    const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} size="full" />)
+  test('another tier carries them in the same value cells', () => {
+    const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} />)
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
     expect(text).toContain('POP2,000–5,000')
@@ -44,9 +40,7 @@ describe('crawler tech level card', () => {
     // Megacity is the top of the table: `upgradeCost` is null in the data
     // because there is no next tier to buy, and `populationMax` is the
     // dataset's 0 "unbounded" marker.
-    const text = textOf(
-      <ReferenceEntityCard data={tier('Megacity Crawler')} size="compact" extent="catalog" />
-    )
+    const text = textOf(<ReferenceEntityCard data={tier('Megacity Crawler')} />)
     expect(text).toContain('Upkeep')
     expect(text).not.toContain('Upgrade')
     expect(text).toContain('POP25,000+')
@@ -54,7 +48,7 @@ describe('crawler tech level card', () => {
 
   test('every tier in the schema renders more than its bare name', () => {
     for (const t of SalvageUnionReference.CrawlerTechLevels.all()) {
-      const text = textOf(<ReferenceEntityCard data={t} size="compact" extent="catalog" />)
+      const text = textOf(<ReferenceEntityCard data={t} />)
       expect(text).toContain('Upkeep')
       expect(text).toContain('POP')
       cleanup()

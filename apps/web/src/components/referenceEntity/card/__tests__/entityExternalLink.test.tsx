@@ -1,12 +1,12 @@
 /**
- * Regression guard for the app-supplied entity cross-link (The Cantina's
- * "View in SRD"), which reaches the card through
- * `EntityExternalLinkProvider` and is read by `useEntityExternalLink`.
+ * Regression guard for the app-supplied entity cross-link (The app's
+ * "View in the Reference"), which reaches the card as the entity surface's
+ * `externalLink` and is read by `useEntityExternalLink`.
  *
  * WHY THIS EXISTS. This link silently disappeared once already, and nothing
  * caught it. The since-deleted legacy render core held the only
  * `useEntityExternalLink` call; when that file was removed in favour of
- * `ReferenceEntityCard`, the call went with it and was never reinstated. The Cantina
+ * `ReferenceEntityCard`, the call went with it and was never reinstated. The app
  * still wired the provider in `GameDataReady` and still shipped a tested
  * builder, so both ends of the feature looked healthy — only the middle was
  * gone. The call now lives in `ReferenceEntityCard` itself, which is what this
@@ -21,7 +21,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityExternalLinkProvider } from '../../entityHrefContext'
+import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const chassis = () => {
@@ -30,33 +30,24 @@ const chassis = () => {
   return first
 }
 
-const LINK_TEXT = 'View in SRD'
+const LINK_TEXT = 'View in the Reference'
+const LINKED = { externalLink: () => <a href="/srd">{LINK_TEXT}</a> }
 
-const renderWithLink = (extent: 'full' | 'head' | 'catalog') =>
+const renderWithLink = () =>
   render(
-    <EntityExternalLinkProvider value={() => <a href="/srd">{LINK_TEXT}</a>}>
-      <ReferenceEntityCard data={chassis()} extent={extent} />
-    </EntityExternalLinkProvider>
+    <EntitySurfaceProvider value={LINKED}>
+      <ReferenceEntityCard data={chassis()} />
+    </EntitySurfaceProvider>
   )
 
 describe('entity card external cross-link', () => {
-  test('renders the provided link in the identity footer at full extent', () => {
-    renderWithLink('full')
+  test('renders the provided link in the identity footer', () => {
+    renderWithLink()
     expect(screen.getByText(LINK_TEXT)).toBeTruthy()
   })
 
-  test('omits the link on head listings, which stay uncluttered', () => {
-    renderWithLink('head')
-    expect(screen.queryByText(LINK_TEXT)).toBeNull()
-  })
-
-  test('omits the link on catalog tiles', () => {
-    renderWithLink('catalog')
-    expect(screen.queryByText(LINK_TEXT)).toBeNull()
-  })
-
   test('renders nothing extra when no provider supplies a builder', () => {
-    render(<ReferenceEntityCard data={chassis()} extent="full" />)
+    render(<ReferenceEntityCard data={chassis()} />)
     expect(screen.queryByText(LINK_TEXT)).toBeNull()
   })
 })

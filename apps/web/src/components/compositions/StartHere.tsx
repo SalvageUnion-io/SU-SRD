@@ -1,28 +1,26 @@
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { FOCUS_RING } from '../atoms/interaction'
-import { Slab } from '../atoms/Slab'
-import { Stat } from '../atoms/Stat'
-import { Lead } from '../entity/parts/Lead'
-import { paintFor } from '../entity/parts/paint'
-import { TILE_NAME } from '../entity/parts/tileName'
+import { SlabSection } from '../containers/SlabSection'
+import { INDEX_NAME, INDEX_NAME_CAPS, Lead, paintFor } from '../entity'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 
 /**
- * StartHere — the one onboarding both fronts show: the SRD's home and the Cantina's
+ * StartHere — the one onboarding both fronts show: the SRD's home and the app's
  * front door. Three steps in the order a new crew walks them, each a catalog
- * tile (`.su-entity-tile`, owner's call 2026-10-14): its chapter's tone band
- * with the title notched into its foot and a `STEP | n` chip beside it, then
- * one line on what the step is. The steps' words are `START_HERE_STEPS`,
+ * tile (`.su-entity-index`): its chapter's tone band
+ * with the step's number at its left, as a tree ability's tier numeral,
+ * and the title notched into
+ * its foot, then one line on what the step is. The steps' words are `START_HERE_STEPS`,
  * spelled once here, so the two tools cannot drift into two onboardings again.
  *
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
- * creation guide; the Cantina, signed out, has nowhere to send them yet).
+ * creation guide; the app's front door its builders).
  *
  * The tiles stack in the SRD's 20rem sidebar and on a phone, and run three
- * across once the block is 48rem wide (The Cantina's front door) — the
+ * across once the block is 48rem wide (The app's front door) — the
  * `.su-start-here__steps` container query.
  */
 
@@ -60,12 +58,6 @@ type StartHereProps = {
   hrefs?: Partial<Record<StartHereStepKey, string>>
 }
 
-const SECTION = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[16],
-} satisfies CSSProperties
-
 const STEPS = {
   listStyle: 'none',
   margin: 0,
@@ -75,22 +67,26 @@ const STEPS = {
 function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   const paint = paintFor(step.tone, { texture: true })
   return (
-    <div className="su-entity-tile__frame">
+    <div className="su-entity-index__frame">
       <div
-        className={cn('su-entity-tile__band', grainClass(paint.grain))}
+        className={cn('su-entity-index__band su-start-here__band', grainClass(paint.grain))}
         data-grain={paint.grain}
         style={{ backgroundColor: paint.background, color: paint.color, columnGap: space[6] }}
       >
-        <span className="su-entity-tile__notch">
-          <h3 className="su-entity-tile__name su-start-here__title" style={TILE_NAME}>
+        <span className="su-start-here__number">
+          <span className="su-sr-only">Step </span>
+          {index + 1}
+        </span>
+        <span className="su-entity-index__notch">
+          <h3
+            className={cn('su-entity-index__name su-start-here__title', INDEX_NAME_CAPS)}
+            style={INDEX_NAME}
+          >
             {step.title}
           </h3>
         </span>
-        <span className="su-entity-tile__chips">
-          <Stat orientation="horizontal" label="Step" value={index + 1} size="compact" />
-        </span>
       </div>
-      <div className="su-entity-tile__cells">
+      <div className="su-entity-index__cells">
         <Lead text={step.body} />
       </div>
     </div>
@@ -99,8 +95,7 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
 
 export function StartHere({ id, hrefs = {} }: StartHereProps) {
   return (
-    <section aria-labelledby={id} className="su-start-here" style={SECTION}>
-      <Slab label="Start here" id={id} as="h2" variant="solid" style={{ marginBottom: 0 }} />
+    <SlabSection title="Start here" id={id} as="h2" className="su-start-here" page>
       <ol className="su-start-here__steps" style={STEPS}>
         {START_HERE_STEPS.map((step, index) => {
           const href = hrefs[step.key]
@@ -110,14 +105,14 @@ export function StartHere({ id, hrefs = {} }: StartHereProps) {
                 <a
                   href={href}
                   className={cn(
-                    'su-entity-tile su-entity-tile--bare su-start-here__step',
+                    'su-entity-index su-entity-index--bare su-start-here__step',
                     FOCUS_RING
                   )}
                 >
                   <StepFace step={step} index={index} />
                 </a>
               ) : (
-                <div className="su-entity-tile su-entity-tile--bare">
+                <div className="su-entity-index su-entity-index--bare">
                   <StepFace step={step} index={index} />
                 </div>
               )}
@@ -125,6 +120,6 @@ export function StartHere({ id, hrefs = {} }: StartHereProps) {
           )
         })}
       </ol>
-    </section>
+    </SlabSection>
   )
 }

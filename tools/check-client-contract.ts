@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 /**
  * check-client-contract — a Convex change that would break an already-open
- * The Cantina tab must raise the build floor.
+ * the app tab must raise the build floor.
  *
  * ## The incident
  *
- * CANTINA-CONVEX-9 (2026-10-09): a change made `entities.upsertByAppId`'s
+ * CANTINA-CONVEX-9: a change made `entities.upsertByAppId`'s
  * `expectedUpdatedAt` required. A tab that was open across that deploy still
  * ran the old bundle, which never sent the field, so the backend refused the
  * pilot it had just built. The build floor exists to stop such a tab before it
@@ -199,7 +199,7 @@ export function verdict(snapshot: Snapshot | null, current: Contract, floor: num
     return {
       ok: false,
       message: [
-        'These changes refuse calls that an already-open Cantina tab still makes:',
+        'These changes refuse calls that an already-open app tab still makes:',
         ...breaks.map((b) => `  - ${b}`),
         '',
         `Either keep them compatible (make the new argument optional, keep the old function), or ${RAISE}`,

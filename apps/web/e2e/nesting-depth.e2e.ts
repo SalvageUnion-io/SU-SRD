@@ -1,70 +1,41 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
+import { walkDesignRoutes } from './_designRoutes'
+import { corpusRoutes } from './_designTable'
+import { findFrameFaults } from './_entityFrames'
 import { editSheet, fillIdentity, openSheetFor, waitForReady } from './_helpers'
 import { describeFindings, findNestingFindings } from './_nestingDepth'
+import { holdPending, ruleOfFault } from './_pendingRules'
 import { expect, test } from './fixtures'
 
 /**
- * The nesting law (ruleset §5, N1–N7; EDL E6) on the rendered page
- * (`_nestingDepth.ts`): three levels, nothing titled at level 2, a Token that
+ * The nesting law (ruleset §5, N1–N8; EDL E6) on the rendered page
+ * (`_nestingDepth.ts`): three levels, nothing titled at level 2, a Mini that
  * nests nothing and fills its line, no TitledBox inside an entity or around a
  * wizard step's entities. A failure names the page, the chain of headed frames
  * (`Shield Drone (Drone) > Refractive Shield Projector (System)`) and the rule.
  *
- * There is no allowlist: every finding fails.
+ * There is no allowlist: every finding fails, bar a pending rule's
+ * (`_pendingRules.ts`), which the report shows. Every entity frame's colour
+ * (`_entityFrames.ts`, R38) is read on the same pages.
  *
- * Signed out (the PR tier): sibling-heights' pages, the pages the nesting
- * audit measured, every Starter Set sheet, and a Peek of a chassis, a
- * Bio-Titan and an equipment item. Signed in (nightly, `fixtures.ts`): every
- * step of the three wizards, and a built crawler's sheet in Read and Edit.
+ * Signed out: the reference corpus (`REFERENCE_CORPUS`, `_designTable.ts`:
+ * every Starter Set sheet among it) at page and phone widths, and a Peek of a
+ * chassis, a Bio-Titan and an equipment item. Signed in (`fixtures.ts`; the PR
+ * tier's build carries the seam): every step of the three wizards, and a built
+ * crawler's sheet in Read and Edit. Every signed-in context (`designRoutes`) is
+ * `design-walk.e2e.ts`'s.
  */
-const PAGES = [
-  '/',
-  '/chassis/',
-  '/chassis/mazona/',
-  '/chassis/mazona/pattern/buzzard/',
-  '/chassis/big-brother/',
-  '/chassis/big-brother/pattern/drontek/',
-  '/systems/',
-  '/systems/salvaging-drill/',
-  '/abilities/',
-  '/classes/hacker/',
-  '/classes/engineer/',
-  '/bio-titans/tyrant/',
-  '/npcs/saboteur/',
-  '/drones/pest-drone/',
-  '/vehicles/fighting-box-wheel/',
-  '/crawler-bays/armoury/',
-  '/roll-tables/core-mechanic/',
-  '/roll-tables/mechapult/',
-  '/guides/create-a-pilot/',
-  '/search?q=drill',
-  '/build/',
-  '/build/starter',
-  ...[
-    'pilot/starter-pilot-bonesaw',
-    'pilot/starter-pilot-driftwood',
-    'pilot/starter-pilot-hotdog',
-    'pilot/starter-pilot-judge',
-    'pilot/starter-pilot-nobody',
-    'pilot/starter-pilot-pickle',
-    'pilot/starter-pilot-razor',
-    'mech/starter-mech-bobcat',
-    'mech/starter-mech-mazona',
-    'mech/starter-mech-mule',
-    'mech/starter-mech-scrapper',
-    'mech/starter-mech-spectrum',
-    'mech/starter-mech-thresher',
-    'crawler/starter-crawler-tenacity',
-  ].map((sheet) => `/build/starter/${sheet}`),
-]
-
-/** Desktop, and a phone's width: a Token's line is narrower there. */
-const WIDTHS = [1440, 390]
 
 /**
- * Each Peek opens from the bar search's result Token (the /search page's Rows
- * do not Peek): its schema and a name it holds.
+ * An entity's, a pattern's or a guide's Page, where an entity one level deep
+ * is a Compact drawn open (N8): not an index, a table, the Training Bay or a sheet.
+ */
+const ONE_DEEP = /^\/(?!build\/|roll-tables\/)[a-z-]+\/[a-z0-9-]+\/(?:pattern\/[a-z0-9-]+\/)?$/
+
+/**
+ * Each Peek opens from the bar search's result Mini: its schema and a name
+ * it holds.
  */
 const PEEKS = [
   { schema: 'chassis', name: 'Big Brother' },
@@ -84,36 +55,46 @@ test.describe('signed out', () => {
 
   test('every page nests three levels deep at most', async ({ page }) => {
     test.setTimeout(15 * 60_000)
-    const failures: string[] = []
-    for (const width of WIDTHS) {
-      await page.setViewportSize({ width, height: 900 })
-      for (const path of PAGES) {
-        await page.goto(path, { waitUntil: 'networkidle' })
-        failures.push(...(await scan(page, `${path} at ${width}px`)))
-      }
-    }
+    const found = await walkDesignRoutes(
+      page,
+      async ({ path, where }) => {
+        const lines: { rule: string; line: string }[] = []
+        const findings = await findNestingFindings(page, { oneDeep: ONE_DEEP.test(path) })
+        for (const rule of new Set(findings.map((f) => f.rule))) {
+          const described = describeFindings(
+            where,
+            findings.filter((f) => f.rule === rule)
+          )
+          lines.push(...described.map((line) => ({ rule, line })))
+        }
+        for (const fault of await findFrameFaults(page))
+          lines.push({ rule: ruleOfFault(fault), line: `${where}, ${fault}` })
+        return lines
+      },
+      { routes: corpusRoutes() }
+    )
+    const failures = holdPending('nesting-depth', found).map((f) => f.line)
     expect(failures, 'entities nested past the three levels').toEqual([])
   })
 
-  test('a Peek holds only Tokens', async ({ page }) => {
+  test('a Peek holds only Minis', async ({ page }) => {
     test.setTimeout(5 * 60_000)
     await page.setViewportSize({ width: 1440, height: 900 })
     const failures: string[] = []
     for (const { schema, name } of PEEKS) {
-      // The Union bar's combobox: the home page has only the hero's field,
-      // which mounts its island on intent.
+      // The Union bar's combobox, which mounts its island on intent.
       await page.goto('/chassis/', { waitUntil: 'networkidle' })
-      const search = page.getByRole('combobox', { name: 'Search the SRD' }).first()
+      const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
       await search.click()
       await search.fill(name)
       const trigger = page
         .locator(`[role="option"][data-peek^="${schema}:"]`)
         .filter({ hasText: name })
         .first()
-      await expect(trigger, `a ${schema} Token for ${name} to Peek`).toBeVisible()
+      await expect(trigger, `a ${schema} Mini for ${name} to Peek`).toBeVisible()
       await trigger.hover()
       const popup = page.locator('[data-peek-popup]')
-      await expect(popup.locator('.su-entity-row__head').first()).toBeVisible()
+      await expect(popup.locator('.su-entity-compact__head').first()).toBeVisible()
       failures.push(...(await scan(page, `the ${name} Peek`)))
     }
     expect(failures, 'entities nested past the three levels in a Peek').toEqual([])
@@ -145,7 +126,12 @@ async function walkWizard(
       await page.waitForURL((url) => !url.pathname.includes('/new'), { timeout: 30_000 })
       return failures
     }
-    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    // The wizard's own Next, in its footer pill: an ability's NEXT tree chip
+    // on a step reads "Next: <ability>" too.
+    const next = page
+      .locator('.su-wiz-pill')
+      .getByRole('button', { name: /^Next(: |$)/ })
+      .first()
     if (!(await next.isVisible().catch(() => false))) return failures
     if (await next.isDisabled()) {
       for (const [label, value] of Object.entries(options.identity))

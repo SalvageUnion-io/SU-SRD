@@ -8,10 +8,10 @@ import { Exited, trapExit } from './trapExit'
 
 /**
  * The `entity-nesting` rule set (`tools/check-rule-sets.ts`, the `styling`
- * check) fails a head-only Row (N2), a titled box inside an entity (N5) and a
+ * check) fails a head-only Compact (N2), a titled box inside an entity (N5) and a
  * nested card below level 1 (N3). These run each rule against fixture trees:
  * the shapes the audit found must fail, and the shapes that fix them (a guard
- * on `onPage`, an early `nestsTokens` return, a Slab) must pass.
+ * on `onPage`, an early `nestsMinis` return, a Slab) must pass.
  */
 
 const { errors } = trapExit()
@@ -27,12 +27,12 @@ afterAll(() => {
 const C = 'apps/web/src/components'
 const CARD = `${C}/referenceEntity/card`
 
-/** An adapter whose head extent is the Token (today's) or still a Row (the audit's). */
-const TOKEN_ADAPTER = 'export function ReferenceEntityCard() {\n  return <Token />\n}\n'
+/** An adapter that draws no Compact (today's), or one that still does (the audit's). */
+const TOKEN_ADAPTER = 'export function ReferenceEntityCard() {\n  return <Mini />\n}\n'
 const ROW_ADAPTER =
   'export function ReferenceEntityCard({ size }) {\n' +
-  "  if (size === 'mini') return <Token />\n" +
-  '  return <Row />\n' +
+  "  if (size === 'mini') return <Mini />\n" +
+  '  return <Compact />\n' +
   '}\n'
 
 function fixture(files: Record<string, string>): string {
@@ -52,60 +52,39 @@ function found(rule: string, files: Record<string, string>): string[] {
 }
 
 describe('head-only-token (N2)', () => {
-  const callers = {
-    [`${CARD}/GuideSteps.tsx`]: [
-      'export function GuideSteps({ NestedCard }) {',
-      '  return <>',
-      '    <NestedCard size="compact" extent="head" />',
-      '    <NestedCard size="mini" extent="head" />',
-      '    <NestedCard size="compact" extent="full" />',
-      '  </>',
-      '}',
-    ].join('\n'),
-    [`${C}/crawler/CrewStep.tsx`]:
-      "export const CrewStep = ({ open }) => <ReferenceEntityCard size=\"compact\" extent={open ? 'full' : 'head'} />\n",
-    [ADAPTER.replace('ReferenceEntityCard.tsx', 'Fold.tsx')]:
-      "export function fold(size, extent, folded) {\n  return resolveCardDisplay({ size, extent: folded ? 'head' : extent })\n}\n",
-  }
-
-  test('while the adapter draws a Row, every head that is not mini is a finding', () => {
-    expect(found('head-only-token', { [ADAPTER]: ROW_ADAPTER, ...callers })).toEqual([
-      `${C}/crawler/CrewStep.tsx:1 <ReferenceEntityCard extent="head"> without size="mini": the adapter draws it as a head-only Row`,
-      `${CARD}/Fold.tsx:2 a card display resolved to extent "head" without size "mini": a head-only Row`,
-      `${CARD}/GuideSteps.tsx:3 <NestedCard extent="head"> without size="mini": the adapter draws it as a head-only Row`,
-      `${CARD}/ReferenceEntityCard.tsx:3 the card adapter draws a Row`,
+  test('an adapter that draws a Compact is a finding; one that draws none passes', () => {
+    expect(found('head-only-token', { [ADAPTER]: ROW_ADAPTER })).toEqual([
+      `${CARD}/ReferenceEntityCard.tsx:3 the adapter draws a Compact`,
     ])
+    expect(found('head-only-token', { [ADAPTER]: TOKEN_ADAPTER })).toEqual([])
   })
 
-  test('once the adapter draws every head as a Token, the callers pass', () => {
-    expect(found('head-only-token', { [ADAPTER]: TOKEN_ADAPTER, ...callers })).toEqual([])
-  })
-
-  test('a Row inside an entity fails; on a Page, in a dialog or outside the entity trees it passes', () => {
+  test('a Compact inside an entity fails; on a Page, in a dialog or outside the entity trees it passes', () => {
     const files = {
       [ADAPTER]: TOKEN_ADAPTER,
       [`${CARD}/NestedCards.tsx`]: [
         'function NestedRow({ data }) {',
-        '  return <Entity form="row" entity={data} />',
+        '  return <Entity size="compact" entity={data} />',
         '}',
         'function PageRows({ host, data }) {',
-        '  return host.onPage && <Entity form="row" entity={data} />',
+        '  return host.onPage && <Entity size="compact" entity={data} />',
         '}',
         'function Opened({ data }) {',
-        '  return <Dialog.Portal><Entity form="row" entity={data} /></Dialog.Portal>',
+        '  return <Dialog.Portal><Entity size="compact" entity={data} /></Dialog.Portal>',
         '}',
-        'function Tokened({ data }) {',
-        '  return <Entity form="token" entity={data} />',
+        'function Minied({ data }) {',
+        '  return <Entity size="mini" entity={data} />',
         '}',
       ].join('\n'),
-      [`${C}/entity/PeekCard.tsx`]: 'export const PeekCard = () => <Row />\n',
-      [`${C}/entity/Entity.tsx`]: 'export function Entity() {\n  return <Row />\n}\n',
-      [`${C}/entity/forms/Token.tsx`]: 'export const Token = () => <Row />\n',
-      [`${C}/sheet/PilotSheetItems.tsx`]: 'export const Item = () => <Entity form="row" />\n',
+      [`${C}/entity/PeekCard.tsx`]: 'export const PeekCard = () => <Compact />\n',
+      [`${C}/entity/Entity.tsx`]: 'export function Entity() {\n  return <Compact />\n}\n',
+      [`${C}/entity/forms/Mini.tsx`]: 'export const Mini = () => <Compact />\n',
+      [`${C}/sheet/PilotSheetItems.tsx`]: 'export const Item = () => <Entity size="compact" />\n',
+      [`${CARD}/CardPage.tsx`]: 'export const CardPage = () => <Entity size="compact" />\n',
     }
     expect(found('head-only-token', files)).toEqual([
-      `${C}/entity/PeekCard.tsx:1 a Row drawn inside an entity`,
-      `${CARD}/NestedCards.tsx:2 a Row drawn inside an entity`,
+      `${C}/entity/PeekCard.tsx:1 a Compact inside an entity`,
+      `${CARD}/NestedCards.tsx:2 a Compact inside an entity`,
     ])
   })
 })
@@ -199,7 +178,7 @@ describe('no-titled-box (N5)', () => {
 })
 
 describe('nested-card-level (N3)', () => {
-  test('a NestedCard below level 1 fails; after a Token return, on a Page or as a Page it passes', () => {
+  test('a NestedCard below level 1 fails; after a Mini return, on a Page or as a Page it passes', () => {
     const files = {
       [NESTED_GROUPS]: [
         'export function InlineActions({ actions, host }) {',
@@ -208,13 +187,13 @@ describe('nested-card-level (N3)', () => {
         '}',
         'function NestedCardList({ entities, host }) {',
         '  const { NestedCard } = host',
-        '  if (useContext(InsidePeekContext)) return <PeekTokens />',
-        '  if (nestsTokens(host)) return <NestedTokens />',
+        '  if (useContext(InsidePeekContext)) return <PeekMinis />',
+        '  if (nestsMinis(host)) return <NestedMinis />',
         '  return entities.map((e) => <NestedCard data={e} />)',
         '}',
         'function Ternary({ host, data }) {',
         '  const { NestedCard } = host',
-        '  return host.onPage ? <NestedCard data={data} /> : <NestedTokens />',
+        '  return host.onPage ? <NestedCard data={data} /> : <NestedMinis />',
         '}',
         'function Depth({ host, data }) {',
         '  const { NestedCard } = host',
@@ -224,7 +203,6 @@ describe('nested-card-level (N3)', () => {
         '  const { NestedCard } = host',
         '  return <>',
         '    <NestedCard data={data} presentation="page" />',
-        '    <NestedCard data={data} size="mini" extent="head" />',
         '  </>',
         '}',
       ].join('\n'),
@@ -240,7 +218,7 @@ describe('nested-card-level (N3)', () => {
       [NESTED_GROUPS]: [
         'function A({ host, data, open }) {',
         '  const { NestedCard } = host',
-        '  const tokens = nestsTokens(host)',
+        '  const tokens = nestsMinis(host)',
         '  if (open || tokens) return null',
         '  return <NestedCard data={data} />',
         '}',
@@ -254,7 +232,7 @@ describe('nested-card-level (N3)', () => {
         '}',
         'function D({ host, data }) {',
         '  const { NestedCard } = host',
-        '  return (nestsTokens(host) || host.onPage) ? null : <NestedCard data={data} />',
+        '  return (nestsMinis(host) || host.onPage) ? null : <NestedCard data={data} />',
         '}',
         'function E({ host, data }) {',
         '  const { NestedCard } = host',
@@ -266,6 +244,36 @@ describe('nested-card-level (N3)', () => {
       `${NESTED_GROUPS}:9 a NestedCard drawn below level 1 (in B)`,
       `${NESTED_GROUPS}:21 a NestedCard drawn below level 1 (in E)`,
     ])
+  })
+})
+
+describe('named-block (R18)', () => {
+  const RENDERER = `${CARD}/whenDamaged.model.ts`
+  const renderer = 'export const damagedEffectOf = (e) => e.damagedEffect\n'
+
+  test("a module other than the block's renderer reading its field fails", () => {
+    expect(
+      found('named-block', {
+        [RENDERER]: renderer,
+        [`${CARD}/cardBodyProse.tsx`]:
+          "const a = 'damagedEffect' in entity ? entity.damagedEffect : undefined\n",
+        'apps/web/src/build/sheet/Bay.ts': 'export const t = (bay as any)?.damagedEffect\n',
+      })
+    ).toEqual([
+      "apps/web/src/build/sheet/Bay.ts:1 reads `damagedEffect` off an entity outside its block's model (whenDamaged.model.ts)",
+      `${CARD}/cardBodyProse.tsx:1 reads \`damagedEffect\` off an entity outside its block's model (whenDamaged.model.ts)`,
+    ])
+  })
+
+  test('the renderer, a hide flag, a key, a comment and a test pass', () => {
+    expect(
+      found('named-block', {
+        [RENDERER]: renderer,
+        [`${CARD}/cardSections.tsx`]:
+          'const show = !hide?.damagedEffect && !!damagedEffectOf(entity)\nconst HIDE = { damagedEffect: true }\n// reads entity.damagedEffect\n',
+        [`${CARD}/__tests__/a.test.ts`]: 'expect(bay.damagedEffect).toBe(1)\n',
+      })
+    ).toEqual([])
   })
 })
 

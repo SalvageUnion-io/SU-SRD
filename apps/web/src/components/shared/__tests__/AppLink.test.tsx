@@ -31,14 +31,14 @@ describe('SiteLink', () => {
       underRouter(
         <>
           <SiteLink href={appPath('/starter/')}>Starter Set</SiteLink>
-          <SiteLink href="/search/?q=mule">Search</SiteLink>
+          <SiteLink href="/chassis/?view=list">Chassis</SiteLink>
         </>
       )
     )
     const starter = await screen.findByRole('link', { name: 'Starter Set' })
     expect(starter.getAttribute('href')).toBe(appPath('/starter'))
-    expect(screen.getByRole('link', { name: 'Search' }).getAttribute('href')).toBe(
-      '/search/?q=mule'
+    expect(screen.getByRole('link', { name: 'Chassis' }).getAttribute('href')).toBe(
+      '/chassis/?view=list'
     )
   })
 })

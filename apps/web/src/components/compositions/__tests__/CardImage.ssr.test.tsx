@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test'
 /**
  * The artwork fade-in must not survive into SERVER-rendered markup.
  *
- * srd renders entity cards through its zero-JS static path — the card is not an
+ * the reference site renders entity cards through its zero-JS static path — the card is not an
  * island, so React never mounts over it and `CardImage`'s `onLoad` / cached-load
  * effect can never run. When the server emitted `style="opacity:0"`, nothing was
  * left to clear it: every piece of entity artwork on the site downloaded in full

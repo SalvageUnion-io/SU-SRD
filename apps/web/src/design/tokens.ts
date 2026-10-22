@@ -29,12 +29,10 @@ export const font = {
  * `space[8]` is 8px.
  */
 export const space = {
-  0: '0px',
   2: '2px',
   4: '4px',
   6: '6px',
   8: '8px',
-  10: '10px',
   12: '12px',
   14: '14px',
   16: '16px',
@@ -60,6 +58,19 @@ export const size = {
 } as const
 
 /**
+ * The icon Sizes (chrome K11, hard rule R23): a glyph is its line's Size, Mini
+ * 12px on a chip line, Compact 14px on a button or bar line, Full 18px on a
+ * page field or primary action, always at lucide's default stroke (2). Numbers,
+ * since lucide's `size` takes one. No stylesheet twin: an icon's size is its
+ * prop, never a CSS width (`bun run check styling`, `controls/icon-size`).
+ */
+export const iconSize = {
+  mini: 12,
+  compact: 14,
+  full: 18,
+} as const
+
+/**
  * The stacking layers, lowest first — the only z-index values above a page's
  * own local stacking (`--z-*` in theme.css). A sticky bar sits under a page
  * popover, which sits under every overlay (the masthead, a dialog and its
@@ -73,6 +84,47 @@ export const layer = {
   menu: 60,
   skip: 100,
 } as const
+
+/**
+ * The one lift (`--shadow-lift`, chrome K4): what floats over the page casts
+ * it, in warm ink (`ink50`). The focus ring is the only other shadow.
+ */
+export const shadow = {
+  lift: '0 14px 28px -14px rgb(40 32 25 / 0.5)',
+} as const
+
+/**
+ * Motion (chrome.md K3): `fast` for a state change (colour, opacity, a
+ * shadow), `base` for a move (transform, a slide, a float), `phase` a screen's
+ * phase changing (Play's bar and foot recolouring with the Situation), `loop`
+ * the period of a loading loop (`--dur-*`).
+ */
+export const duration = {
+  fast: '120ms',
+  base: '150ms',
+  phase: '400ms',
+  loop: '2s',
+} as const
+
+/** The one easing (`--ease`), for every transition and animation. */
+export const ease = 'cubic-bezier(0.4, 0, 0.2, 1)'
+
+/**
+ * The breakpoint ladder (chrome.md K2), phone-first: a stylesheet writes
+ * `(width >= 40rem)` and its complement `not (width >= 40rem)`, media and
+ * container queries alike; a script builds its query here (`widthAtLeast`).
+ * No stylesheet twin: a custom property cannot stand in a query.
+ */
+export const breakpoint = {
+  sm: '40rem',
+  md: '48rem',
+  lg: '64rem',
+  xl: '80rem',
+} as const
+
+/** A rung as a media condition, `(width >= 48rem)`: for `matchMedia` and an image's `sizes`. */
+export const widthAtLeast = (rung: keyof typeof breakpoint): string =>
+  `(width >= ${breakpoint[rung]})`
 
 /**
  * The type ladder.
@@ -96,7 +148,7 @@ export const layer = {
  * 10 and 10.5px) were retired into `badge`, and `bun run check styling`
  * (tokens/type-floor) rejects any smaller size, by name or by literal.
  *
- * The second block is the INHERITED rungs: the stock `text-xs` … `text-3xl`
+ * The second block is the INHERITED rungs: the stock `text-xs` … `text-2xl`
  * rungs at their rem values (theme.css declares them), so they scale with the
  * reader's font size.
  *
@@ -128,7 +180,6 @@ export const fontSize = {
   lg: '1.125rem',
   xl: '1.25rem',
   '2xl': '1.5rem',
-  '3xl': '1.875rem',
 } as const
 
 /** Font weights in use. Barlow ships the whole range; these are the rungs used. */
@@ -158,21 +209,19 @@ export const tracking = {
  *
  *   pip    tracker pips
  *   badge  the stamp-chip family
- *   card   cards, inputs, buttons
- *   panel  app-chrome panels & pick cards
- *   none   stamps are square
- *   full   pills and circles
+ *   card   everything that frames or floats and is no entity: a button,
+ *          field, box, dialog, popup, toast, pick card
  *
- * The radius ladder is a *closed* role vocabulary: 4px is `card`, 6px is
- * exactly `panel`. A new radius names its role here rather than a raw value.
+ * Entity frames and stamps are square: they set no radius.
+ *
+ * The radius ladder is a *closed* role vocabulary: 3px is `card`, the one
+ * rounding for a frame; there is no second (`tokens/radius-panel`, hard rule
+ * R13). A new radius names its role here rather than a raw value.
  */
 export const radius = {
   pip: '1px',
   badge: '2px',
   card: '3px',
-  panel: '6px',
-  none: '0px',
-  full: '9999px',
 } as const
 
 /**
@@ -181,25 +230,26 @@ export const radius = {
  *   hairline  1px    plain rules
  *   chrome    1.5px  buttons, inputs, panels, rows, pips
  *   pill      2px    pills / status badges / dividers
- *   rail      2.5px  rail cards & Hold frames
  *   entity    3px    entity cards + hero header
+ *   poster    6px    a poster's frame (`OgCard`, `BrandCard`): twice the
+ *                    entity card's, so it reads as 2px at 400px wide
  */
 export const borderWidth = {
   hairline: '1px',
   chrome: '1.5px',
   pill: '2px',
-  rail: '2.5px',
   /** The entity card's frame one size down: 3 → 2 → 1.5px (ruleset §4.3). */
   entityCompact: '2px',
   entity: '3px',
+  poster: '6px',
 } as const
 
 /**
  * The base colour values. Not exported directly — `color` below re-exports
  * these alongside the semantic aliases that point at them, so an alias stays an
- * alias (retone `rollSuccess` and `statusOk` follows) instead of being a second
- * literal of the same number. That aliasing is why the shadow `su-*` family had
- * to be deleted from theme.css, and it is preserved here rather than flattened.
+ * alias (retone `pilot` and `sheetPilot` follows) instead of being a second
+ * literal of the same number. theme.css keeps no shadow `su-*` family of
+ * literals for the same reason, and the aliasing is not flattened here.
  */
 const base = {
   // — Tech Level blues —
@@ -223,28 +273,36 @@ const base = {
   /** The deeper crawler band that carries paper text (4.6:1) — crawler pink
    *  carries neither ink nor paper at 4.5:1 (ruleset §3.8). */
   crawlerBand: 'rgb(184, 74, 134)',
-  /** The Denizens chapter band (navy), carrying paper text at 8.8:1. A band
-   *  only: Denizens cards keep `adversary`. */
+  /** The navy band of the NPC designer and sheet and Play's Mediator Scene,
+   *  carrying paper text at 8.8:1. The Denizens chapter wears `adversary`. */
   denizenBand: 'rgb(47, 74, 102)',
   /** The world/opposition schemas — creatures, bio-titans, factions, npcs,
-   *  meld, squads. NOT the action rust, despite the tone. */
+   *  meld, squads — and the Denizens chapter's band. NOT the action rust,
+   *  despite the tone. */
   adversary: 'rgb(140, 75, 56)',
 
   // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust.
   //   Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
+  /** The Hybrid Classes' brown, apart from the tier rust. */
+  classHybrid: 'rgb(107, 68, 35)',
+
+  /** The Heat guide's own red (R44): its band and its tile. Carries
+   *  paper. */
+  heat: 'rgb(166, 38, 34)',
 
   /** Discord's dark blurple (its own button hover): the SRD home page's Discord
-   *  button only, a one-off exception to the tone palette (owner's call,
-   *  2026-10-14). Its #5865f2 carries paper under 4.5:1. */
+   *  block and the Discord page's band and command panels, the one exception
+   *  to the tone palette. Its
+   *  #5865f2 carries paper under 4.5:1. */
   discord: 'rgb(71, 82, 196)',
 
-  // — Roll result tiers: the canonical warm state ramp, shared with the bot —
-  rollCascade: 'rgb(176, 67, 43)',
-  rollFailure: 'rgb(192, 122, 47)',
-  rollTough: 'rgb(193, 154, 62)',
-  rollSuccess: 'rgb(111, 138, 74)',
-  rollNailed: 'rgb(75, 134, 160)',
+  // — Status (Intact / Damaged / Destroyed): the warm state ramp. The Discord
+  //   bot's roll tiers share three of these values (`DISCORD_ROLL_ACCENT`);
+  //   the tiers themselves are the bot's alone, never the web's (ruleset §3.4) —
+  statusOk: 'rgb(111, 138, 74)',
+  statusWarn: 'rgb(192, 122, 47)',
+  statusBad: 'rgb(176, 67, 43)',
 
   // — Ink / paper / action —
   ink: 'rgb(40, 32, 25)',
@@ -262,11 +320,9 @@ const base = {
   ink75: 'rgb(40 32 25 / 0.75)',
   /** ModalShell's scrim edge. */
   ink60: 'rgb(40 32 25 / 0.6)',
-  /** MechChassisStep's Custom-build card border. */
-  ink55: 'rgb(40 32 25 / 0.55)',
   ink50: 'rgb(40 32 25 / 0.5)',
   ink40: 'rgb(40 32 25 / 0.4)',
-  /** SheetSectionSlab's rule. */
+  /** SlabSection's fold square. */
   ink35: 'rgb(40 32 25 / 0.35)',
   ink30: 'rgb(40 32 25 / 0.3)',
   ink20: 'rgb(40 32 25 / 0.2)',
@@ -287,7 +343,7 @@ const base = {
    *  `inverse` skin. */
   paper70: 'rgb(251 250 247 / 0.7)',
   paper30: 'rgb(251 250 247 / 0.3)',
-  /** FilterRow's sticky backing — near-opaque paper over scrolling content. */
+  /** Near-opaque paper: text on an ink band (the bar's, a roll table's). */
   paper85: 'rgb(251 250 247 / 0.85)',
   /** MobileSearchDialog's hairline on a tone. */
   paper15: 'rgb(251 250 247 / 0.15)',
@@ -295,19 +351,12 @@ const base = {
   /** THE single action colour. */
   rust: 'rgb(168, 82, 34)',
   rustHi: 'rgb(138, 64, 25)',
-  /** A 25% rust wash, for non-indicator use.
-   *
-   *  **It is not a focus ring**: it measures 1.42:1 against paper where WCAG
-   *  2.4.11 / 1.4.11 require 3:1. Focus is the offset ring in
-   *  `--focus-ring-shadow`; see the rationale above `.su-focus-ring` in
-   *  `styles/index.css`. */
-  rust25: 'rgb(168 82 34 / 0.25)',
   /** The one sanctioned cream — RollTable banding, and nowhere else. */
   bandCream: 'rgb(243, 237, 226)',
 
   // — Workshop (light) ground: the step off-paper that makes a card read as a
   //   panel —
-  /** The page ground: the book's own paper (ruleset §4.1, board 03). */
+  /** The page ground: the book's own paper (ruleset §4.1). */
   wkBg: 'rgb(239, 236, 230)',
   wkBg2: 'rgb(215, 230, 238)',
   /** The muted secondary-text tone — warm, like the paper — toned to clear
@@ -332,8 +381,8 @@ const base = {
 
   // — Sheet "deep" tones that are literals rather than aliases —
   /** A LITERAL holding ink's value, never an alias of `rust`: rust means "do
-   *  something" and nothing may alias it (ruleset §3.1). Board 03 rules that
-   *  pilot-deep becomes ink. */
+   *  something" and nothing may alias it (ruleset §3.1). Pilot-deep is
+   *  ink. */
   sheetPilotDeep: 'rgb(40, 32, 25)',
   sheetMechDeep: 'rgb(47, 67, 56)',
   sheetCrawlerDeep: 'rgb(126, 42, 91)',
@@ -347,12 +396,7 @@ const base = {
 export const color = {
   ...base,
 
-  // — Status (Intact / Damaged / Destroyed): aliases of the roll tiers —
-  statusOk: base.rollSuccess,
-  statusWarn: base.rollFailure,
-  statusBad: base.rollCascade,
-
-  // — Sheet tones (Header C live sheets): base + deep pairs —
+  // — Sheet tones (live sheets): base + deep pairs —
   sheetPilot: base.pilot,
   sheetMech: base.mech,
   sheetCrawler: base.crawler,
@@ -362,7 +406,7 @@ export const color = {
 } as const
 
 /**
- * The light speckle (ruleset §3.5 "Texture", board 05c) — the printed book's
+ * The light speckle (ruleset §3.5 "Texture") — the printed book's
  * bands and banners are speckled, so ours are, generated in code.
  *
  * `texture` holds the overlay opacities, which a stylesheet can read too
@@ -373,7 +417,7 @@ export const color = {
  * Grain, not shading: nothing interpolates between colours. Where it goes is
  * a law with a guard behind it (`tokens/texture-placement`): ink speckle on
  * colour bands and tone headers, paper flecks on ink grounds — never on
- * paper, buttons, fields, the Dashboard or tooltips.
+ * paper, buttons, fields, Play or tooltips.
  */
 export const texture = {
   blotOpacity: '0.4',
@@ -385,7 +429,7 @@ export const texture = {
  * The three speckle filters, by the ids the origin named them (`su-blot`,
  * `su-speck`, `su-fleck`). Each is `feTurbulence` noise thresholded to hard
  * specks by an `feColorMatrix` alpha row (`gain · noise + threshold`), then
- * composited onto a flat fill. The thresholds are board 05c's QUIETER set —
+ * composited onto a flat fill. The thresholds are the QUIETER set —
  * the "light speckle" chosen over the heavy one (−17.8 / −14.2 / −14.7).
  *
  * The two grains:

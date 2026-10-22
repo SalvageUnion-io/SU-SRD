@@ -1,7 +1,6 @@
 /*
- * The package stylesheet, part 2 of 21: Button: its variants and size ladder,
- * and the cost pennant as the action button. `../index.css` imports the parts
- * in cascade order.
+ * The package stylesheet, part 2 of 21: Button: its variants and size ladder.
+ * `../index.css` imports the parts in cascade order.
  */
 
 /* ══ Button ═════════════════════════════════════════════════════════════════
@@ -9,9 +8,9 @@
  * The `.btn` recipe (design-spec §2.4), ported from the `buttonVariants` recipe.
  *
  * ALL of it is here, geometry and type included — not just the stateful half.
- * `buttonVariants` is a public class-string export that both apps put on `<a>`
- * elements the library never renders, so there is no element for a style object
- * to attach to. That is the class-string exemption in `.claude/rules/styling.md`,
+ * `buttonVariants` is a class-string export that lands on elements the library
+ * never renders (a router link through `Button href`, a Base UI trigger), so
+ * there is no element for a style object to attach to. That is the class-string exemption in `.claude/rules/styling.md`,
  * and it is why this block is larger than the split rule alone would predict.
  *
  * ORDER MATTERS TWICE in here, and both are single-class specificity, so source
@@ -34,11 +33,13 @@
   gap: var(--space-8);
   justify-content: center;
   letter-spacing: var(--tracking-caps-snug);
+  /* `Button href` draws a link: no underline, as no button has one. */
+  text-decoration: none;
   text-transform: uppercase;
   transition:
-    color 120ms,
-    background-color 120ms,
-    border-color 120ms;
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 
@@ -79,16 +80,6 @@
   border-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
 }
 
-.su-btn--danger {
-  background-color: var(--color-status-bad);
-  border-color: var(--color-status-bad);
-  color: var(--color-paper);
-}
-
-.su-btn--danger:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
 /* Filled ink: the close stamp on a lifted plate (the detail dialog, the /about
    lightbox) and every other ink-plate control. Paper text; the fill lifts to
    the second ink step under the pointer. */
@@ -118,7 +109,7 @@
 }
 
 /* Pencil: paper on a dashed ink edge, the control on an editable sheet line
-   (dashed means editable, as the User-made stamp is dashed: ruleset §3.9). It
+   (dashed means editable, as the HOMEBREW stamp is dashed: ruleset §3.9). It
    inverts to ink under the pointer, and stays inverted while pressed (an
    ability marked Used). */
 .su-btn--pencil {
@@ -135,17 +126,15 @@
 }
 
 /*
- * The DRAINED disabled treatment, for the FILLED variants only.
+ * The DRAINED disabled treatment, for the filled rust variant.
  *
  * The shared 40% fade (`.su-disabled`) is right for an outline button and wrong
- * for a solid fill: rust at 40% is a pastel salmon and red at 40% is pink, and
- * both read as an enabled variant nobody recognises rather than as an off
- * control. A disabled control should look DRAINED, not tinted, so the fill is
- * emptied to a flat ink wash. `opacity: 1` cancels the shared fade, exactly as
- * `disabled:opacity-100` did.
+ * for a solid fill: rust at 40% is a pastel salmon, which reads as an enabled
+ * variant nobody recognises rather than as an off control. A disabled control
+ * should look DRAINED, not tinted, so the fill is emptied to a flat ink wash.
+ * `opacity: 1` cancels the shared fade, exactly as `disabled:opacity-100` did.
  */
-.su-btn--primary:disabled,
-.su-btn--danger:disabled {
+.su-btn--primary:disabled {
   background-color: var(--color-ink-8);
   border-color: var(--color-ink-30);
   color: var(--color-ink-50);
@@ -167,7 +156,7 @@
 
 /*
  * INSTRUMENT × ghost — an ink hairline on the cream instrument chassis, going to
- * a paper fill on hover. The one variant the dashboard HUD uses.
+ * a paper fill on hover. The one variant Play's canvas uses.
  *
  * A compound selector gives it the 2-class specificity it needs to beat plain
  * `.su-btn--ghost` above without depending on source order.
@@ -184,36 +173,37 @@
 }
 
 /*
- * INK × ghost — the on-ink ghost: a paper outline with paper text on an ink
- * band or plate (Shelves' and the Roster's band, a wizard's ink pill), a
- * faint paper wash under the pointer. Two classes, like the instrument
- * ghost, so it beats plain `.su-btn--ghost` without relying on source order.
+ * The on-ink ghost: on an ink ground (the frame's `data-ground='ink'`, chrome
+ * K1: Shelves' and the Roster's band, a wizard's ink pill) the outlined
+ * button, `default` or `ghost`, is a paper outline with paper text, a faint
+ * paper wash under the pointer. The ground is the frame's, read here, never a
+ * Button prop; the attribute adds the specificity that beats the plain
+ * variants without relying on source order.
  */
-.su-btn--on-ink.su-btn--ghost {
+[data-ground='ink'] :is(.su-btn--default, .su-btn--ghost) {
   background-color: transparent;
   border-color: var(--color-paper);
   color: var(--color-paper);
 }
 
-.su-btn--on-ink.su-btn--ghost:hover:not(:disabled) {
+[data-ground='ink'] :is(.su-btn--default, .su-btn--ghost):hover:not(:disabled) {
   background-color: var(--color-paper-15);
 }
 
 /* ── The Sizes (styles/sizing.ts). Each Size's height is its token
       (`--size-*`, theme.css), so a button is exactly as tall as the chip,
-      field or switch beside it at the same Size; padding is inline only. The
-      odd inline paddings (22px, 11px) are carried verbatim from the first
-      port. ── */
+      field or switch beside it at the same Size; padding is inline only,
+      on §4.4's scale. ── */
 .su-btn--full {
   font-size: var(--text-lede);
   min-height: var(--size-full);
-  padding: 0 22px;
+  padding: 0 var(--space-24);
 }
 
 .su-btn--compact {
   font-size: var(--text-xs);
   min-height: var(--size-compact);
-  padding: 0 11px;
+  padding: 0 var(--space-12);
 }
 
 /* The compact uppercase action chip ('⇄ Swap', '✕ Remove'): badge radius,
@@ -234,9 +224,7 @@
  * a worded one only in geometry: same frame, variants, focus ring and disabled
  * treatment, including the visible focus ring a hand-rolled square forgets.
  *
- * A square of the Compact Size, past the WCAG 2.5.8 24px minimum. On a line
- * of another Size it takes that Size (`.su-size-mini`, `.su-size-full`), never
- * a call site's own height.
+ * A square of the Compact Size, past the WCAG 2.5.8 24px minimum.
  */
 .su-btn--icon-only {
   flex-shrink: 0;
@@ -249,8 +237,8 @@
 }
 
 /*
- * A show page's head controls, one height in both apps: the srd entity page's
- * "Build with this", the Cantina sheet bar's back, and beside the sheet's name
+ * A show page's head controls, one height in both apps: the reference entity page's
+ * "Build with this", the app sheet bar's back, and beside the sheet's name
  * Read | Edit, "Make a copy", Share, "⋯" and the phone switch, so a row of them
  * never steps. Height only: each keeps its own padding and type. Under a coarse
  * pointer the 44px floor lifts them all alike.
@@ -259,43 +247,8 @@
   height: var(--size-compact);
 }
 
-/* The icon rung at page-action height is square at that height too: the Cantina
+/* The icon rung at page-action height is square at that height too: the app
    sheet bar's back and "⋯", and a shelf item's "⋯". */
 .su-btn--icon-only.su-page-action {
   width: var(--size-compact);
-}
-
-/* ══ The entity card's cost pennant as the action button ════════════════════
- *
- * In the Dashboard the pennant on an action's ink banner IS the action button
- * (ruleset §1, board E3): the same size, shape and place as the read pennant,
- * filled rust. The rust pennant is a `buttonVariants` span (the allowlist's
- * painter, §3.1); this button is its INVISIBLE hit area — 44px under every
- * pointer (§4.6) — pulled back by negative margins so the band keeps the
- * pennant's own size. A clip-path on the button itself would clip the hit
- * area too, which is why the shape lives on the span. `CardPennant.tsx`.
- */
-.su-ec-pennant-btn {
-  align-items: center;
-  background-color: transparent;
-  border: 0;
-  cursor: pointer;
-  display: inline-flex;
-  flex: none;
-  justify-content: center;
-  margin: calc(-1 * var(--space-12)) calc(-1 * var(--space-8));
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 var(--space-8);
-}
-
-/* Spent or locked: the pennant drains to the read pennant's paper, its text
-   faded — state, not a second hue. */
-.su-ec-pennant-btn:disabled {
-  cursor: default;
-}
-
-.su-ec-pennant-btn:disabled > .su-btn--primary {
-  background-color: var(--color-paper);
-  color: var(--color-ink-50);
 }

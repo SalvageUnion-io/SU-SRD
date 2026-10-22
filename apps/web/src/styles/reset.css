@@ -38,7 +38,7 @@ html,
 hr {
   height: 0;
   color: inherit;
-  border-top-width: 1px;
+  border-top-width: var(--bw-hairline);
 }
 
 abbr:where([title]) {
@@ -164,11 +164,11 @@ textarea,
 }
 
 :where(select:is([multiple], [size])) optgroup option {
-  padding-inline-start: 20px;
+  padding-inline-start: var(--space-20);
 }
 
 ::file-selector-button {
-  margin-inline-end: 4px;
+  margin-inline-end: var(--space-4);
 }
 
 ::placeholder {

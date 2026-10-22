@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
-import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
+import { borderWidth, color, space, weight } from '../../design/tokens'
+import { capsLabel } from '../atoms/capsLabel'
 import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { Speckle } from '../atoms/Speckle'
 import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCardText'
@@ -8,7 +9,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
 /**
  * BrandCard — the site's own link preview: the picture a link unfurls with
  * when the page it opens has no card of its own (the SRD's home, chapter and
- * rules pages; every Cantina route but a shared sheet or invite, which carry
+ * rules pages; every app route but a shared sheet or invite, which carry
  * their own).
  *
  * It is the Discord bot's profile banner (`apps/discord-bot/brand/banner.png`)
@@ -29,8 +30,8 @@ export type BrandCardProps = {
   kicker: string
 }
 
-/** The frame: twice the entity card's 3px, as `OgCard`'s. */
-const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
+/** The frame: a poster's, as `OgCard`'s. */
+const FRAME_WIDTH = borderWidth.poster
 
 /** The chapter colours along the foot, in the book's order. */
 const FOOT_TONES = ['rules', 'pilot', 'mech', 'crawler', 'denizen'] as const
@@ -65,14 +66,12 @@ const BODY = {
 } satisfies CSSProperties
 
 const KICKER = {
-  fontFamily: font.cond,
   fontSize: '52px',
   fontWeight: weight.extrabold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1,
   margin: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const KICKER_CAPS = capsLabel({ weight: 'inherit' })
 
 /**
  * The notch: the page ground, full width and standing on the foot. Unlike the
@@ -94,15 +93,14 @@ const NOTCH = {
 } satisfies CSSProperties
 
 const TITLE = {
-  fontFamily: font.cond,
   fontSize: '284px',
   fontWeight: weight.extrabold,
   lineHeight: 0.84,
   // The face's side bearing grows with its size: pull the wordmark's ink back
   // onto the inset an entity card's 120px title starts on.
-  margin: '0 0 0 -0.03em',
-  textTransform: 'uppercase',
+  margin: '0 0 0 -0.03em', // design-tokens-ignore: a fit, the face's side bearing at this size
 } satisfies CSSProperties
+const TITLE_CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** ".io", set small on the second line's baseline. */
 const TLD = { fontSize: '128px', textTransform: 'none' } satisfies CSSProperties
@@ -122,9 +120,11 @@ export function BrandCard({ kicker }: BrandCardProps) {
     <div data-brand-card="" style={{ ...CARD, backgroundColor: band }}>
       <Speckle grain="ink" />
       <div style={BODY}>
-        <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
+        <p className={KICKER_CAPS} style={{ ...KICKER, color: kickerColor }}>
+          {kicker}
+        </p>
         <div style={NOTCH}>
-          <p style={TITLE}>
+          <p className={TITLE_CAPS} style={TITLE}>
             Salvage
             <br />
             Union<span style={TLD}>.io</span>

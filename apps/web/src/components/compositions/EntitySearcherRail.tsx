@@ -1,5 +1,5 @@
 /**
- * `EntitySearcher`'s selection rail: what is already chosen, as Tokens, with
+ * `EntitySearcher`'s selection rail: what is already chosen, as Minis, with
  * the budgets and the picker's own actions. Never over the results: on a wide
  * screen it is the column right of the focused Card; on a narrow one it is a
  * bar at the foot of the picker whose disclosure opens the chosen list above
@@ -11,13 +11,10 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
-import { cn } from '../../lib/cn'
+import { borderWidth, color, font, fontSize, iconSize, space } from '../../design/tokens'
 import { useDisclosure } from '../../lib/useDisclosure'
-import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { FOCUS_RING } from '../atoms/interaction'
-import { PageHeading } from '../atoms/PageHeading'
+import { Slab } from '../atoms/Slab'
 import { Entity } from '../entity/Entity'
 import { BudgetChips } from './EntitySearcherBudget'
 import { chevronStyle } from './entitySearcherChrome'
@@ -94,13 +91,13 @@ function useRailEntries(
  * The rail, a named region either way:
  *
  *   - wide — a column, always open: the heading and budgets pinned, the
- *     chosen Tokens scrolling beneath, the actions pinned at the foot.
+ *     chosen Minis scrolling beneath, the actions pinned at the foot.
  *   - narrow — a bar at the foot: the heading IS a disclosure button, beside
  *     the budgets and the actions; open, the chosen list sits above the bar.
  *     It starts closed: on a small screen the results are the task, and each
  *     chosen entry in the list already wears its tick.
  *
- * A chosen Token focuses that entry's Card (`onFocus`). In toggle and count
+ * A chosen Mini focuses that entry's Card (`onFocus`). In toggle and count
  * mode each has a Remove (✕); a single pick is replaced by picking another, so
  * it has none. Removing an entry hands focus to the entry now in its place, or to the heading once
  * the list is empty, so a keyboard user never lands on <body>.
@@ -137,7 +134,7 @@ export function SelectionRail({
   const list = useDisclosure()
   const expanded = wide || list.open
   const headingId = useId()
-  const headingRef = useRef<HTMLHeadingElement>(null)
+  const headingRef = useRef<HTMLElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const removeRefs = useRef<Array<HTMLButtonElement | null>>([])
   const pendingFocus = useRef<{ position: number; length: number } | null>(null)
@@ -164,18 +161,14 @@ export function SelectionRail({
     else onToggle?.(entry.ref)
   }
 
-  // Explicit spaces between the parts: an accessible name is built from text,
-  // and without them it would read "Equipped3".
-  const title = (
+  // The Slab's count, at its rule's end: how many are chosen, and for whom.
+  const count = (
     <>
-      <span>{chosenLabel}</span> <Badge shape="chip">{entries.length}</Badge>
+      {entries.length}
       {name && (
         <>
-          {' '}
-          <span style={NAME_STYLE}>
-            <span aria-hidden="true">· </span>
-            {name}
-          </span>
+          <span aria-hidden="true"> · </span>
+          {name}
         </>
       )}
     </>
@@ -184,44 +177,43 @@ export function SelectionRail({
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
       {entries.map((entry, position) => (
-        // The ✕ rides inside the Token's right end, laid over it (a button
-        // cannot nest in the Token's own); the Tech level is the list's to say.
+        // The ✕ is the Mini's last chip (C8, hard rule R6): a Mini with
+        // controls is a `div` whose name is the link, so no button nests in
+        // it. The Tech level is the list's to say.
         <div
           key={`${entry.ref}#${entry.copy}`}
           data-testid="rail-entry"
-          className="su-searcher__rail-entry"
-          data-removable={removable || undefined}
+          className="su-entity-mini-line"
           style={ENTRY_STYLE}
         >
-          <div className="su-entity-token-line" style={ENTRY_TOKEN_STYLE}>
-            <Entity
-              form="token"
-              context="loadout"
-              entity={entry.entity}
-              omit={RAIL_OMIT}
-              mode={{ kind: 'link', onOpen: () => onFocus(entry.ref) }}
-            />
-          </div>
-          {removable && (
-            <Button
-              ref={(el) => {
-                removeRefs.current[position] = el
-              }}
-              size="mini"
-              className="su-searcher__remove"
-              onClick={() => remove(entry, position)}
-              // Duplicates are legal in count mode, so each copy's button
-              // names its copy — three identical "Remove Ion Cannon" buttons
-              // are indistinguishable to a screen-reader user.
-              aria-label={
-                entry.total > 1
-                  ? `Remove ${entry.entity.name}, copy ${entry.copy} of ${entry.total}`
-                  : `Remove ${entry.entity.name}`
-              }
-            >
-              <X aria-hidden="true" size={12} />
-            </Button>
-          )}
+          <Entity
+            size="mini"
+            context="loadout"
+            entity={entry.entity}
+            omit={RAIL_OMIT}
+            mode={{ kind: 'link', onOpen: () => onFocus(entry.ref) }}
+            controls={
+              removable ? (
+                <Button
+                  ref={(el) => {
+                    removeRefs.current[position] = el
+                  }}
+                  size="mini"
+                  onClick={() => remove(entry, position)}
+                  // Duplicates are legal in count mode, so each copy's button
+                  // names its copy — three identical "Remove Ion Cannon" buttons
+                  // are indistinguishable to a screen-reader user.
+                  aria-label={
+                    entry.total > 1
+                      ? `Remove ${entry.entity.name}, copy ${entry.copy} of ${entry.total}`
+                      : `Remove ${entry.entity.name}`
+                  }
+                >
+                  <X aria-hidden="true" size={iconSize.mini} />
+                </Button>
+              ) : undefined
+            }
+          />
         </div>
       ))}
       {entries.length === 0 && <p style={EMPTY_STYLE}>Nothing {chosen} yet.</p>}
@@ -238,16 +230,15 @@ export function SelectionRail({
     return (
       <section aria-labelledby={headingId} className="su-searcher__rail" style={RAIL_STYLE}>
         <div style={HEAD_STYLE}>
-          <PageHeading
-            variant="section"
+          <Slab
             as="h2"
             id={headingId}
             ref={headingRef}
             tabIndex={-1}
-            className={FOCUS_RING}
-          >
-            <span style={TITLE_STYLE}>{title}</span>
-          </PageHeading>
+            label={chosenLabel}
+            count={count}
+            flush
+          />
           {budgetNode}
         </div>
         {listNode}
@@ -261,18 +252,29 @@ export function SelectionRail({
       {listNode}
       <div className="su-searcher__bar" style={BAR_STYLE}>
         <div style={BAR_HEADING_STYLE}>
-          <PageHeading variant="section" as="h2" id={headingId}>
-            <button
-              ref={toggleRef}
-              type="button"
-              {...list.toggleProps}
-              className={cn('su-searcher__bar-toggle', FOCUS_RING)}
-              style={TOGGLE_STYLE}
-            >
-              {title}
-              <ChevronDown aria-hidden="true" style={chevronStyle(list.open)} />
-            </button>
-          </PageHeading>
+          <Slab
+            as="h2"
+            id={headingId}
+            count={count}
+            flush
+            label={chosenLabel}
+            actions={
+              // The fold, as a SlabSection's (R1): the Compact `iconOnly` ghost.
+              <Button
+                ref={toggleRef}
+                variant="ghost"
+                size="iconOnly"
+                {...list.toggleProps}
+                aria-label={`${list.open ? 'Hide' : 'Show'} ${chosenLabel.toLowerCase()}`}
+              >
+                <ChevronDown
+                  aria-hidden="true"
+                  size={iconSize.compact}
+                  style={chevronStyle(list.open)}
+                />
+              </Button>
+            }
+          />
         </div>
         {budgetNode}
         {actions && <div style={BAR_ACTIONS_STYLE}>{actions}</div>}
@@ -292,13 +294,6 @@ const HEAD_STYLE = {
   borderBottom: `${borderWidth.hairline} solid ${color.ink20}`,
 } satisfies CSSProperties
 
-const TITLE_STYLE = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: space[8],
-  minWidth: 0,
-} satisfies CSSProperties
-
 /** Narrow: the disclosure, the at-a-glance budgets and the actions, on one
  * wrapping row. */
 const BAR_STYLE = {
@@ -307,7 +302,7 @@ const BAR_STYLE = {
   alignItems: 'center',
   columnGap: space[12],
   rowGap: space[6],
-  padding: `${space[10]} ${space[16]}`,
+  padding: `${space[12]} ${space[16]}`,
 } satisfies CSSProperties
 const BAR_HEADING_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 const BAR_ACTIONS_STYLE = {
@@ -315,32 +310,6 @@ const BAR_ACTIONS_STYLE = {
   flexWrap: 'wrap',
   gap: space[8],
   marginLeft: 'auto',
-} satisfies CSSProperties
-
-/** A bare button wearing its heading's type — `inherit` across the board,
- * because a button's UA style resets font, tracking and case. */
-const TOGGLE_STYLE = {
-  ...TITLE_STYLE,
-  maxWidth: '100%',
-  margin: space[0],
-  padding: space[0],
-  borderWidth: space[0],
-  borderRadius: radius.card,
-  background: 'none',
-  color: 'inherit',
-  font: 'inherit',
-  letterSpacing: 'inherit',
-  textTransform: 'inherit',
-  textAlign: 'left',
-  cursor: 'pointer',
-} satisfies CSSProperties
-
-const NAME_STYLE = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  color: color.ink75,
 } satisfies CSSProperties
 
 const BUDGET_ROW_STYLE = {
@@ -352,12 +321,11 @@ const BUDGET_ROW_STYLE = {
 /** No `display` here: the list is folded with the `hidden` attribute. */
 const LIST_STYLE = { padding: `${space[12]} ${space[16]}` } satisfies CSSProperties
 const ENTRY_STYLE = { marginBottom: space[6] } satisfies CSSProperties
-/** The sidebar's Tokens leave their Tech level to the list. */
+/** The sidebar's Minis leave their Tech level to the list. */
 const RAIL_OMIT = ['tech-level'] as const
-const ENTRY_TOKEN_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 
 const EMPTY_STYLE = {
-  margin: space[0],
+  margin: 0,
   fontFamily: font.body,
   fontSize: fontSize.xs,
   color: color.wkMuted,
@@ -368,6 +336,6 @@ const ACTIONS_STYLE = {
   flexWrap: 'wrap',
   justifyContent: 'flex-end',
   gap: space[8],
-  padding: `${space[10]} ${space[16]}`,
+  padding: `${space[12]} ${space[16]}`,
   borderTop: `${borderWidth.hairline} solid ${color.ink20}`,
 } satisfies CSSProperties

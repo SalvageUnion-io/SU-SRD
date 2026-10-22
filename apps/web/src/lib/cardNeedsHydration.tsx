@@ -11,9 +11,13 @@ import { EntityCardStatic } from '../components/EntityCardStatic'
  * `<button>` with no handler is a defect under the ruleset's "rust means
  * action" rule, not a cosmetic wart. A roll table's Roll renders as its stamp
  * until the script runs (`RollControl`), marked `data-roll-pending`.
+ *
+ * A Peek trigger that is a `<button>` (`data-peek-press`) needs no React of
+ * the card's: the page's Peek host opens it, as every `data-peek` trigger on
+ * a static page is.
  */
 const NEEDS_A_LISTENER =
-  /<button\b|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=|data-roll-pending/
+  /<button\b(?![^>]*\bdata-peek-press=)|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=|data-roll-pending/
 
 /**
  * Does this entity's card contain anything that needs JS to work?
@@ -25,7 +29,7 @@ const NEEDS_A_LISTENER =
  * here is silent, shipping a dead button rather than failing a build.
  *
  * Cost is one extra static render per entity page at build time, which is
- * cheap: the full 1,039-page build runs in a few seconds.
+ * cheap: the full build of every page runs in a few seconds.
  *
  * Fails SAFE. If the probe render throws, the answer is "yes, hydrate" — the
  * island path is the status quo and always correct, just heavier. The static

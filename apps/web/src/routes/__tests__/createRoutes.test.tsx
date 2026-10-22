@@ -4,7 +4,7 @@
  * link's chassis, pattern, class or crawler type — dropped when it names
  * nothing legal), where each callback navigates, the NPC designer's view and
  * crew in the URL, and `/sheet/$kind/$id` choosing its page or saying the kind
- * is not a sheet. Also `/mechs/patterns/new` and `/dashboard/$pilotId`.
+ * is not a sheet. Also Play's two screens.
  *
  * The screens themselves have their own suites, so each is replaced here by a
  * stub that shows what the route handed it and offers the route's callbacks as
@@ -36,6 +36,8 @@ function wizardStub(name: string, preselect: (p: Props) => string) {
       'section',
       { 'aria-label': name },
       h('p', null, `${name} preselect: ${preselect(p)}`),
+      h('p', null, `${name} game: ${named(p.gameId)}`),
+      call(`${name}: cancel`, p.onCancel as () => void),
       call(`${name}: off rules`, p.onOffRules as () => void),
       call(`${name}: complete`, p.onComplete as () => void)
     )
@@ -47,32 +49,33 @@ const convexMocks = await installConvexMocks({
   authReact: true,
   convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
   also: {
-    '../wizard/NewEntityScreen': () => ({
+    '../../build/wizard/NewEntityScreen': () => ({
       NewEntityScreen: (p: Props) =>
         h(
           'div',
           null,
           h('p', null, `${String(p.kind)} screen, mode ${named(p.mode)}`),
           h('p', null, `return to ${named(p.returnTo)}`),
+          h('p', null, `blank lands in ${named(p.gameId)}`),
           p.wizard as ReactNode,
           call('Choose blank', () => (p.onModeChange as (m: string) => void)('blank')),
           call('Created', () => (p.onCreated as (id: string) => void)('new-id'))
         ),
     }),
-    '../mech/MechWizard': () => ({
+    '../../build/mech/MechWizard': () => ({
       MechWizard: wizardStub(
         'Mech wizard',
         (p) =>
           `${named(p.preselectChassis)} / ${named((p.preselectPattern as { name?: string } | undefined)?.name)}`
       ),
     }),
-    '../pilot/PilotWizard': () => ({
+    '../../build/pilot/PilotWizard': () => ({
       PilotWizard: wizardStub('Pilot wizard', (p) => (p.preselectClassId ? 'a class' : 'none')),
     }),
-    '../crawler/CrawlerBuilder': () => ({
-      CrawlerBuilder: wizardStub('Crawler builder', (p) => named(p.preselectType)),
+    '../../build/crawler/CrawlerWizard': () => ({
+      CrawlerWizard: wizardStub('Crawler builder', (p) => named(p.preselectType)),
     }),
-    '../npc/NpcDesignerPage': () => ({
+    '../../build/npc/NpcDesignerPage': () => ({
       NpcDesignerPage: (p: Props) =>
         h(
           'section',
@@ -94,29 +97,20 @@ const convexMocks = await installConvexMocks({
           call('Cancel design', p.onCancel as () => void)
         ),
     }),
-    '../sheet/SheetView': () => ({
+    '../../build/sheet/SheetView': () => ({
       SheetView: (p: Props) => h('p', null, `Live sheet: ${String(p.kind)} ${String(p.id)}`),
     }),
-    '../npc/NpcSheetView': () => ({
+    '../../build/npc/NpcSheetView': () => ({
       NpcSheetView: (p: Props) => h('p', null, `NPC sheet: ${String(p.id)}`),
     }),
-    '../mech/Pattern/SavePatternPage': () => ({
-      SavePatternPage: (p: Props) =>
-        h(
-          'section',
-          { 'aria-label': 'Save pattern' },
-          h('p', null, `saving from ${String(p.mechId) || 'none'}`),
-          call('Saved private', () =>
-            (p.onSaved as (id: string, v: string) => void)('pat-1', 'private')
-          ),
-          call('Saved public', () =>
-            (p.onSaved as (id: string, v: string) => void)('pat-2', 'public')
-          ),
-          call('Cancel save', p.onCancel as () => void)
-        ),
+    '../../play/PlayGate': () => ({
+      PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
     }),
-    '../dashboard/DashboardGate': () => ({
-      DashboardGate: (p: Props) => h('p', null, `Dashboard gate for ${String(p.id)}`),
+    '../../play/games/GamePage': () => ({
+      GamePage: (p: Props) => h('p', null, `Game page for ${String(p.gameId)}`),
+    }),
+    '../../play/PlayMediatorGate': () => ({
+      PlayMediatorGate: (p: Props) => h('p', null, `Mediate gate for ${String(p.gameId)}`),
     }),
   },
 })
@@ -218,7 +212,7 @@ describe('/crawlers/new', () => {
     expect(at(router).pathname).toBe('/sheet/crawler/new-id')
   })
 
-  test('the builder finishing goes back to the Hangar', async () => {
+  test('the builder finishing goes back to the Training Bay', async () => {
     const router = await mountAt('/crawlers/new?mode=guided&type=no-such-type')
     expect(await screen.findByText('Crawler builder preselect: none')).toBeTruthy()
     await press('Crawler builder: complete')
@@ -278,36 +272,54 @@ describe('/sheet/$kind/$id', () => {
   })
 })
 
-describe('/mechs/patterns/new', () => {
-  test('saves from the mech in the URL; a private pattern goes home', async () => {
-    const router = await mountAt('/mechs/patterns/new?from=m1')
-    expect(await screen.findByText('saving from m1')).toBeTruthy()
-    await press('Saved private')
-    expect(at(router).pathname).toBe('/')
-  })
-
-  test('a shared pattern opens its public page', async () => {
-    // The public page it lands on asks for the pattern; this one is not shared.
-    const router = await mountAt('/mechs/patterns/new?from=m1', { 'publicSheet:pattern': null })
-    await press('Saved public')
-    expect(at(router).pathname).toBe('/p/pattern/pat-2')
-  })
-
-  test('cancel goes back to the mech it came from, or home with none', async () => {
-    const router = await mountAt('/mechs/patterns/new?from=m1')
-    await press('Cancel save')
-    expect(at(router).pathname).toBe('/sheet/mech/m1')
-
-    await go(router, '/mechs/patterns/new')
-    expect(await screen.findByText('saving from none')).toBeTruthy()
-    await press('Cancel save')
-    expect(at(router).pathname).toBe('/')
+describe('/play/$pilotId', () => {
+  test("hands the pilot's id to the gate", async () => {
+    await mountAt('/play/p1')
+    expect(await screen.findByText('Play gate for p1')).toBeTruthy()
   })
 })
 
-describe('/dashboard/$pilotId', () => {
-  test("hands the pilot's id to the gate", async () => {
-    await mountAt('/dashboard/p1')
-    expect(await screen.findByText('Dashboard gate for p1')).toBeTruthy()
+describe('/play/games/$gameId', () => {
+  test("hands the Game's id to its page", async () => {
+    await mountAt('/play/games/g1')
+    expect(await screen.findByText('Game page for g1')).toBeTruthy()
+  })
+})
+
+describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => {
+  for (const [path, name] of [
+    ['/pilots/new', 'Pilot wizard'],
+    ['/mechs/new', 'Mech wizard'],
+    ['/crawlers/new', 'Crawler builder'],
+  ] as const) {
+    test(`${path}: the unit lands in that Game, and finishing returns to its page`, async () => {
+      const router = await mountAt(`${path}?mode=guided&game=g1`)
+      expect(await screen.findByText(`${name} game: g1`)).toBeTruthy()
+      expect(screen.getByText('blank lands in g1')).toBeTruthy()
+      await press(`${name}: complete`)
+      expect(at(router).pathname).toBe('/play/games/g1')
+    })
+  }
+
+  test('cancelling returns to the Game’s page; off rules and the mode keep the Game', async () => {
+    const router = await mountAt('/pilots/new?game=g1')
+    await press('Choose blank')
+    expect(at(router).search).toEqual({ game: 'g1', mode: 'blank' })
+    await press('Pilot wizard: off rules')
+    expect(at(router).search).toEqual({ game: 'g1', mode: 'blank' })
+    await press('Pilot wizard: cancel')
+    expect(at(router).pathname).toBe('/play/games/g1')
+  })
+
+  test('a game param that is not an id is dropped', async () => {
+    await mountAt('/pilots/new?mode=guided&game=not-an-id!')
+    expect(await screen.findByText('Pilot wizard game: none')).toBeTruthy()
+  })
+})
+
+describe('/play/game/$gameId', () => {
+  test("hands the Game's id to the Mediator's gate", async () => {
+    await mountAt('/play/game/g1')
+    expect(await screen.findByText('Mediate gate for g1')).toBeTruthy()
   })
 })

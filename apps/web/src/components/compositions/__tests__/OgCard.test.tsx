@@ -18,7 +18,7 @@ import {
 } from '../ogCardText'
 
 /**
- * OgCard (board PV1): the link preview, one layout for both apps.
+ * OgCard: the link preview, one layout for both apps.
  * Each kind's card is read back for what a reader sees in the unfurl (the
  * title, the band's tone, the mark, the chips, the lines and the foot)
  * rather than snapshotted, so a token change does not rewrite every card.
@@ -37,7 +37,7 @@ const SHEET: OgCardProps = {
     { label: 'Mech', value: 'Scrapper' },
   ],
   byline: "Rosa's pilot · Reclamation of the Wastes",
-  address: 'cantina.salvageunion.io/p/pilot/0a1b',
+  address: 'salvageunion.io/build/p/pilot/0a1b',
 }
 
 const PATTERN: OgCardProps = {
@@ -50,7 +50,7 @@ const PATTERN: OgCardProps = {
     { label: 'SYS', value: '12/12' },
   ],
   madeBy: 'alxjrvs',
-  address: 'cantina.salvageunion.io/p/pattern/0a1b',
+  address: 'salvageunion.io/build/p/pattern/0a1b',
 }
 
 const NPC: OgCardProps = {
@@ -64,7 +64,7 @@ const NPC: OgCardProps = {
   ],
   madeBy: 'alxjrvs',
   quoted: false,
-  address: 'cantina.salvageunion.io',
+  address: 'salvageunion.io/build',
 }
 
 const LONG = 'Sergeant Kessler of the Ninth Reclamation Wing, Retired'
@@ -79,12 +79,12 @@ const INVITE: OgCardProps = {
   tone: color.crawler,
   summary: 'Mediated by alxjrvs.',
   terms: 'Link expires 15 Oct · the Mediator lets you in',
-  address: 'cantina.salvageunion.io',
+  address: 'salvageunion.io/build',
 }
 
 const LONG_INVITE: OgCardProps = { ...INVITE, title: LONG } as OgCardProps
 
-const PRIVATE: OgCardProps = { kind: 'private', address: 'cantina.salvageunion.io' }
+const PRIVATE: OgCardProps = { kind: 'private', address: 'salvageunion.io/build' }
 
 function chassis(name: string): RefMetaEntity {
   const entity = SalvageUnionReference.Chassis.getByName(name)
@@ -184,7 +184,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12'],
         ['MODS', '2'],
       ],
-      lines: ['Chassis · Workshop Manual · p.104'],
+      // No kind on the foot; every printing on one line (rulings 1 and 3, 2026-10-19).
+      lines: ['Workshop Manual · p.104 // Salvage Union Starter Set (PC) · p.16'],
       wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },
@@ -203,7 +204,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
       ],
       lines: [
         'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
-        'Ability · Mech-Tech Tree · Workshop Manual · p.29',
+        'Workshop Manual · p.29 // Salvage Union Starter Set (PH) · p.14',
       ],
       wordmark: 'salvageunion.io',
       address: '/abilities/mass-field-repair',
@@ -224,8 +225,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Mech', 'Scrapper'],
       ],
       lines: ["Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io/p/pilot/0a1b',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build/p/pilot/0a1b',
     },
   ],
   [
@@ -241,8 +242,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io/p/pattern/0a1b',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build/p/pattern/0a1b',
     },
   ],
   [
@@ -258,8 +259,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -276,7 +277,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
       ],
       wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -292,8 +293,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -309,8 +310,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io/p/pattern/0a1b',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build/p/pattern/0a1b',
     },
   ],
   [
@@ -327,7 +328,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
       ],
       wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -340,8 +341,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
       tone: color.inkDeep,
       cells: [],
       lines: ["Its owner hasn't shared this."],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build',
     },
   ],
 ]
@@ -379,13 +380,13 @@ describe('OgCard', () => {
   test('canon is solid; user-made is dashed, hatched and stamped', () => {
     const solid = renderToStaticMarkup(<OgCard {...SHEET} />)
     expect(solid).toContain('border-style:solid')
-    expect(solid).not.toContain('User-made')
+    expect(solid).not.toContain('Homebrew')
     expect(solid).not.toContain('data-user-made')
 
     const made = renderToStaticMarkup(<OgCard {...PATTERN} />)
     expect(made).toContain('border-style:dashed')
     expect(made).toContain('data-user-made="true"')
-    expect(made).toContain('User-made')
+    expect(made).toContain('Homebrew')
     expect(made).toContain('Made by alxjrvs')
     // The notch's dashes are 4px at the og scale, so they survive Discord's 400px draw.
     expect(made).toContain('border-top-style:dashed;border-top-width:4px')
@@ -400,9 +401,9 @@ describe('OgCard', () => {
     expect(ogCardDescription(PRIVATE)).toBe("Its owner hasn't shared this.")
   })
 
-  test('the reference cards say salvageunion.io; the player cards say The Cantina', () => {
+  test('the reference cards say salvageunion.io; a built thing says the Training Bay', () => {
     expect(renderToStaticMarkup(<OgCard {...THING} />)).toContain('salvageunion.io')
-    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('The Cantina')
+    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('Training Bay')
   })
 
   test('theme-color is the band: the tone, resolved to a literal', () => {
@@ -453,19 +454,19 @@ describe('OgCard', () => {
   test('a name too long to share its line keeps it whole, the chips under it', () => {
     const name = '\u201CSergeant Kessler of the Ninth\u201D'
     const layout = ogCardLayout(name, [
-      { kind: 'stamp', text: 'User-made' },
+      { kind: 'stamp', text: 'Homebrew' },
       { kind: 'stat', label: 'HP', value: '9' },
       { kind: 'stat', label: 'Actions', value: '2' },
     ])
     expect(layout.chips).toBe('below')
     expect(layout.titleSize).toBe(ogTitleSize(name))
     expect(layout.bandHeight).toBe(230)
-    // The card draws them on the page ground under the notch, User-made first.
+    // The card draws them on the page ground under the notch, Homebrew first.
     const host = document.createElement('div')
     host.innerHTML = renderToStaticMarkup(<OgCard {...LONG_NPC} />)
     expect(host.querySelector('.su-chapter-band .su-og-chips')).toBeNull()
     const below = host.querySelector('article > :nth-child(2) .su-og-chips')
-    expect(below?.firstElementChild?.textContent).toBe('User-made')
+    expect(below?.firstElementChild?.textContent).toBe('Homebrew')
   })
 
   test('the chips render in the band, not the body', () => {

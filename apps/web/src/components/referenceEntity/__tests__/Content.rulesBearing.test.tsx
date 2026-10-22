@@ -1,7 +1,7 @@
 /**
  * The inline rules-bearing marker (C4, ADR-029 §6).
  *
- * Where the app applies the rules (the surface's `appliesRules`: The Cantina), the
+ * Where the app applies the rules (the surface's `appliesRules`: the app), the
  * clause it applies leads with an ink AUTO stamp, adjacent to the claim
  * itself. The SRD applies nothing, so the same paragraph is plain prose there:
  * no stamp.
@@ -29,7 +29,7 @@ function marks(container: HTMLElement): number {
   return container.querySelectorAll(`[title="${AUTO_NOTE}"]`).length
 }
 
-/** Render inside a surface that applies the rules, as the Cantina's root does. */
+/** Render inside a surface that applies the rules, as the app's root does. */
 function inApp(ui: ReactElement) {
   return render(<EntitySurfaceProvider value={{ appliesRules: true }}>{ui}</EntitySurfaceProvider>)
 }

@@ -1,14 +1,14 @@
 /**
  * EntitySearcher — the one shared "add an entity" body for every live-sheet
  * and standalone picker modal (pilot equipment/abilities, mech systems/modules,
- * crawler weapons, chassis/NPC pickers) and the Dashboard's SRD Explorer.
+ * crawler weapons, chassis/NPC pickers) and Play's SRD Explorer.
  *
- * BROWSE, READ, KEEP. The pool is a list of Tokens, so a long collection
- * scans at a glance; a chosen Token wears the selection ring with its chosen
- * label (EQUIPPED, 2 INSTALLED) joined to it. Opening a Token shows that
+ * BROWSE, READ, KEEP. The pool is a list of Minis, so a long collection
+ * scans at a glance; a chosen one's line wears select mode's ring and its
+ * `SelectedSeal` in the caller's word (EQUIPPED, 2 INSTALLED): hard rule R15. Opening a Mini shows that
  * entity whole, as its Page, with an action bar that adds it — the detail is
  * there when it is wanted, never in the way of the list. What is already
- * chosen sits in its own sidebar of Tokens with the budgets, and removing is
+ * chosen sits in its own sidebar of Minis with the budgets, and removing is
  * done there.
  *
  * Persistence-agnostic: the caller owns `selected` and the add/remove handlers
@@ -19,16 +19,16 @@
  * action bar says CHOOSE, and `railActions` carries the confirm affordance. `hide` drops the Card sections a picker cannot act on.
  *
  * THE LAYOUT (in the `.su-searcher*` classes, styles/partials/controls.css):
- *   - from 64rem, the Token list (a third of the width) and the chosen
- *     sidebar; opening a Token fills the middle column with its Page. Each
- *     column scrolls alone. Until a Token is opened the middle holds a callout
+ *   - from 64rem, the Mini list (a third of the width) and the chosen
+ *     sidebar; opening a Mini fills the middle column with its Page. Each
+ *     column scrolls alone. Until a Mini is opened the middle holds a callout
  *     saying what goes there.
- *   - below it, one column: the Token list over a bar holding the chosen
+ *   - below it, one column: the Mini list over a bar holding the chosen
  *     count (a disclosure that opens the chosen list), the budgets and the
- *     actions. Opening a Token gives its Page the whole picker, with Back to
+ *     actions. Opening a Mini gives its Page the whole picker, with Back to
  *     list above and the action bar below; the list stays mounted, hidden, so
  *     its scroll position survives the round trip.
- *   - browse has no choosing: a grid of Tokens, each opening via `onOpen`.
+ *   - browse has no choosing: a grid of Minis, each opening via `onOpen`.
  * DOM order follows the visual order, so focus order does too.
  *
  * NOTHING BELOW A FOLD. The frame is capped at the dynamic viewport and its
@@ -48,24 +48,26 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { color, fontSize, iconSize, space, widthAtLeast } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { Button } from '../atoms/Button'
-import { buttonVariants } from '../atoms/buttonVariants'
+import { capsLabel } from '../atoms/capsLabel'
 import { SearchField } from '../atoms/SearchField'
-import { Callout } from '../containers/Callout'
+import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
+import { paintFor } from '../entity'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { paintFor } from '../entity/parts/paint'
+import { SelectedSeal } from '../entity/modes/select'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
 import type { BudgetConfig, EntityLike, FacetConfig, PoolEntity } from './entitySearcherTypes'
+import { NO_RESULTS } from './searchCopy'
 import { TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 type EntitySearcherProps = {
@@ -83,7 +85,7 @@ type EntitySearcherProps = {
    * than appending), so a single-select picker differs only in semantics, not
    * in wiring.
    * `browse`: nothing is chosen — a reference browser, not a picker (the
-   * Dashboard's SRD Explorer). No rail, no Status facet; a Token's
+   * Play's SRD Explorer). No rail, no Status facet; a Mini's
    * click emits `onOpen`.
    */
   mode?: 'toggle' | 'count' | 'single' | 'browse'
@@ -135,6 +137,15 @@ type EntitySearcherProps = {
    * or in the bottom bar on a narrow screen. Replaces DONE.
    */
   railActions?: ReactNode
+  /**
+   * The host draws the frame (the SRD Explorer's dialog head): the searcher
+   * hands it its toolbar, for the host's band, and its body, for under it,
+   * and draws no cut-out box of its own, so there is never a titled box in a
+   * titled box. `title`, `subtitle` and the close badge are then the host's
+   * to show. Without it the searcher is its own frame, as every picker in a
+   * `bare` ModalShell needs.
+   */
+  frame?: (parts: { toolbar: ReactNode; body: ReactNode }) => ReactNode
 }
 
 /** The default `idOf`: module-level, so it is one function across renders. */
@@ -154,13 +165,14 @@ export function EntitySearcher({
   budget,
   railName,
   chosenLabel = 'Selected',
-  emptyMessage = 'Nothing found.',
+  emptyMessage = NO_RESULTS,
   title,
   subtitle,
   onClose,
   hide,
   showChassisAbility,
   railActions,
+  frame,
 }: EntitySearcherProps) {
   // Actions/choices are never pickable inside a picker; anything else is the
   // caller's to suppress.
@@ -206,7 +218,7 @@ export function EntitySearcher({
   }
 
   // A layout effect, so focus moves before paint: into the Page view on its
-  // Back button, and back out onto the Token that opened it.
+  // Back button, and back out onto the Mini that opened it.
   useLayoutEffect(() => {
     const target = pendingFocus.current
     if (target === null) return
@@ -252,27 +264,27 @@ export function EntitySearcher({
     />
   )
 
-  // ---- The Token list ----
+  // ---- The Mini list ----
   const single = mode === 'single'
   const tokens = visible.map((item) => {
     const ref = idOf(item)
     const count = countOf(item)
     const token = (
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={item}
         mode={{
           kind: 'link',
           onOpen: () => (browse ? onOpen?.(ref) : open(ref)),
-          // A data attribute, so Back to list can find the Token it left.
+          // A data attribute, so the back control can find the Mini it left.
           attrs: { 'data-searcher-open': ref } as EntityLinkAttrs,
         }}
       />
     )
     if (browse) {
       return (
-        <div key={item.id} className="su-searcher__item su-entity-token-line">
+        <div key={item.id} className="su-searcher__item su-entity-mini-line">
           {token}
         </div>
       )
@@ -280,16 +292,12 @@ export function EntitySearcher({
     return (
       <div
         key={item.id}
-        className="su-searcher__item su-entity-token-line"
+        className="su-searcher__item su-entity-mini-line"
         data-focused={ref === focusedId || undefined}
         data-selected={count > 0 || undefined}
       >
         {token}
-        {count > 0 && (
-          <span className="su-searcher__chosen">
-            {count > 1 ? `${count} ${chosenLabel}` : chosenLabel}
-          </span>
-        )}
+        {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
       </div>
     )
   })
@@ -297,11 +305,13 @@ export function EntitySearcher({
   const browser = (
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
       <div className="su-searcher__scroll" style={LIST_SCROLL_STYLE}>
-        <p style={SUMMARY_STYLE}>
+        <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
           Showing {visible.length} of {pool.length}
         </p>
         <div className="su-searcher__list">{tokens}</div>
-        {visible.length === 0 && <p style={POOL_EMPTY_STYLE}>{emptyMessage}</p>}
+        {visible.length === 0 && emptyMessage && (
+          <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
+        )}
       </div>
     </div>
   )
@@ -314,6 +324,7 @@ export function EntitySearcher({
       count={selected.filter((ref) => ref === focusedId).length}
       chosenLabel={chosenLabel}
       railName={railName}
+      listName={title}
       hide={cardHide}
       showChassisAbility={showChassisAbility}
       onAdd={() => focusedId && add(focusedId)}
@@ -323,7 +334,10 @@ export function EntitySearcher({
   ) : wide && !browse ? (
     // Nothing open yet: a note in the middle saying what goes there.
     <div className="su-searcher__empty">
-      <Callout>Open any entry in the list to read it here, then add it from its page.</Callout>
+      <EmptyState
+        variant="quiet"
+        body="Open any entry in the list to read it here, then add it from its page."
+      />
     </div>
   ) : null
 
@@ -354,34 +368,8 @@ export function EntitySearcher({
     </div>
   )
 
-  // The cut-out head every titled container wears (`TitledBox`, as ModalShell
-  // draws it): the band in the pilot tone, the title on a square paper tab
-  // notched into its foot, the × on the band. A dialog's head is its chrome,
-  // level 0 (ruleset §5, N6), so the opened entry's Page under it is level 0
-  // too.
-  return (
-    <TitledBox
-      as="section"
-      title={title ?? ''}
-      paint={paint}
-      className={cn('su-modal-panel su-searcher-panel', !browse && 'su-searcher-frame')}
-      body="flush"
-      bodyStyle={BODY_STYLE}
-      controls={
-        onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
-          >
-            <X aria-hidden="true" style={CLOSE_ICON_STYLE} />
-          </button>
-        )
-      }
-    >
-      {subtitle && <p style={SUBTITLE_STYLE}>{subtitle}</p>}
-      {!takeover && toolbar}
+  const searcher = (
+    <>
       <div
         className={cn(
           'su-searcher',
@@ -394,6 +382,51 @@ export function EntitySearcher({
         {rail}
       </div>
       {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
+    </>
+  )
+
+  // The host's frame: the toolbar on its band (the panel class carries the
+  // controls' one height there too), the rest filling its body.
+  if (frame) {
+    return frame({
+      toolbar: !takeover && <div className="su-searcher-panel su-searcher__on-band">{toolbar}</div>,
+      body: (
+        <section aria-label={title} className="su-searcher-panel" style={HOSTED_STYLE}>
+          {searcher}
+        </section>
+      ),
+    })
+  }
+
+  // The cut-out head every titled container wears (`TitledBox`, as ModalShell
+  // draws it): the band in the pilot tone, the title on a square paper tab
+  // notched into its foot, the × on the band. A dialog's head is its chrome,
+  // level 0 (ruleset §5, N6), so the opened entry's Page under it is level 0
+  // too.
+  return (
+    <TitledBox
+      as="section"
+      title={title ?? ''}
+      paint={paint}
+      className={cn('su-modal-panel su-searcher-panel', !browse && 'su-searcher-frame')}
+      shrink
+      body="flush"
+      bodyStyle={BODY_STYLE}
+      controls={
+        onClose && (
+          <Button onClick={onClose} aria-label="Close" variant="quiet" size="iconOnly">
+            <X aria-hidden="true" size={iconSize.compact} />
+          </Button>
+        )
+      }
+    >
+      {subtitle && (
+        <p className={SUBTITLE_CAPS} style={SUBTITLE_STYLE}>
+          {subtitle}
+        </p>
+      )}
+      {!takeover && toolbar}
+      {searcher}
     </TitledBox>
   )
 }
@@ -407,9 +440,9 @@ export function EntitySearcher({
  * `.su-searcher` media query in styles/partials/controls.css — change both or
  * neither. CSS owns the LAYOUT; this only decides what the parts ARE at that
  * width: the rail a column or a bar, the Tech level chips inline or folded,
- * and whether an opened Token takes the picker over.
+ * and whether an opened Mini takes the picker over.
  */
-const WIDE_QUERY = '(min-width: 64rem)'
+const WIDE_QUERY = widthAtLeast('lg')
 
 // Static properties only — every property that changes with the breakpoint
 // lives in the `.su-searcher*` classes (the split rule).
@@ -418,37 +451,29 @@ const WIDE_QUERY = '(min-width: 64rem)'
  * searcher under the head takes what is left and scrolls in it. */
 const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
 
-/** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
-const SUBTITLE_STYLE = {
-  margin: space[0],
-  padding: `${space[10]} ${space[16]} ${space[0]}`,
-  fontFamily: font.cond,
-  fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
-  lineHeight: 1.2,
-  textTransform: 'uppercase',
-  color: color.wkMuted,
+/** In a host's frame, the searcher fills its body as its own frame's would. */
+const HOSTED_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  minHeight: 0,
 } satisfies CSSProperties
 
-const CLOSE_ICON_STYLE = { width: space[20], height: space[20] } satisfies CSSProperties
+/** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
+const SUBTITLE_STYLE = {
+  margin: 0,
+  padding: `${space[12]} ${space[16]} 0`,
+  fontSize: fontSize.xs,
+  lineHeight: 1.2,
+  color: color.wkMuted,
+} satisfies CSSProperties
+const SUBTITLE_CAPS = capsLabel()
 
 const LIST_SCROLL_STYLE = {
   padding: `${space[12]} ${space[16]} ${space[16]}`,
 } satisfies CSSProperties
 const SUMMARY_STYLE = {
-  margin: `${space[0]} ${space[0]} ${space[10]}`,
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tracking.caps,
+  margin: `0 0 ${space[8]}`,
   color: color.wkMuted,
 } satisfies CSSProperties
-const POOL_EMPTY_STYLE = {
-  marginTop: space[12],
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: '1.25rem',
-  color: color.wkMuted,
-} satisfies CSSProperties
+const SUMMARY_CAPS = capsLabel({ size: 'badge' })

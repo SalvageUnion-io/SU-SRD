@@ -10,9 +10,9 @@
  * round-trip) live in cargoTransfer.ts.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import { mechMaxCargo } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
@@ -52,7 +52,7 @@ type UseCargoOptions = {
    * Change Log provenance for the writes this hook commits (ADR-022).
    *
    * Defaults to the Live Sheet's manual tag because that is where cargo is
-   * moved by hand; a Dashboard-side caller should pass `DASHBOARD_TXN` so the
+   * moved by hand; a caller in Play should pass `PLAY_TXN` so the
    * log distinguishes an enforced transaction from someone dragging a lot.
    */
   meta?: ChangeMeta

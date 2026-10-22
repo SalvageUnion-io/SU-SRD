@@ -1,4 +1,6 @@
+import { v } from 'convex/values'
 import type {
+  BindChannelResult,
   BotDenialReason,
   BotFailure,
   BotSuccess,
@@ -7,17 +9,26 @@ import type {
   MeResult,
   MineResult,
   SheetResult,
-} from 'cantina-domain/botWire'
-import { PRODUCT } from 'cantina-domain/product'
-import { v } from 'convex/values'
+  UnbindChannelResult,
+} from 'game-domain/botWire'
+import { SHEET_KINDS, TABLE_OF_KIND } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
 import type { SheetRow } from './crew'
 import { sheetVitals } from './crew'
+import { oldestByAddress } from './model/addresses'
 import { gamesForUser, userByDiscordId } from './model/bot'
-import { oldestByAppId, primaryCrawlerOf } from './model/entities'
+import {
+  bindChannelAs,
+  GAME_NOT_FOUND,
+  resolveCallerGame,
+  unbindChannelAs,
+} from './model/channelBindings'
+import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
+import { literalUnion } from './model/validators'
 
 /**
  * The Discord bot as a Game participant — **bot-facing half** (ADR-030).
@@ -43,20 +54,21 @@ import { getMembership } from './model/permissions'
  * request, typed by a person, a few times a session.
  *
  * A pilot's or mech's derived maxima and status ride beside the body
- * (`SheetResult.vitals`): the derivation `crew.vitals` serves the Dashboard's
- * Crew tab (`sheetVitals` in `crew.ts`), so the bot shows the server's numbers
+ * (`SheetResult.vitals`): the derivation `crew.vitals` serves Play's
+ * Crew (`sheetVitals` in `crew.ts`), so the bot shows the server's numbers
  * rather than working out its own (ADR-038 §4).
  */
 
 /*
- * Every success payload below is annotated with its `cantina-domain/botWire` type.
+ * Every success payload below is annotated with its `game-domain/botWire` type.
  * That module is also what the Discord bot imports (`import type`), so a change
  * to a return shape here is a compile error on both sides of the wire rather
  * than a silent drift between two hand-kept copies.
  */
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
-  unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
+  unlinked: `No ${PRODUCT.wordmark} account is signed in with this Discord account.`,
   'not-found': 'That could not be found.',
+  forbidden: 'You cannot do that here.',
 }
 
 function fail(reason: BotDenialReason, message?: string): BotFailure {
@@ -162,7 +174,7 @@ const SHEET_NOT_FOUND = 'That sheet could not be found, or it is not yours to re
 export const sheet = internalQuery({
   args: {
     discordId: v.string(),
-    table: v.union(v.literal('pilots'), v.literal('mechs'), v.literal('crawlers')),
+    table: literalUnion(SHEET_KINDS.map((kind) => TABLE_OF_KIND[kind])),
     entityId: v.string(),
   },
   handler: async (ctx, args): Promise<BotFailure | BotSuccess<SheetResult>> => {
@@ -171,11 +183,13 @@ export const sheet = internalQuery({
     // from ANY table — so casting the string would let a caller pass an
     // `encounterNpcs` id and read the Mediator's prepared opposition, the one
     // thing ADR-030 §5 says must stay hidden. An id that is not this table's
-    // is tried as an app id, on this table's own index, and is otherwise
-    // not-found rather than a throw.
+    // is tried as a public address (a short or full app id, `shareAddress`),
+    // on this table's own index, and is otherwise not-found rather than a throw.
     const rowId = ctx.db.normalizeId(args.table, args.entityId)
     const doc =
-      rowId === null ? await oldestByAppId(ctx, args.table, args.entityId) : await ctx.db.get(rowId)
+      rowId === null
+        ? await oldestByAddress(ctx, args.table, args.entityId)
+        : await ctx.db.get(rowId)
     if (doc === null) return fail('not-found', SHEET_NOT_FOUND)
 
     const row = doc as unknown as {
@@ -215,5 +229,50 @@ export const sheet = internalQuery({
       // `normalizeId` / `oldestByAppId` read `doc` from `args.table`.
       vitals: await sheetVitals(ctx, { table: args.table, row: doc } as SheetRow),
     }
+  },
+})
+
+/**
+ * `/su bind`: bind the channel it ran in (`channelId`, kept with its name,
+ * `channelName`) to one of the caller's Games (`game`, the autocomplete's
+ * Game id or a typed name), or with no `game` to the caller's solo play. One of the bot's two writes, with `unbindChannel`: a
+ * binding is the bot's own apparatus, never anybody's sheet, so ADR-030 §4
+ * stands. Who may bind what is `model/channelBindings.ts`.
+ */
+export const bindChannel = internalMutation({
+  args: {
+    discordId: v.string(),
+    channelId: v.string(),
+    channelName: v.optional(v.string()),
+    game: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<BindChannelResult>> => {
+    const user = await userByDiscordId(ctx, args.discordId)
+    if (user === null) return fail('unlinked')
+    const channelId = args.channelId.trim()
+    if (channelId.length === 0) return fail('not-found', 'That channel could not be found.')
+
+    let gameId: Id<'games'> | null = null
+    if (args.game !== undefined && args.game.trim().length > 0) {
+      gameId = await resolveCallerGame(ctx, user._id, args.game)
+      if (gameId === null) {
+        return fail('not-found', GAME_NOT_FOUND)
+      }
+    }
+    return await bindChannelAs(ctx, user._id, {
+      channelId,
+      gameId,
+      channelName: args.channelName ?? null,
+    })
+  },
+})
+
+/** `/su unbind`: release the channel it ran in, so rolls stop posting there. */
+export const unbindChannel = internalMutation({
+  args: { discordId: v.string(), channelId: v.string() },
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<UnbindChannelResult>> => {
+    const user = await userByDiscordId(ctx, args.discordId)
+    if (user === null) return fail('unlinked')
+    return await unbindChannelAs(ctx, user._id, args.channelId.trim())
   },
 })

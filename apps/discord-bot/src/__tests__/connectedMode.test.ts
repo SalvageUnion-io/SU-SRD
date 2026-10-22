@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { CantinaClient } from '../cantina/client'
-import type { CantinaResult } from '../cantina/types'
 import { gamesCommand, meCommand } from '../commands/account'
-import { setCantinaClient } from '../commands/cantinaReply'
 import { parseSheetTarget, sheetCommand } from '../commands/sheet'
+import { setSiteClient } from '../commands/siteReply'
 import { suCommand } from '../commands/su'
+import type { SiteClient } from '../play/client'
+import type { SiteResult } from '../play/types'
 import type { ReplyArg } from './fakeInteraction'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /**
- * The Game commands with a Cantina deployment configured.
+ * The Game commands with an app deployment configured.
  *
- * Everything here goes through the named test seam in `cantinaReply.ts` rather
+ * Everything here goes through the named test seam in `siteReply.ts` rather
  * than through environment variables or `mock.module` — see that function's
  * comment for why neither works. `afterEach` restores the unconfigured client,
  * which is what every other test file expects to see.
@@ -25,18 +25,21 @@ afterEach(() => {
 })
 
 /** A client whose every method returns the same canned result. */
-function clientReturning(result: CantinaResult<unknown>): CantinaClient {
+function clientReturning(result: SiteResult<unknown>): SiteClient {
   const answer = () => Promise.resolve(result) as never
   return {
     me: answer,
     games: answer,
     mineForAutocomplete: answer,
     sheet: answer,
+    gamesForAutocomplete: answer,
+    bindChannel: answer,
+    unbindChannel: answer,
   }
 }
 
-function connect(result: CantinaResult<unknown>): void {
-  restore = setCantinaClient(clientReturning(result))
+function connect(result: SiteResult<unknown>): void {
+  restore = setSiteClient(clientReturning(result))
 }
 
 /**
@@ -129,7 +132,7 @@ describe('an ephemeral command', () => {
   })
 
   test('reports an outage as an outage, not as a permissions problem', async () => {
-    connect({ kind: 'unavailable', message: 'The Cantina could not be reached.' })
+    connect({ kind: 'unavailable', message: 'The app could not be reached.' })
     const { interaction, edits, followUps } = fakeExecute({ subcommand: 'me' })
     await meCommand.execute(interaction)
     expect(followUps).toHaveLength(0)
@@ -140,7 +143,7 @@ describe('an ephemeral command', () => {
 describe('/su sheet', () => {
   test('opens a picked entity, privately', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient({
+    restore = setSiteClient({
       ...clientReturning(OK_SHEET),
       sheet: (...args) => {
         asked = args
@@ -159,7 +162,7 @@ describe('/su sheet', () => {
 
   test('opens a pasted link to somebody else’s sheet', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient({
+    restore = setSiteClient({
       ...clientReturning(OK_SHEET),
       sheet: (...args) => {
         asked = args
@@ -180,7 +183,7 @@ describe('/su sheet', () => {
     ['just-a-name'],
     ['pilots:'],
     ['bogus:p1'],
-    ['https://salvageunion.io/build/games/g1'],
+    ['https://salvageunion.io/build/play/games/g1'],
   ])('refuses a value that is neither a pick nor a sheet link (%s)', async (typed) => {
     connect(OK_SHEET)
     const { interaction, replies, deferred } = fakeExecute({
@@ -235,6 +238,10 @@ describe('parseSheetTarget', () => {
       { table: 'pilots', entityId: 'jd7k2m9p' },
     ],
     ['salvageunion.io/build/p/crawler/app%201?x=1', { table: 'crawlers', entityId: 'app 1' }],
+    [
+      'https://salvageunion.io/build/p/pilot/rook-vance-0a1b2c3d4e5f',
+      { table: 'pilots', entityId: 'rook-vance-0a1b2c3d4e5f' },
+    ],
     ['<https://preview.example/build/sheet/mech/m1>', { table: 'mechs', entityId: 'm1' }],
   ])('reads %s', (raw, expected) => {
     expect(parseSheetTarget(raw)).toEqual(expected as ReturnType<typeof parseSheetTarget>)

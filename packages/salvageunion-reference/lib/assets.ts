@@ -62,10 +62,10 @@ export function assetUrl(path: string): string {
  * The reference site's ROOT-RELATIVE path for one entity's page.
  *
  * This is the site's route grammar (`/{schemaName}/{slug}` — it matches the
- * srd `getStaticPaths`), expressed once. The pages once lived under
- * `/schema/{schemaName}/item/{slug}`; the srd Worker 301s that tree here, and
+ * the reference site's `getStaticPaths`), expressed once. The pages once lived under
+ * `/schema/{schemaName}/item/{slug}`; the reference site's Worker 301s that tree here, and
  * `/schema/*` now names only the JSON API, whose paths are not this grammar.
- * The srd site itself wants the relative form (it is that origin); anything
+ * The reference site itself wants the relative form (it is that origin); anything
  * linking in from outside prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
  *
  * Takes the SLUG rather than the entity, because callers arrive with either —
@@ -85,14 +85,14 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  * The reference site's ROOT-RELATIVE path for one schema's LISTING page.
  *
  * The other half of the route grammar, and it exists for the same reason
- * {@link srdEntityPath} does. Both are written WITHOUT a trailing slash; srd
+ * {@link srdEntityPath} does. Both are written WITHOUT a trailing slash; the reference site
  * emits directory-style output and appends the slash itself in exactly one
  * place (`apps/web/src/lib/entityHref.ts`), so the slash is a rendering
  * decision of that app rather than part of the grammar.
  *
  * Keep this the only place either shape is spelled. Directory-style output
  * redirects an un-slashed form rather than 404ing, so a second spelling would
- * cost a hop on every bot and the Cantina deep link and split the canonical URL in
+ * cost a hop on every bot and the app deep link and split the canonical URL in
  * two, without ever failing.
  *
  * @param schemaName - The entity's schema id (e.g. `'chassis'`)

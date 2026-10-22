@@ -1,0 +1,401 @@
+import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+
+/**
+ * The Play hub (`/play/`, ADR-052 §4): + New Game and Join with a link on its
+ * band; Your Games, each a contentful Compact opening the Game's page with
+ * your role, how many are here, the Downtime state and its channel as chips,
+ * its crew as Minis (each pilot and its mech one Mini), and one door (Mediate
+ * where you mediate it, else Play <your pilot>); Play solo, each pilot in no
+ * Game with its mech or "No Mech". Nothing that builds.
+ * Signed out, sign in.
+ *
+ * Queries are answered by name (`convexMock.ts`): `games.listMine` and
+ * `channelBindings.mine`, then `downtime.state`, `seats.presence`,
+ * `entities.listForGame` and `crew.vitals` once per Game. Without a router,
+ * so links are anchors.
+ */
+
+import {
+  installConvexMocks,
+  queryCalls,
+  setQueryAnswers,
+} from '../../components/__tests__/convexMock'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
+
+const convexMocks = await installConvexMocks()
+
+const { PlayLanding } = await import('../PlayLanding')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+
+const SUMMARY = { templateOrigin: undefined, organizer: false, tableRunner: false }
+const TENACITY = {
+  ...SUMMARY,
+  _id: 'land-g1',
+  name: 'Tenacity',
+  mediator: false,
+  memberCount: 3,
+  pilotCount: 2,
+  mechCount: 1,
+  crawlerName: null,
+}
+const WASTES = {
+  ...SUMMARY,
+  _id: 'land-g2',
+  name: 'Wastes',
+  mediator: true,
+  memberCount: 4,
+  pilotCount: 3,
+  mechCount: 2,
+  crawlerName: 'Rover',
+}
+const IN_DOWNTIME = { running: true, stepIndex: 2, completedBy: [], upkeepSpent: false }
+
+/** No channel bound anywhere, and nobody's seat beating: what most tests need answered. */
+const QUIET = {
+  'channelBindings:mine': { personal: null, games: [] },
+  'seats:presence': [],
+  'entities:listForGame': {
+    pilots: [],
+    mechs: [],
+    crawlers: [],
+    softLinks: [],
+    primaryCrawlerId: null,
+  },
+  'crew:vitals': { viewerId: 'u-me', pilots: [], mechs: [] },
+}
+
+beforeAll(async () => {
+  await hydrateStores()
+  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  const store = useEntityStore.getState()
+  await store.adopt('pilot', pilotFixture({ id: 'land-rook', name: 'Rook', gameId: 'land-g1' }))
+  await store.adopt('pilot', pilotFixture({ id: 'land-wren', name: 'Wren', gameId: null }))
+  await store.adopt('pilot', pilotFixture({ id: 'land-kes', name: 'Kestrel', gameId: null }))
+  await store.adopt('mech', mechFixture({ id: 'land-mech', name: 'Scrapper', gameId: null }))
+  await store.adopt('softLink', {
+    id: 'land-link',
+    type: 'mech-to-pilot',
+    from: { type: 'mech', id: 'land-mech' },
+    to: { type: 'pilot', id: 'land-wren' },
+    createdAt: FIXTURE_NOW,
+  })
+})
+
+afterAll(async () => {
+  const store = useEntityStore.getState()
+  await store.forget('softLink', 'land-link')
+  await store.forget('mech', 'land-mech')
+  await store.forget('pilot', 'land-rook')
+  await store.forget('pilot', 'land-wren')
+  await store.forget('pilot', 'land-kes')
+  convexMocks.restore()
+})
+
+async function renderAs(mode: ConnectionMode) {
+  const state = {
+    mode,
+    canWrite: mode === 'connected',
+    showDisconnectedWarning: mode === 'disconnected',
+    settling: mode === 'connecting',
+  }
+  await act(async () => {
+    render(
+      <ConnectionContext.Provider value={state}>
+        <PlayLanding />
+      </ConnectionContext.Provider>
+    )
+  })
+}
+
+const section = (name: string) => within(screen.getByRole('region', { name }))
+const card = (name: string) => {
+  const item = screen.getByRole('heading', { name: `${name} (Game)` }).closest('li')
+  if (!item) throw new Error(`no Game card for ${name}`)
+  return within(item)
+}
+
+describe('the Play landing', () => {
+  test('signed out, asks you to sign in and asks Convex nothing', async () => {
+    setQueryAnswers({})
+    await renderAs('solo')
+    expect(screen.getByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Sign in with Discord' }).getAttribute('href')).toBe(
+      '/sign-in'
+    )
+    expect(queryCalls()).toHaveLength(0)
+  })
+
+  test('Your Games: each a Compact opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
+    setQueryAnswers({
+      'games:listMine': [TENACITY, WASTES],
+      'downtime:state': IN_DOWNTIME,
+      ...QUIET,
+    })
+    await renderAs('connected')
+    const tenacity = card('Tenacity')
+    // The whole Compact opens the Game's page in Play.
+    expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
+      '/play/games/land-g1'
+    )
+    const play = tenacity.getByRole('link', { name: 'Play Rook in Tenacity' })
+    expect(play.getAttribute('href')).toBe('/play/land-rook')
+    expect(play.textContent).toBe('Play Rook')
+    expect(tenacity.getByText('Player')).toBeTruthy()
+    expect(tenacity.queryByRole('link', { name: /^Mediate/ })).toBeNull()
+    // Presence, not a member count; Downtime as a chip with its step.
+    expect(tenacity.queryByText('Members')).toBeNull()
+    expect(tenacity.getByText('Downtime')).toBeTruthy()
+    expect(tenacity.getByText('Step 3')).toBeTruthy()
+
+    const wastes = card('Wastes')
+    expect(wastes.getByText('Mediator')).toBeTruthy()
+    const mediate = wastes.getByRole('link', { name: 'Mediate Wastes' })
+    expect(mediate.getAttribute('href')).toBe('/play/game/land-g2')
+    expect(mediate.textContent).toBe('Mediate')
+    // One door per Game.
+    expect(wastes.queryByRole('link', { name: /^Play / })).toBeNull()
+    // `downtime.state` for each Game.
+    const asked = queryCalls()
+      .filter((c) => c.name === 'downtime:state')
+      .map((c) => (c.args as { gameId: string }).gameId)
+    expect([...new Set(asked)].sort()).toEqual(['land-g1', 'land-g2'])
+  })
+
+  test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
+    setQueryAnswers({
+      'games:listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
+      'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+      ...QUIET,
+    })
+    await renderAs('connected')
+    const elsewhere = card('Elsewhere')
+    expect(elsewhere.queryByText('Downtime')).toBeNull()
+    expect(elsewhere.queryByText('Scene')).toBeNull()
+    // Its page is one tap away, and the only link on the Compact.
+    expect(elsewhere.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
+      '/play/games/land-g9',
+    ])
+  })
+
+  test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
+    setQueryAnswers({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
+    await renderAs('connected')
+    const solo = section('Play solo')
+    expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
+      '/play/land-wren'
+    )
+    const row = (name: string) => {
+      const item = solo.getByRole('link', { name: `Play ${name} solo` }).closest('li')
+      if (!item) throw new Error(`no solo row for ${name}`)
+      return within(item)
+    }
+    // The pair rule: a pilot not aboard is the pilot, with a MECH chip naming its mech.
+    expect(row('Wren').getByText('Scrapper')).toBeTruthy()
+    expect(row('Wren').getByText('Mech')).toBeTruthy()
+    expect(row('Wren').getByText('HP')).toBeTruthy()
+    expect(row('Kestrel').getByText('No Mech')).toBeTruthy()
+    // A Game's pilot is not offered solo.
+    expect(solo.queryByRole('link', { name: 'Play Rook solo' })).toBeNull()
+    // The empty state points to New Game and Join, not to Build.
+    expect(
+      section('Your Games').getByText(
+        'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
+      )
+    ).toBeTruthy()
+  })
+
+  test('the head offers + New Game and Join; Join opens the invite screen from a link or its token', async () => {
+    setQueryAnswers({ 'games:listMine': [], 'templates:list': [], ...QUIET })
+    const assigned: string[] = []
+    const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
+      assigned.push(String(to))
+    })
+    try {
+      await renderAs('connected')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '+ New Game' }))
+      })
+      expect(screen.getByRole('dialog', { name: 'New Game' })).toBeTruthy()
+      await act(async () => {
+        fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+      })
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Join with a link' }))
+      })
+      const field = screen.getByLabelText('Invite link')
+      const join = screen.getByRole('button', { name: 'Join' })
+      expect(join.hasAttribute('disabled')).toBe(true)
+
+      fireEvent.change(field, { target: { value: 'not a link' } })
+      await act(async () => {
+        fireEvent.click(join)
+      })
+      expect(screen.getByText('That is not an invite link.')).toBeTruthy()
+      expect(assigned).toEqual([])
+
+      fireEvent.change(field, {
+        target: { value: 'https://salvageunion.io/build/invite/AB12CD34EF56' },
+      })
+      expect(screen.queryByText('That is not an invite link.')).toBeNull()
+      await act(async () => {
+        fireEvent.click(join)
+      })
+      expect(assigned).toEqual(['/invite/AB12CD34EF56'])
+    } finally {
+      assign.mockRestore()
+    }
+  })
+
+  test('a Game’s channel is a chip on its card; there is no Discord section', async () => {
+    setQueryAnswers({
+      'games:listMine': [TENACITY, WASTES],
+      'downtime:state': IN_DOWNTIME,
+      ...QUIET,
+      'channelBindings:mine': {
+        personal: null,
+        games: [
+          {
+            gameId: 'land-g1',
+            gameName: 'Tenacity',
+            mayBind: true,
+            binding: { channelId: 'c-1', channelName: 'salvage-run', boundAt: FIXTURE_NOW },
+          },
+          { gameId: 'land-g2', gameName: 'Wastes', mayBind: false, binding: null },
+        ],
+      },
+    })
+    await renderAs('connected')
+    expect(card('Tenacity').getByText('#salvage-run')).toBeTruthy()
+    expect(card('Wastes').queryByText(/^#/)).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Discord' })).toBeNull()
+  })
+
+  test('the crew are Minis with their chips: a boarded pilot is its mech, else the pilot', async () => {
+    setQueryAnswers({
+      'games:listMine': [TENACITY],
+      'downtime:state': IN_DOWNTIME,
+      ...QUIET,
+      'entities:listForGame': {
+        pilots: [],
+        mechs: [],
+        crawlers: [{ _id: 'c1', appId: 'a-c1', body: { id: 'a-c1', name: 'Big Sal' } }],
+        softLinks: [],
+        primaryCrawlerId: 'c1',
+      },
+      'crew:vitals': {
+        viewerId: 'u-me',
+        pilots: [
+          {
+            _id: 'p1',
+            linkId: 'a-p1',
+            appId: 'a-p1',
+            ownerId: 'u-me',
+            name: 'Rook',
+            currentHP: 4,
+            maxHP: 10,
+            currentAP: null,
+            maxAP: 5,
+            boarded: true,
+            mechId: 'a-m1',
+          },
+          {
+            _id: 'p2',
+            linkId: 'a-p2',
+            appId: 'a-p2',
+            ownerId: 'u-2',
+            name: 'Vesper',
+            currentHP: null,
+            maxHP: 8,
+            currentAP: null,
+            maxAP: 4,
+            boarded: false,
+            mechId: 'a-m2',
+          },
+        ],
+        mechs: [
+          {
+            _id: 'm1',
+            linkId: 'a-m1',
+            appId: 'a-m1',
+            ownerId: 'u-me',
+            name: 'Spectrum',
+            currentSP: 6,
+            maxSP: 9,
+            currentEP: null,
+            maxEP: 5,
+            currentHeat: 2,
+            maxHeat: 9,
+          },
+          {
+            _id: 'm2',
+            linkId: 'a-m2',
+            appId: 'a-m2',
+            ownerId: 'u-2',
+            name: 'Thresher',
+            currentSP: null,
+            maxSP: 12,
+            currentEP: null,
+            maxEP: 6,
+            currentHeat: null,
+            maxHeat: 10,
+          },
+        ],
+      },
+    })
+    await renderAs('connected')
+    const tenacity = screen.getByRole('heading', { name: 'Tenacity (Game)' }).closest('li')
+    const minis = [...(tenacity?.querySelectorAll('[data-entity-linked] > *') ?? [])].map(
+      (mini) => mini.textContent ?? ''
+    )
+    // The crawler first; Rook is aboard, so the Mini is Spectrum with a PILOT
+    // chip and its stats; Vesper is on foot, so the Mini is Vesper with a MECH
+    // chip. Never both halves of a pair.
+    expect(minis).toHaveLength(3)
+    expect(minis[0]).toContain('Big Sal')
+    expect(minis[1]).toContain('Spectrum')
+    expect(minis[1]).toContain('Rook')
+    expect(minis[1]).toContain('SP')
+    expect(minis[2]).toContain('Vesper')
+    expect(minis[2]).toContain('Thresher')
+    expect(minis[2]).toContain('HP')
+    // Each opens its sheet in Build.
+    const hrefs = [...(tenacity?.querySelectorAll('[data-entity-linked] a') ?? [])].map((a) =>
+      a.getAttribute('href')
+    )
+    expect(hrefs).toContain('/sheet/mech/a-m1')
+    expect(hrefs).toContain('/sheet/pilot/a-p2')
+  })
+
+  test('Your Games: how many are here now, from the seats’ heartbeat', async () => {
+    const now = Date.now()
+    setQueryAnswers({
+      'games:listMine': [TENACITY],
+      'downtime:state': IN_DOWNTIME,
+      ...QUIET,
+      // Two beat a moment ago; one has not beaten for an hour.
+      'seats:presence': [now - 1_000, now - 5_000, now - 3_600_000],
+    })
+    await renderAs('connected')
+    const tenacity = card('Tenacity')
+    expect(tenacity.getByText('2 here')).toBeTruthy()
+  })
+
+  test('offline, the shelf still lists, and Your Games wait for the connection', async () => {
+    setQueryAnswers({})
+    await renderAs('disconnected')
+    expect(section('Play solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
+    expect(
+      section('Your Games').getByText('Your Games list once the connection returns.')
+    ).toBeTruthy()
+    // Starting or joining a Game waits for the connection too.
+    expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Join with a link' })).toBeNull()
+    expect(queryCalls()).toHaveLength(0)
+  })
+})

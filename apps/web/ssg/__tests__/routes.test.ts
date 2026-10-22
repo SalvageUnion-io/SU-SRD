@@ -22,7 +22,7 @@ const PUBLIC_DIR = fileURLToPath(new URL('../../public', import.meta.url))
 const PAGE_FLOOR = 900
 
 /**
- * The only inline `<script>` types srd may emit. `public/_headers` gives
+ * The only inline `<script>` types the reference site may emit. `public/_headers` gives
  * `script-src` no hashes and no 'unsafe-inline', so an inline script of any
  * other type is blocked in production: load it by URL instead. JSON and
  * JSON-LD are data blocks `script-src` never gates; speculation rules are
@@ -90,7 +90,7 @@ describe('route registry', () => {
 
   // Pages sit at the root (`/chassis/mule/`), so a schema id shares one
   // namespace with every other top-level path: a schema named `about`, a
-  // public directory named `chassis`, or a schema under the Cantina's `/build/` or
+  // public directory named `chassis`, or a schema under the app's `/build/` or
   // the JSON API's `/schema/` would shadow one or the other.
   it('gives no schema listing a first segment another route, a public file or a sibling app owns', () => {
     const listingPattern = '/[schemaId]'

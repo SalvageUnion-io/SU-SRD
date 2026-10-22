@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 
 /**
- * The PLATE the Peek's card is lifted on (board E3): a hard ink offset, no
+ * The PLATE the Peek's card is lifted on: a hard ink offset, no
  * blur — a drop-shadow, not a box-shadow, so it follows the card, not the
  * room. It is never wider than the room beside its trigger or the screen.
  */

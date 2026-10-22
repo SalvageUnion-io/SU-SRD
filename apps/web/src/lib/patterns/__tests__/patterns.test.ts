@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { FIXTURE_NOW, mechFixture } from '../../../components/__tests__/fixtures'
 import {
   asReferencePattern,
@@ -84,7 +84,7 @@ describe('building a mech from a pattern', () => {
   })
 })
 
-describe('copying a pattern to your Hangar', () => {
+describe('copying a pattern to your Training Bay', () => {
   test('is the same pattern under a new id, minted on create', () => {
     const copy = patternCopy(towRig)
     expect('id' in copy).toBe(false)

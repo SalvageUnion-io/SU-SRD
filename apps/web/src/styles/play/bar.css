@@ -1,0 +1,62 @@
+/*
+ * play/bar.css — the Play bar's stamps (`PlayBar`, play.md §2).
+ *
+ * Only what a style object cannot say lives here (ADR-046): the height is
+ * the line's, and the line's height moves with the pointer and the form.
+ */
+
+/*
+ * A stamp on the bar (role, LIVE, read-only) stands as tall as the buttons
+ * beside it (ruleset §4.7): the Compact Size, which a coarse pointer lifts to
+ * the touch floor, and the phone form's 44px floor (`.su-play-root--phone`,
+ * `phone.css`). Its text keeps the Compact rung, centred.
+ */
+.su-play-bar__stamp {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: var(--size-compact);
+}
+
+.su-play-root--phone .su-play-bar__stamp {
+  height: var(--size-full);
+}
+
+/*
+ * The band's line (`PlayBar`): the title's cut-out sits flush on the band's
+ * foot, so every other item stands off it by the band's top padding. The
+ * title's own line is the controls' (the Compact Size, its foot padding their
+ * lift), so its text shares their centre and the cut-out rises a little above
+ * them. The speckle layer is absolute and takes no room.
+ */
+.su-play-bar__notch {
+  line-height: var(--size-compact);
+  padding: var(--space-4) var(--space-12) var(--space-12);
+}
+
+.su-play-bar > :not(.su-play-bar__notch, .su-grain-layer) {
+  margin-bottom: var(--space-12);
+}
+
+.su-play-root--phone .su-play-bar > :not(.su-play-bar__notch, .su-grain-layer) {
+  margin-bottom: var(--space-4);
+}
+
+/* On a phone the title has its own line under the controls: its text's own
+   height, a little room above and below. */
+.su-play-root--phone .su-play-bar__notch {
+  line-height: 1;
+  padding: var(--space-8) var(--space-12) var(--space-6);
+}
+
+/*
+ * The bar and the foot wear the phase's band (`PHASE_TONE`): on foot, Boarded
+ * or Downtime, the Mediator's Scene. Changing phase crossfades the band and
+ * its foreground (`--dur-phase`), so the screen visibly turns into the next
+ * one. The reduced-motion backstop (`theme.css`) makes it a cut.
+ */
+.su-play-band {
+  transition:
+    background-color var(--dur-phase) var(--ease),
+    color var(--dur-phase) var(--ease);
+}

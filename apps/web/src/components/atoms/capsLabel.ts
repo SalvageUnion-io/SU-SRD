@@ -14,7 +14,7 @@ import { cn } from '../../lib/cn'
  * ## Emits `.su-*` class names
  *
  * A `(opts) => string` recipe; the rules behind the names it returns live in
- * `src/styles/index.css`.
+ * `src/styles/partials/controls.css`.
  *
  * It stays a class-string emitter rather than becoming a `CSSProperties` object,
  * even though every property it sets is static and the split rule would
@@ -36,8 +36,7 @@ import { cn } from '../../lib/cn'
  * deliberately"), not a constant.
  *
  * The `size` axis carries only rungs of the **semantic** type ladder. Sites
- * currently on the inherited rem scale (`text-xs`, `text-sm`, `text-lg`,
- * `text-3xl`) are deliberately NOT expressible here — moving `text-sm` (14px) to
+ * currently on the inherited rem scale (`text-xs`, `text-sm`, `text-lg`) are deliberately NOT expressible here — moving `text-sm` (14px) to
  * `text-caption` (13px) is a per-site design call, not a rename, so those sites
  * keep their own size class until someone rules on each one. `size` has no
  * default for the same reason a `Badge` chip supplies its own: omit it and the
@@ -73,11 +72,10 @@ const WEIGHT = {
 
 /**
  * The ratified multi-rung caps ladder (ruleset §4.2). `tight` is the
- * default; the others exist because they are in deliberate use. `none` is
- * the normal letter-spacing, for the caps labels that deliberately do not
- * letterspace (the `Button` mini chip). `inherit` emits nothing, for labels
- * whose tracking is supplied by the surface around them (a `Badge` surface
- * picks `caps` or `caps-snug` itself).
+ * default, and `snug` at the 11px floor (`size: 'badge'` defaults to it);
+ * the others exist because they are in deliberate use. `none` is the normal
+ * letter-spacing. `inherit` emits nothing, for labels whose tracking is
+ * supplied by the rule around them.
  */
 const TRACKING = {
   inherit: '',
@@ -95,11 +93,15 @@ export type CapsLabelProps = {
   tracking?: keyof typeof TRACKING | null
 }
 
+/**
+ * 11px caps are snug (ruleset §4.2): at `size: 'badge'` the default rung is
+ * `snug`, and the `tokens/badge-caps-snug` gate fails any other one named there.
+ */
 export function capsLabel({ size, weight, tracking }: CapsLabelProps = {}): string {
   return cn(
     'su-caps',
     size == null ? undefined : SIZE[size],
     WEIGHT[weight ?? 'bold'],
-    TRACKING[tracking ?? 'tight']
+    TRACKING[tracking ?? (size === 'badge' ? 'snug' : 'tight')]
   )
 }

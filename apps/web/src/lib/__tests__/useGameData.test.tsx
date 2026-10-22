@@ -42,9 +42,9 @@ describe('GameDataGate preload failure', () => {
 
     // Preload rejection surfaces as the error state with a retry button
     const retryButton = await screen.findByRole('button', {
-      name: 'Retry loading game data',
+      name: 'Try again',
     })
-    expect(screen.getByText('Failed to load game data.')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toContain('The reference data did not load')
     expect(screen.queryByText('real content')).toBeNull()
 
     // Retry clears the error and re-runs the preload, which now succeeds

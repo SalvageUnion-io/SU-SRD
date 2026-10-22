@@ -1,10 +1,10 @@
 /**
  * crawlerItems — the crawler sheet's non-component helpers (a rules home, not
- * `components/sheet/`). Pure lookups, constants and the bay-repair
+ * `build/sheet/`). Pure lookups, constants and the bay-repair
  * patch shared by CrawlerSheetItems and CrawlerSheet.
  */
 
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { RefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'
@@ -47,23 +47,4 @@ export type BayRepairPatch = {
 export function bayRepairPatch(pool: ScrapPool, crawlerTl: number): BayRepairPatch {
   const drawn = drawFromPool(pool, crawlerTl, BAY_REPAIR_COST, { partial: true })
   return { crawlerPatch: { scrapPool: drawn.pool }, bayPatch: { condition: 'intact' } }
-}
-
-/** A bay's per-Tech-Level line label as the book prints it: "Tech 3-4". */
-const TECH_RANGE = /^Tech (\d+)\s*[-–]\s*(\d+)$/
-
-/**
- * The bay's lines that hold at this crawler's Tech Level: the book's "Tech 1-2
- * / Tech 3-4 / Tech 5-6" ladder (Med Bay, Core Book p.223; Pilot Bay,
- * pp.223-224) narrowed to the rung the crawler stands on. A bay with no ladder
- * has none.
- */
-export function bayTechLines<B extends { label?: string }>(
-  content: readonly B[],
-  crawlerTl: number
-): B[] {
-  return content.filter((block) => {
-    const range = TECH_RANGE.exec(block.label?.trim() ?? '')
-    return range !== null && crawlerTl >= Number(range[1]) && crawlerTl <= Number(range[2])
-  })
 }

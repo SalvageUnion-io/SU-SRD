@@ -1,16 +1,14 @@
 import type { CSSProperties, ElementType } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
+import { MiniGrid } from '../../containers/MiniGrid'
+import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
-import { Stack } from '../../index'
-import { useEntityHref } from '../entityHrefContext'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
-import { nestedChildSize } from './entityCardTone'
+import { cardKey } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
@@ -35,10 +33,10 @@ const columnStyle = {
   gap: space[6],
 } satisfies CSSProperties
 
-/** One drone a block apart from the next: its parts end before the next one's Token. */
+/** One drone a block apart from the next: its parts end before the next one's Mini. */
 const dronesStyle = { gap: space[12] } satisfies CSSProperties
 
-/** A drone's Token and, under it, its parts. */
+/** A drone's Mini and, under it, its parts. */
 const droneStyle = {
   display: 'flex',
   minWidth: 0,
@@ -48,7 +46,7 @@ const droneStyle = {
 
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * dashed Slab over one full-width Token a line (see `LoadoutToken`). Its
+ * Slab over its contentful Minis in a masonry grid (see `LoadoutMini`). Its
  * DRONES, when it fields any, run the full width under both (`PatternDrones`).
  *
  * One block, not one per group, because the two columns only line up if a
@@ -82,33 +80,30 @@ export function PatternLoadout({
 }) {
   return (
     <div className="su-pattern-loadout" style={gridStyle}>
-      {groups.map((group, index) => (
+      {groups.map((group) => (
         <div
           key={group.label}
-          // A VERTICAL RULE between the columns (`--ruled`). On the column
-          // itself rather than a third grid cell, so it spans whichever column
-          // is taller (Systems usually far outruns Modules) instead of standing
-          // at the height of an empty divider track. Suppressed on the first
-          // column and below `sm`, where the groups stack and the rule would
-          // sit across the flow rather than between two columns.
-          className={cn(index > 0 && 'su-pattern-loadout__column--ruled')}
+          // A VERTICAL RULE between the columns (`column + column`). On the
+          // column itself rather than a third grid cell, so it spans whichever
+          // column is taller (Systems usually far outruns Modules) instead of
+          // standing at the height of an empty divider track. Absent on the
+          // first column and below `sm`, where the groups stack and the rule
+          // would sit across the flow rather than between two columns.
+          className="su-pattern-loadout__column"
           style={columnStyle}
         >
-          <Slab variant="dashed" label={group.label} as={sectionAs} />
+          <Slab label={group.label} as={sectionAs} />
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
-              of anonymous links. Each Token runs the column's width, its TL
-              cell at the right edge (`.su-entity-token-list`). */}
-          <ul
-            aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
-            className="su-entity-token-list"
-          >
+              of anonymous links. Each Mini runs the column's width, its TL
+              cell at the right edge (`.su-entity-mini-list`). */}
+          <MiniGrid label={`${owner ? `${owner} ` : ''}${group.label} installed`}>
             {group.entities.map((item, itemIndex) => (
               <li key={cardKey(item, itemIndex)}>
-                <LoadoutToken data={item} hostDown={hostDown} />
+                <LoadoutMini data={item} hostDown={hostDown} />
               </li>
             ))}
-          </ul>
+          </MiniGrid>
         </div>
       ))}
       {drones.length > 0 && (
@@ -119,11 +114,11 @@ export function PatternLoadout({
 }
 
 /**
- * A pattern's DRONES, spanning both loadout columns: one dashed Slab over
- * them, then each drone's Token under the name the pattern gives it ("Shield
- * Drone"), and right beneath it that drone's own Systems then Modules, two Tokens a line
- * with no Slab of their own (each Token wears its kind). They sit after the
- * drone's Token, never inside it: a Token nests nothing (E6).
+ * A pattern's DRONES, spanning both loadout columns: one Slab over
+ * them, then each drone's Mini under the name the pattern gives it ("Shield
+ * Drone"), and right beneath it that drone's own Systems then Modules, two Minis a line
+ * with no Slab of their own (each Mini wears its kind). They sit after the
+ * drone's Mini, never inside it: a Mini nests nothing (E6).
  */
 function PatternDrones({
   drones,
@@ -138,10 +133,10 @@ function PatternDrones({
 }) {
   return (
     <div className="su-pattern-loadout__drones" style={columnStyle}>
-      <Slab variant="dashed" label="Drones" as={sectionAs} />
+      <Slab label="Drones" as={sectionAs} />
       <ul
         aria-label={`${owner ? `${owner} ` : ''}Drones installed`}
-        className="su-entity-token-list"
+        className="su-entity-mini-list"
         style={dronesStyle}
       >
         {drones.map((info, index) => {
@@ -149,15 +144,15 @@ function PatternDrones({
           const name = info.instanceName ?? getReferenceEntityName(info.drone) ?? 'Drone'
           return (
             <li key={cardKey(info.drone, index)} style={droneStyle}>
-              <LoadoutToken data={info.drone} title={info.instanceName} hostDown={hostDown} />
+              <LoadoutMini data={info.drone} title={info.instanceName} hostDown={hostDown} />
               {parts.length > 0 && (
                 <ul
                   aria-label={`${name} loadout`}
-                  className="su-entity-token-list su-entity-token-list--two-up"
+                  className="su-entity-mini-list su-entity-mini-list--two-up"
                 >
                   {parts.map((part, partIndex) => (
                     <li key={cardKey(part, partIndex)}>
-                      <LoadoutToken data={part} hostDown={hostDown} />
+                      <LoadoutMini data={part} hostDown={hostDown} />
                     </li>
                   ))}
                 </ul>
@@ -171,27 +166,24 @@ function PatternDrones({
 }
 
 /**
- * `LoadoutToken` — one installed system/module in a pattern CARD's loadout:
- * a TOKEN (`[kind] name [TL | n]`), the card's children being level 2 (N1),
- * running the list's full width, one part a line (N4). The part's tone reads
- * at a glance; the Token opens its Page and Peeks its whole card; one row,
- * its name ending in "…" where it runs out of room (E18).
- *
- * A pattern is a BUILD LIST, not rules to read: its systems and modules are
- * ordinary catalogue entities whose full text lives on their own pages, so the
- * loadout names them rather than printing every card in full.
+ * `LoadoutMini` — one installed system/module in a pattern's loadout, on its
+ * card and its Page alike: a CONTENTFUL Mini (N3, R39), its head
+ * (`[kind] name [TL | n]`) and then
+ * its text, in the loadout's masonry grid (`MiniGrid`). The part's tone reads
+ * at a glance; the Mini opens its Page and Peeks its whole card.
  *
  * MULTIPLES REPEAT. Six machine guns are six lines, matching the loadout the
  * pattern actually installs (and `resolvePatternGroups`, which emits one entry
  * per copy) — a "x6" count would compress the shape of the build out of a list
  * whose whole job is showing it.
  *
- * Where it goes is the host's route (`useEntityHref`), else the SURFACE's (the
- * SRD's route, the Cantina's Page opener). Its accessible name is the entity's alone,
+ * Where it goes is the SURFACE's (the SRD's route, the app's Page opener). Its accessible name is the entity's alone,
  * never the TL glued onto it. Under a host that is down it greys, as the
  * host's band does.
  */
-function LoadoutToken({
+const LINK = { kind: 'link' } as const
+
+function LoadoutMini({
   data,
   title,
   hostDown,
@@ -201,7 +193,6 @@ function LoadoutToken({
   title?: string
   hostDown?: Down
 }) {
-  const href = useEntityHref(data as RefEntity)
   const condition = hostDown ? conditionOf(hostDown) : undefined
   const instance = {
     ...(title ? { title } : {}),
@@ -209,11 +200,12 @@ function LoadoutToken({
   }
   return (
     <Entity
-      form="token"
+      size="mini"
       context="loadout"
       entity={data as RefMetaEntity}
-      mode={href ? { kind: 'link', href } : { kind: 'link' }}
+      mode={LINK}
       {...(title || condition ? { instance } : {})}
+      body={{}}
     />
   )
 }
@@ -221,15 +213,14 @@ function LoadoutToken({
 const LOADOUT_PAGE = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[16],
+  gap: space[12],
 } satisfies CSSProperties
 
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
- * Modules) a solid Slab over its parts at LEVEL 1 (N1, EDL "Which form,
- * where"): each the compact Card a Page's other children are, its own
- * actions nested in it as level-2 Tokens. Multiples repeat, as on the card's
- * loadout (`LoadoutToken`).
+ * Modules) a solid Slab over its parts, each a contentful Mini in a masonry
+ * grid (`LoadoutMini`), as a mech's sheet draws
+ * them. Multiples repeat, as on the card's loadout.
  */
 export function PatternLoadoutRows({
   groups,
@@ -243,28 +234,18 @@ export function PatternLoadoutRows({
   host: NestedCardHost
 }) {
   if (groups.length === 0) return null
-  const { NestedCard } = host
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
-        <Stack as="section" gap={16} key={group.label}>
-          <Slab variant="solid" as={sectionAs} label={group.label} />
-          {group.entities.map((item, index) => (
-            <NestedCard
-              key={cardKey(item, index)}
-              data={item}
-              size={nestedChildSize(host.size)}
-              depth={host.depth + 1}
-              hostDown={host.isDown}
-              readable={host.readableProse}
-              // A heading under its group's Slab.
-              titleAs={nestedTitleLevel(host.onPage)}
-              hostName={host.entityName}
-              chassisName={host.chassisName}
-              shownProse={host.shownProse}
-            />
-          ))}
-        </Stack>
+        <SlabSection as={sectionAs} title={group.label} page key={group.label}>
+          <MiniGrid label={`${group.label} installed`}>
+            {group.entities.map((item, index) => (
+              <li key={cardKey(item, index)}>
+                <LoadoutMini data={item} hostDown={host.isDown} />
+              </li>
+            ))}
+          </MiniGrid>
+        </SlabSection>
       ))}
     </div>
   )

@@ -1,10 +1,10 @@
 /**
- * The Cantina's detail dialog IS the Page (EDL Form 5, E5): the chapter band with the
+ * The app's detail dialog IS the Page (EDL Form 5, E5): the chapter band with the
  * title notched in and the chips clustered beside it (E20), the card at
  * `presentation="page"` as its body (a chassis's stats leading it, the art its
  * hero), and the foot's citation in the card footer's plain text. Never a
  * framed card. Both openers draw it: `useDetailModal` and a
- * level-2 Token (N1). A pattern's Page links its chassis (`PATTERN OF | Mule`)
+ * level-2 Mini (N1). A pattern's Page links its chassis (`PATTERN OF | Mule`)
  * through the surface's Page opener, as the SRD's pattern page does.
  */
 import { describe, expect, mock, test } from 'bun:test'
@@ -13,7 +13,6 @@ import type { EntityRef, RefEntity, RefObjectAnyPattern } from 'salvageunion-ref
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../entity/EntitySurface'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
-import { EntityExternalLinkProvider } from '../entityHrefContext'
 import { useDetailModal } from '../useDetailModal'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -75,34 +74,47 @@ describe('the detail dialog is the Page', () => {
     if (!page) throw new Error('no page')
     const side = page.querySelector<HTMLElement>('.su-entity-page__side')
     expect(side?.firstElementChild?.classList.contains('su-entity-page__stats')).toBe(true)
-    // With art the page flows round it from 64rem (`.su-entity-page--flow`).
-    expect(page.classList.contains('su-entity-page--flow')).toBe(true)
+    // With art the page flows round it from 64rem (`.su-entity-page--art`).
+    expect(page.classList.contains('su-entity-page--art')).toBe(true)
     expect(page.querySelector('.su-entity-page__art')).toBeTruthy()
-    // A chassis's stats are its body's, but for its Tech Level, the band's (E20).
+    // A chassis's stats are its body's, but for its Tech Level and Salvage
+    // Value, the band's (E20): the only stats on the band's `Chips` strip.
     const stamps = dialog.querySelector<HTMLElement>('.su-entity-stamps')
-    const bandStats = [...(stamps?.querySelectorAll('.su-stat-column__cell dt') ?? [])]
-    expect(bandStats.map((dt) => dt.textContent)).toEqual(['Tech Level'])
+    const bandStats = [
+      ...(stamps?.querySelectorAll(
+        ':is([data-chip-class="rank"], [data-chip-class="measure"]) .su-stat-plate--label .su-stat-label--long'
+      ) ?? []),
+    ]
+    expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level', 'Salvage Value'])
   })
 
-  test("its foot cites the book in the card footer's plain text, the kind beside it", () => {
+  // Rulings 2026-10-19: no kind on the foot; the foot wears the band, edge to edge.
+  test("its foot cites the book in the card footer's plain text, in the band's colour, no kind", () => {
     const dialog = openPage(redLaser())
     const article = dialog.querySelector('article')
     const foot = article?.lastElementChild as HTMLElement | null
     if (!foot) throw new Error('no foot')
     expect(foot.textContent).toMatch(/· p\.\d+/)
-    expect(foot.textContent).toContain('System')
+    expect(foot.textContent).not.toContain('System')
     // Plain text, not citation chips.
     expect(foot.querySelector('.su-stat-plate')).toBeNull()
+    expect(foot.style.background).not.toBe('')
+    expect(foot.style.borderTopStyle).toBe('')
+    expect(foot.getAttribute('data-grain')).not.toBeNull()
   })
 
-  test('the foot carries the app\'s cross-link ("View in SRD")', () => {
+  test('the foot carries the app\'s cross-link ("View in the Reference")', () => {
     render(
-      <EntityExternalLinkProvider value={() => <a href="/srd/red-laser">View in SRD</a>}>
+      <EntitySurfaceProvider
+        value={{ externalLink: () => <a href="/srd/red-laser">View in the Reference</a> }}
+      >
         <Harness data={redLaser()} />
-      </EntityExternalLinkProvider>
+      </EntitySurfaceProvider>
     )
     fireEvent.click(screen.getByRole('button', { name: 'open' }))
-    const link = within(screen.getByRole('dialog')).getByRole('link', { name: 'View in SRD' })
+    const link = within(screen.getByRole('dialog')).getByRole('link', {
+      name: 'View in the Reference',
+    })
     expect(link.getAttribute('target')).toBeNull()
   })
 
@@ -133,8 +145,8 @@ describe('the detail dialog is the Page', () => {
     const stamps = screen.getByRole('dialog').querySelector<HTMLElement>('.su-entity-stamps')
     if (!stamps) throw new Error('no band stamps')
     const chip = within(stamps).getByRole('button', { name: 'Pattern of: Mule' })
-    // It leads the cluster, as on the SRD's pattern page.
-    expect(stamps.firstElementChild?.contains(chip)).toBe(true)
+    // It is the band's relation chip (C2), as on the SRD's pattern page.
+    expect(chip.closest('[data-chip-class]')?.getAttribute('data-chip-class')).toBe('relation')
     fireEvent.click(chip)
     expect(opener).toHaveBeenCalledTimes(1)
     const ref = opener.mock.calls[0]?.[0]
@@ -149,7 +161,7 @@ describe('the detail dialog is the Page', () => {
     expect(within(dialog).queryByText('Pattern of')).toBeNull()
   })
 
-  test('a level-2 Token opens the same Page', () => {
+  test('a level-2 Mini opens the same Page', () => {
     render(<ReferenceEntityCard data={sestra()} presentation="page" />)
     fireEvent.click(screen.getByRole('button', { name: 'Open Hover Locomotion System' }))
     const dialog = screen.getByRole('dialog', { name: /^Hover Locomotion System/ })

@@ -1,5 +1,5 @@
 /**
- * What a player thing's link preview says (board PV1), in words.
+ * What a player thing's link preview says, in words.
  *
  * One pure module, read twice: by the Worker, which writes the unfurl's
  * `og:*` and `theme-color` into the shell for a crawler, and by the
@@ -14,7 +14,7 @@
  * anyone with the link may read; a null answer becomes the plain private card.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { OgCardProps } from '../../components/index'
 import { color } from '../../design/tokens'
 
@@ -35,6 +35,8 @@ export type PreviewAnswer = {
   gameName: string | null
   /** A pilot's published mech, as its chassis slug. */
   mechChassisRef?: string | null
+  /** A shared pattern's Discord Component Embed JSON, when the Worker asked with its address. */
+  componentEmbed?: string
 }
 
 /** `publicSheet.invitePreview`'s answer. */
@@ -156,7 +158,7 @@ export function inviteCard(answer: InvitePreviewAnswer, address: string): Previe
     tone: color.crawler,
     summary: answer.mediatedBy
       ? `Mediated by ${answer.mediatedBy}.`
-      : `A Salvage Union Game on ${PRODUCT.name}.`,
+      : `A Salvage Union Game in ${PRODUCT.play}.`,
     address,
   }
 }

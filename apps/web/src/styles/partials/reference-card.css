@@ -19,8 +19,11 @@
   opacity: 0.5;
 }
 
-/* A card the picker cannot take: dimmed and drained. */
-.su-ec-outer--unselectable {
+/* Select mode's one dim (hard rule R15, EDL Modes): an option a picker
+   cannot take, demotes, or has not chosen, dimmed and drained. Every picker
+   spells it with this class (`SELECT_DIM`, `entity/modes/selectedRing.ts`),
+   never an opacity of its own. */
+.su-select-dim {
   opacity: 0.5;
   filter: saturate(50%);
 }
@@ -70,13 +73,11 @@
  * `atoms.css`): at one class each, source order decides.
  */
 /* An entity Page's band line (`EntityPageStamps`: an SRD entity page, the
-   Cantina's detail dialog), 8px between chips. Under the title on a phone it
-   wraps down in the stat order. Beside the title from `sm` it FILLS FROM ITS
-   BOTTOM-RIGHT CORNER UP (owner's call, 2026-10-18): the last chip, the
-   cost, takes the corner, the ones before it fill the line leftward, and the
-   earlier chips rise in lines above it, the top line the short one, flush
-   right. Each chip's `order` is its place from the end (`--su-fill`), so the
-   lines read top to bottom in the stat order while the source keeps it. */
+   app's detail dialog), a `Chips` strip, 8px between chips. On its band it
+   draws no box: each chip is an item of the title's row, which fills from
+   the band's bottom-right corner (`.su-chapter-band__row[data-chip-fill]`,
+   ruleset §4.7): the cost in the corner beside the title, the rest leftward,
+   and only what overfills the title's line rises in lines above it. */
 .su-entity-stamps {
   align-items: center;
   display: flex;
@@ -84,85 +85,49 @@
   gap: var(--space-8);
 }
 
-/* The stat column (`StatColumn`, a `dl`): its cells are chips of the line. */
-.su-entity-stamps > dl {
-  display: contents;
-}
-
-.su-entity-stamps__item,
-.su-entity-stamps > dl > * {
-  display: flex;
+.su-entity-stamps > .su-chip-lane > * {
   flex: 0 1 auto;
   min-width: 0;
 }
 
-@media (min-width: 40rem) {
-  .su-entity-stamps {
-    flex-direction: row-reverse;
-    flex-wrap: wrap-reverse;
+/* From `sm` a Page's chips stand a rung up, the Compact control height
+   beside its Compact "Build With This" (R12), wherever the strip lands:
+   the band, or the page's first row it overflows into; a sheet's band chips
+   alike. A phone
+   keeps the Full plates, so its band still fits beside the title. */
+@media (width >= 40rem) {
+  .su-entity-stamps .su-stat-plate--full,
+  .su-chapter-band__aside .su-stat-plate--full,
+  .su-chapter-band__overflow .su-stat-plate--full,
+  .su-tech-level__block .su-stat-plate--full {
+    font-size: var(--text-base);
+    padding-block: calc(var(--space-8) - var(--bw-hairline));
+    padding-inline: var(--space-8);
   }
 
-  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > .su-entity-stamps {
-    justify-content: flex-start;
+  /* The cost box's rung is its inline style (`ActivationCost`), so only
+     `!important` reaches its type size from here; its `em` point follows. */
+  .su-entity-stamps .su-cost-edge,
+  .su-entity-stamps .su-cost,
+  .su-chapter-band__overflow .su-cost-edge,
+  .su-chapter-band__overflow .su-cost {
+    font-size: var(--text-base) !important;
   }
 
-  .su-entity-stamps__item,
-  .su-entity-stamps > dl > * {
-    order: var(--su-fill);
+  .su-entity-stamps .su-cost,
+  .su-chapter-band__overflow .su-cost {
+    padding-block: var(--space-8);
   }
-}
-
-/*
- * The type and cost stamps beside an entity page's stats
- * (`EntityPageStamps`): the band's Size (Compact, `--size-compact`), the height
- * of its stat cells and its "Build With This", so the row reads as one size.
- */
-.su-entity-stamp {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: var(--size-compact);
-  padding-inline: var(--space-8);
-}
-
-/* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
-   height (its plates inside the cell's hairline frame) and type, so every
-   chip on the band reads as one size. */
-.su-entity-stamps .su-stat-plate {
-  align-items: center;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: calc(var(--size-compact) - 2 * var(--bw-hairline));
-  padding-inline: var(--space-8);
-}
-
-/* One size per band (C1a): a fact's or trait's value (`RNG | Long`,
-   `POP | 5,000–15,000`, `Explosive | 1`) reads at its label's type size, as
-   the stat column's cells beside it do (owner's call, 2026-10-18). */
-.su-entity-stamps .su-stat-plate + .su-stat-plate {
-  font-variant-numeric: tabular-nums;
-  justify-content: center;
-  min-width: 28px;
-}
-
-/* An ability's cost on its band: the book's pointy box at the stamps'
-   height (it stretches to its flex line), in the stamps' type. */
-.su-entity-cost {
-  align-self: stretch;
-  display: inline-flex;
-  font-size: var(--text-badge);
-  min-height: var(--size-compact);
 }
 
 /* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
  *
- * The Cantina's detail view is the Page (EDL Form 5): its body sits under the band
+ * The app's detail view is the Page (EDL Form 5): its body sits under the band
  * at the SRD page body's gutters (`.su-page-body`), which change at `sm`.
  */
-/* The popup (`ModalShell`'s `maxWidth` class): 72rem at most, with 12px
- * gutters the close stamp straddles into, since a bare popup clips. */
+/* The dialog's frame inside the bare popup (`ModalShell`, `width="page"`):
+ * 12px gutters the close stamp straddles into, since a bare popup clips. */
 .su-entity-dialog {
-  max-width: 72rem;
   padding: var(--space-12);
 }
 
@@ -171,7 +136,7 @@
   width: 100%;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-entity-dialog__body {
     padding: var(--space-24) var(--space-24) var(--space-32);
   }

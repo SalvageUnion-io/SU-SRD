@@ -3,8 +3,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { RuleSet } from '../lib/ruleEngine'
+import { chromeLaws } from '../rules/chrome'
+import { controlLaws } from '../rules/controls'
 import { copyTerms } from '../rules/copyTerms'
 import { designTokens } from '../rules/designTokens'
+import { selectMode } from '../rules/selectMode'
 import { srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
 import { toneGround } from '../rules/toneGround'
@@ -41,6 +44,9 @@ const SETS: [RuleSet, string][] = [
   [copyTerms, 'copy: scanned 0 files'],
   [srdCss, 'srd-css (modules a static page reaches): scanned 0 files'],
   [toneGround, 'tone-ground (header grounds): scanned 0 files'],
+  [chromeLaws, 'chrome (app source): scanned 0 files'],
+  [controlLaws, 'controls (lucide glyphs): scanned 0 files'],
+  [selectMode, 'select-mode (app source): scanned 0 files'],
 ]
 
 describe('rule set preflights', () => {

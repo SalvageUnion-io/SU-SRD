@@ -3,10 +3,10 @@
  *
  * Emits two files at the dist root:
  *
- *   sitemap-index.xml   one <sitemap> entry per urlset file, then The Cantina's
+ *   sitemap-index.xml   one <sitemap> entry per urlset file, then the app's
  *   sitemap-0.xml       the urlset itself
  *
- * The Cantina's public pages (`/build/`) have their own urlset,
+ * The app's public pages (`/build/`) have their own urlset,
  * `/build/sitemap.xml` (`apps/web/src/worker/publicPages.ts`), and the index
  * lists it, so the one `robots.txt` line reaches both. Both urlsets and the
  * index are written by `src/lib/sitemapXml.ts`.
@@ -33,7 +33,7 @@ import { withTrailingSlash } from './render'
 
 /**
  * URLs per urlset file (the sitemaps.org limit is 50,000). Well above the
- * ~1,036 URLs this site emits, so exactly
+ * thousand or so URLs this site emits, so exactly
  * one `sitemap-0.xml` is produced — but the index file exists precisely because
  * this can chunk, so the chunking is implemented rather than assumed away.
  */
@@ -71,14 +71,14 @@ function sitemapUrls(routes: readonly string[]): string[] {
   return [...urls].sort((a, b) => collator.compare(a, b))
 }
 
-/** The Cantina's urlset, served by its Worker. */
-const CANTINA_SITEMAP_URL = `${SITE_URL}${appPath('/sitemap.xml')}`
+/** The app's urlset, served by its Worker. */
+const APP_SITEMAP_URL = `${SITE_URL}${appPath('/sitemap.xml')}`
 
 /** The `sitemap-index.xml` body. */
 function renderSitemapIndex(fileNames: readonly string[]): string {
   return sitemapIndexXml([
     ...fileNames.map((name) => new URL(`/${name}`, SITE_URL).href),
-    CANTINA_SITEMAP_URL,
+    APP_SITEMAP_URL,
   ])
 }
 

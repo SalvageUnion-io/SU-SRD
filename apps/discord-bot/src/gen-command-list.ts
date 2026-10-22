@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { renderCommandListModule } from './commandList'
 
 /**
- * Write the `/su` command list into the srd (`bun run gen:command-list`). A
+ * Write the `/su` command list into apps/web (`bun --filter discord-bot gen:command-list`). A
  * local CLI like `deploy-commands.ts`, never imported by the Worker.
  */
 

@@ -29,15 +29,15 @@
  *      its own CPU time. Read `cpuTime` from `wrangler tail` instead.
  */
 
-import type { ResponseLike } from '@discordjs/rest'
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
+import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
-import { createCantinaClient } from '../cantina/client'
-import { setCantinaClient } from '../commands/cantinaReply'
 import { commands } from '../commands/index'
+import { setSiteClient } from '../commands/siteReply'
+import { createSiteClient } from '../play/client'
 import { reportError } from '../reportError'
 import {
   interactionName,
@@ -47,6 +47,8 @@ import {
   ResponseSink,
   webhookRoutes,
 } from './adapter'
+import { oneShotRest } from './oneShotRest'
+import { handlePostRoll } from './relay'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -161,11 +163,11 @@ async function dispatch(
  *
  * Answers the question a deploy cannot answer by itself. The Worker can be
  * deployed, bundle correctly, verify signatures and still be useless, because
- * what it needs at runtime — a working bot token and the Cantina pair — is set out
+ * what it needs at runtime — a working bot token and the app pair — is set out
  * of band and is invisible until Discord sends the first interaction.
  *
- * So this refuses (503) while the Cantina pair is incomplete, and asks Discord
- * directly: `GET /users/@me` with the token. A 200 means the Cantina pair is set
+ * So this refuses (503) while the app pair is incomplete, and asks Discord
+ * directly: `GET /users/@me` with the token. A 200 means the app pair is set
  * and the token is live, and names the bot it belongs to.
  *
  * Deliberately says nothing sensitive. On failure it reports Discord's status
@@ -183,8 +185,8 @@ async function health(env: Env): Promise<Response> {
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
     // Either alone is as broken as neither: every Game command would answer
-    // that Cantina cannot be reached.
-    cantina: Boolean(env.CANTINA_CONVEX_SITE_URL) && Boolean(env.CANTINA_BOT_SECRET),
+    // that the app cannot be reached.
+    site: Boolean(env.BACKEND_SITE_URL) && Boolean(env.BOT_SECRET),
   }
 
   if (!configured.token) {
@@ -194,11 +196,11 @@ async function health(env: Env): Promise<Response> {
     )
   }
 
-  if (!configured.cantina) {
+  if (!configured.site) {
     return Response.json(
       {
         ok: false,
-        reason: 'CANTINA_CONVEX_SITE_URL and CANTINA_BOT_SECRET must both be set',
+        reason: 'BACKEND_SITE_URL and BOT_SECRET must both be set',
         configured,
       },
       { status: 503 }
@@ -210,16 +212,8 @@ async function health(env: Env): Promise<Response> {
   let discordStatus: number | null = null
 
   // One attempt, no waiting out a rate limit: a probe reports what Discord
-  // answered now. The global `fetch` is what the web build uses on workerd;
-  // spelled out so Bun (which resolves the undici build) goes through it too.
-  // The cast is only Node's and the web's `ReadableStream` typings disagreeing.
-  const rest = new REST({
-    version: '10',
-    retries: 0,
-    rejectOnRateLimit: () => true,
-    makeRequest: async (url, init) =>
-      (await fetch(url, init as RequestInit)) as unknown as ResponseLike,
-  }).setToken(env.DISCORD_TOKEN)
+  // answered now.
+  const rest = oneShotRest(env.DISCORD_TOKEN)
 
   try {
     const me = (await rest.get(Routes.user())) as Partial<APIUser>
@@ -265,6 +259,12 @@ export default {
       return new Response('Method not allowed', { status: 405 })
     }
 
+    // Convex posting a Play roll to a bound channel: bearer-authenticated, not
+    // Discord-signed, so it is routed before signature verification.
+    if (new URL(request.url).pathname === BOT_RELAY_POST_ROLL_PATH) {
+      return handlePostRoll(request, env)
+    }
+
     // The RAW body, verified before it is parsed. Re-serialising a parsed body
     // does not round-trip byte-for-byte, and verifying the wrong bytes is the
     // classic way an interactions endpoint ends up accepting forgeries.
@@ -285,10 +285,10 @@ export default {
 
     // Configuration arrives as `env`, so the client can only be built once a
     // request exists. Cheap: a client is two strings and a closure.
-    setCantinaClient(
-      createCantinaClient({
-        siteUrl: env.CANTINA_CONVEX_SITE_URL,
-        botSecret: env.CANTINA_BOT_SECRET,
+    setSiteClient(
+      createSiteClient({
+        siteUrl: env.BACKEND_SITE_URL,
+        botSecret: env.BOT_SECRET,
       })
     )
 

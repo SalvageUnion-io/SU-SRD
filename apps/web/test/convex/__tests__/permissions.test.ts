@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import type { Ctx } from '../fixtures'
-import { makeUser, seedTable } from '../fixtures'
+import { makeUser, seedRawPilot, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -14,18 +12,6 @@ import { testConvex } from '../harness'
  * a browser takes — rather than unit-testing the helpers in isolation, because
  * the failure mode worth catching is a mutation that forgets to call them.
  */
-
-/** A Game created by `organizer`, plus a second member who is a plain Player. */
-async function seedPilot(t: Ctx, gameId: Id<'games'> | null, ownerId: Id<'users'> | null) {
-  return await t.run(async (ctx) => {
-    return await ctx.db.insert('pilots', {
-      gameId,
-      ownerId,
-      body: { callsign: 'Roach-Boy' },
-      updatedAt: Date.now(),
-    })
-  })
-}
 
 describe('authentication', () => {
   test('an anonymous caller cannot create a game', async () => {
@@ -86,7 +72,7 @@ describe('release', () => {
   test('an owner can release their own entity', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
-    const pilotId = await seedPilot(t, gameId, player.userId)
+    const pilotId = await seedRawPilot(t, gameId, player.userId)
 
     await player.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })
 
@@ -99,7 +85,7 @@ describe('release', () => {
   test("a bystander cannot release somebody else's entity", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
-    const pilotId = await seedPilot(t, gameId, player.userId)
+    const pilotId = await seedRawPilot(t, gameId, player.userId)
 
     // The Organizer is not the owner and (here) not the Mediator either.
     await expect(
@@ -112,8 +98,8 @@ describe('destroying a game preserves everything anybody built', () => {
   test("owned entities go to their owner's shelf; unclaimed ones to the deleter's", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
-    const ownedId = await seedPilot(t, gameId, player.userId)
-    const unclaimedId = await seedPilot(t, gameId, null)
+    const ownedId = await seedRawPilot(t, gameId, player.userId)
+    const unclaimedId = await seedRawPilot(t, gameId, null)
 
     await organizer.as.mutation(api.games.destroy, { gameId })
 
@@ -263,7 +249,7 @@ describe('a shelved entity cannot be released', () => {
   test('releasing one is refused, because null + null is the invalid state', async () => {
     const t = testConvex()
     const { organizer } = await seedTable(t)
-    const shelved = await seedPilot(t, null, organizer.userId)
+    const shelved = await seedRawPilot(t, null, organizer.userId)
 
     // Release sets `ownerId: null`. On a shelved entity that would produce
     // `gameId: null && ownerId: null` — the one combination ADR-030 §2 calls
@@ -281,7 +267,7 @@ describe('a shelved entity cannot be released', () => {
   test('and the refusal does not call a shelved build "unclaimed"', async () => {
     const t = testConvex()
     const { organizer } = await seedTable(t)
-    const shelved = await seedPilot(t, null, organizer.userId)
+    const shelved = await seedRawPilot(t, null, organizer.userId)
 
     // Not "An entity on a shelf is already unclaimed", which teaches the wrong
     // model to the person least able to check it: unclaimed is `ownerId: null`

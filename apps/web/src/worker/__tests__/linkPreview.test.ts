@@ -30,6 +30,11 @@ const PATTERN = {
   gameName: null,
 }
 
+/** A Component Embed as Convex answers it, with a `<` a player could type. */
+const EMBED = JSON.stringify({
+  component: { type: 17, components: [{ type: 10, content: '## Tow <Rig>' }] },
+})
+
 const PILOT = {
   kind: 'pilot',
   body: { id: 'p-1', name: 'Rosa Vance', callsign: 'Bonesaw', classRef: 'engineer' },
@@ -44,7 +49,8 @@ const INVITE = {
 
 const ANSWERS: Answers = {
   'publicSheet:preview': {
-    'pattern/pat-1': PATTERN,
+    // Asked with the app's address, a pattern's answer carries its Discord card.
+    'pattern/pat-1': { ...PATTERN, componentEmbed: EMBED },
     'pilot/p-1': PILOT,
     // p-2 exists but is private: Convex answers it with null, as for a missing one.
     'pilot/p-2': null,
@@ -120,7 +126,7 @@ function meta(html: string, key: string): string | undefined {
 }
 
 describe('the shell carries its markers', () => {
-  it('wraps the sitewide defaults in cantina:meta', () => {
+  it('wraps the sitewide defaults in app:meta', () => {
     expect(SHELL.indexOf(META_START)).toBeGreaterThan(-1)
     expect(SHELL.indexOf(META_END)).toBeGreaterThan(SHELL.indexOf(META_START))
     // The theme-color is inside the block, so a preview can retone it.
@@ -143,6 +149,38 @@ describe('a Discordbot fetch of a shared pattern', () => {
     expect(html).toContain('<title>Tow Rig</title>')
     // The defaults are replaced, not joined.
     expect(html.match(/property="og:title"/g)).toHaveLength(1)
+  })
+})
+
+describe("a shared pattern's Discord card", () => {
+  it('carries its Component Embed, as a book pattern page does, script-escaped', async () => {
+    const html = await unfurl('/p/pattern/pat-1')
+    const asked = seen.find(
+      (r) => (r.body as { path?: string } | undefined)?.path === 'publicSheet:preview'
+    )
+    expect((asked?.body as { args: unknown } | undefined)?.args).toEqual({
+      kind: 'pattern',
+      appId: 'pat-1',
+      appUrl: 'https://salvageunion.io/build',
+    })
+    const block = html.slice(html.indexOf(META_START), html.indexOf(META_END))
+    expect(block).toContain('<script id="discord:component-embed" type="application/json">')
+    expect(block).toContain('## Tow \\u003cRig>')
+    expect(block).not.toContain('Tow <Rig>')
+    // The picture is versioned by what it draws, which the card is not part of.
+    expect(meta(html, 'og:image')).toBe(
+      `https://salvageunion.io/build/og/pattern/pat-1.png?v=${versionOf(PATTERN)}`
+    )
+  })
+
+  it('a private pattern, or a sheet, carries none', async () => {
+    globalThis.fetch = fakeFetch({
+      ...ANSWERS,
+      'publicSheet:preview': { 'pattern/pat-1': null },
+    }) as typeof fetch
+    const res = await worker.fetch(discordbot('/p/pattern/pat-1'), env())
+    expect(await res.text()).not.toContain('discord:component-embed')
+    expect(await unfurl('/p/pilot/p-1')).not.toContain('discord:component-embed')
   })
 })
 
@@ -211,7 +249,7 @@ describe('a Discordbot fetch of a private sheet', () => {
 })
 
 describe('a Discordbot fetch of an invite', () => {
-  it('unfurls the /invite/<token> link the Cantina and the bot hand out', async () => {
+  it('unfurls the /invite/<token> link the app and the bot hand out', async () => {
     const html = await unfurl('/invite/K7QR2XA')
     expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
@@ -233,7 +271,9 @@ describe('a Discordbot fetch of an invite', () => {
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('The Cantina · SalvageUnion.io')
+    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe(
+      'Training Bay · SalvageUnion.io'
+    )
   })
 })
 
@@ -252,7 +292,7 @@ describe('when Convex does not answer', () => {
       new Response('down', { status: 503 })) as unknown as typeof fetch
     const res = await worker.fetch(discordbot('/p/pilot/p-1'), env())
     expect(res.status).toBe(200)
-    expect(meta(await res.text(), 'og:title')).toBe('The Cantina · SalvageUnion.io')
+    expect(meta(await res.text(), 'og:title')).toBe('Training Bay · SalvageUnion.io')
   })
 })
 

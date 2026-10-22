@@ -603,7 +603,7 @@ describe('normalizePatternName', () => {
 
   it('still matches every real formation pattern through the normalized comparison', () => {
     // Faction formations name a chassis pattern the way the book prints it, and
-    // the consumers (cantina's MechChassisStep / partnerGrants) find it with
+    // the consumers (the app's MechChassisStep / partnerGrants) find it with
     // exactly this comparison. Every declared pattern must resolve.
     let checked = 0
     for (const faction of getReference().Factions.all()) {
@@ -735,7 +735,7 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
 
 /**
  * The reference site's origin and route grammar, held once for `apps/web`,
- * the Cantina and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
+ * the app and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
  * artwork.
  */
 describe('SRD site URLs', () => {

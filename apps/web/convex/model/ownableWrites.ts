@@ -13,7 +13,7 @@ import {
   pruneLinksOfRow,
 } from './entities'
 import { getMembership, NotAuthorized } from './permissions'
-import { releaseSeatsOf } from './seats'
+import { handOffSoloSeat, releaseSeatsOf } from './seats'
 import { staleWriteError } from './staleWrite'
 
 /**
@@ -208,9 +208,15 @@ export async function writeOwnable(
       await pruneLinksAcrossContainers(ctx, row, previousGameId)
       if (kind !== null) {
         const crew = row as Doc<'pilots'> | Doc<'mechs'>
+        // Moved off the shelf into a Game: the pilot's solo seat becomes its
+        // seat there, mount and all when its mech is already there.
+        if (kind === 'pilot' && previousGameId === null && crew.gameId !== null) {
+          await handOffSoloSeat(ctx, crew as Doc<'pilots'>, crew.gameId)
+        }
         // Moved out of a Game: a pilot's seat there goes, and a mech leaves
-        // whoever was aboard it on foot (ADR-038).
-        await releaseSeatsOf(ctx, kind, crew, previousGameId)
+        // whoever was aboard it on foot (ADR-038). Off the shelf, a mech keeps
+        // its solo boarder aboard so the pilot can follow it in.
+        await releaseSeatsOf(ctx, kind, crew, previousGameId, { moved: true })
         // Moved into a Game: aboard its primary crawler (ADR-037).
         await assignToPrimary(ctx, kind, crew)
       }

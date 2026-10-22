@@ -1,0 +1,36 @@
+/*
+ * The NPC designer's responsive rules (`docs/architecture/npc-builder.md`
+ * §5). Everything static is a style object
+ * in `build/npc/npcStyles.model.ts`; these are the rules a style object cannot
+ * hold because they change with the viewport or with state.
+ */
+
+/* The live preview: its own column from 48rem; below that, a Preview button
+   in the step opens it in a modal (§5). */
+.su-npc-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.su-npc-preview-toggle {
+  display: none;
+}
+
+@media not (width >= 48rem) {
+  .su-npc-preview {
+    display: none;
+  }
+
+  .su-npc-preview-toggle {
+    display: inline-flex;
+  }
+}
+
+/* An action or trait row's header is an ink band: its name reads paper, as the
+   board draws it (N1, step 3). Set on the band's own children so a button
+   ancestor's ink text cannot bleed through. */
+.su-npc-pick [data-ground='ink'] > * {
+  color: var(--color-paper);
+}

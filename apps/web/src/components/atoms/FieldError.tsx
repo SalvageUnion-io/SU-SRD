@@ -38,7 +38,7 @@ type FieldErrorProps = {
  *
  * It is `Message tone="bad"` under the validation name; the empty-child guard
  * and the block-level `<span>` (valid inside phrasing content, such as
- * InlineEditField's wrapper) are Message's.
+ * a field's wrapper) are Message's.
  */
 export function FieldError({ children, className, spaceAbove, id }: FieldErrorProps) {
   return (

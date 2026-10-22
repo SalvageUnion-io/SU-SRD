@@ -8,6 +8,7 @@
     "deploy-commands": "bun run src/deploy-commands.ts",
     "deploy-commands:global": "DEPLOY_GLOBAL=true bun run src/deploy-commands.ts",
     "gen:command-list": "bun run src/gen-command-list.ts",
+    "gen:sample-replies": "bun run src/gen-sample-replies.ts",
     "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate",
     "deploy": "wrangler deploy",
@@ -20,7 +21,7 @@
     "@randsum/roller": "catalog:",
     "@randsum/salvageunion": "catalog:",
     "discord-api-types": "0.38.53",
-    "cantina-domain": "workspace:*",
+    "game-domain": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }
 }

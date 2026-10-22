@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
-import type { ComponentPropsWithRef, CSSProperties } from 'react'
-import { space } from '../../design/tokens'
+import type { ComponentPropsWithRef } from 'react'
+import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Button } from './Button'
 
@@ -12,21 +12,18 @@ type CloseButtonProps = Omit<ComponentPropsWithRef<'button'>, 'children'> & {
    * page's corner (the entity detail dialog).
    */
   look?: 'quiet' | 'stamp'
-  /** The glyph prints paper, for a band or scrim that does (the danger rust, ink). */
-  onPaper?: boolean
 }
 
-const GLYPH = { width: space[20], height: space[20] } satisfies CSSProperties
-
 /**
- * CLOSE BUTTON — the one ×: Button's icon rung with a 20px glyph and a named
+ * CLOSE BUTTON — the one ×: Button's icon rung (Compact) with a Compact `X` and a named
  * label, so every dialog, drawer and sheet closes on the same control. A
- * Base UI `Close` takes it through `render`, which adds its own click.
+ * Base UI `Close` takes it through `render`, which adds its own click. On a
+ * band that prints paper the frame says so (`data-ground="ink"`, chrome K1)
+ * and the quiet glyph turns paper in CSS: no prop.
  */
 export function CloseButton({
   label = 'Close',
   look = 'quiet',
-  onPaper = false,
   className,
   ...props
 }: CloseButtonProps) {
@@ -35,11 +32,10 @@ export function CloseButton({
       variant={look === 'stamp' ? 'ink' : 'quiet'}
       size="iconOnly"
       className={cn('su-close-button', className)}
-      data-on-paper={onPaper || undefined}
       aria-label={label}
       {...props}
     >
-      <X style={GLYPH} aria-hidden="true" />
+      <X size={iconSize.compact} aria-hidden="true" />
     </Button>
   )
 }

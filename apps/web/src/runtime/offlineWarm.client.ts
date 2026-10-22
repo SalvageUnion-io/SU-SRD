@@ -3,7 +3,7 @@
  *
  * ADR-034 decision 3: installing is what buys full offline, and an online
  * visitor never pre-downloads the site. `srd` is where that rule has teeth,
- * because unlike the Cantina it has a genuine corpus — 1,039 pre-rendered pages —
+ * because unlike the app it has a genuine corpus — about a thousand pre-rendered pages —
  * and `navigateFallback: null` means an unvisited one 404s offline. Correct for
  * somebody who came to read one page; wrong for somebody who installed the app.
  *
@@ -38,7 +38,7 @@
  *
  * ## Measured cost
  *
- * 1,039 pages, **3.73 MB gzipped** (per-file, which is what HTTP actually
+ * Every page, **3.73 MB gzipped** as measured (per-file, which is what HTTP actually
  * transfers — the 1.1 MB you get gzipping them as one stream is cross-file
  * dedup no browser will ever see). On top of the 2.0 MB shell precache, an
  * installed app costs roughly 5.7 MB.
@@ -56,7 +56,7 @@ import { PAGES_CACHE } from '../pwa'
 const CONCURRENCY = 6
 
 /**
- * Runs at most once per tab per build — re-checking 1,039 cache entries on every
+ * Runs at most once per tab per build — re-checking a thousand cache entries on every
  * navigation is waste. Holds the build it ran for, so a tab that navigates onto
  * a newer deploy warms again.
  */
@@ -195,7 +195,7 @@ export async function warmOfflineCacheIfInstalled(build: string = BUILD): Promis
   if (urls === null) return
   let complete = true
 
-  // A fixed pool rather than `Promise.all` over 1,039 fetches: the browser would
+  // A fixed pool rather than `Promise.all` over every page's fetch: the browser would
   // queue them anyway, and a thousand in-flight requests is how a background
   // task starves the page the user is actually reading.
   let cursor = 0

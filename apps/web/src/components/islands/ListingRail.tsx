@@ -1,8 +1,13 @@
 import type { ReactNode } from 'react'
+import { cn } from '../../lib/cn'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
-import { SearchField, Segmented, SegmentedOption, Select } from '../index'
+import { capsLabel } from '../atoms/capsLabel'
+import { Button, SearchField, Segmented, SegmentedOption, Select } from '../index'
+
+/** The rail's menu is a caps label that keeps its rule's face and tracking. */
+const MENU = cn('su-rail__menu', capsLabel({ weight: 'inherit', tracking: 'inherit' }))
 
 /** A tech level as the rail's toggle prints it: the numeral, or the word. */
 export function tlButtonLabel(level: TechLevel): string {
@@ -134,20 +139,20 @@ export function ListingRail({
           placeholder={`Filter ${count} by name`}
           aria-label="Filter items by name"
           containerClassName="su-rail__search"
-          glyphSize={18}
+          glyph="full"
         />
       )}
       {hasFacets && (
-        <button
-          type="button"
-          className="su-rail__filters su-focus-ring"
+        <Button
+          size="full"
+          className="su-rail__filters"
           aria-expanded={facetsOpen}
           aria-controls="srd-rail-facets"
           onClick={on.toggleFacets}
         >
           Filters
           {activeFacets > 0 && <span className="su-rail__count">{activeFacets}</span>}
-        </button>
+        </Button>
       )}
       {status}
       <span className="su-rail__spring" />
@@ -191,7 +196,7 @@ export function ListingRail({
             <Select
               chevron
               aria-label="Source"
-              className="su-rail__menu"
+              className={MENU}
               data-on={filters.source ? true : undefined}
               value={filters.source}
               onChange={(e) => on.setSource(e.target.value)}
@@ -208,7 +213,7 @@ export function ListingRail({
             <Select
               chevron
               aria-label="Tree"
-              className="su-rail__menu"
+              className={MENU}
               data-on={filters.tree ? true : undefined}
               value={filters.tree}
               onChange={(e) => on.setTree(e.target.value)}

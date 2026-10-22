@@ -1,0 +1,113 @@
+/* ── A sheet item's state, uses and actions (`SheetItemLine`) ride its
+      Mini's chip group (C8, hard rule R6), at the Mini's Mini Size; a
+      Mini button there is drawn a chip's height (`entity-forms.css`). ── */
+
+/* The condition is the tri-state `StatusBadge`, drawn at the chip's height;
+   its lane (C6) lines a list's conditions up. */
+.su-sheet-item__condition {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.su-sheet-item__condition .su-badge {
+  box-sizing: border-box;
+  height: var(--size-mini);
+  justify-content: center;
+}
+
+/* A condition that steps is a 24px target (WCAG 2.2, 2.5.8) drawn at the
+   chip's 18px, as a strip's Mini button is (`entity-forms.css`): a
+   transparent border takes the difference. Under a coarse pointer its hit
+   area is 44px (`pointer-motion.css`). */
+.su-sheet-item__condition > button {
+  align-items: center;
+  background: none;
+  background-clip: padding-box;
+  border: calc((var(--space-24) - var(--size-mini)) / 2) solid transparent;
+  box-sizing: border-box;
+  height: var(--space-24);
+  margin-block: calc((var(--size-mini) - var(--space-24)) / 2);
+  padding: 0;
+}
+
+/* Remove: a square ✕. */
+.su-sheet-item__remove {
+  min-width: var(--size-mini);
+  padding: 0;
+}
+
+@media print {
+  .su-sheet-item__repair,
+  .su-sheet-item__remove {
+    display: none;
+  }
+}
+
+/* An Edit list of item lines (`.su-sheet-items`): one a line. */
+.su-sheet-items {
+  gap: var(--space-6);
+}
+
+/* A pilot's untaken ability in one of its class's trees (R48): the whole Mini
+   dulled toward grey, as a destroyed entity is, but still readable: no
+   fainter than its lead's words keep 4.5:1 on paper (WCAG 1.4.3). */
+.su-pilot-ability--unlearned {
+  filter: grayscale(1);
+  opacity: 0.75;
+}
+
+/* A stem is the track's colour only between two abilities the pilot has
+   both taken; touching an untaken one it is grey. */
+.su-pilot-trees .su-ability-track__tier:has(> .su-pilot-ability--unlearned)::after,
+.su-pilot-trees
+  .su-ability-track__tier:has(+ .su-ability-track__tier > .su-pilot-ability--unlearned)::after,
+.su-pilot-trees
+  .su-ability-track__tier:has(> .su-pilot-ability--unlearned)
+  + .su-ability-track__or::before,
+.su-pilot-trees
+  .su-ability-track__or:has(+ .su-ability-track__tier > .su-pilot-ability--unlearned)::before {
+  background: var(--color-ink-40);
+}
+
+/* The pilot's trees as the class page draws them (`AbilityTrack`), three
+   across where they fit, one each on a phone. Side by side,
+   each tree is its slab and its tiers on the trees' own rows, so the trees'
+   tiers line up and every tree ends on one line. */
+.su-pilot-trees {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--space-12) var(--space-24);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+/* Each ability fills its column and never widens it: its head's chips fill
+   or overflow beside its name, as anywhere (R37). */
+.su-pilot-trees > *,
+.su-pilot-trees .su-ability-track > li,
+.su-pilot-trees .su-ability-track__tier > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-pilot-trees .su-ability-track {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container (width >= 40rem) {
+  .su-pilot-trees > .su-ability-tree__group {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: var(--space-12);
+  }
+
+  .su-pilot-trees > .su-ability-tree__group > .su-ability-tree__track {
+    display: contents;
+  }
+
+  .su-pilot-trees .su-ability-track {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+  }
+}

@@ -2,7 +2,7 @@
  * The card's CHROME rules — how a card is coloured, framed and interacted
  * with, and what its header hint says, as opposed to the content it carries.
  * Split out of `ReferenceEntityCard.tsx`; every function here is
- * pure. The nodes they feed are `CardTopRail` and the header.
+ * pure. The nodes they feed are the card's outer wrapper and its header.
  */
 
 import type { CSSProperties } from 'react'
@@ -11,22 +11,19 @@ import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-ref
 import type { Foreground } from '../../../design/contrast'
 import { foregroundOn } from '../../../design/contrast'
 import { cn } from '../../../lib/cn'
+import type { Size } from '../../../styles/sizing'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
-import type { CardSize } from '../../containers/displayMode'
-import { SELECTED_RING } from '../../entity/modes/selectedRing'
+import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 
-/** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding.
- *  The card's cost pennant (`.su-pennant` in `styles/index.css`, which restates
- *  it: `__tests__/stylesheetParity.test.ts` holds the two equal) and the link
- *  preview's (`OgCard`) both cut it. */
-export const PENNANT_SHAPE = 'polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)'
-
-/** What the User-made stamp and pill say when hovered (ruleset §3.9). */
+/** What the HOMEBREW stamp and a homebrew pill say when hovered (ruleset §3.9). */
 export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
+
+/** What the stamp every player-made thing wears says (`HomebrewStamp`, ruleset §3.9). */
+export const HOMEBREW = 'Homebrew'
 
 /** The greys a damaged band dulls toward: ink mixed into paper —
  * the same warm material at distance. A band that prints ink dulls toward the
@@ -40,9 +37,9 @@ const DULL_GREY = {
 /** A DESTROYED band: flat grey, ink half-mixed into paper, whatever its tone. */
 export const GREY_HEADER = 'color-mix(in srgb, var(--color-ink) 50%, var(--color-paper))'
 
-/** A DAMAGED band (owner, 2026-10-14): its own colour dulled toward grey, not
- * replaced by it, so it still reads as the same entity. Every form (Token,
- * Row, Tile, Card, Peek) dulls the same band the same way. */
+/** A DAMAGED band: its own colour dulled toward grey, not
+ * replaced by it, so it still reads as the same entity. Every form (Mini,
+ * Compact, CompactIndex, Card, Peek) dulls the same band the same way. */
 export function dullBand(band: string): string {
   return `color-mix(in srgb, ${band} 50%, ${DULL_GREY[foregroundOn(band, 'paper')]})`
 }
@@ -74,7 +71,7 @@ export function downBand(band: string, down: Down): string {
 }
 
 /**
- * The header's two fills (ruleset §5, board E1): a TONE header for things you
+ * The header's two fills (ruleset §5): a TONE header for things you
  * HAVE (chassis, systems, gear, denizens), an INK header — the book's ink
  * banner — for things you DO (abilities, actions).
  */
@@ -83,11 +80,11 @@ export type HeaderFill = 'tone' | 'ink'
 /**
  * Which fill a card's header takes, by data shape. Things you do (abilities,
  * actions) are the ink banner on a card. A PEEK's card wears the fill of the
- * Token, Row or Tile that opened it, never a different one: an ability's, its
- * tier tone (E12). A head-only card is a Token, which paints itself.
+ * Mini, Compact or CompactIndex that opened it, never a different one: an ability's, its
+ * tier tone (E12). A head-only card is a Mini, which paints itself.
  */
 export function resolveHeaderFill(entity: RefMetaEntity, insidePeek = false): HeaderFill {
-  // The entity model's rule (E12), with the Peek as its Row.
+  // The entity model's rule (E12), with the Peek as its Compact.
   return headerFill(entity, insidePeek ? 'row' : 'card')
 }
 
@@ -141,11 +138,11 @@ export function resolveCardColors({
 }
 
 /**
- * The frame's weight. It steps with size (ruleset §4.3, board E2): 3px for
+ * The frame's weight. It steps with size (ruleset §4.3): 3px for
  * the large solo card, 2px one size down, 1.5px for a small card (and a
- * head-only card's Token).
+ * head-only card's Mini).
  */
-export function resolveFrameWidth(size: CardSize): string {
+export function resolveFrameWidth(size: Size): string {
   if (size === 'mini') return 'var(--bw-chrome)'
   return size === 'full' ? 'var(--bw-entity)' : 'var(--bw-entity-compact)'
 }
@@ -166,7 +163,6 @@ export function resolveCardInteraction({
   cardClickLabel,
   selected,
   frameWidth,
-  dashed,
 }: {
   onCardClick: (() => void) | undefined
   controls: ReferenceEntityControl[] | undefined
@@ -179,16 +175,13 @@ export function resolveCardInteraction({
   selected: boolean | undefined
   /** From `resolveFrameWidth`. */
   frameWidth: string
-  /** USER-MADE (ruleset §3.9): a dashed ink frame in place of the solid one. */
-  dashed: boolean
 }): {
   outer: CardOuterProps
   frameStyle: CSSProperties
 } {
   const clickControl = controls?.find((c) => c.cardClick)
   const resolvedCardClick = onCardClick ?? clickControl?.onClick
-  // ONE CONTROL: when the click comes from a control the card SHOWS (a folded
-  // card's chevron), that control is the keyboard and screen-reader path, and
+  // ONE CONTROL: when the click comes from a control the card SHOWS, that control is the keyboard and screen-reader path, and
   // the wrapper is a pointer convenience only — no role, no tab stop, no name.
   // A `role="button"` wrapper around a visible button made two tab stops named
   // the same, nested one interactive inside another, and turned the card's
@@ -196,12 +189,12 @@ export function resolveCardInteraction({
   const pointerOnly = !onCardClick && !!clickControl && !clickControl.hidden
   const isHoverable = !!resolvedCardClick || !!cardClickable
   // Classes, not a style object: a caller's `className` may override any of
-  // these (`.su-ec-outer` in `styles/index.css`).
+  // these (`.su-ec-outer` in `styles/partials/reference-card.css`).
   const outerClassName = cn(
     'su-ec-outer',
     disabled && 'su-ec-outer--dim',
-    selectable === false && 'su-ec-outer--unselectable',
-    // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
+    selectable === false && SELECT_DIM,
+    // Flat chrome: a clickable card says so with the pointer, not by
     // lifting and scaling off the page.
     isHoverable && 'su-ec-outer--clickable',
     resolvedCardClick && !pointerOnly && FOCUS_RING,
@@ -214,10 +207,6 @@ export function resolveCardInteraction({
   // instead of its full text content. Navigation/add cards leave both unset and
   // stay a plain role=button.
   const label = cardClickLabel ? { 'aria-label': cardClickLabel } : {}
-  // A DISCLOSURE control on the card's rail (the fold chevron) controls the
-  // whole card, so the wrapper takes the id its `aria-controls` names.
-  const id = controls?.find((c) => c.ariaExpanded !== undefined)?.ariaControls
-  const idAttr = id ? { id } : {}
   const outer: CardOuterProps =
     resolvedCardClick && selectionRole === 'radio'
       ? {
@@ -228,36 +217,28 @@ export function resolveCardInteraction({
       : {
           className: outerClassName,
           interaction: !resolvedCardClick
-            ? idAttr
+            ? {}
             : pointerOnly
-              ? { ...idAttr, onClick: resolvedCardClick }
+              ? { onClick: resolvedCardClick }
               : {
-                  ...idAttr,
                   role: 'button' as const,
                   tabIndex: 0,
                   onClick: resolvedCardClick,
                   onKeyDown: activateOnKey(resolvedCardClick),
                   ...label,
-                  // A hidden disclosure control (a chevron-less folded Row)
-                  // hands its name and state to the card that now stands in for it.
-                  ...(clickControl?.hidden && clickControl.ariaExpanded !== undefined
-                    ? {
-                        'aria-expanded': clickControl.ariaExpanded,
-                        ...(cardClickLabel ? {} : { 'aria-label': clickControl.ariaLabel }),
-                      }
-                    : {}),
                   ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
                 },
         }
-  // Selection state — the canonical SELECTION_RING (atoms/interaction.ts), the
-  // same 3px ink ring the wizard Sel/PickCard draw. A non-layout-shifting
+  // Selection state — select mode's ring (`SELECTED_RING`), the same 3px ink
+  // ring a selected Compact and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
-  // The frame is INK on every card (the tone lives in the header band alone),
-  // and dashed on a user-made one. Longhands, so a caller overriding one side
+  // The frame is the subtle ink-40 on every card (R38), a user-made one too
+  // (its HOMEBREW chip marks it); the tone lives in
+  // the header band alone. Longhands, so a caller overriding one side
   // never trips React's shorthand/longhand warning.
   const frame = {
-    borderStyle: dashed ? 'dashed' : 'solid',
-    borderColor: 'var(--color-ink)',
+    borderStyle: 'solid',
+    borderColor: 'var(--color-ink-40)',
     borderTopWidth: frameWidth,
     borderRightWidth: frameWidth,
     borderBottomWidth: frameWidth,
@@ -272,7 +253,7 @@ export function resolveCardInteraction({
  * behind.
  *
  * - ABILITY flavor — the short description. An ability is an ink banner now
- *   (tier numeral, title, cost pennant), so the card prints it as the body's
+ *   (tier numeral, title, cost chip), so the card prints it as the body's
  *   lead rather than on the band.
  * - TITANIC: the intro paragraph becomes the hint; the REMAINING content
  *   blocks (the options list) render in the body.

@@ -1,24 +1,25 @@
-import type { EntityTable, OwnableKind, OwnableTable } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
-import type { LinkShape } from 'cantina-domain/links/linkRules'
-import { conflictingLinks, LINK_ENDS, sameLink } from 'cantina-domain/links/linkRules'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { EncounterNpcSchema } from 'cantina-domain/schemas/encounterNpc'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
+import type { EntityTable, OwnableKind, OwnableTable } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import type { LinkShape } from 'game-domain/links/linkRules'
+import { conflictingLinks, LINK_ENDS, sameLink } from 'game-domain/links/linkRules'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { PilotSchema } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import {
   internalMutation as rawInternalMutation,
   mutation as rawMutation,
 } from '../_generated/server'
+import { entityNameOf } from './entityName'
 import { PHOTO_TABLES, trackPhoto } from './photos'
 
 /**
@@ -32,7 +33,7 @@ import { PHOTO_TABLES, trackPhoto } from './photos'
  * ## The edge parse
  *
  * `schema.ts` stores entity bodies as `v.any()` so the Zod schemas in
- * `cantina-domain/schemas/` stay the single source of truth rather than being forked
+ * `game-domain/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price is stated
  * plainly in that file's header: **Convex cannot reject a malformed body on
  * write, so the mutation has to.** `parseBody` is where that is paid, and
@@ -63,8 +64,8 @@ export type OwnedTable = OwnableTable | 'npcs'
  *
  * Deliberately a *partial* of the local `EncounterNpcSchema` rather than the
  * whole thing. That schema describes a tracked instance in the local store —
- * reference slug, HP track, conditions, timestamps. The Mediator Dashboard's
- * Opposition tab sends a whole instance, but rows written before it
+ * reference slug, HP track, conditions, timestamps. The Mediator's
+ * Opposition sends a whole instance, but rows written before it
  * carry only a name, and `mediator.updateNpc` re-parses them on every change:
  * demanding the full record would strand those rows.
  *
@@ -86,7 +87,7 @@ export const PARSERS = {
   mechPatterns: MechPatternSchema,
 } as const
 
-export type ParsedTable = keyof typeof PARSERS
+type ParsedTable = keyof typeof PARSERS
 
 /** Parse a body against its Zod schema, or throw with a legible reason. */
 export function parseBody(table: ParsedTable, body: unknown): unknown {
@@ -190,7 +191,7 @@ export async function oldestByAppId(
     .collect()) as Doc<EntityTable>[]
   if (warn && matches.length > 1) {
     console.warn(
-      `[cantina] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
+      `[app] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
     )
   }
   return oldestOf(matches)
@@ -238,7 +239,7 @@ export function bodyAppId(body: unknown): string | undefined {
 }
 
 /** The two tables whose rows are identified by the id inside their body. */
-export type BodyIdTable = 'mechPatterns' | 'encounterNpcs'
+type BodyIdTable = 'mechPatterns' | 'encounterNpcs'
 
 /**
  * One of the owner's own patterns or NPCs, addressed by the id in its body:
@@ -311,7 +312,7 @@ export function patternVisibilityOf(row: Doc<'mechPatterns'>): PatternVisibility
  * One pattern by the id inside its body, whoever made it — the pattern page's
  * address. A duplicate resolves to the oldest row, as in `oldestByAppId`.
  */
-export async function patternByAppId(
+async function patternByAppId(
   ctx: QueryCtx | MutationCtx,
   appId: string
 ): Promise<Doc<'mechPatterns'> | null> {
@@ -385,7 +386,7 @@ export function linkIdOf(row: ContainedRow): string | undefined {
  * that is about *where*, not *how many*.
  *
  * The same Game, or the same owner's shelf. The second clause is the one
- * `cantina-domain/container`'s `sameContainer` cannot express: every player's shelf has
+ * `game-domain/container`'s `sameContainer` cannot express: every player's shelf has
  * the same `null` game id, and a shelf is a solo container per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
@@ -459,7 +460,7 @@ export async function linksTouching(
  * The cardinality invariant's single server-side writer: `upsertSoftLink`, the
  * claim, and the primary-crawler auto-assignment all draw through here, so
  * "a pilot crews one crawler" cannot hold on one path and not another. The
- * rule itself is `conflictingLinks` (`cantina-domain/links/linkRules`), shared with
+ * rule itself is `conflictingLinks` (`game-domain/links/linkRules`), shared with
  * the client.
  *
  * The caller has already decided the link is allowed — who may draw it, and
@@ -588,19 +589,7 @@ export async function pruneLinksAcrossContainers(
 /* -------------------------------------------------------------------------- */
 
 /** What a table holds, as the hub states it. Stored on `games.summary`. */
-export type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
-
-/**
- * A crawler's display name, read defensively.
- *
- * The name lives in the opaque body Convex cannot validate (ADR-030), so the
- * shape is not trusted — the same move `crew.vitals` makes for pilot and mech
- * names.
- */
-function crawlerNameOf(body: unknown): string | null {
-  const name = (body as Record<string, unknown> | null | undefined)?.name
-  return typeof name === 'string' && name.length > 0 ? name : null
-}
+type GameSummaryFields = NonNullable<Doc<'games'>['summary']>
 
 /**
  * Count a Game from its rows.
@@ -610,7 +599,7 @@ function crawlerNameOf(body: unknown): string | null {
  * path: it is paid here, inside the mutation that changed the roster, rather
  * than by every subscriber of `games.listMine` on every write to any sheet.
  */
-export async function computeGameSummary(
+async function computeGameSummary(
   ctx: QueryCtx | MutationCtx,
   gameId: Id<'games'>
 ): Promise<GameSummaryFields> {
@@ -634,7 +623,7 @@ export async function computeGameSummary(
     memberCount: members.length,
     pilotCount: pilots.length,
     mechCount: mechs.length,
-    crawlerName: crawler === null ? null : crawlerNameOf(crawler.body),
+    crawlerName: crawler === null ? null : entityNameOf('crawler', crawler.body),
   }
 }
 
@@ -660,7 +649,7 @@ async function crawlersIn(ctx: QueryCtx | MutationCtx, gameId: Id<'games'>) {
  * gets — a crawler deleted or moved without the bookkeeping below (a dashboard
  * edit) still leaves the Game a sensible primary.
  */
-export function effectivePrimary(
+function effectivePrimary(
   stored: Id<'crawlers'> | null | undefined,
   oldestFirst: readonly Doc<'crawlers'>[]
 ): Doc<'crawlers'> | null {
@@ -887,7 +876,7 @@ triggers.register('crawlers', async (ctx, change) => {
   // shows it. Everything else about it — scrap, cargo, bays — does not.
   const renamed =
     change.operation === 'update' &&
-    crawlerNameOf(change.oldDoc.body) !== crawlerNameOf(change.newDoc.body)
+    entityNameOf('crawler', change.oldDoc.body) !== entityNameOf('crawler', change.newDoc.body)
   const touched = containersTouched(
     change.oldDoc?.gameId,
     change.newDoc?.gameId,

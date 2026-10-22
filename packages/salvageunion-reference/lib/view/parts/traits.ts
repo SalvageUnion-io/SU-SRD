@@ -284,7 +284,7 @@ export function facetCells(options: {
 }
 
 /**
- * The trait order (owner, 2026-10-14): alphabetical, as the book mostly
+ * The trait order: alphabetical, as the book mostly
  * prints them, with Uses last (".50 Cal Machine Gun: Ballistic // Jamming //
  * Pinning", Workshop Manual p.164; "… // Missile // Uses (6)", p.175). The
  * other cells keep their order, ahead of the traits.

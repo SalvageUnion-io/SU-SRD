@@ -1,21 +1,23 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useContext, useState } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { getReferenceEntityName, resolveTable } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
+import { entityRef, getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import type { CardSize } from '../../containers/displayMode'
+import type { Size } from '../../../styles/sizing'
+import { MiniGrid } from '../../containers/MiniGrid'
 import { Entity } from '../../entity/Entity'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import type { EntityMode } from '../../entity/types'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
-import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
 import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
-import { nestsTokens } from './nestingLevel'
+import { InsidePickContext } from './insidePick'
+import { nestsMinis } from './nestingLevel'
 import type {
   NestedCard,
   ReferenceCardEntity,
@@ -29,14 +31,14 @@ export type NestedCardHost = {
   /** The HOST card's depth — nested cards render one level below it. */
   depth: number
   /** The host's size: a child renders medium, or small inside a small card. */
-  size: CardSize
+  size: Size
   isDown: Down
   /**
    * The host IS the page: its stacks drop the frame inset (see `CardStack`).
    * It is also the host's nesting level (N1, EDL E6): a Page is level 0, so
    * what it nests is level 1, a compact Card. Every other host (a Card on a
    * Page, a card in a wizard pick, a sheet, a dialog list) is itself at
-   * level 1 or deeper, so what it nests is level 2: a Token (`nestsTokens`).
+   * level 1 or deeper, so what it nests is level 2: a Mini (`nestsMinis`).
    */
   onPage?: boolean
   /**
@@ -66,10 +68,10 @@ export type NestedWrite = {
   hide: ReferenceEntityCardHideConfig | undefined
 }
 
-/** A stack's inset from the frame, by the host's size (board E2). */
-const STACK_MARGIN: Record<CardSize, string> = {
+/** A stack's inset from the frame, by the host's size. */
+const STACK_MARGIN: Record<Size, string> = {
   full: `${space[4]} ${space[14]} ${space[14]}`,
-  compact: `${space[2]} ${space[10]} ${space[10]}`,
+  compact: `${space[2]} ${space[12]} ${space[12]}`,
   mini: `${space[2]} ${space[8]} ${space[8]}`,
 }
 
@@ -83,10 +85,10 @@ const STACK_MARGIN: Record<CardSize, string> = {
  * prose and from the next stack, and an inline `margin: 0` would beat that
  * rule and butt the cards together. Its cards keep the same page rhythm.
  */
-const stack = (size: CardSize, flush: boolean): CSSProperties => ({
+const stack = (size: Size, flush: boolean): CSSProperties => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: flush ? space[24] : space[14],
+  gap: flush ? space[12] : space[14],
   ...(flush ? {} : { margin: STACK_MARGIN[size] }),
 })
 
@@ -94,7 +96,7 @@ const stack = (size: CardSize, flush: boolean): CSSProperties => ({
  * Nested cards that each wear their own type stamp (or GRANTS seal) — a
  * System, a Module, an NPC, a Drone, a Pattern. A tray headed "Systems" or
  * "NPC" would only repeat that stamp, so they stack in the parent's frame
- * without one (board E2). Containment and the stamp show the nesting; there
+ * without one. Containment and the stamp show the nesting; there
  * is no indent and no rail (ruleset §3.10).
  */
 export function CardStack({
@@ -102,7 +104,7 @@ export function CardStack({
   flush = false,
   children,
 }: {
-  size: CardSize
+  size: Size
   flush?: boolean
   children: ReactNode
 }) {
@@ -112,8 +114,7 @@ export function CardStack({
 /**
  * What leads a framed card's nested elements. A GAP under the head when no
  * body pads it, so content never touches the header; and the card's own ROLL
- * TABLE, boxed at the nested width (owner's call, 2026-10-14: "nested elements
- * should not be full-width").
+ * TABLE, boxed at the nested width: a nested element is never full-width.
  */
 export function CardLead({
   bare,
@@ -126,7 +127,7 @@ export function CardLead({
   /** Nested elements follow the table. */
   nested: boolean
   table: ReactNode
-  size: CardSize
+  size: Size
 }) {
   return (
     <>
@@ -136,16 +137,16 @@ export function CardLead({
   )
 }
 
-const LEAD_GAP: Record<CardSize, string> = { full: space[12], compact: space[10], mini: space[8] }
+const LEAD_GAP: Record<Size, string> = { full: space[12], compact: space[12], mini: space[8] }
 
-/** Children inside a Peek: one read-only Token each (E16), one a line (N4). */
-function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
+/** Children inside a Peek: one read-only Mini each (E16), one a line (N4). */
+function PeekMinis({ entities }: { entities: ReferenceCardEntity[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
       {entities.map((nested, index) => (
         <Entity
           key={cardKey(nested, index)}
-          form="token"
+          size="mini"
           context="loadout"
           entity={nested as RefMetaEntity}
           mode={{ kind: 'read' }}
@@ -156,12 +157,11 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
 }
 
 /**
- * A crawler bay's crew NPC as a TOKEN that Peeks its card (owner's call,
- * 2026-10-14: "when nesting an NPC inside of a crawler bay, use a token with
- * peek"). The NPC is embedded in the bay, with no dataset row of its own, so
+ * A crawler bay's crew NPC as a TOKEN that Peeks its card. The NPC is
+ * embedded in the bay, with no dataset row of its own, so
  * it Peeks through the bay's address (`embeddedPeekAddress`).
  */
-export function EmbeddedNpcTokens({
+export function EmbeddedNpcMinis({
   entities,
   host,
   peekAt,
@@ -173,10 +173,10 @@ export function EmbeddedNpcTokens({
   if (entities.length === 0) return null
   return (
     <CardStack size={host.size} flush={host.onPage}>
-      <ul className="su-entity-token-list">
+      <ul className="su-entity-mini-list">
         {entities.map((npc, index) => (
           <li key={cardKey(npc, index)}>
-            <Entity form="token" context="roster" entity={npc as RefMetaEntity} peekAt={peekAt} />
+            <Entity size="mini" context="roster" entity={npc as RefMetaEntity} peekAt={peekAt} />
           </li>
         ))}
       </ul>
@@ -187,7 +187,7 @@ export function EmbeddedNpcTokens({
 /**
  * A list of nested entities (N1, EDL E6). A Page's children are level 1: each
  * the full medium card, stacked. Any other host is itself level 1 or deeper,
- * so its children are level 2: one header-only Token a line (`NestedTokens`)
+ * so its children are level 2: one header-only Mini a line (`NestedMinis`)
  * that opens the entity rather than expanding in place.
  */
 function NestedCardList({
@@ -202,10 +202,10 @@ function NestedCardList({
   write?: NestedWrite
 }) {
   const { NestedCard } = host
-  // A Peek draws its children as Tokens only (E16).
-  if (useContext(InsidePeekContext)) return <PeekTokens entities={entities} />
-  if (nestsTokens(host)) {
-    return <NestedTokens items={entities.map((data) => ({ data }))} host={host} />
+  // A Peek draws its children as Minis only (E16).
+  if (useContext(InsidePeekContext)) return <PeekMinis entities={entities} />
+  if (nestsMinis(host)) {
+    return <NestedMinis items={entities.map((data) => ({ data }))} host={host} />
   }
   return entities.map((nested, index) => (
     <NestedCard
@@ -228,20 +228,20 @@ function NestedCardList({
 }
 
 /** One level-2 child: the entity, and the title it goes by here (a pattern's drone name). */
-type NestedTokenItem = { data: ReferenceCardEntity; title?: string }
+type NestedMiniItem = { data: ReferenceCardEntity; title?: string }
 
 /**
- * LEVEL-2 children (N1): one header-only Token a line, each filling it (N4),
+ * LEVEL-2 children (N1): one header-only Mini a line, each filling it (N4),
  * as a pattern's loadout lists its parts (`PatternLoadout`). What the entity
  * carries (its loadout, its actions) is its Peek's and its Page's, never
  * nested here.
  */
-function NestedTokens({ items, host }: { items: NestedTokenItem[]; host: NestedCardHost }) {
+function NestedMinis({ items, host }: { items: NestedMiniItem[]; host: NestedCardHost }) {
   return (
-    <ul className="su-entity-token-list">
+    <ul className="su-entity-mini-list">
       {items.map((item, index) => (
         <li key={cardKey(item.data, index)}>
-          <NestedToken data={item.data} title={item.title} host={host} />
+          <NestedMini data={item.data} title={item.title} host={host} />
         </li>
       ))}
     </ul>
@@ -249,13 +249,12 @@ function NestedTokens({ items, host }: { items: NestedTokenItem[]; host: NestedC
 }
 
 /**
- * A LEVEL-2 child as a Token that opens the entity instead of expanding in
- * place: the detail page where the app links out (srd, an
- * `EntityDetailLinkProvider` and an href), else the detail dialog's Page (The
- * Cantina). It Peeks its whole card; a synthesised entity (no dataset row)
+ * A LEVEL-2 child as a Mini that opens the entity instead of expanding in
+ * place: the detail page where the surface has a route for it (the reference site's
+ * `hrefFor`), else the detail dialog's Page (The App). It Peeks its whole card; a synthesised entity (no dataset row)
  * has no Peek, only its Page.
  */
-function NestedToken({
+function NestedMini({
   data,
   title: titleOverride,
   host,
@@ -266,30 +265,33 @@ function NestedToken({
 }) {
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
-  const href = useEntityHref(data as RefEntity)
-  const linkOut = useEntityDetailLink() && !!href
+  const href = useEntitySurface().hrefFor(entityRef(data as RefMetaEntity))
   const entityName = getReferenceEntityName(data) ?? 'Entity details'
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = titleOverride ?? stripHostParenthetical(entityName, host.entityName)
   const condition = conditionOf(host.isDown)
   const instance = { title, ...(condition ? { condition } : {}) }
-  const mode: Extract<EntityMode, { kind: 'link' }> = linkOut
-    ? { kind: 'link', href, attrs: { 'aria-label': `Open ${title}` } }
-    : {
-        kind: 'link',
-        onOpen: () => setOpen(true),
-        attrs: { 'aria-label': `Open ${title}` },
-      }
+  // Inside a card that is the pick, the card is the one control: it reads.
+  const inPick = useContext(InsidePickContext)
+  const mode: EntityMode = inPick
+    ? { kind: 'read' }
+    : href
+      ? { kind: 'link', href, attrs: { 'aria-label': `Open ${title}` } }
+      : {
+          kind: 'link',
+          onOpen: () => setOpen(true),
+          attrs: { 'aria-label': `Open ${title}` },
+        }
   return (
     <>
       <Entity
-        form="token"
+        size="mini"
         context="loadout"
         entity={data as RefMetaEntity}
         instance={instance}
         mode={mode}
       />
-      {mode.onOpen && (
+      {mode.kind === 'link' && mode.onOpen && (
         // The Page (EDL Form 5): the dialog's band and foot, the card its body.
         <EntityDetailDialog
           open={open}
@@ -308,7 +310,7 @@ function NestedToken({
  * A group of nested entities — Systems, Modules, NPCs, Grants — stacked with
  * no tray: each card's own stamp names it. Grants also stamp a GRANTS seal on
  * each card (the granting ability's own actions belong to the granted card).
- * Under any host but a Page they are Tokens instead (N1, `NestedCardList`).
+ * Under any host but a Page they are Minis instead (N1, `NestedCardList`).
  */
 export function NestedCardGroup({
   entities,
@@ -333,7 +335,7 @@ export function NestedCardGroup({
  * DRONE — a chassis controls a drone (named by a chassis ability); a pattern
  * specifies one or several. On a Page each renders as a drone card (no tray),
  * and its systems + modules render INSIDE that card (via `droneLoadout`), as
- * Tokens. Anywhere else the drone is level 2 (N1): a Token under the name the
+ * Minis. Anywhere else the drone is level 2 (N1): a Mini under the name the
  * pattern gives it, its loadout its Peek's and its Page's.
  */
 export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: NestedCardHost }) {
@@ -343,14 +345,14 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
   if (insidePeek) {
     return (
       <CardStack size={host.size}>
-        <PeekTokens entities={drones.map((info) => info.drone)} />
+        <PeekMinis entities={drones.map((info) => info.drone)} />
       </CardStack>
     )
   }
-  if (nestsTokens(host)) {
+  if (nestsMinis(host)) {
     return (
       <CardStack size={host.size}>
-        <NestedTokens
+        <NestedMinis
           items={drones.map((info) => ({ data: info.drone, title: info.instanceName }))}
           host={host}
         />
@@ -384,11 +386,11 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
 }
 
 /**
- * ACTIONS nest in their card (owner's call, 2026-10-14): no tray and no
+ * ACTIONS nest in their card: no tray and no
  * "Action" stamp, an action is part of the thing that does it. Their form is
  * the host's level (N1, N3). A Page lays its own out, level 1, as framed
  * cards (`CardPage`), so the actions drawn here are always under a Card or a
- * Peek: level 2, contentful Tokens (`ActionTokens`), never a framed card and
+ * Peek: level 2, contentful Minis (`ActionMinis`), never a framed card and
  * never folded away.
  */
 export function InlineActions({
@@ -400,7 +402,7 @@ export function InlineActions({
 }) {
   return (
     <CardStack size={host.size}>
-      <ActionTokens
+      <ActionMinis
         actions={actions}
         size={nestedChildSize(host.size)}
         hostName={host.entityName}
@@ -411,69 +413,78 @@ export function InlineActions({
   )
 }
 
-/** Contentful action Tokens a line apart: each one's text ends before the next one's head. */
+/** Contentful action Minis a line apart: each one's text ends before the next one's head. */
 const ACTION_LIST = { gap: space[12] } satisfies CSSProperties
 
 /** An action and, under it, its roll table's line. */
 const ACTION_ITEM = { flexDirection: 'column', gap: space[4] } satisfies CSSProperties
 
 /**
- * LEVEL-2 actions (N3): one CONTENTFUL Token each, its head the action's name
+ * LEVEL-2 actions (N3): one CONTENTFUL Mini each, its head the action's name
  * (less its ` (Host)` suffix, its host right above it) with its type, range,
  * traits and cost, then its rules, every paragraph. An action that names a
  * roll table keeps it on the line under its text, folded as a nested table is
- * (E14: Token, Table, Roll the Die), never inside the Token, which nests
+ * (E14: Mini, Table, Roll the Die), never inside the Mini, which nests
  * nothing (E6). Its choices are its Peek's and its Page's. Inside a Peek the
- * Token reads and the table is left out: a Peek is terminal (E16).
+ * Mini reads and the table is left out: a Peek is terminal (E16).
  */
-export function ActionTokens({
+export function ActionMinis({
   actions,
   size,
   hostName,
   chassisName,
   hostDown,
+  grid = false,
 }: {
   actions: readonly ReferenceCardEntity[]
   /** The size a table opens at. */
-  size: CardSize
+  size: Size
   /** The host's display name, whose ` (Host)` suffix the actions drop. */
   hostName: string
   /** What `[(CHASSIS)]` reads as in the text. */
   chassisName: string | undefined
   hostDown?: Down
+  /**
+   * A masonry grid (`MiniGrid`) rather than one a line: a live sheet's
+   * actions, where the column has the room for two or three.
+   */
+  grid?: boolean
 }) {
   const insidePeek = useContext(InsidePeekContext)
   const condition = conditionOf(hostDown ?? false)
-  return (
-    <ul className="su-entity-token-list" style={ACTION_LIST}>
-      {actions.map((action, index) => {
-        const name = getReferenceEntityName(action) ?? ''
-        const title = stripHostParenthetical(name, hostName)
-        const table = insidePeek ? undefined : resolveTable(action)
-        const tableName =
-          'tableName' in action && typeof action.tableName === 'string' ? action.tableName : title
-        return (
-          <li key={cardKey(action, index)} style={ACTION_ITEM}>
-            <Entity
-              form="token"
-              context="play"
-              entity={action as RefMetaEntity}
-              instance={{ title, ...(condition ? { condition } : {}) }}
-              body={{ chassisName }}
-            />
-            {table && (
-              <CardRollTable
-                table={table}
-                name={tableName}
-                size={size}
-                disabled={!!hostDown}
-                nested
-                peekAt={tablePeekAddress(action)}
-              />
-            )}
-          </li>
-        )
-      })}
+  const items = actions.map((action, index) => {
+    const name = getReferenceEntityName(action) ?? ''
+    const title = stripHostParenthetical(name, hostName)
+    const table = insidePeek ? undefined : resolveTable(action)
+    const tableName =
+      'tableName' in action && typeof action.tableName === 'string' ? action.tableName : title
+    return (
+      <li key={cardKey(action, index)} style={ACTION_ITEM}>
+        <Entity
+          size="mini"
+          context="play"
+          entity={action as RefMetaEntity}
+          instance={{ title, ...(condition ? { condition } : {}) }}
+          body={{ chassisName }}
+        />
+        {table && (
+          <CardRollTable
+            table={table}
+            name={tableName}
+            size={size}
+            disabled={!!hostDown}
+            nested
+            peekAt={tablePeekAddress(action)}
+          />
+        )}
+      </li>
+    )
+  })
+  return grid ? (
+    <MiniGrid label={`${hostName} actions`}>{items}</MiniGrid>
+  ) : (
+    <ul className="su-entity-mini-list" style={ACTION_LIST}>
+      {items}
     </ul>
   )
 }

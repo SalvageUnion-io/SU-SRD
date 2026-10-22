@@ -1,11 +1,12 @@
-import { gamePath, kindOf, publicPath, sheetPath } from 'cantina-domain/entityKinds'
-import { PRODUCT } from 'cantina-domain/product'
+import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
   DISCORD_NEUTRAL_ACCENT,
   DISCORD_ROLL_ACCENT,
   discordAccent,
+  escapeMarkdown,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
@@ -16,6 +17,8 @@ import {
 import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
 import { num, str, strArray } from './bodyRead'
+import type { CardField, ContainerData } from './container'
+import { entityCard } from './container'
 import type {
   DenialReason,
   EntityBody,
@@ -25,12 +28,10 @@ import type {
   PilotDerived,
   SheetResult,
   SheetTable,
-} from './cantina/types'
-import type { CardField, ContainerData } from './container'
-import { entityCard } from './container'
+} from './play/types'
 
 /**
- * Card builders for the Cantina commands (ADR-030).
+ * Card builders for the app commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -40,7 +41,7 @@ import { entityCard } from './container'
  *
  * A pilot's and a mech's maxima and status are the SERVER's: `/su sheet`
  * carries them as `SheetResult.vitals`, the same derivation `crew.vitals`
- * serves the Dashboard's Crew tab (ADR-038 §4), so the bot never disagrees
+ * serves Play's Crew (ADR-038 §4), so the bot never disagrees
  * with the app about a crewmate. A deployment older than that field sends
  * none, and the vitals then show their current values alone. The crawler is
  * not crew and the server derives nothing for it, so its max SP is still
@@ -66,9 +67,9 @@ const CRITICAL = DISCORD_ROLL_ACCENT.cascade
  * `/build` (ADR-048). Cards link back here by appending a route; it only
  * ever builds a URL, never a request. Old intheunionnow.com links 301 here.
  */
-export const CANTINA_ORIGIN = `${SRD_SITE_URL}/build`
+export const APP_ORIGIN = `${SRD_SITE_URL}/build`
 
-const FOOTER = PRODUCT.name
+const FOOTER = PRODUCT.wordmark
 
 /** The stats' full names, from the reference vocabulary (a gauge is Heat, not its capacity). */
 const HP = STAT_LABELS.hitPoints.label
@@ -179,13 +180,12 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
 /**
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
- * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
- * A link that 404s is worse than no link: it reads as the app having lost the
- * thing, rather than as the bot having guessed. `/games/$gameId` is the
- * Game's own page in the Cantina.
+ * Both mirror real TanStack routes — `/play/games/$gameId`, the Game's page in
+ * Play (ADR-052 §5), and `/sheet/$kind/$id`. A link that 404s is worse than no
+ * link: it reads as the app having lost the thing, not the bot having guessed.
  */
 export function gameUrl(gameId: string): string {
-  return `${CANTINA_ORIGIN}${gamePath(gameId)}`
+  return `${APP_ORIGIN}${gamePath(gameId)}`
 }
 
 /**
@@ -196,24 +196,24 @@ export function gameUrl(gameId: string): string {
  * and this must not invent one: `/p/…` for an unpublished entity renders "this
  * sheet isn't available", so linking it would advertise a dead page.
  *
- * Addressed by `appId` rather than the Convex row id, which is what the route
- * takes and what this payload already carries.
+ * Addressed by `appId`, in the Share link's `<name>-<short id>` form when `name` is given.
  */
 export function publicSheetUrl(
   table: SheetTable,
   appId: string | null,
-  publicRead: boolean | undefined
+  publicRead: boolean | undefined,
+  name?: string
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${CANTINA_ORIGIN}${publicPath(kindOf(table), appId)}`
+  return `${APP_ORIGIN}${publicPath(kindOf(table), appId, name)}`
 }
 
 /**
  * The live sheet for any entity — yours, a crewmate's, the crawler — or null
  * when there is no id to address.
  *
- * Addressed by the Convex row id, which every reader can open: The Cantina's
+ * Addressed by the Convex row id, which every reader can open: the app's
  * `entities.locate` resolves a row id for anyone allowed to see the row, opens
  * it editable for its owner and read-only for everyone else, and puts the
  * client id back in the address bar. An unclaimed pre-gen has a row id too, so
@@ -221,7 +221,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${CANTINA_ORIGIN}${sheetPath(kindOf(table), rowId)}`
+  return `${APP_ORIGIN}${sheetPath(kindOf(table), rowId)}`
 }
 
 /**
@@ -233,24 +233,22 @@ export function sheetUrl(table: SheetTable, rowId: string | null | undefined): s
  * itself. A command that silently does nothing is the worst of the options.
  */
 export function denialMessage(reason: DenialReason, serverMessage?: string): string {
-  // For `not-found` the SERVER knows the specifics and this module does not,
-  // so its message wins when it sends one. `unlinked` keeps its own wording:
-  // the bot adds a sign-in link the server cannot.
-  if (reason === 'not-found' && serverMessage) return serverMessage
-
-  switch (reason) {
-    case 'unlinked':
-      return [
-        `**You don’t have an ${PRODUCT.name} account yet.**`,
-        '',
-        'Sign in with this same Discord account and the bot will recognise you here',
-        'automatically — there’s nothing to copy across and no code to enter.',
-        '',
-        `${CANTINA_ORIGIN}/account`,
-      ].join('\n')
-    case 'not-found':
-      return 'That sheet could not be found, or it isn’t yours to read.'
+  // `not-found` and `forbidden`: the SERVER knows the specifics, so its message wins when
+  // it sends one. `unlinked` keeps its own wording, with a sign-in link the server cannot add.
+  if (reason !== 'unlinked') {
+    if (serverMessage) return serverMessage
+    return reason === 'forbidden'
+      ? 'You can’t do that here.'
+      : 'That sheet could not be found, or it isn’t yours to read.'
   }
+  return [
+    `**You don’t have a ${PRODUCT.wordmark} account yet.**`,
+    '',
+    'Sign in with this same Discord account and the bot will recognise you here',
+    'automatically — there’s nothing to copy across and no code to enter.',
+    '',
+    `${APP_ORIGIN}/account`,
+  ].join('\n')
 }
 
 function roleLabel(game: { mediator: boolean; organizer: boolean }): string {
@@ -269,8 +267,8 @@ function gameLines(games: GameSummary[]): string {
 /** `/su me` — who the bot thinks you are, and what you are part of. */
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — ${PRODUCT.name}`,
-    url: `${CANTINA_ORIGIN}/account`,
+    title: `${me.user.displayName} — ${PRODUCT.wordmark}`,
+    url: `${APP_ORIGIN}/account`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
@@ -283,11 +281,11 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, linked to the Hangar: The Cantina has no `/games` page. */
+/** `/su games` — every Game you belong to, each linked to its Play page; the card to Play's hub. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: `${CANTINA_ORIGIN}/`,
+    url: `${APP_ORIGIN}/play/`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],
@@ -619,7 +617,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
  */
 export function sheetCard(sheet: SheetResult): ContainerData {
   const body = sheet.body
-  const owner = sheet.ownerName ?? UNCLAIMED
+  const owner = escapeMarkdown(sheet.ownerName ?? UNCLAIMED)
 
   const rendered =
     sheet.table === 'pilots'
@@ -633,7 +631,7 @@ export function sheetCard(sheet: SheetResult): ContainerData {
 
   // Only when the owner has actually published it. A sheet with no public URL
   // gets no Share field at all — not a disabled one, and not a link that 404s.
-  const publicUrl = publicSheetUrl(sheet.table, sheet.appId, sheet.publicRead)
+  const publicUrl = publicSheetUrl(sheet.table, sheet.appId, sheet.publicRead, name)
   if (publicUrl !== null) {
     // Inserted after the vitals rail rather than appended, because
     // `enforceContainerLimits` sheds from the END. Appended, this would be the
@@ -648,8 +646,7 @@ export function sheetCard(sheet: SheetResult): ContainerData {
   }
 
   const url = sheetUrl(sheet.table, sheet.id)
-  // The crawler is communal — it has no owner to name, and saying "Unclaimed"
-  // would report a missing owner rather than an absent concept (ADR-030 §5).
+  // A crawler is communal: no owner to name, so never "Unclaimed" (ADR-030 §5).
   const provenance =
     sheet.table === 'crawlers' ? 'Communal · read-only' : `Owned by **${owner}** · read-only`
   const description = [rendered.subtitle, provenance].filter((line) => line.length > 0).join('\n')

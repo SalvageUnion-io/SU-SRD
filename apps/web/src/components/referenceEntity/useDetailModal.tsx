@@ -1,21 +1,22 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { entityRef } from 'salvageunion-reference'
+import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
 import { EntityDetailDialog } from './EntityDetailDialog'
-import { useEntityDetailLink, useEntityHref } from './entityHrefContext'
 import { quotePatternName } from './pattern/quotePatternName'
 import type { ReferenceEntityControl } from './referenceEntityControlTypes'
 
 type UseDetailModalOptions = {
   /**
-   * Force the in-place modal even when the app enables link mode. Used for
-   * views that have no standalone URL (e.g. chassis patterns, whose `data` is
-   * the chassis itself) — linking out would just reopen the same page and drop
-   * the pattern-specific view. The `EntityDetailLinkProvider` can't cover this:
-   * this hook runs in the caller's body, above the provider it wraps its JSX
-   * with, so the hook still reads the ambient link mode.
+   * Force the in-place modal even where the surface has a route for the
+   * entity. Used for views that have no standalone URL (e.g. chassis patterns,
+   * whose `data` is the chassis itself) — linking out would just reopen the
+   * same page and drop the pattern-specific view. A surface provider can't
+   * cover this: this hook runs in the caller's body, above the provider it
+   * wraps its JSX with, so the hook still reads the ambient surface.
    */
   forceModal?: boolean
   /** Open the card in its PATTERN view: `data` is the pattern's host. */
@@ -31,14 +32,13 @@ export function useDetailModal(
 } {
   const [open, setOpen] = useState(false)
 
-  // When the consuming app opts into link mode (srd) and the entity
-  // resolves to an href, "View details" goes to the entity's show page, in
-  // this tab (EDL E5: the detail view is a Page, never a new-tab
-  // `window.open`), instead of opening the in-place modal. The Cantina leaves link
-  // mode off, so it keeps the modal (its href would deep-link out to srd).
-  const href = useEntityHref(data)
-  const linkMode = useEntityDetailLink()
-  const linksOut = !options?.forceModal && linkMode && !!href
+  // Where the surface has a route for the entity (the reference site's `hrefFor`), "View
+  // details" goes to the entity's show page, in this tab (EDL E5: the detail
+  // view is a Page, never a new-tab `window.open`), instead of opening the
+  // in-place modal. The app's surface has no routes, so it keeps the modal.
+  const { hrefFor } = useEntitySurface()
+  const href = data ? hrefFor(entityRef(data as RefMetaEntity)) : undefined
+  const linksOut = !options?.forceModal && href !== undefined
 
   const schemaName =
     data && 'schemaName' in data && typeof data.schemaName === 'string'

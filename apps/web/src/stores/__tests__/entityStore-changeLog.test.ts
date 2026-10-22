@@ -58,9 +58,7 @@ const convexMocks = await installConvexMocks({
 })
 
 const { useEntityStore } = await import('../entityStore')
-const { DASHBOARD_TXN, LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } = await import(
-  '../surfaceProvenance'
-)
+const { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE, PLAY_TXN } = await import('../surfaceProvenance')
 const { resetStores } = await import('./resetStores')
 const { withSignedInBackend } = await import('./signedInBackend')
 
@@ -150,13 +148,13 @@ describe('Change Log — write-through chokepoint', () => {
       .getState()
       .transfer(
         { updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Wraith' } }] },
-        { kind: 'transaction', source: 'dashboard' }
+        { kind: 'transaction', source: 'play' }
       )
 
     const entry = forEntity(pilot.id)[0]
     if (!entry) throw new Error('expected a Change Log entry from transfer()')
     expect(entry.kind).toBe('transaction')
-    expect(entry.source).toBe('dashboard')
+    expect(entry.source).toBe('play')
   })
 
   test('transfer() emits nothing for a patch that changes no field', async () => {
@@ -172,12 +170,12 @@ describe('Change Log — write-through chokepoint', () => {
 
   test("kind 'transaction' is reachable — it was defined but emitted nowhere", async () => {
     const pilot = await seedPilot()
-    await useEntityStore.getState().update('pilot', pilot.id, { callsign: 'Wraith' }, DASHBOARD_TXN)
+    await useEntityStore.getState().update('pilot', pilot.id, { callsign: 'Wraith' }, PLAY_TXN)
 
     const entry = forEntity(pilot.id)[0]
     if (!entry) throw new Error('expected a Change Log entry')
     expect(entry.kind).toBe('transaction')
-    expect(entry.source).toBe('dashboard')
+    expect(entry.source).toBe('play')
   })
 
   test('a multi-field update sends one entry per changed field', async () => {

@@ -9,24 +9,39 @@
 import type { ReactNode } from 'react'
 import { resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import type { Size } from '../../../styles/sizing'
 import { CardImage } from '../../compositions/CardImage'
-import type { CardSize } from '../../containers/displayMode'
 import { embeddedPeekAddress, tablePeekAddress } from '../../entity/peekContext'
+import { BayInfo } from './BayInfo'
 import { resolveBodyLayout } from './bodyBlocks'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { BodyProse, CardBodyInput } from './cardBodyProse'
-import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { GuideSteps } from './GuideSteps'
 import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { DroneCards, EmbeddedNpcTokens, InlineActions, NestedCardGroup } from './NestedCards'
+import {
+  CardStack,
+  DroneCards,
+  EmbeddedNpcMinis,
+  InlineActions,
+  NestedCardGroup,
+} from './NestedCards'
 import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
+import { WhenDamaged } from './WhenDamaged'
 
-/** The body box's padding by size (board E1): tight on top under a "//" line. */
-const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
+/** The body box's padding by size: tight on top under a "//" line. */
+/**
+ * A crawler type's two nested things say what they are as their first chip,
+ * in place of a band over them: its unique Crawler Ability
+ * and its special NPC (Core Book p.212).
+ */
+export const CRAWLER_ABILITY_SEAL = { label: 'Crawler Ability', tone: 'var(--color-ink)' }
+const CRAWLER_NPC_SEAL = { label: 'NPC', tone: 'var(--color-ink)' }
+
+const BODY_PAD: Record<Size, { ruled: string; open: string }> = {
   full: { ruled: `${space[2]} ${space[14]} ${space[12]}`, open: `${space[12]} ${space[14]}` },
-  compact: { ruled: `${space[2]} ${space[10]} ${space[10]}`, open: `${space[10]}` },
+  compact: { ruled: `${space[2]} ${space[12]} ${space[12]}`, open: `${space[12]}` },
   mini: { ruled: `${space[2]} ${space[8]} ${space[8]}`, open: `${space[8]}` },
 }
 
@@ -65,6 +80,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     afterExtraContent,
     selections,
     onSelectionChange,
+    sectionFold,
     NestedCard,
   } = input
   const {
@@ -82,15 +98,16 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     prose,
     bodyNodes,
     leadBlocks,
-    catalogLeadBlocks,
     inlineActionEntities,
     nestedHost,
   } = resolved
   const isPattern = !!pattern
+  // A CRAWLER BAY reads as three sections: its
+  // Bay Info, then its crew NPC, then its When Damaged.
+  const isBay = schemaName === 'crawler-bays'
   // ROLL TABLE — the entity's own, or its folded action's, under its ROLL THE
-  // DIE bar (board E4). In a framed card it is a nested element, so it wears
-  // its own box at the nested width (owner's call, 2026-10-14: "nested
-  // elements should not be full-width"); flush on a page.
+  // DIE bar (R8). In a framed card it is a nested element, so it wears
+  // its own box at the nested width, never full-width; flush on a page.
   const ownTable = resolveTable(entity)
   const entityTable = ownTable ?? resolveTable(foldedAction)
   const tableSource = ownTable ? entity : foldedAction
@@ -105,7 +122,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         name={tableName}
         size={size}
         disabled={!!isDown}
-        framed={!onPage}
         nested={!onPage}
         peekAt={onPage ? undefined : tablePeekAddress(tableSource)}
         tone={tone.bgColor}
@@ -120,7 +136,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         name={pattern.name}
         content={pattern.content ?? []}
         context={prose}
-        onPage={onPage}
+        named={onPage || size === 'mini'}
         note={isLegalStartingPatternCard ? LEGAL_STARTING_PATTERN_NOTE : undefined}
       />
     ) : null
@@ -176,18 +192,16 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const bodyHasContent =
     !!bodyAnchor ||
     proseNodes.length > 0 ||
-    catalogLeadBlocks.length > 0 ||
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
-    (!hide?.damagedEffect && !!damagedEffect) ||
     (!onPage && !!guideStepsNode)
 
-  // ACTIONS — inline, flush; below a Page, contentful Tokens (N3, `InlineActions`).
+  // ACTIONS — inline, flush; below a Page, contentful Minis (N3, `InlineActions`).
   const actionsNode: ReactNode =
     inlineActionEntities.length > 0 ? (
       <InlineActions actions={inlineActionEntities} host={nestedHost} />
     ) : null
 
-  const bodyContent: ReactNode = (
+  const proseContent: ReactNode = (
     <>
       {/* In ASIDE LEAD the anchor and the prose are a centred row (a stack in
           a narrow card); otherwise the anchor floats and the prose flows
@@ -203,7 +217,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
           {proseNodes}
         </>
       )}
-      {catalogLeadBlocks.length > 0 && <CardProse body={catalogLeadBlocks} context={prose} />}
       {/* A SELF-action's content already renders AS the body; only a
           differently-named folded action renders here (with its name). */}
       {!isSelfAction &&
@@ -219,8 +232,18 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             context={prose}
           />
         )}
-      {!hide?.damagedEffect && damagedEffect && (
-        <DamagedEffectCallout effect={damagedEffect} onPage={onPage} />
+    </>
+  )
+
+  const bodyContent: ReactNode = (
+    <>
+      {/* The reference reads a bay's prose bare; only a sheet's folding bay names it Bay Info. */}
+      {isBay && sectionFold ? (
+        <BayInfo subject={entityName} fold={sectionFold} onPage={onPage}>
+          {proseContent}
+        </BayInfo>
+      ) : (
+        proseContent
       )}
       {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
       {!onPage && guideStepsNode}
@@ -263,27 +286,42 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // Nothing to nest is `null`, not an empty fragment: the card's lead gap
   // (`CardLead`) opens only for nested content, so a head-only card (a
   // creature's Stinger) closes on its head with no paper strip under it.
-  // A crawler bay's crew NPC is a Peek Token, unless its crew choices are
-  // being made here: on a Page the write layer keeps the card and its inputs;
-  // under any other host the NPC is level 2, a Token (N1, `NestedCardList`).
+  // A crawler bay's crew NPC is a Peek Mini where it is level 2 (a bay's Card
+  // on a sheet, N1). On the bay's Page it is one level deep, so it is drawn
+  // open with all its content (N8, R39), as it is where its crew choices are
+  // being made.
   const bayCrewPeek =
-    schemaName === 'crawler-bays' && !onSelectionChange && typeof entity.id === 'string'
+    schemaName === 'crawler-bays' && !onSelectionChange && !onPage && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
       : undefined
+  // WHEN DAMAGED — the bay's section above its crew.
+  const damagedNode: ReactNode =
+    !hide?.damagedEffect && damagedEffect ? (
+      onPage ? (
+        <WhenDamaged effect={damagedEffect} subject={entityName} onPage fold={sectionFold} />
+      ) : (
+        <CardStack size={size}>
+          <WhenDamaged effect={damagedEffect} subject={entityName} fold={sectionFold} />
+        </CardStack>
+      )
+    ) : null
   const hasNestedGroups =
-    droneInfos.length > 0 ||
-    droneSystems.length > 0 ||
-    droneModules.length > 0 ||
-    (!isPattern && inFlowGroups.some((group) => group.entities.length > 0))
+    !hide?.nested &&
+    (!!damagedNode ||
+      droneInfos.length > 0 ||
+      droneSystems.length > 0 ||
+      droneModules.length > 0 ||
+      (!isPattern && inFlowGroups.some((group) => group.entities.length > 0)))
   const nestedGroupsNode = hasNestedGroups ? (
     <>
       <DroneCards drones={droneInfos} host={nestedHost} />
       {droneSystems.length > 0 && <NestedCardGroup entities={droneSystems} host={nestedHost} />}
       {droneModules.length > 0 && <NestedCardGroup entities={droneModules} host={nestedHost} />}
+      {damagedNode}
       {!isPattern &&
         inFlowGroups.map((group) =>
-          bayCrewPeek && group.label === 'NPCs' ? (
-            <EmbeddedNpcTokens
+          bayCrewPeek && group.kind === 'npc' ? (
+            <EmbeddedNpcMinis
               key={group.label}
               entities={group.entities}
               host={nestedHost}
@@ -294,10 +332,10 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
               key={group.label}
               entities={group.entities}
               host={nestedHost}
-              write={group.label === 'NPCs' ? { selections, onSelectionChange, hide } : undefined}
               seal={
-                group.label === 'Grants' ? { label: 'Grants', tone: 'var(--color-ink)' } : undefined
+                schemaName === 'crawlers' && group.kind === 'npc' ? CRAWLER_NPC_SEAL : undefined
               }
+              write={group.kind === 'npc' ? { selections, onSelectionChange, hide } : undefined}
             />
           )
         )}

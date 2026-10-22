@@ -17,24 +17,25 @@ Guidance for every coding agent here. Instructions only: history is in git.
 
 ## UI Development
 
-- Reuse `apps/web/src/components` (`ReferenceEntityCard` for every SRD entity, `Card` for everything else) before building one-off UI.
-- Get CSS right first time by reasoning about the rendering context (float does nothing in grid/flex). Verify a visual change yourself: `bun run shot </route|cantina:/route> --width phone|column|page` prints PNGs to read.
+- Reuse `apps/web/src/components` (`ReferenceEntityCard` for every SRD entity, `Box` for everything else) before building one-off UI.
+- Get CSS right first time by reasoning about the rendering context (float does nothing in grid/flex). Verify a visual change yourself: `bun run shot </route|app:/route> --width phone|column|page [--signed-in]` prints PNGs to read.
 - Entity lists are compact, header-only, clickable; nested entities render inside the parent's expanded view, never as separate grids. Ask if unsure how much detail to show.
 - Styling is tokens, style objects and one stylesheet ([`.claude/rules/styling.md`](.claude/rules/styling.md)); never a utility class.
-- A prop that must reach nested entity cards is passed explicitly (there is no shared display context); typecheck immediately.
+- Links, texture and page openers come from `EntitySurfaceProvider`; pass other props nested entity cards need explicitly; typecheck.
 
 ## Build & Validation
 
 After any cross-package change, run typecheck, tests and lint, and check every consuming app (stylesheet imports, package `exports`).
 
 ```bash
-bun install                        # postinstall builds the reference schemas and the git hooks
-bun run dev                        # the app (reference pages + the Cantina at /build) on a local Convex backend
-bun run check:fast                 # the inner loop: every gate but the suite, the network and regeneration
+bun install                        # also builds reference schemas, git hooks
+bun run dev                        # the site (app at /build) on a local Convex
+bun run dev:backend                # agents: no login, seeded sign-in (convex-ops)
+bun run check:fast                 # inner loop: all gates but suite, network, regeneration
 bun run check [<id> …]             # every gate (or just those); `--list` names each with its fix
 bun run test                       # full suite; one workspace: bun --filter <workspace> test
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
-bun run build                      # reference generation + the app in one Vite pass
+bun run build                      # reference generation + the app
 ```
 
 - A failed gate prints its fix. A new gate goes in the registry in `tools/check.ts`, which `check`, pre-push and CI all read.

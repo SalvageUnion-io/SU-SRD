@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { Children } from 'react'
+import { widthAtLeast } from '../../design/tokens'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { RadioCardGroup } from './RadioCardGroup'
 
-/** `.su-masonry` (`styles/index.css`): it collapses to one block in print. */
+/** `.su-masonry` (`styles/partials/containers.css`): it collapses to one block in print. */
 const FLOW = 'su-masonry'
 
 type MasonryColumnsProps = {
@@ -17,7 +18,7 @@ type MasonryColumnsProps = {
   /**
    * Radio-group semantics for exactly-one pickers: the flow is a
    * `RadioCardGroup`. Pair with `ReferenceEntityCard` cells using
-   * `selectionRole="radio"` / `Sel` cells using `radio`, and pass an accessible
+   * `selectionRole="radio"` / `TitledBox` cells in select mode, and pass an accessible
    * group name via `ariaLabel`.
    */
   radio?: boolean
@@ -25,12 +26,12 @@ type MasonryColumnsProps = {
   ariaLabel?: string
 }
 
-// Column count is driven purely by viewport width via matchMedia, mirroring the
-// the md and xl breakpoints (1 column < 48rem, 2 from 48rem, 3 from 80rem).
+// Column count is driven purely by viewport width via matchMedia, on the
+// ladder's md and xl rungs (1 column < 48rem, 2 from 48rem, 3 from 80rem).
 // matchMedia listeners fire ONLY when a breakpoint is crossed, so resizing
 // within a breakpoint does zero JS work and triggers no redistribution.
-const MD = '(min-width: 48rem)'
-const XL = '(min-width: 80rem)'
+const MD = widthAtLeast('md')
+const XL = widthAtLeast('xl')
 
 function useColumnCount(): number {
   // The server snapshot (1 column: both queries answer false) is used for SSR
@@ -54,7 +55,7 @@ function useColumnCount(): number {
  * within a breakpoint costs nothing. Cards are distributed round-robin, so
  * columns balance by count rather than exact height.
  *
- * Print collapses to a single stacked column (`.su-masonry` in `styles/index.css`).
+ * Print collapses to a single stacked column (`.su-masonry` in `styles/partials/containers.css`).
  */
 export function MasonryColumns({
   children,

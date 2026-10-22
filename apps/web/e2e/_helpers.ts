@@ -1,16 +1,17 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { editSheet, sheetLink, visit, waitForReady } from 'gates/lib/appPage'
 import { at, BASE } from './_base'
 
 /**
- * Shared helpers for the Cantina end-to-end tests.
+ * Shared helpers for the app end-to-end tests.
  *
  * Every pickable entity in a wizard or picker pane is a `ReferenceEntityCard`
  * with a whole-card click. Its interactive wrapper takes its role from
  * `selectionRole`: an exclusive "choose exactly one" pane (class, chassis,
  * crawler type, pattern) renders `role="radio"` + `aria-checked`, while a
  * multi-pick pane (abilities, equipment, systems) renders `role="button"` +
- * `aria-pressed`. `Sel`-wrapped cells are plain `<div role="button">`.
+ * `aria-pressed`.
  *
  * So a pick target is "a radio OR a button" — matching only one of the two
  * silently misses whole steps, which is exactly how these specs rotted while
@@ -18,7 +19,7 @@ import { at, BASE } from './_base'
  * containing the entity name, the same pattern the in-app integration tests
  * use.
  */
-export function pickTargets(page: Page): Locator {
+function pickTargets(page: Page): Locator {
   return page.getByRole('button').or(page.getByRole('radio'))
 }
 
@@ -47,59 +48,43 @@ export function selectedOption(page: Page): Locator {
 }
 
 /**
- * Navigate to `path`, tolerating the transient
- * `net::ERR_ABORTED; maybe frame was detached?` that the preview build
- * occasionally throws.
- *
- * The builders end on a *client-side* router redirect to `/` (the create flow
- * pushes the dashboard route). A full `page.goto('/')` issued right afterward
- * can race the tail of that client navigation and the browser aborts the
- * superseded load — this is why `goto('/')` flakes while `goto('/pilots/new')`
- * (a distinct URL) does not. The abort is transient: the competing navigation
- * settles within a tick, so an immediate re-`goto` lands. Playwright's
- * test-level `retries` re-run the whole `beforeEach` and re-hit the same race,
- * so we retry at the `goto` boundary instead. Only the ERR_ABORTED /
- * detached-frame class is swallowed; any other navigation error rethrows.
+ * Open an app route (`/pilots/new`, written root-relative as the app writes
+ * it) and wait for it to hydrate: `visit` retries the transient `ERR_ABORTED`
+ * a client redirect can cause, then `waitForReady` waits for the game data
+ * (`gates/lib/appPage.ts`, which the seeded account opens the app with too).
+ * Every spec opens an app page this way.
  */
-export async function gotoStable(page: Page, path: string): Promise<void> {
-  const MAX_ATTEMPTS = 4
-  let lastError: unknown
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      await page.goto(at(path))
-      return
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      if (!/ERR_ABORTED|frame was detached/i.test(message)) throw error
-      lastError = error
-      // Let the competing client navigation settle deterministically before
-      // re-issuing the goto — wait for the superseding load to reach
-      // `domcontentloaded` rather than blindly sleeping a fixed delay. Swallow:
-      // the aborted load may already be gone, in which case there is nothing to
-      // wait for and we retry immediately.
-      await page.waitForLoadState('domcontentloaded').catch(() => {})
-    }
-  }
-  throw lastError
+export async function openApp(page: Page, route: string): Promise<void> {
+  await gotoStable(page, route)
+  await waitForReady(page)
 }
 
 /**
- * Wait for the page to finish hydrating (router + game data preload).
- *
- * The router root wraps its Outlet in `<GameDataReady>`, which holds it until
- * `SalvageUnionReference.preload('all')` resolves and then sets
- * `body[data-game-data-ready="true"]`. We wait on that single marker — once
- * it's true, every consumer of game data has its lookups resolved
- * synchronously, so card/label queries downstream are race-free.
- *
- * The wait is generous (60 s) because cold-start preload on a CI runner can
- * be slow; once the marker is set, subsequent queries respond instantly.
+ * `page.goto` an app route, retrying the transient `ERR_ABORTED` (`visit`),
+ * without waiting for the game data: for a spec that waits on something else
+ * (Play's socket, a sign-in panel). Most specs want `openApp`.
  */
-export async function waitForReady(page: Page): Promise<void> {
-  await page.waitForLoadState('domcontentloaded')
-  await page.waitForFunction(() => document.body?.dataset?.gameDataReady === 'true', null, {
-    timeout: 60_000,
-  })
+export async function gotoStable(page: Page, route: string): Promise<void> {
+  await visit(page, at(route))
+}
+
+export { editSheet, waitForReady }
+
+/** A `/new` wizard (`pilots`, `mechs`, `crawlers`). */
+export type WizardKind = 'pilots' | 'mechs' | 'crawlers'
+
+/**
+ * Open a `/new` wizard on its first step: `?mode=guided` skips the
+ * `CreateModeChooser` ("Guided vs Blank") gate in front of every wizard, and
+ * `game` builds into that Game (`?game=`, ADR-052 §3).
+ */
+export async function openWizard(page: Page, kind: WizardKind, game?: string): Promise<void> {
+  await openApp(page, `/${kind}/new?mode=guided${game ? `&game=${game}` : ''}`)
+}
+
+/** The option cells not chosen yet, in either selection semantic (see `optionCells`). */
+export function unselectedOptions(page: Page): Locator {
+  return page.locator('[aria-pressed="false"], [aria-checked="false"]')
 }
 
 /**
@@ -133,7 +118,7 @@ export async function advanceUntilVisible(
     // Not on this step, so look for the CTA. Waiting on it here also absorbs a
     // slow first paint: if nothing had rendered yet, the next pass re-checks
     // the target before clicking anything.
-    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    const next = page.getByRole('button', { name: /^Next(: |$)/ }).first()
     await next.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {})
     if (!(await next.isVisible().catch(() => false))) break
 
@@ -177,42 +162,67 @@ export async function pickByName(page: Page, name: string): Promise<void> {
 
 /**
  * Install a System/Module by name on a mech wizard craft step. Each entity card
- * carries its own aria-labelled "Add one {name}" button that appends one copy
- * (installing the same System/Module twice is rules-legal), so we target that
- * button rather than clicking the card.
+ * carries its Qty stepper (`Stat`), whose "Increase {name} count" appends one
+ * copy (installing the same System/Module twice is rules-legal), so we target
+ * that button rather than clicking the card.
  */
 export async function installLoadoutItem(page: Page, name: string): Promise<void> {
-  // The button reads "Add one <name>" on the craft steps ("one" because
-  // installing the same System/Module twice is rules-legal, so each press
-  // appends a single copy). Accept the bare "Add <name>" too rather than
-  // pinning whichever wording is current.
-  const label = new RegExp(`^Add (one )?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
-  const add = page.getByRole('button', { name: label })
-  await expect(add, `"Add one ${name}" install button should render`).toBeVisible({
+  // The stepper's `+` reads "Increase <name> count": each press appends one copy.
+  const add = page.getByRole('button', { name: `Increase ${name} count`, exact: true })
+  await expect(add, `"Increase ${name} count" should render`).toBeVisible({
     timeout: 15_000,
   })
   await add.click()
 }
 
 /**
+ * Add one entry from a searcher (`EntitySearcher`: the sheet's pickers, a
+ * Mini list beside the opened entity's Page). An entry is opened from the
+ * list and added from its Page's action bar (`<name> actions`), never toggled
+ * in the list.
+ */
+async function addFromSearcher(picker: Locator, name: string): Promise<void> {
+  await picker.getByRole('button', { name, exact: true }).first().click()
+  const actions = picker.getByRole('group', { name: `${name} actions` })
+  await expect(actions, `the searcher opens ${name}'s Page`).toBeVisible()
+  await actions.getByRole('button').last().click()
+}
+
+/**
+ * Add `name` through one of the open sheet's pickers: Edit, the section's
+ * control that opens it (`Manage abilities`, `Manage systems`, a bay's
+ * `Mount`), the searcher (`addFromSearcher`), then close it. A picker writes
+ * through as it adds; there is no Save to press.
+ */
+export async function addThroughPicker(page: Page, control: RegExp, name: string): Promise<void> {
+  await editSheet(page)
+  await page.getByRole('button', { name: control }).click()
+  const picker = page.getByRole('dialog')
+  await expect(picker).toBeVisible()
+  await addFromSearcher(picker, name)
+  await page.keyboard.press('Escape')
+  await expect(picker).toBeHidden()
+}
+
+/**
  * Click the wizard's Next button. WizShell wizards label the CTA from the
- * steps array ('Next · Abilities →'); legacy builders use a bare 'Next'.
+ * steps array (`NextLabel`, 'Next: Abilities'); legacy builders use a bare 'Next'.
  */
 export async function clickNext(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /^Next( ·|$)/ }).click()
+  await page.getByRole('button', { name: /^Next(: |$)/ }).click()
 }
 
 // ---------------------------------------------------------------------------
 // Entity builders — drive the WizShell wizards end to end.
-// Each returns once the dashboard redirect lands (the server write is
+// Each returns once the redirect to the Training Bay lands (the server write is
 // complete), so subsequent steps can rely on the entity existing.
 // ---------------------------------------------------------------------------
 
 /**
  * Fill a wizard identity field by its visible `Field` label.
  *
- * These are not plain inputs. `Field` with `value` + `onSave` renders an
- * `InlineEditField`: a `role="button"` readout that swaps to an input only once
+ * These are not plain inputs. `Field` with `value` + `onSave` is in its edit
+ * state: a `role="button"` readout that swaps to an input only once
  * activated, and it labels both halves `Edit <label lowercased>`. So filling one
  * is click-then-type, and `getByLabel(/^Name$/)` matches nothing at all.
  *
@@ -226,7 +236,7 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   if (await editor.isVisible().catch(() => false)) {
     await editor.click().catch(() => {})
     await page.getByLabel(editLabel).first().fill(value)
-    // InlineEditField commits on blur.
+    // Field's edit state commits on blur.
     await page.keyboard.press('Tab')
     return true
   }
@@ -239,15 +249,15 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   return false
 }
 
-/** Shelves at `/`, or a Game's own page: where a finished build returns to. */
+/** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || new RegExp(`^${BASE}/games/[^/]+/?$`).test(pathname)
+  return pathname === at('/') || new RegExp(`^${BASE}/play/games/[^/]+/?$`).test(pathname)
 }
 
 /**
- * Drive a `/new` wizard to completion and return once the redirect to the
- * active container's page lands: `/` for Shelves, or `/games/<id>` when a Game
- * is active (`useReturnToContainer`), so a pilot built in a Game finishes too.
+ * Drive a `/new` wizard to completion and return once the redirect lands: `/`
+ * for the Training Bay, or `/play/games/<id>` for a wizard started from a Game's page
+ * (`?game=`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
  * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
@@ -262,7 +272,7 @@ function isContainerPage(pathname: string): boolean {
  */
 async function runWizard(
   page: Page,
-  kind: 'pilots' | 'mechs' | 'crawlers',
+  kind: WizardKind,
   identity: Record<string, string>,
   createLabel: RegExp,
   /**
@@ -274,10 +284,11 @@ async function runWizard(
    * structure-agnostic while making its OUTPUT deterministic, which is what
    * the downstream specs actually need.
    */
-  prefer: string[] = []
+  prefer: string[] = [],
+  /** Started from this Game's page (`?game=`): the unit lands there, and so does the walk. */
+  game?: string
 ): Promise<void> {
-  await gotoStable(page, `/${kind}/new?mode=guided`)
-  await waitForReady(page)
+  await openWizard(page, kind, game)
 
   const MAX_STEPS = 16
   for (let step = 0; step < MAX_STEPS; step++) {
@@ -288,7 +299,7 @@ async function runWizard(
       return
     }
 
-    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    const next = page.getByRole('button', { name: /^Next(: |$)/ }).first()
     await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({
       timeout: 15_000,
     })
@@ -323,7 +334,7 @@ async function runWizard(
         // DEselect) what it had just chosen. Measured on the class step: 9
         // cells, 1 picked, `hasNot` reported 9 unselected; the attribute
         // selector reports the correct 8.
-        const unselected = page.locator('[aria-pressed="false"], [aria-checked="false"]')
+        const unselected = unselectedOptions(page)
 
         // Take a named pick when one is on offer, so the built entity is the
         // same every run.
@@ -358,11 +369,17 @@ async function runWizard(
 }
 
 /** Build a pilot. Steps: Stats → Class & Ability → Equipment → Callsign → Background → Motto → Keepsake → Appearance → Review. */
-export async function buildPilot(page: Page, name: string, callsign: string): Promise<void> {
+export async function buildPilot(
+  page: Page,
+  name: string,
+  callsign: string,
+  /** A Game's id: build it from that Game's page, into the Game (ADR-052 §3). */
+  game?: string
+): Promise<void> {
   // Engineer, so specs may assert the built pilot's class on the sheet. Without
   // a named pick the walk takes whatever option sits last in the DOM and the
   // class silently varies between runs.
-  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i, ['Engineer'])
+  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i, ['Engineer'], game)
 }
 
 /**
@@ -385,64 +402,50 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from Shelves (board S1).
- *
- * Each item on a shelf is one line, a link to its sheet whose text carries the
- * entity's name. Match the link by its `/sheet/` href and that text, not by
- * the row around it: an item's chips name the units linked to it ("Linked:
- * Stomper"), so the first row mentioning a name may be somebody else's. The
- * href is the contract this helper depends on, and it survives a copy change
- * that would otherwise leave the helper waiting until the job's 30-minute
- * ceiling.
+ * Open the live sheet for the named entity from the Training Bay, by its
+ * shelf item's `/sheet/` link (`sheetLink`, `gates/lib/appPage.ts`): the href
+ * is the contract, and it survives a copy change that would otherwise leave
+ * the helper waiting until the job's ceiling.
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
-  await gotoStable(page, '/')
-  await waitForReady(page)
-  const line = page.locator('a[href*="/sheet/"]', { hasText: name }).first()
+  await openApp(page, '/')
+  const line = sheetLink(page, name)
   await expect(line, `shelf item for "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })
   await line.click()
   await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
+  await waitForReady(page)
 }
 
 /**
- * Put the open sheet in Edit. A sheet opens in Read (board 10:
- * "print reads, pencil writes"), so every Manage, Assign and bay control is
- * one press of the band's Edit away. Pressing it when it is already on is a
- * no-op, and the choice holds for the rest of the visit.
+ * A linked unit on the open sheet's Assigned units: its relation chip
+ * (`PILOT | Bonesaw`, hard rule R5), a link to its sheet.
  */
-export async function editSheet(page: Page): Promise<void> {
-  const edit = page.getByRole('button', { name: 'Edit', exact: true })
-  await expect(edit).toBeVisible({ timeout: 15_000 })
-  if ((await edit.getAttribute('aria-pressed')) !== 'true') await edit.click()
-  await expect(edit).toHaveAttribute('aria-pressed', 'true')
+export function assignedUnit(page: Page, name: string) {
+  return page.locator('[data-assigned-unit]').getByRole('link', { name: new RegExp(name) })
 }
 
 /**
- * Wire a pilot onto the mech sheet currently open, via the rail's
- * 'Assign Pilot' dialog. Resolves when the pilot's rail row renders.
+ * Wire a pilot onto the mech sheet currently open, via the Assigned units'
+ * 'Assign Pilot' dialog. Resolves when the pilot's relation chip renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
   await editSheet(page)
   await page.getByRole('button', { name: /assign pilot to mech/i }).click()
   await page.getByRole('dialog').getByText(pilotName).click()
   await page.getByRole('button', { name: /confirm pilot assignment/i }).click()
-  await expect(page.getByRole('link', { name: new RegExp(`View ${pilotName}`, 'i') })).toBeVisible({
-    timeout: 10_000,
-  })
+  await expect(assignedUnit(page, pilotName)).toBeVisible({ timeout: 10_000 })
 }
 
 /**
- * Wire a crawler onto the pilot sheet currently open, via the rail's
- * 'Assign Crawler' dialog. Resolves when the crawler's rail row renders.
+ * Wire a crawler onto the pilot sheet currently open, via the Assigned units'
+ * 'Assign Crawler' dialog. Resolves when the crawler's relation chip renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {
   await editSheet(page)
   await page.getByRole('button', { name: /assign crawler to pilot/i }).click()
   await page.getByRole('dialog').getByText(crawlerName).click()
   await page.getByRole('button', { name: /confirm crawler assignment/i }).click()
-  await expect(
-    page.getByRole('link', { name: new RegExp(`View ${crawlerName}`, 'i') })
-  ).toBeVisible({ timeout: 10_000 })
+  await expect(assignedUnit(page, crawlerName)).toBeVisible({ timeout: 10_000 })
 }

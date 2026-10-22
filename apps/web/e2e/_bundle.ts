@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 /**
  * The JS a page has pulled in, for the bundle-budget specs
- * (`reference-bundle-budget.e2e.ts`, `cantina-bundle-budget.e2e.ts`).
+ * (`reference-bundle-budget.e2e.ts`, `app-bundle-budget.e2e.ts`).
  */
 export type JsTotals = {
   /** Distinct chunks requested. */

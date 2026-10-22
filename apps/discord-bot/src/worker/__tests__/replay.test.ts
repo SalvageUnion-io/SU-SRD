@@ -105,9 +105,9 @@ function envFor(keys: KeyPairHex): Env {
     DISCORD_PUBLIC_KEY: keys.publicKeyHex,
     DISCORD_APPLICATION_ID: APPLICATION_ID,
     DISCORD_TOKEN: 'test-token',
-    // Unconfigured: every Cantina call degrades to `unavailable` with no request.
-    CANTINA_CONVEX_SITE_URL: '',
-    CANTINA_BOT_SECRET: '',
+    // Unconfigured: every app call degrades to `unavailable` with no request.
+    BACKEND_SITE_URL: '',
+    BOT_SECRET: '',
   }
 }
 
@@ -394,8 +394,8 @@ describe('interaction dispatch', () => {
     // have made this test fail for a reason unrelated to the behaviour under
     // test.
     //
-    // This also proves the whole V2 path end to end: the container builder
-    // serialises through its `toJSON()` and reaches the wire as real JSON.
+    // This also proves the whole V2 path end to end: the container's JSON
+    // (`toContainer`) reaches the wire as it was built.
     expect(JSON.stringify(body.data?.components)).toContain('Mule')
     expect(body.data?.content).toBeUndefined()
   })

@@ -5,19 +5,29 @@ import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
+import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
 
+/** The switcher's tabs keep their rule's tracking, which steps with the bar's width. */
+const TAB_CAPS = capsLabel({ tracking: 'inherit' })
+const LINK = cn('su-union-bar__link', capsLabel())
+
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
- * "One union, two tools"; origin board 05). Both render modes draw it through
+ * "One union, two tools"). Both render modes draw it through
  * one preset, `unionBar/UnionBar.tsx`.
  *
- * One lockup (the SU mark alone, no wordmark), then the **Reference | Build**
- * product switcher, then the product's own nav, the search slot, "Buy the
- * game" and the app's account controls. Crossing products is a tab on the same
+ * One lockup (the SU mark alone, no wordmark), then the **Reference | Build |
+ * Play** mode switcher, then the product's own nav, the search slot, "Buy the
+ * game" and the app's account controls. Crossing modes is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
- * inverse stamp — a paper plate on the ink bar — and never rust (§3.1).
+ * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). Play
+ * lives in the app beside Build, so the app's bar carries both modes' navs,
+ * each `data-mode`, and shows the one its mode names: the shell's bar is
+ * marked for the route it is served on (`markUnionRoute`), and the app moves
+ * "here" as it routes (`UnionBarSlots`, by each tab's `data-tool` and each
+ * link's `data-nav`).
  *
  * ## One geometry
  *
@@ -26,7 +36,7 @@ import { Speckle } from '../atoms/Speckle'
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (the one `SearchField` combobox). There are no
- * densities: the SRD's 64px bar and the Cantina's 48px one were two products.
+ * densities: the SRD's 64px bar and the app's 48px one were two products.
  *
  * ## Breadcrumbs
  *
@@ -49,17 +59,23 @@ import { Speckle } from '../atoms/Speckle'
  *
  * ## Colour
  *
- * The bar is ink, paper on it, until a page leads with a chapter band: then it
- * wears that band's colour, foreground and grain, so the site header and the
- * band read as one (`atoms/unionBarMatch.ts`). Its colours are the
- * `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
+ * The bar wears its mode (`data-mode`). In the reference it is ink, paper on
+ * it, until a page leads with a chapter band: then it wears that band's
+ * colour, foreground and grain, so the site header and the band read as one
+ * (`atoms/unionBarMatch.ts`). In the app it wears its area's colour on every
+ * route, whatever band leads: Build, the Training Bay, is pilot orange with
+ * ink; Play, the Cantina, the deep crawler pink with paper. Its colours are
+ * the `--su-bar-*` properties on `.su-union-bar`; the site footer wears the
+ * leading band too (`footerMatchCss`).
  */
 
-type AppBarProduct = 'reference' | 'build'
+type AppBarProduct = 'reference' | 'build' | 'play'
 
 type AppBarNavItem = {
   label: ReactNode
   href: string
+  /** Names the item for "here" (`data-nav`), which the app marks as it routes. */
+  id?: string
   /** Marks the link as the page you are on (`aria-current="page"`). */
   active?: boolean
   /** Opens in a new tab via a plain anchor (bypasses LinkComponent). */
@@ -69,7 +85,7 @@ type AppBarNavItem = {
 }
 
 /**
- * A nav entry the app renders itself — a control, not a link (The Cantina's Games
+ * A nav entry the app renders itself — a control, not a link (The app's Games
  * menu). It takes its place in the nav's order and the bar knows nothing of it.
  */
 export type AppBarNavSlot = {
@@ -79,24 +95,38 @@ export type AppBarNavSlot = {
 
 export type AppBarNavEntry = AppBarNavItem | AppBarNavSlot
 
+/**
+ * One mode's nav. The bar shows the nav of the mode it wears (`data-mode`,
+ * `styles/partials/shell.css`), so a bar that changes mode in place carries
+ * each mode's.
+ */
+export type AppBarNav = {
+  mode: AppBarProduct
+  /** Its landmark's name ("Build navigation"). */
+  label: string
+  items: AppBarNavEntry[]
+}
+
 type AppBarProps = {
   /** The tool this bar is mounted in: its switcher tab is the inverse stamp. */
   product: AppBarProduct
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Build" goes — the Cantina's home. */
+  /** Where "Build" goes — the app's home. */
   buildHref: string
+  /** Where "Play" goes — the Play landing. */
+  playHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   /**
-   * The SU mark's URL. The app's own copy: The Cantina serves its files under
-   * `/build/` (ADR-048), so the root's is srd's on one origin and missing on
+   * The SU mark's URL. The app's own copy: the app serves its files under
+   * `/build/` (ADR-048), so the root's is the reference site's on one origin and missing on
    * any other.
    */
   markSrc?: string
   viewTransitionName?: string
-  /** The product's own nav (desktop), inline beside the switcher. */
-  navItems?: AppBarNavEntry[]
+  /** The product's own nav (desktop), inline beside the switcher: one per mode it can wear. */
+  navs?: AppBarNav[]
   /**
    * Desktop search slot — the site's one `SearchField` combobox,
    * `su-union-bar__search-input` wide.
@@ -105,7 +135,7 @@ type AppBarProps = {
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
   /**
-   * Desktop controls at the right end of the bar — app-owned (The Cantina's account
+   * Desktop controls at the right end of the bar — app-owned (The app's account
    * menu). A slot rather than nav data because these are controls, not links.
    * Desktop only: the `mobile` slot carries whatever the app wants below `lg`.
    */
@@ -115,11 +145,10 @@ type AppBarProps = {
   breadcrumbs?: BreadcrumbItem[]
 }
 
-// Its ground, ink and rule colour are `.su-union-bar`'s: a page's leading band
-// recolours them (`unionBarMatch.ts`), which a style object would outrank.
+// Its ground and ink are `.su-union-bar`'s: a page's leading band recolours
+// them (`unionBarMatch.ts`), which a style object would outrank. No rule under
+// it: the bar meets the page's header with no black border.
 const BAR = {
-  borderBottomStyle: 'solid',
-  borderBottomWidth: borderWidth.entity,
   isolation: 'isolate',
   position: 'relative',
   zIndex: layer.overlay,
@@ -165,6 +194,7 @@ function NavLink({ item, className, LinkComponent }: NavLinkProps) {
     <Link
       href={item.href}
       className={cn(className, FOCUS_RING)}
+      data-nav={item.id}
       {...(item.external
         ? { target: '_blank', rel: 'noopener noreferrer' }
         : { 'aria-current': item.active ? ('page' as const) : undefined })}
@@ -179,10 +209,11 @@ export function AppBar({
   product,
   referenceHref,
   buildHref,
+  playHref,
   LinkComponent = 'a',
   markSrc = MARK_SRC,
   viewTransitionName,
-  navItems = [],
+  navs = [],
   search,
   buyHref,
   actions,
@@ -191,24 +222,20 @@ export function AppBar({
 }: AppBarProps) {
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
-  // The switcher: this product's tab routes home; the other is a same-tab
-  // anchor to the other tool — a tab on one bar, not an off-site link.
+  // The switcher: same-tab anchors to each mode's home — tabs on one bar,
+  // not off-site links. Their hrefs are site paths, whichever is current.
   const tabs: { key: AppBarProduct; label: string; href: string }[] = [
     { key: 'reference', label: 'Reference', href: referenceHref },
     { key: 'build', label: 'Build', href: buildHref },
+    { key: 'play', label: 'Play', href: playHref },
   ]
 
-  const navLinks = () =>
-    navItems.map((entry) =>
+  const navLinks = (items: AppBarNavEntry[]) =>
+    items.map((entry) =>
       isSlot(entry) ? (
         <Fragment key={entry.id}>{entry.node}</Fragment>
       ) : (
-        <NavLink
-          key={entry.href}
-          item={entry}
-          className="su-union-bar__link"
-          LinkComponent={LinkComponent}
-        />
+        <NavLink key={entry.href} item={entry} className={LINK} LinkComponent={LinkComponent} />
       )
     )
 
@@ -216,6 +243,10 @@ export function AppBar({
     <>
       <header
         className="su-union-bar"
+        // The mode's colour and nav (`styles/partials/shell.css`): the
+        // reference's ink, Build's pilot orange, Play's deep crawler pink. The
+        // app's shell is marked for its route; the app moves it as it routes.
+        data-mode={product}
         style={viewTransitionName ? { ...BAR, viewTransitionName } : BAR}
       >
         {/* Both grains are served; the ground's shows (`.su-union-bar__grain`). */}
@@ -238,34 +269,33 @@ export function AppBar({
             />
           </LinkComponent>
 
-          <nav aria-label="Salvage Union tools" style={SWITCH}>
-            {tabs.map((tab) => {
-              const here = tab.key === product
-              const Link = here ? LinkComponent : 'a'
-              return (
-                <Link
-                  key={tab.key}
-                  href={tab.href}
-                  className={cn('su-union-bar__tab', FOCUS_RING)}
-                  aria-current={here ? 'true' : undefined}
-                >
-                  {tab.label}
-                </Link>
-              )
-            })}
+          <nav aria-label="Salvage Union tools" className="su-union-bar__switch" style={SWITCH}>
+            {tabs.map((tab) => (
+              <a
+                key={tab.key}
+                href={tab.href}
+                className={cn('su-union-bar__tab', TAB_CAPS, FOCUS_RING)}
+                data-tool={tab.key}
+                // Last, where the shell's marking adds it (`markUnionRoute`).
+                aria-current={tab.key === product ? 'true' : undefined}
+              >
+                {tab.label}
+              </a>
+            ))}
           </nav>
 
-          {navItems.length > 0 && (
-            <nav aria-label="Main navigation" className="su-union-bar__nav">
-              {navLinks()}
+          {navs.map((nav) => (
+            <nav
+              key={nav.mode}
+              aria-label={nav.label}
+              className="su-union-bar__nav"
+              data-mode={nav.mode}
+            >
+              {navLinks(nav.items)}
             </nav>
-          )}
+          ))}
 
-          {hasCrumbs && (
-            <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--bar">
-              <BreadcrumbTrail breadcrumbs={breadcrumbs} />
-            </nav>
-          )}
+          {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="bar" />}
 
           {/* Desktop: the right-hand cluster, pushed to the end. */}
           <div className="su-union-bar__end">
@@ -275,7 +305,7 @@ export function AppBar({
                 href={buyHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn('su-union-bar__buy', FOCUS_RING)}
+                className={cn('su-union-bar__buy', capsLabel({ tracking: 'snug' }), FOCUS_RING)}
               >
                 Buy the game <span aria-hidden="true">↗</span>
               </a>
@@ -288,11 +318,7 @@ export function AppBar({
         </div>
       </header>
 
-      {hasCrumbs && (
-        <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--row">
-          <BreadcrumbTrail breadcrumbs={breadcrumbs} />
-        </nav>
-      )}
+      {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="row" />}
     </>
   )
 }

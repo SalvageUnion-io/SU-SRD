@@ -5,7 +5,7 @@
  * ## The words
  *
  * An unfurl bot (`Discordbot/2.0`) asks for `/p/:kind/:appId` or
- * `/invite/:token` (the link the Cantina and the bot hand out; an old
+ * `/invite/:token` (the link the app and the bot hand out; an old
  * `/join/:code` link 301s there first, `../lib/redirects.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
  * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a
@@ -16,6 +16,9 @@
  * - A sheet or pattern that is not shared by link unfurls as the plain
  *   **Private** card: no name, no stats, no maker. Private and missing are the
  *   same answer, as on the page.
+ * - A pattern shared by link also carries its Discord Component Embed
+ *   (`publicSheet.preview`'s `componentEmbed`): Discord draws it as the card a book
+ *   pattern's page gets, marked homebrew.
  * - A dead invite, or a Convex that does not answer, keeps the sitewide
  *   defaults: an unfurl is never worth a broken page.
  *
@@ -41,6 +44,7 @@
  * it works on salvageunion.io/build and on a Worker Preview alike.
  */
 
+import { APP_BASE, routeInApp } from '../lib/appBase'
 import { fnv1a } from '../lib/fnv1a'
 import type {
   InvitePreviewAnswer,
@@ -56,7 +60,6 @@ import {
   sheetCard,
   titleCaseSlug,
 } from '../lib/linkPreview/previewSummary'
-import { pathInApp } from './basePath'
 import { reportError } from './errorReports'
 import type { ShellMeta } from './shellMeta'
 
@@ -140,16 +143,22 @@ type Resolved =
   | { kind: 'sheet'; route: PreviewRoute & { type: 'sheet' }; answer: PreviewAnswer | null }
   | { kind: 'invite'; route: PreviewRoute & { type: 'invite' }; answer: InvitePreviewAnswer | null }
 
+/**
+ * The public answer behind a route. With `appUrl` (the app's address, as the
+ * bot reached it) a pattern's answer carries its Discord card too; the
+ * picture's version is read off the answer without it, so the two agree.
+ */
 async function resolve(
   route: PreviewRoute,
   env: PreviewEnv,
-  fetchImpl: Fetch
+  fetchImpl: Fetch,
+  appUrl?: string
 ): Promise<Resolved | undefined> {
   if (route.type === 'sheet') {
     const answer = await convexQuery<PreviewAnswer>(
       env,
       'publicSheet:preview',
-      { kind: route.kind, appId: route.id },
+      { kind: route.kind, appId: route.id, ...(appUrl ? { appUrl } : {}) },
       fetchImpl
     )
     return answer === undefined ? undefined : { kind: 'sheet', route, answer }
@@ -165,7 +174,7 @@ async function resolve(
 
 /**
  * The page address the card's foot prints: host and path, never a scheme.
- * `base` is the app's base path (`basePath.ts`), `''` at the root.
+ * `base` is the app's base path (`APP_BASE`).
  */
 function addressOf(origin: string, route: PreviewRoute, base: string): string {
   const host = new URL(origin).host
@@ -192,10 +201,17 @@ export function versionOf(value: unknown): string {
     .padStart(8, '0')
 }
 
+/** An answer as the picture draws it: the Discord card is not part of the image. */
+function withoutEmbed<T extends object>(answer: T): T {
+  if (!('componentEmbed' in answer)) return answer
+  const { componentEmbed: _embed, ...drawn } = answer
+  return drawn as T
+}
+
 /** Where a resolved route's picture lives, versioned by what it shows. */
 function imagePathOf(resolved: Resolved): string {
   if (resolved.answer === null) return `/og/private.png?v=${OG_RENDER_VERSION}`
-  const v = versionOf(resolved.answer)
+  const v = versionOf(withoutEmbed(resolved.answer))
   return resolved.kind === 'sheet'
     ? `/og/${resolved.route.kind}/${resolved.route.id}.png?v=${v}`
     : `/og/invite/${resolved.route.code}.png?v=${v}`
@@ -211,9 +227,9 @@ export async function metaFor(
   url: URL,
   env: PreviewEnv,
   fetchImpl: Fetch = fetch,
-  base = ''
+  base = APP_BASE
 ): Promise<ShellMeta | null> {
-  const resolved = await resolve(route, env, fetchImpl)
+  const resolved = await resolve(route, env, fetchImpl, `${url.origin}${base}`)
   if (resolved === undefined) return null
   const card = cardOf(resolved, url.origin, base)
   if (card === null) return null
@@ -223,8 +239,11 @@ export async function metaFor(
     resolved.kind === 'sheet' && resolved.answer
       ? `${url.origin}${base}/p/${resolved.route.kind}/${resolved.route.id}`
       : undefined
+  // A shared pattern unfurls in Discord as its card, as a book pattern's page does.
+  const componentEmbed = resolved.kind === 'sheet' ? resolved.answer?.componentEmbed : undefined
   return {
     ...words,
+    ...(componentEmbed ? { componentEmbed } : {}),
     url: `${url.origin}${url.pathname}`,
     ...(canonical ? { canonical } : {}),
     ...(canRender(env)
@@ -303,9 +322,9 @@ export async function ogImage(
   deps: { cache: ImageCache | undefined; fetch?: Fetch; base?: string }
 ): Promise<Response> {
   const fetchImpl = deps.fetch ?? fetch
-  const base = deps.base ?? ''
+  const base = deps.base ?? APP_BASE
   const url = new URL(request.url)
-  const target = surfaceOf(pathInApp(url.pathname, base))
+  const target = surfaceOf(routeInApp(url.pathname, base) ?? url.pathname)
   if (target === null || !canRender(env)) return NOT_FOUND()
 
   let surface = target.surface
@@ -319,7 +338,7 @@ export async function ogImage(
       // Made private since the link was posted: the plain card, never the old one.
       surface = '/og/private'
     } else {
-      version = versionOf(resolved.answer)
+      version = versionOf(withoutEmbed(resolved.answer))
     }
   }
 

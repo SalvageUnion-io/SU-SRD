@@ -22,6 +22,7 @@ describe('historyHits', () => {
       ' * The gauge used to infer the override. Previously it sorted first.',
       ' */',
       'export const A = () => <div>{/* formerly the .pc-* scope, PR #292 */}</div>',
+      '// Print export (#82/#258).',
     ].join('\n')
     expect(hits(source, 'a.tsx')).toEqual([
       [1, 'issue-number', 'issue 1255'],
@@ -31,6 +32,81 @@ describe('historyHits', () => {
       [4, 'previously', 'Previously'],
       [6, 'issue-number', 'PR #292'],
       [6, 'previously', 'formerly'],
+      [7, 'issue-number', '#258'],
+    ])
+  })
+
+  test('finds who asked and when: a review round, a dated call, a board, a mockup', () => {
+    const source = [
+      '// Never a chip (owner, round 4). One frame (C6, C7; owner, 2026-10-20).',
+      "// TL first (owner's call, 2026-10-14); one order (owner's rule, 2026-10-14).",
+      '// round 8: "top border should not be pink"; the Heat red (round 4).',
+      '// The release notes (ruling 2026-10-19), the trees (rounds 4–5).',
+      '// The Contents page (board 06); the shelves (boards S1, N2).',
+      '// The stepper rail (mockup Screen 02 `.rlabel`).',
+    ].join('\n')
+    expect(hits(source)).toEqual([
+      [1, 'owner-stamp', 'owner, round 4'],
+      [1, 'owner-stamp', 'owner, 2026-10'],
+      [1, 'review-round', 'round 4)'],
+      [2, 'owner-stamp', "owner's call, 2026-10"],
+      [2, 'owner-stamp', "owner's rule, 2026-10"],
+      [2, 'dated-call', 'call, 2026-10-14'],
+      [2, 'dated-call', 'rule, 2026-10-14'],
+      [3, 'review-round', 'round 8:'],
+      [3, 'review-round', '(round 4'],
+      [4, 'review-round', '(rounds 4'],
+      [4, 'dated-call', 'ruling 2026-10-19'],
+      [5, 'board-ref', 'board 06'],
+      [5, 'board-ref', 'boards S1'],
+      [6, 'mockup', 'mockup'],
+      [6, 'mockup', 'Screen 02'],
+    ])
+  })
+
+  test('finds a phrase wrapped across the lines of a comment, on its first line', () => {
+    const source = [
+      "/** One frame (owner's call,",
+      ' * 2026-10-20). */',
+      '// The trees (owner,',
+      '// round 5).',
+      "const a = 1 // A trailing comment runs on into the next line: owner's",
+      '// call, 2026-10-14.',
+      'const b = 2',
+      '// round 9: a comment after code starts its own run.',
+    ].join('\n')
+    expect(hits(source)).toEqual([
+      [1, 'owner-stamp', "owner's call, 2026-10"],
+      [1, 'dated-call', 'call, 2026-10-20'],
+      [3, 'owner-stamp', 'owner, round 5'],
+      [4, 'review-round', 'round 5)'],
+      [5, 'owner-stamp', "owner's call, 2026-10"],
+      [6, 'dated-call', 'call, 2026-10-14'],
+      [8, 'review-round', 'round 9:'],
+    ])
+  })
+
+  test("leaves a game's rounds, a unit's owner and a date in code alone", () => {
+    const source = [
+      '// The round ends when every unit has acted; each round its Heat cools.',
+      "// The owner's units, the owner chip, and the board's owner.",
+      "const d = '2026-10-14' // a sample date",
+    ].join('\n')
+    expect(hits(source)).toEqual([])
+  })
+
+  test("reads a stylesheet's block comments, not its rules", () => {
+    const source = [
+      '/* One hairline all round (owner, round 8). */',
+      '.a { content: "(round 4)"; }',
+      '/*',
+      ' * Board 06: the Contents page.',
+      ' */',
+    ].join('\n')
+    expect(hits(source, 'a.css')).toEqual([
+      [1, 'owner-stamp', 'owner, round 8'],
+      [1, 'review-round', 'round 8)'],
+      [4, 'board-ref', 'Board 06'],
     ])
   })
 
@@ -57,8 +133,9 @@ describe('historyHits', () => {
 })
 
 describe('isCommentSource', () => {
-  test('reads script and module code, not generated output or declarations', () => {
+  test('reads script, module and stylesheet code, not generated output or declarations', () => {
     expect(isCommentSource('apps/web/src/routes/a.tsx')).toBe(true)
+    expect(isCommentSource('apps/web/src/styles/pages.css')).toBe(true)
     expect(isCommentSource('apps/web/public/sw-takeover.js')).toBe(true)
     expect(isCommentSource('tools/check.ts')).toBe(true)
     expect(isCommentSource('apps/web/convex/_generated/api.d.ts')).toBe(false)

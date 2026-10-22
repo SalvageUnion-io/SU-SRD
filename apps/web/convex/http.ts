@@ -1,5 +1,5 @@
-import { BOT_PATH_PREFIX } from 'cantina-domain/botWire'
 import { httpRouter } from 'convex/server'
+import { BOT_PATH_PREFIX } from 'game-domain/botWire'
 import { auth } from './auth'
 import { botRoute } from './botHttp'
 

@@ -122,14 +122,28 @@ export function resolveProvenance(
   }
 }
 
-/** The page's foot citation: the page, then the book and any reprints. */
-export function entityCite(entity: RefMetaEntity, pattern?: RefObjectAnyPattern): EntityCite {
-  const provenance = resolveProvenance(entity, pattern)
+/** Between two printings on a foot's one line, as the book's "//" lines are split. */
+export const CITE_SEPARATOR = ' // '
+
+/**
+ * Every printing on ONE line, the book first, then each reprint, `//` between
+ * (ruleset, "The source" 2): `Workshop Manual · p.65 // Salvage Union Starter
+ * Set (CR) · p.37`. `undefined` when there is none. Every foot prints this:
+ * the Page's, a card's, a Peek's, the link preview's and the no-JS fallback's.
+ */
+export function citeLine(
+  printings: readonly { book: string; page?: number | undefined }[]
+): string | undefined {
+  const line = printings
+    .map(({ book, page }) => (page !== undefined ? `${book} · p.${page}` : book))
+    .join(CITE_SEPARATOR)
+  return line.length > 0 ? line : undefined
+}
+
+/** A provenance's printings: its book (and booklet) and page, then each reprint's. */
+export function provenancePrintings(provenance: Provenance): EntityPrinting[] {
   const book = formatProvenance(provenance.source, provenance.booklet, undefined)
-  const reprints = provenance.additionalSources
-    .map((entry) => formatProvenance(entry.source, entry.booklet, entry.page))
-    .filter((line): line is string => !!line)
-  const printings: EntityPrinting[] = [
+  return [
     ...(book
       ? [{ book, ...(provenance.page !== undefined ? { page: provenance.page } : {}) }]
       : []),
@@ -138,9 +152,13 @@ export function entityCite(entity: RefMetaEntity, pattern?: RefObjectAnyPattern)
       page: entry.page,
     })),
   ]
-  const citation = [book, ...reprints.map((line, i) => (i === 0 ? `also in ${line}` : line))]
-    .filter((part): part is string => !!part)
-    .join(' · ')
+}
+
+/** The page's foot citation: the book and page, then any reprints, on one line. */
+export function entityCite(entity: RefMetaEntity, pattern?: RefObjectAnyPattern): EntityCite {
+  const provenance = resolveProvenance(entity, pattern)
+  const printings = provenancePrintings(provenance)
+  const citation = citeLine(printings)
   return {
     ...(provenance.source ? { source: provenance.source } : {}),
     ...(provenance.booklet ? { booklet: provenance.booklet } : {}),

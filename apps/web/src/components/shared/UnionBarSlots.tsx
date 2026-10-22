@@ -4,14 +4,14 @@ import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { appPath } from '../../lib/appBase'
-import { CANTINA_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
+import { inAppRoute, markUnionBar, UNION_NAV, unionHere } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
 import { slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
 import { SiteLink } from './AppLink'
 
 /**
- * UnionBarSlots — the Cantina's live half of the Union bar.
+ * UnionBarSlots — the app's live half of the Union bar.
  *
  * The bar itself is the shell's, rendered at build time (`shell/unionBar.ts`),
  * so it paints before the app boots. This fills its slots through portals: the
@@ -19,14 +19,16 @@ import { SiteLink } from './AppLink'
  * the phone's search, avatar and drawer. Portals keep the app's context, so
  * what goes in a slot reads the connection and the router as if the bar were
  * part of the tree. It also routes a click on one of the bar's own links in
- * place, and marks the nav link of the page you are on.
+ * place, and moves "here" as you route: the mode (Build or Play: its tab, its
+ * colour and its nav) and the nav link of the page you are on (`unionHere`).
+ * The shell arrives already marked for the route it was served on.
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
  * Convex or Games; `routes/__root.tsx` fills them
- * (`components/account/HeaderAccount.tsx`).
+ * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
- * with the Cantina's nav ahead of the site's pages and its account controls
+ * with the mode's nav ahead of the site's pages and its account controls
  * at the top. Its links are site paths, as the bar's are: `SiteLink` routes the
  * app's in place and loads the reference pages.
  */
@@ -34,7 +36,7 @@ import { SiteLink } from './AppLink'
 type UnionBarSlotsProps = {
   /** The current route, to mark "you are here" in the nav. */
   pathname: string
-  /** The nav's Games control, between Hangar and Starter Set. */
+  /** Play's Games control, first in Play's nav. */
   games?: ReactNode
   /** Desktop search trigger, before the account control. */
   search?: ReactNode
@@ -99,15 +101,14 @@ export function UnionBarSlots({
     return () => bar.removeEventListener('click', onClick)
   }, [router])
 
-  // "You are here" on the nav, which the shell cannot know.
-  useEffect(() => {
-    for (const link of document.querySelectorAll<HTMLAnchorElement>('.su-union-bar__nav a')) {
-      const nav = CANTINA_NAV.find((item) => link.textContent === item.label)
-      if (!nav) continue
-      if (isCurrent(nav.path, pathname)) link.setAttribute('aria-current', 'page')
-      else link.removeAttribute('aria-current')
-    }
-  }, [pathname])
+  // Where you are, as the route changes: the shell arrives marked for the
+  // route it was served on (`markUnionRoute`), and this moves the mark with
+  // you. A layout effect, so a route change repaints the bar with the page.
+  const here = unionHere(pathname)
+  useLayoutEffect(() => {
+    const bar = document.querySelector('.su-union-bar')
+    if (bar) markUnionBar(bar, here.mode, here.nav)
+  }, [here.mode, here.nav])
 
   const mobile = (
     <>
@@ -115,10 +116,10 @@ export function UnionBarSlots({
       {mobileActions}
       <UnionDrawer
         search={drawerSearch}
-        productNav={CANTINA_NAV.map((item) => ({
+        productNav={UNION_NAV[here.mode].map((item) => ({
           label: item.label,
           href: appPath(item.path),
-          active: isCurrent(item.path, pathname),
+          active: item.id === here.nav,
         }))}
         extra={drawerExtra}
         LinkComponent={SiteLink}

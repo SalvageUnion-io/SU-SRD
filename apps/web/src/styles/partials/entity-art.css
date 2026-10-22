@@ -24,7 +24,7 @@
 }
 
 /* The faded blueprint behind the mark: it fills the frame and sits under the
-   ink. Doubled so `.su-entity-tile__art img` cannot reach it. */
+   ink. Doubled so `.su-entity-index__art img` cannot reach it. */
 .su-missing-art .su-missing-art__backdrop {
   height: 100%;
   inset: 0;
@@ -50,7 +50,7 @@
   align-items: center;
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--space-2);
   position: relative;
 }
 
@@ -58,14 +58,10 @@
 .su-missing-art__word,
 .su-missing-art__code {
   color: var(--color-paper);
-  font-family: var(--font-cond);
   font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.06em;
   line-height: 1.1;
-  padding-left: 0.06em;
+  padding-left: var(--tracking-caps-snug);
   position: relative;
-  text-transform: uppercase;
 }
 
 .su-missing-art__strip {
@@ -90,15 +86,12 @@
 .su-missing-art__stamp {
   border: var(--bw-chrome) solid var(--color-status-bad);
   color: var(--color-status-bad);
-  font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: 0.08em;
   line-height: 1;
   outline: var(--bw-hairline) solid var(--color-status-bad);
   outline-offset: 2px;
-  padding: 0.25rem 0.25rem 0.25rem 0.33rem;
-  text-transform: uppercase;
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
   transform: rotate(-8deg);
 }
 
@@ -128,7 +121,7 @@
   gap: var(--space-12);
 }
 
-@container (min-width: 30rem) {
+@container (width >= 40rem) {
   .su-ec-art {
     margin-inline: 0;
   }
@@ -142,5 +135,15 @@
     align-items: center;
     flex-direction: row;
     gap: var(--space-16);
+  }
+}
+
+/* A Peek's art keeps the top left corner, its prose flowing around it, as on
+   the page (R44): past a phone a Peek stands its full width, narrower
+   than the card's 40rem but wide enough beside an art lead. */
+@media (width >= 48rem) {
+  [data-peek-popup] .su-ec-art--float {
+    float: left;
+    margin-inline: 0 var(--space-16);
   }
 }

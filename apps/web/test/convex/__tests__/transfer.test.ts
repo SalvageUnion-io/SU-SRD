@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { makeUnitLot } from 'cantina-domain/schemas/cargoLot'
+import { makeUnitLot } from 'game-domain/schemas/cargoLot'
 import { api } from '../../../convex/_generated/api'
 import { STALE_WRITE_REFUSAL } from '../../../convex/model/staleWrite'
 import type { Ctx } from '../fixtures'

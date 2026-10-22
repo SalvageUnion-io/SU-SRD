@@ -1,12 +1,12 @@
 /**
- * Tabs — the tabs keyboard model the Dashboard's display relies on:
+ * Tabs — the tabs keyboard model Play's phone tabs rely on:
  * arrows and Home/End move and select, and every tab
  * names the panel it controls.
  */
 import { describe, expect, it } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from '../Tabs'
+import { Tab, TabList, TabPanel, Tabs } from '../Tabs'
 
 const VALUES = ['resolve', 'reference', 'tables'] as const
 type Value = (typeof VALUES)[number]
@@ -85,51 +85,5 @@ describe('Tabs', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'tables' }))
     expect(screen.getAllByRole('tabpanel')).toHaveLength(1)
     expect(screen.getByRole('tabpanel').textContent).toBe('tables panel')
-  })
-})
-
-describe('Toggle', () => {
-  it('is a pressed-state button in the Tab look, and reports the press', () => {
-    const presses: string[] = []
-    render(
-      <>
-        <Toggle pressed onClick={() => presses.push('all')}>
-          All
-        </Toggle>
-        <Toggle pressed={false} onClick={() => presses.push('reaction')}>
-          Reaction
-        </Toggle>
-      </>
-    )
-    const all = screen.getByRole('button', { name: 'All' })
-    const reaction = screen.getByRole('button', { name: 'Reaction' })
-    expect(all.getAttribute('aria-pressed')).toBe('true')
-    expect(reaction.getAttribute('aria-pressed')).toBe('false')
-    expect(reaction.className).toContain('su-tab')
-    fireEvent.click(reaction)
-    expect(presses).toEqual(['reaction'])
-  })
-})
-
-describe('ToggleGroup', () => {
-  it('is a frameless fieldset named by its hidden legend', () => {
-    render(
-      <ToggleGroup
-        label="Filter actions by timing"
-        className="su-dash-deck-tabs"
-        style={{ gap: 4 }}
-      >
-        <Toggle pressed onClick={() => {}}>
-          All
-        </Toggle>
-      </ToggleGroup>
-    )
-    const group = screen.getByRole('group', { name: 'Filter actions by timing' })
-    expect(group.tagName).toBe('FIELDSET')
-    expect(group.className).toBe('su-dash-deck-tabs')
-    expect(group.style.borderWidth === '0' || group.style.border.startsWith('0')).toBe(true)
-    expect(group.style.gap).toBe('4px')
-    expect(group.querySelector('legend')?.className).toBe('su-sr-only')
-    expect(screen.getByRole('button', { name: 'All' })).toBeTruthy()
   })
 })

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { fontSize, space } from '../../design/tokens'
-import { Slab } from '../atoms/Slab'
+import { SlabSection } from '../containers/SlabSection'
 import { InlineMarkdown } from './InlineMarkdown'
 import { parseMarkdownSection } from './parseMarkdownSection'
 
@@ -35,32 +35,31 @@ const LIST = {
  * (`ABOUT_JRVS.md`, `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) and is passed in raw, so the two sites
  * cannot drift apart and the wording can be edited without touching component
  * code. The library stays data-source agnostic, and each app reads the file
- * the way its build allows (srd via `node:fs`, the Cantina via a Vite `?raw` import).
+ * the way its build allows (the reference site via `node:fs`, the app via a Vite `?raw` import).
  */
 export function MarkdownSection({ markdown }: MarkdownSectionProps) {
   const { heading, blocks } = parseMarkdownSection(markdown)
 
+  const body = blocks.map((block) =>
+    block.kind === 'list' ? (
+      <ul key={block.items.join('|')} style={LIST}>
+        {block.items.map((item) => (
+          <li key={item}>
+            <InlineMarkdown text={item} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p key={block.text}>
+        <InlineMarkdown text={block.text} />
+      </p>
+    )
+  )
+
+  if (!heading) return <section style={SECTION}>{body}</section>
   return (
-    <section style={SECTION}>
-      {heading && (
-        // The heading sits on the section's own gap, not the slab's resting margin.
-        <Slab as="h2" variant="solid" label={heading} style={{ marginBottom: 0 }} />
-      )}
-      {blocks.map((block) =>
-        block.kind === 'list' ? (
-          <ul key={block.items.join('|')} style={LIST}>
-            {block.items.map((item) => (
-              <li key={item}>
-                <InlineMarkdown text={item} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p key={block.text}>
-            <InlineMarkdown text={block.text} />
-          </p>
-        )
-      )}
-    </section>
+    <SlabSection as="h2" title={heading} page bodyStyle={SECTION}>
+      {body}
+    </SlabSection>
   )
 }

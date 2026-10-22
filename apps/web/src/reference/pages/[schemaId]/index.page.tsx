@@ -1,0 +1,147 @@
+/**
+ * `/[schemaId]` — the per-schema listing page (`/chassis/`).
+ *
+ * Headed by its chapter's band, or its own (`listingBandFillFor`: the systems'
+ * and modules' TL blue) (the schema's plural name notched in, the
+ * listing's search and filters on it), then the listing: the Catalog, one flat grid of CompactIndexes with no group headings, at
+ * every width (`lib/listingView.ts`). The abilities open on their Tree
+ * instead, each tree under its heading on its track, with Catalog | Tree in
+ * the rail. Its footer wears the same chapter's band (the leading band's rule), as an entity page
+ * does.
+ *
+ * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
+ * `ssg/DESIGN.md`), and what it server-renders is its own listing
+ * (`SchemaViewerListing`) from build-time data, rail inert. The island loads
+ * its data before its first render, so that commit draws the same listing
+ * over the server's: the cards paint once, at first paint, rather than as
+ * named rows replaced by cards when the data arrives. Mounting is still
+ * `createRoot`, so no hydration mismatch is possible.
+ */
+
+import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
+import { getAssetUrl } from 'salvageunion-reference'
+import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
+import type { ListingBand } from '../../../components/islands/ListingFrame'
+import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
+import { chapterForSchema, listingBandFillFor } from '../../../lib/chapters'
+import { PUBLISHER, SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
+import { schemaHref } from '../../../lib/entityHref'
+import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
+import { listingEntries } from '../../../lib/listingEntries'
+import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
+import { catalogGroupBy, defaultGroups, groupEntities } from '../../../lib/listingGroups'
+import { CATALOG_LISTINGS, defaultListingView } from '../../../lib/listingView'
+import { pageTitle } from '../../../lib/pageTitle'
+import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
+import { getSchemaStaticPaths } from '../../../lib/staticPaths'
+import { Island } from '../../../runtime/Island'
+
+type Params = { schemaId: string }
+type Props = { schema: EnhancedSchemaMetadata; data: RefEntity[] }
+
+function page({ params, props }: RouteContext<Params, Props>): PageResult {
+  const { schemaId } = params
+  const { schema } = props
+  // What the listing lists: the roll tables only their top-level ones.
+  const data = listingEntries(schemaId, props.data)
+  // The island reads its schema from the ORM, so a listing that lists fewer
+  // than its schema holds hands it the ids it lists.
+  const entryIds = data.length < props.data.length ? data.map((item) => item.id) : undefined
+
+  const schemaName = schema.displayName || 'Schema'
+  const pluralName = schema.displayNamePlural || schemaName
+  const chapter = chapterForSchema(schemaId)
+  const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
+  const description = `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
+
+  // Pre-compute filter facets at build time. A `CATALOG_LISTINGS` schema is a
+  // handful of tiles, so it has no TL facet.
+  const techLevels = CATALOG_LISTINGS.has(schemaId) ? [] : getUniqueTechLevels(data)
+  const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
+  const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
+  const preloadSchemas = getSchemaPreloadList(schemaId)
+  // Art-less tiles take the Catalog's wider columns.
+  const hasArt = data.some((item) => !!getAssetUrl(item))
+  // The island's default view and its groups (the Catalog has one), so its
+  // skeleton sets the headings the grid mounts under.
+  const view = defaultListingView(schemaId)
+  const groups: ListingGroup[] =
+    view === 'tree'
+      ? defaultGroups(data, trees, techLevels, schemaId)
+      : groupEntities(data, catalogGroupBy(schemaId))
+  // The band is the island's, so its search and filters can sit on it.
+  const band: ListingBand = {
+    title: pluralName,
+    tone: chapter.tone,
+    fill: listingBandFillFor(schemaId),
+    trail: [
+      { name: SRD_CRUMB.name, url: '/' },
+      { name: pluralName, url: schemaHref(schemaId) },
+    ],
+  }
+  const shape: ListingShape = {
+    count: data.length,
+    groups: groups.map(({ key, label, items }) => ({ key, label, count: items.length })),
+  }
+
+  return {
+    meta: {
+      title: pageTitle(schemaName),
+      description,
+      canonical: canonicalUrl,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: schemaName,
+        description,
+        url: canonicalUrl,
+        keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+        isPartOf: WEBSITE,
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: data.length,
+        },
+        creator: PUBLISHER,
+      },
+      breadcrumbs: [SRD_CRUMB, { name: pluralName, url: canonicalUrl }],
+    },
+    children: (
+      <div className="su-listing-shell">
+        {/* The island draws the chapter band (the plural name in the notch,
+            the rail as its controls) and the listing under it. */}
+        <Island
+          name="SchemaViewerIsland"
+          client="interaction"
+          ssr
+          props={{
+            schemaId,
+            band,
+            techLevels,
+            sources,
+            trees,
+            preloadSchemas,
+            hasArt,
+            shape,
+            entryIds,
+          }}
+        >
+          <SchemaViewerListing
+            schemaId={schemaId}
+            band={band}
+            techLevels={techLevels}
+            sources={sources}
+            trees={trees}
+            hasArt={hasArt}
+            entryIds={entryIds}
+          />
+        </Island>
+      </div>
+    ),
+  }
+}
+
+export const schemaListingPage: PageModule<Params, Props> = {
+  pattern: '/[schemaId]',
+  getStaticPaths: getSchemaStaticPaths,
+  page,
+}

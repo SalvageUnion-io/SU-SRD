@@ -1,6 +1,6 @@
-import type { EntityTable } from 'cantina-domain/entityKinds'
-import { isEntityKind, TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { v } from 'convex/values'
+import type { EntityTable } from 'game-domain/entityKinds'
+import { isEntityKind, TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
@@ -12,7 +12,7 @@ import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } fro
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
  *
  * This table is the Change Log: the store's `emitChangeLog`
- * (`src/stores/entityChangeLog.ts`) and the Dashboard's rolls arrive here, and
+ * (`src/stores/entityChangeLog.ts`) and Play's rolls arrive here, and
  * `ownership`, `proposals` and `botClient` write beside them. There is no
  * device copy; `forEntity` below is what the sheet's drawer reads.
  *
@@ -130,8 +130,8 @@ export const appendChangeLog = mutation({
 const MAX_ROLLS = 100
 
 /**
- * The Game's rolls, newest first: the Dashboard's (`source 'dashboard'`) and
- * the Discord bot's (`'discord-bot'`), which both write `entityType 'game'`,
+ * The Game's rolls, newest first: Play's (`source 'play'`; the retired
+ * Dashboard's `'dashboard'`) and the Discord bot's (`'discord-bot'`), which both write `entityType 'game'`,
  * `field 'roll'` rows ([ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * Reads only the newest `limit` rows off `by_game_field`, as

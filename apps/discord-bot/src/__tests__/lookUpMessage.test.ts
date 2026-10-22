@@ -27,6 +27,20 @@ describe('findTerms', () => {
     )
   })
 
+  test('a name kinds share means what the SRD links it to (nameRefIndex)', () => {
+    // A system before the roll table named for it, a keyword before its guide,
+    // gear before the ability that grants it.
+    const kinds = findTerms('the Mechapult ran hot on Heat, so grab the Wingsuit').map((t) => [
+      t.hit.schemaName,
+      t.hit.entity.name,
+    ])
+    expect(kinds).toEqual([
+      ['systems', 'Mechapult'],
+      ['keywords', 'heat'],
+      ['equipment', 'Wingsuit'],
+    ])
+  })
+
   test('an ordinary lower-case word is not a term', () => {
     expect(findTerms('take cover, it is hot out here')).toEqual([])
   })

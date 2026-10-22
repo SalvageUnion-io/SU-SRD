@@ -27,11 +27,10 @@ function mockAutocomplete(focused: string) {
 
 /** Every rendered text block of a V2 reply, joined — what a reader sees. */
 function containerTextOf(reply: ReplyArg): string {
-  const container = reply.components?.[0] as { toJSON(): { components: unknown[] } } | undefined
+  const container = reply.components?.[0] as { components: unknown[] } | undefined
   if (!container) throw new Error('expected a container on the reply')
-  return container
-    .toJSON()
-    .components.flatMap((c) => {
+  return container.components
+    .flatMap((c) => {
       const node = c as { content?: string; components?: { content?: string }[] }
       if (node.content !== undefined) return [node.content]
       // a section's text lives one level down, beside its thumbnail accessory

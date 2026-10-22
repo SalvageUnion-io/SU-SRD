@@ -6,17 +6,17 @@ import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
 import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
 import type { NavDrawerItem } from '../index'
-import { Badge, buttonVariants, NavDrawer } from '../index'
+import { Badge, Button, NavDrawer } from '../index'
 
 /**
  * UnionDrawer — the Union bar's one phone drawer, the same in both render
- * modes: the reference pages mount it as `MobileNavIsland`, the Cantina in its
+ * modes: the reference pages mount it as `MobileNavIsland`, the app in its
  * bar's `mobile` slot (`UnionBarSlots`).
  *
  * The wordmark home, the search, the book's chapter index with its counts
  * (`NAV_CATALOG`, frozen at build time: building it at runtime would pull the
  * reference ORM onto every page, which `reference-bundle-budget.e2e.ts` forbids), then the
- * site's pages and "Buy the game". The Cantina adds its own nav ahead of those
+ * site's pages and "Buy the game". The app adds its own nav ahead of those
  * (`productNav`) and its account controls (`extra`); without them the drawer
  * offers Sign in while nobody is signed in, from the account hint.
  */
@@ -35,7 +35,7 @@ const BRAND_FRAME = {
 // wordmark keeps an explicit size over the rung, inline over its class.
 const BRAND_STAMP = {
   fontSize: fontSize.xl,
-  letterSpacing: '-0.025em',
+  letterSpacing: 'normal',
   lineHeight: 'calc(1.75 / 1.25)',
   paddingBlock: space[2],
   paddingInline: space[4],
@@ -61,20 +61,21 @@ const BRAND = (
 function signInFromHint(): ((close: () => void) => ReactNode) | undefined {
   if (readAccountHint(browserStorage()) !== null) return undefined
   return () => (
-    <a href={SIGN_IN_HREF} className={buttonVariants({ variant: 'primary', size: 'compact' })}>
+    // A site path, loaded as a document: the drawer is the shell's, not the router's.
+    <Button href={SIGN_IN_HREF} linkAs="a" variant="primary" size="compact">
       Sign in with Discord
-    </a>
+    </Button>
   )
 }
 
 type UnionDrawerProps = {
   /** The search field at the drawer's head. */
   search?: ReactNode
-  /** The product's own nav (the Cantina's Hangar and Starter Set), ahead of the site's pages. */
+  /** The product's own nav (the app's Training Bay and Starter Set), ahead of the site's pages. */
   productNav?: NavDrawerItem[]
   /** App-owned controls at the drawer's top, handed `close`; defaults to Sign in from the hint. */
   extra?: (close: () => void) => ReactNode
-  /** Link component for internal items; the Cantina routes its own in place. */
+  /** Link component for internal items; the app routes its own in place. */
   LinkComponent?: ElementType
 }
 

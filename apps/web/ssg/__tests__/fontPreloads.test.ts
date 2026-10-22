@@ -4,7 +4,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { PRELOADED_FONTS, pickFontPreloads } from '../fontPreloads'
+import {
+  PRELOADED_FONTS,
+  pickFontPreloads,
+  pickScriptFontPreload,
+  SCRIPT_FONT_FILE,
+} from '../fontPreloads'
 
 /** The styles entry's assets as Vite lists them: woff2 and woff, every subset. */
 const EMITTED = PRELOADED_FONTS.flatMap((name) => [
@@ -31,5 +36,12 @@ describe('font preloads', () => {
   test('fails the build when a preloaded face is no longer emitted', () => {
     const missing = EMITTED.filter((asset) => !asset.includes('semi-condensed-latin-700'))
     expect(() => pickFontPreloads(missing)).toThrow('barlow-semi-condensed-latin-700-normal')
+  })
+
+  test('picks the tagline’s hand, and fails the build when it is not emitted', () => {
+    expect(pickScriptFontPreload([...EMITTED, `assets/${SCRIPT_FONT_FILE}-K9.woff2`])).toBe(
+      `/assets/${SCRIPT_FONT_FILE}-K9.woff2`
+    )
+    expect(() => pickScriptFontPreload(EMITTED)).toThrow(SCRIPT_FONT_FILE)
   })
 })

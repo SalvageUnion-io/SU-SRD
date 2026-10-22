@@ -6,7 +6,7 @@
  * loader flashes a blank page.
  *
  * An unmatched URL is the site's own 404 (`NotFound`, as the static `/404`
- * draws it) with a way back to the Hangar. `NotFoundPanel` is the missing
+ * draws it) with a way back to the Training Bay. `NotFoundPanel` is the missing
  * record's: `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s
  * unknown-kind state compose it. Neither is the UI library's `RecoveryPanel`:
  * that panel carries `role="alert"` and centres its content, which is right for
@@ -15,12 +15,11 @@
  */
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import { buttonVariants, TitledBox } from '../index'
+import { color, font, fontSize, space } from '../../design/tokens'
+import { Button, Pending, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
 import { NotFound } from '../NotFound'
-import { AppLink } from './AppLink'
 
 const SHELL = {
   alignItems: 'center',
@@ -44,21 +43,8 @@ const PANEL_MESSAGE = {
   lineHeight: '1.25rem',
 } satisfies CSSProperties
 
-const BACK_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
-
 /** The 404's exit, at the head of its column (a flex column that would stretch it). */
-const HANGAR_LINK = { ...BACK_LINK, alignSelf: 'flex-start' } satisfies CSSProperties
-
-/** The pending line; it breathes with the shared skeleton pulse (`su-pulse`). */
-const PENDING = {
-  color: color.wkMuted,
-  fontFamily: font.cond,
-  fontSize: fontSize.sm,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.caps,
-  lineHeight: '1.25rem',
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+const HANGAR_LINK = { alignSelf: 'flex-start' } satisfies CSSProperties
 
 /** Full-viewport centering shell every standalone panel screen sits in. */
 export function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'main'>) {
@@ -85,7 +71,7 @@ type NotFoundPanelProps = {
 export function NotFoundPanel({
   title,
   message,
-  back = { href: '/', label: 'Hangar' },
+  back = { href: '/', label: 'Training Bay' },
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
@@ -97,13 +83,9 @@ export function NotFoundPanel({
           bodyStyle={PANEL_BODY}
         >
           <p style={PANEL_MESSAGE}>{message}</p>
-          <AppLink
-            href={back.href}
-            className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-            style={BACK_LINK}
-          >
-            &larr; Back to {back.label}
-          </AppLink>
+          <Button href={back.href} back variant="ghost" size="compact">
+            {back.label}
+          </Button>
         </TitledBox>
       </div>
     </FullPageShell>
@@ -112,7 +94,7 @@ export function NotFoundPanel({
 
 /**
  * Any unmatched URL (router defaultNotFoundComponent): the site's 404, its
- * search and "did you mean" rendered live, and the way back to the Hangar.
+ * search and "did you mean" rendered live, and the way back to the Training Bay.
  */
 export function RouteNotFound() {
   return (
@@ -121,26 +103,25 @@ export function RouteNotFound() {
         search={<SearchIsland variant="hero" />}
         didYouMean={<DidYouMeanIsland />}
         back={
-          <AppLink
-            href="/"
-            className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-            style={HANGAR_LINK}
-          >
-            &larr; Back to Hangar
-          </AppLink>
+          <Button href="/" back variant="ghost" size="compact" style={HANGAR_LINK}>
+            Training Bay
+          </Button>
         }
       />
     </main>
   )
 }
 
-/** Minimal pending state for any route loader (defaultPendingComponent). */
-export function RoutePending() {
+/**
+ * A route's wait (chrome.md K6): `Pending`'s line, centred in the page shell.
+ * The router's default pending component (no subject: "Loading the page…"),
+ * and the app's wait on the reference data (`GameDataReady`) and on a Play
+ * gate's session or Game.
+ */
+export function RoutePending({ label = 'the page' }: { label?: string }) {
   return (
-    <FullPageShell aria-busy="true" aria-live="polite">
-      <p className="su-pulse" style={PENDING}>
-        Loading…
-      </p>
+    <FullPageShell aria-busy="true">
+      <Pending label={label} />
     </FullPageShell>
   )
 }

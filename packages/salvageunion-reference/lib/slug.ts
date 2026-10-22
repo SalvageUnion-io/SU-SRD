@@ -15,7 +15,7 @@ import type { RefEntity, RefEnumSchemaName } from './schemas/index'
  * Returns the entity if found, null otherwise
  *
  * O(1) via `BaseModel`'s slug index (built once per model, on first use).
- * Rows without a truthy string `name` are not slug-addressable, and on a slug
+ * Compacts without a truthy string `name` are not slug-addressable, and on a slug
  * collision the FIRST row in data order wins.
  */
 export function findEntityBySlug(schemaName: RefEnumSchemaName, slug: string): RefEntity | null {

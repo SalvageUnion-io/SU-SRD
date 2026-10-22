@@ -1,15 +1,24 @@
 # ADR-045: The Dashboard Has a Phone Form
 
 Amends [ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. The phone form
-is Guided Play: same enforcement, seat and Change Log as the canvas.
+is Guided Play: same enforcement, seat and Change Log as the canvas. Partly
+superseded by [ADR-051](051-play-mode.md): Play's four phone tabs replace
+decisions 3, 4 and 5; decisions 1, 2, 6 and 7 stand, the floor read by
+`isPhoneForm` in `playCanvas.model.ts` ([play.md](../architecture/play.md) §11).
+Decision 1's floor is amended by tracker #1700 decision 6 (2026-10-18): no
+text draws under 11px, so the canvas no longer scales down.
 
 1. **Two forms, one surface.**
-   - `/dashboard/$pilotId` renders the canvas when it fits at a scale of 0.62
-     or more on **both** axes, and the phone form otherwise.
+   - Play renders the canvas when it fits at its 1280 × 800 design size or
+     larger on **both** axes, and the phone form otherwise. The floor is the
+     scale that keeps the canvas's smallest text on the 11px type floor as
+     drawn (ruleset §4.6); that text is 11px, so the floor is 1 (amended by
+     #1700 decision 6, 2026-10-18; it was 0.62, which drew 11px at about
+     6.8px).
    - Both forms read the same seat, store, rules and view models
      (`MajorModel`, `MinorModel`, `DeckListModel`, `ResolveModel`). A form is a
      renderer, never a second home for play state; both render every
-     view-model field (`phoneForm.test.tsx`).
+     view-model field.
    - Changing form keeps the seat and the device state.
 2. **Same mode, same enforcement.** Every phone control calls its canvas twin's
    handler under the same rules; the phone form adds no transaction and drops
@@ -30,9 +39,8 @@ is Guided Play: same enforcement, seat and Change Log as the canvas.
 6. **The Dashboard has no masthead.** At every width `/dashboard` renders its
    own bar in place of the app masthead; the offline banner stays.
 7. **Browser zoom raises the floor.**
-   - The canvas holds only while its fitted scale is at least 0.62 × the page
-     zoom (a caller's own floor, the Mediator Dashboard's 0.8, rises the same
-     way); the phone form's type grows with zoom.
+   - The canvas holds only while its fitted scale is at least the page zoom
+     (decision 1's floor × the zoom); the phone form's type grows with zoom.
    - The zoom is `pageZoom`: `devicePixelRatio` normalised against the
      display's density. A reading counts only when the window-to-viewport ratio
      snaps to a browser zoom step (110–300%, up to 3% over) and

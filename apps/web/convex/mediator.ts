@@ -1,5 +1,5 @@
-import { MediatorRollResultSchema } from 'cantina-domain/schemas/encounterNpc'
 import { ConvexError, v } from 'convex/values'
+import { MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -18,13 +18,6 @@ import { NotAuthorized, requireMediator, requireUser } from './model/permissions
  * `requireMember`. A player who can read the NPC tray can read the encounter
  * before it happens, which is the one leak that changes how the game is played
  * rather than merely who can edit what.
- *
- * ## There is no presence
- *
- * Who is at the table is not tracked. A presence reader ships with its writer
- * (a heartbeat some client calls) in the same change: a reader with no writer
- * shows "0 at the table" whoever is there, a permanently-false indicator, which
- * is worse than an absent one.
  *
  * ## The tray owes the same edge parse every other write does
  *

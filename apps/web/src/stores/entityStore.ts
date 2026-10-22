@@ -25,29 +25,28 @@
  * Assignments (ADR-037): creating a SoftLink goes through the assignment
  * model — it is refused across containers and REPLACES the links it conflicts
  * with in one write — and moving an entity drops the links the move leaves
- * straddling two containers. The rules are `cantina-domain/links/linkRules`, shared
+ * straddling two containers. The rules are `game-domain/links/linkRules`, shared
  * with the server, which enforces the same ones.
  */
 
-import type { ContainerFields } from 'cantina-domain/container'
-import { containerOf, moveTo, sameContainer } from 'cantina-domain/container'
+import type { ContainerFields } from 'game-domain/container'
+import { containerOf, moveTo, SHELF, sameContainer } from 'game-domain/container'
 import {
   CROSS_CONTAINER_REFUSAL,
   conflictingLinks,
   endsMatchType,
   sameLink,
-} from 'cantina-domain/links/linkRules'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+} from 'game-domain/links/linkRules'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { create } from 'zustand'
 import { staleWriteOf } from '../../convex/model/staleWrite'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
 import { captureException } from '../lib/observability'
-import { getActiveContainer } from './activeContainerStore'
 import {
   commitEntityWrite,
   commitSoftLink,
@@ -136,7 +135,7 @@ export type EntityState = {
    * Merges patch, commits it, updates in-memory state, then appends a
    * Change Log entry per changed field (provenance, ADR-022). `meta` tags those
    * entries and is **required**: pick the constant for your surface from
-   * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `DASHBOARD_TXN`, …) rather than
+   * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `PLAY_TXN`, …) rather than
    * writing the object inline. A default would defeat the point of declaring
    * provenance once per surface: an untagged call site would log as a hand edit
    * and nothing would say so.
@@ -301,21 +300,19 @@ function withoutLinksTo(links: readonly SoftLink[], ids: ReadonlySet<string>): S
 }
 
 /**
- * Stamp a brand-new build with the current container so it belongs somewhere
+ * Stamp a brand-new build with its container so it belongs somewhere
  * (ADR-030 §2 — an entity is always in exactly one Game or on the Shelf).
  *
- * Applies to pilots/mechs/crawlers only; SoftLinks carry no container. An
- * input that already decided its own container is left untouched so it isn't
- * clobbered — and "already decided" includes an explicit `gameId: null`,
- * because null *is* the Shelf rather than an absence (see cantina-domain/src/container.ts).
- * Testing for `undefined` rather than nullishness is what keeps a deliberate
- * shelving from being overwritten by whatever container happens to be open.
+ * There is no current container (ADR-052 §3): a unit's Game comes from the
+ * unit, or from the wizard link that started it (`?game=<id>`), which puts it
+ * on the input. An input that names its container keeps it; any other lands
+ * in the Training Bay. SoftLinks carry no container.
  */
-function withActiveContainer<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
+function withContainer<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
   if (type === 'softLink') return input
   const rec = input as { gameId?: string | null }
   if (rec.gameId !== undefined) return input
-  return { ...input, ...moveTo(getActiveContainer()) } as CreateInput<T>
+  return { ...input, ...moveTo(SHELF) } as CreateInput<T>
 }
 
 /**
@@ -460,7 +457,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // not appear here either. `commitWrite` throws on refusal and this deliberately does
     // not catch — the caller's write failed, and every caller already handles
     // that path for `WritesBlockedOffline`.
-    const record = prepareCreate(kindOf(type), withActiveContainer(type, input))
+    const record = prepareCreate(kindOf(type), withContainer(type, input))
     await commitWrite(type, record)
 
     set((state) => ({
@@ -641,7 +638,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // lands on the latest bays.
     const fresh = get().get('crawler', crawlerId)
     if (fresh === null) {
-      throw new Error(`[cantina-store] Cannot update bay: crawler id="${crawlerId}" not found`)
+      throw new Error(`[app-store] Cannot update bay: crawler id="${crawlerId}" not found`)
     }
     const bays = fresh.crawlerBays ?? []
     const targetIndex =
@@ -650,7 +647,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
         : bays.findIndex((b) => b.bayRef === bayRef)
     if (targetIndex === -1) {
       throw new Error(
-        `[cantina-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
+        `[app-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
       )
     }
     const next = bays.map((b, i) => (i === targetIndex ? { ...b, ...patch, bayRef } : b))

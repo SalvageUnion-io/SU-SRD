@@ -20,10 +20,10 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     const { container } = render(<ReferenceEntityCard data={armamentBay()} />)
     // the choice owns its prompt prose
     expect(screen.getByText(/Choose a Weapons System to mount/i)).toBeTruthy()
-    // a slab names the choice; no <details> (no chevron outside Tokens/rows)
+    // a slab names the choice; no <details> (no chevron outside Minis/rows)
     expect(screen.getByText('Armament Bay Weapons System')).toBeTruthy()
     expect(container.querySelector('details')).toBeNull()
-    // collapsed: the collection is NOT resolved yet (no system Tokens mounted)
+    // collapsed: the collection is NOT resolved yet (no system Minis mounted)
     expect(screen.queryByText('Red Laser')).toBeNull()
   })
 

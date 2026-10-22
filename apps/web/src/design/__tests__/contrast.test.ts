@@ -6,12 +6,11 @@ import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import { rollBandColor } from '../../components/compositions/rollTableBands'
 import { resolveCardColors } from '../../components/referenceEntity/card/cardChrome'
-import type { DomainTone, TitleRung } from '../../components/referenceEntity/card/entityCardTone'
+import type { DomainTone } from '../../components/referenceEntity/card/entityCardTone'
 import {
   entityGuideToneColor,
   resolveCardTone,
   resolveSchemaDomain,
-  titleSizeRung,
 } from '../../components/referenceEntity/card/entityCardTone'
 import { onTone, textBand } from '../../components/referenceEntity/referenceEntityHelpers'
 import { readPackageStylesheet } from '../../styles/__tests__/packageStylesheet'
@@ -145,15 +144,14 @@ const ratio = (band: Band) => contrastRatio(band.ground ?? PAPER, FOREGROUND[ban
 /**
  * What a header owes is set by its TITLE SIZE, not by its band (WCAG 1.4.3):
  * large text — 24px, or 18.66px (14pt) bold — owes 3:1, anything smaller
- * 4.5:1. The title is set extrabold (`EntityCardHeader`), so the bold
+ * 4.5:1. The title is set extrabold (`entity/parts/Head`), so the bold
  * threshold is the one that applies.
  *
  * Every tone can render at every size and depth, so each band owes what the
  * SMALLEST title it can carry owes: a small card's 17px title (and every
- * nested rung below it) is under 18.66px, so every band owes 4.5:1. There is
- * no per-band exemption: TL3 and Nanite once sat at 3.99:1 and 3.94:1 on the
- * reasoning that their titles were large at every size, which a small card
- * disproved, so they were retoned instead.
+ * nested title below it, down to the 11px floor) is under 18.66px, so every
+ * band owes 4.5:1. There is no per-band exemption, for a tone whose titles
+ * are large at most sizes (TL3, Nanite) or any other.
  */
 const LARGE_TEXT_PX = 24
 const LARGE_BOLD_TEXT_PX = 18.66
@@ -165,21 +163,12 @@ const px = (size: string): number => {
   return Number(m[1])
 }
 
-/** The ratio WCAG 1.4.3 asks of a title set at this rung. */
-function owedByTitle(rung: TitleRung): number {
-  const size = px(fontSize[rung])
+/** The ratio WCAG 1.4.3 asks of a title set at this `fontSize`. */
+function owedByTitle(fontSizePx: string): number {
+  const size = px(fontSizePx)
   const large = size >= LARGE_TEXT_PX || (TITLE_WEIGHT >= weight.bold && size >= LARGE_BOLD_TEXT_PX)
   return large ? 3 : 4.5
 }
-
-/** Every rung a card title can be set at: each size, at each nesting depth. */
-const TITLE_RUNGS: TitleRung[] = [
-  ...new Set(
-    (['full', 'compact', 'mini'] as const).flatMap((size) =>
-      [0, 1, 2, 3, 4, 5, 6].map((depth) => titleSizeRung(depth, size))
-    )
-  ),
-]
 
 describe('card band contrast', () => {
   const header = everyHeader()
@@ -212,11 +201,12 @@ describe('card band contrast', () => {
 
   // E17: the chips sit on the band. A chip's two cells are ink and paper
   // plates, text on each the other (4.5:1 by construction); on the ink banner
-  // its ink cell has no edge of its own, so `.su-chips--on-ink` keeps a paper
-  // rule round every cell, and that rule owes 3:1 against the band (WCAG 1.4.11).
+  // its ink cell has no edge of its own, so on an ink ground (the frame's
+  // `data-ground`, chrome K1) every cell keeps a paper rule, and that rule owes
+  // 3:1 against the band (WCAG 1.4.11).
   test('a chip on the ink banner keeps a paper rule that clears 3:1 against it', () => {
     const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
-    const rule = css.match(/\.su-chips--on-ink \.su-stat-cell\s*\{([^}]*)\}/)?.[1] ?? ''
+    const rule = css.match(/\[data-ground='ink'\] \.su-stat-cell\s*\{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toContain('border-color: var(--color-paper)')
     expect(contrastRatio(INK, PAPER)).toBeGreaterThanOrEqual(TEXT_CONTRAST)
     for (const name of ['ink banner', 'ink banner damaged']) {
@@ -227,24 +217,22 @@ describe('card band contrast', () => {
   })
 
   test('a small card’s title is under the large-text threshold, so owes 4.5:1', () => {
-    expect(px(fontSize[titleSizeRung(0, 'mini')])).toBeLessThan(LARGE_BOLD_TEXT_PX)
-    expect(owedByTitle(titleSizeRung(0, 'mini'))).toBe(4.5)
-    expect(owedByTitle(titleSizeRung(0, 'full'))).toBe(3)
+    expect(px(fontSize.readout)).toBeLessThan(LARGE_BOLD_TEXT_PX)
+    expect(owedByTitle(fontSize.readout)).toBe(4.5)
+    expect(owedByTitle(fontSize.displayLg)).toBe(3)
   })
 
-  for (const rung of TITLE_RUNGS) {
-    test(`header text clears what a ${fontSize[rung]} title owes on every band`, () => {
-      const owed = owedByTitle(rung)
-      const short = header
-        .filter((b) => ratio(b) < owed)
-        .map((b) => `${b.name}: ${ratio(b).toFixed(2)} < ${owed}`)
-      expect(short).toEqual([])
-    })
-  }
+  test('header text clears what the smallest title owes on every band', () => {
+    const owed = owedByTitle(fontSize.badge)
+    const short = header
+      .filter((b) => ratio(b) < owed)
+      .map((b) => `${b.name}: ${ratio(b).toFixed(2)} < ${owed}`)
+    expect(short).toEqual([])
+  })
 })
 
 /**
- * Ink on colour (ruleset §3.8, board 03 "Paper page. Legible bands").
+ * Ink on colour (ruleset §3.8: a paper page, legible bands).
  *
  * The brand refresh moved text on an ontology fill from paper to ink, and gave
  * the two bands that carry paper text values that can: pilot and mech fail
@@ -260,11 +248,17 @@ describe('ink on colour — the refresh pairs', () => {
     { band: 'mech', ground: color.mech, text: 'ink' },
     { band: 'crawlerBand', ground: color.crawlerBand, text: 'paper' },
     { band: 'denizenBand', ground: color.denizenBand, text: 'paper' },
+    // The Denizens chapter band.
+    { band: 'adversary', ground: color.adversary, text: 'paper' },
     // The Avatar fallback initial sits on pilot (Avatar.tsx).
     { band: 'avatar', ground: color.pilot, text: 'ink' },
-    // The ability tiers' Row banners and tree tracks: Advanced and Hybrid
+    // The ability tiers' Compact banners and tree tracks: Advanced and Hybrid
     // rust; Core is pilot, Legendary the crawler band (above).
     { band: 'tierHybrid', ground: color.tierHybrid, text: 'paper' },
+    // A Hybrid Class's brown.
+    { band: 'classHybrid', ground: color.classHybrid, text: 'paper' },
+    // The Heat guide's band.
+    { band: 'heat', ground: color.heat, text: 'paper' },
     // The SRD home's Discord button (`DiscordButton`).
     { band: 'discord', ground: color.discord, text: 'paper' },
   ] as const
@@ -304,7 +298,7 @@ describe('ink on colour — the refresh pairs', () => {
   })
 
   test('the page ground is a paper one step below the card paper', () => {
-    // Board 03: the ground is the book's off-white page, not a tone. A card
+    // The ground is the book's off-white page, not a tone. A card
     // still reads as a panel on it — the step stays above 1.1:1 — but a
     // ground dark enough to read as a colour would be a band, not a page.
     const step = contrastRatio(opaque(color.paper), opaque(color.wkBg))
@@ -349,14 +343,13 @@ describe('roll-table bands in the surface tone', () => {
 /**
  * Poster text on the sheet tones.
  *
- * The wizard banner, the mode chooser's h1 and the guided ModeDoor print on a
- * sheet's tone, and printed paper there: 2.4:1 on pilot, under even the 3:1
- * large-text floor, while the door's ink body measured 4.17:1 on crawler pink.
+ * The wizard banner and the mode chooser's h1 print on a sheet's tone, and
+ * printed paper there: 2.4:1 on pilot, under even the 3:1 large-text floor,
+ * while ink measured 4.17:1 on crawler pink.
  * They now read `--tone-band` / `--on-tone-band`, which each `.su-sheet--*` rule
  * in `styles/theme.css` sets. The rules are read off the stylesheet, so this
  * holds them to the `onTone` rule — the band `textBand` paints, the
- * foreground `onTone` picks — and to 4.5:1, since the door's body copy is
- * small text.
+ * foreground `onTone` picks — and to 4.5:1, as small text may print there.
  */
 describe('poster text on the sheet tones', () => {
   const css = readFileSync(join(import.meta.dir, '../../styles/theme.css'), 'utf8').replace(
@@ -378,7 +371,7 @@ describe('poster text on the sheet tones', () => {
     return { tone, band, text: decl('--on-tone-band') }
   }
 
-  for (const kind of ['pilot', 'mech', 'crawler']) {
+  for (const kind of ['pilot', 'mech', 'crawler', 'npc']) {
     test(`the ${kind} sheet's poster text follows onTone and clears 4.5:1`, () => {
       const { tone, band, text } = sheet(kind)
       expect(resolveColor(tone)).toBeDefined()
@@ -437,10 +430,10 @@ describe('resolveColorOver', () => {
  * Muted text over the known light grounds.
  *
  * The ink alpha rungs are translucent, so `resolveColor` refuses them and the
- * guard above never saw them: the Dashboard printed `ink-50` text in twenty
- * rules at 3.04–3.14:1. Composited over each ground a page paints — card
- * paper, the workshop grounds, and the band-cream of the Dashboard's
- * instrument chassis — the rung that reads muted is measured, not assumed.
+ * guard above never saw them: `ink-50` text on band-cream composites to
+ * 3.04–3.14:1. Composited over each ground a page paints — card
+ * paper, the workshop grounds, and the band-cream of Play's
+ * columns — the rung that reads muted is measured, not assumed.
  */
 describe('muted text, composited over the known grounds', () => {
   const GROUNDS = {

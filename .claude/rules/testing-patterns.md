@@ -11,9 +11,9 @@ Layout, cleanup hooks, reference preloads and fixture clocks are gated
 
 - Test interactions; query by role or label. React's "not wrapped in act(...)"
   warning fails the test: settle async work in `await act(async () => …)`, and in
-  the Cantina load the real stores with `hydrateStores`
+  the app load the real stores with `hydrateStores`
   (`src/components/__tests__/hydrateStores.ts`).
-- Cantina stores are in memory: reset with `resetStores()`, seed with `adopt`
+- The app's stores are in memory: reset with `resetStores()`, seed with `adopt`
   (`src/stores/__tests__/`). Fixtures come from
   `apps/web/src/components/__tests__/fixtures.ts`.
 

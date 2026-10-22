@@ -54,11 +54,8 @@ const CELL_STATE = {
   filled: { backgroundColor: color.cargo, borderColor: color.cargo },
   /** Fillable: a dashed ink-40 outline on paper. */
   empty: { backgroundColor: color.paper, borderColor: color.ink40, borderStyle: 'dashed' },
-  /** Read-only: a plain outline at ink 25% (no rung, so the `color-mix()` the old alpha emitted). */
-  emptyReadOnly: {
-    backgroundColor: color.paper,
-    borderColor: `color-mix(in oklab, ${color.ink} 25%, transparent)`,
-  },
+  /** Read-only: a plain outline at ink 30%, a step under the fillable one's 40. */
+  emptyReadOnly: { backgroundColor: color.paper, borderColor: color.ink30 },
   over: { backgroundColor: color.statusBad, borderColor: color.statusBad },
 } satisfies Record<string, CSSProperties>
 

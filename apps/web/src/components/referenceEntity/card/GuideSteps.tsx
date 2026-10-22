@@ -1,20 +1,30 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { useContext, useEffect, useRef } from 'react'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { Badge } from '../../atoms/Badge'
+import { capsLabel } from '../../atoms/capsLabel'
 import { Slab } from '../../atoms/Slab'
+import { Callout } from '../../containers/Callout'
+import { SlabSection } from '../../containers/SlabSection'
+import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
-import { EntityTokenList } from './EntityTokenList'
+import { conditionOf } from './cardChrome'
+import { cardKey } from './cardHelpers'
+import { EntityMiniList } from './EntityMiniList'
 import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
-import type { NestedCard } from './referenceEntityCardTypes'
+import type { CardTitleTag, NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
+
+const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
+const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section su-hit-area', capsLabel())
 
 /** A step's page pointer, its references as Mentions (E4). */
 function GuideNote({ text }: { text: string }) {
@@ -22,18 +32,19 @@ function GuideNote({ text }: { text: string }) {
 }
 
 /**
- * A step's aside — a tip or a worked example — as a framed callout: a full
- * chrome-weight ink frame on paper, never a left rail (ruleset §3.10), as the
- * srd's other asides are. With a `label` ("Note") it is a stamped callout:
- * the stamp rides the frame's top border (StampSeam, §7.2). Only the guide's
- * own Page stamps it: anywhere else (a Peek) the steps sit inside the guide's
- * frame, where a note is an unlabelled callout (N5). A `note` role, not an
- * `<aside>`: a complementary landmark may not sit inside the page's `main`.
+ * A step's aside — a tip or a worked example — is the note every rules block
+ * draws (hard rule R18): the unlabelled `Callout`, its ink frame on paper,
+ * never a left rail (ruleset §3.10), at the guide's reading size. With a
+ * `label` ("Note") its stamp rides the frame's top border (StampSeam, §7.2),
+ * never a titled head (N5). Only the guide's own Page stamps it. A `note`
+ * role, not an `<aside>`: a complementary landmark may not sit inside the
+ * page's `main`.
  */
 function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; label?: string }) {
   return (
-    <div
+    <Callout
       role="note"
+      prose
       className={cn(
         'su-guide__aside',
         flavor && 'su-guide__aside--flavor',
@@ -46,7 +57,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
         </Badge>
       )}
       <p>{useParseTraitReferences(text)}</p>
-    </div>
+    </Callout>
   )
 }
 
@@ -64,11 +75,11 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
  * restarts inside it. Under each slab: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
- * callouts, the entities it selects from as Tokens (a crawler's tech-level
- * ladder too, down its own column), its roll table and any sub-guide as its
- * Token — every one through the primitive its kind already has.
+ * callouts, the entities it selects from (on the Page open Compacts, else Minis;
+ * a crawler's tech-level ladder too, down its own column), its roll table and any sub-guide as its
+ * Mini — every one through the primitive its kind already has.
  *
- * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
+ * Layout is `.su-guide*` (`styles/partials/guides.css`). On a page (`CardPage`'s `guide`) the
  * steps stand beside the prose rather than inside the card body, and take the
  * page's reading size and measure there. There (`page`) a long guide also gets
  * its hierarchy and its way around: a section's slab is the page's H2, every
@@ -78,7 +89,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * book measure and leading, and a run-in head's stamp the full rung.
  *
  * Read-only by design: this is the SRD's transcription of the procedure.
- * Walking a guide as an interactive wizard is the Cantina's job (`DowntimeWizard`),
+ * Walking a guide step by step is Play's job (`PlayDowntimeColumn`),
  * and belongs to the surfaces that own player state (ADR-021).
  */
 export function GuideSteps({
@@ -115,9 +126,35 @@ export function GuideSteps({
   const stepAs = hasSections ? headingBelow(sectionAs) : sectionAs
   const anchors = page ? guideAnchors(groups) : undefined
   // The contents mark the section in view (`guideContents`); a card served as
-  // static HTML runs no effect, so srd's client entry starts it there.
+  // static HTML runs no effect, so the reference site's client entry starts it there.
   const pageRef = useRef<HTMLDivElement>(null)
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
+
+  // A step's options. On the guide's Page they are one level deep: each a
+  // Compact drawn open with all its content (N8, R39), one a line. Anywhere
+  // else (a Peek, a guide
+  // nested in a card) they are level 2: Minis.
+  const optionTitleAs = stepAs === 'h1' || stepAs === 'h2' ? headingBelow(stepAs) : undefined
+  const optionList = (entities: ReferenceCardEntity[], label: string) =>
+    page && !insidePeek ? (
+      <ul aria-label={label} className="su-guide__rows">
+        {entities.map((entity, index) => (
+          <li key={cardKey(entity, index)}>
+            <NestedCard
+              size="compact"
+              depth={depth + 1}
+              hostDown={isDown}
+              data={entity}
+              readable
+              titleAs={optionTitleAs as CardTitleTag | undefined}
+              chassisName={chassisName}
+            />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <EntityMiniList entities={entities} label={label} />
+    )
 
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
@@ -149,7 +186,7 @@ export function GuideSteps({
       )
     })
     // `sidebar` marks a step whose entities are a progression LADDER (crawler
-    // tech levels) rather than a set of options — their Tokens read down a
+    // tech levels) rather than a set of options — their Minis read down a
     // narrow column beside the prose instead of across the page. The prose
     // comes first in the document, so a phone reads it before the ladder it
     // explains.
@@ -159,19 +196,11 @@ export function GuideSteps({
       options = (
         <div className="su-guide__ladder">
           <div className="su-guide__ladder-prose">{stepProse}</div>
-          <div className="su-guide__ladder-cards">
-            <EntityTokenList entities={entities} label={step.name} />
-          </div>
+          <div className="su-guide__ladder-cards">{optionList(entities, step.name)}</div>
         </div>
       )
     } else if (entities.length > 0) {
-      // A step's options are a big grouping (5 to 21 across the dataset):
-      // Tokens, not compact cards (owner's call, 2026-10-14).
-      options = (
-        <div className="su-guide__cards">
-          <EntityTokenList entities={entities} label={step.name} />
-        </div>
-      )
+      options = <div className="su-guide__cards">{optionList(entities, step.name)}</div>
     }
     return (
       <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>
@@ -185,8 +214,8 @@ export function GuideSteps({
         <div className="su-guide__body">
           {!ladder && stepProse}
           {options}
-          {/* The step's table: the same embedded table an entity owns (board
-              E4), framed because it sits on the page; a wide one scrolls in
+          {/* The step's table: the same embedded table an entity owns (R8),
+              framed because it sits on the page; a wide one scrolls in
               its own box rather than pushing the page sideways. */}
           {table && !insidePeek && (
             <div className="su-guide__table">
@@ -195,19 +224,16 @@ export function GuideSteps({
                 name={table.name}
                 size={compact ? 'compact' : 'full'}
                 disabled={!!isDown}
-                framed
                 tone={tableTone}
               />
             </div>
           )}
           {subGuide && (
-            <NestedCard
+            <Entity
               size="mini"
-              extent="head"
-              depth={depth + 1}
-              hostDown={isDown}
-              data={subGuide}
-              chassisName={chassisName}
+              context="browse"
+              entity={subGuide as RefMetaEntity}
+              instance={isDown ? { condition: conditionOf(isDown) } : undefined}
             />
           )}
         </div>
@@ -221,16 +247,17 @@ export function GuideSteps({
       return <div key={group.key}>{list}</div>
     }
     return (
-      <section key={group.key} className="su-guide__section">
-        <Slab
-          variant="solid"
-          label={group.section}
-          as={sectionAs}
-          id={anchors?.get(sectionKey(group))}
-          className="su-guide__section-head"
-        />
+      // On its Page the section's slab and steps are 12px apart (R17).
+      <SlabSection
+        key={group.key}
+        title={group.section}
+        as={sectionAs}
+        id={anchors?.get(sectionKey(group))}
+        page={page}
+        className="su-guide__section"
+      >
         {list}
-      </section>
+      </SlabSection>
     )
   })
 
@@ -243,12 +270,12 @@ export function GuideSteps({
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
       <nav className="su-guide__toc-block" aria-label="On this page">
-        <Slab variant="solid" label="On this page" />
+        <Slab label="On this page" flush />
         {contents}
       </nav>
       <div className="su-guide__flow">{body}</div>
       <nav className="su-guide__rail" aria-label="On this page">
-        <p className="su-guide__toc-title" aria-hidden="true">
+        <p className={TOC_TITLE} aria-hidden="true">
           On this page
         </p>
         {contents}
@@ -305,10 +332,7 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
           <li key={group.key}>{stepLinks(group)}</li>
         ) : (
           <li key={group.key}>
-            <a
-              className="su-guide__toc-link su-guide__toc-link--section su-hit-area"
-              href={`#${anchors.get(sectionKey(group))}`}
-            >
+            <a className={TOC_SECTION} href={`#${anchors.get(sectionKey(group))}`}>
               {group.section}
             </a>
             {stepLinks(group)}
@@ -318,9 +342,6 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
     </ul>
   )
 }
-
-/** A step's slab sits flush: the step's own gap spaces it, not the slab's margin. */
-const STEP_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 /**
  * A step's slab: a two-cell chip, its numeral on the ink and its name on a
@@ -341,11 +362,11 @@ function StepHead({
 }) {
   return (
     <Slab
-      variant="solid"
       as={as ?? 'div'}
       id={id}
       className="su-guide__head"
-      style={STEP_SLAB}
+      // Flush: the step's own gap spaces it, not the slab's margin.
+      flush
       label={
         <>
           {number} <span className="su-guide__step-name">{name}</span>

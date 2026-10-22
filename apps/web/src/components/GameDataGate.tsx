@@ -1,27 +1,22 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { fontSize, space } from '../design/tokens'
+import { space } from '../design/tokens'
 import type { Projection, SchemaList } from '../lib/useGameData'
 import { useGameData } from '../lib/useGameData'
-import { Button } from './index'
+import { RecoveryPanel } from './index'
 
+/** The failure's panel, centred in the place the gate holds. */
 const FAILED = {
-  alignItems: 'flex-start',
   display: 'flex',
-  flexDirection: 'column',
-  gap: space[12],
-  padding: space[16],
-} satisfies CSSProperties
-
-const FAILED_MESSAGE = {
-  fontSize: fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
+  justifyContent: 'center',
+  padding: space[24],
 } satisfies CSSProperties
 
 /**
  * Gate component — renders children only after game data is preloaded.
  * Use this to wrap island content that depends on ORM calls.
- * On preload failure it renders a retry affordance instead of the fallback,
- * so a network error never leaves a permanent skeleton.
+ * On preload failure it renders the crash panel (`RecoveryPanel`, chrome.md
+ * K8) with "Try again" instead of the fallback, so a network error never
+ * leaves a permanent skeleton.
  */
 export function GameDataGate({
   children,
@@ -42,10 +37,11 @@ export function GameDataGate({
   if (error) {
     return (
       <div style={FAILED}>
-        <p style={FAILED_MESSAGE}>Failed to load game data.</p>
-        <Button variant="ghost" onClick={retry}>
-          Retry loading game data
-        </Button>
+        <RecoveryPanel
+          title="The reference data did not load"
+          message="Check your connection, then try again."
+          action={{ label: 'Try again', onClick: retry }}
+        />
       </div>
     )
   }

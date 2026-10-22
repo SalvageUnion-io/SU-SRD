@@ -7,19 +7,32 @@
 import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields'
 import { isAbility } from '../../entityGuards'
 import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
-import { isDoEntity, isHybridTree, schemaDomain } from './kind'
+import { classKind, isDoEntity, isHybridTree, schemaDomain } from './kind'
 
 /** The rules-blue token (`--color-wk-line`): the Rules · Salvaging chapter's band. */
 const RULES_BLUE = 'wk-line'
 
 /**
- * A guide's tone token, or `undefined` for every other entity: rules blue for
- * every guide, as its page's band is (owner's call, 2026-10-14), so the guides
- * index reads as one chapter. A guide is the record with a `guideType`.
+ * A guide's tone token, or `undefined` for every other entity. A creation
+ * guide wears the colour of what it creates (R44): Create a Pilot
+ * pilot orange, Create a Mech mech green, Create a Crawler crawler pink.
+ * Heat wears its own red; every other guide rules blue, as
+ * its page's band is. A guide is the record with
+ * a `guideType`.
  */
+const CREATION_TONE: Readonly<Record<string, string>> = {
+  'character-creation': 'pilot',
+  'mech-creation': 'mech',
+  'crawler-creation': 'crawler',
+}
+
 export function guideTone(entity: RefMetaEntity): string | undefined {
   if (entity == null || typeof entity !== 'object' || !('guideType' in entity)) return undefined
-  return typeof entity.guideType === 'string' ? RULES_BLUE : undefined
+  if (typeof entity.guideType !== 'string') return undefined
+  const creation = CREATION_TONE[entity.guideType]
+  if (creation) return creation
+  if ('name' in entity && entity.name === 'Heat') return 'heat'
+  return RULES_BLUE
 }
 
 /** The numeric tech-level ramp: TL1–6 own a band each. */
@@ -27,24 +40,31 @@ function techLevelTone(level: number | undefined): string | undefined {
   return level !== undefined && level >= 1 && level <= 6 ? `tl-${level}` : undefined
 }
 
-/** Tier tones (the owner's call, 2026-10-13, over the book's spreads): Core =
+/** Tier tones (over the book's spreads): Core =
  * pilot orange, Advanced and Hybrid = rust (`tier-hybrid`), Legendary =
  * crawler pink. The abilities index and an ability's show page both read
- * this, so they cannot disagree. */
+ * this, so they cannot disagree; a tree requirement wears its tree's. */
+function tierTone(tier: { legendary: boolean; advanced: boolean }): string {
+  if (tier.legendary) return 'crawler'
+  return tier.advanced ? 'tier-hybrid' : 'pilot'
+}
+
 function abilityTierTone(entity: RefMetaEntity): string {
-  const isLegendary =
-    ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
-    ('tree' in entity && String(entity.tree).includes('Legendary'))
-  if (isLegendary) return 'crawler'
   const tree = 'tree' in entity ? String(entity.tree) : ''
-  return isHybridTree(tree) || tree.includes('Advanced') ? 'tier-hybrid' : 'pilot'
+  return tierTone({
+    legendary:
+      ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
+      tree.includes('Legendary'),
+    advanced: isHybridTree(tree) || tree.includes('Advanced'),
+  })
 }
 
 function treeRequirementTone(entity: RefMetaEntity): string {
   const name = 'name' in entity ? String(entity.name).toLowerCase() : ''
-  if (name.includes('legendary')) return 'crawler'
-  if (name.includes('hybrid') || name.includes('advanced')) return 'tier-hybrid'
-  return 'pilot'
+  return tierTone({
+    legendary: name.includes('legendary'),
+    advanced: name.includes('hybrid') || name.includes('advanced'),
+  })
 }
 
 const SCHEMA_TONE: Partial<Record<RefEnumSchemaName, string>> = {
@@ -89,7 +109,12 @@ export function entityTone(
     const tone = level === 'B' ? 'tl-b' : level === 'N' ? 'tl-n' : techLevelTone(level)
     if (tone) return tone
   }
+  // A bio-chassis wears the bio gear's mutant green, not chassis green.
+  if (schemaName === 'chassis' && getTechLevel(entity) === 'B') return 'tl-b'
   if (getBlackMarket(entity) === true) return 'ink-2'
+  // A Hybrid Class wears its own brown, apart from the Core classes' orange
+  // (R44).
+  if (schemaName === 'classes' && classKind(entity) === 'HYBRID') return 'class-hybrid'
   const bySchema = SCHEMA_TONE[schemaName]
   if (bySchema) return bySchema
   if (schemaName === 'abilities') return abilityTierTone(entity)
@@ -103,7 +128,7 @@ export type HeaderFill = 'tone' | 'ink'
 
 /**
  * Which fill a header takes in a form (E12): things you do are the ink banner,
- * except an ability's Row, which wears its tier tone (Core orange, Advanced
+ * except an ability's Compact, which wears its tier tone (Core orange, Advanced
  * and Hybrid rust, Legendary pink) wherever abilities are listed.
  */
 export function headerFill(entity: RefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {

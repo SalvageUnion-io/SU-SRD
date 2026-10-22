@@ -1,6 +1,6 @@
 /**
- * The SRD as the Workshop Manual's chapters (board 06, "the manual's contents
- * page"): Pilot Bay, Mech Workshop, Union Crawler, Denizens of the Wasteland,
+ * The SRD as the Workshop Manual's chapters ("the manual's contents page"):
+ * Pilot Bay, Mech Workshop, Union Crawler, Denizens of the Wasteland,
  * and Rules & Reference. Each chapter is one or more of the dataset's catalog
  * categories (`catalog-categories.json`) under the book's own chapter name and
  * colour (ruleset, "The book's colour map").
@@ -12,7 +12,7 @@
  * since the chapters are the home page's own groupings.
  *
  * Reads the ORM: call it only after `SalvageUnionReference.preload('all')`
- * (srd's build-time `gameData` import does that). Never import it from an
+ * (the reference site's build-time `gameData` import does that). Never import it from an
  * island — the drawer reads the frozen copy instead.
  */
 
@@ -21,7 +21,7 @@ import {
   entityTone,
   getModel,
   getSchemaCatalog,
-  getTechLevel,
+  isSchemaName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { ChapterTone } from '../components/index'
@@ -39,7 +39,7 @@ type ChapterDefinition = {
   categories: string[]
   /**
    * Schemas to lead with, ahead of the categories' own order. Rules &
-   * Reference leads with what a table reaches for mid-game (board 06).
+   * Reference leads with what a table reaches for mid-game.
    */
   lead?: string[]
 }
@@ -51,7 +51,8 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   {
     id: 'denizens',
     title: 'Denizens of the Wasteland',
-    tone: 'denizen',
+    // The adversary brown its entities' cards wear.
+    tone: 'adversary',
     categories: ['denizens'],
   },
   {
@@ -121,12 +122,15 @@ export function buildChapters(): SrdChapter[] {
       id: definition.id,
       title: definition.title,
       tone: definition.tone,
-      href: `/#${definition.id}`,
+      href: chapterHref(definition.id),
       rows,
       total: rows.reduce((sum, row) => sum + row.count, 0),
     }
   })
 }
+
+/** A chapter's anchor on the home page. */
+const chapterHref = (id: string): string => `/#${id}`
 
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
@@ -137,7 +141,7 @@ export const CHAPTER_REFS: readonly ChapterRef[] = CHAPTER_DEFINITIONS.map(
     id,
     title,
     tone,
-    href: `/#${id}`,
+    href: chapterHref(id),
   })
 )
 
@@ -163,60 +167,60 @@ export function chapterForSchema(schemaId: string): ChapterRef {
         ?.schemas.some((id) => id === schemaId)
     )
   )
-  if (!definition) return CONTENTS
-  const { id, title, tone } = definition
-  return { id, title, tone, href: `/#${id}` }
-}
-
-/** A show page's band colours when it wears its own rather than its chapter's. */
-export type BandFill = {
-  /** The head band (`ChapterBand`'s `fill`). */
-  band: string
-  /** The foot band (`ChapterFoot`'s `fill`): the band, or its text-bearing shade. */
-  foot: string
+  return CHAPTER_REFS.find((ref) => ref.id === definition?.id) ?? CONTENTS
 }
 
 /**
- * Tech level 3's foot band, which carries the citation, takes tech level 4's
- * blue beneath it (as a Union Crawler foot takes the deeper `crawlerBand`).
- * The shade dates from when TL3 carried neither ink nor paper at 4.5:1; since
- * its retone TL3 carries ink at 4.6:1 (`design/__tests__/contrast.test.ts`).
- */
-const FOOT_SHADE: Partial<Record<string, string>> = {
-  'var(--color-tl-3)': 'var(--color-tl-4)',
-}
-
-/**
- * An ability's tier tone (`entityTone`) as its page's band: the colour its Row
+ * An ability's tier tone (`entityTone`) as its page's band: the colour its Compact
  * wears on the abilities index, so the two cannot disagree. Legendary pink is
- * the deeper crawler band, as the Row paints it (it carries paper); Core is
+ * the deeper crawler band, as the Compact paints it (it carries paper); Core is
  * the chapter's own orange (`undefined`).
  */
-function abilityBandFill(entity: RefEntity): BandFill | undefined {
+function abilityBandFill(entity: RefEntity): string | undefined {
   const tone = entityTone('abilities', entity)
   if (tone === 'pilot') return undefined
-  const band = tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
-  return { band, foot: band }
+  return tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
 }
 
 /**
- * The schemas whose show page wears its tech level's blue: systems and
- * modules, the one place the book sets TL blue as a ground (ruleset §3.8, book
- * pp. 162, 188). Equipment, drones and vehicles wear their chapter's band.
+ * The listings that wear TL1's blue: systems and modules, the one place the
+ * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones, whose cards' heads are tech-level blue
+ * (R44), and pilot equipment, whose cards' heads are too, never pilot
+ * orange.
  */
-const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules'])
+const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
+  'systems',
+  'modules',
+  'drones',
+  'equipment',
+])
 
 /**
- * The bands a show page wears when not its chapter's: a system's or module's,
- * its tech level's colour, head and foot, as its card's header and Row do; an
- * ability's, its tier's colour (E12). Every other page, every listing
- * included, wears its chapter's band from the colour map (`undefined`).
+ * A listing's band when not its chapter's: TL1's blue on the tech-level
+ * listings. Every other listing wears its
+ * chapter's band (`undefined`).
  */
-export function bandFillFor(schemaId: string, entity: RefEntity): BandFill | undefined {
+export function listingBandFillFor(schemaId: string): string | undefined {
+  return TECH_LEVEL_LISTING_SCHEMAS.has(schemaId) ? 'var(--color-tl-1)' : undefined
+}
+
+/**
+ * The bands a show page wears when not its chapter's: the entity's own tone
+ * (`entityTone`), the colour its card's header and Compact wear, head and foot
+ * (R44: a Page's band wears its entity). Gear
+ * (systems, modules, drones, equipment, vehicles) wears its tech level's
+ * colour; a Hybrid Class its brown; an ability its tier's colour (E12);
+ * a creation guide its entity's colour, Heat its red (`guideTone`).
+ * Every other page wears its chapter's band from the colour map
+ * (`undefined`); a listing's is `listingBandFillFor`.
+ */
+export function bandFillFor(schemaId: string, entity: RefEntity): string | undefined {
   if (schemaId === 'abilities') return abilityBandFill(entity)
-  if (!TECH_LEVEL_BAND_SCHEMAS.has(schemaId)) return undefined
-  const techLevel = getTechLevel(entity)
-  if (techLevel == null) return undefined
-  const band = `var(--color-tl-${String(techLevel).toLowerCase()})`
-  return { band, foot: FOOT_SHADE[band] ?? band }
+  if (!isSchemaName(schemaId)) return undefined
+  const tone = entityTone(schemaId, entity)
+  const own = tone.startsWith('tl-') || tone === 'tier-hybrid' || tone === 'class-hybrid'
+  // A guide that is not rules blue: a creation guide's entity, Heat's red.
+  const guide = schemaId === 'guides' && tone !== 'wk-line'
+  if (own || guide) return `var(--color-${tone})`
+  return undefined
 }

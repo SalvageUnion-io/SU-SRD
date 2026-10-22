@@ -8,7 +8,7 @@
  */
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
-import type { EntityRowModel } from '../components/index'
+import type { EntityFormModel } from '../components/index'
 
 export type CompactSearchEntry = {
   id: string
@@ -20,10 +20,10 @@ export type CompactSearchEntry = {
    *  goals/assets/weaknesses/content + resolved action content). */
   text: string
   /**
-   * What a search result's Row draws (entity display language, §7 "Search"):
-   * the entity's model, slimmed to the Row's parts — no prose, no lead (a
+   * What a search result's Compact draws (entity display language, §7 "Search"):
+   * the entity's model, slimmed to the Compact's parts — no prose, no lead (a
    * result shows none, E11), no stat glossary — so the index stays small and
    * the browser still never loads the corpus.
    */
-  model?: EntityRowModel
+  model?: EntityFormModel
 }

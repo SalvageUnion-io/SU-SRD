@@ -169,17 +169,20 @@ describe('VitalGauge — read-only', () => {
   // provenance trigger of a read-only gauge sits outside the role=img element.
   const LINES = [{ kind: 'base' as const, label: 'Pilot', amount: 10 }]
 
-  test.each(['full', 'compact'] as const)(
-    'a %s read-only gauge keeps its provenance trigger outside the image',
-    (size) => {
-      render(<VitalGauge label="HP" value={7} max={10} readOnly size={size} provenance={LINES} />)
-      const img = screen.getByRole('img', { name: 'HP 7 of 10' })
-      const trigger = screen.getByRole('button', { name: /max hp: how this is derived/i })
-      expect(img.contains(trigger)).toBe(false)
-      expect(img.querySelectorAll('[data-pip]').length).toBe(10)
-      cleanup()
-    }
-  )
+  test('a read-only gauge keeps its provenance trigger outside the image', () => {
+    render(<VitalGauge label="HP" value={7} max={10} readOnly provenance={LINES} />)
+    const img = screen.getByRole('img', { name: 'HP 7 of 10' })
+    const trigger = screen.getByRole('button', { name: /max hp: how this is derived/i })
+    expect(img.contains(trigger)).toBe(false)
+    expect(img.querySelectorAll('[data-pip]').length).toBe(10)
+  })
+
+  // Play's vitals are numbers only (ADR-029 §3): the compact rung draws no trigger.
+  test('a compact gauge draws no provenance trigger', () => {
+    render(<VitalGauge label="HP" value={7} max={10} readOnly size="compact" provenance={LINES} />)
+    expect(screen.getByRole('img', { name: 'HP 7 of 10' })).toBeTruthy()
+    expect(screen.queryByRole('button')).toBeNull()
+  })
 })
 
 describe('VitalGauge — cap override (ADR-022)', () => {
@@ -318,13 +321,6 @@ describe('VitalGauge — danger', () => {
     expect(toneSegs.length).toBe(7)
   })
 
-  test('the cap reads as a Cap | N Stat chip beside the stamp', () => {
-    render(<VitalGauge label="Heat" value={0} max={8} cap={8} readOnly />)
-    const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
-    const cap = Array.from(track.querySelectorAll('span')).find((s) => s.textContent === 'Cap8')
-    expect(cap).toBeDefined()
-  })
-
   test('unlit segments past the danger index carry the status-bad outline', () => {
     render(<VitalGauge label="Heat" value={0} max={8} danger={5} readOnly />)
     const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
@@ -336,7 +332,7 @@ describe('VitalGauge — danger', () => {
   })
 })
 
-// The compact (Dashboard) gauge takes the §4.5 row split like every other pip
+// The compact (Play) gauge takes the §4.5 row split like every other pip
 // surface: at most six a row, balanced, bottom-heavy — never a fixed five.
 describe('VitalGauge — compact pip rows', () => {
   test.each([
@@ -353,5 +349,55 @@ describe('VitalGauge — compact pip rows', () => {
     )
     expect(perRow).toEqual(rows)
     cleanup()
+  })
+})
+
+describe('VitalGauge steppers (the compact rung)', () => {
+  test('a live compact gauge draws the one − / + pair, clamped at its ends', () => {
+    const onChange = mock((_: number) => {})
+    render(
+      <VitalGauge size="compact" label="HP" value={10} max={10} onChange={onChange} steppers />
+    )
+    const plus = screen.getByRole<HTMLButtonElement>('button', { name: 'Increase HP' })
+    expect(plus.disabled).toBe(true)
+    expect(plus.classList.contains('su-step-btn')).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease HP' }))
+    expect(onChange).toHaveBeenCalledWith(9)
+    cleanup()
+  })
+
+  test('a read-out has none', () => {
+    render(<VitalGauge size="compact" label="HP" value={4} max={10} readOnly steppers />)
+    expect(screen.queryByRole('button')).toBeNull()
+    cleanup()
+  })
+})
+
+describe('VitalGauge — mini HP cells', () => {
+  test('read-only: label, value/max and one square cell per point in a square block', () => {
+    render(<VitalGauge size="mini" label="HP" value={3} max={9} readOnly />)
+    const gauge = screen.getByRole('img', { name: 'HP 3 of 9' })
+    expect(gauge.getAttribute('data-size')).toBe('mini')
+    expect(gauge.textContent).toContain('3/9')
+    const cells = gauge.querySelectorAll<HTMLElement>('[data-pip]')
+    expect(cells).toHaveLength(9)
+    expect(gauge.querySelectorAll('[data-pip="on"]')).toHaveLength(3)
+    expect(cells[0]?.style.width).toBe(cells[0]?.style.height)
+    const grid = must(cells[0]?.parentElement)
+    expect(grid.style.gridTemplateColumns).toBe('repeat(3, 8px)')
+    // The value sits under the cells, a rung smaller.
+    const value = must(grid.nextElementSibling as HTMLElement | null)
+    expect(value.textContent).toBe('3/9')
+    expect(value.style.fontSize).toBe('11px')
+  })
+
+  test('editable: the cells are one slider, a click sets the value', () => {
+    const onChange = mock((_: number) => {})
+    render(<VitalGauge size="mini" label="HP" value={1} max={4} onChange={onChange} />)
+    const slider = screen.getByRole('slider', { name: 'HP' })
+    fireEvent.click(pip(slider, 2))
+    expect(onChange).toHaveBeenCalledWith(3)
+    fireEvent.keyDown(slider, { key: 'ArrowRight' })
+    expect(onChange).toHaveBeenLastCalledWith(2)
   })
 })

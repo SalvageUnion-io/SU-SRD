@@ -1,7 +1,7 @@
 /**
  * Former slugs — ADR-043, decision 4: a published slug never dies. A row whose
  * slug must go lists the old one, and every surface that takes a slug resolves
- * it to where the thing lives now (srd answers it with a 301).
+ * it to where the thing lives now (the reference site answers it with a 301).
  *
  * The one case in the data is a Bio-Titan that became a PATTERN of another:
  * "Hill Worm Pattern Typhon" was published as its own Bio-Titan at

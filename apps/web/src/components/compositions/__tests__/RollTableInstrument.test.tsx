@@ -47,14 +47,14 @@ describe('RollTableInstrument — the roll', () => {
       <RollTableInstrument
         name="Callsign Table"
         size="full"
-        stamp="Roll twice:"
+        stamp="Roll the Dice:"
         onRoll={() => {}}
         table={{ kind: 'columns', columns: [] }}
       />
     )
-    expect(screen.getByRole('button', { name: 'Roll twice on Callsign Table' }).textContent).toBe(
-      'Roll twice'
-    )
+    expect(
+      screen.getByRole('button', { name: 'Roll the dice on Callsign Table' }).textContent
+    ).toBe('Roll the Dice')
   })
 
   test('without onRoll, the roll is the plain stamp, in the same place', () => {
@@ -66,8 +66,8 @@ describe('RollTableInstrument — the roll', () => {
   test('server markup prints the stamp, never a dead button, even with onRoll', () => {
     const html = renderToStaticMarkup(instrument(() => {}))
     // Marked as waiting on the script, so its page still ships an island.
-    expect(html).toContain(
-      '<span class="su-roll__stamp su-roll__roll" data-roll-pending="">Roll the Die:</span>'
+    expect(html).toMatch(
+      /<span class="su-roll__stamp su-roll__roll[^"]*" data-roll-pending="">Roll the Die:<\/span>/
     )
     expect(html).not.toContain('<button')
   })
@@ -85,7 +85,7 @@ describe('RollTableInstrument — the rolled row', () => {
       )
       const row = container.querySelectorAll('.su-roll__row')[1] as HTMLElement
       const body = row.querySelector('.su-roll__body') as HTMLElement
-      const shape = [...body.children].map((child) => child.className)
+      const shape = [...body.children].map((child) => child.classList[0])
       const tag = body.querySelector('.su-roll__tag')?.textContent ?? null
       unmount()
       return { shape, tag }
@@ -134,46 +134,6 @@ describe('RollTableInstrument — the ink head’s column labels', () => {
       />
     )
     expect(container.querySelector('.su-roll__cols')).toBeNull()
-  })
-})
-
-describe('RollTableInstrument — the title as a table picker', () => {
-  const picker = (open: boolean, onOpen: () => void) => (
-    <RollTableInstrument
-      name="Core Mechanic"
-      size="compact"
-      onRoll={() => {}}
-      titleSelect={{ onOpen, open }}
-      table={{ kind: 'bands', rows }}
-    />
-  )
-
-  test('the title is the trigger: it names the table, reports its state and calls back', () => {
-    let opened = 0
-    const { container } = render(picker(false, () => opened++))
-    const trigger = screen.getByRole('button', {
-      name: 'Choose a roll table (current: Core Mechanic)',
-    })
-    expect(trigger.textContent).toBe('Core Mechanic')
-    expect(trigger.getAttribute('aria-haspopup')).toBe('dialog')
-    expect(trigger.getAttribute('aria-expanded')).toBe('false')
-    expect(container.querySelector('.su-roll__title')?.contains(trigger)).toBe(true)
-    // A titled bar: no column labels, and the roll is still the bar's last control.
-    expect(container.querySelector('.su-roll__cols')).toBeNull()
-    expect(container.querySelector('.su-roll__bar')?.lastElementChild?.textContent).toBe(
-      'Roll the Die'
-    )
-    fireEvent.click(trigger)
-    expect(opened).toBe(1)
-  })
-
-  test('an open picker flips the chevron and says so', () => {
-    const { container } = render(picker(true, () => {}))
-    const trigger = screen.getByRole('button', { name: /^Choose a roll table/ })
-    expect(trigger.getAttribute('aria-expanded')).toBe('true')
-    expect(container.querySelector('.su-roll__title-chevron')?.getAttribute('data-open')).toBe(
-      'true'
-    )
   })
 })
 

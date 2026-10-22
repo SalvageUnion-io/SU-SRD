@@ -1,10 +1,10 @@
+import { v } from 'convex/values'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
-} from 'cantina-domain/starterSet/starterSet'
-import { v } from 'convex/values'
+} from 'game-domain/starterSet/starterSet'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { mutation } from './model/entities'
@@ -19,7 +19,7 @@ import { requireUser } from './model/permissions'
  * out as players join, which turns pre-generated characters from a curiosity
  * into the onboarding path.
  *
- * The Starter Set data is imported straight from `cantina-domain/starterSet/`. That
+ * The Starter Set data is imported straight from `game-domain/starterSet/`. That
  * module is deliberately static plain data with no runtime reference-data
  * resolution (see its header), so it bundles into a Convex function safely and
  * there is exactly one copy of the roster rather than a server-side duplicate

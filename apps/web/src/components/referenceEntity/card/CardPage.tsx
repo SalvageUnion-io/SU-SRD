@@ -1,17 +1,22 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
+import { itemHref } from '../../../lib/entityHref'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
+import { SlabSection } from '../../containers/SlabSection'
+import { Entity } from '../../entity/Entity'
+import { abilityTreeNeighbours } from './abilityTreeRelations'
 import type { Down } from './cardChrome'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
 import { pageBodyStats } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
- * CardPage — the card when it IS the page (`presentation="page"`, boards 07
- * and 08). No frame, header or footer: the page's `ChapterBand` carries
+ * CardPage — the card when it IS the page (`presentation="page"`). No frame,
+ * header or footer: the page's `ChapterBand` carries
  * the title and stamps, its `ChapterFoot` the citation. The line art is the
  * hero on the left; beside it a chassis's stats, inline and first, then the
  * prose and the chassis ability (every other entity's stats ride the band:
@@ -21,9 +26,12 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  * (`opening`), then the base chassis's prose under its own slab.
  *
  * The card decides what each part is (`ReferenceEntityCardInner`); this lays
- * the parts out as a page. Layout is `index.css`'s `.su-entity-page*`, which
+ * the parts out as a page. Layout is `.su-entity-page*` (`styles/partials/entity-page.css`), which
  * keeps this DOM order at every width, so tab order matches what you see.
  */
+
+/** A neighbour's Section names its relation, so its Mini drops the type stamp. */
+const NEIGHBOUR_OMIT = ['kind'] as const
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -52,6 +60,12 @@ type CardPageProps = {
   guide?: ReactNode
   /** The nested cards. */
   sections: ReactNode
+  /**
+   * A crawler type's: its actions stand bare, no "Actions" band, each wearing
+   * this seal as its first chip ("Crawler Ability"; Core Book p.212: "a unique
+   * Ability … as well as a special NPC").
+   */
+  actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
   /** `afterExtraContent` and `expand`. */
@@ -79,6 +93,7 @@ export function CardPage({
   table,
   guide,
   sections,
+  actionSeal,
   patterns,
   after,
   sectionAs,
@@ -89,7 +104,11 @@ export function CardPage({
   const stats = pageBodyStats(entity)
   // `titleAs` is the card title's element: an `h3` only where a section band's
   // `h2` holds the card (`nestedTitleLevel`), else the header's `span`.
-  const actionCard = (data: ReferenceCardEntity, index: number, titleAs: 'h3' | undefined) => (
+  const actionCard = (
+    data: ReferenceCardEntity,
+    index: number,
+    titleAs: 'h2' | 'h3' | undefined
+  ) => (
     <NestedCard
       key={cardKey(data, index)}
       data={data}
@@ -99,6 +118,7 @@ export function CardPage({
       // Every action on a page reads at the regular size (14px), the chassis
       // ability's and the rest alike.
       readable
+      parentSeal={actionSeal}
       hostDown={action.hostDown}
       hostName={action.hostName}
       chassisName={action.chassisName}
@@ -110,16 +130,55 @@ export function CardPage({
   const hasMain =
     !!hero || stats.length > 0 || !!opening || !!subLine || !!body || leadActions.length > 0
 
+  // With art, the page's actions and nested trays stand in the column beside
+  // it: the art keeps the top left, a column
+  // shorter than its art spreads its blocks evenly down it. Without art they
+  // follow the main block.
+  const beside = (
+    <>
+      {otherActions.length > 0 && actionSeal && (
+        <div className="su-entity-page__section-body">
+          {otherActions.map((data, index) => actionCard(data, index, stackedTitleLevel(true)))}
+        </div>
+      )}
+      {otherActions.length > 0 && !actionSeal && (
+        <SlabSection
+          as={sectionAs}
+          title="Actions"
+          page
+          className="su-entity-page__section"
+          bodyClassName="su-entity-page__section-body"
+        >
+          {otherActions.map((data, index) =>
+            actionCard(data, index, nestedTitleLevel(!!sectionAs))
+          )}
+        </SlabSection>
+      )}
+      {guide}
+      {sections}
+    </>
+  )
+
+  // Preceding and Next side by side on one row, Next's label at its end.
+  const neighbours = abilityTreeNeighbours(entity)
+
   return (
     <div
       className={cn(
         'su-entity-page',
-        !!hero && 'su-entity-page--flow',
+        !!hero && 'su-entity-page--art',
         !!guide && 'su-entity-page--guide'
       )}
     >
       {hasMain && (
-        <div className={cn('su-entity-page__main', !!hero && 'su-entity-page__main--art')}>
+        <div
+          className={cn(
+            'su-entity-page__main',
+            !!hero && 'su-entity-page__main--art',
+            // Its actions wrap under the art.
+            !!hero && otherActions.length > 0 && 'su-entity-page__main--wrap'
+          )}
+        >
           {hero && <div className="su-entity-page__art">{hero}</div>}
           <div className="su-entity-page__side">
             {stats.length > 0 && (
@@ -130,7 +189,7 @@ export function CardPage({
             {opening && <div className="su-entity-page__opening">{opening}</div>}
             {(subLine || body) && (
               <div className="su-entity-page__prose">
-                {bodyLabel && <Slab as={sectionAs} variant="solid" label={bodyLabel} />}
+                {bodyLabel && <Slab as={sectionAs} label={bodyLabel} flush />}
                 {subLine}
                 {body}
               </div>
@@ -146,20 +205,45 @@ export function CardPage({
             {/* A pattern page's Systems and Modules follow its chassis
                 ability: pattern → chassis ability → Systems → Modules. */}
             {loadout}
+            {hero && beside}
           </div>
         </div>
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
-      {otherActions.length > 0 && (
-        <section className="su-entity-page__section">
-          <Slab as={sectionAs} variant="solid" label="Actions" />
-          {otherActions.map((data, index) =>
-            actionCard(data, index, nestedTitleLevel(!!sectionAs))
-          )}
-        </section>
+      {!hero && beside}
+      {/* An ability's neighbours in its tree, under the rest,
+          each a collapsed header a line wide that links to its Page, never
+          its full content (R43), at the Page's nested level, a Compact
+          (ruleset N1), a named N8 exception
+          (`.su-entity-page__neighbours`). */}
+      {neighbours.length > 0 && (
+        <div className="su-entity-page__neighbour-row">
+          {neighbours.map(({ label, abilities }) => (
+            <SlabSection
+              key={label}
+              as={sectionAs}
+              title={label}
+              page
+              className={cn(
+                'su-entity-page__section',
+                label === 'Next' && 'su-entity-page__section--end'
+              )}
+              bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
+            >
+              {abilities.map((ability) => (
+                <Entity
+                  key={ability.id}
+                  size="compact"
+                  context="play"
+                  entity={ability}
+                  mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
+                  omit={NEIGHBOUR_OMIT}
+                />
+              ))}
+            </SlabSection>
+          ))}
+        </div>
       )}
-      {guide}
-      {sections}
       <div className="su-entity-page__wide">
         <PatternLinkRows
           chassis={entity}

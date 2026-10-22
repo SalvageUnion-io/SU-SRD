@@ -2,14 +2,14 @@ import type { KeyboardEvent } from 'react'
 
 /**
  * Shared interaction primitives for the chrome atoms — one source of truth for
- * the focus ring, disabled treatment, selection ring, and keyboard activation
- * that Button / StepButton / Sel would otherwise each re-inline.
+ * the focus ring, disabled treatment and keyboard activation
+ * that Button / StepButton would otherwise each re-inline.
  *
  * ## These are `.su-*` class NAMES
  *
  * Each is a string you drop into `className`: it composes through `cn()` and
  * works on any element, in this package or in either app. The rules live in
- * `src/styles/index.css`.
+ * `src/styles/partials/foundation.css`.
  *
  * They are stylesheet-only because a consuming app puts them on elements the
  * library never renders, and a string constant cannot carry a style object —
@@ -47,26 +47,8 @@ export const INPUT_FOCUS = 'su-input-focus'
  */
 export const FOCUS_WITHIN = 'su-focus-within'
 
-/**
- * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
- * whose own background is an arbitrary ENTITY TONE rather than paper — a
- * clickable entity card can be pale pilot or near-black `tl-6`, and the old
- * 25%-alpha rust ring simply disappeared against the dark end of that ramp.
- * Since the canonical ring went ink it draws the same ring.
- *
- * This is a real exception, not drift, so it is named instead of inlined: the
- * ring is the accessibility affordance, and a rung that vanishes on a legal
- * background is not one. Reach for it ONLY when the background is caller-supplied
- * tone; everything sitting on paper uses `FOCUS_RING`.
- */
-export const FOCUS_RING_ON_TONE = 'su-focus-ring-on-tone'
-
 /** The canonical disabled treatment (opacity + no pointer events). */
 export const DISABLED = 'su-disabled'
-
-/** Non-layout-shifting 3px ink selection ring (design-spec §2.8). Ink, not
- * rust: a selection is state, not an action (ruleset §3.1). */
-export const SELECTION_RING = 'su-selection-ring'
 
 /**
  * Enter/Space → activate, matching native button semantics on a `div` wrapper

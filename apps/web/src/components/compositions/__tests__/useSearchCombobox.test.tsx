@@ -110,7 +110,7 @@ describe('useSearchCombobox', () => {
     await typeAndSettle(result, 'laser')
 
     expect(result.current.results).toEqual([])
-    expect(result.current.announcement).toBe('Loading game data')
+    expect(result.current.announcement).toBe('Loading reference data…')
   })
 
   test('flipping ready re-runs the pending query', async () => {

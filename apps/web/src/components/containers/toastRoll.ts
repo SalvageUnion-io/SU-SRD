@@ -21,7 +21,8 @@ export type AnnouncedRoll = {
  * Every roll's result, wherever it is rolled (a card's table, a roll table's
  * own page): one toast with the die and the range it lands on, then the
  * outcome's name and text. A reroll on the same table replaces its toast
- * rather than stacking another. The app mounts the `<Toaster />` it shows in.
+ * rather than stacking another. It shows in the document's one toaster
+ * (`ToasterMount`).
  */
 export function toastRoll({ table, roll, range, label, text }: AnnouncedRoll) {
   toast(range ? `${table}: rolled ${roll} (${range})` : `${table}: rolled ${roll}`, {

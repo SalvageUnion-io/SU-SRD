@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import type { LinkShape } from 'cantina-domain/links/linkRules'
-import { conflictingLinks, linkKey, linkTypeFor, sameLink } from 'cantina-domain/links/linkRules'
-import type { CrewSlot } from 'cantina-domain/schemas/softLink'
-import { SoftLinkSchema } from 'cantina-domain/schemas/softLink'
+import type { LinkShape } from 'game-domain/links/linkRules'
+import { conflictingLinks, linkKey, linkTypeFor, sameLink } from 'game-domain/links/linkRules'
+import type { CrewSlot } from 'game-domain/schemas/softLink'
+import { SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { assignCrew } from '../assignLink'
 

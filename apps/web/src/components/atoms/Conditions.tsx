@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { borderWidth, font, radius, space } from '../../design/tokens'
+import { borderWidth, font, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
@@ -61,7 +61,7 @@ const ADD_BUTTON = {
   display: 'inline-flex',
   height: '22px',
   lineHeight: 1,
-  paddingInline: '9px',
+  paddingInline: space[8],
 } satisfies CSSProperties
 
 /**
@@ -73,7 +73,7 @@ const ADD_BUTTON = {
  * is a Badge that happens to carry a button. `Badge` renders arbitrary children
  * inside a non-interactive `<span>`, so the control stays valid and focusable.
  */
-export function ConditionChip({
+function ConditionChip({
   label,
   tone = 'warn',
   onRemove,
@@ -101,7 +101,7 @@ export function ConditionChip({
           className="su-condition-chip__remove"
           style={REMOVE_BUTTON}
         >
-          <X aria-hidden="true" size={12} />
+          <X aria-hidden="true" size={iconSize.mini} />
         </button>
       )}
     </Badge>
@@ -168,10 +168,7 @@ export function Conditions({
           type="button"
           aria-label={addLabel ?? 'Add condition'}
           onClick={onAdd}
-          className={cn(
-            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' }),
-            'su-conditions__add'
-          )}
+          className={cn(capsLabel({ size: 'badge', weight: 'semibold' }), 'su-conditions__add')}
           style={ADD_BUTTON}
         >
           + Add

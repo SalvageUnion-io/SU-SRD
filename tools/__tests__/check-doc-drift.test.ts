@@ -131,9 +131,9 @@ describe('sentenceBounds', () => {
   })
 
   it('treats every table row and list item as its own unit', () => {
-    const table = '| Who may create | anyone |\n| Storage | `apps/cantina/convex/schema.ts` |'
+    const table = '| Who may create | anyone |\n| Storage | `apps/legacy/convex/schema.ts` |'
     expect(sentenceAround(table, table.indexOf('`apps'))).toBe(
-      '| Storage | `apps/cantina/convex/schema.ts` |'
+      '| Storage | `apps/legacy/convex/schema.ts` |'
     )
     const list = '- `a.ts` was deleted\n- `b.ts` is live'
     expect(sentenceAround(list, list.indexOf('`b.ts`'))).toBe('- `b.ts` is live')
@@ -156,9 +156,9 @@ describe('citationReadsAsHistoryOrProposal', () => {
     expect(excused('Create `test/preload.ts` in the package')).toBe(true)
     expect(excused('- Create `test/preload.ts` in the package')).toBe(true)
     expect(excused('Gated on the create path by `lib/rules/creation.ts`')).toBe(false)
-    expect(
-      excused('| Who may create | the owner, via `apps/cantina/convex/publicSheet.ts` |')
-    ).toBe(false)
+    expect(excused('| Who may create | the owner, via `apps/legacy/convex/publicSheet.ts` |')).toBe(
+      false
+    )
   })
 
   it('still judges live instructions that merely contain not / will / add / was', () => {
@@ -231,8 +231,8 @@ describe('checkBacktickedPathsExist', () => {
 
   it('resolves a workspace-relative path under any workspace, with or without src/', () => {
     const root = fixture({
-      'apps/cantina/src/lib/rules/downtime.ts': '',
-      'apps/cantina/src/lib/db/broadcast.ts': '',
+      'apps/legacy/src/lib/rules/downtime.ts': '',
+      'apps/legacy/src/lib/db/broadcast.ts': '',
       '.claude/rules/x.md':
         'Downtime lives in `lib/rules/downtime.ts`, and writes publish through `lib/db/broadcast`.\n',
     })
@@ -242,11 +242,11 @@ describe('checkBacktickedPathsExist', () => {
   it('scans docs/ARCHITECTURE.md as a live-instruction doc', () => {
     const root = fixture({
       'docs/ARCHITECTURE.md':
-        '## Data flow\n\nWrites go through `apps/cantina/src/stores/gone.ts`.\n',
+        '## Data flow\n\nWrites go through `apps/legacy/src/stores/gone.ts`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('docs/ARCHITECTURE.md:3 cites `apps/cantina/src/stores/gone.ts`')
+    expect(failures[0]).toContain('docs/ARCHITECTURE.md:3 cites `apps/legacy/src/stores/gone.ts`')
   })
 
   it('scans the ADR entries as live text, paths and scripts alike', () => {
@@ -256,13 +256,13 @@ describe('checkBacktickedPathsExist', () => {
         '## Decisions',
         '',
         '1. **ADR-001 Old host**',
-        '   Superseded. Its `apps/cantina/old-host/` was removed.',
+        '   Superseded. Its `apps/legacy/old-host/` was removed.',
         '2. **ADR-002 New host**',
-        '   Accepted: `bun run new-host` over `apps/cantina/src/host.ts`.',
+        '   Accepted: `bun run new-host` over `apps/legacy/src/host.ts`.',
       ].join('\n'),
     })
     const paths = checkBacktickedPathsExist(root).failures.join('\n')
-    expect(paths).toContain('docs/ARCHITECTURE.md:6 cites `apps/cantina/src/host.ts`')
+    expect(paths).toContain('docs/ARCHITECTURE.md:6 cites `apps/legacy/src/host.ts`')
     expect(paths).not.toContain('old-host')
     const scripts = checkReferencedScripts(root).failures
     expect(scripts).toHaveLength(1)
@@ -289,13 +289,13 @@ describe('checkBacktickedPathsExist', () => {
 
   it('judges live paths in the shapes that used to hide them (end to end)', () => {
     const root = fixture({
-      'apps/cantina/src/lib/rules/creation.ts': '',
-      'apps/cantina/CLAUDE.md':
+      'apps/legacy/src/lib/rules/creation.ts': '',
+      'apps/legacy/CLAUDE.md':
         '- **Workspaces are retired.** An entity lives in one container, resolved\n' +
         '  through `src/lib/containerGone.ts`, never by reading `workspaceId`.\n',
       'docs/architecture/sheets.md':
         '| Concern | Snapshot | Public sheet |\n| --- | --- | --- |\n' +
-        '| Who may create | anyone | the owner, via `apps/cantina/convex/publicSheetGone.ts` |\n' +
+        '| Who may create | anyone | the owner, via `apps/legacy/convex/publicSheetGone.ts` |\n' +
         '| Who may revoke | anyone | the owner only |\n',
       'docs/architecture/rules.md':
         '- **Wizard** enforces creation **hard** on the create path: `Next` is gated by\n' +
@@ -306,10 +306,10 @@ describe('checkBacktickedPathsExist', () => {
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(3)
     expect(failures.join('\n')).toContain(
-      'apps/cantina/CLAUDE.md:2 cites `src/lib/containerGone.ts`'
+      'apps/legacy/CLAUDE.md:2 cites `src/lib/containerGone.ts`'
     )
     expect(failures.join('\n')).toContain(
-      'docs/architecture/sheets.md:3 cites `apps/cantina/convex/publicSheetGone.ts`'
+      'docs/architecture/sheets.md:3 cites `apps/legacy/convex/publicSheetGone.ts`'
     )
     expect(failures.join('\n')).toContain(
       'docs/architecture/rules.md:2 cites `lib/rules/creationGone.ts`'
@@ -329,7 +329,7 @@ describe('checkBacktickedPathsExist', () => {
       '.gitignore': '# agent checkouts\n.claude/worktrees/\nrules/*\n**/coverage/\n/.profiles/\n',
       '.claude/rules/x.md':
         'Old checkouts pile up in `.claude/worktrees/`, extracts in `rules/extracted/core.txt`, ' +
-        'reports in `apps/cantina/coverage/lcov.info` and profiles in `.profiles/`. See `tools/gone.ts`.\n',
+        'reports in `apps/legacy/coverage/lcov.info` and profiles in `.profiles/`. See `tools/gone.ts`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)
@@ -338,7 +338,7 @@ describe('checkBacktickedPathsExist', () => {
 
   it('scans skills as live-instruction docs', () => {
     const root = fixture({
-      '.claude/skills/ux/SKILL.md': 'Tokens live in `packages/ui/theme.css`.\n',
+      '.claude/skills/ux/SKILL.md': 'Minis live in `packages/ui/theme.css`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)
@@ -385,7 +385,7 @@ describe('checkRetiredClaims', () => {
   it('passes a doc that states the current design', () => {
     const root = fixture({
       'CLAUDE.md':
-        'Signed out, the Cantina is read-only. Use `bun run test`.\n' +
+        'Signed out, the app is read-only. Use `bun run test`.\n' +
         'The bot is a first-class authenticated client.\n',
     })
     expect(checkRetiredClaims(root).failures).toEqual([])
@@ -635,7 +635,7 @@ describe('checkAreaCitations', () => {
 
 describe('headingSlug', () => {
   it('matches the anchors GitHub renders', () => {
-    expect(headingSlug('Combat loop (Cantina)')).toBe('combat-loop-cantina')
+    expect(headingSlug('Combat loop (Play)')).toBe('combat-loop-play')
     expect(headingSlug("CI: reusing the PR's run")).toBe('ci-reusing-the-prs-run')
     expect(headingSlug('A — B')).toBe('a--b')
     expect(headingSlug('Rotating `JWT_PRIVATE_KEY` / `JWKS`')).toBe(
@@ -780,14 +780,14 @@ describe('checkDocSizes', () => {
   it('holds CLAUDE.md files to 8,000 characters and rules to 4,000, with per-file overrides', () => {
     const root = fixture({
       'CLAUDE.md': 'x'.repeat(8_000),
-      'apps/cantina/CLAUDE.md': 'x'.repeat(8_001),
+      'apps/legacy/CLAUDE.md': 'x'.repeat(8_001),
       'packages/ref/CLAUDE.md': 'é'.repeat(8_000),
       '.claude/rules/a.md': 'x'.repeat(4_001),
       '.claude/rules/b.md': 'x'.repeat(4_500),
     })
     const failures = checkDocSizes(root, { '.claude/rules/b.md': 4_500 }, {}).failures
     expect(failures).toHaveLength(2)
-    expect(failures.join('\n')).toContain('apps/cantina/CLAUDE.md is 8001 characters')
+    expect(failures.join('\n')).toContain('apps/legacy/CLAUDE.md is 8001 characters')
     expect(failures.join('\n')).toContain('.claude/rules/a.md is 4001 characters')
     expect(checkDocSizes(root, { 'gone.md': 1 }, {}).failures.join('\n')).toContain(
       'OVER_BUDGET names gone.md'
@@ -798,13 +798,13 @@ describe('checkDocSizes', () => {
     const root = fixture({
       'CLAUDE.md': '# CLAUDE.md\n\n@AGENTS.md\n',
       'AGENTS.md': 'x'.repeat(8_000),
-      'apps/cantina/CLAUDE.md': '@../../GONE.md\n',
+      'apps/legacy/CLAUDE.md': '@../../GONE.md\n',
     })
     const failures = checkDocSizes(root, {}, {}).failures.join('\n')
     expect(failures).toContain('CLAUDE.md with AGENTS.md is 8024 characters')
-    expect(failures).toContain('apps/cantina/CLAUDE.md imports @GONE.md, which does not exist.')
+    expect(failures).toContain('apps/legacy/CLAUDE.md imports @GONE.md, which does not exist.')
     expect(checkDocSizes(root, { 'CLAUDE.md': 8_024 }, {}).failures).toEqual([
-      'apps/cantina/CLAUDE.md imports @GONE.md, which does not exist.',
+      'apps/legacy/CLAUDE.md imports @GONE.md, which does not exist.',
     ])
   })
 
@@ -821,18 +821,20 @@ describe('checkDocSizes', () => {
 })
 
 describe('main', () => {
-  const pass = (ok: string) => () => ({ ok, failures: [] })
-  const fail =
-    (...failures: string[]) =>
-    () => ({ ok: 'unused', failures })
+  const pass = (id: string, ok: string) => ({ id, run: () => ({ ok, failures: [] }) })
+  const fail = (id: string, ...failures: string[]) => ({
+    id,
+    run: () => ({ ok: 'unused', failures }),
+  })
   const run = (
     root: string,
-    checks: Array<(root: string) => { ok: string; failures: string[] }>
+    checks: Array<{ id: string; run: (root: string) => { ok: string; failures: string[] } }>,
+    argv: string[] = []
   ) => {
     const out = spyOn(console, 'log').mockImplementation(() => {})
     const err = spyOn(console, 'error').mockImplementation(() => {})
     try {
-      const code = main(root, checks)
+      const code = main(root, checks, argv)
       const lines = (spy: typeof out) => spy.mock.calls.map((c) => String(c[0]))
       return { code, out: lines(out), err: lines(err) }
     } finally {
@@ -846,7 +848,10 @@ describe('main', () => {
   )
 
   it('prints the corpus size and each passing check', () => {
-    const r = run(fixture(docs), [pass('links resolve'), pass('ADRs numbered')])
+    const r = run(fixture(docs), [
+      pass('links', 'links resolve'),
+      pass('decisions', 'ADRs numbered'),
+    ])
     expect(r).toEqual({
       code: 0,
       out: ['  (13 live-instruction docs scanned)', '✓ links resolve', '✓ ADRs numbered'],
@@ -854,10 +859,30 @@ describe('main', () => {
     })
   })
 
-  it('reports every failure of every check, then the count', () => {
-    const r = run(fixture(docs), [pass('fine'), fail('a.md:1 is stale', 'b.md:2 too'), fail('c')])
+  it("reports each failing check's failures with its fix and rerun line, then the count", () => {
+    const r = run(fixture(docs), [
+      pass('claims', 'fine'),
+      fail('links', 'a.md:1 is stale', 'b.md:2 too'),
+      fail('other', 'c'),
+    ])
     expect(r.code).toBe(1)
     expect(r.out).toEqual(['  (13 live-instruction docs scanned)', '✓ fine'])
-    expect(r.err).toEqual(['✗ a.md:1 is stale', '✗ b.md:2 too', '✗ c', '\n3 doc-drift failure(s)'])
+    expect(r.err).toEqual([
+      '✗ a.md:1 is stale',
+      '✗ b.md:2 too',
+      '  fix (links): fix the link or its #fragment',
+      '  rerun: bun tools/check-doc-drift.ts --only=links',
+      '✗ c',
+      '  rerun: bun tools/check-doc-drift.ts --only=other',
+      '\n3 doc-drift failure(s)',
+    ])
+  })
+
+  it('runs only the checks --only= names, and refuses an unknown one', () => {
+    const r = run(fixture(docs), [pass('links', 'links'), fail('size', 'big')], ['--only=links'])
+    expect(r.code).toBe(0)
+    expect(r.out).toEqual(['  (13 live-instruction docs scanned)', '✓ links'])
+    const bad = run(fixture(docs), [pass('links', 'links')], ['--only=nope'])
+    expect(bad).toMatchObject({ code: 2, err: ['unknown doc-drift check nope: one of links'] })
   })
 })

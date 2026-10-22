@@ -9,7 +9,7 @@ const BOX = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: space[8],
-  padding: space[10],
+  padding: space[12],
 } satisfies CSSProperties
 
 /** A label's place beside its field. */

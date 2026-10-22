@@ -1,4 +1,5 @@
-import type { ContainerBuilder, SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import type { APIContainerComponent } from 'discord-api-types/v10'
 import { findEntityBySlug, getPatterns, nameToSlug, search } from 'salvageunion-reference'
 import type { ContainerData } from '../container'
 import { v2Reply } from '../container'
@@ -9,7 +10,7 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
 
 /** A `/su lookup` reply ready for `interaction.reply`, or a user-facing error. */
 export type LookupMessage =
-  | { flags: number; components: [ContainerBuilder]; data: ContainerData }
+  | { flags: number; components: [APIContainerComponent]; data: ContainerData }
   | { error: string }
 
 /**
@@ -19,7 +20,7 @@ export type LookupMessage =
  */
 export function buildLookupMessage(hit: LookupHit): {
   flags: number
-  components: [ContainerBuilder]
+  components: [APIContainerComponent]
   data: ContainerData
 } {
   const data = lookupCard(hit)

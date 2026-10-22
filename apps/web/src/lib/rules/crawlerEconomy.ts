@@ -21,7 +21,7 @@
  *   Module; 6-10 a System; 2-5 a Module; 1 nothing. Wares are always one Tech
  *   Level above the crawler's.
  *
- * Pool draws follow the app's established convention (bay repair, S12):
+ * Pool draws follow the bay-repair convention:
  * scrap of the crawler's Tech Level *or higher* may pay a TL-denominated
  * cost, drawn from the lowest qualifying bucket upward.
  *
@@ -33,8 +33,8 @@
  * module never picks for the player.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
+import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
@@ -75,7 +75,7 @@ export type PoolDrawResult = { pool: ScrapPool; draws: PoolDraw[] }
 export type DrawFromPoolOptions = {
   /**
    * Spend whatever the qualifying buckets hold instead of refusing when they
-   * cannot cover the full amount — the bay-repair convention (S12), where a
+   * cannot cover the full amount — the bay-repair convention, where a
    * short pool still repairs and the shortfall is only surfaced on the button.
    *
    * Upkeep, Upgrade-Pool contributions and every other economy draw are

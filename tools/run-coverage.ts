@@ -32,8 +32,8 @@ const FLOORS: Readonly<Record<string, number>> = {
   'apps/web': 97.9,
   'apps/discord-bot': 96.5,
   'apps/su-assets': 98,
-  'packages/cantina-domain': 97,
-  'packages/gates': 99,
+  'packages/game-domain': 97,
+  'packages/gates': 99.3,
   tools: 99,
 }
 

@@ -119,8 +119,8 @@ function OgCardResolved() {
   )
 }
 
-/** The default preview's kicker; the Discord banner's says the Cantina's. */
-const SRD_KICKER = 'SRD and Character Manager'
+/** The default preview's kicker; the Discord banner's says the app's. */
+const SRD_KICKER = 'Reference and Character Manager'
 
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the
@@ -130,7 +130,7 @@ const SRD_KICKER = 'SRD and Character Manager'
  */
 export function OgCardIsland() {
   // `?brand` draws the site's own preview, `public/og-image.png`: every page,
-  // the Cantina's too, without a card of its own unfurls with it. It needs no game data.
+  // the app's too, without a card of its own unfurls with it. It needs no game data.
   if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('brand')) {
     return <BrandCard kicker={SRD_KICKER} />
   }

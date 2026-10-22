@@ -1,27 +1,17 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
+import { borderWidth, color, fontSize, radius, space, tracking, weight } from '../../design/tokens'
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
-import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
+import { pipClickValue, statBlockRowStarts, trackSegmentState } from './pipRows'
 import { POSTER_STAMP } from './posterStamp'
-import { Stat } from './Stat'
+import { StepButton } from './SmallButtons'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
 import {
   C_HEAD,
-  C_IMAGE,
   C_LABEL,
   C_PIP,
   C_READOUT,
@@ -29,26 +19,44 @@ import {
   C_ROWS,
   C_SHELL,
   C_VALUE,
-  TABULAR,
+  STEP,
+  STEPPERS,
 } from './vitalGaugeCompact'
+import {
+  HEAD,
+  HEAD_LEFT,
+  MAX_BUTTON,
+  MAX_INPUT,
+  MAX_TEXT,
+  NUMERAL,
+  OVERRIDE_SUP,
+  REVERT,
+  SLASH,
+  STAMP,
+  SUB_LABEL,
+} from './vitalGaugeFull'
+import {
+  M_CELL,
+  M_CELL_SIDE,
+  M_GRID,
+  M_LABEL,
+  M_SHELL,
+  M_VALUE,
+  miniColumns,
+} from './vitalGaugeMini'
+import { segment } from './vitalGaugeSegment'
 
 /**
  * The two fields of a `StatBreakdown` the gauge reads: the override flag and
  * the derived value it reverts to. Pass the breakdown itself.
  */
-export type VitalGaugeBreakdown = Pick<StatBreakdown, 'overridden' | 'derived'>
+type VitalGaugeBreakdown = Pick<StatBreakdown, 'overridden' | 'derived'>
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */
   label: string
   /** Optional muted sub-label after the stamp (e.g. mech-frame 'Structure'). */
   subLabel?: string
-  /**
-   * The track's cap, read beside the stamp as a `Cap | N` Stat chip (ruleset
-   * §3.7: a cap is a `label | value`, so it is a Stat, never bare text). The
-   * `full` rung only; the Dashboard's Heat track passes it (board D4).
-   */
-  cap?: number
   /** Current value. */
   value: number
   /** Track maximum (segment count). */
@@ -95,8 +103,16 @@ export type VitalGaugeProps = {
    * click-to-edit override affordance, so one click would have to mean two
    * things. When the stat is overridden the existing `*` marker becomes the
    * trigger — it already signals "there is something here to explain".
+   * The `full` rung's alone: Play's compact vitals are numbers only (ADR-029 §3).
    */
   provenance?: ProvenanceLine[]
+  /**
+   * The compact rung's − / + (Play's instrument): with `onChange`, a
+   * `StepButton` pair after the track, each one step, clamped to 0…max — the
+   * pair an editable `Stat` draws, at the line's Compact Size (44px on touch).
+   * The sheet's `full` rung has none: its track is the control.
+   */
+  steppers?: boolean
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -107,20 +123,15 @@ export type VitalGaugeProps = {
    *
    *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
    *          gauge is a destination readout, so its resting rung is `full`.
-   *   `compact` — the instrument layout (the dashboard cue): label · the pips ·
+   *   `compact` — the instrument layout (Play's cue): label · the pips ·
    *          value/max on one line, no big numeral, no caption. Its pips take
    *          the §4.5 row split, each a sixth of the bay wide.
+   *   `mini` — HP cells (a crawler bay's crew lead, R46): label · value/max over
+   *          a square block of small square cells. No numeral, no caption.
    */
-  size?: Extract<Size, 'full' | 'compact'>
-  /**
-   * Surface skin (RenderingMatrix `skin sheet|instrument`): `sheet` (default,
-   * light paper ground — ink label + numeral) or `instrument` (a dark ground —
-   * light label + numeral, recessed empty segments). Only the text/empty-segment
-   * treatment changes; filled segments always use the `--tone` accent.
-   */
-  surface?: 'sheet' | 'instrument'
+  size?: Extract<Size, 'full' | 'compact' | 'mini'>
   /** Extra inline style on the root — chiefly to pin the `--tone` / `--tone-deep`
-   * vars for a one-off tone (the dashboard instruments pass their tone here). */
+   * vars for a one-off tone (Play's vitals pass their tone here). */
   style?: CSSProperties
   className?: string
 }
@@ -130,7 +141,7 @@ export type VitalGaugeProps = {
  * bar per stat. Label stamp (left) + big numeral (right) over ONE flex row of
  * `flex-1` segments dividing the full width by `max`; filled segments use the
  * per-sheet accent (`--tone` / `--tone-deep`), empty segments read paper. No
- * steppers, no header tab, no unit bar — click a segment (`pipClickValue`
+ * header tab, no unit bar, and on the sheet's rung no steppers — click a segment (`pipClickValue`
  * semantics) or arrow-key the track to set the value.
  *
  * An editable track is one `role="slider"` tab stop, so a sheet of gauges is a
@@ -145,93 +156,11 @@ export type VitalGaugeProps = {
  * Styling follows the per-property split (ADR-046): static geometry, type and colour as
  * the style objects below; the hover-only halves (the segment lift, the muted
  * glyphs that ink on hover, the provenance triggers, which take no `style`) as
- * `.su-vital-gauge__*` in `styles/index.css`.
+ * `.su-vital-gauge__*` in `styles/partials/atoms.css`.
  */
-
-/** An editable segment's static half; the hover lift is `.su-vital-gauge__pip`. */
-const PIP_EDITABLE = {
-  cursor: 'pointer',
-  transitionProperty: 'transform, translate, scale, rotate',
-  transitionDuration: '120ms',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-} satisfies CSSProperties
 
 // — full —
 const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
-const HEAD = {
-  marginBottom: space[8],
-  display: 'flex',
-  alignItems: 'baseline',
-  justifyContent: 'space-between',
-  gap: space[10],
-} satisfies CSSProperties
-const HEAD_LEFT = {
-  display: 'flex',
-  minWidth: 0,
-  alignItems: 'baseline',
-  gap: space[6],
-} satisfies CSSProperties
-const STAMP = {
-  padding: '0.1em 0.5em 0.16em',
-  fontSize: fontSize.caption,
-  lineHeight: 1.5,
-} satisfies CSSProperties
-const SUB_LABEL = {
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  lineHeight: 1,
-  color: color.wkMuted,
-} satisfies CSSProperties
-const NUMERAL = {
-  ...TABULAR,
-  whiteSpace: 'nowrap',
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  lineHeight: 1,
-} satisfies CSSProperties
-const SLASH = {
-  paddingInline: space[2],
-  fontStyle: 'normal',
-  fontSize: fontSize.readout,
-  color: color.ink75,
-} satisfies CSSProperties
-const MAX_INPUT = {
-  ...TABULAR,
-  width: '56px',
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  borderColor: color.ink40,
-  backgroundColor: color.paper,
-  paddingInline: space[4],
-  textAlign: 'center',
-  fontSize: fontSize.readout,
-  color: color.ink,
-} satisfies CSSProperties
-const MAX_BUTTON = {
-  cursor: 'pointer',
-  borderRadius: radius.badge,
-  paddingInline: space[2],
-  fontSize: fontSize.readout,
-  textDecorationLine: 'underline',
-  textDecorationStyle: 'dotted',
-  textUnderlineOffset: '2px',
-} satisfies CSSProperties
-const MAX_TEXT = { fontSize: fontSize.readout, color: color.ink75 } satisfies CSSProperties
-const OVERRIDE_SUP = {
-  marginLeft: space[2],
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  color: 'var(--tone-deep)',
-} satisfies CSSProperties
-const REVERT = {
-  marginLeft: space[4],
-  cursor: 'pointer',
-  verticalAlign: 'middle',
-  fontSize: fontSize.caption,
-  lineHeight: 1,
-} satisfies CSSProperties
 const PIP = {
   minHeight: 0,
   minWidth: 0,
@@ -240,9 +169,9 @@ const PIP = {
   // `solid`, set explicitly: a segment once rendered as a `<button>`, whose
   // base-layer `border: none` made an unlit pip vanish in Edit while Read drew it.
   borderStyle: 'solid',
-  padding: space[0],
+  padding: 0,
 } satisfies CSSProperties
-const PIP_DENSE = { height: '18px', borderRadius: radius.badge } satisfies CSSProperties
+const PIP_DENSE = { height: 'var(--size-mini)', borderRadius: radius.badge } satisfies CSSProperties
 const PIP_ROOMY = { height: '22px', borderRadius: radius.card } satisfies CSSProperties
 const CAPTION = {
   marginTop: space[6],
@@ -262,7 +191,6 @@ const CAPTION_OVERRIDE = {
 export function VitalGauge({
   label,
   subLabel,
-  cap,
   value,
   max,
   onChange,
@@ -270,14 +198,13 @@ export function VitalGauge({
   breakdown,
   onRevertOverride,
   provenance,
+  steppers = false,
   readOnly,
   danger,
   size = 'full',
-  surface = 'sheet',
   style,
   className,
 }: VitalGaugeProps) {
-  const onDark = surface === 'instrument'
   const editable = !readOnly && onChange !== undefined
   const editableMax = !readOnly && onMaxChange !== undefined
   // Read, never inferred — see `breakdown`.
@@ -392,71 +319,62 @@ export function VitalGauge({
     </div>
   )
 
-  // Empty-segment fill differs by surface: recessed outline on a dark instrument
-  // ground, paper on the light sheet.
-  const emptyFill = (
-    onDark
-      ? { borderColor: color.paper30, backgroundColor: 'transparent' }
-      : { borderColor: color.ink50, backgroundColor: color.paper }
-  ) satisfies CSSProperties
-  // An unlit pip past the redline keeps the empty ground and takes the
-  // status-bad outline (boards D1, D4): the redline reads before the value
-  // reaches it — on the sheet and the Dashboard alike, since both draw this gauge.
-  const redlineFill = {
-    borderColor: color.statusBad,
-    backgroundColor: onDark ? 'transparent' : color.paper,
-  } satisfies CSSProperties
-  const segFill = (state: ReturnType<typeof trackSegmentState>): CSSProperties =>
-    state === 'off'
-      ? emptyFill
-      : state === 'redline'
-        ? redlineFill
-        : state === 'danger'
-          ? { borderColor: color.statusBad, backgroundColor: color.statusBad }
-          : { borderColor: 'var(--tone-deep)', backgroundColor: 'var(--tone)' }
+  // MINI — HP cells: the label, a square block of small square cells beneath
+  // it (`miniColumns`), lit from the first, and value/max under the block in
+  // smaller type.
+  if (size === 'mini') {
+    const cells = Array.from({ length: segCount }, (_, n) => n).map((i) =>
+      segment(i, trackSegmentState(i, shown, max, dangerFrom), M_CELL, editable)
+    )
+    const gridStyle = {
+      ...M_GRID,
+      gridTemplateColumns: `repeat(${miniColumns(segCount)}, ${M_CELL_SIDE})`,
+    } satisfies CSSProperties
+    return (
+      // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
+      <div
+        role={editable ? 'group' : 'img'}
+        aria-label={summary}
+        data-size="mini"
+        className={className}
+        style={{ ...M_SHELL, ...style }}
+      >
+        <span className={capsLabel({ size: 'badge' })} style={{ ...M_LABEL, color: color.ink }}>
+          {label}
+        </span>
+        {editable ? slider(gridStyle, cells) : <div style={gridStyle}>{cells}</div>}
+        <span style={{ ...M_VALUE, color: isOver ? color.statusBad : color.ink }}>
+          {shown}/{max}
+        </span>
+      </div>
+    )
+  }
 
-  // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
+  // COMPACT — the instrument bar (Play's cue): label and value/max on one row,
   // the §4.5 pip rows beneath. No big numeral or caption.
   if (size === 'compact') {
     const compactRows = (
       <>
         {statBlockRowStarts(segCount).map((segRow) => (
           <div key={segRow.start} style={C_ROW}>
-            {Array.from({ length: segRow.count }, (_, c) => {
-              const i = segRow.start + c
-              const state = trackSegmentState(i, shown, max, dangerFrom)
-              const on = segmentLit(state)
-              const segStyle = { ...C_PIP, ...segFill(state) } satisfies CSSProperties
-              return editable ? (
-                <span
-                  key={i}
-                  data-pip={on ? 'on' : 'off'}
-                  data-pip-index={i}
-                  className="su-vital-gauge__pip"
-                  style={{ ...segStyle, ...PIP_EDITABLE }}
-                />
-              ) : (
-                <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
-              )
-            })}
+            {Array.from({ length: segRow.count }, (_, c) => segRow.start + c).map((i) =>
+              segment(i, trackSegmentState(i, shown, max, dangerFrom), C_PIP, editable)
+            )}
           </div>
         ))}
       </>
     )
     const readout = (
       <div style={C_READOUT}>
-        {/* Board D2: the label and the value share one row, the pips sit below. */}
+        {/* The label and the value share one row, the pips sit below. */}
         <div style={C_HEAD}>
-          <span
-            className={capsLabel({ size: 'badge', tracking: 'caps' })}
-            style={{ ...C_LABEL, color: onDark ? color.paper : color.ink }}
-          >
+          <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
           </span>
           <span
             style={{
               ...C_VALUE,
-              color: isOver ? color.statusBad : onDark ? color.paper : color.ink,
+              color: isOver ? color.statusBad : color.ink,
             }}
           >
             {shown}/{max}
@@ -472,43 +390,8 @@ export function VitalGauge({
         {editable ? slider(C_ROWS, compactRows) : <div style={C_ROWS}>{compactRows}</div>}
       </div>
     )
-    /*
-     * Guided Play teaches as it enforces (ADR-021), so the compact instrument
-     * carries provenance too: this branch must not return before the
-     * override/provenance chrome, or the Dashboard drops both props.
-     *
-     * The trigger is held to the WCAG 2.5.8 24×24px target: as a bare glyph it
-     * measured about 10×8px, and stacked gauges sit too close for the spacing
-     * exception.
-     */
-    const trigger = provenance && (
-      <StatProvenance
-        statLabel={`Max ${label}`}
-        lines={provenance}
-        total={max}
-        overridden={isOverridden}
-        className={
-          onDark
-            ? 'su-vital-gauge__prov-compact su-vital-gauge__prov-compact--on-dark'
-            : 'su-vital-gauge__prov-compact'
-        }
-      >
-        {isOverridden ? '*' : 'ⓘ'}
-      </StatProvenance>
-    )
-    // A read-only gauge is an image, and an image may not contain a control
-    // (axe `nested-interactive`): with a provenance trigger the image wraps
-    // the readout alone and the trigger sits beside it.
-    if (!editable && trigger) {
-      return (
-        <div className={className} style={{ ...C_SHELL, ...style }}>
-          <div role="img" aria-label={summary} style={C_IMAGE}>
-            {readout}
-          </div>
-          {trigger}
-        </div>
-      )
-    }
+    // Play's vitals are numbers only (ADR-029 §3): provenance and the max
+    // override live on the sheet, so the compact rung draws neither.
     return (
       // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
       <div
@@ -518,7 +401,26 @@ export function VitalGauge({
         style={{ ...C_SHELL, ...style }}
       >
         {readout}
-        {trigger}
+        {editable && steppers ? (
+          <span style={STEPPERS}>
+            <StepButton
+              aria-label={`Decrease ${label}`}
+              disabled={shown <= 0}
+              onClick={() => setValue(shown - 1)}
+              style={STEP}
+            >
+              −
+            </StepButton>
+            <StepButton
+              aria-label={`Increase ${label}`}
+              disabled={shown >= max}
+              onClick={() => setValue(shown + 1)}
+              style={STEP}
+            >
+              +
+            </StepButton>
+          </span>
+        ) : null}
       </div>
     )
   }
@@ -535,31 +437,14 @@ export function VitalGauge({
     flexDirection: 'column',
     gap: trackGap,
   } satisfies CSSProperties
+  const pipBase = { ...PIP, ...(isDense ? PIP_DENSE : PIP_ROOMY) } satisfies CSSProperties
   const fullRows = (
     <>
       {statBlockRowStarts(segCount).map((segRow) => (
         <div key={segRow.start} style={{ display: 'flex', gap: trackGap }}>
-          {Array.from({ length: segRow.count }).map((_, c) => {
-            const i = segRow.start + c
-            const state = trackSegmentState(i, shown, max, dangerFrom)
-            const on = segmentLit(state)
-            const segStyle = {
-              ...PIP,
-              ...(isDense ? PIP_DENSE : PIP_ROOMY),
-              ...segFill(state),
-            } satisfies CSSProperties
-            return editable ? (
-              <span
-                key={i}
-                data-pip={on ? 'on' : 'off'}
-                data-pip-index={i}
-                className="su-vital-gauge__pip"
-                style={{ ...segStyle, ...PIP_EDITABLE }}
-              />
-            ) : (
-              <span key={i} data-pip={on ? 'on' : 'off'} style={segStyle} />
-            )
-          })}
+          {Array.from({ length: segRow.count }, (_, c) => segRow.start + c).map((i) =>
+            segment(i, trackSegmentState(i, shown, max, dangerFrom), pipBase, editable)
+          )}
         </div>
       ))}
     </>
@@ -579,15 +464,9 @@ export function VitalGauge({
             {label}
           </span>
           {subLabel && (
-            <span
-              className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
-              style={SUB_LABEL}
-            >
+            <span className={capsLabel({ size: 'badge', weight: 'inherit' })} style={SUB_LABEL}>
               {subLabel}
             </span>
-          )}
-          {cap !== undefined && (
-            <Stat orientation="horizontal" label="Cap" value={cap} size="mini" />
           )}
         </span>
         {/* The numeral sizes below are off-ladder ON PURPOSE, not un-burnt debt:
@@ -596,7 +475,7 @@ export function VitalGauge({
             The nearest rung to the hero numeral is display (26px), 7–13% below
             it — a visible shrink of the one figure the gauge exists to show.
             Closing this needs new rungs in theme.css (a ladder decision, and a
-            repo-wide one: WizShell, AppBar, CountStepper, ModeDoor and the Cantina's
+            repo-wide one: WizShell, AppBar and the app's
             PilotSheet all reach into the same empty band), not a local
             substitution. */}
         <span style={NUMERAL}>
@@ -634,6 +513,7 @@ export function VitalGauge({
               type="button"
               onClick={beginEditMax}
               aria-label={`Override ${label} max (currently ${max})`}
+              className="su-vital-gauge__mini su-hit-area"
               style={{ ...MAX_BUTTON, color: isOverridden ? 'var(--tone-deep)' : color.ink75 }}
             >
               {max}
@@ -662,7 +542,7 @@ export function VitalGauge({
               statLabel={`Max ${label}`}
               lines={provenance}
               total={max}
-              className="su-vital-gauge__prov-info"
+              className="su-vital-gauge__prov-info su-vital-gauge__mini su-hit-area"
             >
               ⓘ
             </StatProvenance>
@@ -673,7 +553,7 @@ export function VitalGauge({
               onClick={onRevertOverride}
               aria-label={`Revert ${label} max to derived ${overriddenFrom}`}
               title={`Revert to derived (${overriddenFrom})`}
-              className="su-vital-gauge__revert"
+              className="su-vital-gauge__revert su-vital-gauge__mini su-hit-area"
               style={REVERT}
             >
               ↺
@@ -699,13 +579,10 @@ export function VitalGauge({
       )}
 
       {/* No Current / Max caption, in Read or Edit: the numeral already says
-          current / max (owner's call, 2026-10-14: Edit looks like Read). An
+          current / max, and Edit looks like Read. An
           override note still says where the max came from. */}
       {isOverridden && (
-        <div
-          className={capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' })}
-          style={CAPTION}
-        >
+        <div className={capsLabel({ size: 'badge', weight: 'semibold' })} style={CAPTION}>
           <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>
         </div>
       )}

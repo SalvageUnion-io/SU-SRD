@@ -25,3 +25,8 @@ one is on purpose, said in the PR.
 
 `packages/gates` holds the shared library (`lib/`), the styling and copy rule
 sets (`rules/`, run by `check-rule-sets.ts`) and the GritQL plugins (`biome/`).
+
+**Screenshots:** `bun run shot` for one page; `bun run gallery` for every page
+worth a look (`gallery.yml` on CI); `bun run gallery:deck` for the review deck
+([`review-deck/README.md`](review-deck/README.md)), the gallery's sign-in and
+seed with the design walk's views.

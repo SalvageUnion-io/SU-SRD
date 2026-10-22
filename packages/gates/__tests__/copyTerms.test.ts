@@ -9,11 +9,13 @@ import {
   copyTerms,
   DATA_DIR,
   extractCopy,
+  LOADING_ATOM,
   lintCopy,
   MIN_USES,
   PRODUCT_FILE,
   productBans,
   productNames,
+  SEARCH_COPY,
   termPattern,
   weighTerms,
 } from '../rules/copyTerms'
@@ -66,7 +68,7 @@ describe('extractCopy', () => {
   test('skips book quotes, console lines and schema descriptions', () => {
     const src = [
       "const q = bookQuote({ source: 'Salvage Union Workshop Manual', page: 3 }, 'the mech moves')",
-      "console.error('[cantina] a mech failed')",
+      "console.error('[app] a mech failed')",
       "const s = z.string().describe('Mech module names')",
       "const keep = 'a real pilot sentence'",
     ].join('\n')
@@ -151,6 +153,51 @@ describe('lintCopy', () => {
     expect(lintCopy(at('Tech 3 and Heat Capacity'), [], BANNED)['banned-variant']).toEqual([])
   })
 
+  test('one loading voice: a loading line is spelled only in the loading atom', () => {
+    const r = lintCopy(
+      [
+        ...at('Loading game data'),
+        ...at('Please wait while we fetch it'),
+        ...at('Fetching your Games'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"Loading"',
+      '"Please wait"',
+      '"Fetching"',
+    ])
+    const atom = [{ file: LOADING_ATOM, line: 1, text: 'Loading the crew now' }]
+    expect(lintCopy(atom, [], BANNED)['banned-variant']).toEqual([])
+    expect(lintCopy(at('the page is loading slowly'), [], BANNED)['banned-variant']).toEqual([])
+  })
+
+  test('one error per job: "Try again", no "Failed to", "No results found" only in the searcher', () => {
+    const r = lintCopy(
+      [
+        ...at('Retry loading game data'),
+        ...at('Failed to save pilot. Please retry.'),
+        ...at('Reload page now'),
+        ...at('No results found for this'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"Retry"',
+      '"retry"',
+      '"Failed to"',
+      '"Reload page"',
+      '"No results found"',
+    ])
+    const searcher = [{ file: SEARCH_COPY, line: 1, text: 'No results found for this' }]
+    expect(lintCopy(searcher, [], BANNED)['banned-variant']).toEqual([])
+    expect(
+      lintCopy(at('That could not be saved. Try again.'), [], BANNED)['banned-variant']
+    ).toEqual([])
+  })
+
   test('bans Scrap as a verb, never the currency', () => {
     const r = lintCopy(
       [
@@ -170,12 +217,39 @@ describe('lintCopy', () => {
     ])
   })
 
+  test('bans a unit move worded other than Move, SRD for the Reference and the Hangar (R16)', () => {
+    const r = lintCopy(
+      [
+        ...at('Remove from Game'),
+        ...at('+ Add from your Training Bay'),
+        ...at('Search the SRD'),
+        ...at('View in SRD'),
+        ...at('Move to your Training Bay'),
+        ...at('Move in from your Training Bay'),
+        ...at('Back to Hangar'),
+        ...at('In hangar'),
+        ...at('Salvage Union SRD and Character Manager'),
+        ...at('This is a System Reference Document (SRD) for the game.'),
+        ...at('SRD'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"Remove from Game"',
+      '"Add from your Training Bay"',
+      '"SRD"',
+      '"SRD"',
+      '"Hangar"',
+    ])
+  })
+
   test('bans a shouted word in a sentence, but not an initialism or an all-caps label', () => {
     const r = lintCopy(
       [
         ...at('OVERLOAD. Reactor Overload 20'),
         ...at('the mech is DESTROYED'),
-        ...at('JSON over CORS, for the Salvage Union TTRPG, in The Cantina'),
+        ...at('JSON over CORS, for the Salvage Union TTRPG, in the app'),
         ...at('-# NOTHING FOUND IN'),
         ...at('Tech 3, HP 4'),
       ],
@@ -188,22 +262,26 @@ describe('lintCopy', () => {
     ])
   })
 
-  test('bans every other casing of the product names, but not a log tag', () => {
-    const bans = productBans({ name: 'Good Name', shortName: 'Goodie' })
-    const r = lintCopy(at('Open good name or GOODIE, not Good Name, Goodie or [goodie]'), [], bans)
+  test('bans every other casing of the area names and a bare name, but not a log tag', () => {
+    const bans = productBans({ build: 'Good Bay', play: 'The Hall' })
+    const r = lintCopy(
+      at('Open good bay or HALL, not Good Bay, The Hall, Hall or [hall]'),
+      [],
+      bans
+    )
     expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
-      '"good name"',
-      '"GOODIE"',
+      '"good bay"',
+      '"HALL"',
     ])
   })
 })
 
 describe('the rule set', () => {
-  test('reads the product names from cantina-domain, not a copy of them', () => {
+  test('reads the area names from game-domain, not a copy of them', () => {
     const root = fixture({
-      [PRODUCT_FILE]: "export const PRODUCT = { name: 'Some Name', shortName: 'SN' } as const",
+      [PRODUCT_FILE]: "export const PRODUCT = { build: 'Some Bay', play: 'The Hall' } as const",
     })
-    expect(productNames(root)).toEqual({ name: 'Some Name', shortName: 'SN' })
+    expect(productNames(root)).toEqual({ build: 'Some Bay', play: 'The Hall' })
     expect(() => productNames(fixture({ [PRODUCT_FILE]: 'export {}' }))).toThrow(PRODUCT_FILE)
   })
 
@@ -211,7 +289,7 @@ describe('the rule set', () => {
     const root = fixture({
       [`${DATA_DIR}/keywords.json`]: JSON.stringify([{ name: 'mech' }]),
       [`${DATA_DIR}/chassis.json`]: JSON.stringify([{ text: 'The Mech '.repeat(MIN_USES) }]),
-      [PRODUCT_FILE]: "export const PRODUCT = { name: 'The Cantina', shortName: 'Cantina' }",
+      [PRODUCT_FILE]: "export const PRODUCT = { build: 'Training Bay', play: 'The Cantina' }",
       'apps/web/src/routes/A.tsx': 'export const A = () => <p>Build a mech in cantina</p>',
       'apps/web/src/routes/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
     })
@@ -220,7 +298,7 @@ describe('the rule set', () => {
     expect(r['banned-variant']).toHaveLength(1)
     expect(copyTerms.summary?.(root)).toBe(
       // product.ts is shipped copy too
-      '2 copy strings in 2 files, 1 terms from keywords.json'
+      '3 copy strings in 2 files, 1 terms from keywords.json'
     )
   })
 })

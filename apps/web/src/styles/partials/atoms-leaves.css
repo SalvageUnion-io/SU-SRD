@@ -3,7 +3,7 @@
  * Text. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Conditions, ModeDoor, Panel, Slab, PageHeading ── */
+/* ── Conditions, Slab ── */
 /* Conditions.tsx — the remove glyph brightens on hover. */
 .su-condition-chip__remove {
   opacity: 0.8;
@@ -24,69 +24,16 @@
   color: var(--color-ink);
 }
 
-/* ModeDoor.tsx — flat on the page, like every card: no lift and no shadow,
-   only the canonical focus ring. */
-.su-mode-door:focus-visible {
-  outline: 3px solid transparent;
-  box-shadow: var(--focus-ring-shadow);
-}
-
-/* PageHeading.tsx — each rung's size, leading and tracking, which callers
-   retune through `className` (`leading-tight`, `tracking-caps-tight`). */
-.su-page-heading--subheading {
-  font-size: var(--text-lg);
-  line-height: calc(1.75 / 1.125);
-}
-
-.su-page-heading--section {
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-caps);
-  line-height: calc(1.25 / 0.875);
-}
-
-/* ── ActivationCost, CatalogTile, KofiButton, SearchField, SlotGrid ── */
-/* `atoms/CatalogTile.tsx`: the tile frame, its fill and its hover lift. Only
- * box-shadow and transform transition — the lift is the `translate` property,
- * so it steps rather than slides. The frame is explicit, so the `<button>` tile
- * does not depend on the `button` reset, which would leave it frameless. */
-.su-catalog-tile {
-  border-color: var(--color-ink);
-  border-style: solid;
-  border-radius: var(--radius-card);
-  border-width: var(--bw-chrome);
-  background: var(--catalog-bg);
-  color: var(--color-paper);
-  padding-block: 13px;
-  padding-inline: 15px;
-  text-decoration-line: none;
-  transition-duration: 120ms;
-  transition-property: box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.su-catalog-tile:hover {
-  box-shadow: 0 5px 18px var(--color-ink-20);
-  translate: 0 -2px;
-}
-
-.su-catalog-tile__label {
-  background-color: var(--catalog-label);
-  border-radius: var(--radius-badge);
-  display: inline-block;
-  padding-block: var(--space-2);
-  padding-inline: var(--space-10);
-  text-shadow: none;
-}
-
+/* ── ActivationCost, KofiButton, SearchField, SlotGrid ── */
 /* `atoms/SearchField.tsx`: the bordered shell and its input. Callers restyle
  * both by className (`containerClassName`, `className`), so neither is inline. */
 .su-search-field {
   align-items: center;
   background-color: var(--color-paper);
   border-color: var(--color-ink);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-card);
   border-style: solid;
-  border-width: 1px;
+  border-width: var(--bw-hairline);
   color: var(--color-wk-muted);
   display: flex;
   font-family: var(--font-body);
@@ -111,7 +58,7 @@
 }
 
 .su-search-field__input:focus {
-  outline-style: none;
+  outline: 3px solid transparent;
 }
 
 /* ── Toaster ── */
@@ -182,8 +129,20 @@
 /* components/atoms/StatProvenance.tsx — the trigger's dotted underline; callers
  * restyle it (`border-0`, `border-b-0`, `cursor`) through `className`. */
 .su-stat-provenance__trigger {
-  border-bottom-width: 1px;
+  border-bottom-width: var(--bw-hairline);
   border-color: color-mix(in oklab, currentcolor 40%, transparent);
   border-style: dotted;
   cursor: help;
+}
+
+/* ── Message ── */
+/* components/atoms/Message.tsx — a failure line in the tone's ink, which
+ * clears AA as text on paper; on an ink ground (the frame's `data-ground`,
+ * chrome K1), where no tone ink holds contrast, it prints in paper. */
+.su-message--bad {
+  color: var(--color-status-bad);
+}
+
+[data-ground='ink'] .su-message--bad {
+  color: var(--color-paper);
 }

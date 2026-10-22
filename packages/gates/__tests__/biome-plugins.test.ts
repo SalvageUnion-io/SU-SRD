@@ -81,6 +81,11 @@ const FIXTURES: Record<string, string> = {
     "export const label = (p: { currentName?: string }) => p.currentName ?? 'none'",
     "export const shown = (err: unknown) => (err instanceof Error ? err.message : 'x')", // 12: flagged
     "export const mixed = (a: unknown, b: Error) => (a instanceof Error ? b.message : 'x')",
+    "export const tab = () => window.open('/systems/red-laser', '_blank')", // 14: flagged
+    "export const global = () => globalThis.open('/systems/red-laser')", // 15: flagged
+    'export const opener = window.open', // 16: flagged
+    'export const own = (dialog: { open: () => void }) => dialog.open()',
+    'export const href = window.location.href',
     '',
   ].join('\n'),
   [ROUTE_ERRORS]: [
@@ -124,6 +129,7 @@ const FIXTURES: Record<string, string> = {
     'declare const SalvageUnionReference: any',
     "SalvageUnionReference.preload(['chassis'])", // 2: flagged
     'export const stamp = new Date().toISOString()',
+    "export const tab = () => window.open('/')",
     '',
   ].join('\n'),
   [EXEMPT_TEST]: [
@@ -252,6 +258,16 @@ describe('noRawErrorMessage', () => {
   test('does not apply to tests or the development-only route error dump', () => {
     expect(flagged(TEST_FILE, 'plugin', 'Do not show a caught error')).toEqual([])
     expect(flagged(ROUTE_ERRORS, 'plugin', 'Do not show a caught error')).toEqual([])
+  })
+})
+
+describe('noWindowOpen', () => {
+  test('flags window.open and globalThis.open in the app, not an own open() or another window member', () => {
+    expect(flagged(SOURCE, 'plugin', 'Never open a new tab')).toEqual([14, 15, 16])
+  })
+
+  test('does not apply outside the app', () => {
+    expect(flagged(OTHER_TEST, 'plugin', 'Never open a new tab')).toEqual([])
   })
 })
 

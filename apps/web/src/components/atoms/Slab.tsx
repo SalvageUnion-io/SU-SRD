@@ -1,28 +1,17 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode, Ref } from 'react'
 import { isValidElement } from 'react'
-import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, space, weight } from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import type { ChipSet } from '../entity'
+import { Chips } from '../entity'
+import { FOCUS_RING } from './interaction'
 import { POSTER_STAMP } from './posterStamp'
-import type { StatBorderState } from './Stat'
-import { Stat } from './Stat'
+import type { SlabCount } from './slabSummary'
+import { slabSummary, summaryFacts } from './slabSummary'
 
-/**
- * A slab's count when it is a VALUE (`SLOTS | 3/6`, `INTACT | 10/10`): a
- * label-first horizontal `Stat` chip (ruleset §3.7, EDL E9), never trailing
- * text ("3/6 slots"). A word ("Choose 1", "Tree") stays a `ReactNode`.
- */
-export type SlabCount = {
-  /** The chip's label: what is counted ('Slots', 'Intact'). */
-  label: string
-  /** The reading; with `max` it reads `value/max`. */
-  value: number | string
-  max?: number
-  /** The chip's border state: `critical` when the reading is over its cap. */
-  state?: StatBorderState
-  /** A muted word after the chip ("as printed"). */
-  note?: ReactNode
-  /** The chip's hover text (where an "as printed" count is printed). */
-  title?: string
-}
+export type { SlabCount } from './slabSummary'
+
+const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 
 /** A `SlabCount`, not a node: an object with a label and a value. */
 function isSlabCount(count: unknown): count is SlabCount {
@@ -64,7 +53,7 @@ type SlabProps = {
    * The count's ink. 'muted' (default) is `wkMuted`, which clears AA on paper
    * and the workshop grounds only. 'inherit' prints it in the surrounding ink
    * (`currentcolor`), for a slab printed straight on a tinted ground: on
-   * The Cantina's wizard step card `wkMuted` measures 3.78 / 3.03 / 2.65:1 (pilot /
+   * the app's wizard step card `wkMuted` measures 3.78 / 3.03 / 2.65:1 (pilot /
    * mech / crawler), the card's own ink 10.13 / 8.12 / 7.11:1.
    */
   countInk?: 'muted' | 'inherit'
@@ -75,33 +64,41 @@ type SlabProps = {
    */
   actions?: ReactNode
   className?: string
-  /** Merged over the row's own style — the way to retune its bottom margin. */
-  style?: CSSProperties
+  /**
+   * No foot margin: the slab's container sets the gap under it, as
+   * `SlabSection`'s column does (ruleset §6.4). A section a Slab heads is a
+   * `SlabSection`; `flush` alone is for a Slab in a column that already
+   * spaces its children. A Slab takes no `style` (R1, `chrome/slab-section`).
+   */
+  flush?: boolean
   /** For a region that names itself by its slab (`aria-labelledby`). */
   id?: string
+  /** The label's element, for a host that moves focus to its heading. */
+  ref?: Ref<HTMLElement>
   /**
-   * 'dashed' (default, unchanged) — tone-deep colored text label + dashed
-   * leader rule, the original live-play control-panel shape. 'solid' — the
-   * section stamp of the brand refresh (boards 06–10): a solid ink stamp,
-   * paper text, then a dashed ink hairline running to its note at the far
-   * end ("CRAWLER TYPES ┄┄┄ Choose 1"). It replaced the centred rust
-   * `SectionHeader` and the roster's column headings.
+   * `-1` makes the label a programmatic focus target, wearing the focus ring:
+   * where focus lands when the thing it was on disappears (EntitySearcher's
+   * selection rail, after its last entry is removed). Never `0`: a heading is
+   * not a tab stop.
    */
-  variant?: 'dashed' | 'solid'
+  tabIndex?: -1
   /**
-   * Where a SOLID slab's count sits: at the rule's far end (`end`, the
-   * default) or beside its stamp (`label`) — the Cantina's Shelves (board S1), whose
-   * rule runs on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
-   * The dashed slab always counts beside its label.
+   * Where the count sits: at the rule's far end (`end`, the default) or
+   * beside its stamp (`label`) — the app's Shelves, whose rule runs
+   * on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
    */
   countAt?: 'end' | 'label'
+  /**
+   * `mini`: the head at the Mini Size (18px), for a section inside a
+   * contentful Mini (a crawler bay's Bay Info and When Damaged; R12: a Mini's
+   * headers and expanders are its Size).
+   */
+  size?: 'mini'
 }
 
 /**
- * The row, bottom margin included. The margin is inline on purpose: a slab
- * often sits in a `space-y-*` stack, whose child margin it must out-rank (as
- * the old `mb-3.5` utility did by specificity). A caller that retunes the
- * margin passes `style`, which merges over this.
+ * The row, bottom margin included: a slab set loose among its siblings keeps
+ * its own space under it. `flush` drops it where a container spaces it.
  */
 const ROW = {
   alignItems: 'center',
@@ -109,6 +106,8 @@ const ROW = {
   gap: space[12],
   marginBottom: space[14],
 } satisfies CSSProperties
+
+const ROW_FLUSH = { ...ROW, marginBottom: 0 } satisfies CSSProperties
 
 const COUNT = {
   color: color.wkMuted,
@@ -142,43 +141,42 @@ const COUNT_STAT = {
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
 /* A label longer than its row wraps between its words rather than pushing the
    rule off the page; a word is never cut (`min-content`). */
-const SOLID_LABEL = {
+/* At the Compact Size (32px), as its count chips and the controls beside it
+   are, so a head's siblings share one Size (ruleset §4.7, R12: a Game's
+   "Pilots", "Seats" and "Move in…" one Size). */
+const LABEL = {
+  alignItems: 'center',
+  display: 'inline-flex',
   flexShrink: 1,
   minWidth: 'min-content',
+  minHeight: 'var(--size-compact)',
   fontSize: fontSize.sm,
   lineHeight: 1.625,
-  paddingBottom: '3px',
+  paddingBottom: space[2],
   paddingInline: space[8],
   paddingTop: space[2],
 } satisfies CSSProperties
 
-const DASHED_LABEL = {
-  color: 'var(--tone-deep, var(--color-ink))',
-  flexShrink: 1,
-  minWidth: 'min-content',
-  fontFamily: font.cond,
-  fontSize: fontSize.sm,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsWide,
-  lineHeight: 'calc(1.25 / 0.875)',
-  textTransform: 'uppercase',
+/** The Mini Size's stamp: the Mini's 18px, its chip type. */
+const LABEL_MINI = {
+  ...LABEL,
+  fontSize: fontSize.xs,
+  lineHeight: 1,
+  minHeight: 'var(--size-mini)',
+  paddingBottom: 0,
+  paddingInline: space[6],
+  paddingTop: 0,
 } satisfies CSSProperties
 
-const SOLID_RULE = {
+const ROW_MINI = { ...ROW_FLUSH, gap: space[6] } satisfies CSSProperties
+
+const RULE = {
   borderTopColor: color.ink50,
-  borderTopStyle: 'dashed',
+  borderTopStyle: 'solid',
   borderTopWidth: borderWidth.hairline,
   flex: '1 1 0%',
   height: 0,
   minWidth: space[12],
-} satisfies CSSProperties
-
-const DASHED_RULE = {
-  background:
-    'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
-  flex: '1 1 0%',
-  height: space[2],
-  opacity: 0.4,
 } satisfies CSSProperties
 
 const ACTIONS = {
@@ -190,9 +188,11 @@ const ACTIONS = {
 
 /**
  * The section header (ruleset §5 atom 7, "section stamp + leader rule";
- * design-spec §2.10 `.slab`): an uppercase cond label with a leader rule.
- * Default ('dashed') keeps the original tone-deep text + dashed rule; 'solid'
- * is the ink section stamp with its count at the end of the rule.
+ * design-spec §2.10 `.slab`): the solid ink section stamp, paper text, then an
+ * ink hairline leader running to its count at the far end ("CRAWLER TYPES ┄┄┄
+ * Choose 1"). Every section head is this one Slab: it takes no variant, since
+ * a dashed head would read as user-made (ruleset §3.9, hard rule R1). It
+ * replaced the centred rust `SectionHeader` and the roster's column headings.
  */
 export function Slab({
   label,
@@ -201,31 +201,31 @@ export function Slab({
   countInk = 'muted',
   actions,
   className,
-  style,
+  flush = false,
   id,
-  variant = 'dashed',
+  ref,
+  tabIndex,
   countAt = 'end',
+  size,
 }: SlabProps) {
-  const isSolid = variant === 'solid'
-  const countByLabel = !isSolid || countAt === 'label'
+  const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
-  const chips = slabCounts(count)
+  const counts = slabCounts(count)
+  // The summary (C10): at most two counts, drawn by `Chips` as measures; a
+  // count's note ("as printed") follows the strip as muted text.
+  const chips = counts && slabSummary(counts)
+  const titles = chips?.flatMap((chip) => (chip.title ? [chip.title] : [])) ?? []
   const countNode = chips ? (
-    <span style={COUNT_STAT}>
-      {chips.map((chip) => (
-        <span key={chip.label} style={COUNT_STAT} title={chip.title}>
-          <Stat
-            orientation="horizontal"
-            size="compact"
-            label={chip.label}
-            value={chip.value}
-            max={chip.max}
-            state={chip.state}
-          />
-          {chip.note != null && <span style={countInkStyle}>{chip.note}</span>}
-        </span>
-      ))}
+    <span style={COUNT_STAT} title={titles.length ? titles.join('; ') : undefined}>
+      <Chips as="span" size="compact" chips={{ ...NO_CHIPS, facts: summaryFacts(chips) }} />
+      {chips.map((chip) =>
+        chip.note != null ? (
+          <span key={chip.label} style={countInkStyle}>
+            {chip.note}
+          </span>
+        ) : null
+      )}
     </span>
   ) : (
     count != null && (
@@ -233,24 +233,24 @@ export function Slab({
     )
   )
   return (
-    <div className={className} style={style ? { ...ROW, ...style } : ROW}>
-      {isSolid ? (
-        <Label id={id} className={POSTER_STAMP} style={SOLID_LABEL}>
-          {label}
-        </Label>
-      ) : (
-        <Label id={id} style={DASHED_LABEL}>
-          {label}
-        </Label>
-      )}
-      {/* The dashed slab counts beside its label; the solid one at the rule's
-          end unless `countAt="label"` brings it beside the stamp. */}
+    <div
+      className={className}
+      style={size === 'mini' ? ROW_MINI : flush ? ROW_FLUSH : ROW}
+      data-slab=""
+    >
+      <Label
+        id={id}
+        ref={ref}
+        tabIndex={tabIndex}
+        className={cn(POSTER_STAMP, tabIndex !== undefined && FOCUS_RING)}
+        style={size === 'mini' ? LABEL_MINI : LABEL}
+      >
+        {label}
+      </Label>
+      {/* The count sits at the rule's end unless `countAt="label"` brings it
+          beside the stamp. */}
       {countByLabel && countNode}
-      {isSolid ? (
-        <span aria-hidden="true" style={SOLID_RULE} />
-      ) : (
-        <span aria-hidden="true" style={DASHED_RULE} />
-      )}
+      <span aria-hidden="true" style={RULE} />
       {!countByLabel && countNode}
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex

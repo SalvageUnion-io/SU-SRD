@@ -17,9 +17,9 @@
  * rules to apply beyond who may write its `from` end, which the server checks.
  */
 
-import { resolveLinkType } from 'cantina-domain/links/linkRules'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { CrewSlot, SoftLink } from 'cantina-domain/schemas/softLink'
+import { resolveLinkType } from 'game-domain/links/linkRules'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
 import { useEntityStore } from '../../stores/entityStore'
 import { serverMessage } from '../connection/serverError'
 import { LinkRefused } from './linkRefused'

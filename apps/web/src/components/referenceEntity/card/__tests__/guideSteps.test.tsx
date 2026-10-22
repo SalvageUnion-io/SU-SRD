@@ -12,6 +12,7 @@
  *   `flavor` block are framed asides, and a run-in head (a value-only `label`,
  *   a sub-`heading`) becomes the stamp over its paragraph (the full rung on a
  *   page);
+ * - on its Page a step's options are open Compacts, one a line (N8); elsewhere Minis;
  * - on a page the steps stand as a page section, not inside the prose column.
  */
 import { describe, expect, test } from 'bun:test'
@@ -218,7 +219,7 @@ describe('GuideSteps on the page', () => {
     const labels = downtime.steps.flatMap((step) => (step.section ? [step.section] : []))
     expect(sections).toHaveLength(labels.length)
     sections.forEach((section, index) => {
-      expect(section.querySelector('.su-guide__section-head h2')?.textContent).toBe(labels[index])
+      expect(section.querySelector('.su-slab-section__head h2')?.textContent).toBe(labels[index])
       // Numbering restarts in every section.
       expect(section.querySelector('.su-guide__head h3')?.textContent).toMatch(/^1 /)
     })
@@ -313,6 +314,20 @@ describe('GuideSteps on the page', () => {
     const { container } = render(<ReferenceEntityCard data={guide('Heat')} presentation="page" />)
     expect(within(container).queryByRole('link', { name: 'p. 235' })).toBeNull()
     expect(container.textContent).toContain('Reactor Overload Table p. 235')
+  })
+
+  test("a step's options on its Page are open Compacts, one a line, never Minis (N8)", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
+    )
+    const list = container.querySelector('ul.su-guide__rows[aria-label="Craft your Systems"]')
+    expect(list).not.toBeNull()
+    const items = list?.querySelectorAll(':scope > li') ?? []
+    expect(items.length).toBeGreaterThan(0)
+    for (const item of items) {
+      expect(item.querySelector('.su-ec-frame')).not.toBeNull()
+      expect(item.querySelector(':scope > .su-entity-mini')).toBeNull()
+    }
   })
 
   test('a wide step table scrolls in its own box', () => {

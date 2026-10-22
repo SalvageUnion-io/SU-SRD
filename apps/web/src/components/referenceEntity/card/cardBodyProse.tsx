@@ -19,7 +19,7 @@ import type {
   RefObjectContentBlock,
 } from 'salvageunion-reference'
 import { getChoices, isAbility, resolveGrantedEntities } from 'salvageunion-reference'
-import type { CardSize } from '../../containers/displayMode'
+import type { Size } from '../../../styles/sizing'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
 import { choiceKey, hideShownProse, proseKey, resolveBodyBlocks } from './bodyBlocks'
 import { interleaveBody } from './bodyInterleave'
@@ -29,7 +29,6 @@ import type { BonusCell } from './cardCells'
 import { bonusCells } from './cardCells'
 import type { Down } from './cardChrome'
 import { blockPlainText, choiceRendersNothing, isRulesBearing } from './cardHelpers'
-import { resolveCatalogLeadBlocks } from './catalogLead'
 import type { AnchoredContentBlock } from './choiceAnchoring'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
 import type { DomainTone } from './entityCardTone'
@@ -41,7 +40,7 @@ import type {
   ReferenceEntityCardHideConfig,
   ReferenceEntityCardProps,
 } from './referenceEntityCardTypes'
-import { resolveGuideLead } from './resolveGuideLead'
+import { damagedEffectOf } from './whenDamaged.model'
 
 /** What the inner card resolved above its head-form return, as the body needs it. */
 export type CardBodyInput = Pick<
@@ -54,6 +53,7 @@ export type CardBodyInput = Pick<
   | 'onSelectionChange'
   | 'afterExtraContent'
   | 'showChassisAbility'
+  | 'sectionFold'
 > & {
   data: ReferenceCardEntity
   entity: RefMetaEntity
@@ -61,13 +61,12 @@ export type CardBodyInput = Pick<
   pattern: RefObjectAnyPattern | undefined
   entityName: string
   resolvedChassisName: string | undefined
-  size: CardSize
+  size: Size
   depth: number
   compact: boolean
   onPage: boolean
   readable: boolean
   isAction: boolean
-  isCatalog: boolean
   isDown: Down
   isTitanicMeta: boolean
   isLegalStartingPatternCard: boolean
@@ -78,7 +77,6 @@ export type CardBodyInput = Pick<
   /** The self-action folded into the body (`foldedActionOf`). */
   foldedAction: RefMetaAction | undefined
   titanicBodyContent: RefObjectContentBlock[] | undefined
-  hintText: string | undefined
   leadHint: string | undefined
   assetUrl: string | undefined
   assetSrcSet: string | undefined
@@ -104,14 +102,12 @@ export function resolveBodyProse(input: CardBodyInput) {
     compact,
     onPage,
     readable,
-    isCatalog,
     isDown,
     isTitanicMeta,
     tone,
     hide,
     foldedAction,
     titanicBodyContent,
-    hintText,
     leadHint,
     assetUrl,
     effTechLevel,
@@ -132,21 +128,11 @@ export function resolveBodyProse(input: CardBodyInput) {
   // content AND actions (they belong to the granted entity); its description
   // leads, then the granted cards.
   const grantedCount = resolveGrantedEntities(entity as RefEntity).length
-  const isGrantingAbility = !isCatalog && isAbility(entity) && grantedCount > 0
-  // CATALOG guide lead — narrow a guide tile to its own opening paragraph,
-  // falling back to its first step's (see `resolveGuideLead`).
-  const catalogGuideLead = isCatalog ? resolveGuideLead(entity) : undefined
-  const content = catalogGuideLead
-    ? [{ type: 'paragraph' as const, value: catalogGuideLead }]
-    : 'content' in entity
-      ? entity.content
-      : undefined
+  const isGrantingAbility = isAbility(entity) && grantedCount > 0
+  const content = 'content' in entity ? entity.content : undefined
   // The crawler-bay damaged-effect string also appears as the last content
-  // paragraph; it renders in the "WHEN DAMAGED" callout instead.
-  const damagedEffect =
-    'damagedEffect' in entity && typeof entity.damagedEffect === 'string'
-      ? entity.damagedEffect
-      : undefined
+  // paragraph; it renders in its WHEN DAMAGED block instead (`WhenDamaged`).
+  const damagedEffect = damagedEffectOf(entity)
   // A granted entity's SHORT-FORM lead sentence is already shown by the
   // containing ability.
   const isGrantContext = parentSeal?.label === 'Grants'
@@ -155,7 +141,6 @@ export function resolveBodyProse(input: CardBodyInput) {
     entity,
     schemaName,
     pattern,
-    isCatalog,
     onPage,
     showChassisAbility,
     depth,
@@ -251,14 +236,6 @@ export function resolveBodyProse(input: CardBodyInput) {
       ? [{ type: 'paragraph', value: leadHint }]
       : []
 
-  // CATALOG LEAD — a tile with no prose of its own borrows an opening
-  // paragraph from what it suppressed (grants, then actions), deduplicated
-  // against the hint.
-  const catalogLeadBlocks: RefObjectContentBlock[] =
-    isCatalog && bodyNodes.length === 0
-      ? resolveCatalogLeadBlocks(entity as RefEntity, hintText)
-      : []
-
   // What this card prints, for its nested children to not repeat.
   // A builder pick shows the chassis ability under the picker's `hide.actions`.
   const inlineActionEntities: ReferenceCardEntity[] = [
@@ -301,7 +278,6 @@ export function resolveBodyProse(input: CardBodyInput) {
     prose,
     bodyNodes,
     leadBlocks,
-    catalogLeadBlocks,
     inlineActionEntities,
     nestedHost,
   }

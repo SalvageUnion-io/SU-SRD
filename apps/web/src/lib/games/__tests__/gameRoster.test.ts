@@ -144,8 +144,8 @@ describe('rows carry ownership as a state, never a blank', () => {
       members: ALL,
       localIds: new Set(['bonesaw']),
     })
-    // `LaunchDashboard` lists only rows with a local copy, so without this a
-    // Starter Set table could never launch the Dashboard.
+    // `LaunchPlay` lists only rows with a local copy, so without this a
+    // Starter Set table could never open Play.
     expect(row?.localId).toBe('bonesaw')
   })
 
@@ -267,31 +267,31 @@ describe('moveDestinations — the move control lists only what the server accep
 
   test('a pilot or mech may go to your shelves or any Game I belong to', () => {
     expect(labels(moveDestinations({ kind: 'pilot', current: { kind: 'shelf' }, games }))).toEqual([
-      'Hangar',
+      'Training Bay',
       'Run by me',
       'Run by someone else',
     ])
     expect(
       labels(moveDestinations({ kind: 'mech', current: { kind: 'game', gameId: 'g2' }, games }))
-    ).toEqual(['Run by someone else', 'Hangar', 'Run by me'])
+    ).toEqual(['Run by someone else', 'Training Bay', 'Run by me'])
   })
 
-  test('a Hangar crawler may go only into a Game I run', () => {
+  test('a Training Bay crawler may go only into a Game I run', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'shelf' }, games }))
-    ).toEqual(['Hangar', 'Run by me'])
+    ).toEqual(['Training Bay', 'Run by me'])
   })
 
   test('a Game crawler may come out to my shelf only if I run that Game — never Game to Game', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g1' }, games }))
-    ).toEqual(['Run by me', 'Hangar'])
+    ).toEqual(['Run by me', 'Training Bay'])
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g2' }, games }))
     ).toEqual(['Run by someone else'])
   })
 
-  test('a Game I am not in is named, not passed off as Hangar', () => {
+  test('a Game I am not in is named, not passed off as Training Bay', () => {
     const [here] = moveDestinations({
       kind: 'pilot',
       current: { kind: 'game', gameId: 'phantom' },

@@ -2,6 +2,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import type { PeekLoader } from '../index'
 import { PeekHost } from '../index'
+import { ReferenceSurface } from '../ReferenceSurface'
 
 /**
  * The schemas a Peek of one schema's entity reads: the entity's own and what
@@ -18,8 +19,13 @@ const loadForPeek: PeekLoader = (schemaName) =>
  * focus or long-press.
  *
  * It takes no props and reads no game data on mount: the popup, its card and
- * the one schema bundle it shows load on the first Peek.
+ * the one schema bundle it shows load on the first Peek. It sits on the SRD's
+ * surface (`ReferenceSurface`), so the Peek's name links to the entity's page.
  */
 export function PeekIsland() {
-  return <PeekHost load={loadForPeek} />
+  return (
+    <ReferenceSurface>
+      <PeekHost load={loadForPeek} />
+    </ReferenceSurface>
+  )
 }

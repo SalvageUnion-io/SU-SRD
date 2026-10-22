@@ -1,5 +1,7 @@
 /**
- * Components V2 plumbing — the `data → ContainerBuilder` seam.
+ * Components V2 plumbing — the `data → JSON` seam. The JSON is written by
+ * the package's `toComponentsV2`, the serialiser the SRD's Component Embed
+ * goes through too, so a reply and a pasted link speak one wire format.
  *
  * ## Why containers
  *
@@ -8,8 +10,8 @@
  * body, not a set of fixed slots.
  *
  * With `MessageFlags.IsComponentsV2` set, Discord rejects `content` and
- * `embeds` outright — it is all-in per message. `ContainerBuilder.
- * setAccentColor()` carries the tier colour as a `0xRRGGBB` integer.
+ * `embeds` outright — it is all-in per message. The container's
+ * `accent_color` carries the tier colour as a `0xRRGGBB` integer.
  *
  * ## Why this module is pure
  *
@@ -27,26 +29,16 @@
  * mapped onto blocks in exactly one place.
  */
 
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ContainerBuilder,
-  SectionBuilder,
-  SeparatorBuilder,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
-  TextDisplayBuilder,
-  ThumbnailBuilder,
-} from '@discordjs/builders'
-import { ButtonStyle, MessageFlags, SeparatorSpacingSize } from 'discord-api-types/v10'
-import { truncate } from 'salvageunion-reference'
+import type { APIContainerComponent } from 'discord-api-types/v10'
+import { MessageFlags } from 'discord-api-types/v10'
+import type { V2Block, V2Button } from 'salvageunion-reference'
+import { toComponentsV2, truncate } from 'salvageunion-reference'
 
 /**
  * Discord's Components V2 ceilings.
  *
- * These are **server-side** and encoded in none of the installed packages —
- * `@discordjs/builders` imposes no total-component cap, so nothing local will
- * tell you when a container is too big. They are recorded here so one place
+ * These are **server-side** and encoded in none of the installed packages,
+ * so nothing local will tell you when a container is too big. They are recorded here so one place
  * owns them, and are deliberately conservative.
  */
 export const V2_LIMIT = {
@@ -54,7 +46,7 @@ export const V2_LIMIT = {
   components: 40,
   /** Characters across every TextDisplay in the message. */
   totalText: 4000,
-  /** Characters in a single TextDisplay (a builder-enforced predicate). */
+  /** Characters in a single TextDisplay. */
   textDisplay: 4000,
   /** Buttons in one action row. */
   rowButtons: 5,
@@ -62,33 +54,20 @@ export const V2_LIMIT = {
   selectOptions: 25,
 } as const
 
-/** A button that re-invokes the bot, or one that just opens a URL. */
-export type ButtonSpec =
-  | { kind: 'action'; customId: string; label: string; style?: ButtonStyle; disabled?: boolean }
-  | { kind: 'link'; url: string; label: string }
+/**
+ * A button that re-invokes the bot, or one that just opens a URL: the
+ * package's, so a reply and the SRD's Component Embed share one wire format.
+ */
+export type ButtonSpec = V2Button
 
-/** One block in a container, in render order. */
-export type ContainerBlock =
-  | { kind: 'text'; content: string }
-  | { kind: 'separator' }
-  | {
-      kind: 'section'
-      /** 1–3 text blocks, per the builder's own predicate. */
-      text: string[]
-      thumbnail?: { url: string; description?: string }
-      /** Or a button beside the text, which acts on that line. */
-      button?: ButtonSpec
-    }
-  | { kind: 'buttons'; buttons: ButtonSpec[] }
-  | {
-      kind: 'select'
-      customId: string
-      placeholder: string
-      /** At most {@link V2_LIMIT.selectOptions}; each value at most 100 characters. */
-      options: { label: string; value: string; description?: string }[]
-    }
+/**
+ * One block in a container, in render order (the package's `V2Block`). A
+ * select holds at most {@link V2_LIMIT.selectOptions} options, each value at
+ * most 100 characters.
+ */
+export type ContainerBlock = V2Block
 
-/** Everything needed to render one container. Pure data — no builders. */
+/** Everything needed to render one container. Pure data. */
 export type ContainerData = {
   /** The accent stripe, a `0xRRGGBB` integer. */
   accent: number
@@ -244,80 +223,31 @@ export function entityCard(card: EntityCard): ContainerData {
   return { accent: card.accent, blocks }
 }
 
-function toButton(spec: ButtonSpec): ButtonBuilder {
-  return spec.kind === 'link'
-    ? new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(spec.url).setLabel(spec.label)
-    : new ButtonBuilder()
-        .setStyle(spec.style ?? ButtonStyle.Secondary)
-        .setCustomId(spec.customId)
-        .setLabel(spec.label)
-        .setDisabled(spec.disabled === true)
+/** A control cut to Discord's per-row ceilings: five buttons, 25 options. */
+function withinRow(block: ContainerBlock): ContainerBlock {
+  if (block.kind === 'buttons') {
+    return { ...block, buttons: block.buttons.slice(0, V2_LIMIT.rowButtons) }
+  }
+  if (block.kind === 'select') {
+    return { ...block, options: block.options.slice(0, V2_LIMIT.selectOptions) }
+  }
+  return block
 }
 
 /**
- * Build the container. Enforces limits first, so a caller cannot skip the
- * guard: this is the one choke point every reply passes through.
+ * Build the container's JSON through the package's serialiser
+ * (`toComponentsV2`), the one the SRD's Component Embed is written by.
+ * Enforces limits first, so a caller cannot skip the guard: this is the one
+ * choke point every reply passes through.
  */
-export function toContainer(data: ContainerData): ContainerBuilder {
+export function toContainer(data: ContainerData): APIContainerComponent {
   const safe = enforceContainerLimits(data)
-  const container = new ContainerBuilder().setAccentColor(safe.accent)
-
-  for (const block of safe.blocks) {
-    switch (block.kind) {
-      case 'text':
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(block.content))
-        break
-      case 'separator':
-        container.addSeparatorComponents(
-          new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small)
-        )
-        break
-      case 'section': {
-        const section = new SectionBuilder().addTextDisplayComponents(
-          ...block.text.map((t) => new TextDisplayBuilder().setContent(t))
-        )
-        if (block.thumbnail) {
-          const thumb = new ThumbnailBuilder().setURL(block.thumbnail.url)
-          if (block.thumbnail.description) thumb.setDescription(block.thumbnail.description)
-          section.setThumbnailAccessory(thumb)
-        } else if (block.button) {
-          section.setButtonAccessory(toButton(block.button))
-        }
-        container.addSectionComponents(section)
-        break
-      }
-      case 'buttons': {
-        const buttons = block.buttons.slice(0, V2_LIMIT.rowButtons).map(toButton)
-        if (buttons.length > 0) {
-          container.addActionRowComponents(
-            new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons)
-          )
-        }
-        break
-      }
-      case 'select': {
-        const options = block.options.slice(0, V2_LIMIT.selectOptions).map((option) => {
-          const built = new StringSelectMenuOptionBuilder()
-            .setLabel(option.label)
-            .setValue(option.value)
-          if (option.description) built.setDescription(option.description)
-          return built
-        })
-        if (options.length > 0) {
-          container.addActionRowComponents(
-            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-              new StringSelectMenuBuilder()
-                .setCustomId(block.customId)
-                .setPlaceholder(block.placeholder)
-                .addOptions(...options)
-            )
-          )
-        }
-        break
-      }
-    }
-  }
-  return container
+  // The package types its JSON loosely, as it depends on no Discord types;
+  // `container.test.ts` holds the shape to Discord's.
+  return toComponentsV2({
+    accent: safe.accent,
+    blocks: safe.blocks.map(withinRow),
+  }) as unknown as APIContainerComponent
 }
 
 /**
@@ -327,7 +257,7 @@ export function toContainer(data: ContainerData): ContainerBuilder {
 export function v2Reply(
   data: ContainerData,
   ephemeral = false
-): { flags: number; components: [ContainerBuilder] } {
+): { flags: number; components: [APIContainerComponent] } {
   return {
     flags: ephemeral
       ? MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral

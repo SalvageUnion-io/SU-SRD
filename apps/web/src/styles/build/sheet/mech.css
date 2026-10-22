@@ -1,0 +1,173 @@
+/* The mech sheet group's rules: only what a style object cannot express. */
+
+/* ---- Shared sheet chrome (LiveSheet, Sheet, readOnlyBanner) ---- */
+
+/* The sheet's page gutter — the sticky bar and the read-only crew banner —
+   is every page's (`.su-page-gutters` on the sheet's main, the UI library's
+   shell.css), so the band's cut-out and the body share one left edge. */
+.su-sheet-gutter {
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+/* The body column under the chapter band. */
+.su-sheet-live-body {
+  padding: var(--space-16) var(--su-page-gutter-inline) var(--space-32);
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-body {
+    padding-block: var(--space-24) var(--space-64);
+  }
+}
+
+/* A condensed-bar readout that folds below sm (Heat + SP lead on phones). */
+.su-sheet-live-stat-fold {
+  display: none;
+}
+
+@media (width >= 40rem) {
+  .su-sheet-live-stat-fold {
+    display: inline-flex;
+  }
+}
+
+/* The phone's Pilot/Mech/Crawler switch: phones only, never on paper. */
+/* Not once it left the band for the page's first row (`data-fill-out`, C2b):
+   this sheet is unlayered, so its `display` would beat the out state. */
+.su-sheet-live-segments:not([data-fill-out]) {
+  display: flex;
+}
+
+/* Hidden at the phone rule's own weight, which would otherwise win. */
+@media (width >= 40rem) {
+  .su-sheet-live-segments:not([data-fill-out]) {
+    display: none;
+  }
+}
+
+@media print {
+  .su-sheet-live-segments:not([data-fill-out]) {
+    display: none;
+  }
+}
+
+/* ---- SheetHero ---- */
+
+/* Fields beside a 260px vitals column once the SHEET (its `@container`) is
+   wide enough; stacked below that. */
+.su-sheet-hero {
+  gap: var(--space-24);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@container (width >= 48rem) {
+  .su-sheet-hero {
+    gap: var(--space-24);
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+}
+
+/* The fields card and its stack (`SheetHero`'s hairline `Box`). */
+.su-sheet-hero-fields {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.su-sheet-hero-fields-body {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The vitals stack (`SheetHero`, every kind): a deep-tone rule between each row. */
+.su-sheet-vitals > * + * {
+  border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
+  border-style: solid;
+  border-top-width: var(--bw-hairline);
+  margin-top: var(--space-14);
+  padding-top: var(--space-14);
+}
+
+/* ---- MechSheet ---- */
+
+/* The hero's fields card is image | text | stats + ability: the player's
+   fields, then a right column with the chassis stats in its top-right corner
+   and the chassis ability under them. Queries `.su-photo-beside` (the card
+   body's container), so the column goes beside the fields only where the card
+   has room; below that it follows them. */
+.su-sheet-mech-hero-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  height: 100%;
+}
+
+.su-sheet-mech-hero-split > :first-child {
+  flex: 1 1 auto;
+}
+
+.su-sheet-mech-hero-chassis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+@container (width >= 40rem) {
+  .su-sheet-mech-hero-split {
+    flex-direction: row;
+  }
+
+  .su-sheet-mech-hero-split > :first-child {
+    flex: 2 1 0%;
+    min-width: 0;
+  }
+
+  /* The chassis column takes the larger share, for the stats and ability,
+     never under 19rem. */
+  .su-sheet-mech-hero-chassis {
+    flex: 3 1 0%;
+    min-width: 19rem;
+  }
+}
+
+/* Every column of the hero spreads its blocks evenly down the row's height,
+   so no column ends on a gap: the photo, the player's fields, the chassis's
+   stats and ability. */
+.su-photo-beside-row:has(.su-sheet-mech-hero-split) > .su-photo-beside-slot,
+.su-sheet-mech-hero-split > *,
+.su-sheet-mech-hero-split > :first-child > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.su-sheet-mech-hero-split > :first-child > * {
+  flex: 1 1 auto;
+}
+
+/* Appearance takes the identity card's remaining height (`Field` takes a
+   className, no style). */
+.su-sheet-mech-fill {
+  flex: 1 1 0%;
+}
+
+/* Assigned units (`AssignedUnits`, every kind): one line a unit, its
+   relation chip and, in Edit, its controls. */
+.su-sheet-linked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+/* Systems, then Modules, one under the other: each is a masonry grid of
+   contentful Minis (`MiniGrid`) that takes the column's width for its two
+   or three columns. */
+.su-sheet-mech-loadout {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: minmax(0, 1fr);
+}

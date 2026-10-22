@@ -82,8 +82,8 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     // `deploy-preview.yml`: ships each PR into `main` that carries the
     // `preview` label as Worker Previews `pr-<n>`, and pushes the staging
     // Convex deployment `perfect-donkey-72`. It runs from ANY branch (`**/*`),
-    // and the label is the gate: no required reviewer, by the owner's choice
-    // (2026-10-13). Accepted risk (ADR-033 §Credentials): the Cloudflare token
+    // and the label is the gate: no required reviewer. Accepted risk
+    // (ADR-033 §Credentials): the Cloudflare token
     // cannot be narrowed to the previews (Workers Scripts: Edit reaches every
     // Worker on the account), so a labelled branch's code holds a credential
     // that can deploy production.

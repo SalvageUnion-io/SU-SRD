@@ -95,6 +95,18 @@ describe('document shell', () => {
     )
   })
 
+  it('preloads the tagline’s hand only on a page that asks for it', () => {
+    const assets = { ...ASSETS, scriptFont: '/assets/caveat-latin-600-normal-C4.woff2' }
+    const tag =
+      '<link rel="preload" href="/assets/caveat-latin-600-normal-C4.woff2" as="font" type="font/woff2" crossorigin>'
+
+    expect(renderAbout({ preloadScriptFont: true }, assets)).toContain(
+      `${tag}<link rel="stylesheet" href="/assets/styles-CAFEBABE.css">`
+    )
+    expect(renderAbout({}, assets)).not.toContain('caveat')
+    expect(renderAbout({ preloadScriptFont: true }, ASSETS)).not.toContain('caveat')
+  })
+
   it('injects nothing when there are no assets', () => {
     expect(renderAbout()).not.toContain('rel="stylesheet"')
     expect(renderAbout()).not.toContain('as="font"')
@@ -214,7 +226,9 @@ describe('head assembly from DocumentMeta', () => {
   it('falls back to the site title and description', () => {
     const html = renderAbout()
     expect(html).toContain('<title>SalvageUnion.io</title>')
-    expect(metaContent(html, 'description')).toContain('rules reference and character manager')
+    expect(metaContent(html, 'description')).toContain(
+      'rules reference and character manager for the Salvage Union TTRPG'
+    )
   })
 
   it('mirrors title and description into og: and twitter:', () => {

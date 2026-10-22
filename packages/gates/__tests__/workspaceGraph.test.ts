@@ -16,10 +16,8 @@ describe('readWorkspaces, against this repo', () => {
 
   test('reads the workspace: edges', () => {
     const deps = (name: string) => graph.find((ws) => ws.name === name)?.deps
-    expect(deps('cantina-domain')).toContain('salvageunion-reference')
-    expect(deps('web')).toEqual(
-      expect.arrayContaining(['cantina-domain', 'salvageunion-reference'])
-    )
+    expect(deps('game-domain')).toContain('salvageunion-reference')
+    expect(deps('web')).toEqual(expect.arrayContaining(['game-domain', 'salvageunion-reference']))
   })
 })
 

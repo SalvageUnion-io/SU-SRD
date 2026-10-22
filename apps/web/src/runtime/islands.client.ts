@@ -19,6 +19,7 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
+import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
@@ -43,6 +44,11 @@ installChunkRecovery()
 // somebody is signed in (`lib/accountBar.ts`).
 const signedIn = readAccountHint(browserStorage()) !== null
 markSignedIn(document, signedIn)
+
+// A contentful Mini's chips that do not fit beside its name go to its body's first row (C2b); an island's fit from `Mini`.
+watchStaticTokenOverflow()
+// A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `CompactIndex`, `ChapterBand`.
+watchStaticChipFill()
 
 type PropsById = Record<string, Record<string, unknown>>
 
@@ -177,7 +183,7 @@ registerSiteWorker()
  * the page the reader actually asked for has been dealt with.
  *
  * Hung off `load` rather than `DOMContentLoaded`, and after island mounting, so
- * a background warm of 1,039 pages can never compete with first paint or with
+ * a background warm of every page can never compete with first paint or with
  * the interactive parts of the page. In a browser tab this costs one function
  * call and a `matchMedia` check — see `offlineWarm.client.ts` for why the guard
  * is the first thing it does.

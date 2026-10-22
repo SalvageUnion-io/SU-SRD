@@ -2,9 +2,9 @@
  * `bun run brand` — writes every brand file from `mark.ts`.
  *
  * One run replaces the SU mark everywhere it is a file: the Union bar and
- * link-preview logo (`logos/su-cargo-dark.svg` in srd, the Cantina and the catalog),
- * srd's favicon set and `favicon.ico`, the Cantina's favicon and PWA icons, and the
- * Discord bot's profile icon. It lives in srd because srd owns sharp.
+ * link-preview logo (`logos/su-cargo-dark.svg` in the reference site, the app and the catalog),
+ * the reference site's favicon set and `favicon.ico`, the app's favicon and PWA icons, and the
+ * Discord bot's profile icon. It lives in the reference site because the reference site owns sharp.
  *
  * It also screenshots the profile banners (`banner.ts`): Discord's and the Ko-fi
  * cover, `apps/discord-bot/brand/{banner,kofi-cover}.png`.
@@ -14,6 +14,11 @@
  * `DISCORD_TOKEN` when set, else read from 1Password with the `op` CLI at
  * `DISCORD_TOKEN_REF`, the reference `apps/discord-bot/.env.example` uses.
  * Without the flag nothing leaves the machine.
+ *
+ * The profile slots: Discord's banner `banner.png` (680 × 240, 17:6; the title
+ * sits right because the avatar covers the bottom left), the app icon and
+ * avatar `icon.png` (1024², also Ko-fi's avatar) and Ko-fi's cover
+ * `kofi-cover.png` (1500 × 500, centred because Ko-fi crops a phone's sides).
  *
  * Not covered: the default link preview (`og-image.png`) carries no mark, and
  * Ko-fi has no API, so its avatar (`icon.png`) and cover go up by hand.

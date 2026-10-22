@@ -5,7 +5,9 @@
  * The server draws a listing unfiltered, in its default view. A shared link
  * that names a filter or a view, or a view the reader chose on an earlier
  * visit, is only known in the browser, so that listing mounts at once rather
- * than showing the wrong cards until someone touches the rail.
+ * than showing the wrong cards until someone touches the rail. A hero search,
+ * or the bar's on the home page, mounts at once for an address with a query
+ * (`/?q=mule`, where the retired search page's links land), to open on it.
  *
  * Free of React and of the islands, like `interaction.ts`: the client entry
  * asks this on every page.
@@ -25,6 +27,9 @@ function stored(win: Window, key: string): string | null {
 }
 
 const MOUNTS_NOW: Record<string, Predicate> = {
+  SearchIsland: (props, win) =>
+    (props.variant === 'hero' || win.location.pathname === '/') &&
+    Boolean(new URLSearchParams(win.location.search).get('q')?.trim()),
   SchemaViewerIsland: (props, win) => {
     const query = new URLSearchParams(win.location.search)
     if (LISTING_PARAMS.some((key) => query.has(key))) return true

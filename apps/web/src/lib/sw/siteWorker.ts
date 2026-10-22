@@ -1,7 +1,7 @@
 /**
  * The reference pages' registration of the site's one service worker
  * (`SITE_WORKER`, `src/pwa.ts`), called from the client entry every page loads
- * (`runtime/islands.client.ts`). The Cantina registers the same worker through
+ * (`runtime/islands.client.ts`). The app registers the same worker through
  * `virtual:pwa-register` (`./register.ts`), which adds its update prompt; a
  * reference page needs none, because every page change is a full document load.
  *

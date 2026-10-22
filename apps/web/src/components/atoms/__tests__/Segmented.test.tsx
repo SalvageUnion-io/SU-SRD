@@ -21,7 +21,8 @@ describe('Segmented', () => {
       </Segmented>
     )
     const group = screen.getByRole('group', { name: 'Showing' })
-    expect(group.getAttribute('data-ground')).toBe('paper')
+    // The ground is the frame's, never the control's (chrome K1).
+    expect(group.hasAttribute('data-ground')).toBe(false)
     expect(group.getAttribute('data-size')).toBe('full')
     expect(screen.getByRole('button', { name: 'Everything' }).getAttribute('aria-pressed')).toBe(
       'true'
@@ -30,9 +31,9 @@ describe('Segmented', () => {
     expect(picks).toEqual(['free'])
   })
 
-  it('carries the ink ground, the Compact Size, the fill and a numeral', () => {
+  it('carries the Compact Size, the fill and a numeral', () => {
     render(
-      <Segmented label="Tech Level" ground="ink" size="compact" fill className="extra">
+      <Segmented label="Tech Level" size="compact" fill className="extra">
         <SegmentedOption pressed={false} numeral>
           1
         </SegmentedOption>
@@ -40,7 +41,6 @@ describe('Segmented', () => {
     )
     const group = screen.getByRole('group', { name: 'Tech Level' })
     expect(group.className).toBe('su-seg extra')
-    expect(group.getAttribute('data-ground')).toBe('ink')
     expect(group.getAttribute('data-size')).toBe('compact')
     expect(group.hasAttribute('data-fill')).toBe(true)
     expect(screen.getByRole('button', { name: '1' }).hasAttribute('data-numeral')).toBe(true)

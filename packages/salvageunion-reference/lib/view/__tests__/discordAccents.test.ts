@@ -36,10 +36,11 @@ describe('theme.css lockstep', () => {
     }
   })
 
-  test('each roll outcome mirrors --color-roll-*', () => {
-    for (const [band, accent] of Object.entries(DISCORD_ROLL_ACCENT)) {
-      expect([band, Number(accent)]).toEqual([band, token(`roll-${band}`)])
-    }
+  test('the roll tiers that are also state mirror --color-status-*; the web has no tier token', () => {
+    expect(Number(DISCORD_ROLL_ACCENT.success)).toBe(token('status-ok'))
+    expect(Number(DISCORD_ROLL_ACCENT.failure)).toBe(token('status-warn'))
+    expect(Number(DISCORD_ROLL_ACCENT.cascade)).toBe(token('status-bad'))
+    expect(css).not.toMatch(/--color-roll-/)
   })
 
   test('the neutral accent is canon --color-rust', () => {

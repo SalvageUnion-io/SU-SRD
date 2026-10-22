@@ -7,7 +7,7 @@
  * trivially testable and the ADR-006 pure-math boundary holds — `lib/rules/*`
  * owns the maths, this only assembles patches.
  *
- * This module is the Dashboard's seam onto the `crafting`, `salvage` and
+ * This module is Play's seam onto the `crafting`, `salvage` and
  * `scrapMech` rules, not new rules.
  *
  * ADR-007 boundary: nothing here decides to destroy anything. `scrapMechPatch`
@@ -15,8 +15,8 @@
  * confirmation itself stays an explicit call at the UI layer.
  */
 
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { AreaSalvageResult, Roll } from 'salvageunion-reference/rules'
 import { performAreaSalvage } from 'salvageunion-reference/rules'
 import type { CraftableItem } from './crafting'

@@ -11,7 +11,6 @@ export function BudgetChips({ budgets }: { budgets: BudgetConfig[] }) {
   return budgets.map((b) => (
     <Stat
       key={b.label}
-      orientation="horizontal"
       size="compact"
       label={b.label}
       value={b.used}

@@ -2,8 +2,8 @@
   The canonical author bio for this project.
 
   Rendered verbatim in the colophon on the About page both tools share,
-  alongside `LLM_STATEMENT.md` — srd's `/about` (`apps/web/src/pages/about.page.tsx`,
-  read at build time with node:fs). The Cantina links there and keeps no copy.
+  alongside `LLM_STATEMENT.md` — srd's `/about` (`apps/web/src/reference/pages/about.page.tsx`,
+  read at build time with node:fs). The app links there and keeps no copy.
 
   Format contract (see `apps/web/src/components/markdownSection/`): one `#`
   heading, then blank-line-separated paragraphs. `[label](href)` links are the

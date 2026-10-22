@@ -3,7 +3,7 @@
  *
  * `apps/web/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
  * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
- * else, and `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
+ * else, and `ssg/**`, `src/reference/pages/**`, `src/reference/layouts/BaseLayout.tsx` and
  * `src/runtime/Island.tsx` must stay stylesheet-free.
  *
  * ## The rule was enforced by nothing, in either direction
@@ -33,10 +33,10 @@
  *
  * 1. Exactly one module a static page reaches may import a stylesheet, and
  *    it is `src/runtime/styles.entry.ts`. "Reaches" is the relative-import
- *    graph from srd's own trees (`ssg/`, `src/pages/`, `src/endpoints/`,
- *    `src/layouts/`, `src/runtime/`), so a component a page renders is held
+ *    graph from the reference site's own trees (`ssg/`, `src/reference/pages/`, `src/reference/endpoints/`,
+ *    `src/reference/layouts/`, `src/runtime/`), so a component a page renders is held
  *    to it too. A component-side `import './x.css'` on that graph rides into
- *    every page's bundle: that is how srd bundled, and its service worker
+ *    every page's bundle: that is how the reference site bundled, and its service worker
  *    precached, the dashboard's 20 KB of rules no page can use.
  * 2. A module only the builder reaches (its routes and the components they
  *    alone render) imports its own stylesheet: Vite code-splits it with the
@@ -53,10 +53,14 @@ import { assertScanFloor } from '../lib/scanFloor'
 /** The one module allowed to import a stylesheet, repo-relative. */
 export const SRD_CSS_ENTRY = 'apps/web/src/runtime/styles.entry.ts'
 
-/** srd's own trees: every file in them is a root of the static-page graph. */
-const SRD_ROOTS = ['ssg', 'src/pages', 'src/endpoints', 'src/layouts', 'src/runtime'].map(
-  (d) => `apps/web/${d}`
-)
+/** The reference site's own trees: every file in them is a root of the static-page graph. */
+const SRD_ROOTS = [
+  'ssg',
+  'src/reference/pages',
+  'src/reference/endpoints',
+  'src/reference/layouts',
+  'src/runtime',
+].map((d) => `apps/web/${d}`)
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 /** `import './x.css'`, `import 'pkg/y.css'`, and the `await import()` form. */

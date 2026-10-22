@@ -1,7 +1,7 @@
 /**
  * The root route's chrome, mounted under a real router signed out, in a body
  * that carries the shell's Union bar and skip link (`shell/unionBar.ts`): the
- * skip link's target, the bar's slots filled on every page but the Dashboard
+ * skip link's target, the bar's slots filled on every page but a Play screen
  * (which draws its own, ADR-045 §6) and hidden there, the footer, the default
  * tab title, and the bare `/og/*` picture surface with none of it.
  *
@@ -48,8 +48,8 @@ async function mountAt(path: string) {
     createRoute({ getParentRoute: () => root, path: '/', component: page('The roster') }),
     createRoute({
       getParentRoute: () => root,
-      path: '/dashboard/$pilotId',
-      component: page('The Dashboard'),
+      path: '/play/$pilotId',
+      component: page('The Play screen'),
     }),
     createRoute({ getParentRoute: () => root, path: '/og/$id', component: page('The card') }),
   ])
@@ -61,7 +61,7 @@ async function mountAt(path: string) {
   await act(async () => {
     render(<RouterProvider router={router} />)
   })
-  await screen.findByText(/^The (roster|Dashboard|card)$/)
+  await screen.findByText(/^The (roster|Play screen|card)$/)
 }
 
 describe('the root route', () => {
@@ -81,17 +81,17 @@ describe('the root route', () => {
 
   test('the tab gets the default title', async () => {
     await mountAt('/')
-    expect(document.title).toBe(pageTitle('The Cantina'))
+    expect(document.title).toBe(pageTitle('Training Bay'))
   })
 
-  test('the Dashboard draws its own bar, so the Union bar steps aside', async () => {
-    await mountAt('/dashboard/p1')
-    expect(screen.getByText('The Dashboard')).toBeTruthy()
+  test('a Play screen draws its own bar, so the Union bar and the foot step aside', async () => {
+    await mountAt('/play/p1')
+    expect(screen.getByText('The Play screen')).toBeTruthy()
     expect(barHidden()).toBe(true)
     expect(searchSlot()?.childElementCount).toBe(0)
-    // The rest of the chrome stays.
+    // The skip target stays; the foot goes, so the page never scrolls (play.md).
     expect(document.getElementById('main-content')).toBeTruthy()
-    expect(screen.getByRole('contentinfo')).toBeTruthy()
+    expect(screen.queryByRole('contentinfo')).toBeNull()
   })
 
   test('a link preview is the card alone: no bar, skip target or footer', async () => {

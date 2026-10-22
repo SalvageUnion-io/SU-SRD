@@ -1,0 +1,173 @@
+/**
+ * MoveToContainerControl — live-sheet affordance for moving one entity between
+ * **Shelves** (the owner's shelf) and a **Game** (ADR-030 §2).
+ *
+ * A select (`ContainerPicker`) of the two containers. Moving INTO a Game is
+ * one tap unless it clears an
+ * assignment; moving OUT of one — back to your shelves, or on to another Game —
+ * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
+ * and "Move to your Training Bay" on a Game's rows).
+ *
+ * ## When a move asks
+ *
+ * Taking a build out of a Game takes it off a roster the rest of the table was
+ * reading, which is the destructive direction, so that move always goes
+ * through a confirm (`leaveGame`). Putting a build into a Game takes nothing
+ * from the table, but it does prune every assignment that would straddle two
+ * containers (ADR-037) — a pilot loses the mech still in your shelves it was paired
+ * with — so a move in asks (`enterGame`, naming each one) exactly when
+ * `assignmentsClearedByMove` finds something, and is one tap when it does not.
+ * The words are in `lib/games/rowActionCopy.ts`; the move only runs once the
+ * player says yes. The select is controlled by the entity's real container, so
+ * a cancelled move leaves it showing where the build still is.
+ *
+ * The confirm is the CALLER's (`confirm`, from `useConfirm`), not this
+ * control's. The sheet renders this inside its ⋯ menu, which unmounts its
+ * children on any outside pointerdown — and the dialog is portalled outside
+ * it, so a dialog owned here would be torn down by the press that answers it.
+ *
+ * ## A move is one field, and that is the whole design
+ *
+ * Re-stamping `gameId` in place is not a shortcut pending something better —
+ * it is the model. There is **one entity**. The pilot on your shelf and that
+ * same pilot in a Game are one record with one field set differently, so a move
+ * changes that field and nothing else: same id, same body, same history.
+ *
+ * It is not a fork (ADR-030 §2, as amended): `gameId` is a single nullable
+ * column, so an entity is in at most one Game by construction, and a fork would
+ * only add a duplicate character to reconcile. There is no fork mutation to
+ * add. `entities.upsertByAppId` re-homes
+ * the existing server row for the same reason (`existing.gameId !== args.gameId`
+ * patches the column rather than inserting), and the two halves must keep
+ * agreeing: if either ever starts copying, a player ends up with two of
+ * themselves and no way to tell which one the table can see.
+ *
+ * ## It lists only where this entity may go
+ *
+ * The options come from `moveDestinations` (`lib/games/gameRoster.ts`), the
+ * client mirror of the server's move rules (ADR-037): a pilot or mech may go to
+ * Shelves or any Game you belong to; a crawler moves only at its table
+ * runner's hand, Shelves → a Game they run or back. With nowhere to go the
+ * select still shows where the entity is, disabled.
+ *
+ * ## Solo renders nothing
+ *
+ * With no account there is only the Training Bay, so there is nowhere to move to,
+ * and the Convex read would have no provider.
+ */
+
+import { useQuery } from 'convex/react'
+import type { Container, ContainerFields } from 'game-domain/container'
+import { containerOf, moveTo } from 'game-domain/container'
+import type { EntityKind } from 'game-domain/entityKinds'
+import { api } from '../../../convex/_generated/api'
+import { Field, FieldError } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import { moveDestinations } from '../../lib/games/gameRoster'
+import { useEntityStore } from '../../stores/entityStore'
+import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
+import { ContainerPicker } from './ContainerPicker'
+import { requestMove } from './requestMove.model'
+
+/**
+ * Sized to its options. Its height steps down from `sm` and it fades when
+ * disabled (`.su-container-select`, `.su-move-to-container__select`).
+ */
+const SELECT = { width: 'auto' } as const
+
+type MoveToContainerControlProps = {
+  entityType: EntityKind
+  entityId: string
+  /** The entity's current container field (`gameId`). */
+  entity: ContainerFields & { name: string }
+  /**
+   * Opens the confirm a move out of a Game — or one in that clears an
+   * assignment — goes through. Owned by an always-mounted ancestor — see "When
+   * a move asks" above.
+   */
+  confirm: Confirm
+  onChanged?: () => void
+  className?: string
+}
+
+function ConnectedMoveToContainerControl({
+  entityType,
+  entityId,
+  entity,
+  confirm,
+  onChanged,
+  className,
+}: MoveToContainerControlProps) {
+  const games = useQuery(api.games.listMine)
+
+  const current = containerOf(entity)
+  const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })
+  // While the Games load, the current Game cannot be named yet — but it is not
+  // unknown either, so it is not called that.
+  const first = destinations[0]
+  if (games === undefined && first !== undefined && first.container.kind === 'game') {
+    destinations[0] = { ...first, label: '…' }
+  }
+
+  /** A Game's name as the reader knows it, or null when it is not one of theirs. */
+  function gameName(gameId: string): string | null {
+    return games?.find((game) => game._id === gameId)?.name ?? null
+  }
+
+  async function move(next: Container) {
+    await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    onChanged?.()
+  }
+
+  const moveNow = useServerAction(move, { failure: 'This build could not be moved. Try again.' })
+  const { pending, error } = moveNow
+
+  function handlePick(next: Container) {
+    // Out of a Game always asks; into one asks only when it clears an
+    // assignment (`requestMove`). Either confirm shows a failure on the
+    // dialog, which outlives this control, so the move it runs is bare.
+    requestMove({
+      entityType,
+      entityId,
+      name: entity.name,
+      current,
+      next,
+      gameName,
+      confirm,
+      move,
+      moveNow: (to) => void moveNow.run(to),
+    })
+  }
+
+  return (
+    <div className={className}>
+      {/* The one label treatment (R16): `Field`'s, over the select. */}
+      <Field label="In" htmlFor={`container-move-${entityId}`}>
+        {/* A record left in a container that is not among the user's Games —
+            a v13 phantom id, or a Game they have since left — is named
+            "Unknown game" by `moveDestinations` rather than passed off as
+            Shelves, which would be a lie about where it lives. */}
+        <ContainerPicker
+          variant="select"
+          id={`container-move-${entityId}`}
+          label="Move to a Game or your Training Bay"
+          value={current}
+          choices={destinations}
+          onPick={(choice) => handlePick(choice.container)}
+          disabled={pending || destinations.length <= 1}
+          className="su-container-select su-move-to-container__select"
+          style={SELECT}
+        />
+      </Field>
+      {error && <FieldError spaceAbove={4}>{error}</FieldError>}
+    </div>
+  )
+}
+
+export function MoveToContainerControl(props: MoveToContainerControlProps) {
+  const { mode } = useConnection()
+  if (mode !== 'connected') return null
+  return <ConnectedMoveToContainerControl {...props} />
+}

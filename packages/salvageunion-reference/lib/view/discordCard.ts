@@ -271,16 +271,9 @@ function heading(model: EntityModel, url: string | undefined): string {
   return `## ${tier}${link(displayTitle(model.title), url)}`
 }
 
-/** `Workshop Manual · p.100 · Also in … (PC) · p.12`: the book, then its reprints. */
+/** `Workshop Manual · p.100 // … (PC) · p.12`: every printing on one line (`citeLine`). */
 export function discordCiteLine(model: EntityModel): string {
-  const printings = model.cite.printings.map((printing) =>
-    [printing.book, printing.page !== undefined ? `p.${printing.page}` : undefined]
-      .filter(Boolean)
-      .join(' · ')
-  )
-  return (
-    printings.map((line, i) => (i === 1 ? `Also in ${line}` : line)).join(' · ') || 'Salvage Union'
-  )
+  return model.cite.citation ?? 'Salvage Union'
 }
 
 /** An action as a band: name, its chips (E17, cost last), then its rules. */

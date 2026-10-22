@@ -5,8 +5,15 @@
 
 import type { RefEntity, RefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
-import { digestColumnsTable, digestRollTable, mentionRef } from '../components/index'
+import {
+  digestColumnsTable,
+  digestRollTable,
+  mentionRef,
+  withNothingHappens,
+} from '../components/index'
 import type { ColumnsTablePageData } from './columnsTablePage'
+import { nameRefIndexWithout } from './nameRefIndex'
+import { pageRefIndexFor } from './pageRefIndex'
 import type { RollTablePageData } from './rollTablePage'
 import { refText } from './rollTablePage'
 
@@ -17,7 +24,12 @@ function rollTableParts(item: RefEntity) {
     'table' in item && item.table && typeof item.table === 'object'
       ? (item.table as RefObjectTable)
       : undefined
-  return { name: item.name, description: extractStaticEntitySummary(item).contentParagraphs, table }
+  // Its prose names other entries (a table's own name names itself: no link)
+  // and cites pages, linked as its card would link them.
+  const refs = { nameRefs: nameRefIndexWithout(item.id), pageRefs: pageRefIndexFor(item) }
+  const resolve = (text: string) => refText(text, mentionRef, refs)
+  const { contentParagraphs } = extractStaticEntitySummary(item, { keepReferences: true })
+  return { name: item.name, description: contentParagraphs.map(resolve), table, resolve }
 }
 
 /**
@@ -27,12 +39,12 @@ function rollTableParts(item: RefEntity) {
  */
 export function rollTablePageData(item: RefEntity): RollTablePageData | null {
   const parts = rollTableParts(item)
-  const table = parts?.table
+  const table = parts?.table ? withNothingHappens(parts.table) : undefined
   if (!parts || !table || table.type === 'columns') return null
   const rows = digestRollTable(table).map(({ key, label, value }) => ({
     key,
     label,
-    value: refText(value, mentionRef),
+    value: parts.resolve(value),
   }))
   if (rows.length === 0) return null
   return { name: parts.name, description: parts.description, rows, table }

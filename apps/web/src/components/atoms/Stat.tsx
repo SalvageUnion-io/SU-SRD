@@ -2,7 +2,6 @@ import type { CSSProperties, ReactElement } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { Size } from '../../styles/sizing'
-import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
 import { StepButton } from './SmallButtons'
@@ -12,8 +11,10 @@ import { Tooltip } from './Tooltip'
  * The canonical stat/value primitive (canonical primitive language §2): the
  * label-first `[label | value]` cell, in either material — `surface="plate"`
  * (default, the stamp pair: every chip) or `surface="plain"` (running text).
- * With `mode="edit"` and `onChange` it grows a +/- stepper pair. There is no
- * other anatomy: the centred square value box was retired for chips.
+ * With `mode="edit"` and `onChange` it grows a +/- stepper pair: the one
+ * stepper for a count (ruleset §6.2), a sheet's Uses and a wizard's copies
+ * alike; a vital's is `VitalGauge`'s `steppers`, the same `StepButton` pair.
+ * There is no other anatomy: the centred square value box was retired for chips.
  *
  * The plate is ONE canonical ink-on-paper cell — no per-stat fill or value
  * colour. State is carried entirely by the BORDER colour via the `state` prop
@@ -21,8 +22,6 @@ import { Tooltip } from './Tooltip'
  * prominent, /max muted). A fill bar is `VitalGauge`.
  */
 
-/** Stat tone (a public alias retained for consumers that key colour by stat). */
-export type StatTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'cw' | 'default'
 /** A tri-state condition value (e.g. a crawler bay's condition). */
 export type StatState = EntityStatus
 
@@ -65,6 +64,9 @@ const PLATE_SIZE: Record<Size, string> = {
 const STATE_RING_CLASS = 'su-stat--modified'
 
 /** The inherited `text-xs` / `text-sm` rungs carry their paired line-height. */
+/** The muted `/max` after a plate's value. */
+const MAX_SUFFIX = { color: color.wkMuted, fontWeight: weight.normal } satisfies CSSProperties
+
 const LINE_HEIGHT_XS = 'calc(1 / 0.75)'
 const LINE_HEIGHT_SM = 'calc(1.25 / 0.875)'
 
@@ -75,8 +77,6 @@ type StatValue = number | string
 type HorizontalValueProps = {
   /** Header code / label ('HP', 'Range', or a numeric tier). */
   label: StatValue
-  /** The one anatomy; kept so a call site may still spell it out. */
-  orientation?: 'horizontal'
   value?: StatValue
   /**
    * The cell's MATERIAL — same geometry (`label` then `value`, inline), two
@@ -95,8 +95,7 @@ type HorizontalValueProps = {
    * are one `label | value` cell in two materials, so the fix was this rung —
    * ruleset §3.7, every `label | value` renders through `Stat`.
    *
-   * `plain` is a text finish: `state` and `inverse` both style the plate and
-   * are inert on it.
+   * `plain` is a text finish: `state` styles the plate and is inert on it.
    */
   surface?: 'plate' | 'plain'
   /** Optional max — renders the value as `value /max` (muted /max suffix on
@@ -106,13 +105,17 @@ type HorizontalValueProps = {
    * (`label` on top, `bottomLabel` below), e.g. "Tech" / "Level". */
   bottomLabel?: StatValue
   /**
+   * The label's short form, read in its place on a phone ("SP" for
+   * "Structure Points", so it fits). One label shows at a time.
+   */
+  shortLabel?: string
+  /**
    * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
    * cell, so it defaults to `full`; `compact` is the listing-row scale and
    * `mini` the seam-tag size (text-badge / 11px). One axis: a pair of booleans
    * could be combined into a rung that doesn't exist; a single `size` cannot.
    */
   size?: Size
-  inverse?: boolean
   /** inline-flex (default) vs flex. */
   inline?: boolean
   /**
@@ -128,6 +131,12 @@ type HorizontalValueProps = {
   onChange?: (value: number) => void
   mode?: 'read' | 'edit'
   min?: number
+  /**
+   * The stepper's upper bound where the reading has none to print: a wizard's
+   * copy count, whose ceiling is what the shared budget still allows. `+`
+   * disables at it; nothing draws it. With `max` set, the lower of the two.
+   */
+  ceiling?: number
   /**
    * Increment per press (default 1). The crawler Trading Bay trades scrap in
    * fixed exchange lots, so its quantity stepper moves by the lot size rather
@@ -176,24 +185,22 @@ function HorizontalValue({
   value,
   max,
   bottomLabel,
+  shortLabel,
   surface = 'plate',
   size = 'full',
-  inverse = false,
   inline = true,
   hollow = false,
   state = 'default',
   onChange,
   mode = 'read',
   min = 0,
+  ceiling,
   step = 1,
   stepperLabel,
   hoverText,
   wrap = false,
   className,
 }: HorizontalValueProps) {
-  const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
-  const valueSurface: StampSurface = inverse ? 'on-ink' : 'inverse'
-
   // The hover explanation rides the OUTERMOST node of whichever anatomy we
   // return, so it works on the bare cell, the running-text finish and the
   // cell+stepper cluster alike. `Tooltip` is already inert inside a hovercard
@@ -227,6 +234,7 @@ function HorizontalValue({
     )
   }
 
+  const reserve = readingReserve(value, max)
   // The cell and both plate halves are classes, not style objects: a listing
   // repeats the cell on every row (ADR-046, repeated elements). Callers also
   // override the cell's `display` and `flex-shrink` by className (the sheet's
@@ -247,7 +255,9 @@ function HorizontalValue({
       <Badge
         shape="stamp"
         size="mini"
-        surface={mainSurface}
+        // One plate pair on every ground: on an ink ground (the frame's
+        // `data-ground`, chrome K1) the cell keeps a paper rule, in CSS.
+        surface="solid"
         // Stretched to the FULL cell height (over the stamp's inline-block) so
         // the label's ink covers the whole cell, its text centred even when
         // the row stretches it; a two-line label (`bottomLabel`) stacks. The
@@ -265,6 +275,11 @@ function HorizontalValue({
             <span>{label}</span>
             <span>{bottomLabel}</span>
           </>
+        ) : shortLabel !== undefined && shortLabel !== String(label) ? (
+          <>
+            <span className="su-stat-label--long">{label}</span>
+            <span className="su-stat-label--short">{shortLabel}</span>
+          </>
         ) : (
           label
         )}
@@ -273,7 +288,7 @@ function HorizontalValue({
         <Badge
           shape="stamp"
           size="mini"
-          surface={valueSurface}
+          surface="inverse"
           className={cn(
             'su-stat-plate',
             PLATE_SIZE[size],
@@ -283,12 +298,17 @@ function HorizontalValue({
             wrap && 'su-stat-plate--wrap'
           )}
         >
-          {value}
-          {max !== undefined && (
-            <span
-              style={{ color: inverse ? color.paper70 : color.wkMuted, fontWeight: weight.normal }}
-            >
-              /{max}
+          {reserve === undefined ? (
+            <>
+              {value}
+              {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
+            </>
+          ) : (
+            // A live reading reserves its maximum's width, in tabular figures
+            // (C7): `9/13` takes the room `13/13` does, so it never shifts.
+            <span className="su-stat-reading" style={{ minWidth: `${reserve}ch` }}>
+              {value}
+              {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
             </span>
           )}
         </Badge>
@@ -303,12 +323,18 @@ function HorizontalValue({
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
   if (!canEdit) return withHover(cell)
 
+  const top = Math.min(max ?? Number.POSITIVE_INFINITY, ceiling ?? Number.POSITIVE_INFINITY)
   const atMin = numericValue <= min
-  const atMax = max !== undefined && numericValue >= max
+  const atMax = numericValue >= top
+  // A press never reaches the Stat's host: a picker card's own click adds a
+  // copy, so a `−` that bubbled there would undo itself.
+  const press = (next: number) => (event: { stopPropagation: () => void }) => {
+    event.stopPropagation()
+    onChange?.(next)
+  }
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
   // the stepper adds no vertical height to the row: the shared `StepButton` at
-  // its `cell` fit, its plate set by the ground the Stat is printed on.
-  const stepGround = inverse ? 'ink' : 'paper'
+  // its `cell` fit, its plate set in CSS by the ground the Stat is printed on.
   const stepStyle = {
     fontSize: size === 'compact' ? fontSize.xs : fontSize.sm,
     lineHeight: size === 'compact' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
@@ -316,33 +342,43 @@ function HorizontalValue({
   } satisfies CSSProperties
 
   const stepName = stepperLabel ?? label
+  // The cell and its stepper are one chip (`su-stat-stepper`).
   return withHover(
     <span
+      className="su-stat-stepper"
       style={{ alignItems: 'stretch', display: 'inline-flex', gap: space[2], width: 'fit-content' }}
     >
       {cell}
       <StepButton
-        ground={stepGround}
         fit="cell"
         aria-label={`Decrease ${stepName}`}
-        onClick={() => onChange?.(Math.max(min, numericValue - step))}
+        onClick={press(Math.max(min, numericValue - step))}
         disabled={atMin}
         style={stepStyle}
       >
         −
       </StepButton>
       <StepButton
-        ground={stepGround}
         fit="cell"
         aria-label={`Increase ${stepName}`}
-        onClick={() =>
-          onChange?.(max !== undefined ? Math.min(max, numericValue + step) : numericValue + step)
-        }
-        disabled={!!atMax}
+        onClick={press(Math.min(top, numericValue + step))}
+        disabled={atMax}
         style={stepStyle}
       >
         +
       </StepButton>
     </span>
   )
+}
+
+/**
+ * The characters a live reading reserves (C7): a reading out of its maximum
+ * (`max`, or a `9/13` value) takes its maximum's width, `13/13`, and any word
+ * after it (`4/5 Intact`); anything else reserves nothing.
+ */
+function readingReserve(value: StatValue | undefined, max: number | undefined): number | undefined {
+  if (value === undefined) return undefined
+  if (max !== undefined) return 2 * String(max).length + 1
+  const reading = /^(\d+)\/(\d+)(.*)$/.exec(String(value))
+  return reading?.[2] ? 2 * reading[2].length + 1 + (reading[3]?.length ?? 0) : undefined
 }

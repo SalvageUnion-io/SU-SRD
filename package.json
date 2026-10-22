@@ -1,7 +1,7 @@
 {
   "name": "susrd",
   "private": true,
-  "version": "3.26.6",
+  "version": "4.0.0",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
@@ -48,6 +48,7 @@
     "postinstall": "ref-generate",
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
     "dev": "bun --filter web dev",
+    "dev:backend": "bun tools/dev-backend.ts",
     "build": "ref-generate && bun --filter web build",
     "build:package": "bun --filter salvageunion-reference build",
     "deploy-commands": "bun --filter discord-bot deploy-commands",
@@ -71,6 +72,7 @@
     "assets:upload": "bun tools/upload-lp-assets.ts",
     "assets:crop": "bun tools/art-crop.ts",
     "gallery": "bun tools/gallery.ts",
+    "gallery:deck": "bun apps/web/scripts/galleryDeck.ts",
     "shot": "bun tools/shot.ts"
   }
 }

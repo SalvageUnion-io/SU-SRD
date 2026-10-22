@@ -1,7 +1,7 @@
 /**
- * SELECT mode, `toggle`: the Row's control is a real checkbox in its head.
+ * SELECT mode, `toggle`: the Compact's control is a real checkbox in its head.
  * The surface around it is a pointer convenience only, so nothing interactive
- * nests inside a `role="button"` and the Row's content stays readable.
+ * nests inside a `role="button"` and the Compact's content stays readable.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -18,7 +18,7 @@ function renderToggle(selected: boolean) {
   const picks: number[] = []
   const view = render(
     <Entity
-      form="row"
+      size="compact"
       entity={drill()}
       mode={{
         kind: 'select',

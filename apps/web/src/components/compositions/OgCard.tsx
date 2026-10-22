@@ -1,12 +1,15 @@
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
-import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
+import { borderWidth, color, font, space, weight } from '../../design/tokens'
 import { MARK_SRC } from '../../lib/documentHead'
+import { ActivationCost } from '../atoms/ActivationCost'
 import { ChapterBand } from '../atoms/ChapterBand'
+import { capsLabel } from '../atoms/capsLabel'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
-import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
+import { HOMEBREW } from '../referenceEntity/card/cardChrome'
+import { HomebrewStamp } from '../referenceEntity/card/HomebrewStamp'
 import type { OgCardChip, OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
@@ -23,7 +26,7 @@ import {
 } from './ogCardText'
 
 /**
- * OgCard — the link preview (origin boards PV1 and OgCard): a
+ * OgCard — the link preview: a
  * 1200 × 630 picture of the page a link opens, built from the same parts as
  * that page. The chapter band with its speckle and the notched title
  * (`ChapterBand` at its `og` scale; nothing above the title, EDL E20), the
@@ -36,7 +39,7 @@ import {
  * the kind in caps and the cite on the band's colour (E9), then the Union
  * bar's ink row with the mark and the address. Because it is assembled from the page's own parts
  * rather than drawn a second time, the preview cannot drift from the page; the
- * SRD screenshots it at build, the Cantina on request.
+ * SRD screenshots it at build, the app on request.
  *
  * ## Six cards
  *
@@ -48,7 +51,7 @@ import {
  * - `sheet` — a player's pilot, mech or crawler. Built from canon, so solid;
  *   the byline names the player and the Game.
  * - `userMade` — a pattern or NPC a player made (ruleset §3.9): dashed frame,
- *   hatched band, dashed notch and the User-made stamp leading the chips; the
+ *   hatched band, dashed notch and the HOMEBREW stamp leading the chips; the
  *   byline is only "Made by [user]".
  * - `invite` — a Game invite: the Game's name, who mediates and the expiry.
  *   The caller never hands it the token, so it cannot print one.
@@ -68,7 +71,7 @@ import {
  *
  * ## The foot rule
  *
- * Board PV1 draws the rule over the Union bar in rust. Rust means action and
+ * The rule over the Union bar is ink, never rust. Rust means action and
  * only action (ruleset §3.1, `tokens/rust-allowlist`), and nothing on a
  * picture can be pressed, so the rule is ink here, as the Union bar's own
  * edge is.
@@ -76,8 +79,8 @@ import {
 
 // ── Style objects ─────────────────────────────────────────────────────────
 
-/** The frame: twice the entity card's 3px, so it reads as 2px at 400px wide. */
-const FRAME_WIDTH = `calc(${borderWidth.entity} * 2)`
+/** The frame: a poster's (twice the entity card's), so it reads as 2px at 400px wide. */
+const FRAME_WIDTH = borderWidth.poster
 
 const CARD = {
   backgroundColor: color.wkBg,
@@ -102,12 +105,9 @@ const CARD = {
 const BAND_SLOT = { flex: '1 1 auto', minHeight: 0 } satisfies CSSProperties
 
 const CAPS = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.1,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const CAPS_LABEL = capsLabel()
 
 /** The page ground under the notch: the rules text, or a strip the notch stands on. */
 const BODY = {
@@ -163,33 +163,6 @@ const PROSE = {
   overflow: 'hidden',
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 2,
-} satisfies CSSProperties
-
-const STAMP = {
-  ...CAPS,
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderStyle: 'dashed',
-  borderWidth: borderWidth.entity,
-  color: color.ink,
-  flex: 'none',
-  fontSize: '36px',
-  fontWeight: weight.extrabold,
-  padding: `${space[2]} ${space[16]}`,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-/** The cost, the book's pointy box (`ActivationCost`) at the preview's scale: ink on the paper. */
-const PENNANT = {
-  ...CAPS,
-  backgroundColor: color.ink,
-  clipPath: PENNANT_SHAPE,
-  color: color.paper,
-  fontSize: '44px',
-  fontWeight: weight.extrabold,
-  lineHeight: 1,
-  padding: `${space[8]} ${space[48]} ${space[8]} ${space[12]}`,
-  whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
 // The Union bar's foot: the ink-deep ground with paper flecks, the mark, the
@@ -256,31 +229,28 @@ function Chips({
   const style = width > 0 ? { paddingBottom: baseline, width: width + OG_CHIP_GAP } : CHIPS_BELOW
   return (
     <div className="su-og-chips" style={style}>
-      {userMade && (
-        <span title={USER_MADE_TITLE} style={STAMP}>
-          User-made
-        </span>
-      )}
+      {/* The atoms, at the preview's scale: the stamp by `.su-og-chips`, as its Stat cells are. */}
+      {userMade && <HomebrewStamp />}
       {stats.map((stat) => (
         <Stat
           key={`${stat.label}-${stat.value ?? ''}`}
-          orientation="horizontal"
           label={stat.label}
           value={stat.value}
           size="full"
         />
       ))}
-      {cost && <span style={PENNANT}>{cost}</span>}
+      {cost && <ActivationCost cost={cost} currency="" size="og" />}
     </div>
   )
 }
 
 function UnionFoot({
-  reference,
+  name,
   address,
   markSrc,
 }: {
-  reference: boolean
+  /** The wordmark: the site's on a reference card, the area's on one of the app's. */
+  name: string
   address: string
   markSrc: string
 }) {
@@ -289,7 +259,9 @@ function UnionFoot({
       <Speckle grain="paper" />
       <div style={LOCKUP}>
         <img src={markSrc} alt="" width={56} height={56} />
-        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.name}</span>
+        <span className={CAPS_LABEL} style={WORDMARK}>
+          {name}
+        </span>
       </div>
       <span style={ADDRESS}>{address}</span>
     </div>
@@ -297,7 +269,7 @@ function UnionFoot({
 }
 
 /**
- * `markSrc` is the SU mark's URL, the app's own copy (The Cantina serves its files
+ * `markSrc` is the SU mark's URL, the app's own copy (The app serves its files
  * under `/build/`, ADR-048); the root's by default.
  */
 export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc?: string }) {
@@ -317,7 +289,7 @@ export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc
   const stats = 'stats' in props ? props.stats : []
   const cost = 'cost' in props ? props.cost : undefined
   const chips: OgCardChip[] = [
-    ...(userMade ? [{ kind: 'stamp', text: 'User-made' } as const] : []),
+    ...(userMade ? [{ kind: 'stamp', text: HOMEBREW } as const] : []),
     ...stats.map((stat) => ({ kind: 'stat', label: stat.label, value: stat.value }) as const),
     ...(cost ? [{ kind: 'cost', text: cost } as const] : []),
   ]
@@ -364,11 +336,21 @@ export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc
       {(foot.kind || foot.byline) && (
         <div style={{ ...FOOT, backgroundColor: fill, color: footColor }}>
           <Speckle grain={ink ? 'ink' : 'paper'} />
-          {foot.kind && <span style={FOOT_KIND}>{foot.kind}</span>}
+          {foot.kind && (
+            <span className={CAPS_LABEL} style={FOOT_KIND}>
+              {foot.kind}
+            </span>
+          )}
           {foot.byline && <p style={FOOT_BYLINE}>{foot.byline}</p>}
         </div>
       )}
-      <UnionFoot reference={reference} address={props.address} markSrc={markSrc} />
+      <UnionFoot
+        // An invite leads to a Game, which is Play's; every other app card is
+        // something built (a shared sheet or pattern), which is Build's.
+        name={reference ? PRODUCT.wordmark : props.kind === 'invite' ? PRODUCT.play : PRODUCT.build}
+        address={props.address}
+        markSrc={markSrc}
+      />
     </article>
   )
 }

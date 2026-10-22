@@ -31,7 +31,7 @@
  *
  * WHY THIS IS OPT-IN (read before re-enabling it in a deploy):
  * run unbounded on every build, a cold cache re-renders ~1.5k entity cards and
- * blows the build's time limit — every srd deploy fails. So it is:
+ * blows the build's time limit — every reference deploy fails. So it is:
  *   - OFF unless OG_SCREENSHOTS=1 (so no build can regress into that failure),
  *   - bounded by OG_SCREENSHOTS_BUDGET_MS, after which it stops rendering and
  *     leaves the remaining entities on the site-wide default og:image, and

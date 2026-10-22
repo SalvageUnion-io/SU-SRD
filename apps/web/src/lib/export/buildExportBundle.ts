@@ -1,6 +1,6 @@
-import type { EntityKind } from 'cantina-domain/entityKinds'
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { EntityKind } from 'game-domain/entityKinds'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { usePatternStore } from '../../stores/patternStore'
 import type { EntityType } from '../../stores/types'
@@ -157,7 +157,7 @@ export async function buildEntityExport(
 
 /**
  * buildPatternExport — one saved pattern on its own, for a shelf item's
- * "Export" (Shelves, board S1). Importing it makes a copy under a new id, as
+ * "Export" (Shelves). Importing it makes a copy under a new id, as
  * every import does (`mergeImport`).
  */
 export function buildPatternExport(pattern: MechPattern): ExportBundle {

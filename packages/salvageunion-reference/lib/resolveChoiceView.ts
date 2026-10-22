@@ -18,7 +18,7 @@
  *   e.g. { choiceId, label, text: 'Choose: Ballistic or Energy' }.
  *
  * The function is deterministic and performs no I/O. It is the single source
- * of truth shared by srd (ephemeral selection state) and the Cantina
+ * of truth shared by the reference site (ephemeral selection state) and the app
  * (persisted selection state). It reads a choice's `source` and `cardinality`.
  */
 

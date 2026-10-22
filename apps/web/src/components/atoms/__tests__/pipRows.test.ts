@@ -46,7 +46,7 @@ describe('pipClickValue — click-to-set semantics', () => {
   })
 })
 
-describe('trackSegmentState — the redline reads lit or unlit (ruleset §4.5, board D4)', () => {
+describe('trackSegmentState — the redline reads lit or unlit (ruleset §4.5)', () => {
   test('Heat 0 of 8, redline from index 5: the last three pips are unlit redline', () => {
     const states = Array.from({ length: 8 }, (_, i) => trackSegmentState(i, 0, 8, 5))
     expect(states).toEqual(['off', 'off', 'off', 'off', 'off', 'redline', 'redline', 'redline'])

@@ -4,7 +4,7 @@
  * The load-bearing guarantee: a rejected hydrator (any failure while a
  * store's rows load) must SURFACE to the nearest error boundary — in the app, the
  * router's RootErrorComponent recovery screen — rather than leaving the caller
- * on `false` (the loading skeleton) forever, which hangs the Dashboard
+ * on `false` (the loading skeleton) forever, which hangs the screen
  * silently.
  */
 import { describe, expect, test } from 'bun:test'

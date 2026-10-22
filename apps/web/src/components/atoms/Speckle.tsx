@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { speckle } from '../../design/tokens'
 
 /**
- * Speckle — the light speckle (ruleset §3.5 "Texture", board 05c) as a layer
+ * Speckle — the light speckle (ruleset §3.5 "Texture") as a layer
  * laid behind a band's content: ink grain on a colour band, paper flecks on an
  * ink ground. Generated from the `speckle` tokens, never a scanned scuff.
  *
@@ -27,7 +27,7 @@ import { speckle } from '../../design/tokens'
  *
  * ## The layer is a class
  *
- * `.su-grain-layer` (`styles/index.css`) places each layer: it repeats on every
+ * `.su-grain-layer` (`styles/partials/card-chrome.css`) places each layer: it repeats on every
  * band of every page, so it is a stylesheet rule, not a style object
  * (ADR-046, repeated elements).
  */

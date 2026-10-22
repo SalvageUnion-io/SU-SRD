@@ -7,28 +7,36 @@ import type {
   RefObjectAnyPattern,
 } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import { Row } from './forms/Row'
-import { Tile } from './forms/Tile'
-import type { TokenBody } from './forms/Token'
-import { Token } from './forms/Token'
+import { Compact } from './forms/Compact'
+import { CompactIndex } from './forms/CompactIndex'
+import type { MiniBody } from './forms/Mini'
+import { Mini } from './forms/Mini'
+import type { LinkedUnit } from './LinkedUnits'
+import { LinkedUnits } from './LinkedUnits'
 import type { TagItem } from './parts/tagItems'
-import type { EntityMode, EntityOmit, EntityRowModel } from './types'
+import type { EntityFormModel, EntityMode, EntityOmit } from './types'
 
 type EntitySource =
   /** A reference record (or a chassis, with `pattern`): resolved to its model here. */
   | { entity: RefMetaEntity; pattern?: RefObjectAnyPattern; model?: never }
   /** A model resolved elsewhere (a build-time index, a list that resolved once). */
-  | { model: EntityRowModel; entity?: never; pattern?: never }
+  | { model: EntityFormModel; entity?: never; pattern?: never }
 
 /**
- * The form, and the context its container names (C4): the one fact a Token's
- * lane carries, or the one measure a Row's head keeps (its kind's own when
- * unnamed). A Tile takes none.
+ * The form, and the context its container names (C4): the one fact a Mini's
+ * lane carries, or the one measure a Compact's head keeps (its kind's own when
+ * unnamed). An index Compact takes none.
  */
 type EntityFormProps =
-  | { form: 'token'; context: ChipContext }
-  | { form: 'row'; context?: ChipContext }
-  | { form: 'tile'; context?: never }
+  | { size: 'mini'; layout?: never; context: ChipContext; trailing?: never }
+  | {
+      size: 'compact'
+      layout?: never
+      context?: ChipContext
+      /** The host's last chip, a listed unit's "⋯" menu (after `controls`). */
+      trailing?: ReactNode
+    }
+  | { size: 'compact'; layout: 'index'; context?: never; trailing?: never }
 
 export type EntityProps = EntitySource &
   EntityFormProps & {
@@ -36,55 +44,73 @@ export type EntityProps = EntitySource &
     instance?: EntityInstance
     /** Default `read`; `link` on a surface that routes, `select` in a picker. */
     mode?: EntityMode
-    /** Row and Tile: the opening prose, in browse contexts (E11). */
+    /** Compact and index Compact: the opening prose, in browse contexts (E11). */
     lead?: boolean
     /** Facts the context already states, by key, `kind` under a slab that names it, or `tier`. */
     omit?: readonly EntityOmit[]
-    /** Row only: hover, focus or a long press Peeks it (a Token always does). */
+    /** Compact only: hover, focus or a long press Peeks it (a Mini always does). */
     peek?: boolean
-    /** Tile only: its art loads at once and first (a listing's opening row). */
+    /** Index Compact only: its art loads at once and first (a listing's opening row). */
     priority?: boolean
-    /** Tile only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
+    /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
     missingArt?: number
     /**
-     * Token only: the Peek address for a record with none of its own (a crawler
+     * Mini only: the Peek address for a record with none of its own (a crawler
      * bay's crew NPC, through its bay: `embeddedPeekAddress`).
      */
     peekAt?: string
-    /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
+    /** Compact only: the title's element — a heading where the Compact is a page's entry (default `span`). */
     titleAs?: ElementType
     /**
-     * Row only: the host's controls (Assign, Unassign, View), the head's
-     * trailing mode slot (E7). They never nest in a link or select surface.
+     * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
+     * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
+     * hard rule R6).
+     * They never nest in a link or select surface.
      */
     controls?: ReactNode
-    /** Row only: the host's labels (an owner stamp), the first of its chips. */
+    /** Compact only: the host's labels (an owner stamp), the first of its chips. */
     labels?: ReactNode
     /**
-     * Row only: what the unit is built on or linked to (`CLASS | Engineer`,
+     * Compact and Mini: what the unit is built on or linked to (`CLASS | Engineer`,
      * `CHASSIS | Mule`, `PILOT | Bonesaw`), the relation chips after its traits
      * (`chips-and-actions.md` C11). Each Peeks and opens its entity, or opens a
-     * unit's sheet, where the Row is not itself a link.
+     * unit's sheet; a link Compact with them is covered, its link under them, and
+     * a Mini with a linked one is its name's link.
      */
     relations?: TagItem[]
     /**
-     * Token and Row: the host's chip, last in its chip group — a damaged thing's
-     * condition `StatusBadge` on a surface that only reads it (a crawler bay), a
-     * listed unit's "⋯" menu.
+     * Compact and Mini: the units it is linked to (a pilot's mech), each a
+     * header-only Mini leading its body (`LinkedUnits`), never a relation
+     * chip. A Compact or Mini with them is contentful.
      */
-    trailing?: ReactNode
+    linked?: readonly LinkedUnit[]
     /**
-     * Token only: a CONTENTFUL Token (N3), its head then the entity's text and
-     * the host's content (`TokenBody`); without it the Token is its head alone.
+     * Mini and Compact: the host's state chip after the cost (C8) — a live reading,
+     * a damaged thing's condition on a surface that only reads it (a crawler bay).
      */
-    body?: TokenBody
+    state?: ReactNode
+    /** Mini only: its band in this tone, dulled (`MiniSlots.tint`): a Play action's source unit. */
+    tint?: string
+    /** Mini: its `state` is a control (a condition that steps), so its name is the link (C8). */
+    stateActs?: boolean
+    /** Mini: the uses slot after its state (C8), a live item's stepper. */
+    uses?: ReactNode
+    /**
+     * Mini only: a CONTENTFUL Mini (N3), its head then the entity's text and
+     * the host's content (`MiniBody`); without it the Mini is its head alone.
+     */
+    body?: MiniBody
+    /** Mini only: its host's one dim (`SELECT_DIM`), an unchosen toggle or a Play action not on hand. */
+    dim?: boolean
+    /** Mini only: read-only, a choice's picked option, ringed (R15). */
+    chosen?: boolean
   }
 
 /**
  * `<Entity>` — THE way to draw a game entity (entity display language): the
  * entity resolves once into its model (`toEntityModel`), the FORM picks which
- * parts to draw and the MODE fills the form's slots. It draws the Row, the
- * Token and the catalog's Tile; `<Mention>` draws a Mention, and
+ * parts to draw and the MODE fills the form's slots. It draws the Compact, the
+ * Mini and the catalog's index Compact; `<Mention>` draws a Mention, and
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
@@ -101,8 +127,15 @@ export function Entity(props: EntityProps) {
     controls,
     labels,
     relations,
+    linked,
+    state,
+    stateActs,
+    tint,
     trailing,
-    body,
+    uses,
+    body: ownBody,
+    dim,
+    chosen,
   } = props
   const { entity, pattern } = props
   const ownModel = props.model
@@ -111,10 +144,36 @@ export function Entity(props: EntityProps) {
     [ownModel, entity, instance, pattern]
   )
   if (!model) return null
-  switch (props.form) {
-    case 'row':
+  const linkedNode = linked?.length ? <LinkedUnits linked={linked} /> : undefined
+  // A Mini's linked units lead its body, a header-only Mini's its whole body.
+  const body: MiniBody | undefined = linkedNode
+    ? {
+        ...ownBody,
+        text: ownBody?.text ?? false,
+        children: (
+          <>
+            {linkedNode}
+            {ownBody?.children}
+          </>
+        ),
+      }
+    : ownBody
+  if (props.layout === 'index') {
+    return (
+      <CompactIndex
+        model={model}
+        mode={mode?.kind === 'link' || mode?.kind === 'read' ? mode : undefined}
+        omit={omit}
+        lead={lead}
+        priority={priority}
+        missingArt={missingArt}
+      />
+    )
+  }
+  switch (props.size) {
+    case 'compact':
       return (
-        <Row
+        <Compact
           model={model}
           {...(props.context ? { context: props.context } : {})}
           instance={instance}
@@ -123,50 +182,50 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels || relations || trailing
+            titleAs || controls || labels || relations || trailing || state || linkedNode
               ? {
                   ...(titleAs ? { titleAs } : {}),
+                  ...(linkedNode ? { linked: linkedNode } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
                   ...(relations ? { relations } : {}),
                   ...(trailing ? { trailing } : {}),
+                  ...(state ? { state } : {}),
                 }
               : undefined
           }
         />
       )
-    case 'token':
+    case 'mini':
       return (
-        <Token
+        <Mini
           model={model}
           context={props.context}
           instance={instance}
           mode={mode}
           omit={omit}
           slots={
-            trailing || peekAt
-              ? { ...(trailing ? { trailing } : {}), ...(peekAt ? { peekAt } : {}) }
+            state || peekAt || relations || tint || uses !== undefined || controls !== undefined
+              ? {
+                  ...(tint ? { tint } : {}),
+                  ...(state ? { state } : {}),
+                  ...(stateActs ? { stateActs } : {}),
+                  ...(peekAt ? { peekAt } : {}),
+                  ...(relations ? { relations } : {}),
+                  // A Mini's controls are its chip group's last slots (C8).
+                  ...(uses !== undefined ? { uses } : {}),
+                  ...(controls !== undefined ? { menu: controls } : {}),
+                }
               : undefined
           }
           body={body}
-        />
-      )
-    case 'tile':
-      return (
-        <Tile
-          model={model}
-          mode={mode?.kind === 'link' || mode?.kind === 'read' ? mode : undefined}
-          omit={omit}
-          lead={lead}
-          priority={priority}
-          missingArt={missingArt}
+          dim={dim}
+          chosen={chosen}
         />
       )
     default: {
       const unknown: never = props
-      throw new Error(
-        `<Entity form="${String((unknown as EntityProps).form)}">: only "row", "token" and "tile" are drawn yet`
-      )
+      throw new Error(`unknown Entity size "${String((unknown as EntityProps).size)}"`)
     }
   }
 }

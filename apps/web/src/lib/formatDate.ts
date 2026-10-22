@@ -1,5 +1,5 @@
 /**
- * The Cantina's one way to write a timestamp: always the viewer's own locale
+ * The app's one way to write a timestamp: always the viewer's own locale
  * and clock (`undefined`), so every surface reads the same.
  */
 const LOCALE = undefined

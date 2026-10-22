@@ -1,7 +1,7 @@
 ---
 paths:
   - 'apps/discord-bot/**'
-  - 'packages/cantina-domain/src/botWire.ts'
+  - 'packages/game-domain/src/botWire.ts'
 ---
 
 # Discord bot — changing a reply
@@ -26,7 +26,7 @@ paths:
 
 ## Ephemerality and buttons
 
-- Denials and errors are always ephemeral (`src/commands/cantinaReply.ts`).
+- Denials and errors are always ephemeral (`src/commands/siteReply.ts`).
 - `/su sheet` is always ephemeral, and shows Share only when the server reports
   `publicRead: true`.
 - A private roll goes public only from the result encoded in its button, never

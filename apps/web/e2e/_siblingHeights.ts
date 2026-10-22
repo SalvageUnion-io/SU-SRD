@@ -2,17 +2,22 @@ import type { Page } from '@playwright/test'
 
 /**
  * The sibling-height law (ruleset §4.7): controls side by side on one line —
- * chips, buttons, fields, switches, search boxes, Tokens — share one Size, so
+ * chips, buttons, fields, switches, search boxes, Minis — share one Size, so
  * one height. `findSiblingMismatches` reads the rendered page and returns every
  * line whose controls differ by a pixel or more.
  *
  * - A control is the outermost element matching `CONTROL`, so a chip's two
  *   plates count once, as their cell. A linked chip counts as its cell too:
- *   its button is a 24px target (WCAG 2.5.8) around the drawn 18px chip.
+ *   its button is a 24px target (WCAG 2.5.8) around the drawn 18px chip. A
+ *   strip's Mini button is that target itself, its plate drawn on its padding
+ *   box between transparent borders: it counts at the plate's height.
  * - Its line is its nearest flex or grid ancestor (four levels up at most)
  *   holding another control beside it: overlapping vertically by at least half
  *   the shorter one's height, and no more than `MAX_GAP` from its neighbour, so
- *   two columns of a form that happen to line up are not one line.
+ *   two columns of a form that happen to line up are not one line. A line
+ *   never crosses a labelled section's edge: Play's columns (`PlayFrame`)
+ *   stand a gutter apart, so an action Mini is never one line with the
+ *   Units column's steppers or the Tables column's Minis.
  */
 export type SiblingMismatch = {
   /** The line's element, as `tag.class.class`. */
@@ -29,11 +34,13 @@ const CONTROL = [
   '[role=tab]',
   'input:not([type=hidden]):not([type=checkbox]):not([type=radio])',
   'select',
-  '.su-stat-cell',
+  // A stat column's cell is a read-out in the column's own grid, not a control
+  // on a line (`StatColumn`, a layout of Stats).
+  '.su-stat-cell:not(.su-stat-column__stat)',
   '.su-badge-stamp',
   '.su-cost-edge',
   '.su-cost',
-  '.su-entity-token',
+  '.su-entity-mini',
   '.su-seg',
   '.su-search-field',
 ].join(',')
@@ -42,7 +49,15 @@ const CONTROL = [
 const MAX_GAP = 48
 
 /** Runs in the page; returns plain data. */
-function scan({ control, maxGap }: { control: string; maxGap: number }): SiblingMismatch[] {
+function scan({
+  control,
+  maxGap,
+  within,
+}: {
+  control: string
+  maxGap: number
+  within: string | null
+}): SiblingMismatch[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   const visible = (el: Element) => {
     const r = el.getBoundingClientRect()
@@ -50,17 +65,43 @@ function scan({ control, maxGap }: { control: string; maxGap: number }): Sibling
     const s = getComputedStyle(el)
     return s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity) > 0.05
   }
-  const all = [...document.querySelectorAll(control)].filter(visible)
+  const all = [...document.querySelectorAll(control)]
+    .filter(visible)
+    .filter((el) => within === null || el.closest(within) !== null)
   const set = new Set(all)
-  const controls = all.filter((el) => {
-    for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
-    return true
-  })
+  const controls = all
+    .filter((el) => {
+      for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
+      return true
+    })
+    // A contentful Mini (and all it holds) is a block of text under a head,
+    // not a control on a line: Minis side by side in a masonry grid
+    // (`MiniGrid`) differ in height by their text.
+    .filter((el) => !el.matches('.su-entity-mini[data-contentful]'))
+  // A control drawn on its padding box (a strip's Mini button: a 24px target,
+  // its plate the chip's 18px inside a transparent border) measures as drawn.
   const box = (el: Element): Box => {
     const r = el.getBoundingClientRect()
-    return { el, x: r.left, y: r.top, w: r.width, h: r.height }
+    const s = getComputedStyle(el)
+    const clear = (side: 'top' | 'bottom') =>
+      /rgba\(.*,\s*0\)$|transparent/.test(s.getPropertyValue(`border-${side}-color`))
+        ? Number.parseFloat(s.getPropertyValue(`border-${side}-width`)) || 0
+        : 0
+    const drawn =
+      s.backgroundClip === 'padding-box'
+        ? { top: clear('top'), bottom: clear('bottom') }
+        : { top: 0, bottom: 0 }
+    return {
+      el,
+      x: r.left,
+      y: r.top + drawn.top,
+      w: r.width,
+      h: r.height - drawn.top - drawn.bottom,
+    }
   }
+  const column = (el: Element) => el.closest('section[aria-label]')
   const sameLine = (a: Box, b: Box) => {
+    if (column(a.el) !== column(b.el)) return false
     const overlap = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
     const apart = Math.max(a.x, b.x) - Math.min(a.x + a.w, b.x + b.w)
     return overlap >= 0.5 * Math.min(a.h, b.h) && apart > -2 && apart <= maxGap
@@ -114,6 +155,62 @@ function scan({ control, maxGap }: { control: string; maxGap: number }): Sibling
   return found
 }
 
-export function findSiblingMismatches(page: Page): Promise<SiblingMismatch[]> {
-  return page.evaluate(scan, { control: CONTROL, maxGap: MAX_GAP })
+/**
+ * Every mismatched line on the page, or, with `within` (a selector), only the
+ * lines of controls inside what it matches: a surface's own lines, where the
+ * rest of the page is another spec's.
+ */
+export function findSiblingMismatches(page: Page, within?: string): Promise<SiblingMismatch[]> {
+  return page.evaluate(scan, { control: CONTROL, maxGap: MAX_GAP, within: within ?? null })
+}
+
+/**
+ * A Button beside Tabs (or a Segmented row) is their Size (ruleset §4.7,
+ * R41):
+ * on the Tabs' line or in the band that holds them (the nearest ancestor,
+ * four levels up at most, that holds a Button too), every Button but a
+ * strip's chip is a tab's height. One `tab-size:` line per Button off it.
+ * Report-only until the screens hold it (`_pendingRules.ts`).
+ */
+function scanTabSize(): string[] {
+  const visible = (el: Element) => {
+    const r = el.getBoundingClientRect()
+    if (r.width < 4 || r.height < 4) return false
+    const s = getComputedStyle(el)
+    return s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity) > 0.05
+  }
+  const text = (el: Element) =>
+    (el.getAttribute('aria-label') ?? el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 24)
+  const faults: string[] = []
+  const seen = new Set<Element>()
+  // Tabs, or a Segmented row drawn as tabs (a sheet's Read | Edit).
+  for (const list of document.querySelectorAll('[role="tablist"], .su-seg')) {
+    const tab = [...list.querySelectorAll('[role="tab"], .su-seg__option')].find(visible)
+    if (!tab) continue
+    const height = Math.round(tab.getBoundingClientRect().height)
+    let band = list.parentElement
+    const buttons = (el: Element) =>
+      [...el.querySelectorAll('.su-btn')].filter(
+        (b) =>
+          visible(b) &&
+          !list.contains(b) &&
+          !b.closest('[data-chip-group], [data-chip-class], [role="menu"], [role="dialog"]')
+      )
+    for (let up = 0; band && up < 4 && buttons(band).length === 0; up++) band = band.parentElement
+    if (!band) continue
+    for (const b of buttons(band)) {
+      if (seen.has(b)) continue
+      seen.add(b)
+      const h = Math.round(b.getBoundingClientRect().height)
+      if (Math.abs(h - height) > 1) {
+        faults.push(`tab-size: "${text(b)}" is ${h}px beside ${height}px Tabs ("${text(tab)}")`)
+      }
+    }
+  }
+  return faults
+}
+
+/** Every Button beside Tabs that is not the Tabs' height. */
+export function findTabSizeFaults(page: Page): Promise<string[]> {
+  return page.evaluate(scanTabSize)
 }

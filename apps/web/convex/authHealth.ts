@@ -18,7 +18,7 @@ import { internalAction, internalQuery } from './_generated/server'
  * secret, a wrong `SITE_URL`.
  *
  * When that happens `check` throws. The deployment's log stream posts the
- * failure to the Cantina Worker (`src/worker/errorReports.ts`), which logs it for
+ * failure to the app Worker (`src/worker/errorReports.ts`), which logs it for
  * Workers Issues, whose automations alert the owners. The alert lives there;
  * this only has to throw.
  */
@@ -41,7 +41,7 @@ export const IN_FLIGHT_MS = 15 * 60 * 1000
  */
 export const FAILING_ATTEMPTS = 4
 
-export type SignInCounts = {
+type SignInCounts = {
   /** Signed verifiers in the window that the callback never consumed. */
   stranded: number
   /** Sessions created in the window: sign-ins that completed. */

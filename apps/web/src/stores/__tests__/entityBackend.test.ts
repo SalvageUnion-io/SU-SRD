@@ -110,10 +110,12 @@ describe('the signed-in backend the durability tests run on', () => {
 })
 
 describe('WritesBlockedOffline', () => {
-  test('carries the same wording as the banner', () => {
-    // The user reads one of these in a toast and the other in the banner; if
-    // they disagree it looks like two different faults.
-    expect(new WritesBlockedOffline().message).toMatch(/read-only until the connection returns/i)
+  test('reports the refused act, and leaves the condition to the banner (chrome K5)', () => {
+    // The banner is up whenever this is thrown and says why, in the one
+    // offline wording; the toast says what happened to this change.
+    const { message } = new WritesBlockedOffline()
+    expect(message).toMatch(/not saved/i)
+    expect(message).not.toMatch(/not connected|connection returns/i)
   })
 
   test('is identifiable by name across a structured-clone boundary', () => {

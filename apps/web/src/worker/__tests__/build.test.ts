@@ -2,25 +2,25 @@ import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { APP_BASE } from '../../lib/appBase'
-import { RUN_WORKER_FIRST, spaAssets } from '../cantina'
+import { RUN_WORKER_FIRST, spaAssets } from '../app'
 import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The Cantina under `/build`, served by the one Worker (`../cantina.ts`): the
+ * The app under `/build`, served by the one Worker (`../app.ts`): the
  * site's binding is `not_found_handling: none`, so its rules read a binding
  * that answers a miss under the base with the shell, as SPA mode would. Every
  * answer keeps the site's `_headers`, its one CSP included.
  */
 
-const SHELL = '<!doctype html>Cantina shell'
+const SHELL = '<!doctype html>app shell'
 const SRD_404 = '<!doctype html><title>404 - Page Not Found</title>'
 const SRD_CSP = "default-src 'self'; connect-src 'self'"
 const IMMUTABLE = 'public, max-age=31536000, immutable'
 const CHUNK = `${APP_BASE}/assets/index-C0FFEE12.js`
 
 /**
- * A fake binding with `not_found_handling: none`: a file as itself with srd's
+ * A fake binding with `not_found_handling: none`: a file as itself with the reference site's
  * `_headers` (its CSP everywhere), a miss as a bare 404. Records every path.
  */
 function assetsWith(files: Record<string, { body: string; type: string }>) {
@@ -79,15 +79,15 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     expect(config.assets.run_worker_first).toEqual(RUN_WORKER_FIRST)
   })
 
-  it('reads link previews from the Convex deployment the Cantina is built against', () => {
+  it('reads link previews from the Convex deployment the app is built against', () => {
     const built = workflow('deploy-cloudflare.yml').match(
-      /^\s*CANTINA_CONVEX_URL:\s*(\S+)\s*$/m
+      /^\s*PRODUCTION_CONVEX_URL:\s*(\S+)\s*$/m
     )?.[1]
     expect(built).toBeString()
     expect(config.vars.CONVEX_URL).toBe(built as string)
   })
 
-  it('points a Worker Preview at the staging deployment its Cantina is built against', () => {
+  it('points a Worker Preview at the staging deployment its app is built against', () => {
     const built = workflow('deploy-preview.yml').match(/^\s*STAGING_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
     expect(built).toBeString()
     // A Preview inherits none of the top-level vars.
@@ -103,7 +103,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   })
 })
 
-describe('/build/* — the Cantina, answered as a single-page app', () => {
+describe('/build/* — the app, answered as a single-page app', () => {
   it('answers a client route with the shell, carrying the site CSP', async () => {
     const env = envWith()
     const res = await worker.fetch(req(`${APP_BASE}/pilots/new`), env)
@@ -150,7 +150,7 @@ describe('/build/* — the Cantina, answered as a single-page app', () => {
     expect(res.headers.get('location')).toBe('https://pr-7-su-srd.example.workers.dev/about/')
   })
 
-  it('answers the Cantina sitemap from the binding: the build writes it', async () => {
+  it('answers the app sitemap from the binding: the build writes it', async () => {
     const env = envWith()
     await worker.fetch(req(`${APP_BASE}/sitemap.xml`), env)
 
@@ -168,7 +168,7 @@ describe('the SRD is untouched', () => {
     expect(res.headers.get('content-security-policy')).toBe(SRD_CSP)
   })
 
-  it('never treats a path that merely starts with /build as the Cantina', async () => {
+  it('never treats a path that merely starts with /build as the app', async () => {
     const env = envWith()
     const res = await worker.fetch(req('/buildings/'), env)
 

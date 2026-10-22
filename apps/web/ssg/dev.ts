@@ -1,5 +1,5 @@
 /**
- * dev — the development server: srd's pages, and the Cantina at `/build`.
+ * dev — the development server: the reference site's pages, and the app at `/build`.
  *
  * ## The one rule
  *
@@ -71,7 +71,7 @@ const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
 /**
  * The dev equivalent of the built manifest. Both entries are served by Vite from
  * source; neither is hashed, and there is no font preload. The one stylesheet
- * link is the base (`src/styles/baseStylesheet.ts`), served as CSS from source; srd's own
+ * link is the base (`src/styles/baseStylesheet.ts`), served as CSS from source; the reference site's own
  * css Vite injects from the styles entry itself.
  *
  * `built` is read off the filesystem rather than listed, so an asset added to
@@ -273,21 +273,21 @@ async function main(): Promise<void> {
   // Created first so Vite attaches its HMR socket to it.
   const server = createHttpServer()
   // The same config `vite build` reads (ADR-050). Its shell plugin answers the
-  // Cantina's navigations (`/build/**`) with the shell, as production does;
+  // app's navigations (`/build/**`) with the shell, as production does;
   // every other document comes from the route registry below.
   const vite = await createViteServer({
     configFile: viteConfigFile,
     // The shell renders the Union bar from the UI library's source, which only
     // Vite's module runner resolves (the bundling loader leaves it to Node).
     configLoader: 'runner',
-    // 'custom' stops Vite from serving an index.html fallback: srd has no
+    // 'custom' stops Vite from serving an index.html fallback: the reference site has no
     // index.html at all, every document comes from the route registry.
     appType: 'custom',
     server: { middlewareMode: true, hmr: { server } },
   })
 
   // Vite's own middlewares get every request first (public/, /src/**, /@vite/**,
-  // /@fs/**, the Cantina's shell); whatever they leave unclaimed falls through
+  // /@fs/**, the app's shell); whatever they leave unclaimed falls through
   // to the renderer.
   //
   // The renderer is deliberately NOT pushed onto `vite.middlewares` with
@@ -324,7 +324,7 @@ async function main(): Promise<void> {
 
   server.listen(PORT, () => {
     // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
-    console.log(`[dev] srd on http://localhost:${PORT}, the Cantina on /build/`)
+    console.log(`[dev] srd on http://localhost:${PORT}, the app on /build/`)
   })
 
   const shutdown = () => {

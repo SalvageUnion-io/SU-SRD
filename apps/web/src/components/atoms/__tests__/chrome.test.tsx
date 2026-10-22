@@ -1,20 +1,20 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { color } from '../../../design/tokens'
-import { StatusBadge } from '../../compositions/StatusBadge'
 import { EmptyState } from '../../containers/EmptyState'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
-import { ConditionChip, Conditions } from '../Conditions'
+import { Conditions } from '../Conditions'
 import { capsLabel } from '../capsLabel'
 import { Field, Select } from '../Field'
 import { Glyph } from '../glyphs'
 import { Input, Textarea } from '../inputs'
 import { INPUT_FOCUS } from '../interaction'
-import { ModeDoor } from '../ModeDoor'
-import { Panel } from '../Panel'
+import { POSTER_STAMP } from '../posterStamp'
 import { Slab } from '../Slab'
+// biome-ignore lint/style/noRestrictedImports: the atom's own test; its hosts are Stat and VitalGauge (R12)
 import { StepButton } from '../SmallButtons'
+import { StatusBadge } from '../StatusBadge'
 
 function rootEl(container: Element): HTMLElement {
   const el = container.firstElementChild
@@ -23,15 +23,19 @@ function rootEl(container: Element): HTMLElement {
 }
 
 describe('Field / Input', () => {
-  test('renders label wired to the input, with a required asterisk inside the stamp', () => {
+  test('renders the one label (the Eyebrow) wired to the input, the required mark inside it', () => {
     render(
       <Field label="Name" required htmlFor="name">
         <Input id="name" placeholder="Mara Vex" />
       </Field>
     )
     expect(screen.getByLabelText(/Name/)).toBeTruthy()
-    // The required mark rides inside the ink Stamp (white on ink), not a rust glyph.
-    expect(screen.getByText('*').closest('.su-badge--on-ink')).not.toBeNull()
+    // One label treatment (hard rule R16): the Eyebrow over the control, in
+    // ink caps, never a stamp straddling its border; the mark is in the label.
+    const label = screen.getByText('*').closest('label')
+    expect(label?.classList.contains('su-eyebrow')).toBe(true)
+    expect(label?.getAttribute('for')).toBe('name')
+    expect(document.querySelector('.su-stamp-seam')).toBeNull()
   })
 
   test('input carries the focus ring classes', () => {
@@ -81,7 +85,7 @@ describe('Field — typeset read state', () => {
     expect(container).toBeTruthy()
   })
 
-  test('a read value that is a node (a Token) replaces the text; edit keeps the text', () => {
+  test('a read value that is a node (a Mini) replaces the text; edit keeps the text', () => {
     render(<Field label="Chassis" value="Mule" readValue={<a href="/chassis/mule/">Mule</a>} />)
     expect(screen.getByRole('link', { name: 'Mule' })).toBeTruthy()
     expect(screen.queryByText('Mule', { selector: 'p' })).toBeNull()
@@ -96,58 +100,6 @@ describe('Field — typeset read state', () => {
     )
     expect(screen.queryByRole('link')).toBeNull()
     expect(screen.getByRole('button', { name: 'Change chassis' }).textContent).toBe('Mule')
-  })
-})
-
-describe('ModeDoor', () => {
-  test('fires onSelect and renders the headline + body', () => {
-    const onSelect = mock(() => {})
-    render(
-      <ModeDoor variant="guided" tab="▶" headline="Guided" onSelect={onSelect}>
-        Step through the rules.
-      </ModeDoor>
-    )
-    expect(screen.getByText('Guided')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button'))
-    expect(onSelect).toHaveBeenCalled()
-  })
-
-  test('joins its variant class and a caller class with cn (no stray space)', () => {
-    const { rerender } = render(
-      <ModeDoor variant="guided" tab="▶" headline="Guided">
-        Body
-      </ModeDoor>
-    )
-    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided')
-    rerender(
-      <ModeDoor variant="guided" tab="▶" headline="Guided" className="extra">
-        Body
-      </ModeDoor>
-    )
-    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided extra')
-  })
-
-  test('guided prints the sheet’s onTone pair, not paper on the bare tone', () => {
-    // Paper on `--tone` measured 2.4:1 on pilot; theme.css sets the pair per
-    // sheet and contrast.test.ts holds it to onTone.
-    render(
-      <ModeDoor variant="guided" tab="▶" headline="Guided">
-        Step through the rules.
-      </ModeDoor>
-    )
-    const door = screen.getByRole('button')
-    expect(door.style.background).toBe('var(--tone-band)')
-    expect(door.style.color).toBe('var(--on-tone-band)')
-    expect(screen.getByText('Guided').style.color).toBe('')
-  })
-
-  test('blank variant is the dashed paper escape hatch', () => {
-    render(
-      <ModeDoor variant="blank" tab="✎" headline="Blank">
-        Empty sheet.
-      </ModeDoor>
-    )
-    expect(screen.getByRole('button').style.borderStyle).toBe('dashed')
   })
 })
 
@@ -185,22 +137,12 @@ describe('Badge tone / quiet preset', () => {
   })
 })
 
-describe('Panel', () => {
-  test('panel defaults to ink border, soft swaps to faint', () => {
-    const { container } = render(<Panel>content</Panel>)
-    expect(rootEl(container).style.borderColor).toBe(color.ink)
-    cleanup()
-    const { container: soft } = render(<Panel soft>content</Panel>)
-    expect(rootEl(soft).style.borderColor).toBe(color.wkFaint)
-  })
-})
-
 describe('EmptyState', () => {
   test('stamp default renders the dashed frame with a stamp headline', () => {
     const { container } = render(<EmptyState headline="No pilots yet" />)
     expect((container.firstElementChild as HTMLElement | null)?.style.borderStyle).toBe('dashed')
     const stamp = screen.getByText('No pilots yet')
-    expect(stamp.className).toContain('su-badge--on-ink')
+    expect(stamp.className).toContain('su-badge--stamp-solid')
   })
 
   test('quiet variant renders the centered faint dashed placeholder with message and CTA', () => {
@@ -228,22 +170,27 @@ describe('EmptyState', () => {
 })
 
 describe('Slab', () => {
-  test('slab renders label, count and dashed leader', () => {
+  test('slab renders label and count', () => {
     render(<Slab label="Systems" count="2" />)
     expect(screen.getByText('Systems')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
   })
 
+  test('every slab is the solid ink stamp (R1): a dashed head reads as user-made', () => {
+    render(<Slab label="Abilities" />)
+    expect(screen.getByText('Abilities').className).toContain(POSTER_STAMP)
+  })
+
   test('the count is muted, or takes the ground ink with countInk="inherit"', () => {
-    render(<Slab variant="solid" label="Classes" count="Choose 1" />)
+    render(<Slab label="Classes" count="Choose 1" />)
     expect(screen.getByText('Choose 1').style.color).toBe(color.wkMuted)
-    render(<Slab variant="solid" label="Types" count="Pick one" countInk="inherit" />)
+    render(<Slab label="Types" count="Pick one" countInk="inherit" />)
     expect(screen.getByText('Pick one').style.color).toBe('currentcolor')
   })
 
   test('a value count is a label-first Stat chip, not trailing text', () => {
     const { container } = render(
-      <Slab variant="solid" label="Systems" count={{ label: 'Slots', value: 3, max: 6 }} />
+      <Slab label="Systems" count={{ label: 'Slots', value: 3, max: 6 }} />
     )
     const chip = container.querySelector('.su-stat-cell')
     expect(chip).not.toBeNull()
@@ -288,15 +235,15 @@ describe('Conditions', () => {
   })
 
   test('quiet tone is the neutral, prose-cased chip (no warn fill)', () => {
-    const { container } = render(<ConditionChip label="Owes a debt" tone="quiet" />)
-    expect(rootEl(container).style.textTransform).toBe('none')
-    const className = container.firstElementChild?.className ?? ''
-    expect(className).not.toContain('su-badge--tone-warn')
+    render(<Conditions conditions={['Owes a debt']} tone="quiet" />)
+    const chip = screen.getByText('Owes a debt').parentElement as HTMLElement
+    expect(chip.style.textTransform).toBe('none')
+    expect(chip.className).not.toContain('su-badge--tone-warn')
   })
 
   test('a condition chip is the warn fill', () => {
-    const { container } = render(<ConditionChip label="Burning" />)
-    expect(container.firstElementChild?.className).toContain('su-badge--tone-warn')
+    render(<Conditions conditions={['Burning']} />)
+    expect(screen.getByText('Burning').parentElement?.className).toContain('su-badge--tone-warn')
   })
 })
 
@@ -320,10 +267,10 @@ describe('StepButton / Button xs', () => {
 })
 
 describe('Stamp', () => {
-  test('on-ink is the default surface; text is condensed uppercase', () => {
+  test('solid is the default surface; text is condensed uppercase', () => {
     render(<Badge shape="stamp">Mule</Badge>)
     const stamp = screen.getByText('Mule')
-    expect(stamp.className).toContain('su-badge--on-ink')
+    expect(stamp.className).toContain('su-badge--stamp-solid')
     // One assertion, on the recipe's own output for the rungs a stamp uses,
     // where there were two on utility spellings (`uppercase`, then
     // `tracking-caps-tight`). Both were describing the same fact — that a stamp

@@ -1,7 +1,7 @@
 {
   // salvageunion.io on Workers Static Assets (ADR-033): the one Worker for
   // the whole app. The script runs only for a miss and for everything under
-  // `/build`, the Cantina's (src/worker/index.ts, src/worker/cantina.ts);
+  // `/build`, the app's (src/worker/index.ts, src/worker/app.ts);
   // every header on a real file is public/_headers. Built in GitHub Actions, not Workers Builds
   // (ADR-033 §4).
   "name": "su-srd",
@@ -11,7 +11,7 @@
 
   // `www` is attached so the zone's Redirect Rule can act on it; the redirect
   // cannot live in `_redirects` (ADR-033, "Configuration outside the repo").
-  // intheunionnow.com, the Cantina's old host, is attached for the same reason:
+  // intheunionnow.com, the app's old host, is attached for the same reason:
   // its zone's Redirect Rule 301s every path to salvageunion.io/build.
   "routes": [
     { "pattern": "salvageunion.io", "custom_domain": true },
@@ -36,14 +36,14 @@
   //   secret. Without it POST /__convex-logs answers 503.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
-  // may see from: the URL the Cantina is built against, `CANTINA_CONVEX_URL`
+  // may see from: the URL the app is built against, `PRODUCTION_CONVEX_URL`
   // in deploy-cloudflare.yml.
   "vars": {
     "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
   },
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars above:
-  // the staging deployment the Cantina is built against.
+  // the staging deployment the app is built against.
   // Its error endpoints run without the rate limits, which the Worker allows.
   "previews": {
     "vars": {
@@ -70,11 +70,11 @@
     // A miss runs the Worker, which answers dist/404.html (or a bare 404 under
     // `/assets/`) with `no-store`. Not `404-page`: Static Assets applies
     // `_headers` to that response by path, so a missing chunk's 404 took the
-    // `/assets/*` rule's year of `immutable`. Not SPA mode either: srd is
+    // `/assets/*` rule's year of `immutable`. Not SPA mode either: the reference site is
     // pre-rendered, so a miss is genuinely a miss.
     "not_found_handling": "none",
-    // `/build` and below: the Cantina, whose Worker reads every answer
-    // (src/worker/cantina.ts, `RUN_WORKER_FIRST`, which the routing test holds
+    // `/build` and below: the app, whose Worker reads every answer
+    // (src/worker/app.ts, `RUN_WORKER_FIRST`, which the routing test holds
     // equal). A positive list only: a negative pattern sends its matches
     // straight to the assets, and `true` would run the script for every SRD
     // page.

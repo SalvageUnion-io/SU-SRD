@@ -35,8 +35,8 @@ const MESSAGE = {
 } satisfies CSSProperties
 
 /**
- * RecoveryPanel — the shared error-recovery card behind srd's island error
- * boundary and cantina's root error component (which mirrored each other by hand).
+ * RecoveryPanel — the shared error-recovery card behind the reference site's island error
+ * boundary and the app's root error component (which mirrored each other by hand).
  * A `TitledBox` with the failure on its cut-out, a muted message, optional inline
  * content, and one primary (rust) recovery Button.
  *

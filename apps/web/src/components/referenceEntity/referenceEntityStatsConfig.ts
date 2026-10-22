@@ -21,6 +21,8 @@ type BuildReferenceEntityStatsOptions = {
   techLevel?: number | 'B' | 'N'
   /** Schema name of the entity — used to scope schema-specific stat derivations. */
   schemaName?: RefEnumSchemaName
+  /** Every stat, a chassis's included (a Peek). */
+  every?: boolean
 }
 
 /**
@@ -32,8 +34,8 @@ export function buildReferenceEntityStats(
   data: RefMetaEntity | RefObjectBonusPerTechLevel,
   options: BuildReferenceEntityStatsOptions
 ): StatItem[] {
-  const { compact, techLevel, schemaName } = options
-  return entityStats(data as RefMetaEntity, { schemaName, techLevel }).map((fact) => {
+  const { compact, techLevel, schemaName, every } = options
+  return entityStats(data as RefMetaEntity, { schemaName, techLevel, every }).map((fact) => {
     const [top = fact.label, ...rest] = fact.label.split(' ')
     return {
       key: fact.key,

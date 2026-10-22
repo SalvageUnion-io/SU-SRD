@@ -1,10 +1,10 @@
 /**
- * bundle — the one Vite pass (`vite.config.ts`): srd's client entries and the
- * Cantina, into `dist/`. Step 1 of `ssg/build.ts`, which runs it as a child
+ * bundle — the one Vite pass (`vite.config.ts`): the reference site's client entries and the
+ * App, into `dist/`. Step 1 of `ssg/build.ts`, which runs it as a child
  * process.
  *
  * Its own process because React cannot be loaded twice in one. The config
- * renders the Cantina's shell with `react-dom/server` under the
+ * renders the app's shell with `react-dom/server` under the
  * `NODE_ENV=production` Vite sets, while the SSG's render pass after it needs
  * React's development JSX runtime, which Bun chose at startup; the two builds
  * of React do not mix ("dispatcher.getOwner is not a function").

@@ -8,7 +8,7 @@ import { portFor } from 'gates/ports'
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
  *   `_`-prefixed modules and `fixtures.ts` are shared helpers. A file filter is
  *   a pattern, so `smoke.e2e.ts` runs `reference-smoke.e2e.ts` and
- *   `cantina-smoke.e2e.ts` both.
+ *   `app-smoke.e2e.ts` both.
  * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over
  *   `wrangler.jsonc` (one Worker serves the whole site), so the specs run
  *   against the Worker and the `not_found_handling` mode production serves, in
@@ -25,7 +25,7 @@ import { portFor } from 'gates/ports'
  *   but they never hide it.
  * - The page's CSP is bypassed (`bypassCSP`). The specs test behaviour and
  *   accessibility, not the policy, and two things they need sit outside the
- *   production CSP: the Cantina's throwaway Convex backend on `127.0.0.1`, and
+ *   production CSP: the app's throwaway Convex backend on `127.0.0.1`, and
  *   the axe script the a11y spec injects. `tools/smoke-production.sh` asserts
  *   the CSP that reaches the browser in production.
  * - Service workers are blocked: activating one mid-navigation can abort
@@ -38,14 +38,14 @@ import { portFor } from 'gates/ports'
  * One budget for every test: a reference page's islands download the
  * salvageunion-reference data chunks on first intent, so a cold navigation can
  * take a while; 60 s leaves headroom without masking a real hang. A slower spec
- * sets its own: the Cantina's `test` (`e2e/fixtures.ts`) gives each of its
+ * sets its own: the app's `test` (`e2e/fixtures.ts`) gives each of its
  * tests 90 s, and the a11y and perf specs set theirs.
  *
- * Signed out, the Cantina is read-only, so every spec that builds something
- * signs in through `e2e/fixtures.ts`. The PR bundle (ci.yml's `build-web`) has
- * a Convex URL but no `VITE_TEST_AUTH`, so it SKIPS those specs, by design;
- * the nightly `e2e` job provisions a throwaway Convex backend and runs them
- * for real. Locally, `bun run dev` always carries the seam on a local Convex
+ * Signed out, the app is read-only, so every spec that builds something
+ * signs in through `e2e/fixtures.ts`. Both CI builds that run them, ci.yml's
+ * `build-web` (the PR tier, its listed specs) and the nightly `e2e` job (the
+ * whole suite), carry the seam against a throwaway Convex backend; a build
+ * without it SKIPS those specs. Locally, `bun run dev` always carries the seam on a local Convex
  * deployment, so those specs need the one-time "Local backend" setup in
  * .claude/skills/convex-ops/SKILL.md and FAIL without it.
  */

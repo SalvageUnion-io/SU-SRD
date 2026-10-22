@@ -7,9 +7,9 @@
  * results to persistence, MechItemCard renders them.
  */
 
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { RefMetaAction, RefModule, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
@@ -90,7 +90,7 @@ export function repairScrapCost(salvageValue: number | undefined): number {
  * level ≥ the item's TL whose bucket holds at least `cost` (Scrap TL must be
  * ≥ item TL; higher-TL scrap is allowed). Returns null when no bucket
  * qualifies — the repair still proceeds without a deduction (advisory,
- * never blocks — S12).
+ * never a block).
  */
 export function repairPoolTl(
   pool: ScrapPool,

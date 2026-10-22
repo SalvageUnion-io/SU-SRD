@@ -46,6 +46,35 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Source' })).toBeTruthy()
   })
 
+  it('with a band, the rail is its controls: search and filters on the band, over the listing', () => {
+    const { container } = render(
+      <SchemaViewerIsland
+        schemaId="systems"
+        band={{
+          title: 'Systems',
+          tone: 'mech',
+          trail: [
+            { name: 'Reference', url: '/' },
+            { name: 'Systems', url: '/systems/' },
+          ],
+        }}
+        techLevels={[1, 2, 3]}
+        sources={['Core', 'Rig']}
+      />
+    )
+
+    const band = required(container.querySelector<HTMLElement>('.su-chapter-band'), 'the band')
+    expect(within(band).getByRole('heading', { level: 1 }).textContent).toBe('Systems')
+    // The trail rides the title's cut-out, as the layout's does.
+    expect(within(band).getByRole('navigation', { name: 'Breadcrumb' })).toBeTruthy()
+    const rail = required(band.querySelector<HTMLElement>('.su-rail'), 'the rail on the band')
+    expect(within(rail).getByRole('searchbox', { name: 'Filter items by name' })).toBeTruthy()
+    expect(within(rail).getByRole('group', { name: 'Tech Level' })).toBeTruthy()
+    // One rail, and the listing under the band on the page ground.
+    expect(container.querySelectorAll('.su-rail')).toHaveLength(1)
+    expect(container.querySelector('.su-listing-page .su-listing .su-rail')).toBeNull()
+  })
+
   it('renders filter buttons when multiple tech levels exist', () => {
     const firstSchema = required(entitySchemas[0], 'first entity schema')
 
@@ -79,12 +108,13 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('name filter: Clear-filters button clears name input and restores cards', () => {
-    const systemsModel = required(getModel('systems'), 'systems model')
-    const entities = systemsModel.all()
+    // A short listing: every card is drawn twice, and the systems' ~180 cost seconds.
+    const baysModel = required(getModel('crawler-bays'), 'crawler bays model')
+    const entities = baysModel.all()
 
     render(
       <SchemaViewerIsland
-        schemaId="systems"
+        schemaId="crawler-bays"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
       />
@@ -231,7 +261,7 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Tree' })).toBeTruthy()
   })
 
-  it('draws each ability tree on its track: Rows numbered 1-2-3, a Legendary tree its "or"', () => {
+  it('draws each ability tree on its track: Compacts numbered 1-2-3, a Legendary tree its "or"', () => {
     const abilitiesModel = required(getModel('abilities'), 'abilities model')
     const entities = abilitiesModel.all()
 
@@ -254,7 +284,7 @@ describe('SchemaViewerIsland', () => {
     const forging = trackOf('Forging')
     expect(forging.dataset.track).toBe('core')
     expect(
-      [...forging.querySelectorAll('.su-ability-track__tier .su-entity-row__tier')].map(
+      [...forging.querySelectorAll('.su-ability-track__tier .su-entity-compact__tier')].map(
         (n) => n.textContent
       )
     ).toEqual(['1', '2', '3'])
@@ -262,7 +292,7 @@ describe('SchemaViewerIsland', () => {
     expect(trackOf('Fabricator').dataset.track).toBe('hybrid')
     const legendary = trackOf('Legendary Engineer')
     expect(legendary.dataset.track).toBe('legendary')
-    expect(legendary.querySelector('.su-ability-track__tier .su-entity-row__tier')).toBeNull()
+    expect(legendary.querySelector('.su-ability-track__tier .su-entity-compact__tier')).toBeNull()
     expect(legendary.querySelectorAll('.su-ability-track__or')).toHaveLength(1)
     // The Generic Abilities have no tiers and no order: plain rows, no track.
     expect(
@@ -347,7 +377,7 @@ describe('SchemaViewerIsland', () => {
     }
   })
 
-  // Every listing is the Catalog: one flat grid of Tiles, no group headings,
+  // Every listing is the Catalog: one flat grid of CompactIndexes, no group headings,
   // at every width, with no toggle (`listingView.ts`).
   describe('the Catalog', () => {
     const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
@@ -363,21 +393,21 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('one art-first Tile per entity, in one flat grid with no group heading and no toggle', () => {
+    it('one art-first CompactIndex per entity, in one flat grid with no group heading and no toggle', () => {
       const { container } = renderChassis()
       expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
       expect(container.querySelector('.su-listing__cards')).toBeNull()
       const groups = container.querySelectorAll('.su-listing__group')
       expect(groups.length).toBe(1)
       expect(groups[0]?.getAttribute('aria-label')).toBeNull()
-      const tiles = container.querySelectorAll('.su-listing__tiles > li > a.su-entity-tile')
+      const tiles = container.querySelectorAll('.su-listing__tiles > li > a.su-entity-index')
       expect(tiles.length).toBe(chassisEntities().length)
       expect(container.querySelector('.su-rail__view')).toBeNull()
       expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
       // Art from the su-assets 440 derivative, its box sized before it loads.
       // The opening row's art loads at once and first (it is the page's
       // largest paint); every tile after it, lazily.
-      const imgs = [...container.querySelectorAll('.su-entity-tile__art img')]
+      const imgs = [...container.querySelectorAll('.su-entity-index__art img')]
       const img = required(imgs[0], 'a tile image')
       expect(img.getAttribute('src')).toMatch(
         /^https:\/\/assets\.salvageunion\.io\/.+-440q80\.webp$/
@@ -468,7 +498,7 @@ describe('SchemaViewerIsland', () => {
       expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
     })
 
-    it('the Catalog is one flat grid of Tiles, by name, under no tree heading', () => {
+    it('the Catalog is one flat grid of CompactIndexes, by name, under no tree heading', () => {
       const { container } = renderAbilities()
       fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
       expect(container.querySelector('.su-ability-track')).toBeNull()
@@ -504,7 +534,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   // The page hands the roll tables their top-level ids (`listingEntries`): the
-  // island lists those, in one flat Catalog, each Tile with its lead.
+  // island lists those, in one flat Catalog, each CompactIndex with its lead.
   describe('the roll tables', () => {
     const tables = () => required(getModel('roll-tables'), 'roll-tables model').all()
     const listed = ['Core Mechanic', 'Callsign Table', 'Meteor Encounter']

@@ -17,11 +17,14 @@ type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
  * uses these names, so a size means the same thing wherever it is read.
  */
 type StampSize = Size
-/** Stamp plate (`shape="stamp"`). */
-export type StampSurface = 'on-ink' | 'inverse' | 'dashed'
+/**
+ * Stamp plate (`shape="stamp"`): the plate it IS, never the ground it sits on.
+ * The ground is the frame's `data-ground` (chrome K1), read in CSS.
+ */
+type StampSurface = 'solid' | 'inverse' | 'dashed'
 
 /*
- * Every chip and stamp property lives in a `.su-badge*` class (`styles/index.css`),
+ * Every chip and stamp property lives in a `.su-badge*` class (`styles/partials/atoms-badges.css`),
  * not a style object, although none of them has a stateful variant. Badge is the
  * most-overridden atom in the system: call sites restyle padding, display, size,
  * tracking, colour and the inset ring through `className`, and a caller's utility
@@ -73,7 +76,7 @@ const STAMP_SIZE: Record<StampSize, string> = {
 
 /** Stamp plate fills — the square label/header shape. */
 const STAMP_SURFACE: Record<StampSurface, string> = {
-  'on-ink': 'su-badge--on-ink',
+  solid: 'su-badge--stamp-solid',
   inverse: 'su-badge--inverse',
   dashed: 'su-badge--dashed',
 }
@@ -137,10 +140,10 @@ type BadgeStampProps = {
   /** Text scale on the FULL / COMPACT / MINI ladder, or the 13px `caption`. `compact` is the default. */
   size?: StampSize
   /**
-   * The plate the stamp sits on:
-   * - `on-ink` (default) — ink block, white text: the canonical label/header.
+   * The stamp's plate:
+   * - `solid` (default) — ink block, paper text: the canonical label/header.
    * - `inverse` — paper block, ink text, inset ink ring.
-   * - `dashed` — paper block, ink text, a dashed ink edge: the User-made
+   * - `dashed` — paper block, ink text, a dashed ink edge: the HOMEBREW
    *   stamp (ruleset §3.9, homebrew is dashed).
    */
   surface?: StampSurface
@@ -160,13 +163,12 @@ type BadgeProps = (BadgeChipProps | BadgeStampProps) & { ref?: Ref<HTMLElement> 
  *
  *   `shape="chip"` (default) — the rounded 22px keyword / status chip; `surface`
  *                              picks solid / ghost / outline / tone / quiet.
- *   `shape="stamp"`          — the SQUARE ink label / header / tab (the former
- *                              Stamp); `size` + stamp `surface` + `seam`.
+ *   `shape="stamp"`          — the SQUARE ink label / header / tab; `size` +
+ *                              stamp `surface` + `seam`.
  *
  * **Label-only.** A badge cites categorical metadata at a glance. **A label+value
- * readout is NOT a badge** — it is a Stat (`Stat orientation="horizontal"`), the
- * value-cell law (ruleset §0, §7.1). Pill and Chip were named presets over the
- * chip shape.
+ * readout is NOT a badge** — it is a Stat (`Stat`), the
+ * value-cell law (ruleset §0, §7.1).
  */
 /**
  * Accepting `ref` is load-bearing, not boilerplate: Stat measures its own label
@@ -178,7 +180,7 @@ export function Badge(props: BadgeProps) {
     const {
       children,
       size = DEFAULT_SIZE,
-      surface = 'on-ink',
+      surface = 'solid',
       seam = false,
       as: Tag = 'span',
       className,
@@ -192,8 +194,9 @@ export function Badge(props: BadgeProps) {
         ref={ref}
         className={cn(
           // Size comes from `STAMP_SIZE[size]`, so the recipe supplies only the
-          // caps role (font-cond / uppercase / bold / caps-tight).
-          capsLabel(),
+          // caps role (font-cond / uppercase / bold / caps-tight); a Mini stamp
+          // is 11px, so its caps are snug (ruleset §4.2).
+          capsLabel({ tracking: size === 'mini' ? 'snug' : undefined }),
           // No line-height of its own: the `leading-none` this once carried
           // sat before the rung's `text-*` size, which the old class merge let
           // win, so the line-height has always been the rung's.
@@ -228,9 +231,8 @@ export function Badge(props: BadgeProps) {
       ref={ref}
       {...(Tag === 'button' ? { type: 'button' } : {})}
       className={cn(
-        // Tracking is a per-SURFACE decision here (`BADGE_SURFACE` picks
-        // caps-snug or caps), so the recipe inherits rather than setting it.
-        capsLabel({ size: 'badge', weight: 'semibold', tracking: 'inherit' }),
+        // 11px caps are snug (ruleset §4.2), on every surface.
+        capsLabel({ size: 'badge', weight: 'semibold' }),
         'su-badge',
         swatch != null && 'su-badge--swatch',
         // `su-hit-area`: an interactive chip stays 22px and reaches the 44px

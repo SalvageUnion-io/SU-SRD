@@ -4,7 +4,7 @@
  * ## Why this is its own module
  *
  * It began beside the read-only Zustand store that renders the result (now
- * `components/sheet/readOnlySheetStore.model.ts`). It moved here when the snapshot
+ * `build/sheet/readOnlySheetStore.model.ts`). It moved here when the snapshot
  * publish handler in the Cloudflare Worker needed the same parse, because that
  * store imports `zustand` and the entity store and esbuild follows the module,
  * not the call. Publishing is retired (ADR-036), so today every caller is a
@@ -13,14 +13,14 @@
  * every caller is an adapter around it.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import { MechSchema } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { isRecord } from '../isRecord'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */

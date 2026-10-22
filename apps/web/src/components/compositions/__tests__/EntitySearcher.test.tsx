@@ -2,9 +2,9 @@
  * Unit tests for the shared EntitySearcher.
  *
  * Focus: the contract that motivated the component — the pool is a list of
- * Tokens, nothing open until one is; opening a Token shows that entity's Page
+ * Minis, nothing open until one is; opening a Mini shows that entity's Page
  * with an action bar that adds it; removing is the rail's; what is chosen is
- * unmistakable (the rail, the Token's chosen label, the Page's stamp); the
+ * unmistakable (the rail, the Mini's chosen label, the Page's stamp); the
  * Status facet splits chosen vs. available; budgets render honestly; and
  * toggle/count emit the caller's identity. The rail's own contract (a column
  * on a wide screen, a bar on a narrow one) is EntitySearcher.rail.test.tsx.
@@ -26,14 +26,14 @@ function actions(name: string): HTMLElement {
   return screen.getByRole('group', { name: `${name} actions` })
 }
 
-/** Open the list's Token for `name` (the first match: the list leads the rail). */
-function openToken(name: string) {
+/** Open the list's Mini for `name` (the first match: the list leads the rail). */
+function openMini(name: string) {
   const [token] = screen.getAllByRole('button', { name })
-  if (!token) throw new Error(`No Token named ${name}`)
+  if (!token) throw new Error(`No Mini named ${name}`)
   fireEvent.click(token)
 }
 
-/** The list line holding the Token for `name`. */
+/** The list line holding the Mini for `name`. */
 function line(name: string): HTMLElement {
   const el = screen.getAllByRole('button', { name })[0]?.closest<HTMLElement>('.su-searcher__item')
   if (!el) throw new Error(`No list line for ${name}`)
@@ -57,7 +57,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
   )
 
   it(
-    'lists an equipped item in the rail, labels its Token and stamps its Page',
+    'lists an equipped item in the rail, labels its Mini and stamps its Page',
     () => {
       const eq = nth(allEquipment(), 0)
       render(
@@ -74,9 +74,9 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
       const chosen = line(eq.name)
       expect(chosen.hasAttribute('data-selected')).toBe(true)
       expect(within(chosen).getByText('Equipped')).toBeTruthy()
-      // Nothing is open until a Token is.
+      // Nothing is open until a Mini is.
       expect(screen.queryByRole('group', { name: `${eq.name} actions` })).toBeNull()
-      openToken(eq.name)
+      openMini(eq.name)
       expect(
         within(actions(eq.name)).getByText('Equipped', { selector: '.su-badge-stamp' })
       ).toBeTruthy()
@@ -85,7 +85,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
   )
 
   it(
-    'opens nothing until a Token is opened, and has no box to choose from the list',
+    'opens nothing until a Mini is opened, and has no box to choose from the list',
     () => {
       const b = nth(allEquipment(), 1)
       render(
@@ -99,7 +99,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
   )
 
   it(
-    'opening a Token shows its Page, whose ADD names the sheet',
+    'opening a Mini shows its Page, whose ADD names the sheet',
     () => {
       const b = nth(allEquipment(), 1)
       const toggled: string[] = []
@@ -112,7 +112,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
           railName="Bonesaw"
         />
       )
-      openToken(b.name)
+      openMini(b.name)
       expect(screen.getByRole('article', { name: b.name }).querySelector('h2')).toBeTruthy()
       fireEvent.click(within(actions(b.name)).getByRole('button', { name: 'Add to Bonesaw' }))
       expect(toggled).toEqual([b.id])
@@ -136,7 +136,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
       fireEvent.click(within(rail(/selected/i)).getByRole('button', { name: `Remove ${eq.name}` }))
       expect(toggled).toEqual([eq.id])
       // The opened Page offers no Remove (and no second Add).
-      openToken(eq.name)
+      openMini(eq.name)
       expect(within(actions(eq.name)).queryAllByRole('button')).toHaveLength(0)
     },
     POOL_RENDER_MS
@@ -192,7 +192,7 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
 
 describe('EntitySearcher — systems (count mode)', () => {
   it(
-    'a Token shows its count; the Page adds another',
+    'a Mini shows its count; the Page adds another',
     () => {
       const first = SalvageUnionReference.Systems.all()[0]
       if (!first) throw new Error('No systems in reference data')
@@ -210,7 +210,7 @@ describe('EntitySearcher — systems (count mode)', () => {
         />
       )
       expect(within(line(first.name)).getByText('2 Installed')).toBeTruthy()
-      openToken(first.name)
+      openMini(first.name)
       const bar = actions(first.name)
       expect(within(bar).getByText('2 Installed')).toBeTruthy()
       fireEvent.click(within(bar).getByRole('button', { name: 'Add another' }))

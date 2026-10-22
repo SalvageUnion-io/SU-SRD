@@ -1,6 +1,6 @@
 /**
  * The `/su` command list the SRD's `/discord` page renders: read from the
- * registered builder, and committed in the srd as generated data.
+ * registered builder, and committed in the web app as generated data.
  */
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
@@ -11,7 +11,15 @@ const COMMITTED = join(import.meta.dir, '../../../web/src/generated/discordComma
 
 describe('the /su command list', () => {
   test('lists every leaf subcommand in registration order', () => {
-    expect(commandList().map((c) => c.name)).toEqual(['roll', 'lookup', 'me', 'games', 'sheet'])
+    expect(commandList().map((c) => c.name)).toEqual([
+      'roll',
+      'lookup',
+      'me',
+      'games',
+      'sheet',
+      'bind',
+      'unbind',
+    ])
   })
 
   test('only the reference tools answer without an account', () => {
@@ -48,7 +56,7 @@ describe('the /su command list', () => {
     ])
   })
 
-  test('the srd’s committed copy is current (regenerate: bun run gen:command-list)', () => {
+  test('the web app’s committed copy is current (regenerate: bun --filter discord-bot gen:command-list)', () => {
     expect(readFileSync(COMMITTED, 'utf-8')).toBe(renderCommandListModule())
   })
 })

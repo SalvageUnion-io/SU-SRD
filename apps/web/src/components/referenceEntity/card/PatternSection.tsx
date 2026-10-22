@@ -4,8 +4,8 @@ import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
-import { ActionTokens } from './NestedCards'
-import { nestsTokens } from './nestingLevel'
+import { ActionMinis } from './NestedCards'
+import { nestsMinis } from './nestingLevel'
 import { PatternLoadout } from './PatternLoadout'
 import type { NestedGroup } from './resolveNestedEntities'
 
@@ -13,7 +13,7 @@ import type { NestedGroup } from './resolveNestedEntities'
  * The PATTERN view's own section — the pattern's prose, then what it changes:
  * a mech pattern's side-by-side loadout of names and Tech Levels, or the actions a
  * Bio-Titan pattern adds under a "Pattern Actions" stamp: on its Page level-1
- * cards, in a card level-2 contentful Tokens (N3, `ActionTokens`). The card
+ * cards, in a card level-2 contentful Minis (N3, `ActionMinis`). The card
  * places it ahead of every action (a Bio-Titan pattern reads pattern → its
  * added actions → the ones it inherits); a card never carries the chassis
  * ability, which shows only on a page.
@@ -47,9 +47,9 @@ export function PatternSection({
       )}
       {actions.length > 0 && (
         <>
-          <Slab variant="dashed" label="Pattern Actions" as={sectionAs} />
-          {nestsTokens(host) ? (
-            <ActionTokens
+          <Slab label="Pattern Actions" as={sectionAs} />
+          {nestsMinis(host) ? (
+            <ActionMinis
               actions={actions}
               size="compact"
               hostName={host.entityName}

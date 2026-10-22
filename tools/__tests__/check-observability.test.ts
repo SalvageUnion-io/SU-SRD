@@ -32,7 +32,7 @@ const SELF = "connect-src 'self'"
  * it against a private copy of them and mutate only the copy — never the
  * working tree. Renaming the real `_headers` aside raced every other
  * workspace's tests that read it, because `test:coverage` runs the workspaces
- * concurrently: an srd test read `apps/web/public/_headers` while it was
+ * concurrently: a reference-site test read `apps/web/public/_headers` while it was
  * stashed, and failed with ENOENT. A file the check starts reading without
  * being listed here fails the first test below, not silently.
  */
@@ -166,7 +166,7 @@ describe('check-observability reads parsed source, not prose', () => {
         async () => {
           const { exitCode, stderr } = await runCheck()
           expect(exitCode).toBe(1)
-          expect(stderr).toContain(`[web] ${entry} never calls initBrowserObservability()`)
+          expect(stderr).toContain(`${entry} never calls initBrowserObservability()`)
         }
       )
     }
@@ -183,9 +183,7 @@ describe('check-observability reads parsed source, not prose', () => {
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain(
-          '[web] apps/web/src/worker/index.ts never calls handleConvexLogStream()'
-        )
+        expect(stderr).toContain('apps/web/src/worker/index.ts never calls handleConvexLogStream()')
       }
     )
   })

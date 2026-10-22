@@ -9,8 +9,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
+import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import {
@@ -84,7 +84,7 @@ describe('drawFromPool', () => {
     expect(drawFromPool(pool, 2, 0)).toEqual({ pool, draws: [] })
   })
 
-  // The bay-repair convention (S12): a short pool still pays what it has, and
+  // The bay-repair convention: a short pool still pays what it has, and
   // the repair goes through regardless. Without `partial` these three cases
   // would refuse, which is why the option had to exist before CrawlerSheet's
   // hand-rolled drain loop could be replaced by this function.

@@ -58,10 +58,6 @@ export const islandRegistry = {
     import('../components/islands/ColumnsTableIsland').then((m) => asIsland(m.ColumnsTableIsland)),
   ColophonIsland: () =>
     import('../components/islands/ColophonIsland').then((m) => asIsland(m.ColophonIsland)),
-  SearchResultsIsland: () =>
-    import('../components/islands/SearchResultsIsland').then((m) =>
-      asIsland(m.SearchResultsIsland)
-    ),
   DidYouMeanIsland: () =>
     import('../components/islands/DidYouMeanIsland').then((m) => asIsland(m.DidYouMeanIsland)),
   OgCardIsland: () =>

@@ -3,15 +3,14 @@ import type { RefObjectContentBlock, RefObjectDataValue } from 'salvageunion-ref
 import { glossaryRef, parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { space, fontSize as typeScale, weight } from '../../design/tokens'
-import { useParseTraitReferences } from '../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../lib/useProseRefs'
 import { ActivationCost } from '../atoms/ActivationCost'
 import { Badge } from '../atoms/Badge'
 import { Slab } from '../atoms/Slab'
 import { Stat } from '../atoms/Stat'
 import { Text } from '../atoms/Text'
+import { PeekCell, Tag } from '../entity'
 import { useAppliesRules } from '../entity/entitySurfaceContext'
-import { PeekCell } from '../entity/parts/PeekCell'
-import { Tag } from '../entity/parts/Tags'
 
 /**
  * The reading size a `Content` run is set in.
@@ -83,7 +82,7 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
         currency = last
       }
     }
-    return <ActivationCost cost={cost} currency={currency} compact={compact} />
+    return <ActivationCost cost={cost} currency={currency} size={compact ? 'compact' : 'full'} />
   }
   const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
   if (item.type === 'trait' || (item.type === 'keyword' && value == null)) {
@@ -99,7 +98,6 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
           key: `${schemaName}-${name}`,
           name,
           ...(value == null ? {} : { param: String(value) }),
-          schemaName,
           ...(ref ? { ref } : {}),
         }}
       />
@@ -109,7 +107,6 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
   return (
     <PeekCell peek={peek}>
       <Stat
-        orientation="horizontal"
         label={
           (item.type === 'keyword' && MEASURED_KEYWORD_SHORT[String(item.label)]) || item.label
         }
@@ -137,7 +134,7 @@ type ContentProps = {
    * True when the owning record carries structured data for the mechanical
    * change its text states (ADR-029).
    *
-   * When set, and the surface applies the rules (`appliesRules`: The Cantina), a
+   * When set, and the surface applies the rules (`appliesRules`: the app), a
    * paragraph that STATES a mechanical change leads with an ink AUTO stamp —
    * the reader can see which clause the app actually applies, adjacent to the
    * claim itself. Prose that states a change on a record with no data stays
@@ -359,10 +356,9 @@ function ContentBlock({
     }
 
     case 'heading': {
-      // Section headings render as the canonical Slab separator — a level-1
-      // heading takes the solid poster-stamp shape, sub-levels the dashed rule.
-      const level = block.level || 3
-      return <Slab variant={level === 1 ? 'solid' : 'dashed'} label={stringValue} />
+      // Section headings render as the canonical Slab, the solid stamp at
+      // every level: a dashed head would read as user-made (ruleset §3.9).
+      return <Slab label={stringValue} />
     }
 
     case 'list-item': {

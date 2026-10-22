@@ -1,16 +1,13 @@
 /**
  * The two bare text-entry primitives, in a LEAF module.
  *
- * They lived in `Field.tsx`, which imports `InlineEditField`, which imports
- * them back — a two-node runtime import cycle (both edges are value imports,
- * not types). Cycles are worse here than in most codebases: srd's SSR pass
- * evaluates this TypeScript under Bun with no bundler in the loop, where cyclic
- * module initialisation is TDZ-sensitive and depends on evaluation order.
+ * They live apart from `Field.tsx`, whose edit state draws them, so no
+ * importer of either is ever in an import cycle. Cycles are worse here than in
+ * most codebases: the reference site's SSR pass evaluates this TypeScript under Bun with no
+ * bundler in the loop, where cyclic module initialisation is TDZ-sensitive and
+ * depends on evaluation order.
  *
- * Nothing else changes — `Field.tsx` re-exports both, so every existing import
- * still resolves and no rendered markup moves.
- *
- * Their skin is the `.su-text-input` class (`styles/index.css`), all of it: callers
+ * Their skin is the `.su-text-input` class (`styles/partials/atoms-fields.css`), all of it: callers
  * restyle both by className and by `style`.
  *
  * ## Both are 16px, and that is a functional requirement
@@ -71,8 +68,8 @@ type TextareaProps = ComponentPropsWithRef<'textarea'>
 /**
  * Multiline text input (design-spec §2.5): the `Input` sibling — identical
  * paper / 1.5px-ink / 3px-radius / focus-ring skin, with vertical resize.
- * `Field`-wrappable exactly like `Input`. Distinct from `InlineEditField`'s
- * internal textarea (that one is a click-to-edit control, this is a plain field).
+ * `Field`-wrappable exactly like `Input`; a multiline `Field`'s edit state
+ * opens into one.
  */
 export function Textarea({ className, rows = 3, ref, ...props }: TextareaProps) {
   return (

@@ -1,4 +1,5 @@
 import { Text } from '../atoms/Text'
+import { loadingCopy } from './loadingCopy'
 
 type PendingProps = {
   /** What is loading, e.g. `the crew` → "Loading the crew…". Omit it for the
@@ -7,19 +8,14 @@ type PendingProps = {
 }
 
 /**
- * Pending — the one "Loading X…" line, for data that resolves inside an
- * already-rendered screen (a Convex `useQuery` still `undefined`, a store
- * still hydrating, the reference index still loading).
- *
- * The muted hint treatment (`Text variant="hint"`), announced politely as a
- * status, and the copy assembled from the subject so every screen says it the
- * same way. A route whose loader is still running gets `RoutePending` /
- * `SheetSkeleton` instead; a list whose shape is known gets a `Skeleton`.
+ * Pending — the loading line inside an already-rendered screen (chrome.md K6):
+ * a muted hint announced politely as a status, in `loadingCopy`'s words. A
+ * shape known ahead is a `Skeleton`; a route's wait is `RoutePending`.
  */
 export function Pending({ label }: PendingProps) {
   return (
     <Text variant="hint" role="status" aria-live="polite">
-      {label === undefined ? 'Loading…' : `Loading ${label}…`}
+      {loadingCopy(label)}
     </Text>
   )
 }

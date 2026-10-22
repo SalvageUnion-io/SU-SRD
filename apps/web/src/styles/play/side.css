@@ -1,0 +1,14 @@
+/*
+ * play/side.css — Play's right column (play.md §7–§8): the Tables' lists of
+ * table Minis.
+ *
+ * The app's own stylesheet: a part of
+ * `styles/play/play.css`, never imported by a library component. Only what has
+ * a state or a repeated list lives here (the open table's ring room); everything else on those surfaces is a style object.
+ */
+
+/* The Tables' lists of table Minis (`PlayTables`): room inside the list for
+   the open table's selection ring, which sits outside its Mini's pill. */
+.su-play-tables {
+  padding: var(--space-4);
+}

@@ -10,12 +10,14 @@
  *   gave does not (the press is a click: it follows the link).
  * - Touch: a long press opens it and swallows the click and the callout the
  *   press would otherwise make; a tap elsewhere closes it.
+ * - A press on a trigger that does nothing else (`data-peek-press`) opens it
+ *   at once.
  * - Escape closes it, and only it: the dialog or page under it stays.
  *
  * A trigger inside the popup never peeks (E16: a Peek is terminal).
  */
 
-import { PEEK_ATTRIBUTE } from './peekContext'
+import { PEEK_ATTRIBUTE, PEEK_PRESS_ATTRIBUTE } from './peekContext'
 
 /** The attribute the popup carries, so the controller can tell inside from out. */
 export const PEEK_POPUP_ATTRIBUTE = 'data-peek-popup'
@@ -165,7 +167,12 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
   const onPointerEnd = () => clearPress()
 
   const onClick = (event: MouseEvent) => {
-    if (!swallowClick) return
+    if (!swallowClick) {
+      // A trigger whose press does nothing else opens its Peek.
+      const trigger = triggerOf(event.target)
+      if (trigger?.hasAttribute(PEEK_PRESS_ATTRIBUTE)) openNow(trigger)
+      return
+    }
     // The long press opened the Peek: the click it ends with must not follow
     // the link as well.
     swallowClick = false

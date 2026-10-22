@@ -3,20 +3,19 @@
  *
  * The incident: the nested-frames audit of 17 Oct 2026
  * (https://claude.ai/artifact/Lu1VzHVBbKJZ7pwkUbLozP). A `TitledBox`, an
- * entity Row and a Card head all draw the same cut-out head, and they stacked
+ * entity Compact and a Card head all draw the same cut-out head, and they stacked
  * up to four deep: eleven titled boxes inside the bay cards of one crawler
  * sheet, a framed card for every action at any depth (inside a Peek too), a
- * head-only Row wherever a card asked for its compact head. The canon now
+ * head-only Compact wherever a card asked for its compact head. The canon now
  * has hard rules for it (ruleset §5, EDL E6; N1–N7), and three of them have a
  * shape in the source this set can see:
  *
- *   - **N2 header-only is a Token** (`head-only-token`) — an entity drawn as
- *     its head alone is a Token; a Row or Card keeps its body. The finding is
- *     a Row form (`<Row>`, `<Entity form="row">`) drawn inside an entity's own
+ *   - **N2 header-only is a Mini** (`head-only-token`) — an entity drawn as
+ *     its head alone is a Mini; a Compact or Card keeps its body. The finding is
+ *     a Compact form (`<Compact>`, `<Entity size="compact">`) drawn inside an entity's own
  *     components (`components/referenceEntity/`, `components/entity/`, the
- *     form layer that defines the forms aside), and, while the card adapter
- *     (`ReferenceEntityCard`) can still draw a Row, every `extent="head"`
- *     that does not ask for the Token (`size="mini"`).
+ *     form layer that defines the forms aside), the card adapter
+ *     (`ReferenceEntityCard`) included.
  *   - **N5 no titled box inside an entity** (`no-titled-box`) — a `TitledBox`,
  *     `Inset`, `InfoCutout`, `RecoveryPanel` or labelled `Callout` drawn in an
  *     entity's own components, or reaching a card's `expand` /
@@ -25,18 +24,18 @@
  *   - **N3 nested actions** (`nested-card-level`) — the nested-group module
  *     (`NestedCards.tsx`: `InlineActions`, `NestedCardList`, `DroneCards`)
  *     draws a nested Card only for a Page's children (level 1); below it, a
- *     Token.
+ *     Mini.
+ *   - **R18** (`named-block`, `namedBlocks.ts`) — a named block's field is its model's.
  *
  * ## Level 1 is spelled `onPage`
  *
- * A Page is level 0, so what it draws is level 1, where a compact Card, a Row
+ * A Page is level 0, so what it draws is level 1, where a compact Card, a Compact
  * and a titled section (When Damaged on a bay's own page) are all fine. The
  * rule reads that from the code's own guard: an element under `onPage`
  * (`if (onPage)`, `host.onPage ? … :`, `onPage && …`), past an early
- * `if (nestsTokens(host)) return …`, or on a card with `presentation="page"`
- * is level 1. A dialog is level 0 again: whatever sits in a `*.Portal`, or
- * in a component that portals its children (`ModalShell`), is not inside the
- * entity that opened it.
+ * `if (nestsMinis(host)) return …`, or on a card with `presentation="page"`
+ * is level 1, and so is all of `CardPage.tsx`, the Page's body (`PAGE_BODY`).
+ * A dialog (in a `*.Portal`, `ModalShell`) is level 0 again.
  *
  * ## What it does not see
  *
@@ -47,8 +46,8 @@
  * two components, not one switched by a prop. The runtime gate,
  * `apps/web/e2e/nesting-depth.e2e.ts`, measures what renders.
  *
- * Every rule is `zero`. The owner's call (2026-10-17) was strict gates with
- * nothing allowlisted, so `EXEMPTIONS` is empty; an entry needs a reason.
+ * Every rule is `zero`: strict gates with nothing allowlisted, so
+ * `EXEMPTIONS` is empty; an entry needs a reason.
  */
 
 import { readFileSync } from 'node:fs'
@@ -69,15 +68,17 @@ import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { NAMED_BLOCKS, scanNamedBlocks } from './namedBlocks'
 
 const SRC = 'apps/web/src'
 const COMPONENTS = `${SRC}/components`
 /** An entity's own components: what they draw is inside the entity. */
 const ENTITY_DIRS = [`${COMPONENTS}/referenceEntity/`, `${COMPONENTS}/entity/`] as const
-/** The form layer defines Row and Token; drawing them there is not nesting. */
+/** The form layer defines Compact and Mini; drawing them there is not nesting. */
 const FORM_LAYER = [`${COMPONENTS}/entity/forms/`, `${COMPONENTS}/entity/Entity.tsx`] as const
-/** The card adapter: its head extent is the head-only form. */
+/** The card adapter (`ReferenceEntityCard`): it draws Cards and Pages, never a Compact. */
 export const ADAPTER = `${COMPONENTS}/referenceEntity/card/ReferenceEntityCard.tsx`
+const PAGE_BODY = `${COMPONENTS}/referenceEntity/card/CardPage.tsx`
 /** The nested-group module: where a card decides how its children draw. */
 export const NESTED_GROUPS = `${COMPONENTS}/referenceEntity/card/NestedCards.tsx`
 
@@ -85,12 +86,10 @@ export const NESTED_GROUPS = `${COMPONENTS}/referenceEntity/card/NestedCards.tsx
 const TITLED = new Set(['TitledBox', 'Inset', 'InfoCutout', 'RecoveryPanel'])
 /** A card's slots for content of the caller's: inside the card's frame. */
 const SLOTS = ['expand', 'afterExtraContent'] as const
-/** The cards whose `extent` and `size` pick the form. */
-const CARDS = new Set(['ReferenceEntityCard', 'NestedCard'])
 
 /**
  * Sanctioned exceptions: none. The milestone that wrote these rules fixed
- * every finding instead (owner, 2026-10-17). An entry needs a written reason.
+ * every finding instead. An entry needs a written reason.
  */
 const EXEMPTIONS: Exemption[] = []
 
@@ -118,7 +117,7 @@ type Level = 'page' | 'nested' | null
 
 /**
  * What `expr` being `truthy` says about the level: `onPage` (or `x.onPage`,
- * `presentation === 'page'`) true is a Page's child, `nestsTokens(…)` true is
+ * `presentation === 'page'`) true is a Page's child, `nestsMinis(…)` true is
  * not. `!`, `&&` and `||` are followed; a local alias once.
  */
 function levelWhen(expr: Node, truthy: boolean, file: TsxFile, depth = 0): Level {
@@ -133,7 +132,7 @@ function levelWhen(expr: Node, truthy: boolean, file: TsxFile, depth = 0): Level
     return e.property.name === 'onPage' ? atom(true) : null
   }
   if (e.type === 'CallExpression' && isNode(e.callee) && e.callee.type === 'Identifier') {
-    return e.callee.name === 'nestsTokens' ? atom(false) : null
+    return e.callee.name === 'nestsMinis' ? atom(false) : null
   }
   if (e.type === 'UnaryExpression' && e.operator === '!' && isNode(e.argument)) {
     return levelWhen(e.argument, !truthy, file, depth)
@@ -191,7 +190,7 @@ function onPageGuarded(node: Node, ancestors: readonly Node[], file: TsxFile): b
     }
     if (a.type === 'JSXElement' && pagePresentation(a)) return true
     if (Array.isArray(a.body)) {
-      // Past an early exit for every other level (`if (nestsTokens(host)) return …`),
+      // Past an early exit for every other level (`if (nestsMinis(host)) return …`),
       // the code runs only when the test was false: on a Page.
       for (const stmt of a.body as unknown[]) {
         if (stmt === child) break
@@ -399,89 +398,31 @@ function scanTitledBoxes(c: Corpus, known: TitledComponents): Finding[] {
   return [...out.values()]
 }
 
-// ── N2: header-only is a Token ──────────────────────────────────────────────
+// ── N2: header-only is a Mini ──────────────────────────────────────────────
 
-/** A Row form: `<Row>`, or `<Entity form="row">` (or a form that may be). */
-function rowForm(element: Node): boolean {
+/** A Compact form: `<Compact>`, or `<Entity size="compact">` (or a form that may be). */
+function compactForm(element: Node): boolean {
   const name = elementName(element)
-  if (name === 'Row') return true
+  if (name === 'Compact') return true
   if (name !== 'Entity') return false
-  const form = attribute(element, 'form')
-  return !!form && stringValues(attributeValue(form)).values.includes('row')
-}
-
-/** `extent` may be `'head'` while `size` is not certainly `'mini'`. */
-function headWithoutMini(extent: Node | null, size: Node | null | undefined): boolean {
-  if (!stringValues(extent).values.includes('head')) return false
-  if (size === undefined) return true
-  const { values, open } = stringValues(size)
-  return open || values.length === 0 || values.some((v) => v !== 'mini')
-}
-
-function adapterDrawsRow(c: Corpus): boolean {
-  const adapter = c.files.find((f) => f.rel === ADAPTER)
-  let draws = false
-  if (adapter) {
-    walk(adapter.program, (node) => {
-      if (node.type === 'JSXElement' && rowForm(node)) draws = true
-      return undefined
-    })
-  }
-  return draws
+  const size = attribute(element, 'size')
+  if (!size || attribute(element, 'layout')) return false
+  return stringValues(attributeValue(size)).values.includes('compact')
 }
 
 function scanHeadOnly(c: Corpus, known: TitledComponents): Finding[] {
   const out: Finding[] = []
-  const rowHeads = adapterDrawsRow(c)
   for (const file of c.files) {
     if (isExempt(EXEMPTIONS, file.rel, 'head-only-token')) continue
-    const nested = inEntityDirs(file.rel) && !inFormLayer(file.rel)
+    const nested = inEntityDirs(file.rel) && !inFormLayer(file.rel) && file.rel !== PAGE_BODY
     walk(file.program, (node, ancestors) => {
       const line = () => file.lineOf(node.start)
       if (node.type === 'JSXElement') {
-        if (nested && rowForm(node) && !inPortal(ancestors, known.portals)) {
+        if (nested && compactForm(node) && !inPortal(ancestors, known.portals)) {
           const detail =
-            file.rel === ADAPTER ? 'the card adapter draws a Row' : 'a Row drawn inside an entity'
+            file.rel === ADAPTER ? 'the adapter draws a Compact' : 'a Compact inside an entity'
           if (!onPageGuarded(node, ancestors, file))
             out.push({ file: file.rel, line: line(), detail })
-        }
-        const extent = attribute(node, 'extent')
-        const size = attribute(node, 'size')
-        if (
-          rowHeads &&
-          CARDS.has(elementName(node)) &&
-          extent &&
-          headWithoutMini(attributeValue(extent), size ? attributeValue(size) : undefined)
-        ) {
-          out.push({
-            file: file.rel,
-            line: line(),
-            detail: `<${elementName(node)} extent="head"> without size="mini": the adapter draws it as a head-only Row`,
-          })
-        }
-      }
-      // The fold: `resolveCardDisplay({ size, extent: folded ? 'head' : extent })`.
-      if (
-        rowHeads &&
-        node.type === 'CallExpression' &&
-        isNode(node.callee) &&
-        node.callee.name === 'resolveCardDisplay'
-      ) {
-        const arg = Array.isArray(node.arguments) ? node.arguments[0] : undefined
-        const props = isNode(arg) && Array.isArray(arg.properties) ? arg.properties : []
-        const prop = (key: string): Node | null | undefined => {
-          const p = (props as unknown[]).find(
-            (x): x is Node => isNode(x) && isNode(x.key) && x.key.name === key
-          )
-          return p && isNode(p.value) ? p.value : undefined
-        }
-        const extent = prop('extent')
-        if (extent && headWithoutMini(extent, prop('size'))) {
-          out.push({
-            file: file.rel,
-            line: line(),
-            detail: 'a card display resolved to extent "head" without size "mini": a head-only Row',
-          })
         }
       }
       return undefined
@@ -498,11 +439,8 @@ function scanNestedCardLevel(c: Corpus, known: TitledComponents): Finding[] {
   const out: Finding[] = []
   walk(file.program, (node, ancestors) => {
     if (node.type !== 'JSXElement' || elementName(node) !== 'NestedCard') return undefined
-    // A Page in a dialog is level 0; a head is a Token (N2 checks that).
+    // A Page in a dialog is level 0.
     if (pagePresentation(node) || inPortal(ancestors, known.portals)) return undefined
-    const extent = attribute(node, 'extent')
-    const { values, open } = stringValues(extent ? attributeValue(extent) : null)
-    if (extent && !open && values.every((v) => v === 'head')) return undefined
     if (onPageGuarded(node, ancestors, file)) return undefined
     out.push({
       file: file.rel,
@@ -516,29 +454,36 @@ function scanNestedCardLevel(c: Corpus, known: TitledComponents): Finding[] {
 
 // ── rule table ──────────────────────────────────────────────────────────────
 
-type NestingRule = Rule & { scan: (c: Corpus, known: TitledComponents) => Finding[] }
+type NestingRule = Rule & { scan: (c: Corpus, k: TitledComponents, root: string) => Finding[] }
 
 const RULES: NestingRule[] = [
   {
     id: 'head-only-token',
     mode: 'zero',
-    rule: 'ruleset §5 N2 (EDL E3, E6): only a Token draws an entity as its head alone; inside an entity, a nested entity is a Token',
-    fix: 'Follow N2: draw the head as a Token (`<Entity form="token">`, or `size="mini" extent="head"`), and keep the adapter (ReferenceEntityCard) drawing every head as a Token. A Row belongs at level 1 only, under `onPage` (N1).',
+    rule: 'ruleset §5 N2 (EDL E3, E6): only a Mini draws an entity as its head alone; inside an entity, a nested entity is a Mini',
+    fix: 'Follow N2: draw the head as a Mini (`<Entity size="mini">`); the adapter (ReferenceEntityCard) never draws a Compact. A Compact belongs at level 1 only, under `onPage` (N1).',
     scan: scanHeadOnly,
   },
   {
     id: 'no-titled-box',
     mode: 'zero',
     rule: 'ruleset §5 N5: no titled box (TitledBox, Inset, InfoCutout, RecoveryPanel, a labelled Callout) inside an entity',
-    fix: "Follow N5: a section of the parent is a Slab over its content (When Damaged, the Crawler Hold); a note is an unlabelled Callout; a nested entity is a contentful Token (N3). On the entity's own Page, level 1, a block may stay titled under `onPage`.",
+    fix: "Follow N5: a section of the parent is a Slab over its content (When Damaged, the Crawler Hold); a note is an unlabelled Callout; a nested entity is a contentful Mini (N3). On the entity's own Page, level 1, a block may stay titled under `onPage`.",
     scan: scanTitledBoxes,
   },
   {
     id: 'nested-card-level',
     mode: 'zero',
     rule: "ruleset §5 N3 (N1): InlineActions and the nested groups draw a NestedCard only for a Page's children, level 1",
-    fix: 'Follow N3: below level 1 a nested action or entity is a (contentful) Token. Return the Tokens first (`if (nestsTokens(host)) return …`) and draw the NestedCard only after, for a Page.',
+    fix: 'Follow N3: below level 1 a nested action or entity is a (contentful) Mini. Return the Minis first (`if (nestsMinis(host)) return …`) and draw the NestedCard only after, for a Page.',
     scan: scanNestedCardLevel,
+  },
+  {
+    id: 'named-block',
+    mode: 'zero',
+    rule: "hard rule R18 (EDL E15): a named rules block (When Damaged) renders through one component; only it reads the block's field",
+    fix: "Follow R18: draw the block through its renderer (`WhenDamaged`), and where the text is needed for anything else (a prose filter), ask the renderer's module for it (`damagedEffectOf`) instead of reading the field.",
+    scan: (_c, _known, root) => scanNamedBlocks(root, EXEMPTIONS),
   },
 ]
 
@@ -554,13 +499,16 @@ function preflight(root: string): void {
   // those rules scanning nothing.
   assertScanFloor('entity-nesting (the card adapter)', files.includes(ADAPTER) ? 1 : 0, 1)
   assertScanFloor('entity-nesting (the nested groups)', files.includes(NESTED_GROUPS) ? 1 : 0, 1)
+  // Each named block's renderer: a rename would leave its field unguarded.
+  const models = listFiles(root, [SRC], ['.ts'])
+  for (const { reader } of NAMED_BLOCKS) assertScanFloor(reader, models.includes(reader) ? 1 : 0, 1)
   // Entity components exist in one workspace; every other one says why not
   // (packages/gates/lib/workspaceCoverage.ts).
   assertCoversWorkspaces('entity nesting', [SRC], {
     'apps/discord-bot':
       'renders Discord Components V2 containers, not React components: no entity cards to nest.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no components.',
-    'packages/cantina-domain': 'schemas and rules shared with Convex and the bot; no components.',
+    'packages/game-domain': 'schemas and rules shared with Convex and the bot; no components.',
     'packages/salvageunion-reference':
       'data, the ORM and the entity model the cards read; no components.',
     'packages/gates': 'the gates themselves: the fixtures quote the shapes they forbid.',
@@ -577,7 +525,7 @@ export const entityNesting: RuleSet = {
     const c = corpus(root)
     const known = titledComponents(c)
     const out: Record<string, Finding[]> = {}
-    for (const rule of RULES) out[rule.id] = rule.scan(c, known)
+    for (const rule of RULES) out[rule.id] = rule.scan(c, known, root)
     return out
   },
   summary: (root) => {

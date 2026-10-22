@@ -16,17 +16,17 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { SHELF } from 'cantina-domain/container'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import { SoftLinkSchema } from 'cantina-domain/schemas/softLink'
+import { SHELF } from 'game-domain/container'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { PilotSchema } from 'game-domain/schemas/pilot'
+import { SoftLinkSchema } from 'game-domain/schemas/softLink'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
-} from 'cantina-domain/starterSet/starterSet'
+} from 'game-domain/starterSet/starterSet'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,

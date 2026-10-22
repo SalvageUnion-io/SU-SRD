@@ -1,8 +1,8 @@
 /**
  * salvageunion.io on Workers Static Assets (ADR-033): the one Worker for the
  * whole app. Every reference page is pre-rendered, so this script answers only
- * the requests no file matches, and everything under `/build`, the Cantina's
- * (`./cantina.ts`).
+ * the requests no file matches, and everything under `/build`, the app's
+ * (`./app.ts`).
  *
  * ## What reaches this script, and what does not
  *
@@ -11,15 +11,16 @@
  * so a miss lands here instead of on the platform's `404-page` handling.
  * `run_worker_first` sends `/build` and below here before Static Assets looks.
  *
- *   E. `POST /__errors` → a browser error report, and `POST /__convex-logs` →
- *      Convex's log stream, both logged for Workers Issues
- *      (`errorReports.ts`).
- *   B. `/build` and below → the Cantina (`./cantina.ts`); a file it does not
- *      have falls through to the rules below.
- *   1. `/assets/*` (or `/build/assets/*`) → a bare **404**.
- *   2. a page path from before the move out of `/schema/…/item/` → a **301**
- *      to where it lives now (`../lib/redirects.ts`).
- *   3. anything else → `404.html`, read through the asset binding, with a 404.
+ *   - `error-intake`: `POST /__errors` → a browser error report, and `POST /__convex-logs` →
+ *     Convex's log stream, both logged for Workers Issues
+ *     (`errorReports.ts`).
+ *   - `app`: `/build` and below → the app (`./app.ts`); a file it does not
+ *     have falls through to the rules below.
+ *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
+ *   - `legacy-301`: a page path from before the move out of `/schema/…/item/`
+ *     → a **301** to where it lives now (`../lib/redirects.ts`).
+ *   - `not-found`: anything else → `404.html`, read through the asset
+ *     binding, with a 404.
  *
  * The 404s say `cache-control: no-store`; the 301 is permanent and cacheable.
  *
@@ -31,14 +32,14 @@
  * a chunk that is not there: a client that asked for a chunk before the deploy
  * bringing it finished kept the 404 for a year. `_headers` is not applied to a
  * response this script builds, so the 404s here carry only what is set below.
- * The page in rule 3 comes back from the binding, which does apply `_headers`
+ * The `not-found` page comes back from the binding, which does apply `_headers`
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
  */
 
 import { appPath } from '../lib/appBase'
-import { currentPathFor } from '../lib/redirects'
-import type { CantinaEnv } from './cantina'
-import { isBuildPath, serveCantina } from './cantina'
+import { currentPathFor, retiredSitePage } from '../lib/redirects'
+import type { AppEnv } from './app'
+import { isBuildPath, serveApp } from './app'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -47,7 +48,7 @@ import {
   handleErrorReport,
 } from './errorReports'
 
-export type Env = CantinaEnv & {
+export type Env = AppEnv & {
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
   ERROR_REPORT_LIMIT?: RateLimiter
   /**
@@ -93,9 +94,9 @@ export default {
       return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
-    // B. The Cantina, under its base.
+    // B. The app, under its base.
     if (isBuildPath(url.pathname)) {
-      const res = await serveCantina(request, env)
+      const res = await serveApp(request, env)
       if (res !== null) return res
     }
 
@@ -104,8 +105,9 @@ export default {
       return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
     }
 
-    // 2. A page under the old grammar: one hop to its new address, query kept.
-    const moved = currentPathFor(url.pathname)
+    // 2. A page under the old grammar, or one that is gone (the search page):
+    // one hop to its new address, query kept.
+    const moved = currentPathFor(url.pathname) ?? retiredSitePage(url.pathname)
     if (moved) {
       return new Response(null, {
         status: 301,

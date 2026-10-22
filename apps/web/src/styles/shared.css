@@ -1,8 +1,9 @@
 /*
- * The parts the reference pages and the Cantina both draw: the one search
+ * The parts the reference pages and the app both draw: the one search
  * (`islands/SearchIsland.tsx`, in the Union bar, the phone's search sheet and
- * the hero), the not-found content (`NotFound.tsx`) and the one page body it
- * sits in. `base.css` imports it, so both load it from the one URL.
+ * the hero), the not-found content (`NotFound.tsx`), the one page body it
+ * sits in, and the Contents' chapters (`ContentsChapter`: the home page's
+ * index and the Mediator's Reference). `base.css` imports it, so both load it from the one URL.
  */
 
 /*
@@ -11,7 +12,7 @@
  * and the 404 — at the one measure (`--page-measure`, `lib/pageMeasure.ts`),
  * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
  * band's row and the foot's share the measure and the padding, so the notch,
- * the content and the citation start on one line. A Cantina screen's body
+ * the content and the citation start on one line. An app screen's body
  * under a measured band (`PageShell`'s `measure`) wears it too, setting its
  * own measure and block padding inline.
  */
@@ -22,7 +23,7 @@
   width: 100%;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-page-body {
     padding: var(--space-24) var(--space-24) var(--space-32);
   }
@@ -32,13 +33,28 @@
 .su-hero-search {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-10);
+  gap: var(--space-8);
 }
 
 .su-hero-search__box {
-  flex: 1 1 16rem;
+  flex: 1 1 100%;
   min-width: 0;
   position: relative;
+}
+
+/* A search field is full width on a phone; from
+   `sm` it shares its line with the button. */
+@media (width >= 40rem) {
+  .su-hero-search__box {
+    flex-basis: 16rem;
+  }
+}
+
+/* On a phone its button is the line's width too. */
+@media not (width >= 40rem) {
+  .su-hero-search > :not(.su-hero-search__box) {
+    flex: 1 1 100%;
+  }
 }
 
 .su-hero-search__field {
@@ -47,43 +63,42 @@
   padding-inline: var(--space-14);
 }
 
+/* The quoted tagline (`Tagline.tsx`), a band's aside on the app's front door
+   and the SRD's home: ink, on the band at its right end and set right; on a
+   phone ChapterBand sets it under the band on the page ground, set left. */
+.su-tagline {
+  color: var(--color-ink);
+  margin: 0;
+  text-align: left;
+}
+
+@media (width >= 40rem) {
+  .su-tagline {
+    text-align: right;
+  }
+}
+
 /*
  * The not-found content (`NotFound.tsx`, `islands/DidYouMeanIsland.tsx`),
- * on the static `/404` and the Cantina's unmatched route alike: the rules
+ * on the static `/404` and the app's unmatched route alike: the rules
  * band with the hero search, then the guesses and the five chapters on the
  * page ground. Ink on paper throughout; a chapter's colour is only its
  * swatch (ruleset §3.8).
  */
+/* A one-off: the lede centred on the page, a step up. */
 .su-not-found__lede {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  max-width: 34rem;
-  width: 100%;
+  font-size: var(--text-2xl);
+  line-height: 1.4;
+  margin: 0 auto;
+  max-width: 40rem;
+  text-align: center;
 }
 
-.su-not-found__lede p {
-  font-size: var(--text-readout);
-  line-height: 1.5;
-  margin: 0;
-}
-
-@media (min-width: 40rem) and (max-width: 63.99rem) {
-  .su-not-found__band .su-chapter-band__row {
-    align-items: flex-start;
-    flex-direction: column-reverse;
-  }
-}
-
-@media (min-width: 64rem) {
-  .su-not-found__band .su-chapter-band__title {
-    flex: none;
-  }
-
-  .su-not-found__band .su-chapter-band__aside {
-    flex: 0 1 34rem;
-    min-width: 0;
-  }
+/* The band's search: an index's width beside the title. */
+.su-not-found__search {
+  flex: 1 1 18rem;
+  max-width: 28rem;
+  min-width: 0;
 }
 
 .su-not-found__body {
@@ -100,7 +115,7 @@
   min-width: 0;
 }
 
-/* The guesses: search-result Rows. */
+/* The guesses: search-result Compacts. */
 .su-not-found__results {
   display: flex;
   flex-direction: column;
@@ -118,7 +133,7 @@
 
 .su-not-found__chapter-list {
   display: grid;
-  gap: var(--space-10);
+  gap: var(--space-12);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 
@@ -139,7 +154,7 @@
   font-size: var(--text-title);
   font-weight: var(--font-weight-bold);
   line-height: 1.1;
-  min-height: 44px;
+  min-height: var(--size-full);
   padding: var(--space-6) 0;
 }
 
@@ -151,7 +166,7 @@
 /* `MobileSearchDialog`: the bar's magnifier, a wash of the bar's foreground. */
 @media (hover: hover) {
   .su-mobile-search__trigger:hover {
-    background-color: var(--su-bar-fg-15, var(--color-paper-15));
+    background-color: var(--su-bar-fg-15);
   }
 }
 
@@ -161,16 +176,89 @@
   width: 100%;
 }
 
-/* A category result in the search dropdown. */
+/* A category result in a search's list (`SearchListbox`). */
 .su-search__category {
-  transition-duration: 150ms;
+  transition-duration: var(--dur-fast);
   transition-property:
     color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-timing-function: var(--ease);
+}
+
+/* The category the arrow keys highlight wears the hover's ground. */
+.su-search__category[aria-selected='true'] {
+  background-color: var(--color-wk-bg);
 }
 
 @media (hover: hover) {
   .su-search__category:hover {
     background-color: var(--color-wk-bg);
+  }
+}
+
+/* A chapter of the Contents (`compositions/ContentsChapter.tsx`): its colour
+   band, its name and count, its rows. */
+.su-contents__chapter {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.su-contents__heading {
+  align-items: baseline;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-12);
+  justify-content: space-between;
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-6) 0;
+}
+
+.su-contents__total {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-contents__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.su-contents__rows > li {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.su-contents__row {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  justify-content: space-between;
+  min-height: 36px;
+  text-decoration: none;
+}
+
+.su-contents__row:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.su-contents__count {
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. A phone
+   width takes it too: the pointer query alone flips during a full-page
+   capture, so the page was laid out at 44px rows and painted at 36px. */
+@media (pointer: coarse), not (width >= 40rem) {
+  .su-contents__row {
+    min-height: var(--size-full);
   }
 }

@@ -6,7 +6,7 @@
  *   itself (a rejected game-data preload behind the root gate), so the only
  *   honest recovery is a reload.
  * - **`RouteErrorComponent`** is the router's `defaultErrorComponent`, so every
- *   other route gets its own boundary. A throw inside the Dashboard, a sheet or
+ *   other route gets its own boundary. A throw inside Play, a sheet or
  *   a Game replaces only that route's content, leaves the header in place to
  *   navigate away with, and offers a retry, rather than blanking the app.
  *
@@ -20,11 +20,11 @@
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, color, fontSize, radius, space } from '../../design/tokens'
+import { color, fontSize, space } from '../../design/tokens'
 import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'
-import { RecoveryPanel } from '../index'
+import { Box, RecoveryPanel } from '../index'
 import { FullPageShell } from './RouteFallbacks'
 
 /** The current backend, or null if even that cannot be read in this state. */
@@ -38,18 +38,14 @@ function currentBackend(): BackendKind | null {
   }
 }
 
+/** The error text in the Box's body: small, scrolling sideways when long. */
 const ERROR_DUMP = {
-  backgroundColor: color.wkBg,
-  borderColor: color.ink20,
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
   color: color.ink,
   fontSize: fontSize.xs,
   lineHeight: '1rem',
+  margin: 0,
   maxWidth: '100%',
   overflow: 'auto',
-  padding: space[12],
   textAlign: 'left',
 } satisfies CSSProperties
 
@@ -63,7 +59,11 @@ const ROUTE_SHELL = {
 /** The error text itself — development builds only. */
 function DevErrorDump({ error }: { error: unknown }): ReactNode {
   if (!import.meta.env.DEV) return null
-  return <pre style={ERROR_DUMP}>{error instanceof Error ? error.message : String(error)}</pre>
+  return (
+    <Box>
+      <pre style={ERROR_DUMP}>{error instanceof Error ? error.message : String(error)}</pre>
+    </Box>
+  )
 }
 
 /** Top-level error boundary: replaces the whole app and offers a reload. */
@@ -73,7 +73,7 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
       <RecoveryPanel
         title="Something went wrong"
         message={`The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`}
-        action={{ label: 'Reload app', onClick: () => window.location.reload() }}
+        action={{ label: 'Try again', onClick: () => window.location.reload() }}
       >
         <DevErrorDump error={error} />
       </RecoveryPanel>
@@ -94,7 +94,7 @@ export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
     <div style={ROUTE_SHELL}>
       <RecoveryPanel
         title="This page hit an error"
-        message={`Something on this page failed to load. ${savedWorkCopy(currentBackend())}`}
+        message={`Something on this page did not load. ${savedWorkCopy(currentBackend())}`}
         action={{
           label: 'Try again',
           onClick: () => {

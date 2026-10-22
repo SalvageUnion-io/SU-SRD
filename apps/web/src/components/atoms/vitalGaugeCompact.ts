@@ -32,13 +32,13 @@ export const C_ROWS = {
   display: 'flex',
   minWidth: 0,
   flexDirection: 'column',
-  gap: '3px',
+  gap: space[2],
 } satisfies CSSProperties
 export const C_ROW = {
   display: 'flex',
   minWidth: 0,
   justifyContent: 'center',
-  gap: '3px',
+  gap: space[2],
 } satisfies CSSProperties
 export const C_PIP = {
   height: '14px',
@@ -55,4 +55,14 @@ export const C_SHELL = {
   alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
-export const C_IMAGE = { display: 'flex', minWidth: 0, flex: 1 } satisfies CSSProperties
+
+/** The compact rung's − / + pair: one Compact square each, a hairline apart. */
+export const STEPPERS = {
+  display: 'inline-flex',
+  flexShrink: 0,
+  gap: space[4],
+} satisfies CSSProperties
+export const STEP = {
+  height: 'var(--size-compact)',
+  width: 'var(--size-compact)',
+} satisfies CSSProperties

@@ -14,7 +14,6 @@
 import { describe, expect, test } from 'bun:test'
 import type {
   EntityModel,
-  RefEntity,
   RefEnumSchemaName,
   RefMetaEntity,
   RefObjectAnyPattern,
@@ -39,16 +38,15 @@ import {
   resolveTable,
   toEntityModel,
 } from 'salvageunion-reference'
-import { actionTypeStamps } from '../../entity/parts/actionStamps'
-import { costCell } from '../../entity/parts/chipSet'
+import { actionTypeStamps, costCell } from '../../entity'
+import type { EntityRelation } from '../card/abilityTreeRelations'
+import { abilityTreeRelations } from '../card/abilityTreeRelations'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
-import { resolveCatalogLeadBlocks } from '../card/catalogLead'
 import { resolveCardTone } from '../card/entityCardTone'
 import { resolveEntityPageMeta } from '../card/entityPage'
 import { resolveNestedSections } from '../card/nestedSections'
 import type { ActionFields } from '../card/referenceEntityCardTypes'
-import { resolveGuideLead } from '../card/resolveGuideLead'
 import {
   resolveDroneOwnLoadout,
   resolveNestedEntities,
@@ -95,22 +93,31 @@ function headFactCount(model: EntityModel): number {
 }
 
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
-function pageMetaOf(model: EntityModel) {
+/** The band's Tech Level, a letter spelled out. */
+function spelled(value: string, model: EntityModel): string {
+  if (value === 'N') return 'Nanite'
+  if (value !== 'B') return value
+  return model.ref.schemaName === 'chassis' ? 'Bio-Chassis' : 'Bio-Tech'
+}
+
+function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
   // The band carries every chip: stats, action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
   return {
-    // The kind: the title's screen-reader text and the foot band's chip.
+    // The kind: the title's screen-reader text (never on a foot, E9).
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     // The band's stats: every book stat but a chassis's, which lead its body
-    // (all but its Tech Level, which rides the band).
+    // (all but its Tech Level and Salvage Value, which ride the band).
     stats: (model.ref.schemaName === 'chassis'
-      ? model.bookStats.filter((fact) => fact.key === 'tech-level')
+      ? model.bookStats.filter((fact) => fact.group === 'provenance')
       : model.bookStats
     ).map((fact) => ({
       key: fact.key,
       label: fact.label,
-      value: fact.value,
+      shortLabel: fact.short,
+      // A lettered Tech Level reads spelled out on the band.
+      value: fact.key === 'tech-level' ? spelled(String(fact.value), model) : fact.value,
       ...(fact.group ? { group: fact.group } : {}),
       ...(fact.hint ? { hoverText: fact.hint } : {}),
     })),
@@ -130,12 +137,13 @@ function pageMetaOf(model: EntityModel) {
       key: `${t.schemaName}-${t.name}`,
       name: t.name,
       ...(t.param !== undefined ? { param: t.param } : {}),
-      schemaName: t.schemaName,
       ...(t.ref ? { ref: t.ref } : {}),
     })),
     ...(cost
       ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }
       : {}),
+    // An ability's tree and its neighbours: the data's, not the model's.
+    relations,
     printings: model.cite.printings,
   }
 }
@@ -154,7 +162,7 @@ describe('toEntityModel parity, every entity', () => {
       agree(label(row), model.tone, schemaName === 'actions' ? 'ink' : toneToken(tone))
       const doFill = model.kind.nature === 'do' ? 'ink' : 'tone'
       agree(label(row), resolveHeaderFill(entity), doFill)
-      // A Peek's card wears the fill of the Token or Row that opened it: an
+      // A Peek's card wears the fill of the Mini or Compact that opened it: an
       // ability's, its tier tone (E12).
       const rowFill = schemaName === 'abilities' ? 'tone' : doFill
       agree(label(row), resolveHeaderFill(entity, true), rowFill)
@@ -253,22 +261,18 @@ describe('toEntityModel parity, every entity', () => {
   })
 
   test('lead is the card header hint, else the first paragraph, as plain text', () => {
-    // The Row's lead is the model's; this is the formula the compact card used
-    // before it did (`resolveHeaderHint`'s hint, else the first paragraph),
-    // then what the catalog card borrows: a step-only guide's first step
-    // (`resolveGuideLead`), then a grant's or an action's opening paragraph
-    // (`resolveCatalogLeadBlocks`).
+    // The Compact's lead is the model's, and where the card has a lead of its
+    // own (`resolveHeaderHint`'s hint, else the first paragraph) the two agree.
+    // An entity with neither borrows one in the model alone (a step-only
+    // guide's first step, a grant's or an action's opening paragraph).
     for (const row of ENTITIES) {
       const { schemaName, entity } = row
       const { hintText } = resolveHeaderHint(entity, {
         isTitanicMeta: schemaName === 'actions' && isTitanicAction(entity as { name?: string }),
       })
-      const lead =
-        hintText ||
-        firstParagraphText('content' in entity ? entity.content : undefined) ||
-        resolveGuideLead(entity) ||
-        String(resolveCatalogLeadBlocks(entity as RefEntity)[0]?.value ?? '')
-      agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
+      const lead = hintText || firstParagraphText('content' in entity ? entity.content : undefined)
+      if (!lead) continue
+      agree(label(row), toEntityModel(entity).lead, plainTraitText(lead))
     }
   })
 
@@ -276,7 +280,7 @@ describe('toEntityModel parity, every entity', () => {
     for (const row of ENTITIES) {
       const model = toEntityModel(row.entity)
       const meta = resolveEntityPageMeta(row.entity)
-      agree(label(row), pageMetaOf(model), meta)
+      agree(label(row), pageMetaOf(model, abilityTreeRelations(row.entity)), meta)
     }
   })
 
@@ -317,7 +321,6 @@ describe('toEntityModel parity, every entity', () => {
         entity,
         schemaName,
         pattern: undefined,
-        isCatalog: false,
         // The model is the PAGE's: a chassis ability shows only there.
         onPage: true,
         depth: 0,

@@ -1,0 +1,42 @@
+/**
+ * PlayRefusal — the shell a play screen renders when it cannot open: the
+ * page's name on the band, what is missing as the heading under it, and the
+ * one way on. Play's gates (`PlayGate`, `PlayMediatorGate`) answer with it;
+ * while the session or the Game has not answered yet, they wait on
+ * `RoutePending`.
+ */
+
+import { PRODUCT } from 'game-domain/product'
+import type { CSSProperties } from 'react'
+import { Button, ChapterBand, PageShell, Text, tokens } from '../components/index'
+
+const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
+
+const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
+
+type PlayRefusalProps = {
+  /** What is missing, as the heading under the band. */
+  title: string
+  body: string
+  /** The way on: back to a place (its name), or on to an act (`back: false`). */
+  link: { href: string; label: string; back?: boolean }
+}
+
+export function PlayRefusal({ title, body, link }: PlayRefusalProps) {
+  return (
+    <PageShell>
+      <ChapterBand tone="play">{PRODUCT.play}</ChapterBand>
+      <Text as="h2" style={REASON}>
+        {title}
+      </Text>
+      <Text variant="hint" style={BODY}>
+        {body}
+      </Text>
+      <div>
+        <Button href={link.href} back={link.back ?? true} size="compact">
+          {link.label}
+        </Button>
+      </div>
+    </PageShell>
+  )
+}

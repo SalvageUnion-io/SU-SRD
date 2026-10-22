@@ -49,76 +49,43 @@
   display: flex;
   font-family: var(--font-body);
   font-size: var(--text-caption);
-  min-height: 32px;
+  min-height: var(--size-compact);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 
-.su-footer__link:hover,
-.su-footer__link:focus-visible {
+/* Keyboard focus is the one ring (`FOCUS_RING`, chrome K9), not the hover's
+   heavier rule. */
+.su-footer__link:hover {
   text-decoration-thickness: 2px;
 }
 
-/* A book page's cite band: the kind at the start, the printings at the end,
- * in the card footer's words and type (`EntityCardIdentityFooter`): caps kind,
- * caption-size `Workshop Manual · p.112`, then "Also in" the reprints. One
- * citation look everywhere, text, never chips. */
-.su-footer__cite .su-chapter-foot__row {
-  align-items: baseline;
+/* A show page's citation, on one line before the licence, in the card
+ * foot's type (`EntityCardIdentityFooter`): caption-size body text,
+ * `Workshop Manual · p.65 // … (CR) · p.37`. Text, never chips. */
+/* The source on its own cut-out: the page's ground hanging from the band's
+   top edge, ink on it, the head band's notched plate mirrored at the foot,
+   on its own line at the band's end, above the site links. */
+.su-footer__citation {
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
   font-size: var(--text-caption);
-}
-
-/* On a phone a book page's cite band ends the first screen: the licence row
- * leaves the page column's flow and hangs just below it, so a short page's
- * spare height goes above the cite band and the licence is one scroll away.
- * The column is positioned (`BaseLayout`); on a long page it sits where it
- * always did. Wider screens keep both rows at the foot of the screen. */
-@media (max-width: 39.99rem) {
-  .su-footer__cite + .su-footer__licence {
-    inset-inline: 0;
-    position: absolute;
-    top: 100%;
-  }
-}
-
-.su-footer__kind,
-.su-footer__printings {
-  font-size: var(--text-caption);
-}
-
-.su-footer__kind,
-.su-footer__also {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
-}
-
-.su-footer__printings {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  text-align: right;
-}
-
-.su-footer__printings > p {
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
   margin: 0;
-}
-
-.su-footer__cite .su-stat-column__label {
-  font-size: var(--text-badge);
-  padding: 0 var(--space-8);
+  padding: var(--space-4) var(--space-12) var(--space-6);
 }
 
 /* Thumb first (ruleset §4.6): 44px targets under a coarse pointer, and at
  * phone width whatever the pointer, so a phone-sized window never draws the
  * footer's links at 32px. */
-@media (pointer: coarse), (max-width: 40rem) {
+@media (pointer: coarse), not (width >= 40rem) {
   .su-footer__link {
     justify-content: center;
-    min-height: 44px;
-    min-width: 44px;
+    min-height: var(--size-full);
+    min-width: var(--size-full);
   }
 }
 
@@ -129,7 +96,8 @@
   width: 40px;
 }
 
-/* On a dark band the black mark reverses to paper, as Leyline's white mark does. */
-.su-footer__mark--paper {
-  filter: invert(1);
+/* On a ground that prints paper the black mark reverses to paper, as
+ * Leyline's white mark does (`--su-foot-mark`, the matched foot's). */
+.su-footer__mark {
+  filter: var(--su-foot-mark, none);
 }

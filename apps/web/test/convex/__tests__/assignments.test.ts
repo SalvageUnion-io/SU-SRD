@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { CROSS_CONTAINER_REFUSAL } from 'cantina-domain/links/linkRules'
 import { ConvexError } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL } from 'game-domain/links/linkRules'
 import { api } from '../../../convex/_generated/api'
 import {
   addCrawler,
@@ -172,7 +172,7 @@ describe('cardinality — a new assignment replaces the one it conflicts with', 
 })
 
 describe('one container — both ends share a Game or the same shelf', () => {
-  test('a Hangar pilot cannot be assigned to a crawler in a Game', async () => {
+  test('a Training Bay pilot cannot be assigned to a crawler in a Game', async () => {
     const t = testConvex()
     const { organizer: o, gameId } = await seedTable(t)
     await addCrawler(o, 'c1', gameId)

@@ -21,14 +21,14 @@ import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
 import { malformed } from '../testing'
 
-type Row = { id?: string; name?: string }
+type Compact = { id?: string; name?: string }
 
-const allModels = (): Array<[string, ModelWithMetadata<Row>]> =>
+const allModels = (): Array<[string, ModelWithMetadata<Compact>]> =>
   Object.entries(SCHEMA_REGISTRY).map(([schemaId, { model: propName }]) => [
     schemaId,
-    (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<Row>>)[
+    (SalvageUnionReference as unknown as Record<string, ModelWithMetadata<Compact>>)[
       propName
-    ] as ModelWithMetadata<Row>,
+    ] as ModelWithMetadata<Compact>,
   ])
 
 describe('BaseModel name/slug indexes', () => {
@@ -126,8 +126,8 @@ describe('BaseModel name/slug indexes', () => {
     for (const [schemaId, model] of allModels()) {
       // The scan: one map, id then name per row, in data order, first writer
       // wins.
-      const combined = new Map<string, Row>()
-      const claim = (key: string, row: Row) => {
+      const combined = new Map<string, Compact>()
+      const claim = (key: string, row: Compact) => {
         if (!combined.has(key)) combined.set(key, row)
       }
       for (const row of model.all()) {
@@ -164,7 +164,7 @@ describe('SalvageUnionReference.getByNameIn', () => {
         )
         const viaScan = SalvageUnionReference.findIn(
           schemaId as Parameters<typeof SalvageUnionReference.findIn>[0],
-          (e) => (e as Row).name === row.name
+          (e) => (e as Compact).name === row.name
         )
         expect(viaIndex, `${schemaId} / ${row.name}`).toBe(viaScan as never)
         checked++

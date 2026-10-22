@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import type { Ctx } from '../fixtures'
-import { makeUser } from '../fixtures'
+import { makeUser, seedRawPilot } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -14,13 +12,6 @@ import { testConvex } from '../harness'
  * the crew's Game, the communal crawler, and other people's characters all
  * have to survive somebody exercising their right to be forgotten.
  */
-
-async function seedPilot(t: Ctx, gameId: Id<'games'> | null, ownerId: Id<'users'> | null) {
-  return await t.run(
-    async (ctx) =>
-      await ctx.db.insert('pilots', { gameId, ownerId, body: { callsign: 'X' }, updatedAt: 1 })
-  )
-}
 
 describe('profile', () => {
   test('displayName falls back to the Discord name when unset', async () => {
@@ -58,8 +49,8 @@ describe('export is scoped to what you own', () => {
     const code = await owner.as.mutation(api.invites.link, { gameId })
     await other.as.mutation(api.invites.redeem, { code })
 
-    await seedPilot(t, gameId, owner.userId)
-    await seedPilot(t, gameId, other.userId)
+    await seedRawPilot(t, gameId, owner.userId)
+    await seedRawPilot(t, gameId, other.userId)
 
     const mine = await owner.as.query(api.account.exportMine, {})
     // Readable inside a Game is not the same as yours to take away.
@@ -130,7 +121,7 @@ describe('deleteAccount — the campaign survives', () => {
     const code = await organizer.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
 
-    const theirs = await seedPilot(t, gameId, player.userId)
+    const theirs = await seedRawPilot(t, gameId, player.userId)
     await organizer.as.mutation(api.account.deleteAccount, {})
 
     const pilot = await t.run(async (ctx) => await ctx.db.get(theirs))
@@ -146,8 +137,8 @@ describe('deleteAccount — the campaign survives', () => {
     const code = await organizer.as.mutation(api.invites.link, { gameId })
     await player.as.mutation(api.invites.redeem, { code })
 
-    const inGame = await seedPilot(t, gameId, organizer.userId)
-    const onShelf = await seedPilot(t, null, organizer.userId)
+    const inGame = await seedRawPilot(t, gameId, organizer.userId)
+    const onShelf = await seedRawPilot(t, null, organizer.userId)
 
     await organizer.as.mutation(api.account.deleteAccount, {})
 
@@ -163,7 +154,7 @@ describe('deleteAccount — the campaign survives', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', { gameId, ownerId: null, body: {}, updatedAt: 1 })
     )
-    const unclaimed = await seedPilot(t, gameId, null)
+    const unclaimed = await seedRawPilot(t, gameId, null)
 
     await solo.as.mutation(api.account.deleteAccount, {})
 

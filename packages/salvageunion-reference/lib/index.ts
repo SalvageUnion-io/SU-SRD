@@ -24,7 +24,7 @@ import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
-// consumer outside this package (srd, cantina (and their src/components) or the Discord bot;
+// consumer outside this package (the reference pages, the app (and their src/components) or the Discord bot;
 // their tests count, since the exports map blocks deep imports).
 //
 // A wildcard makes the surface whatever the modules happen to export; a list
@@ -83,6 +83,7 @@ export {
 } from './helpers'
 export { getInventorySlots } from './inventorySlots'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
+export { type NameRefCandidate, type NameRefIndex, nameRefIndex } from './nameRefIndex'
 export { nameToSlug } from './nameToSlug'
 export { displayTitle } from './naming'
 export { SRD_SITE_URL } from './origin'
@@ -127,7 +128,7 @@ export {
   searchIn,
 } from './search'
 // The pure matching + ranking rules both matchers share: the ORM `search()`
-// above and srd's compact client index. No ORM import, so a
+// above and the reference site's compact client index. No ORM import, so a
 // browser bundle pays only for these functions.
 export {
   matchSearchTokens,
@@ -141,6 +142,12 @@ export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
+  toComponentsV2,
+  type V2Block,
+  type V2Button,
+  type V2Container,
+} from './view/componentsV2'
+export {
   DISCORD_NEUTRAL_ACCENT,
   DISCORD_ROLL_ACCENT,
   discordAccent,
@@ -153,10 +160,13 @@ export {
   linkTraitReferences,
   rangeLabel,
 } from './view/discordCard'
+export type { HomebrewPattern } from './view/discordEntryCard'
 export {
   COMPONENT_EMBED_MAX_BYTES,
   componentEmbedJson,
   discordEntryCard,
+  discordHomebrewPatternCard,
+  escapeMarkdown,
 } from './view/discordEntryCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
@@ -175,8 +185,12 @@ export {
   type AdditionalSource,
   type BookCite,
   bookName,
+  CITE_SEPARATOR,
+  citeLine,
   formatCite,
   formatProvenance,
+  type Provenance,
+  provenancePrintings,
   resolveAdditionalSources,
   resolveProvenance,
 } from './view/parts/cite'
@@ -205,10 +219,10 @@ export {
   budgetFacts,
   type ChipContext,
   laneMeasure,
+  type MiniChipCell,
+  type MiniChips,
+  type MiniLane,
   naturalContext,
-  type TokenChipCell,
-  type TokenChips,
-  type TokenLane,
   tokenChips,
 } from './view/parts/tokenChips'
 export {
@@ -217,7 +231,7 @@ export {
   formatActionType,
   formatCost,
 } from './view/parts/traits'
-export { glossaryRef, toEntityModel } from './view/toEntityModel'
+export { entityRef, glossaryRef, toEntityModel } from './view/toEntityModel'
 export type {
   EntityArt,
   EntityDomain,

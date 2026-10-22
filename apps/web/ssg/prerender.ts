@@ -1,7 +1,7 @@
 /**
  * prerender — the SSG's render pass: every page, endpoint and sitemap, into the
  * `dist/` the Vite pass just bundled. It runs inside that pass, as the first
- * `closeBundle` step (`prerender` in `ssg/cantinaPlugins.ts`), so the service
+ * `closeBundle` step (`prerender` in `ssg/appPlugins.ts`), so the service
  * worker generated after it sees a complete site.
  *
  *   1. read `dist/.vite/manifest.json` -> entry JS + CSS urls, and the emitted
@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url'
 // (`BaseLayout` -> `src/components` -> third-party deps) must load only after the
 // css-stub plugin below is registered.
 import type { BuildAssets } from './document'
-import { pickFontPreloads } from './fontPreloads'
+import { pickFontPreloads, pickScriptFontPreload } from './fontPreloads'
 import { outputPathFor } from './outputPath'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 
@@ -68,8 +68,8 @@ type Manifest = Record<string, ManifestChunk>
  */
 const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
 
-/** The Cantina's entry, its shell: its own document, never linked from srd's. */
-const CANTINA_ENTRY = 'build/index.html'
+/** The app's entry, its shell: its own document, never linked from the reference site's. */
+const APP_ENTRY = 'build/index.html'
 
 /**
  * Manifest keys under this prefix are static assets a page may point at, keyed
@@ -83,8 +83,8 @@ async function readAssets(): Promise<BuildAssets> {
   const manifestPath = join(distDir, '.vite', 'manifest.json')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
 
-  // The base stylesheet (`src/styles/baseStylesheet.ts`) links first, ahead of srd's own;
-  // its fonts are the only ones srd emits.
+  // The base stylesheet (`src/styles/baseStylesheet.ts`) links first, ahead of the reference site's own;
+  // its fonts are the only ones the reference site emits.
   const emitted = (await readdir(join(distDir, 'assets'))).map((name) => `assets/${name}`)
   const base = emitted.filter((file) => /^assets\/base-[\w-]+\.css$/.test(file))
   if (base.length !== 1) throw new Error(`[ssg] expected one base stylesheet, found ${base.length}`)
@@ -99,7 +99,7 @@ async function readAssets(): Promise<BuildAssets> {
       built[key] = `/${chunk.file}`
       continue
     }
-    if (!chunk.isEntry || key === CANTINA_ENTRY) continue
+    if (!chunk.isEntry || key === APP_ENTRY) continue
     for (const css of chunk.css ?? []) {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)
@@ -108,7 +108,13 @@ async function readAssets(): Promise<BuildAssets> {
     scripts.push(`/${chunk.file}`)
   }
 
-  return { scripts, styles, fonts: pickFontPreloads(fontFiles), built }
+  return {
+    scripts,
+    styles,
+    fonts: pickFontPreloads(fontFiles),
+    scriptFont: pickScriptFontPreload(fontFiles),
+    built,
+  }
 }
 
 // `outputPathFor` (URL -> dist file) lives in `./outputPath` so it can be read

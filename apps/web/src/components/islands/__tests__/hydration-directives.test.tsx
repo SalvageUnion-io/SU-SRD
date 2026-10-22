@@ -15,14 +15,14 @@ import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { RefEntity } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
-import { BaseLayout } from '../../../layouts/BaseLayout'
 import { cardNeedsHydration } from '../../../lib/cardNeedsHydration'
-import { schemaListingPage } from '../../../pages/[schemaId]/index.page'
+import { EntityView } from '../../../reference/EntityView'
+import { BaseLayout } from '../../../reference/layouts/BaseLayout'
+import { schemaListingPage } from '../../../reference/pages/[schemaId]/index.page'
+import { TopNavigation } from '../../../reference/TopNavigation'
 import type { CollectedIslandProps } from '../../../runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../../../runtime/Island'
 import { islandRegistry } from '../../../runtime/islandRegistry'
-import { EntityView } from '../../EntityView'
-import { TopNavigation } from '../../TopNavigation'
 
 const appRoot = resolve(import.meta.dir, '../../../..')
 
@@ -117,6 +117,19 @@ describe('hydration directives', () => {
       expect(inert.islands).toEqual([])
     })
 
+    it("a contentful Mini's overflow row needs no listener of the card's", () => {
+      // The Hacker's ability Minis carry their body's overflow row: still a
+      // document, the row filled by the page's one client entry.
+      const hacker = getModel('classes')
+        ?.all()
+        .find((item) => item.name === 'Hacker')
+      if (!hacker) throw new Error('Hacker fixture missing')
+      expect(renderToStaticMarkup(<EntityView item={hacker} schemaId="classes" />)).toContain(
+        'data-chip-overflow'
+      )
+      expect(cardNeedsHydration(hacker)).toBe(false)
+    })
+
     it('importing EntityView preloads the ORM', () => {
       // The eager `preload('all')` lives at module scope in `src/lib/gameData`,
       // and it is what makes the `cardNeedsHydration` probe and
@@ -124,7 +137,7 @@ describe('hydration directives', () => {
       // A fresh process is the only place this is observable — the test preload
       // has already loaded everything in THIS one.
       const probe = `
-        await import('./src/components/EntityView')
+        await import('./src/reference/EntityView')
         const { SalvageUnionReference } = await import('salvageunion-reference')
         console.log(SalvageUnionReference.isLoaded('chassis') ? 'loaded' : 'not-loaded')
       `
@@ -163,6 +176,7 @@ describe('hydration directives', () => {
         'pattern',
         'preloadSchemas',
         'pageRefs',
+        'nameRefs',
       ])
     })
   })
@@ -220,7 +234,7 @@ describe('hydration directives', () => {
       // An absence, so the source is the honest place to check it: a `Toaster`
       // that renders nothing on the server would slip past a markup assertion
       // while still shipping sonner to every page.
-      const source = readFileSync(resolve(appRoot, 'src/layouts/BaseLayout.tsx'), 'utf-8')
+      const source = readFileSync(resolve(appRoot, 'src/reference/layouts/BaseLayout.tsx'), 'utf-8')
       expect(source).not.toContain('Toaster')
 
       // …and the rendered document really has no toast region. sonner's

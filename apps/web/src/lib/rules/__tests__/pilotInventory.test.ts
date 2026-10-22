@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
+import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import {
   equipmentMaxUses,
   equipmentSlotCost,

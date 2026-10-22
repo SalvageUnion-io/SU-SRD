@@ -45,6 +45,39 @@ describe('refText', () => {
     ])
     expect(plainText(parts)).toBe('It gains the Vulnerable Trait and Burn (X).')
   })
+
+  test('the names it prints in plain words are references too, outside the markup', () => {
+    const prone = { schemaName: 'keywords' as const, id: 'prone-id', slug: 'prone', name: 'prone' }
+    const parts = refText('It falls Prone and gains [[Prone]].', () => undefined, {
+      nameRefs: { prone: [{ ref: prone }] },
+    })
+    expect(parts).toEqual([
+      'It falls ',
+      { text: 'Prone', ref: prone },
+      ' and gains ',
+      { text: 'Prone', ref: null },
+      '.',
+    ])
+  })
+
+  test('a page reference links where the index resolves it, as a card’s prose does', () => {
+    const table = {
+      schemaName: 'roll-tables' as const,
+      id: 'overload-id',
+      slug: 'reactor-overload',
+      name: 'Reactor Overload',
+    }
+    const parts = refText(
+      'Roll on the Reactor Overload Table p. 235.\n\nSee p. 9.',
+      () => undefined,
+      { pageRefs: { 235: [{ ref: table, noun: 'roll table' }] } }
+    )
+    expect(parts).toEqual([
+      'Roll on the Reactor Overload Table ',
+      { text: 'p. 235', ref: table },
+      '.\n\nSee p. 9.',
+    ])
+  })
 })
 
 describe('splitRows', () => {
@@ -123,10 +156,10 @@ describe('rowForRoll', () => {
     expect(rowForRoll(data.table, data.rows, 1)?.label).toBe('Cascade Failure')
   })
 
-  test('a table that prints only its 20 has no row for anything else', () => {
+  test('a table that prints only its 20 reads "Nothing happens." on 1–19', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
     expect(rowForRoll(dramatic.table, dramatic.rows, 20)?.key).toBe('20')
-    expect(rowForRoll(dramatic.table, dramatic.rows, 5)).toBeUndefined()
+    expect(rowForRoll(dramatic.table, dramatic.rows, 5)?.key).toBe('1-19')
   })
 })
 
@@ -149,12 +182,13 @@ describe('rollAnnouncement — what a roll’s toast reads', () => {
     expect(announced.text).toBe(plainText(row.value))
   })
 
-  test('a roll with no row lands on no range and reads "No effect"', () => {
+  test('a roll under a lone 20 lands on 1–19, "Nothing happens."', () => {
     const dramatic = need(rollTablePageData(firstOfType('dramatic')) ?? undefined, 'dramatic')
-    expect(rollAnnouncement(dramatic, 5)).toEqual({
+    expect(rollAnnouncement(dramatic, 5)).toMatchObject({
       table: dramatic.name,
       roll: 5,
-      text: 'No effect',
+      range: '1–19',
+      text: 'Nothing happens.',
     })
   })
 })

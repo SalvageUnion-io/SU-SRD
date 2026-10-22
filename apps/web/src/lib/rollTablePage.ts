@@ -1,5 +1,5 @@
 /**
- * The roll-table page's pure logic (board 08b): which row a roll lands on, the
+ * The roll-table page's pure logic: which row a roll lands on, the
  * running list of earlier rolls. Kept apart
  * from the island so it is tested without a DOM, and so the island's chunk
  * carries no ORM: `resultForTable` is the reference package's pure rules
@@ -7,30 +7,45 @@
  */
 
 import type { EntityRef, RefObjectTable } from 'salvageunion-reference'
-import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
+import { NO_EFFECT, resultForTable } from 'salvageunion-reference'
 import type { AnnouncedRoll } from '../components/index'
+import type { ProseRefs } from './segmentProse'
+import { segmentProse } from './segmentProse'
 
 /**
- * Prose with its trait references resolved at build time: plain runs, and
- * each `[[Trait]]` as the words it prints and the glossary entry it names
- * (`null` when it names none). Resolved on the server so the island reads no
+ * Prose with its references resolved at build time: plain runs, and each
+ * reference as the words it prints and the entry it names (`null` when it
+ * names none): a `[[Trait]]`, a "p. 235" where `pageRefs` resolves it, and an
+ * entry named in plain words where `nameRefs` is given. Cut by
+ * `segmentProse`, as a card's prose is (`useProseRefs`), so a page links a
+ * sentence as its card does. Resolved on the server so the island reads no
  * game data: a ref is a few strings, and the Mention draws its page and its
  * Peek from them.
  */
 export type RefText = (string | { text: string; ref: EntityRef | null })[]
 
-/** Split prose on its `[[Trait]]` markup, resolving each name through `resolve`. */
-export function refText(text: string, resolve: (name: string) => EntityRef | undefined): RefText {
+/**
+ * Prose cut into `RefText`, each trait name resolved through `resolve`. A
+ * paragraph break stays in the words around it.
+ */
+export function refText(
+  text: string,
+  resolve: (name: string) => EntityRef | undefined,
+  refs: ProseRefs = {}
+): RefText {
   const parts: RefText = []
-  let at = 0
-  for (const match of parseTraitReferences(text)) {
-    if (match.startIndex > at) parts.push(text.slice(at, match.startIndex))
-    const words =
-      match.parameter === undefined ? match.traitName : `${match.traitName} (${match.parameter})`
-    parts.push({ text: words, ref: resolve(match.traitName) ?? null })
-    at = match.startIndex + match.fullMatch.length
+  const words = (run: string) => {
+    const last = parts.at(-1)
+    if (typeof last === 'string') parts[parts.length - 1] = last + run
+    else parts.push(run)
   }
-  if (at < text.length) parts.push(text.slice(at))
+  for (const segment of segmentProse(text, refs)) {
+    if (segment.kind === 'text') words(segment.text)
+    else if (segment.kind === 'break') words('\n\n')
+    else if (segment.kind === 'trait') {
+      parts.push({ text: segment.text, ref: resolve(segment.name) ?? null })
+    } else parts.push({ text: segment.text, ref: segment.ref })
+  }
   return parts
 }
 
@@ -52,8 +67,8 @@ export type RollTableRow = {
 /** Everything the page and its island need, serialised once as island props. */
 export type RollTablePageData = {
   name: string
-  /** The table's prose, as plain paragraphs. */
-  description: string[]
+  /** The table's prose, a paragraph each, its references resolved (`refText`). */
+  description: RefText[]
   rows: RollTableRow[]
   table: RefObjectTable
 }
@@ -78,9 +93,9 @@ export function splitRows(rows: RollTableRow[]): boolean {
 
 /**
  * How tightly a wide screen sets the page, so the table and its panel end
- * above the fold (board 08b):
+ * above the fold:
  *
- * - `roomy`: a short table under a short note, set as the board draws it.
+ * - `roomy`: a short table under a short note, set at its full size.
  * - `compact`: a split table, or bands and note that together run long
  *   (Morale's note outruns its five bands): the note in smaller type across a
  *   wider measure, the bands and the panel narrower.
@@ -96,10 +111,17 @@ const COMPACT_CHARS = 1200
 const DENSE_CHARS = 1800
 
 /** The setting a table's page takes on a wide screen, from its bands and its note. */
-export function rollTableDensity(rows: RollTableRow[], description: string[]): RollTableDensity {
+export function rollTableDensity(
+  rows: RollTableRow[],
+  description: readonly (string | RefText)[]
+): RollTableDensity {
   const chars = bandChars(rows)
   if (chars >= DENSE_CHARS) return 'dense'
-  const note = description.reduce((sum, paragraph) => sum + paragraph.length, 0)
+  const note = description.reduce(
+    (sum, paragraph) =>
+      sum + (typeof paragraph === 'string' ? paragraph : plainText(paragraph)).length,
+    0
+  )
   return splitRows(rows) || chars + note >= COMPACT_CHARS ? 'compact' : 'roomy'
 }
 

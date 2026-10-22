@@ -1,8 +1,7 @@
 /**
  * cargoTransfer — the single pure reducer for cargo crossing the CARRIER⇄DEPOT
- * boundary. The prototype's nested-setState
- * transfer logic is reimplemented here as one reducer over both lot lists plus
- * the depot scrap pool; `useCargo` wraps it and persists through the stores.
+ * boundary: one reducer over both lot lists plus the depot scrap pool;
+ * `useCargo` wraps it and persists through the stores.
  *
  * CARRIER and DEPOT, not "mech" and "crawler". The two sides are a *capped*
  * hold and an *unlimited* one, and nothing in the arithmetic below cares which
@@ -38,9 +37,9 @@
  *   interaction: it never entered the pool, so nothing is withdrawn.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { makeScrapLot, totalLotUnits } from 'cantina-domain/schemas/cargoLot'
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { makeScrapLot, totalLotUnits } from 'game-domain/schemas/cargoLot'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
 
 export type CargoBoundaryState = {
   /** Lots in the carrier's hold — a mech's, or a partner's. */

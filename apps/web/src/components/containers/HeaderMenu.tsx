@@ -7,17 +7,18 @@ import {
   color,
   font,
   fontSize,
+  iconSize,
   layer,
   radius,
   space,
-  tracking,
-  weight,
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { capsLabel } from '../atoms/capsLabel'
 import { Eyebrow } from '../atoms/Eyebrow'
 import { FOCUS_RING } from '../atoms/interaction'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
+import { SegmentedOption } from '../atoms/Segmented'
 
 /**
  * HeaderMenu — a dropdown menu for the masthead's action slot (`AppBar`'s
@@ -32,7 +33,7 @@ import { POPUP_SURFACE } from '../atoms/popupSurface'
  *
  * ## Data, not children
  *
- * Rows are `sections` of plain `{ id, label, hint?, onSelect }` records, with a
+ * Compacts are `sections` of plain `{ id, label, hint?, onSelect }` records, with a
  * rule drawn between sections. That keeps the menu ignorant of what a row DOES
  * — its callers hand in closures over the router and the Convex session — while
  * the menu owns every pixel of the row, so the two menus in the masthead cannot
@@ -46,7 +47,7 @@ import { POPUP_SURFACE } from '../atoms/popupSurface'
  *
  * The trigger is the masthead's paper-on-ink nav-link treatment, so it sits
  * beside the bar's links as one of them. The second surface is a shelf item's
- * "⋯" in the Hangar (board S1): `variant="overflow"` draws the trigger as an
+ * "⋯" in the Training Bay: `variant="overflow"` draws the trigger as an
  * action chip (Button's `mini` rung) with the ellipsis glyph, the last chip on
  * a listed unit's line, and a row with
  * `tone: 'danger'` (Delete…) reads in the danger colour. Colour lives
@@ -76,7 +77,7 @@ type HeaderMenuProps = {
    * too (WCAG 2.5.3, label in name).
    */
   label?: string
-  /** Rows, grouped; a rule separates each non-empty section from the next. */
+  /** Compacts, grouped; a rule separates each non-empty section from the next. */
   sections: HeaderMenuItem[][]
   /** Draw the ▾ after the trigger content. On by default; off for an avatar-only trigger. */
   chevron?: boolean
@@ -86,15 +87,28 @@ type HeaderMenuProps = {
    */
   active?: boolean
   /**
-   * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — a
-   * "⋯" action chip (a listed unit's menu, its Row's last chip); it shows the
-   * glyph, so pass `label` to name it, and `trigger` is not drawn. `button` —
+   * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — the
+   * ⋯ (`Ellipsis`) action chip (a listed unit's menu, its Compact's last chip; a
+   * bar's ⋯ at `size="compact"`); it shows the glyph, so pass `label` to
+   * name it, and `trigger` is not drawn. `button` —
    * the shared Button as an action chip, for a menu that is a section's action
-   * (a shelf's "+ From a mech").
+   * (a shelf's "+ From a mech"). `segment` — one option of a `Segmented`
+   * control whose choice is a menu (Play's "Boarded · <mech> ▾"), pressed when
+   * `pressed`.
    */
-  variant?: 'masthead' | 'overflow' | 'button'
+  variant?: 'masthead' | 'overflow' | 'button' | 'segment'
   /** Extra classes for the trigger of the `button` variant. */
   className?: string
+  /**
+   * The `button` and `overflow` variants' Size: `mini` (default), an action
+   * chip; `compact` where it sits on a line of Compact controls (Play's bar,
+   * ruleset §4.7). Its glyphs take the same Size (`iconSize`, hard rule R23).
+   */
+  size?: 'mini' | 'compact'
+  /** The `segment` trigger is pressed (its `SegmentedOption`'s): its option is the chosen one. */
+  pressed?: boolean
+  /** The trigger opens nothing (a `segment` with nothing to choose). */
+  disabled?: boolean
 }
 
 const TRIGGER = {
@@ -105,25 +119,19 @@ const TRIGGER = {
   cursor: 'pointer',
   display: 'inline-flex',
   flexShrink: 0,
-  fontFamily: font.cond,
-  fontSize: fontSize.lede,
-  fontWeight: weight.bold,
   gap: space[6],
   // The Union bar's one control height (`--su-union-bar-control`), so the
   // account menu matches the search and buttons beside it.
   height: 'var(--su-union-bar-control, auto)',
-  letterSpacing: tracking.capsTight,
   padding: `${space[4]} 0`,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const TRIGGER_CAPS = capsLabel({ size: 'lede' })
 
-// The overflow trigger (board S1) is an action chip, Button's `mini` rung, so it
-// sits among a Row's chips at their height. Only its open state, the inverse
+// The overflow trigger is an action chip, Button's `mini` rung, so it
+// sits among a Compact's chips at their height. Only its open state, the inverse
 // plate, is `.su-header-menu-trigger--overflow`'s.
-const OVERFLOW_TRIGGER_CLASS = cn(
-  buttonVariants({ size: 'mini' }),
-  'su-header-menu-trigger--overflow'
-)
+const overflowTriggerClass = (size: 'mini' | 'compact') =>
+  cn(buttonVariants({ size }), 'su-header-menu-trigger--overflow')
 
 const POSITIONER = {
   // Above the masthead (z-50) and the sticky sheet bars beneath it.
@@ -174,32 +182,49 @@ export function HeaderMenu({
   active = false,
   variant = 'masthead',
   className,
+  size = 'mini',
+  pressed,
+  disabled,
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
   const overflow = variant === 'overflow'
-  // The button variant is the shared Button's own classes, focus ring included.
+  // The button variant is the shared Button's own classes, focus ring included;
+  // the segment variant IS a `SegmentedOption` (its `render`), so `aria-pressed`
+  // stays Segmented's (hard rule R29).
   const triggerClass =
     variant === 'button'
-      ? `${buttonVariants({ size: 'mini' })}${className ? ` ${className}` : ''}`
-      : overflow
-        ? OVERFLOW_TRIGGER_CLASS
-        : `su-header-menu-trigger ${FOCUS_RING}`
+      ? `${buttonVariants({ size })}${className ? ` ${className}` : ''}`
+      : variant === 'segment'
+        ? undefined
+        : overflow
+          ? overflowTriggerClass(size)
+          : `su-header-menu-trigger ${FOCUS_RING}`
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
   return (
     <Menu.Root>
       <Menu.Trigger
-        className={triggerClass}
+        className={variant === 'masthead' ? cn(triggerClass, TRIGGER_CAPS) : triggerClass}
         style={triggerStyle}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
+        disabled={disabled}
+        render={
+          variant === 'segment'
+            ? ({ className: _className, children, ...props }) => (
+                <SegmentedOption {...props} pressed={pressed === true}>
+                  {children}
+                </SegmentedOption>
+              )
+            : undefined
+        }
       >
         {overflow ? (
-          <Ellipsis size={14} aria-hidden="true" />
+          <Ellipsis size={iconSize[size]} aria-hidden="true" />
         ) : (
           <>
             {trigger}
-            {chevron && <ChevronDown size={14} aria-hidden="true" />}
+            {chevron && <ChevronDown size={iconSize[size]} aria-hidden="true" />}
           </>
         )}
       </Menu.Trigger>

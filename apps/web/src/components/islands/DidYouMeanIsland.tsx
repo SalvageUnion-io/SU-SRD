@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -6,13 +5,11 @@ import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
-import { Entity, Slab } from '../index'
+import { Entity, SlabSection } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /** The section's slab: the section's own gap spaces it. */
-const SLAB = { marginBottom: 0 } satisfies CSSProperties
-
 /** How many guesses the 404 offers. */
 const LIMIT = 5
 
@@ -75,7 +72,7 @@ type DidYouMeanIslandProps = {
 /**
  * The 404's "did you mean": the missed URL's slug, read back as a search term
  * and run against the same build-time index the SRD search uses
- * (`/search-index.json`), its closest entries as search-result Rows. No
+ * (`/search-index.json`), its closest entries as search-result Compacts. No
  * props on the page: the path is only known in the browser, since every miss
  * is answered with the one `404.html`.
  */
@@ -92,18 +89,18 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
 
   if (!query || !ready) return null
 
-  const searchHref = `/search/?q=${encodeURIComponent(query)}`
+  // The home page's search, opened on the query (`SearchIsland`'s hero).
+  const searchHref = `/?q=${encodeURIComponent(query)}`
 
   return (
     <IslandErrorBoundary>
-      <section className="su-not-found__guesses" aria-labelledby="did-you-mean">
-        <Slab
-          variant="solid"
-          as="h2"
-          id="did-you-mean"
-          style={SLAB}
-          label={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
-        />
+      <SlabSection
+        as="h2"
+        id="did-you-mean"
+        title={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
+        page
+        bodyClassName="su-not-found__guesses"
+      >
         {guesses.length > 0 && (
           <DocumentLinks>
             <ul className="su-not-found__results">
@@ -113,7 +110,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
                 return (
                   <li key={result.entityId}>
                     {model ? (
-                      <Entity form="row" model={model} mode={{ kind: 'link', href }} />
+                      <Entity size="compact" model={model} mode={{ kind: 'link', href }} />
                     ) : (
                       <a href={href} className="su-not-found__link">
                         {result.entityName}
@@ -126,9 +123,9 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
           </DocumentLinks>
         )}
         <a href={searchHref} className="su-not-found__link">
-          Search the SRD for “{query}”
+          Search the Reference for “{query}”
         </a>
-      </section>
+      </SlabSection>
     </IslandErrorBoundary>
   )
 }

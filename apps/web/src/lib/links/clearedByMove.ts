@@ -14,12 +14,12 @@
  * the store's prune treats it; it is named by kind alone.
  */
 
-import type { Container, ContainerFields } from 'cantina-domain/container'
-import { containerOf } from 'cantina-domain/container'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
-import type { LinkShape, SoftLinkType } from 'cantina-domain/links/linkRules'
-import { linksBrokenByMove } from 'cantina-domain/links/linkRules'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
+import type { Container, ContainerFields } from 'game-domain/container'
+import { containerOf } from 'game-domain/container'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import type { LinkShape, SoftLinkType } from 'game-domain/links/linkRules'
+import { linksBrokenByMove } from 'game-domain/links/linkRules'
+import type { EntityRef } from 'game-domain/schemas/entity'
 
 type EndType = EntityRef['type']
 

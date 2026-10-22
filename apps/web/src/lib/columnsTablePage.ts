@@ -1,21 +1,19 @@
 /**
- * The two-roll `columns` table's page logic (Callsign Table, board 08b): one
+ * The two-roll `columns` table's page logic (Callsign Table): one
  * d20 picks the column, a second picks the entry down it. Kept apart from the
  * island, as `rollTablePage.ts` is, so it is tested without a DOM and the
  * island's chunk carries no ORM.
  */
 
 import type { AnnouncedRoll, DigestedColumnsColumn } from '../components/index'
-
-/** One column: its d20 range ("9-12") and its entries (`digestColumnsTable`). */
-export type ColumnsTableColumn = DigestedColumnsColumn
+import type { RefText } from './rollTablePage'
 
 /** Everything the page and its island need, serialised once as island props. */
 export type ColumnsTablePageData = {
   name: string
-  /** The table's prose, as plain paragraphs. */
-  description: string[]
-  columns: ColumnsTableColumn[]
+  /** The table's prose, a paragraph each, its references resolved (`refText`). */
+  description: RefText[]
+  columns: DigestedColumnsColumn[]
 }
 
 /** A pair of rolls: the column's, then the entry's. */
@@ -29,9 +27,9 @@ export function rangeHolds(key: string, roll: number): boolean {
 
 /** Where a pair of rolls lands: its column, and the entry down it. */
 export function columnsHit(
-  columns: ColumnsTableColumn[],
+  columns: DigestedColumnsColumn[],
   roll: ColumnsRoll
-): { column: ColumnsTableColumn; entry: { key: string; value: string } } | undefined {
+): { column: DigestedColumnsColumn; entry: { key: string; value: string } } | undefined {
   const column = columns.find((c) => rangeHolds(c.key, roll.column))
   const entry = column?.entries.find((e) => rangeHolds(e.key, roll.entry))
   return column && entry ? { column, entry } : undefined

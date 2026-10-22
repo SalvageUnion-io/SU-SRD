@@ -7,7 +7,7 @@
  * server has no Worker to post to. Everything after that gate (the window
  * handlers, the capture verb, chunk recovery) is `createBrowserObservability`
  * in `browserObservability.ts`. Both entries start it: the islands'
- * (`islands.client.ts`) and the Cantina's (`main.tsx`).
+ * (`islands.client.ts`) and the app's (`main.tsx`).
  *
  * `deploy-cloudflare.yml` sets `VITE_COMMIT_REF` to the deployed SHA, which
  * each report carries as its release.

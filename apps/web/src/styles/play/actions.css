@@ -1,0 +1,185 @@
+/*
+ * play/actions.css — Play's Actions column (docs/architecture/play.md §5, §6):
+ * the flattened list, a line's inline resolve, and the Downtime track and step.
+ *
+ * The app's own stylesheet, a part of `styles/play/play.css`. Every line is a
+ * Mini (ruleset §1.3); these rules only lay the list out: the Mini draws its
+ * own state (dimmed not on hand or locked, its resolve its contentful body),
+ * and nothing here adds a frame of its own (play.md §12).
+ */
+
+/*
+ * The "Actions" Slab carries the type filter and Find on its heading line.
+ * Where the column is too narrow for one line the tools
+ * wrap under the heading, held to the column's width, and then onto two
+ * lines themselves, so neither is ever pushed out of reach. The Slab's row
+ * and its trailing box keep their own inline layout; these only add what
+ * the Slab leaves unset (wrap, a width cap, the push to the end).
+ */
+.su-play-act-head {
+  flex-wrap: wrap;
+  row-gap: var(--space-8);
+}
+
+.su-play-act-head > div:last-child {
+  margin-left: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.su-play-act-tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: flex-end;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* A fieldset is min-content wide by default: let it give way, and scroll its
+   options sideways, before it ever outgrows the column. */
+.su-play-act-tools .su-seg {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.su-play-act-find {
+  flex: 1 1 160px;
+  max-width: 240px;
+}
+
+/* On a phone the search takes the column's whole width (a search field is
+   full width on a phone), on its own line
+   under the filter. */
+.su-play-root--phone .su-play-act-head > div:last-child,
+.su-play-root--phone .su-play-act-tools {
+  width: 100%;
+}
+
+.su-play-root--phone .su-play-act-find {
+  flex-basis: 100%;
+  max-width: none;
+}
+
+.su-play-act__need,
+.su-play-act__state {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+
+/* A line's inline resolve: plain content in its Mini's contentful body. */
+.su-play-resolve {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-play-resolve__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.su-play-resolve__note {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  margin: 0;
+}
+
+/* The Downtime track: ten numbered steps, the one the table is on in ink. */
+.su-play-dt-track {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-play-dt-track__step {
+  align-items: center;
+  background: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  box-sizing: border-box;
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-note);
+  font-weight: var(--font-weight-bold);
+  height: var(--size-compact);
+  justify-content: center;
+  width: 100%;
+}
+
+button.su-play-dt-track__step {
+  cursor: pointer;
+}
+
+button.su-play-dt-track__step:disabled {
+  cursor: default;
+}
+
+.su-play-dt-track [data-state='past'] .su-play-dt-track__step {
+  background: var(--color-ink-15);
+  color: var(--color-ink-75);
+}
+
+.su-play-dt-track [data-state='now'] .su-play-dt-track__step {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* The step's lines: plain content inside its box, a hairline between them. */
+.su-play-dt-lines {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-play-dt-line {
+  align-items: center;
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  padding-block: var(--space-6);
+}
+
+.su-play-dt-line:first-child {
+  border-top: none;
+}
+
+.su-play-dt-line__label {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-note);
+  gap: var(--space-8);
+}
+
+.su-play-dt-line__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.su-play-dt-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+/* An action it cannot use now is faded, but no fainter than its name keeps
+   4.5:1 on its dulled band
+   (WCAG 1.4.3): the select dim's saturation, a lighter fade. */
+.su-play-act .su-select-dim {
+  opacity: 0.75;
+}

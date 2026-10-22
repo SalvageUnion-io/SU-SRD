@@ -13,8 +13,8 @@
  * there is no picture.
  */
 
-import type { Photo } from 'cantina-domain/schemas/photo'
-import { photoUrl } from 'cantina-domain/schemas/photo'
+import type { Photo } from 'game-domain/schemas/photo'
+import { photoUrl } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -42,9 +42,9 @@ type EntityPhotoProps = {
 const FIGURE = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[8],
   margin: 0,
   minWidth: 0,
+  position: 'relative',
 } satisfies CSSProperties
 
 const FRAME = {
@@ -65,7 +65,20 @@ const EMPTY = {
 
 const IMG = { height: '100%', objectFit: 'contain', width: '100%' } satisfies CSSProperties
 
-const CONTROLS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+/**
+ * Upload, or Replace and Remove side by side, sharing the picture's width,
+ * on the picture itself, along its foot (R49: its photo's controls sit on
+ * the photo).
+ */
+const CONTROLS = {
+  bottom: tokens.space[8],
+  display: 'flex',
+  gap: tokens.space[8],
+  insetInline: tokens.space[8],
+  position: 'absolute',
+} satisfies CSSProperties
+
+const CONTROL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
 /** The app's Convex client, loaded on the first upload rather than with the sheet. */
 const client = async () => (await import('../../lib/connection/convexClient')).convexClient
@@ -86,7 +99,7 @@ const UPLOADER: PhotoUploader = {
 const PHOTO_PLAYER_ERRORS = [PhotoRefused]
 
 /** The frame is at most this wide; `sizes` tells the browser so. */
-const SIZES = '(max-width: 30rem) 100vw, 16rem'
+const SIZES = `${tokens.widthAtLeast('sm')} 16rem, 100vw`
 
 export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPhotoProps) {
   // A photo whose file is gone (deleted alongside its last holder while a copy
@@ -143,22 +156,23 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
         <div style={CONTROLS}>
           <Button
             size="compact"
-            variant="ghost"
             disabled={busy}
             onClick={() => input.current?.click()}
             aria-label={`${photo ? 'Replace' : 'Upload'} ${name}'s photo`}
+            style={CONTROL}
           >
-            {upload.pending ? 'Uploading…' : photo ? 'Replace photo' : 'Upload photo'}
+            {/* The labels name the act; the picture above says what of. */}
+            {upload.pending ? 'Uploading…' : photo ? 'Replace' : 'Upload photo'}
           </Button>
           {photo && (
             <Button
               size="compact"
-              variant="ghost"
               disabled={busy}
               onClick={() => void removal.run()}
               aria-label={`Remove ${name}'s photo`}
+              style={CONTROL}
             >
-              {removal.pending ? 'Removing…' : 'Remove photo'}
+              {removal.pending ? 'Removing…' : 'Remove'}
             </Button>
           )}
           <input

@@ -1,6 +1,6 @@
 /**
  * The site's own pages every page foot and menu links to: the reference
- * pages' footer, the Cantina's footer, phone drawer and account menu, and the
+ * pages' footer, the app's footer, phone drawer and account menu, and the
  * account menu on the reference pages all read these. Root-relative: they are
  * pages of this origin, whichever deployment served it.
  */

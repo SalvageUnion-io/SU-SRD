@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import type { BotOpName } from 'cantina-domain/botWire'
-import { BOT_OPS, bearerToken, opFromPath, secretsMatch } from '../../../convex/botHttp'
+import type { BotOpName } from 'game-domain/botWire'
+import { bearerToken, secretsMatch } from 'game-domain/botWire'
+import { BOT_OPS, opFromPath } from '../../../convex/botHttp'
 
 /**
  * The bot's HTTP door.

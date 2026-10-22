@@ -1,6 +1,7 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { Ghost } from '../atoms/Ghost'
+import { loadingCopy } from './loadingCopy'
 import { Stack } from './Stack'
 
 /** The body's ghost lines: the last runs short, the rest alternate full / 80%. */
@@ -24,14 +25,14 @@ const CARD_BAND = {
   padding: `${space[8]} ${space[12]}`,
 } satisfies CSSProperties
 
-/** Row's frame (`entity/forms/Row`): a paper plate with a hairline edge. */
+/** Compact's frame (`entity/forms/Compact`): a paper plate with a hairline edge. */
 const ROW = {
   borderRadius: radius.card,
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,
   borderColor: color.ink15,
   backgroundColor: color.paper,
-  padding: `${space[10]} ${space[12]}`,
+  padding: space[12],
 } satisfies CSSProperties
 
 const ROW_TITLE = { height: space[16], width: '40%' } satisfies CSSProperties
@@ -46,7 +47,7 @@ const ROW_SUB = {
 const ROWS = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[10],
+  gap: space[12],
   margin: 0,
   padding: 0,
   listStyle: 'none',
@@ -59,16 +60,41 @@ type SkeletonShape = 'card' | 'rows'
 type SkeletonProps = {
   /**
    * The form it stands in for: 'card' (default) the compact card; 'rows' a
-   * list of `count` Rows.
+   * list of `count` Compacts.
    */
   shape?: SkeletonShape
-  /** 'rows' only: how many Rows (default 3). */
+  /** 'rows' only: how many Compacts (default 3). */
   count?: number
-  /** The status's accessible name (default "Loading"). */
+  /** What is loading, for the status's name: `the crew` → "Loading the crew…". */
   label?: string
 }
 
-/** One Row-shaped ghost plate, unannounced: the unit 'rows' (and
+type SkeletonFrameProps = {
+  /** What is loading, for the status's name: "Loading <label>…". */
+  label?: string
+  /** The frame's element: a list of ghosts is a `ul`. */
+  as?: 'div' | 'ul'
+  /** The frame the ghosts stand in for (its size, ground and edge). */
+  style?: CSSProperties
+  /** The ghosts; an empty frame is a ghost on its own. */
+  children?: ReactNode
+}
+
+/**
+ * The loading status every skeleton is: the announced name and the pulse
+ * (`.su-pulse`, which a reduced-motion reader never sees). A composed skeleton
+ * (`RosterSkeleton`, `SheetSkeleton`, a QR tile's) lays its ghosts inside it,
+ * so the pulse and the words stay here (chrome.md K6).
+ */
+export function SkeletonFrame({ label, as: As = 'div', style, children }: SkeletonFrameProps) {
+  return (
+    <As role="status" aria-label={loadingCopy(label)} className="su-pulse" style={style}>
+      {children}
+    </As>
+  )
+}
+
+/** One Compact-shaped ghost plate, unannounced: the unit 'rows' (and
  * `RosterSkeleton`'s columns) are built from. */
 export function GhostRow() {
   return (
@@ -96,30 +122,28 @@ function CardGhost() {
 }
 
 /**
- * Skeleton — the generic loading placeholder (ruleset §"Skeleton").
+ * Skeleton — the loading placeholder for a shape known ahead (chrome.md K6).
  *
  * Mirrors the anatomy of the form it stands in for with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**: the
- * compact (medium) card's frame / band / body by default, or a list of Rows.
- * The pulse is `.su-pulse`, which a reduced-motion
- * reader never sees.
+ * compact (medium) card's frame / band / body by default, or a list of Compacts.
  */
-export function Skeleton({ shape = 'card', count = 3, label = 'Loading' }: SkeletonProps) {
+export function Skeleton({ shape = 'card', count = 3, label }: SkeletonProps) {
   if (shape === 'rows') {
     return (
-      <ul role="status" aria-label={label} className="su-pulse" style={ROWS}>
+      <SkeletonFrame as="ul" label={label} style={ROWS}>
         {Array.from({ length: count }, (_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: identical placeholders with no identity of their own
           <li key={i}>
             <GhostRow />
           </li>
         ))}
-      </ul>
+      </SkeletonFrame>
     )
   }
   return (
-    <div role="status" aria-label={label} className="su-pulse" style={CARD}>
+    <SkeletonFrame label={label} style={CARD}>
       <CardGhost />
-    </div>
+    </SkeletonFrame>
   )
 }

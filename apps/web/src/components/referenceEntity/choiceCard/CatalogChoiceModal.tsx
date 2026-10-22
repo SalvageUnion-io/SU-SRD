@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import type { EntitySchemaName, RefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { EntitySearcher } from '../../compositions/EntitySearcher'
-import { PICKER_MODAL_WIDTH } from '../../compositions/pickerModalWidth'
 import { ModalShell } from '../../containers/ModalShell'
 
 type CatalogChoiceModalProps = {
@@ -55,7 +54,7 @@ export function CatalogChoiceModal({
         if (!next) onClose()
       }}
       title={choice.name}
-      maxWidth={PICKER_MODAL_WIDTH}
+      width="page"
       bare
     >
       <EntitySearcher

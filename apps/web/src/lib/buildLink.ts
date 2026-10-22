@@ -1,8 +1,8 @@
 /**
- * "Build With This" — the deep link from an SRD entity page into the Cantina's
+ * "Build With This" — the deep link from an SRD entity page into the app's
  * builder, preselecting the entity: a chassis page opens the mech wizard on
  * that chassis, a class page the pilot wizard on that class, a crawler page
- * the crawler wizard on that type. The Cantina's `/…/new` routes read the slug
+ * the crawler wizard on that type. The app's `/…/new` routes read the slug
  * (`apps/web/src/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
  * Offered only where the wizard would accept the pick — a Tech 1 chassis, a
@@ -33,11 +33,11 @@ import { itemHref } from './entityHref'
  */
 export type BuildLink = { href: string; label: string; ariaLabel?: string }
 
-/** The page action's one visible label, whatever it builds (owner's call, 2026-10-13). */
+/** The page action's one visible label, whatever it builds. */
 const BUILD_WITH_THIS = 'Build With This'
 
 /**
- * A `/…/new` path in the Cantina, opened straight on the guided wizard, with
+ * A `/…/new` path in the app, opened straight on the guided wizard, with
  * `param` preselected when there is one.
  */
 function wizardHref(path: string, preselect: Record<string, string> = {}): string {
@@ -46,7 +46,7 @@ function wizardHref(path: string, preselect: Record<string, string> = {}): strin
 }
 
 /**
- * The Cantina's Starter Set (`/starter`): Leyline Press's pre-generated crew, open
+ * The app's Starter Set (`/starter`): Leyline Press's pre-generated crew, open
  * signed out — the fastest way to the table.
  */
 export const STARTER_SET_HREF = appPath('/starter')
@@ -79,6 +79,13 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
         label: BUILD_WITH_THIS,
         ariaLabel: `${BUILD_WITH_THIS}: a crawler`,
       }
+    case 'guides': {
+      // A creation guide's band opens the builder for what it creates.
+      const step = CREATION_GUIDES.find(
+        (guide) => 'guideType' in item && guide.guideType === item.guideType
+      )
+      return step ? { href: wizardHref(step.build.path), label: step.build.label } : null
+    }
     default:
       return null
   }
@@ -111,7 +118,7 @@ export function patternBuildLinkFor(
 
 /**
  * Where a creation guide sends its reader when it ends (the book closes each
- * chapter opener on an exit arrow): into the Cantina's wizard for what the guide
+ * chapter opener on an exit arrow): into the app's wizard for what the guide
  * builds, on to the next guide in the order a new crew walks them, or straight
  * to the Starter Set.
  */
@@ -145,7 +152,7 @@ export function guideExitsFor(schemaId: string, item: RefEntity): GuideExits | n
   return {
     build: { href: wizardHref(step.build.path), label: step.build.label },
     next: nextGuide
-      ? { href: itemHref('guides', getEntitySlug(nextGuide)), label: `Next: ${nextGuide.name}` }
+      ? { href: itemHref('guides', getEntitySlug(nextGuide)), label: nextGuide.name }
       : null,
     starterSet: { href: STARTER_SET_HREF, label: 'Or play the Starter Set' },
   }

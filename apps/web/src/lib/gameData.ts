@@ -8,8 +8,8 @@
  */
 import { SalvageUnionReference } from 'salvageunion-reference'
 
-// This module is imported only by page modules and endpoints (`src/pages/`,
-// `src/endpoints/`) — never by a client island — so this eager
+// This module is imported only by page modules and endpoints (`src/reference/pages/`,
+// `src/reference/endpoints/`) — never by a client island — so this eager
 // `preload('all')` runs at BUILD time during static generation and never ships
 // to a browser bundle. Client islands load reference data via the separate,
 // already-lazy `useGameData.ts` path (per-schema dynamic import). Keeping the

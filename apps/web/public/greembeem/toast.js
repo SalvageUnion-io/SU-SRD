@@ -1,5 +1,5 @@
 // /greembeem's edit-link toasts. Loaded by URL from index.html, never inlined:
-// srd emits no executable inline script, so its CSP `script-src` stays a
+// The reference site emits no executable inline script, so its CSP `script-src` stays a
 // literal (`apps/web/public/_headers`).
 const toastMessages = [
   'this is my website.',

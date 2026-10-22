@@ -6,7 +6,7 @@
  *   `[Explosive | 2]` `[Heavy]` `[Uses | 3]`, in the same order. A
  *   non-numeric amount (Uses/Destroy) is a parameter cell like any other.
  * - Every card labels stats with their SHORT forms (TL / SP / EP / SV / SYS /
- *   MODS): one anatomy at every size (board E1).
+ *   MODS): one anatomy at every size.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -60,7 +60,10 @@ describe('stat label short forms', () => {
   })
 
   test('a compact card never falls back to the half-form labels', () => {
-    const text = textOf(<ReferenceEntityCard data={mule()} size="compact" />)
+    // Its patterns' descriptions are prose ("a legal Tech 1 build"), not labels.
+    const text = textOf(
+      <ReferenceEntityCard data={mule()} size="compact" hide={{ patterns: true }} />
+    )
     // "Tech" with no "Level" beside it, and bare "System"/"Module", were the
     // three labels that read as neither the long nor the short form.
     expect(text).not.toContain('Tech')
@@ -69,7 +72,7 @@ describe('stat label short forms', () => {
   })
 
   test('a full card wears the same value cells — one anatomy at every size', () => {
-    // Board E1: the large card's header carries the `[label | value]` cells
+    // The large card's header carries the `[label | value]` cells
     // the compact one does; the two-line value boxes are retired.
     const text = textOf(<ReferenceEntityCard data={mule()} size="full" />)
     for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {

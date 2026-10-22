@@ -12,7 +12,7 @@ import { HERO_ART_CROP } from './heroArtCrop.data'
  * The crop window takes the ink's aspect ratio; the image inside it is scaled
  * up and offset so the ink fills the window exactly. Cropping to the ink's
  * bounding box can never cut a line off. An image with no entry (new art not
- * yet measured) returns null and renders whole, as before.
+ * yet measured) returns null and renders whole.
  */
 
 export type HeroArtCrop = {

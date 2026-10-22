@@ -3,10 +3,10 @@ import { Menu } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
 import { srdSchemaPath } from 'salvageunion-reference'
-import { borderWidth, color, layer, radius, space } from '../../design/tokens'
+import { borderWidth, color, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
-import { buttonVariants } from '../atoms/buttonVariants'
+import { Button } from '../atoms/Button'
 import { CloseButton } from '../atoms/CloseButton'
 import { FOCUS_RING } from '../atoms/interaction'
 import { TRANSITION_COLORS } from '../atoms/transition'
@@ -21,7 +21,7 @@ import { TRANSITION_COLORS } from '../atoms/transition'
  * (rendered as the shared ghost `buttonVariants` buttons; the page you are on is
  * the inverse ink plate, never rust — ruleset §3.1), optional `categories` + `search` slot for the
  * SRD's richer drawer, and an optional `extra` slot for app-owned controls
- * (The Cantina's Games list and sign-in). Router-agnostic: internal items render
+ * (The app's Games list and sign-in). Router-agnostic: internal items render
  * through the injected `LinkComponent` (defaults to a plain anchor), external
  * ones as `<a target=_blank>`. Every item closes the drawer on tap.
  *
@@ -51,7 +51,7 @@ type SchemaLink = {
 
 /**
  * A section of the drawer's index: an ink section stamp over compact rows
- * (board 08, the SRD's chapters with their counts), the same index the SRD's
+ * (the SRD's chapters with their counts), the same index the SRD's
  * home page prints.
  */
 export type NavDrawerCategory = {
@@ -69,12 +69,12 @@ type NavDrawerProps = {
   /** Optional search slot (SRD combobox), rendered under the brand row. */
   search?: ReactNode
   /**
-   * Optional app-owned controls above the nav links (The Cantina's Games list and
+   * Optional app-owned controls above the nav links (The app's Games list and
    * sign-in), ruled off from them. Handed `close` so a control can dismiss the
    * drawer when it is used.
    */
   extra?: (close: () => void) => ReactNode
-  /** Link component for internal items. Defaults to a plain anchor; the Cantina passes SiteLink. */
+  /** Link component for internal items. Defaults to a plain anchor; the app passes SiteLink. */
   LinkComponent?: ElementType
 }
 
@@ -102,7 +102,7 @@ const VIEWPORT = {
 
 // The hamburger. Its padding and ink are on `.su-nav-drawer__trigger`, which
 // the Union bar's phone cluster resizes (`styles/partials/shell.css`).
-const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.panel } satisfies CSSProperties
+const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.card } satisfies CSSProperties
 
 // The panel. Its width is on `.su-nav-drawer__panel`.
 const PANEL = {
@@ -154,14 +154,15 @@ export function NavDrawer({
     <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="right">
       <Drawer.Trigger
         render={
-          <button
-            type="button"
+          <Button
+            variant="quiet"
+            size="iconOnly"
             aria-label="Open menu"
-            className={cn('su-nav-drawer__trigger', FOCUS_RING)}
+            className="su-nav-drawer__trigger"
             style={TRIGGER}
           >
-            <Menu size={24} aria-hidden="true" />
-          </button>
+            <Menu size={iconSize.full} aria-hidden="true" />
+          </Button>
         }
       />
 
@@ -217,16 +218,13 @@ export function NavDrawer({
                 {navItems.map((item) => {
                   // External items render a plain anchor in a new tab; internal
                   // ones route through LinkComponent. One element either way.
-                  const Link = item.external ? 'a' : LinkComponent
                   return (
-                    <Link
+                    <Button
                       key={item.href}
                       href={item.href}
-                      className={cn(
-                        buttonVariants({ variant: 'ghost' }),
-                        'su-nav-drawer__link',
-                        item.active && 'su-btn--here'
-                      )}
+                      linkAs={item.external ? 'a' : LinkComponent}
+                      variant="ghost"
+                      className={cn('su-nav-drawer__link', item.active && 'su-btn--here')}
                       onClick={close}
                       {...(item.external
                         ? { target: '_blank', rel: 'noopener noreferrer' }
@@ -234,7 +232,7 @@ export function NavDrawer({
                     >
                       {item.label}
                       {item.badge}
-                    </Link>
+                    </Button>
                   )
                 })}
               </div>

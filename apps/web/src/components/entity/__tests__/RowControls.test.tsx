@@ -1,7 +1,7 @@
 /**
- * A Row's controls (`controls`, the head's trailing mode slot, E7): a host's
- * Assign / Unassign / View sit on the band's right end. They never nest in
- * the Row's own control: a link or select Row lays its surface over the frame
+ * A Compact's controls (`controls`): a host's Use, Assign, Unassign or View are
+ * the chip group's last slot, after the cost and before a "⋯" (C8, R6). They never nest in
+ * the Compact's own control: a link or select Compact lays its surface over the frame
  * as an empty cover and raises the controls above it. A host's labels sit
  * right of the title, after the model's own; its trailing chip (a "⋯" menu)
  * ends the chip group.
@@ -9,9 +9,9 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { Entity } from '../Entity'
-import type { EntityRowModel } from '../types'
+import type { EntityFormModel } from '../types'
 
-const MODEL: EntityRowModel = {
+const MODEL: EntityFormModel = {
   ref: { schemaName: 'classes', id: 'unit/pilot/ace', slug: 'ace', name: 'Ace', synthetic: true },
   title: 'Ace',
   kind: { stamp: 'Pilot', type: 'Pilot', domain: 'pilot', nature: 'have' },
@@ -27,37 +27,40 @@ const unassign = () => (
   </button>
 )
 
-describe('Row controls', () => {
-  test('read: the controls sit in the head, after the chips', () => {
-    render(<Entity form="row" model={MODEL} controls={unassign()} />)
+describe('Compact controls', () => {
+  test('read: the controls are the last slot of the chip group, after the chips', () => {
+    render(<Entity size="compact" model={MODEL} controls={unassign()} />)
     const button = screen.getByRole('button', { name: 'Unassign' })
-    const slot = button.closest('.su-entity-row__controls')
-    expect(slot).not.toBeNull()
-    expect(slot?.closest('.su-entity-row__head')).not.toBeNull()
-    // A read Row has no surface of its own to cover it.
-    expect(document.querySelector('.su-entity-row__cover')).toBeNull()
+    // In the group, never beside it (C8, hard rule R6): the menu lane, last.
+    const lane = button.closest('[data-chip-class]')
+    expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    expect(button.closest('[data-chip-group]')?.lastElementChild).toBe(lane)
+    expect(lane?.closest('.su-entity-compact__head')).not.toBeNull()
+    expect(button.closest('[data-chip-group]')?.textContent).toContain('HP8/10')
+    // A read Compact has no surface of its own to cover it.
+    expect(document.querySelector('.su-entity-compact__cover')).toBeNull()
   })
 
   test('link: the surface is a cover, and the controls are not inside it', () => {
     render(
       <Entity
-        form="row"
+        size="compact"
         model={MODEL}
         mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
         controls={unassign()}
       />
     )
     const link = screen.getByRole('link', { name: 'Ace' })
-    expect(link.className).toContain('su-entity-row__cover')
+    expect(link.className).toContain('su-entity-compact__cover')
     expect(link.querySelector('button')).toBeNull()
-    expect(link.closest('.su-entity-row')?.hasAttribute('data-covered')).toBe(true)
+    expect(link.closest('.su-entity-compact')?.hasAttribute('data-covered')).toBe(true)
     expect(screen.getByRole('button', { name: 'Unassign' })).toBeTruthy()
   })
 
   test('link with host labels only: a label that is a button never nests in the link', () => {
     render(
       <Entity
-        form="row"
+        size="compact"
         model={MODEL}
         mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
         labels={
@@ -68,14 +71,14 @@ describe('Row controls', () => {
       />
     )
     const link = screen.getByRole('link', { name: 'Ace' })
-    expect(link.className).toContain('su-entity-row__cover')
+    expect(link.className).toContain('su-entity-compact__cover')
     expect(screen.getByRole('button', { name: 'Claim' }).closest('a')).toBeNull()
   })
 
   test('link with a trailing chip: it ends the chip group, outside the link', () => {
     render(
       <Entity
-        form="row"
+        size="compact"
         model={MODEL}
         mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
         trailing={
@@ -86,17 +89,39 @@ describe('Row controls', () => {
       />
     )
     const link = screen.getByRole('link', { name: 'Ace' })
-    expect(link.className).toContain('su-entity-row__cover')
+    expect(link.className).toContain('su-entity-compact__cover')
     const more = screen.getByRole('button', { name: 'More for Ace' })
     expect(more.closest('a')).toBeNull()
-    // The last chip, after the model's own (`HP | 8/10`), on the name's line.
-    expect(more.closest('.su-chips')?.lastElementChild).toBe(more)
+    // The last chip, after the model's own (`HP | 8/10`), on the name's line:
+    // the menu lane, the strip's last (C8).
+    const lane = more.closest('[data-chip-class]')
+    expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    expect(more.closest('.su-chips')?.lastElementChild).toBe(lane)
+  })
+
+  test('controls and a trailing chip share the last slot, the "⋯" last', () => {
+    render(
+      <Entity
+        size="compact"
+        model={MODEL}
+        controls={unassign()}
+        trailing={<button type="button">More for Ace</button>}
+      />
+    )
+    const lane = screen.getByRole('button', { name: 'Unassign' }).closest('[data-chip-class]')
+    expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    // A bodyless Compact's +MORE (hidden until a chip does not fit, C5) ends it.
+    expect([...(lane?.children ?? [])].map((el) => el.textContent)).toEqual([
+      'Unassign',
+      'More for Ace',
+      '+MORE',
+    ])
   })
 
   test('a trailing chip alone still draws the chip group', () => {
     render(
       <Entity
-        form="row"
+        size="compact"
         model={{ ...MODEL, facts: [] }}
         trailing={<button type="button">More for Ace</button>}
       />
@@ -104,12 +129,12 @@ describe('Row controls', () => {
     expect(screen.getByRole('button', { name: 'More for Ace' }).closest('.su-chips')).not.toBeNull()
   })
 
-  test('select: the radio covers the Row, and pressing a control does not select', () => {
+  test('select: the radio covers the Compact, and pressing a control does not select', () => {
     const picks: number[] = []
     const presses: number[] = []
     render(
       <Entity
-        form="row"
+        size="compact"
         model={MODEL}
         mode={{ kind: 'select', role: 'radio', selected: true, onSelect: () => picks.push(1) }}
         controls={
@@ -132,19 +157,22 @@ describe('Row controls', () => {
   })
 
   test('labels: a host label is the first chip, before the model own', () => {
-    render(<Entity form="row" model={{ ...MODEL, userMade: true }} labels={<span>Yours</span>} />)
+    render(
+      <Entity size="compact" model={{ ...MODEL, userMade: true }} labels={<span>Yours</span>} />
+    )
     const chips = screen.getByText('Yours').closest('[data-chip-group]')
-    expect(chips?.firstElementChild?.textContent).toBe('Yours')
-    expect(chips?.textContent).toContain('User-made')
+    expect(chips?.firstElementChild?.firstElementChild?.textContent).toBe('Yours')
+    expect(chips?.firstElementChild?.getAttribute('data-chip-class')).toBe('mark')
+    expect(chips?.textContent).toContain('Homebrew')
     expect(chips?.textContent).toContain('HP8/10')
     expect(chips?.textContent?.indexOf('Yours')).toBeLessThan(
-      chips?.textContent?.indexOf('User-made') ?? -1
+      chips?.textContent?.indexOf('Homebrew') ?? -1
     )
   })
 
-  test('labels: a host label is a chip on a Row with no other chips too', () => {
-    render(<Entity form="row" model={{ ...MODEL, facts: [] }} labels={<span>Yours</span>} />)
+  test('labels: a host label is a chip on a Compact with no other chips too', () => {
+    render(<Entity size="compact" model={{ ...MODEL, facts: [] }} labels={<span>Yours</span>} />)
     expect(screen.getByText('Yours').closest('[data-chip-group]')).not.toBeNull()
-    expect(screen.getByText('Yours').closest('.su-entity-row__name')).toBeNull()
+    expect(screen.getByText('Yours').closest('.su-entity-compact__name')).toBeNull()
   })
 })

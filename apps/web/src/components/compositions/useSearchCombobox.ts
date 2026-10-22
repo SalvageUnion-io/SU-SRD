@@ -1,7 +1,7 @@
 /**
  * useSearchCombobox — the shared logic layer behind the search comboboxes:
  * the site's one search (`SearchIsland`, in the Union bar of both the
- * reference pages and the Cantina) and the Dashboard's SRD explorer.
+ * reference pages and the app) and Play's SRD Explorer.
  *
  * It owns the 150 ms debounce, category+entity result blending (3 schema
  * slots inside a 10-row budget), ArrowUp/Down/Enter selection and the
@@ -18,6 +18,8 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-reference'
 import { getEntitySchemas, search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
+import { loadingCopy } from '../containers/loadingCopy'
+import { NO_RESULTS } from './searchCopy'
 
 export type SearchComboboxResult =
   | {
@@ -61,7 +63,7 @@ export type UseSearchComboboxOptions = {
   /**
    * Override the entity-search implementation. Defaults to the ORM-backed
    * `search()` from `salvageunion-reference`. Pass a different implementation
-   * to decouple entity search from the full ORM/dataset — e.g. srd's
+   * to decouple entity search from the full ORM/dataset — e.g. the reference site's
    * SearchIsland runs a build-time-generated compact index instead of
    * preloading the ~1.3 MB corpus just to power search.
    */
@@ -199,11 +201,11 @@ export function useSearchCombobox({
     ? null
     : !ready
       ? query.trim()
-        ? 'Loading game data'
+        ? loadingCopy('reference data')
         : null
       : results.length > 0
         ? `${results.length} result${results.length === 1 ? '' : 's'} found`
-        : 'No results found'
+        : NO_RESULTS
 
   /** Spread onto the <input>; add aria-expanded (open semantics differ per shell). */
   const inputProps = {

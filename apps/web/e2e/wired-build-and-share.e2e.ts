@@ -1,5 +1,7 @@
+import { BASE } from './_base'
 import {
   assignCrawlerOnPilotSheet,
+  assignedUnit,
   assignPilotOnMechSheet,
   buildCrawler,
   buildMech,
@@ -9,7 +11,7 @@ import {
 import { expect, test } from './fixtures'
 
 /**
- * Wired build, then the share round-trip, against the Header C LiveSheet shell.
+ * Wired build, then the share round-trip, against the LiveSheet shell.
  *
  * **The two halves are two tests on purpose.** The wiring test is about the
  * live sheets; the share test is about the live public sheet
@@ -40,13 +42,13 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Iron Fist' }).first()).toBeVisible()
   await assignPilotOnMechSheet(page, 'Mira Voss')
 
-  // Wiring flips the composition mode: the assigned-pilot rail chip now links
-  // to the wired pilot's sheet (the mobile segment switch is asserted at 390
-  // in the segment spec).
-  await expect(page.getByRole('link', { name: /View Mira Voss/i })).toBeVisible()
+  // Wiring flips the composition mode: the pilot's relation chip now links to
+  // the wired pilot's sheet (the mobile segment switch is asserted at 390 in
+  // the segment spec).
+  await expect(assignedUnit(page, 'Mira Voss')).toBeVisible()
 
-  // --- the rail row View link navigates (TanStack Link, client-side) to the pilot sheet ---
-  await page.getByRole('link', { name: /View Mira Voss/i }).click()
+  // --- the relation chip navigates (TanStack Link, client-side) to the pilot sheet ---
+  await assignedUnit(page, 'Mira Voss').click()
   await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
 
   // There is deliberately no top-bar "edit this pilot" link: the Live Sheet is
@@ -58,15 +60,11 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
   // --- Wire the crawler from the pilot sheet's rail ---
   await assignCrawlerOnPilotSheet(page, 'Iron Wagon')
 
-  // The mech chip is still on the pilot sheet's rail (full wired composition).
-  //
-  // The rail's `UnitRow` renders the role as text and the navigation as a
-  // separate "View" link whose accessible name is `View <name>`. Both halves
-  // are asserted, because the point of this line is that the mech is STILL
-  // WIRED and reachable after the crawler was assigned — a name check alone
-  // would pass on a row that had lost its link.
-  await expect(page.getByText('Assigned Mech')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'View Iron Fist' })).toBeVisible()
+  // The mech is still on the pilot sheet's Assigned units (full wired
+  // composition): its relation chip, `MECH | Iron Fist`, a link to its sheet,
+  // because the point of this line is that the mech is STILL WIRED and
+  // reachable after the crawler was assigned (hard rule R5).
+  await expect(assignedUnit(page, 'Iron Fist')).toBeVisible()
 })
 
 test('publish the live public sheet and open it with no account', async ({ page, browser }) => {
@@ -92,7 +90,8 @@ test('publish the live public sheet and open it with no account', async ({ page,
     'The copy control appears only once publicSheet.setPublic succeeded.'
   ).toBeVisible()
   const link = (await dialog.locator('code').first().innerText()).trim()
-  expect(link).toMatch(/^https?:\/\/[^/]+\/p\/pilot\/[^/]+$/)
+  // An app route, under the app's base (ADR-048).
+  expect(link).toMatch(new RegExp(`^https?://[^/]+${BASE}/p/pilot/[^/]+$`))
 
   // --- Open it in a context with no account at all ---
   const visitor = await browser.newContext()

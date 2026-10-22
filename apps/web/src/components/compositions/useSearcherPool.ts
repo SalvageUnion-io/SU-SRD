@@ -190,7 +190,7 @@ export function useSearcherPool({
     [pool, selected, idOf]
   )
 
-  // Facet rows as one config map, rendered through the shared FilterRow. The
+  // Facet rows as one config map, each a Field over its Segmented. The
   // "Show" row stays separate so the toolbar always folds it behind Filters.
   const facetRows: FacetRowConfig[] = []
   if (showTl)

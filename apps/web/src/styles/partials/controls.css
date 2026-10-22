@@ -21,8 +21,7 @@
   border-color: var(--color-ink-50);
 }
 
-.su-tab[data-active],
-.su-tab[aria-pressed='true'] {
+.su-tab[data-active] {
   background-color: var(--color-ink);
   border-color: var(--color-ink);
   color: var(--color-paper);
@@ -87,8 +86,8 @@
 }
 
 /* The ratified multi-rung caps ladder (ruleset §4.2) — `tight` is the default,
-   and the wider rungs exist because they are in deliberate use. `none` is for
-   the caps labels that deliberately do not letterspace (the Button mini chip). */
+   `snug` at the 11px floor, and the wider rungs exist because they are in
+   deliberate use. `none` is the normal letter-spacing. */
 .su-caps--t-none {
   letter-spacing: normal;
 }
@@ -121,7 +120,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
-  background-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);
+  background-color: var(--color-ink-85);
 }
 
 /* A Base UI Drawer's panel slides in from the edge it is swiped away to
@@ -129,7 +128,7 @@
    A transition, not a keyframe: Base UI unmounts the panel when it ends, and
    the reduced-motion backstop below shortens it rather than removing it. */
 .su-drawer {
-  transition: transform 200ms ease-out;
+  transition: transform var(--dur-base) var(--ease);
 }
 .su-drawer[data-swipe-direction='right'] {
   transform: translateX(var(--drawer-swipe-movement-x, 0px));
@@ -158,7 +157,7 @@
 /* ══ The entity-searcher picker ══════════════════════════════════════════════
  *
  * `compositions/EntitySearcher.tsx` — the "add an entity" body every sheet picker
- * opens: a list of Tokens, the opened entity's Page, and the chosen sidebar.
+ * opens: a list of Minis, the opened entity's Page, and the chosen sidebar.
  * Classes, not style objects, because these properties change at the 64rem
  * breakpoint or with state (the split rule: a property with a responsive or
  * stateful variant lives here, resting value included). The component's static
@@ -171,20 +170,20 @@
  * `overflow: hidden`). Each part scrolls in its own `.su-searcher__scroll`.
  *
  * Below 64rem it is one column: the list over the rail's bar. `--takeover` is
- * a Token opened there: its Page fills the body and the list and bar are
+ * a Mini opened there: its Page fills the body and the list and bar are
  * hidden (the `hidden` attribute, so they stay mounted). From 64rem it is three
  * columns at a fixed height: the list a third of the width, the opened Page,
- * the sidebar. The middle holds a callout until a Token is opened, and
+ * the sidebar. The middle holds a callout until a Mini is opened, and
  * opening one never resizes the picker. `--browse` (the SRD Explorer) is the
  * list alone, as a grid.
  *
  * The breakpoint is mirrored by `WIDE_QUERY` in the component — change both or
  * neither.
  */
-/* Narrow, the frame takes the whole screen, so opening a Token's Page (or
+/* Narrow, the frame takes the whole screen, so opening a Mini's Page (or
    filtering the list down) never resizes the picker under a thumb. Its cap is
    `.su-searcher-panel`; this only fills it. */
-@media (max-width: 63.99rem) {
+@media not (width >= 64rem) {
   .su-searcher-frame {
     height: calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
@@ -192,8 +191,8 @@
 
 /* ONE HEIGHT PER ROW. Every control in the picker matches its siblings: the
    bars (the toolbar, the Page's action bar, the phone's bottom bar) all run at
-   the compact button's height, and a list line (the Token, its chosen label,
-   its ✕) at a Token's. */
+   the compact button's height, and a list line (the Mini, its chosen label,
+   its ✕) at a Mini's. */
 .su-searcher-panel {
   --su-searcher-control: 32px;
   --su-searcher-line: 25px;
@@ -201,7 +200,7 @@
 
 /* The frame never exceeds the DYNAMIC viewport (less the bare popup's 2rem
    margins and any safe-area inset), and the frame and its main column shrink
-   with it, so the body always gets the room left under the head and scrolls
+   with it (the box's `shrink`), so the body always gets the room left under the head and scrolls
    in it. `dvh`, not `vh`: on a phone `100vh` is the toolbar-hidden height. */
 .su-searcher-panel {
   max-height: calc(
@@ -212,15 +211,9 @@
   );
 }
 
-.su-searcher-panel > .su-entity-row__frame,
-.su-searcher-panel > .su-entity-row__frame > .su-entity-row__main {
-  min-height: 0;
-}
-
 .su-searcher__toolbar .su-searcher__search,
 .su-searcher__toolbar [role='group'] > .su-badge,
 .su-searcher__actions > .su-badge-stamp,
-.su-searcher__bar .su-searcher__bar-toggle,
 .su-searcher__bar .su-stat-cell {
   box-sizing: border-box;
   height: var(--su-searcher-control);
@@ -236,30 +229,30 @@
   height: var(--su-searcher-line);
 }
 
-/* The sidebar's ✕ sits inside its Token, at the far right: laid over the
-   pill (a button cannot nest in the Token's link), which leaves it room. */
-.su-searcher__rail-entry {
-  position: relative;
-}
-
-.su-searcher__rail-entry[data-removable] .su-entity-token__pill {
-  padding-inline-end: calc(var(--su-searcher-line) + 2px);
-}
-
-.su-btn.su-searcher__remove {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  width: 19px;
-  height: 19px;
-  padding: 0;
-  justify-content: center;
-}
-
 .su-searcher__toolbar {
-  padding: 10px 16px;
+  padding: var(--space-12) var(--space-16);
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+/* The search's slot: a search field is full width on a phone, the Filters
+   toggle on the line under it; from `sm` they share
+   a line. */
+.su-searcher__search-slot {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+@media (width >= 40rem) {
+  .su-searcher__search-slot {
+    flex-basis: 14rem;
+  }
+}
+
+/* On a host's band (`EntitySearcher`'s `frame`), the band is its ground and
+   its padding: no rule under it. */
+.su-searcher__on-band .su-searcher__toolbar {
+  padding: 0;
+  border-bottom: 0;
 }
 
 .su-searcher {
@@ -307,7 +300,7 @@
 .su-searcher__list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-6);
 }
 
 .su-searcher--browse .su-searcher__list {
@@ -315,53 +308,43 @@
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
 
-/* One line per entity: the Token filling it, and once chosen its label.
-   Doubled classes, to hold the line together over `.su-entity-token-line`'s
+/* One line per entity: the Mini filling it, and once chosen its label.
+   Doubled classes, to hold the line together over `.su-entity-mini-line`'s
    phone wrap (choices-patterns.css, later in the cascade). */
-.su-searcher__item.su-entity-token-line {
+.su-searcher__item.su-entity-mini-line {
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 6px;
+  gap: var(--space-6);
   min-width: 0;
-  padding: 2px;
+  padding: var(--space-2);
 }
 
-.su-searcher__item.su-entity-token-line > .su-entity-token {
+.su-searcher__item.su-entity-mini-line > .su-entity-mini {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-/* The entity whose Page is open: a dashed ink outline, so it never reads as
-   chosen. */
+/* The entity whose Page is open: a thin ink outline, set off its edge, so it
+   never reads as chosen (the chosen ring is 3px and flush). */
 .su-searcher__item[data-focused] {
-  outline: var(--bw-chrome) dashed var(--color-ink);
+  outline: var(--bw-chrome) solid var(--color-ink);
   outline-offset: 1px;
 }
 
-/* A chosen entity: the selection ring (`.su-selection-ring`, ink — a state,
-   never rust: ruleset §3.1), its chosen label an ink plate joined to the ring
-   at the line's end. */
+/* A chosen entity: select mode's ring (`SELECTED_RING`, ink — a state,
+   never rust: ruleset §3.1) and, at the line's end, its `SelectedSeal`
+   (hard rule R15). */
 .su-searcher__item[data-selected] {
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
-.su-searcher__item[data-focused][data-selected] {
-  outline-offset: 4px;
+.su-searcher__item.su-entity-mini-line > .su-badge-stamp {
+  align-self: center;
 }
 
-.su-searcher__chosen {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  margin: -2px -2px -2px 0;
-  padding: 0 8px;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  font: 700 var(--text-badge) / 1 var(--font-cond);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  white-space: nowrap;
+.su-searcher__item[data-focused][data-selected] {
+  outline-offset: 4px;
 }
 
 /* The opened Page, as a show page lays out: the page ground, the band flush
@@ -384,18 +367,23 @@
   justify-content: center;
 }
 
-/* Nothing open: the callout centred in the middle column. */
+/* Nothing open: the quiet empty state centred in the middle column. */
 .su-searcher__empty {
   display: grid;
   place-items: center;
   padding: var(--space-24);
 }
 
-.su-searcher__empty > .su-box {
+.su-searcher__empty > * {
   width: min(100%, 22rem);
 }
 
-@media (min-width: 64rem) {
+/* Nothing matches: the inline empty line under the list. */
+.su-searcher__none {
+  margin-top: var(--space-12);
+}
+
+@media (width >= 64rem) {
   .su-searcher:not(.su-searcher--browse) {
     height: min(68dvh, 44rem);
     display: grid;
@@ -418,6 +406,10 @@
     flex-direction: column;
     min-height: 0;
     border-top: 0;
+  }
+
+  /* Ruled off from the column before it. */
+  .su-searcher > * + .su-searcher__rail-slot {
     border-left: var(--bw-chrome) solid var(--color-ink);
   }
 
@@ -435,33 +427,29 @@
   }
 }
 
-/*
- * The searcher picker modal's width — a value for `ModalShell`'s `maxWidth`,
- * exported as `PICKER_MODAL_WIDTH` (`compositions/pickerModalWidth.ts`): room
- * for the Token list and the sidebar either side of a readable Page.
- */
-.su-picker-modal {
-  max-width: 78rem;
-}
-
 /* ══ Segmented (`atoms/Segmented.tsx`) ════════════════════════════════════════
  *
  * Options joined in one ink-ruled frame, the pressed one the inverse plate (a
- * state, never rust: ruleset §3.1). Paper by default; on the ink band
- * (`data-ground='ink'`) the frame and text are paper and the pressed plate is
- * paper with ink text. Its framed height is its Size's (`--size-*`): Full by
+ * state, never rust: ruleset §3.1). Paper by default; on an ink ground (the
+ * frame's `data-ground='ink'`, chrome K1) the frame and text are paper and the
+ * pressed plate is paper with ink text. Its framed height is its Size's (`--size-*`): Full by
  * default, Compact (`data-size='compact'`) beside a page's head actions and a
  * sheet's buttons and fields.
  */
 .su-seg {
   --su-seg-height: var(--size-full);
   background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
+  border: 0;
   border-radius: var(--radius-card);
   display: inline-flex;
   margin: 0;
   max-width: 100%;
   min-block-size: var(--su-seg-height);
+  /* The frame is an inset outline, painted over its options, so the pressed
+     plate meets the rule at every zoom: a border left a sliver of the paper
+     ground under it where its 1.5px edge fell between pixels (R42). */
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--bw-chrome));
   min-inline-size: 0;
   overflow-x: auto;
   padding: 0;
@@ -476,17 +464,13 @@
   color: var(--color-ink);
   cursor: pointer;
   flex: none;
-  font-family: var(--font-cond);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: calc(var(--su-seg-height) - 2 * var(--bw-chrome));
+  min-height: var(--su-seg-height);
   padding: 0 var(--space-12);
-  text-transform: uppercase;
   white-space: nowrap;
 }
 .su-seg__option + .su-seg__option {
-  border-left: 1px solid var(--color-ink-30);
+  border-left: var(--bw-hairline) solid var(--color-ink-30);
 }
 .su-seg__option[data-numeral] {
   font-size: var(--text-base);
@@ -505,25 +489,32 @@
 .su-seg[data-fill] {
   display: flex;
 }
+
+/* A row of many options (a filter's chips, Play's effects) wraps onto more
+   lines inside its frame rather than scrolling them out of sight (EDL E18). */
+.su-seg[data-wrap] {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
 .su-seg[data-fill] > .su-seg__option {
   flex: 1 1 0;
 }
 
-.su-seg[data-ground='ink'] {
+[data-ground='ink'] .su-seg {
   background-color: transparent;
-  border-color: var(--color-paper);
+  outline-color: var(--color-paper);
 }
-.su-seg[data-ground='ink'] > .su-seg__option {
+[data-ground='ink'] .su-seg > .su-seg__option {
   color: var(--color-paper);
 }
-.su-seg[data-ground='ink'] > .su-seg__option + .su-seg__option {
+[data-ground='ink'] .su-seg > .su-seg__option + .su-seg__option {
   border-left-color: var(--color-paper-15);
 }
-.su-seg[data-ground='ink'] > .su-seg__option:hover {
+[data-ground='ink'] .su-seg > .su-seg__option:hover {
   background-color: var(--color-paper-15);
 }
-.su-seg[data-ground='ink'] > .su-seg__option[aria-pressed='true'],
-.su-seg[data-ground='ink'] > .su-seg__option[aria-pressed='true']:hover {
+[data-ground='ink'] .su-seg > .su-seg__option[aria-pressed='true'],
+[data-ground='ink'] .su-seg > .su-seg__option[aria-pressed='true']:hover {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }

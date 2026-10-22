@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { StarterSheetView } from '../../../components/starterSet/StarterSheetView'
+import { StarterSheetView } from '../../../build/starterSet/StarterSheetView'
 import { starterPageTitle } from '../../../lib/starterSet/starterTemplates'
 
 /**

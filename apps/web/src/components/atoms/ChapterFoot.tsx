@@ -1,90 +1,62 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { foregroundOn } from '../../design/contrast'
-import { borderWidth, color } from '../../design/tokens'
-import type { ChapterTone } from './chapterBandColor'
-import { CHAPTER_BAND_COLOR } from './chapterBandColor'
-import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
 
 /**
  * ChapterFoot — the band across the foot of a Workshop Manual page (ruleset,
- * "The source": "The foot band carries the citation (page and section)"). The
- * same chapter colour and ink speckle as the `ChapterBand` at the page's head,
- * an ink rule along its top, and a row of two ends: `start` (the entity's
- * kind, or the licence) and `end` (the book and page, or the site's own links).
+ * "The source" 2): the site `Footer`'s one band, where every page of both
+ * tools ends, a row of two ends: `start` (an entity page's citation, then the
+ * licence) and `end` (the site's own links and the mark).
  *
- * The SRD wears it twice: an entity page closes on its kind and citation
- * (`Footer`: "CHASSIS … Workshop Manual · p.112") in its chapter's colour, and the
- * site footer's licence row closes every page on the Union bar's ink.
+ * It wears the colour of the band the page leads with, as the Union bar does
+ *: its ground, foreground and grain are the
+ * `--su-foot-*` properties (`.su-chapter-foot` in `styles/partials/shell.css`),
+ * ink with paper flecks until the leading band's rule sets them to its own
+ * (`footerMatchCss`, `unionBarMatch.ts`). The band cannot reach the foot
+ * through the cascade (they are siblings), so the rule is keyed on it, and a
+ * static page, no JS, matches too. Both grains are served; the ground's shows.
  *
- * A foot band carries TEXT, so its colours are the ones text reads on (ruleset
- * §3.8, "ink on colour"): ink on the rules blue, pilot and mech; paper on the
- * Denizens navy; and on Union Crawler pages the deeper `crawlerBand` pink with
- * paper, because the head band's crawler pink carries neither ink (4.2:1) nor
- * paper (3.7:1) at 4.5:1. Applied here rather than left to the caller.
+ * A foot band carries TEXT, never chips (hard rule R4).
  */
 
-/** The band behind text: the chapter's colour, or its text-bearing shade. */
-const FOOT_BAND: Record<ChapterTone, { background: string; text: string }> = {
-  rules: { background: CHAPTER_BAND_COLOR.rules, text: color.ink },
-  pilot: { background: CHAPTER_BAND_COLOR.pilot, text: color.ink },
-  mech: { background: CHAPTER_BAND_COLOR.mech, text: color.ink },
-  crawler: { background: color.crawlerBand, text: color.paper },
-  denizen: { background: CHAPTER_BAND_COLOR.denizen, text: color.paper },
-  ink: { background: CHAPTER_BAND_COLOR.ink, text: color.paper },
-  cantina: { background: color.crawlerBand, text: color.paper },
-}
-
 export type ChapterFootProps = {
-  /** The entity's kind (or the licence), at the row's start. */
-  start?: ReactNode
-  /** The book and section (or the site links), at the row's end. */
-  end?: ReactNode
-  /** Which chapter of the book the page belongs to. Defaults to `rules`. */
-  tone?: ChapterTone
   /**
-   * The band colour, for a tone outside the chapter map (a system's tech-level
-   * blue), as `ChapterBand`'s `fill`. Overrides `tone`; the text is whichever of
-   * ink and paper reads better on it, so a fill that carries neither at 4.5:1
-   * is the caller's to swap for a deeper shade.
+   * The page's source, on its own cut-out: the page's ground hanging from the
+   * band's top edge at the row's end, above the site links.
    */
-  fill?: string
-  /** The speckle: `ink` grain on a colour band, `paper` flecks on ink (default follows `tone`). */
-  grain?: SpeckleGrain
+  cite?: ReactNode
+  /** The licence, at the row's start. */
+  start?: ReactNode
+  /** The site links and the mark, at the row's end. */
+  end?: ReactNode
   /** The inner row's max inline size, matching the band at the page's head. */
   measure?: string
 }
 
 const ROOT = {
-  borderTopColor: color.ink,
-  borderTopStyle: 'solid',
-  borderTopWidth: borderWidth.chrome,
   isolation: 'isolate',
   position: 'relative',
   width: '100%',
 } satisfies CSSProperties
 
-export function ChapterFoot({
-  start,
-  end,
-  tone = 'rules',
-  fill,
-  grain,
-  measure,
-}: ChapterFootProps) {
-  const band = fill
-    ? { background: fill, text: foregroundOn(fill, 'ink') === 'ink' ? color.ink : color.paper }
-    : FOOT_BAND[tone]
+export function ChapterFoot({ cite, start, end, measure }: ChapterFootProps) {
   return (
     <div
       className="su-chapter-foot"
-      style={{
-        ...ROOT,
-        backgroundColor: band.background,
-        color: band.text,
-      }}
+      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      data-foot-band=""
+      style={ROOT}
     >
-      <Speckle grain={grain ?? (tone === 'ink' ? 'paper' : 'ink')} />
+      <span className="su-chapter-foot__grain su-chapter-foot__grain--paper">
+        <Speckle grain="paper" />
+      </span>
+      <span className="su-chapter-foot__grain su-chapter-foot__grain--ink">
+        <Speckle grain="ink" />
+      </span>
+      {cite != null && (
+        <div className="su-chapter-foot__cite" style={measure ? { maxWidth: measure } : undefined}>
+          {cite}
+        </div>
+      )}
       <div className="su-chapter-foot__row" style={measure ? { maxWidth: measure } : undefined}>
         {start != null && <div className="su-chapter-foot__start">{start}</div>}
         {end != null && <div className="su-chapter-foot__end">{end}</div>}

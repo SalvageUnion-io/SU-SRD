@@ -1,7 +1,7 @@
 /**
  * The three storage modes (ADR-030 §1).
  *
- * The Cantina can be in exactly one of three states, and **every store, hook, and
+ * The app can be in exactly one of three states, and **every store, hook, and
  * surface has to be legible in all three**. Getting this wrong is the single
  * most likely source of regressions in the accounts work, so the decision is
  * isolated here as a pure function with no React and no I/O — it can be
@@ -75,7 +75,7 @@ export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode 
  * "we do not yet know which store this belongs in".
  *
  * Solo blocks because building needs an account (ADR-034 decision 1, as
- * amended): signed out, the Cantina is read-only, so no work exists that a reload
+ * amended): signed out, the app is read-only, so no work exists that a reload
  * could lose.
  */
 export function writesAllowed(mode: ConnectionMode): boolean {
@@ -103,6 +103,14 @@ export function shouldWarnDisconnected(mode: ConnectionMode): boolean {
  */
 export function isSettlingConnection(mode: ConnectionMode): boolean {
   return mode === 'connecting'
+}
+
+/**
+ * Whether there is a session: connected, or signed in and offline. A signed-in
+ * screen's queries run (or keep their last answer) only then.
+ */
+export function isSignedIn(mode: ConnectionMode): boolean {
+  return mode === 'connected' || mode === 'disconnected'
 }
 
 /** Whether the server of record is in play: sync runs and writes may go up. */

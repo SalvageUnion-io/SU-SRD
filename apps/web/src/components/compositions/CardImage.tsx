@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { duration, ease } from '../../design/tokens'
 import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
 import { heroArtCrop } from './heroArtCrop'
 
@@ -25,7 +26,7 @@ type CardImageProps = {
    */
   aside?: boolean
   /**
-   * HERO mode: the entity page's line art (board 07) — the full width of its
+   * HERO mode: the entity page's line art — the full width of its
    * column, eagerly loaded because it is the page's largest paint, on a paper
    * plate with a hairline frame. Its `sizes` is `heroImageSizes`, which the
    * page's preload must repeat.
@@ -47,21 +48,21 @@ const IMG = {
   width: '100%',
   objectFit: 'contain',
   transitionProperty: 'opacity',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-  transitionDuration: '300ms',
+  transitionTimingFunction: ease,
+  transitionDuration: duration.fast,
 } satisfies CSSProperties
 
 export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
-  // the server. On srd an entity card is rendered by the ZERO-JS static path
+  // the server. On the reference site an entity card is rendered by the ZERO-JS static path
   // (`EntityCardStatic`) — it is not an island, so React never mounts over it
   // and neither `onLoad` nor the cached-load effect below can ever run. A
   // server-rendered `opacity: 0` therefore stays 0 forever, and every piece of
   // entity artwork on the site downloads in full and then paints nothing.
   //
   // Diverging from the client's initial state is safe HERE specifically because
-  // srd's islands mount with `createRoot`, never `hydrateRoot` (see
+  // The reference site's islands mount with `createRoot`, never `hydrateRoot` (see
   // `apps/web/ssg/DESIGN.md`), so there is no hydration pass to mismatch.
   const [loaded, setLoaded] = useState(() => typeof window === 'undefined')
   const imgRef = useRef<HTMLImageElement>(null)
@@ -126,7 +127,7 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
   return (
     <div
       // The float (or the aside row) waits on the CARD's width, not the
-      // viewport's: `.su-ec-art` in `styles/index.css` queries the body.
+      // viewport's: `.su-ec-art` in `styles/partials/entity-art.css` queries the body.
       className={aside ? 'su-ec-art' : 'su-ec-art su-ec-art--float'}
       style={{ width: containerWidth, maxWidth: '100%', shapeOutside: 'margin-box' }}
     >

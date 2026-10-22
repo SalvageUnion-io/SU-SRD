@@ -1,15 +1,15 @@
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
-import type { AxisMarker } from './entityCardTone'
+import { HomebrewStamp } from './HomebrewStamp'
+import type { LabelsProps } from './labelChips'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { UserMadeStamp } from './UserMadeStamp'
 
 /*
- * The cluster's layout is `.su-ec-labels*` classes (`styles/index.css`), not
+ * The cluster's layout is `.su-ec-labels*` classes (`styles/partials/atoms-badges.css`), not
  * style objects: every head band of a listing carries one (ADR-046, repeated
  * elements).
  *
- * - `.su-ec-labels`: the stamps, then the User-made stamp.
+ * - `.su-ec-labels`: the stamps, then the HOMEBREW stamp.
  * - `__stamps`: short of room they wrap onto a second line; no stamp is ever
  *   cut to "…" (entity display language E18).
  * - `__truncate` / `__lead`: a stamp that keeps its whole word (the Legal
@@ -22,10 +22,11 @@ const LEAD = 'su-ec-labels__lead'
  * does not, on the title's line, right of the name: a parent-provided seal
  * (GRANTS, CHASSIS ABILITY) or a caller's note ("From Veteran"); the
  * classification pills (`[Class | Hybrid]`, `[Chassis | Mule]`); the Legal
- * Starting Pattern stamp; and on a user-made card the dashed User-made stamp
+ * Starting Pattern stamp; and on a user-made card the dashed HOMEBREW stamp
  * after them. Never the entity's kind: no form stamps that (E9), the title
- * says it to screen readers (`KindLabel`). On the ink banner the stamps take
- * the `inverse` plate so they still read.
+ * says it to screen readers (`KindLabel`). On an ink ground (the band's
+ * `data-ground`, chrome K1) the stamps take the paper plate, in CSS, so they
+ * still read.
  */
 export function CardLabels({
   seal,
@@ -33,20 +34,7 @@ export function CardLabels({
   axisMarkers,
   legalStartingPattern,
   userMade = false,
-  onInk = false,
-}: {
-  /** A parent-provided seal (GRANTS, CHASSIS ABILITY). */
-  seal: { label: string; tone: string } | undefined
-  /** A caller's note that says more than the kind ("From Veteran", "Crawler crew · Med Bay"). */
-  note?: string
-  axisMarkers: AxisMarker[]
-  legalStartingPattern: boolean
-  /** USER-MADE (ruleset §3.9): a dashed User-made stamp after the others. */
-  userMade?: boolean
-  /** The band is the ink banner (a thing you do). */
-  onInk?: boolean
-}) {
-  const surface = onInk ? 'inverse' : 'on-ink'
+}: LabelsProps) {
   if (!seal && !note && axisMarkers.length === 0 && !legalStartingPattern && !userMade) return null
   return (
     <div className="su-ec-labels">
@@ -56,7 +44,6 @@ export function CardLabels({
           <Badge
             shape="stamp"
             size="mini"
-            surface={surface}
             className={LEAD}
             style={seal.tone === 'var(--color-ink)' ? undefined : { backgroundColor: seal.tone }}
           >
@@ -64,28 +51,20 @@ export function CardLabels({
           </Badge>
         )}
         {note && (
-          <Badge shape="stamp" size="mini" surface={surface} className={LEAD}>
+          <Badge shape="stamp" size="mini" className={LEAD}>
             {note}
           </Badge>
         )}
         {axisMarkers.map((marker) => (
-          <Stat
-            key={marker.label}
-            orientation="horizontal"
-            label={marker.label}
-            value={marker.value}
-            size="mini"
-          />
+          <Stat key={marker.label} label={marker.label} value={marker.value} size="mini" />
         ))}
         {/* A pattern the book sanctions as a starting loadout wears a stamp RIGHT
-          of the `[Chassis | …]` marker. It sits in the head (not the body)
-          precisely so it survives the LISTING extent. Purely the stored
+          of the `[Chassis | …]` marker, in the head. Purely the stored
           `legalStarting` data tag, never computed from tech level or SV. */}
         {legalStartingPattern && (
           <Badge
             shape="stamp"
             size="mini"
-            surface={surface}
             className="su-ec-labels__truncate"
             title={LEGAL_STARTING_PATTERN_NOTE}
           >
@@ -93,10 +72,10 @@ export function CardLabels({
           </Badge>
         )}
       </div>
-      {/* The dashed stamp closes the cluster (board P1). */}
+      {/* The dashed stamp closes the cluster (R32: dashed means user-made). */}
       {userMade && (
         <span style={{ flex: 'none' }}>
-          <UserMadeStamp />
+          <HomebrewStamp />
         </span>
       )}
     </div>

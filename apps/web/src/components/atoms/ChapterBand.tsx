@@ -1,13 +1,18 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { useContext, useId } from 'react'
+import { isValidElement, useContext, useId, useRef } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import { Tagline } from '../Tagline'
 import { ChapterBandTrail } from './ChapterBandTrail'
+import { capsLabel } from './capsLabel'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
+import { ChipOverflowRow } from './chipOverflow'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
-import { BAND_KEY_ATTRIBUTE, unionBarMatchCss } from './unionBarMatch'
+import { BAND_KEY_ATTRIBUTE, footerMatchCss, unionBarMatchCss } from './unionBarMatch'
+import { useChipFill } from './useChipFill'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
 /**
@@ -17,9 +22,8 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * on a cut-out of the page ground, **in ink**. Never a white knockout: paper on
  * pilot orange is 2.4 : 1.
  *
- * It replaced `PageHeading`'s ink-stamp page heading. The band is the page's
- * one `h1`; the quieter rungs below it stay `PageHeading`'s (`subheading`,
- * `section`) and the section dividers are `Slab`.
+ * The band is the page's one `h1`; every section head below it is a `Slab`
+ * (hard rule R1).
  *
  * ## Layout
  *
@@ -34,57 +38,53 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * stuck onto it.
  *
  * `lead` sits on the band LEFT of the notch, on its foot, in the title's type
- * and the band's foreground: an ability's level numeral, where its Row sets
+ * and the band's foreground: an ability's level numeral, where its Compact sets
  * it. Nothing else goes there.
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
  * the notch. Below `sm` it stacks above the notch, where the band has room
- * for it. A show page passes `asideAt="notch"` (EDL E20: nothing above
- * a show page's title): its stamps and controls are one cluster beside the
- * title from `sm`, its last line on the title's baseline (a wrap grows up the
- * band) and after it in reading order as in
- * the DOM, each child of `aside` a right-aligned line that wraps; on a phone
- * the cluster follows the title, below the band on the page ground. The
- * notch stays on the band's foot either way.
+ * for it. A show page passes `asideAt="notch"`, a page whose aside is its
+ * controls (an index's search and filters, the app's Training Bay and Game
+ * pages) `asideAt="controls"`: both fill the title's line from the band's
+ * bottom right (ruleset §4.7, the head's bottom-right fill, `chipFill.ts`).
+ * Every stamp and control is its own item: the last (the cost, the action)
+ * takes the corner on the title's line, the earlier ones fill that line
+ * leftward, and only what overfills it rises in lines above the title, each
+ * from the right, into the band's top room before they grow the band. An
+ * index's search is a line of its own on a phone, on top. The notch stays on
+ * the band's foot. Pass the controls as a fragment or a strip that draws no
+ * box (`.su-rail`): a wrapper would wrap as one piece.
  *
- * A page whose aside is its action buttons (the Cantina's Hangar and Game
- * pages) passes `asideAt="controls"`: each control is its own item on the
- * title's line, right-aligned on the band's foot beside the name, and the
- * ones that do not fit there wrap onto lines ABOVE it, right-aligned, into
- * the band's top room before they grow the band (owner's rule, 2026-10-17).
- * Pass the controls as a fragment: a wrapper would wrap as one piece.
- *
- * `action` is a show page's one button ("Build With This"), after the cluster
- * from `sm` and on its last line. On a phone it is chip-sized and always
- * shares the title's line: right of the title, centred on the notch, the title
- * wrapping in the room it leaves.
+ * `action` is a show page's one button ("Build With This"), the cluster's
+ * last item: the band's bottom-right corner.
  *
  * A band that leads the page (a `PageShell`'s first child) also colours the
- * Union bar above it: the bar takes its colour, foreground and grain
- * (`unionBarMatch.ts`), so the site header and the band are one colour. A
- * front page (the SRD's home, the Cantina's `/build`) sets `matchBar={false}`
- * and keeps the ink bar.
+ * Union bar above it and the site footer below: both take its colour, foreground and grain
+ * (`unionBarMatch.ts`), so the site header and the band are one colour, in
+ * every mode and on every page, front pages included.
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) is the notch's kicker on a page band, at every width: a line of
  * small caps on the cut-out above the name (`SRD//CHASSIS//`), the cut-out
- * one plate around both (owner's rule, 2026-10-16).
+ * one plate around both.
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
- * The Cantina sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
+ * the app sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
  *
  * ## Colour map
  *
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
- * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. `ink` is the
- * dark band of a page that is the player's own (The Cantina's Shelves, board S1): it
- * wears paper flecks instead of ink speckle (ruleset §3.5). `cantina` is The
- * Cantina's own band, in Legendary pink. Content in `aside` and `eyebrow` is
- * ink on `rules`, `pilot`, `mech`, `crawler` and `cantina`; the `denizen` band
- * is navy and the `ink` band ink, and both carry paper text — the caller
- * dresses it. A page that wants paper text on the crawler pink passes `fill`
+ * `pilot`, `mech`, `crawler` and `adversary` (Denizens' brown) are the four
+ * chapters; `denizen` is the navy of the NPC designer and Play's Scene. `ink` is the
+ * dark band of a page that is the player's own (Build's Shelves): it
+ * wears paper flecks instead of ink speckle (ruleset §3.5). `build` and `play`
+ * are the app's two areas' own bands: the Training Bay's pilot orange and the
+ * Cantina's deep crawler pink. Content in `aside` and `eyebrow` is ink on
+ * `rules`, `pilot`, `mech`, `crawler` and `build`; the `adversary` brown and the `denizen` navy,
+ * the `play` band deep pink and the `ink` band ink, and all three carry paper
+ * text — the caller dresses it. A page that wants paper text on the crawler pink passes `fill`
  * the deeper `crawlerBand`, which carries it (the book's crawler pink carries
  * neither ink nor paper at 4.5 : 1).
  *
@@ -115,22 +115,21 @@ export type ChapterBandProps = {
   as?: ElementType
   /**
    * Left of the notch, on the band's foot, in the title's type: an ability
-   * page's level numeral, as its Row sets it left of its name.
+   * page's level numeral, as its Compact sets it left of its name.
    */
   lead?: ReactNode
   /** Right-hand content on the band, bottom-aligned with the notch. */
   aside?: ReactNode
   /**
    * Where `aside` sits: `end` (default), at the band's far end from `sm` and
-   * above the notch on a phone; `notch`, a show page's cluster beside the
-   * title from `sm` (each child a right-aligned line) and below it on a phone;
-   * `controls`, a page's action buttons, each beside the title on the band's
-   * foot while it fits and wrapping upward over the name when it does not.
+   * above the notch on a phone; `notch` (a show page's stamps) and `controls`
+   * (a page's controls), filling the title's line from the band's bottom
+   * right, the overflow rising over the title (ruleset §4.7).
    */
   asideAt?: 'end' | 'notch' | 'controls'
   /**
-   * With `asideAt="notch"`: the page's action, ending the cluster from `sm`
-   * and on the band beside the title, chip-sized, on a phone.
+   * With `asideAt="notch"`: the page's action, ending the cluster in the
+   * band's bottom-right corner (chip-sized on a phone).
    */
   action?: ReactNode
   /** Controls in the band's top-right corner, above the title row. */
@@ -167,7 +166,7 @@ export type ChapterBandProps = {
   titleSize?: string
   /**
    * Whether a page band colours the Union bar while it leads the page.
-   * Defaults to `true`; a front page passes `false` to keep the ink bar.
+   * Defaults to `true`; only a band that never leads a page (a dialog's) passes `false`.
    */
   matchBar?: boolean
 }
@@ -234,14 +233,14 @@ const ASIDE = {
 const TITLE = {
   backgroundColor: color.wkBg,
   color: color.ink,
-  fontFamily: font.cond,
   fontWeight: weight.extrabold,
   lineHeight: 0.92,
   margin: 0,
   maxWidth: '100%',
   overflowWrap: 'anywhere',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+/** The notch's caps; its tracking stays the face's own, as the title has always set. */
+const TITLE_CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 // The title of a band whose aside is controls: its line's free room is on its
 // right, so the controls beside it sit at the band's right edge.
@@ -303,32 +302,55 @@ export function ChapterBand({
   // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
   // in the characters an attribute selector takes unescaped.
   const key = useId().replace(/[^\w-]/g, '')
+  // A show page's stamps or a page's controls fill the title's line from the
+  // band's bottom right (`chipFill.ts`); a quote (the front door's) is no
+  // chips, and keeps its place beside the title.
+  const quote = isValidElement(aside) && (aside.type === 'figure' || aside.type === Tagline)
+  const fills = scale === 'page' && asideAt !== 'end' && !quote && Boolean(aside || action)
+  const rowRef = useRef<HTMLDivElement>(null)
+  useChipFill(rowRef, fills)
+  const lone = !lead
+  // The title that is the fill's name holds its line's left, its free room on
+  // its right (the fill's `margin-inline-end: auto`, which an inline `margin:
+  // 0` beat would set a sheet's name at the right; R40: a name sits at the
+  // left).
+  const fillName = fills && lone && !trail
+  const placed = fillName ? { ...titleStyle, ...BESIDE_CONTROLS } : titleStyle
   const title = (
     <Tag
       id={id}
-      className="su-chapter-band__title"
-      style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
+      data-fill-name={fillName ? '' : undefined}
+      className={cn('su-chapter-band__title', TITLE_CAPS)}
+      style={titleSize ? { ...placed, fontSize: titleSize } : placed}
     >
       {children}
     </Tag>
   )
   const notch = trail ? (
-    <div className="su-chapter-band__plate" style={dashes ? { ...PLATE, ...dashes } : PLATE}>
+    <div
+      className="su-chapter-band__plate"
+      data-fill-name={fills && lone ? '' : undefined}
+      style={dashes ? { ...PLATE, ...dashes } : PLATE}
+    >
       <div className="su-chapter-band__trail">{trail}</div>
       {title}
     </div>
   ) : (
     title
   )
-  return (
+  const root = (
     <div
       className="su-chapter-band"
+      data-chip-overflow-owner={fills ? '' : undefined}
       data-user-made={userMade || undefined}
       data-scale={scale === 'og' ? 'og' : undefined}
       data-layout={bleed ? 'bleed' : undefined}
       data-measured={measure ? '' : undefined}
       data-aside={aside && asideAt !== 'end' ? asideAt : undefined}
       data-action={action ? '' : undefined}
+      // The band is the frame: one that prints paper is an ink ground, and the
+      // controls in its aside and eyebrow read it in CSS (chrome K1).
+      data-ground={foregroundOn(band, 'ink') === 'paper' ? 'ink' : 'paper'}
       {...(bleed ? { [BAND_KEY_ATTRIBUTE]: key } : {})}
       style={{
         ...ROOT,
@@ -338,7 +360,10 @@ export function ChapterBand({
       }}
     >
       {bleed && matchBar && (
-        <style>{unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}</style>
+        <style>
+          {unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle) +
+            footerMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}
+        </style>
       )}
       <Speckle grain={speckle} />
       {corner && (
@@ -363,9 +388,14 @@ export function ChapterBand({
           {eyebrow}
         </div>
       )}
-      <div className="su-chapter-band__row" style={measure ? { maxWidth: measure } : undefined}>
+      <div
+        ref={rowRef}
+        className="su-chapter-band__row"
+        data-chip-fill={fills ? '' : undefined}
+        style={measure ? { maxWidth: measure } : undefined}
+      >
         {lead ? (
-          <div className="su-chapter-band__heading">
+          <div className="su-chapter-band__heading" data-fill-name={fills ? '' : undefined}>
             <span
               className="su-chapter-band__lead"
               style={{
@@ -385,7 +415,7 @@ export function ChapterBand({
           // each control is an item of the title's row.
           <div
             className="su-chapter-band__aside"
-            style={asideAt === 'controls' ? undefined : ASIDE}
+            style={fills || asideAt === 'controls' ? undefined : ASIDE}
           >
             {aside}
           </div>
@@ -393,5 +423,18 @@ export function ChapterBand({
         {action && <div className="su-chapter-band__action">{action}</div>}
       </div>
     </div>
+  )
+  if (!fills) return root
+  // What of its stamps does not fit beside the title: the page's first row,
+  // under the band (C2b). A controls band on a phone is laid by CSS alone,
+  // so nothing goes there.
+  return (
+    <>
+      {root}
+      <ChipOverflowRow
+        className="su-chapter-band__overflow"
+        style={measure ? { maxWidth: measure } : undefined}
+      />
+    </>
   )
 }

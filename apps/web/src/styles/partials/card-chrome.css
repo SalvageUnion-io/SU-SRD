@@ -1,7 +1,6 @@
 /*
- * The package stylesheet, part 21 of 21: repeated card chrome (last: its
- * pennant restates a button and a caps label). `../index.css` imports the
- * parts in cascade order.
+ * The package stylesheet, part 21 of 21: repeated card chrome. `../index.css`
+ * imports the parts in cascade order.
  */
 
 /* ══ Repeated card chrome ═══════════════════════════════════════════════════
@@ -10,11 +9,10 @@
  * than style objects (ADR-046, repeated elements): inline, each copy of them
  * was written into every element of every static page. What varies by card
  * (a band's fill and padding, a title's size and colour, a frame's weight)
- * stays inline. Last in the file: the pennant restates a button's and a caps
- * label's type, and at one class each only source order lets it.
+ * stays inline.
  */
 
-/* The light speckle (ruleset §3.5, board 05c). `atoms/Speckle.tsx`: one SVG
+/* The light speckle (ruleset §3.5). `atoms/Speckle.tsx`: one SVG
  * layer per grain, laid behind a band's content; the band is
  * `position: relative` with `isolation: isolate`, so `z-index: -1` paints the
  * layer above the band's own fill and below every in-flow child. */
@@ -48,135 +46,4 @@
   flex: 1 1 auto;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* The header band (`card/EntityCardHeader.tsx`): the numeral, the heading and
- * the end column on one row. `--ruled`: the ink rule that closes the band,
- * dropped when nothing follows it (a nested card that held only chips is just
- * its header). */
-.su-ec-band {
-  align-items: center;
-  column-gap: var(--space-10);
-  display: flex;
-  min-width: 0;
-  width: 100%;
-}
-
-.su-ec-band--ruled {
-  border-bottom: var(--bw-chrome) solid var(--color-ink);
-}
-
-.su-ec-band--ruled:last-child {
-  border-bottom-width: 0;
-}
-
-/* The title's caps face (also the tier numeral's). No line height of its own:
- * it inherits the band's. */
-.su-ec-band__title {
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
-}
-
-/* Beside its labels the title wraps at spaces first (a high shrink) but keeps
- * its longest word whole; only then do the labels give way. */
-.su-ec-band__title--wrap {
-  flex: 0 100 auto;
-  min-width: min-content;
-  overflow-wrap: break-word;
-}
-
-.su-ec-band__numeral {
-  flex: none;
-  opacity: 0.75;
-}
-
-/* The heading: the name group, then the chip group (E17). It wraps by the
- * band's own width: the chips stay right of the name while both fit on a
- * line, and drop whole onto a line of their own under it when they do not. */
-.su-ec-band__heading {
-  align-items: center;
-  display: flex;
-  flex: 1 1 0;
-  flex-wrap: wrap;
-  gap: var(--space-6) var(--space-14);
-  min-width: 0;
-}
-
-/* The name group: the title, its labels right after it. Its basis is its
- * natural one-line width and it never shrinks to make room for the chips
- * (rows stretch to their titles); it grows, so chips sharing its line sit at
- * the band's right. Only alone, and wider than the band, does it wrap. */
-.su-ec-band__name {
-  align-items: center;
-  column-gap: var(--space-8);
-  display: flex;
-  flex: 1 0 auto;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.su-ec-band__labels {
-  display: flex;
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.su-ec-band__labels:empty {
-  display: none;
-}
-
-/* The chip group in a heading: on a line of its own it narrows to the band
- * and wraps from the left. */
-.su-ec-band__heading > .su-chips {
-  flex: 0 1 auto;
-}
-
-/* The end column: the Dashboard's pennant button, centred on the whole band
- * so it is never left alone on a line. */
-.su-ec-band__end {
-  align-items: center;
-  column-gap: var(--space-8);
-  display: flex;
-  flex: none;
-}
-
-/* The cost pennant (`card/CardPennant.tsx`), ruleset §5, board E1: a box with
- * a pointed tail (`PENNANT_SHAPE`, held equal by
- * `__tests__/stylesheetParity.test.ts`). `--read` is the paper pennant on the
- * ink; `--button` lays the cut over the rust `buttonVariants` plate, whose
- * radius and border it drops. */
-.su-pennant {
-  clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  line-height: 1.2;
-  padding: var(--space-2) var(--space-14) var(--space-2) var(--space-6);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.su-pennant--full {
-  font-size: var(--text-caption);
-}
-
-.su-pennant--compact {
-  font-size: var(--text-xs);
-}
-
-.su-pennant--mini {
-  font-size: var(--text-badge);
-}
-
-.su-pennant--read {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  flex: none;
-}
-
-.su-pennant--button {
-  border-radius: 0;
-  border-width: 0;
 }

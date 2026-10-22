@@ -5,7 +5,7 @@ import { MentionProse } from './MentionProse'
 import { RollPageFrame } from './RollPageFrame'
 
 /**
- * RollTableView — a roll table's page, rolled and read (board 08b).
+ * RollTableView — a roll table's page, rolled and read.
  *
  * The table is the shared `RollTableInstrument`, the same one every card and
  * guide step draws: its ink head (d20 and Result over the columns, the Roll the

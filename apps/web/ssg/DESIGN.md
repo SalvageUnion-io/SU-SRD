@@ -1,14 +1,18 @@
-# srd SSG — design contract
+# reference SSG — design contract
 
 The in-house SSG behind `apps/web` (ADR-031 in [ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)). Types live in [`ssg/types.ts`](types.ts).
 
 ## Hard rules
 
 1. **No `.css` import reachable from an SSR module.** All CSS enters through `src/runtime/styles.entry.ts` (the shared base, `src/styles/base.css`, is built by `src/styles/baseStylesheet.ts`); a stray import builds green and ships nothing (`bun run check styling`, `srd-css`).
-2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/` imports `ssg/` at runtime.
+2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/reference/pages/` imports `ssg/` at runtime.
 3. **Code style is Biome's.** `biome.jsonc` is the authority.
 4. **Output paths follow the URL -> file table.** `ssg/__tests__/outputPath.test.ts` is the judge.
 5. **One render path.** `ssg/dev.ts` renders through the same `ssg/render.tsx` as the build; never a client-rendered SPA in dev.
+
+## Routes are registered, not discovered
+
+A page is a `src/reference/pages/**/*.page.tsx` module exporting a `PageModule` (`pattern`, optional `getStaticPaths`, `page`), built only once `register(…)`ed in `ssg/routes.ts`, the one list of what the site emits. A document with no data behind it is a `public/` file. Non-HTML outputs are `src/reference/endpoints/*.ts` via `ssg/endpoints.ts`: endpoints are not routes.
 
 ## URL -> file table
 
@@ -43,11 +47,10 @@ Canonical URLs always carry a trailing slash.
 | `MobileSearchIsland` | interaction | **true** | chrome |
 | `MobileNavIsland` | interaction | **true** | chrome; props designed out |
 | `AccountIsland`, `AccountAvatarIsland` | idle | false | chrome, `when="signed-in"`: the shared account menu; Sign in is static markup |
-| `SchemaViewerIsland` | interaction | **true** | SEO: the island's own listing |
+| `SchemaViewerIsland` | interaction | **true** | SEO: the island's own band and listing |
 | `ReferenceEntityIsland` | visible | false | SSR would be empty; `StaticEntityContent` is the SEO path |
 | `RollTableIsland` | idle | **true** | `hydrate`: the bands are content |
 | `ColophonIsland` | visible | **true** | prose worth indexing |
-| `SearchResultsIsland` | only | false | client-only results page |
 | `OgCardIsland` | load | false | screenshot target |
 | `ColumnsTableIsland` | idle | **true** | `hydrate`: Callsign, as above |
 | `DidYouMeanIsland` | idle | false | the 404's guesses: the missed path is known only in the browser |
@@ -59,6 +62,6 @@ The WIKI link is not an island (`src/lib/wikiLink.ts`).
 
 ## Build (`ssg/build.ts`)
 
-1. **One client-only `vite build`** (`vite.config.ts`, with the Cantina). srd's entries `islands.client.ts`, `styles.entry.ts` and `assets.entry.ts`, `manifest: true`; keep the shared `react` group, keep the Cantina's groups off srd's modules, and never chunk `salvageunion-reference`.
+1. **One client-only `vite build`** (`vite.config.ts`, with the app). The reference site's entries `islands.client.ts`, `styles.entry.ts` and `assets.entry.ts`, `manifest: true`; keep the shared `react` group, keep the app's groups off the reference site's modules, and never chunk `salvageunion-reference`.
 2. **Render from the manifest.** Each route in `ssg/routes.ts` through `ssg/render.tsx`, then endpoints and the sitemap.
 3. **Refuse silent failures.** No script or stylesheet in the manifest, two routes on one file, zero pages, or a UUID entity link fails the build.

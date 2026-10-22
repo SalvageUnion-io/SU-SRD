@@ -4,11 +4,11 @@ import { RollTableInstrument } from './index'
 import { RollPageFrame } from './RollPageFrame'
 
 /**
- * ColumnsTableView — a two-roll `columns` table's page (Callsign Table, board
- * 08b): roll for the column, then for the entry down it.
+ * ColumnsTableView — a two-roll `columns` table's page (Callsign Table): roll
+ * for the column, then for the entry down it.
  *
  * The page keeps the roll-table page's shape: the prose, then the table, whose
- * Roll twice button is the roll. The table is the shared
+ * Roll the Dice button is the roll. The table is the shared
  * `RollTableInstrument`'s columns grid, banded in the page's tone: the
  * columns' ranges across the top, the entry numbers down both outer edges,
  * every entry a cell. A roll marks its column's head and sets its cell in ink;
@@ -39,7 +39,7 @@ export function ColumnsTableView({ data, tone, roll, onRoll }: ColumnsTableViewP
         size="full"
         tone={tone}
         density="compact"
-        stamp="Roll twice:"
+        stamp="Roll the Dice:"
         onRoll={onRoll}
         hint="The column, then the entry"
         table={{

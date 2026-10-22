@@ -2,8 +2,8 @@
  * Every Discord accent colour, in the one form Discord's `setAccentColor()`
  * takes: the `0xRRGGBB` integer.
  *
- * Each is a mirror of a `--color-*` token in `apps/web/src/styles/theme.css`:
- * the tokens are the authority, and `__tests__/discordAccents.test.ts` reads
+ * Each tone and state accent is a mirror of a `--color-*` token in
+ * `apps/web/src/styles/theme.css`: the tokens are the authority, and `__tests__/discordAccents.test.ts` reads
  * the stylesheet and fails if any value here drifts. The reference cards (the
  * bot's lookup and the SRD's Component Embed), the bot's rolls and its system
  * replies all read them from here.
@@ -24,6 +24,7 @@ export const DISCORD_TONE_ACCENT: Readonly<Record<string, number>> = {
   'denizen-band': 0x2f4a66,
   adversary: 0x8c4b38,
   'tier-hybrid': 0xb7410e,
+  'class-hybrid': 0x6b4423,
   'tl-1': 0x73c9e6,
   'tl-2': 0x57a9c8,
   'tl-3': 0x5391a9,
@@ -43,20 +44,21 @@ export function discordAccent(tone: string): number {
 }
 
 /**
- * The Core Mechanic roll-outcome accents: the canon `--color-roll-*` ramp.
- * Damaged and destroyed state share the same warm ramp, so `cascade` is also
- * a wrecked sheet's accent.
+ * The Core Mechanic roll-outcome accents: the roll tiers, the bot's alone
+ * (ruleset §3.4: the web never colours a roll outcome). This is where they
+ * are defined. Three share the web's warm state ramp (`--color-status-*`), so
+ * `cascade` is also a wrecked sheet's accent; tough and nailed are the bot's.
  */
 export const DISCORD_ROLL_ACCENT = {
-  /** 20 · Nailed It — `--color-roll-nailed`. */
+  /** 20 · Nailed It — slate. */
   nailed: 0x4b86a0,
-  /** 11–19 · Success — `--color-roll-success`. */
+  /** 11–19 · Success — olive, `--color-status-ok`. */
   success: 0x6f8a4a,
-  /** 6–10 · Tough Choice — `--color-roll-tough`. */
+  /** 6–10 · Tough Choice — ochre. */
   tough: 0xc19a3e,
-  /** 2–5 · Failure — `--color-roll-failure`. */
+  /** 2–5 · Failure — ember, `--color-status-warn`. */
   failure: 0xc07a2f,
-  /** 1 · Cascade Failure — `--color-roll-cascade`. */
+  /** 1 · Cascade Failure — brick, `--color-status-bad`. */
   cascade: 0xb0432b,
 } as const
 

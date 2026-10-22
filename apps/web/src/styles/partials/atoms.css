@@ -61,7 +61,8 @@
   position: absolute;
   top: 0;
   translate: 0 -50%;
-  z-index: 10;
+  /* Local stacking (0–3): over the frame it rides, under a card's rail (3). */
+  z-index: 2;
 }
 
 /* `Eyebrow` (`atoms/Eyebrow.tsx`), after `capsLabel`: the small caps label's
@@ -88,14 +89,14 @@
 }
 
 /* `EDIT_CUE_HOVER_CLASS` (`atoms/editLanguage.ts`): the dashed edit outline
- * in the sheet's deep tone, on hover or keyboard focus. */
+ * in the sheet's deep tone, on hover. Keyboard focus is the control's own
+ * ring (chrome K9), never a dashed one. */
 .su-edit-cue {
   outline-color: var(--tone-deep, var(--color-ink));
   outline-offset: 2px;
 }
 
-.su-edit-cue:hover,
-.su-edit-cue:focus-within {
+.su-edit-cue:hover {
   outline-style: dashed;
   outline-width: 2px;
 }
@@ -105,7 +106,12 @@
   border-width: 0;
   clip-path: inset(50%);
   height: 1px;
-  margin: -1px;
+  /* At its containing block's start, never past its right edge: placed where
+     its text ran, after a name clipped by an ellipsis, it made a phone page
+     scroll sideways (R44: no page scrolls sideways at a phone's width). */
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  margin: -1px; /* design-tokens-ignore: the visually-hidden pattern, not spacing */
   overflow: hidden;
   padding: 0;
   position: absolute;
@@ -198,35 +204,9 @@
   color: var(--color-ink);
 }
 
-/* The provenance triggers. `StatProvenance` takes no `style`, so every
- * property is a class; each is compounded with the trigger's own class so it
- * outranks `.su-stat-provenance__trigger`'s dotted underline. */
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact {
-  align-items: center;
-  border-width: 0;
-  color: var(--color-wk-muted);
-  display: inline-flex;
-  flex-shrink: 0;
-  font-size: var(--text-badge);
-  justify-content: center;
-  line-height: 1;
-  min-height: 24px;
-  min-width: 24px;
-}
-
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact:hover {
-  color: var(--color-ink);
-}
-
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark {
-  color: var(--color-paper-60);
-}
-
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark:hover {
-  color: var(--color-paper);
-}
-
-/* The overridden-max `*`, superscript in the deep tone. */
+/* The overridden-max `*`, superscript in the deep tone. `StatProvenance`
+ * takes no `style`, so every property is a class, compounded with the
+ * trigger's own so it outranks `.su-stat-provenance__trigger`'s underline. */
 .su-stat-provenance__trigger.su-vital-gauge__prov-mark {
   border-bottom-width: 0;
   color: var(--tone-deep);
@@ -234,6 +214,17 @@
   font-weight: var(--font-weight-bold);
   margin-left: var(--space-2);
   vertical-align: super;
+}
+
+/* The max's controls (the override, the ⓘ, the revert) share the numeral's
+ * line, so they share one Size (§4.7): each a Mini box, its glyph centred,
+ * its 44px touch target the hit area's (`.su-hit-area`), never a taller box. */
+.su-vital-gauge__mini {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: var(--size-mini);
+  justify-content: center;
 }
 
 /* The ⓘ beside an un-overridden max. */

@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { DISCORD_ROLL_ACCENT } from 'salvageunion-reference'
-import type { EntityBody, SheetResult } from '../cantina/types'
 import {
-  CANTINA_ORIGIN,
+  APP_ORIGIN,
   denialMessage,
   gamesCard,
   gameUrl,
@@ -10,10 +9,11 @@ import {
   sheetCard,
   sheetUrl,
 } from '../gameCards'
+import type { EntityBody, SheetResult } from '../play/types'
 import { cardText, cardUrl } from './cardText'
 
 /**
- * Card builders for the Cantina Game commands.
+ * Card builders for the app Game commands.
  *
  * These are pure `data → ContainerData`, so every one of them is exercised here
  * with no Discord client, no network and no mock. A pilot's and a mech's
@@ -22,7 +22,7 @@ import { cardText, cardUrl } from './cardText'
  * fresh pilot and a bare Mule.
  */
 
-const WEB = CANTINA_ORIGIN
+const WEB = APP_ORIGIN
 const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /** A fresh pilot as the server derives it: base HP 10 and AP 5, alive. */
@@ -105,7 +105,7 @@ describe('gauge', () => {
 describe('vital field names', () => {
   test('reads the CANONICAL schema spellings', () => {
     // The regression this guards is not hypothetical: `crew.vitals` shipped
-    // reading `currentHp` while packages/cantina-domain/src/schemas/pilot.ts defines
+    // reading `currentHp` while packages/game-domain/src/schemas/pilot.ts defines
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
     // from an undamaged crew. The reads are typed against that schema
     // now; this pins that the canonical names reach the card.
@@ -231,14 +231,15 @@ describe('denialMessage', () => {
 
 describe('deep links', () => {
   test('a game links to its own route, not a query string', () => {
-    // /games/$gameId is the real TanStack route (games_/$gameId.tsx). A link
-    // that 404s reads as the app having lost the game, not as the bot guessing.
-    expect(gameUrl('g1')).toBe(`${WEB}/games/g1`)
+    // /play/games/$gameId is the real TanStack route, the Game's page in Play
+    // (ADR-052 §5). A link that 404s reads as the app having lost the game,
+    // not as the bot guessing.
+    expect(gameUrl('g1')).toBe(`${WEB}/play/games/g1`)
   })
 
   test('every sheet links to the live sheet by its row id', () => {
     // /sheet/$kind/$id resolves a Convex row id for anyone allowed to see the
-    // row (The Cantina's entities.locate), so one shape serves the owner and the crew.
+    // row (The app's entities.locate), so one shape serves the owner and the crew.
     expect(sheetUrl('pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
     expect(sheetUrl('mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
     expect(sheetUrl('crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
@@ -256,8 +257,10 @@ describe('gamesCard', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
-  test('links to the Hangar, since the Cantina has no /games page', () => {
-    expect(cardUrl(gamesCard([]))).toBe(`${WEB}/`)
+  test('links to Play’s hub, where your Games are listed; each Game to its page in Play', () => {
+    expect(cardUrl(gamesCard([]))).toBe(`${WEB}/play/`)
+    const card = gamesCard([{ gameId: 'g1', name: 'Tenacity', mediator: false, organizer: false }])
+    expect(cardText(card)).toContain(`[Tenacity](${WEB}/play/games/g1)`)
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {

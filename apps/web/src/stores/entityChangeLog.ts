@@ -5,8 +5,8 @@
  * provenance row per field to the server of record, which holds the only copy.
  */
 
-import { containerOf } from 'cantina-domain/container'
-import type { ChangeLogKind } from 'cantina-domain/schemas/changeLog'
+import { containerOf } from 'game-domain/container'
+import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import { commitChangeLog } from './entityBackend'
 import type { EntityForType, EntityType } from './types'
 

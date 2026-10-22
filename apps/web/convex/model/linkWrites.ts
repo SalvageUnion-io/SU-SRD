@@ -1,7 +1,7 @@
-import { CROSS_CONTAINER_REFUSAL, isSlotted } from 'cantina-domain/links/linkRules'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import type { ObjectType } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL, isSlotted } from 'game-domain/links/linkRules'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx } from '../_generated/server'
 import { crewSlot, entityRef, softLinkType } from '../schema'
@@ -57,7 +57,7 @@ export function assertSlotMatchesType(args: ObjectType<typeof LINK>): void {
 
 /** The copy a player sees when they may not assign or unassign this crawler's crew. */
 const CREW_REFUSAL =
-  'Only whoever runs the table assigns crawler crew — design an NPC in your Hangar and move it into this Game to offer it.'
+  'Only whoever runs the table assigns crawler crew — design an NPC in your Training Bay and move it into this Game to offer it.'
 
 /**
  * Who may draw or delete an `npc-to-crawler` link: whoever may write the

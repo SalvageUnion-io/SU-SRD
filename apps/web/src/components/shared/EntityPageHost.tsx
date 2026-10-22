@@ -6,7 +6,7 @@ import type { EntitySurfaceValue } from '../index'
 import { EntitySurfaceProvider, PeekHost, useDetailModal } from '../index'
 
 /**
- * The Cantina's PAGE OPENER and PEEK (entity display language E4, E5): the surface's
+ * The app's PAGE OPENER and PEEK (entity display language E4, E5): the surface's
  * `openPage`, so a Mention or a Tag anywhere in the app opens its entity, and
  * the app's one `PeekHost`, so they Peek on hover, focus or long-press.
  *

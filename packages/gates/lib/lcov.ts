@@ -11,7 +11,7 @@
  * line set, and neither the union (comments inflate `LF`) nor the intersection
  * (last lines drop out) matches what one run over every test would report.
  * `mergeLcov` resolves each disputed line by the run that executed the most of
- * the functions around it; on the Cantina suite that reproduces a serial run's
+ * the functions around it; on the app suite that reproduces a serial run's
  * `DA` lines exactly.
  */
 

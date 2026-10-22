@@ -1,5 +1,5 @@
 name: Push Convex
-description: Push the Cantina's Convex functions once the deploy key is confirmed to name the URL the site was built against
+description: Push the app's Convex functions once the deploy key is confirmed to name the URL the site was built against
 
 # The backend push of deploy-cloudflare.yml (`push-convex`, production) and
 # deploy-preview.yml (`ship`, the staging backend). The caller checks out and
@@ -35,5 +35,5 @@ runs:
           [ "$CANONICAL_CONVEX_URL" = "$EXPECTED_CONVEX_URL" ] || {
           echo "FATAL: the deploy key resolves to $CANONICAL_CONVEX_URL but the site was built
           against $EXPECTED_CONVEX_URL. Update the calling workflow's Convex URL (for
-          production, CANTINA_CONVEX_URL and docs/ARCHITECTURE.md)." >&2; exit 1; }
+          production, PRODUCTION_CONVEX_URL and docs/ARCHITECTURE.md)." >&2; exit 1; }
       run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"

@@ -1,0 +1,117 @@
+import type { CSSProperties } from 'react'
+import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import {
+  Box,
+  Callout,
+  EmptyState,
+  FieldError,
+  ReferenceEntityCard,
+  tokens,
+} from '../../components/index'
+import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
+import '../../styles/build/wizard.css'
+import { readReference } from '../../lib/readReference'
+import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
+import { SavePatternButton } from './Pattern/SavePatternButton'
+
+/** Columns are `.su-wiz-review-grid` (they change at lg). */
+const LAYOUT = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
+
+/** The recap, the banking note and Save-as-pattern, 12px apart. */
+const KV_COLUMN = {
+  alignSelf: 'flex-start',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+/** The note's line in body type, as the crawler review's reminder. */
+const NOTE = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
+
+type MechReviewStepProps = {
+  form: MechWizardFormState
+  submitError: string | null
+  /**
+   * Unspent Tech 1 Scrap — rendered as the banking callout
+   * "N Tech 1 Scrap banks to your Union Crawler". TEXT ONLY, deliberately:
+   * no cross-entity write (ADR-007 automation boundary) — the crawler's
+   * Scrap Pool field is the manual landing spot.
+   */
+  bankedScrap: number
+}
+
+/**
+ * Review step (undrawn for mechs; reuses the pilot
+ * pattern): a recap of the build's fields on the left (with Save-as-pattern
+ * below it), the chosen system + module cards stacked on the right (fresh
+ * installs carry an 'Intact' status badge).
+ */
+export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewStepProps) {
+  const chosenSystems = form.systems.flatMap((ref) => {
+    const found = resolveSystemRef(ref)
+    return found ? [found] : []
+  })
+  const chosenModules = form.modules.flatMap((ref) => {
+    const found = resolveModuleRef(ref)
+    return found ? [found] : []
+  })
+
+  const chassis = form.chassisName
+    ? (readReference('MechReviewStep.chassis', () => resolveChassisRef(form.chassisName), null) ??
+      undefined)
+    : undefined
+
+  return (
+    <div className="su-wiz-review-grid" style={LAYOUT}>
+      <div style={KV_COLUMN}>
+        <Box bodyClassName="su-wiz-review-panel">
+          {/* The recap: Stats, the chassis as its chip, the parts as Minis. */}
+          <Recap>
+            <RecapStat label="Name" value={form.name.trim()} required />
+            <RecapEntity label="Chassis" entity={chassis} required />
+            <RecapStat label="Pattern" value={form.patternName.trim()} />
+            <RecapMinis label="Systems" entities={chosenSystems} />
+            <RecapMinis label="Modules" entities={chosenModules} />
+          </Recap>
+          {submitError && <FieldError>{submitError}</FieldError>}
+        </Box>
+        {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder. */}
+        <Callout role="note">
+          <span style={NOTE}>
+            {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
+            Scrap Pool.
+          </span>
+        </Callout>
+        {form.chassisName && (
+          <div>
+            <SavePatternButton
+              source={{
+                name: form.name.trim() || 'Unnamed Mech',
+                chassisRef: form.chassisName,
+                systems: form.systems,
+                modules: form.modules,
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* chosen cards */}
+      <div className="su-wiz-stack su-wiz-stack--12">
+        {[...chosenSystems, ...chosenModules].map((entity, i) => (
+          <ReferenceEntityCard
+            // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module may be chosen more than once, so the id alone is not unique; the list only appends/removes at stable positions during review
+            key={`${(entity as { id?: string }).id ?? 'entity'}-${i}`}
+            data={entity}
+            size="compact"
+            status="intact"
+            hide={{ actions: true, choices: true }}
+          />
+        ))}
+        {chosenSystems.length === 0 && chosenModules.length === 0 && (
+          <EmptyState variant="quiet" body="No systems or modules installed." bodyInk="inherit" />
+        )}
+      </div>
+    </div>
+  )
+}

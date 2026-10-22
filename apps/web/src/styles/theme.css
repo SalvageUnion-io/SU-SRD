@@ -26,16 +26,15 @@
   --tracking-eyebrow: 0.22em;
 
   /* Radius scale (ruleset §4.4 — the ONE radius vocabulary; never rounded-[Npx]):
-     pip = tracker pips · badge = the stamp-chip family · card = cards, inputs,
-     buttons (the outer 3px) · panel = app-chrome panels & pick cards. Stamps are
-     square (no radius). */
+     pip = tracker pips · badge = the stamp-chip family · card = everything that
+     frames or floats and is no entity (a button, field, box, dialog, popup, pick
+     card: the outer 3px). Entity frames and stamps are square (no radius). */
   --radius-pip: 1px;
   --radius-badge: 2px;
   --radius-card: 3px;
-  --radius-panel: 6px;
 
   /* The one page measure (`lib/pageMeasure.ts`): the reference pages' band
-     row, body and foot, and the Cantina pages that share their column. */
+     row, body and foot, and the app pages that share their column. */
   --page-measure: 75rem;
 
   /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder). Shared by
@@ -45,7 +44,7 @@
        note     11.5px small body copy in rails and insets
        caption  13px   small body copy — hints, empty states, subtitles
        lede     15px   emphasized inline values, inset titles
-     Nothing renders under 11px (ruleset §4.6, board 04 "raise the floor"):
+     Nothing renders under 11px (ruleset §4.6, R12):
      `bun run check styling` (tokens/type-floor) rejects any size under it. */
   --text-badge: 11px;
   --text-note: 11.5px;
@@ -72,7 +71,6 @@
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
   --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
 
   /* Font weights in use. */
   --font-weight-normal: 400;
@@ -109,43 +107,50 @@
   --color-pilot-light: rgb(245, 193, 163); /* #f5c1a3 */
   --color-mech: rgb(122, 151, 138); /* #7a978a */
   --color-crawler: rgb(206, 88, 152); /* #ce5898 */
-  /* Ink on colour (ruleset §3.8, board 03). Crawler pink carries neither ink
+  /* Ink on colour (ruleset §3.8). Crawler pink carries neither ink
      (4.2:1) nor paper (3.7:1) at 4.5:1, so a crawler band that carries paper
      text is this deeper pink: paper on it measures 4.6:1. */
   --color-crawler-band: rgb(184, 74, 134); /* #b84a86 */
-  /* The Denizens chapter band (board 05c) — navy, carrying paper text at
-     8.8:1. A chapter band only: Denizens cards keep the adversary brown. */
+  /* The navy band of the NPC designer and sheet and Play's
+     Mediator Scene, carrying paper text at 8.8:1. The Denizens chapter's
+     band is the adversary brown its cards wear. */
   --color-denizen-band: rgb(47, 74, 102); /* #2f4a66 */
   /* The 5th ontology domain — NOT the action rust (#a85222). It is the shared
      header tone for the world/opposition schemas: creatures, bio-titans,
-     factions, npcs, meld, squads. Named `adversary` so it never collides with
+     factions, npcs, meld, squads, and the Denizens chapter's band. Named `adversary` so it never collides with
      the one action colour. */
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 
-  /* Class ability-tier ramp (owner's call, 2026-10-13): Core = pilot orange,
+  /* Class ability-tier ramp: Core = pilot orange,
      Advanced and Hybrid = this rust, Legendary = crawler pink. Core and
      Legendary reuse the ontology hues. The tier rust is its own hue, never
      `var(--color-rust)` or its value: nothing may wear the action colour
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
+  /* A Hybrid Class's brown (R44), apart from the ability tiers' rust and the
+     adversary brown. It
+     carries paper text (design/__tests__/contrast.test.ts). */
+  --color-class-hybrid: rgb(107, 68, 35); /* #6b4423 */
+
+  /* The Heat guide's own red: its band and its tile. It
+     carries paper (design/__tests__/contrast.test.ts). */
+  --color-heat: rgb(166, 38, 34); /* #a62622 */
 
   /* Discord's dark blurple (its own button hover): the SRD home's Discord
-     button only, a one-off exception to the tone palette (owner's call,
-     2026-10-14). Discord's #5865f2 carries paper at 4.4:1, under AA; this
+     block and the Discord page's band and panels, the one exception to the
+     tone palette. Discord's #5865f2 carries paper at 4.4:1, under AA; this
      carries it at 6:1 (design/__tests__/contrast.test.ts). */
   --color-discord: rgb(71, 82, 196); /* #4752c4 */
 
-  /* Roll result tiers — canonical warm state palette (canonical primitive
-     language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll
-     outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
-     tier colour is a bot-only affordance. */
-  --color-roll-cascade: rgb(176, 67, 43); /* #b0432b */
-  --color-roll-failure: rgb(192, 122, 47); /* #c07a2f */
-  --color-roll-tough: rgb(193, 154, 62); /* #c19a3e */
-  --color-roll-success: rgb(111, 138, 74); /* #6f8a4a */
-  --color-roll-nailed: rgb(75, 134, 160); /* #4b86a0 */
+  /* Status (Intact / Damaged / Destroyed) — the warm state ramp. The Discord
+     bot's roll tiers share three of these values (`DISCORD_ROLL_ACCENT`, in
+     salvageunion-reference); the tiers are the bot's alone: the web never
+     colours a roll outcome or a notice by tier (ruleset §3.4, chrome K5). */
+  --color-status-ok: rgb(111, 138, 74); /* #6f8a4a */
+  --color-status-warn: rgb(192, 122, 47); /* #c07a2f */
+  --color-status-bad: rgb(176, 67, 43); /* #b0432b */
 
-  /* === the Cantina design-handoff tokens (design-spec §1.1) === */
+  /* === the app design-handoff tokens (design-spec §1.1) === */
   /* Ink / paper / action */
   --color-ink: rgb(40, 32, 25); /* #282019 */
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
@@ -157,7 +162,6 @@
   --color-ink-85: rgb(40 32 25 / 0.85);
   --color-ink-75: rgb(40 32 25 / 0.75);
   --color-ink-60: rgb(40 32 25 / 0.6);
-  --color-ink-55: rgb(40 32 25 / 0.55);
   --color-ink-50: rgb(40 32 25 / 0.5);
   --color-ink-40: rgb(40 32 25 / 0.4);
   --color-ink-35: rgb(40 32 25 / 0.35);
@@ -174,7 +178,7 @@
   /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
      a near-white warm paper, used universally (surfaces, value cells, and text
      on ink). The one #ffffff is the @media print sheet (physical paper).
-     The Dashboard cockpit is warm paper too (ruleset §1). */
+     Play's canvas is warm paper too (ruleset §1). */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
   /* Paper-opacity ramp — the mirror of the ink ramp above, for the surfaces
      where paper is the FOREGROUND (text and hairlines printed onto a tone or a
@@ -194,15 +198,12 @@
      banding — and nowhere else. */
   --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
-  /* A 25% rust wash. NOT the focus ring: as a ring it measured 1.42:1 against
-     the required 3:1 (see `.su-focus-ring` in index.css). */
-  --color-rust-25: rgb(168 82 34 / 0.25);
   /* One red for state: destructive/error surfaces resolve to
      `--color-status-bad` (ruleset §3.3). `--color-adversary` is an ONTOLOGY hue
      (creature/faction/NPC headers) and never does state's job. */
 
   /* Workshop (light) ground — the step off-paper that makes a card read as a
-     panel. The page ground is the book's own paper (ruleset §4.1, board 03):
+     panel. The page ground is the book's own paper (ruleset §4.1):
      the cover blue stopped being every page's ground and went back to being a
      chapter band (`--color-wk-line`). */
   --color-wk-bg: rgb(239, 236, 230); /* #efece6 */
@@ -214,7 +215,7 @@
      does not apply. The value is chosen against the DARKEST ground it can sit
      on (wk-bg-2), not against paper, because the same token is used on all three:
        #6b6257 → paper 5.73:1 · wk-bg 5.07:1 · wk-bg-2 4.68:1
-     Warm, like the paper it sits on (board 03), and lighter than
+     Warm, like the paper it sits on, and lighter than
      `--color-ink-2` (10.20:1 on paper), so the primary/secondary hierarchy
      holds. `contrast.test.ts` pins all three. */
   --color-wk-muted: rgb(107, 98, 87); /* #6b6257 */
@@ -229,20 +230,15 @@
   --color-caution: rgb(215, 195, 125); /* #d7c37d */
   --color-caution-25: rgb(215 195 125 / 0.25); /* Banner's caution wash */
 
-  /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
-  --color-status-ok: var(--color-roll-success);
-  --color-status-warn: var(--color-roll-failure);
-  --color-status-bad: var(--color-roll-cascade);
-
   /* Cargo (storage) accent pair */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
   --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
-  /* Sheet tones (Header C live sheets) — base + deep pairs */
+  /* Sheet tones (live sheets) — base + deep pairs */
   --color-sheet-pilot: var(--color-pilot); /* #ef894f */
   /* A LITERAL, never `var(--color-rust)`: rust means "do something" and
-     nothing else may alias it (ruleset §3.1, the rust allowlist). Board 03
-     rules that pilot-deep becomes ink — frames and deep chrome on a pilot
+     nothing else may alias it (ruleset §3.1, the rust allowlist). Pilot-deep
+     is ink — frames and deep chrome on a pilot
      sheet stay ink — so this holds ink's value, spelled out: the role is the
      sheet's deep tone, not "ink". */
   --color-sheet-pilot-deep: rgb(40, 32, 25); /* #282019 */
@@ -267,6 +263,18 @@
      `@media (prefers-reduced-motion: reduce)` backstop below this block is what
      makes the guarantee true, and it holds for a call site nobody remembered
      to mark. */
+
+  /* === Motion (chrome.md K3) === the only durations and the one easing:
+     `--dur-fast` for a state change (colour, opacity, a shadow), `--dur-base`
+     for a move (transform, a slide, a float), `--dur-phase` a screen's phase
+     changing (Play's bar and foot recolouring with the Situation), `--dur-loop`
+     the period of a loading loop. `bun run check styling` (chrome-tokens/raw-duration, raw-easing,
+     motion-loop) rejects any other. */
+  --dur-fast: 120ms;
+  --dur-base: 150ms;
+  --dur-phase: 400ms;
+  --dur-loop: 2s;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /*
@@ -309,25 +317,22 @@
   --foreground: var(--color-ink);
 
   /* Border-weight semantic tokens (design-spec §1.3 — load-bearing system):
-     entity = entity cards + hero header; rail = rail cards & Hold frames;
+     entity = entity cards + hero header;
      pill = pills / status badges / dividers / statins / sblock / counterpart
      panels; chrome = everything else (buttons, inputs, panels, rows, pips).
      entity-compact = the entity card's frame one size down (ruleset §4.3): the
-     frame steps 3 → 2 → 1.5px with size and depth. */
+     frame steps 3 → 2 → 1.5px with size and depth. poster = a poster's
+     frame (OgCard, BrandCard), twice the entity card's. */
   --bw-entity: 3px;
+  --bw-poster: 6px;
   --bw-entity-compact: 2px;
-  --bw-rail: 2.5px;
   --bw-pill: 2px;
   --bw-chrome: 1.5px;
   --bw-hairline: 1px;
 
-  /* The radius ends: square, and a full pill. */
-  --radius-none: 0px;
-  --radius-full: 9999px;
-
   /* The app's three Sizes (`styles/sizing.ts`, ruleset §4.7): the one height of
      every control drawn at that Size — a chip, a button, a field, a switch, a
-     search box, a Token. Siblings on a line share one Size, so they share one
+     search box, a Mini. Siblings on a line share one Size, so they share one
      height. Under a coarse pointer Compact takes the 44px touch floor (below). */
   --size-mini: 18px;
   --size-compact: 32px;
@@ -342,13 +347,19 @@
   --z-menu: 60;
   --z-skip: 100;
 
+  /* The one lift (chrome K4): what floats over the page — a popup, a Peek
+     plate, a toast, a dialog's stamp, the sticky sheet bar — casts this, warm
+     ink at opacity, never a neutral black. The focus ring
+     (`--focus-ring-shadow`) is the only other shadow; a ring or an inset frame
+     drawn with a spread-only box-shadow is a line, not a shadow. Literal ink
+     here so `shadow.lift` in tokens.ts can mirror it (`--color-ink-50`). */
+  --shadow-lift: 0 14px 28px -14px rgb(40 32 25 / 0.5);
+
   /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts). */
-  --space-0: 0px;
   --space-2: 2px;
   --space-4: 4px;
   --space-6: 6px;
   --space-8: 8px;
-  --space-10: 10px;
   --space-12: 12px;
   --space-14: 14px;
   --space-16: 16px;
@@ -360,10 +371,10 @@
   --space-48: 48px;
   --space-64: 64px;
 
-  /* The light speckle's overlay opacities (ruleset §3.5 "Texture", board
-     05c): ink blot and ink speck on a colour band, paper flecks on an ink
+  /* The light speckle's overlay opacities (ruleset §3.5 "Texture"): ink blot
+     and ink speck on a colour band, paper flecks on an ink
      ground. The SVG filters they modulate (`su-blot`, `su-speck`, `su-fleck`)
-     are `speckle` in tokens.ts. Never on paper, buttons, fields, the Dashboard
+     are `speckle` in tokens.ts. Never on paper, buttons, fields, Play
      or tooltips — `bun run check styling` (tokens/texture-placement). */
   --texture-blot-opacity: 0.4;
   --texture-speck-opacity: 0.35;
@@ -375,13 +386,14 @@
    `--sheet-tone` overrides the tone without redefining the grounds. */
 .su-sheet--pilot,
 .su-sheet--mech,
-.su-sheet--crawler {
+.su-sheet--crawler,
+.su-sheet--npc {
   --tone: var(--sheet-tone, var(--tone-default));
 }
 
 /* POSTER TEXT ON THE TONE — the `onTone` rule (ruleset §3.8) as two
-   variables per sheet, for the bands that carry text: the wizard banner, the
-   mode chooser's h1 and the guided ModeDoor.
+   variables per sheet, for the bands that carry text: the wizard banner and
+   the mode chooser's h1.
      --tone-band     the band a tone paints when it carries text (`textBand`):
                      the tone itself, or crawler pink's deeper crawler band.
      --on-tone-band  the foreground on it (`onTone`): ink or paper, whichever
@@ -415,12 +427,22 @@
   --on-tone-band: var(--color-paper);
 }
 
+/* The NPC designer's wizard (WizShell, hard rule R16) and a built NPC's
+   sheet (`LiveSheet`, R11): the Denizens navy. */
+.su-sheet--npc {
+  --tone-default: var(--color-denizen-band);
+  --tone-deep: var(--color-denizen-band);
+  --ground: oklch(from var(--tone) 0.955 0.02 h);
+  --tone-band: var(--tone);
+  --on-tone-band: var(--color-paper);
+}
+
 /* Mobile-first touch targets (ruleset §4.6: every target is at least 44px
-   under a coarse pointer). Every `.su-btn` size is on the floor, the anchors
+   under a coarse pointer, a menu's items included). Every `.su-btn` size is on the floor, the anchors
    `buttonVariants` dresses included. A mini button, a chip's +/- stepper, an interactive chip and a
    show page's band action (`.su-hit-area`, chip-sized on a phone) keep the size they are drawn at, so they are left off the floor here and
    reach it through the hit-area pseudo-element in partials/pointer-motion.css
-   instead, as the Dashboard pennant does. The floor lives only here, unlayered,
+   instead. The floor lives only here, unlayered,
    so it also outranks the apps' own (unlayered) stylesheets. */
 @media (pointer: coarse) {
   /* Compact controls sit on the touch floor, so a line of them (a chip beside a
@@ -431,13 +453,14 @@
 
   button:not(.su-btn--mini, .su-hit-area, .su-stat-step),
   [role='button']:not(.su-btn--mini, .su-hit-area, .su-stat-step),
+  [role='menuitem']:not(.su-btn--mini, .su-hit-area),
   input,
   select,
   textarea,
   .su-btn:not(.su-btn--mini, .su-hit-area),
   .su-union-bar__tab,
   .su-union-bar__brand {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: var(--size-full);
+    min-width: var(--size-full);
   }
 }

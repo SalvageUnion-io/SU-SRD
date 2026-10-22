@@ -15,7 +15,7 @@ import { convexAuth } from '@convex-dev/auth/server'
  *   bunx convex env set AUTH_DISCORD_ID <client-id>
  *   bunx convex env set AUTH_DISCORD_SECRET <client-secret>
  *
- * Signed out, the Cantina is read-only; building anything needs an account
+ * Signed out, the app is read-only; building anything needs an account
  * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions), as amended). Discord is
  * the only door for real users — see `testOnlyProviders` below for the one
  * exception and why it is not one.
@@ -110,7 +110,7 @@ function withoutNullFields(profile: User): User {
  *
  * ## Why it is not a second door into real accounts
  *
- * It is included **only** when `CANTINA_TEST_AUTH` is exactly `'true'` on the
+ * It is included **only** when `TEST_AUTH` is exactly `'true'` on the
  * deployment. Production never sets it, and `test/convex/__tests__/authProviders.test.ts`
  * asserts that a deployment without it exposes Discord and nothing else — an
  * assertion, not a comment, because a comment cannot fail.
@@ -129,10 +129,10 @@ function withoutNullFields(profile: User): User {
  *    — there is no request-time input that could flip it.
  *
  * **Read as a rule rather than a description: never make this conditional on
- * anything a request can influence, and never set `CANTINA_TEST_AUTH` on the
+ * anything a request can influence, and never set `TEST_AUTH` on the
  * production deployment.**
  */
-const testAuthEnabled = process.env.CANTINA_TEST_AUTH === 'true'
+const testAuthEnabled = process.env.TEST_AUTH === 'true'
 
 /**
  * Exported for the test that asserts production exposes Discord alone. Callers

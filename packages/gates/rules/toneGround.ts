@@ -9,7 +9,7 @@
  *
  * ## Why it reads the dataset, not the source
  *
- * Every header ground — Row, Card and Page, SRD and the Cantina — is the entity
+ * Every header ground — Compact, Card and Page, SRD and the app — is the entity
  * model's tone token (`entityTone`, `packages/salvageunion-reference/lib/view/
  * parts/fill.ts`), painted as `--color-<token>`. No source file spells a TL
  * ground out; the resolver builds it from data. So the rule asks the resolver,
@@ -44,6 +44,7 @@ export const DATA_DIR = 'packages/salvageunion-reference/data'
 const BOOK_TL_GROUNDS: Readonly<Record<string, string>> = {
   systems: 'Core Book pp. 162–164: each entry and index row in its tech level’s blue',
   modules: 'Core Book pp. 188–190: each entry and index row in its tech level’s blue',
+  chassis: 'a bio-chassis wears bio gear’s mutant green; no other chassis paints a TL',
 }
 
 /** Schemas whose headers still paint a TL ground, each with why. */

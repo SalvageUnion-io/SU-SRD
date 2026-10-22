@@ -1,15 +1,12 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { color } from '../../design/tokens'
 import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 import { publicShells, sitemapXml } from '../publicPages'
+import { markUnionRoute } from '../shellMeta'
 
 /**
  * The public pages (the front door, the Starter Set and each of its builds).
@@ -124,7 +121,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
   it('is the shell with only its meta block and title changed', () => {
     const strip = (html: string) =>
       html
-        .replace(/<!-- cantina:meta:start -->[\s\S]*<!-- cantina:meta:end -->/, '')
+        .replace(/<!-- app:meta:start -->[\s\S]*<!-- app:meta:end -->/, '')
         .replace(/<title>[^<]*<\/title>/, '')
     expect(strip(shellFor(path))).toBe(strip(SHELL))
   })
@@ -133,7 +130,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
 describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it('gives the Starter Set its own title and canonical', () => {
     const html = shellFor('/starter')
-    expect(title(html)).toBe('Starter Set · SalvageUnion.io')
+    expect(title(html)).toBe('Starter Set · Training Bay · SalvageUnion.io')
     expect(meta(html, 'description')).toContain('Reclamation of the Wastes')
     expect(canonical(html)).toEqual([`${PROD}${BASE}/starter`])
   })
@@ -150,10 +147,10 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it("keeps the front door's defaults and adds its canonical, inside the meta block", async () => {
     const res = await worker.fetch(crawl('/'), env())
     const html = await res.text()
-    expect(title(html)).toBe('The Cantina · SalvageUnion.io')
+    expect(title(html)).toBe('Training Bay · SalvageUnion.io')
     expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(canonical(html)).toEqual([`${PROD}${BASE}/`])
-    expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- cantina:meta:end -->'))
+    expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- app:meta:end -->'))
     expect(html.replace(/<link rel="canonical"[^>]*>\n\s*/, '')).toBe(SHELL)
     // Indexable, and the shell's own headers kept.
     expect(res.headers.get('x-robots-tag')).toBeNull()
@@ -189,10 +186,11 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
 })
 
 describe('a private or signed-in route gets no canonical', () => {
-  for (const path of ['/sheet/pilot/xyz', '/games/g1', '/pilots/new', '/settings']) {
+  for (const path of ['/sheet/pilot/xyz', '/play/games/g1', '/pilots/new', '/settings']) {
     it(`leaves ${path} as the shell, noindex`, async () => {
       const res = await worker.fetch(crawl(path), env())
-      expect(await res.text()).toBe(SHELL)
+      // The shell as every route gets it: its Union bar marked for the route.
+      expect(await res.text()).toBe(markUnionRoute(SHELL, path))
       expect(res.headers.get('x-robots-tag')).toBe('noindex')
     })
   }

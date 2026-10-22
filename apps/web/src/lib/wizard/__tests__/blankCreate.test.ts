@@ -7,9 +7,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
@@ -21,6 +21,18 @@ withSignedInBackend()
 
 beforeEach(resetStores)
 afterEach(resetStores)
+
+describe('createBlank — where it lands', () => {
+  test('started from a Game’s page, the unit lands in that Game (ADR-052 §3)', async () => {
+    const pilot = await createBlank('pilot', { name: 'Kestrel', callsign: 'K' }, { gameId: 'g1' })
+    const mech = await createBlank('mech', { name: 'Buzzard' }, { gameId: 'g1' })
+    const crawler = await createBlank('crawler', { name: 'Iron Mother' }, { gameId: 'g1' })
+    const store = useEntityStore.getState()
+    expect(store.get('pilot', pilot)?.gameId).toBe('g1')
+    expect(store.get('mech', mech)?.gameId).toBe('g1')
+    expect(store.get('crawler', crawler)?.gameId).toBe('g1')
+  })
+})
 
 describe('createBlank — pilot', () => {
   test('without a class pick: persists a schema-valid pilot with empty classRef', async () => {

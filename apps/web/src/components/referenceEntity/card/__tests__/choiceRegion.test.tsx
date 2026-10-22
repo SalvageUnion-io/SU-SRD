@@ -1,12 +1,12 @@
 /**
  * CHOICE REGION — an option that IS an entity sits inside its host card, so
- * it is that entity's Token (EDL N1, N2), never a head-only Row:
- * - read-only, every option is a Token that reads, and only the chosen one
- *   carries a "Chosen" seal on its line;
- * - editable, each Token IS the toggle (EDL Modes): `data-choice-toggle`
- *   marks it, it is pressed when chosen, an unchosen one is dimmed, and no
- *   seal is drawn;
- * - an editable catalog choice's pick is the picked entity's Token.
+ * it is that entity's Mini (EDL N1, N2), never a head-only Compact:
+ * - read-only, every option is a Mini that reads, and only the chosen one
+ *   wears the selection ring on its pill: level 2 is never sealed (R15);
+ * - editable, each Mini IS the toggle (EDL Modes): `data-choice-toggle`
+ *   marks it, it is pressed when chosen, an unchosen one wears the one select
+ *   dim, and no seal is drawn;
+ * - an editable catalog choice's pick is the picked entity's Mini.
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -27,42 +27,45 @@ const armamentBay = () =>
 const firstChoice = (entity: Parameters<typeof getChoices>[0]): RefObjectChoice =>
   need(getChoices(entity)?.[0], 'its first choice')
 
-/** The Token whose name is `name`, by its name element. */
+const RING = '0 0 0 3px var(--color-ink)'
+/** The ring a Mini's pill wears when its option is chosen. */
+const pillRing = (token: HTMLElement) =>
+  token.querySelector<HTMLElement>('.su-entity-mini__pill')?.style.boxShadow ?? ''
+
+/** The Mini whose name is `name`, by its name element. */
 function tokenNamed(container: HTMLElement, name: string): HTMLElement {
-  const names = [...container.querySelectorAll('.su-entity-token__name')]
+  const names = [...container.querySelectorAll('.su-entity-mini__name')]
   const match = names.find((el) => el.firstChild?.textContent === name)
-  const token = match?.closest<HTMLElement>('.su-entity-token')
-  if (!token) throw new Error(`no Token named ${name}`)
+  const token = match?.closest<HTMLElement>('.su-entity-mini')
+  if (!token) throw new Error(`no Mini named ${name}`)
   return token
 }
 
 describe('ChoiceRegion — read-only entity options', () => {
-  test('each option is a Token; the chosen one alone is sealed "Chosen" on its line', () => {
+  test('each option is a Mini; the chosen one alone is ringed, and none is sealed', () => {
     const choice = firstChoice(bionicSenses())
     const { container } = render(
       <ReferenceEntityCard data={bionicSenses()} selections={{ [choice.id]: ['Thermal Optics'] }} />
     )
-    const chosen = tokenNamed(container, 'Thermal Optics')
-    const line = chosen.parentElement
-    expect(line?.classList.contains('su-entity-token-line')).toBe(true)
-    expect(line?.textContent).toContain('Chosen')
-    expect(screen.getAllByText('Chosen')).toHaveLength(1)
-    // An unchosen option is a bare Token: no line, no seal.
-    const zoom = tokenNamed(container, 'Zoom Optics')
-    expect(zoom.parentElement?.classList.contains('su-entity-token-line')).toBe(false)
+    expect(pillRing(tokenNamed(container, 'Thermal Optics'))).toBe(RING)
+    expect(pillRing(tokenNamed(container, 'Zoom Optics'))).toBe('')
+    // Level 2 is ring only (hard rule R15): no seal, no seal line.
+    expect(screen.queryByText('Chosen')).toBeNull()
+    expect(screen.queryByText('Selected')).toBeNull()
+    expect(container.querySelector('.su-entity-mini-line')).toBeNull()
     // Read-only, nothing is a toggle.
     expect(container.querySelector('[data-choice-toggle]')).toBeNull()
     expect(container.querySelector('[aria-pressed]')).toBeNull()
   })
 
-  test('with nothing chosen, no option is sealed', () => {
-    render(<ReferenceEntityCard data={bionicSenses()} />)
-    expect(screen.queryByText('Chosen')).toBeNull()
+  test('with nothing chosen, no option is ringed', () => {
+    const { container } = render(<ReferenceEntityCard data={bionicSenses()} />)
+    expect(pillRing(tokenNamed(container, 'Thermal Optics'))).toBe('')
   })
 })
 
 describe('ChoiceRegion — editable entity options', () => {
-  test('each Token is the toggle: pressed when chosen, unchosen ones dimmed, no seal', () => {
+  test('each Mini is the toggle: pressed and ringed when chosen, unchosen ones dimmed, no seal', () => {
     const choice = firstChoice(bionicSenses())
     const { container } = render(
       <ReferenceEntityCard
@@ -77,8 +80,9 @@ describe('ChoiceRegion — editable entity options', () => {
     const zoom = screen.getByRole('button', { name: 'Zoom Optics' })
     expect(thermal.getAttribute('aria-pressed')).toBe('true')
     expect(zoom.getAttribute('aria-pressed')).toBe('false')
-    expect(thermal.classList.contains('su-ec-outer--unselectable')).toBe(false)
-    expect(zoom.classList.contains('su-ec-outer--unselectable')).toBe(true)
+    expect(thermal.classList.contains('su-select-dim')).toBe(false)
+    expect(zoom.classList.contains('su-select-dim')).toBe(true)
+    expect(pillRing(thermal)).toBe(RING)
     // The pressed state is the mark: no "Chosen" seal beside a toggle.
     expect(screen.queryByText('Chosen')).toBeNull()
   })
@@ -99,7 +103,7 @@ describe('ChoiceRegion — editable entity options', () => {
 })
 
 describe('ChoiceRegion — an editable catalog pick', () => {
-  test("the picked entity is its Token, above the picker's Change button", () => {
+  test("the picked entity is its Mini, above the picker's Change button", () => {
     const choice = firstChoice(armamentBay())
     const { container } = render(
       <ReferenceEntityCard

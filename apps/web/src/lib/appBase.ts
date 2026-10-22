@@ -1,5 +1,5 @@
 /**
- * The Cantina's base on salvageunion.io (ADR-048): every path under
+ * The app's base on salvageunion.io (ADR-048): every path under
  * {@link APP_BASE} is the app's, everything else the reference pages'.
  *
  * The one home of the base. No imports: the service worker's options
@@ -8,11 +8,11 @@
  * ship to every page. The origins and absolute links are `site.ts`'s.
  */
 
-/** The path every Cantina URL starts with, without a trailing slash. */
+/** The path every app URL starts with, without a trailing slash. */
 export const APP_BASE = '/build'
 
 /**
- * A Cantina route as a path on the site: `appPath('/starter')` is
+ * An app route as a path on the site: `appPath('/starter')` is
  * `/build/starter`, `appPath('/')` the app's front door, `/build/`.
  */
 export function appPath(route: string): string {
@@ -21,9 +21,10 @@ export function appPath(route: string): string {
 
 /**
  * The route inside the app a site path names (`/build/p/mech/x` →
- * `/p/mech/x`, `/build` → `/`), or null for a path outside it.
+ * `/p/mech/x`, `/build` → `/`), or null for a path outside it. `base` is
+ * {@link APP_BASE}; a Worker test mounts the app at the root with `''`.
  */
-export function routeInApp(pathname: string): string | null {
-  if (pathname === APP_BASE) return '/'
-  return pathname.startsWith(`${APP_BASE}/`) ? pathname.slice(APP_BASE.length) : null
+export function routeInApp(pathname: string, base: string = APP_BASE): string | null {
+  if (pathname === base) return '/'
+  return pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : null
 }

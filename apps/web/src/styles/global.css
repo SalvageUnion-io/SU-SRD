@@ -1,10 +1,12 @@
 /*
- * srd's own rules. The fonts, the token set, the reset and the package
+ * the reference site's own rules. The fonts, the token set, the reset and the package
  * stylesheet are the base stylesheet (`base.css`), which every page links
  * before this one.
  */
 /* The page layouts. */
 @import './pages.css';
+/* The Discord page's screenshots, in Discord's colours. */
+@import './discord-reply.css';
 
 /* The Union bar's account controls (`lib/accountBar.ts`): Sign in gives way
    to the account menu while somebody is signed in, and an account island that
@@ -17,99 +19,155 @@ html[data-srd-signed-in] .su-sign-in {
   display: none;
 }
 
-/* Buttons, masthead, section headers and catalog tiles are the UI library's
-   (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
-   class restates them. */
+/* Buttons, masthead and section headers are the UI library's (`Button`,
+   `AppBar`, `ChapterBand` / `Slab`); no srd class restates them. */
+
+/*
+ * The /about junk slab (ruleset §3.5's one illustration): a torn-off hull
+ * panel, olive paint gone to rust at the edges, with the dedication carved
+ * through the paint into the bare steel underneath.
+ */
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .su-pilot-panel-shadow {
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3))
-    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.22));
 }
 
-/* Riveted metal panel (about page) — rusty scrap metal */
+/* The panel's torn outline: sheared corners, a bite out of the top edge */
 .su-pilot-panel {
   position: relative;
+  overflow: hidden;
   clip-path: polygon(
-    /* Top edge — slight bend left of center, nick near right */ 0% 2.5%,
-    38% 0%,
-    72% 1.8%,
-    100% 0.4%,
-    /* Right edge — one kink */ 100% 38%,
-    98.5% 65%,
-    100% 100%,
-    /* Bottom edge — two bends */ 68% 97.5%,
-    25% 100%,
-    0% 98%,
-    /* Left edge — one kink */ 0.8% 58%,
-    0% 2.5%
+    /* Top edge — sheared corner, a torn bite right of centre */ 0% 6%,
+    3% 0%,
+    41% 1.5%,
+    58% 0.5%,
+    61% 4%,
+    64.5% 1%,
+    96% 0%,
+    100% 5%,
+    /* Right edge — buckled */ 99% 44%,
+    100% 71%,
+    98.8% 100%,
+    /* Bottom edge — ragged */ 74% 98%,
+    46% 100%,
+    18% 97.8%,
+    1.5% 100%,
+    /* Left edge — one kink */ 0.6% 61%,
+    0% 6%
   );
 }
 
-/* Beveled edge — top/left light catch, bottom/right dark underside */
+/* Beveled edge — top light catch, bottom/right dark underside */
 .su-pilot-panel::after {
   content: '';
   position: absolute;
   inset: 0;
   clip-path: inherit;
-  border-top: 2px solid rgba(255, 255, 255, 0.12);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.25);
-  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 2px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.35);
+  border-right: 2px solid rgba(0, 0, 0, 0.25);
   pointer-events: none;
   z-index: 3;
 }
 
-/* Metal background as pseudo-element so filter doesn't affect rivets/text */
+/* The paint and the metal, as a pseudo-element so its grain filter leaves the
+   carving alone */
 .su-pilot-panel::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-/* Heavy rust blooms */
-    radial-gradient(
-      ellipse 50% 30% at 10% 80%,
-      rgba(120, 50, 12, 0.7) 0%,
-      rgba(140, 65, 20, 0.3) 50%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 40% 35% at 90% 10%,
-      rgba(135, 55, 15, 0.65) 0%,
-      rgba(150, 70, 25, 0.25) 50%,
-      transparent 100%
-    ),
-    radial-gradient(
-      ellipse 60% 25% at 50% 95%,
-      rgba(110, 45, 10, 0.6) 0%,
-      rgba(130, 60, 20, 0.2) 55%,
-      transparent 100%
-    ),
-    radial-gradient(ellipse 30% 40% at 2% 20%, rgba(100, 40, 10, 0.55) 0%, transparent 100%),
-    radial-gradient(ellipse 25% 25% at 72% 55%, rgba(125, 52, 14, 0.5) 0%, transparent 100%),
-    /* Metallic base — steel grey */
-    linear-gradient(160deg, #8a8480 0%, #7e7872 30%, #868078 50%, #7a746e 70%, #827c76 100%);
+    /* Two pressed stiffener ribs, lit along the top, shaded beneath */
+    linear-gradient(
+      180deg,
+      transparent 9px,
+      rgba(255, 250, 230, 0.1) 9px,
+      rgba(255, 250, 230, 0.04) 12px,
+      rgba(0, 0, 0, 0.22) 22px,
+      transparent 24px
+    )
+    0 0 / 100% 24px no-repeat,
+    linear-gradient(
+      180deg,
+      transparent 0,
+      rgba(255, 250, 230, 0.1) 0,
+      rgba(255, 250, 230, 0.04) 3px,
+      rgba(0, 0, 0, 0.22) 13px,
+      transparent 15px
+    )
+    0 calc(100% - 9px) / 100% 15px no-repeat,
+    /* Old scrapes through the paint */
+    linear-gradient(168deg, transparent 31.5%, rgba(196, 190, 178, 0.2) 31.75%, transparent 32%),
+    linear-gradient(-7deg, transparent 72.2%, rgba(196, 190, 178, 0.16) 72.4%, transparent 72.6%),
+    /* A dent: its far wall lit, its near wall in shadow */
+    radial-gradient(ellipse 7% 22% at 86.5% 38%, rgba(255, 250, 230, 0.12) 0%, transparent 100%),
+    radial-gradient(ellipse 7% 22% at 88% 42%, rgba(0, 0, 0, 0.28) 0%, transparent 100%),
+    /* Rust bleeding in from the torn edges */
+    radial-gradient(ellipse 22% 40% at 0% 100%, rgba(122, 52, 16, 0.85) 0%, transparent 100%),
+    radial-gradient(ellipse 18% 30% at 100% 0%, rgba(132, 58, 18, 0.8) 0%, transparent 100%),
+    radial-gradient(ellipse 14% 22% at 61% 0%, rgba(128, 54, 16, 0.75) 0%, transparent 100%),
+    radial-gradient(ellipse 30% 18% at 70% 100%, rgba(116, 48, 14, 0.7) 0%, transparent 100%),
+    radial-gradient(ellipse 8% 30% at 100% 65%, rgba(120, 50, 15, 0.6) 0%, transparent 100%),
+    /* Rust streaks run down from the bolts */
+    linear-gradient(180deg, transparent 4%, rgba(118, 54, 20, 0.35) 9%, transparent 34%) 3% 0 / 3%
+    100% no-repeat,
+    linear-gradient(180deg, transparent 4%, rgba(118, 54, 20, 0.3) 9%, transparent 28%) 70.5% 0 /
+    2.5% 100% no-repeat,
+    /* Sun-faded olive paint */
+    radial-gradient(ellipse 60% 70% at 40% 35%, rgba(255, 250, 225, 0.07) 0%, transparent 100%),
+    linear-gradient(172deg, #5a5d47 0%, #51543f 35%, #4b4e3a 65%, #44473a 100%);
   filter: url(#plate-damage);
   z-index: 0;
+}
+
+/* Paint chipped back to rust: a thresholded noise mask over a rust ground */
+.su-pilot-panel-chips {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #5e3018 0%, #74401f 50%, #4e2814 100%);
+  filter: url(#paint-chips);
+  /* The paint holds in the middle and gives way toward the torn edges */
+  mask-image: radial-gradient(ellipse 70% 75% at 50% 50%, transparent 35%, #000 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* A worn hazard stencil, half scraped off the panel's corner */
+.su-pilot-panel-stencil {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 168px;
+  height: 30px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(186, 152, 54, 0.4) 0 10px,
+    rgba(28, 26, 20, 0.3) 10px 20px
+  );
+  filter: url(#paint-peel);
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Standard rivet — hand-hammered look */
 .su-rivet {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #6e6458 0%, #5a5044 60%, #4a4038 100%);
+  background: radial-gradient(circle at 40% 40%, #6e6a5a 0%, #55513f 60%, #403d30 100%);
   box-shadow:
-    inset 0 -1px 1px rgba(0, 0, 0, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.5);
+    inset 0 -1px 1px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.55);
   z-index: 2;
 }
 
-/* Worn rivet — more corroded, flatter highlight */
+/* Worn rivet — rusted over, flatter highlight */
 .su-rivet-worn {
-  background: radial-gradient(circle at 45% 45%, #5e5548 0%, #4d4438 60%, #3e362c 100%);
+  background: radial-gradient(circle at 45% 45%, #7a4a2a 0%, #5e3820 60%, #45281a 100%);
   box-shadow:
     inset 0 -1px 2px rgba(0, 0, 0, 0.6),
-    0 1px 1px rgba(0, 0, 0, 0.3);
+    0 1px 1px rgba(0, 0, 0, 0.35);
 }
 
 /* Green patina rivet — oxidized copper/brass */
@@ -117,15 +175,15 @@ html[data-srd-signed-in] .su-sign-in {
   background: radial-gradient(circle at 40% 40%, #6a7a58 0%, #556848 60%, #445538 100%);
   box-shadow:
     inset 0 -1px 1px rgba(0, 0, 0, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.4);
+    0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 /* Flush rivet — hammered flat, barely raised */
 .su-rivet-flush {
-  background: radial-gradient(circle at 50% 50%, #747068 0%, #5e5a52 70%, #4a4640 100%);
+  background: radial-gradient(circle at 50% 50%, #84806e 0%, #66624f 70%, #4c4a3c 100%);
   box-shadow:
-    inset 0 0 2px rgba(0, 0, 0, 0.4),
-    0 0 1px rgba(0, 0, 0, 0.3);
+    inset 0 0 2px rgba(0, 0, 0, 0.45),
+    0 0 1px rgba(0, 0, 0, 0.35);
 }
 
 /* Missing rivet — empty hole where one was torn out */
@@ -134,63 +192,46 @@ html[data-srd-signed-in] .su-sign-in {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, #2a2420 0%, #3a3430 80%);
+  background: radial-gradient(circle at 50% 50%, #14120e 0%, #2a2620 80%);
   box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.8),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+    inset 0 1px 2px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.08);
   z-index: 2;
 }
 
-/* Metal panel separator line */
-.su-metal-separator {
+/* A scratched rule between the carved lines: a gouge of bright steel under
+   the paint's shadowed lip, fading out where the blade lifted */
+.su-carved-rule {
   border: none;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.2) 20%,
-    rgba(0, 0, 0, 0.2) 80%,
+    rgba(200, 194, 182, 0.55) 9%,
+    rgba(214, 208, 196, 0.7) 50%,
+    rgba(200, 194, 182, 0.5) 88%,
     transparent 100%
   );
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
 }
 
-/* Engraved text on metal — worn paint effect */
-.su-engraved-text {
-  color: #1a1510;
-  text-shadow:
-    0 -1px 1px rgba(0, 0, 0, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.1),
-    0 2px 3px rgba(0, 0, 0, 0.15);
-  filter: url(#paint-peel);
+/* Lettering carved through the paint into the steel: each stroke is a groove,
+   dark where the paint's lip shades its top wall, bright where its floor and
+   lower wall catch the light, with a pale burr along the lower edge */
+.su-carved-text {
+  background: linear-gradient(180deg, #2e2c25 0%, #5c584c 30%, #b2ac9c 52%, #e4dece 72%);
+  /* One groove per line, so a wrapped line is cut the same as the first */
+  background-size: 100% 1lh;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  /* Drop shadows, not text-shadow: a text-shadow paints over a clipped
+     background and would darken the steel */
+  filter: url(#carve-rough) drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.75))
+    drop-shadow(0 1px 0 rgba(236, 230, 214, 0.35));
 }
 
-/*
- * The reference pages' print rules, over the shared `data-print` vocabulary
- * and chrome rule in `base.css`.
- */
-@media print {
-  body,
-  main {
-    /* biome-ignore lint/complexity/noImportantStyles: print override must beat package rules and inline backgrounds regardless of specificity/layer */
-    background: #fff !important;
-    /* biome-ignore lint/complexity/noImportantStyles: print override must beat package rules and inline colors regardless of specificity/layer */
-    color: #000 !important;
-  }
-  /* Page chrome — the Footer's <footer>; `base.css` hides TopNavigation's two
-     <nav> elements, and MobileNavIsland and SearchIsland inside them. */
-  footer {
-    /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display rules */
-    display: none !important;
-  }
-  main a {
-    text-decoration: none;
-    color: inherit;
-  }
-  /* Browsers strip backgrounds when printing, so light-on-dark labels
-     (pseudoheaders, NPC name spans) would print white-on-white. Force dark.
-     `.su-print-ink` marks the srd ones whose paper text is a style object. */
-  main .su-print-ink {
-    /* biome-ignore lint/complexity/noImportantStyles: must out-rank the inline paper colour it deliberately inverts for print */
-    color: #000 !important;
-  }
+/* The map link inside a carved line is cut the same: no paint of its own */
+.su-carved-text a {
+  color: inherit;
 }

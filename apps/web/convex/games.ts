@@ -24,6 +24,9 @@ import { gameSummary } from './schema'
  * The personal **Shelf** is the other container and is not a Game: it is simply
  * the absence of one (`gameId: null` on an entity), which is why there is no
  * `shelves` table.
+ *
+ * What goes when a Game is deleted is `GAME_APPARATUS_TABLES` and
+ * `deleteGameApparatus` in `model/seats.ts`, next to the seat cleanup.
  */
 
 /** Shape returned to the client for a Game the caller belongs to. */
@@ -54,10 +57,10 @@ type GameSummary = Infer<typeof gameRead>
  * reader can check the consequence against the table before ending it.
  *
  * They come from `games.summary`, which the triggers in `model/entities.ts`
- * keep current, rather than from counting here. Counting here meant collecting
+ * keep current, rather than from counting here. Counting here would collect
  * every membership, pilot, mech and crawler of every Game the caller belongs
  * to on each run — and because this is a reactive query, reading those rows
- * subscribed every Game list to every sheet in every one of those Games.
+ * would subscribe every Game list to every sheet in every one of those Games.
  */
 async function summarize(
   ctx: QueryCtx,
@@ -166,23 +169,20 @@ export const create = mutation({
  * Every entity falls back to a shelf — the third row of ADR-030 §2's ownership
  * table, `gameId: null` with an owner — rather than dying with the Game:
  *
- * | What                           | Where it lands                  |
- * | ------------------------------ | ------------------------------- |
- * | a pilot or mech with an owner   | that owner's shelf             |
- * | an **unclaimed** pilot or mech  | the deleting Organizer's shelf |
- * | every **crawler**               | the deleting Organizer's shelf |
- * | every **encounter NPC**         | the deleting Organizer's shelf |
+ * | What                                | Where it lands                 |
+ * | ----------------------------------- | ------------------------------ |
+ * | a pilot, mech or NPC with an owner  | that owner's shelf             |
+ * | an **unclaimed** pilot, mech or NPC | the deleting Organizer's shelf |
+ * | every **crawler**                   | the deleting Organizer's shelf |
+ * | every **encounter NPC**             | the deleting Organizer's shelf |
  *
- * The first row is the oldest rule here and the one that matters most: deleting
- * a campaign must never delete somebody's character.
+ * The first row is the one that matters most: deleting a campaign must never
+ * delete somebody's character.
  *
- * The other two are what the previous version got wrong. It deleted unclaimed
- * entities and crawlers outright, reasoning that they had no shelf to fall back
- * to — true when it was written, because both need a shelf row carrying an
- * owner and the crawler had no `ownerId` column at all. Both are expressible
- * now (see `schema.ts`), so both fall back, and the receiving shelf is the
- * **deleter's**: they are the one person guaranteed to exist, and the one
- * looking at the consequence as it happens.
+ * Nothing is deleted outright: an unclaimed entity or a crawler has a shelf to
+ * fall back to too, since a shelf row carries an owner (see `schema.ts`), and
+ * the receiving shelf is the **deleter's**: they are the one person
+ * guaranteed to exist, and the one looking at the consequence as it happens.
  *
  * Note this is the moment a crawler stops being communal. Inside a Game it has
  * no owner by design (ADR-030 §5); on a shelf it must have one, because an entity with
@@ -199,49 +199,23 @@ export const destroy = mutation({
     const membership = await requireOrganizer(ctx, args.gameId)
     const organizerId = membership.userId
 
-    // Built NPCs are owned like pilots, so they fall back the same way.
-    for (const table of ['pilots', 'mechs', 'npcs'] as const) {
+    // Every entity row falls back to a shelf. Anything already owned keeps its
+    // owner. An unclaimed pilot, mech or NPC has none to keep, and a crawler or
+    // tray NPC never has one inside a Game (`ownerId: null` is what communal
+    // means there, ADR-030 §5, ADR-034 decision 2), so the deleting Organizer
+    // receives each of those: a Game may have several Mediators or none, while
+    // the deleter is exactly one person who exists.
+    for (const table of ['pilots', 'mechs', 'npcs', 'crawlers', 'encounterNpcs'] as const) {
       const rows = await ctx.db
         .query(table)
         .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
         .collect()
       for (const row of rows) {
-        // An unclaimed entity has no owner to fall back to, so the Organizer
-        // becomes one. Anything already owned keeps its owner untouched.
         await ctx.db.patch(row._id, {
           gameId: null,
           ownerId: row.ownerId ?? organizerId,
         })
       }
-    }
-
-    // The crawler is communal in a Game and owned on a shelf — see above.
-    // `ownerId` is unconditionally the Organizer because a crawler in a Game
-    // never carried one to preserve.
-    const crawlers = await ctx.db
-      .query('crawlers')
-      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-      .collect()
-    for (const crawler of crawlers) {
-      await ctx.db.patch(crawler._id, { gameId: null, ownerId: organizerId })
-    }
-
-    // The Mediator's prepared opposition falls back for the same reason the
-    // crawler does, and it became able to only in the same way: `encounterNpcs`
-    // gained a nullable `gameId` and an `ownerId` (ADR-034 decision 2), so a
-    // tray is not something only a Game can hold, and deleting it would throw
-    // away prep work somebody genuinely built — exactly what the rule above
-    // forbids.
-    //
-    // It goes to the Organizer rather than to whoever mediated: a Game may have
-    // several Mediators or none, while the deleter is by construction exactly
-    // one person who exists.
-    const npcs = await ctx.db
-      .query('encounterNpcs')
-      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
-      .collect()
-    for (const npc of npcs) {
-      await ctx.db.patch(npc._id, { gameId: null, ownerId: organizerId })
     }
 
     // A pattern shared with this Game's crew stays its maker's and falls back

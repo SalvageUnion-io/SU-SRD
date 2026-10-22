@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { formatCite, formatProvenance } from '../parts/cite'
+import { citeLine, entityCite, formatCite, formatProvenance } from '../parts/cite'
 
 describe('formatCite', () => {
   test('prints the core book by its title-page name', () => {
@@ -44,5 +44,32 @@ describe('formatProvenance', () => {
     expect(formatProvenance('Salvage Union Starter Set', 'PC', 26)).toBe(
       'Salvage Union Starter Set (PC) · p.26'
     )
+  })
+})
+
+describe('citeLine (every printing on one line)', () => {
+  test('the book first, then each reprint, "//" between, with no "Also in"', () => {
+    expect(
+      citeLine([
+        { book: 'Workshop Manual', page: 65 },
+        { book: 'Salvage Union Starter Set (CR)', page: 37 },
+      ])
+    ).toBe('Workshop Manual · p.65 // Salvage Union Starter Set (CR) · p.37')
+  })
+
+  test('one printing is its cite alone; none is nothing', () => {
+    expect(citeLine([{ book: 'Workshop Manual', page: 112 }])).toBe('Workshop Manual · p.112')
+    expect(citeLine([])).toBeUndefined()
+  })
+
+  test("an entity's citation is that line, its reprints after the book", () => {
+    const cite = entityCite({
+      id: 'x',
+      name: 'X',
+      source: 'Salvage Union Workshop Manual',
+      page: 48,
+      additionalSources: [{ source: 'Salvage Union Starter Set', booklet: 'PC', page: 12 }],
+    } as never)
+    expect(cite.citation).toBe('Workshop Manual · p.48 // Salvage Union Starter Set (PC) · p.12')
   })
 })

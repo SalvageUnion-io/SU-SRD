@@ -23,10 +23,10 @@
  * "COPY OF" anything.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { moveTo } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
+import { moveTo } from 'game-domain/container'
+import type { SheetKind } from 'game-domain/entityKinds'
 import { useEntityStore } from '../../stores/entityStore'
-import type { StarterKind } from './starterTemplates'
 import { starterTemplate } from './starterTemplates'
 
 /**
@@ -35,7 +35,7 @@ import { starterTemplate } from './starterTemplates'
  * does.
  */
 export async function copyStarter(
-  kind: StarterKind,
+  kind: SheetKind,
   templateId: string,
   to: Container
 ): Promise<{ id: string; name: string }> {

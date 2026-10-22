@@ -1,5 +1,6 @@
-import type { MechDerived, PilotDerived, SheetVitals } from 'cantina-domain/botWire'
-import type { MechStatus, PilotStatus } from 'cantina-domain/rules/crewStatus'
+import { v } from 'convex/values'
+import type { MechDerived, PilotDerived, SheetVitals } from 'game-domain/botWire'
+import type { MechStatus, PilotStatus } from 'game-domain/rules/crewStatus'
 import {
   mechMaxima,
   mechNeedsAttention,
@@ -7,26 +8,26 @@ import {
   pilotMaxima,
   pilotNeedsAttention,
   pilotStatus,
-} from 'cantina-domain/rules/crewStatus'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import { v } from 'convex/values'
+} from 'game-domain/rules/crewStatus'
+import { MechSchema } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { linkIdOf } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
-import { mirrors } from './schema'
+import { mirrors } from './model/validators'
 
 /**
  * Crew visibility inside a Game (ADR-030 §5), and the crew's derived
  * status (ADR-038 §4).
  *
- * Every member sees every crewmate's **vitals** live: the Dashboard's Crew tab,
+ * Every member sees every crewmate's **vitals** live: Play's Crew,
  * the Game hub's crew strip and the Mediator's proposal form all read this
  * query. Drill-in is the live sheet (`/sheet/$kind/$id`), read-only for a
  * crewmate's. What stays hidden is the Mediator's prepared opposition — that
@@ -37,14 +38,14 @@ import { mirrors } from './schema'
  *
  * Max HP, AP, SP, EP and Heat, and each crewmate's status (dead, injured,
  * ejected; destroyed, shut down, overheating, destroyed systems and modules),
- * are computed here with the rules the client uses (`cantina-domain/rules/crewStatus`
+ * are computed here with the rules the client uses (`game-domain/rules/crewStatus`
  * over `salvageunion-reference/rules`), from the stored records and the seats.
  * One answer for the whole table: the Crew tab's ▲ and red outlines read it,
  * so every client agrees on who needs looking at. Nothing derived is stored.
  * Convex loads the reference data the rules need itself
  * (`model/referenceData.ts`). The derivation is `crewDeriver` below, which
  * the Discord bot's `/su sheet` reads too (`sheetVitals`, `botClient.sheet`),
- * so the bot, the Crew tab and the Dashboard agree on a crewmate's numbers.
+ * so the bot, the Game hub and Play agree on a crewmate's numbers.
  *
  * ## Why vitals are a separate, narrow query
  *
@@ -60,12 +61,12 @@ import { mirrors } from './schema'
 const nullableNumber = v.union(v.number(), v.null())
 const nullableString = v.union(v.string(), v.null())
 
-/** `PilotStatus` (cantina-domain/rules/crewStatus). */
+/** `PilotStatus` (game-domain/rules/crewStatus). */
 const pilotStatusValidator = mirrors<PilotStatus>()(
   v.object({ dead: v.boolean(), injured: v.boolean(), ejected: v.boolean() })
 )
 
-/** `MechStatus` (cantina-domain/rules/crewStatus). */
+/** `MechStatus` (game-domain/rules/crewStatus). */
 const mechStatusValidator = mirrors<MechStatus>()(
   v.object({
     destroyed: v.boolean(),
@@ -98,7 +99,7 @@ export const mechDerived = mirrors<MechDerived>()(
 )
 
 /** The records a derivation reads: one container's pilots, crawlers, links and seats. */
-export type CrewRecords = {
+type CrewRecords = {
   pilots: Doc<'pilots'>[]
   crawlers: Doc<'crawlers'>[]
   links: Doc<'softLinks'>[]
@@ -111,7 +112,7 @@ export type CrewRecords = {
  * Bodies are parsed once: a mech's maxima read the abilities of the pilot
  * flying it, so every pilot is parsed up front and looked up by row.
  */
-export function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
+function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
   loadReferenceData()
 
   const crawlerTech = new Map<string, { techLevel: string }>()
@@ -172,7 +173,7 @@ export function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
     }
     const mech = parsed.data
     const id = linkIdOf(row) ?? null
-    // The pilot aboard it, else the pilot assigned to it, as the Dashboard
+    // The pilot aboard it, else the pilot assigned to it, as Play
     // reads its own mech: their abilities, and the effects their seat has on.
     const pilotId = id === null ? undefined : (boarderOf.get(id) ?? pilotOfMech.get(id))
     const piloting = pilotId === undefined ? undefined : parsedPilots.get(pilotId)
@@ -266,6 +267,7 @@ export const vitals = query({
         currentAP: nullableNumber,
         boarded: v.boolean(),
         mechId: nullableString,
+        lastSeenAt: nullableNumber,
         ...pilotDerived.fields,
       })
     ),
@@ -351,13 +353,15 @@ export const vitals = query({
           linkId: id,
           ownerId: p.ownerId,
           ownerName: p.ownerId === null ? null : (names.get(p.ownerId) ?? null),
-          name: ((p.body as Record<string, unknown> | null)?.callsign as string) ?? 'Pilot',
+          name: entityNameOf('pilot', p.body) ?? 'Pilot',
           currentHP: num(p.body, 'currentHP'),
           currentAP: num(p.body, 'currentAP'),
           /** True when their seat has them aboard `mechId`. */
           boarded: boarded !== null,
           /** The mech they are aboard, else the one assigned to them (`mech-to-pilot`). */
           mechId: boarded ?? (id === null ? null : (mechOfPilot.get(id) ?? null)),
+          /** Their seat's last presence heartbeat (`seats.heartbeat`, `isPresent`), or null. */
+          lastSeenAt: seat?.lastSeenAt ?? null,
           ...derivePilot(p),
         }
       }),
@@ -370,7 +374,7 @@ export const vitals = query({
           linkId: id,
           ownerId: m.ownerId,
           ownerName: m.ownerId === null ? null : (names.get(m.ownerId) ?? null),
-          name: ((m.body as Record<string, unknown> | null)?.name as string) ?? 'Mech',
+          name: entityNameOf('mech', m.body) ?? 'Mech',
           currentSP: num(m.body, 'currentSP'),
           currentEP: num(m.body, 'currentEP'),
           currentHeat: num(m.body, 'currentHeat'),

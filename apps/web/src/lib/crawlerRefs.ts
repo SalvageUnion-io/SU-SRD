@@ -2,7 +2,7 @@
  * Shared crawler reference-data lookups.
  *
  * The crawler wizard (lib/wizard/crawlerFormState.ts) and the live sheet
- * (components/sheet/CrawlerSheet.tsx) both need to resolve a stored crawler
+ * (build/sheet/CrawlerSheet.tsx) both need to resolve a stored crawler
  * type / bay slug to its SRD entity, and to find an NPC's freeform choice by
  * name (Keepsake / Motto). These helpers are the single source of truth so
  * both surfaces stay in lockstep.

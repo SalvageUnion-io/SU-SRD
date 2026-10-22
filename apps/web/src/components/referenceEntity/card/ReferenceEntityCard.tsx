@@ -15,26 +15,22 @@ import {
   resolveActivationCurrency,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
-import { fontSize, space } from '../../../design/tokens'
-import { useDisclosure } from '../../../lib/useDisclosure'
+import { space } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
-import type { CardExtent, CardSize } from '../../containers/displayMode'
-import { resolveCardDisplay } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
-import { Chips } from '../../entity/parts/Chips'
-import type { ChipSet } from '../../entity/parts/chipSet'
+import type { ChipSet } from '../../entity'
+import { Chips } from '../../entity'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
+import { useEntityExternalLink, useEntitySurface } from '../../entity/entitySurfaceContext'
+import { SelectedSeal } from '../../entity/modes/select'
 import { InsidePeekContext } from '../../entity/peekContext'
-import { useEntityExternalLink } from '../entityHrefContext'
-import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
-import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
+import { treeRelationNodes } from './abilityTreeRelations'
 import { CardHead } from './CardHead'
-import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
-import { CardPennant } from './CardPennant'
-import { CardTopRail } from './CardTopRail'
+import { CardTitleLink } from './CardTitleLink'
 import type { CardBodyInput } from './cardBodyProse'
 import { resolveBodyProse } from './cardBodyProse'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './cardCells'
@@ -48,9 +44,15 @@ import {
   resolveHeaderHint,
 } from './cardChrome'
 import type { CardGrain } from './cardGrain'
-import { chassisTokenName, MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
-import { resolveCardSections } from './cardSections'
-import { CardTextureContext } from './cardTexture'
+import {
+  chassisMiniName,
+  MAX_DEPTH,
+  namesOwnPage,
+  resolveHide,
+  sectionHeadingLevel,
+} from './cardHelpers'
+import { CRAWLER_ABILITY_SEAL, resolveCardSections } from './cardSections'
+import { cardStripSlots } from './cardStrip'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import type { AxisMarker } from './entityCardTone'
 import {
@@ -58,30 +60,27 @@ import {
   resolveCardTone,
   resolveSeamLabel,
   resolveTierNumeral,
-  titleSizeRung,
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
-import { HeadToken } from './HeadToken'
-import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN } from './legalStartingPattern'
+import { labelChips } from './labelChips'
+import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
 import { PatternLoadoutRows } from './PatternLoadout'
+import { PickSurface } from './PickSurface'
 import { resolveFooterProvenance } from './provenance'
 import type {
   ActionFields,
   ReferenceCardEntity,
-  ReferenceEntityCardHideConfig,
   ReferenceEntityCardProps,
 } from './referenceEntityCardTypes'
-import { StatusRail } from './StatusRail'
 import { stripHostParenthetical } from './stripHostParenthetical'
 
 /**
  * ReferenceEntityCard — the ONE card that renders ENTITIES, ACTIONS, and
- * NPCs (ruleset §5, boards E1–E4). ONE anatomy across every size × extent ×
- * context:
+ * NPCs (ruleset §5). ONE anatomy across every size × context:
  *
- *   flush header (title, labels, chip group) · body · footer
+ *   cut-out head (title, labels, chip group) · body · footer
  *
  * with TWO header fills, chosen by the reader's question and decided by data
  * shape (`isDoEntity`), never a schema prop:
@@ -89,13 +88,12 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * - TONE, for things you HAVE: the entity's tone, ink speckle, the title in
  *   ink or paper by contrast.
  * - INK, for things you DO (abilities, actions): the book's ink banner — the
- *   tier numeral at the left, paper flecks. The cost is a chip; only the
- *   Dashboard's pennant button sits at the right.
+ *   tier numeral at the left, paper flecks. The cost is a chip.
  *
  * The frame and the footer are ink on paper on every card; the
  * tone lives in the header alone. An entity's own roll table sits inline as a
  * flush band; its actions, like nested ENTITIES, stack framed in
- * the frame, one size step per level (large → medium → a Token), the
+ * the frame, one size step per level (full → compact → a Mini), the
  * frame stepping 3 → 2 → 1.5px with them.
  *
  * ## How this file is laid out
@@ -103,41 +101,16 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * `ReferenceEntityCardInner` DECIDES — fill, depth, which sections a card
  * carries, what each one is fed — and composes. What each section LOOKS like
  * lives beside it, one module per section: the labels
- * (`CardLabels`), the header (`EntityCardHeader`), the chip group
- * (`Chips`, E17), the Token form (`src/entity/`), the prose bands
+ * (`labelChips`), the head (`CardHead`), the chip group
+ * (`Chips`, E17), the Mini form (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
- * (`CardRollTable`), the pennant button (`CardPennant`), the trays, inline
+ * (`CardRollTable`), the trays, inline
  * actions and depth rows (`NestedCards`). The pure cell/stat builders are in
  * `cardCells.ts`, the chrome rules in `cardChrome.ts`.
  *
  * Sections that nest cards receive this card as `NestedCard`, never importing
  * it, so no section module imports back into this one.
  */
-
-/**
- * What a card hides. CATALOG — the SRD index tile — keeps artwork and
- * description ONLY, so every nested element is suppressed here, not at each
- * call-site. TERMINAL (ruleset §1, board E3): inside a tooltip popup nothing
- * acts, so the roll-table controls go too (the link and the nested Tokens
- * are handled where they render).
- */
-function resolveHide(
-  hideProp: ReferenceEntityCardHideConfig | undefined,
-  isCatalog: boolean,
-  insidePeek: boolean
-): ReferenceEntityCardHideConfig | undefined {
-  const base = isCatalog ? { ...hideProp, actions: true, choices: true, patterns: true } : hideProp
-  return insidePeek ? { ...base, rollTable: true } : base
-}
-
-/**
- * The title's type step: by size, stepping down with depth (`titleSizeClass`). The ink
- * banner's large title sits a rung under the tone header's (board E1).
- */
-function resolveTitleSize(fill: HeaderFill, depth: number, size: CardSize) {
-  const ladderTitle = titleSizeRung(depth, size)
-  return fontSize[fill === 'ink' && ladderTitle === 'displayLg' ? 'display' : ladderTitle]
-}
 
 /**
  * What leads a page's prose column: any `subtitleExtra`, then a "Suggested"
@@ -157,7 +130,7 @@ function PageSubLine({
       <Chips
         chips={NO_CHIPS}
         size="full"
-        leading={children}
+        marks={children}
         align="end"
         className="su-entity-page__tags"
       />
@@ -170,9 +143,9 @@ const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 function ReferenceEntityCardInner({
   data,
   size: sizeProp = 'full',
-  extent = 'full',
   depth: depthProp = 0,
   presentation = 'card',
+  hero,
   showChassisAbility,
   shownProse,
   userMade = false,
@@ -188,7 +161,6 @@ function ReferenceEntityCardInner({
   droneLoadout,
   hide: hideProp,
   status,
-  onStatusClick,
   disabled,
   selected,
   selectionSeal,
@@ -211,10 +183,10 @@ function ReferenceEntityCardInner({
   titleAs,
   scalingParent,
   expand,
+  sectionFold,
 }: ReferenceEntityCardProps) {
   // Section bands are h2s (nested titles h3s) only when this card IS the page
-  // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
-  // in the chapter band.
+  // (`sectionHeadingLevel`), whatever `titleAs` says: its h1 is the chapter band.
   const onPage = presentation === 'page' && depthProp === 0
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
@@ -224,25 +196,24 @@ function ReferenceEntityCardInner({
   // Hooks run above every early return below.
   const externalLinkNode = useEntityExternalLink(data as RefEntity)
   const insidePeek = useContext(InsidePeekContext)
-  const textureFromHost = useContext(CardTextureContext)
-  const textured = texture ?? textureFromHost
+  // Texture comes from the surface (E13); a card's own `texture` wins.
+  const surface = useEntitySurface()
+  const textured = texture ?? surface.texture
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as RefEnumSchemaName | 'actions' | undefined
-
   if (!schemaName) {
     console.warn('ReferenceEntityCard: data does not have a schemaName property', data)
     return null
   }
 
   const isAction = schemaName === 'actions'
-  // A FRAMED action (the Dashboard's deck and resolve panel) is never the
+  // A FRAMED action (one a list or a resolve draws) is never the
   // dominant solo card: a large one renders medium, at depth ≥ 1.
-  const size: CardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
+  const size = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
   const compact = depth > 0 || size !== 'full'
-  const isCatalog = extent === 'catalog'
-  const hide = resolveHide(hideProp, isCatalog, insidePeek)
+  const hide = resolveHide(hideProp, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
   const fill: HeaderFill = resolveHeaderFill(entity, insidePeek)
@@ -263,15 +234,10 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const titleSize = resolveTitleSize(fill, depth, size)
-  // ARTWORK — a MINI catalog tile drops it: at the small size the image would
-  // crowd out the description it exists to caption.
-  const isMiniCatalog = isCatalog && size === 'mini'
-  const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
+  const assetUrl = getAssetUrl(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
 
-  // PATTERN view — the pattern is the subject; the chassis (`entity`) supplies
-  // stats / tone / source.
+  // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.
   const isPattern = !!pattern
   // A pattern's title is its name in typographic QUOTES. A nested ACTION drops its
   // ` (Host)` disambiguation suffix when the host is this card's own context.
@@ -283,7 +249,7 @@ function ReferenceEntityCardInner({
         ? stripHostParenthetical(entityName, hostName)
         : entityName)
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name.
-  const resolvedChassisName = chassisName ?? chassisTokenName(schemaName, entityName)
+  const resolvedChassisName = chassisName ?? chassisMiniName(schemaName, entityName)
 
   const action = isAction ? (entity as ActionFields) : undefined
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
@@ -292,7 +258,7 @@ function ReferenceEntityCardInner({
   // The KIND ("System", "Ability · Forging Tree") is never stamped (E9): the
   // title carries it for screen readers. A caller's `kicker` that says more
   // ("From Veteran") is a label. Nor is it on the foot: only a Page's foot
-  // stamps the kind (E9; the Cantina's detail dialog draws its own).
+  // stamps the kind (E9; the app's detail dialog draws its own).
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
   const provenance = resolveFooterProvenance(entity, pattern)
   const chassisMarker = resolvedChassisName
@@ -304,9 +270,8 @@ function ReferenceEntityCardInner({
   const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)
 
-  // The SELF-action — an action named like its entity — folds into the card:
-  // its content becomes the body and its facets the "//" line (see
-  // `foldedActionOf`). Every other action sits inline below.
+  // The SELF-action (named like its entity) folds into the card: its content is
+  // the body, its facets the "//" line (`foldedActionOf`). Others sit inline.
   const foldableActions =
     !isAction &&
     !isPattern &&
@@ -317,23 +282,21 @@ function ReferenceEntityCardInner({
   const foldedAction = foldedActionOf(foldableActions, entityName)
   const foldedActionFields: ActionFields | undefined = foldedAction ?? undefined
 
-  // The LABELS, right of the title: a parent seal (GRANTS) replaces the note.
-  const labels = (
-    <CardLabels
-      seal={parentSeal}
-      note={parentSeal ? undefined : kicker}
-      axisMarkers={axisMarkers}
-      legalStartingPattern={isLegalStartingPatternCard}
-      userMade={userMade}
-      onInk={fill === 'ink'}
-    />
-  )
-
-  // HEADER value cells — the short `[label | value]` form; compact, the budget (C3).
+  // The LABELS: a parent seal (GRANTS) replaces the note. A card's head draws
+  // them as its strip's first chips, at its Size (`labelChips`).
+  const labelProps = {
+    seal: parentSeal,
+    note: parentSeal ? undefined : kicker,
+    axisMarkers,
+    legalStartingPattern: isLegalStartingPatternCard,
+    userMade,
+  }
+  // HEADER value cells — the short `[label | value]` form; compact, the budget (C3); a Peek, every stat.
   const headerStats: StatItem[] = buildHeaderStats({
     entity,
     schemaName,
-    budget: compact && !insidePeek && !isCatalog,
+    budget: compact && !insidePeek,
+    every: insidePeek,
     none: isAction,
     techLevel,
     techLevelDisplay,
@@ -341,29 +304,17 @@ function ReferenceEntityCardInner({
   })
   const effectiveHeaderStats: StatItem[] = statsOverride ?? headerStats
 
-  // COST PENNANT — the action's own cost, or its folded self-action's. In the
-  // Dashboard a `pennant` control makes it the action button.
+  // COST — the action's own cost, or its folded self-action's, as a chip.
   const costSource = action ?? foldedActionFields
   const costLabel =
     costSource?.activationCost != null
       ? formatCost(costSource.activationCost, resolveActivationCurrency(costSource.actionSource))
       : undefined
-  // Read, the cost is a chip; the Dashboard's `pennant` control is the button.
-  const pennantControl = controls?.find((c) => c.pennant)
-  const pennantNode: ReactNode = pennantControl ? (
-    <CardPennant cost={costLabel} size={size} control={pennantControl} subject={entityName} />
-  ) : undefined
-  // The rail carries every other control; the pennant control is the pennant.
-  const railControls = pennantControl ? controls?.filter((c) => !c.pennant) : controls
 
-  const isHead = extent === 'head'
-  // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`). A
-  // Token draws no rail, so a head's controls reach it only as a card click:
-  // each stands hidden, and the Token itself takes the click's role, name and
-  // state (a folded card's disclosure).
+  // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`).
   const { outer, frameStyle } = resolveCardInteraction({
     onCardClick,
-    controls: isHead ? controls?.map((c) => ({ ...c, hidden: true })) : controls,
+    controls,
     cardClickable,
     disabled,
     selectable,
@@ -371,36 +322,13 @@ function ReferenceEntityCardInner({
     selectionRole,
     cardClickLabel,
     selected,
-    frameWidth: resolveFrameWidth(isHead ? 'mini' : size),
-    dashed: userMade,
+    frameWidth: resolveFrameWidth(size),
   })
-
-  // HEADER-ONLY is the Token (N2), at every size: this card is its adapter,
-  // translating its props into the Token's slots. A Row or Card always has
-  // its body, so there is no head-only Row.
-  if (isHead) {
-    return (
-      <HeadToken
-        entity={entity}
-        pattern={pattern}
-        instance={{ title: name, ...(userMade ? { userMade } : {}) }}
-        note={isLegalStartingPatternCard ? LEGAL_STARTING_PATTERN : undefined}
-        slots={{
-          outer,
-          frameStyle,
-          down: isDown,
-          kind,
-          pennant: isAction ? pennantNode : undefined,
-          cost: isAction && !pennantControl ? costLabel : undefined,
-        }}
-      />
-    )
-  }
 
   // SUGGESTED — an ink stamp leading the "//" line, marking a recommended
   // pick. A recommendation is not an action, so it is never rust (§3.1).
   const suggestedNode: ReactNode = suggested ? (
-    <Badge shape="stamp" size="mini">
+    <Badge key="suggested" shape="stamp" size="mini">
       Suggested
     </Badge>
   ) : undefined
@@ -426,58 +354,58 @@ function ReferenceEntityCardInner({
   const facets = splitFacets(cells)
   const chips: ChipSet = {
     durations: facets.stamps,
-    ...(costLabel && !pennantControl ? { cost: costLabel } : {}),
+    ...(costLabel ? { cost: costLabel } : {}),
     facts: [...effectiveHeaderStats, ...facets.facts],
     tags: facets.tags,
   }
+  const tree = isAction || isPattern ? undefined : treeRelationNodes(entity) // its tree's chips
   // A page's chips ride its band (`resolveEntityPageMeta`); its body keeps "Suggested".
   const hasSubLine = onPage && !!suggestedNode
 
-  // Every card wears the cut-out head; a Page has its chapter band.
-  const header = (
+  // The head's chip group carries the condition and every control, in its
+  // state and last slots (C8, hard rule R6), and the select seal on the
+  // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
+  const slots = cardStripSlots({ controls, status, subject: entityName })
+  // A selected Card always wears the seal, "Selected" unless the caller names
+  // its own word. A Mini (level 2) is ring only.
+  const seal = selected ? <SelectedSeal word={selectionSeal} /> : undefined
+
+  // A card met inside another names its own Page: its name links (`CardTitleLink`).
+  const interactive = !!(onCardClick || cardClickable || selectable || selectionRole)
+  const place = { onPage, depth: depthProp, insidePeek, interactive }
+  const titleContent = namesOwnPage(place) ? (
+    <CardTitleLink entity={entity} title={name} inPeek={insidePeek} pattern={pattern} />
+  ) : undefined
+
+  // Every framed card wears the cut-out head (its overflow, C2b); a Page has
+  // its chapter band (`CardPage`), so this is never called on a page.
+  const header = (overflow: 'body' | 'more') => (
     <CardHead
-      cutOut={!onPage}
       title={name}
+      titleContent={titleContent}
       kind={kind}
       fill={fill}
       titleAs={titleAs}
       bandColor={bandColor}
-      titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size="compact" onInk={fill === 'ink'} leading={suggestedNode} />}
-      pennant={pennantNode}
-      labels={labels}
-      size={size}
+      chips={
+        <Chips
+          chips={chips}
+          size="compact"
+          marks={[...labelChips(labelProps, 'compact'), suggestedNode]}
+          nodes={tree}
+          state={slots.state.length > 0 ? slots.state : undefined}
+        />
+      }
+      controls={slots.controls.length > 0 ? slots.controls : undefined}
+      affordance={seal}
       grain={grain}
-      ruled
+      overflow={overflow}
     />
   )
 
-  // A CATALOG tile carries NO footer: it is artwork + description, and
-  // provenance belongs on the entity's own page, which the tile links to.
-  const rendersFooter = !isCatalog && depth === 0
-  // LIVE SHEET (board E3): the condition and the destructive Remove live in a
-  // dashed body rail, not on the seam as green and red tabs.
-  const removers = (railControls ?? []).filter((c) => c.variant === 'danger')
-  const seamControls =
-    removers.length > 0 ? railControls?.filter((c) => !removers.includes(c)) : railControls
-  // A read card (no handler) prints only a condition worth reporting: Intact
-  // is the default, so it draws nothing rather than a stamp on every card.
-  const shownStatus = onStatusClick || status !== 'intact' ? status : undefined
-  const statusRail =
-    shownStatus || removers.length > 0 ? (
-      <StatusRail
-        status={shownStatus}
-        onStatusClick={onStatusClick}
-        removers={removers}
-        subject={entityName}
-        size={size}
-      />
-    ) : null
-  const topRightRail = (
-    <CardTopRail controls={seamControls} selected={selected} selectionSeal={selectionSeal} />
-  )
+  const rendersFooter = depth === 0
 
   // BODY — the prose, the inline actions, the table, the guide, the pattern
   // section and the nested groups (`cardBodyProse.tsx`, `cardSections.tsx`).
@@ -494,7 +422,6 @@ function ReferenceEntityCardInner({
     onPage,
     readable,
     isAction,
-    isCatalog,
     isDown,
     isTitanicMeta,
     isLegalStartingPatternCard,
@@ -504,7 +431,6 @@ function ReferenceEntityCardInner({
     hide,
     foldedAction,
     titanicBodyContent,
-    hintText,
     leadHint: hintText,
     assetUrl,
     assetSrcSet,
@@ -520,6 +446,7 @@ function ReferenceEntityCardInner({
     onSelectionChange,
     afterExtraContent,
     showChassisAbility,
+    sectionFold: insidePeek ? undefined : sectionFold,
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)
@@ -537,14 +464,15 @@ function ReferenceEntityCardInner({
     nestedGroupsNode,
   } = resolveCardSections(bodyInput, resolved)
 
-  // A PAGE (boards 07, 08): the card's parts laid out as a page (`CardPage`).
+  // A PAGE: the card's parts laid out as a page (`CardPage`).
   if (onPage) {
     return (
       <CardPage
         entity={entity}
-        hero={heroNode}
+        hero={hero ?? heroNode}
         leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
+        actionSeal={schemaName === 'crawlers' ? CRAWLER_ABILITY_SEAL : undefined}
         subLine={
           (subtitleExtra || hasSubLine) && (
             <PageSubLine extra={subtitleExtra}>{suggestedNode}</PageSubLine>
@@ -579,16 +507,17 @@ function ReferenceEntityCardInner({
     )
   }
 
+  const after = [afterExtraContent, expand, rendersFooter, !hide?.patterns && patternList.length]
+  const under = [subtitleExtra, body, rollTableNode, patternSection, actionsNode, nestedGroupsNode]
+  const lone = !depth && ![...under, ...after].some(Boolean) // +MORE alone, nested a body (C2b)
   return (
     <CardOuter {...outer}>
-      {topRightRail}
-      {/* The frame lives on this INNER clip, so the rail escapes it; paper,
-        radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
+      {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
       <div className="su-ec-frame" style={frameStyle}>
-        {header}
+        {header(lone ? 'more' : 'body')}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (
-          <div style={{ padding: `${space[4]} ${compact ? space[10] : space[14]} 0` }}>
+          <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
             {subtitleExtra}
           </div>
         )}
@@ -602,7 +531,7 @@ function ReferenceEntityCardInner({
         {patternSection}
         {actionsNode}
         {nestedGroupsNode}
-        {/* BASIC CHASSIS → its patterns as Tokens. */}
+        {/* BASIC CHASSIS → its patterns as Minis. */}
         {!hide?.patterns && patternList.length > 0 && (
           <CardStack size={size}>
             <PatternList
@@ -617,38 +546,28 @@ function ReferenceEntityCardInner({
         )}
         {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
         {afterExtraContent && (
-          <div style={{ padding: compact ? space[10] : `${space[12]} ${space[14]}` }}>
+          <div style={{ padding: compact ? space[12] : `${space[12]} ${space[14]}` }}>
             {afterExtraContent}
           </div>
         )}
         {/* SLOT: expand — before the footer (a crawler bay's crew inset). */}
         {expand && (
-          <div
-            style={{
-              padding: `0 ${compact ? space[10] : space[14]} ${compact ? space[10] : space[12]}`,
-            }}
-          >
+          <div style={{ padding: `0 ${compact ? space[12] : space[14]} ${space[12]}` }}>
             {expand}
           </div>
         )}
-        {statusRail}
-        {/* FOOTER — none on a catalog tile; a Peek's wears the header band. */}
+        {/* FOOTER — a Peek's wears the header band. */}
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
-            source={userMade ? undefined : provenance.source}
-            booklet={userMade ? undefined : provenance.booklet}
-            page={userMade ? undefined : provenance.page}
-            // Reprints are the entity's OWN-PAGE fact — the roomy full card.
-            additionalSources={compact || userMade ? undefined : provenance.additionalSources}
+            // Every printing on the one line, on every foot (ruleset Source 2).
+            provenance={userMade ? undefined : provenance}
             footMeta={footMeta}
-            externalLink={
-              extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
-            }
+            externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
             size={size}
-            dashed={userMade}
             credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
-            band={insidePeek ? { onBand, bandColor } : undefined}
+            band={{ onBand, bandColor }}
+            grain={grain}
           />
         ) : null}
       </div>
@@ -656,75 +575,27 @@ function ReferenceEntityCardInner({
   )
 }
 
-/** Public wrapper props: the canonical card props plus the ergonomic display
- * sugar and a nullable `data`. */
-export type ReferenceEntityCardWrapperProps = Omit<
-  ReferenceEntityCardProps,
-  'data' | 'size' | 'extent'
-> & {
+/** Public wrapper props: the canonical card props with a nullable `data`. */
+export type ReferenceEntityCardWrapperProps = Omit<ReferenceEntityCardProps, 'data'> & {
   data: ReferenceCardEntity | undefined
-  size?: CardSize
-  extent?: CardExtent
-  /**
-   * Let the reader fold this card to its Token (`extent="head"`) and back;
-   * folded is the DEFAULT, so a long collection reads as a list of names.
-   * The affordance is ONE `controls` entry (`foldControl`): open, a chevron
-   * with `aria-expanded` and `aria-controls` (the card wrapper's id,
-   * `resolveCardInteraction`); folded, the Token itself is the disclosure
-   * button, since a Token draws no rail.
-   */
-  collapsible?: boolean
 }
 
 /**
  * `ReferenceEntityCard` — the public entry point for rendering a reference
- * entity. It takes the `size` / `extent` axes (`containers/displayMode.ts`),
- * renders nothing for a null `data`, and greys the header for a damaged or
+ * entity. It takes the card's `size` (default `full`), renders nothing for a
+ * null `data`, and greys the header for a damaged or
  * destroyed `status`. The recursive card body is `ReferenceEntityCardInner`.
  */
 export function ReferenceEntityCard({
   data,
-  size,
-  extent,
-  collapsible = false,
-  controls,
   texture,
   ...rest
 }: ReferenceEntityCardWrapperProps): ReactNode {
-  // Hook before the nullable-data guard — a conditional hook would break the
-  // rules of hooks the first time a caller passed `undefined`.
-  const fold = useDisclosure(!collapsible)
   if (!data) return null
-
-  const folded = collapsible && !fold.open
-  // Folding only overrides the EXTENT axis, so a collapsed card keeps
-  // whatever size it was given.
-  const display = resolveCardDisplay({ size, extent: folded ? 'head' : extent })
-
-  const label = getReferenceEntityName(data)
-  const foldControls: ReferenceEntityControl[] = !collapsible
-    ? []
-    : [
-        foldControl({
-          subject: label ?? '',
-          disclosure: fold,
-          cardClick: true,
-        }),
-      ]
-
-  const card = (
-    <ReferenceEntityCardInner
-      data={data}
-      size={display.size}
-      extent={display.extent}
-      controls={foldControls.length > 0 ? [...(controls ?? []), ...foldControls] : controls}
-      {...rest}
-    />
-  )
-  // `texture={false}` (the Dashboard, a tooltip) holds for every nested card.
-  return texture === undefined ? (
-    card
-  ) : (
-    <CardTextureContext.Provider value={texture}>{card}</CardTextureContext.Provider>
-  )
+  const inner = <ReferenceEntityCardInner data={data} {...rest} />
+  // A card that is the pick is the one control in its frame (`PickSurface`).
+  const card = rest.selectionRole ? <PickSurface>{inner}</PickSurface> : inner
+  // `texture={false}` holds for every nested card and form (the surface, E13).
+  if (texture === undefined) return card
+  return <EntitySurfaceProvider value={{ texture }}>{card}</EntitySurfaceProvider>
 }

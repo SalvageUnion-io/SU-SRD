@@ -1,10 +1,11 @@
 /**
- * EVERY GUIDE WEARS RULES BLUE, as its page's band does (owner's call,
- * 2026-10-14): the guides index reads as one chapter, not a card per hue.
+ * A GUIDE WEARS RULES BLUE, as its page's band does (R44), save where it is
+ * about one thing: a creation
+ * guide wears the colour of what it builds, pilot, mech or crawler, and the
+ * Heat guide Heat's own red.
  *
- * The SRD index paints each guide's catalog tile through `entityGuideToneColor`
- * (`catalogHelpers.ts` → `catalogBg`), and `resolveDomainTone` reads the same
- * for the card the tile opens. These tests pin both halves of that contract:
+ * A guide's card reads its hue through `entityGuideToneColor`, which
+ * `resolveDomainTone` applies. These tests pin that contract:
  *
  * 1. the hue arrives as `bgColor`, NOT as `bg` (the domain tone) — `bgColor`
  *    wins over `bg` on the band, and only `bgColor` reaches a choice region and
@@ -25,17 +26,26 @@ import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
 
 const guides = SalvageUnionReference.Guides.all()
 
-describe('guide tone — the card matches the index tile', () => {
+describe('guide tone — a guide card wears its subject, else rules blue', () => {
   test('the dataset actually exercises this (guides exist, each with a type)', () => {
     expect(guides.length).toBeGreaterThan(0)
     expect(guides.every((guide) => typeof guide.guideType === 'string')).toBe(true)
   })
 
-  test('every shipped guide resolves to rules blue, the tile and the card alike', () => {
+  /** What each guide wears: its unit's colour, Heat's red, else rules blue. */
+  const expected = (guide: (typeof guides)[number]) =>
+    ({
+      'character-creation': 'var(--color-pilot)',
+      'mech-creation': 'var(--color-mech)',
+      'crawler-creation': 'var(--color-crawler)',
+    })[guide.guideType as string] ??
+    (guide.name === 'Heat' ? 'var(--color-heat)' : 'var(--color-wk-line)')
+
+  test('every shipped guide resolves to its colour, the tile and the card alike', () => {
     for (const guide of guides) {
       const tone = resolveDomainTone('guides', guide)
-      expect(tone.bgColor).toBe('var(--color-wk-line)')
-      expect(entityGuideToneColor(guide)).toBe('var(--color-wk-line)')
+      expect(tone.bgColor).toBe(expected(guide))
+      expect(entityGuideToneColor(guide)).toBe(expected(guide))
     }
   })
 
@@ -65,11 +75,17 @@ describe('guide tone — the card matches the index tile', () => {
     expect(tone.domain).toBe('glossary')
   })
 
-  test('one hue for every guide, whatever its type', () => {
-    const types = new Set(guides.map((guide) => guide.guideType))
-    expect(types.size).toBeGreaterThan(1)
+  test('the creation guides wear their units, Heat its red, every other guide rules blue', () => {
     const hues = new Set(guides.map((guide) => resolveDomainTone('guides', guide).bgColor))
-    expect([...hues]).toEqual(['var(--color-wk-line)'])
+    expect([...hues].sort()).toEqual(
+      [
+        'var(--color-crawler)',
+        'var(--color-heat)',
+        'var(--color-mech)',
+        'var(--color-pilot)',
+        'var(--color-wk-line)',
+      ].sort()
+    )
   })
 })
 

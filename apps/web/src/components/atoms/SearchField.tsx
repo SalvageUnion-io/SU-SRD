@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
 import type { ComponentPropsWithRef, CSSProperties } from 'react'
-import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { FOCUS_WITHIN } from './interaction'
 
@@ -11,7 +11,7 @@ import { FOCUS_WITHIN } from './interaction'
  * `focus-within` so the inner input can stay `focus:outline-none`.
  *
  * Purely presentational: it forwards `ref` and every extra prop straight to the
- * `<input>`, so a caller can wire it as a plain text input (the `/search` page)
+ * `<input>`, so a caller can wire it as a plain text input (a listing's name filter)
  * or as an ARIA combobox (the header dropdown) without this component knowing
  * which. The default look is the header's compact search; override
  * padding/size via `containerClassName` and width/etc. via `className`.
@@ -20,8 +20,8 @@ import { FOCUS_WITHIN } from './interaction'
 type SearchFieldProps = ComponentPropsWithRef<'input'> & {
   /** Overrides merged onto the bordered container (e.g. taller padding, larger text). */
   containerClassName?: string
-  /** Magnifier glyph size in px. */
-  glyphSize?: number
+  /** The field's Size, which its magnifier takes (`iconSize`): Compact, or Full on a page's search. */
+  glyph?: keyof typeof iconSize
   /**
    * The keyboard shortcut that focuses the field, shown as a key cap at its
    * end (`⌘K` — the Union bar's search slot reads the same in both tools).
@@ -49,7 +49,7 @@ const KEY_CAP = {
 
 export function SearchField({
   containerClassName,
-  glyphSize = 14,
+  glyph = 'compact',
   shortcut,
   className,
   ref,
@@ -57,7 +57,7 @@ export function SearchField({
 }: SearchFieldProps) {
   return (
     <div className={cn('su-search-field', FOCUS_WITHIN, containerClassName)}>
-      <Search size={glyphSize} strokeWidth={2.5} aria-hidden="true" style={GLYPH} />
+      <Search size={iconSize[glyph]} aria-hidden="true" style={GLYPH} />
       <input
         ref={ref}
         // The 16px font size is REQUIRED, not a style choice, and it must sit

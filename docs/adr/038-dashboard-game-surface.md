@@ -1,9 +1,14 @@
 # ADR-038: The Dashboard Is a Game Surface with Shared Play State
 
-The Dashboard is [ADR-021](021-cantina-surface-taxonomy.md)'s Guided Play
-surface; as built: [dashboard.md](../architecture/dashboard.md). The phone form
-is [ADR-045](045-dashboard-phone-form.md); [ADR-051](051-play-mode.md)
-supersedes §1 and the layout (§3, §4) once Play is built.
+Partly superseded by [ADR-051](051-play-mode.md): Play
+([play.md](../architecture/play.md)) is [ADR-021](021-cantina-surface-taxonomy.md)'s
+Guided Play surface, replacing the Dashboard and the Mediator Dashboard (now
+Play's Mediator screen, `/play/game/$gameId`). ADR-051 supersedes §1
+(Game-only), §3 (the Major and Minor slots), §4 (the tabbed display), §5's
+layout sentence and §6's route, and amends §2 (solo seats, solo Downtime,
+presence). §2's seat, §3's boarding menu, §4's server-derived crew numbers and
+status, §5's crawler and boarding rules, §6 to §8 and §9's fixed scaled canvas
+stand. The phone form is [ADR-045](045-dashboard-phone-form.md).
 
 ### 1. The Dashboard is Game-only and needs a Mediator
 
@@ -11,7 +16,7 @@ It opens only for a pilot in a Game with a Mediator (a solo player can mediate
 their own Game), launched from the Game hub. Shelf pilots, anonymous sessions
 and Mediator-less Games use the live sheet, Downtime included. A disconnected
 session keeps an open Dashboard read-only. The Mediator's own surface is
-separate ([mediator-dashboard.md](../architecture/mediator-dashboard.md)).
+separate (Play's Mediator screen: [play.md](../architecture/play.md) §10).
 
 ### 2. Play state is a seat, saved on the Game
 

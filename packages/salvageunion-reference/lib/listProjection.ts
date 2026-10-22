@@ -15,7 +15,7 @@
  * marked `listProjection` to `lib/generated/<id>.list.generated.json`, and
  * `preload(schemas, { projection: 'list' })` loads it in place of the full
  * file. A later full `preload` replaces it. Nothing may read prose beyond the
- * first paragraph from a list-loaded schema: srd's listing render-equivalence test
+ * first paragraph from a list-loaded schema: the reference site's listing render-equivalence test
  * (`apps/web/src/lib/__tests__/preloadEquivalence.tsx`) proves a listing
  * renders the same markup from either copy.
  *
@@ -31,7 +31,7 @@ const PROSE_BLOCK_TYPES: ReadonlySet<string> = new Set([
   'hint',
 ])
 
-type Row = Record<string, unknown>
+type Compact = Record<string, unknown>
 
 function isProseBlock(block: unknown): boolean {
   return (
@@ -55,7 +55,7 @@ function isParagraph(block: unknown): boolean {
  * the key (possibly `[]`): readers fall back to the HOST entity's content when
  * a folded action has none, so dropping the key would change what they read.
  */
-export function toListRow(row: Row): Row {
+export function toListRow(row: Compact): Compact {
   if (!Array.isArray(row.content)) return row
   const lead = row.content.find(isParagraph)
   return {

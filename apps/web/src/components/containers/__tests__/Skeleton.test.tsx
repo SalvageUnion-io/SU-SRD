@@ -5,7 +5,7 @@ import { Skeleton } from '../Skeleton'
 describe('Skeleton', () => {
   test('exposes a loading status', () => {
     render(<Skeleton />)
-    expect(screen.getByRole('status', { name: 'Loading' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Loading…' })).toBeTruthy()
   })
 
   test('mirrors the compact card density: the medium card’s band height', () => {
@@ -14,9 +14,9 @@ describe('Skeleton', () => {
     expect(band?.style.minHeight).toBe('60px')
   })
 
-  test('rows: a list of `count` Row ghosts under one status', () => {
-    render(<Skeleton shape="rows" count={4} label="Loading the crew" />)
-    const status = screen.getByRole('status', { name: 'Loading the crew' })
+  test('rows: a list of `count` Compact ghosts under one status', () => {
+    render(<Skeleton shape="rows" count={4} label="the crew" />)
+    const status = screen.getByRole('status', { name: 'Loading the crew…' })
     expect(status.querySelectorAll('li')).toHaveLength(4)
   })
 })

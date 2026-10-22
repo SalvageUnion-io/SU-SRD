@@ -71,8 +71,8 @@ describe('rollCommand.execute', () => {
   test('a near-miss offers tapped recovery rather than telling you to try again', async () => {
     const { interaction, replies } = mockChatInput('criticl damage')
     await rollCommand.execute(interaction)
-    const container = replies[0]?.components?.[0] as { toJSON(): { components: unknown[] } }
-    const row = container.toJSON().components.find((c) => (c as { type: number }).type === 1) as
+    const container = replies[0]?.components?.[0] as { components: unknown[] }
+    const row = container.components.find((c) => (c as { type: number }).type === 1) as
       | { components: { label: string }[] }
       | undefined
     expect(row).toBeDefined()

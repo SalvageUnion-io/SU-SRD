@@ -1,0 +1,154 @@
+/*
+ * The Discord page's screenshots (`reference/DiscordReply.tsx`): the bot's
+ * reply drawn in Discord's dark theme. EXTERNAL BRAND colours, not ours: a
+ * picture of Discord is recognisable because it is Discord's greys and
+ * blurple, so they keep Discord's values (the `designTokens.ts` exemption).
+ */
+
+.su-discord {
+  background-color: #313338;
+  border-radius: var(--radius-card);
+  color: #dbdee1;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.375;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* The command as typed: Discord's message-box text, its normal colour (the
+   muted grey falls short of 4.5:1 on the box). */
+.su-discord__typed {
+  background-color: #383a40;
+  border-radius: var(--radius-card);
+  color: #dbdee1;
+  font-family: monospace;
+  margin: var(--space-12) var(--space-12) 0;
+  padding: var(--space-8) var(--space-12);
+}
+
+.su-discord__message {
+  display: flex;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16) var(--space-16);
+}
+
+.su-discord__avatar {
+  border-radius: 50%;
+  flex: none;
+  height: 40px;
+  width: 40px;
+}
+
+.su-discord__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-discord__author {
+  color: #f2f3f5;
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--space-4);
+}
+
+.su-discord__app {
+  background-color: #5865f2;
+  border-radius: 3px;
+  color: #ffffff;
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--space-4);
+  padding: 1px 4px;
+  vertical-align: 1px;
+}
+
+.su-discord__container {
+  background-color: #2b2d31;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 34rem;
+  padding: var(--space-12) var(--space-16) var(--space-12) calc(var(--space-16) + 4px);
+  position: relative;
+}
+
+/* The reply's accent, Discord's 4px stripe down the container's left. */
+.su-discord__container::before {
+  background-color: var(--su-discord-accent);
+  border-radius: 4px 0 0 4px;
+  content: '';
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: 4px;
+}
+
+.su-discord__text p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.su-discord__text strong {
+  color: #f2f3f5;
+}
+
+.su-discord__h2 {
+  color: #f2f3f5;
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+}
+
+.su-discord__small {
+  color: #949ba4;
+  font-size: var(--text-xs);
+}
+
+.su-discord__link {
+  color: #00a8fc;
+}
+
+.su-discord__rule {
+  border: 0;
+  border-top: 1px solid #3f4147;
+  margin: var(--space-4) 0;
+}
+
+.su-discord__section {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-12);
+  justify-content: space-between;
+}
+
+.su-discord__thumb {
+  border-radius: 4px;
+  flex: none;
+  height: 80px;
+  object-fit: cover;
+  width: 80px;
+}
+
+.su-discord__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.su-discord__button {
+  background-color: #4e5058;
+  border-radius: 3px;
+  color: #ffffff;
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-4) var(--space-16);
+}
+
+.su-discord__button[data-primary] {
+  background-color: #5865f2;
+}
+
+.su-discord__select {
+  background-color: #1e1f22;
+  border-radius: 4px;
+  color: #949ba4;
+  padding: var(--space-8) var(--space-12);
+}

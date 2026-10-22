@@ -5,7 +5,7 @@
 
 /* ── compositions/StartHere ── */
 
-/* The three steps are catalog tiles (`.su-entity-tile`): stacked until the
+/* The three steps are catalog tiles (`.su-entity-index`): stacked until the
    block is 48rem wide, then three across. A class because the layout changes
    with the container's width. */
 .su-start-here {
@@ -22,10 +22,22 @@
   display: flex;
 }
 
-@container (min-width: 48rem) {
+@container (width >= 48rem) {
   .su-start-here__steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* A step's number, at the band's left on the name's line, as a tree
+   ability's tier numeral (`.su-entity-compact__tier`): the title's face in
+   the band's own foreground. */
+.su-start-here__number {
+  align-self: flex-end;
+  flex: none;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.05;
+  margin-bottom: var(--space-2);
 }
 
 /* A step that opens its guide underlines its title on hover. A class because
@@ -36,31 +48,6 @@
 }
 
 /* ── shell and flat leaves ── */
-
-/* ControlButtons (`compositions/ControlButtons.tsx`). The link control flips
-   fill and ink on hover, so both colours are here, resting value included;
-   its geometry is the component's style object. */
-.su-control-link {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-.su-control-link:hover {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-/* A live worded control brightens on hover. */
-.su-control-button--live:hover {
-  filter: brightness(110%);
-}
-
-/* The icon button's glyph. A class rather than a style object only because the
-   control's `icon` contract takes `className` and nothing else. */
-.su-control-icon__glyph {
-  height: var(--space-12);
-  width: var(--space-12);
-}
 
 /* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
    fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
@@ -73,7 +60,7 @@
 /* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink are a
    class because the Union bar's phone cluster resizes it (`shell.css`). */
 .su-nav-drawer__trigger {
-  color: var(--su-bar-fg, var(--color-paper));
+  color: var(--su-bar-fg);
   padding: var(--space-8);
 }
 
@@ -102,20 +89,20 @@
 
 /* ── compositions/AbilityTrack ──
  * An ability tree on the book's chain (Core Book 2.0a p.33; ruleset, "Where
- * the screen departs from print"): each Row joined to the next by a short,
- * thick stem in the tier's hue, under the Row's own numeral, so tiers 1-2-3
- * read as one chain trained in order. The Rows are framed in the same hue,
+ * the screen departs from print"): each Compact joined to the next by a short,
+ * thick stem in the tier's hue, under the Compact's own numeral, so tiers 1-2-3
+ * read as one chain trained in order. The Compacts are framed in the same hue,
  * so a stem runs into a border of its own colour. It is a diagram between the
- * Rows, never a left border on a card (§3.10). `data-track` picks the hue; a
+ * Compacts, never a left border on a card (§3.10). `data-track` picks the hue; a
  * Legendary tree (pick one) has no numerals, its stem runs down the middle,
- * and an "or" stamp sits on it in a gap one Row tall, so two picks stand as
+ * and an "or" stamp sits on it in a gap one Compact tall, so two picks stand as
  * tall as a three-tier tree. The SRD's class page and abilities Tree, and
- * The Cantina's pilot sheet, draw it. */
+ * the app's pilot sheet, draw it. */
 .su-ability-track {
   /* The stem: its weight, the gap it bridges, and where it runs (under a
-     Row's numeral: the head's inset plus half the numeral). */
-  --su-track-gap: var(--space-14);
-  --su-track-stem: var(--space-10);
+     Compact's numeral: the head's inset plus half the numeral). */
+  --su-track-gap: var(--space-12);
+  --su-track-stem: 10px; /* design-tokens-ignore: the stem's line weight, not spacing */
   --su-track-stem-x: 1.15rem;
   display: flex;
   flex-direction: column;
@@ -142,26 +129,29 @@
   --su-track-stem-x: 50%;
   display: grid;
   grid-auto-rows: 1fr;
+  /* One column its container's width, never its picks' widest chip line:
+     a pick's chips wrap on a phone rather than push past its card. */
+  grid-template-columns: minmax(0, 1fr);
 }
 
-/* A track of contentful Tokens (a class page's path card, N3) runs its stem
-   under the Token's numeral: the pill's edge and inset plus half the numeral. */
-.su-ability-track:not([data-track='legendary']):has(> .su-ability-track__tier > .su-entity-token) {
+/* A track of contentful Minis (a class page's path card, N3) runs its stem
+   under the Mini's numeral: the pill's edge and inset plus half the numeral. */
+.su-ability-track:not([data-track='legendary']):has(> .su-ability-track__tier > .su-entity-mini) {
   --su-track-stem-x: calc(var(--bw-chrome) + var(--space-4) + 0.3rem);
 }
 
-/* A Row on a track is framed in the track's hue (the UI library's
-   `--su-row-frame`). */
+/* A Compact on a track is framed in the track's hue (the UI library's
+   `--su-compact-frame`). */
 .su-ability-track[data-track] > li {
-  --su-row-frame: var(--su-track-color);
+  --su-compact-frame: var(--su-track-color);
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* A tier in a row taller than its own Row (an equal Legendary row, or a
-   taller Row in the tree beside it) stretches its Row to fill it, so the
-   stem leaves from the Row's foot. */
+/* A tier in a row taller than its own Compact (an equal Legendary row, or a
+   taller Compact in the tree beside it) stretches its Compact to fill it, so the
+   stem leaves from the Compact's foot. */
 .su-ability-track[data-track] > .su-ability-track__tier > * {
   flex: 1 1 auto;
 }
@@ -201,14 +191,11 @@
   background: var(--su-track-color);
   color: var(--su-track-on);
   display: flex;
-  font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-extrabold);
   height: 1.4rem;
   justify-content: center;
-  letter-spacing: var(--tracking-caps-tight);
   line-height: 1;
   position: relative;
-  text-transform: uppercase;
   width: 2rem;
 }

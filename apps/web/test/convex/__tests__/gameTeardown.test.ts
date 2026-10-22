@@ -104,3 +104,59 @@ describe('the last member out tears the Game down the same way', () => {
     expect(requests).toEqual([])
   })
 })
+
+describe('destroying a Game shelves every entity row by one rule', () => {
+  test('owned rows keep their owner; ownerless ones go to the deleting Organizer', async () => {
+    const t = testConvex()
+    const organizer = await makeUser(t, 'Organizer')
+    const player = await makeUser(t, 'Player')
+    const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
+
+    // A pilot with an owner, then one row of every kind that can sit in a Game
+    // with `ownerId: null` (crawlers and tray NPCs always do).
+    const ids = await t.run(async (ctx) => ({
+      owned: await ctx.db.insert('pilots', {
+        gameId,
+        ownerId: player.userId,
+        body: {},
+        updatedAt: 1,
+      }),
+      pilot: await ctx.db.insert('pilots', { gameId, ownerId: null, body: {}, updatedAt: 1 }),
+      mech: await ctx.db.insert('mechs', { gameId, ownerId: null, body: {}, updatedAt: 1 }),
+      npc: await ctx.db.insert('npcs', { gameId, ownerId: null, body: {}, updatedAt: 1 }),
+      crawler: await ctx.db.insert('crawlers', { gameId, ownerId: null, body: {}, updatedAt: 1 }),
+      tray: await ctx.db.insert('encounterNpcs', {
+        gameId,
+        ownerId: null,
+        appId: 'tray-1',
+        body: { id: 'tray-1' },
+      }),
+    }))
+
+    await organizer.as.mutation(api.games.destroy, { gameId })
+
+    const landed = await t.run(async (ctx) => {
+      const where = async (id: Id<'pilots' | 'mechs' | 'npcs' | 'crawlers' | 'encounterNpcs'>) => {
+        const row = await ctx.db.get(id)
+        return row === null ? null : { gameId: row.gameId, ownerId: row.ownerId }
+      }
+      return {
+        owned: await where(ids.owned),
+        pilot: await where(ids.pilot),
+        mech: await where(ids.mech),
+        npc: await where(ids.npc),
+        crawler: await where(ids.crawler),
+        tray: await where(ids.tray),
+      }
+    })
+    const organizers = { gameId: null, ownerId: organizer.userId }
+    expect(landed).toEqual({
+      owned: { gameId: null, ownerId: player.userId },
+      pilot: organizers,
+      mech: organizers,
+      npc: organizers,
+      crawler: organizers,
+      tray: organizers,
+    })
+  })
+})

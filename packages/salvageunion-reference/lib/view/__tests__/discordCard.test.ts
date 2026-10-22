@@ -57,9 +57,7 @@ describe('discordCardParts', () => {
       '**System Slots** 16 · **Module Slots** 2',
     ])
     expect(parts.thumbnail?.url).toContain('mule')
-    expect(parts.cite).toBe(
-      '-# Workshop Manual · p.100 · Also in Salvage Union Starter Set (PC) · p.12'
-    )
+    expect(parts.cite).toBe('-# Workshop Manual · p.100 // Salvage Union Starter Set (PC) · p.12')
   })
 
   test('a chassis carries its abilities as actions, and the drones they name', () => {

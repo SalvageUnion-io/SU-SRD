@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { AppBar } from '../AppBar'
 
 /**
- * The Union bar (brand refresh P2a, board 05): one lockup, the Reference | Build switcher
+ * The Union bar (ruleset §3.11): one lockup, the Reference | Build | Play switcher
  * with "here" as the inverse stamp, breadcrumbs in the bar on desktop and on
  * their own row on a phone, and the paper flecks behind it all.
  */
@@ -17,7 +17,14 @@ const CRUMBS = [
 
 describe('AppBar', () => {
   test('one lockup: the mark alone names the home link, with no wordmark', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="https://cantina.example/" />)
+    render(
+      <AppBar
+        product="reference"
+        referenceHref="/"
+        buildHref="https://app.example/"
+        playHref="/play/"
+      />
+    )
     const home = screen.getByRole('link', { name: 'Salvage Union' })
     expect(home.getAttribute('href')).toBe('/')
     expect(home.textContent).toBe('')
@@ -25,18 +32,50 @@ describe('AppBar', () => {
   })
 
   test('the switcher: the product you are in is the current tab; the other is same-tab', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="https://cantina.example/" />)
+    render(
+      <AppBar
+        product="reference"
+        referenceHref="/"
+        buildHref="https://app.example/"
+        playHref="/play/"
+      />
+    )
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
     const build = tools.getByRole('link', { name: 'Build' })
     expect(build.getAttribute('aria-current')).toBeNull()
-    expect(build.getAttribute('href')).toBe('https://cantina.example/')
+    expect(build.getAttribute('href')).toBe('https://app.example/')
     expect(build.getAttribute('target')).toBeNull()
   })
 
+  test('the bar carries its mode, which its colour keys on', () => {
+    for (const product of ['reference', 'build', 'play'] as const) {
+      const html = renderToStaticMarkup(
+        <AppBar product={product} referenceHref="/" buildHref="/build/" playHref="/build/play/" />
+      )
+      expect(html).toContain(`data-mode="${product}"`)
+    }
+  })
+
+  test('the switcher reads Reference | Build | Play', () => {
+    render(<AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/build/play/" />)
+    const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    expect(
+      tools()
+        .getAllByRole('link')
+        .map((tab) => tab.textContent)
+    ).toEqual(['Reference', 'Build', 'Play'])
+    expect(tools().getByRole('link', { name: 'Play' }).getAttribute('aria-current')).toBe('true')
+    expect(tools().getByRole('link', { name: 'Build' }).getAttribute('aria-current')).toBeNull()
+    // Every tab is a site path, whichever is current.
+    expect(tools().getByRole('link', { name: 'Build' }).getAttribute('href')).toBe('/build/')
+    expect(tools().getByRole('link', { name: 'Play' }).getAttribute('href')).toBe('/build/play/')
+  })
+
   test('no product nav means no second row', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="/" />)
-    expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull()
+    render(<AppBar product="reference" referenceHref="/" buildHref="/" playHref="/play/" />)
+    expect(screen.queryByRole('navigation', { name: 'Build' })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Play' })).toBeNull()
   })
 
   test('one geometry for both tools: nav inline, no density', () => {
@@ -45,23 +84,41 @@ describe('AppBar', () => {
         product="build"
         referenceHref="https://salvageunion.io"
         buildHref="/"
-        navItems={[
-          { label: 'Hangar', href: '/', active: true },
-          { id: 'games', node: <button type="button">Games</button> },
-          { label: 'Starter Set', href: '/starter/' },
+        playHref="/play/"
+        navs={[
+          {
+            mode: 'build',
+            label: 'Build',
+            items: [
+              { id: 'hangar', label: 'Training Bay', href: '/', active: true },
+              { id: 'starter', label: 'Starter Set', href: '/starter/' },
+            ],
+          },
+          {
+            mode: 'play',
+            label: 'Play',
+            items: [
+              { id: 'games', node: <button type="button">Games</button> },
+              { id: 'solo', label: 'Solo', href: '/play/#solo' },
+            ],
+          },
         ]}
       />
     )
-    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    const nav = screen.getByRole('navigation', { name: 'Build' })
     expect(nav.className).toContain('su-union-bar__nav')
+    expect(nav.getAttribute('data-mode')).toBe('build')
     expect(Array.from(nav.children).map((el) => el.textContent)).toEqual([
-      'Hangar',
-      'Games',
+      'Training Bay',
       'Starter Set',
     ])
-    expect(within(nav).getByRole('link', { name: 'Hangar' }).getAttribute('aria-current')).toBe(
-      'page'
-    )
+    const hangar = within(nav).getByRole('link', { name: 'Training Bay' })
+    expect(hangar.getAttribute('aria-current')).toBe('page')
+    expect(hangar.getAttribute('data-nav')).toBe('hangar')
+    // Each mode's nav is in the bar; the stylesheet shows the one the bar wears.
+    const play = screen.getByRole('navigation', { name: 'Play' })
+    expect(play.getAttribute('data-mode')).toBe('play')
+    expect(Array.from(play.children).map((el) => el.textContent)).toEqual(['Games', 'Solo'])
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
     // The same lockup in both tools: the mark, never a wordmark.
@@ -75,6 +132,7 @@ describe('AppBar', () => {
         product="reference"
         referenceHref="/"
         buildHref="/"
+        playHref="/play/"
         buyHref="https://leyline.press/collections/salvage-union"
       />
     )
@@ -86,7 +144,13 @@ describe('AppBar', () => {
 
   test('breadcrumbs: in the bar and on the phone row, the current page bold, JSON-LD left to the page head', () => {
     const html = renderToStaticMarkup(
-      <AppBar product="reference" referenceHref="/" buildHref="/" breadcrumbs={CRUMBS} />
+      <AppBar
+        product="reference"
+        referenceHref="/"
+        buildHref="/"
+        playHref="/play/"
+        breadcrumbs={CRUMBS}
+      />
     )
     const doc = new DOMParser().parseFromString(html, 'text/html')
     const trails = doc.querySelectorAll('nav[aria-label="Breadcrumb"]')
@@ -108,7 +172,7 @@ describe('AppBar', () => {
   })
 
   test('paper flecks lie behind the bar, hidden from assistive tech', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="/" />)
+    render(<AppBar product="reference" referenceHref="/" buildHref="/" playHref="/play/" />)
     const svgs = screen.getByRole('banner').querySelectorAll('svg')
     expect(svgs.length).toBeGreaterThan(0)
     for (const svg of svgs) expect(svg.getAttribute('aria-hidden')).toBe('true')

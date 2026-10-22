@@ -1,19 +1,24 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useCallback, useContext, useState } from 'react'
+import { useCallback, useContext, useId, useState } from 'react'
 import type { RefEntity, RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { color, font, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
-import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
+import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import type { CSSVarStyle } from '../../../styles/cssVars'
-import { Badge } from '../../atoms/Badge'
-import { FOCUS_RING, INPUT_FOCUS } from '../../atoms/interaction'
-import { Slab } from '../../atoms/Slab'
+import { capsLabel } from '../../atoms/capsLabel'
+import { Field } from '../../atoms/Field'
+import { Input, Textarea } from '../../atoms/inputs'
+import { Stat } from '../../atoms/Stat'
+import { ToggleCard } from '../../atoms/ToggleCard'
+import { Box } from '../../containers/Box'
+import { SlabSection } from '../../containers/SlabSection'
+import { TitledBox } from '../../containers/TitledBox'
+import type { Paint } from '../../entity'
 import { SelectedSeal } from '../../entity/modes/select'
-import { SELECTED_RING } from '../../entity/modes/selectedRing'
+import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from '../card/CardRollTable'
-import { CardTopRail } from '../card/CardTopRail'
 import { onTone, textBand } from '../referenceEntityHelpers'
 import type { ChoiceCardOption, ChoiceSelections } from './choiceSelectionHelpers'
 import {
@@ -25,20 +30,23 @@ import {
   toggleSelection,
 } from './choiceSelectionHelpers'
 
+/** An option's name: bold condensed caps, from the recipe. */
+const NAME_CAPS = capsLabel()
+
 /**
  * ChoiceGroups — the write-layer choice renderer in the NEW design language.
  *
  * A choice is just another nested group: a masonry of options. An option
  * that IS an entity (a catalog shortlist — Ballistic / Energy, Thermal
- * Optics…) is that entity's Token (`renderEntityOption`); any other option is
+ * Optics…) is that entity's Mini (`renderEntityOption`); any other option is
  * drawn by where it sits (`ChoiceOption`): on its entity's Page a headed
  * option card, elsewhere untitled (N1). The selection layer is the card's own
  * write-layer idiom: dim-until-chosen (editable), the canonical
- * `SELECTION_RING` when chosen. Read-only shows every option full and static
+ * `SELECTED_RING` when chosen, and on its Page the "Chosen" seal on its head. Read-only shows every option full and static
  * (the choices are readable; they just aren't choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
- * resolution) serves Cantina persistence and the SRD ephemeral case alike.
+ * resolution) serves app persistence and the SRD ephemeral case alike.
  */
 
 type ChoiceGroupsProps = {
@@ -54,7 +62,7 @@ type ChoiceGroupsProps = {
   /** Parent tone as a raw CSS colour — the option-card head band. */
   toneColor?: string
   /**
-   * Renders an option that resolves to an entity as that entity's Token
+   * Renders an option that resolves to an entity as that entity's Mini
    * (the card supplies it, so this file never imports the card back). Absent,
    * every option takes the plain option card.
    */
@@ -69,6 +77,8 @@ type ChoiceGroupsProps = {
 /** An option that IS an entity, with its selection state, for `renderEntityOption`. */
 type EntityOption = {
   entity: RefEntity
+  /** The choice is its entity's own Page's: the option's Mini is contentful. */
+  onPage: boolean
   label: string
   chosen: boolean
   /** Static (readable, not choosable). */
@@ -93,9 +103,6 @@ function resolveOptionEntity(option: ChoiceCardOption): RefEntity | undefined {
   }
 }
 
-/** The option card's frame, by density — the compact card's ink frame (ruleset §5). */
-const FRAME_WIDTH = { regular: 'var(--bw-entity-compact)', compact: 'var(--bw-chrome)' }
-
 /** A read-only chosen value, set as bold prose (`text-xs`, its line height included). */
 const chosenValueStyle = {
   fontFamily: font.body,
@@ -109,42 +116,31 @@ const chosenValueStyle = {
 const optionCellStyle = {
   marginBottom: space[6],
   breakInside: 'avoid',
-  paddingTop: space[10],
+  paddingTop: space[12],
 } satisfies CSSProperties
 
 /**
- * The free-text field's static geometry. Its border COLOUR lives on
- * `.su-stampseal-field__input` (it darkens on `:focus`), so only the width and
- * style are set here.
+ * The toggle around an option's box: it fills its cell, and pressed it wears
+ * select's ring on the box's square frame (`SELECTED_RING`), as a selected
+ * Box does.
  */
-const fieldStyle = {
+const TOGGLE = {
+  background: 'none',
+  border: 0,
+  color: 'inherit',
+  display: 'block',
+  font: 'inherit',
+  padding: 0,
+  textAlign: 'left',
   width: '100%',
-  borderRadius: '0.25rem',
-  borderWidth: '1px',
-  borderStyle: 'solid',
-  backgroundColor: color.paper,
-  padding: `${space[14]} ${space[8]} ${space[4]}`,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: '1rem',
+} satisfies CSSProperties
+
+/** An editable option's name off a Page, over its text in the plain box. */
+const optionNameStyle = {
   color: color.ink,
+  fontSize: fontSize.caption,
+  lineHeight: 1.15,
 } satisfies CSSProperties
-
-/**
- * The floating label's static half; `top` / `translate` / `opacity` follow the
- * field's state, so they live on `.su-stampseal-field__label`.
- */
-const fieldLabelStyle = {
-  pointerEvents: 'none',
-  position: 'absolute',
-  left: space[8],
-  transitionProperty: 'all',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-  transitionDuration: '150ms',
-} satisfies CSSProperties
-
-/** Off a Page, an option's Slab sits close over its text, as When Damaged's does. */
-const OPTION_SLAB = { marginBottom: space[6] } satisfies CSSProperties
 
 /** Off a Page, an option's text at the card body's size. */
 const optionTextStyle = {
@@ -156,16 +152,18 @@ const optionTextStyle = {
 
 /**
  * A selectable OPTION that is not an entity. On its entity's own Page (level
- * 1) it takes the compact card's anatomy (ruleset §5): an ink frame, the tone
- * head with the option's title in ink or paper (whichever the tone carries),
- * and the paper body; dim-until-chosen, with the selection ring and the
- * "Chosen ✓" seal when chosen — the entity card's own write layer.
+ * 1) it is a `TitledBox` (ruleset §5): the tone head with the option's name on
+ * its cut-out and the CHOICE chip, or the "Chosen" seal once chosen, on the
+ * band's right, over the paper body; in the one select dim until chosen, and
+ * ringed when chosen.
  *
  * Anywhere else it sits inside a card at level 2, where nothing is titled
- * (N1, N5): read-only (a Peek included) its name is a Slab over its text,
- * unframed, a "Chosen" seal at the Slab's end when it was chosen; editable it
- * is an unheaded toggle, its name and text on the paper of a plain frame,
- * pressed and ringed when chosen, dim until then, with no band or seal.
+ * (N1, N5) and nothing is sealed (hard rule R15): read-only (a Peek included)
+ * its name is a Slab over its text, unframed, ringed when it was chosen;
+ * editable it is an unheaded `Box`, its name and text on the paper, pressed
+ * and ringed when chosen, in the one dim until then, with no band or seal.
+ *
+ * Editable, the box sits in a `ToggleCard`, the one control (`aria-pressed`).
  */
 function ChoiceOption({
   label,
@@ -175,7 +173,6 @@ function ChoiceOption({
   disabled,
   onToggle,
   toneColor,
-  compact,
   onPage,
 }: {
   label: string
@@ -186,7 +183,6 @@ function ChoiceOption({
   disabled?: boolean
   onToggle: () => void
   toneColor?: string
-  compact?: boolean
   /** The option is its entity's own Page's (level 1): the headed option card. */
   onPage?: boolean
 }): ReactNode {
@@ -194,103 +190,73 @@ function ChoiceOption({
   const insidePeek = useContext(InsidePeekContext)
   if (insidePeek || (!onPage && readOnly)) {
     return (
-      <div>
-        <Slab
-          variant="solid"
-          label={label}
-          style={OPTION_SLAB}
-          actions={chosen ? <SelectedSeal word="Chosen" /> : undefined}
-        />
+      <SlabSection title={label} style={chosen ? SELECTED_RING : undefined}>
+        {/* The ring is the mark; a screen reader hears it said. */}
+        {chosen && <span className="su-sr-only">Chosen</span>}
         {description && <p style={optionTextStyle}>{parsedDescription}</p>}
-      </div>
+      </SlabSection>
     )
   }
-  const band = textBand(toneColor)
-  const onBand = onTone(band, 'ink') === 'paper' ? color.paper : color.ink
-  const button = {
-    background: 'none',
-    border: 0,
-    borderRadius: 'var(--radius-card)',
-    color: 'inherit',
-    cursor: readOnly ? 'default' : disabled ? 'not-allowed' : 'pointer',
-    display: 'block',
-    font: 'inherit',
-    opacity: disabled ? 0.3 : !readOnly && !chosen ? 0.45 : 1,
-    padding: 0,
-    textAlign: 'left',
-    transition: 'opacity 150ms',
-    width: '100%',
-  } satisfies CSSProperties
-  const frame = {
-    backgroundColor: 'var(--color-paper)',
-    borderColor: 'var(--color-ink)',
-    borderStyle: 'solid',
-    borderWidth: compact ? FRAME_WIDTH.compact : FRAME_WIDTH.regular,
-    borderRadius: 'var(--radius-card)',
-    overflow: 'hidden',
-    ...(chosen ? SELECTED_RING : undefined),
-  } satisfies CSSProperties
-  const [padY, padX] = compact ? [space[6], space[8]] : [space[8], space[10]]
-  const inset = `${padY} ${padX}`
-  const name = {
-    fontFamily: font.cond,
-    fontSize: compact ? fontSize.caption : fontSize.lede,
-    fontWeight: weight.bold,
-    letterSpacing: tracking.capsTight,
-    lineHeight: 1.15,
-    padding: inset,
-    textTransform: 'uppercase',
-  } satisfies CSSProperties
-  // On the Page the name is the tone head; elsewhere ink on the frame's paper.
-  const head = onPage
-    ? {
-        ...name,
-        backgroundColor: band ?? 'var(--color-ink)',
-        borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
-        color: band ? onBand : color.paper,
+  const text = description ? <p style={optionTextStyle}>{parsedDescription}</p> : null
+  // Level 1 on its Page: a titled box, select mode's seal on the band's right
+  // (R15); unchosen, the CHOICE chip says it is one to pick.
+  const box = onPage ? (
+    <TitledBox
+      title={label}
+      paint={optionPaint(toneColor)}
+      affordance={
+        chosen ? <SelectedSeal word="Chosen" /> : <Stat label="Choice" size="compact" hollow />
       }
-    : {
-        ...name,
-        color: color.ink,
-        // The text sits right under the name: no band between them.
-        padding: description ? `${padY} ${padX} 0` : inset,
-      }
-  const body = {
-    color: color.ink,
-    fontSize: compact ? fontSize.badge : fontSize.xs,
-    lineHeight: 1.375,
-    padding: inset,
-  } satisfies CSSProperties
-  return (
-    <button
-      type="button"
-      aria-pressed={chosen}
-      disabled={disabled}
-      onClick={readOnly ? undefined : onToggle}
-      className={FOCUS_RING}
-      style={button}
     >
-      <div style={{ position: 'relative' }}>
-        {onPage && <CardTopRail controls={undefined} selected={chosen} selectionSeal="Chosen" />}
-        {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
-        <div data-option-frame="" style={frame}>
-          <div data-option-head={onPage || undefined} style={head}>
-            {label}
-          </div>
-          {description && <div style={body}>{parsedDescription}</div>}
-        </div>
-      </div>
-    </button>
+      {text}
+    </TitledBox>
+  ) : (
+    <Box>
+      <span className={NAME_CAPS} style={optionNameStyle}>
+        {label}
+      </span>
+      {text}
+    </Box>
+  )
+  // Read-only on its Page: the box alone, ringed when it was chosen.
+  if (readOnly) {
+    return <div style={chosen ? SELECTED_RING : undefined}>{box}</div>
+  }
+  return (
+    <ToggleCard
+      pressed={chosen}
+      disabled={disabled}
+      onClick={onToggle}
+      // The one select dim (R15): unchosen, whether or not the cap allows it.
+      className={cn(!chosen && SELECT_DIM)}
+      style={{
+        ...TOGGLE,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...(chosen ? SELECTED_RING : {}),
+      }}
+    >
+      {box}
+    </ToggleCard>
   )
 }
 
+/** A Page option's band: its entity's tone, as its text band, else ink. */
+function optionPaint(toneColor: string | undefined): Paint {
+  const band = textBand(toneColor)
+  if (!band) return { background: 'var(--color-ink)', color: color.paper, ink: true }
+  return {
+    background: band,
+    color: onTone(band, 'ink') === 'paper' ? color.paper : color.ink,
+    ink: false,
+  }
+}
+
 /**
- * A free-text choice input with an xs stampseal LABEL riding the upper border.
- * The label floats: while the field is empty and unfocused it sits inside the
- * field (acting as the placeholder); on focus or once there's a value it rides
- * the top border, out of the way of what's being typed. Peer-driven, no JS.
+ * A free-text choice (Name / Motto / a table's "choose your own"): the one
+ * labelled field, `Field` over `Input` or `Textarea` (hard rule R16), so it
+ * types at 16px and never zooms an iPhone.
  */
-function StampsealField({
+function ChoiceTextField({
   label,
   value,
   multiline,
@@ -301,45 +267,19 @@ function StampsealField({
   multiline?: boolean
   onChange: (value: string) => void
 }): ReactNode {
-  const fieldClass = cn('su-stampseal-field__input', INPUT_FOCUS)
-  const badge = (
-    // A single space placeholder makes `:placeholder-shown` track "is empty".
-    // The float (inside while empty, riding the border on focus or with a
-    // value) is the sibling selectors on `.su-stampseal-field__label`.
-    <span className="su-stampseal-field__label" style={fieldLabelStyle}>
-      <Badge shape="stamp" size="mini">
-        {label}
-      </Badge>
-    </span>
-  )
+  const id = useId()
   return (
-    <div style={{ position: 'relative' }}>
+    <Field label={label} htmlFor={id}>
       {multiline ? (
-        <textarea
-          aria-label={label}
-          className={fieldClass}
-          style={fieldStyle}
-          rows={2}
-          value={value}
-          placeholder=" "
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <Textarea id={id} rows={2} value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input
-          aria-label={label}
-          className={fieldClass}
-          style={fieldStyle}
-          value={value}
-          placeholder=" "
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} />
       )}
-      {badge}
-    </div>
+    </Field>
   )
 }
 
-/** One choice group: a dashed Slab (name + optional n/max) over the option cards,
+/** One choice group: a Slab (name + optional n/max) over the option cards,
  *  or a single NEW-chrome input card for a free-text choice (Name / Motto / …). */
 function ChoiceOptionGroup({
   choice,
@@ -378,7 +318,7 @@ function ChoiceOptionGroup({
       return value ? <p style={chosenValueStyle}>{value}</p> : null
     }
     return (
-      <StampsealField
+      <ChoiceTextField
         label={choice.name}
         value={value}
         multiline={choice.name.toLowerCase() !== 'name'}
@@ -404,15 +344,18 @@ function ChoiceOptionGroup({
         ) : (
           // The field ALWAYS shows in editable — it holds the chosen value, and
           // rolling the table below fills it (RollTable.onRollResult).
-          <StampsealField label={choice.name} value={value} onChange={onFreeTextChange} />
+          <ChoiceTextField label={choice.name} value={value} onChange={onFreeTextChange} />
         )}
         {table && !insidePeek && (
           <CardRollTable
             table={table}
             name={`${tableName} Table`}
             size={compact ? 'mini' : 'compact'}
-            framed
+            // Collapsed into its header everywhere, a Page included: name and
+            // Roll the Die, its rows its Peek's; a Compact
+            // head beside a Full host's, a Mini in a card's.
             nested
+            nestedSize={compact ? 'mini' : 'compact'}
             peekAt={tablePeekAddress(tableEntity)}
             disabled={false}
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
@@ -431,6 +374,12 @@ function ChoiceOptionGroup({
   // (deselecting a chosen option stays available).
   const atCap = multi && typeof cap === 'number' && selected.length >= cap
   const options = getChoiceCardOptions(choice)
+  const entities = options.map((option) =>
+    renderEntityOption ? resolveOptionEntity(option) : undefined
+  )
+  // On its Page an entity option is a contentful Mini a line wide (R39,
+  // Bionic Senses), so one column.
+  const split = !compact && !(onPage && entities.some(Boolean))
   return (
     <div style={toneVar}>
       {counter && !readOnly && (
@@ -445,22 +394,24 @@ function ChoiceOptionGroup({
           {counter}
         </div>
       )}
-      {/* Masonry columns: one, or two from `sm` unless compact — a class
+      {/* Masonry columns: one, or two from `sm` unless compact or a Page's
+          entity options — a class
           (`.su-choice-options`), since the column count is responsive. */}
       <div
-        className={cn('su-choice-options', !compact && 'su-choice-options--split')}
+        className={cn('su-choice-options', split && 'su-choice-options--split')}
         style={{ gap: space[6] }}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const chosen = selected.includes(option.value)
           const disabled = !readOnly && atCap && !chosen
           const onToggle = () => onToggleOption(option.value)
-          const entity = renderEntityOption ? resolveOptionEntity(option) : undefined
+          const entity = entities[index]
           return (
             <div key={option.value} style={optionCellStyle}>
               {entity && renderEntityOption ? (
                 renderEntityOption({
                   entity,
+                  onPage: !!onPage,
                   label: option.label,
                   chosen,
                   readOnly: !!readOnly,
@@ -476,7 +427,6 @@ function ChoiceOptionGroup({
                   disabled={disabled}
                   onToggle={onToggle}
                   toneColor={toneColor}
-                  compact={compact}
                   onPage={onPage}
                 />
               )}

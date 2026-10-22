@@ -2,7 +2,7 @@
  * What an agent session loads: the instruction text a session working in some
  * directories reads before it starts. doc-drift's `load` check
  * (`tools/check-doc-drift.ts`) totals it per named profile and holds each total
- * to a ratchet; the profiles and their ceilings live there.
+ * to a ratchet; the profiles and their ceilings live in `tools/docBudgets.ts`.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -15,7 +15,7 @@ type CheckResult = { ok: string; failures: string[] }
  * A kind of agent session: the directories it works in, and the docs its loaded
  * text tells it to read before working (beyond what loads by itself).
  */
-/** `skip`: directories under `dirs` that belong to another session (the Cantina inside `apps/web`). */
+/** `skip`: directories under `dirs` that belong to another session (the app inside `apps/web`). */
 export type SessionProfile = { dirs: string[]; reads: string[]; skip?: string[] }
 
 /** How far under its ceiling a profile may fall before the ceiling must come down. */

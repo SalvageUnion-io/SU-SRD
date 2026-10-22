@@ -5,7 +5,7 @@ import { photoRow, sweepUnusedPhotos } from './model/photos'
 
 /**
  * Entity photos in Convex file storage — the `upload` kind of `PhotoSchema`
- * (`cantina-domain/schemas/photo`).
+ * (`game-domain/schemas/photo`).
  *
  * The client uploads in three steps: `generateUploadUrl`, a POST of the file to
  * that URL, then `claim`, which checks the file and returns the photo the
@@ -17,10 +17,10 @@ import { photoRow, sweepUnusedPhotos } from './model/photos'
  */
 
 /** The image types the upload accepts. The client re-encodes to WebP (or JPEG where the browser cannot). */
-export const PHOTO_TYPES = ['image/webp', 'image/jpeg', 'image/png'] as const
+const PHOTO_TYPES = ['image/webp', 'image/jpeg', 'image/png'] as const
 
 /** A photo's ceiling. The client scales to 1600px first, which lands far under it. */
-export const MAX_PHOTO_BYTES = 4 * 1024 * 1024
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024
 
 /** A short-lived URL to POST one photo file to. */
 export const generateUploadUrl = mutation({

@@ -15,6 +15,11 @@ type RadioProps = Omit<ComponentPropsWithRef<'input'>, 'type'> & {
    * one word per line.
    */
   stacked?: boolean
+  /**
+   * No frame of its own: the input and its label, inline, for a compact pair
+   * inside a frame that is already drawn (Play's EP-or-AP cost choice).
+   */
+  bare?: boolean
 }
 
 /**
@@ -77,6 +82,7 @@ export function Radio({
   label,
   description,
   stacked = false,
+  bare = false,
   className,
   style,
   ...props
@@ -89,7 +95,12 @@ export function Radio({
   )
   return (
     <label
-      className={cn('su-choice', stacked && 'su-choice--stacked', className)}
+      className={cn(
+        'su-choice',
+        stacked && 'su-choice--stacked',
+        bare && 'su-choice--bare',
+        className
+      )}
       style={stacked ? CHOICE_ROW_STACKED : CHOICE_ROW}
     >
       <input

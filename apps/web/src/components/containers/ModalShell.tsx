@@ -1,10 +1,11 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { color, font, fontSize, layer, space, tracking, weight } from '../../design/tokens'
+import { color, fontSize, layer, space } from '../../design/tokens'
 import { CloseButton } from '../atoms/CloseButton'
+import { capsLabel } from '../atoms/capsLabel'
+import { paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { paintFor } from '../entity/parts/paint'
 import { TitledBox } from './TitledBox'
 
 type ModalShellProps = {
@@ -41,11 +42,13 @@ type ModalShellProps = {
    */
   tone?: 'action' | 'danger'
   /**
-   * A max-width class on the popup (e.g. `max-w-lg`). Omitted, the popup is
-   * 48rem wide at most, or 28rem for an `alertdialog` — the narrow width every
-   * confirm in the apps had already chosen by hand.
+   * One of the three dialog widths (chrome K7, hard rule R24), and nothing
+   * else: `'narrow'` (28rem) for a confirm, a short prompt or a picker of one
+   * thing; `'default'` (48rem) for the rest; `'page'` (72rem) for the detail
+   * Page and the searcher that shows one. There is no class or style escape:
+   * a per-dialog width is the drift this replaced.
    */
-  maxWidth?: string
+  width?: DialogWidth
   align?: 'center' | 'top'
   /** Element to focus when the dialog opens (defaults to base-ui's first
    *  tabbable — the header close button). Pass a ref for input-first dialogs
@@ -62,22 +65,19 @@ type ModalShellProps = {
    * Portal into this element instead of the document body. The scrim and the
    * popup then cover the container rather than the viewport (it must be a
    * positioned box), and focus is trapped without locking page scroll —
-   * the Dashboard's overlays, which open over one region of a scaled canvas
-   * and need its `.su-dash-root` styling.
+   * a picker over a sheet that is itself an overlay (a sheet over Play),
+   * which must stay inside it.
    */
   container?: RefObject<HTMLElement | null>
   /** Element to focus when the dialog closes (defaults to base-ui's: the
    *  trigger, or whatever held focus before it opened). */
   finalFocus?: RefObject<HTMLElement | null>
-  /**
-   * Fill the whole viewport, edge to edge, and scroll inside it: the
-   * Dashboard's phone menu and its panels (ADR-045), which are screens rather
-   * than boxes over one. Ignores `maxWidth` and `align`; pair it with `bare`,
-   * so the child draws its own header and close control.
-   */
-  fullscreen?: boolean
   children?: ReactNode
 }
+
+/** The three dialog widths (chrome K7). */
+const DIALOG_WIDTH = { narrow: '28rem', default: '48rem', page: '72rem' } as const
+type DialogWidth = keyof typeof DIALOG_WIDTH
 
 /** A contained modal fills its container: the scrim behind, the popup over it. */
 const CONTAINED_BACKDROP = { position: 'absolute' } satisfies CSSProperties
@@ -106,24 +106,19 @@ const POPUP = {
  */
 const SUBTITLE = {
   margin: 0,
-  padding: `${space[10]} ${space[20]} 0`,
-  fontFamily: font.cond,
+  padding: `${space[12]} ${space[20]} 0`,
   fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.2,
-  textTransform: 'uppercase',
   color: color.wkMuted,
 } satisfies CSSProperties
+const SUBTITLE_CAPS = capsLabel()
 
-/** A full-screen popup covers the viewport and scrolls inside itself. */
-const FULLSCREEN_POPUP = {
-  position: 'fixed',
-  inset: 0,
-  zIndex: layer.overlay,
-  overflowY: 'auto',
-  outline: 'none',
-} satisfies CSSProperties
+/**
+ * The band's control slot is a frame (chrome K1): a band that prints paper
+ * (the danger rust) declares an ink ground there, and the × reads it in CSS.
+ * It draws no box of its own, so the × stays the chip group's last slot.
+ */
+const CONTROL_SLOT = { display: 'contents' } satisfies CSSProperties
 
 export function ModalShell({
   open,
@@ -134,13 +129,12 @@ export function ModalShell({
   ownTitle = false,
   role = 'dialog',
   tone,
-  maxWidth,
+  width = 'default',
   align = 'center',
   initialFocus,
   bare = false,
   container,
   finalFocus,
-  fullscreen = false,
   children,
 }: ModalShellProps) {
   // `tone` is the whole API: a union, never a raw class string compared by
@@ -155,13 +149,12 @@ export function ModalShell({
   const popupStyle = {
     ...POPUP,
     ...(bare ? { overflow: 'hidden' } : { overflowY: 'auto' }),
-    // A caller's `maxWidth` class sets the cap; inline, the default would beat it.
-    ...(maxWidth ? {} : { maxWidth: role === 'alertdialog' ? '28rem' : '48rem' }),
+    maxWidth: DIALOG_WIDTH[width],
     margin: align === 'center' ? 'auto' : `${space[32]} auto auto`,
   } satisfies CSSProperties
 
   // An Escape something inside the dialog already handled (an inline edit
-  // cancelling, the Dashboard Major's own Take Damage prompt closing) is not a
+  // cancelling, a nested prompt closing) is not a
   // dismissal of the dialog around it.
   const onRootOpenChange = (
     next: boolean,
@@ -180,8 +173,7 @@ export function ModalShell({
       <Dialog.Popup
         initialFocus={initialFocus}
         finalFocus={finalFocus}
-        className={container || fullscreen ? undefined : maxWidth}
-        style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
+        style={container ? CONTAINED_POPUP : popupStyle}
       >
         {!ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}
         {description !== null && (
@@ -200,12 +192,19 @@ export function ModalShell({
             className="su-modal-panel"
             body="flush"
             controls={
-              <Dialog.Close
-                render={<CloseButton onPaper={paint.color === 'var(--color-paper)'} />}
-              />
+              <span
+                data-ground={paint.color === 'var(--color-paper)' ? 'ink' : undefined}
+                style={CONTROL_SLOT}
+              >
+                <Dialog.Close render={<CloseButton />} />
+              </span>
             }
           >
-            {subtitle && <p style={SUBTITLE}>{subtitle}</p>}
+            {subtitle && (
+              <p className={SUBTITLE_CAPS} style={SUBTITLE}>
+                {subtitle}
+              </p>
+            )}
             {children}
           </TitledBox>
         )}

@@ -27,12 +27,6 @@
   min-width: 0;
 }
 
-.su-guide__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
 .su-guide__steps {
   display: flex;
   flex-direction: column;
@@ -57,9 +51,33 @@
   box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
   color: var(--color-ink);
   display: inline-block;
-  margin-block: calc(-1 * var(--space-2)) -3px;
+  margin-block: calc(-1 * var(--space-2));
   margin-inline: var(--space-4) calc(-1 * var(--space-8));
-  padding: var(--space-2) var(--space-8) 3px;
+  padding: var(--space-2) var(--space-8);
+}
+
+/* The two cells stand side by side, so a long name wraps inside its own
+   paper cell and the stamp stays one box. */
+.su-guide__head > .su-poster-stamp:has(> .su-guide__step-name) {
+  align-items: center;
+  display: inline-flex;
+}
+
+.su-guide__head > .su-poster-stamp > .su-guide__step-name {
+  display: block;
+  margin-inline-start: var(--space-8);
+}
+
+/* A higher-level separator (a guide's "Post-Session") stands centred
+   between two rules, apart from its steps' left-hand slabs. */
+.su-guide--page .su-guide__section > .su-slab-section__head::before {
+  border-top: var(--bw-hairline) solid var(--color-ink-50);
+  content: '';
+  flex: 1 1 0;
+}
+
+.su-guide--page .su-guide__section > .su-slab-section__head > :last-child {
+  flex: 1 1 0;
 }
 
 /* A step's body, and the prose a ladder stands beside (below). */
@@ -80,9 +98,19 @@
   margin: 0;
 }
 
-/* The options a step selects from, as Tokens (`EntityTokenList`). */
+/* The options a step selects from: Minis (`EntityMiniList`), or on the
+ * guide's Page open Compacts, one a line (N8). */
 .su-guide__cards {
   padding-top: var(--space-12);
+}
+
+.su-guide__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 /* A progression ladder (crawler tech levels) reads down a narrow column
@@ -100,7 +128,7 @@
   padding-top: var(--space-12);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   /* The ladder stands on the left of the prose it illustrates. */
   .su-guide__ladder {
     align-items: flex-start;
@@ -129,15 +157,26 @@
   max-width: var(--su-guide-measure, 52rem);
 }
 
-.su-entity-page > .su-guide .su-guide__steps {
-  gap: var(--space-48);
-}
-
+/* On a Page the guide keeps the Page's one rhythm (ruleset §1.7, hard rule
+   R17): every block, a step's slab, its prose, its Minis and its table,
+   one 12px gap from the next. */
+.su-entity-page > .su-guide,
+.su-entity-page > .su-guide .su-guide__flow,
+.su-entity-page > .su-guide .su-guide__steps,
 .su-entity-page > .su-guide .su-guide__step {
-  gap: var(--space-20);
+  gap: var(--space-12);
 }
 
-@media (max-width: 40rem) {
+.su-entity-page > .su-guide .su-guide__ladder {
+  gap: var(--space-12);
+}
+
+.su-entity-page > .su-guide .su-guide__cards,
+.su-entity-page > .su-guide .su-guide__ladder-cards {
+  padding-top: 0;
+}
+
+@media not (width >= 40rem) {
   .su-entity-page > .su-guide {
     font-size: 17px;
   }
@@ -153,22 +192,17 @@
  * (from 64rem), beside the reading column; narrower, the same list stands open
  * under its slab above the steps, so a phone never scrolls sideways.
  */
-.su-guide--page .su-guide__section {
-  gap: 0;
-}
-
-.su-guide--page .su-guide__section + .su-guide__section {
-  margin-top: var(--space-24);
-}
-
-.su-guide--page .su-guide__section-head [id],
+.su-guide--page .su-guide__section [id],
 .su-guide--page .su-guide__head [id] {
   scroll-margin-top: var(--space-24);
 }
 
 /* The phone's contents: the list, always open, under its solid slab. */
 .su-guide__toc-block {
+  display: flex;
+  flex-direction: column;
   font-size: var(--text-sm);
+  gap: var(--space-12);
   line-height: 1.4;
 }
 
@@ -178,13 +212,9 @@
 
 .su-guide__toc-title {
   border-bottom: var(--bw-chrome) solid var(--color-ink);
-  font-family: var(--font-cond);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps);
   margin: 0 0 var(--space-8);
   padding-bottom: var(--space-6);
-  text-transform: uppercase;
 }
 
 .su-guide__toc,
@@ -214,7 +244,7 @@
   text-decoration: underline;
 }
 
-/* The section the reader is in (srd's scroll-spy sets it): the hover's
+/* The section the reader is in (the reference site's scroll-spy sets it): the hover's
    underline, held and heavier, on a bold name. */
 .su-guide__toc-link[aria-current] {
   font-weight: var(--font-weight-bold);
@@ -226,13 +256,6 @@
 .su-guide__toc-link:focus-visible {
   outline: 3px solid transparent;
   box-shadow: var(--focus-ring-shadow);
-}
-
-.su-guide__toc-link--section {
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
 }
 
 .su-guide__toc-num {
@@ -259,7 +282,7 @@
 
 .su-entity-page--guide .su-entity-page__prose,
 .su-entity-page--guide .su-guide__body {
-  gap: 0.75em;
+  gap: var(--space-12);
 }
 
 .su-entity-page--guide .su-entity-page__prose .su-text.su-text--body,
@@ -272,42 +295,36 @@
 /* Paragraphs inside one run part like the runs do. */
 .su-entity-page--guide .su-entity-page__prose .su-text + .su-text,
 .su-entity-page--guide .su-guide__prose .su-text + .su-text {
-  margin-top: 0.6em;
+  margin-top: var(--space-12);
 }
 
 .su-entity-page--guide .su-guide__note {
   max-width: var(--su-guide-prose);
 }
 
-/* The aside (`GuideAside`): a tip or a worked example, framed on paper in
- * chrome-weight ink, as the srd's other asides are — a frame,
- * never a left rail (ruleset §3.10). */
-.su-guide__aside {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  padding: var(--space-12) var(--space-16);
-}
-
-.su-guide__aside > p {
+/* The aside (`GuideAside`): the unlabelled `Callout`, whose frame and paper
+ * body are the Box's; its paragraph sets the guide's reading measure. */
+.su-guide__aside p {
   margin: 0;
   text-wrap: pretty;
 }
 
 /* A stamped aside (a hint with a `label`, "Note"): the stamp rides the frame's
- * top border (`.su-stamp-seam`), inset from its corner, with room above for it. */
+ * top border (`.su-stamp-seam`), inset from its corner, with room for it. */
 .su-guide__aside--stamped {
   margin-top: var(--space-8);
-  padding-top: var(--space-16);
   position: relative;
+}
+
+.su-guide__aside--stamped .su-box__body {
+  padding-top: var(--space-16);
 }
 
 .su-guide__aside-stamp {
   left: var(--space-12);
 }
 
-.su-guide__aside--flavor > p {
+.su-guide__aside--flavor p {
   font-style: italic;
 }
 
@@ -325,7 +342,7 @@
  * then the steps) and sticks while they scroll by. It stands at the page's far
  * edge, under the band's stamps, as the column stands under its title.
  */
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-entity-page--guide {
     align-items: start;
     column-gap: var(--space-40);
@@ -346,7 +363,7 @@
   }
 
   .su-entity-page--guide > .su-entity-page__main ~ .su-guide .su-guide__flow {
-    margin-top: var(--space-40);
+    margin-top: var(--space-12);
   }
 
   .su-guide--page .su-guide__toc-block {
@@ -371,7 +388,7 @@
    plate hugs the art: a small even inset inside the hairline, and the art's
    white canvas multiplied onto the paper so no second ground shows around it.
    `--su-hero-max-h` is the tallest the art draws: most of a phone's screen;
-   beside the flowing page's text, capped lower (see `.su-entity-page--flow`
+   beside the flowing page's text, capped lower (see `.su-entity-page--art`
    below). */
 .su-entity-hero {
   --su-hero-inset: var(--space-6);
@@ -390,7 +407,7 @@
   max-width: 100%;
   mix-blend-mode: multiply;
   object-fit: contain;
-  transition: opacity 300ms;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 
 /* Cropped to the line art (`heroArtCrop`): the artwork's canvas
@@ -425,15 +442,22 @@
 }
 
 /* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
- * Each pattern is a card in the Row's language: its host's tone in the head
+ * Each pattern is a card in the Compact's language: its host's tone in the head
  * (the link), a paper body with the pattern's opening as a
- * clamped lead and its loadout, Systems beside Modules, one full-width Token
+ * clamped lead and its loadout, Systems beside Modules, one full-width Mini
  * a line (links of their own, so outside the head's anchor). One card a line.
- * On a phone only two show until "Show all" targets the list (`:target`),
- * which needs no script.
+ * On a phone only two show until "Show all" targets the section's heading
+ * (`:target`), which needs no script. The section is a `SlabSection` on the
+ * Page (12px under its Slab); its body spaces the list and "Show all".
  */
-.su-pattern-rows {
+.su-pattern-rows [id='patterns'] {
   scroll-margin-top: var(--space-64);
+}
+
+.su-pattern-rows__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
 }
 
 .su-pattern-rows__list {
@@ -445,31 +469,22 @@
   padding: 0;
 }
 
-.su-pattern-rows__item {
-  background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
 .su-pattern-rows__head {
   color: inherit;
   display: block;
   text-decoration: none;
 }
 
-/* No rule under the head: its name's cut-out tab opens into this paper. */
-.su-pattern-rows__body {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--space-10);
-  padding: var(--space-8) var(--space-10) var(--space-10);
+/* The pattern's opening paragraph, at the head of the box's body. */
+.su-pattern-rows__prose {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+  max-width: 72ch;
 }
 
-/* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
+/* What the pattern changes (`PatternUniques`): its loadout Minis, or the
    actions a Bio-Titan pattern adds. */
 .su-pattern-rows__unique {
   display: flex;
@@ -484,34 +499,30 @@
   border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
-  font-family: var(--font-cond);
   font-size: var(--text-lede);
-  font-weight: var(--font-weight-bold);
   justify-content: center;
-  letter-spacing: var(--tracking-caps-tight);
   margin-top: var(--space-12);
-  min-height: 44px;
+  min-height: var(--size-full);
   text-decoration: none;
-  text-transform: uppercase;
 }
 
-@media (max-width: 39.99rem) {
-  .su-pattern-rows:not(:target) .su-pattern-rows__item:nth-child(n + 3) {
+@media not (width >= 40rem) {
+  .su-pattern-rows:not(:has(:target)) .su-pattern-rows__list > li:nth-child(n + 3) {
     display: none;
   }
 
-  .su-pattern-rows:target .su-pattern-rows__more {
+  .su-pattern-rows:has(:target) .su-pattern-rows__more {
     display: none;
   }
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-pattern-rows__more {
     display: none;
   }
 }
 
-/* The link-preview scale (`scale="og"`, OgCard, issue 1280): a band drawn at
+/* The link-preview scale (`scale="og"`, OgCard): a band drawn at
    one fixed size inside a 1200 × 630 card, never responsive. The eyebrow (the
    kicker and its stamps) sits at the top, the notch at the foot, and the band
    fills the height the card gives it. The selectors outrank the responsive
@@ -591,6 +602,23 @@
 .su-og-chips .su-stat-cell {
   border-radius: calc(var(--radius-badge) * 2);
   border-width: var(--bw-entity);
+}
+
+/* The HOMEBREW stamp (`HomebrewStamp`) at the preview's scale: the cells'
+   type, its dashed edge at the entity weight. */
+.su-og-chips .su-badge--dashed {
+  border-width: var(--bw-entity);
+  font-size: 36px;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+  padding: var(--space-2) var(--space-16);
+}
+
+/* The cost box sits in its edge, which draws no box of its own
+   (`display: contents`), so the box takes the chip's gap itself. */
+.su-og-chips > .su-cost-edge > .su-cost {
+  margin: var(--space-14) 0 0 var(--space-14);
+  vertical-align: bottom;
 }
 
 .su-og-chips .su-stat-plate {

@@ -1,0 +1,18 @@
+/*
+ * unitSlot.css — the stateful/responsive half of the
+ * app components listed below; their static styling is style objects over
+ * src/components tokens. Loaded by `app.css`.
+ *
+ *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
+ *     laid over the whole Compact, its linked chips raised above it.
+ *   - `srdEntityExternalLink` (components/shared/srdEntityExternalLink.tsx):
+ *     the "View in the Reference" link, an `InlineRef` alone in a card's foot.
+ */
+
+/* "View in the Reference": the prose link's words centred in a 24px target
+   (WCAG 2.2, 2.5.8), since it stands alone rather than inside a sentence. */
+.su-srd-entity-external-link {
+  align-items: center;
+  display: inline-flex;
+  min-block-size: var(--space-24);
+}

@@ -1,5 +1,6 @@
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import { FOCUS_RING } from './interaction'
 
 type InlineRefProps = {
   children: ReactNode
@@ -10,7 +11,7 @@ type InlineRefProps = {
    */
   href?: string
   /**
-   * An opener for a reference with no route but a view to open (The Cantina's Page,
+   * An opener for a reference with no route but a view to open (The app's Page,
    * entity display language E4): a `<button>` worn as the same rust link. An
    * `href` wins.
    */
@@ -32,14 +33,14 @@ type InlineRefProps = {
  *   `<a href>`, so it is keyboard-reachable (the one rust element allowed in
  *   read-only prose, ruleset §3.1).
  * - **Opens** (`onOpen` set) — the same rust word as a `<button>`, for a view
- *   with no route (The Cantina's Page).
+ *   with no route (The app's Page).
  * - **Inert** (neither) — an ink **dashed** border-bottom with `cursor-help`;
  *   it only summons the Peek.
  *
  * The distinguishing rule is the border + navigability; the Peek is a
  * composition concern (`Mention`). The word keeps its prose's own type and
  * colour, so a reference reads on any ground — paper prose, an ink roll band,
- * a tone header (`.su-inline-ref` in `index.css`). Extra attributes (a Peek
+ * a tone header (`.su-inline-ref` in `styles/partials/inline-ref.css`). Extra attributes (a Peek
  * trigger's `data-peek`) reach the element in every state.
  */
 export function InlineRef({ children, href, onOpen, title, className, ...rest }: InlineRefProps) {
@@ -48,7 +49,7 @@ export function InlineRef({ children, href, onOpen, title, className, ...rest }:
       <a
         href={href}
         title={title}
-        className={cn('su-inline-ref su-inline-ref--link', className)}
+        className={cn('su-inline-ref su-inline-ref--link', FOCUS_RING, className)}
         {...rest}
       >
         {children}
@@ -65,7 +66,11 @@ export function InlineRef({ children, href, onOpen, title, className, ...rest }:
       <button
         type="button"
         title={title}
-        className={cn('su-inline-ref su-inline-ref--link su-inline-ref--button', className)}
+        className={cn(
+          'su-inline-ref su-inline-ref--link su-inline-ref--button',
+          FOCUS_RING,
+          className
+        )}
         {...shared}
         onClick={(event) => {
           // A reference inside a clickable card opens ITS entity, not the card's.

@@ -1,0 +1,64 @@
+/* The pilot sheet group's rules: only what a style object cannot express. */
+
+/* — PilotSheet — */
+
+/* A rail slot's wrapper and `Field` take a class only: fill the remaining row/column. */
+.su-sheet-pilot-fill {
+  flex: 1 1 0%;
+}
+
+/* — PilotIdentity — */
+
+/* A field grid that splits in two from `sm`. */
+.su-sheet-pilot-split {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (width >= 40rem) {
+  .su-sheet-pilot-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* — NpcLines (`NpcLines.tsx`): a crew lead's id lines — */
+
+/* The id lines split in two once the bay card is `sm` wide (container query). */
+.su-sheet-npc-lines {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@container (width >= 40rem) {
+  .su-sheet-npc-lines {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-sheet-npc-wide {
+    grid-column: span 2 / span 2;
+  }
+}
+
+/* A crew lead's body (`CrewLeadMini`): its lines, and right of them its HP
+   as Mini HP cells, only as wide as their square block. */
+.su-crew-lead__body {
+  align-items: start;
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.su-crew-lead__body > .su-sheet-npc-lines {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-crew-lead__body .su-sheet-npc-wide {
+  grid-column: auto;
+}
+
+.su-crew-lead__body > .su-crew-lead__hp:only-child {
+  grid-column: 1 / -1;
+}
+
+/* Motto, Keepsake and Background side by side, as many as fit. */
+.su-sheet-pilot-traits {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}

@@ -1,5 +1,5 @@
-import type { BotOpName } from 'cantina-domain/botWire'
-import { BOT_OP_NAMES, BOT_PATH_PREFIX } from 'cantina-domain/botWire'
+import type { BotOpName } from 'game-domain/botWire'
+import { BOT_OP_NAMES, BOT_PATH_PREFIX, bearerToken, secretsMatch } from 'game-domain/botWire'
 import { internal } from './_generated/api'
 import { httpAction } from './_generated/server'
 
@@ -27,51 +27,44 @@ import { httpAction } from './_generated/server'
  * Ed25519 signature, at which point the id is attested rather than asserted.
  * See `docs/ARCHITECTURE.md#bot-game-client`.
  *
- * `CANTINA_BOT_SECRET` unset disables the whole surface — a deployment that has
+ * `BOT_SECRET` unset disables the whole surface — a deployment that has
  * not opted in cannot be talked to by a bot, rather than being talked to by
  * anyone.
  */
 
-/** Operations the bot may invoke, mapped to their internal function. */
+/** The read operations the bot may invoke, mapped to their internal query. */
 const QUERIES = {
   me: internal.botClient.me,
   games: internal.botClient.games,
   sheet: internal.botClient.sheet,
   mine: internal.botClient.mine,
-} as const satisfies Record<BotOpName, unknown>
+} as const
+
+/** The write operations (`/su bind`, `/su unbind`), mapped to their internal mutation. */
+const MUTATIONS = {
+  bindChannel: internal.botClient.bindChannel,
+  unbindChannel: internal.botClient.unbindChannel,
+} as const
+
+/**
+ * Whether an op writes, and so runs as a mutation rather than a query. Every
+ * other op indexes `QUERIES`, so an op added to `BOT_OP_NAMES` with no function
+ * in either map fails to compile where `botRoute` looks it up.
+ *
+ * Not exported, like the maps: an exported value typed by `internal` makes the
+ * generated `api` type reference itself through this module.
+ */
+function isMutationOp(op: BotOpName): op is keyof typeof MUTATIONS {
+  return op in MUTATIONS
+}
 
 /**
  * Every operation name, for tests and for the 404 body: the bot's own list
- * (`cantina-domain/botWire`), which `QUERIES` must cover exactly. Typed
+ * (`game-domain/botWire`), which `QUERIES` and `MUTATIONS` together must
+ * cover exactly. Typed
  * `readonly string[]` so a path segment can be looked up in it.
  */
 export const BOT_OPS: readonly string[] = BOT_OP_NAMES
-
-/**
- * Compare two secrets without leaking their common prefix through timing.
- *
- * Length is compared first and short-circuits, which does leak the secret's
- * length — that is accepted: a length oracle does not meaningfully narrow a
- * random secret, whereas a byte-by-byte early exit would.
- */
-export function secretsMatch(presented: string, expected: string): boolean {
-  if (presented.length !== expected.length) return false
-  let diff = 0
-  for (let i = 0; i < presented.length; i += 1) {
-    diff |= presented.charCodeAt(i) ^ expected.charCodeAt(i)
-  }
-  return diff === 0
-}
-
-/**
- * Pull the bearer token out of an Authorization header.
- * Returns null for a missing, malformed, or non-bearer header.
- */
-export function bearerToken(header: string | null): string | null {
-  if (header === null) return null
-  const match = /^Bearer (.+)$/.exec(header.trim())
-  return match?.[1] ?? null
-}
 
 /** The op named by a `/bot/<op>` path, or null when the path names none. */
 export function opFromPath(pathname: string): BotOpName | null {
@@ -88,7 +81,7 @@ function json(body: unknown, status: number): Response {
 }
 
 export const botRoute = httpAction(async (ctx, request) => {
-  const expected = process.env.CANTINA_BOT_SECRET
+  const expected = process.env.BOT_SECRET
   // Unconfigured is 404, not 401: a deployment that has not opted in should be
   // indistinguishable from one where this route does not exist.
   if (expected === undefined || expected.length === 0) {
@@ -110,11 +103,14 @@ export const botRoute = httpAction(async (ctx, request) => {
     return json({ error: 'malformed body' }, 400)
   }
 
-  // `runQuery` validates the args against each function's own validators, so a
-  // malformed payload fails there rather than needing a second copy of every
-  // argument shape here.
+  // `runQuery` / `runMutation` validate the args against each function's own
+  // validators, so a malformed payload fails there rather than needing a second
+  // copy of every argument shape here.
   try {
-    return json(await ctx.runQuery(QUERIES[op], args as never), 200)
+    const result = isMutationOp(op)
+      ? await ctx.runMutation(MUTATIONS[op], args as never)
+      : await ctx.runQuery(QUERIES[op], args as never)
+    return json(result, 200)
   } catch (error) {
     // The message is passed through deliberately, and it is safe to: this
     // route is already behind the bot credential, so the only reader is the

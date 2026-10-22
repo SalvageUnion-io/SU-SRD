@@ -9,7 +9,7 @@
  *   serves itself: `FIXED_MOVES`, then each former slug's.
  * - The Worker's miss (`worker/index.ts`) for the old page grammar
  *   (`currentPathFor`): one pattern, not a rule per page.
- * - The Cantina's rules (`worker/cantina.ts`) for the paths under `/build` it
+ * - The app's rules (`worker/app.ts`) for the paths under `/build` it
  *   no longer has (`retiredDocPage`, `retiredTarget`): the Worker runs first
  *   there, so `_redirects` never sees them.
  *
@@ -32,7 +32,7 @@ export const FIXED_MOVES: readonly Move[] = [{ from: '/sitemap.xml', to: '/sitem
 // The reference pages' old grammar
 // ---------------------------------------------------------------------------
 //
-// Until srd dropped `/schema/…/item/` from its URLs, a listing was
+// Until the reference site dropped `/schema/…/item/` from its URLs, a listing was
 // `/schema/chassis/` and a page `/schema/chassis/item/mule/` (a pattern under
 // it, `…/mule/pattern/hauler/`, an unfurl beside it, `…/item/mule.og.png`).
 // Those URLs are in search indexes, Discord history and bookmarks. Nothing the
@@ -86,11 +86,34 @@ export function legacyItemHref(schemaId: string, slug: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// The Cantina's retired paths, read inside its base
+// The reference pages that are gone
 // ---------------------------------------------------------------------------
 
 /**
- * The Cantina's own `/about` and `/changelog`, which the site's pages replaced:
+ * A site page that no longer exists, and where its address lands. The search
+ * page went (the bar's dropdown is the search, EDL "Which form, where"): its
+ * address goes to the home page, and the Worker keeps the query string, so
+ * `/search/?q=mule` opens the Union bar's search on "mule".
+ */
+const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([['/search', '/']])
+
+/**
+ * Where a retired site page's address lands, with or without its trailing
+ * slash; `undefined` for any other path.
+ *
+ * @param pathname - The request's pathname, as `URL` parses it
+ * @returns The root-relative page it lands on, or `undefined`
+ */
+export function retiredSitePage(pathname: string): string | undefined {
+  return RETIRED_SITE_PAGES.get(pathname.replace(/\/+$/, ''))
+}
+
+// ---------------------------------------------------------------------------
+// The app's retired paths, read inside its base
+// ---------------------------------------------------------------------------
+
+/**
+ * The app's own `/about` and `/changelog`, which the site's pages replaced:
  * a bookmark or an old link lands on the site's page, on this origin.
  */
 const RETIRED_DOC_PAGES: ReadonlyMap<string, string> = new Map([
@@ -99,7 +122,7 @@ const RETIRED_DOC_PAGES: ReadonlyMap<string, string> = new Map([
 ])
 
 /**
- * Where a retired Cantina doc page went. Takes a path inside the base, with or
+ * Where a retired app doc page went. Takes a path inside the base, with or
  * without its trailing slash; null for any other path.
  */
 export function retiredDocPage(path: string): string | null {
@@ -118,6 +141,14 @@ export function retiredDocPage(path: string): string | null {
  *     crew view; the live read-only sheet takes the same row id)
  *   - `/join/:code`                           → `/invite/:code` (an invite's
  *     token is its old join code, so the invite page joins or explains)
+ *   - `/games/:gameId`                        → `/play/games/:gameId` (Build's
+ *     Game page; a Game's page is Play's, ADR-052 §5)
+ *   - `/dashboard/:pilotId`                   → `/play/:pilotId` (Play replaced
+ *     the Dashboard; `PlayGate` resolves an old mech-keyed id to its pilot)
+ *   - `/mediator/:gameId`                     → `/play/game/:gameId` (Play
+ *     replaced the Mediator Dashboard)
+ *
+ * A trailing slash names the same address.
  *
  * A path under one of these prefixes that names none of these shapes keeps its
  * own path: it never matched a route before either, and lands on the app's
@@ -132,8 +163,11 @@ export function retiredTarget(path: string): string | null {
   const parts = path.split('/').filter((part) => part.length > 0)
   const [first, second, third, fourth, fifth] = parts
   if (first === 'games' && parts.length === 1) return '/'
+  if (first === 'games' && parts.length === 2) return `/play/games/${second}`
   if (first === 'games' && parts.length === 5 && third === 'view')
     return `/sheet/${fourth}/${fifth}`
   if (first === 'join' && parts.length === 2) return `/invite/${second}`
+  if (first === 'dashboard' && parts.length === 2) return `/play/${second}`
+  if (first === 'mediator' && parts.length === 2) return `/play/game/${second}`
   return null
 }

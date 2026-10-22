@@ -54,10 +54,10 @@ export type StatItem = {
   text: string
 }
 
-type Row = Record<string, unknown>
+type Compact = Record<string, unknown>
 
 const str = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : '')
-const rows = (v: unknown) => (Array.isArray(v) ? (v as Row[]) : [])
+const rows = (v: unknown) => (Array.isArray(v) ? (v as Compact[]) : [])
 const strings = (v: unknown) => (Array.isArray(v) ? v.map(str) : [])
 
 // ---------------------------------------------------------------------------
@@ -81,14 +81,14 @@ const titleCase = (s: string) =>
  * An action's stat line as the book sets it: `2EP Turn Action // Range: Close
  * // Damage: 3 SP // Energy // Hot (2)`. Empty when the action has none.
  */
-export function renderStatLine(a: Row, currency: string, extra: string[] = []): string {
+export function renderStatLine(a: Compact, currency: string, extra: string[] = []): string {
   const parts: string[] = []
   const cost = str(a.activationCost)
   const head = [cost && `${cost}${currency}`, ACTION_TYPE[str(a.actionType)]].filter(Boolean)
   if (head.length) parts.push(head.join(' '))
   const range = strings(a.range)
   if (range.length) parts.push(`Range: ${range.join('/')}`)
-  const dmg = a.damage as Row | undefined
+  const dmg = a.damage as Compact | undefined
   if (dmg) parts.push(`Damage: ${str(dmg.amount)} ${str(dmg.damageType)}`)
   for (const t of rows(a.traits)) {
     const amount = str(t.amount)
@@ -99,7 +99,7 @@ export function renderStatLine(a: Row, currency: string, extra: string[] = []): 
 }
 
 /** An action's name as the book prints it: no `(Owner)` suffix. */
-function printedActionName(a: Row): string {
+function printedActionName(a: Compact): string {
   if (typeof a.displayName === 'string') return a.displayName
   return str(a.name).replace(/ \([^)]+\)$/, '')
 }
@@ -124,9 +124,9 @@ function collapse(names: string[]): string[] {
 // Collecting the dataset's stat blocks
 // ---------------------------------------------------------------------------
 
-function load(dataDir: string, file: string): Row[] {
+function load(dataDir: string, file: string): Compact[] {
   try {
-    return JSON.parse(readFileSync(join(dataDir, file), 'utf8')) as Row[]
+    return JSON.parse(readFileSync(join(dataDir, file), 'utf8')) as Compact[]
   } catch {
     return []
   }
@@ -135,13 +135,13 @@ function load(dataDir: string, file: string): Row[] {
 /** Every stat block in the dataset, in file order, each field in the book's order. */
 export function collectStats(dataDir = DATA_DIR): StatItem[] {
   const files = new Set(readdirSync(dataDir).filter((f) => f.endsWith('.json')))
-  const actions = new Map<string, Row>()
+  const actions = new Map<string, Compact>()
   for (const a of files.has('actions.json') ? load(dataDir, 'actions.json') : [])
     actions.set(str(a.name), a)
   const out: StatItem[] = []
   const push = (
     file: string,
-    e: Row,
+    e: Compact,
     kind: StatKind,
     fields: StatField[],
     extra: Partial<StatItem> = {}
@@ -164,7 +164,7 @@ export function collectStats(dataDir = DATA_DIR): StatItem[] {
   /** One block per action with a stat line; `recommended` joins the owner's own action. */
   const pushActions = (
     file: string,
-    e: Row,
+    e: Compact,
     kind: StatKind,
     currency: string,
     recommended?: string

@@ -33,6 +33,15 @@ describe('buildLinkFor', () => {
     expect(buildLinkFor('classes', advanced)).toBeNull()
   })
 
+  test('a creation guide opens the builder for what it creates; another guide gets none', () => {
+    const guides = SalvageUnionReference.Guides.all()
+    const mech = must(guides.find((g) => g.guideType === 'mech-creation'))
+    expect(buildLinkFor('guides', mech)).toMatchObject({ label: 'Build a mech' })
+    expect(buildLinkFor('guides', mech)?.href).toContain('/mechs/new')
+    const other = must(guides.find((g) => !String(g.guideType).endsWith('-creation')))
+    expect(buildLinkFor('guides', other)).toBeNull()
+  })
+
   test('every crawler type opens the crawler wizard on it', () => {
     for (const type of SalvageUnionReference.Crawlers.all()) {
       expect(buildLinkFor('crawlers', type)?.href).toBe(
@@ -85,7 +94,7 @@ describe('guideExitsFor', () => {
   test('Create a Pilot builds a pilot, walks on to Create a Mech, offers the Starter Set', () => {
     expect(guideExitsFor('guides', guide('Create a Pilot'))).toEqual({
       build: { href: `${appPath('/pilots/new?mode=guided')}`, label: 'Build a pilot' },
-      next: { href: '/guides/create-a-mech/', label: 'Next: Create a Mech' },
+      next: { href: '/guides/create-a-mech/', label: 'Create a Mech' },
       starterSet: { href: `${appPath('/starter')}`, label: 'Or play the Starter Set' },
     })
   })
@@ -108,7 +117,7 @@ describe('guideExitsFor', () => {
     expect(guideExitsFor('chassis', mule)).toBeNull()
   })
 
-  test("the Starter Set is the Cantina's /starter", () => {
+  test("the Starter Set is the app's /starter", () => {
     expect(STARTER_SET_HREF).toBe(`${appPath('/starter')}`)
   })
 })

@@ -1,0 +1,20 @@
+/*
+ * routeStates.css — the stateful/responsive half of the
+ * app components listed below; their static styling is style objects over
+ * src/components tokens. Loaded by `app.css`.
+ *
+ * - components/shared/RouteFallbacks.tsx — `.su-not-found-panel`: the 404 card's
+ *   padding opens up from `sm`.
+ * - RouteErrors.tsx and WritesBlockedNotice.tsx have no stateful half: they are
+ *   style objects only.
+ */
+
+.su-not-found-panel {
+  padding: var(--space-24);
+}
+
+@media (width >= 40rem) {
+  .su-not-found-panel {
+    padding: var(--space-32);
+  }
+}

@@ -2,9 +2,10 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { personalBinding } from './model/channelBindings'
 import { mutation, pruneLinksOfRow } from './model/entities'
 import { requireUser } from './model/permissions'
-import { deleteGameApparatus, releaseSeatsOf } from './model/seats'
+import { deleteGameApparatus, releaseSeatsOf, soloSeatsOf } from './model/seats'
 
 /**
  * Account management (ADR-030 §6).
@@ -224,6 +225,11 @@ export const deleteAccount = mutation({
       .collect()
     for (const row of requests) await ctx.db.delete(row._id)
 
+    // Their solo play's Discord channel, so nothing posts there for nobody. A
+    // Game's channel stays with the Game, whoever bound it.
+    const soloChannel = await personalBinding(ctx, userId)
+    if (soloChannel !== null) await ctx.db.delete(soloChannel._id)
+
     // Personal entities, wherever they live — in a Game or on the shelf.
     // Each index leads with `ownerId`, so reading on that prefix alone is "all
     // of this person's rows" in every one of them.
@@ -263,6 +269,8 @@ export const deleteAccount = mutation({
       await ctx.db.delete(row._id)
       await releaseSeatsOf(ctx, 'mech', row, row.gameId)
     }
+    // Any solo seat still on the shelf (one whose pilot row was already gone).
+    for (const seat of await soloSeatsOf(ctx, userId)) await ctx.db.delete(seat._id)
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

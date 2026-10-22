@@ -87,7 +87,7 @@ describe('PeekHost', () => {
     expect(navigate).not.toHaveBeenCalled()
   })
 
-  test('a Peek never nests: nothing inside it is a trigger', async () => {
+  test('a Peek never nests: nothing inside it is a trigger, and only its name links', async () => {
     // A system's card carries trait Tags, which Peek everywhere but here.
     const drill = refOf('systems', 'Salvaging Drill')
     render(<Page entityRef={drill} label="Salvaging Drill" />)
@@ -95,15 +95,17 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Salvaging Drill'))
     expect(peek.querySelector('[data-peek]')).toBeNull()
-    expect(peek.querySelector('a, button')).toBeNull()
+    // Its one link is its name, to its Page, out of the tab order (R33).
+    expect(peek.querySelector('a:not([data-peek-open]), button')).toBeNull()
+    expect(peek.querySelector('[data-peek-open]')?.getAttribute('tabindex')).toBe('-1')
   })
 
-  test('a Token is a trigger: hovering or focusing it shows its whole card', async () => {
+  test('a Mini is a trigger: hovering or focusing it shows its whole card', async () => {
     const drill = SalvageUnionReference.getByNameIn('systems', 'Salvaging Drill')
     if (!drill) throw new Error('Salvaging Drill fixture missing')
     render(
       <EntitySurfaceProvider value={{ hrefFor }}>
-        <Entity form="token" context="loadout" entity={drill} mode={{ kind: 'link' }} />
+        <Entity size="mini" context="loadout" entity={drill} mode={{ kind: 'link' }} />
         <PeekHost />
       </EntitySurfaceProvider>
     )
@@ -116,6 +118,27 @@ describe('PeekHost', () => {
     expect(token.getAttribute('aria-describedby')).toBe(peek.id)
   })
 
+  test('a trigger whose press does nothing else (`data-peek-press`) opens its Peek on a press', async () => {
+    const meld = SalvageUnionReference.getByNameIn('abilities', 'Meld Form')
+    if (!meld) throw new Error('Meld Form fixture missing')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <button type="button" data-peek={`abilities:${meld.id}`} data-peek-press="">
+          Meld Form
+        </button>
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    const trigger = screen.getByRole('button', { name: 'Meld Form' })
+    act(() => {
+      fireEvent.pointerDown(trigger, { pointerType: 'mouse' })
+      fireEvent.click(trigger)
+    })
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.textContent).toContain('Meld Form'))
+    expect(trigger.getAttribute('aria-describedby')).toBe(peek.id)
+  })
+
   test("an embedded record Peeks through its host: a bay's crew NPC", async () => {
     const bay = SalvageUnionReference.getByNameIn('crawler-bays', 'Cantina')
     if (!bay?.npc) throw new Error('Cantina fixture missing')
@@ -123,7 +146,7 @@ describe('PeekHost', () => {
     render(
       <>
         <Entity
-          form="token"
+          size="mini"
           context="loadout"
           entity={npc as unknown as RefMetaEntity}
           peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
@@ -131,7 +154,7 @@ describe('PeekHost', () => {
         <PeekHost />
       </>
     )
-    const token = document.querySelector('.su-entity-token')
+    const token = document.querySelector('.su-entity-mini')
     if (!token) throw new Error('no token')
     expect(token.getAttribute('data-peek')).toBe(`crawler-bays:${bay.id}/npc`)
     act(() => {

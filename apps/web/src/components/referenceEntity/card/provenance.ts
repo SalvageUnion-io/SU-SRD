@@ -8,7 +8,6 @@
  */
 
 export {
-  type AdditionalSource,
   formatProvenance,
   resolveAdditionalSources,
   resolveProvenance as resolveFooterProvenance,

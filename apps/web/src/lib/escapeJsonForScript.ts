@@ -9,9 +9,11 @@
  * This lives in `src/lib` rather than beside its first caller in `ssg/` because
  * BOTH sides need it and the layering only goes one way: `ssg/**` may import
  * app code, but nothing under `src/` may import `ssg/` at runtime
- * (ssg/DESIGN.md, hard rule 2). Two callers:
+ * (ssg/DESIGN.md, hard rule 2). Its callers:
  *   - `ssg/document.tsx`, for the per-page island-props payload
- *   - `src/layouts/BaseLayout.tsx`, for JSON-LD
+ *   - `src/reference/layouts/BaseLayout.tsx`, for JSON-LD
+ *   - `src/lib/documentHead.ts`, for the Discord Component Embed, which the
+ *     reference pages and the Worker's shell swap both write (`metaTags`)
  *
  * The JSON-LD case is the reason this was extracted. Those blocks interpolate
  * entity-derived prose — `itemName`, the generated meta description, a source

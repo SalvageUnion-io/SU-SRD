@@ -10,14 +10,8 @@
 
 import type { APIMessageTopLevelComponent, MessageFlags } from 'discord-api-types/v10'
 
-/**
- * A top-level message component, either raw or as a builder.
- *
- * `@discordjs/builders`' `ContainerBuilder` / `ActionRowBuilder` satisfy this
- * through `toJSON()`, which `JSON.stringify` calls when the payload goes over
- * the wire (`worker/adapter.ts`).
- */
-type ReplyComponent = APIMessageTopLevelComponent | { toJSON(): APIMessageTopLevelComponent }
+/** A top-level message component as Discord's JSON (`toContainer`). */
+type ReplyComponent = APIMessageTopLevelComponent
 
 /**
  * What a handler may send as a reply or follow-up.
@@ -53,6 +47,16 @@ export type CommandExecuteInteraction = {
     getBoolean(name: string): boolean | null
   }
   user: { id: string; displayName?: string }
+  /**
+   * The channel the command ran in (`/su bind` binds it), or null when Discord
+   * sent none.
+   */
+  channelId: string | null
+  /**
+   * That channel's name (`salvage-run`), which `/su bind` keeps beside its id
+   * so Play can show it; null when Discord sent no channel object (a DM).
+   */
+  channelName: string | null
   /**
    * The message a message context-menu command was used on, or null for a
    * slash command.

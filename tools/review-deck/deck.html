@@ -1,0 +1,560 @@
+<title>SalvageUnion.io 4.0 review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a review desk. Shot on the left, the verdict card on the right; stacked on a phone. */
+:root {
+  --paper: #efe9df;
+  --sheet: #fbf8f3;
+  --ink: #2b2420;
+  --muted: #6f655d;
+  --rule-line: #d8cfc3;
+  --accent: #e8743b;
+  --ok: #2f7d4f;
+  --warn: #b5481c;
+  --rule: #c3216f;
+  --issue: #1f6feb;
+  --changed: #8a5a00;
+  --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1b1714; --sheet: #26201c; --ink: #f1e9df; --muted: #a99d91; --rule-line: #3d342e;
+    --accent: #f08a52; --ok: #6fcf94; --warn: #ff9a6b; --rule: #ff6fb0; --issue: #6ea8ff; --changed: #e0b04a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1b1714; --sheet: #26201c; --ink: #f1e9df; --muted: #a99d91; --rule-line: #3d342e;
+  --accent: #f08a52; --ok: #6fcf94; --warn: #ff9a6b; --rule: #ff6fb0; --issue: #6ea8ff; --changed: #e0b04a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; max-width: 1680px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+header.bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; border-bottom: 3px solid var(--ink); padding-bottom: 10px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.meta { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.meta b { color: var(--ink); font-weight: 500; }
+.tally { margin-left: auto; display: flex; flex-wrap: wrap; gap: 4px 12px; font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 13px; }
+.tally span { white-space: nowrap; }
+.n { font-variant-numeric: tabular-nums; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, select { font: inherit; }
+.btn { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 14px; border: 2px solid var(--ink); background: var(--sheet); color: var(--ink); padding: 6px 12px; cursor: pointer; border-radius: 0; }
+.btn:hover { background: var(--ink); color: var(--sheet); }
+.btn:focus-visible, select:focus-visible, textarea:focus-visible, .dot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn[disabled] { opacity: .4; cursor: default; }
+.btn[disabled]:hover { background: var(--sheet); color: var(--ink); }
+select { border: 2px solid var(--ink); background: var(--sheet); color: var(--ink); padding: 6px 8px; border-radius: 0; max-width: 100%; }
+.counter { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13px; }
+.dots { display: flex; flex-wrap: wrap; gap: 3px; max-height: 96px; overflow-y: auto; }
+.dot { width: 10px; height: 10px; border: 1px solid var(--rule-line); background: var(--sheet); cursor: pointer; padding: 0; }
+.dot.r { border-color: var(--rule); }
+.dot.ok { background: var(--ok); border-color: var(--ok); }
+.dot.chg { background: var(--warn); border-color: var(--warn); }
+.dot.cur { outline: 2px solid var(--ink); outline-offset: 1px; }
+.sections { display: flex; flex-wrap: wrap; gap: 0; border: 2px solid var(--ink); align-self: flex-start; }
+.sections button { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 15px; border: 0; border-left: 2px solid var(--ink); background: var(--sheet); color: var(--ink); padding: 8px 14px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+.sections button:first-child { border-left: 0; }
+.sections button small { font-family: var(--mono); font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--muted); font-weight: 400; }
+.sections button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.sections button[aria-pressed="true"] small { color: var(--sheet); }
+.sections button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dots .grp { flex-basis: 100%; font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.dots .grp:first-child { margin-top: 0; }
+.crumb { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
+.summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; border: 1.5px solid currentColor; padding: 2px 8px; background: none; cursor: pointer; }
+.pill.rule { color: var(--rule); }
+.pill.issue { color: var(--issue); }
+.pill[aria-pressed="true"] { background: currentColor; }
+.pill[aria-pressed="true"] span { color: var(--sheet); }
+.desk { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+.shot { min-width: 0; background: var(--sheet); border: 2px solid var(--ink); margin: 0; }
+.shot .frame { overflow: auto; max-height: calc(100vh - 230px); display: flex; justify-content: center; min-height: 240px; background: repeating-linear-gradient(45deg, var(--paper) 0 8px, var(--sheet) 8px 16px); }
+.cell { width: 100%; overflow: hidden; align-self: flex-start; cursor: zoom-in; }
+.cell img { display: block; width: 100%; height: auto; max-width: none; }
+.shot.zoom .cell { width: auto; max-width: none; cursor: zoom-out; }
+.shot .cap { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 8px 12px; border-top: 2px solid var(--ink); font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.card { background: var(--sheet); border: 2px solid var(--ink); display: grid; position: sticky; top: env(safe-area-inset-top, 0px); max-height: 100vh; overflow-y: auto; }
+.card section { padding: 12px 14px; border-bottom: 1px solid var(--rule-line); display: grid; gap: 6px; min-width: 0; }
+.card section:last-child { border-bottom: 0; }
+.label { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--muted); }
+.where { font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.2; overflow-wrap: anywhere; }
+.url { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; border: 1.5px solid var(--ink); padding: 1px 6px; }
+.chip.changed { border-color: var(--changed); color: var(--changed); }
+.finds { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.finds li { padding-left: 10px; border-left: 4px solid var(--rule); overflow-wrap: anywhere; }
+.finds.issues li { border-left-color: var(--issue); }
+.finds li b { font-family: var(--display); text-transform: uppercase; letter-spacing: .05em; font-size: 12px; margin-right: 4px; color: var(--rule); }
+.finds.issues li b { color: var(--issue); }
+.finds li.more { border: 0; padding: 0; color: var(--muted); }
+.none { color: var(--muted); font-size: 14px; }
+.verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.verdict .btn { padding: 9px 6px; }
+.verdict .btn.approve[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--sheet); }
+.verdict .btn.changes[aria-pressed="true"] { background: var(--warn); border-color: var(--warn); color: var(--sheet); }
+textarea { width: 100%; min-height: 90px; resize: vertical; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); padding: 8px; font: inherit; font-size: 14px; border-radius: 0; }
+.prior { font-size: 14px; padding-left: 10px; border-left: 4px solid var(--warn); overflow-wrap: anywhere; white-space: pre-wrap; }
+.status { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+.status.bad { color: var(--warn); }
+.legend { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.sw { display: inline-block; width: 18px; height: 0; border-top: 3px dashed var(--rule); vertical-align: middle; margin-right: 4px; }
+.sw.i { border-top-color: var(--issue); }
+.loading { padding: 40px 16px; color: var(--muted); align-self: center; }
+kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-line); padding: 0 4px; }
+@media (max-width: 960px) {
+  .desk { grid-template-columns: minmax(0, 1fr); }
+  .card { position: static; max-height: none; }
+  .shot .frame { max-height: none; }
+  .tally { margin-left: 0; }
+  h1 { font-size: 24px; }
+  .sections { display: grid; grid-template-columns: 1fr 1fr; align-self: stretch; }
+  .sections button { border-left: 0; border-top: 2px solid var(--ink); flex-wrap: wrap; }
+  .sections button:nth-child(even) { border-left: 2px solid var(--ink); }
+  .sections button:nth-child(-n+2) { border-top: 0; }
+  .sections button:last-child:nth-child(odd) { grid-column: 1 / -1; border-left: 0; }
+}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <h1>SalvageUnion.io 4.0 review</h1>
+    <div class="meta" id="meta">Loading the shots…</div>
+    <div class="tally" aria-live="polite">
+      <span>Approved <span class="n" id="nOk">0</span></span>
+      <span>Changes <span class="n" id="nChg">0</span></span>
+      <span>Open <span class="n" id="nOpen">0</span></span>
+    </div>
+  </header>
+
+  <nav class="sections" id="sections" aria-label="Part of the site"></nav>
+
+  <div class="controls">
+    <button class="btn" id="prev" type="button" aria-label="Previous slide">&larr; Prev</button>
+    <span class="counter" id="counter">0 / 0</span>
+    <button class="btn" id="next" type="button" aria-label="Next slide">Next &rarr;</button>
+    <label class="label" for="filter">Show</label>
+    <select id="filter">
+      <option value="commented">Commented last round</option>
+      <option value="all" selected>Every slide</option>
+      <option value="rules">Rule violations</option>
+      <option value="issues">Possible issues</option>
+      <option value="changed">Changed since last feedback</option>
+      <option value="open">Not reviewed yet</option>
+      <option value="changes">Changes requested</option>
+      <option value="page">Desktop only</option>
+      <option value="phone">Phone only</option>
+    </select>
+    <label class="label" for="jump">Screen</label>
+    <select id="jump"></select>
+  </div>
+  <section class="summary" id="summary" aria-label="Findings by rule; pick one to show only its slides"></section>
+  <section class="dots" id="dots" aria-label="Every slide in this view; filled ones have a verdict"></section>
+
+  <div class="desk">
+    <figure class="shot" id="shot">
+      <div class="frame" id="frame"><div class="cell" id="cell"><img id="img" alt=""></div></div>
+      <figcaption class="cap" id="cap"></figcaption>
+    </figure>
+    <aside class="card" aria-label="Verdict">
+      <section>
+        <div class="crumb" id="crumb"></div>
+        <div class="where" id="where"></div>
+        <div class="url" id="url"></div>
+        <div class="chips" id="tags"></div>
+      </section>
+      <section>
+        <div class="label">Rule violations</div>
+        <ul class="finds" id="rules"></ul>
+      </section>
+      <section>
+        <div class="label">Possible issues</div>
+        <ul class="finds issues" id="issues"></ul>
+        <div class="legend"><span><i class="sw"></i>breaks a rule</span><span><i class="sw i"></i>possible issue</span></div>
+      </section>
+      <section id="priorBox" hidden>
+        <div class="label">Last round</div>
+        <div class="prior" id="prior"></div>
+      </section>
+      <section>
+        <div class="label">Verdict</div>
+        <div class="verdict">
+          <button class="btn approve" id="approve" type="button" aria-pressed="false">Approve <kbd>A</kbd></button>
+          <button class="btn changes" id="changes" type="button" aria-pressed="false">Request changes <kbd>R</kbd></button>
+        </div>
+        <label class="label" for="comment">Comment</label>
+        <textarea id="comment" placeholder="What should change on this screen?"></textarea>
+        <button class="btn" id="saveComment" type="button">Save and next</button>
+        <div class="status" id="status"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id)
+  let data = { slides: [] }
+  let view = []
+  let pos = 0
+  let ruleFilter = ''
+  let section = ''
+  // The deck's extra section: one group per component update, each holding the slides of
+  // the screens it touches (components.json, optional). A slide there is the same slide as in
+  // its part, so one verdict covers both.
+  const UPDATES = 'Component updates'
+  let updates = []
+  let updSlides = []
+  const base = (s) => s && (s.base || s)
+  const verdicts = {}
+  let db = null
+  let me = null
+  let canWrite = true
+
+  const keyOf = (s) => s.file.replace(/\.[a-z]+$/, '')
+  // A verdict counts on the shoot it was given on.
+  const current = (s) => { const v = verdicts[keyOf(s)]; return v && (!v.commit || v.commit === data.commit) ? v : null }
+  // The same view in an earlier shoot, whose file number may differ: its name less the number.
+  const viewOf = (id) => id.replace(/^\d+-/, '')
+  const byView = {}
+  // What was said on this screen in the last round: an earlier shoot's verdict, or the one a
+  // verdict on this shoot kept when it replaced it.
+  const prior = (s) => {
+    const v = verdicts[keyOf(s)] || byView[viewOf(keyOf(s))]
+    const p = v && v.commit && v.commit !== data.commit ? v : v?.previous
+    return p && ((p.comment || '').trim() || p.verdict === 'changes') ? p : null
+  }
+  let chosen = false
+  // Open on what was commented last round, until the reviewer picks another view.
+  function openCommented() {
+    if (chosen || !data.slides.length || !data.slides.some((s) => prior(s))) return
+    chosen = true
+    $('filter').value = 'commented'
+    applyFilter()
+  }
+  // The site's three parts, and the groups inside each, in the order the deck walks them.
+  const PARTS = [
+    ['Reference', [['Indexes', ['reference-index', 'listing']], ['Pages', ['reference-page']], ['Peeks', ['peek']]]],
+    ['Build', [['Training Bay', ['training-bay', 'hangar']], ['Starter set', ['starter-set']], ['New units', ['wizard-pilot', 'wizard-mech', 'wizard-crawler']], ['Sheets', ['sheet-pilot-read', 'sheet-pilot-edit', 'sheet-mech-read', 'sheet-mech-edit', 'sheet-crawler-read', 'sheet-crawler-edit', 'sheet-npc-read', 'sheet-npc-edit']]]],
+    ['Play', [['Play hub', ['play-hub']], ['Games', ['game-page', 'invite']], ['Player', ['play-player']], ['Solo', ['play-solo']], ['Mediator', ['play-mediator']]]],
+  ]
+  const placeOf = {}
+  PARTS.forEach(([part, groups], pi) => groups.forEach(([group, families], gi) => { for (const f of families) placeOf[f] = { part, group, rank: pi * 100 + gi } }))
+  const place = (s) => s.upd ? { part: UPDATES, group: `${s.upd.n}. ${s.upd.name}`, rank: 1000 + s.upd.n } : placeOf[s.family] || { part: 'Other', group: s.family, rank: 999 }
+  const hasRule = (s, r) => (s.rules || []).some((x) => x.rule === r) || (s.issues || []).some((x) => x.rule === r)
+
+  function setStatus(t, bad) { const el = $('status'); el.textContent = t; el.className = `status${bad ? ' bad' : ''}` }
+
+  // A shot is one cell of a sheet: its shots stacked in one plain JPEG.
+  const sheetUrl = (s) => `shots/sheet-${String(s.sheet).padStart(3, '0')}.jpg`
+  function showShot(s) {
+    const cell = $('cell')
+    cell.style.aspectRatio = `${s.w} / ${s.h}`
+    cell.style.maxWidth = `${s.w}px`
+    cell.style.width = $('shot').classList.contains('zoom') ? `${s.w}px` : '100%'
+    const img = $('img')
+    // The sheet is cells tall; percent margins measure the width.
+    img.style.marginTop = `${-(s.cell * s.h * 100) / s.w}%`
+    const url = sheetUrl(s)
+    if (img.getAttribute('src') !== url) img.src = url
+  }
+  function prefetch(s) { if (s) new Image().src = sheetUrl(s) }
+
+  function applyFilter() {
+    const f = $('filter').value
+    const cur = view[pos]
+    view = (section === UPDATES ? updSlides : data.slides).filter((s) => {
+      const v = current(s)
+      if (ruleFilter && !hasRule(s, ruleFilter)) return false
+      if (section && section !== UPDATES && place(s).part !== section) return false
+      if (f === 'commented') return prior(s) !== null
+      if (f === 'rules') return (s.rules || []).length > 0
+      if (f === 'issues') return (s.issues || []).length > 0
+      if (f === 'changed') return s.changed === true
+      if (f === 'open') return !v?.verdict
+      if (f === 'changes') return v && v.verdict === 'changes'
+      if (f === 'page') return s.width >= 1000
+      if (f === 'phone') return s.width < 1000
+      return true
+    })
+    const keep = cur ? view.findIndex((s) => s === cur) : -1
+    const same = keep < 0 && cur ? view.findIndex((s) => base(s) === base(cur)) : -1
+    pos = keep >= 0 ? keep : same >= 0 ? same : 0
+    render()
+  }
+
+  function tally() {
+    let ok = 0, chg = 0
+    for (const s of data.slides) {
+      const v = current(s)
+      if (v && v.verdict === 'approve') ok++
+      else if (v && v.verdict === 'changes') chg++
+    }
+    $('nOk').textContent = ok; $('nChg').textContent = chg; $('nOpen').textContent = data.slides.length - ok - chg
+    renderSections()
+  }
+
+  function renderSections() {
+    const box = $('sections')
+    const parts = ['', ...new Set(data.slides.map((s) => place(s).part))]
+    if (updSlides.length) parts.push(UPDATES)
+    box.textContent = ''
+    for (const part of parts) {
+      const mine = part === UPDATES ? [...new Set(updSlides.map(base))] : data.slides.filter((s) => !part || place(s).part === part)
+      const open = mine.filter((s) => !current(s)?.verdict).length
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.setAttribute('aria-pressed', String(section === part))
+      b.append(part || 'Everything')
+      const n = document.createElement('small'); n.textContent = `${mine.length} · ${open} open`
+      b.appendChild(n)
+      b.addEventListener('click', () => { section = part; applyFilter() })
+      box.appendChild(b)
+    }
+  }
+
+  function buildSummary() {
+    // Counts per rule, by screen (a page's findings appear on each of its shots).
+    const count = new Map()
+    const kind = new Map()
+    for (const s of data.slides) {
+      for (const [list, k] of [[s.rules || [], 'rule'], [s.issues || [], 'issue']]) {
+        for (const r of list) {
+          const key = r.rule
+          if (!count.has(key)) count.set(key, new Set())
+          count.get(key).add(s.where)
+          kind.set(key, k)
+        }
+      }
+    }
+    const box = $('summary'); box.textContent = ''
+    const rules = [...count.entries()].sort((a, b) => (kind.get(a[0]) === kind.get(b[0]) ? b[1].size - a[1].size : kind.get(a[0]) === 'rule' ? -1 : 1))
+    for (const [rule, screens] of rules) {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = `pill ${kind.get(rule)}`
+      b.setAttribute('aria-pressed', 'false')
+      const t = document.createElement('span'); t.textContent = `${rule} · ${screens.size}`
+      b.appendChild(t)
+      b.title = `${screens.size} screen${screens.size === 1 ? '' : 's'}`
+      b.addEventListener('click', () => {
+        ruleFilter = ruleFilter === rule ? '' : rule
+        for (const p of box.children) p.setAttribute('aria-pressed', String(p === b && ruleFilter === rule))
+        applyFilter()
+      })
+      box.appendChild(b)
+    }
+  }
+
+  function renderDots() {
+    const box = $('dots')
+    box.textContent = ''
+    let was = ''
+    view.forEach((s, i) => {
+      const { part, group } = place(s)
+      if (`${part} \u203a ${group}` !== was) {
+        was = `${part} \u203a ${group}`
+        const g = document.createElement('span'); g.className = 'grp'; g.textContent = was
+        box.appendChild(g)
+      }
+      const b = document.createElement('button')
+      const v = current(s)
+      b.type = 'button'
+      b.className = `dot${(s.rules || []).length ? ' r' : ''}${v && v.verdict === 'approve' ? ' ok' : v && v.verdict === 'changes' ? ' chg' : ''}${i === pos ? ' cur' : ''}`
+      b.title = `${i + 1}. ${s.where} · ${s.depth}`
+      b.setAttribute('aria-label', b.title)
+      b.addEventListener('click', () => { pos = i; render() })
+      box.appendChild(b)
+    })
+  }
+
+  function list(id, items, empty) {
+    const ul = $(id); ul.textContent = ''
+    if (!items.length) { const li = document.createElement('li'); li.className = 'none'; li.style.border = '0'; li.style.paddingLeft = '0'; li.textContent = empty; ul.appendChild(li); return }
+    const shown = items.slice(0, 12)
+    for (const f of shown) {
+      const li = document.createElement('li')
+      const b = document.createElement('b'); b.textContent = f.rule
+      li.appendChild(b); li.appendChild(document.createTextNode(f.line)); ul.appendChild(li)
+    }
+    if (items.length > shown.length) { const li = document.createElement('li'); li.className = 'more'; li.textContent = `and ${items.length - shown.length} more`; ul.appendChild(li) }
+  }
+
+  function render() {
+    tally()
+    renderDots()
+    const s = view[pos]
+    $('counter').textContent = view.length ? `${pos + 1} / ${view.length}` : '0 / 0'
+    $('prev').disabled = pos <= 0
+    $('next').disabled = pos >= view.length - 1
+    if (!s) {
+      $('img').removeAttribute('src'); $('img').alt = ''
+      $('where').textContent = 'No slide matches this filter.'
+      for (const id of ['crumb', 'url', 'cap', 'tags', 'rules', 'issues']) $(id).textContent = ''
+      return
+    }
+    showShot(s)
+    prefetch(view[pos + 1])
+    $('img').alt = `${s.where}, scrolled ${s.depth}`
+    $('crumb').textContent = s.upd ? `${UPDATES} \u203a ${place(s).group} \u203a ${s.upd.where}` : `${place(s).part} \u203a ${place(s).group}`
+    $('where').textContent = s.where
+    $('url').textContent = s.url
+    $('cap').textContent = ''
+    for (const t of [`shot on ${data.commit}`, `${s.width}px wide`, `scrolled ${s.depth} of ${s.pageHeight}px`]) {
+      const span = document.createElement('span'); span.textContent = t; $('cap').appendChild(span)
+    }
+    const tags = $('tags'); tags.textContent = ''
+    const tagList = [s.width >= 1000 ? 'Desktop' : 'Phone', ...(s.where.includes('Edit') ? ['Edit'] : []), ...(s.tags || [])]
+    for (const t of tagList) { const c = document.createElement('span'); c.className = 'chip'; c.textContent = t; tags.appendChild(c) }
+    if (s.changed === true) { const c = document.createElement('span'); c.className = 'chip changed'; c.textContent = 'Changed since last feedback'; tags.appendChild(c) }
+    list('rules', s.rules || [], 'None found on this screen.')
+    list('issues', s.issues || [], 'None found in this shot.')
+    const v = current(s) || {}
+    $('approve').setAttribute('aria-pressed', String(v.verdict === 'approve'))
+    $('changes').setAttribute('aria-pressed', String(v.verdict === 'changes'))
+    $('comment').value = v.comment || ''
+    const p = prior(s)
+    $('priorBox').hidden = !p
+    $('prior').textContent = p ? `${p.verdict === 'changes' ? 'Changes requested' : p.verdict === 'approve' ? 'Approved' : 'Comment'} on ${p.commit}: ${(p.comment || '').trim() || '(no comment)'}` : ''
+    $('jump').value = s.where
+    setStatus(db ? (v.at ? `Saved ${new Date(v.at).toLocaleString()}` : '') : 'Verdicts are not saving in this view: open the artifact signed in to record them.', !db)
+    for (const b of [$('approve'), $('changes'), $('saveComment')]) b.disabled = !db || !canWrite
+    $('comment').readOnly = !db || !canWrite
+  }
+
+  async function save(patch) {
+    const s = view[pos]
+    if (!s || !db) return
+    const k = keyOf(s)
+    const was = verdicts[k] || byView[viewOf(k)]
+    const previous = was && was.commit !== data.commit ? { verdict: was.verdict || '', comment: was.comment || '', commit: was.commit || '' } : was?.previous
+    const next = { ...(current(s) || {}), ...patch, ...(previous ? { previous } : {}), file: s.file, where: s.where, depth: s.depth, commit: data.commit || '', at: new Date().toISOString(), by: me || '' }
+    verdicts[k] = next
+    render()
+    setStatus('Saving…')
+    try {
+      await db.collection('verdicts').doc(k).set(next)
+      setStatus('Saved')
+    } catch (e) {
+      if (e && e.code === 'invalid_argument') { canWrite = false; render(); setStatus('You can read verdicts here but not record them.', true) }
+      else setStatus(`Could not save: ${(e?.message) || 'try again'}`, true)
+    }
+  }
+
+  $('prev').addEventListener('click', () => { if (pos > 0) { pos--; render() } })
+  // Moving on from a slide with no verdict and no comment approves it.
+  $('next').addEventListener('click', () => {
+    if (pos >= view.length - 1) return
+    if (db && canWrite && !current(view[pos])?.verdict && !$('comment').value.trim()) save({ verdict: 'approve', comment: '' })
+    pos++
+    render()
+  })
+  $('filter').addEventListener('change', () => { chosen = true; applyFilter(); $('filter').blur() })
+  $('jump').addEventListener('change', () => {
+    const i = view.findIndex((s) => s.where === $('jump').value)
+    if (i >= 0) { pos = i; render() }
+    $('jump').blur()
+  })
+  $('approve').addEventListener('click', () => {
+    const v = current(view[pos]) || {}
+    const approving = v.verdict !== 'approve'
+    save({ verdict: approving ? 'approve' : '', comment: $('comment').value })
+    // An approval moves on to the next slide; save has already taken this one.
+    if (approving && pos < view.length - 1) { pos++; render() }
+  })
+  $('changes').addEventListener('click', () => {
+    const v = current(view[pos]) || {}
+    save({ verdict: v.verdict === 'changes' ? '' : 'changes', comment: $('comment').value })
+    if (v.verdict !== 'changes') $('comment').focus()
+  })
+  $('saveComment').addEventListener('click', () => {
+    const v = current(view[pos]) || {}
+    const comment = $('comment').value
+    save(!v.verdict && !comment.trim() ? { verdict: 'approve', comment: '' } : { comment })
+    $('comment').blur()
+    if (pos < view.length - 1) { pos++; render() }
+  })
+  $('cell').addEventListener('click', () => { $('shot').classList.toggle('zoom'); if (view[pos]) showShot(view[pos]) })
+  $('img').addEventListener('error', () => setStatus('This shot did not load. Reload the page.', true))
+  document.addEventListener('keydown', (e) => {
+    // Arrows move between slides everywhere but while typing a comment.
+    if (e.target && /TEXTAREA|INPUT/.test(e.target.tagName)) return
+    if (e.target && e.target.tagName === 'SELECT' && !/^Arrow(Left|Right)$/.test(e.key)) return
+    if (/^Arrow(Left|Right)$/.test(e.key)) e.preventDefault()
+    if (e.key === 'ArrowRight' || e.key === 'j') $('next').click()
+    else if (e.key === 'ArrowLeft' || e.key === 'k') $('prev').click()
+    else if (e.key === 'a' && !$('approve').disabled) $('approve').click()
+    else if (e.key === 'r' && !$('changes').disabled) { e.preventDefault(); $('changes').click() }
+    else if (/^[0-4]$/.test(e.key)) $('sections').children[Number(e.key)]?.click()
+  })
+
+  fetch('manifest.json').then((r) => r.json()).then((m) => {
+    // Walk the site part by part: Reference, then Build, then Play, keeping the shoot's order inside a group.
+    m.slides = m.slides.map((s, i) => [s, i]).sort((a, b) => place(a[0]).rank - place(b[0]).rank || a[1] - b[1]).map(([s]) => s)
+    data = m
+    $('meta').textContent = ''
+    const screens = new Set(m.slides.map((s) => s.where)).size
+    const parts = [['shot on', m.commit], ['screens', String(screens)], ['slides', String(m.slides.length)], ['changed', String(m.slides.filter((s) => s.changed === true).length)]]
+    parts.forEach(([k, v], i) => {
+      if (i) $('meta').appendChild(document.createTextNode(' · '))
+      $('meta').appendChild(document.createTextNode(`${k} `))
+      const b = document.createElement('b'); b.textContent = v; $('meta').appendChild(b)
+    })
+    const groups = new Map()
+    for (const s of m.slides) {
+      const label = `${place(s).part} \u203a ${place(s).group}`
+      if (!groups.has(label)) groups.set(label, new Set())
+      groups.get(label).add(s.where)
+    }
+    for (const [label, screens] of groups) {
+      const og = document.createElement('optgroup'); og.label = label
+      for (const p of screens) { const o = document.createElement('option'); o.value = p; o.textContent = p; og.appendChild(o) }
+      $('jump').appendChild(og)
+    }
+    buildSummary()
+    fetch('components.json').then((r) => (r.ok ? r.json() : null)).then((c) => {
+      updates = c?.updates || []
+      updSlides = updates.flatMap((u) => {
+        const re = new RegExp(u.match)
+        return data.slides.filter((s) => re.test(`${s.family} ${s.url} ${s.where}`)).map((s) => Object.assign(Object.create(s), { base: s, upd: u }))
+      })
+      if (updSlides.length) renderSections()
+    }).catch(() => { /* no components.json: no Component updates section */ })
+    view = m.slides.slice()
+    render()
+    openCommented()
+    window.focus()
+  }).catch(() => { $('meta').textContent = 'The shot list did not load. Reload the page.' })
+
+  ;(async () => {
+    const c = window.claude
+    if (!c?.use) { render(); return }
+    const [d, u] = await Promise.all([c.use('db'), c.use('user')])
+    if (!d) { render(); return }
+    db = d
+    if (u) {
+      try { me = await u.id() } catch { /* anonymous viewer */ }
+      try { const w = await u.can('data.write'); if (w === false) canWrite = false } catch { /* no permission probe: assume writable */ }
+    }
+    db.collection('verdicts').onSnapshot((snap) => {
+      for (const doc of snap.docs) verdicts[doc.id] = { ...doc.data() }
+      for (const ch of snap.docChanges()) if (ch.type === 'removed') delete verdicts[ch.doc.id]
+      for (const id of Object.keys(byView)) delete byView[id]
+      for (const [id, v] of Object.entries(verdicts)) if (v.commit !== data.commit) byView[viewOf(id)] = v
+      // Open on what was commented last round, until the reviewer picks another view.
+      openCommented()
+      const active = document.activeElement === $('comment')
+      const keep = $('comment').value
+      render()
+      if (active) { $('comment').value = keep; $('comment').focus() }
+    }, () => setStatus('Live verdicts stopped updating. Reload the page.', true))
+  })()
+})()
+</script>

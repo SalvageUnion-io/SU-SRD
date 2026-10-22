@@ -9,7 +9,7 @@ import { discoverWorkspaceDirs } from './workspaceCoverage'
 const ROOT = join(import.meta.dir, '..', '..', '..')
 
 export type Workspace = {
-  /** Repo-relative directory, e.g. `packages/cantina-domain`. */
+  /** Repo-relative directory, e.g. `packages/game-domain`. */
   dir: string
   /** The manifest `name`, which `bun --filter` takes. */
   name: string

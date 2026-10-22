@@ -1,11 +1,11 @@
-import type { EntityTable } from 'cantina-domain/entityKinds'
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { EntityKind, EntityTable } from 'game-domain/entityKinds'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { EncounterNpcCreateInput } from '../../stores/encounterStore'
 import { useEncounterStore } from '../../stores/encounterStore'
 import type { MechPatternCreateInput } from '../../stores/patternStore'
 import { usePatternStore } from '../../stores/patternStore'
-import type { AssignableType, CreateInput, EntityForType, EntityType } from '../../stores/types'
+import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
 import type { ExportBundle } from '../schemas/exportBundle'
 
 /**
@@ -137,7 +137,7 @@ export async function mergeImport(
    * (see above). An id the account already holds is skipped, not overwritten,
    * and maps to itself so links to it still resolve.
    */
-  async function importKind<T extends AssignableType>(
+  async function importKind<T extends EntityKind>(
     type: T,
     records: EntityForType<T>[],
     countKey: EntityTable

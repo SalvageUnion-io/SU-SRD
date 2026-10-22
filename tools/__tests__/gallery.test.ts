@@ -4,16 +4,16 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import type { GalleryPage } from 'gates/lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
+import { resolveSeedPath } from 'gates/lib/seedAccount'
 import type { GalleryArgs } from '../gallery'
 import {
-  builderRoot,
+  appRoot,
   capturedAtStamp,
   failureLine,
   fetchOgImage,
   ogSource,
   pageEntity,
   parseGalleryArgs,
-  resolvePath,
   signedInTargets,
   signedOutTargets,
   writeGallery,
@@ -124,11 +124,13 @@ describe('pageEntity', () => {
   })
 })
 
-describe('resolvePath', () => {
+describe('resolveSeedPath', () => {
   test('a placeholder resolves to what the seed made, or to nothing', () => {
-    expect(resolvePath('/build/pilots/new', {})).toBe('/build/pilots/new')
-    expect(resolvePath(':pilot', { pilot: '/build/sheet/pilot/1' })).toBe('/build/sheet/pilot/1')
-    expect(resolvePath(':game', {})).toBeUndefined()
+    expect(resolveSeedPath('/build/pilots/new', {})).toBe('/build/pilots/new')
+    expect(resolveSeedPath(':pilot', { pilot: '/build/sheet/pilot/1' })).toBe(
+      '/build/sheet/pilot/1'
+    )
+    expect(resolveSeedPath(':game', {})).toBeUndefined()
   })
 })
 
@@ -185,7 +187,7 @@ describe('parseGalleryArgs, defaults and values', () => {
 })
 
 describe('signedOutTargets', () => {
-  test('every signed-out page, each on the one base, the Cantina under /build', () => {
+  test('every signed-out page, each on the one base, the app under /build', () => {
     const targets = signedOutTargets('http://site')
     expect(targets.length).toBe(ALL_PAGES.filter((p) => !p.signedIn).length)
     for (const t of targets) {
@@ -247,7 +249,7 @@ describe('ogSource', () => {
       kind: 'file',
       url: 'http://site/og/default.png',
     })
-    // A Cantina path shaped like an entity page is not one: its image is fetched.
+    // An app path shaped like an entity page is not one: its image is fetched.
     expect(
       ogSource(page('/build/chassis/x/'), 'http://site', 'https://salvageunion.io/build/og/x.png')
     ).toEqual({ kind: 'file', url: 'http://site/build/og/x.png' })
@@ -258,9 +260,9 @@ describe('ogSource', () => {
   })
 })
 
-describe('builderRoot', () => {
-  test("opens the Cantina's root on the base, with its trailing slash", () => {
-    expect(builderRoot('http://localhost:4321')).toBe('http://localhost:4321/build/')
+describe('appRoot', () => {
+  test("opens the app's root on the base, with its trailing slash", () => {
+    expect(appRoot('http://localhost:4321')).toBe('http://localhost:4321/build/')
   })
 })
 

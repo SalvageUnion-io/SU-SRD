@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react'
  * Loads Ko-fi's Widget_2.js and injects the button markup via the widget's
  * `getHTML()` — deliberately NOT its `draw()`, which uses `document.write` and
  * would blow away the page when it runs after load. `getHTML()` works the same
- * in a React SPA (cantina) and in an srd island mounted after load, where a
+ * in a React SPA (the app) and in a reference-page island mounted after load, where a
  * `document.write` would be fatal.
  *
  * Progressive enhancement: the container renders a plain accessible link to

@@ -3,12 +3,17 @@ import type { RefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/classPaths'
 import { resolveClassPlan } from '../lib/classPaths'
+import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
-import { AbilityTrack } from './AbilityTrack'
+import { capsLabel } from './atoms/capsLabel'
+import { Box } from './containers/Box'
 import type { TreeTrack } from './index'
-import { ActivationCost, Head, Slab, Stat, TitledBox } from './index'
+import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
+import { ReferenceAbilityTrack } from './ReferenceAbilityTrack'
+
+const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))
 
 type ClassAbilityTreeProps = {
   classEntity: RefClass
@@ -27,8 +32,8 @@ const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tre
  * On the class page the slab is an `h2`, the card's own outline
  * (`sectionHeadingLevel`, `nestedTitleLevel` in src/components): a
  * screen-reader user jumps tree to tree rather than reading a wall of links
- * (WCAG 1.3.1, 2.4.6). At level 1 each Ability is a Row titled with an `h3`;
- * inside a path card (`form="token"`, level 2: N1) a contentful Token, whose
+ * (WCAG 1.3.1, 2.4.6). At level 1 each Ability is a Compact titled with an `h3`;
+ * inside a path card (`size="mini"`, level 2: N1) a contentful Mini, whose
  * pill holds no heading.
  */
 function TreeSection({
@@ -36,18 +41,24 @@ function TreeSection({
   abilities,
   track,
   note,
-  form = 'row',
-}: AbilityTreeGroup & { track: TreeTrack; note?: string; form?: 'row' | 'token' }) {
+  size = 'compact',
+}: AbilityTreeGroup & { track: TreeTrack; note?: string; size?: 'compact' | 'mini' }) {
   return (
-    <section className="su-ability-tree__group">
-      <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
-      <AbilityTrack
+    <SlabSection
+      as="h2"
+      title={tree}
+      count={note ?? noteFor(track)}
+      page
+      className="su-ability-tree__group"
+      bodyClassName="su-ability-tree__track"
+    >
+      <ReferenceAbilityTrack
         abilities={abilities}
         track={track}
-        form={form}
-        {...(form === 'row' ? { titleAs: 'h3' as const } : {})}
+        size={size}
+        {...(size === 'compact' ? { titleAs: 'h3' as const } : {})}
       />
-    </section>
+    </SlabSection>
   )
 }
 
@@ -118,7 +129,6 @@ const tierPaint = (tier: TreeTrack) =>
     background: TIER_BAND[tier],
     color: 'var(--color-ink)',
     ink: false,
-    nameOnPaper: false,
   }) as const
 
 /** A Hybrid Class's trees, with the class that owns each branch. */
@@ -134,7 +144,7 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
 
 /**
  * The class's training brief, from "Gaining Abilities" (Workshop Manual p.23)
- * and its own spread, as tier cards: a dashed slab citing the page with the
+ * and its own spread, as tier cards: a Slab citing the page with the
  * ability limit at its end, then one card per tier, its band in the tier's
  * book hue (the trees' tracks below wear the same), its name on the paper
  * cut-out and its TP cost in the book's pointy box, its body what opens it.
@@ -146,16 +156,11 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
     <aside className="su-class-brief" aria-label="Training">
       {/* The limit rides the slab's own row, centred on its label and rule. */}
       <Slab
-        variant="dashed"
         label="Training"
         count={`p.${GAINING_ABILITIES_PAGE}`}
+        flush
         actions={
-          <Stat
-            orientation="horizontal"
-            label="Abilities"
-            value={`Up to ${plan.classEntity.maxAbilities}`}
-            size="compact"
-          />
+          <Stat label="Abilities" value={`Up to ${plan.classEntity.maxAbilities}`} size="compact" />
         }
       />
       <ul className="su-class-brief__cards">
@@ -166,9 +171,10 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
               paint={tierPaint(card.tier)}
               chips={
                 card.cost && (
-                  <div className="su-chips">
-                    <ActivationCost cost={card.cost} currency="TP" compact />
-                  </div>
+                  <Chips
+                    size="compact"
+                    chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
+                  />
                 )
               }
             >
@@ -181,8 +187,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       </ul>
       {plan.kind === 'hybrid' && (
         <p className="su-class-brief__trees">
-          <span className="su-class-brief__trees-label">Trees</span>{' '}
-          <MentionProse parts={hybridTrees(plan)} />
+          <span className={TREES_LABEL}>Trees</span> <MentionProse parts={hybridTrees(plan)} />
         </p>
       )}
     </aside>
@@ -197,27 +202,24 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
  * lone-label chip as the path's kind beside it. Its chips are the head's own
  * chips, one line with the kind under the head's chip rules (E17).
  */
-function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: RefClass }) {
+function PathRequirement({ path }: { path: ClassPath }) {
   const own = !path.hybrid || !path.via
   const trees = own
     ? path.requirement
     : [path.via, ...path.requirement.filter((tree) => tree !== path.via)]
   return (
-    <>
-      <span className="su-class-path__req-chip">
-        {trees.map((tree, index) => (
-          <Stat
-            key={tree}
-            orientation="horizontal"
-            label={index === 0 ? 'REQ' : 'or'}
-            value={tree}
-            size="compact"
-            className="su-class-path__req-cell"
-          />
-        ))}
-      </span>
-      {own && <Stat orientation="horizontal" label={`${classEntity.name} only`} size="compact" />}
-    </>
+    // One chip (`su-chip-link`): its cells butt into one rounded cell.
+    <span className="su-chip-link su-class-path__req-chip">
+      {trees.map((tree, index) => (
+        <Stat
+          key={tree}
+          label={index === 0 ? 'REQ' : 'or'}
+          value={tree}
+          size="compact"
+          className="su-class-path__req-cell"
+        />
+      ))}
+    </span>
   )
 }
 
@@ -227,9 +229,9 @@ const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
  * One path a Core class advances along (the Workshop Manual's class spread
  * lists them: Advanced Abilities, then the Hybrid Classes), every one in the
  * same card, one column: a pilot head with its name on the paper cut-out at
- * the band's foot (a Row's, EDL Row) and, right of the name, what opens the
+ * the band's foot (a Compact's, EDL Compact) and, right of the name, what opens the
  * path and its kind; then the body, what the path is over its trees on their
- * tracks, each Ability a contentful Token (level 2 in this level-1 card: N1,
+ * tracks, each Ability a contentful Mini (level 2 in this level-1 card: N1,
  * N3). The class's own Advanced
  * tree is no entity of its own, so its head names where it ends ("Legendary
  * Engineer") and links nowhere; a Hybrid Class's head opens its page.
@@ -241,38 +243,62 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   const note = hybrid
     ? toEntityModel(hybrid).lead
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
+  // A Hybrid Class's path wears its rust, the class's own its orange.
+  const track: TreeTrack = hybrid ? 'hybrid' : 'core'
   const head = (
     <Head
       title={name}
-      paint={tierPaint('core')}
+      paint={tierPaint(track)}
       chips={
-        <div className="su-chips">
-          <PathRequirement path={path} classEntity={classEntity} />
-          <Stat orientation="horizontal" label={kind} size="compact" />
-        </div>
+        // The kind and whose it is are marks; what it opens from, its relation (C2).
+        // The paths are one list of Compacts (Compact frames, one width): its lines
+        // share every class's lane (C6, R2).
+        <Chips
+          size="compact"
+          chips={{ durations: [], facts: [], tags: [] }}
+          marks={[
+            <Stat key="kind" label={kind} size="compact" />,
+            ...(path.hybrid && path.via
+              ? []
+              : [<Stat key="only" label={`${classEntity.name} only`} size="compact" />]),
+          ]}
+          nodes={{ relation: <PathRequirement path={path} /> }}
+        />
       }
-      notch
-      chipsBeside
     />
   )
   return (
     <li className="su-class-path" data-kind={kind.toLowerCase()}>
-      {hybrid ? (
-        <a className="su-class-path__link" href={classHref(hybrid)}>
-          {head}
-        </a>
-      ) : (
-        head
-      )}
-      <div className="su-class-path__body">
-        {note && <p className="su-class-path__note">{note}</p>}
-        <div className="su-class-path__trees" data-entity-fit="">
-          <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} form="token" />
-          {path.legendary && <TreeSection {...path.legendary} track="legendary" form="token" />}
+      {/* The Compact's frame (`Box`, standing in `CompactFrame`) under the Compact's
+          `Head`: drawn through the forms (EDL E15), never a frame of its own.
+          Flush, so the foot's rule spans the frame. */}
+      <Box
+        body="flush"
+        head={
+          hybrid ? (
+            <a className="su-class-path__link" href={classHref(hybrid)}>
+              {head}
+            </a>
+          ) : (
+            head
+          )
+        }
+      >
+        <div className="su-class-path__body">
+          {note && <p className="su-class-path__note">{note}</p>}
+          <div className="su-class-path__trees" data-entity-fit="">
+            <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} size="mini" />
+            {path.legendary && <TreeSection {...path.legendary} track="legendary" size="mini" />}
+          </div>
         </div>
-      </div>
-      {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
-      <p className="su-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
+        {/* The foot shares the head's colour, its citation on a paper cut-out,
+            as a page's foot band does; text, never chips (EDL E9). */}
+        <p className="su-class-path__foot" style={{ backgroundColor: TIER_BAND[track] }}>
+          <span className="su-class-path__cite">
+            Workshop Manual · p.{(hybrid ?? classEntity).page}
+          </span>
+        </p>
+      </Box>
     </li>
   )
 }
@@ -286,37 +312,35 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     return (
       <div className="su-ability-tree">
         <ClassBrief plan={plan} />
-        <section className="su-ability-tree__section">
-          <Slab variant="dashed" label="Abilities" />
+        <SlabSection title="Abilities" page>
           <div className="su-class-path__trees" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
           </div>
-        </section>
+        </SlabSection>
         <BranchTrees branches={branches} />
       </div>
     )
   }
 
-  // The Core trees run in one column, full width; then every path the class
+  // The Core trees two across, on
+  // the path cards' shared rows; then every path the class
   // advances along, its own (Legendary) first, then each Hybrid Class, all
   // the same card with their trees side by side.
   return (
     <div className="su-ability-tree">
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
-        <section className="su-ability-tree__section">
-          <Slab variant="dashed" label="Core trees" />
-          <div className="su-ability-tree__row su-ability-tree__row--stack">
+        <SlabSection title="Core trees" page>
+          <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
             ))}
           </div>
-        </section>
+        </SlabSection>
       )}
       {plan.paths.length > 0 && (
-        <section className="su-ability-tree__section">
-          <Slab variant="dashed" label="Advancement" />
+        <SlabSection title="Advancement" page>
           <ul className="su-class-paths">
             {[...plan.paths]
               .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
@@ -328,7 +352,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
                 />
               ))}
           </ul>
-        </section>
+        </SlabSection>
       )}
     </div>
   )
@@ -342,13 +366,12 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   const groups = branches.flatMap(({ group, owner }) => (group ? [{ group, owner }] : []))
   if (groups.length === 0) return null
   return (
-    <section className="su-ability-tree__section">
-      <Slab variant="dashed" label="Required Trees" />
+    <SlabSection title="Required Trees" page>
       <div className="su-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />
         ))}
       </div>
-    </section>
+    </SlabSection>
   )
 }

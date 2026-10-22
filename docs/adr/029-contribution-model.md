@@ -36,14 +36,15 @@ are thin `.total` wrappers.
 ### 3. Provenance is a property of the value, not of a surface
 
 Any surface rendering a derived value can render its breakdown, opened on
-**hover, focus and tap**. Frozen sheets show it without the revert; the
-Dashboard's `DashboardGauge` takes `provenance` and `breakdown`. An override
-appends; it never replaces.
+**hover, focus and tap**. Frozen sheets show it without the revert. Play
+leaves it to the sheet: Play's vitals (`PlayVital`) are numbers and − / +, and
+the sheet in Build is where a Play unit’s provenance and overrides live, so `VitalGauge`'s
+compact rung draws neither (#1669). An override appends; it never replaces.
 
-### 4. Duration-bound effects are Dashboard-applied, and never persisted on the entity
+### 4. Duration-bound effects are Play-applied, and never persisted on the entity
 
 `duration: activated` contributions (Squeeze It In, Hull Magnetiser) are
-switched on only by the Dashboard (a lifecycle transaction) and resolve against
+switched on only by Play (a lifecycle transaction) and resolve against
 the **pilot's seat on the Game** ([ADR-038](038-dashboard-game-surface.md) §2),
 never the persisted entity. Reference data says *that* an effect is activated
 and for how long; play state records *when*. The panel shows their remaining life.
@@ -64,7 +65,7 @@ a reasoned exemption:
 
 ### 6. Rules-bearing prose is marked inline
 
-In the Cantina, which applies the rules, a rules-bearing paragraph leads with a
+In the app, which applies the rules, a rules-bearing paragraph leads with a
 mini ink **AUTO** stamp whose title (and screen-reader text) says the app
 applies it; the SRD prints plain prose. The app opts in through the entity
 surface's `appliesRules`. Unmarked prose that states a number is a visible

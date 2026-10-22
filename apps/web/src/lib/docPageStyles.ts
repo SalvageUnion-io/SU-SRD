@@ -1,5 +1,5 @@
 /**
- * The style objects srd's plain document pages share — `/about`, `/api`,
+ * The style objects the reference site's plain document pages share — `/about`, `/api`,
  * `/changelog`, `/discord` and the two `/bot` policies: a page column under
  * the `ChapterBand`, a reading column, prose at the reading size, inline code.
  *
@@ -9,7 +9,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../design/tokens'
+import { borderWidth, color, fontSize, radius, space, weight } from '../design/tokens'
 
 /** The page column: fills `<main>`, the band on top, a 48px foot. */
 export const DOC_PAGE = {
@@ -40,6 +40,9 @@ export const PROSE = { fontSize: fontSize.sm, lineHeight: 1.625 } satisfies CSSP
 export function proseColumn(gap: string): CSSProperties {
   return { ...PROSE, display: 'flex', flexDirection: 'column', gap }
 }
+
+/** A section's prose column, its blocks 12px apart (a `DocPanel`'s body too). */
+export const PROSE_12 = proseColumn(space[12])
 
 /** A bulleted list, its items a column. */
 export function bulletList(gap: string, indent: 'padding' | 'margin'): CSSProperties {
@@ -75,30 +78,9 @@ export const SMALL_PRINT = {
 /** A bold prose link (`InlineRef`). */
 export const BOLD = { fontWeight: weight.bold } satisfies CSSProperties
 
-/** A Panel's header strip — the method or command over its hairline. */
-export const PANEL_HEAD = {
-  borderColor: color.wkFaint,
-  borderStyle: 'solid',
-  borderWidth: `0 0 ${borderWidth.chrome}`,
-  paddingBlock: space[12],
-  paddingInline: space[20],
-} satisfies CSSProperties
-
-/** The Panel header's endpoint or command line. */
-export const PANEL_TITLE = {
-  fontFamily: font.body,
-  fontSize: fontSize.base,
-  fontWeight: weight.bold,
-  lineHeight: 1.5,
-  marginTop: space[4],
-} satisfies CSSProperties
-
-/** A Panel's body: prose blocks in a column. */
-export const PANEL_BODY = {
-  ...proseColumn(space[12]),
-  paddingBlock: space[16],
-  paddingInline: space[20],
-} satisfies CSSProperties
+/** Bold text that may break anywhere: a long path, URL or command as typed,
+ *  which would otherwise push a phone-width page sideways. Never in caps. */
+export const BREAKABLE_BOLD = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
 export const ITALIC = { fontStyle: 'italic' } satisfies CSSProperties
 
@@ -107,7 +89,7 @@ export const ITALIC = { fontStyle: 'italic' } satisfies CSSProperties
 export const ASIDE = {
   backgroundColor: color.wkBg,
   borderColor: color.ink,
-  borderRadius: radius.panel,
+  borderRadius: radius.card,
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,
   paddingBlock: space[12],

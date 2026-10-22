@@ -5,15 +5,16 @@ import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 const SIZES = '5rem'
 
 /**
- * ART (E10) — a Row's art column: the entity's image, the full height of the
- * row and ruled off in ink. Shown by room, not by prop: the column appears
- * only once the row is 18rem wide (`.su-entity-row__art`'s container query).
- * An entity without art has no column.
+ * ART (E10) — a Compact's art: the entity's image in its own paper window at the
+ * head's left, the band on all four sides of it, centred on the row, apart
+ * from the name's cut-out (`Head`'s `art`). Shown by room, not by prop: the
+ * window appears only once the row is 18rem wide (`.su-entity-compact__art`'s
+ * container query). An entity without art has none.
  */
 export function Art({ art }: { art: EntityArt }) {
   if (art.kind === 'none') return null
   return (
-    <span className="su-entity-row__art">
+    <span className="su-entity-compact__art">
       <img
         src={art.url}
         srcSet={assetSrcSetFor(art.url)}

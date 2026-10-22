@@ -4,7 +4,7 @@ import { SearchIsland } from './SearchIsland'
 
 /**
  * Mobile top-nav search for the srd. The generic trigger + sheet chrome lives
- * in `MobileSearchDialog`; srd keeps its `SearchIsland`
+ * in `MobileSearchDialog`; the reference site keeps its `SearchIsland`
  * combobox and injects it as the sheet content (with the width override that
  * makes the fixed-width combobox input fill the sheet).
  */

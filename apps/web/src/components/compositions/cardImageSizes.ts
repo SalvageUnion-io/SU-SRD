@@ -1,10 +1,12 @@
+import { widthAtLeast } from '../../design/tokens'
+
 /**
  * The rendered width of the entity-illustration slot, and the `sizes` that
  * describes it.
  *
  * ## Why this is its own module
  *
- * It lives beside `CardImage` rather than inside it because srd's item pages
+ * It lives beside `CardImage` rather than inside it because the reference site's item pages
  * need the `sizes` string for their `rel="preload"`, and exporting anything
  * from `CardImage.tsx` through the barrel would make `CardImage` itself a
  * public component. `CardImage` is deliberately internal; a pure string helper
@@ -31,14 +33,14 @@ export const CARD_IMAGE_CONTAINER_WIDTH = { normal: '220px', compact: '180px' } 
  */
 export function cardImageSizes(compact?: boolean): string {
   const width = compact ? CARD_IMAGE_CONTAINER_WIDTH.compact : CARD_IMAGE_CONTAINER_WIDTH.normal
-  return `(max-width: ${width}) 100vw, ${width}`
+  return `(width >= ${width}) ${width}, 100vw`
 }
 
 /**
- * The `sizes` of the entity page's HERO art (`CardImage hero`, board 07): half
+ * The `sizes` of the entity page's HERO art (`CardImage hero`): half
  * of the page's 1200px measure beside the stat column from `lg`, the full
- * width of the column under it. srd's item pages preload with it.
+ * width of the column under it. The reference site's item pages preload with it.
  */
 export function heroImageSizes(): string {
-  return '(min-width: 64rem) 560px, 100vw'
+  return `${widthAtLeast('lg')} 560px, 100vw`
 }

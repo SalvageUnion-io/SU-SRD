@@ -15,7 +15,7 @@
  *     cache versioning, skipWaiting/clientsClaim logic — all solved by
  *     workbox already.
  *
- * The Cantina's registration: the plugin's `virtual:pwa-register`, of the
+ * The app's registration: the plugin's `virtual:pwa-register`, of the
  * site's one worker (`SITE_WORKER` in `src/pwa.ts`, which the reference pages
  * register through `siteWorker.ts`). main.tsx imports it and hands its
  * `registerSW` to `registerServiceWorker` below; the plugin injects no

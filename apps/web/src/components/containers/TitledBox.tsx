@@ -1,15 +1,15 @@
 import type { ElementType, ReactNode } from 'react'
+import type { Paint } from '../entity'
+import { Head, paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { Head } from '../entity/parts/Head'
-import type { Paint } from '../entity/parts/paint'
-import { paintFor } from '../entity/parts/paint'
+import { SelectedSeal } from '../entity/modes/select'
 import type { BoxProps } from './Box'
 import { Box } from './Box'
 
 type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   /** The name on the cut-out; it also names a `section`. */
   title: string
-  /** What the cut-out shows in place of `title`'s text: a live sheet's inline-edit field. */
+  /** What the cut-out shows in place of `title`'s text (a field, a link). */
   titleContent?: ReactNode
   /** The title's element (`h1` where the box is the screen's subject). */
   titleAs?: ElementType
@@ -23,6 +23,15 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   chips?: ReactNode
   /** The band's trailing controls (a dialog's ×). */
   controls?: ReactNode
+  /** The art's window at the band's left (`Art`): a sheet's Chassis panel. */
+  art?: ReactNode
+  /** Controls on the band above the name, its full width (`Head`'s `top`). */
+  top?: ReactNode
+  /**
+   * The band's right slot, in place of select's seal: a host's own mark when
+   * the box sits inside the control (a choice's option in its toggle).
+   */
+  affordance?: ReactNode
 }
 
 /**
@@ -32,12 +41,13 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  * tab opens into the paper body with no rule between them.
  *
  * Every titled container that is not an entity wears it: dialogs
- * (`ModalShell`), sheet panels (`Inset`, `InfoCutout`), wizard briefs,
- * notices. Entities draw through their own forms (`Row`,
+ * (`ModalShell`), a sheet's panels (a mech's Chassis and Hold), wizard briefs,
+ * notices, and a level-1 pick that is no entity (`select`: a wizard's Custom
+ * build), ringed and sealed as a selected Compact. Entities draw through their own forms (`Compact`,
  * `ReferenceEntityCard`), which share the same `Head`.
  *
  * Where it may not go (ruleset §5, N5 and N6): inside an entity's Card or
- * Row, where a section of the entity is a `Slab` over content and a note an
+ * Compact, where a section of the entity is a `Slab` over content and a note an
  * unlabelled `Callout`; nor around a wizard step's entities, since the step is
  * its title over its content. On an SRD Page a block at level 1 (a bay's When
  * Damaged) may stay one.
@@ -51,7 +61,11 @@ export function TitledBox({
   paint: paintProp,
   chips,
   controls,
+  art,
+  top,
+  affordance,
   label,
+  select,
   ...box
 }: TitledBoxProps) {
   const surface = useEntitySurface()
@@ -60,6 +74,7 @@ export function TitledBox({
     <Box
       {...box}
       label={label ?? title}
+      {...(select ? { select } : {})}
       head={
         <Head
           title={title}
@@ -68,10 +83,14 @@ export function TitledBox({
           tier={number}
           tierChip
           paint={paint}
+          art={art}
           chips={chips}
           controls={controls}
-          notch
-          chipsBeside
+          top={top}
+          // Select mode's seal, on the band's right as a selected Compact's (R15).
+          affordance={
+            affordance ?? (select?.selected ? <SelectedSeal word={select.seal} /> : undefined)
+          }
         />
       }
     />

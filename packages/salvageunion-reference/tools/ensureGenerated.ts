@@ -153,7 +153,7 @@ export function ensureGenerated(opts: { force?: boolean } = {}): boolean {
     mkdirSync(GENERATED_DIR, { recursive: true })
     mkdirSync(SCHEMAS_DIR, { recursive: true })
     // A schema dropped from the registry (or a list projection switched off)
-    // must not linger as an orphan file that srd would serve and the docs
+    // must not linger as an orphan file that the reference site would serve and the docs
     // generator would catalog.
     for (const dir of [GENERATED_DIR, SCHEMAS_DIR]) {
       for (const f of readdirSync(dir)) {

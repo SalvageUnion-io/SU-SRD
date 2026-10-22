@@ -1,16 +1,17 @@
-import type { OwnableTable } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
-import { normalizeReason, PROPOSAL_REASON_MAX } from 'cantina-domain/games/proposals'
-import { EntityRefSchema } from 'cantina-domain/schemas/entity'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
 import { ConvexError, v } from 'convex/values'
 import { zodToConvex } from 'convex-helpers/server/zod4'
+import type { OwnableTable } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
+import { EntityRefSchema } from 'game-domain/schemas/entity'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
+import { entityNameOf } from './model/entityName'
 import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
 import { changeLogEntityType, changeLogState } from './schema'
 
@@ -91,7 +92,9 @@ async function requireProposalTarget(
   const doc = await proposalTarget(ctx, entityType, entityId)
   if (doc === null) throw new ConvexError('That entity no longer exists')
   if (doc.gameId === null) {
-    throw new NotAuthorized('A build in a Hangar is not part of a Game and cannot be proposed to')
+    throw new NotAuthorized(
+      'A build in a Training Bay is not part of a Game and cannot be proposed to'
+    )
   }
   return { doc, gameId: doc.gameId }
 }
@@ -233,12 +236,10 @@ export const pending = query({
 /** The most proposals one `sent` read returns, whatever the caller asks for. */
 const MAX_SENT = 100
 
-/** What the Mediator's surfaces read a sheet by: its name, by kind. */
+/** What the proposal surfaces read a sheet by (`entityNameOf`). */
 function targetName(doc: Doc<'pilots'> | Doc<'mechs'> | null, entityType: string): string | null {
   if (doc === null) return null
-  const body = doc.body as Record<string, unknown> | null
-  const name = entityType === 'pilot' ? body?.callsign : body?.name
-  return typeof name === 'string' ? name : null
+  return entityNameOf(entityType === 'pilot' ? 'pilot' : 'mech', doc.body)
 }
 
 /**

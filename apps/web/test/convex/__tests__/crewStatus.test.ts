@@ -1,26 +1,26 @@
 import { describe, expect, test } from 'bun:test'
-import { mechStatus, pilotStatus } from 'cantina-domain/rules/crewStatus'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { mechStatus, pilotStatus } from 'game-domain/rules/crewStatus'
+import type { Mech } from 'game-domain/schemas/mech'
+import { MechSchema } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { mechStats, pilotVitals } from '../../../src/components/dashboard/slots.model'
-import { crewLines } from '../../../src/components/dashboard/useGameFeed'
+import { mechStats, pilotVitals } from '../../../src/play/unitStats.model'
+import { crewLines } from '../../../src/play/useGameFeed'
 import type { Ctx, User } from '../fixtures'
 import { crawlerBody, link, makeUser, mechBody, pilotBody, ref } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
  * The crew's maxima and status are derived on the server (`crew.vitals`;
- * ADR-038 §4), and the Crew tab's ▲
+ * ADR-038 §4), and Play's Crew ▲
  * and red outlines read them. These are the layer's two gates:
  *
  *   - **The server agrees with the client.** One set of records goes to both
  *     sides: written through the client's own write path, then read back by
- *     `crew.vitals`, and handed to the Dashboard's slot models
- *     (`pilotVitals`, `mechStats`) as the Dashboard would. Each maximum and
+ *     `crew.vitals`, and handed to Play's unit models
+ *     (`pilotVitals`, `mechStats`) as the Units column would. Each maximum and
  *     each status must come out the same.
  *   - **The payload holds no Mediator-only data**, and no loadout: the
  *     records are read to derive the numbers, and only the numbers leave.
@@ -313,9 +313,9 @@ describe('crew.vitals keys a template pre-gen by its link id', () => {
     const own = lines[0]
     expect(own?.pilotId).toBe(pilotId)
     expect(own?.self).toBe(true)
-    expect(own?.href).toBe(`/sheet/pilot/${pilotId}`)
-    expect(own?.where).toBe(`In ${mech?.name}`)
-    expect(own?.vitals).toMatch(/^HP \d+\/\d+ · AP \d+\/\d+$/)
+    expect(own?.unit).toMatch(new RegExp(`^In ${mech?.name} · SP \\d+/\\d+$`))
+    expect(own?.hp).toMatch(/^\d+\/\d+$/)
+    expect(own?.ap).toMatch(/^\d+\/\d+$/)
     expect(own?.mech).toMatch(/ · SP \d+\/\d+ · Heat \d+\/\d+$/)
   })
 })

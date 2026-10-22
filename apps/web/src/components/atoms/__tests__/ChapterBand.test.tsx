@@ -6,8 +6,8 @@ import { ChapterBand } from '../ChapterBand'
 import { ChapterBandTrail } from '../ChapterBandTrail'
 
 /**
- * ChapterBand (brand refresh P2a): the page title notched into a band in the chapter's
- * colour, in ink — it replaced PageHeading's ink-stamp page heading.
+ * ChapterBand: the page title notched into a band in the chapter's
+ * colour, in ink, the page's one h1.
  */
 describe('ChapterBand', () => {
   test('is the page h1 by default, in ink on the page ground — never a knockout', () => {
@@ -28,7 +28,7 @@ describe('ChapterBand', () => {
     expect((container.firstElementChild as HTMLElement).style.backgroundColor).toBe(color.wkLine)
   })
 
-  test('the ink band (Hangar, board S1) wears paper flecks, not ink speckle', () => {
+  test('the ink band (Training Bay) wears paper flecks, not ink speckle', () => {
     const html = renderToStaticMarkup(<ChapterBand tone="ink">Shelves</ChapterBand>)
     expect(html).toContain(`background-color:${color.ink}`)
     // One fleck layer in the page-ground colour; no ink blot or speck.

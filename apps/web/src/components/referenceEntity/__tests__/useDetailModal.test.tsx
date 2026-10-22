@@ -1,8 +1,8 @@
 /**
  * `useDetailModal` is the one place that decides what "View details" DOES: open
  * the in-place `EntityDetailDialog`, or navigate to the entity's show page in
- * this tab (EDL E5: never a new-tab `window.open`). Two apps depend on opposite answers — srd sets link mode (its
- * entities have real URLs), the Cantina leaves it off (its href would deep-link out of
+ * this tab (EDL E5: never a new-tab `window.open`). Two apps depend on opposite answers — the reference site sets link mode (its
+ * entities have real URLs), the app leaves it off (its href would deep-link out of
  * the app) — and `forceModal` overrides link mode for views with no standalone
  * URL (chassis patterns). Nothing about that routing is visible to typecheck,
  * so it is pinned here alongside the dialog chrome it mounts.
@@ -12,7 +12,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
-import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
 import { useDetailModal } from '../useDetailModal'
 
 const system = (name: string): RefEntity => {
@@ -90,11 +90,11 @@ describe('useDetailModal — link mode (srd)', () => {
       opened.push(String(url))
     }
     const result = render(
-      <EntityHrefProvider value={() => (opts.noHref ? undefined : '/systems/red-laser')}>
-        <EntityDetailLinkProvider value={true}>
-          <Harness data={system('Red Laser')} forceModal={opts.forceModal} />
-        </EntityDetailLinkProvider>
-      </EntityHrefProvider>
+      <EntitySurfaceProvider
+        value={{ hrefFor: () => (opts.noHref ? undefined : '/systems/red-laser') }}
+      >
+        <Harness data={system('Red Laser')} forceModal={opts.forceModal} />
+      </EntitySurfaceProvider>
     )
     return { opened, ...result }
   }

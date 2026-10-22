@@ -1,23 +1,22 @@
 import { authTables } from '@convex-dev/auth/server'
-import { CHANGE_LOG_KINDS } from 'cantina-domain/schemas/changeLog'
-import { EntityRefSchema } from 'cantina-domain/schemas/entity'
-import type { Seat } from 'cantina-domain/schemas/seat'
-import { SeatSchema } from 'cantina-domain/schemas/seat'
-import { CrewSlotSchema, SoftLinkSchema } from 'cantina-domain/schemas/softLink'
 import { defineSchema, defineTable } from 'convex/server'
-import type { GenericId, GenericValidator, Infer } from 'convex/values'
 import { v } from 'convex/values'
 import { zodToConvex } from 'convex-helpers/server/zod4'
+import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
+import { EntityRefSchema } from 'game-domain/schemas/entity'
+import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
+import { playTables } from './model/playTables'
+import { literalUnion } from './model/validators'
 
 /**
- * Convex schema for the Cantina accounts, Games, and entity ownership.
+ * Convex schema for the app accounts, Games, and entity ownership.
  *
  * This is the server of record introduced by ADR-030, which
  * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#convex
  * and ADR-030 for the full record; the short version of what this file assumes:
  *
  *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR
- *     on its owner's personal shelf. `gameId` is nullable and null MEANS shelf.
+ *     on its owner's personal shelf. Null `gameId` MEANS shelf (Play's tables: absent = solo).
  *   - Ownership is nullable too (ADR-030 §2). A null `ownerId` is an *unclaimed*
  *     entity — a normal state, arising when a player leaves, when the
  *     Mediator pre-builds a character, or from a Game template.
@@ -26,7 +25,7 @@ import { zodToConvex } from 'convex-helpers/server/zod4'
  *
  * ## Why entity bodies are `v.any()`
  *
- * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `cantina-domain/schemas/`,
+ * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `game-domain/schemas/`,
  * and those schemas are the single source of truth — `schemas/*.schema.json` in
  * `salvageunion-reference` is already generated from Zod at build time.
  * Re-declaring every field as a Convex validator would fork that source of truth
@@ -43,52 +42,29 @@ import { zodToConvex } from 'convex-helpers/server/zod4'
  * The `v.any()` bodies above are the *only* place we give up validation. Where a
  * column's values are a short, closed list that some Zod schema already names,
  * it is declared as a `v.union` of literals rather than a `v.string()` with the
- * list in a comment. A comment is not checked: `Doc<'changeLog'>['state']` typed
- * as `string` meant every `row.state === 'proposed'` in `proposals.ts` compared
- * two arbitrary strings, so a typo read as "no rows match" rather than as a type
- * error. Each union below is that list, checked, and kept in step with its Zod
- * counterpart in `cantina-domain/schemas/`.
+ * list in a comment. A comment is not checked: typed as `string`,
+ * `Doc<'changeLog'>['state']` would let `row.state === 'proposed'` compare two
+ * arbitrary strings, so a typo would read as "no rows match" rather than as a
+ * type error. Each union below is that list, checked, and kept in step with its Zod
+ * counterpart in `game-domain/schemas/`.
  *
  * Where the Zod side is a schema, the validator is built from it with
  * `zodToConvex` (convex-helpers), and where it is only a list of names, from
  * that list (`literalUnion`), so there is nothing to keep in step. What Zod
  * refines beyond the shape (a `.min(1)`, a `superRefine`) Convex does not
  * check; the mutation's Zod parse still does. `mirrors` checks a validator
- * still written out against the type it stands for: the `seats` row here, the
- * crew statuses `crew.vitals` returns.
+ * still written out against the type it stands for: the `seats` row, the
+ * crew statuses `crew.vitals` returns (both helpers: `model/validators.ts`).
+ *
+ * Play's tables (the seat, the Game's Downtime and the Discord channel
+ * bindings) and their validators are `model/playTables.ts`, spread in below.
  *
  * The function modules take their arguments and declare their `returns`
  * against these same validators, never a hand-copied union.
  */
 
-/** A `v.union` of literals built from a Zod enum's own list. */
-function literalUnion<const T extends string>(values: readonly T[]) {
-  return v.union(...values.map((value) => v.literal(value)))
-}
-
 /**
- * True only when `A` and `B` are the same type, optional fields and all: mutual
- * assignability would let either side grow an optional field unnoticed.
- */
-type Same<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
-
-/**
- * Hands `validator` back unchanged, and fails to compile when what it accepts
- * is not exactly `Z`, the type it mirrors. Curried so `Z` is named and the
- * validator's own type is inferred. Exported for a `returns` validator that
- * mirrors a domain type with no Zod schema to build it from (`crew.vitals`).
- */
-export function mirrors<Z>() {
-  return <V extends GenericValidator>(
-    validator: V,
-    ..._exact: Same<Infer<V>, Z> extends true
-      ? []
-      : ['this validator has drifted from its Zod type']
-  ): V => validator
-}
-
-/**
- * `EntityRefSchema.type` (cantina-domain/schemas/entity) — ADR-027.
+ * `EntityRefSchema.type` (game-domain/schemas/entity) — ADR-027.
  *
  * Exported so a mutation that takes an endpoint as an *argument* validates it
  * against this same union rather than a hand-copied one. `entities.upsertSoftLink`
@@ -96,11 +72,11 @@ export function mirrors<Z>() {
  */
 export const entityRefType = zodToConvex(EntityRefSchema.shape.type)
 
-/** `EntityRefSchema` (cantina-domain/schemas/entity): a link end, by kind and app id. */
+/** `EntityRefSchema` (game-domain/schemas/entity): a link end, by kind and app id. */
 export const entityRef = v.object({ type: entityRefType, id: v.string() })
 
 /**
- * `SoftLinkSchema.type` (cantina-domain/schemas/softLink). Exported: see above.
+ * `SoftLinkSchema.type` (game-domain/schemas/softLink). Exported: see above.
  *
  * `mech-to-crawler` (ADR-037): a mech's crawler is its own link, not reached
  * through its pilot. Adding a literal is the backward-compatible direction —
@@ -109,7 +85,7 @@ export const entityRef = v.object({ type: entityRefType, id: v.string() })
 export const softLinkType = zodToConvex(SoftLinkSchema.shape.type)
 
 /**
- * `CrewSlotSchema` (cantina-domain/schemas/softLink) — ADR-044. The crew
+ * `CrewSlotSchema` (game-domain/schemas/softLink) — ADR-044. The crew
  * slot an `npc-to-crawler` link fills: a bay by its slug, or the crawler
  * type's NPC. Required on that type and refused on every other, which the
  * writers in `entities.ts` enforce (a validator cannot see the link's type).
@@ -120,8 +96,8 @@ export const crewSlot = zodToConvex(CrewSlotSchema)
  * What a Change Log row is about: one of the player entities, or the Game.
  *
  * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
- * Discord roll the bot once logged and a Dashboard roll
- * (`appendChangeLog`, from `dashboardRolls.model.ts`) are log rows about the Game
+ * Discord roll the bot logged and a Play roll
+ * (`appendChangeLog`, from `playRolls.model.ts`) are log rows about the Game
  * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
  * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
  *
@@ -135,7 +111,7 @@ export const changeLogEntityType = v.union(
 )
 
 /**
- * `CHANGE_LOG_KINDS` (cantina-domain/schemas/changeLog) — ADR-022. Exported so
+ * `CHANGE_LOG_KINDS` (game-domain/schemas/changeLog) — ADR-022. Exported so
  * `changeLog.appendChangeLog` takes its entries' `kind` against this union.
  */
 export const changeLogKind = literalUnion(CHANGE_LOG_KINDS)
@@ -150,26 +126,6 @@ export const changeLogState = v.union(
   v.literal('declined'),
   v.literal('superseded')
 )
-
-/**
- * `RANGE_BANDS` (cantina-domain/schemas/seat) — ADR-038. Exported so `seats.setRange`
- * takes its argument against this same union.
- */
-export const seatRange = zodToConvex(SeatSchema.shape.range)
-
-/** A `Seat` as its row stores it: the Game is a Convex id rather than a string. */
-type SeatRow = {
-  [K in keyof Seat]: K extends 'gameId' ? GenericId<'games'> : Seat[K]
-}
-
-/** `SeatMount` (cantina-domain/schemas/seat). Exported for `seats.forGame`'s answer. */
-export const seatMount = zodToConvex(SeatSchema.shape.mount)
-
-/**
- * `SeatResolving` (cantina-domain/schemas/seat). Exported so `seats.setResolving`
- * takes its argument against this same validator.
- */
-export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 
 /**
  * `invites.role`: new invites leave it unset; `'mediator'` survives on older
@@ -302,9 +258,8 @@ export default defineSchema({
      * (`games.setPrimaryCrawler`). Changing it moves nobody — assignment is an
      * explicit link written when an entity enters the Game.
      *
-     * Optional because every Game predates it: absent means "the oldest crawler
-     * here", which is what `primaryCrawlerOf` resolves it to, and what the
-     * Game summary and the bot showed as *the* crawler before it existed.
+     * Optional: absent means "the oldest crawler here", which is what
+     * `primaryCrawlerOf` resolves it to, for the Game summary and the bot.
      */
     primaryCrawlerId: v.optional(v.union(v.id('crawlers'), v.null())),
   }),
@@ -471,7 +426,7 @@ export default defineSchema({
    *   - **cardinality** — a pilot crews ≤1 crawler and flies ≤1 mech; a mech
    *     flies ≤1 pilot and docks in ≤1 crawler; an NPC fills ≤1 crew slot and
    *     a slot holds ≤1 NPC. Drawing a link replaces the ones it conflicts
-   *     with (`conflictingLinks` in `cantina-domain/links/linkRules`).
+   *     with (`conflictingLinks` in `game-domain/links/linkRules`).
    *   - **one container** — both ends share a Game, or the same owner's shelf.
    *   - **`gameId` is that container** — it moves with its ends, and a move that
    *     would leave a link straddling two containers deletes it instead.
@@ -488,7 +443,6 @@ export default defineSchema({
     .index('by_from', ['from.id'])
     .index('by_to', ['to.id']),
 
-  /** Mediator-owned and Mediator-visible. The one thing that must stay hidden. */
   /**
    * An NPC, in exactly one of the two containers everything else uses
    * ([ADR-034](../../../docs/ARCHITECTURE.md#decisions)
@@ -498,16 +452,6 @@ export default defineSchema({
    * opposition** — the one table members cannot read. On a shelf (`gameId:
    * null`, `ownerId` set) it is somebody's own tray, where they prep before a
    * Game exists or after one ends.
-   *
-   * ## Why two columns
-   *
-   * An NPC lives in a Game or on its owner's shelf, so it carries a nullable
-   * `gameId` and an `ownerId`, like `crawlers`. Prep on a shelf survives the
-   * Game it was made for, and there is one tray under one name, held by the
-   * server in either container.
-   *
-   * `gameId == null && ownerId == null` stays the invalid row here as
-   * everywhere else.
    */
   encounterNpcs: defineTable({
     gameId: v.union(v.id('games'), v.null()),
@@ -611,7 +555,7 @@ export default defineSchema({
     before: v.any(),
     after: v.any(),
     /**
-     * The surface that made the change, e.g. 'live-sheet', 'dashboard',
+     * The surface that made the change, e.g. 'live-sheet', 'play',
      * 'mediator-proposal', 'ownership', 'discord-bot'.
      *
      * Deliberately left open where its neighbours are closed unions: a surface
@@ -648,79 +592,5 @@ export default defineSchema({
     // reading a log that grows all campaign (`source` is 'mediator-proposal').
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
-  /** Which Discord channel a Game was bound to. Read by nothing now; `invites.dropRetired` empties it. */
-  channelBindings: defineTable({
-    gameId: v.id('games'),
-    channelId: v.string(),
-    boundBy: v.id('users'),
-    boundAt: v.number(),
-  })
-    .index('by_channel', ['channelId'])
-    .index('by_game', ['gameId']),
-
-  /**
-   * Crew-wide Downtime state (ADR-030).
-   *
-   * Downtime is the one procedure the whole crew performs in step, so the phase
-   * is **Game state advanced by the Mediator** rather than something each
-   * player tracks alone. Per-player step completion lives here too, so the
-   * table can see who is still working.
-   *
-   * One row per Game. `stepIndex: null` means Downtime is not running — which
-   * is a state, not an absence, and is why this is not simply the row's absence.
-   */
-  downtime: defineTable({
-    gameId: v.id('games'),
-    /** Null when Downtime is not running. */
-    stepIndex: v.union(v.number(), v.null()),
-    startedAt: v.union(v.number(), v.null()),
-    /**
-     * Which members have marked the current step done. Cleared whenever the
-     * phase advances — completion is per step, not cumulative, or a player who
-     * finished step 1 would look finished forever.
-     */
-    completedBy: v.array(v.id('users')),
-    /** Set once per Downtime so crawler upkeep is spent once, not per member. */
-    upkeepSpent: v.boolean(),
-  }).index('by_game', ['gameId']),
-
-  /**
-   * A pilot's seat at a Game: the Dashboard's play state, shared with the crew
-   * and saved on the Game (ADR-038 §2). Zod source: `cantina-domain/schemas/seat`,
-   * which this row mirrors column for column (the Game is a Convex id here).
-   *
-   * One row per pilot, not per member, so a member covering for an absent
-   * player runs two. The pilot and boarded mech are app ids, like softLink
-   * ends, and mount is never a field on either record. Only someone who may
-   * write the pilot writes its seat; every member reads every seat.
-   *
-   * There is no "in Downtime" column: that is the `downtime` row above.
-   * `resolving` is the deck action in progress, so a reload mid-roll keeps it
-   * and the crew watches it live. It is optional, so a seat that never
-   * resolved anything, and every row written before it existed, validates.
-   */
-  seats: defineTable(
-    mirrors<SeatRow>()(
-      v.object({
-        gameId: v.id('games'),
-        /** The pilot's app id. */
-        pilotId: v.string(),
-        mount: seatMount,
-        range: seatRange,
-        /** Refs of the activated contributions that are switched on (ADR-029 §4). */
-        activeEffects: v.array(v.string()),
-        /** The deck action being resolved; absent when none is. */
-        resolving: v.optional(seatResolving),
-        /**
-         * True from an Eject until the pilot next boards or dismounts, so the crew
-         * sees who ejected (`crew.vitals`). Absent means they did not.
-         */
-        ejected: v.optional(v.boolean()),
-        updatedAt: v.number(),
-      })
-    )
-  )
-    // `gameId` alone is a prefix of this: the crew's seats in one read, and
-    // one pilot's seat by both.
-    .index('by_game_pilot', ['gameId', 'pilotId']),
+  ...playTables,
 })

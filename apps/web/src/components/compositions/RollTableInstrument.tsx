@@ -1,12 +1,18 @@
-import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { cn } from '../../lib/cn'
 import { revealRolled } from '../../lib/revealRolled'
+import type { Size } from '../../styles/sizing'
 import { Button } from '../atoms/Button'
-import { FOCUS_RING_ON_TONE } from '../atoms/interaction'
-import type { CardSize } from '../containers/displayMode'
+import { capsLabel } from '../atoms/capsLabel'
 import { rollBandColor, rollRangeLabel } from './rollTableBands'
+
+// The instrument's caps labels, from the recipe; sizes are the rules' own.
+const COLS = cn('su-roll__cols', capsLabel({ tracking: 'snug' }))
+const TITLE = cn('su-roll__title', capsLabel())
+const STAMP = cn('su-roll__stamp su-roll__roll', capsLabel())
+const LABEL = cn('su-roll__label', capsLabel())
+const TAG = cn('su-roll__tag', capsLabel({ weight: 'inherit' }))
 
 /**
  * RollTableInstrument — THE roll table, wherever one is drawn (EDL E14,
@@ -32,16 +38,13 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  *   corner, over the row rather than in its flow, so rolling never changes the
  *   row's height; the same mark whatever the outcome (ruleset §3.4). The other
  *   rows keep their ink, so every band reads at full contrast.
- * - A host that shows one of many tables (The Cantina's Dashboard Tables tab) makes
- *   the bar's title its PICKER (`titleSelect`): the title IS the trigger, one
- *   name, one control, with no second bar repeating it. The host owns what
- *   opening means and renders its own picker.
  * - A COLUMNS table (Callsign, a d20 × d20) is the same instrument: its rows
  *   banded the same way, the columns' ranges across an ink head and the entry
  *   numbers down both outer edges; the rolled column head and cell are marked.
+ *   In a narrow frame the columns stack, each range over its entries two up.
  *
  * Presentational: rolling, and what a roll reads as, belong to the host. The
- * layout is `index.css`'s `.su-roll*`, sized by `size` and, on a page that
+ * layout is `.su-roll*` (`styles/partials/roll-table.css`), sized by `size` and, on a page that
  * must end above the fold, `density` and `split`.
  */
 
@@ -56,20 +59,6 @@ type RollInstrumentColumn = {
 
 /** How tightly a wide screen sets a page's table (the SRD's `rollTableDensity`). */
 type RollInstrumentDensity = 'roomy' | 'compact' | 'dense'
-
-/**
- * The bar's title as the trigger of the host's table picker. Typed rather than
- * a `title` node, so the bar keeps its own affordance (chevron, hit area,
- * focus ring, aria) and every host gets the same one.
- */
-export type RollTableTitleSelect = {
-  /** Open the host's picker. */
-  onOpen: () => void
-  /** Whether that picker is open: drives `aria-expanded` and the chevron. */
-  open?: boolean
-  /** The trigger's accessible name (default: names the current table). */
-  ariaLabel?: string
-}
 
 type BandsTable = {
   kind: 'bands'
@@ -91,10 +80,10 @@ export type RollTableInstrumentProps = {
   /** The table's name: the accessible name of its rows or grid. */
   name: string
   table: BandsTable | ColumnsTable
-  size: CardSize
+  size: Size
   /** The surface's tone (a CSS colour); its band paints every other row. */
   tone?: string
-  /** The roll's words: "Roll the Die:", or "Roll twice:" for two dice. */
+  /** The roll's words: "Roll the Die:", or "Roll the Dice:" for two dice. */
   stamp?: string
   /**
    * Roll the table: makes the roll control a button. Absent where the table
@@ -103,8 +92,6 @@ export type RollTableInstrumentProps = {
   onRoll?: () => void
   /** The bar's title (a card's table name). */
   title?: ReactNode
-  /** Makes the title the trigger of the host's table picker (`RollTableTitleSelect`). */
-  titleSelect?: RollTableTitleSelect
   /** A quieter line in the bar (the page's, which has no title there). */
   hint?: ReactNode
   /** The host's controls, before the roll at the bar's far end. */
@@ -121,7 +108,7 @@ export type RollTableInstrumentProps = {
 /** The custom property the instrument carries its band in (`rollBandColor`). */
 const BAND_VAR = '--su-roll-band'
 
-/** Row `index`'s fill: paper, then the band, in turn; the rolled row is ink. */
+/** Compact `index`'s fill: paper, then the band, in turn; the rolled row is ink. */
 const rowFill = (index: number, marked: boolean): CSSProperties => ({
   backgroundColor: marked
     ? 'var(--color-ink)'
@@ -138,7 +125,6 @@ export function RollTableInstrument({
   stamp = 'Roll the Die:',
   onRoll,
   title,
-  titleSelect,
   hint,
   actions,
   open = true,
@@ -151,7 +137,12 @@ export function RollTableInstrument({
   // marks anew reveals it. The host may mark later (its die loads first), and
   // may re-render before then, so the old mark is never what is revealed.
   const reveal = useRef<{ before: string } | null>(null)
-  const marked = () => root.current?.querySelector('[aria-current="true"]')
+  // A columns table draws its mark twice (the grid and its narrow stack), one
+  // hidden: the one on screen is the one to reveal.
+  const marked = () => {
+    const all = Array.from(root.current?.querySelectorAll('[aria-current="true"]') ?? [])
+    return all.find((at) => at.getClientRects().length > 0) ?? all[0]
+  }
   // A row's text carries its pennant, "Rolled N", so a new roll reads anew.
   const markOf = (at: Element | null | undefined) => at?.textContent ?? ''
   useEffect(() => {
@@ -173,7 +164,7 @@ export function RollTableInstrument({
     </RollControl>
   )
   // A bar with nothing of the host's in it (a page's table) labels the bands' columns.
-  const labelled = table.kind === 'bands' && !title && !titleSelect && !hint && !actions
+  const labelled = table.kind === 'bands' && !title && !hint && !actions
   const split = table.kind === 'bands' && !!table.split
   return (
     <div
@@ -185,12 +176,17 @@ export function RollTableInstrument({
       style={{ [BAND_VAR]: rollBandColor(tone) } as CSSProperties}
     >
       {labelled ? (
-        <div className="su-roll__bar" data-cols="true" data-split={split ? 'true' : undefined}>
-          <span className="su-roll__cols" aria-hidden="true">
+        <div
+          className="su-roll__bar"
+          data-ground="ink"
+          data-cols="true"
+          data-split={split ? 'true' : undefined}
+        >
+          <span className={COLS} aria-hidden="true">
             <span className="su-roll__col-range">d20</span>
             <span className="su-roll__col-text">Result</span>
           </span>
-          <span className="su-roll__cols su-roll__cols--end">
+          <span className={cn(COLS, 'su-roll__cols--end')}>
             {split && (
               <span className="su-roll__col-text su-roll__col-text--half" aria-hidden="true">
                 Result
@@ -200,12 +196,8 @@ export function RollTableInstrument({
           </span>
         </div>
       ) : (
-        <div className="su-roll__bar">
-          {titleSelect ? (
-            <TitleSelect title={title ?? name} select={titleSelect} />
-          ) : (
-            title && <span className="su-roll__title">{title}</span>
-          )}
+        <div className="su-roll__bar" data-ground="ink">
+          {title && <span className={TITLE}>{title}</span>}
           {hint && <span className="su-roll__hint">{hint}</span>}
           {actions}
           {roll}
@@ -218,38 +210,6 @@ export function RollTableInstrument({
           <Columns id={panelId} name={name} table={table} />
         ))}
     </div>
-  )
-}
-
-/**
- * The title as the picker's trigger: the title's own type, a hairline paper
- * plate and a chevron marking it choosable, and the on-tone focus ring (the
- * rust ring would vanish on the ink bar). It wraps like the title (E18).
- */
-function TitleSelect({ title, select }: { title: ReactNode; select: RollTableTitleSelect }) {
-  const named = typeof title === 'string' ? title : undefined
-  return (
-    <span className="su-roll__title">
-      <button
-        type="button"
-        className={cn('su-roll__title-select', FOCUS_RING_ON_TONE)}
-        onClick={select.onOpen}
-        aria-haspopup="dialog"
-        aria-expanded={select.open ?? false}
-        aria-label={
-          select.ariaLabel ??
-          (named ? `Choose a roll table (current: ${named})` : 'Choose a roll table')
-        }
-      >
-        <span>{title}</span>
-        <ChevronDown
-          aria-hidden="true"
-          size={14}
-          className="su-roll__title-chevron"
-          data-open={select.open ? 'true' : undefined}
-        />
-      </button>
-    </span>
   )
 }
 
@@ -290,7 +250,7 @@ export function RollControl({
   name: string
   onRoll?: () => void
   children: string
-  /** `mini` inside a Token's strip (C1a), at the Token's height. */
+  /** `mini` inside a Mini's strip (C1a), at the Mini's height. */
   size?: 'compact' | 'mini'
 }) {
   const live = useLive()
@@ -298,7 +258,7 @@ export function RollControl({
     // A Roll waiting on the script says so (`data-roll-pending`), so a page
     // whose only control it is still ships its island (`cardNeedsHydration`).
     return (
-      <span className="su-roll__stamp su-roll__roll" data-roll-pending={onRoll ? '' : undefined}>
+      <span className={STAMP} data-roll-pending={onRoll ? '' : undefined}>
         {children}
       </span>
     )
@@ -352,12 +312,12 @@ function Bands({ id, name, table }: { id?: string; name: string; table: BandsTab
                 <div className="su-roll__body">
                   {row.label && (
                     <div className="su-roll__head">
-                      <span className="su-roll__label">{row.label}</span>
+                      <span className={LABEL}>{row.label}</span>
                     </div>
                   )}
                   <span className="su-roll__value">{row.value}</span>
                   {/* Pinned to the corner, out of the flow: the row keeps its height. */}
-                  {marked && <span className="su-roll__tag">Rolled {mark.roll}</span>}
+                  {marked && <span className={TAG}>Rolled {mark.roll}</span>}
                 </div>
               </li>
             )
@@ -423,6 +383,51 @@ function Columns({ id, name, table }: { id?: string; name: string; table: Column
           ))}
         </tbody>
       </table>
+      {/* A narrow frame stacks the columns instead (`.su-roll__stack`): each
+          column's range over its entries, two up, so nothing scrolls sideways.
+          One of the two shows at a time; the other is display:none. */}
+      <div className="su-roll__stack">
+        {columns.map((column) => {
+          const half = Math.ceil(column.entries.length / 2)
+          return (
+            <section
+              key={column.key}
+              className="su-roll__stack-col"
+              aria-label={`${name}, column ${rollRangeLabel(column.key)}`}
+            >
+              <div
+                className="su-roll__stack-head"
+                aria-hidden="true"
+                data-rolled={mark?.column === column.key ? 'true' : undefined}
+              >
+                {rollRangeLabel(column.key)}
+              </div>
+              <ol
+                className="su-roll__stack-list"
+                style={{ '--su-roll-half': half } as CSSProperties}
+              >
+                {column.entries.map((entry, at) => {
+                  const rolled = mark?.column === column.key && mark.entry === entry.key
+                  return (
+                    <li
+                      key={entry.key}
+                      className="su-roll__stack-entry"
+                      data-rolled={rolled ? 'true' : undefined}
+                      aria-current={rolled ? 'true' : undefined}
+                      data-side={at >= half ? 'right' : undefined}
+                      // Side by side, entry N and N + half share a line and its fill.
+                      style={rowFill(at % half, rolled)}
+                    >
+                      <span className="su-roll__edge">{rollRangeLabel(entry.key)}</span>
+                      <span className="su-roll__stack-value">{entry.value}</span>
+                    </li>
+                  )
+                })}
+              </ol>
+            </section>
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -4,31 +4,21 @@
  * things that makes true of the UI:
  *
  * 1. A pattern row in a chassis's Patterns list is a real link to that
- *    pattern's own page, resolved through `PatternHrefProvider`.
- * 2. With no provider (an app whose patterns have no pages) the row stays inert
+ *    pattern's own page, resolved through the surface's `hrefFor`.
+ * 2. With no routes (an app whose patterns have no pages) the row stays inert
  *    rather than linking nowhere.
  * 3. The full pattern view reads chassis prose → pattern prose → systems →
  *    modules, so the pattern is framed by the chassis it belongs to.
  * 4. The chassis ability shows only on a PAGE — the chassis page and its
- *    pattern pages — and on the Cantina's builder pick cards (`showChassisAbility`),
- *    never on any other card, a catalog tile or a nested card.
+ *    pattern pages — and on the app's builder pick cards (`showChassisAbility`),
+ *    never on any other card or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import type {
-  EntityRef,
-  RefEntity,
-  RefObjectAnyPattern,
-  RefObjectPattern,
-} from 'salvageunion-reference'
+import type { EntityRef, RefObjectPattern } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  PatternHrefProvider,
-} from '../../entityHrefContext'
 import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -39,18 +29,19 @@ const mule = () => {
   return found
 }
 
-/** Stands in for srd's route builder. */
-const testPatternHref = (chassis: RefEntity, pattern: RefObjectAnyPattern) =>
-  `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+/** Stands in for the reference site's routes: a pattern's page only. */
+const testPatternHref = (ref: EntityRef) =>
+  ref.pattern ? `/chassis/${nameToSlug(ref.name)}/pattern/${nameToSlug(ref.pattern)}` : undefined
+
+/** A surface whose routes are `hrefFor`'s, as the SRD's are. */
+const withRoutes = (hrefFor: (ref: EntityRef) => string | undefined, children: ReactNode) => (
+  <EntitySurfaceProvider value={{ hrefFor }}>{children}</EntitySurfaceProvider>
+)
 
 describe('chassis pattern rows', () => {
   test('each row links to its pattern page', () => {
     const chassis = mule()
-    render(
-      <PatternHrefProvider value={testPatternHref}>
-        <ReferenceEntityCard data={chassis} />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testPatternHref, <ReferenceEntityCard data={chassis} />))
 
     const links = screen.getAllByRole('link', { name: /— Mule pattern$/ })
     expect(links.length).toBe(visiblePatterns(chassis.patterns ?? []).length)
@@ -65,11 +56,7 @@ describe('chassis pattern rows', () => {
     const hidden = (chassis.patterns ?? []).filter((p) => p.hidden)
     expect(hidden.length).toBeGreaterThan(0)
 
-    render(
-      <PatternHrefProvider value={testPatternHref}>
-        <ReferenceEntityCard data={chassis} />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testPatternHref, <ReferenceEntityCard data={chassis} />))
 
     for (const pattern of hidden) {
       expect(screen.queryByRole('link', { name: `${pattern.name} — Mule pattern` })).toBeNull()
@@ -118,7 +105,6 @@ describe('the chassis ability shows only on a page', () => {
 
   for (const [form, card] of [
     ['a chassis card', () => <ReferenceEntityCard data={mule()} size="full" />],
-    ['a chassis catalog tile', () => <ReferenceEntityCard data={mule()} extent="catalog" />],
     ['a pattern card', () => <ReferenceEntityCard data={mule()} pattern={hauler()} />],
     [
       'a nested chassis card on a page',
@@ -131,7 +117,7 @@ describe('the chassis ability shows only on a page', () => {
     })
   }
 
-  // The Cantina's builder pick cards opt in: choosing a chassis or a pattern needs it.
+  // The app's builder pick cards opt in: choosing a chassis or a pattern needs it.
   const PICK_HIDE = { actions: true, choices: true, patterns: true } as const
 
   test("the builder's chassis pick card shows it once, under the picker's hide.actions", () => {
@@ -139,13 +125,6 @@ describe('the chassis ability shows only on a page', () => {
       <ReferenceEntityCard data={mule()} size="compact" hide={PICK_HIDE} showChassisAbility />
     )
     expect(abilityCount(container)).toBe(1)
-  })
-
-  test('the opt-in does not reach a catalog tile', () => {
-    const { container } = render(
-      <ReferenceEntityCard data={mule()} extent="catalog" showChassisAbility />
-    )
-    expect(abilityCount(container)).toBe(0)
   })
 
   /** The builder's pattern pick card, as `MechChassisStep` renders it. */
@@ -234,11 +213,9 @@ describe('full pattern view reading order', () => {
  * painting a TL-toned pill per part.
  */
 describe('pattern loadout tokens', () => {
-  /** Stands in for srd's entity route builder. */
-  const testEntityHref = (entity: RefEntity) =>
-    `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
-      'name' in entity ? nameToSlug(String(entity.name)) : ''
-    }`
+  /** Stands in for the reference site's entity routes. */
+  const testEntityHref = (ref: EntityRef) =>
+    ref.pattern ? undefined : `/${ref.schemaName}/${nameToSlug(ref.name)}`
 
   const thunderStorm = () => {
     const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
@@ -248,12 +225,8 @@ describe('pattern loadout tokens', () => {
     return { chassis, pattern }
   }
 
-  /** The SRD's setup: a href builder, and the surface links out through it. */
-  const srdLinks = (children: ReactNode) => (
-    <EntityHrefProvider value={testEntityHref}>
-      <EntityDetailLinkProvider value={true}>{children}</EntityDetailLinkProvider>
-    </EntityHrefProvider>
-  )
+  /** The SRD's setup: a surface with routes, which links out through them. */
+  const srdLinks = (children: ReactNode) => withRoutes(testEntityHref, children)
 
   test('every loadout entry links to its own page', () => {
     const { chassis, pattern } = thunderStorm()
@@ -271,14 +244,24 @@ describe('pattern loadout tokens', () => {
     )
   })
 
-  test('the loadout does not reprint the entities` rules inline', () => {
+  test('each loadout entry is a contentful Mini: its head, then its text', () => {
     const { chassis, pattern } = thunderStorm()
     const { container } = render(
       <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
     )
-    // The machine gun's own description belongs on its page, not six times over
-    // in a pattern's loadout.
-    expect(container.textContent).not.toContain('This simple ballistic weapon')
+    const systems = screen.getByRole('list', { name: 'Systems installed' })
+    const entries = Array.from(systems.querySelectorAll(':scope > li'))
+    expect(entries.length).toBeGreaterThan(0)
+    for (const entry of entries) {
+      expect(entry.querySelector(':scope > .su-entity-mini[data-contentful]')).not.toBeNull()
+    }
+    // The machine gun's description reads under each of its six Minis.
+    const text = 'This simple ballistic weapon'
+    expect(
+      [...container.querySelectorAll('.su-entity-mini__body')].filter((body) =>
+        body.textContent?.includes(text)
+      )
+    ).toHaveLength(6)
   })
 
   test('without a route the names are not links', () => {
@@ -290,7 +273,7 @@ describe('pattern loadout tokens', () => {
   })
 
   test('on a surface with a Page opener, each name opens its Page', () => {
-    // The Cantina: no route, a detail dialog. The Mention follows the surface.
+    // The app: no route, a detail dialog. The Mention follows the surface.
     const { chassis, pattern } = thunderStorm()
     const opened: EntityRef[] = []
     render(
@@ -304,25 +287,26 @@ describe('pattern loadout tokens', () => {
     expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
   })
 
-  test('each entry is one full-width Token: its name (its kind read out), then its action type, TL and Slots', () => {
+  test('each entry is one Mini in the masonry grid: its name (its kind read out), then its action type, TL and Slots', () => {
     const { chassis, pattern } = thunderStorm()
     render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
-    expect(systems.classList.contains('su-entity-token-list')).toBe(true)
+    expect(systems.classList.contains('su-mini-grid')).toBe(true)
     const entries = Array.from(systems.querySelectorAll(':scope > li'))
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      // One Token a line, the link itself.
-      const tokens = entry.querySelectorAll('a.su-entity-token')
+      // One Mini a cell, its head the link.
+      const tokens = entry.querySelectorAll('a.su-entity-mini__head')
       expect(tokens).toHaveLength(1)
-      const pill = tokens[0]?.querySelector('.su-entity-token__pill')
+      const pill = tokens[0]?.querySelector('.su-entity-mini__pill')
       // The kind is never stamped (E9): screen readers hear it after the name.
-      expect(pill?.querySelector('.su-entity-token__kind')).toBeNull()
+      expect(pill?.querySelector('.su-entity-mini__kind')).toBeNull()
       expect(pill?.querySelector('.su-sr-only')?.textContent).toBe(' (System)')
       // Its chips follow the name, inside the pill, in E17's order: the
       // action type (when it has one) first, then TL, then Slots.
       const cells = Array.from(
-        pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell') ?? []
+        pill?.querySelectorAll(':scope > .su-entity-mini__chips > .su-chip-lane > .su-stat-cell') ??
+          []
       ).map((cell) => cell.textContent ?? '')
       const tl = cells.findIndex((text) => /^TL\s*\d+$/.test(text))
       expect(tl).toBeGreaterThanOrEqual(0)
@@ -496,7 +480,7 @@ describe('legal starting pattern stamp', () => {
  * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
  * abilities are shared by every pattern, so a row carries only the difference:
  * a mech pattern's loadout by name and TL, a Bio-Titan pattern's added
- * actions as contentful Tokens (N3: the row is level 1 at most, so they are
+ * actions as contentful Minis (N3: the row is level 1 at most, so they are
  * level 2). Both sit beside the row's link, never inside it —
  * they are links and controls of their own.
  */
@@ -506,8 +490,8 @@ describe('pattern rows show what each pattern changes', () => {
     if (!found) throw new Error('Typhon fixture missing')
     return found
   }
-  const testHref = (host: RefEntity, pattern: RefObjectAnyPattern) =>
-    `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+  const testHref = (ref: EntityRef) =>
+    ref.pattern ? `/${nameToSlug(ref.name)}/pattern/${nameToSlug(ref.pattern)}` : undefined
 
   test('a mech pattern row on the Page lists its loadout by name', () => {
     render(<ReferenceEntityCard data={mule()} presentation="page" />)
@@ -519,33 +503,27 @@ describe('pattern rows show what each pattern changes', () => {
   })
 
   test('a Bio-Titan pattern row on the Page embeds the action it adds', () => {
-    render(
-      <PatternHrefProvider value={testHref}>
-        <ReferenceEntityCard data={typhon()} presentation="page" />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} presentation="page" />))
     const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
     const added = screen.getByText('Metallic Reconstitution')
-    // A contentful Token, its rules under its head; never a framed card.
-    const token = added.closest('.su-entity-token[data-contentful]')
-    expect(token?.querySelector('.su-entity-token__body')?.textContent).not.toBe('')
+    // A contentful Mini, its rules under its head; never a framed card.
+    const token = added.closest('.su-entity-mini[data-contentful]')
+    expect(token?.querySelector('.su-entity-mini__body')?.textContent).not.toBe('')
     expect(added.closest('.su-ec-frame .su-ec-frame')).toBeNull()
     // It is not nested inside the row's link.
     expect(row.contains(added)).toBe(false)
   })
 
-  test("in a card a pattern is its Token alone: what it changes is its Peek's and Page's (E6)", () => {
-    render(
-      <PatternHrefProvider value={testHref}>
-        <ReferenceEntityCard data={typhon()} />
-      </PatternHrefProvider>
-    )
+  test("in a card a pattern is a Mini with its description only: what it changes is its Peek's and Page's (E6)", () => {
+    render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} />))
     expect(screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })).toBeTruthy()
     expect(screen.queryByText('Metallic Reconstitution')).toBeNull()
     cleanup()
     const { container } = render(<ReferenceEntityCard data={mule()} />)
     expect(screen.queryByRole('list', { name: 'Hauler loadout' })).toBeNull()
     expect(container.textContent).not.toContain('Reactor Flare')
+    // A host's pattern is contentful with its description alone (R39).
+    expect(container.textContent).toContain('designed for hauling cargo')
   })
 })
 
@@ -565,10 +543,10 @@ describe('Bio-Titan pattern view', () => {
     expect(patternProse).toBeLessThan(added)
     expect(added).toBeLessThan(inherited)
     expect(screen.getByText('Pattern Actions')).toBeTruthy()
-    // On a card the added action is level 2: a contentful Token (N3).
+    // On a card the added action is level 2: a contentful Mini (N3).
     const token = screen
       .getByText('Metallic Reconstitution')
-      .closest('.su-entity-token[data-contentful]')
+      .closest('.su-entity-mini[data-contentful]')
     expect(token).not.toBeNull()
   })
 })

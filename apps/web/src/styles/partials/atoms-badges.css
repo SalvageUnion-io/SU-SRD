@@ -1,10 +1,10 @@
 /*
- * The package stylesheet, part 13 of 21: Badge, BandTitle, SmallButtons,
- * CountStepper and the stamps on a stamp. `../index.css` imports the parts in
+ * The package stylesheet, part 13 of 21: Badge, SmallButtons,
+ * the stamps on a stamp. `../index.css` imports the parts in
  * cascade order.
  */
 
-/* ── Badge, BandTitle, Button, SmallButtons, CountStepper ── */
+/* ── Badge, Button, SmallButtons ── */
 
 /* `atoms/Badge.tsx` — every property is a class, not a style object: call
  * sites override padding, display, size, tracking, colour and the inset ring
@@ -29,30 +29,26 @@
 .su-badge--solid {
   background-color: var(--color-ink);
   color: var(--color-paper);
-  letter-spacing: var(--tracking-caps-snug);
-  padding-inline: 7px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--ghost {
   background-color: var(--color-paper);
   box-shadow: inset 0 0 0 1px var(--color-ink-20);
   color: var(--color-ink);
-  letter-spacing: var(--tracking-caps-snug);
-  padding-inline: 7px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--outline {
   background-color: var(--color-paper);
-  border: 2px solid var(--color-ink);
+  border: var(--bw-pill) solid var(--color-ink);
   color: var(--color-ink);
-  letter-spacing: var(--tracking-caps);
-  padding-inline: 9px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--tone {
-  border: 2px solid;
-  letter-spacing: var(--tracking-caps);
-  padding-inline: 9px;
+  border: var(--bw-pill) solid;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--quiet {
@@ -114,19 +110,31 @@
 }
 
 /* The pointy cost box (`ActivationCost`): ink on every band, in the chips'
-   condensed caps face, whatever face its row inherits. */
+   condensed caps face, whatever face its row inherits. Its block padding is
+   the bordered chips' plus their 1px rule's worth. */
 .su-cost {
   align-self: stretch;
   background-color: var(--color-ink);
   color: var(--color-paper);
   font-family: var(--font-cond);
   letter-spacing: var(--tracking-caps-tight);
+  padding-block: calc(var(--space-2) + var(--bw-hairline));
 }
 
-/* On an ink band the box sits in a paper box of the same cut, 1px larger all
-   round, so its edge clears the band as a chip's paper rule does. The point's
+/* The box always sits in its edge, which draws nothing on paper. On an ink
+   ground (the frame's `data-ground`, chrome K1) the edge is a paper box of the
+   same cut, 1px larger all round, so it clears the band as a chip's paper rule
+   does, and the box gives the 1px back off its block padding. The point's
    depth matches `ActivationCost`'s TIP plus the 1px. */
 .su-cost-edge {
+  display: contents;
+}
+
+[data-ground='ink'] .su-cost {
+  padding-block: var(--space-2);
+}
+
+[data-ground='ink'] .su-cost-edge {
   align-self: stretch;
   background-color: var(--color-paper);
   clip-path: polygon(
@@ -138,10 +146,10 @@
   );
   display: inline-flex;
   flex: none;
-  padding: 1px 2px 1px 1px;
+  padding: var(--bw-hairline) var(--space-2) var(--bw-hairline) var(--bw-hairline);
 }
 
-.su-badge--on-ink {
+.su-badge--stamp-solid {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
@@ -152,11 +160,26 @@
   color: var(--color-ink);
 }
 
-/* The User-made stamp (ruleset §3.9): canon is solid, homebrew is dashed. */
+/* The HOMEBREW stamp (`HomebrewStamp`, ruleset §3.9): canon is solid, homebrew is dashed. */
 .su-badge--dashed {
   background-color: var(--color-paper);
   border: var(--bw-chrome) dashed var(--color-ink);
   color: var(--color-ink);
+}
+
+/* Among chips (a sheet band's cluster, a Compact's strip; a Mini's is in
+   `entity-forms.css`) it is one of them, drawn as a Stat cell of its Size is
+   (§4.7): line-height 1 inside a Stat plate's 2px padding and a 1px rule, so
+   it stands exactly as tall as a Stat of the same Size beside it, its word
+   centred. It never stretches to its line, which a band's aside can make
+   taller than its chips. */
+:is(.su-cluster, .su-chips > .su-chip-lane) > .su-badge--dashed {
+  align-items: center;
+  align-self: center;
+  border-width: var(--bw-hairline);
+  display: inline-flex;
+  line-height: 1;
+  padding-block: var(--space-2);
 }
 
 /* ── Stamps on a stamp ──
@@ -173,7 +196,6 @@
   align-self: stretch;
   box-shadow: none;
   line-height: 1;
-  text-transform: uppercase;
 }
 
 .su-stat-plate--full {
@@ -201,6 +223,22 @@
 }
 
 /* A two-line label ("Tech" / "Level"). */
+/* A label with a short form (`Stat`'s `shortLabel`): the long one, on a
+   phone the short one, never both. */
+.su-stat-label--short {
+  display: none;
+}
+
+@media not (width >= 40rem) {
+  .su-stat-label--long {
+    display: none;
+  }
+
+  .su-stat-label--short {
+    display: inline;
+  }
+}
+
 .su-stat-plate--stack {
   flex-direction: column;
 }
@@ -208,7 +246,15 @@
 .su-stat-plate--value {
   align-items: center;
   display: flex;
-  gap: 1px;
+  gap: var(--space-2);
+}
+
+/* A live reading (`Stat`, C7): its digits tabular, its width its maximum's,
+   right-aligned in that room, so a line of readings never shifts. */
+.su-stat-reading {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
 }
 
 /* A `wrap` cell's value narrows with its cell; a word longer than the row
@@ -219,7 +265,7 @@
 }
 
 /* The head band's labels (`card/CardLabels.tsx`): the stamps, then the
- * User-made stamp. No stamp is ever cut to "…": short of room, the stamps
+ * HOMEBREW stamp. No stamp is ever cut to "…": short of room, the stamps
  * wrap onto a second line, and the cluster is never narrower than its widest
  * stamp (the name beside it gives way first). */
 .su-ec-labels {
@@ -243,31 +289,32 @@
 }
 
 /* `atoms/SmallButtons.tsx` (`StepButton`), the one +/− stepper: a frameless
- * plate set by the ground it sits on, hovering a step lighter, and a 44px tap
+ * ink plate, a paper one on an ink ground (the frame's `data-ground`, chrome
+ * K1), hovering a step lighter, and a 44px tap
  * floor below `sm` that relaxes at `sm`. A `cell` button takes its height from
  * the cell beside it and its width from the caller, so it has no width floor. */
 .su-step-btn {
   /* Frameless by design: the `button` reset above sets `border: none`. */
   border-radius: var(--radius-card);
-  min-height: 44px;
-  min-width: 44px;
+  min-height: var(--size-full);
+  min-width: var(--size-full);
 }
 
-.su-step-btn--on-paper {
+.su-step-btn {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
 
-.su-step-btn--on-paper:hover {
+.su-step-btn:hover {
   background-color: var(--color-ink-2);
 }
 
-.su-step-btn--on-ink {
+[data-ground='ink'] .su-step-btn {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }
 
-.su-step-btn--on-ink:hover {
+[data-ground='ink'] .su-step-btn:hover {
   background-color: var(--color-wk-bg);
 }
 
@@ -279,21 +326,9 @@
   min-width: 0;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-step-btn {
     min-height: 0;
     min-width: 0;
   }
-}
-
-/* `atoms/CountStepper.tsx`: the pill's step buttons square off inside its
- * frame (after `.su-step-btn`), and the instrument cluster's narrow `Button`s
- * (after `.su-btn--compact`, whose padding they replace). */
-.su-count-stepper__step {
-  border-radius: 0;
-}
-
-.su-count-stepper__btn {
-  min-width: 0;
-  padding-inline: var(--space-8);
 }

@@ -17,8 +17,12 @@ import type {
 import { getEntitySlug } from '../../slug'
 import type { EntityRef } from '../types'
 
-/** A labelled group of nested entities. */
-export type NestedGroup = { label: string; entities: RefEntity[] }
+/**
+ * A labelled group of nested entities. `kind: 'npc'` marks the group that
+ * holds an entity's embedded NPC (a crawler's commander, a bay's crew), so a
+ * reader branches on it rather than on the display label.
+ */
+export type NestedGroup = { label: string; entities: RefEntity[]; kind?: 'npc' }
 
 /** An ability's place in its tree: 1, 2, 3, then L (Legendary), then G. */
 function levelOrder(level: number | 'L' | 'G'): number {
@@ -66,6 +70,9 @@ export function classAdvancement(entity: RefMetaEntity): RefEntity[] {
       (requirements.get(hybrid.advancedTree) ?? []).some((tree) => names.includes(tree))
   )
 }
+
+/** The label of the group that holds an entity's embedded NPC. */
+const NPC_GROUP = 'NPCs'
 
 /**
  * Every entity a card nests, grouped: GRANTS (`resolveGrantedEntities`),
@@ -120,11 +127,13 @@ export function nestedEntityGroups(entity: RefMetaEntity): NestedGroup[] {
         name: npcName,
         schemaName: 'npcs',
       } as unknown as RefEntity
-      push('NPCs', synthesized)
+      push(NPC_GROUP, synthesized)
     }
   }
 
-  return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
+  return [...groups.entries()].map(([label, entities]) =>
+    label === NPC_GROUP ? { label, entities, kind: 'npc' as const } : { label, entities }
+  )
 }
 
 /**

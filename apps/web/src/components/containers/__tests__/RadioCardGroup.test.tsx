@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import { RadioCardGroup } from '../RadioCardGroup'
-import { Sel } from '../Sel'
+import { RadioCard, RadioCardGroup } from '../RadioCardGroup'
 
 /**
  * The radio pattern for card pickers: one tab stop (the chosen card), the
@@ -18,15 +17,14 @@ function Picker({ clearOnRepress = false }: { clearOnRepress?: boolean }) {
   return (
     <RadioCardGroup label="Class">
       {CLASSES.map((name) => (
-        <Sel
+        <RadioCard
           key={name}
-          radio
-          ariaLabel={name}
+          aria-label={name}
           selected={chosen === name}
-          onToggle={() => setChosen((cur) => (clearOnRepress && cur === name ? '' : name))}
+          onSelect={() => setChosen((cur) => (clearOnRepress && cur === name ? '' : name))}
         >
           {name}
-        </Sel>
+        </RadioCard>
       ))}
     </RadioCardGroup>
   )

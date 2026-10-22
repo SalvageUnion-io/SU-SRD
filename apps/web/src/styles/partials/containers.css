@@ -13,64 +13,13 @@
  * stays a class the caller can still override.
  */
 
-/* Card (`components/containers/Card.tsx`): the frame, the header row and the body.
-   `cardStyle.className`, `headerStyle.className` and `bodyPadding` are
-   callers' classes, merged onto these three. */
-.su-card {
-  position: relative;
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  overflow: visible;
-  border-radius: var(--radius-card);
-}
-
-/* px-3 lines the header content up with the body and the footer. */
-.su-card-head {
-  display: flex;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-8);
-  overflow: visible;
-  min-height: 44px;
-  padding: var(--space-8) var(--space-12);
-}
-
-/* The label stamp riding the top border: the row top-aligns and pads under it,
-   so the gap below the stamp is the same whatever the header's height —
-   centred, a short header collided with the stamp and a tall one sat low.
-   Compact, the stamp sits centred on the edge, so 12px on top clears it. */
-.su-card-head[data-callout] {
-  align-items: flex-start;
-  padding-top: var(--space-20);
-  padding-bottom: var(--space-16);
-}
-
-.su-card-head[data-compact] {
-  min-height: 34px;
-  padding: var(--space-6) var(--space-10);
-}
-
-.su-card-head[data-compact][data-callout] {
-  padding-top: var(--space-12);
-}
-
-.su-card-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
-  isolation: isolate;
-  background-color: var(--color-paper);
-  padding: 0;
-}
-
 /* BOX (`containers/Box.tsx`): the paper body the head's cut-out opens into,
    with no rule above it. Padded, its blocks stand 12px apart; flush, the
-   content pads itself or rules its own bands. */
+   content pads itself or rules its own bands. A Box's colour (`frameColor`,
+   through `--su-compact-frame`) is its own frame's: the entities inside it keep
+   the subtle ink-40 (R38). */
 .su-box__body {
+  --su-compact-frame: initial;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -83,6 +32,19 @@
 .su-box__body[data-flush] {
   gap: 0;
   padding: 0;
+}
+
+/* A box that fills its panel (`fill`: the Mediator's propose dock): the box
+   fills the panel, its frame shrinks to it (the Compact frame's `shrink`,
+   `entity-forms.css`), and the body scrolls in what is left under the head. */
+.su-box[data-fill] {
+  height: 100%;
+  min-height: 0;
+}
+
+.su-box__body[data-fill] {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* FEED LINE (`containers/FeedLine.tsx`): one entry in a feed (a roll, an
@@ -106,7 +68,7 @@
   flex-direction: column;
   gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-6) var(--space-10);
+  padding: var(--space-6) var(--space-12);
 }
 
 .su-feed-line__head {
@@ -154,30 +116,19 @@
 }
 
 /* CloseButton (the ×) is Button's quiet icon rung; on a band that prints
-   paper (the danger rust, an ink sheet head) its ink turns paper. Doubled
-   with `.su-btn` to out-rank the quiet variant's resting and hover ink. */
-.su-btn.su-close-button[data-on-paper] {
-  color: color-mix(in oklab, var(--color-paper) 60%, transparent);
+   paper (the frame's `data-ground='ink'`, chrome K1: the danger rust) its ink
+   turns paper. The ground and both classes out-rank the quiet variant's
+   resting and hover ink. */
+[data-ground='ink'] .su-btn--quiet.su-close-button {
+  color: var(--color-paper-60);
 }
 
-.su-btn.su-close-button[data-on-paper]:hover:not(:disabled) {
+[data-ground='ink'] .su-btn--quiet.su-close-button:hover:not(:disabled) {
   color: var(--color-paper);
 }
 
-/* ModalShell's cut-out head holds one control, the ×: it stays on the band
-   beside the title at every width, never on a line of its own above it as a
-   narrow Row's controls go (`.su-entity-row__controls`). */
-.su-modal-panel .su-entity-row__line:has(> .su-entity-row__controls) {
-  flex-wrap: nowrap;
-}
-
-.su-modal-panel .su-entity-row__line > .su-entity-row__controls.su-entity-row__controls {
-  flex-basis: auto;
-  order: 0;
-}
-
-/* SheetSectionCard (`components/containers/SheetSectionCard.tsx`): its body block,
-   which merges the caller's `bodyClassName` (the sheets' grid gaps). */
+/* A live sheet's opening panel (`build/sheet/SheetHero.tsx`): the stack in its
+   box's body, which merges the hero's classes (the fields card's grid). */
 .su-sheet-section-stack {
   display: flex;
   flex: 1;
@@ -190,41 +141,9 @@
   padding: var(--space-24);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-recovery-panel {
     padding: var(--space-32);
-  }
-}
-
-/* FilterRow (`components/containers/FilterRow.tsx`): a centred stack on a phone;
-   from `sm`, a right-aligned 4.5rem label column beside left-aligned chips. */
-.su-filter-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.su-filter-row-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-4);
-}
-
-@media (min-width: 40rem) {
-  .su-filter-row {
-    flex-direction: row;
-  }
-
-  .su-filter-row-label {
-    width: 4.5rem;
-    flex-shrink: 0;
-    text-align: right;
-  }
-
-  .su-filter-row-chips {
-    justify-content: flex-start;
   }
 }
 
@@ -254,12 +173,36 @@
   }
 }
 
+/* MiniGrid (`components/containers/MiniGrid.tsx`): contentful Minis as a
+   masonry grid by the room it has, an 18rem column at least and three at
+   most, each Mini whole in its column. */
+.su-mini-grid {
+  column-gap: var(--space-12);
+  columns: 18rem 3;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-mini-grid > li {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-12);
+  min-width: 0;
+}
+
+.su-mini-grid > li:last-child {
+  margin-bottom: 0;
+}
+
 /* Skeleton (`components/containers/Skeleton.tsx`): the ghost bar, and the pulse
    every loading placeholder breathes with — only for a reader who has not
    asked for reduced motion. */
 .su-ghost {
   border-radius: var(--radius-badge);
-  background-color: color-mix(in oklab, var(--color-ink) 10%, transparent);
+  background-color: var(--color-ink-10);
 }
 
 @keyframes su-pulse {
@@ -270,7 +213,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .su-pulse {
-    animation: su-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: su-pulse var(--dur-loop) var(--ease) infinite;
   }
 }
 
@@ -287,7 +230,7 @@
   display: none;
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .su-roster-skeleton {
     margin-top: var(--space-24);
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -298,16 +241,39 @@
   }
 }
 
-/* SheetSectionSlab (`components/containers/SheetSectionSlab.tsx`): its slab
-   leader wraps, so a long title beside a long control drops the controls to
-   their own line rather than overflowing a phone's column. */
-.su-sheet-slab-lead {
+/* SlabSection (`components/containers/SlabSection.tsx`): the one section, a
+   Slab and its body one gap apart: 8px inside a block, 12px on a Page, where
+   head and body are level-1 blocks (R17). */
+.su-slab-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.su-slab-section--page {
+  gap: var(--space-12);
+}
+
+.su-slab-section--mini {
+  gap: var(--space-6);
+}
+
+.su-slab-section__body {
+  min-width: 0;
+}
+
+/* Its Slab wraps, so
+   a long title beside a long control drops the controls to their own line
+   rather than overflowing a phone's column. */
+.su-slab-section__head {
   flex-wrap: wrap;
 }
 
-/* Its count chip is the leader's Size, Compact, the height of the fold chevron
-   and the controls beside it, so the leader is one line of one height. */
-.su-sheet-slab-lead .su-stat-cell {
+/* With controls (a fold, actions) its count chip is the head's Size, Compact,
+   the height of the chevron and the Buttons beside it, so the head is one line
+   of one height, in a sidebar's narrow column as on a wide one. */
+.su-slab-section__head--controls .su-stat-cell {
   min-height: var(--size-compact);
 }
 
@@ -324,17 +290,17 @@
    on hover and while its menu is open — paper, unless a page's band recolours
    the bar (`--su-bar-fg`, `shell.css`). */
 .su-header-menu-trigger {
-  color: var(--su-bar-fg-70, var(--color-paper-70));
-  transition: color 120ms;
+  color: var(--su-bar-fg-70);
+  transition: color var(--dur-fast) var(--ease);
 }
 .su-header-menu-trigger:hover,
 .su-header-menu-trigger[data-popup-open],
 .su-header-menu-trigger[aria-current='page'] {
-  color: var(--su-bar-fg, var(--color-paper));
+  color: var(--su-bar-fg);
 }
 /* The here-state, as a nav link wears it: a rule beneath. */
 .su-header-menu-trigger[aria-current='page'] {
-  box-shadow: inset 0 -2px 0 var(--su-bar-fg, var(--color-paper));
+  box-shadow: inset 0 -2px 0 var(--su-bar-fg);
 }
 
 /* A highlighted row inverts to ink, the stamp treatment, rather than taking a
@@ -365,16 +331,17 @@
   color: var(--color-paper-70);
 }
 
-/* The overflow trigger (a listed unit's "⋯", board S1) is an action chip, the
-   last of its Row's chips, so it is exactly a compact chip's height: the 14px
+/* The overflow trigger (a listed unit's "⋯") is an action chip, the
+   last of its Compact's chips, so it is exactly a compact chip's height: the 14px
    glyph, 1px of padding and the 1px rule each side make 18px, as the plate's
    16px and its rule do (`.su-stat-cell`). Under a coarse pointer the `mini`
    rung's hit area makes it 44px to touch without drawing it bigger. While its
-   menu is open it takes the inverse plate. */
-.su-header-menu-trigger--overflow {
+   menu is open it takes the inverse plate. At `size="compact"` (a bar's "⋯",
+   Play's) it keeps the Compact rung's height beside the bar's buttons (§4.7). */
+.su-header-menu-trigger--overflow.su-btn--mini {
   line-height: 1;
   min-height: 0;
-  padding: 1px var(--space-6);
+  padding: 1px var(--space-6); /* design-tokens-ignore: a fit, the 14px glyph and 1px each side make the mini 18px */
 }
 .su-header-menu-trigger--overflow[data-popup-open] {
   background-color: var(--color-ink);
