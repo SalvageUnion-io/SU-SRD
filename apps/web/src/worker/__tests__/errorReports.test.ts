@@ -295,4 +295,37 @@ describe('verifyConvexSignature and errorOfConvexEvent', () => {
     expect(failure?.error.message).toBe('Convex function failed')
     expect(failure?.context.function).toBeUndefined()
   })
+
+  test('a ConvexError is named by its data’s message, and its data is not logged', () => {
+    const data = {
+      body: { name: 'Bonesaw', appearance: 'secret' },
+      message: 'Refused.',
+      updatedAt: 1,
+    }
+    const failure = errorOfConvexEvent({
+      topic: 'function_execution',
+      status: 'failure',
+      error_message: `Uncaught ConvexError: ${JSON.stringify(data)}\n    at staleWriteError (../../convex/model/staleWrite.ts:30:9)`,
+    })
+    expect(failure?.error.message).toBe('Uncaught ConvexError: Refused.')
+    expect(failure?.error.stack).toBe(
+      'Uncaught ConvexError: Refused.\n    at staleWriteError (../../convex/model/staleWrite.ts:30:9)'
+    )
+    expect(failure?.error.stack).not.toContain('Bonesaw')
+  })
+
+  test('a ConvexError cut short still reads its message; one with none is kept', () => {
+    const cut = errorOfConvexEvent({
+      topic: 'function_execution',
+      status: 'failure',
+      error_message: 'Uncaught ConvexError: {"message":"Say \\"no\\".","body":{"abilities":["Ha',
+    })
+    expect(cut?.error.message).toBe('Uncaught ConvexError: Say "no".')
+    const bare = errorOfConvexEvent({
+      topic: 'function_execution',
+      status: 'failure',
+      error_message: 'Uncaught ConvexError: {"code":7}',
+    })
+    expect(bare?.error.message).toBe('Uncaught ConvexError: {"code":7}')
+  })
 })

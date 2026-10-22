@@ -140,10 +140,16 @@ export const ABANDONED_VIEW_TRANSITIONS = [
  *   lost, and the event carries no error object, which is why it arrives as a
  *   `NonError`. Raised by the browser for observers the app does not own
  *   (React libraries, in-app browsers' WebViews) as readily as for its own.
+ * - **`Script error.`**: an error thrown by a cross-origin script, which the
+ *   browser masks down to these two words with no stack, file or line. The
+ *   app's own scripts are same-origin, so it is never theirs, and there is
+ *   nothing in it to act on.
+ * - **`__gCrWeb`**: Chrome on iOS's own injected script, reached for in a
+ *   frame it was not injected into (`Can't find variable: __gCrWeb`).
  *
  * Matched as substrings of `${name}: ${message}`.
  */
-const BROWSER_NOISE = ['ResizeObserver loop']
+const BROWSER_NOISE = ['ResizeObserver loop', 'NonError: Script error.', '__gCrWeb']
 
 /**
  * The URL schemes a browser extension's own scripts run under (Chromium,
@@ -318,6 +324,12 @@ export function createBrowserObservability(
   let endpoint: string | null = null
   let release: string | undefined
   let sent = 0
+  // Set by `installChunkRecovery` once a recovery reload is on its way. Every
+  // error this page raises after that is the same deploy skew: the Cantina's
+  // router, given a lazy route whose chunk failed, renders it with no
+  // component and its boundary catches `reading 'component'`. The reload
+  // replaces the page, so none of it is worth a report.
+  let reloadScheduled = false
   // An error seen by two handlers (a chunk failure, then its boundary) is one report.
   const reported = new WeakSet<object>()
 
@@ -326,7 +338,7 @@ export function createBrowserObservability(
     context?: Record<string, unknown>,
     options?: CaptureOptions
   ): void {
-    if (endpoint === null || sent >= MAX_REPORTS_PER_PAGE) return
+    if (endpoint === null || reloadScheduled || sent >= MAX_REPORTS_PER_PAGE) return
     if (typeof error === 'object' && error !== null) {
       if (reported.has(error)) return
       reported.add(error)
@@ -383,11 +395,11 @@ export function createBrowserObservability(
       const storage: Storage | undefined = deps.storage ?? globalThis.sessionStorage
       const reload = deps.reload ?? (() => globalThis.location.reload())
       const now = deps.now ?? Date.now
-      // Per document: once a reload is on its way, every later chunk failure
-      // in this page is the same deploy skew. Without it a page that fails
-      // several imports at once would report one `recovered: true` and then a
-      // `recovered: false` per sibling, for a page that did recover.
-      let reloadScheduled = false
+      // Per document (`reloadScheduled`, above): once a reload is on its way,
+      // every later chunk failure in this page is the same deploy skew.
+      // Without it a page that fails several imports at once would report one
+      // `recovered: true` and then a `recovered: false` per sibling, for a page
+      // that did recover.
 
       const onPreloadError = (event: Event) => {
         if (reloadScheduled) {

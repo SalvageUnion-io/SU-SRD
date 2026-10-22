@@ -51,6 +51,6 @@ bun run build                      # reference generation + the app
 
 ## Merging
 
-`main` requires linear history and status checks; no merge queue. Squash-merge (`gh pr merge <pr> --squash`; cloud: [cloud sessions](docs/ARCHITECTURE.md#cloud)); the squash body is the PR body. Each PR bumps the root `package.json` version (CI-enforced); merging releases it.
+`main` requires status checks; no merge queue. Squash-merge only (`gh pr merge <pr> --squash`; cloud: [cloud sessions](docs/ARCHITECTURE.md#cloud)); the squash body is the PR body. Each PR bumps the root `package.json` version (CI-enforced); merging releases it.
 
 Dependent PRs land only as a `gh stack` (local-only): `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).

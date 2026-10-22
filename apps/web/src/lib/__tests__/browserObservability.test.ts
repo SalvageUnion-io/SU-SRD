@@ -88,6 +88,18 @@ describe('createBrowserObservability', () => {
     expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
   })
 
+  test('a masked cross-origin Script error and iOS Chrome’s __gCrWeb are dropped', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException('Script error.')
+    obs.captureException(
+      Object.assign(new Error("Can't find variable: __gCrWeb"), { name: 'ReferenceError' })
+    )
+    obs.captureException(new Error('Script error. in our own words'))
+    expect(sent.map((s) => s.report.message)).toEqual(['Script error. in our own words'])
+  })
+
   test('an error raised wholly inside a browser extension is dropped', () => {
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })
@@ -333,6 +345,20 @@ describe('installChunkRecovery', () => {
 
     expect(reloads()).toBe(1)
     expect(event.defaultPrevented).toBe(true)
+  })
+
+  test('once a recovery reload is on its way, the page reports nothing more', () => {
+    // The router's boundary catching the failed route (`reading 'component'`)
+    // is the same skew the reload is about to clear.
+    const { sent, transport } = recorder()
+    const { obs, target, teardown } = setup({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+
+    firePreloadError(target)
+    obs.captureException(new TypeError("Cannot read properties of undefined (reading 'component')"))
+    teardown()
+
+    expect(sent.map((s) => s.report.fingerprint)).toEqual([['chunk-preload-error']])
   })
 
   test('a burst of failures in one page is one reload and one event', () => {

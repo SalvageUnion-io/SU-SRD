@@ -265,6 +265,48 @@ function firstLine(text: string): string {
   return text.split('\n', 1)[0] ?? text
 }
 
+/** `Uncaught ConvexError: <its data as JSON>`, the line Convex opens a thrown `ConvexError` with. */
+const CONVEX_ERROR_LINE = /^((?:Uncaught )?ConvexError: )(\{.*)$/
+
+/** A JSON object's top-level `"message"` string, read without parsing the object. */
+const MESSAGE_FIELD = /"message":"((?:[^"\\]|\\.)*)"/
+
+/**
+ * A thrown `ConvexError`'s opening line, by its data's `message`.
+ *
+ * Convex writes the error's whole data as JSON on that line, and a refusal's
+ * data can carry a sheet: the stale-write refusal hands back the row the server
+ * holds (`model/staleWrite.ts`). Logged as written, every refusal's message was
+ * unique, so Issues opened one issue per event, each holding a player's sheet.
+ * By `message`, every event of one refusal is one issue and no sheet is logged.
+ * A line with no readable `message` is kept as written.
+ */
+function convexErrorLine(line: string): string {
+  const match = CONVEX_ERROR_LINE.exec(line)
+  if (match === null) return line
+  const [, prefix, json] = match
+  let message: unknown
+  try {
+    const data: unknown = JSON.parse(json ?? '')
+    message = isRecord(data) ? data.message : undefined
+  } catch {
+    // Not one whole JSON value (Convex can cut a long line short): read the field.
+    const field = MESSAGE_FIELD.exec(json ?? '')?.[1]
+    try {
+      message = field === undefined ? undefined : JSON.parse(`"${field}"`)
+    } catch {
+      message = undefined
+    }
+  }
+  return typeof message === 'string' && message.length > 0 ? `${prefix}${message}` : line
+}
+
+/** A Convex error text with its opening line read by {@link convexErrorLine}. */
+function compactConvexError(text: string): string {
+  const [head = text, ...rest] = text.split('\n')
+  return [convexErrorLine(head), ...rest].join('\n')
+}
+
 /** The error a Convex log event is logged as, or null when it is not a failure. */
 export function errorOfConvexEvent(
   event: ConvexLogEvent
@@ -277,7 +319,7 @@ export function errorOfConvexEvent(
     requestId: optionalString(fn.request_id),
   }
   if (event.topic === 'function_execution' && event.status === 'failure') {
-    const text = optionalString(event.error_message) ?? 'Convex function failed'
+    const text = compactConvexError(optionalString(event.error_message) ?? 'Convex function failed')
     return { error: remoteError('ConvexFunctionError', firstLine(text), text), context }
   }
   if (event.topic === 'console' && event.log_level === 'ERROR') {
