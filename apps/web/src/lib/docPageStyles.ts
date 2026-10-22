@@ -1,6 +1,6 @@
 /**
  * The style objects the reference site's plain document pages share — `/about`, `/api`,
- * `/changelog`, `/discord` and the two `/bot` policies: a page column under
+ * `/changelog`, `/bot` and its two policies: a page column under
  * the `ChapterBand`, a reading column, prose at the reading size, inline code.
  *
  * Style objects over `tokens.ts`, not classes, because none of these has a

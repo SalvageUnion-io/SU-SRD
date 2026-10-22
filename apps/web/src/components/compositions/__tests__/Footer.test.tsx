@@ -8,7 +8,7 @@ import { Footer } from '../Footer'
 const LINKS = [
   { label: 'Changelog', href: '/changelog/' },
   { label: 'API', href: '/api/' },
-  { label: 'Discord', href: '/discord/' },
+  { label: 'Discord', href: '/bot/' },
   { label: 'About', href: '/about/' },
 ]
 
@@ -73,7 +73,7 @@ describe('Footer', () => {
         for (const [label, href] of [
           ['Changelog', '/changelog/'],
           ['API', '/api/'],
-          ['Discord', '/discord/'],
+          ['Discord', '/bot/'],
           ['About', '/about/'],
         ] as const) {
           const link = site.getByRole('link', { name: label })

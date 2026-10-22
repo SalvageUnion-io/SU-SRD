@@ -218,3 +218,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 56. **ADR-056 The Dataset API v1 at salvageunion.io/api/v1** · [full text](adr/056-dataset-api-v1.md)
     Built: static files on the one Worker; additive-only within v1, breaking changes as `/api/v2/`; manifest with hashes.
     Supersedes ADR-043 decision 1 (via ADR-047); amends ADR-040.
+57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
+    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.

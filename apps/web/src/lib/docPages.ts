@@ -6,13 +6,20 @@
  */
 export const DOC_PAGES = {
   changelog: { label: 'Changelog', href: '/changelog/' },
+  roadmap: { label: 'Roadmap', href: '/roadmap/' },
   api: { label: 'API', href: '/api/' },
-  discord: { label: 'Discord', href: '/discord/' },
+  discord: { label: 'Discord', href: '/bot/' },
   about: { label: 'About', href: '/about/' },
 } as const
 
 /** The footer's links, in its order. */
-export const SITE_LINKS = [DOC_PAGES.changelog, DOC_PAGES.api, DOC_PAGES.discord, DOC_PAGES.about]
+export const SITE_LINKS = [
+  DOC_PAGES.changelog,
+  DOC_PAGES.roadmap,
+  DOC_PAGES.api,
+  DOC_PAGES.discord,
+  DOC_PAGES.about,
+]
 
 /** "Buy the game": Leyline Press's store, the Union bar's one link off the site. */
 export const BUY_HREF = 'https://leyline.press/collections/salvage-union'

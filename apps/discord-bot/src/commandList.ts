@@ -1,5 +1,5 @@
 /**
- * The `/su` command list as the SRD's `/discord` page documents it, read from
+ * The `/su` command list as the SRD's `/bot` page documents it, read from
  * the registered builder (`suCommand.data`) so the page cannot fall behind the
  * bot: a subcommand added, renamed or re-described here is on the page after
  * `bun --filter discord-bot gen:command-list`, and `commandList.test.ts` fails until it is.
@@ -16,10 +16,10 @@ const SUBCOMMAND_GROUP = 2
 
 /**
  * The subcommands that answer with no app account: the reference
- * tools. Everything else reads or writes a Game, so a new subcommand is listed
- * as needing an account until it is named here.
+ * tools and feedback. Everything else reads or writes a Game, so a new
+ * subcommand is listed as needing an account until it is named here.
  */
-const NO_ACCOUNT = new Set(['roll', 'lookup'])
+const NO_ACCOUNT = new Set(['roll', 'lookup', 'feedback'])
 
 type CommandOption = { name: string; required: boolean }
 
@@ -71,7 +71,7 @@ export function renderCommandListModule(entries: CommandListEntry[] = commandLis
 // Regenerate with: bun --filter discord-bot gen:command-list
 //
 // Every /su subcommand, read from the bot's registered builder, for the
-// /discord page. apps/discord-bot/src/__tests__/commandList.test.ts fails if
+// /bot page. apps/discord-bot/src/__tests__/commandList.test.ts fails if
 // this file goes stale.
 
 export type DiscordCommand = {

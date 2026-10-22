@@ -158,7 +158,7 @@ describe('UnionBarSlots', () => {
       'API',
       'Buy the game',
     ])
-    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe('/discord/')
+    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe('/bot/')
     expect(drawer.getByRole('link', { name: /buy the game/i }).getAttribute('target')).toBe(
       '_blank'
     )
