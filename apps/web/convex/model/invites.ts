@@ -24,12 +24,7 @@ export async function inviteByCode(ctx: AnyCtx, raw: string): Promise<Doc<'invit
 
 /** Whether a row can be the Game's invite URL: an open standing link, never reset. */
 function isCandidate(invite: Doc<'invites'>): boolean {
-  return (
-    invite.standing === true &&
-    !invite.requiresApproval &&
-    invite.revokedAt === undefined &&
-    invite.target === undefined
-  )
+  return invite.standing === true && invite.revokedAt === undefined && invite.target === undefined
 }
 
 /**

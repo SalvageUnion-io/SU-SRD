@@ -74,7 +74,7 @@ player. Disconnected and Outdated stay read-only.
 ### 8. Tables post to Discord
 
 `/su bind` binds a channel to a Game (by its Mediator or Organizer) or to the
-caller for solo play, in `channelBindings` (kept by `invites.dropRetired`).
+caller for solo play, in `channelBindings`.
 Rolls made in Play post there as the bot's table card: one toggle per screen, a
 per-roll override, the Mediator private by default.
 

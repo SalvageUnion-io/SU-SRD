@@ -218,13 +218,6 @@ export const deleteAccount = mutation({
       await ctx.db.delete(membership._id)
     }
 
-    // Asks to join other Games that name this account.
-    const requests = await ctx.db
-      .query('joinRequests')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect()
-    for (const row of requests) await ctx.db.delete(row._id)
-
     // Their solo play's Discord channel, so nothing posts there for nobody. A
     // Game's channel stays with the Game, whoever bound it.
     const soloChannel = await personalBinding(ctx, userId)
