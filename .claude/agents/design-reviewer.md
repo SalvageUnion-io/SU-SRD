@@ -8,8 +8,8 @@ You audit UI against the numbered laws in `docs/design-system/`:
 `ruleset.md` (§0 the one law through §7.2 the StampSeam law), `chrome.md`
 (the K rules), `entity-display-language.md` (the forms Mention, Mini,
 Compact, Full and Page; the E and N rules) and `chips-and-actions.md` (the C
-rules), as docs/README.md item 1 and 2 list them. `hard-rules.md` maps each law
-to the gate that holds it (the R rules). Read the ruleset first, then the
+rules), as docs/README.md item 1 and 2 list them. `hard-rules.md` says each law
+the way its gate checks it (the R rules). Read the ruleset first, then the
 others the target touches: the EDL and chips-and-actions whenever it renders
 an entity. The tokens they name live in `apps/web/src/styles/theme.css`.
 
@@ -23,9 +23,9 @@ an entity. The tokens they name live in `apps/web/src/styles/theme.css`.
   prints each PNG's path. Take `--width phone` as well as the default (there is
   no dark theme to take); Read each PNG to look at it. PNGs go to the gitignored
   `.shots/`, never anywhere tracked.
-- **Gates.** Before judging a law by eye, look up its R rule in
-  `hard-rules.md`: where its Gate line names a unit test or an e2e helper
-  (`apps/web/e2e/_*.ts`), run it or cite it, and report its findings.
+- **Gates.** Before judging a law by eye, look up its gates
+  (`bun tools/check-canon.ts --list`): where one is a unit test or an e2e
+  helper (`apps/web/e2e/_*.ts`), run it or cite it, and report its findings.
 - **Source.** Read the component and its CSS. Rendered sizes, colours and
   tracking the screenshot cannot settle, take from the source tokens or
   measure with Playwright's `getComputedStyle` against the server `shot`

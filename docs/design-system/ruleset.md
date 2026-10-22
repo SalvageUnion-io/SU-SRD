@@ -1,17 +1,17 @@
 # The Primitives Ruleset — Salvage Union Design System
 
-Canon for every primitive and surface: if a component contradicts a rule, the component is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks this file, which is amended to match it.
-The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
+Canon for every primitive and surface: a component that contradicts a rule is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks this file, which is amended to match it.
+Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
 
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band is text, never chips: citations on one line, Workshop Manual first, `//` between (`Workshop Manual · p.65 // Starter Set · p.37`), no kind, the source cut out top right; a Page's is its one footer, the app's links under it.
 3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, stat order (§2.6), two a row (SP | EP; lone cells span), full words on a Page, short labels smaller (prose: Tech Level).
-4. **The ink banner** — tier numeral, title, cost pennant, metadata on ink with a rounded tail; on screen, the card's ink header (§5).
-5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//"; on screen one chip group in the head (E17).
+4. **The ink banner** — tier numeral, title, cost pennant, metadata on ink with a rounded tail; on screen, the card's ink header.
+5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//"; on screen, one chip group (E17).
 6. **The book's colour map** — rules blue `--color-wk-line`: Home, rules, Salvaging, Guides, Keywords. `--color-pilot`: Classes, Abilities, Equipment, pilots. `--color-mech`: Chassis, Systems, Modules, mechs.
-   `--color-crawler`: Crawlers, Bays, Crawler TLs, crawlers. `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown). Off-book: `build`/`play`, `--color-discord`.
+   `--color-crawler`: Crawlers, Bays, Crawler TLs, crawlers. `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown). Off-book: `build`/`play`; `--color-discord` (the Discord page, a Game's people).
 7. **Deliberate departures** — generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Compacts wear their tier (E12); rounding only where the book rounds (§4.4).
 
 ## The laws
@@ -40,10 +40,10 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    7. **Entity card** — Full contentful is canonical (§1.8).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — painted only by `Button` / `buttonVariants` and `InlineRef`, never aliased; destruction is rust behind `ConfirmDialog`; no state colour fills a button. Focus, selection and chrome accents are ink.
-   2. **§3.2 Stamps label · slabs section · tags cite** — never trade jobs.
+   2. **§3.2 Stamps label · slabs section · tags cite** — a section head is a Slab (R1), a related thing a relation chip (C11).
    3. **§3.3 State is a treatment, not a hue** — strike / X / redline ride on the ontology hue; `status-bad` is the one damaged / redline / over-cap colour.
    4. **§3.4 Roll-tier colours are Discord-bot-only** — the web marks every outcome alike; the bot's are warm (brick, ember, ochre, olive, slate).
-   5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG). Sanctioned patterns: `EXEMPTIONS` (`gates/rules/designTokens.ts`).
+   5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers, paper flecks on ink headers and unit stamps; never on paper, cream, the page ground, buttons or fields.
       2. **One shading exemption** — `.su-pilot-panel` on `/about`; no precedent.
    6. **§3.6 Copy is 1:1 with SRD data.**

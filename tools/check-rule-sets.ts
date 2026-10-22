@@ -71,7 +71,7 @@ const ROOT = join(import.meta.dir, '..')
 const BASELINE_PATH = join(import.meta.dir, 'baselines', 'rule-sets.json')
 const UPDATE = 'bun tools/check-rule-sets.ts --update-baseline'
 
-const RULE_SETS: readonly RuleSet[] = [
+export const RULE_SETS: readonly RuleSet[] = [
   designTokens,
   chromeTokens,
   stylingOwnership,
