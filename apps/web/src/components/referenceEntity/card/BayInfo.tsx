@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../../design/tokens'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { SlabSection } from '../../containers/SlabSection'
 
 /** In a card, the prose keeps the card body's own 6px rhythm. */
@@ -34,9 +35,9 @@ export function BayInfo({
 }) {
   return (
     <SlabSection
-      title="Bay Info"
+      title={referenceEntityCopy('bayInfo')}
       fold={fold}
-      foldLabel={`${subject} Bay Info`}
+      foldLabel={referenceEntityCopy('bayInfo2', { subject })}
       size={size}
       page={onPage}
       className="su-ec-block"

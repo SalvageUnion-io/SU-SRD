@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import { borderWidth, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
+import { compositionsCopy } from '../../messages/components-compositions'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
 import { capsLabel } from '../atoms/capsLabel'
@@ -225,9 +226,9 @@ export function AppBar({
   // The switcher: same-tab anchors to each mode's home — tabs on one bar,
   // not off-site links. Their hrefs are site paths, whichever is current.
   const tabs: { key: AppBarProduct; label: string; href: string }[] = [
-    { key: 'reference', label: 'Reference', href: referenceHref },
-    { key: 'build', label: 'Build', href: buildHref },
-    { key: 'play', label: 'Play', href: playHref },
+    { key: 'reference', label: compositionsCopy('reference'), href: referenceHref },
+    { key: 'build', label: compositionsCopy('build'), href: buildHref },
+    { key: 'play', label: compositionsCopy('play'), href: playHref },
   ]
 
   const navLinks = (items: AppBarNavEntry[]) =>
@@ -261,7 +262,7 @@ export function AppBar({
           <LinkComponent href="/" className={cn('su-union-bar__brand', FOCUS_RING)} style={BRAND}>
             <img
               src={markSrc}
-              alt="Salvage Union"
+              alt={compositionsCopy('salvageUnion')}
               width={40}
               height={40}
               className="su-union-bar__mark"
@@ -269,7 +270,11 @@ export function AppBar({
             />
           </LinkComponent>
 
-          <nav aria-label="Salvage Union tools" className="su-union-bar__switch" style={SWITCH}>
+          <nav
+            aria-label={compositionsCopy('salvageUnionTools')}
+            className="su-union-bar__switch"
+            style={SWITCH}
+          >
             {tabs.map((tab) => (
               <a
                 key={tab.key}

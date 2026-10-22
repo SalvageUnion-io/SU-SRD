@@ -15,6 +15,7 @@ import { downtimeStepCount } from 'game-domain/rules/downtime'
 import { useState } from 'react'
 import { EmptyState, FOCUS_RING, Slab } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayCrewSheet } from '../PlayCrewSheet'
 import { PlayCrawlerUnit } from '../PlayUnits'
 import { useOpenSheet } from '../useOpenSheet'
@@ -39,16 +40,17 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
 
   return (
     <>
-      <Slab as="h2" label="The table" />
+      <Slab as="h2" label={mediatorCopy('theTable')} />
       {mediator.crew === null ? (
-        <EmptyState variant="inline" body="The table appears once the Game's roster arrives." />
+        <EmptyState variant="inline" body={mediatorCopy('theTableAppearsOnceThe')} />
       ) : seats.length === 0 ? (
-        <EmptyState
-          variant="inline"
-          body="No one has a seat yet. A player takes one when a Pilot in this Game is assigned to them."
-        />
+        <EmptyState variant="inline" body={mediatorCopy('noOneHasASeat')} />
       ) : (
-        <ul className="su-entity-mini-list su-play-seats" aria-label="Seats" data-play-list="">
+        <ul
+          className="su-entity-mini-list su-play-seats"
+          aria-label={mediatorCopy('seats')}
+          data-play-list=""
+        >
           {seats.map((seat) => (
             <PlayMediatorSeat
               key={seat.pilotId}
@@ -72,9 +74,9 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
       )}
       {crawler === null ? (
         <>
-          <EmptyState variant="inline" body="This Game has no Union Crawler yet." />
+          <EmptyState variant="inline" body={mediatorCopy('thisGameHasNoUnion')} />
           <AppLink href={gamePath(mediator.gameId)} className={FOCUS_RING}>
-            Raise one from the Game page
+            {mediatorCopy('raiseOneFromTheGame')}
           </AppLink>
         </>
       ) : (

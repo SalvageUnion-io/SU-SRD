@@ -18,6 +18,7 @@
 
 import type { CSSProperties } from 'react'
 import { Button, Callout, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import type { ResolveModel } from './useActionsDeck'
@@ -45,9 +46,17 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       {/* Mounted before the first roll, so the d20, its band and Apply are
           spoken as they land; each line is one text node, read whole. */}
       <div aria-live="polite" className="su-sr-only">
-        {roll && <p>{`Rolled ${roll.roll}: ${roll.bandLabel}. ${roll.bandSummary}`}</p>}
+        {roll && (
+          <p>
+            {playCopy('rolled', {
+              roll: roll.roll,
+              bandLabel: roll.bandLabel,
+              bandSummary: roll.bandSummary,
+            })}
+          </p>
+        )}
         {view.pushLog && <p>{view.pushLog}</p>}
-        {view.applied && <p>Result applied</p>}
+        {view.applied && <p>{playCopy('resultApplied')}</p>}
       </div>
 
       <div className="su-play-resolve__spend">
@@ -64,7 +73,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           disabled={!canWrite || controls.activateDisabled}
           title={controls.activateTitle}
         >
-          {controls.activated ? 'Activated ✓' : 'Activate'}
+          {controls.activated ? playCopy('activated') : playCopy('activate')}
         </Button>
       </div>
 
@@ -82,28 +91,23 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           style={GROW}
           onClick={controls.onApply}
           disabled={!canWrite || controls.applyDisabled}
-          title="Commit this result"
+          title={playCopy('commitThisResult')}
         >
           {controls.applyLabel}
         </Button>
         <Button variant="ghost" size="compact" onClick={controls.onClear} disabled={!canWrite}>
-          Clear
+          {playCopy('clear')}
         </Button>
       </div>
 
       {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
       {view.meltdown && (
         <Button variant="primary" size="compact" onClick={view.meltdown.onConfirm}>
-          Confirm Meltdown — Mark Mech destroyed
+          {playCopy('confirmMeltdownMarkMechDestroyed')}
         </Button>
       )}
-      {view.applied && <p style={NOTE}>Result applied ✓</p>}
-      {view.applyRouted && (
-        <Callout>
-          Cascade Failure: a severe consequence. Take the damage on the unit’s gauge in Units;
-          nothing was applied for you.
-        </Callout>
-      )}
+      {view.applied && <p style={NOTE}>{playCopy('resultApplied2')}</p>}
+      {view.applyRouted && <Callout>{playCopy('cascadeFailureASevereConsequence')}</Callout>}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { cn } from '../../../lib/cn'
+import { entityCopy } from '../../../messages/components-entity'
 import { capsLabel } from '../../atoms/capsLabel'
 import type { CensorMark as Mark } from './censor'
 import { tornEdge } from './censor'
@@ -36,7 +37,7 @@ export function CensorMark({ mark }: { mark: Mark }) {
     return (
       <span className={shell} data-missing-art={variant} aria-hidden="true">
         {backdropImg}
-        <span className={STAMP}>Removed</span>
+        <span className={STAMP}>{entityCopy('removed')}</span>
       </span>
     )
   }
@@ -50,7 +51,7 @@ export function CensorMark({ mark }: { mark: Mark }) {
             className="su-missing-art__ink"
             style={{ clipPath: tornEdge(seed, { depth: 22, steps: 16, sides: 'long' }) }}
           />
-          <span className={WORD}>Redacted</span>
+          <span className={WORD}>{entityCopy('redacted')}</span>
         </span>
       </span>
     )
@@ -64,7 +65,7 @@ export function CensorMark({ mark }: { mark: Mark }) {
         style={{ clipPath: tornEdge(seed, { depth: 7, steps: 18, sides: 'all' }) }}
       />
       <span className="su-missing-art__words">
-        <span className={WORD}>Redacted</span>
+        <span className={WORD}>{entityCopy('redacted')}</span>
         <span className={CODE}>{code}</span>
       </span>
     </span>

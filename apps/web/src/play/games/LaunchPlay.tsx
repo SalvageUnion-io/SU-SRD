@@ -41,6 +41,7 @@ import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { playGamesCopy } from '../../messages/play-games'
 import { OwnerSeal } from './OwnerSeal'
 
 /** The pilot a viewer is offered first: their own, in the roster's order. */
@@ -99,13 +100,13 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
   return (
     <>
       <Button variant="ink" size="compact" onClick={openPicker}>
-        Play
+        {playGamesCopy('play')}
       </Button>
       <PickDialog
         open={open}
         onOpenChange={setOpen}
-        title="Play"
-        description="Choose the pilot to play."
+        title={playGamesCopy('play')}
+        description={playGamesCopy('chooseThePilotToPlay')}
         loading="pilots"
         groups={
           listing === undefined
@@ -131,10 +132,10 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
                 },
               ]
         }
-        empty="None of this Game's pilots is saved in this browser. Create one, or take one from the roster, then play."
+        empty={playGamesCopy('noneOfThisGamesPilots')}
         selected={selected}
         onSelect={setPicked}
-        confirmLabel="Play"
+        confirmLabel={playGamesCopy('play')}
         confirm={chosen === null ? undefined : launch}
       />
     </>

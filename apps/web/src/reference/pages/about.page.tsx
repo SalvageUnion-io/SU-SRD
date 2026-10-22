@@ -34,6 +34,7 @@ import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../../lib/builtAssets'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
 import { BOLD, PROSE } from '../../lib/docPageStyles'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
 import { DocPage } from '../DocPage'
 
@@ -170,15 +171,14 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
         '@context': 'https://schema.org',
         '@type': 'AboutPage',
         name: TITLE,
-        description:
-          'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
+        description: pagesCopy('aboutSalvageunionIoAnOpen'),
         url: `${SITE_URL}/about/`,
         isPartOf: WEBSITE,
       },
     },
     children: (
       <>
-        <DocPage title="About the Salvage Union SRD" measure="64rem" gap={space[32]}>
+        <DocPage title={pagesCopy('aboutTheSalvageUnionSrd')} measure="64rem" gap={space[32]}>
           {/* The dedication, carved into a torn-off hull panel */}
           <div className="su-pilot-panel-shadow">
             <div className="su-pilot-panel" style={PANEL}>
@@ -272,15 +272,15 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               <div style={PANEL_BODY}>
                 {/* Inspiration text */}
                 <div style={INSPIRATION}>
-                  <p className={CARVED}>Inspired by the pilots of</p>
+                  <p className={CARVED}>{pagesCopy('inspiredByThePilotsOf')}</p>
                   <p className={CARVED} style={INSPIRATION_NAME}>
-                    #812 Haven
+                    {pagesCopy('n812Haven')}
                   </p>
-                  <p className={CARVED}>of</p>
+                  <p className={CARVED}>{pagesCopy('of')}</p>
                   <p className={CARVED} style={INSPIRATION_NAME}>
                     {/* biome-ignore lint/a11y/useValidAnchor: the lightbox script preventDefaults this href and opens the <dialog> */}
                     <a href="#" id="map-link" style={POINTER}>
-                      The Eldridge Coast
+                      {pagesCopy('theEldridgeCoast')}
                     </a>
                   </p>
                 </div>
@@ -306,21 +306,21 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 <hr className="su-carved-rule" />
 
                 <p className={CARVED} style={CARVED_LINE}>
-                  And union crawlers everywhere
+                  {pagesCopy('andUnionCrawlersEverywhere')}
                 </p>
 
                 <hr className="su-carved-rule" />
 
                 {/* Friends text */}
                 <p className={CARVED} style={FRIENDS}>
-                  "We get by with a little help from our friends"
+                  {pagesCopy('weGetByWithA')}
                 </p>
               </div>
             </div>
           </div>
 
           {/* What is this? */}
-          <SlabSection as="h2" title="What is this?" bodyStyle={PROSE} page>
+          <SlabSection as="h2" title={pagesCopy('whatIsThis')} bodyStyle={PROSE} page>
             <p style={PARAGRAPH}>
               This is an unofficial, community-built System Reference Document (SRD) for{' '}
               <InlineRef
@@ -329,7 +329,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 rel="noopener noreferrer"
                 style={BOLD}
               >
-                Salvage Union
+                {pagesCopy('salvageUnion')}
               </InlineRef>
               , a post-apocalyptic mech tabletop RPG published by{' '}
               <InlineRef
@@ -338,7 +338,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 rel="noopener noreferrer"
                 style={BOLD}
               >
-                Leyline Press
+                {pagesCopy('leylinePress')}
               </InlineRef>
               . It provides a searchable, browsable reference for all game content released under
               the Salvage Union OGL.
@@ -357,7 +357,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               sheet shared by link open signed out. Sign in with Discord to build, and everything
               you make saves to your account.
             </p>
-            <p style={PARAGRAPH}>Both are open source and contributions are welcome.</p>
+            <p style={PARAGRAPH}>{pagesCopy('bothAreOpenSourceAnd')}</p>
             <p>
               I am not the owner or publisher of this content. Salvage Union and all associated
               names, marks, characters, and artwork are the property of Leyline Press. Game text and
@@ -368,7 +368,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 rel="noopener noreferrer"
                 style={BOLD}
               >
-                Salvage Union Open Game Licence 1.0b
+                {pagesCopy('salvageUnionOpenGameLicence')}
               </InlineRef>
               . Artwork is not covered by that licence and is reproduced with the special permission
               of Leyline Press. This is an unofficial fan project, and is not affiliated with
@@ -481,7 +481,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           id="image-modal"
           className="su-about-lightbox"
           style={LIGHTBOX}
-          aria-label="Eldridge Coast Map"
+          aria-label={pagesCopy('eldridgeCoastMap')}
         >
           <div style={RELATIVE}>
             <Button
@@ -490,7 +490,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               className="su-print-ink"
               style={LIGHTBOX_CLOSE}
               id="close-modal"
-              aria-label="Close"
+              aria-label={pagesCopy('close')}
             >
               <X aria-hidden="true" size={iconSize.compact} />
             </Button>
@@ -518,7 +518,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                   className="su-about-lightbox__credit"
                   style={MAP_CREDIT_LINK}
                 >
-                  Shmeppy.com
+                  {pagesCopy('shmeppyCom')}
                 </a>
               </p>
             </div>

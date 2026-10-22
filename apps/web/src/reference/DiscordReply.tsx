@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { SampleBlock, SampleButton, SampleReply } from '../generated/discordSamples'
 import { MARK_SRC } from '../lib/documentHead'
+import { referenceCopy } from '../messages/reference'
 
 /**
  * DiscordReply — a screenshot of the bot's reply, drawn: the command as
@@ -111,7 +112,7 @@ export function DiscordReply({ sample, label }: { sample: SampleReply; label: st
         <img className="su-discord__avatar" src={MARK_SRC} alt="" />
         <div className="su-discord__body">
           <p className="su-discord__author">
-            SalvageUnion.io <span className="su-discord__app">APP</span>
+            SalvageUnion.io <span className="su-discord__app">{referenceCopy('app')}</span>
           </p>
           <div
             className="su-discord__container"

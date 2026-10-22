@@ -9,6 +9,7 @@ import { Button } from '../../components/index'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { CargoLotLine } from './CargoLotLine'
 
 export type StorageManifestSide = 'mech' | 'crawler'
@@ -107,12 +108,12 @@ export function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: C
                 aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
                 title={
                   side === 'mech'
-                    ? `Unload "${lot.name}" from the mech hold`
-                    : `Unstow "${lot.name}" from the Storage Bay`
+                    ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })
+                    : buildSheetCopy('unstowFromTheStorageBay', { name: lot.name })
                 }
                 onClick={onRemove}
               >
-                {side === 'mech' ? 'Unload' : 'Unstow'}
+                {side === 'mech' ? buildSheetCopy('unload') : buildSheetCopy('unstow')}
               </Button>
             )}
           </>

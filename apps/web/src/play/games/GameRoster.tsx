@@ -63,6 +63,7 @@ import {
 import { gauge, pool } from '../../lib/units/crewPair'
 import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
+import { playGamesCopy } from '../../messages/play-games'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -172,7 +173,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         ? undefined
         : vitals?.mechs.find((m) => (m.linkId ?? m._id) === live.mechId)
     return {
-      ...(seat.hp === null ? {} : { readings: [{ label: 'HP', value: seat.hp }] }),
+      ...(seat.hp === null ? {} : { readings: [{ label: playGamesCopy('hp'), value: seat.hp }] }),
       // The mech the pilot is assigned, its header-only Mini opening its sheet,
       // never a chip, its live readings its chips;
       // on foot there is none.
@@ -205,7 +206,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   function rowMenu(row: RosterRow): HeaderMenuItem[][] {
     const act = (run: () => void) => (busy ? undefined : run)
     const verbs: HeaderMenuItem[] = [
-      { id: 'open', label: 'Open sheet', onSelect: () => go(rosterSheetHref(row)) },
+      { id: 'open', label: playGamesCopy('openSheet'), onSelect: () => go(rosterSheetHref(row)) },
     ]
     // Assigning yourself a free one is the SEAL's job, not a menu row's
     // (`OwnerSeal`). Any holder may hand back, not just the table runner:
@@ -214,14 +215,14 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     if (row.can.unassign) {
       verbs.push({
         id: 'unassign',
-        label: 'Unassign',
+        label: playGamesCopy('unassign'),
         onSelect: act(() => rowActions.unassign(row)),
       })
     }
     if (row.can.makePrimary) {
       verbs.push({
         id: 'primary',
-        label: 'Make primary',
+        label: playGamesCopy('makePrimary'),
         onSelect: act(
           () =>
             void makePrimary.run({
@@ -236,7 +237,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     if (row.can.removeFromGame && row.localId !== null) {
       verbs.push({
         id: 'remove',
-        label: `Move to your ${PRODUCT.build}`,
+        label: playGamesCopy('moveToYour', { build: PRODUCT.build }),
         onSelect: act(() => rowActions.removeFromGame(row, gameName)),
       })
     }
@@ -246,7 +247,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     if (row.can.delete || row.can.scrap) {
       danger.push({
         id: 'delete',
-        label: 'Delete…',
+        label: playGamesCopy('delete2'),
         tone: 'danger',
         onSelect: act(() => (row.can.delete ? rowActions.remove(row) : rowActions.scrap(row))),
       })
@@ -256,7 +257,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       const self = member.userId === viewerId
       return {
         id: `assign-${member.userId}`,
-        label: self ? 'Assign to me' : `Assign to ${member.displayName}`,
+        label: self
+          ? playGamesCopy('assignToMe')
+          : playGamesCopy('assignTo', { name: member.displayName }),
         onSelect: act(() => rowActions.assignTo(row, member, self)),
       }
     })
@@ -271,7 +274,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           name={row.name}
           /* The primary crawler is where new crew is assigned (ADR-037), so
              the list says which one it is. */
-          note={row.primary ? '★ Primary' : undefined}
+          note={row.primary ? playGamesCopy('primary') : undefined}
           /* The Compact is the door to the live sheet in Build: editable when
              the row is yours to edit, read-only when it is a crewmate's. */
           mode={{ kind: 'link', href: rosterSheetHref(row) }}
@@ -292,7 +295,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             <HeaderMenu
               variant="overflow"
               trigger={null}
-              label={`More for ${row.name}`}
+              label={playGamesCopy('moreFor', { name: row.name })}
               sections={rowMenu(row)}
             />
           }
@@ -314,15 +317,15 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       <SlabSection
         as="h2"
         id="crew-heading"
-        title="Crew"
+        title={playGamesCopy('crew')}
         {...(seats !== null && seats.total > 0
-          ? { count: { label: 'Seats', value: seats.claimed, max: seats.total } }
+          ? { count: { label: playGamesCopy('seats'), value: seats.claimed, max: seats.total } }
           : {})}
         actions={
           <>
             {caps.canAddCrew && (
               <Button href={newInGameHref('/pilots/new', gameId)} variant="default" size="compact">
-                + New Pilot
+                {playGamesCopy('newPilot')}
               </Button>
             )}
             {caps.canRaiseCrawler && !caps.hasCrawler && (
@@ -331,11 +334,11 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                 variant="default"
                 size="compact"
               >
-                + New Crawler
+                {playGamesCopy('newCrawler')}
               </Button>
             )}
             <Button href="/" variant="default" size="compact">
-              Manage in Build
+              {playGamesCopy('manageInBuild')}
             </Button>
           </>
         }
@@ -348,10 +351,10 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           </Text>
         )}
         {loading ? (
-          <RosterSkeleton label="the crew" />
+          <RosterSkeleton label={playGamesCopy('theCrew')} />
         ) : rows.length === 0 ? (
           <Text variant="hint" style={HINT}>
-            Nobody has brought a unit to this Game yet.
+            {playGamesCopy('nobodyHasBroughtAUnit')}
           </Text>
         ) : (
           <ul aria-labelledby="crew-heading" style={LIST}>

@@ -13,6 +13,7 @@ import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, iconSize, space } from '../../design/tokens'
 import { useDisclosure } from '../../lib/useDisclosure'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { Button } from '../atoms/Button'
 import { Slab } from '../atoms/Slab'
 import { Entity } from '../entity/Entity'
@@ -205,8 +206,12 @@ export function SelectionRail({
                   // are indistinguishable to a screen-reader user.
                   aria-label={
                     entry.total > 1
-                      ? `Remove ${entry.entity.name}, copy ${entry.copy} of ${entry.total}`
-                      : `Remove ${entry.entity.name}`
+                      ? compositionsCopy('removeCopyOf', {
+                          name: entry.entity.name,
+                          copy: entry.copy,
+                          total: entry.total,
+                        })
+                      : compositionsCopy('remove', { name: entry.entity.name })
                   }
                 >
                   <X aria-hidden="true" size={iconSize.mini} />
@@ -216,7 +221,9 @@ export function SelectionRail({
           />
         </div>
       ))}
-      {entries.length === 0 && <p style={EMPTY_STYLE}>Nothing {chosen} yet.</p>}
+      {entries.length === 0 && (
+        <p style={EMPTY_STYLE}>{compositionsCopy('nothingYet', { chosen })}</p>
+      )}
     </div>
   )
 

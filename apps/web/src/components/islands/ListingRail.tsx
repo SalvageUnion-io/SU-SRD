@@ -3,6 +3,7 @@ import { cn } from '../../lib/cn'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
+import { islandsCopy } from '../../messages/components-islands'
 import { capsLabel } from '../atoms/capsLabel'
 import { Button, SearchField, Segmented, SegmentedOption, Select } from '../index'
 
@@ -136,8 +137,8 @@ export function ListingRail({
           name="name-filter"
           value={filters.name}
           onChange={(e) => on.setName(e.target.value)}
-          placeholder={`Filter ${count} by name`}
-          aria-label="Filter items by name"
+          placeholder={islandsCopy('filterByName', { count })}
+          aria-label={islandsCopy('filterItemsByName')}
           containerClassName="su-rail__search"
           glyph="full"
         />
@@ -157,7 +158,7 @@ export function ListingRail({
       {status}
       <span className="su-rail__spring" />
       {views.length > 1 && (
-        <Segmented label="View" className="su-rail__view">
+        <Segmented label={islandsCopy('view')} className="su-rail__view">
           {views.map((option) => (
             <SegmentedOption
               key={option}
@@ -172,12 +173,12 @@ export function ListingRail({
       {hasFacets && (
         <div className="su-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
-            <Segmented label="Tech Level">
+            <Segmented label={islandsCopy('techLevel')}>
               <span className="su-rail__stamp" aria-hidden="true">
-                TL
+                {islandsCopy('tl')}
               </span>
               <SegmentedOption pressed={filters.techLevels.size === 0} onClick={on.clearTechLevels}>
-                All
+                {islandsCopy('all')}
               </SegmentedOption>
               {techLevels.map((level) => (
                 <SegmentedOption
@@ -195,13 +196,13 @@ export function ListingRail({
           {hasSources && (
             <Select
               chevron
-              aria-label="Source"
+              aria-label={islandsCopy('source')}
               className={MENU}
               data-on={filters.source ? true : undefined}
               value={filters.source}
               onChange={(e) => on.setSource(e.target.value)}
             >
-              <option value="">All sources</option>
+              <option value="">{islandsCopy('allSources')}</option>
               {sources.map((source) => (
                 <option key={source} value={source}>
                   {shortSource(source)}
@@ -212,13 +213,13 @@ export function ListingRail({
           {hasTrees && (
             <Select
               chevron
-              aria-label="Tree"
+              aria-label={islandsCopy('tree')}
               className={MENU}
               data-on={filters.tree ? true : undefined}
               value={filters.tree}
               onChange={(e) => on.setTree(e.target.value)}
             >
-              <option value="">All {trees.length} trees</option>
+              <option value="">{islandsCopy('allTrees', { count: trees.length })}</option>
               {trees.map((tree) => (
                 <option key={tree} value={tree}>
                   {tree}

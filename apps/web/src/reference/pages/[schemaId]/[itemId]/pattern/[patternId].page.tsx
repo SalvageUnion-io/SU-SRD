@@ -22,6 +22,7 @@ import { ogCardFor, ogMetaFor } from '../../../../../lib/ogCard'
 import { pageTitle } from '../../../../../lib/pageTitle'
 import { patternStaticSummary } from '../../../../../lib/patternSummary'
 import { getPatternStaticPaths } from '../../../../../lib/staticPaths'
+import { pagesCopy } from '../../../../../messages/reference-pages'
 import { EntityPageFrame } from '../../../../EntityPageFrame'
 import { EntityView } from '../../../../EntityView'
 
@@ -86,7 +87,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         fill={bandFillFor(schemaId, host)}
         meta={pageMeta}
         parent={{
-          label: 'Pattern of',
+          label: pagesCopy('patternOf'),
           entityRef: toEntityModel(host).ref,
           href: itemHref(schemaId, itemId),
         }}

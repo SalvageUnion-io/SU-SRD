@@ -5,6 +5,7 @@
  */
 
 import { ConfirmDialog } from '../components/index'
+import { playCopy } from '../messages/play'
 import type { BoardOption } from './boardMenu.model'
 import type { Play } from './situation.model'
 
@@ -24,13 +25,17 @@ export function AssignAndBoardConfirm({
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
-      title="Assign and board"
+      title={playCopy('assignAndBoard')}
       body={
         assigning === null
           ? ''
           : `${assigning.name} is an unassigned spare. Assign it to yourself to edit it in this Game, then board it. Boarding doesn’t pair it with ${play.pilot?.name ?? 'your Pilot'}.`
       }
-      confirmLabel={assigning === null ? 'Assign and board' : `Assign and board ${assigning.name}`}
+      confirmLabel={
+        assigning === null
+          ? playCopy('assignAndBoard')
+          : playCopy('assignAndBoard2', { name: assigning.name })
+      }
       onConfirm={() => {
         if (assigning !== null) play.assignAndBoard(assigning)
         onClose()

@@ -1,4 +1,4 @@
-# ADR-053: Crew Assets Are Assigned, Never Claimed
+# ADR-055: Crew Assets Are Assigned, Never Claimed
 
 Decided and built for 4.1.0, answering #1064.
 

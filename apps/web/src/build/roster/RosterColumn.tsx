@@ -18,13 +18,14 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { SlabCount } from '../../components/index'
 import { Button, EmptyState, Segmented, SegmentedOption, SlabSection } from '../../components/index'
 import { color, iconSize, space } from '../../design/tokens'
+import { rosterCopy } from '../../messages/build-roster'
 
 export type SegmentKind = SheetKind
 
 const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
-  { kind: 'pilot', label: 'Pilots' },
-  { kind: 'mech', label: 'Mechs' },
-  { kind: 'crawler', label: 'Crawlers' },
+  { kind: 'pilot', label: rosterCopy('pilots') },
+  { kind: 'mech', label: rosterCopy('mechs') },
+  { kind: 'crawler', label: rosterCopy('crawlers') },
 ]
 
 /** The column's create CTA. `onClick` runs before the wizard opens. */
@@ -50,7 +51,7 @@ export function SegmentSwitch({
 }) {
   return (
     <div className="su-segment-switch">
-      <Segmented label="Show" fill style={FILL}>
+      <Segmented label={rosterCopy('show')} fill style={FILL}>
         {SEGMENTS.map((seg) => (
           <SegmentedOption
             key={seg.kind}

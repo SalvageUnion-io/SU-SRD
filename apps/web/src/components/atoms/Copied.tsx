@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
+import { atomsCopy } from '../../messages/components-atoms'
 
 /**
  * The copy control's own icon (chrome K5): `icon` at rest, a `Check` of the
@@ -28,7 +29,7 @@ export function CopiedIcon({
 export function CopiedStatus({ copied }: { copied: boolean }) {
   return (
     <span role="status" className="su-sr-only">
-      {copied ? 'Copied' : ''}
+      {copied ? atomsCopy('copied') : ''}
     </span>
   )
 }

@@ -12,6 +12,7 @@
 
 import { currentDowntimeStep } from 'game-domain/rules/downtime'
 import { Slab } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayAwayGroup, PlayEntryList, PlayOrphanResolve } from './PlayActionsList'
 import { PlayDowntimeStep } from './PlayDowntimeStep'
 import { PlayDowntimeTrack } from './PlayDowntimeTrack'
@@ -26,7 +27,7 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
 
   return (
     <>
-      <Slab as="h2" label={`Downtime · Step ${idx + 1} of ${count}`} />
+      <Slab as="h2" label={playCopy('downtimeStepOf', { value: idx + 1, count })} />
       <PlayDowntimeTrack steps={steps} current={idx} onStep={setStep} canWrite={play.canWrite} />
       {step && (
         <PlayDowntimeStep
@@ -39,9 +40,19 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
         />
       )}
       <PlayOrphanResolve actions={actions} />
-      <Slab label="Downtime actions" />
-      <PlayEntryList entries={onHand} play={play} actions={actions} label="Downtime actions" />
-      <PlayAwayGroup title="Field actions" entries={away} play={play} actions={actions} />
+      <Slab label={playCopy('downtimeActions')} />
+      <PlayEntryList
+        entries={onHand}
+        play={play}
+        actions={actions}
+        label={playCopy('downtimeActions')}
+      />
+      <PlayAwayGroup
+        title={playCopy('fieldActions')}
+        entries={away}
+        play={play}
+        actions={actions}
+      />
     </>
   )
 }

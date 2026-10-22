@@ -22,6 +22,7 @@
 
 import type { EntityKind } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
+import { libGamesCopy } from '../../messages/lib-games'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 
@@ -127,15 +128,12 @@ export const ROW_ACTION_COPY = {
    */
   assignSelf(name: string): ConfirmCopy {
     return {
-      title: `Assign ${name} to you?`,
-      body: [
-        `${name} is unassigned — the Mediator left them for somebody to take. Assigned to you, they are yours to edit in this Game, they open in this browser, and every change saves back to the Game. The rest of the crew can still read them.`,
-        'Changed your mind later? Hand them back with “Unassign”.',
-      ],
-      confirmLabel: 'Assign to me',
-      pendingLabel: 'Assigning…',
+      title: libGamesCopy('assignSelfTitle', { name }),
+      body: [libGamesCopy('assignSelfBody', { name }), libGamesCopy('assignSelfUndo')],
+      confirmLabel: libGamesCopy('assignToMe'),
+      pendingLabel: libGamesCopy('assigning'),
       tone: 'default',
-      failure: `${name} could not be assigned to you. Try again.`,
+      failure: libGamesCopy('assignSelfFailed', { name }),
     }
   },
 
@@ -145,17 +143,17 @@ export const ROW_ACTION_COPY = {
    */
   assignTo(name: string, kind: RowActionKind, to: string, from: string | null): ConfirmCopy {
     return {
-      title: `Assign ${name} to ${to}?`,
+      title: libGamesCopy('assignToTitle', { name, to }),
       body: [
         from === null
-          ? `${to} will edit ${name} in this Game; the rest of the crew can still read ${them(kind)}.`
-          : `${to} will edit ${name} in this Game instead of ${from}, who can still read ${them(kind)}.`,
-        'Nothing on the sheet changes. You can reassign or unassign it again at any time.',
+          ? libGamesCopy('assignToFresh', { to, name, them: them(kind) })
+          : libGamesCopy('assignToFrom', { to, name, from, them: them(kind) }),
+        libGamesCopy('assignToUndo'),
       ],
-      confirmLabel: `Assign to ${to}`,
-      pendingLabel: 'Assigning…',
+      confirmLabel: libGamesCopy('assignTo', { to }),
+      pendingLabel: libGamesCopy('assigning'),
       tone: 'default',
-      failure: `${name} could not be assigned to ${to}. Try again.`,
+      failure: libGamesCopy('assignToFailed', { name, to }),
     }
   },
 
@@ -166,19 +164,19 @@ export const ROW_ACTION_COPY = {
    */
   unassign(name: string, kind: RowActionKind, mine: boolean): ConfirmCopy {
     return {
-      title: `Unassign ${name}?`,
+      title: libGamesCopy('unassignTitle', { name }),
       body: [
         mine
-          ? `You'll stop editing ${name}, and anyone in the Game can assign ${them(kind)} to themselves.`
-          : `Its holder stops editing ${name}, and anyone in the Game can assign ${them(kind)} to themselves.`,
+          ? libGamesCopy('unassignMine', { name, them: them(kind) })
+          : libGamesCopy('unassignTheirs', { name, them: them(kind) }),
         mine
-          ? `You can take ${them(kind)} back yourself, as long as nobody else has first.`
-          : `You can assign ${them(kind)} to anyone again at any time.`,
+          ? libGamesCopy('unassignUndoMine', { them: them(kind) })
+          : libGamesCopy('unassignUndoTheirs', { them: them(kind) }),
       ],
-      confirmLabel: 'Unassign',
-      pendingLabel: 'Unassigning…',
+      confirmLabel: libGamesCopy('unassign'),
+      pendingLabel: libGamesCopy('unassigning'),
       tone: 'danger',
-      failure: `${name} could not be unassigned. Try again.`,
+      failure: libGamesCopy('unassignFailed', { name }),
     }
   },
 

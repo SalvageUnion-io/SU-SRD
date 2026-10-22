@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { CONDITION_LABELS } from 'salvageunion-reference'
+import { atomsCopy } from '../../messages/components-atoms'
 import type { BadgeTone } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
@@ -76,7 +77,10 @@ export function StatusBadge({ status, onClick, subject, next }: StatusBadgeProps
             awaitingWrite.current = true
             onClick()
           }}
-          aria-label={`${current}. Activate to mark ${CONDITION_LABELS[next ?? NEXT_STATUS[status]]}`}
+          aria-label={atomsCopy('activateToMark', {
+            current,
+            value: CONDITION_LABELS[next ?? NEXT_STATUS[status]],
+          })}
           style={CYCLE_BUTTON}
         >
           {badge}

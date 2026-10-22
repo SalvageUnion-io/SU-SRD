@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useLayoutEffect } from 'react'
 import { preloadGameData } from '../../lib/useGameData'
+import { sharedCopy } from '../../messages/components-shared'
 import { GameDataGate } from '../GameDataGate'
 import type { EntitySurfaceValue } from '../index'
 import { EntitySurfaceProvider } from '../index'
@@ -57,7 +58,7 @@ export function GameDataReady({ children }: { children: ReactNode }) {
   // band. Provided here — beside the preload gate that already wraps every
   // route — so the builder only runs once the reference dataset is loaded.
   return (
-    <GameDataGate fallback={<RoutePending label="reference data" />}>
+    <GameDataGate fallback={<RoutePending label={sharedCopy('referenceData')} />}>
       <ReadyMarker />
       <EntitySurfaceProvider value={REFERENCE_LINK}>{children}</EntitySurfaceProvider>
     </GameDataGate>

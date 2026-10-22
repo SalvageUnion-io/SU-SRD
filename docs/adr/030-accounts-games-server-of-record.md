@@ -6,7 +6,7 @@ and the `convex-ops` skill. Amended by [ADR-051](051-play-mode.md): a pilot on a
 Shelf has a seat too, seats carry presence, and a Game can bind a Discord
 channel (`channelBindings`). Amended by [ADR-052](052-build-assets-play-games.md):
 Build's Hangar lists what a player owns; a Game's page and joining are Play's.
-Amended by [ADR-053](053-crew-assets-assign.md): in a Game a pilot or mech is
+Amended by [ADR-055](055-crew-assets-assign.md): in a Game a pilot or mech is
 **assigned** to a member, never claimed (§2, §4–6).
 
 ## 1. Identity and the storage modes
@@ -76,7 +76,7 @@ Game page, and the player applies or declines it. Proposals persist until
 answered: no expiry, **no force-apply**. A newer proposal on the same field
 supersedes the older one. Alerts and cross-player writes are one mechanism.
 
-**Assign, never claim** (ADR-053). Inside a Game, `ownerId` names who a
+**Assign, never claim** (ADR-055). Inside a Game, `ownerId` names who a
 pilot or mech is **assigned** to, not who owns it: the assigned member edits
 it, the rest of the crew reads it (§5), and the table runner may assign it to
 any member, reassigning what somebody holds (`ownership.assign`). A player may

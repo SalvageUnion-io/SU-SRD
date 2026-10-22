@@ -20,6 +20,7 @@ import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { SignInControl } from '../account/SignInControl'
 
 type MakeACopyProps = {
@@ -36,7 +37,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
   if (mode === 'solo') {
     return (
       <SignInControl
-        label="Sign in to make a copy"
+        label={buildStarterSetCopy('signInToMakeA')}
         redirectTo={`/starter/${kind}/${templateId}`}
         size="full"
         className="su-page-action"
@@ -52,23 +53,23 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
       className="su-page-action"
       onClick={() =>
         confirm({
-          title: `Make a copy of ${name}?`,
+          title: buildStarterSetCopy('makeACopyOf', { name }),
           body: [
             `This puts a copy of ${name} in your Training Bay, a build of your own to edit and play.`,
             `The Starter Set's ${name} stays as ${STARTER_SET_PUBLISHER} published it.`,
           ],
-          confirmLabel: 'Make a copy',
-          pendingLabel: 'Copying…',
+          confirmLabel: buildStarterSetCopy('makeACopy'),
+          pendingLabel: buildStarterSetCopy('copying'),
           tone: 'default',
           failure: `${name} could not be copied. Try again.`,
           onConfirm: async () => {
             await copyStarter(kind, templateId, SHELF)
-            toast.success(`Copied ${name} to your Training Bay.`)
+            toast.success(buildStarterSetCopy('copiedToYourTrainingBay', { name }))
           },
         })
       }
     >
-      Make a copy
+      {buildStarterSetCopy('makeACopy')}
     </Button>
   )
 }

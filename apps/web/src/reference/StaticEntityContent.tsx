@@ -7,6 +7,7 @@ import { InlineRef, mentionRef, RollTableInstrument, SlabSection, Stat } from '.
 import { MentionProse } from '../components/MentionProse'
 import { cn } from '../lib/cn'
 import { refText } from '../lib/rollTablePage'
+import { referenceCopy } from '../messages/reference'
 
 /** A fact's label ("Traits:"), in the caps recipe. */
 const STATIC_LABEL = cn('su-static__label', capsLabel({ tracking: 'snug' }))
@@ -140,7 +141,7 @@ export function StaticEntityContent({
 
       {summary.traits.length > 0 && (
         <p>
-          <span className={STATIC_LABEL}>Traits:</span>{' '}
+          <span className={STATIC_LABEL}>{referenceCopy('traits')}</span>{' '}
           {summary.traits.map((t, i) => (
             <Fragment key={t}>
               {i > 0 && ', '}
