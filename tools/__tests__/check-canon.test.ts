@@ -137,11 +137,18 @@ describe('main', () => {
     expect(main(ROOT, [], CONTEXT)).toBe(0)
   })
 
-  test('--list prints each law and its gates', () => {
-    expect(main(ROOT, ['--list'], CONTEXT)).toBe(0)
+  test('--list prints each law and its gates, laws it names followed through', () => {
+    const lines: string[] = []
+    const out = { log: (line: string) => lines.push(line), error: () => {} }
+    expect(main(repo(), ['--list'], context, HELD, 1, out)).toBe(0)
+    expect(lines).toContain('§0        a.test.ts')
+    expect(lines).toHaveLength(6)
   })
 
-  test('a law with no gate fails', () => {
-    expect(main(repo(), [], context, { ...HELD, R1: [] }, 1)).toBe(1)
+  test('a law with no gate fails, naming it', () => {
+    const errors: string[] = []
+    const out = { log: () => {}, error: (line: string) => errors.push(line) }
+    expect(main(repo(), [], context, { ...HELD, R1: [] }, 1, out)).toBe(1)
+    expect(errors[0]).toBe('✗ R1 is held by nothing: name its gate, or cut the law')
   })
 })

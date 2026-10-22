@@ -38,21 +38,22 @@ export function main(
   argv: readonly string[] = [],
   context = CONTEXT,
   canon = CANON,
-  floor = LAW_FLOOR
+  floor = LAW_FLOOR,
+  out: Pick<Console, 'log' | 'error'> = console
 ): number {
   const laws = canonLaws(root)
   if (argv.includes('--list')) {
-    for (const id of laws.keys()) console.log(`${id.padEnd(9)} ${gatesOf(id, canon).join(', ')}`)
+    for (const id of laws.keys()) out.log(`${id.padEnd(9)} ${gatesOf(id, canon).join(', ')}`)
     return 0
   }
   assertScanFloor('canon (laws in docs/design-system)', laws.size, floor)
   const faults = canonFaults(root, context, canon)
   if (faults.length === 0) {
-    console.log(`✓ canon: ${laws.size} laws, each held by a gate`)
+    out.log(`✓ canon: ${laws.size} laws, each held by a gate`)
     return 0
   }
-  for (const fault of faults) console.error(`✗ ${fault}`)
-  console.error(
+  for (const fault of faults) out.error(`✗ ${fault}`)
+  out.error(
     `\n${faults.length} canon fault(s): name the law's gate in CANON (packages/gates/lib/canon.ts), or cut the law`
   )
   return 1
