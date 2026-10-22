@@ -149,9 +149,9 @@ a.su-home__discord:hover {
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
  * page so the site footer's citation band closes it at the foot. The band
  * always sits flush under the site bar; the body takes the rest of the
- * height and starts under the band: a short page spreads its body evenly
- * down that height, its overflow row kept under the band (ruleset §1.7,
- * hard rule R17), and the foot stays at the window's bottom edge.
+ * height and its blocks stack from the top, under the band and its overflow
+ * row, one 12px gap apart: a short page is never spread or centred (ruleset
+ * §1.7, hard rule R17), and the foot stays at the window's bottom edge.
  */
 .su-entity {
   display: flex;
@@ -159,21 +159,14 @@ a.su-home__discord:hover {
   flex-direction: column;
 }
 
-/* A show page's body: a short page's content spread evenly down the height
-   under its band, on a phone and a desktop alike (Melee
-   Armament, Meld Drone). The band's overflow row (its first row) stays under
-   the band (R43). A long one fills the height, so the
-   spacing leaves it where it was. */
 .su-entity__body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  justify-content: space-evenly;
 }
 
 .su-entity__body > .su-entity-page {
   flex-grow: 1;
-  justify-content: space-evenly;
 }
 
 .su-entity__body .su-entity-page__wide:empty {

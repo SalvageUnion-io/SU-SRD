@@ -7,7 +7,8 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * page draws it. `findRhythm` reads every Page body on the page (an
  * SRD show page's, the app's detail dialog's) and returns each place it breaks:
  *
- * - **start** the body's first block more than `start` px under the band: the
+ * - **start** the body's first block more than `start` px under the band (or
+ *   the band's overflow row, its chips that did not fit beside the title): the
  *   body starts under the band at any length, so a short page is never
  *   centred in the window.
  * - **gap** a block whose nearest block above it (the one with the lowest foot
@@ -35,6 +36,8 @@ type RhythmSelectors = {
   body: string
   /** The band a body starts under. */
   band: string
+  /** The band's overflow row, between the band and the body when it holds chips. */
+  overflow: string
   head: string
   frame: string
   title: string
@@ -58,6 +61,7 @@ type RhythmSelectors = {
 const RHYTHM_SELECTORS: RhythmSelectors = {
   body: '.su-entity__body, .su-entity-dialog__body',
   band: '.su-chapter-band',
+  overflow: '.su-chapter-band__overflow',
   head: NESTING_SELECTORS.head,
   frame: NESTING_SELECTORS.frame,
   title: NESTING_SELECTORS.title,
@@ -97,7 +101,11 @@ function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
 
   for (const body of document.querySelectorAll(a.body)) {
     if (!visible(body)) continue
-    const band = body.parentElement?.querySelector(`:scope > ${a.band}`)
+    const overflow = body.parentElement?.querySelector(`:scope > ${a.overflow}`)
+    const band =
+      overflow && visible(overflow)
+        ? overflow
+        : body.parentElement?.querySelector(`:scope > ${a.band}`)
     const frames = new Set<Element>()
     for (const head of body.querySelectorAll(a.head)) {
       if (!visible(head)) continue
