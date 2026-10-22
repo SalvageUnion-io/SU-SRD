@@ -14,7 +14,7 @@ import { requireUser } from './model/permissions'
  * Game templates (ADR-030).
  *
  * A template is a pre-built crew you can start a Game from. The rule that makes
- * it more than seeded data: **its entities arrive unclaimed** (`ownerId: null`).
+ * it more than seeded data: **its entities arrive unassigned** (`ownerId: null`).
  * The Mediator — or the Organizer, while a Game has no Mediator — hands them
  * out as players join, which turns pre-generated characters from a curiosity
  * into the onboarding path.
@@ -30,7 +30,7 @@ const TEMPLATES = {
   'starter-set': {
     name: "Reclamation of the Wastes — Union Crawler #430 'Tenacity'",
     description:
-      'The six pilots of the Salvage Union Starter Set, their mechs, and their crawler. Everyone arrives unclaimed for you to hand out.',
+      'The six pilots of the Salvage Union Starter Set, their mechs, and their crawler. Everyone arrives unassigned for you to hand out.',
   },
 } as const
 
@@ -98,7 +98,7 @@ export const createGame = mutation({
     }
     // `ownerId: null` is what communal means for a crawler in a Game (ADR-030 §5) — the
     // same value the starter pilots and mechs take above, but for a different
-    // reason: they are unclaimed and waiting for a taker, the crawler is the
+    // reason: they are unassigned and waiting for a taker, the crawler is the
     // crew's and never gets handed to anyone.
     const crawlerIds: Id<'crawlers'>[] = []
     for (const crawler of STARTER_CRAWLERS) {

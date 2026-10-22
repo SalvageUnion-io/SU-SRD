@@ -7,7 +7,7 @@ import { SITE_URL } from '../constants'
 import { getEntitySchemas } from '../gameData'
 
 /**
- * The Dataset API v1 (ADR-053) holds to its published contract: it serves the
+ * The Dataset API v1 (ADR-056) holds to its published contract: it serves the
  * same files `/schema/*` does, each schema's `$id` is its v1 URL, everything
  * validates against its schema, and the manifest names only URLs the build
  * emits. These read the endpoints exactly as the build emits them.

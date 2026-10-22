@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { srdSchemaPath } from 'salvageunion-reference'
 import { borderWidth, color, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { CloseButton } from '../atoms/CloseButton'
@@ -157,7 +158,7 @@ export function NavDrawer({
           <Button
             variant="quiet"
             size="iconOnly"
-            aria-label="Open menu"
+            aria-label={compositionsCopy('openMenu')}
             className="su-nav-drawer__trigger"
             style={TRIGGER}
           >
@@ -170,12 +171,12 @@ export function NavDrawer({
         <Drawer.Backdrop className="su-backdrop" />
         <Drawer.Viewport style={VIEWPORT}>
           <Drawer.Popup className="su-drawer su-nav-drawer__panel" style={PANEL}>
-            <Drawer.Title className="su-sr-only">Navigation menu</Drawer.Title>
+            <Drawer.Title className="su-sr-only">{compositionsCopy('navigationMenu')}</Drawer.Title>
 
             {/* Brand row: lockup | Close */}
             <div style={BRAND_ROW}>
               {brand}
-              <Drawer.Close render={<CloseButton label="Close menu" />} />
+              <Drawer.Close render={<CloseButton label={compositionsCopy('closeMenu')} />} />
             </div>
 
             {search && <div className="su-nav-drawer__search">{search}</div>}

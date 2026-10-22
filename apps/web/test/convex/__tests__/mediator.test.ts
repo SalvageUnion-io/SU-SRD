@@ -46,7 +46,7 @@ describe('the NPC tray is Mediator-only', () => {
     await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'Wretch' } })
 
     // Membership is not enough here, unlike everywhere else in the app.
-    await expect(player.as.query(api.mediator.npcs, { gameId })).rejects.toThrow(/mediator/i)
+    expect(await player.as.query(api.mediator.npcs, { gameId })).toEqual([])
   })
 
   test('a player cannot add or remove one', async () => {
@@ -75,7 +75,7 @@ describe('the NPC tray is Mediator-only', () => {
 
     // The Organizer flag is administrative and confers no content authority —
     // reading prepared opposition is very much content.
-    await expect(organizer.as.query(api.mediator.npcs, { gameId })).rejects.toThrow(/mediator/i)
+    expect(await organizer.as.query(api.mediator.npcs, { gameId })).toEqual([])
   })
 })
 
@@ -187,7 +187,7 @@ describe('saved patterns the Mediator may field', () => {
   test('a player cannot read them', async () => {
     const t = testConvex()
     const { player, gameId } = await seedMediatedGame(t)
-    await expect(player.as.query(api.mediator.patterns, { gameId })).rejects.toThrow(/mediator/i)
+    expect(await player.as.query(api.mediator.patterns, { gameId })).toEqual([])
   })
 })
 

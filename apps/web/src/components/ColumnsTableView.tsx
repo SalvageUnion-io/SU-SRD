@@ -1,5 +1,6 @@
 import type { ColumnsRoll, ColumnsTablePageData } from '../lib/columnsTablePage'
 import { columnsHit } from '../lib/columnsTablePage'
+import { componentsCopy } from '../messages/components'
 import { RollTableInstrument } from './index'
 import { RollPageFrame } from './RollPageFrame'
 
@@ -41,7 +42,7 @@ export function ColumnsTableView({ data, tone, roll, onRoll }: ColumnsTableViewP
         density="compact"
         stamp="Roll the Dice:"
         onRoll={onRoll}
-        hint="The column, then the entry"
+        hint={componentsCopy('theColumnThenTheEntry')}
         table={{
           kind: 'columns',
           columns: data.columns,

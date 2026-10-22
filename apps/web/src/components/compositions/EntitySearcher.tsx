@@ -52,6 +52,7 @@ import { color, fontSize, iconSize, space, widthAtLeast } from '../../design/tok
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
 import { SearchField } from '../atoms/SearchField'
@@ -251,8 +252,8 @@ export function EntitySearcher({
         <SearchField
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name or trait…"
-          aria-label="Search"
+          placeholder={compositionsCopy('searchByNameOrTrait')}
+          aria-label={compositionsCopy('search')}
           autoComplete="off"
           containerClassName="su-searcher__search"
         />
@@ -306,7 +307,7 @@ export function EntitySearcher({
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
       <div className="su-searcher__scroll" style={LIST_SCROLL_STYLE}>
         <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
-          Showing {visible.length} of {pool.length}
+          {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
         </p>
         <div className="su-searcher__list">{tokens}</div>
         {visible.length === 0 && emptyMessage && (
@@ -334,10 +335,7 @@ export function EntitySearcher({
   ) : wide && !browse ? (
     // Nothing open yet: a note in the middle saying what goes there.
     <div className="su-searcher__empty">
-      <EmptyState
-        variant="quiet"
-        body="Open any entry in the list to read it here, then add it from its page."
-      />
+      <EmptyState variant="quiet" body={compositionsCopy('openAnyEntryInThe')} />
     </div>
   ) : null
 
@@ -345,7 +343,7 @@ export function EntitySearcher({
     railActions ??
     (onClose && !single ? (
       <Button variant="primary" size="compact" onClick={onClose}>
-        Done
+        {compositionsCopy('done')}
       </Button>
     ) : undefined)
 
@@ -414,7 +412,12 @@ export function EntitySearcher({
       bodyStyle={BODY_STYLE}
       controls={
         onClose && (
-          <Button onClick={onClose} aria-label="Close" variant="quiet" size="iconOnly">
+          <Button
+            onClick={onClose}
+            aria-label={compositionsCopy('close')}
+            variant="quiet"
+            size="iconOnly"
+          >
             <X aria-hidden="true" size={iconSize.compact} />
           </Button>
         )

@@ -16,6 +16,7 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
+import { sharedCopy } from '../../messages/components-shared'
 import { Button, Pending, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
@@ -71,7 +72,7 @@ type NotFoundPanelProps = {
 export function NotFoundPanel({
   title,
   message,
-  back = { href: '/', label: 'Training Bay' },
+  back = { href: '/', label: sharedCopy('trainingBay') },
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
@@ -104,7 +105,7 @@ export function RouteNotFound() {
         didYouMean={<DidYouMeanIsland />}
         back={
           <Button href="/" back variant="ghost" size="compact" style={HANGAR_LINK}>
-            Training Bay
+            {sharedCopy('trainingBay')}
           </Button>
         }
       />

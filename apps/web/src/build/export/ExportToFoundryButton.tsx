@@ -12,6 +12,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import { Button, toast } from '../../components/index'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { foundryFileName, mechToFoundry, pilotToFoundry } from '../../lib/export/foundryActor'
+import { buildExportCopy } from '../../messages/build-export'
 
 type ExportToFoundryButtonProps =
   | { kind: 'pilot'; entity: Pilot; crawler: Pick<Crawler, 'techLevel'> | null }
@@ -25,17 +26,20 @@ export function ExportToFoundryButton(props: ExportToFoundryButtonProps) {
         : mechToFoundry(props.entity, props.pilotAbilities)
     downloadJson(foundryFileName(props.kind, props.entity.name), actor)
     toast.success(
-      `Exported ${props.entity.name}. In Foundry, make an empty ${props.kind === 'pilot' ? 'Pilot' : 'Mech'} and choose Import Data.`
+      buildExportCopy('exportedToFoundry', {
+        name: props.entity.name,
+        kind: props.kind === 'pilot' ? 'Pilot' : 'Mech',
+      })
     )
   }
 
   return (
     <Button
       variant="ghost"
-      aria-label={`Export this ${props.kind} to Foundry VTT`}
+      aria-label={buildExportCopy('exportToFoundryLabel', { kind: props.kind })}
       onClick={handleExport}
     >
-      Export to Foundry
+      {buildExportCopy('exportToFoundry')}
     </Button>
   )
 }

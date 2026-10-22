@@ -255,7 +255,7 @@ describe('the sections under the roster', () => {
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
     expect(dialog.textContent).toContain(
-      'Hamlet and anything unclaimed come to you, in your Training Bay'
+      'Hamlet and anything unassigned come to you, in your Training Bay'
     )
     expect(mutations).toHaveLength(0)
 
@@ -272,7 +272,7 @@ describe('the sections under the roster', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
 
     expect(
-      screen.getByText(/^Anything unclaimed comes to you, in your Training Bay\.$/)
+      screen.getByText(/^Anything unassigned comes to you, in your Training Bay\.$/)
     ).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
@@ -400,7 +400,7 @@ describe('Play from the Game page', () => {
     ownerId: 'u2',
     body: { id: 'a-theirs', name: 'Roach-Boy' },
   }
-  /** Unclaimed, and held here: the browser that made it keeps its copy. */
+  /** Unassigned, and held here: the browser that made it keeps its copy. */
   const PREGEN = {
     _id: 'p-pregen',
     appId: 'hub-pregen',

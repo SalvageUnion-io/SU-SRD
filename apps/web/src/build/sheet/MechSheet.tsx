@@ -68,6 +68,7 @@ import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechChassisCard } from './MechChassisCard'
@@ -121,14 +122,19 @@ function slotCount(used: number, max: number, asPrinted: AsPrinted): SlabCount {
   const printed = overAsPrinted(used, max, asPrinted) ? asPrinted : undefined
   if (printed) {
     return {
-      label: 'Slots',
+      label: buildSheetCopy('slots'),
       value: used,
       max,
-      note: 'as printed',
+      note: buildSheetCopy('asPrinted'),
       title: `${printed.pattern}, ${printed.cite}`,
     }
   }
-  return { label: 'Slots', value: used, max, ...(used > max ? { state: 'critical' } : {}) }
+  return {
+    label: buildSheetCopy('slots'),
+    value: used,
+    max,
+    ...(used > max ? { state: 'critical' } : {}),
+  }
 }
 
 type MechSheetProps = {
@@ -213,7 +219,11 @@ export function MechSheet({
       return (
         <EmptyState
           variant="quiet"
-          body={kind === 'system' ? 'No systems installed.' : 'No modules installed.'}
+          body={
+            kind === 'system'
+              ? buildSheetCopy('noSystemsInstalled')
+              : buildSheetCopy('noModulesInstalled')
+          }
         />
       )
     }
@@ -224,7 +234,11 @@ export function MechSheet({
     // Peeking its whole card.
     return (
       <MiniGrid
-        label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
+        label={
+          kind === 'system'
+            ? buildSheetCopy('systemsInstalled')
+            : buildSheetCopy('modulesInstalled')
+        }
         edit={!readOnly}
       >
         {slugs.map((slug, index) => (
@@ -272,14 +286,14 @@ export function MechSheet({
 
       {!chassis && (
         <FieldError>
-          Unknown chassis &ldquo;{mech.chassisRef}&rdquo; — using stored/zero defaults
+          {buildSheetCopy('unknownChassisUsingStoredZero', { chassisRef: mech.chassisRef })}
         </FieldError>
       )}
 
       {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
           Photo + the player's fields ∥ SP/EP/Heat + Conditions vitals rail. */}
       <SheetColumns
-        asideLabel={`What ${mech.name} carries`}
+        asideLabel={buildSheetCopy('whatCarries', { name: mech.name })}
         hero={
           <SheetHero
             name={mech.name}
@@ -316,10 +330,10 @@ export function MechSheet({
                       after={
                         <>
                           <Field
-                            label="Quirk"
+                            label={buildSheetCopy('quirk')}
                             value={mech.quirk ?? ''}
                             onSave={readOnly ? undefined : actions.saveQuirk}
-                            placeholder="No quirk recorded."
+                            placeholder={buildSheetCopy('noQuirkRecorded')}
                           />
                           <MechAppearanceField
                             mech={mech}
@@ -359,9 +373,9 @@ export function MechSheet({
             />
             {showHold && (
               <SlabSection
-                title="The Hold"
+                title={buildSheetCopy('theHold')}
                 count={{
-                  label: 'Slots',
+                  label: buildSheetCopy('slots'),
                   value: cargo.usage.used,
                   max: cargo.usage.cap,
                   ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
@@ -387,7 +401,7 @@ export function MechSheet({
             {showSystems && (
               <SlabSection
                 fold="open"
-                title="Systems"
+                title={buildSheetCopy('systems')}
                 count={slotCount(
                   capacity.systemSlotsUsed,
                   capacity.systemSlotsMax,
@@ -396,7 +410,7 @@ export function MechSheet({
                 actions={
                   readOnly ? undefined : (
                     <Button size="compact" onClick={() => setPicker('system')}>
-                      Manage Systems
+                      {buildSheetCopy('manageSystems')}
                     </Button>
                   )
                 }
@@ -408,7 +422,7 @@ export function MechSheet({
             {showModules && (
               <SlabSection
                 fold="open"
-                title="Modules"
+                title={buildSheetCopy('modules')}
                 count={slotCount(
                   capacity.moduleSlotsUsed,
                   capacity.moduleSlotsMax,
@@ -417,7 +431,7 @@ export function MechSheet({
                 actions={
                   readOnly ? undefined : (
                     <Button size="compact" onClick={() => setPicker('module')}>
-                      Manage Modules
+                      {buildSheetCopy('manageModules')}
                     </Button>
                   )
                 }
@@ -436,7 +450,7 @@ export function MechSheet({
           mech-granted drone is fixed by its stat block and never tracks the
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
         {(mech.partners ?? []).length > 0 && (
-          <SlabSection fold="open" title="Partners">
+          <SlabSection fold="open" title={buildSheetCopy('partners')}>
             <Stack gap={12}>
               {(mech.partners ?? []).map((partner) => (
                 <PartnerCard
@@ -459,7 +473,7 @@ export function MechSheet({
       <SheetPickerModal
         open={picker === 'system'}
         onClose={() => setPicker(null)}
-        title="Add Systems"
+        title={buildSheetCopy('addSystems')}
         floating
       >
         <EntitySearcher
@@ -470,8 +484,8 @@ export function MechSheet({
           onAdd={(slug) => actions.addItem('system', slug)}
           onRemove={(index) => actions.removeItem('system', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
-          chosenLabel="Installed"
-          emptyMessage="No systems match those filters."
+          chosenLabel={buildSheetCopy('installed')}
+          emptyMessage={buildSheetCopy('noSystemsMatchThoseFilters')}
           budget={[
             {
               label: overAsPrinted(
@@ -479,19 +493,19 @@ export function MechSheet({
                 capacity.systemSlotsMax,
                 capacity.asPrinted
               )
-                ? 'System Slots · as printed'
-                : 'System Slots',
+                ? buildSheetCopy('systemSlotsAsPrinted')
+                : buildSheetCopy('systemSlots'),
               used: capacity.systemSlotsUsed,
               max: capacity.systemSlotsMax,
             },
-            { label: 'Energy', used: model.currentEP, max: maxEP },
+            { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
           ]}
         />
       </SheetPickerModal>
       <SheetPickerModal
         open={picker === 'module'}
         onClose={() => setPicker(null)}
-        title="Add Modules"
+        title={buildSheetCopy('addModules')}
         floating
       >
         <EntitySearcher
@@ -502,8 +516,8 @@ export function MechSheet({
           onAdd={(slug) => actions.addItem('module', slug)}
           onRemove={(index) => actions.removeItem('module', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
-          chosenLabel="Installed"
-          emptyMessage="No modules match those filters."
+          chosenLabel={buildSheetCopy('installed')}
+          emptyMessage={buildSheetCopy('noModulesMatchThoseFilters')}
           budget={[
             {
               label: overAsPrinted(
@@ -511,12 +525,12 @@ export function MechSheet({
                 capacity.moduleSlotsMax,
                 capacity.asPrinted
               )
-                ? 'Module Slots · as printed'
-                : 'Module Slots',
+                ? buildSheetCopy('moduleSlotsAsPrinted')
+                : buildSheetCopy('moduleSlots'),
               used: capacity.moduleSlotsUsed,
               max: capacity.moduleSlotsMax,
             },
-            { label: 'Energy', used: model.currentEP, max: maxEP },
+            { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
           ]}
         />
       </SheetPickerModal>

@@ -14,6 +14,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Button, Callout, ModalShell, tokens } from '../components/index'
 import { formatDateTime } from '../lib/formatDate'
+import { playCopy } from '../messages/play'
 import type { ChannelOwner, PlayBinding } from './channels.model'
 import { channelButtonLabel } from './channels.model'
 
@@ -46,33 +47,30 @@ function PlayChannelDialog({ open, onClose, owner, binding }: PlayChannelDialogP
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title={binding === null ? 'Connect a Discord channel' : 'Discord channel'}
+      title={binding === null ? playCopy('connectADiscordChannel') : playCopy('discordChannel')}
       width="default"
     >
       <div style={BODY}>
         {binding === null ? (
-          <p style={P}>No Discord channel is bound to {whose} yet, so its rolls stay in Play.</p>
+          <p style={P}>{playCopy('noDiscordChannelIsBound', { whose })}</p>
         ) : (
           <p style={P}>
-            Rolls from {whose} post to its bound Discord channel, as the bot’s roll card. Bound{' '}
-            {formatDateTime(binding.boundAt)}.
+            {playCopy('rollsFromPostToIts', { whose, dateTime: formatDateTime(binding.boundAt) })}
           </p>
         )}
         <p style={P}>
-          {binding === null ? 'To connect one, run ' : 'To move it, run '}
-          <span style={CODE}>/su bind</span>
+          {binding === null ? playCopy('toConnectOneRun') : playCopy('toMoveItRun')}
+          <span style={CODE}>{playCopy('suBind')}</span>
           {owner.kind === 'solo'
-            ? ' in the Discord channel you want, without naming a Game.'
-            : ' in the Discord channel you want, and pick this Game.'}{' '}
+            ? playCopy('inTheDiscordChannelYou')
+            : playCopy('inTheDiscordChannelYou2')}{' '}
           {binding !== null && (
             <>
-              <span style={CODE}>/su unbind</span> stops posting.
+              <span style={CODE}>{playCopy('suUnbind')}</span> stops posting.
             </>
           )}
         </p>
-        {owner.kind === 'game' && (
-          <Callout>Only the Game’s Mediator or Organiser can bind its channel.</Callout>
-        )}
+        {owner.kind === 'game' && <Callout>{playCopy('onlyTheGamesMediatorOr')}</Callout>}
       </div>
     </ModalShell>
   )
@@ -98,8 +96,8 @@ export function PlayChannelButton({ owner, binding, compact = false }: PlayChann
         disabled={binding === undefined}
         aria-label={
           binding == null
-            ? 'Connect a Discord channel'
-            : `${label.replace(/^# /, '')}: where rolls post`
+            ? playCopy('connectADiscordChannel')
+            : playCopy('whereRollsPost', { replace: label.replace(/^# /, '') })
         }
         onClick={() => setOpen(true)}
       >

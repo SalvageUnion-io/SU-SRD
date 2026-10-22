@@ -1,5 +1,5 @@
 /**
- * The Dataset API's address (ADR-053), a leaf with no imports so the Worker
+ * The Dataset API's address (ADR-056), a leaf with no imports so the Worker
  * can read it without pulling in the game data the endpoints emit.
  */
 

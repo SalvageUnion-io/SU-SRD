@@ -1,5 +1,5 @@
 /**
- * `/api/v1/…` — the Dataset API, version 1 (ADR-053).
+ * `/api/v1/…` — the Dataset API, version 1 (ADR-056).
  *
  * The same committed files `/schema/*` serves, at a versioned address with a
  * written stability promise (the `/api/` page): within v1 a change only ever

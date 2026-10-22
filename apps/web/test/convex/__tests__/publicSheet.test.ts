@@ -130,10 +130,10 @@ describe('only the owner may publish', () => {
     ).rejects.toThrow()
   })
 
-  test('an unclaimed entity can still be UN-published', async () => {
+  test('an unassigned entity can still be UN-published', async () => {
     // The revocation promise has to survive the owner walking away.
     // `ownership.release` nulls an `ownerId` on a row that is still in the
-    // Game, so refusing every call on an unclaimed
+    // Game, so refusing every call on an unassigned
     // entity would leave a published sheet permanently world-readable with
     // "Stop sharing" refusing forever.
     const t = testConvex()
@@ -158,8 +158,8 @@ describe('only the owner may publish', () => {
     expect(await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'abandoned' })).toBeNull()
   })
 
-  test('an unclaimed entity cannot be published by anyone', async () => {
-    // Making a character world-readable is the owner's call, and an unclaimed
+  test('an unassigned entity cannot be published by anyone', async () => {
+    // Making a character world-readable is the owner's call, and an unassigned
     // entity has no owner to make it.
     const t = testConvex()
     const someone = await makeUser(t, 'Someone')
@@ -402,7 +402,7 @@ describe('a published mech carries its pilot’s contributions', () => {
     expect(result?.pilotAbilities).toEqual([])
   })
 
-  test('still follows a link to an UNCLAIMED pilot in the same game', async () => {
+  test('still follows a link to an UNASSIGNED pilot in the same game', async () => {
     // No owner to ask, and already visible to the whole table.
     const t = testConvex()
     const me = await makeUser(t, 'Me')

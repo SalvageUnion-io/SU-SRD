@@ -54,6 +54,7 @@ import {
   resolvePartnerStatBlock,
 } from '../../lib/rules/partnerStats'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechItemMini } from './MechItemMini'
@@ -161,11 +162,11 @@ export function PartnerCard({
   // The stat order every surface keeps (`STATS`, salvageunion-reference):
   // Tech Level, then SP / EP / Heat, then the slots and Cargo.
   const stats: StatItem[] = [
-    { key: 'tech', label: 'Tech Level', value: techLevel, group: 'provenance' },
+    { key: 'tech', label: buildSheetCopy('techLevel'), value: techLevel, group: 'provenance' },
     {
       key: 'sp',
       group: 'vitals',
-      label: 'SP',
+      label: buildSheetCopy('sp'),
       value: sp,
       outOfMax: max.structurePoints,
       hoverText: scalingHover('structurePoints'),
@@ -176,7 +177,7 @@ export function PartnerCard({
     {
       key: 'ep',
       group: 'vitals',
-      label: 'EP',
+      label: buildSheetCopy('ep'),
       value: ep,
       outOfMax: max.energyPoints,
       hoverText: scalingHover('energyPoints'),
@@ -187,7 +188,7 @@ export function PartnerCard({
     {
       key: 'heat',
       group: 'vitals',
-      label: 'Heat',
+      label: buildSheetCopy('heat'),
       value: heat,
       outOfMax: max.heatCapacity,
       hoverText: scalingHover('heatCapacity'),
@@ -197,14 +198,14 @@ export function PartnerCard({
     },
     {
       key: 'sys',
-      label: 'System Slots',
+      label: buildSheetCopy('systemSlots'),
       value: partner.systems.length,
       outOfMax: max.systemSlots,
       group: 'capacity',
     },
     {
       key: 'mod',
-      label: 'Module Slots',
+      label: buildSheetCopy('moduleSlots'),
       value: partner.modules.length,
       outOfMax: max.moduleSlots,
       group: 'capacity',
@@ -213,7 +214,7 @@ export function PartnerCard({
       ? [
           {
             key: 'cargo',
-            label: 'Cargo',
+            label: buildSheetCopy('cargo'),
             value: cargo.usage.used,
             outOfMax: cargo.usage.cap,
             group: 'capacity' as const,
@@ -261,7 +262,10 @@ export function PartnerCard({
     // Keyed by occurrence, not index — see occurrenceKeys.
     const keys = occurrenceKeys(slugs)
     return (
-      <SlabSection as="h4" title={kind === 'system' ? 'Systems' : 'Modules'}>
+      <SlabSection
+        as="h4"
+        title={kind === 'system' ? buildSheetCopy('systems') : buildSheetCopy('modules')}
+      >
         {/* Contentful Minis in a masonry grid, each Peeking its whole card. */}
         <MiniGrid
           label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
@@ -315,26 +319,26 @@ export function PartnerCard({
         <Stack gap={16}>
           <Stack gap={12}>
             <Field
-              label="Name"
+              label={buildSheetCopy('name')}
               value={partner.name ?? ''}
-              placeholder={statBlock?.name ?? 'Unnamed'}
-              ariaLabel="Edit name"
+              placeholder={statBlock?.name ?? buildSheetCopy('unnamed')}
+              ariaLabel={buildSheetCopy('editName')}
               onSave={editable ? (next) => patch({ name: next }) : undefined}
             />
             <Field
-              label="A.I. Personality"
+              label={buildSheetCopy('aIPersonality')}
               value={partner.aiPersonality ?? ''}
-              placeholder="Roll on the A.I. Personality Table, or choose your own."
-              ariaLabel="Edit A.I. personality"
+              placeholder={buildSheetCopy('rollOnTheAI')}
+              ariaLabel={buildSheetCopy('editAIPersonality')}
               onSave={editable ? (next) => patch({ aiPersonality: next }) : undefined}
             />
             <Field
-              label="Appearance"
+              label={buildSheetCopy('appearance')}
               value={partner.appearance ?? ''}
               multiline
               fill
-              placeholder="However you wish."
-              ariaLabel="Edit appearance"
+              placeholder={buildSheetCopy('howeverYouWish')}
+              ariaLabel={buildSheetCopy('editAppearance')}
               onSave={editable ? (next) => patch({ appearance: next }) : undefined}
             />
           </Stack>

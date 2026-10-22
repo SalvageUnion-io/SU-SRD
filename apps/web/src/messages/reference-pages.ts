@@ -1,0 +1,164 @@
+/** The words of apps/web/src/reference/pages: the message catalogue (ADR-054). */
+
+import { messages } from './define'
+
+export const pagesCopy = messages({
+  thePageYouAreLooking: 'The page you are looking for could not be found.',
+  patternOf: 'Pattern of',
+  aboutSalvageunionIoAnOpen:
+    'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
+  aboutTheSalvageUnionSrd: 'About the Salvage Union SRD',
+  inspiredByThePilotsOf: 'Inspired by the pilots of',
+  n812Haven: '#812 Haven',
+  of: 'of',
+  theEldridgeCoast: 'The Eldridge Coast',
+  andUnionCrawlersEverywhere: 'And union crawlers everywhere',
+  weGetByWithA: '"We get by with a little help from our friends"',
+  whatIsThis: 'What is this?',
+  salvageUnion: 'Salvage Union',
+  leylinePress: 'Leyline Press',
+  bothAreOpenSourceAnd: 'Both are open source and contributions are welcome.',
+  salvageUnionOpenGameLicence: 'Salvage Union Open Game Licence 1.0b',
+  eldridgeCoastMap: 'Eldridge Coast Map',
+  close: 'Close',
+  shmeppyCom: 'Shmeppy.com',
+  documentationForThePublicJson:
+    'Documentation for the versioned public JSON API at salvageunion.io/api/v1.',
+  datasetApi: 'Dataset API',
+  overview: 'Overview',
+  allGameDataOnSalvageunion:
+    'All game data on SalvageUnion.io is available as machine-readable JSON. The API is static: every endpoint is a plain file served directly from the site. No authentication is required.',
+  accessControlAllowOrigin: 'Access-Control-Allow-Origin: *',
+  everyEndpointSitsUnder: 'Every endpoint sits under',
+  startAtTheManifest: 'Start at the manifest:',
+  tip: 'Tip:',
+  versionsAndStability: 'Versions and stability',
+  thisIsVersion1:
+    'This is version 1. Within v1, changes only add: new schemas, new optional fields, new entities and corrected text. A field is never removed, renamed or retyped, and an entity whose slug changes keeps answering at its old URL with a redirect.',
+  aBreakingChangeShips:
+    'A breaking change ships as a new version at /api/v2/, served beside v1 rather than in its place.',
+  theManifestGivesEachSchema:
+    'The manifest gives each schema a sha256 of its data, so a client can tell what changed since it last looked without downloading everything.',
+  theOlderUnversionedUrls:
+    'The older, unversioned /schema/ URLs, such as {data} and {item}, keep working and serve the same files on the same terms. New code should use v1.',
+  endpoints: 'Endpoints',
+  theManifest: 'The manifest',
+  listsEverySchema:
+    'Lists every schema with its name, item count, data hash and the URLs of its data and its JSON Schema. Start here.',
+  everyEntityOfASchema: 'Every entity of a schema',
+  returnsTheFullDataArray:
+    'Returns the full data array for a schema. Each element is a game entity.',
+  example: 'Example:',
+  aSchemasJsonSchema: "A schema's JSON Schema",
+  returnsTheJsonSchemaDefinition:
+    "Returns the JSON Schema definition for a schema, generated from the Zod validation schemas used in this site's codebase. Its $id is its own URL. Useful for validating data or understanding the shape of entity objects.",
+  oneEntity: 'One entity',
+  usageExample: 'Usage example',
+  fetchAllChassisDataIn: 'Fetch all chassis data in browser JavaScript:',
+  availableSchemas: 'Available Schemas',
+  theFollowingSchemaIdsAre:
+    'The following schema IDs are available. Use them in the endpoint patterns above.',
+  oneMoreActions:
+    'One more, actions, is served whole at {path} with its schema, but has no page and no per-entity files. Systems, Modules, Equipment and Abilities list their actions by name, and each action holds its type, cost, Range, Damage and Traits.',
+  schemaIds: 'Schema IDs',
+  schemaId: 'Schema ID',
+  name: 'Name',
+  description: 'Description',
+  items: 'Items',
+  everyEndpointIncludesHeaders:
+    'All {v1} and /schema/ endpoints include the following response headers:',
+  corsPolicy: 'CORS policy',
+  noPreflightRequestsAreRequired: 'No preflight requests are required for standard GET requests.',
+  licensing: 'Licensing',
+  salvageUnionOpenGameLicence2: 'Salvage Union Open Game Licence (OGL 1.0b)',
+  not: 'not',
+  privacyPolicyForTheSalvage:
+    'Privacy Policy for the Salvage Union Discord bot: what it stores when you link an account or bind a channel, and how to remove it.',
+  salvageUnionBotPrivacyPolicy: 'Salvage Union Bot — Privacy Policy',
+  lastUpdated: 'Last updated: {lastUpdated}',
+  shortVersionRollingAndLooking:
+    'Short version: rolling and looking things up store nothing. If you sign in to salvageunion.io with Discord, the Bot can show your account, Games and sheets, and post Play’s rolls to a channel you bind. We store only what those features need, and you can export or delete it from Settings.',
+  whatWeCollect: 'What we collect',
+  rollsAndLookups: 'Rolls and lookups',
+  suRoll: '/su roll',
+  suLookup: '/su lookup',
+  yourLinkedAccount: 'Your linked account:',
+  suMe: '/su me',
+  suGames: '/su games',
+  suSheet: '/su sheet',
+  boundChannels: 'Bound channels',
+  suBind: '/su bind',
+  suUnbind: '/su unbind',
+  rollsFromPlay: 'Rolls from Play:',
+  errorDiagnostics: 'Error diagnostics',
+  toKeepTheBotReliable:
+    'To keep the Bot reliable, unexpected errors are logged by our hosting provider (Cloudflare). These logs can include technical details about the error and the interaction that triggered it. They are used only to diagnose and fix bugs and are retained per that provider’s standard retention. Errors in the salvageunion.io backend are logged by Convex the same way.',
+  thirdParties: 'Third parties',
+  discord: 'Discord',
+  cloudflare: 'Cloudflare',
+  convex: 'Convex',
+  yourData: 'Your data',
+  settings: 'Settings',
+  privacySalvageunionIo: 'privacy@salvageunion.io',
+  termsOfService: 'Terms of Service',
+  termsOfServiceForThe:
+    'Terms of Service for the Salvage Union Discord bot — an unofficial, community reference tool for the Salvage Union TTRPG.',
+  salvageUnionBotTermsOf: 'Salvage Union Bot — Terms of Service',
+  byAddingOrUsingThe:
+    'By adding or using the Salvage Union bot (“the Bot”) in a Discord server or via user install, you agree to these terms.',
+  theService: 'The service',
+  su: '/su',
+  acceptableUse: 'Acceptable use',
+  dontUseTheBotTo:
+    'Don’t use the Bot to break Discord’s Terms of Service or Community Guidelines, to abuse or overload the service, or for any unlawful purpose. Bind a channel only where you’re allowed to post.',
+  intellectualProperty: 'Intellectual property',
+  salvageunionIo: 'salvageunion.io',
+  liability: 'Liability',
+  toTheMaximumExtentPermitted:
+    'To the maximum extent permitted by law, the operators of the Bot are not liable for any damages arising from its use or unavailability.',
+  contact: 'Contact',
+  privacyPolicy: 'Privacy Policy',
+  changelog: 'Changelog',
+  githubRepository: 'GitHub repository',
+  table: 'table',
+  coreMechanic: 'Core Mechanic',
+  startTypingATableName:
+    'Start typing a table name and autocomplete suggests matches from all {rollTableCount} tables — Critical Damage, Reactor Overload, Area Salvage, NPC generators, Keepsake, Motto, and every table from the expansions. Column tables (like the NPC tables) roll two d20s: one for the column, one for the entry.',
+  examples: 'Examples:',
+  suRollTableCriticalDamage: '/su roll table: Critical Damage',
+  suRollTableGroupInitiative: '/su roll table: Group Initiative',
+  cmdK: 'Cmd\u00a0K',
+  suLookupEntityGreenLaser: '/su lookup entity: green laser',
+  suLookupEntity: '/su lookup entity: {lowerCase}',
+  suLookupEntityOverheat: '/su lookup entity: overheat',
+  rollOnSalvageUnionTables:
+    'Roll on Salvage Union tables and look up any game entity without leaving your Discord server.',
+  discordBot: 'Discord Bot',
+  inYourServer: 'In your server',
+  theBotsReplyToSu: "The bot's reply to /su roll",
+  theBotsReplyToSu2: "The bot's reply to /su lookup",
+  addToYourDiscordServer: 'Add to your Discord server',
+  theSalvageunionIoBotBrings:
+    'The SalvageUnion.io bot brings this reference to your table’s Discord server: roll on every Salvage Union table and look up any game entity — chassis, systems, modules, equipment, keywords, and more — without leaving the conversation. Results link back to the full entry on this site.',
+  itAsksForNoServer:
+    'It asks for no server permissions — it only ever replies to slash commands. Free and with no configuration; rolling and lookups need no account.',
+  commands: 'Commands',
+  withYourAccount: 'With your account',
+  signIn: 'Sign in',
+  goodToKnow: 'Good to know',
+  theBotServesTheSame:
+    'The bot serves the same dataset as this site, including expansion content and the community Mech Monday patterns. It updates automatically when the reference does.',
+  itNeverReadsMessagesIts:
+    'It never reads messages — its only Discord capability is answering slash commands.',
+  runningACampaign: 'Running a campaign?',
+  randsumDev: 'Randsum.dev',
+  theCoreMechanic: 'The Core Mechanic',
+  heat: 'Heat',
+  mechDamage: 'Mech Damage',
+  toughChoices: 'Tough Choices',
+  salvaging: 'Salvaging',
+  theSalvageUnionSrd: 'The Salvage Union SRD',
+  atTheTable: 'At the table',
+  gettingStarted: 'Getting started',
+  ogCardRender: 'OG card render',
+})

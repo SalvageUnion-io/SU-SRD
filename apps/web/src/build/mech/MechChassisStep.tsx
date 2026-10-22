@@ -21,6 +21,7 @@ import {
 } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import '../../styles/build/wizard.css'
+import { mechCopy } from '../../messages/build-mech'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {
@@ -127,8 +128,8 @@ export function MechChassisStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label="Tech 1 Chassis" count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
+      <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
+      <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('chassis')}>
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
           const reason = chassisFitsCreationBudget(cost)
@@ -149,7 +150,7 @@ export function MechChassisStep({
               // contentful Mini (N3, E19).
               showChassisAbility
               footMeta={[
-                { label: 'Costs', value: `${cost} scrap` },
+                { label: mechCopy('costs'), value: `${cost} scrap` },
                 ...(reason ? [{ label: reason, value: '' }] : []),
               ]}
             />
@@ -158,11 +159,11 @@ export function MechChassisStep({
       </MasonryColumns>
 
       {selectedChassis === undefined ? (
-        <p style={HINT}>Pick a chassis to reveal its starting patterns.</p>
+        <p style={HINT}>{mechCopy('pickAChassisToReveal')}</p>
       ) : (
         <>
-          <Slab label="Start from a pattern?" count="Optional" countInk="inherit" />
-          <MasonryColumns maxColumns={2} radio ariaLabel="Starting pattern">
+          <Slab label={mechCopy('startFromAPattern')} count="Optional" countInk="inherit" />
+          <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('startingPattern')}>
             {patternPool.map((pattern) => (
               <PatternSelCard
                 key={pattern.name}
@@ -175,18 +176,16 @@ export function MechChassisStep({
             {/* No entity, so no Card: the Compact's frame in select mode, solid, since a
                 custom build is not user-made (ruleset §3.9). */}
             <TitledBox
-              title="Custom build"
+              title={mechCopy('customBuild')}
               select={{
                 kind: 'select',
                 role: 'radio',
                 selected: isCustom,
                 onSelect: onSelectCustom,
-                label: 'Custom build',
+                label: mechCopy('customBuild'),
               }}
             >
-              <p style={CUSTOM_BODY}>
-                No prefill — craft your Systems and Modules by hand in the next steps.
-              </p>
+              <p style={CUSTOM_BODY}>{mechCopy('noPrefillCraftYourSystems')}</p>
             </TitledBox>
           </MasonryColumns>
         </>

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { space } from '../design/tokens'
+import { componentsCopy } from '../messages/components'
 import { KofiButton, MarkdownSection, SlabSection, Stack } from './index'
 
 type ColophonProps = {
@@ -45,7 +46,7 @@ export function Colophon({
 
         <SlabSection
           as="h2"
-          title="Support the Project"
+          title={componentsCopy('supportTheProject')}
           actions={<KofiButton code={kofiCode} />}
           page
         />

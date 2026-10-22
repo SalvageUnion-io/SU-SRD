@@ -20,6 +20,7 @@ import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel, EntityMode } from '../../components/index'
 import { Entity, relation, Toggle, VitalGauge } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
 
@@ -88,7 +89,7 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
     maxHp > 0 ? (
       <div className="su-crew-lead__hp" title={hpHint}>
         <VitalGauge
-          label="HP"
+          label={buildSheetCopy('hp')}
           size="mini"
           value={hp}
           max={maxHp}
@@ -98,7 +99,7 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
     ) : undefined
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew lead so the several on one crawler stay distinguishable; a <section> here would become a region landmark once named
-    <div role="group" aria-label={`${bayName} crew lead`}>
+    <div role="group" aria-label={buildSheetCopy('crewLead', { bayName })}>
       <Entity
         size="mini"
         context="roster"
@@ -117,7 +118,7 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
                   onClick={() => setOpen(!open)}
                   aria-label={`${open ? 'Close' : 'Edit'} ${bayName} crew details`}
                 >
-                  Details
+                  {buildSheetCopy('details')}
                 </Toggle>
               ),
             }

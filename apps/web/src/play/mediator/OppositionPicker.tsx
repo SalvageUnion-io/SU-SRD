@@ -29,6 +29,7 @@ import {
   Stack,
   tokens,
 } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
@@ -126,13 +127,13 @@ export function OppositionPicker({
         else if (own) setPending({ entity, pattern: savedValue(own) })
         else add(entity)
       }}
-      chosenLabel="On the field"
+      chosenLabel={mediatorCopy('onTheField')}
       title={title}
       onClose={onClose}
       railActions={
         <Stack gap={6}>
           <Eyebrow as="label" tone="muted" htmlFor={`${id}-schema`}>
-            Draw from
+            {mediatorCopy('drawFrom')}
           </Eyebrow>
           <Select
             id={`${id}-schema`}
@@ -149,19 +150,19 @@ export function OppositionPicker({
             ))}
           </Select>
           <Eyebrow as="label" tone="muted" htmlFor={`${id}-name`}>
-            Name (optional)
+            {mediatorCopy('nameOptional')}
           </Eyebrow>
           <Input
             id={`${id}-name`}
             value={name}
-            placeholder="e.g. Red Leader"
+            placeholder={mediatorCopy('eGRedLeader')}
             autoComplete="off"
             onChange={(e) => setName(e.target.value)}
           />
           {pending ? (
             <>
               <Eyebrow as="label" tone="muted" htmlFor={`${id}-pattern`}>
-                {pending.entity.name} pattern
+                {mediatorCopy('pattern', { name: pending.entity.name })}
               </Eyebrow>
               <Select
                 id={`${id}-pattern`}
@@ -169,7 +170,7 @@ export function OppositionPicker({
                 onChange={(e) => setPending({ ...pending, pattern: e.target.value })}
               >
                 {pendingSaved.length > 0 ? (
-                  <optgroup label="Saved patterns">
+                  <optgroup label={mediatorCopy('savedPatterns')}>
                     {pendingSaved.map((p) => (
                       <option key={p.id} value={savedValue(p)}>
                         {p.name} · {p.madeBy}
@@ -178,7 +179,7 @@ export function OppositionPicker({
                   </optgroup>
                 ) : null}
                 {pendingPatterns.length > 0 ? (
-                  <optgroup label="From the book">
+                  <optgroup label={mediatorCopy('fromTheBook')}>
                     {pendingPatterns.map((p) => (
                       <option key={p.name} value={bookValue(p)}>
                         {p.name}
@@ -186,14 +187,14 @@ export function OppositionPicker({
                     ))}
                   </optgroup>
                 ) : null}
-                <option value={NO_PATTERN}>No pattern</option>
+                <option value={NO_PATTERN}>{mediatorCopy('noPattern')}</option>
               </Select>
               <div style={PATTERN_ACTIONS}>
                 <Button variant="primary" size="compact" onClick={addPending}>
-                  Add to the field
+                  {mediatorCopy('addToTheField')}
                 </Button>
                 <Button variant="ghost" size="compact" onClick={() => setPending(null)}>
-                  Cancel
+                  {mediatorCopy('cancel')}
                 </Button>
               </div>
             </>
@@ -230,8 +231,8 @@ export function OppositionDialogs({
         }}
         tone="danger"
         title={`Delete ${removing?.name ?? 'this NPC'}?`}
-        body="It leaves the Opposition for good, with its HP and its last Morale roll."
-        confirmLabel="Delete"
+        body={mediatorCopy('itLeavesTheOppositionFor')}
+        confirmLabel={mediatorCopy('delete')}
         onConfirm={async () => {
           if (removing !== null) await writes.remove(removing)
         }}
@@ -263,7 +264,7 @@ function RenameDialog({
       body={
         <>
           <Eyebrow as="label" tone="muted" htmlFor={renameId}>
-            Name
+            {mediatorCopy('name')}
           </Eyebrow>
           <Input
             id={renameId}
@@ -273,7 +274,7 @@ function RenameDialog({
           />
         </>
       }
-      confirmLabel="Rename"
+      confirmLabel={mediatorCopy('rename')}
       onConfirm={async () => {
         if (newName.trim() === '') throw new Error(EMPTY_NAME)
         if (npc !== null) await writes.rename(npc, newName.trim())

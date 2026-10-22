@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { Stat, tokens } from '../../components/index'
+import { buildWizardCopy } from '../../messages/build-wizard'
 
 const rowStyle = {
   alignItems: 'flex-start',
@@ -28,11 +29,12 @@ const briefStyle = {
 export function GainScrapStep() {
   return (
     <div style={rowStyle}>
-      <Stat label="SCRAP" value={MECH_CREATION_SCRAP_CAP} max={MECH_CREATION_SCRAP_CAP} />
-      <p style={briefStyle}>
-        Every purchase in this workshop — the Chassis, each System, each Module — debits this one
-        pool. Whatever is left over banks to your Union Crawler when the build is done.
-      </p>
+      <Stat
+        label={buildWizardCopy('scrap')}
+        value={MECH_CREATION_SCRAP_CAP}
+        max={MECH_CREATION_SCRAP_CAP}
+      />
+      <p style={briefStyle}>{buildWizardCopy('everyPurchaseInThisWorkshop')}</p>
     </div>
   )
 }

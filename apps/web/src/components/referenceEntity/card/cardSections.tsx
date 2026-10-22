@@ -9,6 +9,7 @@
 import type { ReactNode } from 'react'
 import { resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
 import { CardImage } from '../../compositions/CardImage'
 import { embeddedPeekAddress, tablePeekAddress } from '../../entity/peekContext'
@@ -36,8 +37,11 @@ import { WhenDamaged } from './WhenDamaged'
  * in place of a band over them: its unique Crawler Ability
  * and its special NPC (Core Book p.212).
  */
-export const CRAWLER_ABILITY_SEAL = { label: 'Crawler Ability', tone: 'var(--color-ink)' }
-const CRAWLER_NPC_SEAL = { label: 'NPC', tone: 'var(--color-ink)' }
+export const CRAWLER_ABILITY_SEAL = {
+  label: referenceEntityCopy('crawlerAbility'),
+  tone: 'var(--color-ink)',
+}
+const CRAWLER_NPC_SEAL = { label: referenceEntityCopy('npc'), tone: 'var(--color-ink)' }
 
 const BODY_PAD: Record<Size, { ruled: string; open: string }> = {
   full: { ruled: `${space[2]} ${space[14]} ${space[12]}`, open: `${space[12]} ${space[14]}` },

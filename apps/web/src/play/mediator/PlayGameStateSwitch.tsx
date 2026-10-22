@@ -17,6 +17,7 @@ import { downtimeStepCount, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ConfirmDialog, Segmented, SegmentedOption, tokens } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayDowntime } from '../situation.model'
 import { downtimeOptionLabel } from './mediatorTable.model'
 
@@ -54,10 +55,15 @@ export function PlayGameStateSwitch({
     <div style={fill ? FILL_ROW : ROW}>
       {!fill && (
         <span style={LABEL} aria-hidden="true">
-          Game state
+          {mediatorCopy('gameState')}
         </span>
       )}
-      <Segmented label="Game state" size="compact" fill={fill} style={fill ? GROW : undefined}>
+      <Segmented
+        label={mediatorCopy('gameState')}
+        size="compact"
+        fill={fill}
+        style={fill ? GROW : undefined}
+      >
         <SegmentedOption
           pressed={!running}
           disabled={!canWrite}
@@ -67,7 +73,7 @@ export function PlayGameStateSwitch({
             else setConfirmEnd(true)
           }}
         >
-          Scene
+          {mediatorCopy('scene')}
         </SegmentedOption>
         <SegmentedOption
           pressed={running}
@@ -83,9 +89,13 @@ export function PlayGameStateSwitch({
         open={confirmEnd}
         onOpenChange={setConfirmEnd}
         tone="danger"
-        title="End Downtime early?"
-        body={`The table is on step ${(stepIndex ?? 0) + 1} of ${count}. Everyone goes back to their seat. Beginning again starts from the first step, and upkeep is due again in ${UPKEEP_STEP_NAME}.`}
-        confirmLabel="End Downtime"
+        title={mediatorCopy('endDowntimeEarly')}
+        body={mediatorCopy('theTableIsOnStep', {
+          value: (stepIndex ?? 0) + 1,
+          count,
+          upkeepStepName: UPKEEP_STEP_NAME,
+        })}
+        confirmLabel={mediatorCopy('endDowntime')}
         onConfirm={() => {
           downtime.end()
         }}

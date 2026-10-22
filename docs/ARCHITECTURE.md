@@ -25,7 +25,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
    In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
 7. **Dataset API** <a id="dataset-api"></a>
-   v1 at `/api/v1/` (manifest `index.json`, `<schema>.json`, `.schema.json`, `<schema>/<slug>.json`), only additive changes (ADR-053).
+   v1 at `/api/v1/` (manifest `index.json`, `<schema>.json`, `.schema.json`, `<schema>/<slug>.json`), only additive changes (ADR-056).
    `/schema/*` serves the same files, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
@@ -154,7 +154,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051 and ADR-052.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052 and ADR-055.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -174,15 +174,15 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built; ADR-051 keeps its seat and 1280×800 canvas, replacing Game-only and the slots. As built: [play.md](architecture/play.md).
     Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051.
 40. **ADR-040 The dataset is served verbatim with no release stream**
-    `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`. Amends ADR-014; amended by ADR-043, ADR-053.
+    `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`. Amends ADR-014; amended by ADR-043, ADR-056.
 41. **ADR-041 The deployed commit is the release**
     No app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
 42. **ADR-042 Mid-tab updates**
     `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
     The `client-contract` gate catches argument breaks; anything else is a soft update.
 43. **ADR-043 The dataset is a versioned public contract at `api.salvageunion.io`**
-    Built as ADR-053: a static `/v1` tree emitted from the committed files; no query Worker.
-    Amends ADR-014, ADR-040; decision 1 superseded by ADR-047, then ADR-053.
+    Built as ADR-056: a static `/v1` tree emitted from the committed files; no query Worker.
+    Amends ADR-014, ADR-040; decision 1 superseded by ADR-047, then ADR-056.
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
@@ -193,7 +193,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
 47. **ADR-047 One salvageunion.io edge Worker**
     Not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
-    Supersedes ADR-043 decision 1; amends ADR-033; its `api.` host superseded by ADR-053.
+    Supersedes ADR-043 decision 1; amends ADR-033; its `api.` host superseded by ADR-056.
 48. **ADR-048 The app at salvageunion.io/build**
     `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
 49. **ADR-049 Workers Issues, not Sentry**
@@ -207,6 +207,14 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1.
-53. **ADR-053 The Dataset API v1 at salvageunion.io/api/v1** · [full text](adr/053-dataset-api-v1.md)
+53. **ADR-053 Canon as gates**
+    Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
+    hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
+54. **ADR-054 One message catalogue** · [full text](adr/054-message-catalogue.md)
+    Built: UI words are keys in `apps/web/src/messages/`, values as `{name}`; English only; the `ui-strings` gate ratchets the rest.
+55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
+    Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
+    Amends ADR-030 §2, §4–6.
+56. **ADR-056 The Dataset API v1 at salvageunion.io/api/v1** · [full text](adr/056-dataset-api-v1.md)
     Built: static files on the one Worker; additive-only within v1, breaking changes as `/api/v2/`; manifest with hashes.
     Supersedes ADR-043 decision 1 (via ADR-047); amends ADR-040.

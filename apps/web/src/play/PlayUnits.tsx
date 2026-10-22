@@ -51,6 +51,7 @@ import { activatableEffects } from '../lib/rules/activatableEffects'
 import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
+import { playCopy } from '../messages/play'
 import { useEntityStore } from '../stores/entityStore'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import type { EntityForType } from '../stores/types'
@@ -118,8 +119,13 @@ function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: 
 /** "Sheet", opening the unit’s sheet in Build (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
 function SheetButton({ name, onOpen }: { name: string; onOpen: () => void }) {
   return (
-    <Button variant="ghost" size="mini" aria-label={`Open ${name}’s sheet`} onClick={onOpen}>
-      Sheet
+    <Button
+      variant="ghost"
+      size="mini"
+      aria-label={playCopy('openSSheet', { name })}
+      onClick={onOpen}
+    >
+      {playCopy('sheet')}
     </Button>
   )
 }
@@ -150,11 +156,11 @@ export function PlayPilotUnit({
     <TitledBox
       as="section"
       title={pilot.name}
-      label={`Pilot: ${pilot.name}`}
+      label={playCopy('pilot', { name: pilot.name })}
       tone="pilot"
       className="su-play-unit"
       reference={!live}
-      chips={<Stat label="Pilot" size="compact" />}
+      chips={<Stat label={playCopy('pilot2')} size="compact" />}
       controls={
         <>
           {stamp(live ? 'Live' : 'Read only')}
@@ -164,7 +170,7 @@ export function PlayPilotUnit({
     >
       {hp ? (
         <PlayVital
-          label="HP"
+          label={playCopy('hp')}
           value={hp.value}
           max={hp.max}
           tone="pilot"
@@ -173,7 +179,7 @@ export function PlayPilotUnit({
       ) : null}
       {ap ? (
         <PlayVital
-          label="AP"
+          label={playCopy('ap2')}
           value={ap.value}
           max={ap.max}
           tone="pilot"
@@ -182,9 +188,9 @@ export function PlayPilotUnit({
       ) : null}
       <div style={CHIPS}>
         {pilot.classRef ? <Stat label={resolveClassName(pilot.classRef)} size="compact" /> : null}
-        <Stat label="TP" value={pilot.trainingPoints ?? 0} size="compact" />
+        <Stat label={playCopy('tp')} value={pilot.trainingPoints ?? 0} size="compact" />
         {injuries.length === 0 ? (
-          <Stat label="No injuries" size="compact" />
+          <Stat label={playCopy('noInjuries')} size="compact" />
         ) : (
           injuries.map((line) => <Stat key={line} label={line} size="compact" state="critical" />)
         )}
@@ -261,7 +267,7 @@ export function PlayMechUnit({
     <TitledBox
       as="section"
       title={mech.name}
-      label={`Mech: ${mech.name}`}
+      label={playCopy('mech', { name: mech.name })}
       tone="mech"
       className="su-play-unit"
       reference={!live}
@@ -276,18 +282,18 @@ export function PlayMechUnit({
             <Button
               variant="primary"
               size="mini"
-              aria-label={`Board ${mech.name}`}
+              aria-label={playCopy('board2', { name: mech.name })}
               disabled={onBoard === null}
               onClick={onBoard ?? undefined}
             >
-              Board
+              {playCopy('board')}
             </Button>
           ) : null}
         </>
       }
     >
       <PlayVital
-        label="SP"
+        label={playCopy('sp')}
         value={s.sp}
         max={s.maxSP}
         tone="mech"
@@ -295,7 +301,7 @@ export function PlayMechUnit({
         onChange={live ? (v) => write({ currentSP: v }) : undefined}
       />
       <PlayVital
-        label="EP"
+        label={playCopy('ep2')}
         value={s.ep}
         max={s.maxEP}
         tone="mech"
@@ -304,7 +310,7 @@ export function PlayMechUnit({
       />
       {showHeat ? (
         <PlayVital
-          label="Heat"
+          label={playCopy('heat')}
           value={s.heat}
           max={s.maxHeat}
           tone="mech"
@@ -315,8 +321,8 @@ export function PlayMechUnit({
       ) : null}
       {effects.length > 0 ? (
         <>
-          <Slab as="h4" label="Effects" />
-          <Segmented label={`Effects of ${mech.name}`} size="compact" wrap>
+          <Slab as="h4" label={playCopy('effects')} />
+          <Segmented label={playCopy('effectsOf', { name: mech.name })} size="compact" wrap>
             {effects.map((e) => {
               const on = activeEffects.includes(e.ref)
               return (
@@ -324,7 +330,9 @@ export function PlayMechUnit({
                   key={e.ref}
                   pressed={on}
                   disabled={!live || onToggleEffect === undefined}
-                  title={on ? `${e.name} is on: press to end it` : `${e.name}: ${e.summary}`}
+                  title={
+                    on ? playCopy('isOnPressToEnd', { name: e.name }) : `${e.name}: ${e.summary}`
+                  }
                   onClick={() => onToggleEffect?.(e.ref)}
                 >
                   {e.name}
@@ -336,8 +344,8 @@ export function PlayMechUnit({
       ) : null}
       {place === 'boarded' && range ? (
         <div style={CHIPS}>
-          <span style={RANGE_LABEL}>Range</span>
-          <Segmented label="Range" size="compact">
+          <span style={RANGE_LABEL}>{playCopy('range')}</span>
+          <Segmented label={playCopy('range')} size="compact">
             {RANGE_BANDS.map((band) => (
               <SegmentedOption
                 key={band}
@@ -352,7 +360,7 @@ export function PlayMechUnit({
           </Segmented>
         </div>
       ) : null}
-      {place === 'parked' ? <p style={NOTE}>Read only until boarded</p> : null}
+      {place === 'parked' ? <p style={NOTE}>{playCopy('readOnlyUntilBoarded')}</p> : null}
     </TitledBox>
   )
 }
@@ -390,24 +398,24 @@ export function PlayCrawlerUnit({
     <TitledBox
       as="section"
       title={crawler.name}
-      label={`Crawler: ${crawler.name}`}
+      label={playCopy('crawler', { name: crawler.name })}
       tone="crawler"
       className="su-play-unit"
       reference={!solid}
-      chips={<Stat label="Crawler" size="compact" />}
+      chips={<Stat label={playCopy('crawler2')} size="compact" />}
       controls={
         <>
           {downtime ? (
             stamp('Downtime')
           ) : tl === undefined ? null : (
-            <Stat label="TL" value={tl} size="compact" />
+            <Stat label={playCopy('tl')} value={tl} size="compact" />
           )}
           {onOpenSheet ? <SheetButton name={crawler.name} onOpen={onOpenSheet} /> : null}
         </>
       }
     >
       <PlayVital
-        label="SP"
+        label={playCopy('sp')}
         value={sp.value}
         max={sp.max}
         tone="crawler"
@@ -415,16 +423,20 @@ export function PlayCrawlerUnit({
       />
       {downtime && tl !== undefined ? (
         <div style={CHIPS}>
-          <Stat label="Upkeep" value={`${DOWNTIME_UPKEEP_SCRAP} Scrap · T${tl}`} size="compact" />
+          <Stat
+            label={playCopy('upkeep')}
+            value={`${DOWNTIME_UPKEEP_SCRAP} Scrap · T${tl}`}
+            size="compact"
+          />
         </div>
       ) : null}
       {chips.length > 0 ? (
-        <ul className="su-play-unit__bays" aria-label={`${crawler.name}’s bays`}>
+        <ul className="su-play-unit__bays" aria-label={playCopy('sBays', { name: crawler.name })}>
           {chips.map((bay, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: two bays may share a name
             <li key={`${bay.name}-${i}`}>
               <Stat
-                label={bay.damaged ? `${bay.name} · damaged` : bay.name}
+                label={bay.damaged ? playCopy('damaged2', { name: bay.name }) : bay.name}
                 size="compact"
                 state={bay.damaged ? 'critical' : undefined}
               />
@@ -457,7 +469,7 @@ export function PlayHangarMech({
         size="mini"
         context="play"
         model={unitRowModel({ kind: 'mech', name, note: chassis ?? undefined })}
-        state={<Stat label={note ?? 'In hangar'} size="mini" />}
+        state={<Stat label={note ?? playCopy('inHangar')} size="mini" />}
       />
     </li>
   )

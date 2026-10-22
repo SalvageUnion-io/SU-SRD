@@ -8,8 +8,8 @@ import { mutation, refreshGameSummary, summaryOf } from './model/entities'
 import {
   getMembership,
   isTableRunner,
+  membershipOrNull,
   NotAuthorized,
-  requireMember,
   requireOrganizer,
   requireTableRunner,
   requireUser,
@@ -172,14 +172,14 @@ export const create = mutation({
  * | What                                | Where it lands                 |
  * | ----------------------------------- | ------------------------------ |
  * | a pilot, mech or NPC with an owner  | that owner's shelf             |
- * | an **unclaimed** pilot, mech or NPC | the deleting Organizer's shelf |
+ * | an **unassigned** pilot, mech or NPC | the deleting Organizer's shelf |
  * | every **crawler**                   | the deleting Organizer's shelf |
  * | every **encounter NPC**             | the deleting Organizer's shelf |
  *
  * The first row is the one that matters most: deleting a campaign must never
  * delete somebody's character.
  *
- * Nothing is deleted outright: an unclaimed entity or a crawler has a shelf to
+ * Nothing is deleted outright: an unassigned entity or a crawler has a shelf to
  * fall back to too, since a shelf row carries an owner (see `schema.ts`), and
  * the receiving shelf is the **deleter's**: they are the one person
  * guaranteed to exist, and the one looking at the consequence as it happens.
@@ -200,7 +200,7 @@ export const destroy = mutation({
     const organizerId = membership.userId
 
     // Every entity row falls back to a shelf. Anything already owned keeps its
-    // owner. An unclaimed pilot, mech or NPC has none to keep, and a crawler or
+    // owner. An unassigned pilot, mech or NPC has none to keep, and a crawler or
     // tray NPC never has one inside a Game (`ownerId: null` is what communal
     // means there, ADR-030 §5, ADR-034 decision 2), so the deleting Organizer
     // receives each of those: a Game may have several Mediators or none, while
@@ -249,7 +249,7 @@ export const members = query({
     })
   ),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
     const rows = await ctx.db
       .query('memberships')
       .withIndex('by_game', (q) => q.eq('gameId', args.gameId))

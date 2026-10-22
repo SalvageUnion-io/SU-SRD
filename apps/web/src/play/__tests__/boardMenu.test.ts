@@ -62,9 +62,9 @@ describe('each state', () => {
     expect(boardable(o)).toBe(true)
   })
 
-  test('an unclaimed spare is claimed, then boarded', () => {
+  test('an unassigned spare is assigned, then boarded', () => {
     const o = option(menuFor([row('thresher', ME), row('spare', null)]), 'spare')
-    expect(o).toMatchObject({ state: 'spare', note: 'Unclaimed spare', serverId: 'row-spare' })
+    expect(o).toMatchObject({ state: 'spare', note: 'Unassigned spare', serverId: 'row-spare' })
     expect(boardable(o)).toBe(true)
   })
 

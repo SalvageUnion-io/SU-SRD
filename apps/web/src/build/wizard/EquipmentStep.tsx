@@ -2,6 +2,7 @@ import type { RefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../../components/index'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle } from './wizardStyles.model'
 
 type SUREquipmentAccessor = {
@@ -73,7 +74,7 @@ export function EquipmentStep({
                 {
                   key: 'qty',
                   stepper: {
-                    label: 'Qty',
+                    label: buildWizardCopy('qty'),
                     subject: `${item.name} count`,
                     value: count,
                     ceiling: count + remaining,
@@ -86,7 +87,10 @@ export function EquipmentStep({
         })}
       </MasonryColumns>
       {equipment.length === 0 && (
-        <EmptyState headline="No Equipment" body="No tech level 1 equipment found." />
+        <EmptyState
+          headline={buildWizardCopy('noEquipment')}
+          body={buildWizardCopy('noTechLevel1Equipment')}
+        />
       )}
     </div>
   )

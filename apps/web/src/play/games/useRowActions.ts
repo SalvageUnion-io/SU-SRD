@@ -2,8 +2,8 @@
  * The destructive and ownership verbs on a Game's crew row, each behind its
  * confirm.
  *
- * Every verb here changes who has a build or whether it exists — picking it up,
- * offering it back, moving it out, deleting it, scrapping the crawler — so none
+ * Every verb here changes who has a build or whether it exists — assigning it,
+ * unassigning it, moving it out, deleting it, scrapping the crawler — so none
  * of them runs on the press. Copying is Build's (the Training Bay's ⋯ menu):
  * Play only plays. Each opens the surface's confirm (`useConfirm`) with
  * its words from `lib/games/rowActionCopy.ts`, and does the work only when the
@@ -21,7 +21,7 @@ import type { OwnableTable } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Confirm } from '../../components/shared/useConfirm'
-import type { RosterRow } from '../../lib/games/gameRoster'
+import type { GameMember, RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
@@ -32,10 +32,15 @@ function ownableTable(row: RosterRow): OwnableTable {
 }
 
 export type RowActions = {
-  /** Claim an unclaimed character; `ShelfSync` brings it into this browser. */
-  pickUp: (row: RosterRow) => void
-  /** Hand a character you hold back to the crew. */
-  offer: (row: RosterRow) => void
+  /** Assign an unassigned character to yourself; `ShelfSync` brings it into this browser. */
+  assignSelf: (row: RosterRow) => void
+  /**
+   * The table runner's: assign a character to `member`, whoever holds it now.
+   * `self` when the member is the viewer, so the confirm says "you".
+   */
+  assignTo: (row: RosterRow, member: GameMember, self: boolean) => void
+  /** Hand a character back to the crew: its holder's, or the table runner's. */
+  unassign: (row: RosterRow) => void
   /**
    * Take a build out of the Game it is in, to your shelves — same record, same id
    * (a move, never a copy). `gameName` names the Game in the confirm.
@@ -48,8 +53,8 @@ export type RowActions = {
 }
 
 export function useRowActions(confirm: Confirm): RowActions {
-  const claim = useMutation(api.ownership.claim)
-  const release = useMutation(api.ownership.release)
+  const assign = useMutation(api.ownership.assign)
+  const unassign = useMutation(api.ownership.unassign)
   const scrapCrawler = useMutation(api.entities.removeCrawler)
   const removeEntity = useMutation(api.entities.remove)
 
@@ -59,22 +64,45 @@ export function useRowActions(confirm: Confirm): RowActions {
   }
 
   return {
-    pickUp: (row) =>
+    assignSelf: (row) =>
       confirm({
-        ...ROW_ACTION_COPY.pickUp(row.name),
+        ...ROW_ACTION_COPY.assignSelf(row.name),
         onConfirm: async () => {
           // Nothing to pull down by hand: it is yours now, so it is in
           // `listMine`, and `ShelfSync` caches it from there — the row's View
           // opens it editable as soon as it lands.
-          await claim({ table: ownableTable(row), entityId: row.serverId })
+          await assign({ table: ownableTable(row), entityId: row.serverId })
         },
       }),
 
-    offer: (row) =>
+    assignTo: (row, member, self) =>
       confirm({
-        ...ROW_ACTION_COPY.offer(row.name, row.kind),
+        ...ROW_ACTION_COPY.assignTo(
+          row.name,
+          row.kind,
+          self ? 'you' : member.displayName,
+          row.owner === null || row.owner.unassigned
+            ? null
+            : row.owner.mine
+              ? 'you'
+              : row.owner.label
+        ),
         onConfirm: async () => {
-          await release({ table: ownableTable(row), entityId: row.serverId })
+          await assign({
+            table: ownableTable(row),
+            entityId: row.serverId,
+            userId: member.userId as Id<'users'>,
+          })
+          // Handed to somebody else, it is no longer this browser's to edit.
+          if (row.owner?.mine === true) await forgetLocal(row)
+        },
+      }),
+
+    unassign: (row) =>
+      confirm({
+        ...ROW_ACTION_COPY.unassign(row.name, row.kind, row.owner?.mine === true),
+        onConfirm: async () => {
+          await unassign({ table: ownableTable(row), entityId: row.serverId })
           // It belongs to the table now, not to this browser: keeping a local
           // copy would leave an editor whose writes the server refuses.
           await forgetLocal(row)

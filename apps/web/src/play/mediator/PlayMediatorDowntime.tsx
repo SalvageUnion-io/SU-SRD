@@ -35,6 +35,7 @@ import {
   TitledBox,
 } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { useEntityStore } from '../../stores/entityStore'
 import { DowntimeStepNav } from '../DowntimeStepNav'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
@@ -91,7 +92,7 @@ export function PlayMediatorDowntime({
 
   return (
     <>
-      <Slab as="h2" label={`Downtime · Step ${idx + 1} of ${count}`} />
+      <Slab as="h2" label={mediatorCopy('downtimeStepOf', { value: idx + 1, count })} />
       <PlayDowntimeTrack
         steps={steps}
         current={idx}
@@ -105,11 +106,11 @@ export function PlayMediatorDowntime({
           number={String(idx + 1)}
           chips={
             <Badge shape="stamp" surface="inverse" size="mini">
-              {done} of {of} done
+              {mediatorCopy('ofDone', { done, of })}
             </Badge>
           }
         >
-          <ul className="su-entity-mini-list" aria-label="Who is done">
+          <ul className="su-entity-mini-list" aria-label={mediatorCopy('whoIsDone')}>
             {seats.map((seat) => {
               const isDone = seatDone(seat, completedBy)
               return (
@@ -122,7 +123,13 @@ export function PlayMediatorDowntime({
                     // own Size, never loose words (C3, C8).
                     state={
                       <Stat
-                        label={isDone ? 'Done' : seat.present ? 'Working' : 'Away'}
+                        label={
+                          isDone
+                            ? mediatorCopy('done')
+                            : seat.present
+                              ? mediatorCopy('working')
+                              : mediatorCopy('away')
+                        }
                         size="mini"
                       />
                     }
@@ -144,7 +151,11 @@ export function PlayMediatorDowntime({
           </div>
         </TitledBox>
       )}
-      <ul className="su-entity-mini-list" aria-label="Downtime for the table" data-play-list="">
+      <ul
+        className="su-entity-mini-list"
+        aria-label={mediatorCopy('downtimeForTheTable')}
+        data-play-list=""
+      >
         <li className="su-play-act" data-action-key="upkeep">
           <Entity
             size="mini"
@@ -153,21 +164,25 @@ export function PlayMediatorDowntime({
             state={
               <Stat
                 size="mini"
-                label={`${DOWNTIME_UPKEEP_SCRAP} Scrap`}
+                label={mediatorCopy('scrap', { downtimeUpkeepScrap: DOWNTIME_UPKEEP_SCRAP })}
                 value={unit === null ? undefined : `T${crawlerTl(unit)}`}
               />
             }
             controls={
               upkeepSpent ? (
-                <Stat size="mini" label="Paid" />
+                <Stat size="mini" label={mediatorCopy('paid')} />
               ) : (
                 <Button
                   size="mini"
                   disabled={off || !upkeepStep || unit === null}
-                  title={upkeepStep ? undefined : `Upkeep is paid in the ${UPKEEP_STEP_NAME} step`}
+                  title={
+                    upkeepStep
+                      ? undefined
+                      : mediatorCopy('upkeepIsPaidInThe', { upkeepStepName: UPKEEP_STEP_NAME })
+                  }
                   onClick={() => void pay()}
                 >
-                  Pay
+                  {mediatorCopy('pay')}
                 </Button>
               )
             }
@@ -199,19 +214,16 @@ export function PlayMediatorDowntime({
         open={confirmEnd}
         onOpenChange={setConfirmEnd}
         tone="danger"
-        title="End Downtime early?"
+        title={mediatorCopy('endDowntimeEarly')}
         body={
           <>
+            <span>{mediatorCopy('theTableIsOnStep2', { value: idx + 1, count })}</span>
             <span>
-              The table is on step {idx + 1} of {count}. Everyone goes back to their seat.
-            </span>
-            <span>
-              Beginning again starts from the first step, and upkeep is due again in{' '}
-              {UPKEEP_STEP_NAME}.
+              {mediatorCopy('beginningAgainStartsFromThe', { upkeepStepName: UPKEEP_STEP_NAME })}
             </span>
           </>
         }
-        confirmLabel="End Downtime"
+        confirmLabel={mediatorCopy('endDowntime')}
         onConfirm={() => {
           downtime.end()
         }}

@@ -5,6 +5,7 @@ import { findFrames } from './_entityFrames'
 import { place } from './_findings'
 import { editSheet, openPeekFromSearch, openSheetFor, runWizard, waitForReady } from './_helpers'
 import { findNesting } from './_nestingDepth'
+import { findPageWhole } from './_pageWhole'
 import { expect, test } from './fixtures'
 
 /**
@@ -16,7 +17,9 @@ import { expect, test } from './fixtures'
  *
  * There is no allowlist: every finding fails, bar a pending rule's
  * (`_pendingRules.ts`), which the report shows. Every entity frame's colour
- * (`_entityFrames.ts`, R38) is read on the same pages.
+ * (`_entityFrames.ts`, R38, R42) is read on the same pages, and each page is
+ * read whole (`_pageWhole.ts`, R43, R44): no fold in its content, no sideways
+ * scroll.
  *
  * Signed out: the reference corpus (`REFERENCE_CORPUS`, `_designTable.ts`:
  * every Starter Set sheet among it) at page and phone widths, and a Peek of a
@@ -60,6 +63,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
       async ({ path }) => [
         ...(await findNesting(page, { oneDeep: ONE_DEEP.test(path) })),
         ...(await findFrames(page)),
+        ...(await findPageWhole(page)),
       ],
       { message: 'entities nested past the three levels' }
     )

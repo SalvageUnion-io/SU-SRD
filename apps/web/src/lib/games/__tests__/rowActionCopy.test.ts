@@ -132,15 +132,19 @@ describe('rowActionCopy', () => {
   })
 
   test('a pilot is "them"; a mech or a crawler is "it"', () => {
-    expect(ROW_ACTION_COPY.offer('Vex Arlo', 'pilot').body[0]).toContain('pick them up')
-    expect(ROW_ACTION_COPY.offer('Iron Mongrel', 'mech').body[0]).toContain('pick it up')
+    expect(ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true).body[0]).toContain('assign them to')
+    expect(ROW_ACTION_COPY.unassign('Iron Mongrel', 'mech', true).body[0]).toContain('assign it to')
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', 'you').body[0]).toContain(
+      'instead of you, who can still read them'
+    )
   })
 
-  test('only the two constructive verbs are not danger-toned', () => {
-    expect(ROW_ACTION_COPY.pickUp('Vex Arlo').tone).toBe('default')
+  test('only the constructive verbs are not danger-toned', () => {
+    expect(ROW_ACTION_COPY.assignSelf('Vex Arlo').tone).toBe('default')
+    expect(ROW_ACTION_COPY.assignTo('Vex Arlo', 'pilot', 'Mara', null).tone).toBe('default')
     expect(ROW_ACTION_COPY.copyOnShelf('Vex Arlo').tone).toBe('default')
     for (const copy of [
-      ROW_ACTION_COPY.offer('Vex Arlo', 'pilot'),
+      ROW_ACTION_COPY.unassign('Vex Arlo', 'pilot', true),
       ROW_ACTION_COPY.deleteFromGame('Vex Arlo'),
       ROW_ACTION_COPY.deleteBuild('Vex Arlo'),
       ROW_ACTION_COPY.scrap('#430 Tenacity'),

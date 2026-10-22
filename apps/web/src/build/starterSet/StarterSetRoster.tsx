@@ -20,6 +20,7 @@ import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { CopyStarterMenu } from './CopyStarterMenu'
@@ -52,16 +53,20 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
 
   return (
     <>
-      {headingLevel === 'h1' && <ChapterBand tone="build">Starter Set</ChapterBand>}
-      <section aria-label="Starter Set">
+      {headingLevel === 'h1' && (
+        <ChapterBand tone="build">{buildStarterSetCopy('starterSet2')}</ChapterBand>
+      )}
+      <section aria-label={buildStarterSetCopy('starterSet2')}>
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
-          {headingLevel === 'h2' && <Slab as="h2" label="Starter Set" flush />}
+          {headingLevel === 'h2' && (
+            <Slab as="h2" label={buildStarterSetCopy('starterSet2')} flush />
+          )}
           <Text variant="body">
             The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
             Read-only reference: open any sheet to read it.{' '}
             {mode === 'connected'
-              ? 'Copy one into your Training Bay or into one of your Games to play it.'
-              : 'Sign in to copy one into your Training Bay or into a Game and play it.'}
+              ? buildStarterSetCopy('copyOneIntoYourTraining')
+              : buildStarterSetCopy('signInToCopyOne')}
           </Text>
         </div>
 

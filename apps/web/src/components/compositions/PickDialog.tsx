@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
 import { DialogActions } from '../containers/DialogActions'
@@ -185,7 +186,7 @@ export function PickDialog({
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
-            Cancel
+            {compositionsCopy('cancel')}
           </Button>
           <Button
             variant="primary"

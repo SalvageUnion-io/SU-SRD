@@ -18,7 +18,7 @@
  *     have falls through to the rules below.
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   - `api-miss`: `/api/v1` and below → a JSON **404** naming the manifest, so a
- *     client reading the Dataset API never parses the HTML page (ADR-053).
+ *     client reading the Dataset API never parses the HTML page (ADR-056).
  *   - `legacy-301`: a page path from before the move out of `/schema/…/item/`
  *     → a **301** to where it lives now (`../lib/redirects.ts`).
  *   - `not-found`: anything else → `404.html`, read through the asset
