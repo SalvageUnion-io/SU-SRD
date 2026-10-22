@@ -104,20 +104,25 @@ select.su-container-select {
 }
 
 /* A Game's members (`TheGame`): each crewmate's units fill its card's width
-   in two columns, typically Pilot // Mech. */
+   in two columns, typically Pilot // Mech; a lone unit fills it alone (N4). */
 .su-game-members .su-entity-linked {
   align-self: stretch;
   display: grid;
-  grid-template-columns: repeat(
-      auto-fill,
-      minmax(min(100%, max(10rem, 50% - var(--space-4))), 1fr)
-    );
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(10rem, 50% - var(--space-4))), 1fr));
   width: 100%;
 }
 
 .su-game-members .su-entity-linked > * {
   min-width: 0;
   width: 100%;
+}
+
+/* A Game on the Play hub (`PlayLanding`): its crew one Mini a line, each
+   filling the card's width (N4). */
+.su-hub-game .su-entity-linked {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* A Game page's column with nothing in it (no proposals yet) draws no cell,

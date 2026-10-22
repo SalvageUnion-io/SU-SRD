@@ -348,7 +348,7 @@ function PlayGameItem({
         })
       : []
   return (
-    <li style={ITEM}>
+    <li className="su-hub-game" style={ITEM}>
       <Entity
         size="compact"
         model={gameRowModel(game.name)}

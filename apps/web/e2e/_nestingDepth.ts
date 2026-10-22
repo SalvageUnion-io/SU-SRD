@@ -93,8 +93,9 @@ export type NestingSelectors = {
    */
   n8Except: string
   /**
-   * N3's named exception (R46): a crawler bay is a contentful Mini whose body
-   * holds its choices, roll table, what it holds and its crew lead's Mini.
+   * N3's named exception (R46): a crawler bay (the Mini its `MiniGroup` holds)
+   * is a contentful Mini whose body holds its choices, roll table, what it
+   * holds and its crew lead's Mini.
    */
   n3Except: string
 }
@@ -117,7 +118,7 @@ export const NESTING_SELECTORS: NestingSelectors = {
   notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
   n8Except:
     '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree, .su-entity-page__neighbours',
-  n3Except: '.su-entity-mini:has(> .su-entity-mini__head[data-peek^="crawler-bays:"])',
+  n3Except: '.su-mini-group > .su-entity-mini',
 }
 
 /**

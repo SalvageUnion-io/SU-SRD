@@ -342,8 +342,10 @@ function HorizontalValue({
   } satisfies CSSProperties
 
   const stepName = stepperLabel ?? label
+  // The cell and its stepper are one chip (`su-stat-stepper`).
   return withHover(
     <span
+      className="su-stat-stepper"
       style={{ alignItems: 'stretch', display: 'inline-flex', gap: space[2], width: 'fit-content' }}
     >
       {cell}

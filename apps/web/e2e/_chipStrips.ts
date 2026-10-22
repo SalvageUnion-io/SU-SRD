@@ -64,6 +64,8 @@ const STRIP = [
 ].join(',')
 
 const CHIP = [
+  // A stat in Edit: its cell and its − / + stepper, one chip.
+  '.su-stat-stepper',
   '.su-stat-cell',
   '.su-stat-column__cell',
   '.su-badge-stamp',
