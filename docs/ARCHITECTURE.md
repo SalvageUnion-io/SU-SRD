@@ -90,7 +90,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
-    A PR into `main` labelled `preview` gets a su-srd Preview `pr-<n>` (the app on staging Convex) per push, linked in a comment, deleted on close.
+    A PR into `main` or a `su-io-*` release branch labelled `preview` gets a su-srd Preview `pr-<n>` (the app on staging Convex) per push, linked in a comment, deleted on close.
     The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
 30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
