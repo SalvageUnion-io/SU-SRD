@@ -30,10 +30,10 @@
 import { writeOverflowRow } from './chipOverflowRow'
 
 /** A head that fills from its bottom-right corner: the flow's container. */
-const FILL_HEAD = '[data-chip-fill]'
+export const FILL_HEAD = '[data-chip-fill]'
 
 /** Its name (the cut-out, the title's plate): the bottom line's left end. */
-const FILL_NAME = '[data-fill-name]'
+export const FILL_NAME = '[data-fill-name]'
 
 /** Nodes beside a chip that are no chip: an open menu's focus guards and portal owner. */
 const NOT_CHIP_ATTRIBUTES = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
@@ -174,9 +174,20 @@ function ellipsizes(name: HTMLElement): boolean {
   return false
 }
 
-/** The narrowest an ellipsizing name gets: half its line, or its longest word. */
+/**
+ * The narrowest an ellipsizing name gets: half its line, or its longest word.
+ * The word is read with the name unclipped: clipped, its "…" cut the word's
+ * box short, so each fit read another width than the last and the chips
+ * beside it left and came back, frame after frame (CLS on /abilities/).
+ */
 function clippedName(name: HTMLElement, fullName: number, room: number): number {
-  return Math.min(fullName, Math.max(widestWord(name), room / 2))
+  const { width, flex } = name.style
+  name.style.width = 'max-content'
+  name.style.flex = 'none'
+  const word = widestWord(name)
+  name.style.width = width
+  name.style.flex = flex
+  return Math.min(fullName, Math.max(word, room / 2))
 }
 
 /** An item's chip class within `root`: its own, or its lane's; '' for none. */
@@ -341,7 +352,7 @@ const CORNER_CLASSES = new Set(['cost', 'state', 'uses', 'menu'])
 const fittedAt = new WeakMap<HTMLElement, { at: string; out: boolean[]; more: boolean }>()
 
 /** An item of the flow, marked so CSS orders it by its place from the end. */
-const ITEM_ATTRIBUTE = 'data-fill-item'
+export const ITEM_ATTRIBUTE = 'data-fill-item'
 /** An item on the name's line (a band centres those on its title's capitals). */
 const LINE_ATTRIBUTE = 'data-fill-line'
 /** The corner chip, wrapping its value: too wide for the line beside the name's longest word. */
@@ -352,7 +363,7 @@ const CORNER_ATTRIBUTE = 'data-fill-corner'
  * every item: a chip, a label, a band's control), and which stay beside its
  * name, the rest out: into its body's overflow row, or behind +MORE.
  */
-function fitChipFill(container: HTMLElement): void {
+export function fitChipFill(container: HTMLElement): void {
   const name = container.querySelector<HTMLElement>(`:scope > ${FILL_NAME}`)
   if (!name) return
   // An out item carries no item mark, so it is cleared by its own: left
@@ -454,116 +465,4 @@ function fitChipFill(container: HTMLElement): void {
     '--su-name-basis',
     wraps ? `${squeezed ? shortest : Math.max(0, room - chipsWidth - 1)}px` : 'auto'
   )
-}
-
-const watched = new WeakSet<HTMLElement>()
-/** Every watched head, and its fit. */
-const live = new Map<HTMLElement, (head: HTMLElement) => void>()
-let fontsWatched = false
-
-/** A face loads when text first uses it: every chip's width changes, so fit again. */
-function watchFonts(): void {
-  if (fontsWatched || typeof document === 'undefined' || !document.fonts) return
-  fontsWatched = true
-  const refit = () => fitInTurns([...live.keys()], (head) => live.get(head)?.(head))
-  void document.fonts.ready.then(refit)
-  document.fonts.addEventListener?.('loadingdone', refit)
-}
-
-/**
- * Fit a head (with `fit`, a fill head's by default; a contentful Mini's is
- * `chipFit.ts`'s) now and whenever its width, its name's or a chip's changes
- * (a resize, a face loading, a live reading) or its chips change; returns the
- * stop. A fit that reads what the last one read writes nothing, so the
- * resizes its own writes cause end there.
- */
-export function watchChipFill(
-  container: HTMLElement,
-  fitOne: (head: HTMLElement) => void = fitChipFill
-): () => void {
-  if (watched.has(container)) return () => undefined
-  watched.add(container)
-  live.set(container, fitOne)
-  const resize =
-    typeof ResizeObserver === 'undefined'
-      ? undefined
-      : new ResizeObserver(() => {
-          if (!container.isConnected) return stop()
-          fit()
-        })
-  // What the observer watches: observing a box again reports it again, and
-  // that report fits again, so only a box new to the flow is observed (and
-  // one gone from it let go). Re-observing all of them on every fit kept a
-  // page with many heads fitting every frame, never idle.
-  const observed = new Set<Element>()
-  const fit = () => {
-    fitOne(container)
-    if (!resize) return
-    const name = container.querySelector(`:scope > ${FILL_NAME}`)
-    const now = new Set<Element>([container, ...container.querySelectorAll(`[${ITEM_ATTRIBUTE}]`)])
-    if (name) now.add(name)
-    for (const el of observed) {
-      if (now.has(el)) continue
-      resize.unobserve(el)
-      observed.delete(el)
-    }
-    for (const el of now) {
-      if (observed.has(el)) continue
-      resize.observe(el)
-      observed.add(el)
-    }
-  }
-  // The set of chips changes (a menu's slot, a chip added).
-  const mutation = typeof MutationObserver === 'undefined' ? undefined : new MutationObserver(fit)
-  const stop = () => {
-    watched.delete(container)
-    live.delete(container)
-    resize?.disconnect()
-    mutation?.disconnect()
-  }
-  fit()
-  watchFonts()
-  mutation?.observe(container, { childList: true, subtree: true, characterData: true })
-  return stop
-}
-
-/** How many heads one task fits: a page of Compacts fitted at once is a long task. */
-const TURN = 12
-
-/**
- * Do `each` to many heads a turn at a time: those on screen first, now (a
- * shift in view counts against the page, one off screen does not), the rest
- * in tasks of `TURN`, so the main thread is never held long (TBT).
- */
-function fitInTurns(containers: HTMLElement[], each: (head: HTMLElement) => void): void {
-  if (containers.length <= TURN || typeof setTimeout === 'undefined') {
-    for (const head of containers) each(head)
-    return
-  }
-  const height = typeof innerHeight === 'number' ? innerHeight : 0
-  const later: HTMLElement[] = []
-  for (const head of containers) {
-    const r = head.getBoundingClientRect()
-    if (r.bottom > 0 && r.top < height) each(head)
-    else later.push(head)
-  }
-  const next = () => {
-    for (const head of later.splice(0, TURN)) if (head.isConnected) each(head)
-    if (later.length > 0) setTimeout(next, 0)
-  }
-  if (later.length > 0) setTimeout(next, 0)
-}
-
-/**
- * A static page's heads (server-rendered, no React) that `selector` finds:
- * each fits with `fit` (in turns) and on resize. A fill head's by default.
- */
-export function watchStaticChipFill(
-  root: ParentNode = document,
-  selector = FILL_HEAD,
-  fit: (head: HTMLElement) => void = fitChipFill
-): void {
-  fitInTurns([...root.querySelectorAll<HTMLElement>(selector)], (head) => {
-    watchChipFill(head, fit)
-  })
 }

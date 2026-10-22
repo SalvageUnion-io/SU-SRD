@@ -128,11 +128,27 @@ describe('watchTokenOverflow', () => {
     const fired: (() => void)[] = []
     let disconnected = 0
     globalThis.ResizeObserver = class {
+      observed = new Set<Element>()
       constructor(callback: ResizeObserverCallback) {
-        fired.push(() => callback([], this as unknown as ResizeObserver))
+        // Each report a new size; the first is the size the fit left.
+        let size = 0
+        fired.push(() => {
+          size += 1
+          callback(
+            [...this.observed].map(
+              (target) =>
+                ({ target, contentRect: { width: size, height: 1 } }) as ResizeObserverEntry
+            ),
+            this as unknown as ResizeObserver
+          )
+        })
       }
-      observe() {}
-      unobserve() {}
+      observe(el: Element) {
+        this.observed.add(el)
+      }
+      unobserve(el: Element) {
+        this.observed.delete(el)
+      }
       disconnect() {
         disconnected += 1
       }
@@ -145,6 +161,7 @@ describe('watchTokenOverflow', () => {
     const t = token([80, 80, 80], { pill: 400, cost: 40 })
     const stop = watchTokenOverflow(t.el)
     expect(t.out()).toEqual(['chip 0'])
+    observer.resize()
     t.widen(900)
     observer.resize()
     expect(t.out()).toEqual([])

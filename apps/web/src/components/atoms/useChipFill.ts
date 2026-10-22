@@ -1,6 +1,6 @@
 import type { RefObject } from 'react'
 import { useEffect } from 'react'
-import { watchChipFill } from './chipFill'
+import { watchChipFill } from './chipFillWatch'
 
 /**
  * Fit a head's chips from its bottom-right corner (`chipFill.ts`): the chips

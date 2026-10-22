@@ -4,7 +4,8 @@
  * for its body's first row or behind +MORE, and never rises above the name.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
-import { overflowPlan, watchChipFill, watchStaticChipFill } from '../chipFill'
+import { overflowPlan } from '../chipFill'
+import { watchChipFill, watchStaticChipFill } from '../chipFillWatch'
 
 describe('overflowPlan', () => {
   test('nothing leaves when every chip fits beside the name', () => {

@@ -6,5 +6,5 @@
  * (`reference-bundle-budget.e2e.ts`).
  */
 
-export { watchStaticChipFill } from '../atoms/chipFill'
+export { watchStaticChipFill } from '../atoms/chipFillWatch'
 export { watchStaticTokenOverflow } from './parts/chipFit'

@@ -16,15 +16,8 @@
  * name, every chip whole.
  */
 
-import {
-  isFirst,
-  isKept,
-  isNotChip,
-  OUT_ATTRIBUTE,
-  overflowPlan,
-  watchChipFill,
-  watchStaticChipFill,
-} from '../../atoms/chipFill'
+import { isFirst, isKept, isNotChip, OUT_ATTRIBUTE, overflowPlan } from '../../atoms/chipFill'
+import { watchChipFill, watchStaticChipFill } from '../../atoms/chipFillWatch'
 import { writeOverflowRow } from '../../atoms/chipOverflowRow'
 
 /** A contentful Mini (N3): its head's chips overflow into its body. */
@@ -73,18 +66,22 @@ function chipsOf(strip: HTMLElement): HTMLElement[] {
 
 const width = (el: Element) => el.getBoundingClientRect().width
 
-/**
- * Fit one contentful Mini: every chip drawn on the strip's one line and
- * measured, then what does not fit beside the name's floor marked out (not
- * drawn in the head) and copied into its body's first row. The same width
- * gives the same result: nothing flickers, nothing feeds back.
- */
-export function fitTokenOverflow(token: HTMLElement): void {
-  const parts = partsOf(token)
-  if (!parts) return
-  const { strip, pill, row } = parts
+/** What one Mini's fit read: its parts and chips, and which leave its head (none read when it is not laid out). */
+type TokenRead = {
+  token: HTMLElement
+  row: HTMLElement
+  chips: HTMLElement[]
+  out: boolean[] | undefined
+}
+
+/** One Mini's reads (no writes): its pill's room and its chips' widths, and the plan they give. */
+function readToken(
+  token: HTMLElement,
+  strip: HTMLElement,
+  pill: HTMLElement,
+  row: HTMLElement
+): TokenRead {
   const chips = chipsOf(strip)
-  for (const chip of chips) chip.removeAttribute(OUT_ATTRIBUTE)
   const ps = getComputedStyle(pill)
   const content =
     pill.clientWidth -
@@ -92,12 +89,7 @@ export function fitTokenOverflow(token: HTMLElement): void {
     (Number.parseFloat(ps.paddingRight) || 0)
   // Not laid out (a closed tab, a hidden dialog): nothing to measure yet; it
   // fits when it is drawn (its head's width changes).
-  if (content <= 0) {
-    token.removeAttribute(FITTED_ATTRIBUTE)
-    writeOverflowRow(row, [])
-    return
-  }
-  token.setAttribute(FITTED_ATTRIBUTE, '')
+  if (content <= 0) return { token, row, chips, out: undefined }
   const pillGap = Number.parseFloat(ps.columnGap) || 0
   // What else stands on the line: the note stamp, the tier (not the name's cut-out).
   const others = [...pill.children]
@@ -118,9 +110,44 @@ export function fitTokenOverflow(token: HTMLElement): void {
     undefined,
     chips.map((chip) => isFirst(chip, strip))
   )
-  const out = chips.filter((_, i) => plan.out[i])
-  for (const chip of out) chip.setAttribute(OUT_ATTRIBUTE, '')
-  writeOverflowRow(row, out)
+  return { token, row, chips, out: plan.out }
+}
+
+/**
+ * Fit contentful Minis: every chip drawn on its strip's one line and
+ * measured, then what does not fit beside the name's floor marked out (not
+ * drawn in the head) and copied into its body's first row. The same width
+ * gives the same result: nothing flickers, nothing feeds back. Many fit in
+ * three passes (draw every chip, measure them all, then mark), so a page of
+ * Minis lays out once for its reads, not once a Mini (TBT on /chassis/mule/).
+ */
+function fitTokensOverflow(tokens: readonly HTMLElement[]): void {
+  const found = tokens.flatMap((token) => {
+    const parts = partsOf(token)
+    return parts ? [{ token, ...parts }] : []
+  })
+  for (const { token, strip } of found) {
+    for (const chip of chipsOf(strip)) chip.removeAttribute(OUT_ATTRIBUTE)
+    token.setAttribute(FITTED_ATTRIBUTE, '')
+  }
+  const reads: TokenRead[] = found.map(({ token, strip, pill, row }) =>
+    readToken(token, strip, pill, row)
+  )
+  for (const { token, row, chips, out } of reads) {
+    if (!out) {
+      token.removeAttribute(FITTED_ATTRIBUTE)
+      writeOverflowRow(row, [])
+      continue
+    }
+    const leaving = chips.filter((_, i) => out[i])
+    for (const chip of leaving) chip.setAttribute(OUT_ATTRIBUTE, '')
+    writeOverflowRow(row, leaving)
+  }
+}
+
+/** Fit one contentful Mini (`fitTokensOverflow`). */
+export function fitTokenOverflow(token: HTMLElement): void {
+  fitTokensOverflow([token])
 }
 
 /**
@@ -129,10 +156,10 @@ export function fitTokenOverflow(token: HTMLElement): void {
  */
 export function watchTokenOverflow(token: HTMLElement): () => void {
   if (!partsOf(token)) return () => undefined
-  return watchChipFill(token, fitTokenOverflow)
+  return watchChipFill(token, fitTokenOverflow, fitTokensOverflow)
 }
 
 /** A static page's contentful Minis (server-rendered, no React): each fits (in turns) and on resize. */
 export function watchStaticTokenOverflow(root: ParentNode = document): void {
-  watchStaticChipFill(root, CONTENTFUL, fitTokenOverflow)
+  watchStaticChipFill(root, CONTENTFUL, fitTokenOverflow, fitTokensOverflow)
 }
