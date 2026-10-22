@@ -11,6 +11,7 @@
 
 import type { CSSProperties } from 'react'
 import { Ghost, SkeletonFrame, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 // Responsive padding, the slab rhythm and the slab grid's columns are
 // `.su-sheet-skeleton-*` in `styles/sheet/chrome.css`; the rest is below.
@@ -116,7 +117,7 @@ function SkeletonSlab() {
 
 export function SheetSkeleton() {
   return (
-    <SkeletonFrame label="the sheet" style={ROOT}>
+    <SkeletonFrame label={buildSheetCopy('theSheet')} style={ROOT}>
       {/* Sticky-bar placeholder (LiveSheet top bar footprint) */}
       <div className="su-sheet-skeleton-bar" style={BAR}>
         <Ghost style={{ ...GHOST_LABEL, width: '96px' }} />

@@ -29,6 +29,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
@@ -155,7 +156,7 @@ export function Sheet({
   store = useEntityStore,
   readOnly: readOnlyProp = false,
   crawlerReadOnly = false,
-  back = { href: '/', label: 'Training Bay' },
+  back = { href: '/', label: buildSheetCopy('trainingBay') },
   pilotAbilities,
   others,
   hrefFor = sheetPath,
@@ -233,8 +234,12 @@ export function Sheet({
   // turns the live sheet into a clean paper layout; "Save as PDF"
   // in the browser dialog covers the PDF ask without a rendering dep.
   const printButton = (
-    <Button variant="ghost" aria-label={`Print this ${kind} sheet`} onClick={() => window.print()}>
-      Print
+    <Button
+      variant="ghost"
+      aria-label={buildSheetCopy('printThisSheet', { kind })}
+      onClick={() => window.print()}
+    >
+      {buildSheetCopy('print')}
     </Button>
   )
   // Entity-level admin affordances: single-entity JSON export + container
@@ -250,10 +255,10 @@ export function Sheet({
   const changeLogButton = (
     <Button
       variant="ghost"
-      aria-label={`View the change log for this ${kind}`}
+      aria-label={buildSheetCopy('viewTheChangeLogFor', { kind })}
       onClick={() => setChangeLogOpen(true)}
     >
-      Change Log
+      {buildSheetCopy('changeLog')}
     </Button>
   )
   // A mech saves as a pattern in a dialog over its sheet: a write,
@@ -261,7 +266,7 @@ export function Sheet({
   const savePatternLink =
     kind === 'mech' && !writesBlocked ? (
       <Button variant="ghost" size="compact" onClick={() => setSavePatternOpen(true)}>
-        Save as pattern
+        {buildSheetCopy('saveAsPattern')}
       </Button>
     ) : null
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
@@ -281,11 +286,11 @@ export function Sheet({
         <WritesBlockedNotice />
       ) : (
         <Button
-          aria-label={`Share this ${kind}`}
+          aria-label={buildSheetCopy('shareThis', { kind })}
           onClick={() => setShareOpen(true)}
           className="su-page-action"
         >
-          Share
+          {buildSheetCopy('share')}
         </Button>
       )}
       <SheetActionsMenu>
@@ -305,9 +310,9 @@ export function Sheet({
   if (wired) {
     segments = []
     const counterparts = [
-      { key: 'pilot', label: 'Pilot', unit: composition.pilot },
-      { key: 'mech', label: 'Mech', unit: composition.mech },
-      { key: 'crawler', label: 'Crawler', unit: composition.crawler },
+      { key: 'pilot', label: buildSheetCopy('pilot'), unit: composition.pilot },
+      { key: 'mech', label: buildSheetCopy('mech'), unit: composition.mech },
+      { key: 'crawler', label: buildSheetCopy('crawler'), unit: composition.crawler },
     ] as const
     for (const { key, label, unit } of counterparts) {
       const href = unit ? hrefFor(key, unit.id) : undefined

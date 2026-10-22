@@ -28,6 +28,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { appRoot } from '../../lib/site'
+import { playGamesCopy } from '../../messages/play-games'
 
 type CopyInviteLinkProps = {
   gameId: Id<'games'>
@@ -98,7 +99,7 @@ function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
 
   async function run(): Promise<void> {
     await reset({ gameId })
-    toast.success('Invite link reset. The old link no longer works.', {
+    toast.success(playGamesCopy('inviteLinkResetTheOld'), {
       id: 'invite-link-reset',
     })
   }
@@ -106,16 +107,16 @@ function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
   return (
     <>
       <Button size="compact" onClick={() => setConfirming(true)}>
-        Reset link
+        {playGamesCopy('resetLink')}
       </Button>
       <ConfirmDialog
         open={confirming}
         onOpenChange={setConfirming}
         tone="danger"
-        title="Reset the invite link?"
-        body="The current link stops working. Anyone who has it but has not joined yet needs the new one."
-        confirmLabel="Reset link"
-        pendingLabel="Resetting…"
+        title={playGamesCopy('resetTheInviteLink')}
+        body={playGamesCopy('theCurrentLinkStopsWorking')}
+        confirmLabel={playGamesCopy('resetLink')}
+        pendingLabel={playGamesCopy('resetting')}
         onConfirm={run}
       />
     </>

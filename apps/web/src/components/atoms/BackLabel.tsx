@@ -1,6 +1,7 @@
 import { ChevronLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
+import { atomsCopy } from '../../messages/components-atoms'
 
 /**
  * BackLabel — what a back control says (chrome K11, hard rule R23): the
@@ -22,7 +23,7 @@ export function BackLabel({
   return (
     <>
       <ChevronLeft size={iconSize[size]} aria-hidden="true" />
-      <span className="su-sr-only">Back to </span>
+      <span className="su-sr-only">{atomsCopy('backTo')} </span>
       {to}
     </>
   )

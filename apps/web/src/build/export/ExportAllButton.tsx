@@ -2,6 +2,7 @@ import { Button, Message, Stack, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
+import { buildExportCopy } from '../../messages/build-export'
 import { useEntityStore } from '../../stores/entityStore'
 
 /**
@@ -22,14 +23,14 @@ export function ExportAllButton() {
 
   async function handleExportAll() {
     const result = await exportAll.run()
-    if (result.ok) toast.success('Backup downloaded.')
+    if (result.ok) toast.success(buildExportCopy('backupDownloaded'))
     else toast.error(result.error)
   }
 
   return (
     <Stack gap={4}>
       <Button size="compact" disabled={busy} onClick={() => void handleExportAll()}>
-        {busy ? 'Exporting…' : 'Export all'}
+        {busy ? buildExportCopy('exporting') : buildExportCopy('exportAll')}
       </Button>
       <Message tone="bad">{error}</Message>
     </Stack>

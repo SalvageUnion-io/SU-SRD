@@ -39,6 +39,7 @@ import {
   Tag,
   tokens,
 } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
 
@@ -359,7 +360,7 @@ export function LiveSheet({
           the hero below. */}
       <div style={BAR_ANCHOR}>
         <section
-          aria-label="Sheet controls"
+          aria-label={buildSheetCopy('sheetControls')}
           aria-hidden={!condensed}
           data-print="hide"
           className="su-sheet-gutter"
@@ -459,9 +460,9 @@ export function LiveSheet({
               marks={
                 <>
                   {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
-                  {source === 'starter' && <Stat label="Starter Kit" />}
+                  {source === 'starter' && <Stat label={buildSheetCopy('starterKit')} />}
                   {/* Its name is a pattern's: it says so. */}
-                  {quoted && <Stat label="Pattern" />}
+                  {quoted && <Stat label={buildSheetCopy('pattern')} />}
                 </>
               }
               nodes={{
@@ -480,7 +481,9 @@ export function LiveSheet({
                       ) : (
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
-                    {userMade && <Stat label="Made by" value={userMade.madeBy} wrap />}
+                    {userMade && (
+                      <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
+                    )}
                   </>
                 ),
               }}
@@ -493,7 +496,7 @@ export function LiveSheet({
                 counterpart's sheet. */}
             {segments && segments.length > 1 && (
               <nav
-                aria-label="Assigned sheets"
+                aria-label={buildSheetCopy('assignedSheets')}
                 className="su-sheet-live-segments"
                 // Its copy works as it does (links; the here-state is inert),
                 // so where it leaves the name too little it takes the page's

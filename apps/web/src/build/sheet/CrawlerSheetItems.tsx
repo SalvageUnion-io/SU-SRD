@@ -28,6 +28,7 @@ import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { BAY_REPAIR_COST } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewMini } from '../npc/LinkedCrewMini'
@@ -237,7 +238,7 @@ export function CrawlerBayCard({
             peekAt: embeddedPeekAddress('crawler-bays', bay.id, 'npc'),
           }
         : { model: unitRowModel({ kind: 'npc', name: 'Crew' }) })}
-      instance={{ title: entry.npcName?.trim() || npc?.position || 'Crew' }}
+      instance={{ title: entry.npcName?.trim() || npc?.position || buildSheetCopy('crew2') }}
       bayName={bay.name}
       title={npc?.position}
       name={entry.npcName ?? ''}
@@ -265,7 +266,7 @@ export function CrawlerBayCard({
     <>
       {dockedMech && (
         <div style={DOCKS}>
-          <span>Docks</span>
+          <span>{buildSheetCopy('docks')}</span>
           <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} />
         </div>
       )}
@@ -348,8 +349,8 @@ export function CrawlerBayCard({
             variant="primary"
             title={
               damaged
-                ? `${bay.name} is damaged — its function is offline until repaired.`
-                : `${functionLabel} — open the ${bay.name} rules`
+                ? buildSheetCopy('isDamagedItsFunctionIs', { name: bay.name })
+                : buildSheetCopy('openTheRules', { functionLabel, name: bay.name })
             }
             disabled={damaged}
             onClick={() => (onFunction ? onFunction() : detail.control.onClick?.())}
@@ -362,14 +363,21 @@ export function CrawlerBayCard({
             title={
               damaged
                 ? repairShortfall > 0
-                  ? `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) — pool is ${repairShortfall} short; repairing anyway is the table's call.`
-                  : `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) from the pool.`
-                : `${bay.name} is intact — nothing to repair.`
+                  ? buildSheetCopy('costsScrapTechOrHigher', {
+                      bayRepairCost: BAY_REPAIR_COST,
+                      crawlerTl,
+                      repairShortfall,
+                    })
+                  : buildSheetCopy('costsScrapTechOrHigher2', {
+                      bayRepairCost: BAY_REPAIR_COST,
+                      crawlerTl,
+                    })
+                : buildSheetCopy('isIntactNothingToRepair', { name: bay.name })
             }
             disabled={!damaged}
             onClick={() => onRepair(entry, index)}
           >
-            Repair
+            {buildSheetCopy('repair')}
           </Button>
         </>
       }

@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { cn } from '../../lib/cn'
 import { revealRolled } from '../../lib/revealRolled'
+import { compositionsCopy } from '../../messages/components-compositions'
 import type { Size } from '../../styles/sizing'
 import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
@@ -183,13 +184,13 @@ export function RollTableInstrument({
           data-split={split ? 'true' : undefined}
         >
           <span className={COLS} aria-hidden="true">
-            <span className="su-roll__col-range">d20</span>
-            <span className="su-roll__col-text">Result</span>
+            <span className="su-roll__col-range">{compositionsCopy('d20')}</span>
+            <span className="su-roll__col-text">{compositionsCopy('result')}</span>
           </span>
           <span className={cn(COLS, 'su-roll__cols--end')}>
             {split && (
               <span className="su-roll__col-text su-roll__col-text--half" aria-hidden="true">
-                Result
+                {compositionsCopy('result')}
               </span>
             )}
             {roll}
@@ -293,7 +294,7 @@ function Bands({ id, name, table }: { id?: string; name: string; table: BandsTab
         <ol
           key={side === 0 ? 'left' : 'right'}
           className="su-roll__rows"
-          aria-label={side === 0 ? `${name} table` : `${name} table, continued`}
+          aria-label={side === 0 ? `${name} table` : compositionsCopy('tableContinued', { name })}
           data-side={side === 1 ? 'right' : undefined}
         >
           {part.map((row, at) => {
@@ -317,7 +318,9 @@ function Bands({ id, name, table }: { id?: string; name: string; table: BandsTab
                   )}
                   <span className="su-roll__value">{row.value}</span>
                   {/* Pinned to the corner, out of the flow: the row keeps its height. */}
-                  {marked && <span className={TAG}>Rolled {mark.roll}</span>}
+                  {marked && (
+                    <span className={TAG}>{compositionsCopy('rolled', { roll: mark.roll })}</span>
+                  )}
                 </div>
               </li>
             )
@@ -339,7 +342,7 @@ function Columns({ id, name, table }: { id?: string; name: string; table: Column
         <thead>
           <tr>
             <th scope="col" className="su-roll__edge">
-              <span className="su-sr-only">Entry</span>
+              <span className="su-sr-only">{compositionsCopy('entry')}</span>
             </th>
             {columns.map((column) => (
               <th
@@ -352,7 +355,7 @@ function Columns({ id, name, table }: { id?: string; name: string; table: Column
               </th>
             ))}
             <th scope="col" className="su-roll__edge">
-              <span className="su-sr-only">Entry</span>
+              <span className="su-sr-only">{compositionsCopy('entry')}</span>
             </th>
           </tr>
         </thead>
@@ -393,7 +396,10 @@ function Columns({ id, name, table }: { id?: string; name: string; table: Column
             <section
               key={column.key}
               className="su-roll__stack-col"
-              aria-label={`${name}, column ${rollRangeLabel(column.key)}`}
+              aria-label={compositionsCopy('column', {
+                name,
+                rollRangeLabel: rollRangeLabel(column.key),
+              })}
             >
               <div
                 className="su-roll__stack-head"

@@ -18,6 +18,7 @@ import {
 } from '../../lib/wizard/mechFormState'
 import { withMechPreselection } from '../../lib/wizard/preselect'
 import '../../styles/build/wizard.css'
+import { mechCopy } from '../../messages/build-mech'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -144,7 +145,7 @@ export function MechWizard({
     formDirty,
     schema: MechSchema,
     toCreateInput: mechFormToCreateInput,
-    failureMessage: 'The mech could not be saved. Try again.',
+    failureMessage: mechCopy('theMechCouldNotBe'),
     onComplete,
     onCancel,
     onOffRules,
@@ -182,7 +183,7 @@ export function MechWizard({
     if (chassisSlug === form.chassisName) return
     const hadLoadout = form.systems.length > 0 || form.modules.length > 0 || form.patternName !== ''
     if (hadLoadout) {
-      toast.info('Chassis changed — its Scrap refunded and the loadout cleared.')
+      toast.info(mechCopy('chassisChangedItsScrapRefunded'))
     }
     updateForm({ chassisName: chassisSlug, patternName: '', systems: [], modules: [] })
   }
@@ -200,7 +201,7 @@ export function MechWizard({
   /** Custom build: clear the prefill for a manual craft (idempotent-ish). */
   function selectCustom() {
     if (form.patternName === '' && form.systems.length === 0 && form.modules.length === 0) return
-    toast.info('Custom build — pattern prefill cleared.')
+    toast.info(mechCopy('customBuildPatternPrefillCleared'))
     updateForm({ patternName: '', systems: [], modules: [] })
   }
 
@@ -256,7 +257,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 94,
-            see: [{ label: 'The Union Crawler', page: 212 }],
+            see: [{ label: mechCopy('theUnionCrawler'), page: 212 }],
           },
         }
       case 'chassis':
@@ -268,7 +269,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 94,
-            see: [{ label: 'Mech Chassis', page: [100, 159] }],
+            see: [{ label: mechCopy('mechChassis'), page: [100, 159] }],
           },
         }
       case 'stats':
@@ -280,7 +281,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 95,
-            see: [{ label: 'Mech statistics', page: 96 }],
+            see: [{ label: mechCopy('mechStatistics'), page: 96 }],
           },
         }
       case 'systems':
@@ -292,7 +293,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 95,
-            see: [{ label: 'The System list', page: 162 }],
+            see: [{ label: mechCopy('theSystemList'), page: 162 }],
           },
         }
       case 'modules':
@@ -304,7 +305,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 95,
-            see: [{ label: 'The Modules list', page: 188 }],
+            see: [{ label: mechCopy('theModulesList'), page: 188 }],
           },
         }
       case 'quirk':
@@ -316,7 +317,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 95,
-            see: [{ label: 'Quirks Table', page: 208 }],
+            see: [{ label: mechCopy('quirksTable'), page: 208 }],
           },
         }
       case 'appearance':
@@ -328,7 +329,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 94,
-            see: [{ label: 'Mech Appearance Table', page: 208 }],
+            see: [{ label: mechCopy('mechAppearanceTable'), page: 208 }],
           },
         }
       case 'pattern':
@@ -340,7 +341,7 @@ export function MechWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 94,
-            see: [{ label: 'Pattern Name Table', page: 209 }],
+            see: [{ label: mechCopy('patternNameTable'), page: 209 }],
           },
         }
       case 'review':
@@ -357,7 +358,7 @@ export function MechWizard({
   const trackers = (() => {
     const scrap = (
       <WizTracker
-        label="Scrap"
+        label={mechCopy('scrap')}
         value={
           <span data-testid="scrap-remaining">
             {budget.remaining} / {MECH_CREATION_SCRAP_CAP}
@@ -371,7 +372,7 @@ export function MechWizard({
           <>
             {scrap}
             <WizTracker
-              label="System Slots"
+              label={mechCopy('systemSlots')}
               value={
                 <span data-testid="system-slot-count">
                   {slotPips(capacity.systemSlotsUsed, capacity.systemSlotsMax)}
@@ -386,7 +387,7 @@ export function MechWizard({
           <>
             {scrap}
             <WizTracker
-              label="Module Slots"
+              label={mechCopy('moduleSlots')}
               value={
                 <span data-testid="module-slot-count">
                   {slotPips(capacity.moduleSlotsUsed, capacity.moduleSlotsMax)}
@@ -419,12 +420,12 @@ export function MechWizard({
     <WizShell
       gameId={gameId}
       kind="mech"
-      eyebrow="Mech Workshop"
+      eyebrow={mechCopy('mechWorkshop')}
       {...shell}
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
-      submitLabel="Create Mech ✦"
+      submitLabel={mechCopy('createMech')}
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'scrap' && <GainScrapStep />}
@@ -459,30 +460,30 @@ export function MechWizard({
       {step === 'quirk' && (
         <MechFlavorStep
           field="quirk"
-          label="Quirk"
+          label={mechCopy('quirk')}
           value={form.quirk}
           onChange={(quirk) => updateForm({ quirk })}
-          placeholder="e.g. Rattletrap — sounds like it's dying even when it's fine."
+          placeholder={mechCopy('eGRattletrapSoundsLike')}
         />
       )}
       {step === 'appearance' && (
         <MechFlavorStep
           field="appearance"
-          label="Appearance"
+          label={mechCopy('appearance')}
           value={form.appearance}
           onChange={(appearance) => updateForm({ appearance })}
-          placeholder="How it looks — plating, paint, silhouette."
+          placeholder={mechCopy('howItLooksPlatingPaint')}
           multiline
         />
       )}
       {step === 'pattern' && (
         <MechFlavorStep
           field="patternName"
-          label="Name / Pattern"
+          label={mechCopy('namePattern')}
           value={form.name}
           onChange={setMechName}
-          placeholder="e.g. Bullseye Pattern Mule"
-          note="A mech's name IS its pattern — one name covers both."
+          placeholder={mechCopy('eGBullseyePatternMule')}
+          note={mechCopy('aMechsNameIsIts')}
         />
       )}
       {step === 'review' && (

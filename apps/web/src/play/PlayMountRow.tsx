@@ -12,6 +12,7 @@
 
 import { useState } from 'react'
 import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
+import { playCopy } from '../messages/play'
 import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
 import { ClaimAndBoardConfirm } from './ClaimAndBoardConfirm'
@@ -45,30 +46,32 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
   const controls = away ? undefined : boarded ? (
     <>
       <Button size="mini" onClick={play.setOnFoot} disabled={off}>
-        Dismount
+        {playCopy('dismount')}
       </Button>
       <Button size="mini" variant="primary" onClick={() => setEjecting(true)} disabled={off}>
-        Eject
+        {playCopy('eject')}
       </Button>
     </>
   ) : (
     <>
       {main === undefined ? (
-        <Button size="mini" disabled title="No Mech to board">
-          Board
+        <Button size="mini" disabled title={playCopy('noMechToBoard')}>
+          {playCopy('board')}
         </Button>
       ) : (
         // The outlined Button reads on the Mini's pill (R19),
         // beside the Use and Eject a filled one draws.
         <Button size="mini" onClick={() => choose(main)} disabled={off}>
-          {main.state === 'spare' ? `Claim and board ${main.name}` : `Board ${main.name}`}
+          {main.state === 'spare'
+            ? playCopy('claimAndBoard2', { name: main.name })
+            : playCopy('board2', { name: main.name })}
         </Button>
       )}
       {play.mechs.length > 1 && (
         <HeaderMenu
           variant="button"
           disabled={off}
-          label="Board, choose a Mech"
+          label={playCopy('boardChooseAMech')}
           trigger="Board"
           sections={boardMenuSections(play.mechs, choose)}
         />
@@ -94,9 +97,9 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         open={ejecting}
         onOpenChange={setEjecting}
         tone="danger"
-        title="Eject?"
+        title={playCopy('eject2')}
         body={`${play.pilot?.name ?? 'Your Pilot'} leaves ${boardedName ?? 'the Mech'} at once, wherever it is. The Mech stays where it stands.`}
-        confirmLabel="Eject"
+        confirmLabel={playCopy('eject')}
         onConfirm={() => {
           play.seat.eject()
           setEjecting(false)

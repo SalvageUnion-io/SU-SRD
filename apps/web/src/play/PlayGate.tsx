@@ -37,11 +37,12 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useConnection } from '../lib/connection/connectionContext'
+import { playCopy } from '../messages/play'
 import { useEntityStore } from '../stores/entityStore'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
-const TO_PLAY = { href: '/play/', label: 'Play' }
+const TO_PLAY = { href: '/play/', label: playCopy('play') }
 
 export function PlayGate({ id }: { id: string }) {
   const { mode } = useConnection()
@@ -50,13 +51,13 @@ export function PlayGate({ id }: { id: string }) {
   if (mode === 'solo') {
     return (
       <PlayRefusal
-        title="Sign in to play"
-        body="Play runs your Pilots, solo or in a Game. Sign in, then open Play and choose one."
+        title={playCopy('signInToPlay')}
+        body={playCopy('playRunsYourPilotsSolo')}
         link={{ href: '/', label: PRODUCT.build }}
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label="your session" />
+  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
   return <SignedInPlayGate id={id} offline={mode === 'disconnected'} />
 }
 
@@ -88,11 +89,13 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   if (pilot === null) {
     return (
       <PlayRefusal
-        title={mech === null ? 'Pilot not found' : `${mech.name} has no Pilot`}
+        title={
+          mech === null ? playCopy('pilotNotFound') : playCopy('hasNoPilot', { name: mech.name })
+        }
         body={
           mech === null
-            ? 'It may have been deleted, or not reached this browser yet.'
-            : `Play runs a Pilot. Assign ${mech.name} to a Pilot, then play that Pilot.`
+            ? playCopy('itMayHaveBeenDeleted')
+            : playCopy('playRunsAPilotAssign', { name: mech.name })
         }
         link={TO_PLAY}
       />
@@ -111,13 +114,13 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   if (game === undefined && offline) {
     return <PlayCockpit target={{ pilotId: pilot.id, gameId, gameName: null, mediator: false }} />
   }
-  if (game === undefined) return <RoutePending label="the Game" />
+  if (game === undefined) return <RoutePending label={playCopy('theGame')} />
 
   if (game === null) {
     return (
       <PlayRefusal
-        title="You're not in this Pilot's Game"
-        body={`Play opens for members of the Game ${pilot.name} plays in.`}
+        title={playCopy('youreNotInThisPilots')}
+        body={playCopy('playOpensForMembersOf', { name: pilot.name })}
         link={TO_PLAY}
       />
     )

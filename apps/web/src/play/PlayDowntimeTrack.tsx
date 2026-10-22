@@ -9,6 +9,7 @@
 
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { TrackStep } from '../components/index'
+import { playCopy } from '../messages/play'
 
 type PlayDowntimeTrackProps = {
   steps: readonly RefObjectGuideStep[]
@@ -22,7 +23,7 @@ type PlayDowntimeTrackProps = {
 
 export function PlayDowntimeTrack({ steps, current, onStep, canWrite }: PlayDowntimeTrackProps) {
   return (
-    <ol className="su-play-dt-track" aria-label="Downtime steps">
+    <ol className="su-play-dt-track" aria-label={playCopy('downtimeSteps')}>
       {steps.map((s, i) => {
         const label = `Step ${i + 1}: ${s.name}${i < current ? ', done' : ''}`
         const state = i < current ? 'past' : i === current ? 'now' : 'next'

@@ -10,6 +10,7 @@ import {
 } from 'salvageunion-reference'
 import { layer } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
+import { entityCopy } from '../../messages/components-entity'
 import { EmptyState } from '../containers/EmptyState'
 import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
@@ -72,7 +73,7 @@ class PeekBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   }
   override render() {
     return this.state.failed ? (
-      <EmptyState headline="Not shown" body="This card could not be drawn here." />
+      <EmptyState headline={entityCopy('notShown')} body={entityCopy('thisCardCouldNotBe')} />
     ) : (
       this.props.children
     )

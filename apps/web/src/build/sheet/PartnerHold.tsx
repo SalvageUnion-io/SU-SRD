@@ -25,6 +25,7 @@ import type { CSSProperties } from 'react'
 import { Button, EmptyState, SlabSection, Stack, Stat, tokens } from '../../components/index'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { CargoLotLine } from './CargoLotLine'
 
 type PartnerHoldProps = {
@@ -55,11 +56,11 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
     <Stack gap={16}>
       {/* Over-capacity is shown honestly rather than clamped — same rule the
           mech Hold follows. */}
-      <Stat label="Cargo" value={usage.used} max={usage.cap} />
+      <Stat label={buildSheetCopy('cargo')} value={usage.used} max={usage.cap} />
 
-      <SlabSection as="h4" title="Carried">
+      <SlabSection as="h4" title={buildSheetCopy('carried')}>
         {state.carrierLots.length === 0 ? (
-          <EmptyState variant="quiet" body="Nothing carried." />
+          <EmptyState variant="quiet" body={buildSheetCopy('nothingCarried')} />
         ) : (
           <ul className={LOT_LIST}>
             {state.carrierLots.map((lot) => (
@@ -76,14 +77,14 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                         title={stowBlocked ?? undefined}
                         onClick={() => reportCargo(cargo.stow(lot.id))}
                       >
-                        Stow
+                        {buildSheetCopy('stow')}
                       </Button>
                       <Button
                         variant="pencil"
                         size="mini"
                         onClick={() => reportCargo(cargo.removeLot(lot.id))}
                       >
-                        Unload
+                        {buildSheetCopy('unload')}
                       </Button>
                     </>
                   ) : undefined
@@ -97,10 +98,10 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
       {/* The Storage Bay side appears only when there is one to move against —
           an empty "no crawler" panel would be noise on a partner sheet. */}
       {crawlerLinked && (
-        <SlabSection as="h4" title="Storage Bay">
+        <SlabSection as="h4" title={buildSheetCopy('storageBay')}>
           {editable && crawlerLocked !== null && <p style={LOCKED_NOTE}>{crawlerLocked}</p>}
           {state.depotLots.length === 0 ? (
-            <EmptyState variant="quiet" body="The Storage Bay is empty." />
+            <EmptyState variant="quiet" body={buildSheetCopy('theStorageBayIsEmpty')} />
           ) : (
             <ul className={LOT_LIST}>
               {state.depotLots.map((lot) => (
@@ -116,7 +117,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                         title={loadBlocked ?? undefined}
                         onClick={() => reportCargo(cargo.load(lot.id))}
                       >
-                        Load
+                        {buildSheetCopy('load')}
                       </Button>
                     ) : undefined
                   }
