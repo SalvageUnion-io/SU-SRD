@@ -22,6 +22,7 @@
 
 import type { EntityKind } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
+import { libGamesCopy } from '../../messages/lib-games'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 
@@ -121,39 +122,61 @@ function clearedOnEntry(kind: RowActionKind, cleared: readonly ClearedAssignment
 
 export const ROW_ACTION_COPY = {
   /**
-   * Taking an unclaimed character. Constructive, so the default tone — the
-   * dialog exists to say what happens next (it becomes yours, and it lands in
-   * this browser), which the seal alone cannot.
+   * Assigning an unassigned character to yourself. Constructive, so the
+   * default tone — the dialog exists to say what happens next (you edit it,
+   * and it lands in this browser), which the seal alone cannot.
    */
-  pickUp(name: string): ConfirmCopy {
+  assignSelf(name: string): ConfirmCopy {
     return {
-      title: `Pick up ${name}?`,
-      body: [
-        `${name} is unclaimed — the Mediator left them for somebody to take. Picking them up makes you their owner: they become yours to edit, they open in this browser, and every change saves back to the Game.`,
-        'Changed your mind later? Hand them back with “Offer to the crew”.',
-      ],
-      confirmLabel: 'Pick up',
-      pendingLabel: 'Picking up…',
+      title: libGamesCopy('assignSelfTitle', { name }),
+      body: [libGamesCopy('assignSelfBody', { name }), libGamesCopy('assignSelfUndo')],
+      confirmLabel: libGamesCopy('assignToMe'),
+      pendingLabel: libGamesCopy('assigning'),
       tone: 'default',
-      failure: `${name} could not be picked up. Try again.`,
+      failure: libGamesCopy('assignSelfFailed', { name }),
     }
   },
 
   /**
-   * Releasing what you hold. Generous and reversible — but only while nobody
-   * else takes it, so the undo is stated with its condition.
+   * The table runner placing a character with a crewmate (or themselves),
+   * whoever holds it now. It moves who edits it, not what is on it.
    */
-  offer(name: string, kind: RowActionKind): ConfirmCopy {
+  assignTo(name: string, kind: RowActionKind, to: string, from: string | null): ConfirmCopy {
     return {
-      title: `Offer ${name} to the crew?`,
+      title: libGamesCopy('assignToTitle', { name, to }),
       body: [
-        `You'll stop owning ${name}, and anyone in the Game can pick ${them(kind)} up.`,
-        `You can pick ${them(kind)} up again yourself, as long as nobody else has first.`,
+        from === null
+          ? libGamesCopy('assignToFresh', { to, name, them: them(kind) })
+          : libGamesCopy('assignToFrom', { to, name, from, them: them(kind) }),
+        libGamesCopy('assignToUndo'),
       ],
-      confirmLabel: 'Offer to the crew',
-      pendingLabel: 'Offering…',
+      confirmLabel: libGamesCopy('assignTo', { to }),
+      pendingLabel: libGamesCopy('assigning'),
+      tone: 'default',
+      failure: libGamesCopy('assignToFailed', { name, to }),
+    }
+  },
+
+  /**
+   * Unassigning: by its holder, or the table runner on their behalf. Reversible
+   * — but only while nobody else takes it, so the undo is stated with its
+   * condition.
+   */
+  unassign(name: string, kind: RowActionKind, mine: boolean): ConfirmCopy {
+    return {
+      title: libGamesCopy('unassignTitle', { name }),
+      body: [
+        mine
+          ? libGamesCopy('unassignMine', { name, them: them(kind) })
+          : libGamesCopy('unassignTheirs', { name, them: them(kind) }),
+        mine
+          ? libGamesCopy('unassignUndoMine', { them: them(kind) })
+          : libGamesCopy('unassignUndoTheirs', { them: them(kind) }),
+      ],
+      confirmLabel: libGamesCopy('unassign'),
+      pendingLabel: libGamesCopy('unassigning'),
       tone: 'danger',
-      failure: `${name} could not be offered to the crew. Try again.`,
+      failure: libGamesCopy('unassignFailed', { name }),
     }
   },
 

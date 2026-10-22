@@ -6,7 +6,7 @@
  * it plays at — so the page lists every pilot, mech and crawler of yours this
  * browser holds, wherever it is, and a relation chip on each names its Game
  * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a detail
- * here, never a place: unclaimed units and other players' units show only on
+ * here, never a place: unassigned units and other players' units show only on
  * the Game's page, and a Game is started or joined from the Play hub.
  *
  *  - **The band** (ink, paper flecks): the notched title and, right of it on

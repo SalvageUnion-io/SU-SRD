@@ -17,6 +17,7 @@ import { Badge, HomebrewStamp, tokens } from '../../components/index'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { npcCopy } from '../../messages/build-npc'
 import { CrewLeadMini } from '../sheet/CrewLeadMini'
 
 const STACK = {
@@ -39,7 +40,7 @@ export function LinkedCrewMini({ slotName, assignment, fallback }: LinkedCrewMin
   if (npc === null) {
     return (
       <div style={STACK}>
-        <Badge surface="outline">Assigned NPC unavailable</Badge>
+        <Badge surface="outline">{npcCopy('assignedNpcUnavailable')}</Badge>
         {fallback}
       </div>
     )

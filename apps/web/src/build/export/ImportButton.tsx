@@ -18,6 +18,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
+import { buildExportCopy } from '../../messages/build-export'
 import { useEntityStore } from '../../stores/entityStore'
 
 /** The line an import leaves behind: what came in, and what was skipped. */
@@ -96,7 +97,7 @@ export function ImportButton({ onResult }: ImportButtonProps = {}) {
   return (
     <Stack gap={4}>
       <Button size="compact" disabled={busy} onClick={handleClick}>
-        {busy ? 'Importing…' : 'Import'}
+        {busy ? buildExportCopy('importing') : buildExportCopy('import')}
       </Button>
       {/* Hidden file input */}
       <input

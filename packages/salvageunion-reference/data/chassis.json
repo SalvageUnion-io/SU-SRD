@@ -2192,7 +2192,14 @@
         "value": "The 'Z-80A' Spectrum was developed by Advanced Microprocessor Systems (AMS), a subsidiary of Thatcher Steel, as a pilotable, mobile, data centre for use in the establishment of colonies either offworld or within inhospitable locations. The Spectrum's Chassis is specifically designed to protect its data core and other vital components from any environmental damage and in the event of a colony collapse it can be moved with ease along with the vital intelligence contained in its mammoth core."
       }
     ],
-    "chassisAbilities": ["Data Scanner"]
+    "chassisAbilities": ["Data Scanner"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 18
+      }
+    ]
   },
   {
     "id": "61e24c6d-fc2f-4ff7-b9ca-3d8325764666",
@@ -3150,7 +3157,14 @@
         "value": "The 'V-IG83' Hussar was designed as a general purpose light-combat Mech by Contour Aerospace that was relatively cheap for the corpo to mass produce. Able to rapidly mobilise against threats, they were primarily used as a 'peacekeeping' force by Contour Aerospace security detachments during the Oceanic Expanse. They fell into disuse following the war and have since become a Mech utilised by wasters of all kinds, due to their speed, cheap cost and hit and run capabilities."
       }
     ],
-    "chassisAbilities": ["Fast"]
+    "chassisAbilities": ["Fast"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 28
+      }
+    ]
   },
   {
     "id": "bc0be363-b45b-4f3f-8ce1-67406cb2c24c",

@@ -18,6 +18,7 @@
  */
 
 import { EmptyState, MiniGrid, Slab } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
 import type { PlayColumnProps } from './situation.model'
 import { useOpenSheet } from './useOpenSheet'
@@ -32,7 +33,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
 
   return (
     <>
-      <Slab as="h2" label="Units" />
+      <Slab as="h2" label={playCopy('units')} />
       {pilot ? (
         <PlayPilotUnit
           pilot={pilot}
@@ -41,7 +42,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
           onOpenSheet={() => setSheet({ kind: 'pilot', id: pilot.id, name: pilot.name })}
         />
       ) : (
-        <EmptyState variant="inline" body="The Pilot is on its way." />
+        <EmptyState variant="inline" body={playCopy('thePilotIsOnIts')} />
       )}
       {units.mech ? (
         <PlayMechUnit
@@ -63,7 +64,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
         />
       ) : null}
       {units.hangar.length > 0 ? (
-        <MiniGrid label="Hangar" play>
+        <MiniGrid label={playCopy('hangar')} play>
           {units.hangar.map((spare) => (
             <PlayHangarMech
               key={spare.mechId}

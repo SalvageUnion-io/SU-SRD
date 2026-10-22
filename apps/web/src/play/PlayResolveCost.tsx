@@ -10,6 +10,7 @@ import type { CSSProperties } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
 import { ActivationCost, cn, Radio, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
+import { playCopy } from '../messages/play'
 import type { ResolveModel } from './useActionsDeck'
 
 const CHOICE_LABEL = cn('su-play-deck-cost-choice-lab', capsLabel())
@@ -37,12 +38,12 @@ export function ResolveSpend({
   currency,
 }: Pick<Extract<ResolveModel, { kind: 'resolve' }>, 'cost' | 'currency'>) {
   if (cost.amount <= 0 && cost.heat <= 0 && cost.uses <= 0) {
-    return <span style={NO_COST}>No cost</span>
+    return <span style={NO_COST}>{playCopy('noCost')}</span>
   }
   return (
     <span style={SPEND}>
-      {cost.heat > 0 && <Stat size="compact" label="Heat" value={`+${cost.heat}`} />}
-      {cost.uses > 0 && <Stat size="compact" label="Uses" value={cost.uses} />}
+      {cost.heat > 0 && <Stat size="compact" label={playCopy('heat')} value={`+${cost.heat}`} />}
+      {cost.uses > 0 && <Stat size="compact" label={playCopy('uses')} value={cost.uses} />}
       {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} size="compact" />}
     </span>
   )
@@ -62,10 +63,10 @@ export function ResolveCost({
         <fieldset className="su-play-deck-cost-choice">
           {/* One choice, the one `Radio` (hard rule R15): `bare`, as the
               fieldset already frames the pair. */}
-          <legend className={CHOICE_LABEL}>Pay with</legend>
+          <legend className={CHOICE_LABEL}>{playCopy('payWith')}</legend>
           <Radio
             bare
-            label={`${currencyChoice.epCost} EP`}
+            label={playCopy('ep', { epCost: currencyChoice.epCost })}
             name="su-play-deck-currency"
             checked={currencyChoice.currency === 'EP'}
             disabled={currencyChoice.activated}
@@ -73,7 +74,7 @@ export function ResolveCost({
           />
           <Radio
             bare
-            label={`${currencyChoice.epCost} AP`}
+            label={playCopy('ap', { epCost: currencyChoice.epCost })}
             name="su-play-deck-currency"
             checked={currencyChoice.currency === 'AP'}
             disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
@@ -86,7 +87,7 @@ export function ResolveCost({
         <div className="su-play-deck-hotx">
           {/* The sheet's own stepper (`Stat` in Edit): X's cell and its − / +. */}
           <Stat
-            label="Hot"
+            label={playCopy('hot')}
             value={variableHot.hotX}
             size="compact"
             min={1}

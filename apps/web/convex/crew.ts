@@ -18,7 +18,7 @@ import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { linkIdOf } from './model/entities'
 import { entityNameOf } from './model/entityName'
-import { requireMember, requireUser } from './model/permissions'
+import { membershipOrNull, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
 import { mirrors } from './model/validators'
@@ -283,8 +283,9 @@ export const vitals = query({
     ),
   }),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
-    const viewerId = await requireUser(ctx)
+    const membership = await membershipOrNull(ctx, args.gameId)
+    if (membership === null) return { viewerId: await requireUser(ctx), pilots: [], mechs: [] }
+    const viewerId = membership.userId
 
     const [pilots, mechs, crawlers, links, seats, members] = await Promise.all([
       ctx.db

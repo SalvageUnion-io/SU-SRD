@@ -1,5 +1,5 @@
 /**
- * EncounterShelf — the Training Bay's Encounters (ADR-053): the Mediator's
+ * EncounterShelf — the Training Bay's Encounters (ADR-056): the Mediator's
  * prep, each an opposition, tables to hand and notes, run later from a Game's
  * Play. User-made and only ever its maker's, so dashed and "Only me".
  *
@@ -17,6 +17,7 @@ import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
 import { encounterChips, encounterReading } from '../../lib/shelves/shelfItems'
+import { buildPrepCopy } from '../../messages/build-prep'
 import { usePrepStore } from '../../stores/prepStore'
 import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.model'
 import { Shelf } from './Shelf'
@@ -37,7 +38,7 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
         { id: 'open', label: 'Open', onSelect: () => go(encounterHref(encounter.id)) },
         {
           id: 'copy',
-          label: 'Make a copy',
+          label: buildPrepCopy('makeACopy'),
           onSelect: writable(() =>
             confirm({
               ...ROW_ACTION_COPY.copyOnShelf(encounter.name),
@@ -73,18 +74,18 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
   return (
     <Shelf
       id="shelf-encounters"
-      title="Encounters"
+      title={buildPrepCopy('encounters')}
       aside="Yours"
-      note="Your prep, ready to run in a Game you mediate."
+      note={buildPrepCopy('shelfNote')}
       action={
         canWrite ? (
           <Button size="mini" onClick={() => runWrite(newEncounter)}>
-            + New encounter
+            {buildPrepCopy('addEncounter')}
           </Button>
         ) : undefined
       }
       isEmpty={hydrated && encounters.length === 0}
-      empty="No encounters yet. Prep one before the session."
+      empty={buildPrepCopy('noEncounters')}
     >
       {encounters.map((e) => (
         <ShelfItem

@@ -1,6 +1,6 @@
 /**
  * RunEncounterDialog — "Run an encounter" from the Opposition (play.md §10,
- * ADR-053): one of the Mediator's shelf encounters, and what becomes of the
+ * ADR-056): one of the Mediator's shelf encounters, and what becomes of the
  * Opposition already on the tray. Running copies the encounter in, so the
  * saved one stays as it was built.
  *
@@ -15,6 +15,7 @@ import { useId, useState } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { ConfirmDialog, Radio, Stack, toast, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { encounterLine, trayChoiceLabel } from './runEncounter.model'
 
 const FIELDSET = {
@@ -58,22 +59,20 @@ export function RunEncounterDialog({
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title="Run an encounter"
+      title={mediatorCopy('runAnEncounter')}
       body={
         encounters.length === 0 ? (
           <>
-            No encounters yet. Prep one in your <AppLink href="/">Training Bay</AppLink>: its
-            opposition, the tables to hand and your notes.
+            {mediatorCopy('noEncountersYet')}{' '}
+            <AppLink href="/">{mediatorCopy('trainingBay')}</AppLink>
+            {mediatorCopy('noEncountersTail')}
           </>
         ) : (
           <Stack gap={16}>
-            <span>
-              From your Training Bay. Running one copies its opposition in at full HP, so the saved
-              encounter stays as you built it.
-            </span>
+            <span>{mediatorCopy('runLede')}</span>
             <fieldset style={FIELDSET}>
               <legend className={LEGEND_CAPS} style={LEGEND}>
-                Encounter
+                {mediatorCopy('encounter')}
               </legend>
               {encounters.map((encounter) => (
                 <Radio
@@ -90,13 +89,13 @@ export function RunEncounterDialog({
             {onTray > 0 && (
               <fieldset style={FIELDSET}>
                 <legend className={LEGEND_CAPS} style={LEGEND}>
-                  The Opposition on the tray
+                  {mediatorCopy('theOppositionOnTheTray')}
                 </legend>
                 <Radio
                   name={`${id}-tray`}
                   checked={!clear}
                   onChange={() => setClear(false)}
-                  label="Add to it"
+                  label={mediatorCopy('addToIt')}
                 />
                 <Radio
                   name={`${id}-tray`}
@@ -109,13 +108,17 @@ export function RunEncounterDialog({
           </Stack>
         )
       }
-      confirmLabel={picked === null ? 'Close' : `Run ${picked.name}`}
-      pendingLabel="Running…"
+      confirmLabel={
+        picked === null
+          ? mediatorCopy('closeDialog')
+          : mediatorCopy('runNamed', { name: picked.name })
+      }
+      pendingLabel={mediatorCopy('runningPending')}
       tone={clear && onTray > 0 ? 'danger' : 'default'}
       onConfirm={async () => {
         if (picked === null) return
         const { added } = await onRun(picked.id, clear && onTray > 0)
-        toast.success(`Running ${picked.name}: ${added} added to the Opposition.`)
+        toast.success(mediatorCopy('runningAdded', { name: picked.name, added }))
         setClear(false)
       }}
     />

@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { EmptyState, Entity, MiniGrid, Stat, tokens } from '../components/index'
 import { crewPair } from '../lib/units/crewPair'
 import { unitRowModel } from '../lib/units/unitModel'
+import { playCopy } from '../messages/play'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
 import { crewLineLabel, crewSeatLines, pairedMech } from './crew.model'
@@ -55,11 +56,11 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
   return (
     <>
       {crew === null ? (
-        <EmptyState variant="inline" body="The crew appears once the Game's roster arrives." />
+        <EmptyState variant="inline" body={playCopy('theCrewAppearsOnceThe')} />
       ) : lines.length === 0 ? (
-        <EmptyState variant="inline" body="No one else is seated at this table yet." />
+        <EmptyState variant="inline" body={playCopy('noOneElseIsSeated')} />
       ) : (
-        <MiniGrid label="Crew" play>
+        <MiniGrid label={playCopy('crew')} play>
           {lines.map((line) => (
             <li key={line.pilotId}>
               <CrewLine line={line} onOpen={() => setOpen(line)} />
@@ -102,8 +103,8 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
       {...(pair.relations ? { relations: [...pair.relations] } : {})}
       state={
         <>
-          {line.boardedIn === null ? <Stat size="mini" label="On foot" /> : null}
-          <Stat size="mini" label={line.present ? 'Here' : 'Away'} />
+          {line.boardedIn === null ? <Stat size="mini" label={playCopy('onFoot')} /> : null}
+          <Stat size="mini" label={line.present ? playCopy('here') : playCopy('away')} />
           {vital.attention ? (
             <Stat
               size="mini"

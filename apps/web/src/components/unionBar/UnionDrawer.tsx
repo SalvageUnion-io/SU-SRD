@@ -5,6 +5,7 @@ import { SIGN_IN_HREF } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
 import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
+import { unionBarCopy } from '../../messages/components-union-bar'
 import type { NavDrawerItem } from '../index'
 import { Badge, Button, NavDrawer } from '../index'
 
@@ -48,10 +49,10 @@ const BRAND = (
   <a href="/">
     <span style={BRAND_FRAME}>
       <Badge shape="stamp" size="full" style={BRAND_STAMP}>
-        Salvage Union
+        {unionBarCopy('salvageUnion')}
       </Badge>
       <Badge shape="stamp" size="full" surface="inverse" style={BRAND_STAMP_INVERSE}>
-        SRD
+        {unionBarCopy('srd')}
       </Badge>
     </span>
   </a>
@@ -63,7 +64,7 @@ function signInFromHint(): ((close: () => void) => ReactNode) | undefined {
   return () => (
     // A site path, loaded as a document: the drawer is the shell's, not the router's.
     <Button href={SIGN_IN_HREF} linkAs="a" variant="primary" size="compact">
-      Sign in with Discord
+      {unionBarCopy('signInWithDiscord')}
     </Button>
   )
 }
@@ -97,7 +98,7 @@ export function UnionDrawer({
     page(DOC_PAGES.changelog),
     page(DOC_PAGES.discord),
     page(DOC_PAGES.api),
-    { label: 'Buy the game', href: BUY_HREF, external: true },
+    { label: unionBarCopy('buyTheGame'), href: BUY_HREF, external: true },
   ]
 
   return (

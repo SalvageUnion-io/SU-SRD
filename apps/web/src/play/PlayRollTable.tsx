@@ -16,6 +16,7 @@ import {
   useParseTraitReferences,
 } from '../components/index'
 import { dieForTable, rollD20 } from '../lib/rollTableDice'
+import { playCopy } from '../messages/play'
 
 /** A row's text, its trait references as Mentions. */
 function TraitText({ text }: { text: string }) {
@@ -124,7 +125,7 @@ export function PlayRollTable({
               size="compact"
               className="su-roll__control"
               onClick={() => copy(landed.text)}
-              aria-label="Copy result to clipboard"
+              aria-label={playCopy('copyResultToClipboard')}
             >
               Copy
               <CopiedIcon

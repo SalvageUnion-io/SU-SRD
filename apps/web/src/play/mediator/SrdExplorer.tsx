@@ -49,6 +49,7 @@ import {
 } from '../../components/index'
 import { buildChapters } from '../../lib/chapters'
 import { useGameData } from '../../lib/useGameData'
+import { mediatorCopy } from '../../messages/play-mediator'
 
 const HIDE_CHOICES = { choices: true } as const
 const NOTHING_SELECTED: string[] = []
@@ -133,13 +134,13 @@ function SrdHome({
         <SearchField
           type="text"
           name="srd-explorer-search"
-          placeholder="Search the Reference — chassis, systems, abilities, tables…"
+          placeholder={mediatorCopy('searchTheReferenceChassisSystems')}
           autoComplete="off"
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
           {...inputProps}
-          aria-label="Search the Reference"
+          aria-label={mediatorCopy('searchTheReference')}
           aria-expanded={open}
           aria-controls={open ? listboxId : undefined}
         />
@@ -151,7 +152,7 @@ function SrdHome({
           // in link mode, without the lead; a category opens its listing.
           <SearchListbox
             id={listboxId}
-            label="Search results"
+            label={mediatorCopy('searchResults')}
             size="compact"
             ready={ready}
             results={results}
@@ -182,7 +183,7 @@ function SrdHome({
           ))}
         </div>
       ) : (
-        <Pending label="reference data" />
+        <Pending label={mediatorCopy('referenceData')} />
       )}
     </Stack>
   )
@@ -194,7 +195,7 @@ function SrdEntity({ entity, onBack }: { entity: RefEntity; onBack: () => void }
     <div>
       <div style={BACK_ROW}>
         <Button size="mini" onClick={onBack}>
-          ◀ Back
+          {mediatorCopy('back')}
         </Button>
       </div>
       <ReferenceEntityCard data={entity} hide={HIDE_CHOICES} />
@@ -220,14 +221,14 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
   // The open category, on the band beside the title: its × is the way back.
   const chip =
     view.kind === 'category' ? (
-      <ChipButton aria-label={`Close ${view.label}`} onClick={home}>
+      <ChipButton aria-label={mediatorCopy('close', { label: view.label })} onClick={home}>
         <Stat label={view.label} value="✕" size="compact" />
       </ChipButton>
     ) : undefined
 
   const frame: SrdFrame = (body, top) => (
     <TitledBox
-      title="Reference"
+      title={mediatorCopy('reference')}
       tone="pilot"
       className="su-modal-panel"
       body="flush"
@@ -270,7 +271,7 @@ function SrdBody({
     if (!ready) {
       return frame(
         <div className="su-play-display-scroll">
-          <Pending label="reference data" />
+          <Pending label={mediatorCopy('referenceData')} />
         </div>
       )
     }
@@ -283,7 +284,7 @@ function SrdBody({
         frame={({ toolbar, body }) => frame(body, toolbar)}
         selected={NOTHING_SELECTED}
         title={label}
-        emptyMessage="No entries."
+        emptyMessage={mediatorCopy('noEntries')}
         onOpen={(id) => {
           const entity = SalvageUnionReference.findIn(schemaName, (e) => e.id === id)
           if (entity) setView({ kind: 'entity', entity, from: { schemaName, label } })

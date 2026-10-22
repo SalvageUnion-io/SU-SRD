@@ -15,6 +15,7 @@ import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { cn } from '../../lib/cn'
+import { buildWizardCopy } from '../../messages/build-wizard'
 
 /**
  * Sheet tone context — picks the `.su-sheet--{kind}` poster theming. The NPC
@@ -452,7 +453,7 @@ export function WizShell({
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
           <Button variant="ghost" size="full" onClick={onBack} disabled={busy}>
-            Back
+            {buildWizardCopy('back')}
           </Button>
         )}
         <Button
@@ -461,16 +462,16 @@ export function WizShell({
           onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
           disabled={busy}
         >
-          Cancel
+          {buildWizardCopy('cancel')}
         </Button>
         <ConfirmDialog
           open={confirmingCancel}
           onOpenChange={setConfirmingCancel}
-          title="Discard this draft?"
+          title={buildWizardCopy('discardThisDraft')}
           tone="danger"
-          body="Your unsaved changes will be lost."
-          confirmLabel="Discard"
-          cancelLabel="Keep editing"
+          body={buildWizardCopy('yourUnsavedChangesWillBe')}
+          confirmLabel={buildWizardCopy('discard')}
+          cancelLabel={buildWizardCopy('keepEditing')}
           onConfirm={onCancel}
         />
       </div>
@@ -484,7 +485,7 @@ export function WizShell({
         onClick={onNext}
         disabled={nextDisabled || busy}
       >
-        {busy ? 'Saving…' : ctaLabel}
+        {busy ? buildWizardCopy('saving') : ctaLabel}
       </Button>
     </div>
   )
@@ -509,7 +510,7 @@ export function WizShell({
             pipe with an arrow-capped end runs behind the step tabs on lg;
             mobile keeps the horizontal wrap without the pipe. */}
         <aside className="su-wiz-rail">
-          <nav aria-label="Steps" className="su-wiz-rail-nav">
+          <nav aria-label={buildWizardCopy('steps')} className="su-wiz-rail-nav">
             {/* The pipe — thick, runs behind the tabs (lg only). */}
             <span aria-hidden="true" className="su-wiz-rail-pipe" style={pipeStyle} />
             {steps.map((label, i) => (
@@ -543,7 +544,7 @@ export function WizShell({
                 </Badge>
                 <h1 className={stepTitleCaps} style={stepTitleStyle}>
                   <span className="su-sr-only">
-                    Step {active + 1} of {steps.length} ·{' '}
+                    {buildWizardCopy('stepOf', { value: active + 1, count: steps.length })}{' '}
                   </span>
                   {title}
                 </h1>

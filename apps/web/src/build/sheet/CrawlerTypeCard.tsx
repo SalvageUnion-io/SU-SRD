@@ -12,6 +12,7 @@ import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewMini } from '../npc/LinkedCrewMini'
@@ -167,7 +168,7 @@ export function CrawlerTypeCard({
     <div style={TYPE_STACK}>
       {description}
       {/* Ability ∥ crew: one masonry grid of contentful Minis (`MiniGrid`). */}
-      <MiniGrid label={`${type.name} ability and crew`}>
+      <MiniGrid label={buildSheetCopy('abilityAndCrew', { name: type.name })}>
         {ability}
         {crew && <li>{crew}</li>}
       </MiniGrid>

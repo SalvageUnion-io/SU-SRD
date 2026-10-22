@@ -9,8 +9,10 @@ import { fromFaults } from './_findings'
  * MiniGroup's) wears the subtle `--color-ink-40` the sheets' panels wear,
  * never solid ink or the entity's tone. Only `--su-compact-frame` colours one: an
  * ability tree's tier, a pattern's colour. `findFrames` returns one
- * `frame:` line per frame whose drawn edges are another colour, and each
- * fails; the static half is `chrome-tokens/entity-frame-ink`.
+ * `frame:` line per frame whose drawn edges are another colour, and a
+ * `bottom-edge:` line per Compact that is its head alone (`data-bodyless`) yet
+ * draws an edge beneath it (R42); each fails. The static half is
+ * `chrome-tokens/entity-frame-ink`.
  */
 const ENTITY_FRAMES = [
   '.su-entity-compact__frame',
@@ -38,6 +40,18 @@ function scanFrames({ frames, subtle }: { frames: string; subtle: string }): str
     if (r.width < 1 || r.height < 1) continue
     const s = getComputedStyle(el)
     if (s.visibility === 'hidden' || s.display === 'none') continue
+    // A Compact that is its head alone draws no edge beneath it (R42).
+    if (el.matches('[data-bodyless]')) {
+      const bottom = Number.parseFloat(s.getPropertyValue('border-bottom-width')) || 0
+      const colour = s.getPropertyValue('border-bottom-color').trim()
+      const drawn =
+        bottom > 0 && !/^(?:none|hidden)$/.test(s.getPropertyValue('border-bottom-style'))
+      if (drawn && !/^rgba\(.*,\s*0\)$|^transparent$/.test(colour)) {
+        faults.push(
+          `bottom-edge: "${describe(el)}" is its head alone, yet draws ${colour} beneath it`
+        )
+      }
+    }
     // A tree's tier or a pattern's colour, through the one hook.
     if (s.getPropertyValue('--su-compact-frame').trim() !== '') continue
     const off = new Set<string>()

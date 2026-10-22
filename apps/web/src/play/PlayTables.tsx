@@ -1,7 +1,7 @@
 /**
  * PlayTables — the Tables section of the Cockpit's right column (play.md §8):
  * "Roll a table…" to find any roll table, the tables found, the Mediator's
- * running encounter's own (ADR-053) and the tables the Situation needs pinned
+ * running encounter's own (ADR-056) and the tables the Situation needs pinned
  * (`pinnedTables`), each a list of roll table Minis
  * in the Mini grid (`MiniGrid`; ruleset §1.3: Play's lists are Minis), the open table drawn by
  * the shared roll instrument (`PlayRollTable`, `RollTableInstrument`
@@ -22,6 +22,7 @@ import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { RollMini } from '../components/entity/forms/RollMini'
 import { CHAPTER_BAND_COLOR, Checkbox, MiniGrid, SearchField, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
 import { PlayRollTable } from './PlayRollTable'
@@ -61,7 +62,7 @@ type PlayTablesProps = {
   onPostChange: (post: boolean) => void
   /** The bound channel: undefined while unknown, null when none. */
   binding: PlayBinding | null | undefined
-  /** The Mediator's running encounter's own tables (ADR-053), above the Situation's. */
+  /** The Mediator's running encounter's own tables (ADR-056), above the Situation's. */
   prepared?: readonly string[] | undefined
 }
 
@@ -93,8 +94,8 @@ export function PlayTables({
     <div style={STACK}>
       <SearchField
         type="search"
-        placeholder="Roll a table…"
-        aria-label="Roll a table"
+        placeholder={playCopy('rollATable')}
+        aria-label={playCopy('rollATable2')}
         // It controls the found list only while there is one to point at.
         aria-controls={found.length > 0 ? findId : undefined}
         value={query}
@@ -104,12 +105,28 @@ export function PlayTables({
         }}
       />
       {found.length > 0 && (
-        <TableMinis id={findId} label="Tables found" names={found} open={open} onPick={pick} />
+        <TableMinis
+          id={findId}
+          label={playCopy('tablesFound')}
+          names={found}
+          open={open}
+          onPick={pick}
+        />
       )}
       {prepared.length > 0 && (
-        <TableMinis label="This encounter's tables" names={prepared} open={open} onPick={pick} />
+        <TableMinis
+          label={playCopy('thisEncountersTables')}
+          names={prepared}
+          open={open}
+          onPick={pick}
+        />
       )}
-      <TableMinis label="Pinned tables" names={pinnedTables(downtime)} open={open} onPick={pick} />
+      <TableMinis
+        label={playCopy('pinnedTables')}
+        names={pinnedTables(downtime)}
+        open={open}
+        onPick={pick}
+      />
       {table && (
         <PlayRollTable
           key={table.name}
@@ -134,11 +151,7 @@ export function PlayTables({
         />
         <span id={`${postId}-label`}>{postLabel(solo, binding)}</span>
       </div>
-      {binding === null && (
-        <p style={HINT}>
-          No channel is bound yet, so rolls stay in Play. Connect one from the channel button.
-        </p>
-      )}
+      {binding === null && <p style={HINT}>{playCopy('noChannelIsBoundYet')}</p>}
     </div>
   )
 }

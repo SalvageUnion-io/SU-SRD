@@ -15,6 +15,7 @@
 
 import type { CSSProperties } from 'react'
 import { Button, NextLabel } from '../components/index'
+import { playCopy } from '../messages/play'
 
 /** Pushes End and Next to the row's end, Back left at its start. */
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
@@ -57,14 +58,14 @@ export function DowntimeStepNav({
             disabled={off || step === 0 || onBack === null}
             onClick={() => onBack?.()}
           >
-            {`Step ${Math.max(step, 1)}`}
+            {playCopy('step', { max: Math.max(step, 1) })}
           </Button>
           <span style={SPACER} />
         </>
       )}
       {(endEarly || last) && (
         <Button size="compact" variant={last ? 'ink' : 'default'} disabled={off} onClick={onEnd}>
-          End Downtime
+          {playCopy('endDowntime')}
         </Button>
       )}
       {!last && (

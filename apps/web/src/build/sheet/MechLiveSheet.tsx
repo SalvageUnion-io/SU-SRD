@@ -24,6 +24,7 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { AssignedUnits } from './AssignedUnits'
 import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
@@ -76,12 +77,12 @@ export function MechLiveSheet({
   // On phones the condensed bar leads with Heat + SP; EP/Hold fold
   // until the sm breakpoint.
   const strip: LiveSheetStripItem[] = [
-    { key: 'sp', label: 'SP', value: sp, max: maxSP },
-    { key: 'ep', label: 'EP', value: ep, max: maxEP, mobilePriority: false },
-    { key: 'heat', label: 'Heat', value: heat, max: maxHeat },
+    { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
+    { key: 'ep', label: buildSheetCopy('ep'), value: ep, max: maxEP, mobilePriority: false },
+    { key: 'heat', label: buildSheetCopy('heat'), value: heat, max: maxHeat },
     {
       key: 'cargo',
-      label: 'Hold',
+      label: buildSheetCopy('hold'),
 
       value: cargoUsed,
       max: maxCargo,
@@ -125,7 +126,7 @@ export function MechLiveSheet({
         mech.destroyed
           ? {
               stamp: CONDITION_LABELS.destroyed,
-              note: 'This Mech is destroyed. Its record stays: clear Destroyed under Conditions if this was a bookkeeping error.',
+              note: buildSheetCopy('thisMechIsDestroyedIts'),
             }
           : undefined
       }

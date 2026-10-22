@@ -17,6 +17,7 @@
 import { useMemo } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import { Button, Entity, Stat } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
@@ -44,8 +45,12 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
   const open = resolve !== null
   const away = entry.need !== null
   const controls = away ? undefined : open ? (
-    <Button size="mini" onClick={resolve.onBack} aria-label={`Cancel ${entry.name}`}>
-      Cancel
+    <Button
+      size="mini"
+      onClick={resolve.onBack}
+      aria-label={playCopy('cancel2', { name: entry.name })}
+    >
+      {playCopy('cancel')}
     </Button>
   ) : (
     <Button
@@ -53,10 +58,10 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
       variant="ink"
       onClick={onUse}
       disabled={!canWrite}
-      aria-label={`Use ${entry.name}`}
+      aria-label={playCopy('use2', { name: entry.name })}
       title={locked ?? undefined}
     >
-      Use
+      {playCopy('use')}
     </Button>
   )
   return (

@@ -128,7 +128,7 @@ function playFor({
     mechs: [yours(MECH, 'Buzzard'), yours(SPARE, 'Old Faithful')],
     setOnFoot: () => {},
     board: (mechId) => boards.push(mechId),
-    claimAndBoard: () => {},
+    assignAndBoard: () => {},
     canChangeDowntime: gameId === null || mediator,
     startDowntime: () => {},
     endDowntime: () => {},

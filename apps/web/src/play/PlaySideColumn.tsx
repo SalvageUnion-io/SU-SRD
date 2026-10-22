@@ -23,6 +23,7 @@
 
 import type { CSSProperties } from 'react'
 import { SlabSection, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'
@@ -40,7 +41,7 @@ const STACK = {
 export function PlayCrewSection({ target, side }: PlayColumnProps & { side: PlaySide }) {
   if (target.gameId === null) return null
   return (
-    <SlabSection as="h2" id="play-crew" title="Crew">
+    <SlabSection as="h2" id="play-crew" title={playCopy('crew')}>
       <PlayCrew
         gameId={target.gameId}
         selfPilotId={target.pilotId}
@@ -63,7 +64,7 @@ export function PlayTablesSection({
   prepared,
 }: SideSectionProps & { downtime: boolean; solo: boolean; prepared?: readonly string[] }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-tables`} title="Tables">
+    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
       <PlayTables
         downtime={downtime}
         solo={solo}
@@ -83,7 +84,7 @@ export function PlayFeedSection({
   canWrite,
 }: SideSectionProps & { canWrite: boolean }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-feed`} title="Feed">
+    <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')}>
       <PlayFeed
         entries={side.entries}
         posts={side.dispatch.posts}

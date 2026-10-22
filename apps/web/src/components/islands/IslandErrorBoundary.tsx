@@ -2,6 +2,7 @@ import type { CSSProperties, ErrorInfo, ReactNode } from 'react'
 import { Component } from 'react'
 import { space } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
+import { islandsCopy } from '../../messages/components-islands'
 import { RecoveryPanel } from '../index'
 
 /** Centres the recovery panel in the island's place. */
@@ -52,9 +53,9 @@ export class IslandErrorBoundary extends Component<Props, State> {
       return (
         <div style={RECOVERY}>
           <RecoveryPanel
-            title="Something went wrong"
-            message="Something went wrong rendering this entry."
-            action={{ label: 'Try again', onClick: () => window.location.reload() }}
+            title={islandsCopy('somethingWentWrong')}
+            message={islandsCopy('somethingWentWrongRenderingThis')}
+            action={{ label: islandsCopy('tryAgain'), onClick: () => window.location.reload() }}
           />
         </div>
       )

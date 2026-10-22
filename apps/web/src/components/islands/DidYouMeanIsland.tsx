@@ -5,6 +5,7 @@ import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { islandsCopy } from '../../messages/components-islands'
 import { Entity, SlabSection } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -97,7 +98,9 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
       <SlabSection
         as="h2"
         id="did-you-mean"
-        title={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
+        title={
+          guesses.length > 0 ? islandsCopy('didYouMean') : islandsCopy('nothingCloseTo', { query })
+        }
         page
         bodyClassName="su-not-found__guesses"
       >
@@ -123,7 +126,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
           </DocumentLinks>
         )}
         <a href={searchHref} className="su-not-found__link">
-          Search the Reference for “{query}”
+          {islandsCopy('searchTheReferenceFor', { query })}
         </a>
       </SlabSection>
     </IslandErrorBoundary>

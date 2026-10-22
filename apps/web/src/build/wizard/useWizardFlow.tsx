@@ -25,6 +25,7 @@ import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { useEntityStore } from '../../stores/entityStore'
 import type { CreateInput } from '../../stores/types'
 import { OffRulesEscape } from './OffRulesEscape'
@@ -167,7 +168,7 @@ export function useWizardFlow<
     setInvalid(null)
     const result = await save.run()
     if (!result.ok || result.value === null) return
-    toast.success(`Saved ${form.name.trim() || noun}.`)
+    toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
     clearWizardDraft(draftKey)
     onComplete(result.value.id)
   }

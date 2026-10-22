@@ -1,5 +1,5 @@
 {
-  "floor": 1792621092,
+  "floor": 1792644675,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1772,7 +1772,7 @@
         }
       }
     },
-    "ownership:claim": {
+    "ownership:assign": {
       "type": "object",
       "value": {
         "table": {
@@ -1796,10 +1796,17 @@
             "type": "string"
           },
           "optional": false
+        },
+        "userId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "users"
+          },
+          "optional": true
         }
       }
     },
-    "ownership:release": {
+    "ownership:unassign": {
       "type": "object",
       "value": {
         "table": {

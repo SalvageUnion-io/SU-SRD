@@ -57,6 +57,7 @@ import {
   toggleNpcAction,
   toggleNpcTrait,
 } from '../../lib/wizard/npcFormState'
+import { npcCopy } from '../../messages/build-npc'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
@@ -121,7 +122,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
     formDirty,
     schema: NpcSchema,
     toCreateInput: npcFormToCreateInput,
-    failureMessage: 'The NPC could not be saved. Try again.',
+    failureMessage: npcCopy('theNpcCouldNotBe'),
     onComplete: onCreated,
     onCancel,
   })
@@ -171,20 +172,20 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           tabs). The step sits beside its live preview. */}
       <WizShell
         kind="npc"
-        eyebrow="Denizens · New NPC"
+        eyebrow={npcCopy('denizensNewNpc')}
         band={false}
         {...shell}
         nextDisabled={shell.nextDisabled || writesBlocked}
         title={NPC_STEP_LABELS[step]}
         footerNote={!gate.ok ? gate.reason : undefined}
-        submitLabel="Save NPC"
+        submitLabel={npcCopy('saveNpc')}
       >
         <div style={STEP_COLUMNS}>
           <section style={COLUMN} aria-label={NPC_STEP_LABELS[step]}>
             {step !== 'template' && form.templateChosen && (
               <div style={ROW}>
                 <span className={CAPS_LABEL} style={CAPS}>
-                  Template
+                  {npcCopy('template')}
                 </span>
                 {/* Change is the template Mini's last chip (C8, hard rule R6). */}
                 {template ? (
@@ -195,18 +196,18 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
                     controls={
                       <Button
                         size="mini"
-                        aria-label="Change the template"
+                        aria-label={npcCopy('changeTheTemplate')}
                         onClick={() => shell.onStepClick(0)}
                       >
-                        Change
+                        {npcCopy('change')}
                       </Button>
                     }
                   />
                 ) : (
                   <>
-                    <span style={HINT}>Started blank</span>
+                    <span style={HINT}>{npcCopy('startedBlank')}</span>
                     <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
-                      Change
+                      {npcCopy('change')}
                     </Button>
                   </>
                 )}
@@ -220,7 +221,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
                 className="su-npc-preview-toggle"
                 onClick={() => setPreviewOpen(true)}
               >
-                Preview
+                {npcCopy('preview')}
               </Button>
             )}
 
@@ -236,13 +237,13 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             {submitError && <FieldError>{submitError}</FieldError>}
           </section>
 
-          <section className="su-npc-preview" aria-label="Live preview">
+          <section className="su-npc-preview" aria-label={npcCopy('livePreview')}>
             <p className={CAPS_LABEL} style={CAPS}>
-              Live preview · how it will look in your Training Bay and in a Game
+              {npcCopy('livePreviewHowItWill')}
             </p>
             {preview}
             <p style={NOTE}>
-              <strong>Yours, not the book&rsquo;s.</strong> A designed NPC keeps its
+              <strong>{npcCopy('yoursNotTheBooks')}</strong> A designed NPC keeps its
               template&rsquo;s link to the reference, but wears the user-made frame and your name.
               It can go in your Training Bay, into a Game, or into a crawler&rsquo;s crew.
             </p>
@@ -253,8 +254,8 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
       <ModalShell
         open={previewOpen}
         onOpenChange={setPreviewOpen}
-        title="Preview"
-        subtitle="How it will look in your Training Bay and in a Game"
+        title={npcCopy('preview')}
+        subtitle={npcCopy('howItWillLookIn')}
       >
         {preview}
       </ModalShell>
@@ -266,15 +267,15 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         }}
         title={
           pendingStart === 'blank'
-            ? 'Start blank?'
+            ? npcCopy('startBlank')
             : `Start again from ${pendingStart?.name ?? 'this template'}?`
         }
         body={
           pendingStart === 'blank'
-            ? 'Your stats, actions and traits are cleared. The name and identity you wrote stay.'
-            : 'Its stats, actions and traits replace the ones you changed. The name and identity you wrote stay.'
+            ? npcCopy('yourStatsActionsAndTraits')
+            : npcCopy('itsStatsActionsAndTraits')
         }
-        confirmLabel={pendingStart === 'blank' ? 'Clear' : 'Replace'}
+        confirmLabel={pendingStart === 'blank' ? npcCopy('clear') : npcCopy('replace')}
         tone="danger"
         onConfirm={() => {
           const start = pendingStart
@@ -308,27 +309,27 @@ function TemplateStep({
   return (
     <>
       <SearchField
-        aria-label="Find a template"
-        placeholder="Find an NPC in the reference"
+        aria-label={npcCopy('findATemplate')}
+        placeholder={npcCopy('findAnNpcInThe')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
       {/* One template or none: a radio (hard rule R15), each pick ringed and sealed. */}
-      <RadioCardGroup label="Template">
-        <ul style={LIST} aria-label="Templates">
+      <RadioCardGroup label={npcCopy('template')}>
+        <ul style={LIST} aria-label={npcCopy('templates')}>
           <li>
             {/* No entity, so no Compact: the Compact's frame in select mode. */}
             <TitledBox
-              title="Start blank"
+              title={npcCopy('startBlank2')}
               select={{
                 kind: 'select',
                 role: 'radio',
                 selected: blankChosen,
                 onSelect: onBlank,
-                label: 'Start blank',
+                label: npcCopy('startBlank2'),
               }}
             >
-              <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
+              <span style={HINT}>{npcCopy('noTemplateSetTheStats')}</span>
             </TitledBox>
           </li>
           {shown.map((npc) => (
@@ -345,7 +346,7 @@ function TemplateStep({
                     form.templateRef?.schema === 'npcs' &&
                     form.templateRef.slug === nameToSlug(npc.name),
                   onSelect: () => onTemplate(npc),
-                  label: `Start from ${npc.name}`,
+                  label: npcCopy('startFrom', { name: npc.name }),
                 }}
               />
             </li>
@@ -366,7 +367,7 @@ function StatsStep({
 }) {
   return (
     <div style={STAT_GRID}>
-      <Field label="Hit points" htmlFor="npc-hp" required>
+      <Field label={npcCopy('hitPoints')} htmlFor="npc-hp" required>
         <Input
           id="npc-hp"
           inputMode="numeric"
@@ -375,18 +376,18 @@ function StatsStep({
           style={PENCIL}
         />
       </Field>
-      <Field label="Damage type" htmlFor="npc-damage-type">
+      <Field label={npcCopy('damageType')} htmlFor="npc-damage-type">
         <Select
           id="npc-damage-type"
           value={form.damageType}
           onChange={(e) => onChange({ damageType: e.target.value === 'SP' ? 'SP' : 'HP' })}
           style={PENCIL}
         >
-          <option value="HP">HP</option>
-          <option value="SP">SP</option>
+          <option value="HP">{npcCopy('hp')}</option>
+          <option value="SP">{npcCopy('sp')}</option>
         </Select>
       </Field>
-      <Field label="Bio salvage value" htmlFor="npc-bio">
+      <Field label={npcCopy('bioSalvageValue')} htmlFor="npc-bio">
         <Input
           id="npc-bio"
           inputMode="numeric"
@@ -411,12 +412,9 @@ function ActionsStep({
   return (
     <>
       {form.offeredActions.length === 0 && form.offeredTraits.length === 0 ? (
-        <EmptyState
-          variant="quiet"
-          body="No actions yet. An NPC may carry none; add any from the reference below."
-        />
+        <EmptyState variant="quiet" body={npcCopy('noActionsYetAnNpc')} />
       ) : (
-        <ul style={LIST} aria-label="Actions and traits">
+        <ul style={LIST} aria-label={npcCopy('actionsAndTraits')}>
           {form.offeredActions.map((slug) => (
             <ActionPick
               key={slug}
@@ -485,13 +483,13 @@ function ReferenceAdder({
   return (
     <div style={COLUMN}>
       <SearchField
-        aria-label="Add an action or trait from the reference"
-        placeholder="Add an action or trait from the reference"
+        aria-label={npcCopy('addAnActionOrTrait')}
+        placeholder={npcCopy('addAnActionOrTrait')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
       {matches.length > 0 && (
-        <ul style={LIST} aria-label="Matches">
+        <ul style={LIST} aria-label={npcCopy('matches')}>
           {matches.map((m) => {
             const slug = m.kind === 'Action' ? npcActionSlug(m.name) : m.name
             const has =
@@ -510,8 +508,8 @@ function ReferenceAdder({
                 >
                   <span>
                     {has
-                      ? `${displayTitle(m.name)} — already listed`
-                      : `Add ${displayTitle(m.name)}`}
+                      ? npcCopy('alreadyListed', { displayTitle: displayTitle(m.name) })
+                      : npcCopy('add', { displayTitle: displayTitle(m.name) })}
                   </span>
                   <span>{m.kind}</span>
                 </Button>
@@ -534,7 +532,7 @@ function IdentityStep({
 }) {
   return (
     <>
-      <Field label="Name" htmlFor="npc-name" required>
+      <Field label={npcCopy('name')} htmlFor="npc-name" required>
         <Input
           id="npc-name"
           value={form.name}
@@ -542,26 +540,26 @@ function IdentityStep({
           style={PENCIL}
         />
       </Field>
-      <Field label="Position" htmlFor="npc-position">
+      <Field label={npcCopy('position')} htmlFor="npc-position">
         <Input
           id="npc-position"
-          placeholder="Their role: Union Quartermaster, Raider…"
+          placeholder={npcCopy('theirRoleUnionQuartermasterRaider')}
           value={form.position}
           onChange={(e) => onChange({ position: e.target.value })}
           style={PENCIL}
         />
       </Field>
-      <Field label="Description" htmlFor="npc-description">
+      <Field label={npcCopy('description')} htmlFor="npc-description">
         <Textarea
           id="npc-description"
           rows={3}
-          placeholder="What they look like, and how they carry themselves."
+          placeholder={npcCopy('whatTheyLookLikeAnd')}
           value={form.description}
           onChange={(e) => onChange({ description: e.target.value })}
           style={PENCIL}
         />
       </Field>
-      <Field label="Keepsake" htmlFor="npc-keepsake">
+      <Field label={npcCopy('keepsake')} htmlFor="npc-keepsake">
         <Input
           id="npc-keepsake"
           value={form.keepsake}
@@ -569,7 +567,7 @@ function IdentityStep({
           style={PENCIL}
         />
       </Field>
-      <Field label="Motto" htmlFor="npc-motto">
+      <Field label={npcCopy('motto')} htmlFor="npc-motto">
         <Input
           id="npc-motto"
           value={form.motto}

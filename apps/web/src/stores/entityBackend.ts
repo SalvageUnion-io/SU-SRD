@@ -371,7 +371,7 @@ export async function commitNpcWrite(
 }
 
 /**
- * Commit one encounter write (ADR-053). Shelf only and always the owner's,
+ * Commit one encounter write (ADR-056). Shelf only and always the owner's,
  * like a pattern; a Game runs a copy through `mediator.runEncounter`.
  */
 export async function commitEncounterWrite(

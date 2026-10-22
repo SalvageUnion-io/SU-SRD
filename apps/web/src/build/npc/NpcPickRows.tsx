@@ -11,6 +11,7 @@ import { displayTitle, SalvageUnionReference } from 'salvageunion-reference'
 import { Entity, Toggle, tokens, useDetailModal } from '../../components/index'
 import { npcActionName, resolveNpcAction } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
+import { npcCopy } from '../../messages/build-npc'
 import { HINT } from './npcStyles.model'
 
 const PICK_ROW = {
@@ -66,7 +67,7 @@ export function ActionPick({
   const detail = useDetailModal((action ?? undefined) as RefEntity | undefined)
   const name = action?.name ?? npcActionName(slug)
   return (
-    <PickRow label={`Carry ${name}`} carried={carried} onToggle={onToggle}>
+    <PickRow label={npcCopy('carry', { name })} carried={carried} onToggle={onToggle}>
       {(carry) => (
         <>
           {action ? (
@@ -115,7 +116,7 @@ export function TraitPick({
   const name = displayTitle(type)
   const label = amount === undefined ? name : `${name} (${amount})`
   return (
-    <PickRow label={`Carry ${label}`} carried={carried} onToggle={onToggle}>
+    <PickRow label={npcCopy('carry2', { label })} carried={carried} onToggle={onToggle}>
       {(carry) => (
         <>
           {trait ? (

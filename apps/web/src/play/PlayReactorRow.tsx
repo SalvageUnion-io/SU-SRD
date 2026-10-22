@@ -40,6 +40,7 @@ import {
   VENT_PATCH,
 } from '../lib/rules/actionPatches'
 import { runWrite } from '../lib/runWrite'
+import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import { NeedChip } from './PlayActionRow'
 import { PlayRollInstrument } from './PlayRollInstrument'
@@ -124,7 +125,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
       () => store.update('mech', mech.id, VENT_PATCH, PLAY_TXN),
       () => {
         setLog({
-          text: 'Vented: Heat 0, Vulnerable. Shut down separately if needed.',
+          text: playCopy('ventedHeat0VulnerableShut'),
           meltdown: false,
         })
         recordPlayChange(`Vent · Heat ${before}→0, Vulnerable`)
@@ -150,7 +151,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
   function togglePush() {
     if (!pushing && pushLocked) {
       setLog({
-        text: `No Push at Heat ${heat}/${cap}: +2 Heat would pass the Heat Capacity. Vent or take a Heat Check first.`,
+        text: playCopy('noPushAtHeat2', { heat, cap }),
         meltdown: false,
       })
       return
@@ -165,15 +166,15 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
         onClick={togglePush}
         disabled={off}
         pressed={pushing}
-        title={pushLocked ? `No Push at Heat ${heat}/${cap}` : '+2 Heat, then the Heat Check'}
+        title={pushLocked ? playCopy('noPushAtHeat', { heat, cap }) : playCopy('n2HeatThenTheHeat')}
       >
-        Push
+        {playCopy('push')}
       </Toggle>
       <Button size="mini" onClick={doVent} disabled={off}>
-        Vent
+        {playCopy('vent')}
       </Button>
       <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={now.shutdown === true}>
-        {now.shutdown === true ? 'Restart' : 'Shut down'}
+        {now.shutdown === true ? playCopy('restart') : playCopy('shutDown')}
       </Toggle>
     </>
   )
@@ -208,7 +209,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
                     ) : null}
                     {log?.meltdown && (
                       <Button variant="primary" size="compact" onClick={confirmMeltdown}>
-                        Confirm Meltdown — Mark Mech destroyed
+                        {playCopy('confirmMeltdownMarkMechDestroyed')}
                       </Button>
                     )}
                   </div>

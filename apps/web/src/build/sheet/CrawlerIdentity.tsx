@@ -26,6 +26,7 @@ import { useState } from 'react'
 import { Entity, Field, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { EntityState, useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerTypeCard'
@@ -96,7 +97,7 @@ export function CrawlerIdentityPanel({
   }
 
   return (
-    <section aria-label="Crawler identity" style={PANEL}>
+    <section aria-label={buildSheetCopy('crawlerIdentity')} style={PANEL}>
       {/* The Description leads, beside the picture, after the Name and Type
           in Edit; the type's internals run the card's full width under both in
           Edit, so no empty column stands under the photo,
@@ -143,22 +144,29 @@ export function CrawlerIdentityPanel({
           {/* The band already names the crawler, so Read never repeats it;
               Edit keeps the field to rename it, as a pilot's Name. Tech Level
               is not here: it is the band's TL chip, beside the type's. */}
-          {canEdit && <Field label="Name" value={crawler.name} onSave={saveName} prominent />}
+          {canEdit && (
+            <Field
+              label={buildSheetCopy('name')}
+              value={crawler.name}
+              onSave={saveName}
+              prominent
+            />
+          )}
           {/* Read leaves the Type out: the band's TYPE chip names it; Edit
               keeps it to change it. */}
           {canEdit && (
             <Field
-              label="Type"
+              label={buildSheetCopy('type')}
               value={type?.name ?? ''}
               onEditClick={() => setTypePickerOpen(true)}
             />
           )}
           {/* The Description leads the hero. */}
           <Field
-            label="Description"
+            label={buildSheetCopy('description')}
             value={crawler.description ?? ''}
             multiline
-            placeholder={canEdit ? 'Describe your crawler…' : '—'}
+            placeholder={canEdit ? buildSheetCopy('describeYourCrawler') : '—'}
             onSave={canEdit ? saveDescription : undefined}
           />
         </div>

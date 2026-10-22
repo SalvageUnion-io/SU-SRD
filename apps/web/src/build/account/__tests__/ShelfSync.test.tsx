@@ -172,7 +172,7 @@ describe('a delete made in another tab leaves this one', () => {
 
 describe('what absence alone does not remove', () => {
   test('a Game pilot this browser never knew as the caller’s stays', async () => {
-    // An unclaimed pre-gen, say: owned by nobody, so never in `listMine`.
+    // An unassigned pre-gen, say: owned by nobody, so never in `listMine`.
     await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'pre-1', gameId: 'g1' }))
     serve({})
     render(<ShelfSync />)

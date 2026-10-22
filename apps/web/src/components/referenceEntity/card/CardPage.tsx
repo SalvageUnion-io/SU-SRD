@@ -3,6 +3,7 @@ import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { itemHref } from '../../../lib/entityHref'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
 import { SlabSection } from '../../containers/SlabSection'
@@ -144,7 +145,7 @@ export function CardPage({
       {otherActions.length > 0 && !actionSeal && (
         <SlabSection
           as={sectionAs}
-          title="Actions"
+          title={referenceEntityCopy('actions')}
           page
           className="su-entity-page__section"
           bodyClassName="su-entity-page__section-body"

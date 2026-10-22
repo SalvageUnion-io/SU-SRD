@@ -1,7 +1,7 @@
 /**
  * PlayMediatorSide — the Mediator's right column (play.md §10): the running encounter's Notes, the player's Tables and Feed sections, then the Propose dock.
  *
- *  - **Notes** (ADR-053): the running encounter's, the Mediator's alone,
+ *  - **Notes** (ADR-056): the running encounter's, the Mediator's alone,
  *    shown only while one with notes is running.
  *
  *  - **Tables** (`PlayTablesSection`, the player's): the running encounter's,
@@ -26,6 +26,7 @@ import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
 import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayBinding } from '../channels.model'
 import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
@@ -48,7 +49,7 @@ const SECTION = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The running encounter's notes (ADR-053), as the Mediator wrote them. */
+/** The running encounter's notes (ADR-056), as the Mediator wrote them. */
 const NOTES = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
@@ -77,8 +78,8 @@ export function MediatorTablesAndFeed({
         <SlabSection
           as="h2"
           id="mediate-notes"
-          title="Notes"
-          actions={<Stat label="Only you" size="compact" />}
+          title={mediatorCopy('notes')}
+          actions={<Stat label={mediatorCopy('onlyYou')} size="compact" />}
         >
           <p style={NOTES}>{running.notes}</p>
         </SlabSection>
@@ -116,7 +117,7 @@ export function PlayMediatorProposeSection({
 }: ProposeProps) {
   const [allOpen, setAllOpen] = useState(false)
   return (
-    <section aria-label="Propose" style={docked ? DOCK : SECTION}>
+    <section aria-label={mediatorCopy('propose')} style={docked ? DOCK : SECTION}>
       <ProposeDock
         targets={proposalTargets(mediator.crew)}
         targetId={targetId}
@@ -129,14 +130,14 @@ export function PlayMediatorProposeSection({
         // The dock's last chip (C8, hard rule R6), never a line under it.
         controls={
           <Button size="mini" onClick={() => setAllOpen(true)}>
-            All proposals
+            {mediatorCopy('allProposals')}
           </Button>
         }
       />
       <ModalShell
         open={allOpen}
         onOpenChange={setAllOpen}
-        title="Proposals you sent"
+        title={mediatorCopy('proposalsYouSent')}
         width="default"
       >
         <ProposalsList

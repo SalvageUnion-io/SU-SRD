@@ -1,4 +1,4 @@
-# ADR-053: The Mediator's Prep Kit, Encounters on the Shelf
+# ADR-056: The Mediator's Prep Kit, Encounters on the Shelf
 
 Decided and built for 4.1.0. Jrvs chose encounters on the Mediator's own shelf
 over a session plan per Game. Play's side is [play.md](../architecture/play.md) §10.

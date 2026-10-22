@@ -240,7 +240,7 @@ export async function handOffSoloSeat(
  * shelved entities land unwired); `invites` are ways into a Game that no
  * longer exists; its `channelBindings` row stops naming a channel it posts to (a personal binding
  * has no `gameId` and outlives every Game); `downtime` and `seats` are its play
- * state (ADR-038 §2), and `runningEncounters` the Mediator's (ADR-053).
+ * state (ADR-038 §2), and `runningEncounters` the Mediator's (ADR-056).
  *
  * Every other table with a `gameId` column holds something somebody built, or
  * history, and each teardown path shelves or deletes those rows itself first.

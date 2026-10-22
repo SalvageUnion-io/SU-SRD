@@ -11,7 +11,7 @@
  * carries what the Mediator does with it: the pilot row a tap aims Propose
  * at, every live vital, and the whole line read aloud. The order is stable,
  * the owner's membership `joinedAt` then the name, and never follows the
- * numbers. An unclaimed pilot (a pre-gen) is an open seat on the Game page,
+ * numbers. An unassigned pilot (a pre-gen) is an open seat on the Game page,
  * not a seat here.
  */
 

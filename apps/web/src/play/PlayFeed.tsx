@@ -23,6 +23,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Button, EmptyState, FeedLine, FeedList, Message, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
+import { playCopy } from '../messages/play'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { recordPlayChange } from './playRolls.model'
@@ -60,7 +61,7 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
   })
 
   if (entries.length === 0) {
-    return <EmptyState variant="inline" body="Rolls and changes land here as they happen." />
+    return <EmptyState variant="inline" body={playCopy('rollsAndChangesLandHere')} />
   }
 
   const accept = (entry: Extract<FeedEntry, { kind: 'proposal' }>) => {
@@ -72,7 +73,7 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
   }
 
   return (
-    <FeedList label="Feed">
+    <FeedList label={playCopy('feed')}>
       {entries.map((entry) => {
         switch (entry.kind) {
           case 'proposal':
@@ -85,23 +86,23 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
                       variant="primary"
                       size="mini"
                       disabled={!canWrite}
-                      aria-label={`Accept: ${entry.text}`}
+                      aria-label={playCopy('accept2', { text: entry.text })}
                       onClick={() => accept(entry)}
                     >
-                      Accept
+                      {playCopy('accept')}
                     </Button>
                     <Button
                       variant="default"
                       size="mini"
                       disabled={!canWrite}
-                      aria-label={`Decline: ${entry.text}`}
+                      aria-label={playCopy('decline2', { text: entry.text })}
                       onClick={() =>
                         void reply.run(() =>
                           decline({ proposalId: entry.proposalId as Id<'changeLog'> })
                         )
                       }
                     >
-                      Decline
+                      {playCopy('decline')}
                     </Button>
                   </span>
                 }
@@ -121,7 +122,9 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
               >
                 {entry.text}
                 {post?.kind === 'failed' && (
-                  <Message tone="bad">Not posted to Discord: {post.message}</Message>
+                  <Message tone="bad">
+                    {playCopy('notPostedToDiscord', { message: post.message })}
+                  </Message>
                 )}
               </FeedLine>
             )
@@ -149,18 +152,18 @@ function PostState({
   if (post.kind === 'posting') {
     return (
       <span role="status" style={STATE}>
-        Posting…
+        {playCopy('posting')}
       </span>
     )
   }
-  if (post.kind === 'posted') return <span style={STATE}>Posted</span>
+  if (post.kind === 'posted') return <span style={STATE}>{playCopy('posted')}</span>
   const label = post.kind === 'skipped' ? 'Post' : 'Try again'
   return (
     <Button
       variant="default"
       size="mini"
       disabled={!canWrite}
-      aria-label={`${label} ${roll.label} to Discord`}
+      aria-label={playCopy('toDiscord', { label, label2: roll.label })}
       onClick={() => postNow(roll)}
     >
       {label}

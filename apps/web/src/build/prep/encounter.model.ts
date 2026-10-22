@@ -1,5 +1,5 @@
 /**
- * An encounter's view-model (ADR-053), pure: its address, a blank one, and the
+ * An encounter's view-model (ADR-056), pure: its address, a blank one, and the
  * edits the encounter page makes to its opposition and its tables. The
  * opposition is drawn with the Opposition's own model (`opposition.model.ts`),
  * so an encounter fields exactly what Play's + Add would.
@@ -13,6 +13,7 @@ import {
   ENCOUNTER_MAX_TABLES,
 } from 'game-domain/schemas/encounter'
 import { copyName } from '../../lib/copyEntity'
+import { buildPrepCopy } from '../../messages/build-prep'
 import type { TrayNpc } from '../../play/mediator/opposition.model'
 import { readTrayNpc } from '../../play/mediator/opposition.model'
 import type { EncounterCreateInput } from '../../stores/prepStore'
@@ -23,7 +24,7 @@ export function encounterHref(encounterId: string): string {
 }
 
 /** What + New encounter makes: a name and nothing yet. */
-export function blankEncounter(name = 'New encounter'): EncounterCreateInput {
+export function blankEncounter(name = buildPrepCopy('newEncounter')): EncounterCreateInput {
   return { schemaVersion: 1, name, opposition: [], tables: [], notes: '' }
 }
 

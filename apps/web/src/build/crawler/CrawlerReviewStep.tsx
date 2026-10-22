@@ -15,6 +15,7 @@ import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import '../../styles/build/wizard.css'
+import { crawlerCopy } from '../../messages/build-crawler'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.su-wiz-review-grid`. */
@@ -69,7 +70,7 @@ export function CrawlerReviewStep({
   // crawler sheet's storage labels.
   const scrap = toScrapPoolPatch(form.scrapPool)
   const scrapChips = Object.entries(scrap).map(([bucket, qty]) => (
-    <Stat key={bucket} label={`T${bucket.slice(2)}`} value={qty} />
+    <Stat key={bucket} label={crawlerCopy('t', { slice: bucket.slice(2) })} value={qty} />
   ))
 
   // A crawler starts at full: `SP | 20/20`, the type bonus in its hover.
@@ -78,13 +79,17 @@ export function CrawlerReviewStep({
     : undefined
   const spChip = sp ? (
     <Stat
-      label="SP"
+      label={crawlerCopy('sp')}
       value={sp.total}
       max={sp.total}
       hoverText={
         sp.typeBonus > 0
-          ? `${sp.base} + ${sp.typeBonus} type bonus = ${sp.total}; starts at full`
-          : 'Starts at full'
+          ? crawlerCopy('typeBonusStartsAtFull', {
+              base: sp.base,
+              typeBonus: sp.typeBonus,
+              total: sp.total,
+            })
+          : crawlerCopy('startsAtFull')
       }
     />
   ) : null
@@ -103,23 +108,34 @@ export function CrawlerReviewStep({
         <Box bodyClassName="su-wiz-review-panel">
           {/* The recap: Stats, the type as its chip, the rest as Minis. */}
           <Recap>
-            <RecapStat label="Name" value={form.name.trim()} required />
-            <RecapEntity label="Type" entity={selectedType} required />
-            <RecapStat label="TL" value={techLevel?.techLevel} required />
-            {spChip ?? <RecapStat label="SP" value={null} required />}
-            <RecapStat label="Bays" value="Full base set, seeded automatically · all Intact" />
+            <RecapStat label={crawlerCopy('name')} value={form.name.trim()} required />
+            <RecapEntity label={crawlerCopy('type')} entity={selectedType} required />
+            <RecapStat label={crawlerCopy('tl')} value={techLevel?.techLevel} required />
+            {spChip ?? <RecapStat label={crawlerCopy('sp')} value={null} required />}
+            <RecapStat
+              label={crawlerCopy('bays')}
+              value="Full base set, seeded automatically · all Intact"
+            />
             {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
-            <RecapMinis label="Ability" entities={abilities} />
-            <RecapMinis label="Weapons" entities={systems} empty="Required" />
-            <RecapMinis label="Crew" models={crew} empty="Unnamed — fill in during play" />
+            <RecapMinis label={crawlerCopy('ability')} entities={abilities} />
+            <RecapMinis
+              label={crawlerCopy('weapons')}
+              entities={systems}
+              empty={crawlerCopy('required')}
+            />
+            <RecapMinis
+              label={crawlerCopy('crew')}
+              models={crew}
+              empty={crawlerCopy('unnamedFillInDuringPlay')}
+            />
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>
         {isAugmented && (
           <Callout tone="crawler">
             <span style={REMINDER}>
-              Every Pilot gains <strong>+1 Training Point</strong> (Augment ability tree only).
-              Apply it on each Pilot&rsquo;s sheet yourself.
+              Every Pilot gains <strong>{crawlerCopy('n1TrainingPoint')}</strong> (Augment ability
+              tree only). Apply it on each Pilot&rsquo;s sheet yourself.
             </span>
           </Callout>
         )}
@@ -140,7 +156,7 @@ export function CrawlerReviewStep({
           />
         ))}
         {systems.length === 0 && (
-          <EmptyState variant="quiet" body="No weapons mounted." bodyInk="inherit" />
+          <EmptyState variant="quiet" body={crawlerCopy('noWeaponsMounted')} bodyInk="inherit" />
         )}
       </div>
     </div>

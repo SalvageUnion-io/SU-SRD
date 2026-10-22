@@ -17,6 +17,7 @@ import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import type { CSSVarStyle } from '../components/index'
 import { tokens, VitalGauge } from '../components/index'
+import { playCopy } from '../messages/play'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 
@@ -90,7 +91,11 @@ export function PlayVital({
         />
       </div>
       {restoresTo !== undefined && restoresTo !== value ? (
-        <span style={RESTORE} role="note" aria-label={`${label} restores to ${restoresTo}`}>
+        <span
+          style={RESTORE}
+          role="note"
+          aria-label={playCopy('restoresTo', { label, restoresTo })}
+        >
           {/* A value's change, a glyph at the line's Size (R23), never a text arrow. */}
           <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
           {restoresTo}

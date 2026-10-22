@@ -26,7 +26,7 @@ describe('the seats, in one layer over the crew lines', () => {
   const seats = mediatorSeats(TABLE_CREW, TABLE_SEATS, TABLE_MEMBERS, NOW)
 
   test('one per claimed pilot, in join order — never re-sorted by the numbers', () => {
-    // Hotdog is unclaimed: an open seat on the Game page, not a seat here.
+    // Hotdog is unassigned: an open seat on the Game page, not a seat here.
     expect(seats.map((c) => c.name)).toEqual(['Bonesaw', 'Pickle', 'Judge', 'Driftwood'])
   })
 

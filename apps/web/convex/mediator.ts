@@ -7,7 +7,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { bodyAppId, mutation, parseBody } from './model/entities'
-import { NotAuthorized, requireMediator, requireUser } from './model/permissions'
+import { mediatorOrNull, NotAuthorized, requireMediator, requireUser } from './model/permissions'
 
 /**
  * The Mediator surface's server layer (ADR-030 §6).
@@ -35,7 +35,7 @@ export const npcs = query({
   args: { gameId: v.id('games') },
   returns: v.array(v.object({ _id: v.id('encounterNpcs'), body: v.any() })),
   handler: async (ctx, args) => {
-    await requireMediator(ctx, args.gameId)
+    if ((await mediatorOrNull(ctx, args.gameId)) === null) return []
     const rows = await ctx.db
       .query('encounterNpcs')
       .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
@@ -53,7 +53,9 @@ export const patterns = query({
   args: { gameId: v.id('games') },
   returns: v.array(v.object({ appId: v.string(), body: v.any(), madeBy: v.string() })),
   handler: async (ctx, args) => {
-    const { userId } = await requireMediator(ctx, args.gameId)
+    const membership = await mediatorOrNull(ctx, args.gameId)
+    if (membership === null) return []
+    const { userId } = membership
     const [mine, shared] = await Promise.all([
       ctx.db
         .query('mechPatterns')
@@ -199,7 +201,7 @@ export const amMediator = query({
 })
 
 /**
- * The encounter this Game is running (ADR-053): its name, tables and notes,
+ * The encounter this Game is running (ADR-056): its name, tables and notes,
  * or null when none is. Mediator-only, like the tray it was run into.
  */
 export const running = query({
@@ -214,7 +216,7 @@ export const running = query({
 })
 
 /**
- * Run one of the caller's shelf encounters in this Game (ADR-053): its
+ * Run one of the caller's shelf encounters in this Game (ADR-056): its
  * opposition joins the tray as fresh NPCs at full HP or SP, named apart from
  * those already there, and its name, tables and notes become the Game's
  * running encounter, in place of any it was running. The shelf encounter is

@@ -16,6 +16,7 @@
 import type { CSSProperties } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space } from '../../design/tokens'
+import { sharedCopy } from '../../messages/components-shared'
 import { Banner, Button, DialogActions, ModalShell } from '../index'
 
 const BODY = {
@@ -59,23 +60,20 @@ export function SoftWarningDialog({
       onOpenChange={(next) => {
         if (!next) onCancel()
       }}
-      title="Check this edit?"
+      title={sharedCopy('checkThisEdit')}
       subtitle={subtitle}
-      description="Advisory rule warnings for this edit. Saving is always allowed."
+      description={sharedCopy('advisoryRuleWarningsForThis')}
       width="narrow"
     >
       <div style={BODY}>
-        <p style={LEDE}>
-          This edit is legal to make — the rules just flag it. Save anyway, or go back and change
-          it.
-        </p>
+        <p style={LEDE}>{sharedCopy('thisEditIsLegalTo')}</p>
         <Banner warnings={warnings} />
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onCancel}>
-            Cancel
+            {sharedCopy('cancel')}
           </Button>
           <Button variant="primary" size="compact" onClick={onSaveAnyway}>
-            Save anyway
+            {sharedCopy('saveAnyway')}
           </Button>
         </DialogActions>
       </div>

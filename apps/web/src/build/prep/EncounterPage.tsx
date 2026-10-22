@@ -1,6 +1,6 @@
 /**
  * EncounterPage — `/encounters/:id`, one of the Mediator's encounters
- * (ADR-053), built ahead of the session and run later from a Game's Play.
+ * (ADR-056), built ahead of the session and run later from a Game's Play.
  *
  * Under the navy band of the Mediator's Scene (and the NPC designer), a
  * user-made page: its name, then
@@ -49,6 +49,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { reportWriteFailure } from '../../lib/runWrite'
+import { buildPrepCopy } from '../../messages/build-prep'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
 import { newTrayNpc } from '../../play/mediator/opposition.model'
@@ -86,9 +87,9 @@ export function EncounterPage({ id }: { id: string }) {
   if (encounter === null) {
     return (
       <NotFoundPanel
-        title="Encounter not found"
-        message="This encounter may have been deleted, or it is on another account's shelf."
-        back={{ href: '/', label: 'Back to the Training Bay' }}
+        title={buildPrepCopy('notFound')}
+        message={buildPrepCopy('notFoundBody')}
+        back={{ href: '/', label: buildPrepCopy('backToTheTrainingBay') }}
       />
     )
   }
@@ -167,7 +168,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           aside={
             canWrite ? (
               <Button variant="ghost" onClick={deleteEncounter} className="su-page-action">
-                Delete
+                {buildPrepCopy('delete')}
               </Button>
             ) : undefined
           }
@@ -176,19 +177,16 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         </ChapterBand>
       }
     >
-      <p style={LEDE}>
-        Build it before the session; run it from your Game's Play when the fight starts. Running it
-        copies the opposition in at full HP, so this stays as you built it.
-      </p>
+      <p style={LEDE}>{buildPrepCopy('lede')}</p>
       <Field
-        label="Name"
+        label={buildPrepCopy('name')}
         value={encounter.name}
         onSave={
           canWrite
             ? async (next) => {
                 const name = next.trim()
                 if (name === '') {
-                  toast.error('An encounter needs a name.')
+                  toast.error(buildPrepCopy('needsAName'))
                   return
                 }
                 await write(() => ({ name }))
@@ -201,28 +199,25 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           <SlabSection
             as="h2"
             id="encounter-opposition"
-            title="Opposition"
+            title={buildPrepCopy('opposition')}
             count={String(encounter.opposition.length)}
             actions={
               canWrite ? (
                 <Button
                   size="mini"
                   disabled={!hasRoomFor(encounter)}
-                  aria-label="Add opposition from the reference"
+                  aria-label={buildPrepCopy('addOppositionFromTheReference')}
                   onClick={() => setPicking(true)}
                 >
-                  + Add
+                  {buildPrepCopy('add')}
                 </Button>
               ) : undefined
             }
           >
             {encounter.opposition.length === 0 ? (
-              <EmptyState
-                variant="inline"
-                body="No opposition yet. Add NPCs, Mechs, Squads and Creatures from the reference."
-              />
+              <EmptyState variant="inline" body={buildPrepCopy('noOpposition')} />
             ) : (
-              <ul style={LIST} aria-label="Opposition">
+              <ul style={LIST} aria-label={buildPrepCopy('opposition')}>
                 {encounter.opposition.map((opponent) => (
                   <li key={opponent.id}>
                     <UnitRow
@@ -236,7 +231,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                           <HeaderMenu
                             variant="overflow"
                             trigger={null}
-                            label={`More for ${opponent.name}`}
+                            label={buildPrepCopy('moreFor', { name: opponent.name })}
                             sections={opponentMenu(opponent)}
                           />
                         ) : undefined
@@ -259,15 +254,15 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         <SlabSection
           as="h2"
           id="encounter-notes"
-          title="Notes"
-          actions={<Stat label="Only you" size="compact" />}
+          title={buildPrepCopy('notes')}
+          actions={<Stat label={buildPrepCopy('onlyYou')} size="compact" />}
         >
           <Field
-            label="Your notes"
+            label={buildPrepCopy('yourNotes')}
             value={encounter.notes}
             multiline
             fill
-            placeholder="What you want in front of you when it starts. Players never see this."
+            placeholder={buildPrepCopy('notesPlaceholder')}
             onSave={
               canWrite
                 ? async (next) => {
@@ -281,7 +276,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
       <SheetPickerModal
         open={picking}
         onClose={() => setPicking(false)}
-        title="Add opposition from the reference"
+        title={buildPrepCopy('addOppositionFromTheReference')}
         floating
       >
         <OppositionPicker
@@ -344,12 +339,17 @@ function EncounterTables({
   const full = tables.length >= ENCOUNTER_MAX_TABLES
 
   return (
-    <SlabSection as="h2" id="encounter-tables" title="Tables to hand" count={String(tables.length)}>
+    <SlabSection
+      as="h2"
+      id="encounter-tables"
+      title={buildPrepCopy('tablesToHand')}
+      count={String(tables.length)}
+    >
       {canWrite && !full && (
         <SearchField
           type="search"
-          placeholder="Pin a table…"
-          aria-label="Pin a table"
+          placeholder={buildPrepCopy('pinATablePlaceholder')}
+          aria-label={buildPrepCopy('pinATable')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -358,7 +358,7 @@ function EncounterTables({
         />
       )}
       {found.length > 0 && (
-        <MiniGrid label="Tables found" style={TABLE_LIST}>
+        <MiniGrid label={buildPrepCopy('tablesFound')} style={TABLE_LIST}>
           {found.map((name) => (
             <li key={name} data-choice-toggle="">
               <RollMini
@@ -376,12 +376,9 @@ function EncounterTables({
         </MiniGrid>
       )}
       {tables.length === 0 ? (
-        <EmptyState
-          variant="inline"
-          body="No tables pinned. Play already pins the Scene's core tables; pin what this fight needs."
-        />
+        <EmptyState variant="inline" body={buildPrepCopy('noTables')} />
       ) : (
-        <MiniGrid label="Pinned tables" style={TABLE_LIST}>
+        <MiniGrid label={buildPrepCopy('pinnedTables')} style={TABLE_LIST}>
           {tables.map((name) => (
             <li key={name} data-choice-toggle="">
               <RollMini
@@ -417,7 +414,7 @@ function EncounterTables({
                   setOpen(null)
                 }}
               >
-                Unpin {open}
+                {buildPrepCopy('unpin', { name: open })}
               </Button>
             </div>
           )}

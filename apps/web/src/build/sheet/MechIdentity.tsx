@@ -14,6 +14,7 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { Field, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { SheetPatch } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties
@@ -46,11 +47,16 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
   }
 
   return (
-    <section aria-label="Mech identity" style={PANEL}>
+    <section aria-label={buildSheetCopy('mechIdentity')} style={PANEL}>
       <div style={STACK}>
         {/* Read omits the pattern name: it is the band's title. */}
         {patch && (
-          <Field label="Pattern name" value={mech.name} onSave={savePatternName} prominent />
+          <Field
+            label={buildSheetCopy('patternName')}
+            value={mech.name}
+            onSave={savePatternName}
+            prominent
+          />
         )}
         {after}
       </div>
@@ -69,11 +75,11 @@ export function MechAppearanceField({
 }) {
   return (
     <Field
-      label="Appearance"
+      label={buildSheetCopy('appearance')}
       value={mech.appearance ?? ''}
       multiline
       onSave={onSave}
-      placeholder="No appearance recorded."
+      placeholder={buildSheetCopy('noAppearanceRecorded')}
     />
   )
 }
@@ -95,12 +101,12 @@ export function MechDescriptionField({
 }) {
   return (
     <Field
-      label="Description"
+      label={buildSheetCopy('description')}
       value={mech.description ?? ''}
       multiline
       fill
       onSave={onSave}
-      placeholder="No description written yet."
+      placeholder={buildSheetCopy('noDescriptionWrittenYet')}
       className="su-sheet-mech-fill"
     />
   )
