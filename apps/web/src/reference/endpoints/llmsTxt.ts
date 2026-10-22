@@ -47,21 +47,24 @@ Salvage Union is created and published by Leyline Press (https://leyline.press).
 
 Rules prose (player-facing guides and processes) lives at: ${SITE_URL}${schemaHref('guides')}
 Individual guide pages are accessible at: ${SITE_URL}${schemaHref('guides')}{slug}/
-Guide data as JSON: ${SITE_URL}/schema/guides.json
+Guide data as JSON: ${SITE_URL}/api/v1/guides.json
 All other schema endpoints contain structured game data (stats, abilities, tables, etc.), not narrative rules prose.
 Guides are the primary resource for LLM consumers seeking rule explanations and procedures.
 
 ## JSON API
 
-salvageunion.io exposes a public JSON API for machine consumption of all game data. CORS is enabled for all endpoints (\`Access-Control-Allow-Origin: *\`), so requests can be made from any origin.
+salvageunion.io exposes a versioned public JSON API (the Dataset API, v1) for machine consumption of all game data. CORS is enabled for all endpoints (\`Access-Control-Allow-Origin: *\`), so requests can be made from any origin. Within v1 changes only add; a breaking change ships as /api/v2/.
 
-Base URL: \`${SITE_URL}\`
+Base URL: \`${SITE_URL}/api/v1\`
 
 ### Endpoints
 
-- \`GET /schema/{schemaId}.json\` — full data array for a schema (e.g., \`/schema/chassis.json\`)
-- \`GET /schema/{schemaId}.schema.json\` — JSON Schema definition for a schema (e.g., \`/schema/chassis.schema.json\`)
-- \`GET /schema/{schemaId}/item/{itemId}.json\` — individual entity by slug (e.g., \`/schema/chassis/item/${sampleSlug}.json\`)
+- \`GET /api/v1/index.json\` — the manifest: every schema with its item count, data hash and URLs
+- \`GET /api/v1/{schemaId}.json\` — full data array for a schema (e.g., \`/api/v1/chassis.json\`)
+- \`GET /api/v1/{schemaId}.schema.json\` — JSON Schema definition for a schema (e.g., \`/api/v1/chassis.schema.json\`)
+- \`GET /api/v1/{schemaId}/{slug}.json\` — individual entity by slug (e.g., \`/api/v1/chassis/${sampleSlug}.json\`)
+
+The older unversioned \`/schema/\` URLs serve the same files and keep working.
 
 ### Available Schema IDs
 
@@ -80,7 +83,7 @@ Shared sheets are public pages at ${SITE_URL}/build/p/{kind}/{id}
 ## Other Pages
 
 - About: ${SITE_URL}/about/
-- API Reference: ${SITE_URL}/api/
+- Dataset API: ${SITE_URL}/api/
 - Sitemap: ${SITE_URL}/sitemap-index.xml
 `
 }

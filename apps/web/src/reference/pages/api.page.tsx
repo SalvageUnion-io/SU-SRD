@@ -1,5 +1,5 @@
 /**
- * `/api` — the public JSON API reference.
+ * `/api` — the Dataset API reference: v1 and its stability promise (ADR-053).
  *
  * Pure static prose plus one table driven by the reference dataset. The code
  * samples live in template literals rather than as JSX text: JSX collapses
@@ -14,6 +14,7 @@ import { capsLabel } from '../../components/atoms/capsLabel'
 import { Chips, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
+import { API_V1_PATH } from '../../lib/apiV1Paths'
 import { cn } from '../../lib/cn'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
 import {
@@ -30,10 +31,14 @@ import { getEntitySchemas } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
+import { apiV1Manifest } from '../endpoints/apiV1'
 
-const TITLE = pageTitle('API Reference')
+const TITLE = pageTitle('Dataset API')
 const DESCRIPTION =
-  'Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.'
+  'The SalvageUnion.io Dataset API, version 1: every piece of Salvage Union game data as versioned, CORS-enabled JSON with a stability promise.'
+
+/** The v1 tree, absolute: every endpoint below sits under it. */
+const BASE = `${SITE_URL}${API_V1_PATH}`
 
 const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
@@ -163,10 +168,21 @@ function buildSamples() {
     name,
     schemaArray: `[\n  {\n${json('  ')}\n  },\n  ...\n]`,
     entity: `{\n${json('')}\n}`,
-    fetch: `const response = await fetch('${SITE_URL}/schema/chassis.json')
+    fetch: `const response = await fetch('${BASE}/chassis.json')
 const chassis = await response.json()
 console.log(chassis[0].name) // ${JSON.stringify(name)}`,
+    manifest: manifestSample(),
   }
+}
+
+/** The manifest's head and its first schema, as the build emits them. */
+function manifestSample(): string {
+  const { schemas, licence: _licence, stability: _stability, ...head } = apiV1Manifest()
+  const first = JSON.stringify(schemas[0], null, 2).replace(/\n/g, '\n    ')
+  const lines = Object.entries(head).map(
+    ([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)},`
+  )
+  return `{\n${lines.join('\n')}\n  ...\n  "schemas": [\n    ${first},\n    ...\n  ]\n}`
 }
 
 const JSON_SCHEMA_SAMPLE = `{
@@ -197,20 +213,19 @@ function page(): PageResult {
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'TechArticle',
-        name: 'Salvage Union SRD JSON API Reference',
-        description:
-          'Documentation for the public JSON API endpoints available at salvageunion.io.',
+        name: 'SalvageUnion.io Dataset API v1',
+        description: 'Documentation for the versioned public JSON API at salvageunion.io/api/v1.',
         url: `${SITE_URL}/api/`,
         isPartOf: WEBSITE,
       },
     },
     children: (
-      <DocPage title="JSON API Reference" measure="64rem" gap={space[32]}>
+      <DocPage title="Dataset API" measure="64rem" gap={space[32]}>
         {/* Overview */}
         <SlabSection as="h2" title="Overview" bodyStyle={PROSE_12} page>
           <p>
-            All game data on salvageunion.io is available as machine-readable JSON. The API is
-            static — every endpoint is a plain file served directly from the site. No authentication
+            All game data on SalvageUnion.io is available as machine-readable JSON. The API is
+            static: every endpoint is a plain file served directly from the site. No authentication
             is required.
           </p>
           <p>
@@ -218,16 +233,42 @@ function page(): PageResult {
             ), so you can fetch from any origin, including browser JavaScript.
           </p>
           <p>
-            <strong>Base URL:</strong> <code style={CODE}>{SITE_URL}</code>
+            <strong>Base URL:</strong> <code style={CODE}>{BASE}</code>
           </p>
           <p style={ASIDE}>
-            <strong>Tip:</strong> every page on this site has its data under{' '}
-            <code style={CODE_ON_GROUND}>/schema/</code>. For example,{' '}
+            <strong>Tip:</strong> every page on this site has its data in the API. For example,{' '}
             <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML index, and{' '}
-            <code style={CODE_ON_GROUND}>/schema/chassis.json</code> serves the raw array. The same
-            applies to individual entities:{' '}
+            <code style={CODE_ON_GROUND}>{API_V1_PATH}/chassis.json</code> serves the raw array. The
+            same applies to individual entities:{' '}
             <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page, and{' '}
-            <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code> its data.
+            <code style={CODE_ON_GROUND}>
+              {API_V1_PATH}/chassis/{samples.slug}.json
+            </code>{' '}
+            its data.
+          </p>
+        </SlabSection>
+
+        {/* Versions */}
+        <SlabSection as="h2" title="Versions and stability" bodyStyle={PROSE_12} page>
+          <p>
+            This is <strong>version 1</strong>. Within v1, changes only add: new schemas, new
+            optional fields, new entities and corrected text. A field is never removed, renamed or
+            retyped, and an entity whose slug changes keeps answering at its old URL with a
+            redirect.
+          </p>
+          <p>
+            A breaking change ships as a new version at <code style={CODE}>/api/v2/</code>, served
+            beside v1 rather than in its place.
+          </p>
+          <p>
+            The manifest gives each schema a <code style={CODE}>sha256</code> of its data, so a
+            client can tell what changed since it last looked without downloading everything.
+          </p>
+          <p style={ASIDE}>
+            The older, unversioned <code style={CODE_ON_GROUND}>/schema/</code> URLs, such as{' '}
+            <code style={CODE_ON_GROUND}>/schema/chassis.json</code> and{' '}
+            <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code>, keep
+            working and serve the same files on the same terms. New code should use v1.
           </p>
         </SlabSection>
 
@@ -235,22 +276,43 @@ function page(): PageResult {
         <Stack as="section" gap={24}>
           <Slab as="h2" label="Endpoints" />
 
+          <DocPanel title="The manifest" chips={GET}>
+            <p style={BREAKABLE_BOLD}>
+              <code>{API_V1_PATH}/index.json</code>
+            </p>
+            <p>
+              Lists every schema with its name, item count, data hash and the URLs of its data and
+              its JSON Schema. Start here.
+            </p>
+            <p>
+              <strong>Example:</strong>{' '}
+              <InlineRef
+                href={`${BASE}/index.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={BREAKABLE_BOLD}
+              >
+                {BASE}/index.json
+              </InlineRef>
+            </p>
+            <CodeSample>{samples.manifest}</CodeSample>
+          </DocPanel>
           <DocPanel title="Every entity of a schema" chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
-                /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
+                {API_V1_PATH}/<span style={ITALIC}>{'{schemaId}'}</span>.json
               </code>
             </p>
             <p>Returns the full data array for a schema. Each element is a game entity.</p>
             <p>
               <strong>Example:</strong>{' '}
               <InlineRef
-                href={`${SITE_URL}/schema/chassis.json`}
+                href={`${BASE}/chassis.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {SITE_URL}/schema/chassis.json
+                {BASE}/chassis.json
               </InlineRef>
             </p>
             <CodeSample>{samples.schemaArray}</CodeSample>
@@ -258,23 +320,23 @@ function page(): PageResult {
           <DocPanel title="A schema's JSON Schema" chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
-                /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
+                {API_V1_PATH}/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
               </code>
             </p>
             <p>
               Returns the JSON Schema definition for a schema, generated from the Zod validation
-              schemas used in this site's codebase. Useful for validating data or understanding the
-              shape of entity objects.
+              schemas used in this site's codebase. Its <code style={CODE}>$id</code> is its own
+              URL. Useful for validating data or understanding the shape of entity objects.
             </p>
             <p>
               <strong>Example:</strong>{' '}
               <InlineRef
-                href={`${SITE_URL}/schema/chassis.schema.json`}
+                href={`${BASE}/chassis.schema.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {SITE_URL}/schema/chassis.schema.json
+                {BASE}/chassis.schema.json
               </InlineRef>
             </p>
             <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
@@ -282,8 +344,8 @@ function page(): PageResult {
           <DocPanel title="One entity" chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
-                /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
-                <span style={ITALIC}>{'{itemId}'}</span>.json
+                {API_V1_PATH}/<span style={ITALIC}>{'{schemaId}'}</span>/
+                <span style={ITALIC}>{'{slug}'}</span>.json
               </code>
             </p>
             <p>
@@ -295,12 +357,12 @@ function page(): PageResult {
             <p>
               <strong>Example:</strong>{' '}
               <InlineRef
-                href={`${SITE_URL}/schema/chassis/item/${samples.slug}.json`}
+                href={`${BASE}/chassis/${samples.slug}.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {SITE_URL}/schema/chassis/item/{samples.slug}.json
+                {BASE}/chassis/{samples.slug}.json
               </InlineRef>
             </p>
             <CodeSample>{samples.entity}</CodeSample>
@@ -367,7 +429,8 @@ function page(): PageResult {
         {/* CORS & headers */}
         <DocPanel title="CORS policy">
           <p>
-            All <code style={CODE}>/schema/</code> endpoints include the following response headers:
+            All <code style={CODE}>{API_V1_PATH}/</code> and <code style={CODE}>/schema/</code>{' '}
+            endpoints include the following response headers:
           </p>
           <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
           <p>No preflight requests are required for standard GET requests.</p>

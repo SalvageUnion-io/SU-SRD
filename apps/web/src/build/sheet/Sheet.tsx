@@ -33,6 +33,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
 import { ExportEntityButton } from '../export/ExportEntityButton'
+import { ExportToFoundryButton } from '../export/ExportToFoundryButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
@@ -241,6 +242,18 @@ export function Sheet({
   // move. Unassigning a linked entity
   // lives on the rail chip, not here — it's contextual to the link.
   const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
+  // A pilot or mech also leaves as a Foundry VTT actor, with the maxima this
+  // sheet derives (the crawler's Stat Training, the pilot's Beefcake).
+  const foundryButton =
+    resolved.kind === 'pilot' ? (
+      <ExportToFoundryButton kind="pilot" entity={resolved.entity} crawler={composition.crawler} />
+    ) : resolved.kind === 'mech' ? (
+      <ExportToFoundryButton
+        kind="mech"
+        entity={resolved.entity}
+        pilotAbilities={pilotAbilities ?? composition.pilot?.abilities}
+      />
+    ) : null
   const containerControl = (
     <MoveToContainerControl entityType={kind} entityId={id} entity={entity} confirm={confirm} />
   )
@@ -291,6 +304,7 @@ export function Sheet({
       <SheetActionsMenu>
         {printButton}
         {exportButton}
+        {foundryButton}
         {containerControl}
         {savePatternLink}
         {changeLogButton}
