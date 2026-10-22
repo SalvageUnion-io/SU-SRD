@@ -25,6 +25,7 @@ import {
 import { linesFromBreakdown, Stat } from '../../components/index'
 import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { AssignedUnits } from './AssignedUnits'
@@ -96,12 +97,12 @@ export function CrawlerLiveSheet({
   const tl = parseCrawlerTechLevel(crawler.techLevel)
 
   const strip: LiveSheetStripItem[] = [
-    { key: 'sp', label: 'SP', value: sp, max: maxSP },
+    { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
     ...(states.length > 0
       ? [
           {
             key: 'bays',
-            label: 'Bays',
+            label: buildSheetCopy('bays'),
 
             value: intactBays,
             max: states.length,
@@ -125,13 +126,13 @@ export function CrawlerLiveSheet({
     ...(tl !== undefined
       ? [
           {
-            label: 'Upkeep',
+            label: buildSheetCopy('upkeep'),
             value: 5,
-            caption: `T${tl}+ Scrap`,
+            caption: buildSheetCopy('tScrap', { tl }),
             action: editable
               ? {
-                  label: 'Pay',
-                  ariaLabel: 'Pay Upkeep',
+                  label: buildSheetCopy('pay'),
+                  ariaLabel: buildSheetCopy('payUpkeep'),
                   onClick: () => setEconDialog('upkeep'),
                 }
               : undefined,
@@ -144,12 +145,12 @@ export function CrawlerLiveSheet({
     ...(editable
       ? [
           {
-            label: 'Upgrade',
+            label: buildSheetCopy('upgrade'),
             value: crawler.upgradePool ?? 0,
             actionOnly: true,
             action: {
-              label: 'Fund',
-              ariaLabel: 'Upgrade Crawler',
+              label: buildSheetCopy('fund'),
+              ariaLabel: buildSheetCopy('upgradeCrawler'),
               onClick: () => setEconDialog('upgrade'),
             },
           },
@@ -159,13 +160,13 @@ export function CrawlerLiveSheet({
       ? [
           {
             // Its Trade action only: the rail reads no Trade.
-            label: 'Trade',
+            label: buildSheetCopy('trade'),
             value: tradingSourceTl(tl),
             actionOnly: true,
             action: editable
               ? {
-                  label: 'Trade',
-                  ariaLabel: 'Open the Trading Bay',
+                  label: buildSheetCopy('trade'),
+                  ariaLabel: buildSheetCopy('openTheTradingBay'),
                   onClick: () => setEconDialog('trade'),
                 }
               : undefined,
@@ -257,7 +258,7 @@ export function CrawlerLiveSheet({
         // Edit of the stored rung (the Upgrade dialog is the play path).
         rank={
           <Stat
-            label="TL"
+            label={buildSheetCopy('tl')}
             value={tl ?? '—'}
             mode={readOnly || tl === undefined ? 'read' : 'edit'}
             onChange={
@@ -267,7 +268,7 @@ export function CrawlerLiveSheet({
             }
             min={SCRAP_TLS[0]}
             ceiling={SCRAP_TLS[SCRAP_TLS.length - 1]}
-            stepperLabel="Tech Level"
+            stepperLabel={buildSheetCopy('techLevel')}
           />
         }
         actions={actions}

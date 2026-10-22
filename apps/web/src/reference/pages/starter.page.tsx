@@ -22,7 +22,7 @@
  */
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { findEntityBySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import type { ContentsRow, StartHereStep } from '../../components/index'
 import { ChapterBand, ContentsChapter, StartHere } from '../../components/index'
@@ -31,21 +31,24 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { PARAM_SOURCE } from '../../lib/listingParams'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import '../../lib/gameData'
 
 /** The dataset's name for the box, as its citations spell it. */
-const STARTER_SET = 'Salvage Union Starter Set'
+const STARTER_SET = findEntityBySlug('sources', 'salvage-union-starter-set')?.name ?? ''
 
 /** The box's booklets, by the code its citations carry. */
 type Booklet = 'PH' | 'PC' | 'CR'
 
-const TITLE = pageTitle('Starter Set')
-const DESCRIPTION =
-  'Got the Salvage Union Starter Set? Start here: the premade crew of Crawler #430 ready to copy and play, the rules for your first session, and every chapter of the Pilot’s Handbook, Parts Catalogue and Core Rulebook mapped to its page.'
+const TITLE = pageTitle(pagesCopy('starterTitle'))
+const DESCRIPTION = pagesCopy('starterDescription')
 
-/** A line of a map: an entry, cited where the box prints it, or a catalog or chapter at its page. */
+/**
+ * A line of a map: an entry by slug, named as the dataset names it and cited
+ * where the box prints it, or a catalog or chapter at its page.
+ */
 type MapLine =
-  | { schema: RefEnumSchemaName; name: string; label?: string; booklet?: Booklet }
+  | { schema: RefEnumSchemaName; slug: string; label?: string; booklet?: Booklet }
   | { label: string; href: string; page: number; booklet?: Booklet }
 
 type BookMap = {
@@ -91,18 +94,14 @@ function rowOf(line: MapLine, map: BookMap): ContentsRow | null {
   if ('href' in line) {
     return { label: line.label, href: line.href, page: pageLabel(line.page, shown) }
   }
-  const { schema, name } = line
-  // Keywords are lower-case in the dataset ("energy points"); a row names them as the book does.
-  const entity = SalvageUnionReference.findIn(
-    schema,
-    (e) => e.name.toLowerCase() === name.toLowerCase()
-  )
+  const { schema, slug } = line
+  const entity = findEntityBySlug(schema, slug)
   if (!entity) return null
   const page = citedPage(entity, booklet)
   if (page === undefined) return null
   return {
-    label: line.label ?? name,
-    href: itemHref(schema, getEntitySlug(entity)),
+    label: line.label ?? entity.name,
+    href: itemHref(schema, slug),
     page: pageLabel(page, shown),
   }
 }
@@ -117,126 +116,149 @@ function bookMaps(): BookMap[] {
   return [
     {
       id: 'first-session',
-      title: 'Your first session',
+      title: pagesCopy('starterFirstSession'),
       tone: 'ink',
       lines: [
-        { schema: 'roll-tables', name: 'Core Mechanic', label: 'The Core Mechanic', booklet: 'CR' },
-        { schema: 'guides', name: 'Heat', booklet: 'CR' },
-        { schema: 'keywords', name: 'Energy Points', booklet: 'CR' },
-        { schema: 'guides', name: 'Pushing a Mech', booklet: 'CR' },
-        { schema: 'guides', name: 'Tough Choices', booklet: 'CR' },
-        { schema: 'roll-tables', name: 'Group Initiative', booklet: 'CR' },
-        { label: 'Distances', href: schemaHref('distances'), page: 19, booklet: 'CR' },
-        { schema: 'guides', name: 'Mech Damage', booklet: 'CR' },
-        { schema: 'roll-tables', name: 'Mech Salvage', booklet: 'CR' },
-        { schema: 'guides', name: 'Crawler Downtime', booklet: 'PH' },
+        {
+          schema: 'roll-tables',
+          slug: 'core-mechanic',
+          label: pagesCopy('starterTheCoreMechanic'),
+          booklet: 'CR',
+        },
+        { schema: 'guides', slug: 'heat', booklet: 'CR' },
+        // Keywords are lower-case in the dataset; a row names them as the book does.
+        {
+          schema: 'keywords',
+          slug: 'energy-points',
+          label: pagesCopy('starterEnergyPoints'),
+          booklet: 'CR',
+        },
+        { schema: 'guides', slug: 'pushing-a-mech', booklet: 'CR' },
+        { schema: 'guides', slug: 'tough-choices', booklet: 'CR' },
+        { schema: 'roll-tables', slug: 'group-initiative', booklet: 'CR' },
+        {
+          label: pagesCopy('starterDistances'),
+          href: schemaHref('distances'),
+          page: 19,
+          booklet: 'CR',
+        },
+        { schema: 'guides', slug: 'mech-damage', booklet: 'CR' },
+        { schema: 'roll-tables', slug: 'mech-salvage', booklet: 'CR' },
+        { schema: 'guides', slug: 'crawler-downtime', booklet: 'PH' },
       ],
     },
     {
       id: 'pilots-handbook',
-      title: 'Pilot’s Handbook',
+      title: pagesCopy('starterPilotsHandbook'),
       tone: 'pilot',
       booklet: 'PH',
       lines: [
-        { label: 'Creating a Pilot', href: guideHref('Create a Pilot'), page: 4 },
-        { label: 'Pilot Classes', href: schemaHref('classes'), page: 12 },
-        ...['Engineer', 'Hacker', 'Hauler', 'Scout', 'Soldier', 'Salvager'].map(
-          (name): MapLine => ({ schema: 'classes', name })
+        { label: pagesCopy('starterCreatingAPilot'), href: guideHref('create-a-pilot'), page: 4 },
+        { label: pagesCopy('starterPilotClasses'), href: schemaHref('classes'), page: 12 },
+        ...['engineer', 'hacker', 'hauler', 'scout', 'soldier', 'salvager'].map(
+          (slug): MapLine => ({ schema: 'classes', slug })
         ),
-        { label: 'Pilot Equipment', href: inTheBox('equipment'), page: 36 },
-        { schema: 'roll-tables', name: 'Callsign Table', label: 'Callsign' },
-        { schema: 'roll-tables', name: 'Background' },
-        { schema: 'roll-tables', name: 'Keepsake' },
-        { schema: 'roll-tables', name: 'Motto' },
-        { schema: 'roll-tables', name: 'Pilot Appearance' },
-        { schema: 'roll-tables', name: 'A.I. Personality' },
+        { label: pagesCopy('starterPilotEquipment'), href: inTheBox('equipment'), page: 36 },
+        { schema: 'roll-tables', slug: 'callsign-table', label: pagesCopy('starterCallsign') },
+        { schema: 'roll-tables', slug: 'background' },
+        { schema: 'roll-tables', slug: 'keepsake' },
+        { schema: 'roll-tables', slug: 'motto' },
+        { schema: 'roll-tables', slug: 'pilot-appearance' },
+        { schema: 'roll-tables', slug: 'ai-personality' },
       ],
     },
     {
       id: 'union-crawler',
-      title: 'Pilot’s Handbook: Union Crawler',
+      title: pagesCopy('starterUnionCrawler'),
       tone: 'crawler',
       booklet: 'PH',
       lines: [
-        { label: 'Creating a Union Crawler', href: guideHref('Create a Crawler'), page: 48 },
-        { label: 'Crawler Types', href: schemaHref('crawlers'), page: 52 },
-        { label: 'Upkeep & Upgrade', href: guideHref('Upgrading your Union Crawler'), page: 54 },
-        { schema: 'roll-tables', name: 'Crawler Deterioration' },
-        { schema: 'roll-tables', name: 'Crawler Damage' },
-        { label: 'Crawler Bays', href: inTheBox('crawler-bays'), page: 57 },
-        { schema: 'roll-tables', name: 'Crawler Name' },
-        { schema: 'guides', name: 'Crawler Downtime', label: 'Downtime' },
+        {
+          label: pagesCopy('starterCreatingAUnionCrawler'),
+          href: guideHref('create-a-crawler'),
+          page: 48,
+        },
+        { label: pagesCopy('starterCrawlerTypes'), href: schemaHref('crawlers'), page: 52 },
+        {
+          label: pagesCopy('starterUpkeepAndUpgrade'),
+          href: guideHref('upgrading-your-union-crawler'),
+          page: 54,
+        },
+        { schema: 'roll-tables', slug: 'crawler-deterioration' },
+        { schema: 'roll-tables', slug: 'crawler-damage' },
+        { label: pagesCopy('starterCrawlerBays'), href: inTheBox('crawler-bays'), page: 57 },
+        { schema: 'roll-tables', slug: 'crawler-name' },
+        { schema: 'guides', slug: 'crawler-downtime', label: pagesCopy('starterDowntime') },
       ],
     },
     {
       id: 'parts-catalogue',
-      title: 'Parts Catalogue',
+      title: pagesCopy('starterPartsCatalogue'),
       tone: 'mech',
       booklet: 'PC',
       lines: [
-        { label: 'Creating a Mech', href: guideHref('Create a Mech'), page: 4 },
-        { label: 'Mech Chassis', href: inTheBox('chassis'), page: 10 },
-        { label: 'Mech Systems', href: inTheBox('systems'), page: 46 },
-        { label: 'Mech Modules', href: inTheBox('modules'), page: 62 },
-        { schema: 'roll-tables', name: 'Quirks' },
-        { schema: 'roll-tables', name: 'Mech Appearance' },
-        { schema: 'roll-tables', name: 'Mech Pattern Names' },
+        { label: pagesCopy('starterCreatingAMech'), href: guideHref('create-a-mech'), page: 4 },
+        { label: pagesCopy('starterMechChassis'), href: inTheBox('chassis'), page: 10 },
+        { label: pagesCopy('starterMechSystems'), href: inTheBox('systems'), page: 46 },
+        { label: pagesCopy('starterMechModules'), href: inTheBox('modules'), page: 62 },
+        { schema: 'roll-tables', slug: 'quirks' },
+        { schema: 'roll-tables', slug: 'mech-appearance' },
+        { schema: 'roll-tables', slug: 'mech-pattern-names' },
       ],
     },
     {
       id: 'core-rulebook',
-      title: 'Core Rulebook',
+      title: pagesCopy('starterCoreRulebook'),
       tone: 'rules',
       booklet: 'CR',
       lines: [
-        { schema: 'guides', name: 'Safety Protocols' },
-        { schema: 'roll-tables', name: 'Core Mechanic' },
-        { schema: 'guides', name: 'Tough Choices' },
-        { schema: 'guides', name: 'Pushing a Mech' },
-        { schema: 'guides', name: 'Heat' },
-        { schema: 'roll-tables', name: 'Reactor Overload' },
-        { schema: 'roll-tables', name: 'Group Initiative' },
-        { label: 'Distances', href: schemaHref('distances'), page: 19 },
-        { schema: 'guides', name: 'Activating and Shutting Down a Mech' },
-        { schema: 'guides', name: 'Mech Damage' },
-        { schema: 'roll-tables', name: 'Critical Damage' },
-        { schema: 'guides', name: 'Pilot Damage' },
-        { schema: 'roll-tables', name: 'Critical Injury' },
-        { schema: 'guides', name: 'Salvaging' },
-        { schema: 'roll-tables', name: 'Area Salvage' },
-        { schema: 'roll-tables', name: 'Mech Salvage' },
-        { label: 'Traits', href: inTheBox('traits'), page: 34 },
-        { label: 'Keywords', href: inTheBox('keywords'), page: 37 },
+        { schema: 'guides', slug: 'safety-protocols' },
+        { schema: 'roll-tables', slug: 'core-mechanic' },
+        { schema: 'guides', slug: 'tough-choices' },
+        { schema: 'guides', slug: 'pushing-a-mech' },
+        { schema: 'guides', slug: 'heat' },
+        { schema: 'roll-tables', slug: 'reactor-overload' },
+        { schema: 'roll-tables', slug: 'group-initiative' },
+        { label: pagesCopy('starterDistances'), href: schemaHref('distances'), page: 19 },
+        { schema: 'guides', slug: 'activating-and-shutting-down-a-mech' },
+        { schema: 'guides', slug: 'mech-damage' },
+        { schema: 'roll-tables', slug: 'critical-damage' },
+        { schema: 'guides', slug: 'pilot-damage' },
+        { schema: 'roll-tables', slug: 'critical-injury' },
+        { schema: 'guides', slug: 'salvaging' },
+        { schema: 'roll-tables', slug: 'area-salvage' },
+        { schema: 'roll-tables', slug: 'mech-salvage' },
+        { label: pagesCopy('starterTraits'), href: inTheBox('traits'), page: 34 },
+        { label: pagesCopy('starterKeywords'), href: inTheBox('keywords'), page: 37 },
       ],
     },
   ]
 }
 
-/** A guide's page by name; the guides catalog when the dataset no longer has it. */
-function guideHref(name: string): string {
-  const guide = SalvageUnionReference.findIn('guides', (e) => e.name === name)
-  return guide ? itemHref('guides', getEntitySlug(guide)) : schemaHref('guides')
+/** A guide's page by slug; the guides catalog when the dataset no longer has it. */
+function guideHref(slug: string): string {
+  return findEntityBySlug('guides', slug) ? itemHref('guides', slug) : schemaHref('guides')
 }
 
 /** The box owner's way in: the crew, the crew as their own, the first rules. */
 const STEPS: readonly StartHereStep[] = [
   {
     key: 'crew',
-    title: 'Meet the crew',
+    title: pagesCopy('starterMeetTheCrew'),
     tone: 'pilot',
-    body: 'Six premade Pilots, their Mechs and Crawler #430 ‘Tenacity’, as the sheets in your box print them.',
+    body: pagesCopy('starterMeetTheCrewBody'),
   },
   {
     key: 'copy',
-    title: 'Make them yours',
+    title: pagesCopy('starterMakeThemYours'),
     tone: 'mech',
-    body: 'Copy the whole crew into your Training Bay in one tap, crewed and docked, to play and level up.',
+    body: pagesCopy('starterMakeThemYoursBody'),
   },
   {
     key: 'rules',
-    title: 'Learn the first rules',
+    title: pagesCopy('starterLearnTheFirstRules'),
     tone: 'crawler',
-    body: 'The rules your first session needs, then every chapter of your books mapped to its page here.',
+    body: pagesCopy('starterLearnTheFirstRulesBody'),
   },
 ]
 
@@ -256,19 +278,19 @@ function page(): PageResult {
           <ChapterBand
             tone="build"
             measure={PAGE_MEASURE}
-            aside={
-              <p className="su-home__lede">
-                Got the box? This is your way in: the crew, ready to play, and your books, page by
-                page.
-              </p>
-            }
+            aside={<p className="su-home__lede">{pagesCopy('starterLede')}</p>}
           >
-            Starter Set
+            {pagesCopy('starterTitle')}
           </ChapterBand>
         </div>
         <div className="su-home__body su-page-body">
-          <aside className="su-home__aside" aria-label="Your crew">
-            <StartHere id="your-crew" title="Open the box" steps={STEPS} hrefs={hrefs} />
+          <aside className="su-home__aside" aria-label={pagesCopy('starterYourCrew')}>
+            <StartHere
+              id="your-crew"
+              title={pagesCopy('starterOpenTheBox')}
+              steps={STEPS}
+              hrefs={hrefs}
+            />
           </aside>
           <div className="su-home__index">
             {maps.map((map) => (

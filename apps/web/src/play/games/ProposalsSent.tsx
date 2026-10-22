@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { SlabSection } from '../../components/index'
+import { playGamesCopy } from '../../messages/play-games'
 import { ProposalsList } from '../mediator/ProposalsList'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -25,14 +26,14 @@ export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
       as="h2"
       bodyStyle={HUB_BODY}
       id="proposals-sent-heading"
-      title="Proposals you sent"
+      title={playGamesCopy('proposalsYouSent')}
     >
       <ProposalsList
         proposals={sent ?? null}
         limit={limit}
         now={Date.now()}
         onMore={() => setLimit((n) => n + PROPOSALS_PAGE)}
-        empty="Nothing sent yet. Propose a change from Mediate, in Play."
+        empty={playGamesCopy('nothingSentYetProposeA')}
       />
     </SlabSection>
   )

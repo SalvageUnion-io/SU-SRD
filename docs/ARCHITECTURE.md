@@ -154,7 +154,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051 and ADR-052.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052 and ADR-055.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -207,3 +207,11 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1.
+53. **ADR-053 Canon as gates**
+    Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
+    hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
+54. **ADR-054 One message catalogue** · [full text](adr/054-message-catalogue.md)
+    Built: UI words are keys in `apps/web/src/messages/`, values as `{name}`; English only; the `ui-strings` gate ratchets the rest.
+55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
+    Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
+    Amends ADR-030 §2, §4–6.

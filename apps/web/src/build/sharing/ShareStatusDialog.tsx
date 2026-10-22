@@ -34,6 +34,7 @@ import type { CSSProperties } from 'react'
 import { ModalShell, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ShareKind } from '../../lib/sharing/visibility'
+import { buildSharingCopy } from '../../messages/build-sharing'
 import { SignInControl } from '../account/SignInControl'
 import { ShareSettings } from './ShareSettings'
 
@@ -92,9 +93,9 @@ export function ShareStatusDialog({
     <ModalShell
       open={open}
       onOpenChange={onOpenChange}
-      title="Share status"
+      title={buildSharingCopy('shareStatus')}
       subtitle={name}
-      description={`Choose who can see ${name}.`}
+      description={buildSharingCopy('chooseWhoCanSee', { name })}
       width="default"
     >
       {/*
@@ -104,9 +105,7 @@ export function ShareStatusDialog({
       */}
       <div className="su-sheet-share-body" style={BODY}>
         {/* Read-only is the promise that holds whichever branch renders below. */}
-        <p style={NOTE}>
-          Whoever can see {name} gets a read-only view of it that keeps up with every change.
-        </p>
+        <p style={NOTE}>{buildSharingCopy('whoeverCanSeeGetsA', { name })}</p>
 
         {showLive ? (
           <ShareSettings
@@ -118,17 +117,11 @@ export function ShareStatusDialog({
           />
         ) : mode === 'solo' ? (
           <section style={SIGN_IN}>
-            <p style={NOTE}>
-              Sharing needs an account: the public page is served from what your account saves. No
-              account is needed to read it.
-            </p>
+            <p style={NOTE}>{buildSharingCopy('sharingNeedsAnAccountThe')}</p>
             <SignInControl />
           </section>
         ) : (
-          <p style={NOTE}>
-            Sharing settings need a live connection to your account. Try again once you are
-            connected.
-          </p>
+          <p style={NOTE}>{buildSharingCopy('sharingSettingsNeedALive')}</p>
         )}
       </div>
     </ModalShell>

@@ -23,6 +23,7 @@ import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../compone
 import { useConnection } from '../../lib/connection/connectionContext'
 import { isSignedIn } from '../../lib/connection/connectionMode'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { npcCopy } from '../../messages/build-npc'
 import { useEntityStore } from '../../stores/entityStore'
 import { AnyNpcDesigner } from './AnyNpcDesigner'
 import { CrewBoard } from './CrewBoard'
@@ -83,13 +84,13 @@ export function NpcDesignerPage({
             </p>
           }
           aside={
-            <TabList label="What to design">
-              <Tab value="any">Any NPC</Tab>
-              <Tab value="crew">Crawler crew</Tab>
+            <TabList label={npcCopy('whatToDesign')}>
+              <Tab value="any">{npcCopy('anyNpc')}</Tab>
+              <Tab value="crew">{npcCopy('crawlerCrew')}</Tab>
             </TabList>
           }
         >
-          {crew ? 'Crawler crew' : 'Design an NPC'}
+          {crew ? npcCopy('crawlerCrew') : npcCopy('designAnNpc')}
         </ChapterBand>
         <TabPanel value="any">
           <AnyNpcDesigner madeBy={madeBy} onCreated={onCreated} onCancel={onCancel} />

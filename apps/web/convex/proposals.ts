@@ -12,7 +12,13 @@ import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { entityNameOf } from './model/entityName'
-import { NotAuthorized, requireMediator, requireMember, requireUser } from './model/permissions'
+import {
+  mediatorOrNull,
+  membershipOrNull,
+  NotAuthorized,
+  requireMediator,
+  requireUser,
+} from './model/permissions'
 import { changeLogEntityType, changeLogState } from './schema'
 
 /**
@@ -131,7 +137,7 @@ export const propose = mutation({
     }
 
     if (doc.ownerId === null) {
-      throw new NotAuthorized('That entity is unclaimed — assign it before proposing changes')
+      throw new NotAuthorized('That entity is unassigned — assign it before proposing changes')
     }
 
     // Supersede any live proposal against the same field, so the player is
@@ -200,8 +206,9 @@ export const pending = query({
   args: { gameId: v.id('games') },
   returns: v.array(v.object(proposalRow)),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
-    const userId = await requireUser(ctx)
+    const membership = await membershipOrNull(ctx, args.gameId)
+    if (membership === null) return []
+    const { userId } = membership
 
     const rows = await ctx.db
       .query('changeLog')
@@ -267,7 +274,8 @@ export const sent = query({
     })
   ),
   handler: async (ctx, args) => {
-    const membership = await requireMediator(ctx, args.gameId)
+    const membership = await mediatorOrNull(ctx, args.gameId)
+    if (membership === null) return []
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20
     const limit = Math.min(Math.max(requested, 1), MAX_SENT)
     const rows = await ctx.db
@@ -420,7 +428,7 @@ export const alerts = query({
     })
   ),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20
     const limit = Math.min(Math.max(requested, 0), MAX_ALERTS)
     const rows = await ctx.db

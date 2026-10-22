@@ -167,7 +167,7 @@ describe('changeLog.forEntity', () => {
   test('ownership changes are named by the app id too', async () => {
     const t = testConvex()
     const { player, mechId } = await seedMech(t)
-    await player.as.mutation(api.ownership.release, { table: 'mechs', entityId: mechId })
+    await player.as.mutation(api.ownership.unassign, { table: 'mechs', entityId: mechId })
 
     const log = await player.as.query(api.changeLog.forEntity, {
       entityType: 'mech',

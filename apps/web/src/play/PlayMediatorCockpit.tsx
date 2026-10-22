@@ -28,6 +28,7 @@ import { gamePath } from 'game-domain/entityKinds'
 import { useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
+import { playCopy } from '../messages/play'
 import { hereOf } from './mediator/mediatorTable.model'
 import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
 import { PlayMediatorBarActions } from './mediator/PlayMediatorBarActions'
@@ -68,7 +69,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       phone={phone}
       title={gameName}
       backHref={gamePath(gameId)}
-      backLabel="Game"
+      backLabel={playCopy('game')}
       stamp="Mediator"
       tone={PHASE_TONE[running ? 'downtime' : 'scene']}
       live={mode === 'connected'}

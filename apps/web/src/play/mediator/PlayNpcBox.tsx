@@ -21,6 +21,7 @@ import {
   tokens,
   useDetailModal,
 } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
@@ -73,31 +74,36 @@ export function PlayNpcBox({
         tone="adversary"
         className="su-play-unit"
         reference={npc.down}
-        chips={<Stat label={npc.down ? `${npcKind(npc)} · down` : npcKind(npc)} size="compact" />}
+        chips={
+          <Stat
+            label={npc.down ? mediatorCopy('down', { npcKind: npcKind(npc) }) : npcKind(npc)}
+            size="compact"
+          />
+        }
         controls={
           <span style={CONTROLS}>
             <Toggle
               size="mini"
               pressed={chosen}
-              aria-label={`${npc.name}’s actions`}
+              aria-label={mediatorCopy('sActions', { name: npc.name })}
               onClick={onChoose}
             >
-              Actions
+              {mediatorCopy('actions2')}
             </Toggle>
             {npc.down ? (
               <Button
                 variant="ghost"
                 size="mini"
                 disabled={!canWrite}
-                aria-label={`Delete ${npc.name}`}
+                aria-label={mediatorCopy('delete2', { name: npc.name })}
                 onClick={onRemove}
               >
-                Delete
+                {mediatorCopy('delete')}
               </Button>
             ) : null}
             <HeaderMenu
               variant="overflow"
-              label={`More for ${npc.name}`}
+              label={mediatorCopy('moreFor', { name: npc.name })}
               trigger={null}
               sections={[
                 [
@@ -106,14 +112,18 @@ export function PlayNpcBox({
                     : [
                         {
                           id: 'card',
-                          label: 'Reference card',
+                          label: mediatorCopy('referenceCard'),
                           onSelect: () => detail.control.onClick?.(),
                         },
                       ]),
-                  { id: 'rename', label: 'Rename…', onSelect: canWrite ? onRename : undefined },
+                  {
+                    id: 'rename',
+                    label: mediatorCopy('rename2'),
+                    onSelect: canWrite ? onRename : undefined,
+                  },
                   {
                     id: 'remove',
-                    label: 'Delete…',
+                    label: mediatorCopy('delete3'),
                     tone: 'danger' as const,
                     onSelect: canWrite ? onRemove : undefined,
                   },
@@ -132,13 +142,15 @@ export function PlayNpcBox({
             onChange={canWrite ? onHp : undefined}
           />
         ) : null}
-        {npc.down ? <p style={MUTED}>At 0 · down</p> : null}
+        {npc.down ? <p style={MUTED}>{mediatorCopy('at0Down')}</p> : null}
         <p role="status" aria-live="polite" style={npc.lastRoll ? LINE : MUTED}>
           {npc.lastRoll ? (
             <>
               <span style={STRONG}>
-                Morale {npc.lastRoll.roll}
-                {npc.lastRoll.label ? ` · ${npc.lastRoll.label}` : ''}
+                {mediatorCopy('morale', {
+                  roll: npc.lastRoll.roll,
+                  value: npc.lastRoll.label ? ` · ${npc.lastRoll.label}` : '',
+                })}
               </span>
               {` — ${npc.lastRoll.value}`}
             </>

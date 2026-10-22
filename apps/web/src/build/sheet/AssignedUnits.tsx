@@ -26,6 +26,7 @@ import {
   tokens,
 } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { AssignedSlot, AssignedUnit } from './assignedUnits.model'
 import { hasAssignedUnits } from './assignedUnits.model'
 
@@ -56,11 +57,11 @@ export function AssignedUnits({
     <SlabSection
       fold="open"
       id="linked-units"
-      title="Assigned units"
+      title={buildSheetCopy('assignedUnits')}
       bodyClassName="su-sheet-linked"
     >
       {units.length > 0 && (
-        <MiniGrid label="Assigned units" edit={editable}>
+        <MiniGrid label={buildSheetCopy('assignedUnits')} edit={editable}>
           {units.map((unit) => (
             <li key={unit.key} data-assigned-unit="">
               <Entity
@@ -93,11 +94,11 @@ export function AssignedUnits({
                             <Button
                               variant="ghost"
                               size="mini"
-                              aria-label={`Unassign ${unit.name}`}
+                              aria-label={buildSheetCopy('unassign2', { name: unit.name })}
                               onClick={unit.onUnassign}
                               glyph={<Unlink size={tokens.iconSize.mini} aria-hidden="true" />}
                             >
-                              Unassign
+                              {buildSheetCopy('unassign')}
                             </Button>
                           )}
                         </>
@@ -126,7 +127,7 @@ export function AssignedUnits({
               <>
                 {slot.assign}
                 <Button href={NEW_PATH[slot.kind]} size="mini">
-                  + Create
+                  {buildSheetCopy('create')}
                 </Button>
               </>
             }

@@ -2,6 +2,7 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { FOCUS_RING } from '../atoms/interaction'
 import { SlabSection } from '../containers/SlabSection'
 import { INDEX_NAME, INDEX_NAME_CAPS, Lead, paintFor } from '../entity'
@@ -37,21 +38,21 @@ export type StartHereStep = {
 const START_HERE_STEPS: readonly (StartHereStep & { key: SheetKind })[] = [
   {
     key: 'pilot',
-    title: 'Create a Pilot',
+    title: compositionsCopy('createAPilot'),
     tone: 'pilot',
-    body: 'Pick a class and your first ability, then add a keepsake, motto and background.',
+    body: compositionsCopy('pickAClassAndYour'),
   },
   {
     key: 'mech',
-    title: 'Create a Mech',
+    title: compositionsCopy('createAMech'),
     tone: 'mech',
-    body: 'Choose a chassis and pattern, then fill its system and module slots.',
+    body: compositionsCopy('chooseAChassisAndPattern'),
   },
   {
     key: 'crawler',
-    title: 'Join or make a Crawler',
+    title: compositionsCopy('joinOrMakeACrawler'),
     tone: 'crawler',
-    body: 'Your crew shares one Union Crawler. Make it, or open the invite link a crewmate sends you to join their Game.',
+    body: compositionsCopy('yourCrewSharesOneUnion'),
   },
 ]
 
@@ -84,7 +85,7 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
         style={{ backgroundColor: paint.background, color: paint.color, columnGap: space[6] }}
       >
         <span className="su-start-here__number">
-          <span className="su-sr-only">Step </span>
+          <span className="su-sr-only">{compositionsCopy('step')} </span>
           {index + 1}
         </span>
         <span className="su-entity-index__notch">
@@ -107,7 +108,7 @@ export function StartHere({
   id,
   hrefs = {},
   steps = START_HERE_STEPS,
-  title = 'Start here',
+  title = compositionsCopy('startHere'),
 }: StartHereProps) {
   return (
     <SlabSection title={title} id={id} as="h2" className="su-start-here" page>

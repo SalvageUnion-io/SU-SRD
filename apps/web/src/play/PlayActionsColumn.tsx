@@ -18,6 +18,7 @@
  */
 
 import { Slab } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayActionsList, PlayActionsTools } from './PlayActionsList'
 import { PlayDowntimeColumn } from './PlayDowntimeColumn'
 import type { PlayColumnProps } from './situation.model'
@@ -31,7 +32,7 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
     <>
       <Slab
         as="h2"
-        label="Actions"
+        label={playCopy('actions')}
         className="su-play-act-head"
         actions={<PlayActionsTools actions={actions} />}
       />

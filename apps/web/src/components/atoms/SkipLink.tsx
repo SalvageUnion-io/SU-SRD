@@ -1,4 +1,5 @@
 import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
 import { capsLabel } from './capsLabel'
 
 /** Off screen until focused, then pinned to the top corner (`foundation.css`). */
@@ -14,7 +15,7 @@ const SKIP_LINK = cn('su-skip-link', capsLabel())
 export function SkipLink() {
   return (
     <a href="#main-content" className={SKIP_LINK}>
-      Skip to content
+      {atomsCopy('skipToContent')}
     </a>
   )
 }

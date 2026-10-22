@@ -35,6 +35,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Button, HeaderMenu, tokens } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
+import { playCopy } from '../messages/play'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
@@ -75,7 +76,7 @@ export function PlayCockpit({ target }: PlayCockpitProps) {
       stamp={playStamp(target)}
       tone={PHASE_TONE[play.situation]}
       backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
-      backLabel={target.gameId === null ? 'Play' : 'Game'}
+      backLabel={target.gameId === null ? playCopy('play') : playCopy('game')}
       live={mode === 'connected' && target.gameId !== null}
       here={seats === undefined ? null : hereCount(seats, now)}
       readOnly={play.readOnly}
@@ -114,7 +115,7 @@ function CockpitMenu({ target }: { target: PlayTarget }) {
   const { gameId } = target
   if (gameId === null) {
     return (
-      <Button variant="ghost" size="compact" aria-label="More" disabled>
+      <Button variant="ghost" size="compact" aria-label={playCopy('more')} disabled>
         <Ellipsis size={tokens.iconSize.compact} aria-hidden="true" />
       </Button>
     )
@@ -123,13 +124,13 @@ function CockpitMenu({ target }: { target: PlayTarget }) {
     <HeaderMenu
       variant="overflow"
       size="compact"
-      label="More"
+      label={playCopy('more')}
       trigger={null}
       sections={[
         [
           {
             id: 'game',
-            label: 'Game page',
+            label: playCopy('gamePage'),
             hint: target.gameName ?? undefined,
             onSelect: () => {
               if (router) void router.navigate({ to: '/play/games/$gameId', params: { gameId } })

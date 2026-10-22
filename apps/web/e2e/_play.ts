@@ -102,8 +102,8 @@ export async function board(page: Page, mech: string): Promise<void> {
       .click()
     await page.getByRole('menuitem', { name: new RegExp(mech) }).click()
   }
-  const claim = page.getByRole('alertdialog').getByRole('button', { name: /^Claim and board/ })
-  if (await claim.isVisible({ timeout: 2_000 }).catch(() => false)) await claim.click()
+  const assign = page.getByRole('alertdialog').getByRole('button', { name: /^Assign and board/ })
+  if (await assign.isVisible({ timeout: 2_000 }).catch(() => false)) await assign.click()
   await expect(
     situation(page).getByRole('button', { name: new RegExp(`^Boarded( · ${mech})?`) })
   ).toHaveAttribute('aria-pressed', 'true', { timeout: 15_000 })

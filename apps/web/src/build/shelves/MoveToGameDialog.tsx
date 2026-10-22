@@ -23,6 +23,7 @@ import type { Confirm } from '../../components/shared/useConfirm'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
@@ -74,7 +75,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
     onClose()
     const move = async (to: Container) => {
       await useEntityStore.getState().update(type, id, moveTo(to), CONTAINER_MOVE)
-      toast.success(`Moved ${entity.name} to ${label}.`)
+      toast.success(buildShelvesCopy('movedTo', { name: entity.name, label }))
     }
     requestMove({
       entityType: type,
@@ -99,13 +100,17 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
-      title={subject ? `Move ${subject.entity.name}` : 'Move'}
+      title={
+        subject
+          ? buildShelvesCopy('move', { name: subject.entity.name })
+          : buildShelvesCopy('move2')
+      }
       width="narrow"
     >
       <div style={BODY}>
         <ContainerPicker
           variant="list"
-          label="Where to"
+          label={buildShelvesCopy('whereTo')}
           choices={
             games === undefined
               ? undefined
@@ -117,8 +122,8 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
           loading="your Games"
           empty={
             subject?.type === 'crawler'
-              ? 'A crawler goes only into a Game you run. Start one with “+ New Game”.'
-              : 'You are in no Game to move it to. Start one with “+ New Game”, or join one from an invite link.'
+              ? buildShelvesCopy('aCrawlerGoesOnlyInto')
+              : buildShelvesCopy('youAreInNoGame')
           }
         />
       </div>

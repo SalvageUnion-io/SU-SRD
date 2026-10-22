@@ -22,6 +22,7 @@ import { HeaderMenu } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { SignInControl } from '../account/SignInControl'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 import { COPY_CREW_SEARCH, confirmCopyCrew } from './useCopyCrewOnArrival'
@@ -36,8 +37,8 @@ function ConnectedCopyCrew({ confirm }: { confirm: Confirm }) {
     <HeaderMenu
       variant="button"
       size="compact"
-      trigger="Copy the crew to…"
-      label="Copy the whole crew to…"
+      trigger={buildStarterSetCopy('copyTheCrewTo')}
+      label={buildStarterSetCopy('copyTheWholeCrewTo')}
       sections={[
         destinations.map((d) => ({
           id: serializeContainer(d.container),
@@ -54,7 +55,7 @@ export function CopyCrew({ confirm }: { confirm: Confirm }) {
   if (mode === 'solo') {
     return (
       <SignInControl
-        label="Sign in to copy the crew"
+        label={buildStarterSetCopy('signInToCopyTheCrew')}
         redirectTo={COPY_CREW_RETURN}
         size="compact"
       />

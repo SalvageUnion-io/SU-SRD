@@ -6,7 +6,7 @@
  *  - **Board** names the mech: "Boarded · <mech>" while boarded. With several
  *    mechs it is a menu ("▾") listing each, with why one cannot be boarded;
  *    with one it boards it; with none it is disabled and says so. An
- *    unclaimed spare in the Game is claimed first, behind a confirm.
+ *    unassigned spare in the Game is assigned to you first, behind a confirm.
  *  - **Downtime**: in a Game it is the Mediator's, so a player's option is
  *    locked (🔒, "set by the Mediator") and only shows it running. Solo (or for
  *    the Mediator) it starts Downtime; leaving it for On foot or Board ends
@@ -21,9 +21,10 @@ import { ChevronDown, Lock } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ConfirmDialog, HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
+import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
-import { ClaimAndBoardConfirm } from './ClaimAndBoardConfirm'
 import type { Play } from './situation.model'
 
 const ROW = {
@@ -68,7 +69,7 @@ export function PlaySituationSwitch({
   fill?: boolean
 }) {
   const [leaving, setLeaving] = useState<Leave | null>(null)
-  const [claiming, setClaiming] = useState<BoardOption | null>(null)
+  const [assigning, setAssigning] = useState<BoardOption | null>(null)
   const { situation, mechs, canWrite, canChangeDowntime } = play
   const { downtime, locked } = play.downtime
   const running = downtime.running
@@ -84,7 +85,7 @@ export function PlaySituationSwitch({
 
   function arrive(to: Leave) {
     if (to.kind === 'foot') play.setOnFoot()
-    else if (to.option.state === 'spare') setClaiming(to.option)
+    else if (to.option.state === 'spare') setAssigning(to.option)
     else play.board(to.option.mechId)
   }
 
@@ -95,16 +96,21 @@ export function PlaySituationSwitch({
     <div style={fill ? FILL_ROW : ROW}>
       {!fill && (
         <span style={LABEL} aria-hidden="true">
-          Situation
+          {playCopy('situation')}
         </span>
       )}
-      <Segmented label="Situation" size="compact" fill={fill} style={fill ? GROW : undefined}>
+      <Segmented
+        label={playCopy('situation')}
+        size="compact"
+        fill={fill}
+        style={fill ? GROW : undefined}
+      >
         <SegmentedOption
           pressed={situation === 'onFoot'}
           disabled={!canWrite}
           onClick={() => go({ kind: 'foot' })}
         >
-          On foot
+          {playCopy('onFoot')}
         </SegmentedOption>
         <BoardOptionControl
           mechs={mechs}
@@ -119,7 +125,11 @@ export function PlaySituationSwitch({
           // Locked and not running, there is nothing to show or press.
           disabled={!canWrite || (locked && !running)}
           title={locked ? SET_BY_MEDIATOR : undefined}
-          aria-label={locked ? `Downtime, ${SET_BY_MEDIATOR_PHRASE}` : undefined}
+          aria-label={
+            locked
+              ? playCopy('downtime', { setByMediatorPhrase: SET_BY_MEDIATOR_PHRASE })
+              : undefined
+          }
           onClick={() => {
             if (!running && canChangeDowntime) play.startDowntime()
           }}
@@ -136,9 +146,9 @@ export function PlaySituationSwitch({
           if (!open) setLeaving(null)
         }}
         tone="danger"
-        title="End Downtime?"
+        title={playCopy('endDowntime2')}
         body={endDowntimeBody(downtime.stepIndex, play.target.gameId !== null)}
-        confirmLabel="End Downtime"
+        confirmLabel={playCopy('endDowntime')}
         onConfirm={() => {
           const to = leaving
           play.endDowntime()
@@ -146,7 +156,7 @@ export function PlaySituationSwitch({
           if (to !== null) arrive(to)
         }}
       />
-      <ClaimAndBoardConfirm play={play} claiming={claiming} onClose={() => setClaiming(null)} />
+      <AssignAndBoardConfirm play={play} assigning={assigning} onClose={() => setAssigning(null)} />
     </div>
   )
 }
@@ -189,8 +199,8 @@ function BoardOptionControl({
       <SegmentedOption
         pressed={pressed}
         disabled
-        title="No Mech to board"
-        aria-label={`${label}, no Mech to board`}
+        title={playCopy('noMechToBoard')}
+        aria-label={playCopy('noMechToBoard2', { label })}
       >
         {shown ?? label}
       </SegmentedOption>
@@ -219,7 +229,7 @@ function BoardOptionControl({
       variant="segment"
       pressed={pressed}
       disabled={disabled}
-      label={`${label}, choose a Mech`}
+      label={playCopy('chooseAMech', { label })}
       trigger={
         <>
           {shown ?? label}

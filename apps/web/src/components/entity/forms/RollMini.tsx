@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { cn } from '../../../lib/cn'
+import { entityCopy } from '../../../messages/components-entity'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { RollControl } from '../../compositions/RollTableInstrument'
@@ -20,7 +21,7 @@ function Name({ name }: { name: string }) {
   return (
     <span className="su-entity-mini__name">
       {name}
-      <span className="su-sr-only"> (roll table)</span>
+      <span className="su-sr-only"> {entityCopy('rollTable')}</span>
     </span>
   )
 }
@@ -100,7 +101,7 @@ export function RollMini({
         {/* Its chip group (C8): the roll, the strip's one action. */}
         <span className="su-roll-token__actions" data-chip-group="">
           <RollControl name={name} size={size} onRoll={onRoll}>
-            {stamp ?? 'Roll the Die:'}
+            {stamp ?? entityCopy('rollTheDie')}
           </RollControl>
         </span>
       </div>

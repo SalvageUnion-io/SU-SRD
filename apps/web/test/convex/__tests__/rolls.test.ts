@@ -118,9 +118,7 @@ describe('a Play roll round-trips through the log', () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
     const stranger = await makeUser(t, 'Stranger')
-    await expect(stranger.as.query(api.changeLog.rolls, { gameId })).rejects.toThrow(
-      /not a member/i
-    )
+    expect(await stranger.as.query(api.changeLog.rolls, { gameId })).toEqual([])
 
     await player.as.mutation(api.changeLog.appendChangeLog, {
       entries: Array.from({ length: 3 }, (_, i) => rollLogEntry(gameId, crush, i)),

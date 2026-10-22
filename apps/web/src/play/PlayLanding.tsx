@@ -58,6 +58,7 @@ import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
 import { crewPair } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { PlayRefusal } from './PlayRefusal'
@@ -118,13 +119,13 @@ export function PlayLanding() {
   if (mode === 'solo') {
     return (
       <PlayRefusal
-        title="Sign in to play"
-        body="Play runs your Pilots, solo or in a Game. Sign in to open them."
-        link={{ href: '/sign-in', label: 'Sign in with Discord', back: false }}
+        title={playCopy('signInToPlay')}
+        body={playCopy('playRunsYourPilotsSolo2')}
+        link={{ href: '/sign-in', label: playCopy('signInWithDiscord'), back: false }}
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label="your session" />
+  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
   if (mode === 'connected') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} channels={undefined} />
 }
@@ -175,14 +176,14 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
     >
       <div style={BODY}>
         <Shelf
-          title="Your Games"
+          title={playCopy('yourGames')}
           id="play-games"
           isEmpty={games === undefined || games.length === 0}
           empty={
             games !== undefined ? (
               'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
             ) : connected ? (
-              <Pending label="your Games" />
+              <Pending label={playCopy('yourGames2')} />
             ) : (
               'Your Games list once the connection returns.'
             )
@@ -198,10 +199,10 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           ))}
         </Shelf>
         <Shelf
-          title="Play solo"
+          title={playCopy('playSolo')}
           id="play-solo"
           isEmpty={solo.length === 0}
-          empty="Every Pilot of yours is in a Game."
+          empty={playCopy('everyPilotOfYoursIs')}
         >
           {solo.map((pilot) => (
             <li key={pilot.pilotId} style={ITEM}>
@@ -242,18 +243,18 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
         : {
             labels: (
               <Badge shape="stamp" size="compact" surface="inverse">
-                No Mech
+                {playCopy('noMech')}
               </Badge>
             ),
           })}
       controls={
         <Button
           href={`/play/${pilot.pilotId}`}
-          aria-label={`Play ${pilot.name} solo`}
+          aria-label={playCopy('playSolo2', { name: pilot.name })}
           variant="ink"
           size="mini"
         >
-          Play solo
+          {playCopy('playSolo')}
         </Button>
       }
     />
@@ -286,15 +287,15 @@ function JoinGame() {
   return (
     <>
       <Button variant="default" size="compact" onClick={() => setOpen(true)}>
-        Join with a link
+        {playCopy('joinWithALink')}
       </Button>
-      <ModalShell open={open} onOpenChange={setOpen} title="Join a Game">
-        <form style={JOIN} onSubmit={join} aria-label="Join a Game">
+      <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
+        <form style={JOIN} onSubmit={join} aria-label={playCopy('joinAGame')}>
           <div style={JOIN_ROW}>
             <div style={JOIN_FIELD}>
               <Input
-                aria-label="Invite link"
-                placeholder="Paste an invite link…"
+                aria-label={playCopy('inviteLink')}
+                placeholder={playCopy('pasteAnInviteLink')}
                 value={pasted}
                 onChange={(e) => {
                   setPasted(e.target.value)
@@ -302,10 +303,10 @@ function JoinGame() {
                 }}
                 style={JOIN_INPUT}
               />
-              <FieldError>{wrong ? 'That is not an invite link.' : null}</FieldError>
+              <FieldError>{wrong ? playCopy('thatIsNotAnInvite') : null}</FieldError>
             </div>
             <Button type="submit" variant="primary" size="compact" disabled={pasted.trim() === ''}>
-              Join
+              {playCopy('join')}
             </Button>
           </div>
         </form>

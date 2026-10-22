@@ -12,6 +12,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import type { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarterCrew } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 
 /** The search that asks the page to offer the crew copy on arrival. */
 export const COPY_CREW_SEARCH = 'crew'
@@ -21,18 +22,18 @@ type Destination = ReturnType<typeof moveDestinations>[number]
 /** Ask, then copy the crew into `target`. */
 export function confirmCopyCrew(confirm: Confirm, target: Destination) {
   confirm({
-    title: 'Copy the whole crew?',
+    title: buildStarterSetCopy('copyTheWholeCrew'),
     body: [
-      `This puts all six Pilots, their Mechs and Crawler #430 'Tenacity' in ${target.label}, each a build of your own, crewed and docked as the Starter Set has them.`,
-      `The Starter Set stays as ${STARTER_SET_PUBLISHER} published it. Don't want a copy later? Delete it like any other build.`,
+      buildStarterSetCopy('copyTheWholeCrewBody', { label: target.label }),
+      buildStarterSetCopy('theStarterSetStaysAs', { publisher: STARTER_SET_PUBLISHER }),
     ],
-    confirmLabel: 'Copy the crew',
-    pendingLabel: 'Copying…',
+    confirmLabel: buildStarterSetCopy('copyTheCrew'),
+    pendingLabel: buildStarterSetCopy('copying'),
     tone: 'default',
-    failure: 'The crew could not be copied. Try again.',
+    failure: buildStarterSetCopy('theCrewCouldNotBe'),
     onConfirm: async () => {
       const { builds } = await copyStarterCrew(target.container)
-      toast.success(`Copied ${builds} builds to ${target.label}.`)
+      toast.success(buildStarterSetCopy('copiedBuildsTo', { builds, label: target.label }))
     },
   })
 }

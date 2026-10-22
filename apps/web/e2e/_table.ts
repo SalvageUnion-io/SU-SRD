@@ -44,15 +44,15 @@ export async function joinByInvite(page: Page, token: string): Promise<string> {
 }
 
 /**
- * Pick up an unclaimed pre-gen from the Game's Crew: the row naming it that
- * still offers a pick-up (a pilot's row names its mech too, as a linked Mini).
+ * Assign yourself an unassigned pre-gen from the Game's Crew: the row naming it
+ * that still offers its seal (a pilot's row names its mech too, as a linked Mini).
  */
-async function pickUp(page: Page, name: string): Promise<void> {
-  const seal = page.getByRole('button', { name: /— pick this up$/ })
+async function assignToMe(page: Page, name: string): Promise<void> {
+  const seal = page.getByRole('button', { name: /— assign this to you$/ })
   const row = page.locator('li', { hasText: name }).filter({ has: seal }).last()
-  await row.getByRole('button', { name: /— pick this up$/ }).click()
+  await row.getByRole('button', { name: /— assign this to you$/ }).click()
   const confirm = page.getByRole('alertdialog')
-  await confirm.getByRole('button', { name: 'Pick up' }).click()
+  await confirm.getByRole('button', { name: 'Assign to me' }).click()
   await expect(confirm).toBeHidden({ timeout: 15_000 })
 }
 
@@ -73,8 +73,8 @@ export async function setUpTable(page: Page): Promise<{ gameId: string; gameName
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
   await expect(page.getByText('You mediate')).toBeVisible({ timeout: 20_000 })
-  await pickUp(page, 'Bonesaw')
-  await pickUp(page, 'Scrapper')
+  await assignToMe(page, 'Bonesaw')
+  await assignToMe(page, 'Scrapper')
   const gameId = new URL(page.url()).pathname.split('/').pop() ?? ''
   const gameName = (await page.getByRole('heading', { level: 1 }).first().innerText()).trim()
   if (!gameId || !gameName) throw new Error(`No Game id or name on ${page.url()}`)

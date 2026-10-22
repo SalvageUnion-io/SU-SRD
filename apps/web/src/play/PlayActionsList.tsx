@@ -21,6 +21,7 @@ import {
   Slab,
   SlabSection,
 } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayActionEntry } from './PlayActionEntry'
 import type { ListEntry } from './playActions.model'
 import { TYPE_FILTERS } from './playActions.model'
@@ -91,7 +92,7 @@ function OrphanNote({ text, onClear }: { text: string; onClear: () => void }) {
     <Callout>
       {text}{' '}
       <Button size="mini" variant="ghost" onClick={onClear}>
-        Clear
+        {playCopy('clear')}
       </Button>
     </Callout>
   )
@@ -105,7 +106,7 @@ function OrphanNote({ text, onClear }: { text: string; onClear: () => void }) {
 export function PlayActionsTools({ actions }: { actions: PlayActions }) {
   return (
     <div className="su-play-act-tools">
-      <Segmented label="Filter actions by type" size="compact">
+      <Segmented label={playCopy('filterActionsByType')} size="compact">
         {TYPE_FILTERS.map((type) => (
           <SegmentedOption
             key={type}
@@ -117,8 +118,8 @@ export function PlayActionsTools({ actions }: { actions: PlayActions }) {
         ))}
       </Segmented>
       <SearchField
-        aria-label="Find an action"
-        placeholder="Find…"
+        aria-label={playCopy('findAnAction')}
+        placeholder={playCopy('find')}
         value={actions.find}
         onChange={(event) => actions.setFind(event.target.value)}
         containerClassName="su-play-act-find"
@@ -133,13 +134,23 @@ export function PlayActionsList({ play, actions }: { play: Play; actions: PlayAc
   return (
     <>
       <PlayOrphanResolve actions={actions} />
-      <Slab label={`On hand · ${where}`} />
+      <Slab label={playCopy('onHand', { where })} />
       {actions.onHand.length === 0 ? (
-        <EmptyState variant="inline" body="Nothing on hand matches." />
+        <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        <PlayEntryList entries={actions.onHand} play={play} actions={actions} label="On hand" />
+        <PlayEntryList
+          entries={actions.onHand}
+          play={play}
+          actions={actions}
+          label={playCopy('onHand2')}
+        />
       )}
-      <PlayAwayGroup title="Not on hand" entries={actions.away} play={play} actions={actions} />
+      <PlayAwayGroup
+        title={playCopy('notOnHand')}
+        entries={actions.away}
+        play={play}
+        actions={actions}
+      />
     </>
   )
 }

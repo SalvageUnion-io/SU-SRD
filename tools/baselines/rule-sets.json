@@ -1,6 +1,9 @@
 {
   "copy": {
-    "lowercase-term": 190,
-    "banned-variant": 2
+    "lowercase-term": 189,
+    "banned-variant": 1
+  },
+  "ui-strings": {
+    "hard-coded": 1024
   }
 }

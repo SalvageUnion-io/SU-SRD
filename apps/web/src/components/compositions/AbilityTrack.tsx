@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Fragment } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { cn } from '../../lib/cn'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { capsLabel } from '../atoms/capsLabel'
 import type { TreeTrack } from './treeTrack'
 
@@ -41,7 +42,7 @@ export function AbilityTrack({
             // A pick-one tree: an "or" on its stem between this pick and the
             // one before, never a numeral.
             <li className="su-ability-track__or">
-              <span className={OR_STAMP}>or</span>
+              <span className={OR_STAMP}>{compositionsCopy('or')}</span>
             </li>
           )}
           <li className="su-ability-track__tier">{renderAbility(ability)}</li>

@@ -95,7 +95,7 @@ export function useHarnessPlay({
       record('board', mechId)
       setSituation('boarded')
     },
-    claimAndBoard: (option) => record('claimAndBoard', option.mechId),
+    assignAndBoard: (option) => record('assignAndBoard', option.mechId),
     canChangeDowntime: solo || mediator,
     startDowntime: () => record('startDowntime'),
     endDowntime: () => record('endDowntime'),
@@ -108,7 +108,7 @@ export function useHarnessPlay({
         resolving,
       },
       board: (mechId) => record('seat.board', mechId),
-      claimAndBoard: () => record('seat.claimAndBoard'),
+      assignAndBoard: () => record('seat.assignAndBoard'),
       dismount: () => record('seat.dismount'),
       eject: () => record('seat.eject'),
       setRange: (next) => record('seat.setRange', next),

@@ -128,8 +128,8 @@ export type Play = {
   setOnFoot: () => void
   /** Board one of `mechs`. */
   board: (mechId: string) => void
-  /** Claim an unclaimed spare in the Game, then board it. Confirm first. */
-  claimAndBoard: (option: BoardOption) => void
+  /** Assign an unassigned spare in the Game to yourself, then board it. Confirm first. */
+  assignAndBoard: (option: BoardOption) => void
   /** Start and end Downtime here: solo, or the Game's Mediator. */
   canChangeDowntime: boolean
   startDowntime: () => void

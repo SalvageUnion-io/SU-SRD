@@ -6,6 +6,7 @@ import { Text } from '../../components/index'
 import { returnTo } from '../../lib/account/returnTo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { captureException } from '../../lib/observability'
+import { buildAccountCopy } from '../../messages/build-account'
 import { useSignOut } from './useSignOut'
 
 /**
@@ -51,7 +52,7 @@ export function SignInHandoff() {
     }
   }, [mode, signIn, navigate])
 
-  return <Handoff>Signing in with Discord…</Handoff>
+  return <Handoff>{buildAccountCopy('signingInWithDiscord')}</Handoff>
 }
 
 export function SignOutHandoff({ to }: { to?: string }) {
@@ -69,5 +70,5 @@ export function SignOutHandoff({ to }: { to?: string }) {
     })
   }, [mode, signOut, to])
 
-  return <Handoff>Signing out…</Handoff>
+  return <Handoff>{buildAccountCopy('signingOut')}</Handoff>
 }

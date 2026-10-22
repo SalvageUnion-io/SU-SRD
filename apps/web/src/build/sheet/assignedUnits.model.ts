@@ -49,7 +49,7 @@ export type AssignedUnit = {
   name: string
   /** Its sheet; without one the chip opens nothing (a withheld unit). */
   href?: string | undefined
-  /** Who holds it in the Game (YOU, a crewmate, UNCLAIMED): a chip on its head. */
+  /** Who holds it in the Game (YOU, a crewmate, UNASSIGNED): a chip on its head. */
   owner?: string | undefined
   /** Edit: Change, the picker that replaces it (before Unassign). */
   change?: ReactNode

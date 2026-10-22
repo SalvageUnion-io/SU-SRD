@@ -18,7 +18,7 @@ import { testConvex } from '../harness'
  *  2. **A Game takes any member's pilots and mechs.** It does not wait for a
  *     crawler: the crew may gather first (ADR-037), and the first crawler
  *     raised becomes primary and takes them aboard.
- *  3. **An unclaimed character is an offer, and a player takes it.** It arrives
+ *  3. **An unassigned character is an offer, and a player takes it.** It arrives
  *     from a Game template or from a player releasing it; claiming is accepting
  *     it. Nobody can take what a crewmate already holds.
  *
@@ -78,7 +78,7 @@ async function writePilot(
 }
 
 /**
- * An unclaimed pre-gen, written the way `templates.createGame` seeds one: in
+ * An unassigned pre-gen, written the way `templates.createGame` seeds one: in
  * the Game, owned by nobody, waiting for somebody to take it.
  */
 async function offerPilot(t: Ctx, gameId: Id<'games'>): Promise<Id<'pilots'>> {
@@ -330,13 +330,13 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
   })
 })
 
-describe('unclaimed characters are offers; players pick them up', () => {
-  test('a player picks up what is offered, and it becomes theirs to edit', async () => {
+describe('unassigned characters are offers; players assign them to themselves', () => {
+  test('a player assigns themselves what is offered, and it becomes theirs to edit', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
     const pilotId = await offerPilot(t, gameId)
 
-    await player.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
+    await player.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilotId })
     await player.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
       appId: 'p1',
@@ -350,11 +350,11 @@ describe('unclaimed characters are offers; players pick them up', () => {
     expect((row?.body as { name: string } | undefined)?.name).toBe('Renamed')
   })
 
-  test('claiming is recorded in the Change Log like any other ownership move', async () => {
+  test('assigning is recorded in the Change Log like any other ownership move', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
     const pilotId = await offerPilot(t, gameId)
-    await player.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
+    await player.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilotId })
 
     const log = await t.run(async (ctx) => await ctx.db.query('changeLog').collect())
     expect(log).toHaveLength(1)
@@ -376,44 +376,117 @@ describe('unclaimed characters are offers; players pick them up', () => {
     await other.as.mutation(api.invites.redeem, { code })
 
     await expect(
-      other.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
+      other.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilotId })
     ).rejects.toThrow(/already holds/i)
   })
 
-  test('released, it is offered again and somebody else may take it', async () => {
+  test('unassigned, it is offered again and somebody else may take it', async () => {
     const t = testConvex()
     const { mediator, player, gameId } = await seedTable(t)
     await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
     const pilotId = await writePilot(t, player, gameId)
 
     // This is how a campaign survives somebody leaving mid-season.
-    await player.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })
-    await mediator.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
+    await player.as.mutation(api.ownership.unassign, { table: 'pilots', entityId: pilotId })
+    await mediator.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilotId })
 
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row?.ownerId).toBe(mediator.userId)
   })
 
-  test('a non-member cannot claim into a game they are not in', async () => {
+  test('a non-member cannot assign into a game they are not in', async () => {
     const t = testConvex()
     const { gameId } = await seedTable(t)
     const pilotId = await offerPilot(t, gameId)
     const outsider = await makeUser(t, 'Outsider')
 
     await expect(
-      outsider.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
+      outsider.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilotId })
     ).rejects.toThrow(/not a member/i)
   })
 
-  test('claiming needs no crawler — an offer stands whatever order the table was set up in', async () => {
+  test('assigning needs no crawler — an offer stands whatever order the table was set up in', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
     const pilotId = await offerPilot(t, gameId)
 
-    // The crawler gate governs ADDING to a game; claiming adds nothing.
-    await player.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilotId })
+    // The crawler gate governs ADDING to a game; assigning adds nothing.
+    await player.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilotId })
 
     const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(row?.ownerId).toBe(player.userId)
+  })
+})
+
+describe('the Mediator assigns and reassigns', () => {
+  test('the Mediator hands a held pilot to another member, and only they edit it now', async () => {
+    const t = testConvex()
+    const { organizer, mediator, player, gameId } = await seedTable(t)
+    await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
+    const pilotId = await writePilot(t, player, gameId)
+
+    await mediator.as.mutation(api.ownership.assign, {
+      table: 'pilots',
+      entityId: pilotId,
+      userId: organizer.userId,
+    })
+
+    const row = await t.run(async (ctx) => await ctx.db.get(pilotId))
+    expect(row?.ownerId).toBe(organizer.userId)
+    const log = await t.run(async (ctx) =>
+      (await ctx.db.query('changeLog').collect()).filter((r) => r.field === 'ownerId')
+    )
+    expect(log.at(-1)?.before).toBe(player.userId)
+    expect(log.at(-1)?.after).toBe(organizer.userId)
+    expect(log.at(-1)?.actorId).toBe(mediator.userId)
+    // The old holder reads it still, and edits it no longer.
+    await expect(
+      player.as.mutation(api.entities.upsertByAppId, {
+        table: 'pilots',
+        appId: 'p1',
+        gameId,
+        body: pilotBody({ name: 'Mine again' }),
+        expectedUpdatedAt: null,
+      })
+    ).rejects.toThrow()
+  })
+
+  test('the Mediator may unassign what a player holds', async () => {
+    const t = testConvex()
+    const { mediator, player, gameId } = await seedTable(t)
+    await mediator.as.mutation(api.entities.createCrawler, { gameId, body: crawlerBody() })
+    const pilotId = await writePilot(t, player, gameId)
+
+    await mediator.as.mutation(api.ownership.unassign, { table: 'pilots', entityId: pilotId })
+    expect((await t.run(async (ctx) => await ctx.db.get(pilotId)))?.ownerId).toBeNull()
+  })
+
+  test('a player assigns nothing to anybody else, free or held', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedTable(t)
+    const pilotId = await offerPilot(t, gameId)
+
+    await expect(
+      player.as.mutation(api.ownership.assign, {
+        table: 'pilots',
+        entityId: pilotId,
+        userId: organizer.userId,
+      })
+    ).rejects.toThrow(/only the mediator/i)
+  })
+
+  test('nobody is assigned anything in a Game they are not in', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedTable(t)
+    const pilotId = await offerPilot(t, gameId)
+    const outsider = await makeUser(t, 'Outsider')
+
+    await expect(
+      mediator.as.mutation(api.ownership.assign, {
+        table: 'pilots',
+        entityId: pilotId,
+        userId: outsider.userId,
+      })
+    ).rejects.toThrow(/not in this game/i)
   })
 })

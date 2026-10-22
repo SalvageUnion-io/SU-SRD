@@ -28,6 +28,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { cloneElement } from 'react'
 import type { EntityProps } from '../../components/entity/Entity'
 import { Badge, Button, Stat, StatusBadge, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 type SheetItemLineProps = {
   /** The item's Mini, or a Compact (an ability on its tree's track): an `<Entity>` element. */
@@ -136,7 +137,7 @@ export function SheetItemLine({
       ? {
           uses: (
             <Stat
-              label="Uses"
+              label={buildSheetCopy('uses')}
               value={uses.remaining}
               max={uses.max}
               size={size}
@@ -162,7 +163,7 @@ export function SheetItemLine({
     <>
       {item}
       <span role="status" aria-live="polite" className="su-sr-only">
-        {name} uses: {uses.remaining}
+        {buildSheetCopy('uses2', { name, remaining: uses.remaining })}
       </span>
     </>
   )
@@ -180,7 +181,7 @@ function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: () => v
       variant="pencil"
       size="mini"
       className="su-sheet-item__remove"
-      aria-label={`Remove ${name}`}
+      aria-label={buildSheetCopy('remove', { name })}
       onClick={onRemove}
     >
       <X aria-hidden="true" size={tokens.iconSize.mini} />

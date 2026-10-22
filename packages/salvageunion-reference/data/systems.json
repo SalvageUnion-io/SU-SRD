@@ -698,7 +698,14 @@
     "slotsRequired": 7,
     "salvageValue": 4,
     "page": 172,
-    "actions": ["120mm Cannon"]
+    "actions": ["120mm Cannon"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 59
+      }
+    ]
   },
   {
     "id": "b1beadc3-368b-47fc-9641-cc0b7038b646",
@@ -740,7 +747,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 173,
-    "actions": ["Ejection System"]
+    "actions": ["Ejection System"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 59
+      }
+    ]
   },
   {
     "id": "fb3ad8b7-6293-4eef-90d6-1a04367f674f",
@@ -760,7 +774,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 174,
-    "actions": ["Electro-Magnetic Shield Projector"]
+    "actions": ["Electro-Magnetic Shield Projector"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 60
+      }
+    ]
   },
   {
     "id": "89926020-d751-4d64-a4b6-3521406cf456",
@@ -785,7 +806,14 @@
     "slotsRequired": 7,
     "salvageValue": 4,
     "page": 174,
-    "actions": ["Heavy Duty Mining Rig"]
+    "actions": ["Heavy Duty Mining Rig"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 60
+      }
+    ]
   },
   {
     "id": "cd1da228-d4e4-439b-8978-6f7a82f0809d",
@@ -795,7 +823,14 @@
     "slotsRequired": 5,
     "salvageValue": 2,
     "page": 175,
-    "actions": ["Long Barrelled Green Laser"]
+    "actions": ["Long Barrelled Green Laser"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 60
+      }
+    ]
   },
   {
     "id": "df4f2e7c-0fb7-472f-8fdf-4e397460e1d7",
@@ -805,7 +840,14 @@
     "slotsRequired": 2,
     "salvageValue": 2,
     "page": 175,
-    "actions": ["Mech Melee Armament"]
+    "actions": ["Mech Melee Armament"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 61
+      }
+    ]
   },
   {
     "id": "7427374e-8d04-40ff-8313-de6a0650db56",
@@ -815,7 +857,14 @@
     "slotsRequired": 7,
     "salvageValue": 5,
     "page": 175,
-    "actions": ["Missile Pod"]
+    "actions": ["Missile Pod"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 61
+      }
+    ]
   },
   {
     "id": "818eef8d-8147-45b1-8e9d-da677a74dce3",
@@ -845,7 +894,14 @@
     "slotsRequired": 3,
     "salvageValue": 3,
     "page": 176,
-    "actions": ["Radiation Sealing"]
+    "actions": ["Radiation Sealing"],
+    "additionalSources": [
+      {
+        "source": "Salvage Union Starter Set",
+        "booklet": "PC",
+        "page": 61
+      }
+    ]
   },
   {
     "id": "a7b133e5-face-4530-a827-df8304d819d6",

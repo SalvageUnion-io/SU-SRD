@@ -43,6 +43,7 @@ import {
   TitledBox,
 } from '../components/index'
 import { runWrite } from '../lib/runWrite'
+import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
@@ -166,11 +167,11 @@ export function PlayDowntimeStep({
 
   const chip = inGame ? (
     <Badge shape="stamp" surface="inverse" size="mini">
-      Mediator advances · {doneCount} of {members.length} done
+      {playCopy('mediatorAdvancesOfDone', { doneCount, count: members.length })}
     </Badge>
   ) : (
     <Badge shape="stamp" surface="inverse" size="mini">
-      You run it
+      {playCopy('youRunIt')}
     </Badge>
   )
 
@@ -178,10 +179,8 @@ export function PlayDowntimeStep({
     <TitledBox title={step.name} as="section" chips={chip}>
       {plan.length > 0 ? (
         <>
-          <p className="su-play-resolve__note">
-            Applies, each line can be unticked if your table rules it differently.
-          </p>
-          <ul className="su-play-dt-lines" aria-label="Will apply">
+          <p className="su-play-resolve__note">{playCopy('appliesEachLineCanBe')}</p>
+          <ul className="su-play-dt-lines" aria-label={playCopy('willApply')}>
             {plan.map((line) => (
               <PlanLineItem
                 key={line.key}
@@ -204,7 +203,7 @@ export function PlayDowntimeStep({
       <div className="su-play-dt-controls">
         {markedDone && (claimed || applicable.length === 0) ? (
           <>
-            <span className="su-play-act__state">Done ✓</span>
+            <span className="su-play-act__state">{playCopy('done')}</span>
             {downtime.markDone && (
               <Button
                 size="compact"
@@ -212,29 +211,29 @@ export function PlayDowntimeStep({
                 onClick={() => downtime.markDone?.(false)}
                 disabled={off}
               >
-                Undo
+                {playCopy('undo')}
               </Button>
             )}
           </>
         ) : claimed ? (
           <>
-            <span className="su-play-act__state">Applied ✓</span>
+            <span className="su-play-act__state">{playCopy('applied')}</span>
             <Button size="compact" onClick={markDone} disabled={off}>
-              Mark done
+              {playCopy('markDone')}
             </Button>
           </>
         ) : applicable.length > 0 ? (
           <>
             <Button size="compact" onClick={() => void skip()} disabled={off}>
-              Skip
+              {playCopy('skip')}
             </Button>
             <Button size="compact" variant="primary" onClick={() => void apply()} disabled={off}>
-              Apply & mark done
+              {playCopy('applyMarkDone')}
             </Button>
           </>
         ) : inGame ? (
           <Button size="compact" onClick={markDone} disabled={off}>
-            Mark done
+            {playCopy('markDone')}
           </Button>
         ) : null}
         {!downtime.locked && (
