@@ -1611,6 +1611,184 @@
         }
       }
     },
+    "library:dismissReports": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pattern"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "library:list": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pattern"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": true
+        }
+      }
+    },
+    "library:moderation": {
+      "type": "object",
+      "value": {}
+    },
+    "library:report": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pattern"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "reason": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "library:setHidden": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pattern"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "hidden": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "library:setListed": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pattern"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "listed": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "library:status": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pattern"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "mediator:addNpc": {
       "type": "object",
       "value": {

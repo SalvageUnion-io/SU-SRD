@@ -27,6 +27,7 @@ import { shareSegment } from 'game-domain/shareAddress'
 import { useEffect } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { PublicNpcActions } from '../library/PublicNpcActions'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
 import { PublicSheet } from './PublicSheet'
@@ -109,6 +110,7 @@ function PublicNpcQuery({ appId, onAddress }: QueryProps) {
       madeBy={result.madeBy ?? 'a player'}
       readOnly
       readOnlyNote="A shared NPC, read-only. Only whoever made it can change it."
+      readOnlyActions={<PublicNpcActions npc={{ ...parsed.data, id: result.appId }} />}
     />
   )
 }

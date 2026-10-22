@@ -159,7 +159,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
-    Amends ADR-030's visibility rule; amended by ADR-036.
+    Amends ADR-030's visibility rule; amended by ADR-036, ADR-053.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
 34. **ADR-034 Persistence requires an account**
@@ -207,3 +207,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1.
+53. **ADR-053 The Homebrew library** · [full text](adr/053-homebrew-library.md)
+    Built: makers list link-shared patterns and NPCs at `/build/library`; anyone browses and copies; readers report; an admin hides.
+    Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.

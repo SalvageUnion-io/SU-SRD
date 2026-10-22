@@ -14,6 +14,9 @@
  *  - **A pattern** takes all three through `shelf.setPatternVisibility`, read
  *    back from `shelf.patternSharing`.
  *
+ * A pattern or a built NPC shared by link may also be listed in the Homebrew
+ * library (`LibraryShareToggle`, ADR-053), under its link.
+ *
  * Either way the link is `/p/:kind/<name>-<short id>` (`shareSegment`): one
  * derived URL, so going back to a narrower answer revokes it everywhere at once.
  *
@@ -45,6 +48,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
+import { LibraryShareToggle } from '../library/LibraryShareToggle'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -136,6 +140,7 @@ function SheetShareSettings({
       {value === 'link' && (
         <ShareLink url={appUrl(publicPath(kind, appId, name))} clipboardWriter={clipboardWriter} />
       )}
+      {value === 'link' && kind === 'npc' && <LibraryShareToggle kind="npc" appId={appId} />}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
   )
@@ -202,6 +207,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
           clipboardWriter={clipboardWriter}
         />
       )}
+      {value === 'link' && <LibraryShareToggle kind="pattern" appId={appId} />}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
   )

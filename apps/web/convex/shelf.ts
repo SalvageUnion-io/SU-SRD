@@ -4,16 +4,9 @@ import { ConvexError, v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import type { PatternVisibility } from './model/entities'
-import {
-  bodyAppId,
-  findOwnedByAppId,
-  mutation,
-  PARSERS,
-  parseBody,
-  patternVisibility,
-  patternVisibilityOf,
-} from './model/entities'
+import { bodyAppId, findOwnedByAppId, mutation, PARSERS, parseBody } from './model/entities'
+import type { PatternVisibility } from './model/patternAccess'
+import { patternVisibility, patternVisibilityOf } from './model/patternAccess'
 import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
 
 /**

@@ -5,13 +5,13 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import type { OwnedTable } from './entities'
 import {
   assignToPrimary,
-  countPatternBuild,
   linkIdOf,
   oldestByAppId,
   parseBody,
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
 } from './entities'
+import { countPatternBuild } from './patternAccess'
 import { getMembership, NotAuthorized } from './permissions'
 import { handOffSoloSeat, releaseSeatsOf } from './seats'
 import { staleWriteError } from './staleWrite'

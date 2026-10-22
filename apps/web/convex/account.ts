@@ -4,6 +4,7 @@ import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { personalBinding } from './model/channelBindings'
 import { mutation, pruneLinksOfRow } from './model/entities'
+import { deleteReportsBy } from './model/library'
 import { requireUser } from './model/permissions'
 import { deleteGameApparatus, releaseSeatsOf, soloSeatsOf } from './model/seats'
 
@@ -92,6 +93,8 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
+    /** Their reports of Homebrew library listings (ADR-053): what they said, and when. */
+    libraryReports: v.array(v.object({ reason: v.string(), at: v.number() })),
     games: v.array(
       v.object({
         gameId: v.id('games'),
@@ -124,6 +127,10 @@ export const exportMine = query({
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect()
+    const reports = await ctx.db
+      .query('libraryReports')
+      .withIndex('by_reporter', (q) => q.eq('reporterId', userId))
+      .collect()
 
     return {
       exportedAt: new Date().toISOString(),
@@ -131,6 +138,7 @@ export const exportMine = query({
       mechs: mechs.map((m) => m.body),
       npcs: npcs.map((n) => n.body),
       mechPatterns: mechPatterns.map((p) => p.body),
+      libraryReports: reports.map((r) => ({ reason: r.reason, at: r.at })),
       games: memberships.map((m) => ({
         gameId: m.gameId,
         mediator: m.mediator,
@@ -264,6 +272,9 @@ export const deleteAccount = mutation({
     }
     // Any solo seat still on the shelf (one whose pilot row was already gone).
     for (const seat of await soloSeatsOf(ctx, userId)) await ctx.db.delete(seat._id)
+    // Their library listings went with their patterns and NPCs (the triggers in
+    // `model/entities.ts`); their reports of other people's listings go too.
+    await deleteReportsBy(ctx, userId)
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

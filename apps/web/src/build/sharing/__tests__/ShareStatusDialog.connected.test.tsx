@@ -17,6 +17,9 @@ import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import type { ShareKind } from '../../../lib/sharing/visibility'
 import { pageOrigin } from '../../../lib/site'
 
+/** `library.status` for a thing not in the Homebrew library. */
+const NOT_LISTED = { listed: false, hidden: false, reported: false, mine: false, admin: false }
+
 const mutations: unknown[] = []
 
 // Module scope, before the imports below: `mock.module` only affects imports
@@ -79,7 +82,10 @@ beforeEach(() => {
 
 describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
   test('asks who can see it, answered Only me, and nothing about snapshots', async () => {
-    setQueryAnswers({ 'publicSheet:get': null })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': null,
+    })
     await act(async () => {
       renderDialog()
     })
@@ -97,7 +103,10 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
   })
 
   test('Anyone with the link sets publicRead on exactly this entity', async () => {
-    setQueryAnswers({ 'publicSheet:get': null })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': null,
+    })
     await act(async () => {
       renderDialog()
     })
@@ -112,7 +121,10 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
 
 describe('ShareStatusDialog — a sheet shared by link', () => {
   test('the link is the name and a short id, not the whole app id', async () => {
-    setQueryAnswers({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': { kind: 'pilot', body: {} },
+    })
     await act(async () => {
       renderDialog({ id: '0a1b2c3d-4e5f-4789-abcd-ef0123456789' })
     })
@@ -123,7 +135,10 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
   })
 
   test('shows the /p/ link, copies it, and renders a QR of it', async () => {
-    setQueryAnswers({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': { kind: 'pilot', body: {} },
+    })
     const writes: string[] = []
     await act(async () => {
       renderDialog({
@@ -150,7 +165,10 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
   })
 
   test('Only me turns it off', async () => {
-    setQueryAnswers({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': { kind: 'pilot', body: {} },
+    })
     await act(async () => {
       renderDialog()
     })
@@ -165,7 +183,11 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
 
 describe('ShareStatusDialog — a sheet in a Game', () => {
   test('its crew can see it, so the answer is My Game’s crew and Only me is out of reach', async () => {
-    setQueryAnswers({ 'publicSheet:get': null, 'games:listMine': GAMES })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': null,
+      'games:listMine': GAMES,
+    })
     await act(async () => {
       renderDialog({ kind: 'mech', id: 'mech-1', gameId: 'game-1' })
     })
@@ -176,7 +198,11 @@ describe('ShareStatusDialog — a sheet in a Game', () => {
   })
 
   test('going back from the link to the crew clears publicRead', async () => {
-    setQueryAnswers({ 'publicSheet:get': { kind: 'mech', body: {} }, 'games:listMine': GAMES })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': { kind: 'mech', body: {} },
+      'games:listMine': GAMES,
+    })
     await act(async () => {
       renderDialog({ kind: 'mech', id: 'mech-1', gameId: 'game-1' })
     })
@@ -191,7 +217,10 @@ describe('ShareStatusDialog — a sheet in a Game', () => {
 
 describe('ShareStatusDialog — a built NPC', () => {
   test('shares by link exactly as a sheet does, at /p/npc/', async () => {
-    setQueryAnswers({ 'publicSheet:get': { kind: 'npc', body: {} } })
+    setQueryAnswers({
+      'library:status': NOT_LISTED,
+      'publicSheet:get': { kind: 'npc', body: {} },
+    })
     await act(async () => {
       renderDialog({ kind: 'npc', id: 'npc-1' })
     })
@@ -209,6 +238,7 @@ describe('ShareStatusDialog — a built NPC', () => {
 describe('ShareStatusDialog — a mech pattern', () => {
   test('takes all three answers through the pattern’s own write', async () => {
     setQueryAnswers({
+      'library:status': NOT_LISTED,
       'shelf:patternSharing': [
         {
           appId: 'pattern-1',
@@ -242,6 +272,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
 
   test('shared by link: the /p/pattern/ link', async () => {
     setQueryAnswers({
+      'library:status': NOT_LISTED,
       'shelf:patternSharing': [
         { appId: 'pattern-1', visibility: 'link', gameId: null, gameName: null, builtCount: 2 },
       ],
