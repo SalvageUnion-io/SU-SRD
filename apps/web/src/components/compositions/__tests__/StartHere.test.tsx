@@ -9,8 +9,11 @@ describe('StartHere', () => {
     expect(frames).toHaveLength(3)
     for (const frame of frames) {
       const band = frame.querySelector<HTMLElement>('.su-entity-index__band')
-      expect(frame.style.borderColor).toBe(band?.style.backgroundColor ?? '')
-      expect(frame.style.borderColor).not.toBe('')
+      // Through `--su-compact-frame`, the hook R38's frame scan honours.
+      expect(frame.style.getPropertyValue('--su-compact-frame')).toBe(
+        band?.style.backgroundColor ?? ''
+      )
+      expect(frame.style.borderColor).toBe('var(--su-compact-frame)')
     }
   })
 })

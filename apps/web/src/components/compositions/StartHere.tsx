@@ -65,10 +65,14 @@ const STEPS = {
   padding: 0,
 } satisfies CSSProperties
 
+/** The step's frame in its band's colour, through the one hook that colours a frame (R38, R51). */
+const frameIn = (band: string) =>
+  ({ '--su-compact-frame': band, borderColor: 'var(--su-compact-frame)' }) as CSSProperties
+
 function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   const paint = paintFor(step.tone, { texture: true })
   return (
-    <div className="su-entity-index__frame" style={{ borderColor: paint.background }}>
+    <div className="su-entity-index__frame" style={frameIn(paint.background)}>
       <div
         className={cn('su-entity-index__band su-start-here__band', grainClass(paint.grain))}
         data-grain={paint.grain}
