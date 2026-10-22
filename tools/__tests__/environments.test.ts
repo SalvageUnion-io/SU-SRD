@@ -186,8 +186,9 @@ describe('the declaration', () => {
     expect(ENVIRONMENTS).toHaveLength(3)
   })
 
-  test('no secret is allowed at repository level', () => {
-    expect(REPOSITORY_SECRETS).toEqual([])
+  test('only the review token is allowed at repository level, and no Environment holds it', () => {
+    expect(REPOSITORY_SECRETS).toEqual(['CLAUDE_CODE_OAUTH_TOKEN'])
+    for (const env of ENVIRONMENTS) expect(env.secrets).not.toContain('CLAUDE_CODE_OAUTH_TOKEN')
   })
 })
 
