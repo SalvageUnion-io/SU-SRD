@@ -108,12 +108,13 @@ describe('SchemaViewerIsland', () => {
   })
 
   it('name filter: Clear-filters button clears name input and restores cards', () => {
-    const systemsModel = required(getModel('systems'), 'systems model')
-    const entities = systemsModel.all()
+    // A short listing: every card is drawn twice, and the systems' ~180 cost seconds.
+    const baysModel = required(getModel('crawler-bays'), 'crawler bays model')
+    const entities = baysModel.all()
 
     render(
       <SchemaViewerIsland
-        schemaId="systems"
+        schemaId="crawler-bays"
         techLevels={getUniqueTechLevels(entities)}
         sources={getUniqueSources(entities)}
       />

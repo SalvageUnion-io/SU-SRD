@@ -425,11 +425,14 @@ export async function main(
     // `convex dev --local`'s cache, else the state directory (a read-only home).
     const binary = await resolveBinary(sys, pins, [binariesDir(home), join(state, 'binaries')])
 
-    // One secret per state directory, so the admin key survives a restart.
+    // One secret per state directory, so the admin key survives a restart:
+    // created exclusively (`wx`), so an existing one is never overwritten.
     const secretFile = join(state, 'instance-secret')
-    if (!existsSync(secretFile)) {
-      const { randomBytes } = await import('node:crypto')
-      writeFileSync(secretFile, randomBytes(32).toString('hex'), { mode: 0o600 })
+    const { randomBytes } = await import('node:crypto')
+    try {
+      writeFileSync(secretFile, randomBytes(32).toString('hex'), { mode: 0o600, flag: 'wx' })
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
     }
     const secret = readFileSync(secretFile, 'utf8').trim()
     children.push(
