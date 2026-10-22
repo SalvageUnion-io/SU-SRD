@@ -820,10 +820,12 @@ a.su-home__discord:hover {
   min-width: 0;
 }
 
+/* Never more than three across: each is wider than a quarter of the line, so
+   a fourth always wraps (`ability-trees.e2e.ts`). */
 .su-ability-tree__row > *,
 .su-class-path__trees > * {
   flex: 1 1 auto;
-  min-width: min(100%, 16rem);
+  min-width: max(min(100%, 16rem), calc((100% - 3 * var(--space-12)) / 4 + 1px));
 }
 
 @media not (width >= 40rem) {
@@ -980,11 +982,14 @@ a.su-home__discord:hover {
 
 /* A path's trees split the card in equal columns, the same in every path
    card on the page (its own Advanced and Legendary trees, each Hybrid
-   Class's): as many as fit at 16rem, one each on a phone. */
+   Class's): as many as fit at 16rem, three at most, one each on a phone. */
 .su-class-path__trees {
   display: grid;
   gap: var(--space-12) var(--space-24);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  grid-template-columns: repeat(
+      auto-fit,
+      minmax(max(min(100%, 16rem), calc((100% - 3 * var(--space-24)) / 4 + 1px)), 1fr)
+    );
 }
 
 /* Side by side (from `sm`, where two 16rem columns and their gap fit), the
