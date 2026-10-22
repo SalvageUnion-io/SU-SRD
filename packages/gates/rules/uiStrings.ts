@@ -51,7 +51,9 @@ const DEFINE_MODULE = /(?:^|\/)messages\/define$/
 /** A module of the catalogue, imported from anywhere. */
 const CATALOGUE_MODULE = /(?:^|\/)messages\/(?!define$)[\w/-]+$/
 
-const SKIP_FILE = /(^|\/)(__tests__|_generated|generated)\/|\.(test|d)\.tsx?$/
+/** A test, a declaration, or a machine-written file: not shipped copy. */
+const isSkipped = (f: string) =>
+  /(?:^|\/)(?:__tests__|_generated|generated)\//.test(f) || /\.(?:test|d)\.tsx?$/.test(f)
 
 /** The words an attribute carrying copy is named for, alone or as a suffix (`aria-label`, `confirmLabel`). */
 const COPY_WORDS = [
@@ -317,7 +319,7 @@ const RULES: readonly Rule[] = [
 ]
 
 function uiFiles(root: string): string[] {
-  return listFiles(root, [UI_DIR], ['.ts', '.tsx']).filter((f) => !SKIP_FILE.test(f))
+  return listFiles(root, [UI_DIR], ['.ts', '.tsx']).filter((f) => !isSkipped(f))
 }
 
 const inCatalogue = (f: string) => f.startsWith(`${CATALOGUE_DIR}/`)
