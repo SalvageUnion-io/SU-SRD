@@ -68,8 +68,9 @@ export type AbilityTreeGroup = {
 const TRACK_RANK: Record<TreeTrack, number> = { core: 0, advanced: 1, hybrid: 1, legendary: 2 }
 
 /**
- * The taken Abilities by tree, each tree's in reference order (tier 1, 2, 3),
- * the trees in training order, then in reference order.
+ * The taken Abilities by tree, each tree's in reference order (tier 1, 2, 3):
+ * the trees the pilot has taken an Ability from first, then by training
+ * order, then in reference order.
  */
 function groupAbilityTrees(entries: readonly AbilityEntry[]): AbilityTreeGroup[] {
   const order = new Map(
@@ -87,13 +88,15 @@ function groupAbilityTrees(entries: readonly AbilityEntry[]): AbilityTreeGroup[]
     else byTree.set(entry.ability.tree, [entry])
   }
   const rank = (group: AbilityTreeGroup) => (group.track ? TRACK_RANK[group.track] : 3)
+  const untaken = (group: AbilityTreeGroup) =>
+    group.abilities.every((entry) => entry.unlearned) ? 1 : 0
   return [...byTree]
     .map(([tree, abilities]) => ({
       tree,
       track: trackForTree(abilities.map((entry) => entry.ability)),
       abilities,
     }))
-    .sort((a, b) => rank(a) - rank(b))
+    .sort((a, b) => untaken(a) - untaken(b) || rank(a) - rank(b))
 }
 
 type PilotSheetModelOptions = {
