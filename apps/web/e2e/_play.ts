@@ -1,7 +1,9 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { runAxeOnPage } from 'gates/a11y'
-import { gotoStable, waitForReady } from './_helpers'
+import { playDoor as openDoor } from 'gates/lib/appPage'
+import { BASE } from './_base'
+import { openApp, pageOverflow, seedDice } from './_helpers'
 
 /**
  * What the Play specs share (ADR-051, docs/architecture/play.md): opening a
@@ -33,14 +35,9 @@ export const MID = PLAY_VIEWPORTS[1]
 /** The phone. */
 export const PHONE = PLAY_VIEWPORTS[2]
 
-/** Every `Math.random()` draw is 13/20, so every d20 Randsum rolls is 14: a Success. */
-function seedDice(): void {
-  Math.random = () => 13 / 20
-}
-
 /**
  * Open a Play screen and wait for its bar. With `dice`, every d20 after the
- * load is 14.
+ * load is 14 (`seedDice`): a Success.
  *
  * The seed goes in once the Convex client has opened its socket: the client
  * draws its session id from `Math.random()` when it connects, and the server
@@ -53,27 +50,15 @@ export async function openPlay(page: Page, path: string, { dice = false } = {}):
     predicate: (ws) => ws.url().endsWith('/sync'),
     timeout: 60_000,
   })
-  await gotoStable(page, path)
-  await waitForReady(page)
+  await openApp(page, path)
   await socket
   await expect(page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
-  if (dice) await page.evaluate(seedDice)
+  if (dice) await seedDice(page)
 }
 
-/**
- * The path of a door on the Play landing (`/play/`): "Play Bonesaw in <Game>",
- * "Play Mira Voss solo" or "Mediate <Game>" (`PlayLanding`). Read off the
- * landing, so the specs reach Play the way a player does.
- */
+/** A Play hub door's path (`playDoor`, `gates/lib/appPage.ts`), as a route under the app's base. */
 export async function playDoor(page: Page, name: string | RegExp): Promise<string> {
-  await gotoStable(page, '/play/')
-  await waitForReady(page)
-  const door = page.getByRole('link', { name }).first()
-  await expect(door, `the Play landing offers "${name}"`).toBeVisible({ timeout: 30_000 })
-  const href = await door.getAttribute('href')
-  if (!href) throw new Error(`"${name}" on the Play landing has no href`)
-  // Root-relative under the app's base: the route without it.
-  return new URL(href, page.url()).pathname.replace(/^\/build/, '')
+  return (await openDoor(page, name)).slice(BASE.length)
 }
 
 /**
@@ -83,8 +68,7 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
  * follow.
  */
 export async function pilotPlayPath(page: Page, name: string): Promise<string> {
-  await gotoStable(page, '/')
-  await waitForReady(page)
+  await openApp(page, '/')
   const row = page.getByRole('region', { name: 'Pilots' }).getByRole('link', { name, exact: true })
   await expect(row, `the Training Bay lists ${name}`).toBeVisible({ timeout: 30_000 })
   const href = await row.first().getAttribute('href')
@@ -144,13 +128,7 @@ export async function expectNoPageScroll(page: Page, state: string): Promise<voi
     await page.evaluate(
       () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
     )
-    const over = await page.evaluate(() => {
-      const root = document.scrollingElement ?? document.documentElement
-      return {
-        down: root.scrollHeight - window.innerHeight,
-        across: root.scrollWidth - window.innerWidth,
-      }
-    })
+    const over = await pageOverflow(page)
     if (over.down > 0 || over.across > 0) {
       failures.push(
         `${state} at ${viewport.name} (${viewport.width}×${viewport.height}): ` +

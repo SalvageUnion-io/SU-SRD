@@ -1,10 +1,13 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * The sibling-height law (ruleset §4.7): controls side by side on one line —
  * chips, buttons, fields, switches, search boxes, Minis — share one Size, so
- * one height. `findSiblingMismatches` reads the rendered page and returns every
- * line whose controls differ by a pixel or more.
+ * one height. `findSiblingHeights` reads the rendered page and returns every
+ * line whose controls differ by a pixel or more (`findSiblingMismatches`, the
+ * same as data).
  *
  * - A control is the outermost element matching `CONTROL`, so a chip's two
  *   plates count once, as their cell. A linked chip counts as its cell too:
@@ -164,6 +167,16 @@ export function findSiblingMismatches(page: Page, within?: string): Promise<Sibl
   return page.evaluate(scan, { control: CONTROL, maxGap: MAX_GAP, within: within ?? null })
 }
 
+/** Each mismatched line in words: the line, then every control on it at its height. */
+export function describeMismatch(m: SiblingMismatch): string {
+  return `${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`
+}
+
+/** `findSiblingMismatches` as findings, each a `sibling` line. */
+export async function findSiblingHeights(page: Page, within?: string): Promise<Finding[]> {
+  return fromFaults((await findSiblingMismatches(page, within)).map(describeMismatch), 'sibling')
+}
+
 /**
  * A Button beside Tabs (or a Segmented row) is their Size (ruleset §4.7,
  * R41):
@@ -211,6 +224,6 @@ function scanTabSize(): string[] {
 }
 
 /** Every Button beside Tabs that is not the Tabs' height. */
-export function findTabSizeFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scanTabSize)
+export async function findTabSizes(page: Page): Promise<Finding[]> {
+  return fromFaults(await page.evaluate(scanTabSize))
 }

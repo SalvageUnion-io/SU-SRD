@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * The type floor at render (ruleset §4.6, hard rule R12): no text under 11px
@@ -7,7 +9,7 @@ import type { Page } from '@playwright/test'
  * `font-size` times every scale above it (a `transform`, a `zoom`), so a
  * canvas drawn small or a label scaled down counts at the size it is drawn.
  *
- * `findTypeFloorFaults` returns one line per element under the floor:
+ * `findTypeFloor` returns one finding per element under the floor:
  * `<px>px <tag.class> "<text>"`.
  */
 
@@ -58,6 +60,6 @@ function scan({ floor, slack }: { floor: number; slack: number }): string[] {
 }
 
 /** Every text on the page drawn under the 11px floor, one line each. */
-export function findTypeFloorFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scan, { floor: FLOOR, slack: SLACK })
+export async function findTypeFloor(page: Page): Promise<Finding[]> {
+  return fromFaults(await page.evaluate(scan, { floor: FLOOR, slack: SLACK }), 'type-floor')
 }

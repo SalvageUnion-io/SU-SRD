@@ -206,15 +206,12 @@ jobs:
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 
-      # The PR tier in one run: exactly the specs on the run line. Every other
-      # spec (the gate specs not named here, the app's other signed-in specs)
-      # runs only nightly, where e2e-nightly.yml runs the whole suite; the
-      # performance budget runs below. A file filter is a pattern, so `smoke.e2e.ts` runs the
-      # reference pages' and the app's smoke (`reference-smoke.e2e.ts`,
-      # `app-smoke.e2e.ts`), and likewise `bundle-budget` and `a11y`;
-      # `app-offline` and Play's are named whole (`play-` alone would also
-      # match `display-verification.e2e.ts`). Add a spec to this line; do NOT
-      # add a step or a job.
+      # The PR tier in one run: exactly the tests tagged `@pr`
+      # (`{ tag: '@pr' }` on a test or its file's describe). Every other test
+      # (the gate specs not tagged, the app's other signed-in specs) runs only
+      # nightly, where e2e-nightly.yml runs the whole suite; the performance
+      # budget runs below. To put a test in the PR tier, tag it; do NOT add a
+      # step or a job.
       # The a11y specs are WCAG 2.2 AA on the pages each lists, at desktop and
       # as a phone: they block on any violation. `app-offline.e2e.ts` proves the
       # app works offline, and the one install: opened at `/`, the reference
@@ -233,7 +230,7 @@ jobs:
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
           E2E_DESIGN_GATES: chip-strips,nesting-depth,sibling-heights
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts app-offline.e2e.ts design-walk.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts token-cutout.e2e.ts nesting-depth.e2e.ts roll-instrument.e2e.ts search-width.e2e.ts ability-trees.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts play-join.e2e.ts
+        run: bunx playwright test --grep @pr
 
       - name: Upload Playwright reports on failure
         if: failure()

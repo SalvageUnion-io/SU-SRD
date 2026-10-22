@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * The two inviolable laws (ruleset §7), read off the rendered page (hard rule
@@ -144,9 +146,9 @@ function scan(tolerance: number): { faults: string[]; cells: number; seams: numb
  * Every §7 fault on the page as it stands, one line each, and how many value
  * cells and seam stamps it read (a gate that read none proves nothing).
  */
-export async function findValueCellFaults(
+export async function findValueCells(
   page: Page
-): Promise<{ faults: string[]; cells: number; seams: number }> {
-  const found = await page.evaluate(scan, SEAM_TOLERANCE)
-  return { ...found, faults: [...new Set(found.faults)] }
+): Promise<{ findings: Finding[]; cells: number; seams: number }> {
+  const { faults, cells, seams } = await page.evaluate(scan, SEAM_TOLERANCE)
+  return { findings: fromFaults([...new Set(faults)]), cells, seams }
 }

@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
 
 /**
  * Hard rule R11, one Live Sheet grammar (ruleset §0, §1.2): the scan a sheet's
@@ -191,7 +192,7 @@ export function scanSheetGrammar({
 export async function findSheetGrammar(
   page: Page,
   state: { edit: boolean; carries: boolean }
-): Promise<SheetGrammarFinding[]> {
+): Promise<Finding[]> {
   // The sheet loads its record after the route settles: wait for its opening.
   await page
     .locator('main[data-variant] .su-sheet-hero')

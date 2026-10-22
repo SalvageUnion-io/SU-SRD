@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * A search field is full width on a phone: every
@@ -8,8 +10,8 @@ import type { Page } from '@playwright/test'
  * (past any `display: contents` box). Returns one line per field that falls short; a
  * spec asserts none.
  */
-export async function searchWidthFaults(page: Page): Promise<string[]> {
-  return await page.evaluate(() => {
+export async function findSearchWidths(page: Page): Promise<Finding[]> {
+  const faults = await page.evaluate(() => {
     const row = (el: Element | null) => {
       if (!el) return false
       const cs = getComputedStyle(el)
@@ -46,4 +48,5 @@ export async function searchWidthFaults(page: Page): Promise<string[]> {
     }
     return faults
   })
+  return fromFaults(faults, 'width')
 }

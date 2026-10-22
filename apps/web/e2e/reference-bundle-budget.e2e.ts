@@ -59,7 +59,7 @@ test.beforeAll(async ({ browser }) => {
   }
 })
 
-test.describe('bundle-size budget', () => {
+test.describe('bundle-size budget', { tag: '@pr' }, () => {
   // Every assertion in this file is of the form "these chunks are absent" or
   // "the total is under N". Both are trivially satisfied when the capture
   // matches nothing at all — a changed asset prefix once left this suite green

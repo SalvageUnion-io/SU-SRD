@@ -17,7 +17,7 @@
  */
 import type { Page } from '@playwright/test'
 import { APP_BASE } from '../../../apps/web/src/lib/appBase'
-import { copyStarter, editSheet, openApp, sheetLink, waitForReady } from './appPage'
+import { copyStarter, editSheet, openApp, playDoor, sheetLink, waitForReady } from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -135,16 +135,6 @@ export async function makeInviteLink(page: Page): Promise<string> {
   return token
 }
 
-/** A Play hub door's path (`Play Driftwood solo`, `Mediate <Game>`), read off its link. */
-async function playDoor(page: Page, base: string, name: string): Promise<string> {
-  await openApp(page, '/play/', base)
-  const door = page.getByRole('link', { name }).first()
-  await door.waitFor({ timeout: 30_000 })
-  const href = await door.getAttribute('href')
-  if (!href) throw new Error(`"${name}" on the Play hub has no href`)
-  return new URL(href, page.url()).pathname
-}
-
 /**
  * Seed the signed-in account on the open `page` (see the header). `base` is
  * the site's origin, or empty where the page resolves paths against its
@@ -195,8 +185,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   // is Mediate (ADR-052 §4): the player's screen is the pilot's own, `/play/<id>`.
   const pilotId = pilot.match(/\/sheet\/pilot\/([^/?#]+)/)?.[1]
   if (!pilotId) throw new Error(`no pilot id in ${pilot}`)
-  const playSolo = await playDoor(page, base, `Play ${SEED_SOLO} solo`)
-  const playMediator = await playDoor(page, base, `Mediate ${SEED_GAME}`)
+  const playSolo = await playDoor(page, `Play ${SEED_SOLO} solo`, base)
+  const playMediator = await playDoor(page, `Mediate ${SEED_GAME}`, base)
 
   return {
     pilot,

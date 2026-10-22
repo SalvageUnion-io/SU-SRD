@@ -55,20 +55,57 @@ export function selectedOption(page: Page): Locator {
  * Every spec opens an app page this way.
  */
 export async function openApp(page: Page, route: string): Promise<void> {
-  await gotoStable(page, route)
+  await visit(page, at(route))
   await waitForReady(page)
 }
 
+export { editSheet, waitForReady }
+
+/** An entity to Peek from the Union bar's search: its schema and a name its Mini holds. */
+export type SearchPeek = { schema: string; name: string }
+
 /**
- * `page.goto` an app route, retrying the transient `ERR_ABORTED` (`visit`),
- * without waiting for the game data: for a spec that waits on something else
- * (Play's socket, a sign-in panel). Most specs want `openApp`.
+ * Type `name` into the Union bar's search (the combobox mounts its island on
+ * intent, so it is clicked first) and return the result Mini of `schema` that
+ * holds it, a Peek trigger (`data-peek`), without waiting for it.
  */
-export async function gotoStable(page: Page, route: string): Promise<void> {
-  await visit(page, at(route))
+export async function searchPeekTrigger(page: Page, { schema, name }: SearchPeek) {
+  const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
+  await search.click()
+  await search.fill(name)
+  return page.locator(`[role="option"][data-peek^="${schema}:"]`).filter({ hasText: name }).first()
 }
 
-export { editSheet, waitForReady }
+/** Open `name`'s Peek from the Union bar's search; resolves once its plate draws a head. */
+export async function openPeekFromSearch(page: Page, peek: SearchPeek): Promise<void> {
+  const trigger = await searchPeekTrigger(page, peek)
+  await expect(trigger, `a ${peek.schema} Mini for ${peek.name} to Peek`).toBeVisible()
+  await trigger.hover()
+  await expect(page.locator('[data-peek-popup] .su-entity-compact__head').first()).toBeVisible()
+}
+
+/**
+ * Every `Math.random()` draw from now on rolls `die` on a d20 (Randsum draws
+ * `floor(random * 20) + 1`); 14 is a Success.
+ */
+export async function seedDice(page: Page, die = 14): Promise<void> {
+  await page.evaluate((d) => {
+    Math.random = () => (d - 1) / 20 + 0.001
+  }, die)
+}
+
+/** How far the page scrolls past the window, down and across, in px (0 or less: it fits). */
+export function pageOverflow(page: Page): Promise<{ down: number; across: number }> {
+  return page.evaluate(() => {
+    const root = document.scrollingElement ?? document.documentElement
+    return { down: root.scrollHeight - innerHeight, across: root.scrollWidth - innerWidth }
+  })
+}
+
+/** `text` as a literal in a `RegExp`. */
+export function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 /** A `/new` wizard (`pilots`, `mechs`, `crawlers`). */
 export type WizardKind = 'pilots' | 'mechs' | 'crawlers'
@@ -269,40 +306,39 @@ function isContainerPage(pathname: string): boolean {
  * take the first offered option) and try again.
  *
  * `?mode=guided` skips the chooser gate directly rather than clicking through it.
+ * Without `create` the walk stops on the step that offers no Next (Review),
+ * creating nothing: a gate scanning each step (`onStep`) needs no unit.
  */
-async function runWizard(
-  page: Page,
-  kind: WizardKind,
-  identity: Record<string, string>,
-  createLabel: RegExp,
-  /**
-   * Option names to choose when this walk is offered them. Being step-agnostic
-   * means "take whatever is on offer", which makes the BUILT ENTITY
-   * nondeterministic — and specs downstream assert on it ("the sheet header
-   * shows Engineer"). Those assertions were really depending on which option
-   * happened to sit last in the DOM. Naming the picks here keeps the walk
-   * structure-agnostic while making its OUTPUT deterministic, which is what
-   * the downstream specs actually need.
-   */
-  prefer: string[] = [],
-  /** Started from this Game's page (`?game=`): the unit lands there, and so does the walk. */
-  game?: string
-): Promise<void> {
+export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk): Promise<void> {
+  const { identity, create: createLabel, prefer = [], game, onStep } = walk
   await openWizard(page, kind, game)
 
+  const heading = page.locator('.su-wiz-main h1').first()
+  // The wizard's own Next, in its footer pill: an ability's NEXT tree chip
+  // on a step reads "Next: <ability>" too.
+  const next = page
+    .locator('.su-wiz-pill')
+    .getByRole('button', { name: /^Next(: |$)/ })
+    .first()
   const MAX_STEPS = 16
   for (let step = 0; step < MAX_STEPS; step++) {
-    const create = page.getByRole('button', { name: createLabel }).first()
-    if (await create.isVisible().catch(() => false)) {
-      await create.click()
-      await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
+    const title = ((await heading.textContent({ timeout: 15_000 })) ?? '').trim()
+    const name = title.replace(/^Step \d+ of \d+ · /, '')
+    await onStep?.(name, 'landed')
+
+    if (createLabel) {
+      const create = page.getByRole('button', { name: createLabel }).first()
+      if (await create.isVisible().catch(() => false)) {
+        await create.click()
+        await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
+        return
+      }
+      await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({
+        timeout: 15_000,
+      })
+    } else if (!(await next.isVisible().catch(() => false))) {
       return
     }
-
-    const next = page.getByRole('button', { name: /^Next(: |$)/ }).first()
-    await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({
-      timeout: 15_000,
-    })
 
     if (await next.isDisabled()) {
       // Identity first — a name step is gated on text, not on a pick.
@@ -313,12 +349,7 @@ async function runWizard(
       }
       // Then options. A step can require a pick from more than one GROUP, and
       // later groups may not exist until an earlier one is answered — the pilot
-      // step reveals its "first ability" trees only once a class is chosen. So
-      // satisfy one group at a time, re-reading the page after each pick: take
-      // the first not-yet-selected option in the first group that has none.
-      // (Walking a flat option list instead just re-picks within the same
-      // group — click every class in turn and you end on the last one, with
-      // the ability requirement still unmet.)
+      // step reveals its "first ability" trees only once a class is chosen.
       // Pick the LAST unselected option each round, re-reading the page in
       // between. Sections that appear in response to a pick are appended below
       // the one that triggered them, so "last" always lands in the newest
@@ -327,13 +358,10 @@ async function runWizard(
       // instead just re-picks within the first section (click every class in
       // turn and you end on the last one, ability still unchosen).
       for (let round = 0; round < 6 && (await next.isDisabled()); round++) {
-        // Match unselected cells by their OWN state attribute. The previous
-        // `filter({ hasNot })` asked whether a cell CONTAINS a selected
-        // descendant, which a selected cell does not — so every already-picked
-        // option counted as unselected and the walk could re-click (and thereby
-        // DEselect) what it had just chosen. Measured on the class step: 9
-        // cells, 1 picked, `hasNot` reported 9 unselected; the attribute
-        // selector reports the correct 8.
+        // Match unselected cells by their OWN state attribute: a
+        // `filter({ hasNot })` asks whether a cell CONTAINS a selected
+        // descendant, which a selected cell does not, so the walk would
+        // re-click (and thereby DEselect) what it had just chosen.
         const unselected = unselectedOptions(page)
 
         // Take a named pick when one is on offer, so the built entity is the
@@ -356,16 +384,41 @@ async function runWizard(
             .click()
             .catch(() => {})
         }
-        await page.waitForTimeout(350)
+        // Done once Next unlocks; else the pick revealed another group to answer.
+        await expect(next)
+          .toBeEnabled({ timeout: 350 })
+          .catch(() => {})
       }
       await expect(next, `wizard ${kind} step ${step} should unlock after picking`).toBeEnabled({
         timeout: 10_000,
       })
+      await onStep?.(name, 'picked')
     }
     await next.click()
-    await page.waitForTimeout(400)
+    // The next step is in once its heading is.
+    await expect(heading).not.toHaveText(title)
   }
-  throw new Error(`wizard ${kind} did not reach its Create step within ${MAX_STEPS} steps`)
+  throw new Error(`wizard ${kind} did not reach its end within ${MAX_STEPS} steps`)
+}
+
+/** How `runWizard` walks a wizard. */
+export type WizardWalk = {
+  /** Identity fields by label (`fillIdentity`), filled on whichever step asks. */
+  identity: Record<string, string>
+  /** The Create button's name; without it the walk stops on Review. */
+  create?: RegExp
+  /**
+   * Option names to choose when this walk is offered them. Being step-agnostic
+   * means "take whatever is on offer", which makes the BUILT ENTITY
+   * nondeterministic — and specs downstream assert on it ("the sheet header
+   * shows Engineer"). Naming the picks keeps the walk structure-agnostic while
+   * making its OUTPUT deterministic.
+   */
+  prefer?: string[]
+  /** Started from this Game's page (`?game=`): the unit lands there, and so does the walk. */
+  game?: string
+  /** Called as each step lands, and again once a gated step's picks unlock Next. */
+  onStep?: (title: string, state: 'landed' | 'picked') => Promise<void>
 }
 
 /** Build a pilot. Steps: Stats → Class & Ability → Equipment → Callsign → Background → Motto → Keepsake → Appearance → Review. */
@@ -379,7 +432,12 @@ export async function buildPilot(
   // Engineer, so specs may assert the built pilot's class on the sheet. Without
   // a named pick the walk takes whatever option sits last in the DOM and the
   // class silently varies between runs.
-  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i, ['Engineer'], game)
+  await runWizard(page, 'pilots', {
+    identity: { name, callsign },
+    create: /Create Pilot/i,
+    prefer: ['Engineer'],
+    game,
+  })
 }
 
 /**
@@ -391,14 +449,19 @@ export async function buildPilot(
  */
 export async function buildMech(page: Page, name: string): Promise<void> {
   // Mule chassis — the one downstream specs assert on. See buildPilot.
-  await runWizard(page, 'mechs', { 'name / pattern': name, 'mech name': name }, /Create Mech/i, [
-    'Mule',
-  ])
+  await runWizard(page, 'mechs', {
+    identity: { 'name / pattern': name, 'mech name': name },
+    create: /Create Mech/i,
+    prefer: ['Mule'],
+  })
 }
 
 /** Build a crawler. Steps: Type → Statistics → Armament Bay → Crew → Name → Review. */
 export async function buildCrawler(page: Page, name: string): Promise<void> {
-  await runWizard(page, 'crawlers', { 'crawler name': name }, /Create Crawler/i)
+  await runWizard(page, 'crawlers', {
+    identity: { 'crawler name': name },
+    create: /Create Crawler/i,
+  })
 }
 
 /**

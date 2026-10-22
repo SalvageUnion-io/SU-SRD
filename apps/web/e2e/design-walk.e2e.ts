@@ -2,24 +2,25 @@ import type { Browser, Page } from '@playwright/test'
 import type { Seed } from 'gates/lib/seedAccount'
 import { seedAccount } from 'gates/lib/seedAccount'
 import { at } from './_base'
-import { findChipStripFaults } from './_chipStrips'
+import { findChipStrips } from './_chipStrips'
 import type { DesignView } from './_designRoutes'
 import { expectWithinBaseline, visitDesignViews, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt, DesignFamily, DesignFinding } from './_designTable'
 import { corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
-import { findFrameFaults } from './_entityFrames'
-import { chassisAbilityNames, findFormFindings } from './_formFits'
+import { findFrames } from './_entityFrames'
+import type { Placed } from './_findings'
+import { place } from './_findings'
+import { chassisAbilityNames, findFormFits } from './_formFits'
 import { waitForReady } from './_helpers'
-import { findNestingFindings } from './_nestingDepth'
-import { ruleOfFault } from './_pendingRules'
-import { findRelationFindings } from './_relationChips'
+import { findNesting } from './_nestingDepth'
+import { findRelationChips } from './_relationChips'
 import { findSheetGrammar } from './_sheetGrammar'
-import { findSiblingMismatches, findTabSizeFaults } from './_siblingHeights'
-import { findStripControlFaults } from './_stripControls'
-import { countTabLabels, findTabLabelFaults } from './_tabLabels'
-import { COCKPIT, findBandFault, findGrainFaults, readOverlays } from './_texture'
-import { findTypeFloorFaults } from './_typeFloor'
-import { findValueCellFaults } from './_valueCells'
+import { findSiblingHeights, findTabSizes } from './_siblingHeights'
+import { findStripControls } from './_stripControls'
+import { countTabLabels, findTabLabels } from './_tabLabels'
+import { COCKPIT, findBand, findGrain, readOverlays } from './_texture'
+import { findTypeFloor } from './_typeFloor'
+import { findValueCells } from './_valueCells'
 import { expect, test } from './fixtures'
 
 /**
@@ -39,8 +40,6 @@ import { expect, test } from './fixtures'
  * hides the others.
  */
 
-type Finding = { rule: string; line: string }
-
 /** What a gate's `finish` may use: the walk's page, the browser, the seed. */
 type FinishArgs = { page: Page; browser: Browser; seed: Seed }
 
@@ -49,7 +48,7 @@ type Gate = {
   gate: string
   /** The families it reads; every family when absent. */
   reads?: (family: DesignFamily) => boolean
-  scan: (view: DesignView) => Promise<Finding[]>
+  scan: (view: DesignView) => Promise<Placed[]>
   baseline: readonly DesignDebt[]
   /**
    * After the walk, in the gate's step: what the gate reads beyond the walk's
@@ -61,22 +60,15 @@ type Gate = {
 /** The gates, each with the state it keeps over the walk. Texture's is last: it opens overlays. */
 function designGates(page: Page): Gate[] {
   const abilities = chassisAbilityNames()
-  const typeFloor = async ({ where }: { where: string }) =>
-    (await findTypeFloorFaults(page)).map((fault) => ({
-      rule: 'type-floor',
-      line: `${where}: ${fault}`,
-    }))
-  const faults = (where: string, list: readonly string[]) =>
-    list.map((fault) => ({ rule: ruleOfFault(fault), line: `${where}, ${fault}` }))
-  const unique = (lines: Map<string, string>) => [...lines].map(([line, rule]) => ({ rule, line }))
+  const typeFloor = async ({ where }: { where: string }) => place(where, await findTypeFloor(page))
 
   let labels = 0
   const cells = { cells: 0, seams: 0 }
   const readValueCells = async (where: string) => {
-    const { faults: found, cells: c, seams } = await findValueCellFaults(page)
+    const { findings, cells: c, seams } = await findValueCells(page)
     cells.cells += c
     cells.seams += seams
-    return faults(where, found)
+    return place(where, findings)
   }
   const cockpits = new Set<DesignFamily>()
   const overlaysRead: string[] = []
@@ -90,7 +82,7 @@ function designGates(page: Page): Gate[] {
        * Compact at a page's three columns (R3).
        */
       gate: 'chip-strips',
-      scan: async ({ where }) => faults(where, await findChipStripFaults(page)),
+      scan: async ({ where }) => place(where, await findChipStrips(page)),
       baseline: [
         {
           family: 'sheet-crawler-edit',
@@ -112,16 +104,13 @@ function designGates(page: Page): Gate[] {
        */
       gate: 'form-fits',
       scan: async ({ family, where }) => {
-        const place = {
+        const context = {
           // A Peek opens over an index (`designRoutes`), whose CompactIndexes keep their leads.
           index: family === 'reference-index' || family === 'peek',
           chassisPage: family === 'reference-page' && /\/chassis\//.test(page.url()),
           play: DESIGN_FAMILIES[family] === 'play',
         }
-        const lines = new Map<string, string>()
-        for (const f of await findFormFindings(page, place, abilities))
-          lines.set(`${where}: ${f.rule} ${f.detail}`, f.rule)
-        return unique(lines)
+        return place(where, await findFormFits(page, context, abilities))
       },
       baseline: [],
     },
@@ -131,14 +120,8 @@ function designGates(page: Page): Gate[] {
        * every entity frame's colour (`_entityFrames.ts`, R38).
        */
       gate: 'nesting-depth',
-      scan: async ({ where }) => {
-        const lines = new Map<string, string>()
-        for (const f of await findNestingFindings(page))
-          lines.set(`${where}: ${f.rule} ${f.chain}: ${f.detail}`, f.rule)
-        for (const fault of await findFrameFaults(page))
-          lines.set(`${where}, ${fault}`, ruleOfFault(fault))
-        return unique(lines)
-      },
+      scan: async ({ where }) =>
+        place(where, [...(await findNesting(page)), ...(await findFrames(page))]),
       baseline: [],
     },
     {
@@ -149,11 +132,7 @@ function designGates(page: Page): Gate[] {
        * ("Assigned Mech", "Assigned Pilot").
        */
       gate: 'relation-chips',
-      scan: async ({ where }) => {
-        const lines = new Map<string, string>()
-        for (const f of await findRelationFindings(page)) lines.set(`${where}: ${f.detail}`, f.rule)
-        return unique(lines)
-      },
+      scan: async ({ where }) => place(where, await findRelationChips(page)),
       baseline: [],
     },
     {
@@ -171,12 +150,13 @@ function designGates(page: Page): Gate[] {
       gate: 'sheet-grammar',
       reads: (family) => DESIGN_FAMILIES[family] === 'sheet',
       scan: async ({ family, where }) =>
-        (
+        place(
+          where,
           await findSheetGrammar(page, {
             edit: family.endsWith('-edit'),
             carries: !family.startsWith('sheet-npc-'),
           })
-        ).map((f) => ({ rule: f.rule, line: `${where}: ${f.detail}` })),
+        ),
       baseline: [],
     },
     {
@@ -195,14 +175,12 @@ function designGates(page: Page): Gate[] {
        * Play bar's.
        */
       gate: 'sibling-heights',
-      scan: async (view) => [
-        ...(await findSiblingMismatches(page)).map((m) => ({
-          rule: 'sibling',
-          line: `${view.where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
-        })),
-        ...(await typeFloor(view)),
-        ...faults(view.where, await findTabSizeFaults(page)),
-      ],
+      scan: async ({ where }) =>
+        place(where, [
+          ...(await findSiblingHeights(page)),
+          ...(await findTypeFloor(page)),
+          ...(await findTabSizes(page)),
+        ]),
       baseline: [],
       finish: async ({ browser, seed }) => {
         const play = designRoutes.filter((r) => DESIGN_FAMILIES[r.family] === 'play')
@@ -221,7 +199,7 @@ function designGates(page: Page): Gate[] {
        * ✕ ride its Mini's chip group (`SheetItemLine`, R11), its name the link.
        */
       gate: 'strip-controls',
-      scan: async ({ where }) => faults(where, await findStripControlFaults(page)),
+      scan: async ({ where }) => place(where, await findStripControls(page)),
       baseline: [],
     },
     {
@@ -229,10 +207,7 @@ function designGates(page: Page): Gate[] {
       gate: 'tab-labels',
       scan: async ({ where }) => {
         labels += await countTabLabels(page)
-        return (await findTabLabelFaults(page)).map(({ rule, line }) => ({
-          rule,
-          line: `${where}: ${line}`,
-        }))
+        return place(where, await findTabLabels(page))
       },
       baseline: [],
       finish: async () => {
@@ -274,22 +249,15 @@ function designGates(page: Page): Gate[] {
       gate: 'texture',
       reads: (family) => ['play', 'manage'].includes(DESIGN_FAMILIES[family]),
       scan: async ({ family, width, where }) => {
-        const found: Finding[] = []
-        if (DESIGN_FAMILIES[family] === 'play') {
-          cockpits.add(family)
-          await expect(page.locator(COCKPIT).first(), `${where}: the Cockpit is up`).toBeVisible()
-          for (const f of await findGrainFaults(page))
-            found.push({ rule: f.rule, line: `${where}: ${f.line}` })
-          if (width === 'page' && !where.includes(' tab')) {
-            for (const { what, faults: overlay } of await readOverlays(page)) {
-              overlaysRead.push(`${where}: ${what}`)
-              for (const f of overlay)
-                found.push({ rule: f.rule, line: `${where}, ${what}: ${f.line}` })
-            }
+        if (DESIGN_FAMILIES[family] !== 'play') return place(where, await findBand(page))
+        cockpits.add(family)
+        await expect(page.locator(COCKPIT).first(), `${where}: the Cockpit is up`).toBeVisible()
+        const found = place(where, await findGrain(page))
+        if (width === 'page' && !where.includes(' tab')) {
+          for (const { what, findings } of await readOverlays(page)) {
+            overlaysRead.push(`${where}: ${what}`)
+            found.push(...place(`${where}, ${what}`, findings))
           }
-        } else {
-          const fault = await findBandFault(page)
-          if (fault) found.push({ rule: 'band', line: `${where}: ${fault}` })
         }
         return found
       },
@@ -369,7 +337,7 @@ const threw = (error: unknown): string =>
 
 test.describe.configure({ retries: 0 })
 
-test('every context: every layout gate', async ({ page, browser }) => {
+test('every context: every layout gate', { tag: '@pr' }, async ({ page, browser }) => {
   test.setTimeout(45 * 60_000)
   const seed = await test.step('seed the account', () => seedAccount(page))
   const gates = selectGates(designGates(page))

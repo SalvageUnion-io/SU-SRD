@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test'
 import { CHIP_CLASSES } from '../src/components/entity/parts/chipSet'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /** The read chips, mark through the cost: no read chip follows the cost (C2). */
 const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1)
@@ -8,7 +10,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * The chip-strip law (ruleset §4.7) as the rendered page draws it. A STRIP is
  * an entity's chip group: a Page's band cluster (`.su-entity-stamps`), a
  * card's or Compact's head (`[data-chip-group]`), an index CompactIndex's, a Mini's. Its CHIPS are the
- * outermost `CHIP` elements inside it. `findChipStripFaults` returns one line
+ * outermost `CHIP` elements inside it. `findChipStrips` returns one finding
  * per fault:
  *
  * - **size** a chip whose value plate's type size is not its label's.
@@ -481,9 +483,9 @@ function scan({
   return faults
 }
 
-/** Every chip-strip fault on the page as it stands. */
-export async function findChipStripFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scan, {
+/** Every chip-strip fault on the page as it stands, under its kind. */
+export async function findChipStrips(page: Page): Promise<Finding[]> {
+  const faults = await page.evaluate(scan, {
     strip: STRIP,
     chip: CHIP,
     classes: CHIP_CLASSES,
@@ -495,4 +497,5 @@ export async function findChipStripFaults(page: Page): Promise<string[]> {
     overflow: OVERFLOW,
     owner: OVERFLOW_OWNER,
   })
+  return fromFaults(faults)
 }

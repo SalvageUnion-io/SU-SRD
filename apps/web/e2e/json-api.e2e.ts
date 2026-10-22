@@ -9,7 +9,7 @@ import { expect, test } from './fixtures'
 // What any visitor sees: nothing here needs an account.
 test.use({ account: 'anonymous' })
 
-test('schema JSON endpoint returns a valid entity array', async ({ request }) => {
+test('schema JSON endpoint returns a valid entity array', { tag: '@pr' }, async ({ request }) => {
   const res = await request.get('/schema/chassis.json')
 
   expect(res.ok()).toBeTruthy()

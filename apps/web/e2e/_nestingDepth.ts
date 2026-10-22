@@ -1,8 +1,9 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
 
 /**
  * The nesting law (ruleset §5, N1–N7; EDL E6) as the rendered page draws it.
- * `findNestingFindings` reads the page and returns every place it breaks:
+ * `findNesting` reads the page and returns every place it breaks:
  *
  * - **N1** a headed frame at level 2 or deeper. Level 0 is the page box (a
  *   Page, a dialog, a wizard step, the Peek plate), which draws no entity head
@@ -293,20 +294,17 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
   return found
 }
 
-/** Every finding on the page; `oneDeep` (an entity's or a guide's Page) adds N8. */
-export function findNestingFindings(
+/**
+ * Every finding on the page, its chain of headed frames in its words;
+ * `oneDeep` (an entity's or a guide's Page) adds N8.
+ */
+export async function findNesting(
   page: Page,
   { oneDeep = false }: { oneDeep?: boolean } = {}
-): Promise<NestingFinding[]> {
-  return page.evaluate(scanNesting, { ...NESTING_SELECTORS, oneDeep: oneDeep ? 'main' : null })
-}
-
-/** One line per distinct finding, with how many times the page draws it. */
-export function describeFindings(where: string, findings: NestingFinding[]): string[] {
-  const counts = new Map<string, number>()
-  for (const f of findings) {
-    const line = `${where}: ${f.rule} ${f.chain}: ${f.detail}`
-    counts.set(line, (counts.get(line) ?? 0) + 1)
-  }
-  return [...counts].map(([line, n]) => (n > 1 ? `${line} (×${n})` : line))
+): Promise<Finding[]> {
+  const found = await page.evaluate(scanNesting, {
+    ...NESTING_SELECTORS,
+    oneDeep: oneDeep ? 'main' : null,
+  })
+  return found.map((f) => ({ rule: f.rule, detail: `${f.rule} ${f.chain}: ${f.detail}` }))
 }

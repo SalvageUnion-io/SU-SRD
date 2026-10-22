@@ -1,11 +1,13 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * Nothing beside or under a strip (hard rule R6; `chips-and-actions.md` C1,
  * C8; EDL E8) as the rendered page draws it. In every entity list item, every
  * control belongs to an entity and sits in that entity's chip group
  * (`[data-chip-group]`, `Chips`): its state, uses and actions inlined last,
- * after the cost. `findStripControlFaults` returns one per control that does
+ * after the cost. `findStripControls` returns one per control that does
  * not:
  *
  * - **beside** a control on an entity's head (its band, a Mini's pill) but
@@ -191,6 +193,6 @@ export function scanStripControls(a: StripControlSelectors): string[] {
 }
 
 /** Every control in an entity list item outside its entity's chip group. */
-export function findStripControlFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scanStripControls, STRIP_CONTROL_SELECTORS)
+export async function findStripControls(page: Page): Promise<Finding[]> {
+  return fromFaults(await page.evaluate(scanStripControls, STRIP_CONTROL_SELECTORS))
 }

@@ -1,4 +1,6 @@
 import type { Page } from '@playwright/test'
+import type { Finding } from './_findings'
+import { fromFaults } from './_findings'
 
 /**
  * A stat grid fills its width (ruleset, "The source" 3): every `StatColumn`
@@ -6,9 +8,9 @@ import type { Page } from '@playwright/test'
  * gives it, draws rows that each run edge to edge. A short last row's cells grow to share the
  * line, so there is never an empty cell or a ragged edge.
  *
- * `measureStatColumns` reads the rendered boxes in the page and returns plain
- * data; `findStatFillFaults` is pure, so `e2e/__tests__/statFill.test.ts`
- * holds it without a browser.
+ * `findStatFill` reads the page: `measureStatColumns` takes the rendered boxes
+ * as plain data and `findStatFillFaults`, pure, so
+ * `e2e/__tests__/statFill.test.ts` holds it without a browser, judges them.
  */
 
 type Box = { left: number; right: number; top: number }
@@ -51,7 +53,7 @@ export function findStatFillFaults(columns: StatColumnBoxes[]): string[] {
 }
 
 /** Every visible stat grid on the page, its list's content box and each cell's Stat. */
-export function measureStatColumns(page: Page): Promise<StatColumnBoxes[]> {
+function measureStatColumns(page: Page): Promise<StatColumnBoxes[]> {
   return page.evaluate(() => {
     const box = (r: DOMRect) => ({ left: r.left, right: r.right, top: r.top })
     const out: { label: string; list: Box; cells: Box[] }[] = []
@@ -73,4 +75,9 @@ export function measureStatColumns(page: Page): Promise<StatColumnBoxes[]> {
     }
     return out
   })
+}
+
+/** Every stat grid row on the page that does not run edge to edge. */
+export async function findStatFill(page: Page): Promise<Finding[]> {
+  return fromFaults(findStatFillFaults(await measureStatColumns(page)), 'fill')
 }

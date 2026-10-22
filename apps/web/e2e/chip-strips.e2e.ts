@@ -1,8 +1,6 @@
-import { expect, test } from '@playwright/test'
-import { findChipStripFaults } from './_chipStrips'
-import { walkDesignRoutes } from './_designRoutes'
-import { corpusRoutes } from './_designTable'
-import { holdPending, ruleOfFault } from './_pendingRules'
+import { findChipStrips } from './_chipStrips'
+import { expectCorpusClean } from './_designRoutes'
+import { test } from './fixtures'
 
 /**
  * The chip-strip law (ruleset §4.7) on the signed-out reference corpus
@@ -22,19 +20,15 @@ import { holdPending, ruleOfFault } from './_pendingRules'
  * cards three across beside the art), and a narrow band (680: chips beside
  * the title in rows).
  */
+test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 
-test('every chip strip is one size, one gap, its cost in the corner', async ({ page }) => {
+test('every chip strip is one size, one gap, its cost in the corner', { tag: '@pr' }, async ({
+  page,
+}) => {
   test.setTimeout(20 * 60_000)
-  const found = await walkDesignRoutes(
-    page,
-    async ({ where }) =>
-      (await findChipStripFaults(page)).map((fault) => ({
-        rule: ruleOfFault(fault),
-        line: `${where}, ${fault}`,
-      })),
-    { routes: corpusRoutes(), widths: ['page', 1024, 680, 'phone'] }
-  )
-  const failures = holdPending('chip-strips', found).map((f) => f.line)
-  expect(failures, 'chip strips off the §4.7 law').toEqual([])
+  await expectCorpusClean(page, 'chip-strips', () => findChipStrips(page), {
+    widths: ['page', 1024, 680, 'phone'],
+    message: 'chip strips off the §4.7 law',
+  })
 })
