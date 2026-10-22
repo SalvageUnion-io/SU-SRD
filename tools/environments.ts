@@ -145,8 +145,13 @@ export const MAIN_RULESET: RulesetSpec = {
   ],
 }
 
-/** Secrets allowed at repository level, readable from any branch. Keep it empty. */
-export const REPOSITORY_SECRETS: readonly string[] = []
+/**
+ * Secrets allowed at repository level, readable from any branch. Only a
+ * credential that reaches no deploy and that every PR needs belongs here:
+ * the Claude review's token (`claude-review.yml`, `claude.yml`) spends review
+ * usage and nothing else. Every deploy secret stays in its Environment.
+ */
+export const REPOSITORY_SECRETS: readonly string[] = ['CLAUDE_CODE_OAUTH_TOKEN']
 
 /**
  * The one job that maps Environment secrets WITHOUT declaring the Environment,
