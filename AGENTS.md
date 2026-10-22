@@ -12,8 +12,8 @@ Guidance for every coding agent here. Instructions only: history is in git.
 
 ## Critical Rules
 
-- Do NOT add features, schema changes, or UI elements that were not explicitly requested. Mention extra ideas as suggestions; do not implement them.
-- When the user asks to 'plan' or 'prepare' something, the scope is the document/plan only — do not begin implementation unless explicitly asked.
+- Do NOT add features, schema changes or UI that were not requested; suggest them instead.
+- Asked to 'plan' or 'prepare', write only the plan; implement only when asked.
 
 ## UI Development
 
@@ -52,5 +52,7 @@ bun run build                      # reference generation + the app
 ## Merging
 
 `main` requires status checks; no merge queue. Squash-merge only (`gh pr merge <pr> --squash`; cloud: [cloud sessions](docs/ARCHITECTURE.md#cloud)); the squash body is the PR body. Each PR bumps the root `package.json` version (CI-enforced); merging releases it.
+
+Merge your own PR when all checks (`Claude review` too) are green, unless the owner will review it or you left a finding unfixed.
 
 Dependent PRs land only as a `gh stack` (local-only): `submit --auto --open`, then `merge --squash`; after a merge beneath you, `gh stack sync`. Never a hand rebase or `--force`. Stack state is per worktree (`gh stack checkout <pr>`).
