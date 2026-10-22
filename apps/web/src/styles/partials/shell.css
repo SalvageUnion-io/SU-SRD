@@ -11,7 +11,8 @@
  * hover or with "you are here".
  *
  * One geometry for both: a 56px row at every width, the mark alone (no
- * wordmark), the product nav inline from `lg`, the search entry 14rem wide,
+ * wordmark), the product nav inline from `lg`, the search entry 14rem wide
+ * (below `lg`, a full-width row of its own under the 56px one),
  * and one control height (`--su-union-bar-control`, the Compact Size) for
  * everything you press in the bar: the switcher, the search, "Buy the game", the account controls
  * and the phone's icon buttons.
@@ -159,10 +160,24 @@
     position: relative;
   }
 
+  /* Centred on the 56px row, not on the bar under it the search's row joins. */
   .su-union-bar__switch {
     left: 50%;
     position: absolute;
-    transform: translateX(-50%);
+    top: 28px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Below `sm` "Reference" is "Ref" (`data-short`; its `aria-label` keeps
+   its name). */
+@media not (width >= 40rem) {
+  .su-union-bar__tab[data-short] .su-union-bar__tab-long {
+    display: none;
+  }
+
+  .su-union-bar__tab[data-short]::after {
+    content: attr(data-short);
   }
 }
 
@@ -322,6 +337,64 @@
   }
 
   .su-union-bar__mobile {
+    display: none;
+  }
+}
+
+/* The right-hand cluster's search and account controls are boxes of their
+   own only so that a phone can keep one and drop the other; on desktop they
+   lay out as the cluster's own children. */
+.su-union-bar__search,
+.su-union-bar__actions {
+  display: contents;
+}
+
+/* Below `lg` the search is the bar's second row, full width, rather than a
+   trigger squeezed in beside the switcher, which ran into the Play tab on a
+   phone. The 56px row keeps its height (the phone cluster sets it), the cluster's other members stay in the
+   drawer, and the search trigger steps aside while the field is there (a
+   reference page with a search of its own serves the bar none, and keeps
+   the trigger). */
+@media not (width >= 64rem) {
+  .su-union-bar__row {
+    align-content: flex-start;
+    flex-wrap: wrap;
+    height: auto;
+  }
+
+  .su-union-bar__mobile {
+    height: 56px;
+  }
+
+  .su-union-bar__end:has(.su-union-bar__search) {
+    display: flex;
+    flex-basis: 100%;
+    margin-left: 0;
+    order: 1;
+    padding-bottom: var(--space-12);
+  }
+
+  .su-union-bar__end > .su-union-bar__search {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .su-union-bar__search .su-search-field {
+    width: 100%;
+  }
+
+  .su-union-bar__end > :not(.su-union-bar__search),
+  .su-union-bar__search .su-union-bar__quiet {
+    display: none;
+  }
+
+  .su-union-bar__end .su-union-bar__search-input {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .su-union-bar:has(.su-union-bar__search .su-search-field) .su-mobile-search__trigger {
     display: none;
   }
 }

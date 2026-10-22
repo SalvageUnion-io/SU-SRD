@@ -63,6 +63,9 @@ const TRIGGER = {
  * phones search is the primary action, so it lives directly in the bar (not
  * buried in the hamburger drawer). Tapping the magnifier opens a top sheet that
  * hosts arbitrary search `children` (the reference site passes its `SearchIsland`).
+ * Where the bar serves its own field, a row of its own under the bar below
+ * `lg`, the trigger steps aside (`shell.css`): it is left for a reference page
+ * whose search is its own, where the bar serves none.
  *
  * Content-agnostic shell: it owns the trigger, the sheet chrome (title + close),
  * focus trapping, and the slide (`.su-drawer`; it swipes back up to close); the
