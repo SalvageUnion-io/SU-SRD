@@ -30,25 +30,48 @@ function outputPathOf(url: string): string {
 }
 
 const schemaIds = getEntitySchemas().map((schema) => schema.id)
+/** Served whole, with no page and no per-entity file. */
+const dataOnlyIds = ['actions']
+const wholeIds = [...schemaIds, ...dataOnlyIds]
 const manifest = JSON.parse(emitted('api/v1/index.json'))
 
 describe('the Dataset API v1', () => {
-  test('the manifest names version 1 and every published schema, in order', () => {
+  test('the manifest names version 1, every published schema, then actions', () => {
     expect(manifest.version).toBe(1)
     expect(manifest.docs).toBe(`${SITE_URL}/api/`)
-    expect(manifest.schemas.map((schema: { id: string }) => schema.id)).toEqual(schemaIds)
+    expect(manifest.schemas.map((schema: { id: string }) => schema.id)).toEqual(wholeIds)
   })
 
-  test.each(schemaIds)('%s: every manifest URL is an emitted file', (id) => {
+  test.each(wholeIds)('%s: every manifest URL is an emitted file', (id) => {
     const entry = manifest.schemas.find((schema: { id: string }) => schema.id === id)
     expect(outputs.has(outputPathOf(entry.data))).toBe(true)
     expect(outputs.has(outputPathOf(entry.schema))).toBe(true)
-    expect(entry.item).toBe(`${SITE_URL}${API_V1_PATH}/${id}/{slug}.json`)
+    expect(entry.item).toBe(
+      dataOnlyIds.includes(id) ? undefined : `${SITE_URL}${API_V1_PATH}/${id}/{slug}.json`
+    )
   })
 
-  test.each(schemaIds)('%s: the data is /schema/ byte for byte, counted and hashed', async (id) => {
+  test('actions is data only: no page twin under /schema/, no per-entity files', () => {
+    expect(outputs.has('schema/actions.json')).toBe(false)
+    expect([...outputs.keys()].filter((path) => path.startsWith('api/v1/actions/'))).toEqual([])
+  })
+
+  test('every action a published entity names is in actions.json', () => {
+    const names = new Set(
+      (JSON.parse(emitted('api/v1/actions.json')) as { name: string }[]).map((a) => a.name)
+    )
+    const missing: string[] = []
+    for (const id of ['systems', 'modules', 'equipment', 'abilities']) {
+      for (const row of JSON.parse(emitted(`api/v1/${id}.json`)) as { actions?: string[] }[]) {
+        for (const name of row.actions ?? []) if (!names.has(name)) missing.push(`${id}: ${name}`)
+      }
+    }
+    expect(missing).toEqual([])
+  })
+
+  test.each(wholeIds)('%s: the data is the committed file, counted and hashed', (id) => {
     const body = emitted(`api/v1/${id}.json`)
-    expect(body).toBe(emitted(`schema/${id}.json`))
+    if (schemaIds.includes(id)) expect(body).toBe(emitted(`schema/${id}.json`))
     const entry = manifest.schemas.find((schema: { id: string }) => schema.id === id)
     expect(entry.itemCount).toBe(JSON.parse(body).length)
     const digest = new Bun.CryptoHasher('sha256').update(body).digest('hex')
@@ -62,7 +85,7 @@ describe('the Dataset API v1', () => {
     expect({ ...v1, $id: null }).toEqual({ ...unversioned, $id: null })
   })
 
-  test.each(schemaIds)('%s: the data validates against its v1 schema', (id) => {
+  test.each(wholeIds)('%s: the data validates against its v1 schema', (id) => {
     const schema = z.fromJSONSchema(JSON.parse(emitted(`api/v1/${id}.schema.json`)))
     const result = schema.safeParse(JSON.parse(emitted(`api/v1/${id}.json`)))
     expect(result.error?.issues.slice(0, 3) ?? []).toEqual([])

@@ -25,7 +25,9 @@ Static files, emitted by `apps/web/src/reference/endpoints/apiV1.ts`:
 | `/api/v1/<schema>.schema.json` | the generated JSON Schema, `$id` set to this URL and nothing else changed |
 | `/api/v1/<schema>/<slug>.json` | one entity, as `/schema/<schema>/item/<slug>.json` |
 
-The schemas are `getEntitySchemas()`, the set every surface publishes. A miss
+The schemas are `getEntitySchemas()`, the set every surface publishes, plus
+`actions` as data only (no page, no per-entity file): entities name their
+actions, and an action holds the cost, range, damage and traits. A miss
 under `/api/v1` is a JSON 404 from the Worker, never the HTML page. Headers
 are `/schema/*`'s: CORS open, one hour plus stale-while-revalidate.
 

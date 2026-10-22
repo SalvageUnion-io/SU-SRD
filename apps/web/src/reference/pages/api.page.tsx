@@ -381,6 +381,12 @@ function page(): PageResult {
           <p style={PROSE}>
             The following schema IDs are available. Use them in the endpoint patterns above.
           </p>
+          <p style={PROSE}>
+            One more, <code style={CODE}>actions</code>, is served whole at{' '}
+            <code style={CODE}>{API_V1_PATH}/actions.json</code> with its schema, but has no page
+            and no per-entity files. Systems, Modules, Equipment and Abilities list their actions by
+            name, and each action holds its type, cost, Range, Damage and Traits.
+          </p>
 
           <DocPanel title="Schema IDs" flush>
             <table style={TABLE} className="su-api__schemas">

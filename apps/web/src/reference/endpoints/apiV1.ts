@@ -15,14 +15,17 @@
  *   - `api/v1/<schemaId>/<slug>.json`: one entity, as `/schema/…/item/` serves it.
  *
  * The schemas are `getEntitySchemas()`, the set every other surface publishes
- * (`schemaSurfaceParity.test.ts`).
+ * (`schemaSurfaceParity.test.ts`), plus `actions`: data only, with no pages and
+ * no per-entity files. Systems, modules, equipment and abilities name their
+ * actions, and an action holds the type, cost, range, damage and traits, so
+ * without it the API cannot say what a weapon does.
  */
 
 import { createHash } from 'node:crypto'
 import type { EndpointModule, StaticPath } from '../../../ssg/types'
 import { API_V1_PATH, API_VERSION } from '../../lib/apiV1Paths'
 import { SITE_URL } from '../../lib/constants'
-import { getEntitySchemas } from '../../lib/gameData'
+import { getEntitySchemas, getSchemaCatalog } from '../../lib/gameData'
 import { readReferenceFile } from '../../lib/referenceFiles'
 import { getItemStaticPaths } from '../../lib/staticPaths'
 import { committedRow } from './itemJson'
@@ -45,6 +48,20 @@ function v1SchemaBody(schemaFile: string, schemaId: string): string {
   return rewritten
 }
 
+/** The schemas v1 serves only as data: no page, no per-entity file. */
+const DATA_ONLY_SCHEMAS = ['actions'] as const
+
+/** Every schema v1 serves whole: the published entity schemas, then the data-only ones. */
+function apiV1Schemas() {
+  const dataOnly = getSchemaCatalog().schemas.filter((schema) =>
+    (DATA_ONLY_SCHEMAS as readonly string[]).includes(schema.id)
+  )
+  return [
+    ...getEntitySchemas().map((schema) => ({ ...schema, dataOnly: false })),
+    ...dataOnly.map((schema) => ({ ...schema, dataOnly: true })),
+  ]
+}
+
 function sha256(body: string): string {
   return createHash('sha256').update(body).digest('hex')
 }
@@ -62,7 +79,7 @@ export function apiV1Manifest() {
     },
     stability:
       'Within v1 changes only add: new schemas, new optional fields, new entities and corrected text. A field is never removed, renamed or retyped, and a slug that moves keeps answering at its old URL. A breaking change ships as /api/v2/, beside v1.',
-    schemas: getEntitySchemas().map((schema) => ({
+    schemas: apiV1Schemas().map((schema) => ({
       id: schema.id,
       name: schema.displayNamePlural,
       description: schema.description,
@@ -70,7 +87,8 @@ export function apiV1Manifest() {
       sha256: sha256(readReferenceFile(schema.dataFile)),
       data: apiV1Url(`${schema.id}.json`),
       schema: apiV1Url(`${schema.id}.schema.json`),
-      item: apiV1Url(`${schema.id}/{slug}.json`),
+      // A data-only schema is read whole: its rows are named by the entities that use them.
+      ...(schema.dataOnly ? {} : { item: apiV1Url(`${schema.id}/{slug}.json`) }),
     })),
   }
 }
@@ -86,7 +104,7 @@ type SchemaParams = { schemaId: string }
 export const apiV1DataEndpoint: EndpointModule<SchemaParams, { dataFile: string }> = {
   pattern: 'api/v1/[schemaId].json',
   getStaticPaths: (): StaticPath<SchemaParams, { dataFile: string }>[] =>
-    getEntitySchemas().map((schema) => ({
+    apiV1Schemas().map((schema) => ({
       params: { schemaId: schema.id },
       props: { dataFile: schema.dataFile },
     })),
@@ -97,7 +115,7 @@ export const apiV1DataEndpoint: EndpointModule<SchemaParams, { dataFile: string 
 export const apiV1SchemaEndpoint: EndpointModule<SchemaParams, { schemaFile: string }> = {
   pattern: 'api/v1/[schemaId].schema.json',
   getStaticPaths: (): StaticPath<SchemaParams, { schemaFile: string }>[] =>
-    getEntitySchemas().map((schema) => ({
+    apiV1Schemas().map((schema) => ({
       params: { schemaId: schema.id },
       props: { schemaFile: schema.schemaFile },
     })),

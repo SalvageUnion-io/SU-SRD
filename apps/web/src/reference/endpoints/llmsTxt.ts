@@ -64,6 +64,8 @@ Base URL: \`${SITE_URL}/api/v1\`
 - \`GET /api/v1/{schemaId}.schema.json\` — JSON Schema definition for a schema (e.g., \`/api/v1/chassis.schema.json\`)
 - \`GET /api/v1/{schemaId}/{slug}.json\` — individual entity by slug (e.g., \`/api/v1/chassis/${sampleSlug}.json\`)
 
+Systems, Modules, Equipment and Abilities name their actions; each action's type, cost, Range, Damage and Traits are in \`/api/v1/actions.json\` (served whole, no per-entity files).
+
 The older unversioned \`/schema/\` URLs serve the same files and keep working.
 
 ### Available Schema IDs
