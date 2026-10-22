@@ -327,7 +327,7 @@ function scanOneToaster(root: string): Finding[] {
 
 /** The one offline notice. */
 const OFFLINE_HOME = 'apps/web/src/components/shared/NotConnectedBanner.tsx'
-/** …and its words, in the message catalogue (ADR-053). */
+/** …and its words, in the message catalogue (ADR-054). */
 const OFFLINE_WORDS = 'apps/web/src/messages/components-shared.ts'
 const OFFLINE_COPY = /\bnot connected\b|read-only until the connection returns/i
 

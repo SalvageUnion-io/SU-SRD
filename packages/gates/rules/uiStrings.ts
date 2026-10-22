@@ -1,6 +1,6 @@
 /**
  * The interface's words live in the message catalogue — the `ui-strings` rule
- * set of `tools/check-rule-sets.ts` (ADR-053).
+ * set of `tools/check-rule-sets.ts` (ADR-054).
  *
  * Every label, heading, hint and line of chrome the app draws is a key in a
  * module of `apps/web/src/messages/` (`messages({ … })`), said by key at the
@@ -306,13 +306,13 @@ function keysSaid(file: string, source: string): Map<string, Set<string>> {
 const RULES: readonly Rule[] = [
   {
     id: 'hard-coded',
-    rule: 'ADR-053 — a UI string typed at the call site instead of said from the message catalogue',
+    rule: 'ADR-054 — a UI string typed at the call site instead of said from the message catalogue',
     fix: "add the words to the area's module in apps/web/src/messages/ (`messages({ key: 'Words {value}' })`) and say them by key (`areaCopy('key', { value })`)",
     mode: 'ratchet',
   },
   {
     id: 'catalogue',
-    rule: 'ADR-053 — `messages(…)` only in apps/web/src/messages/, one export name per module, literal keys, no unsaid key',
+    rule: 'ADR-054 — `messages(…)` only in apps/web/src/messages/, one export name per module, literal keys, no unsaid key',
     fix: 'move the module into apps/web/src/messages/; rename a clashing export; pass the key as a string literal (or a conditional between two); delete a key nothing says',
     mode: 'zero',
   },

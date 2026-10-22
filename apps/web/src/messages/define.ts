@@ -1,5 +1,5 @@
 /**
- * The interface's words, held in one catalogue (ADR-053): every label,
+ * The interface's words, held in one catalogue (ADR-054): every label,
  * heading, hint and line of chrome the app draws is a key in a module of
  * `src/messages/`, never a string typed at the call site. English is the
  * only language; the catalogue is the seam another one joins at.

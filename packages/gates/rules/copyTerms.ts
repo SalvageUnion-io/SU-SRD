@@ -20,7 +20,7 @@
  *     than words (`NON_COPY_ATTRS`).
  *
  * A one-word string literal is an identifier far more often than copy (`schema === 'mech'`): not
- * read; a one-word JSX text node is. A catalogue message (ADR-053) is read without its `{name}`s.
+ * read; a one-word JSX text node is. A catalogue message (ADR-054) is read without its `{name}`s.
  *
  * ## The rules
  *

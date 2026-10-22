@@ -1,4 +1,4 @@
-/** The words of apps/web/src/components/entity: the message catalogue (ADR-053). */
+/** The words of apps/web/src/components/entity: the message catalogue (ADR-054). */
 
 import { messages } from './define'
 

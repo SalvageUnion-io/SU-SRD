@@ -56,37 +56,13 @@ import {
   ratchetCounts,
   readBaseline,
 } from 'gates/lib/ruleEngine'
-import { chromeLaws } from 'gates/rules/chrome'
-import { chromeTokens } from 'gates/rules/chromeTokens'
-import { classPrefix } from 'gates/rules/classPrefix'
-import { controlLaws } from 'gates/rules/controls'
 import { copyTerms } from 'gates/rules/copyTerms'
-import { designTokens } from 'gates/rules/designTokens'
-import { entityNesting } from 'gates/rules/entityNesting'
-import { selectMode } from 'gates/rules/selectMode'
-import { srdCss } from 'gates/rules/srdCss'
-import { stylingOwnership } from 'gates/rules/stylingOwnership'
-import { toneGround } from 'gates/rules/toneGround'
+import { RULE_SETS } from 'gates/rules/ruleSets'
 import { uiStrings } from 'gates/rules/uiStrings'
 
 const ROOT = join(import.meta.dir, '..')
 const BASELINE_PATH = join(import.meta.dir, 'baselines', 'rule-sets.json')
 const UPDATE = 'bun tools/check-rule-sets.ts --update-baseline'
-
-const RULE_SETS: readonly RuleSet[] = [
-  designTokens,
-  chromeTokens,
-  stylingOwnership,
-  srdCss,
-  toneGround,
-  classPrefix,
-  entityNesting,
-  chromeLaws,
-  selectMode,
-  controlLaws,
-  copyTerms,
-  uiStrings,
-]
 
 /** The `bun run check` id that runs a set: `copy` for the copy sets, `styling` for the rest. */
 const GROUPS = ['styling', 'copy'] as const

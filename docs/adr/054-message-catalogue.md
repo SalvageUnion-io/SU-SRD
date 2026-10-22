@@ -1,4 +1,4 @@
-# ADR-053: The Interface's Words Live in One Message Catalogue
+# ADR-054: The Interface's Words Live in One Message Catalogue
 
 Decided and built for 4.1.0: groundwork for a translatable interface, English only.
 
