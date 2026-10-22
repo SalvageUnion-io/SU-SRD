@@ -233,7 +233,8 @@ function page(): PageResult {
             ), so you can fetch from any origin, including browser JavaScript.
           </p>
           <p>
-            <strong>Base URL:</strong> <code style={CODE}>{BASE}</code>
+            Every endpoint sits under <code style={CODE}>{API_V1_PATH}/</code>. Start at the
+            manifest: <code style={CODE}>{BASE}/index.json</code>
           </p>
           <p style={ASIDE}>
             <strong>Tip:</strong> every page on this site has its data in the API. For example,{' '}
