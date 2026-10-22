@@ -136,4 +136,12 @@ describe('main', () => {
   test('the repo: every law in the canon is held', () => {
     expect(main(ROOT, [], CONTEXT)).toBe(0)
   })
+
+  test('--list prints each law and its gates', () => {
+    expect(main(ROOT, ['--list'], CONTEXT)).toBe(0)
+  })
+
+  test('a law with no gate fails', () => {
+    expect(main(repo(), [], context, { ...HELD, R1: [] }, 1)).toBe(1)
+  })
 })

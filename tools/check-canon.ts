@@ -19,8 +19,8 @@ import { join } from 'node:path'
 import type { CanonContext } from 'gates/lib/canon'
 import { CANON, canonFaults, canonLaws, gatesOf } from 'gates/lib/canon'
 import { assertScanFloor } from 'gates/lib/scanFloor'
+import { RULE_SETS } from 'gates/rules/ruleSets'
 import { CHECKS } from './check'
-import { RULE_SETS } from './check-rule-sets'
 
 const ROOT = join(import.meta.dir, '..')
 
@@ -33,14 +33,20 @@ export const CONTEXT: CanonContext = {
 }
 
 /** Run the check, or `--list` the registry. Exit code. */
-export function main(root = ROOT, argv: readonly string[] = [], context = CONTEXT): number {
+export function main(
+  root = ROOT,
+  argv: readonly string[] = [],
+  context = CONTEXT,
+  canon = CANON,
+  floor = LAW_FLOOR
+): number {
   const laws = canonLaws(root)
   if (argv.includes('--list')) {
-    for (const id of laws.keys()) console.log(`${id.padEnd(9)} ${gatesOf(id).join(', ')}`)
+    for (const id of laws.keys()) console.log(`${id.padEnd(9)} ${gatesOf(id, canon).join(', ')}`)
     return 0
   }
-  assertScanFloor('canon (laws in docs/design-system)', laws.size, LAW_FLOOR)
-  const faults = canonFaults(root, context, CANON)
+  assertScanFloor('canon (laws in docs/design-system)', laws.size, floor)
+  const faults = canonFaults(root, context, canon)
   if (faults.length === 0) {
     console.log(`✓ canon: ${laws.size} laws, each held by a gate`)
     return 0
