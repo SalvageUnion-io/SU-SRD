@@ -128,3 +128,27 @@ export function pageZoom({ devicePixelRatio, outerWidth, viewportWidth }: ZoomRe
 export function isPhoneForm(width: number, height: number, zoom = 1): boolean {
   return Math.min(width / CANVAS_W, height / CANVAS_H) < MIN_SCALE * Math.max(1, zoom)
 }
+
+// Uniform upscale cap — generous enough to fill a 4K display's height while
+// still guarding against an absurdly large render on giant panels (beyond which
+// the canvas grows in its own units instead).
+const MAX_SCALE = 2.6
+
+/** How the canvas fills a host: its scale, and its size in its own units. */
+export type CanvasFit = { scale: number; width: number; height: number }
+
+/**
+ * How the canvas fills a `width` × `height` host (ADR-038 §9): scaled
+ * uniformly by whichever axis binds first (capped), then widened or
+ * lengthened in its own units, never below its design size, so that at that
+ * scale it covers the host. The Play bar and foot run edge to edge and no
+ * page ground letterboxes the screen.
+ */
+export function canvasFit(width: number, height: number): CanvasFit {
+  const scale = Math.min(MAX_SCALE, width / CANVAS_W, height / CANVAS_H)
+  return {
+    scale,
+    width: Math.max(CANVAS_W, Math.floor(width / scale)),
+    height: Math.max(CANVAS_H, Math.floor(height / scale)),
+  }
+}

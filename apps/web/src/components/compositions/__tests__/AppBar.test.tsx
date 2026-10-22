@@ -57,6 +57,16 @@ describe('AppBar', () => {
     }
   })
 
+  test('Reference carries "Ref" for a phone, its name still Reference', () => {
+    render(
+      <AppBar product="reference" referenceHref="/" buildHref="/build/" playHref="/build/play/" />
+    )
+    const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    const reference = tools.getByRole('link', { name: 'Reference' })
+    expect(reference.getAttribute('data-short')).toBe('Ref')
+    expect(tools.getByRole('link', { name: 'Build' }).getAttribute('data-short')).toBeNull()
+  })
+
   test('the switcher reads Reference | Build | Play', () => {
     render(<AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/build/play/" />)
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))

@@ -98,7 +98,9 @@ border, no inset). Hue encodes ontology, never identity; state is a treatment
 
 ### 9. A fixed 1280×800 canvas, scaled to fit
 
-One `transform: scale(min(vw/1280, vh/800))`, letterboxed. "One screen, never
+One `transform: scale(min(vw/1280, vh/800))`; the canvas then widens or
+lengthens in its own units to fill the other axis, so it never letterboxes
+and its bar and foot run edge to edge like every page's. "One screen, never
 scrolls" is a landscape-desktop contract; below the floor the host gets the
 phone form ([ADR-045](045-dashboard-phone-form.md)).
 

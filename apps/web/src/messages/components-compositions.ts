@@ -13,6 +13,7 @@ export const compositionsCopy = messages({
   about: 'About',
   changelog: 'Changelog',
   reference: 'Reference',
+  ref: 'Ref',
   build: 'Build',
   play: 'Play',
   salvageUnion: 'Salvage Union',

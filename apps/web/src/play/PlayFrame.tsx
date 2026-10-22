@@ -1,7 +1,7 @@
 /**
  * PlayFrame — the Cockpit's one screen (Play, Direction A): the Play bar on
  * top, three columns under it, a foot along the bottom, laid on the fixed
- * 1280×800 `PlayCanvas`, which scales and letterboxes it and never
+ * 1280×800 `PlayCanvas`, which scales it, widens it to fill, and never
  * scrolls (ADR-038 §9, ADR-045's floor). Below that floor it draws the
  * screen's `phone` form instead (`PlayPhone`: tabs under pinned vitals,
  * play.md §11), which fits the screen too.

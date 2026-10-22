@@ -11,17 +11,13 @@ test.use({ account: 'anonymous' })
  */
 
 // (a) Landing page loads and search returns results.
-test('landing page loads and search returns results', { tag: '@pr' }, async ({
-  page,
-  isMobile,
-}) => {
+test('landing page loads and search returns results', { tag: '@pr' }, async ({ page }) => {
   await page.goto('/')
   await expect(page).toHaveTitle(/Salvage Union/i)
 
-  // On a phone the nav bar holds a magnifier instead of the field; it opens a
-  // sheet hosting the same combobox.
-  if (isMobile) await page.getByRole('button', { name: /search the reference/i }).click()
-  const nav = isMobile ? page.getByRole('dialog') : page
+  // The bar's field is on every width: on a phone, a row of its own under
+  // the bar.
+  const nav = page
 
   // The field is served as plain HTML (the home page's is a GET form) and
   // becomes the combobox when a reader reaches for it; what they type before

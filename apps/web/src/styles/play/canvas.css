@@ -20,7 +20,8 @@
 /* `position: relative` above makes the root a positioned context for its
    instruments. The ground is the host's own background (PlayCanvas.tsx). */
 
-/* Fixed design canvas — scaled to fit by PlayCanvas. Never scrolls. The
+/* The design canvas — scaled and sized to fill its host by PlayCanvas (1280 ×
+   800 at least, wider or taller to fill the other axis). Never scrolls. The
    canvas carries the same page ground as the surround, so it reads as one
    page, not a panel floating on another. */
 .su-play-canvas {
