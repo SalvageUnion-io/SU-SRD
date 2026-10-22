@@ -97,6 +97,36 @@ describe('filing a note', () => {
     expect(after).toMatchObject({ issue: 42, text: null })
   })
 
+  test('two filings at once post one issue, and a refusal frees the note for the next', async () => {
+    const t = testConvex()
+    const player = await makeUser(t, 'Player')
+    await player.as.mutation(api.feedback.submit, { kind: 'report', text: NOTE })
+    const [row] = await t.run((ctx) => ctx.db.query('feedback').collect())
+    if (row === undefined) throw new Error('no row')
+
+    process.env.GITHUB_FEEDBACK_TOKEN = 'token'
+    let posts = 0
+    let answer = 502
+    globalThis.fetch = (async (_url: string | URL | Request, _init?: RequestInit) => {
+      posts += 1
+      return Response.json({ number: 7 }, { status: answer })
+    }) as typeof fetch
+
+    // The sweep's filing, beside the one `submit` scheduled: one of them posts.
+    const both = await Promise.allSettled([
+      t.action(internal.feedback.file, { id: row._id }),
+      t.action(internal.feedback.file, { id: row._id }),
+    ])
+    expect(posts).toBe(1)
+    expect(both.filter((r) => r.status === 'rejected')).toHaveLength(1)
+    expect(await t.run((ctx) => ctx.db.get(row._id))).toMatchObject({ attempts: 1, issue: null })
+
+    answer = 201
+    await t.action(internal.feedback.file, { id: row._id })
+    expect(posts).toBe(2)
+    expect(await t.run((ctx) => ctx.db.get(row._id))).toMatchObject({ issue: 7, text: null })
+  })
+
   test('with no token the note waits, untouched, for the sweep', async () => {
     const t = testConvex()
     const player = await makeUser(t, 'Player')

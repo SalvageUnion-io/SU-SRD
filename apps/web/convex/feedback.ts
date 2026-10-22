@@ -3,7 +3,7 @@ import { ConvexError, v } from 'convex/values'
 import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
-import { internalAction, internalQuery } from './_generated/server'
+import { internalAction } from './_generated/server'
 import { internalMutation, mutation } from './model/entities'
 import { requireUser } from './model/permissions'
 import { feedbackKind } from './model/signalTables'
@@ -35,6 +35,13 @@ const DAY = 86_400_000
 
 /** A note that could not be filed for this long is dropped rather than held. */
 const GIVE_UP_AFTER = 7 * DAY
+
+/**
+ * How long one filing holds its note (`claim`): longer than an action may
+ * run, so a second `file` (the sweep's, beside `accept`'s) never posts the
+ * same note while the first is still talking to GitHub.
+ */
+const CLAIM_FOR = 15 * 60_000
 
 type Kind = Infer<typeof feedbackKind>
 
@@ -153,8 +160,11 @@ export function issueFor(note: {
   }
 }
 
-/** A waiting note, for `file`. */
-export const waiting = internalQuery({
+/**
+ * Claim a waiting note for one `file`: the note, or null when it is filed,
+ * gone, or another filing holds it.
+ */
+export const claim = internalMutation({
   args: { id: v.id('feedback') },
   returns: v.union(
     v.object({
@@ -168,18 +178,25 @@ export const waiting = internalQuery({
   handler: async (ctx, { id }) => {
     const row = await ctx.db.get(id)
     if (row === null || row.issue !== null || row.text === null) return null
+    const now = Date.now()
+    if (row.filingSince !== undefined && now - row.filingSince < CLAIM_FOR) return null
+    await ctx.db.patch(id, { filingSince: now })
     return { kind: row.kind, source: row.source, text: row.text, page: row.page }
   },
 })
 
-/** Record the outcome of one filing: the issue number (and drop the text), or one more attempt. */
+/**
+ * Record the outcome of one filing: the issue number (and drop the text), or
+ * one more attempt, letting the next sweep claim it again.
+ */
 export const filed = internalMutation({
   args: { id: v.id('feedback'), issue: v.union(v.number(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { id, issue }) => {
     const row = await ctx.db.get(id)
     if (row === null) return null
-    if (issue === null) await ctx.db.patch(id, { attempts: row.attempts + 1 })
+    if (issue === null)
+      await ctx.db.patch(id, { attempts: row.attempts + 1, filingSince: undefined })
     else await ctx.db.patch(id, { issue, text: null })
     return null
   },
@@ -197,7 +214,7 @@ export const file = internalAction({
   handler: async (ctx, { id }) => {
     const token = process.env.GITHUB_FEEDBACK_TOKEN
     if (token === undefined || token.length === 0) return null
-    const note = await ctx.runQuery(internal.feedback.waiting, { id })
+    const note = await ctx.runMutation(internal.feedback.claim, { id })
     if (note === null) return null
 
     const response = await fetch(`https://api.github.com/repos/${FEEDBACK_REPO}/issues`, {

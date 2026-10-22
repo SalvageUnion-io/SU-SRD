@@ -80,6 +80,8 @@ export const signalTables = {
     /** The GitHub issue number once filed; null while it waits. */
     issue: v.union(v.number(), v.null()),
     attempts: v.number(),
+    /** When a filing claimed it (`feedback.claim`); absent while nothing holds it. */
+    filingSince: v.optional(v.number()),
   })
     .index('by_sender_created', ['sender', 'createdAt'])
     .index('by_issue', ['issue'])
