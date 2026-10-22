@@ -7,7 +7,7 @@
  * waits for them, `rowArrival.ts`), and server-first writes (server, then
  * in-memory set(); ADR-034). Another tab's writes arrive through this tab's
  * own Convex subscription: `ShelfSync` adopts its creates and edits and
- * forgets its deletes. There is no tab-to-tab channel; the device copy is read only offline (ADR-056).
+ * forgets its deletes. There is no tab-to-tab channel; the device copy is read only offline (ADR-058).
  *
  * The collection key is parametrized (`encounterNpcs`,
  * `mechPatterns`) so each store's public state shape is unchanged —

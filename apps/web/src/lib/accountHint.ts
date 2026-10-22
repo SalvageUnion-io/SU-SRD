@@ -8,7 +8,7 @@
  * `localStorage`: the app writes the display name and avatar here whenever
  * `api.account.me` answers, and clears them on sign-out. It is the one
  * account value the SRD reads from the device: a name and a picture URL, never
- * a record (the app's records are the device copy's, ADR-056).
+ * a record (the app's records are the device copy's, ADR-058).
  *
  * A hint alone is not trusted. Convex Auth keeps its refresh token in the same
  * storage and removes it on sign-out and on a refresh the server refuses, so

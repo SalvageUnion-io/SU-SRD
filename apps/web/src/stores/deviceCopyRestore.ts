@@ -1,5 +1,5 @@
 /**
- * deviceCopyRestore — an offline boot's one read of the device copy (ADR-056).
+ * deviceCopyRestore — an offline boot's one read of the device copy (ADR-058).
  *
  * Runs when the app boots Disconnected with a session on the device and no
  * served answer this load (`AccountReconciler`). The copy is applied through

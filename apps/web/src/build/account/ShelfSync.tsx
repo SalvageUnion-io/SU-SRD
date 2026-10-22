@@ -6,7 +6,7 @@
  * row reaches the stores: every page load starts empty and fills from here,
  * and the stores' `hydrate()` resolves once the first answer is applied
  * (`markArrived`, `stores/rowArrival.ts`). Each applied answer is also saved
- * as the device copy (`stores/deviceCopy.ts`, ADR-056), which an offline boot
+ * as the device copy (`stores/deviceCopy.ts`, ADR-058), which an offline boot
  * applies the same way (`stores/deviceCopyRestore.ts`). The apply itself is
  * `stores/shelfApply.ts`.
  *

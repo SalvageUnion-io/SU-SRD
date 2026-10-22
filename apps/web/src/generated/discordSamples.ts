@@ -2,7 +2,7 @@
 // Regenerate with: bun --filter discord-bot gen:sample-replies
 //
 // A /su roll and a /su lookup reply, built by the bot's own builders, for the
-// /discord page's screenshots. apps/discord-bot/src/__tests__/sampleReplies.test.ts
+// /bot page's screenshots. apps/discord-bot/src/__tests__/sampleReplies.test.ts
 // fails if this file goes stale.
 
 export type SampleButton =

@@ -1464,6 +1464,39 @@
         }
       }
     },
+    "feedback:submit": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "suggestion"
+              },
+              {
+                "type": "literal",
+                "value": "report"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "text": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "page": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
     "games:create": {
       "type": "object",
       "value": {
@@ -1723,6 +1756,14 @@
           "optional": false
         }
       }
+    },
+    "metrics:forAdmin": {
+      "type": "object",
+      "value": {}
+    },
+    "metrics:refresh": {
+      "type": "object",
+      "value": {}
     },
     "ownership:assign": {
       "type": "object",

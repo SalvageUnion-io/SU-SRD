@@ -1,6 +1,6 @@
 /**
  * entityStore — Zustand store of the account's player entities, in memory: a
- * projection of the Convex subscriptions (ADR-034); offline, of the device copy (ADR-056).
+ * projection of the Convex subscriptions (ADR-034); offline, of the device copy (ADR-058).
  *
  * Hydration: rows arrive from the server (`ShelfSync`), and `hydrate(type)`
  * resolves once they have, or at once when none are coming

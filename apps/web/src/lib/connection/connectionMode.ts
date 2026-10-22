@@ -69,7 +69,7 @@ export type ConnectionInputs = {
 export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode {
   if (!inputs.authSettled) {
     // Booted offline with a session on the device: signed in and unreachable,
-    // the device copy's case (ADR-056), not a handshake that will finish.
+    // the device copy's case (ADR-058), not a handshake that will finish.
     return !inputs.online && inputs.storedSession === true ? 'disconnected' : 'connecting'
   }
   if (!inputs.signedIn) return 'solo'

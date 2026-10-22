@@ -1,5 +1,5 @@
 /**
- * The replies the reference site's `/discord` page draws as its screenshots: the bot's
+ * The replies the reference site's `/bot` page draws as its screenshots: the bot's
  * own, committed in the web app as generated data.
  */
 import { describe, expect, test } from 'bun:test'
@@ -9,7 +9,7 @@ import { renderSampleRepliesModule, sampleReplies } from '../sampleReplies'
 
 const COMMITTED = join(import.meta.dir, '../../../web/src/generated/discordSamples.ts')
 
-describe('the /discord page’s sample replies', () => {
+describe('the /bot page’s sample replies', () => {
   test('are a roll and a lookup, each with its controls', () => {
     const { roll, lookup } = sampleReplies()
     expect(roll.data.blocks.some((block) => block.kind === 'buttons')).toBe(true)

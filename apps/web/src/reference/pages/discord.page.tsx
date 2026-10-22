@@ -1,5 +1,5 @@
 /**
- * `/discord` — the Discord bot landing page.
+ * `/bot` — the Discord bot landing page (`/discord` 301s here).
  *
  * The command list is the bot's own: `DISCORD_COMMANDS` is generated from the
  * registered `/su` builder (`apps/discord-bot/src/commandList.ts`), so every
@@ -190,11 +190,11 @@ function page(): PageResult {
         applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Discord',
         description: pagesCopy('rollOnSalvageUnionTables'),
-        url: `${SITE_URL}/discord/`,
+        url: `${SITE_URL}/bot/`,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         isPartOf: WEBSITE,
       },
-      breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
+      breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/bot/` }],
     },
     children: (
       <DocPage
@@ -323,6 +323,6 @@ function page(): PageResult {
 }
 
 export const discordPage: PageModule = {
-  pattern: '/discord',
+  pattern: '/bot',
   page,
 }

@@ -10,7 +10,7 @@ import { HeaderMenu } from '../containers/HeaderMenu'
  * The trigger shows the player's display name beside their Discord avatar on
  * a square chip (two initials when there is no avatar, or it will not load); it
  * opens a `HeaderMenu` holding **Settings** and **Sign out**, then **About** and
- * **Changelog**. The `compact` form is the avatar alone, for the phone's header
+ * **Changelog**, and in the app **Suggest or report** (ADR-057). The `compact` form is the avatar alone, for the phone's header
  * row, which has no room for a name.
  *
  * Presentational: each app hands in the identity and what the rows do. The
@@ -31,6 +31,8 @@ type AccountMenuProps = {
   /** The shared doc pages, on the SRD. */
   aboutHref: string
   changelogHref: string
+  /** Opens "Suggest or report"; the app's only, so the SRD's menu has no such row. */
+  onFeedback?: () => void
 }
 
 // A name is identity, not chrome: it keeps the case the player typed, inside a
@@ -52,6 +54,7 @@ export function AccountMenu({
   onSignOut,
   aboutHref,
   changelogHref,
+  onFeedback,
 }: AccountMenuProps) {
   return (
     <HeaderMenu
@@ -83,6 +86,15 @@ export function AccountMenu({
             label: compositionsCopy('changelog'),
             onSelect: () => window.location.assign(changelogHref),
           },
+          ...(onFeedback === undefined
+            ? []
+            : [
+                {
+                  id: 'feedback',
+                  label: compositionsCopy('suggestOrReport'),
+                  onSelect: onFeedback,
+                },
+              ]),
         ],
       ]}
     />

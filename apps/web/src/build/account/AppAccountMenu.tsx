@@ -1,16 +1,18 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { AccountMenu as SharedAccountMenu } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { DOC_PAGES } from '../../lib/docPages'
+import { FeedbackDialog } from './FeedbackDialog'
 import { useSignOut } from './useSignOut'
 
 /**
  * The app's account menu: the UI library's `AccountMenu`, the one the SRD's
  * bar shows too, over this session. The name and avatar come from
- * `api.account.me`; Settings routes in place and Sign out ends the session
- * here.
+ * `api.account.me`; Settings routes in place, Sign out ends the session
+ * here, and Suggest or report opens `FeedbackDialog`.
  *
  * ## When it renders
  *
@@ -32,17 +34,22 @@ function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
   const me = useQuery(api.account.me, {})
   const signOut = useSignOut()
   const navigate = useNavigate()
+  const [feedback, setFeedback] = useState(false)
 
   return (
-    <SharedAccountMenu
-      name={me?.displayName ?? null}
-      avatarUrl={me?.avatarUrl ?? null}
-      compact={compact}
-      onSettings={() => void navigate({ to: '/settings' })}
-      onSignOut={signOut}
-      aboutHref={DOC_PAGES.about.href}
-      changelogHref={DOC_PAGES.changelog.href}
-    />
+    <>
+      <SharedAccountMenu
+        name={me?.displayName ?? null}
+        avatarUrl={me?.avatarUrl ?? null}
+        compact={compact}
+        onSettings={() => void navigate({ to: '/settings' })}
+        onSignOut={signOut}
+        aboutHref={DOC_PAGES.about.href}
+        changelogHref={DOC_PAGES.changelog.href}
+        onFeedback={() => setFeedback(true)}
+      />
+      <FeedbackDialog open={feedback} onOpenChange={setFeedback} />
+    </>
   )
 }
 

@@ -3,7 +3,7 @@
  *
  * A store holds what `ShelfSync` brings down from Convex this page load, so
  * "hydrated" means **the server's answer is in**; offline, the device copy's
- * (`deviceCopy.ts`, ADR-056). A store's `hydrate()` waits on this module, and
+ * (`deviceCopy.ts`, ADR-058). A store's `hydrate()` waits on this module, and
  * resolves:
  *
  *  - when `ShelfSync` marks the store arrived (its first emission applied),

@@ -59,7 +59,7 @@ type AuthState = {
    * false: only `ConnectionProvider`'s floor subscription ever sets it.
    */
   outdated?: boolean
-  /** A session token is on the device: an offline boot is Disconnected (ADR-056). */
+  /** A session token is on the device: an offline boot is Disconnected (ADR-058). */
   storedSession?: boolean
 }
 
@@ -120,7 +120,7 @@ function currentMode(): ConnectionMode {
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions)
  * decision 1). There is no build flag and no exemption for a browser that
  * already holds rows (ADR-035): the device copy is read only for a session on
- * the device (ADR-056), never signed out.
+ * the device (ADR-058), never signed out.
  */
 export function backendForMode(mode: ConnectionMode): BackendKind {
   if (mode === 'solo') return 'signedOut'

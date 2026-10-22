@@ -17,7 +17,7 @@ const BODY = proseColumn(space[16])
 const LIST = bulletList(space[4], 'padding')
 const AFTER_LIST = { marginTop: space[8] }
 
-const LAST_UPDATED = '21 October 2026'
+const LAST_UPDATED = '22 October 2026'
 
 function page(): PageResult {
   return {
@@ -37,8 +37,16 @@ function page(): PageResult {
             <ul style={LIST}>
               <li>
                 <strong>{pagesCopy('rollsAndLookups')}</strong> (<code>{pagesCopy('suRoll')}</code>,{' '}
-                <code>{pagesCopy('suLookup')}</code>): nothing. They answer in real time and keep no
-                record. Buttons such as “Roll again” carry the table or dice in the button itself.
+                <code>{pagesCopy('suLookup')}</code>): nothing about you. They answer in real time
+                and keep no record. Buttons such as “Roll again” carry the table or dice in the
+                button itself.
+              </li>
+              <li>
+                <strong>{pagesCopy('usageCounts')}</strong> {pagesCopy('forEveryCommandAWeekly')}
+              </li>
+              <li>
+                <strong>{pagesCopy('feedback')}</strong> (<code>{pagesCopy('suFeedback')}</code>
+                {pagesCopy('feedbackBecomesAnIssue')}
               </li>
               <li>
                 <strong>{pagesCopy('yourLinkedAccount')}</strong> when you sign in to
@@ -85,6 +93,9 @@ function page(): PageResult {
                 <strong>{pagesCopy('convex')}</strong> — stores salvageunion.io accounts, Games and
                 bound channels.
               </li>
+              <li>
+                <strong>{pagesCopy('github')}</strong> {pagesCopy('hostsThePublicIssues')}
+              </li>
             </ul>
           </div>
 
@@ -96,9 +107,9 @@ function page(): PageResult {
                 {pagesCopy('settings')}
               </InlineRef>{' '}
               lets you export everything your account holds or delete the account. Deleting it
-              removes your Discord link and your solo channel. A Game’s bound channel stays with the
-              Game until someone runs <code>{pagesCopy('suUnbind')}</code>. For anything else,
-              contact{' '}
+              removes your Discord link, your solo channel and any feedback not yet posted. A Game’s
+              bound channel stays with the Game until someone runs{' '}
+              <code>{pagesCopy('suUnbind')}</code>. For anything else, contact{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                 {pagesCopy('privacySalvageunionIo')}
               </InlineRef>

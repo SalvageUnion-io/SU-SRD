@@ -44,7 +44,7 @@ describe('the unsettled auth handshake is its own mode, not Solo', () => {
     expect(resolveConnectionMode(inputs({ authSettled: false, signedIn: true }))).toBe('connecting')
   })
 
-  test('booted offline with a session on the device -> disconnected (ADR-056)', () => {
+  test('booted offline with a session on the device -> disconnected (ADR-058)', () => {
     // Offline the handshake never settles; a token on the device says this is
     // a signed-in player out of reach, whose device copy may be read.
     expect(

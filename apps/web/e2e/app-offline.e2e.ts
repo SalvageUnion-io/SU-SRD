@@ -17,7 +17,7 @@ import { expect, test } from './fixtures'
  *
  * ## What offline promises
  *
- * The device copy (`docs/ARCHITECTURE.md#device-copy`, ADR-056) keeps the
+ * The device copy (`docs/ARCHITECTURE.md#device-copy`, ADR-058) keeps the
  * signed-in player's own rows, read-only. So offline promises two things, and
  * this spec pins both:
  *
@@ -218,7 +218,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
   })
 
   /**
-   * What is kept (ADR-056): the device copy. An offline reload boots the
+   * What is kept (ADR-058): the device copy. An offline reload boots the
    * precached shell, and the player's own sheets come back from the copy
    * `ShelfSync` saved, read-only under the NOT CONNECTED banner; with the
    * connection back the sheet is editable again.

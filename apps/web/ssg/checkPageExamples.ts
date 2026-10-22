@@ -56,7 +56,7 @@ function emittedEntityNames(): Set<string> {
 }
 
 /**
- * Entity and table names the `/discord` page presents as real.
+ * Entity and table names the `/bot` page presents as real.
  *
  * Hand-maintained on purpose. Parsing them out of the built HTML would mean
  * guessing which `<code>` blocks are entity names and which are command syntax,
@@ -126,7 +126,7 @@ check(
   'expected a genuine field name in the response sample'
 )
 
-// ── /discord: every cited entity and table must exist ───────────────────────
+// ── /bot: every cited entity and table must exist ───────────────────────
 const names = emittedEntityNames()
 check(
   'the emitted name index is populated',
@@ -135,12 +135,12 @@ check(
 )
 
 for (const cited of DISCORD_CITED_NAMES) {
-  check(`/discord names an entity the bot cannot find: "${cited}"`, names.has(cited))
+  check(`/bot names an entity the bot cannot find: "${cited}"`, names.has(cited))
 }
 
-const discordHtml = readFileSync(join(DIST, 'discord/index.html'), 'utf8')
+const discordHtml = readFileSync(join(DIST, 'bot/index.html'), 'utf8')
 check(
-  '/discord still uses the nonexistent "iron mongrel" as an example',
+  '/bot still uses the nonexistent "iron mongrel" as an example',
   !discordHtml.toLowerCase().includes('iron mongrel')
 )
 

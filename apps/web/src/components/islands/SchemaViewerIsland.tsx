@@ -5,7 +5,7 @@ import {
   getAssetUrl,
   getEntitySlug,
   getModel,
-  getSource,
+  getSources,
   getTechLevel,
   getTree,
 } from 'salvageunion-reference'
@@ -257,7 +257,7 @@ function SchemaViewer({
         const itemTechLevel = getTechLevel(item)?.toString()
         if (!itemTechLevel || !techLevelFilters.has(itemTechLevel)) return false
       }
-      if (sourceFilter && getSource(item) !== sourceFilter) return false
+      if (sourceFilter && !getSources(item).includes(sourceFilter)) return false
       if (treeFilter && getTree(item) !== treeFilter) return false
       if (name && !item.name.toLowerCase().includes(name)) return false
       return true

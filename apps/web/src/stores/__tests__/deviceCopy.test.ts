@@ -1,5 +1,5 @@
 /**
- * The device copy (ADR-056): whose it is, what is kept, and that it is only
+ * The device copy (ADR-058): whose it is, what is kept, and that it is only
  * ever read back for the account whose session is on the device.
  */
 

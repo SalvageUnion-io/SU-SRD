@@ -39,7 +39,7 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
 
 - `selectBackend()` is `signedOut | remote | blocked`; check `canWrite` before
   offering an edit. A unit test that writes calls `withSignedInBackend()`.
-- **Device copy:** only `deviceCopy.ts` (ADR-056) and `accountHint` keep
+- **Device copy:** only `deviceCopy.ts` (ADR-058) and `accountHint` keep
   player data on a device.
 - A container written twice (the row's `gameId` column and the body's) is
   written together; the column wins.

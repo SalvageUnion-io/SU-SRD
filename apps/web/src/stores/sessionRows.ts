@@ -2,7 +2,7 @@
  * The rows a tab holds belong to its session.
  *
  * The stores hold one account's rows in memory, and the device copy holds them
- * for an offline reload (`deviceCopy.ts`, ADR-056). When the session ends —
+ * for an offline reload (`deviceCopy.ts`, ADR-058). When the session ends —
  * this tab signed out, or another tab did and the auth layer ended it here
  * too — `AccountReconciler` drops both, so the next account to sign in on this
  * device never sees the last one's.

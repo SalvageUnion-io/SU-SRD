@@ -1,5 +1,5 @@
 /**
- * The device copy (ADR-056): the signed-in player's own rows, kept on this
+ * The device copy (ADR-058): the signed-in player's own rows, kept on this
  * device so an offline reload can show them, read-only.
  *
  * Convex stays the server of record (ADR-030). The copy is the last answer

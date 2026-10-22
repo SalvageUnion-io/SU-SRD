@@ -17,7 +17,7 @@ the bot becomes a first-class authenticated client.
 **Convex is the server of record.** A signed-in client reads through reactive
 subscriptions (the live table is the point) and writes to Convex; nothing is
 kept on the device but a read-only copy of the player's own rows
-([device copy](../ARCHITECTURE.md#device-copy), ADR-056).
+([device copy](../ARCHITECTURE.md#device-copy), ADR-058).
 Signed out, nothing persists (ADR-034). The four modes (Solo, Connected,
 Disconnected, Outdated) are
 [`.claude/rules/app-data-access.md`](../../.claude/rules/app-data-access.md);

@@ -36,7 +36,7 @@ import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
-import { setSiteClient } from '../commands/siteReply'
+import { setSiteClient, site } from '../commands/siteReply'
 import { createSiteClient } from '../play/client'
 import { reportError } from '../reportError'
 import {
@@ -91,6 +91,11 @@ async function dispatch(
   // The same count, kept: Workers Analytics Engine (`USAGE` in wrangler.jsonc).
   // blob1 is the name, double1 the interaction type; never anything about who.
   env.USAGE?.writeDataPoint({ indexes: [name ?? ''], blobs: [name ?? ''], doubles: [raw.type] })
+  // And the weekly tally the admin metrics read (ADR-057): a command answered,
+  // and the server it ran in. Off the response path; an outage only loses a count.
+  if (raw.type === InteractionType.ApplicationCommand && name !== null) {
+    ctx.waitUntil(site().usage(name, raw.guild_id ?? null))
+  }
 
   let work: Promise<void>
 

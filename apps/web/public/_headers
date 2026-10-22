@@ -122,13 +122,18 @@ https://su-srd.alxjrvs.workers.dev/*
 # `stale-while-revalidate` on top means a consumer past the hour is served
 # immediately from cache while the refresh happens behind it — the freshness of
 # a short max-age with the latency of a long one.
+#
+# One rule covers the items too: a splat crosses `/`, so `/schema/*.json`
+# matches `/schema/chassis/item/mule.json`.
 /schema/*.json
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Content-Type: application/json
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/schema/*/item/*.json
+# The Dataset API, v1 (ADR-053): the same files at a versioned address, on the
+# same terms. A miss under it is the Worker's JSON 404, not the HTML page.
+/api/v1/*
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Methods: GET
   Content-Type: application/json
