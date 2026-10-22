@@ -3,11 +3,11 @@
  * from each into play. Play only plays (ADR-052 §3): nothing here makes or
  * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
- * `play` band.
+ * `play` band, on the page measure every hub takes.
  *
- *  - **The band**: **+ New Game** (`NewGameControl`, from a name or a
- *    template) and **Join with a link** (paste an invite link, or its token,
- *    to open the invite screen), its controls.
+ *  - **The band**: Play's name under `PRODUCT.playDescriptor`, with the
+ *    legacy tagline quoted beside it, as Build's front door and the SRD's
+ *    home wear theirs, so the three areas' homes open on the same band.
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
  *    Game, the whole Compact opening the Game's page in Play
  *    (`/play/games/$gameId`). Its chips are your role, how many are here now
@@ -15,7 +15,10 @@
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
  *    its one door, last in the chip group: Mediate where you mediate it, else
- *    Play <your pilot> (`playHub.model.ts`).
+ *    Play <your pilot> (`playHub.model.ts`). At its rule's end, as each
+ *    Training Bay shelf ends on its "+ New…": **+ New Game**
+ *    (`NewGameControl`, from a name or a template) and **Join with a link**
+ *    (paste an invite link, or its token, to open the invite screen).
  *  - **Play solo**, under the Games: each pilot you own that is in no Game,
  *    with its mech or "No Mech", and Play solo.
  *
@@ -37,6 +40,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
+import { capsLabel } from '../components/atoms/capsLabel'
 import {
   Badge,
   Button,
@@ -53,11 +57,14 @@ import {
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
+import { Tagline } from '../components/Tagline'
 import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
+import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { PlayRefusal } from './PlayRefusal'
@@ -68,9 +75,6 @@ import { usePresenceClock } from './usePresenceClock'
 
 type GameSummary = FunctionReturnType<typeof api.games.listMine>[number]
 
-/** One column of Games: each card wide enough for its crew on a line or two. */
-const MEASURE = '60rem'
-
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 const BODY = {
@@ -79,7 +83,10 @@ const BODY = {
   gap: tokens.space[32],
 } satisfies CSSProperties
 
-/** The band's controls, packed to its far end. */
+/** The kicker: brand caps, the eyebrow's tracking. */
+const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
+
+/** The Your Games shelf's controls, at its rule's end. */
 const CONTROLS = {
   alignItems: 'center',
   display: 'flex',
@@ -118,13 +125,13 @@ export function PlayLanding() {
   if (mode === 'solo') {
     return (
       <PlayRefusal
-        title="Sign in to play"
-        body="Play runs your Pilots, solo or in a Game. Sign in to open them."
-        link={{ href: '/sign-in', label: 'Sign in with Discord', back: false }}
+        title={playCopy('signInToPlay')}
+        body={playCopy('playRunsYourPilotsSolo2')}
+        link={{ href: '/sign-in', label: playCopy('signInWithDiscord'), back: false }}
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label="your session" />
+  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
   if (mode === 'connected') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} channels={undefined} />
 }
@@ -154,20 +161,14 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
 
   return (
     <PageShell
-      measure={MEASURE}
+      measure={PAGE_MEASURE}
       band={
         <ChapterBand
           tone="play"
-          measure={MEASURE}
-          asideAt="controls"
-          aside={
-            connected ? (
-              <div style={CONTROLS}>
-                <NewGameControl />
-                <JoinGame />
-              </div>
-            ) : undefined
-          }
+          measure={PAGE_MEASURE}
+          eyebrow={<span className={KICKER_CAPS}>{PRODUCT.playDescriptor}</span>}
+          asideAt="notch"
+          aside={<Tagline />}
         >
           {PRODUCT.play}
         </ChapterBand>
@@ -175,14 +176,22 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
     >
       <div style={BODY}>
         <Shelf
-          title="Your Games"
+          title={playCopy('yourGames')}
           id="play-games"
+          action={
+            connected ? (
+              <div style={CONTROLS}>
+                <NewGameControl />
+                <JoinGame />
+              </div>
+            ) : undefined
+          }
           isEmpty={games === undefined || games.length === 0}
           empty={
             games !== undefined ? (
               'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
             ) : connected ? (
-              <Pending label="your Games" />
+              <Pending label={playCopy('yourGames2')} />
             ) : (
               'Your Games list once the connection returns.'
             )
@@ -198,10 +207,10 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           ))}
         </Shelf>
         <Shelf
-          title="Play solo"
+          title={playCopy('playSolo')}
           id="play-solo"
           isEmpty={solo.length === 0}
-          empty="Every Pilot of yours is in a Game."
+          empty={playCopy('everyPilotOfYoursIs')}
         >
           {solo.map((pilot) => (
             <li key={pilot.pilotId} style={ITEM}>
@@ -242,18 +251,18 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
         : {
             labels: (
               <Badge shape="stamp" size="compact" surface="inverse">
-                No Mech
+                {playCopy('noMech')}
               </Badge>
             ),
           })}
       controls={
         <Button
           href={`/play/${pilot.pilotId}`}
-          aria-label={`Play ${pilot.name} solo`}
+          aria-label={playCopy('playSolo2', { name: pilot.name })}
           variant="ink"
           size="mini"
         >
-          Play solo
+          {playCopy('playSolo')}
         </Button>
       }
     />
@@ -261,7 +270,7 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
 }
 
 /**
- * Join with a link: a band control opening one field. Paste an invite link
+ * Join with a link: a Your Games control opening one field. Paste an invite link
  * (or the token alone) and Join opens the invite screen, which does the
  * joining. Anything that is not a link or a token says so here rather than
  * opening a dead link's page.
@@ -285,16 +294,16 @@ function JoinGame() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
-        Join with a link
+      <Button variant="default" size="mini" onClick={() => setOpen(true)}>
+        {playCopy('joinWithALink')}
       </Button>
-      <ModalShell open={open} onOpenChange={setOpen} title="Join a Game">
-        <form style={JOIN} onSubmit={join} aria-label="Join a Game">
+      <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
+        <form style={JOIN} onSubmit={join} aria-label={playCopy('joinAGame')}>
           <div style={JOIN_ROW}>
             <div style={JOIN_FIELD}>
               <Input
-                aria-label="Invite link"
-                placeholder="Paste an invite link…"
+                aria-label={playCopy('inviteLink')}
+                placeholder={playCopy('pasteAnInviteLink')}
                 value={pasted}
                 onChange={(e) => {
                   setPasted(e.target.value)
@@ -302,10 +311,10 @@ function JoinGame() {
                 }}
                 style={JOIN_INPUT}
               />
-              <FieldError>{wrong ? 'That is not an invite link.' : null}</FieldError>
+              <FieldError>{wrong ? playCopy('thatIsNotAnInvite') : null}</FieldError>
             </div>
             <Button type="submit" variant="primary" size="compact" disabled={pasted.trim() === ''}>
-              Join
+              {playCopy('join')}
             </Button>
           </div>
         </form>

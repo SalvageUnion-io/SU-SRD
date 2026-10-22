@@ -5,6 +5,7 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { EmptyState, Slab, Stat, tokens } from '../../components/index'
 import { ActionMinis } from '../../components/referenceEntity/card/NestedCards'
 import '../../styles/build/wizard.css'
+import { mechCopy } from '../../messages/build-mech'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
 const STAT_ROW = {
@@ -41,8 +42,8 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   if (!chassis) {
     return (
       <EmptyState
-        headline="No Chassis crafted"
-        body="Craft a chassis first — its statistics appear here."
+        headline={mechCopy('noChassisCrafted')}
+        body={mechCopy('craftAChassisFirstIts')}
       />
     )
   }
@@ -50,18 +51,22 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <div style={STAT_ROW}>
-        <Stat label="SP" value={chassis.structurePoints} max={chassis.structurePoints} />
-        <Stat label="EP" value={chassis.energyPoints} max={chassis.energyPoints} />
-        <Stat label="HEAT" value={0} max={chassis.heatCapacity} />
-        <Stat label="SYS" value={chassis.systemSlots} max={chassis.systemSlots} />
-        <Stat label="MOD" value={chassis.moduleSlots} max={chassis.moduleSlots} />
-        <Stat label="CARGO" value={chassis.cargoCapacity} max={chassis.cargoCapacity} />
-        <Stat label="SV" value={chassis.salvageValue} />
+        <Stat
+          label={mechCopy('sp')}
+          value={chassis.structurePoints}
+          max={chassis.structurePoints}
+        />
+        <Stat label={mechCopy('ep')} value={chassis.energyPoints} max={chassis.energyPoints} />
+        <Stat label={mechCopy('heat')} value={0} max={chassis.heatCapacity} />
+        <Stat label={mechCopy('sys')} value={chassis.systemSlots} max={chassis.systemSlots} />
+        <Stat label={mechCopy('mod')} value={chassis.moduleSlots} max={chassis.moduleSlots} />
+        <Stat label={mechCopy('cargo')} value={chassis.cargoCapacity} max={chassis.cargoCapacity} />
+        <Stat label={mechCopy('sv')} value={chassis.salvageValue} />
       </div>
 
       {chassisAbilities.length > 0 && (
         <>
-          <Slab label="Chassis Ability" count={chassis.name} countInk="inherit" />
+          <Slab label={mechCopy('chassisAbility')} count={chassis.name} countInk="inherit" />
           <div style={ABILITIES}>
             <ActionMinis
               actions={chassisAbilities}

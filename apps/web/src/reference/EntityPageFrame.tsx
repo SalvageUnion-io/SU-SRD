@@ -4,15 +4,17 @@ import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { referenceCopy } from '../messages/reference'
+import { SharePageButton } from './SharePageButton'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity: its chapter's
  * band at the head, the title notched in and, right of
  * it, one cluster of everything else the head carries — the parent link, the
- * stamps, then "Build With This" (EDL E20: nothing but the breadcrumb sits
- * above a show page's title; on a phone the cluster follows the title, the
- * band's `asideAt="notch"`, and the button, the band's `action`, stays on the
- * band beside it); then the body. The page's foot — its printings on one
+ * stamps, then Share and "Build With This" (EDL E20: nothing but the
+ * breadcrumb sits above a show page's title; on a phone the cluster follows
+ * the title, the band's `asideAt="notch"`, and the buttons, the band's
+ * `action`, stay on the band beside it); then the body. The page's foot — its printings on one
  * line (`Workshop Manual · p.65 // … (CR) · p.37`), no kind — is the site
  * `Footer`'s, so the page ends once: the page module hands its printings
  * to the layout as its `PageResult.foot`.
@@ -33,7 +35,7 @@ type EntityParent = { label: string; entityRef: EntityRef; href: string }
  */
 function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   return (
-    <nav className="su-guide-exits" aria-label="Where next">
+    <nav className="su-guide-exits" aria-label={referenceCopy('whereNext')}>
       <Button
         href={build.href}
         aria-label={build.ariaLabel}
@@ -66,7 +68,7 @@ type EntityPageFrameProps = {
   parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
-  /** "Build With This": the deep link into the app's builder (`buildLinkFor`), ending the cluster (the band's `action`). */
+  /** "Build With This": the deep link into the app's builder (`buildLinkFor`), ending the cluster after Share (the band's `action`). */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
@@ -99,26 +101,29 @@ export function EntityPageFrame({
         }
         asideAt="notch"
         action={
-          build && (
-            // A link drawn as the shared Button (`Button href`): same tab, no
-            // off-site arrow — the Reference and Build are one union
-            // (ruleset §3.11).
-            <Button
-              href={build.href}
-              aria-label={build.ariaLabel}
-              variant="primary"
-              size="compact"
-              className="su-page-action su-hit-area"
-            >
-              {build.label}
-            </Button>
-          )
+          <>
+            <SharePageButton />
+            {build && (
+              // A link drawn as the shared Button (`Button href`): same tab, no
+              // off-site arrow — the Reference and Build are one union
+              // (ruleset §3.11).
+              <Button
+                href={build.href}
+                aria-label={build.ariaLabel}
+                variant="primary"
+                size="compact"
+                className="su-page-action su-hit-area"
+              >
+                {build.label}
+              </Button>
+            )}
+          </>
         }
         lead={
           // An ability's level, left of its title as its Compact sets it: just the number.
           meta.numeral && (
             <>
-              <span className="su-sr-only">Level </span>
+              <span className="su-sr-only">{referenceCopy('level')} </span>
               {meta.numeral}
             </>
           )

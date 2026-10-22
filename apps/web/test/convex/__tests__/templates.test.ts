@@ -7,7 +7,7 @@ import { testConvex } from '../harness'
  * Game templates (ADR-030).
  *
  * The property under test is the one that makes a template useful rather than
- * decorative: **its entities arrive unclaimed**, so the person running the
+ * decorative: **its entities arrive unassigned**, so the person running the
  * table hands them out. A template that pre-assigned everything to its creator
  * would just be a private roster with extra steps.
  */
@@ -19,7 +19,7 @@ describe('starter-set template', () => {
     expect(templates.map((x) => x.id)).toContain('starter-set')
   })
 
-  test('every pilot and mech arrives unclaimed', async () => {
+  test('every pilot and mech arrives unassigned', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'Organizer')
     await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
@@ -103,7 +103,7 @@ describe('starter-set template', () => {
     const seeded = await t.run(async (ctx) => await ctx.db.query('pilots').first())
     if (!seeded) throw new Error('no pre-gen pilot')
 
-    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
+    await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: seeded._id })
     const mine = await u.as.query(api.entities.listMine, {})
     // The template's body says `gameId: null`; the row is in the Game, and the
     // Play opens only a pilot whose local copy says so.
@@ -119,7 +119,7 @@ describe('starter-set template', () => {
     const bodyId = (seeded.body as { id: string }).id
     const before = await t.run(async (ctx) => (await ctx.db.query('pilots').collect()).length)
 
-    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
+    await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: seeded._id })
     // The browser holds a claimed pre-gen under its body id, and writes it so.
     await u.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
@@ -149,7 +149,7 @@ describe('starter-set template', () => {
     const twins = pilots.filter((p) => idOf(p) === bodyId)
     expect(twins.map((p) => p.gameId).sort()).toEqual([first, second].sort())
     for (const twin of twins) {
-      await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: twin._id })
+      await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: twin._id })
     }
 
     await u.as.mutation(api.entities.upsertByAppId, {
@@ -191,7 +191,7 @@ describe('starter-set template', () => {
           updatedAt: 1,
         })
     )
-    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
+    await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: seeded._id })
 
     await u.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',
@@ -230,7 +230,7 @@ describe('starter-set template', () => {
           updatedAt: 1,
         })
     )
-    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seededB._id })
+    await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: seededB._id })
 
     await u.as.mutation(api.entities.upsertByAppId, {
       table: 'pilots',

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, space, weight } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { capsLabel } from '../atoms/capsLabel'
 import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { Speckle } from '../atoms/Speckle'
@@ -127,7 +128,7 @@ export function BrandCard({ kicker }: BrandCardProps) {
           <p className={TITLE_CAPS} style={TITLE}>
             Salvage
             <br />
-            Union<span style={TLD}>.io</span>
+            Union<span style={TLD}>{compositionsCopy('io')}</span>
           </p>
         </div>
       </div>

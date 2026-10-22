@@ -2,8 +2,8 @@
  * Build and check one player-entity record, in memory.
  *
  * The stores hold only what this page load's Convex subscriptions delivered
- * and this tab's own accepted writes (ADR-034, as amended:
- * there is no device cache). This is the part of a write that happens before
+ * and this tab's own accepted writes (ADR-034, as amended), or offline what the
+ * device copy last saved (ADR-058). This is the part of a write that happens before
  * the server sees it: mint the id, stamp the timestamps and strict-parse, so a
  * record is finished — and refusable — before anything local changes.
  *
@@ -12,6 +12,7 @@
  */
 
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { EncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
 import { MechSchema } from 'game-domain/schemas/mech'
 import { NpcSchema } from 'game-domain/schemas/npc'
@@ -40,6 +41,7 @@ export const RECORD_KINDS = {
   softLink: kind('softLinks', SoftLinkSchema, false),
   mechPattern: kind('mechPatterns', MechPatternSchema, false),
   encounterNpc: kind('encounterNpcs', EncounterNpcSchema, true),
+  encounter: kind('encounters', EncounterSchema, true),
 }
 
 /** A new record: a fresh UUID, `createdAt` (and `updatedAt`), strict-parsed. */

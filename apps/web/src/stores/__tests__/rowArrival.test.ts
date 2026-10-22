@@ -2,7 +2,7 @@
  * When a store's rows have arrived, and what happens to them when the session
  * ends.
  *
- * There is no device cache: a store holds what `ShelfSync` brought down this
+ * Online, a store holds what `ShelfSync` brought down this
  * page load. `hydrate()` therefore waits only while rows are on their way —
  * the auth handshake, or a mounted sync that has not answered yet — and a tab
  * whose session ends drops what it held (`forgetLoadedRows`).

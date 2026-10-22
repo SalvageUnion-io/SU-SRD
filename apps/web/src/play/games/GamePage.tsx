@@ -14,6 +14,7 @@ import '../../styles/play/play.css'
 import { PRODUCT } from 'game-domain/product'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { playGamesCopy } from '../../messages/play-games'
 import { PlayRefusal } from '../PlayRefusal'
 import { GameHub } from './GameHub'
 
@@ -22,18 +23,18 @@ export function GamePage({ gameId }: { gameId: string }) {
   if (mode === 'solo') {
     return (
       <PlayRefusal
-        title="Sign in to open this Game"
-        body="A Game lives on its players' accounts. Sign in, then open it from Play."
-        link={{ href: '/sign-in', label: 'Sign in with Discord', back: false }}
+        title={playGamesCopy('signInToOpenThis')}
+        body={playGamesCopy('aGameLivesOnIts')}
+        link={{ href: '/sign-in', label: playGamesCopy('signInWithDiscord'), back: false }}
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label="your session" />
+  if (mode === 'connecting') return <RoutePending label={playGamesCopy('yourSession')} />
   if (mode === 'disconnected') {
     return (
       <PlayRefusal
-        title="This Game opens once you are back online"
-        body={`A Game's page is read from the server. Your own builds stay in the ${PRODUCT.build} meanwhile.`}
+        title={playGamesCopy('thisGameOpensOnceYou')}
+        body={playGamesCopy('aGamesPageIsRead', { build: PRODUCT.build })}
         link={{ href: '/', label: PRODUCT.build }}
       />
     )

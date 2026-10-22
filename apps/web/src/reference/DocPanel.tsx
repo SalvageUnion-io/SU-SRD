@@ -3,7 +3,7 @@ import { TitledBox } from '../components/index'
 import { PROSE, PROSE_12 } from '../lib/docPageStyles'
 
 /**
- * DocPanel — a document page's titled block (`/api`'s endpoints, `/discord`'s
+ * DocPanel — a document page's titled block (`/api`'s endpoints, `/bot`'s
  * commands): the house `TitledBox`, its name on the cut-out, its stamps beside
  * it on the band (an endpoint's GET), its prose and samples in the paper body
  * (R42). `flush` lays a table edge to edge under the head.
@@ -11,11 +11,14 @@ import { PROSE, PROSE_12 } from '../lib/docPageStyles'
 export function DocPanel({
   title,
   tone,
+  titleAs = 'h3',
   chips,
   flush = false,
   children,
 }: {
   title: string
+  /** The title's heading level: `h3` under a page's sections, `h2` straight under its title. */
+  titleAs?: 'h2' | 'h3'
   /** The band's tone token (`--color-<tone>`); ink by default. */
   tone?: string
   chips?: ReactNode
@@ -26,7 +29,7 @@ export function DocPanel({
     <TitledBox
       as="section"
       title={title}
-      titleAs="h3"
+      titleAs={titleAs}
       {...(tone ? { tone } : {})}
       {...(chips ? { chips } : {})}
       body={flush ? 'flush' : 'padded'}

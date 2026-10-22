@@ -1,6 +1,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { Button, cn } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { buildAccountCopy } from '../../messages/build-account'
 import { useSignOut } from './useSignOut'
 
 /**
@@ -54,7 +55,7 @@ export function SignInControl({
         className={cn(inBar && BAR_BUTTON, className)}
         onClick={signOut}
       >
-        Sign out
+        {buildAccountCopy('signOut')}
       </Button>
     )
   }

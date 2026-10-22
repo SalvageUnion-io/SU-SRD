@@ -17,6 +17,7 @@ import {
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
+import { playGamesCopy } from '../../messages/play-games'
 
 /**
  * `/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
@@ -76,7 +77,7 @@ const DEAD_HEADLINE = 'That invite link does not work.'
 const DEAD_ASK =
   'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
 
-const BACK = { href: '/play/', label: 'Play' }
+const BACK = { href: '/play/', label: playGamesCopy('play') }
 
 /**
  * A dead link's ways on: back to Play's hub, as a button-shaped link with a
@@ -152,21 +153,21 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
     void accept()
   }, [joinOnArrival, live])
 
-  if (preview === undefined) return <Text>Checking that invite…</Text>
+  if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
 
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} />
 
   return (
-    <TitledBox title="You have been invited">
+    <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
       <Text style={WORDS}>
         {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
       </Text>
       <Text variant="hint" style={HINT}>
-        Everyone at a table can read each other’s sheets.
+        {playGamesCopy('everyoneAtATableCan')}
       </Text>
       <div style={ACTIONS}>
         <Button variant="primary" size="full" disabled={join.pending} onClick={() => void accept()}>
-          Join this Game
+          {playGamesCopy('joinThisGame')}
         </Button>
       </div>
       <FieldError>{join.error}</FieldError>
@@ -182,22 +183,21 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
 function SignedOutInvite({ token }: { token: string }) {
   const preview = useQuery(api.invites.preview, { code: token })
 
-  if (preview === undefined) return <Text>Checking that invite…</Text>
+  if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />
 
   return (
-    <TitledBox title="You have been invited">
+    <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
       <Text style={WORDS}>
         {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
       </Text>
       <Text variant="hint" style={HINT}>
-        Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is
-        what seats you at the table.
+        {playGamesCopy('signInToJoinYour')}
       </Text>
       <div>
         {/* Back here with `?join=1`, so the round trip ends in the Game. */}
         <SignInControl
-          label="Sign in to join"
+          label={playGamesCopy('signInToJoin')}
           size="full"
           redirectTo={`${invitePath(token)}?join=1`}
         />
@@ -215,7 +215,7 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
       return (
         // What being offline means here (chrome K5): an unlabelled note.
         <Callout role="note">
-          <Text>You are offline, so this invite cannot be checked right now.</Text>
+          <Text>{playGamesCopy('youAreOfflineSoThis')}</Text>
         </Callout>
       )
     }
@@ -224,7 +224,7 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
 
   return (
     <PageShell>
-      <ChapterBand tone="play">Join a Game</ChapterBand>
+      <ChapterBand tone="play">{playGamesCopy('joinAGame')}</ChapterBand>
       <div style={COLUMN}>{body()}</div>
     </PageShell>
   )

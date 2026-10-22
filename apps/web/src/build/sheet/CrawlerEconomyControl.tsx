@@ -73,6 +73,7 @@ import {
   tradingSourceTl,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import {
@@ -292,24 +293,26 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title="Pay Upkeep"
-      subtitle={`${DOWNTIME_UPKEEP_SCRAP}× Tech ${tl} Scrap per Downtime`}
+      title={buildSheetCopy('payUpkeep')}
+      subtitle={buildSheetCopy('techScrapPerDowntime', {
+        downtimeUpkeepScrap: DOWNTIME_UPKEEP_SCRAP,
+        tl,
+      })}
       width="narrow"
     >
       <div style={BODY}>
         <p style={MUTED}>
-          Upkeep costs {DOWNTIME_UPKEEP_SCRAP} Scrap of Tech {tl} or higher each Downtime. Paying it
-          credits the Upgrade Pool in full; failing to pay rolls the Crawler Deterioration Table.
+          {buildSheetCopy('upkeepCostsScrapOfTech', {
+            downtimeUpkeepScrap: DOWNTIME_UPKEEP_SCRAP,
+            tl,
+          })}
         </p>
         <p style={TEXT}>
           Pool holds <strong>{available}</strong> scrap at Tech {tl}+.
         </p>
 
         {!done && shortfall > 0 && (
-          <FieldError>
-            The pool is {shortfall} scrap short — Upkeep fails unless the table rules otherwise.
-            Trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.
-          </FieldError>
+          <FieldError>{buildSheetCopy('thePoolIsScrapShort', { shortfall })}</FieldError>
         )}
 
         {result && (
@@ -317,15 +320,11 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
             {result}
           </p>
         )}
-        {choosePrompt && (
-          <FieldError>
-            Choose a Bay and mark it Damaged using its status badge on the sheet.
-          </FieldError>
-        )}
+        {choosePrompt && <FieldError>{buildSheetCopy('chooseABayAndMark')}</FieldError>}
 
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
-            {done ? 'Done' : 'Cancel'}
+            {done ? buildSheetCopy('done') : buildSheetCopy('cancel')}
           </Button>
           {!done && shortfall === 0 && (
             <Button
@@ -335,7 +334,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
                 void handlePay()
               }}
             >
-              Pay Upkeep
+              {buildSheetCopy('payUpkeep')}
             </Button>
           )}
           {!done && shortfall > 0 && (
@@ -346,7 +345,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
                 void handleDeterioration()
               }}
             >
-              Roll Deterioration (d20)
+              {buildSheetCopy('rollDeteriorationD20')}
             </Button>
           )}
         </DialogActions>
@@ -409,7 +408,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title="Upgrade Crawler"
+      title={buildSheetCopy('upgradeCrawler')}
       width="narrow"
     >
       <div style={BODY}>
@@ -423,17 +422,16 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
             </p>
             {!quote.affordable && (
               <FieldError>
-                The Upgrade Pool is {quote.cost - upgradePool} short. Pay Upkeep or contribute scrap
-                below to fill it.
+                {buildSheetCopy('theUpgradePoolIsShort', { value: quote.cost - upgradePool })}
               </FieldError>
             )}
             <Cluster gap={8}>
               <span className={CONTRIBUTE_LABEL_CAPS} style={CONTRIBUTE_LABEL}>
-                Contribute scrap (Tech {tl}+)
+                {buildSheetCopy('contributeScrapTech', { tl })}
               </span>
               <Stat
                 size="compact"
-                label="Scrap"
+                label={buildSheetCopy('scrap')}
                 value={contribution}
                 min={1}
                 max={contributable}
@@ -445,26 +443,22 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 size="compact"
                 variant="default"
                 disabled={contributable === 0 || contribution > contributable}
-                title={`Move ${contribution} scrap (Tech ${tl} or higher) from the pool into the Upgrade Pool`}
+                title={buildSheetCopy('moveScrapTechOrHigher', { contribution, tl })}
                 onClick={() => {
                   void handleContribute()
                 }}
               >
-                Add to Upgrade Pool
+                {buildSheetCopy('addToUpgradePool')}
               </Button>
             </Cluster>
-            <p style={SMALL}>
-              Pool holds {contributable} scrap at Tech {tl}+.
-            </p>
+            <p style={SMALL}>{buildSheetCopy('poolHoldsScrapAtTech', { contributable, tl })}</p>
           </Stack>
         ) : (
-          <p>
-            Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).
-          </p>
+          <p>{buildSheetCopy('tech6IsTheHighest')}</p>
         )}
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
-            Cancel
+            {buildSheetCopy('cancel')}
           </Button>
           <Button
             variant="primary"
@@ -474,7 +468,9 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
             }}
             disabled={!quote?.affordable}
           >
-            {quote ? `Upgrade to Tech ${quote.toTl}` : 'Upgrade'}
+            {quote
+              ? buildSheetCopy('upgradeToTech', { toTl: quote.toTl })
+              : buildSheetCopy('upgrade')}
           </Button>
         </DialogActions>
       </div>
@@ -511,13 +507,13 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const result = convertScrap(fresh.scrapPool ?? {}, fromTl, count, toTl)
     if (!result) {
-      dispatch({ type: 'converted', note: 'The pool no longer covers that trade.' })
+      dispatch({ type: 'converted', note: buildSheetCopy('thePoolNoLongerCovers') })
       return
     }
     await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN)
     dispatch({
       type: 'converted',
-      note: `Traded ${count}× T${fromTl} for ${result.toCount}× T${toTl}.`,
+      note: buildSheetCopy('tradedTForT', { count, fromTl, toCount: result.toCount, toTl }),
     })
   }
 
@@ -533,23 +529,23 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title="Trading Bay"
-      subtitle={`Scrap exchange & Downtime sourcing · Tech ${tl} crawler`}
+      title={buildSheetCopy('tradingBay')}
+      subtitle={buildSheetCopy('scrapExchangeDowntimeSourcingTech', { tl })}
       width="narrow"
     >
       <div style={BODY}>
-        {!gate.present && <EmptyState variant="quiet" body="This crawler has no Trading Bay." />}
-        {gate.damaged && (
-          <FieldError>
-            The Trading Bay is Damaged — Scrap cannot be traded and the Trading Bay Table cannot be
-            rolled until it is repaired to Intact (p.223).
-          </FieldError>
+        {!gate.present && (
+          <EmptyState variant="quiet" body={buildSheetCopy('thisCrawlerHasNoTrading')} />
         )}
+        {gate.damaged && <FieldError>{buildSheetCopy('theTradingBayIsDamaged')}</FieldError>}
 
         {gate.operational && (
           <>
             <div>
-              <Slab label="Trade Scrap" count="fixed equal-value rates · no bartering" />
+              <Slab
+                label={buildSheetCopy('tradeScrap')}
+                count="fixed equal-value rates · no bartering"
+              />
               <div style={PICKERS}>
                 <Eyebrow as="label" tone="ink" htmlFor="trade-from-tl" style={PICKER_LABEL}>
                   From
@@ -561,7 +557,10 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                   >
                     {SCRAP_TLS.map((t) => (
                       <option key={t} value={t}>
-                        Tech {t} ({scrapPoolBucket(pool, t)} in pool)
+                        {buildSheetCopy('techInPool', {
+                          t,
+                          scrapPoolBucket: scrapPoolBucket(pool, t),
+                        })}
                       </option>
                     ))}
                   </Select>
@@ -576,7 +575,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                   >
                     {SCRAP_TLS.map((t) => (
                       <option key={t} value={t}>
-                        Tech {t}
+                        {buildSheetCopy('tech', { t })}
                       </option>
                     ))}
                   </Select>
@@ -584,12 +583,12 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 <span style={QTY}>
                   <Stat
                     size="compact"
-                    label="Qty"
+                    label={buildSheetCopy('qty')}
                     value={count}
                     min={step}
                     step={step}
                     mode="edit"
-                    stepperLabel={`trade amount by ${step}`}
+                    stepperLabel={buildSheetCopy('tradeAmountBy', { step })}
                     onChange={(next) => dispatch({ type: 'setCount', count: next })}
                   />
                 </span>
@@ -597,10 +596,10 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
               <div style={ACTION_ROW}>
                 <p style={TEXT_TIGHT} data-testid="trade-preview">
                   {fromTl === toTl
-                    ? 'Pick two different Tech Levels.'
+                    ? buildSheetCopy('pickTwoDifferentTechLevels')
                     : toCount === null
-                      ? 'Not an exact trade — the Trading Bay never makes change.'
-                      : `${count}× T${fromTl} → ${toCount}× T${toTl}`}
+                      ? buildSheetCopy('notAnExactTradeThe')
+                      : buildSheetCopy('tT', { count, fromTl, toCount, toTl })}
                 </p>
                 <Button
                   size="compact"
@@ -608,14 +607,14 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                   disabled={!convertible}
                   title={
                     bucket < count
-                      ? `The pool only holds ${bucket}× T${fromTl}.`
-                      : 'Apply the exchange to the pool'
+                      ? buildSheetCopy('thePoolOnlyHoldsT', { bucket, fromTl })
+                      : buildSheetCopy('applyTheExchangeToThe')
                   }
                   onClick={() => {
                     void handleConvert()
                   }}
                 >
-                  Trade
+                  {buildSheetCopy('trade')}
                 </Button>
               </div>
               {convertNote && (
@@ -627,23 +626,20 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
 
             <div>
               <Slab
-                label="Source Wares"
+                label={buildSheetCopy('sourceWares')}
                 count={`once per Downtime · wares are Tech ${tradingSourceTl(tl)}`}
               />
-              <p style={MUTED}>
-                Once per Downtime, roll to see what the wastelanders brought to trade — always one
-                Tech Level above the crawler. Buying costs an item&rsquo;s Salvage Value in Scrap of
-                its Tech Level.
-              </p>
+              <p style={MUTED}>{buildSheetCopy('oncePerDowntimeRollTo')}</p>
               <div style={ACTION_ROW}>
                 <Button size="compact" variant="primary" onClick={handleAvailabilityRoll}>
-                  Roll Availability (d20)
+                  {buildSheetCopy('rollAvailabilityD20')}
                 </Button>
                 {availability && (
                   <p role="status" style={TEXT_TIGHT}>
                     Rolled {availability.roll}:{' '}
                     {TRADING_AVAILABILITY_LABEL[availability.availability]}
-                    {availability.availability !== 'nothing' && ` (Tech ${availability.sourceTl})`}
+                    {availability.availability !== 'nothing' &&
+                      buildSheetCopy('tech2', { sourceTl: availability.sourceTl })}
                   </p>
                 )}
               </div>
@@ -653,7 +649,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
 
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
-            Close
+            {buildSheetCopy('close')}
           </Button>
         </DialogActions>
       </div>

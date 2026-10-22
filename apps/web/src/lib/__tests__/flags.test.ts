@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import type { Flag } from '../flags'
 import { FLAGS, flagOn, flagsOnAt } from '../flags'
 
-/** ADR-053: flagged surfaces are dark in production and lit everywhere else. */
+/** ADR-060: flagged surfaces are dark in production and lit everywhere else. */
 describe('feature flags', () => {
   test('are off on production’s origin, with or without a trailing slash', () => {
     expect(flagsOnAt('https://salvageunion.io')).toBe(false)

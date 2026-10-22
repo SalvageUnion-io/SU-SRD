@@ -3,6 +3,7 @@ import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { color, fontSize, iconSize, layer, radius, space } from '../design/tokens'
+import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { POPUP_SURFACE } from './atoms/popupSurface'
 import { Button, CloseButton } from './index'
@@ -63,6 +64,9 @@ const TRIGGER = {
  * phones search is the primary action, so it lives directly in the bar (not
  * buried in the hamburger drawer). Tapping the magnifier opens a top sheet that
  * hosts arbitrary search `children` (the reference site passes its `SearchIsland`).
+ * Where the bar serves its own field, a row of its own under the bar below
+ * `lg`, the trigger steps aside (`shell.css`): it is left for a reference page
+ * whose search is its own, where the bar serves none.
  *
  * Content-agnostic shell: it owns the trigger, the sheet chrome (title + close),
  * focus trapping, and the slide (`.su-drawer`; it swipes back up to close); the
@@ -85,7 +89,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
             size="iconOnly"
             className="su-mobile-search__trigger"
             style={TRIGGER}
-            aria-label="Search the Reference"
+            aria-label={componentsCopy('searchTheReference')}
           >
             <Search aria-hidden="true" size={iconSize.full} />
           </Button>
@@ -98,9 +102,9 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
               <Drawer.Title className={TITLE_CAPS} style={TITLE}>
-                Search
+                {componentsCopy('search')}
               </Drawer.Title>
-              <Drawer.Close render={<CloseButton label="Close search" />} />
+              <Drawer.Close render={<CloseButton label={componentsCopy('closeSearch')} />} />
             </div>
             {children}
           </Drawer.Popup>

@@ -32,6 +32,7 @@ import {
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useId, useState } from 'react'
 import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
@@ -134,17 +135,23 @@ export function ProposeDock({
   }
 
   return (
-    <TitledBox as="section" title="Propose a change" titleAs="h2" fill controls={controls}>
-      <p style={MUTED}>The player decides.</p>
+    <TitledBox
+      as="section"
+      title={mediatorCopy('proposeAChange')}
+      titleAs="h2"
+      fill
+      controls={controls}
+    >
+      <p style={MUTED}>{mediatorCopy('thePlayerDecides')}</p>
       <div style={ROW}>
-        <Field label="Target" htmlFor={`${id}-target`}>
+        <Field label={mediatorCopy('target')} htmlFor={`${id}-target`}>
           <Select
             id={`${id}-target`}
             value={targetId ?? ''}
             disabled={!canWrite}
             onChange={(e) => onTarget(e.target.value === '' ? null : e.target.value)}
           >
-            <option value="">Choose…</option>
+            <option value="">{mediatorCopy('choose')}</option>
             {targets.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.label}
@@ -152,7 +159,7 @@ export function ProposeDock({
             ))}
           </Select>
         </Field>
-        <Field label="Field" htmlFor={`${id}-field`}>
+        <Field label={mediatorCopy('field')} htmlFor={`${id}-field`}>
           <Select
             id={`${id}-field`}
             value={field}
@@ -166,7 +173,7 @@ export function ProposeDock({
             ))}
           </Select>
         </Field>
-        <Field label="To" htmlFor={`${id}-to`}>
+        <Field label={mediatorCopy('to')} htmlFor={`${id}-to`}>
           <Input
             ref={toRef}
             id={`${id}-to`}
@@ -178,12 +185,12 @@ export function ProposeDock({
           />
         </Field>
       </div>
-      <Field label="Reason (optional)" htmlFor={`${id}-reason`}>
+      <Field label={mediatorCopy('reasonOptional')} htmlFor={`${id}-reason`}>
         <Input
           id={`${id}-reason`}
           value={reason}
           maxLength={PROPOSAL_REASON_MAX}
-          placeholder="Rifle Squad volley"
+          placeholder={mediatorCopy('rifleSquadVolley')}
           disabled={!canWrite}
           onChange={(e) => setReason(e.target.value)}
         />
@@ -191,7 +198,9 @@ export function ProposeDock({
       <div style={SEND_ROW}>
         <p id={`${id}-preview`} style={PREVIEW}>
           {preview}
-          {max !== null && value !== null && Number(to) > max ? ` (at most ${max})` : ''}
+          {max !== null && value !== null && Number(to) > max
+            ? mediatorCopy('atMost', { max })
+            : ''}
         </p>
         <Button
           variant="primary"
@@ -199,13 +208,15 @@ export function ProposeDock({
           disabled={!canWrite || target === null || value === null || sending}
           onClick={send}
         >
-          Propose
+          {mediatorCopy('propose')}
         </Button>
       </div>
       {recent.length > 0 && (
-        <section aria-label="Newest proposals">
+        <section aria-label={mediatorCopy('newestProposals')}>
           <span className="su-sr-only" role="status" aria-live="polite">
-            {recent[0] ? `Newest proposal: ${PROPOSAL_STATE_WORD[recent[0].state]}` : ''}
+            {recent[0]
+              ? mediatorCopy('newestProposal', { value: PROPOSAL_STATE_WORD[recent[0].state] })
+              : ''}
           </span>
           <FeedList>
             {recent.map((p) => (

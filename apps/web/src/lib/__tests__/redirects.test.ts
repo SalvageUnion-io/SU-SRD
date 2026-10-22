@@ -20,6 +20,7 @@ import {
   FIXED_MOVES,
   legacyItemHref,
   retiredDocPage,
+  retiredSitePage,
   retiredTarget,
 } from '../redirects'
 import { getItemStaticPaths, getPatternStaticPaths, getSchemaStaticPaths } from '../staticPaths'
@@ -164,5 +165,13 @@ describe('retiredTarget', () => {
     for (const path of ['/games/g1/view', '/join/a/b', '/dashboard', '/sheet/pilot/x']) {
       expect(retiredTarget(path)).toBeNull()
     }
+  })
+})
+
+describe('retired site pages', () => {
+  it('sends the bot’s old page to /bot/, with or without its slash', () => {
+    expect(retiredSitePage('/discord')).toBe('/bot/')
+    expect(retiredSitePage('/discord/')).toBe('/bot/')
+    expect(retiredSitePage('/bot/')).toBeUndefined()
   })
 })

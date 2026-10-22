@@ -4,6 +4,7 @@ import type { UnionMode, UnionNavId } from '../../lib/barLinks'
 import { UNION_NAV } from '../../lib/barLinks'
 import { BUY_HREF } from '../../lib/docPages'
 import { MARK_SRC } from '../../lib/documentHead'
+import { unionBarCopy } from '../../messages/components-union-bar'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import type { AppBarNav, AppBarNavEntry } from '../compositions/AppBar'
 import { AppBar } from '../index'
@@ -58,8 +59,12 @@ const links = (mode: UnionMode, here: UnionNavId | null): AppBarNavEntry[] =>
  */
 function appNavs(games: ReactNode, here: UnionNavId | null): AppBarNav[] {
   return [
-    { mode: 'build', label: 'Build', items: links('build', here) },
-    { mode: 'play', label: 'Play', items: [{ id: 'games', node: games }, ...links('play', here)] },
+    { mode: 'build', label: unionBarCopy('build'), items: links('build', here) },
+    {
+      mode: 'play',
+      label: unionBarCopy('play'),
+      items: [{ id: 'games', node: games }, ...links('play', here)],
+    },
   ]
 }
 

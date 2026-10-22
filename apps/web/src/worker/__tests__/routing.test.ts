@@ -161,3 +161,30 @@ describe("POST /__convex-logs — Convex's log stream", () => {
     })
   }
 })
+
+describe('a miss under the Dataset API is a JSON 404, not the page', () => {
+  for (const path of ['/api/v1', '/api/v1/', '/api/v1/chassis/no-such-mech.json']) {
+    it(path, async () => {
+      const env = envWith()
+      const res = await worker.fetch(req(path), env)
+
+      expect(res.status).toBe(404)
+      expect(res.headers.get('cache-control')).toBe('no-store')
+      expect(res.headers.get('content-type')).toBe('application/json')
+      expect(res.headers.get('access-control-allow-origin')).toBe('*')
+      const body = await res.json()
+      expect(body).toMatchObject({
+        error: 'not_found',
+        path,
+        index: 'https://salvageunion.io/api/v1/index.json',
+      })
+      expect(env.ASSETS.asked).toEqual([])
+    })
+  }
+
+  it('leaves a path that only starts like the tree alone', async () => {
+    const env = envWith()
+    const res = await worker.fetch(req('/api/v1x'), env)
+    expect(res.headers.get('content-type')).not.toBe('application/json')
+  })
+})

@@ -1,4 +1,5 @@
 import { cn } from '../../../lib/cn'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Stat } from '../../atoms/Stat'
 import type { BonusCell } from './cardCells'
 
@@ -25,7 +26,7 @@ export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; comp
   const size = compact ? 'compact' : 'full'
   return (
     <div className={cn('su-ec-block', 'su-bonus-strip')} data-bonus-per-tech-level="">
-      <Stat label="Per Tech Level" hollow size={size} />
+      <Stat label={referenceEntityCopy('perTechLevel')} hollow size={size} />
       {cells.map((cell) => {
         const damage = cell.label.toLowerCase() === 'damage'
         const unit = cell.bottomLabel ? ` ${cell.bottomLabel}` : ''

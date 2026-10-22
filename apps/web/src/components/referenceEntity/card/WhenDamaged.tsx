@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize } from '../../../design/tokens'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { SlabSection } from '../../containers/SlabSection'
 
 const EFFECT = {
@@ -60,9 +61,9 @@ export function WhenDamaged({
   if (onPage) {
     return (
       <SlabSection
-        title="When Damaged"
+        title={referenceEntityCopy('whenDamaged')}
         fold={fold}
-        foldLabel={`${subject} When Damaged`}
+        foldLabel={referenceEntityCopy('whenDamaged2', { subject })}
         page
         className="su-entity-page__section"
         bodyClassName="su-entity-page__section-body su-entity-page__prose"
@@ -75,9 +76,9 @@ export function WhenDamaged({
   }
   return (
     <SlabSection
-      title="When Damaged"
+      title={referenceEntityCopy('whenDamaged')}
       fold={fold}
-      foldLabel={`${subject} When Damaged`}
+      foldLabel={referenceEntityCopy('whenDamaged2', { subject })}
       size={size}
       className="su-ec-block"
     >

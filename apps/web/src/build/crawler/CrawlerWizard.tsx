@@ -31,6 +31,7 @@ import {
   seedDefaultCrawlerBays,
 } from '../../lib/wizard/crawlerFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
+import { crawlerCopy } from '../../messages/build-crawler'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -181,7 +182,7 @@ export function CrawlerWizard({
       // Seed the full base bay set — the official sheets pre-print every bay.
       return crawlerFormToCreateInput(f, { maxSP, crawlerBays: seedDefaultCrawlerBays() })
     },
-    failureMessage: 'The crawler could not be saved. Try again.',
+    failureMessage: crawlerCopy('theCrawlerCouldNotBe'),
     onComplete,
     onCancel,
     onOffRules,
@@ -271,7 +272,7 @@ export function CrawlerWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 212,
-            see: [{ label: 'Crawler types', page: [216, 217] }],
+            see: [{ label: crawlerCopy('crawlerTypes'), page: [216, 217] }],
           },
         }
       case 'stats':
@@ -283,7 +284,7 @@ export function CrawlerWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 212,
-            see: [{ label: 'Crawler Stats', page: 218 }],
+            see: [{ label: crawlerCopy('crawlerStats'), page: 218 }],
           },
         }
       case 'weapons':
@@ -295,7 +296,7 @@ export function CrawlerWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 213,
-            see: [{ label: 'The System list', page: 162 }],
+            see: [{ label: crawlerCopy('theSystemList'), page: 162 }],
           },
         }
       case 'crew':
@@ -307,7 +308,7 @@ export function CrawlerWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 213,
-            see: [{ label: 'The Crawler Bay list', page: 221 }],
+            see: [{ label: crawlerCopy('theCrawlerBayList'), page: 221 }],
           },
         }
       case 'identity':
@@ -319,7 +320,7 @@ export function CrawlerWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 212,
-            see: [{ label: 'The Crawler Names Table', page: 226 }],
+            see: [{ label: crawlerCopy('theCrawlerNamesTable'), page: 226 }],
           },
         }
       case 'review':
@@ -335,7 +336,7 @@ export function CrawlerWizard({
   const trackers =
     step === 'weapons' ? (
       <WizTracker
-        label="Weapons"
+        label={crawlerCopy('weapons')}
         value={
           <span data-testid="weapon-system-count">
             {slotPips(installedWeaponCount, weaponSlots)}
@@ -351,12 +352,12 @@ export function CrawlerWizard({
     <WizShell
       gameId={gameId}
       kind="crawler"
-      eyebrow="Union Crawler"
+      eyebrow={crawlerCopy('unionCrawler')}
       {...shell}
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
-      submitLabel="Create Crawler ✦"
+      submitLabel={crawlerCopy('createCrawler')}
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'type' && (

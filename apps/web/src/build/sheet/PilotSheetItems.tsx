@@ -31,6 +31,7 @@ import {
   genericEntrySlots,
   resolveEquipment,
 } from '../../lib/rules/pilotInventory'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { useEntityStore } from '../../stores/entityStore'
 import { SheetItemLine } from './SheetItemLine'
 import { syntheticItemModel } from './syntheticItem.model'
@@ -112,9 +113,9 @@ export function PilotAbilityItem({
       : [
           {
             id: 'spend',
-            label: `Spend ${apCost} AP`,
+            label: buildSheetCopy('spendAp', { apCost }),
             ...(currentAP < apCost
-              ? { hint: `Needs ${apCost} AP; ${currentAP} left` }
+              ? { hint: buildSheetCopy('needsApLeft', { apCost, currentAP }) }
               : { onSelect: () => onSpend(apCost) }),
           },
         ]
@@ -136,13 +137,13 @@ export function PilotAbilityItem({
         <HeaderMenu
           variant="overflow"
           trigger={null}
-          label={`More for ${ability.name}`}
+          label={buildSheetCopy('moreFor', { name: ability.name })}
           sections={[
             [
               ...spend,
               {
                 id: 'used',
-                label: used ? 'Recharge' : 'Mark used',
+                label: used ? buildSheetCopy('recharge') : buildSheetCopy('markUsed2'),
                 onSelect: () => onToggleUsed(!used),
               },
             ],
@@ -299,7 +300,7 @@ export function PilotEquipmentItem({
               aria-expanded={detailsOpen}
               onClick={() => setDetailsOpen(true)}
             >
-              Details
+              {buildSheetCopy('details')}
             </Button>
           )
         }
@@ -401,23 +402,23 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
     <AdderBox>
       <Button
         size="compact"
-        aria-label="Add Scrap (3 slots)"
+        aria-label={buildSheetCopy('addScrap3Slots')}
         onClick={() => {
           onAdd({ id: crypto.randomUUID(), name: 'Scrap', slotCost: 3 })
         }}
       >
-        + Scrap
+        {buildSheetCopy('scrap2')}
       </Button>
       <Input
         size="compact"
         type="text"
         value={name}
-        aria-label="New item name"
-        placeholder="Item name"
+        aria-label={buildSheetCopy('newItemName')}
+        placeholder={buildSheetCopy('itemName')}
         onChange={(e) => setName(e.target.value)}
         style={NAME_INPUT}
       />
-      <AdderField label="Slots" htmlFor="new-item-slots">
+      <AdderField label={buildSheetCopy('slots')} htmlFor="new-item-slots">
         <Input
           size="compact"
           id="new-item-slots"
@@ -425,12 +426,12 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           numeric
           min={0}
           value={slots}
-          aria-label="New item slot cost"
+          aria-label={buildSheetCopy('newItemSlotCost')}
           onChange={(e) => setSlots(Number(e.target.value))}
           style={NUMBER_INPUT}
         />
       </AdderField>
-      <AdderField label="Qty" htmlFor="new-item-qty">
+      <AdderField label={buildSheetCopy('qty')} htmlFor="new-item-qty">
         <Input
           size="compact"
           id="new-item-qty"
@@ -438,7 +439,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           numeric
           min={1}
           value={qty}
-          aria-label="New item quantity"
+          aria-label={buildSheetCopy('newItemQuantity')}
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
           style={NUMBER_INPUT}
         />
@@ -446,10 +447,10 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       <Button
         size="compact"
         disabled={!name.trim()}
-        aria-label="Add inventory item"
+        aria-label={buildSheetCopy('addInventoryItem')}
         onClick={commit}
       >
-        Add
+        {buildSheetCopy('add2')}
       </Button>
     </AdderBox>
   )

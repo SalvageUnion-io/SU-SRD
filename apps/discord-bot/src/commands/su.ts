@@ -16,6 +16,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders'
 import { gamesCommand, meCommand } from './account'
 import { bindCommand, unbindCommand } from './bind'
+import { feedbackCommand } from './feedback'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 import { lookupCommand } from './lookup'
 import { rollCommand } from './roll'
@@ -36,7 +37,9 @@ export const suCommand = {
     .addSubcommand((sub) => sheetCommand.subcommand(sub))
     // Which channel Play's rolls post to: a Game's, or one person's solo play.
     .addSubcommand((sub) => bindCommand.subcommand(sub))
-    .addSubcommand((sub) => unbindCommand.subcommand(sub)),
+    .addSubcommand((sub) => unbindCommand.subcommand(sub))
+    // Suggest or report, filed as a GitHub issue (ADR-057).
+    .addSubcommand((sub) => feedbackCommand.subcommand(sub)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
     switch (interaction.options.getSubcommand()) {
@@ -54,6 +57,8 @@ export const suCommand = {
         return bindCommand.execute(interaction)
       case 'unbind':
         return unbindCommand.execute(interaction)
+      case 'feedback':
+        return feedbackCommand.execute(interaction)
       default:
         // Unreachable while the builder above and this switch agree; loud
         // beats silent if they ever drift.

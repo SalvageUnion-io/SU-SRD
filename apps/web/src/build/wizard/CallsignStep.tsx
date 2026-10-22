@@ -1,5 +1,6 @@
 import { Field, Input } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers.model'
 import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'
@@ -21,24 +22,24 @@ type CallsignStepProps = {
 export function CallsignStep({ name, callsign, onChange, _rollDeps }: CallsignStepProps) {
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
-      <Field label="Name" required htmlFor="pilot-name">
+      <Field label={buildWizardCopy('name')} required htmlFor="pilot-name">
         <Input
           id="pilot-name"
           type="text"
           value={name}
           onChange={(e) => onChange('name', e.target.value)}
-          placeholder="Your pilot's real name"
+          placeholder={buildWizardCopy('yourPilotsRealName')}
           required
         />
       </Field>
-      <Field label="Callsign" required htmlFor="pilot-callsign">
+      <Field label={buildWizardCopy('callsign')} required htmlFor="pilot-callsign">
         <div style={fieldRowStyle}>
           <Input
             id="pilot-callsign"
             type="text"
             value={callsign}
             onChange={(e) => onChange('callsign', e.target.value)}
-            placeholder="Your pilot callsign"
+            placeholder={buildWizardCopy('yourPilotCallsign')}
             required
           />
           <RollTableButton

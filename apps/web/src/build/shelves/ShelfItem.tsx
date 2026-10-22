@@ -24,6 +24,7 @@ import { HeaderMenu, relation, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
 import type { ShelfChip, ShelfRelation } from '../../lib/shelves/shelfItems'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
@@ -91,7 +92,7 @@ export function ShelfItem({
             <HeaderMenu
               variant="overflow"
               trigger={null}
-              label={`More for ${name}`}
+              label={buildShelvesCopy('moreFor', { name })}
               sections={menu}
             />
           ) : undefined

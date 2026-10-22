@@ -10,6 +10,10 @@
  * the player's Games. The copy is theirs; the template is untouched
  * (`lib/starterSet/copyStarter.ts`).
  *
+ * The band's control copies the whole crew at once (`CopyCrew`), and
+ * `?copy=crew` offers that copy on arrival: the SRD's Starter Set landing
+ * links here with it.
+ *
  * Rendered on its own page (`/starter`) and under the sign-in panel on a
  * signed-out Roster.
  */
@@ -20,11 +24,14 @@ import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
+import { CopyCrew } from './CopyCrew'
 import { CopyStarterMenu } from './CopyStarterMenu'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
+import { useCopyCrewOnArrival } from './useCopyCrewOnArrival'
 
 const HEADER = {
   display: 'flex',
@@ -42,26 +49,35 @@ const ROW = { listStyle: 'none' } satisfies CSSProperties
 type StarterSetRosterProps = {
   /** `h1` on its own page; `h2` under the signed-out Roster's sign-in panel. */
   headingLevel?: 'h1' | 'h2'
+  /** The page's `?copy=`: `crew` offers the whole crew's copy on arrival. */
+  copy?: string
 }
 
-export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps) {
+export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRosterProps) {
   const { mode } = useConnection()
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
   const { confirm, dialog } = useConfirm()
   const shelves = starterShelves()
+  useCopyCrewOnArrival(copy, confirm)
 
   return (
     <>
-      {headingLevel === 'h1' && <ChapterBand tone="build">Starter Set</ChapterBand>}
-      <section aria-label="Starter Set">
+      {headingLevel === 'h1' && (
+        <ChapterBand tone="build" aside={<CopyCrew confirm={confirm} />} asideAt="controls">
+          {buildStarterSetCopy('starterSet2')}
+        </ChapterBand>
+      )}
+      <section aria-label={buildStarterSetCopy('starterSet2')}>
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
-          {headingLevel === 'h2' && <Slab as="h2" label="Starter Set" flush />}
+          {headingLevel === 'h2' && (
+            <Slab as="h2" label={buildStarterSetCopy('starterSet2')} flush />
+          )}
           <Text variant="body">
             The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
             Read-only reference: open any sheet to read it.{' '}
             {mode === 'connected'
-              ? 'Copy one into your Training Bay or into one of your Games to play it.'
-              : 'Sign in to copy one into your Training Bay or into a Game and play it.'}
+              ? buildStarterSetCopy('copyOneIntoYourTraining')
+              : buildStarterSetCopy('signInToCopyOne')}
           </Text>
         </div>
 

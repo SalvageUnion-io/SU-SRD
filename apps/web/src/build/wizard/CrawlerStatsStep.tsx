@@ -4,6 +4,7 @@ import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import { Pending, Stat, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle } from './wizardStyles.model'
 
 const statRowStyle = {
@@ -40,7 +41,7 @@ type CrawlerStatsStepProps = {
  */
 export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepProps) {
   if (!techLevel) {
-    return <Pending label="Tech Level 1 statistics" />
+    return <Pending label={buildWizardCopy('techLevel1Statistics')} />
   }
 
   const sp = crawlerMaxSPParts({
@@ -51,11 +52,11 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <div style={statRowStyle}>
-        <Stat label="TL" value={techLevel.techLevel} />
-        <Stat label="SP" value={sp.total} max={sp.total} />
-        <Stat label="UPKEEP" value={techLevel.upkeepCost ?? 0} />
-        <Stat label="UPG" value={techLevel.upgradeCost ?? 0} />
-        <Stat label="POOL" value={0} />
+        <Stat label={buildWizardCopy('tl3')} value={techLevel.techLevel} />
+        <Stat label={buildWizardCopy('sp')} value={sp.total} max={sp.total} />
+        <Stat label={buildWizardCopy('upkeep')} value={techLevel.upkeepCost ?? 0} />
+        <Stat label={buildWizardCopy('upg')} value={techLevel.upgradeCost ?? 0} />
+        <Stat label={buildWizardCopy('pool')} value={0} />
       </div>
 
       <div className="su-wiz-stack su-wiz-stack--6" style={proseStyle}>
@@ -74,10 +75,13 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
           A new Crawler is a <strong>{techLevel.name}</strong>
           {typeof techLevel.populationMin === 'number' &&
           typeof techLevel.populationMax === 'number'
-            ? ` — population ${techLevel.populationMin}–${techLevel.populationMax}`
+            ? buildWizardCopy('population', {
+                populationMin: techLevel.populationMin,
+                populationMax: techLevel.populationMax,
+              })
             : ''}
           . The Upgrade Pool starts at 0 and fills during play; every Bay starts{' '}
-          <strong>Intact</strong>.
+          <strong>{buildWizardCopy('intact')}</strong>.
         </p>
       </div>
     </div>

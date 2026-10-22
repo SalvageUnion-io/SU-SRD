@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { CHAPTER_REFS } from '../lib/chapters'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { componentsCopy } from '../messages/components'
 import { CHAPTER_BAND_COLOR, ChapterBand, Slab, ToneStrip } from './index'
 import { GREY_HEADER } from './referenceEntity/card/cardChrome'
 
@@ -41,17 +42,17 @@ export function NotFound({ search, didYouMean, back }: NotFoundProps) {
         aside={<div className="su-not-found__search">{search}</div>}
         asideAt="controls"
       >
-        Page not found
+        {componentsCopy('pageNotFound')}
       </ChapterBand>
       <div className="su-not-found__body su-page-body">
         <p className="su-not-found__lede">
-          <strong>404 · Salvage operation failed.</strong> This page was broken down, relocated, or
-          never existed. Search the Reference for it, or open a chapter.
+          <strong>{componentsCopy('n404SalvageOperationFailed')}</strong> This page was broken down,
+          relocated, or never existed. Search the Reference for it, or open a chapter.
         </p>
         {back}
         {didYouMean}
         <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">
-          <Slab as="h2" id="not-found-chapters" label="Or open a chapter" flush />
+          <Slab as="h2" id="not-found-chapters" label={componentsCopy('orOpenAChapter')} flush />
           <ul className="su-not-found__chapter-list">
             {CHAPTER_REFS.map((chapter) => (
               <li key={chapter.id}>

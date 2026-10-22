@@ -11,6 +11,7 @@
 import { useEncounterStore } from '../encounterStore'
 import { useEntityStore } from '../entityStore'
 import { usePatternStore } from '../patternStore'
+import { usePrepStore } from '../prepStore'
 import { forgetVersions } from '../serverVersions'
 
 export function resetStores(): void {
@@ -25,4 +26,5 @@ export function resetStores(): void {
   })
   usePatternStore.setState({ mechPatterns: [], hydrated: false })
   useEncounterStore.setState({ encounterNpcs: [], hydrated: false })
+  usePrepStore.setState({ encounters: [], hydrated: false })
 }

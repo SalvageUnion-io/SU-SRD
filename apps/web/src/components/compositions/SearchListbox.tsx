@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { activateOnKey } from '../atoms/interaction'
 import { EmptyState } from '../containers/EmptyState'
 import { Pending } from '../containers/Pending'
@@ -94,7 +95,7 @@ export function SearchListbox({
     <div id={id} role="listbox" aria-label={label} style={style}>
       {!ready ? (
         <div style={STATUS}>
-          <Pending label="search index" />
+          <Pending label={compositionsCopy('searchIndex')} />
         </div>
       ) : results.length === 0 ? (
         <div style={STATUS}>

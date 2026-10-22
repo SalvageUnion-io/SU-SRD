@@ -19,6 +19,7 @@ import { useState } from 'react'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import { Button, Entity, Stat } from '../components/index'
 import { bayGate } from '../lib/rules/crawlerEconomy'
+import { playCopy } from '../messages/play'
 import { NeedChip } from './PlayActionRow'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import type { DowntimeActionId } from './playActions.model'
@@ -48,7 +49,7 @@ type PlayDowntimeActionRowProps = {
  */
 function damagedBay(crawler: Crawler | null, slug: string, label: string) {
   if (crawler === null || !bayGate(crawler, slug).damaged) return null
-  return <Stat label={`${label} · damaged`} size="mini" state="critical" />
+  return <Stat label={playCopy('damaged', { label })} size="mini" state="critical" />
 }
 
 export function PlayDowntimeActionRow({
@@ -85,7 +86,7 @@ export function PlayDowntimeActionRow({
   const chips =
     id === 'train' ? (
       <>
-        <Stat size="mini" label="TP" value={pilot?.trainingPoints ?? 0} />
+        <Stat size="mini" label={playCopy('tp')} value={pilot?.trainingPoints ?? 0} />
         {damagedBay(crawler, 'pilot-bay', 'Pilot Bay')}
       </>
     ) : id === 'craftTrade' ? (

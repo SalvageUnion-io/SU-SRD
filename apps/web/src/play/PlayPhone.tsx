@@ -9,6 +9,9 @@
  *  - **The open tab's panel**, the only thing that scrolls: the page never
  *    does (`PlayCanvas`'s phone form fits the screen).
  *  - **The tabs** along the bottom, at thumb height, in a fixed order.
+ *  - **Or the focus**: table mode's one screen (`PlayTableMode`) in place of
+ *    the tabs, the panels kept mounted under it, so leaving it finds every
+ *    tab as it was.
  *
  * Every panel stays mounted while closed (`keepMounted`, `hidden`), so a
  * half-typed Find, an open filter or a resolve in hand survives a switch, and
@@ -24,6 +27,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
 import { Box, heatDangerFrom, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
 import type { PhoneTab, PinnedUnit } from './playPhone.model'
 
@@ -50,6 +54,9 @@ const TABS = {
   flexDirection: 'column',
   minHeight: 0,
 } satisfies CSSProperties
+
+/** The tabs under table mode: mounted, not drawn. */
+const HIDDEN = { display: 'none' } satisfies CSSProperties
 
 /** A panel: the only scroller on the screen. No `display` here: `hidden` must win. */
 const PANEL = {
@@ -102,6 +109,8 @@ type PlayPhoneProps<Value extends string> = {
   onTab: (tab: Value) => void
   /** Each tab's panel: the canvas's column components. */
   panels: Record<Value, ReactNode>
+  /** Table mode's screen: shown in place of the tabs while set. */
+  focus?: ReactNode
 }
 
 export function PlayPhone<Value extends string>({
@@ -111,18 +120,25 @@ export function PlayPhone<Value extends string>({
   tab,
   onTab,
   panels,
+  focus,
 }: PlayPhoneProps<Value>) {
+  const focused = focus !== undefined && focus !== null
   return (
     <div className="su-play-phone" style={ROOT}>
       {bar}
       <div style={PINNED}>{pinned}</div>
-      <Tabs value={tab} onValueChange={onTab} style={TABS}>
+      {focused ? (
+        <div style={PANEL}>
+          <div style={PANEL_BODY}>{focus}</div>
+        </div>
+      ) : null}
+      <Tabs value={tab} onValueChange={onTab} style={focused ? HIDDEN : TABS}>
         {tabs.map((t) => (
           <TabPanel key={t.value} value={t.value} keepMounted style={PANEL}>
             <div style={PANEL_BODY}>{panels[t.value]}</div>
           </TabPanel>
         ))}
-        <TabList label="Play" style={TAB_LIST}>
+        <TabList label={playCopy('play')} style={TAB_LIST}>
           {tabs.map((t) => (
             <Tab key={t.value} value={t.value} style={TAB}>
               {t.label}
@@ -181,13 +197,13 @@ const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
   if (units.length === 0) return null
   return (
-    <section aria-label="Pinned vitals" style={UNITS}>
+    <section aria-label={playCopy('pinnedVitals')} style={UNITS}>
       {units.map((unit) => (
         <Box key={unit.kind} frameColor={`var(--color-${unit.kind})`} body="flush" bodyStyle={UNIT}>
           <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
             {unit.name}
           </p>
-          <ul aria-label={`${unit.name}’s vitals`} style={CELLS}>
+          <ul aria-label={playCopy('sVitals', { name: unit.name })} style={CELLS}>
             {unit.vitals.map((v) => (
               <li key={v.label} style={CELL}>
                 <PlayVital

@@ -12,6 +12,7 @@ import {
   getName,
   getPageReference,
   getSource,
+  getSources,
   getTechLevel,
   getTree,
 } from './entityFields'
@@ -196,7 +197,8 @@ export function getUniqueTechLevels(entities: RefEntity[]): (number | 'B' | 'N')
 }
 
 /**
- * Get unique source strings from an array of entities.
+ * Get unique source strings from an array of entities, reprints included
+ * (`getSources`): the Starter Set lists every system it reprints.
  * "Salvage Union Workshop Manual" is always first; the rest are sorted alphabetically.
  * @param entities - Array of entities to extract sources from
  * @returns Sorted array of unique source strings
@@ -205,8 +207,7 @@ export function getUniqueTechLevels(entities: RefEntity[]): (number | 'B' | 'N')
 export function getUniqueSources(entities: RefEntity[]): string[] {
   const sourceSet = new Set<string>()
   for (const entity of entities) {
-    const source = getSource(entity)
-    if (source) sourceSet.add(source)
+    for (const source of getSources(entity)) sourceSet.add(source)
   }
   const PRIMARY_SOURCE = 'Salvage Union Workshop Manual'
   const sorted = Array.from(sourceSet).sort()

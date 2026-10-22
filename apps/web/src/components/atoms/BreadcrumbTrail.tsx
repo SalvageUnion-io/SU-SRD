@@ -1,6 +1,7 @@
 import type { ComponentType, CSSProperties, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 
@@ -71,7 +72,7 @@ export function BreadcrumbTrail({
 }) {
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={atomsCopy('breadcrumb')}
       className={cn(`su-crumbs su-crumbs--${placement}`, placement === 'band' && BAND_CAPS)}
     >
       {placement === 'band' ? (

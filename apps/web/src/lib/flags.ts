@@ -2,7 +2,7 @@ import { SITE_URL } from './constants'
 import { originOf } from './site'
 
 /**
- * Feature flags (ADR-053): an unfinished surface ships behind one, off in
+ * Feature flags (ADR-060): an unfinished surface ships behind one, off in
  * production and on everywhere else, so a branch can merge with it dark.
  *
  * Each entry names a flag and what it hides. A flag is a build-time constant:

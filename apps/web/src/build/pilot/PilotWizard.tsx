@@ -17,6 +17,7 @@ import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilo
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
+import { pilotCopy } from '../../messages/build-pilot'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
@@ -165,7 +166,7 @@ export function PilotWizard({
     formDirty,
     schema: PilotSchema,
     toCreateInput: pilotFormToCreateInput,
-    failureMessage: 'The pilot could not be saved. Try again.',
+    failureMessage: pilotCopy('thePilotCouldNotBe'),
     onComplete,
     onCancel,
     onOffRules,
@@ -198,7 +199,7 @@ export function PilotWizard({
     const dropped = form.abilities.filter((slug) => !kept.includes(slug))
     if (dropped.length > 0) {
       const names = dropped.map((slug) => abilityOf(slug)?.name ?? slug)
-      toast.info(`Cleared ${names.join(', ')} — not a Level-1 ability of the new class.`)
+      toast.info(pilotCopy('clearedNotALevel1', { join: names.join(', ') }))
     }
     updateForm({ classId, abilities: kept })
   }
@@ -253,7 +254,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 18,
-            see: [{ label: 'Pilot Stats', page: 20 }],
+            see: [{ label: pilotCopy('pilotStats'), page: 20 }],
           },
         }
       case 'classAbility':
@@ -265,7 +266,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 18,
-            see: [{ label: 'Pilot Classes', page: [26, 77] }],
+            see: [{ label: pilotCopy('pilotClasses'), page: [26, 77] }],
           },
         }
       case 'equipment':
@@ -277,7 +278,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 19,
-            see: [{ label: 'Pilot Equipment', page: [78, 87] }],
+            see: [{ label: pilotCopy('pilotEquipment'), page: [78, 87] }],
           },
         }
       case 'callsign':
@@ -289,7 +290,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 19,
-            see: [{ label: 'Callsign Table', page: 88 }],
+            see: [{ label: pilotCopy('callsignTable'), page: 88 }],
           },
         }
       case 'background':
@@ -301,7 +302,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 19,
-            see: [{ label: 'Background Table', page: 89 }],
+            see: [{ label: pilotCopy('backgroundTable'), page: 89 }],
           },
         }
       case 'motto':
@@ -313,7 +314,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 19,
-            see: [{ label: 'Motto Table', page: 90 }],
+            see: [{ label: pilotCopy('mottoTable'), page: 90 }],
           },
         }
       case 'keepsake':
@@ -325,7 +326,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 18,
-            see: [{ label: 'Keepsake Table', page: 90 }],
+            see: [{ label: pilotCopy('keepsakeTable'), page: 90 }],
           },
         }
       case 'appearance':
@@ -337,7 +338,7 @@ export function PilotWizard({
           cite: {
             source: 'Salvage Union Workshop Manual',
             page: 18,
-            see: [{ label: 'Appearance Table', page: 91 }],
+            see: [{ label: pilotCopy('appearanceTable'), page: 91 }],
           },
         }
       case 'review':
@@ -356,7 +357,7 @@ export function PilotWizard({
       case 'classAbility':
         return (
           <WizTracker
-            label="Ability"
+            label={pilotCopy('ability')}
             value={
               <span data-testid="ability-count">
                 {form.abilities.length}
@@ -368,7 +369,7 @@ export function PilotWizard({
       case 'equipment': {
         const picks = (
           <WizTracker
-            label="Picks"
+            label={pilotCopy('picks')}
             value={
               <span data-testid="equipment-count">
                 {form.equipment.length}
@@ -382,7 +383,7 @@ export function PilotWizard({
           <>
             {picks}
             <WizTracker
-              label="Slots"
+              label={pilotCopy('slots')}
               value={
                 <span data-testid="slot-preview">
                   {slotsUsed} / {pilotInventoryCapacity()}
@@ -401,12 +402,12 @@ export function PilotWizard({
     <WizShell
       gameId={gameId}
       kind="pilot"
-      eyebrow="Pilot Bay"
+      eyebrow={pilotCopy('pilotBay')}
       {...shell}
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
-      submitLabel="Create Pilot ✦"
+      submitLabel={pilotCopy('createPilot')}
     >
       <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
       {step === 'stats' && <StatsStep />}
@@ -447,30 +448,30 @@ export function PilotWizard({
       {step === 'motto' && (
         <FlavorStep
           field="motto"
-          label="Motto"
+          label={pilotCopy('motto')}
           value={form.motto}
           onChange={(v) => updateForm({ motto: v })}
-          placeholder="A phrase your pilot lives by"
+          placeholder={pilotCopy('aPhraseYourPilotLives')}
           _rollDeps={_rollDeps}
         />
       )}
       {step === 'keepsake' && (
         <FlavorStep
           field="keepsake"
-          label="Keepsake"
+          label={pilotCopy('keepsake')}
           value={form.keepsake}
           onChange={(v) => updateForm({ keepsake: v })}
-          placeholder="Something precious from your past"
+          placeholder={pilotCopy('somethingPreciousFromYourPast')}
           _rollDeps={_rollDeps}
         />
       )}
       {step === 'appearance' && (
         <FlavorStep
           field="appearance"
-          label="Appearance"
+          label={pilotCopy('appearance')}
           value={form.appearance}
           onChange={(v) => updateForm({ appearance: v })}
-          placeholder="How does your pilot look?"
+          placeholder={pilotCopy('howDoesYourPilotLook')}
           multiline
           _rollDeps={_rollDeps}
         />

@@ -24,6 +24,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Field, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { ChipListEditor } from './ChipListEditor'
 import { FACT_DRAFT } from './chipWell.model'
 
@@ -178,59 +179,59 @@ export function NpcLines({
     <div className="su-sheet-npc-lines" style={LINES}>
       {showName && (
         <Field
-          label="Name"
+          label={buildSheetCopy('name')}
           value={name}
           onSave={(next) => onNameChange?.(next)}
-          ariaLabel={`${bayName} crew name`}
+          ariaLabel={buildSheetCopy('crewName', { bayName })}
           placeholder={title}
         />
       )}
-      {showRole && <NpcRow label="Role">{role}</NpcRow>}
+      {showRole && <NpcRow label={buildSheetCopy('role')}>{role}</NpcRow>}
       {showKeepsake &&
         (onKeepsakeChange ? (
           <Field
-            label="Keepsake"
+            label={buildSheetCopy('keepsake')}
             value={keepsake}
             onSave={onKeepsakeChange}
-            ariaLabel={`${bayName} crew keepsake`}
+            ariaLabel={buildSheetCopy('crewKeepsake', { bayName })}
           />
         ) : (
-          <NpcRow label="Keepsake">{keepsake}</NpcRow>
+          <NpcRow label={buildSheetCopy('keepsake')}>{keepsake}</NpcRow>
         ))}
       {showMotto &&
         (onMottoChange ? (
           <Field
-            label="Motto"
+            label={buildSheetCopy('motto')}
             value={motto}
             onSave={onMottoChange}
-            ariaLabel={`${bayName} crew motto`}
+            ariaLabel={buildSheetCopy('crewMotto', { bayName })}
           />
         ) : (
-          <NpcRow label="Motto">{motto}</NpcRow>
+          <NpcRow label={buildSheetCopy('motto')}>{motto}</NpcRow>
         ))}
       {showDetail &&
         (onDetailChange ? (
           <Field
-            label="Detail"
+            label={buildSheetCopy('detail')}
             className="su-sheet-npc-wide"
             multiline
             value={detail}
             onSave={onDetailChange}
-            ariaLabel={`${bayName} crew detail`}
-            placeholder="Add a detail…"
+            ariaLabel={buildSheetCopy('crewDetail', { bayName })}
+            placeholder={buildSheetCopy('addADetail')}
           />
         ) : (
-          <NpcRow label="Detail" grow className="su-sheet-npc-wide">
+          <NpcRow label={buildSheetCopy('detail')} grow className="su-sheet-npc-wide">
             {detail}
           </NpcRow>
         ))}
       {showFacts &&
         (onFactsChange ? (
-          <Field label="Facts" className="su-sheet-npc-wide">
+          <Field label={buildSheetCopy('facts')} className="su-sheet-npc-wide">
             {factsWell}
           </Field>
         ) : (
-          <NpcRow label="Facts" grow plain className="su-sheet-npc-wide">
+          <NpcRow label={buildSheetCopy('facts')} grow plain className="su-sheet-npc-wide">
             {factsWell}
           </NpcRow>
         ))}

@@ -17,7 +17,7 @@ import { rowMayBePruned } from '../pruneRules'
 
 describe('a Training Bay row, or a Game row this browser knows is mine', () => {
   test('a Game row is not pruned on absence alone', () => {
-    // An unclaimed pre-gen or the communal crawler: owned by nobody, and
+    // An unassigned pre-gen or the communal crawler: owned by nobody, and
     // therefore never returned by a query scoped to what the caller owns.
     // Pruning against that absence would empty every Game view on the next boot.
     expect(rowMayBePruned({ gameId: 'g1' }, false)).toBe(false)

@@ -13,6 +13,7 @@ import {
   weight,
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
 import { Eyebrow } from './Eyebrow'
 import { EDIT_CUE_HOVER_CLASS } from './editLanguage'
 import { Input, Textarea } from './inputs'
@@ -311,7 +312,7 @@ export function Field(props: FieldProps) {
         {typesetLabel}
         <button
           type="button"
-          aria-label={`Change ${labelText.toLowerCase()}`}
+          aria-label={atomsCopy('change', { lowerCase: labelText.toLowerCase() })}
           onClick={onEditClick}
           // The VALUE lives inside this button, not beside it, so the print
           // stylesheets' `button:not([data-print='keep'])` rule took the
@@ -344,7 +345,7 @@ export function Field(props: FieldProps) {
         onSave={(next) => onSave?.(next)}
         multiline={multiline}
         placeholder={placeholder}
-        ariaLabel={`Edit ${labelText.toLowerCase()}`}
+        ariaLabel={atomsCopy('edit', { lowerCase: labelText.toLowerCase() })}
         // `fill` and `prominent` reach the readout through the box's class:
         // the box is a flex row, so stretching it and its child span is all
         // the readout needs to fill.

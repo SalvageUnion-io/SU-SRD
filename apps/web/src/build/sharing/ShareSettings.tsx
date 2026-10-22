@@ -45,6 +45,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
+import { buildSharingCopy } from '../../messages/build-sharing'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -178,7 +179,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
         disabled={busy}
       >
         {value === 'game' && gameChoices.length > 1 && (
-          <Field label="Which Game" htmlFor={`share-game-${appId}`}>
+          <Field label={buildSharingCopy('whichGame')} htmlFor={`share-game-${appId}`}>
             <Select
               id={`share-game-${appId}`}
               value={gameId ?? ''}
@@ -235,7 +236,7 @@ function ShareLink({
         <Button
           size="compact"
           onClick={() => void copy()}
-          aria-label="Copy public link"
+          aria-label={buildSharingCopy('copyPublicLink')}
           style={NO_SHRINK}
         >
           <CopiedIcon
@@ -253,7 +254,7 @@ function ShareLink({
       */}
       <div style={QR_ROW}>
         <LinkQr url={url} />
-        <p style={QR_NOTE}>Scan to open on another device.</p>
+        <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
       </div>
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>

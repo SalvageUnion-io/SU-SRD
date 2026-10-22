@@ -1,12 +1,13 @@
 /**
  * When a store's rows have arrived.
  *
- * There is no device cache (`docs/ARCHITECTURE.md#no-device-cache`):
- * a store holds what `ShelfSync` brings down from Convex this page load, so
- * "hydrated" means **the server's answer is in**, not "the disk was read". A
- * store's `hydrate()` waits on this module, and resolves:
+ * A store holds what `ShelfSync` brings down from Convex this page load, so
+ * "hydrated" means **the server's answer is in**; offline, the device copy's
+ * (`deviceCopy.ts`, ADR-058). A store's `hydrate()` waits on this module, and
+ * resolves:
  *
- *  - when `ShelfSync` marks the store arrived (its first emission applied), or
+ *  - when `ShelfSync` marks the store arrived (its first emission applied),
+ *  - when an offline boot's restore of the device copy settles, or
  *  - as soon as no rows are on their way: signed out, Disconnected, outdated,
  *    or signed in with no sync mounted (a unit test).
  *
@@ -15,6 +16,7 @@
  * an empty roster that fills a moment later.
  */
 
+import { onRestoreSettled, restorePending } from './deviceCopy'
 import { backendSettling, selectBackend, subscribeBackend } from './entityBackend'
 
 const syncListeners = new Set<() => void>()
@@ -22,7 +24,7 @@ let mountedSyncs = 0
 
 /** Whether rows may still be on their way to the stores. */
 function rowsOnTheWay(): boolean {
-  if (backendSettling()) return true
+  if (backendSettling() || restorePending()) return true
   return mountedSyncs > 0 && selectBackend() === 'remote'
 }
 
@@ -64,7 +66,9 @@ export function untilRowsArrive(
       resolve()
     }
     syncListeners.add(check)
-    stops.push(subscribe(check), subscribeBackend(check), () => syncListeners.delete(check))
+    stops.push(subscribe(check), subscribeBackend(check), onRestoreSettled(check), () =>
+      syncListeners.delete(check)
+    )
     check()
   })
 }

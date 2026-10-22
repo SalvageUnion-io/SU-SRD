@@ -38,6 +38,7 @@ function useMutation(ref: unknown) {
   const name = getFunctionName(ref as FunctionReference<'mutation'>)
   const mutate = async (args: Record<string, unknown>) => {
     sent.push({ name, args })
+    if (name === 'mediator:runEncounter') return { added: 1 }
     return name === 'downtime:spendUpkeep' ? true : null
   }
   return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
@@ -58,6 +59,7 @@ const { ConnectionContext } = await import('../../lib/connection/connectionConte
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../stores/entityStore')
 const { clearPlayRolls } = await import('../playRolls.model')
+const { usePrepStore } = await import('../../stores/prepStore')
 const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
 
 withSignedInBackend()
@@ -144,6 +146,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:npcs': NPCS,
     'mediator:patterns': [],
+    'mediator:running': null,
     'proposals:sent': [SENT_PROPOSAL],
     'proposals:alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
     'changeLog:rolls': [
@@ -370,6 +373,59 @@ describe('the Opposition', () => {
     await renderCockpit()
     await click(named('Add opposition from the reference'))
     expect(screen.getByRole('dialog', { name: 'Add opposition from the reference' })).toBeTruthy()
+  })
+
+  test('Run an encounter copies one of yours in, clearing the tray only when asked', async () => {
+    usePrepStore.setState({
+      encounters: [
+        {
+          id: 'enc-1',
+          schemaVersion: 1,
+          name: 'Ambush',
+          opposition: [],
+          tables: ['Morale'],
+          notes: '',
+          createdAt: '2026-10-22T00:00:00.000Z',
+          updatedAt: '2026-10-22T00:00:00.000Z',
+        },
+      ],
+    })
+    await renderCockpit()
+    await click(named('Run an encounter'))
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    expect(dialog.getByText('0 opposition · 1 table')).toBeTruthy()
+    await click(dialog.getByRole('radio', { name: /^Clear it first/ }))
+    await click(dialog.getByRole('button', { name: 'Run Ambush' }))
+    expect(sent).toContainEqual({
+      name: 'mediator:runEncounter',
+      args: { gameId: GAME, encounterId: 'enc-1', clear: true },
+    })
+    act(() => usePrepStore.setState({ encounters: [] }))
+  })
+
+  test('with nothing prepped, Run an encounter points to the Training Bay', async () => {
+    await renderCockpit()
+    await click(named('Run an encounter'))
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
+    expect(dialog.getByRole('link', { name: 'Training Bay' })).toBeTruthy()
+    await click(dialog.getAllByRole('button', { name: 'Close' }).at(-1) as HTMLElement)
+    expect(sent.some((s) => s.name === 'mediator:runEncounter')).toBe(false)
+  })
+
+  test('a running encounter names itself, shows its notes, and End stops it', async () => {
+    await renderCockpit({
+      'mediator:running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: ['Morale'],
+        notes: 'Behind the crusher.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(screen.getByText('Behind the crusher.')).toBeTruthy()
+    expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
+    await click(named('End Ambush'))
+    expect(sent).toContainEqual({ name: 'mediator:endEncounter', args: { gameId: GAME } })
   })
 })
 
