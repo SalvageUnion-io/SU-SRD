@@ -16,6 +16,7 @@ import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
+import { sharedCopy } from '../../messages/components-shared'
 import type { EntityMode, LinkedUnit, TagItem } from '../index'
 import { Button, Entity, relation, Stat } from '../index'
 
@@ -69,21 +70,21 @@ export function UnitRow({
             href={href}
             // The visible label is "View" on every row; the name says which
             // unit it opens (WCAG 2.4.4).
-            aria-label={`View ${name}`}
+            aria-label={sharedCopy('view2', { name })}
             size="mini"
           >
-            View
+            {sharedCopy('view')}
           </Button>
         )}
         {onUnassign && (
           <Button
             variant="ghost"
             size="mini"
-            aria-label={`Unassign ${name}`}
+            aria-label={sharedCopy('unassign2', { name })}
             onClick={onUnassign}
             glyph={<Unlink size={iconSize.mini} />}
           >
-            Unassign
+            {sharedCopy('unassign')}
           </Button>
         )}
       </>

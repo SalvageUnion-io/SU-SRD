@@ -28,6 +28,7 @@
 
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { OG_HEIGHT, OG_WIDTH } from '../../lib/ogCard'
+import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
 
 /**
@@ -55,7 +56,7 @@ function page(): PageResult {
         <head>
           <meta charSet="UTF-8" />
           <meta name="robots" content="noindex, nofollow" />
-          <title>OG card render</title>
+          <title>{pagesCopy('ogCardRender')}</title>
           {/* biome-ignore lint/security/noDangerouslySetInnerHtml: a build-time CSS literal, interpolating only two numeric constants */}
           <style dangerouslySetInnerHTML={{ __html: OG_CARD_STYLE }} />
         </head>

@@ -26,6 +26,7 @@ import {
 import { UnitRow } from '../../../components/shared/UnitRow'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
+import { mechCopy } from '../../../messages/build-mech'
 import { usePatternStore } from '../../../stores/patternStore'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
@@ -70,15 +71,12 @@ export function PatternList({ onInstantiated }: PatternListProps) {
 
   if (patterns.length === 0) {
     return (
-      <EmptyState
-        headline="No Patterns yet"
-        body="Use “Save as pattern” from a mech sheet’s More actions menu, or the mech builder, to save a reusable template."
-      />
+      <EmptyState headline={mechCopy('noPatternsYet')} body={mechCopy('useSaveAsPatternFrom')} />
     )
   }
 
   return (
-    <ul style={LIST} aria-label="Saved mech patterns">
+    <ul style={LIST} aria-label={mechCopy('savedMechPatterns')}>
       {patterns.map((pattern) => {
         const chassis = patternChassis(pattern)
         return (
@@ -103,7 +101,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                   }
                 />
                 {/* A header-only row has no footer, so the credit sits beneath it. */}
-                <Text variant="hint">Made by {madeBy}</Text>
+                <Text variant="hint">{mechCopy('madeBy', { madeBy })}</Text>
               </>
             ) : (
               <>
@@ -117,7 +115,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                     <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
                   }
                 />
-                <Text variant="hint">Its chassis is not in the reference.</Text>
+                <Text variant="hint">{mechCopy('itsChassisIsNotIn')}</Text>
               </>
             )}
           </li>

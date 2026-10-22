@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { ChipButton, Stat, tokens } from '../../components/index'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
+import { playGamesCopy } from '../../messages/play-games'
 
 /**
  * The pressable seal is a `ChipButton`: a 24px target (WCAG 2.5.8) around the
@@ -61,7 +62,7 @@ export function OwnerSeal({
     <ChipButton
       onClick={onClaim}
       disabled={disabled}
-      aria-label={`${owner.label} — pick this up`}
+      aria-label={playGamesCopy('pickThisUp', { label: owner.label })}
       className="su-owner-seal__claim"
       style={CLAIM}
     >

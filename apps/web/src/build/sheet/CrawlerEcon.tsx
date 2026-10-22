@@ -25,6 +25,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Button, Stat, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export type EconLozItem = {
   /** Stat label, e.g. 'Upkeep'. */
@@ -91,7 +92,7 @@ export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProp
   const readouts = items.filter((item) => !item.actionOnly)
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the vitals column; a <section> here would become a region landmark once named
-    <div role="group" aria-label="Crawler vitals" style={FRAME}>
+    <div role="group" aria-label={buildSheetCopy('crawlerVitals')} style={FRAME}>
       {gauge}
       {upgrade}
       {readouts.length > 0 && (

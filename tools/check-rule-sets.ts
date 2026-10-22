@@ -2,7 +2,7 @@
 /**
  * Rule-set gates — `bun run check styling` and `bun run check copy`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, eleven rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, twelve rule sets:
  *
  *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts)
  *   - `chrome-tokens` — rails, dashes, motion, breakpoints (packages/gates/rules/chromeTokens.ts)
@@ -15,9 +15,10 @@
  *   - `select-mode`  — hard rule R15: one select dim, no level-2 seal (packages/gates/rules/selectMode.ts)
  *   - `controls`     — icons take their Size; tabs, segments and toggles by job (packages/gates/rules/controls.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
+ *   - `ui-strings`   — the interface's words live in the message catalogue (packages/gates/rules/uiStrings.ts)
  *
  * Each set belongs to one of two `bun run check` ids, registered in
- * tools/check.ts: `copy` runs the copy sets (`--group=copy`), `styling` every
+ * tools/check.ts: `copy` runs the copy sets, `copy` and `ui-strings` (`--group=copy`), `styling` every
  * other set (`--group=styling`). A new set is in a group the moment it is in
  * `RULE_SETS`, so no check can leave it out.
  *
@@ -66,6 +67,7 @@ import { selectMode } from 'gates/rules/selectMode'
 import { srdCss } from 'gates/rules/srdCss'
 import { stylingOwnership } from 'gates/rules/stylingOwnership'
 import { toneGround } from 'gates/rules/toneGround'
+import { uiStrings } from 'gates/rules/uiStrings'
 
 const ROOT = join(import.meta.dir, '..')
 const BASELINE_PATH = join(import.meta.dir, 'baselines', 'rule-sets.json')
@@ -83,12 +85,13 @@ const RULE_SETS: readonly RuleSet[] = [
   selectMode,
   controlLaws,
   copyTerms,
+  uiStrings,
 ]
 
 /** The `bun run check` id that runs a set: `copy` for the copy sets, `styling` for the rest. */
 const GROUPS = ['styling', 'copy'] as const
 type Group = (typeof GROUPS)[number]
-const COPY_SETS: ReadonlySet<RuleSet> = new Set([copyTerms])
+const COPY_SETS: ReadonlySet<RuleSet> = new Set([copyTerms, uiStrings])
 const groupOf = (set: RuleSet): Group => (COPY_SETS.has(set) ? 'copy' : 'styling')
 
 function selectedSets(argv: readonly string[]): RuleSet[] {

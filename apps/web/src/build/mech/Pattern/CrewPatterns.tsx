@@ -15,6 +15,7 @@ import { Entity, quotePatternName, SlabSection, tokens } from '../../../componen
 import { AppLink } from '../../../components/shared/AppLink'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
+import { mechCopy } from '../../../messages/build-mech'
 
 const LIST = {
   display: 'grid',
@@ -40,14 +41,14 @@ export function CrewPatterns() {
   if (rows.length === 0) return null
 
   return (
-    <SlabSection id="crew-patterns" title="Shared by your crew">
+    <SlabSection id="crew-patterns" title={mechCopy('sharedByYourCrew')}>
       <ul style={LIST}>
         {rows.map(({ appId, pattern, chassis, madeBy, gameName }) => (
           <li key={appId}>
             <AppLink
               href={patternHref(appId)}
               style={LINK}
-              aria-label={`${pattern.name}, made by ${madeBy}, shared in ${gameName}`}
+              aria-label={mechCopy('madeBySharedIn', { name: pattern.name, madeBy, gameName })}
             >
               <Entity
                 size="compact"

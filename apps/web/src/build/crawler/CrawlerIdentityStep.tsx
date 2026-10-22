@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { useId } from 'react'
 import { Field, Input, SlabSection, tokens } from '../../components/index'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
+import { crawlerCopy } from '../../messages/build-crawler'
 import { RollTableButton } from '../wizard/RollTableButton'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
 import { CRAWLER_NAME_TABLE } from '../wizard/rollTableHelpers.model'
@@ -61,10 +62,10 @@ export function CrawlerIdentityStep({
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={COLUMN}>
       <Field
-        label="Crawler name"
+        label={crawlerCopy('crawlerName')}
         value={name}
         onSave={(next) => onChange({ name: next })}
-        placeholder="e.g. Crawler #132, aka ‘Tin Lizzy’"
+        placeholder={crawlerCopy('eGCrawler132Aka')}
         labelAction={
           <RollTableButton
             table={CRAWLER_NAME_TABLE}
@@ -75,24 +76,21 @@ export function CrawlerIdentityStep({
       />
 
       <Field
-        label="Description"
+        label={crawlerCopy('description')}
         value={description}
         multiline
         onSave={(next) => onChange({ description: next })}
-        placeholder="What the crawler is, its build and history."
+        placeholder={crawlerCopy('whatTheCrawlerIsIts')}
       />
 
-      <SlabSection title="Scrap Pool" id={scrapId}>
-        <p style={SCRAP_HINT}>
-          The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
-          didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.
-        </p>
+      <SlabSection title={crawlerCopy('scrapPool')} id={scrapId}>
+        <p style={SCRAP_HINT}>{crawlerCopy('theGroupsBankedScrapBucketed')}</p>
 
         <div className="su-wiz-scrap-grid" style={SCRAP_GRID}>
           {SCRAP_BUCKETS.map((bucket, i) => {
             const id = `crawler-scrap-${bucket}`
             return (
-              <Field key={bucket} label={`Scrap T${i + 1}`} htmlFor={id}>
+              <Field key={bucket} label={crawlerCopy('scrapT', { value: i + 1 })} htmlFor={id}>
                 <Input
                   id={id}
                   type="number"

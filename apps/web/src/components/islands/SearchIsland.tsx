@@ -20,6 +20,7 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { islandsCopy } from '../../messages/components-islands'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { SearchListbox } from '../compositions/SearchListbox'
 import { HeroSearchForm } from '../HeroSearch'
@@ -195,7 +196,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // so the mounter carries what a reader typed there, with focus and
       // caret, onto this one (`mountIsland`).
       name={hero ? 'q' : 'srd-search'}
-      placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the Reference'}
+      placeholder={hero ? HERO_SEARCH_PLACEHOLDER : islandsCopy('searchTheReference')}
       shortcut={shortcut}
       value={query}
       onChange={(e) => onInput(e.target.value)}
@@ -210,7 +211,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       containerClassName={hero ? 'su-hero-search__field' : undefined}
       glyph={hero ? 'full' : undefined}
       {...inputProps}
-      aria-label="Search the Reference"
+      aria-label={islandsCopy('searchTheReference')}
       role="combobox"
       aria-expanded={isOpen}
       aria-controls={listboxId}

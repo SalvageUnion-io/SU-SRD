@@ -2,6 +2,7 @@ import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { borderWidth, font, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
 import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
 
@@ -96,7 +97,7 @@ function ConditionChip({
         // compact (22px Badge) while the target stays tappable.
         <button
           type="button"
-          aria-label={removeLabel ?? `Remove condition ${label}`}
+          aria-label={removeLabel ?? atomsCopy('removeCondition', { label })}
           onClick={onRemove}
           className="su-condition-chip__remove"
           style={REMOVE_BUTTON}
@@ -166,12 +167,12 @@ export function Conditions({
       {onAdd && (
         <button
           type="button"
-          aria-label={addLabel ?? 'Add condition'}
+          aria-label={addLabel ?? atomsCopy('addCondition')}
           onClick={onAdd}
           className={cn(capsLabel({ size: 'badge', weight: 'semibold' }), 'su-conditions__add')}
           style={ADD_BUTTON}
         >
-          + Add
+          {atomsCopy('add')}
         </button>
       )}
     </div>

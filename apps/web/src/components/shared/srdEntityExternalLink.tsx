@@ -1,4 +1,5 @@
 import { entityHref } from '../../lib/entityHref'
+import { sharedCopy } from '../../messages/components-shared'
 import type { EntityExternalLinkBuilder } from '../index'
 import { InlineRef } from '../index'
 
@@ -23,11 +24,15 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
   return (
     <InlineRef
       href={href}
-      aria-label={entityName ? `View ${entityName} in the Reference` : 'View in the Reference'}
+      aria-label={
+        entityName
+          ? sharedCopy('viewInTheReference2', { entityName })
+          : sharedCopy('viewInTheReference')
+      }
       // `.su-srd-entity-external-link` (`styles/build/unitSlot.css`): its 24px target.
       className="su-srd-entity-external-link"
     >
-      View in the Reference
+      {sharedCopy('viewInTheReference')}
     </InlineRef>
   )
 }

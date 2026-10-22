@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../design/tokens'
 import type { Projection, SchemaList } from '../lib/useGameData'
 import { useGameData } from '../lib/useGameData'
+import { componentsCopy } from '../messages/components'
 import { RecoveryPanel } from './index'
 
 /** The failure's panel, centred in the place the gate holds. */
@@ -38,9 +39,9 @@ export function GameDataGate({
     return (
       <div style={FAILED}>
         <RecoveryPanel
-          title="The reference data did not load"
-          message="Check your connection, then try again."
-          action={{ label: 'Try again', onClick: retry }}
+          title={componentsCopy('theReferenceDataDidNot')}
+          message={componentsCopy('checkYourConnectionThenTry')}
+          action={{ label: componentsCopy('tryAgain'), onClick: retry }}
         />
       </div>
     )

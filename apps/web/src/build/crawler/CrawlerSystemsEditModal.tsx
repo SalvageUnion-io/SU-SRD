@@ -21,6 +21,7 @@ import {
 import { EntitySearcher, ModalShell } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
+import { crawlerCopy } from '../../messages/build-crawler'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean
@@ -64,7 +65,7 @@ export function CrawlerSystemsEditModal({
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title="Edit Weapons Systems"
+      title={crawlerCopy('editWeaponsSystems')}
       width="page"
       bare
     >
@@ -91,14 +92,14 @@ export function CrawlerSystemsEditModal({
           }))
         }
         railName={crawler.name}
-        chosenLabel="Armed"
-        emptyMessage="No weapons systems at this crawler's tech level."
+        chosenLabel={crawlerCopy('armed')}
+        emptyMessage={crawlerCopy('noWeaponsSystemsAtThis')}
         budget={{
-          label: 'Weapons Systems',
+          label: crawlerCopy('weaponsSystems'),
           used: capacity.weaponSystemsUsed,
           max: capacity.weaponSystemsMax,
         }}
-        title={`Edit Weapons Systems · Tech ${tl ?? '—'} and below`}
+        title={crawlerCopy('editWeaponsSystemsTechAnd', { value: tl ?? '—' })}
         onClose={onClose}
       />
     </ModalShell>

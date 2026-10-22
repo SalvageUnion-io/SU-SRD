@@ -22,6 +22,7 @@ import { useRouter } from '@tanstack/react-router'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, fontSize, space } from '../../design/tokens'
 import { savedWorkCopy } from '../../lib/routeErrorCopy'
+import { sharedCopy } from '../../messages/components-shared'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'
 import { Box, RecoveryPanel } from '../index'
@@ -71,9 +72,11 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
   return (
     <FullPageShell>
       <RecoveryPanel
-        title="Something went wrong"
-        message={`The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`}
-        action={{ label: 'Try again', onClick: () => window.location.reload() }}
+        title={sharedCopy('somethingWentWrong')}
+        message={sharedCopy('theAppHitAnUnexpected', {
+          savedWorkCopy: savedWorkCopy(currentBackend()),
+        })}
+        action={{ label: sharedCopy('tryAgain'), onClick: () => window.location.reload() }}
       >
         <DevErrorDump error={error} />
       </RecoveryPanel>
@@ -93,10 +96,12 @@ export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div style={ROUTE_SHELL}>
       <RecoveryPanel
-        title="This page hit an error"
-        message={`Something on this page did not load. ${savedWorkCopy(currentBackend())}`}
+        title={sharedCopy('thisPageHitAnError')}
+        message={sharedCopy('somethingOnThisPageDid', {
+          savedWorkCopy: savedWorkCopy(currentBackend()),
+        })}
         action={{
-          label: 'Try again',
+          label: sharedCopy('tryAgain'),
           onClick: () => {
             reset()
             void router.invalidate()

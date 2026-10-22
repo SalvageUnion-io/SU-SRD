@@ -10,6 +10,7 @@
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { Entity } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { SheetItemLine } from './SheetItemLine'
 import { syntheticItemModel } from './syntheticItem.model'
 
@@ -45,7 +46,7 @@ export function UnknownItemLine({
             id: slug,
             schemaName,
             kind: 'Unknown',
-            note: 'Unknown',
+            note: buildSheetCopy('unknown'),
           })}
           mode={{ kind: 'read' }}
         />

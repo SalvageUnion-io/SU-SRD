@@ -14,6 +14,7 @@ import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
 import { BOLD, PROSE } from '../../lib/docPageStyles'
 import { readChangelog } from '../../lib/gitChangelog'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import { Changelog } from '../Changelog'
 import { DocPage } from '../DocPage'
 
@@ -38,7 +39,7 @@ function page(): PageResult {
       breadcrumbs: [SRD_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
     },
     children: (
-      <DocPage title="Changelog" measure="48rem" gap={space[32]}>
+      <DocPage title={pagesCopy('changelog')} measure="48rem" gap={space[32]}>
         <p style={PROSE}>
           Features, fixes and speed-ups to the Reference and the app, newest first. For full commit
           history see the{' '}
@@ -48,7 +49,7 @@ function page(): PageResult {
             rel="noopener noreferrer"
             style={BOLD}
           >
-            GitHub repository
+            {pagesCopy('githubRepository')}
           </InlineRef>
           .
         </p>

@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { Button } from '../../../components/index'
+import { mechCopy } from '../../../messages/build-mech'
 import type { PatternSource } from './SavePatternDialog'
 import { SavePatternDialog } from './SavePatternDialog'
 
@@ -20,7 +21,7 @@ export function SavePatternButton({ source }: SavePatternButtonProps) {
   return (
     <>
       <Button type="button" onClick={() => setOpen(true)}>
-        Save as pattern
+        {mechCopy('saveAsPattern')}
       </Button>
       <SavePatternDialog source={source} open={open} onOpenChange={setOpen} stay />
     </>

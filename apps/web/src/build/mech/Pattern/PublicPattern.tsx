@@ -50,6 +50,7 @@ import {
   patternChassis,
   patternCopy,
 } from '../../../lib/patterns/patterns'
+import { mechCopy } from '../../../messages/build-mech'
 import { useEntityStore } from '../../../stores/entityStore'
 import { useCitePageCredit } from '../../../stores/pageCredit'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -141,10 +142,10 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     setBusy('build')
     try {
       const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
-      toast.success(`Built ${mech.name} from the pattern.`)
+      toast.success(mechCopy('builtFromThePattern', { name: mech.name }))
       void navigate({ to: '/sheet/$kind/$id', params: { kind: 'mech', id: mech.id } })
     } catch (err) {
-      toast.error(serverMessage(err) ?? 'The mech could not be built. Try again.')
+      toast.error(serverMessage(err) ?? mechCopy('theMechCouldNotBe2'))
       setBusy(null)
     }
   }
@@ -153,9 +154,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     setBusy('copy')
     try {
       await usePatternStore.getState().create(patternCopy(pattern))
-      toast.success(`Copied ${pattern.name} to your Training Bay.`)
+      toast.success(mechCopy('copiedToYourTrainingBay', { name: pattern.name }))
     } catch (err) {
-      toast.error(serverMessage(err) ?? 'The pattern could not be copied. Try again.')
+      toast.error(serverMessage(err) ?? mechCopy('thePatternCouldNotBe'))
     } finally {
       setBusy(null)
     }
@@ -176,7 +177,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 meta={meta}
                 homebrew
                 parent={{
-                  label: 'Pattern of',
+                  label: mechCopy('patternOf'),
                   ref: toEntityModel(chassis).ref,
                   href: itemHref('chassis', getEntitySlug(chassis)),
                 }}
@@ -194,9 +195,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 className="su-page-action su-hit-area"
                 onClick={() => void build()}
                 disabled={busy !== null}
-                aria-label={`Build With This: a mech from ${pattern.name}`}
+                aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
               >
-                {busy === 'build' ? 'Building…' : 'Build With This'}
+                {busy === 'build' ? mechCopy('building') : mechCopy('buildWithThis')}
               </Button>
             ) : signedOut ? (
               <SignInControl className="su-page-action su-hit-area" />
@@ -210,15 +211,15 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                   onClick={() => void copy()}
                   disabled={busy !== null}
                 >
-                  {busy === 'copy' ? 'Copying…' : 'Make a copy'}
+                  {busy === 'copy' ? mechCopy('copying') : mechCopy('makeACopy')}
                 </Button>
                 {mine && visibility && (
                   <Button
                     className="su-page-action"
                     onClick={() => setShareOpen(true)}
-                    aria-label={`Share ${pattern.name}`}
+                    aria-label={mechCopy('share2', { name: pattern.name })}
                   >
-                    Share
+                    {mechCopy('share')}
                   </Button>
                 )}
               </>
@@ -242,7 +243,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 pattern.photo || editable ? (
                   <EntityPhoto
                     photo={pattern.photo}
-                    fallback={art ? { url: art, alt: `${chassis.name} line art` } : undefined}
+                    fallback={
+                      art
+                        ? { url: art, alt: mechCopy('lineArt', { name: chassis.name }) }
+                        : undefined
+                    }
                     name={pattern.name}
                     frame={PHOTO_FRAME}
                     onChange={editable ? (photo) => setPatternPhoto(pattern.id, photo) : undefined}
@@ -253,17 +258,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               madeBy={madeBy}
             />
           ) : (
-            <Text variant="hint">
-              The chassis this pattern is built on is not in the reference.
-            </Text>
+            <Text variant="hint">{mechCopy('theChassisThisPatternIs')}</Text>
           )}
 
-          <section style={NOTES} aria-label="About this pattern">
-            {signedOut && (
-              <Text variant="hint">
-                Sign in to build this mech or copy it to your Training Bay.
-              </Text>
-            )}
+          <section style={NOTES} aria-label={mechCopy('aboutThisPattern')}>
+            {signedOut && <Text variant="hint">{mechCopy('signInToBuildThis')}</Text>}
             <Text variant="hint">{builtLine}</Text>
             {mine && visibility && <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>}
           </section>

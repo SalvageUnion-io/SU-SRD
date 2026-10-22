@@ -20,6 +20,7 @@ import {
   Input,
   tokens,
 } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { AlertLine } from '../useGameFeed'
 
 const { space } = tokens
@@ -67,14 +68,14 @@ export function TellTheTable({
   return (
     <div style={SCROLL}>
       <Eyebrow as="h3" tone="muted">
-        Every player sees this on their Feed
+        {mediatorCopy('everyPlayerSeesThisOn')}
       </Eyebrow>
       <div style={FORM}>
-        <Field label="Alert" htmlFor={`${id}-alert`}>
+        <Field label={mediatorCopy('alert')} htmlFor={`${id}-alert`}>
           <Input
             id={`${id}-alert`}
             value={message}
-            placeholder="Contact front, two squads"
+            placeholder={mediatorCopy('contactFrontTwoSquads')}
             disabled={!canWrite}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
@@ -88,13 +89,13 @@ export function TellTheTable({
           disabled={!canWrite || sending || message.trim() === ''}
           onClick={send}
         >
-          Send
+          {mediatorCopy('send')}
         </Button>
       </div>
       {alerts.length === 0 ? (
-        <EmptyState variant="quiet" body="Nothing sent yet." />
+        <EmptyState variant="quiet" body={mediatorCopy('nothingSentYet')} />
       ) : (
-        <FeedList label="Sent to the table">
+        <FeedList label={mediatorCopy('sentToTheTable')}>
           {alerts.slice(0, 5).map((a) => (
             <FeedLine key={a._id} end={<FeedTime ts={a.ts} format="ago" now={now} />}>
               {a.message}

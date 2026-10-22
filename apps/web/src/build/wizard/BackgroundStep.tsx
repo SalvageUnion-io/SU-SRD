@@ -1,5 +1,6 @@
 import { Field, Textarea } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers.model'
 import { stepColumnStyle, textSmStyle } from './wizardStyles.model'
@@ -28,32 +29,30 @@ export function BackgroundStep({
 }: BackgroundStepProps) {
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={stepColumnStyle}>
-      <p style={textSmStyle}>
-        Describe your pilot&apos;s background. Roll for a random prompt or write your own story.
-      </p>
-      <Field label="Background" htmlFor="background-field">
+      <p style={textSmStyle}>{buildWizardCopy('describeYourPilotsBackgroundRoll')}</p>
+      <Field label={buildWizardCopy('background')} htmlFor="background-field">
         <div className="su-wiz-stack su-wiz-stack--8">
           <RollTableButton
             field="background"
             onRoll={(value) => onChange(value)}
-            label="Roll background"
+            label={buildWizardCopy('rollBackground')}
             _deps={_rollDeps}
           />
           <Textarea
             id="background-field"
             value={background}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Where did you come from? What drives you?"
+            placeholder={buildWizardCopy('whereDidYouComeFrom')}
             rows={5}
           />
         </div>
       </Field>
-      <Field label="Bio" htmlFor="bio-field">
+      <Field label={buildWizardCopy('bio')} htmlFor="bio-field">
         <Textarea
           id="bio-field"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Their story so far — history, motivations, notable deeds."
+          placeholder={buildWizardCopy('theirStorySoFarHistory')}
           rows={5}
         />
       </Field>

@@ -23,6 +23,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useConnection } from '../lib/connection/connectionContext'
+import { playCopy } from '../messages/play'
 import { PlayMediatorCockpit } from './PlayMediatorCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
@@ -32,13 +33,13 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
   if (mode === 'solo') {
     return (
       <PlayRefusal
-        title="Sign in to run your Game"
-        body="The Mediator runs a Game from Play. Sign in, then open Play and choose Mediate."
+        title={playCopy('signInToRunYour')}
+        body={playCopy('theMediatorRunsAGame')}
         link={{ href: '/', label: PRODUCT.build }}
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label="your session" />
+  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
   return <SignedInPlayMediatorGate gameId={gameId} />
 }
 
@@ -49,14 +50,14 @@ function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
   const mediates = useQuery(api.mediator.amMediator, game ? { gameId: id } : 'skip')
 
   if (game === undefined || (game !== null && mediates === undefined)) {
-    return <RoutePending label="the Game" />
+    return <RoutePending label={playCopy('theGame')} />
   }
   if (game === null || mediates !== true) {
     return (
       <PlayRefusal
-        title="Only this Game's Mediator runs this screen"
-        body="Mediate is for whoever mediates the Game. Its players play their Pilots from Play."
-        link={{ href: gamePath(gameId), label: 'Game' }}
+        title={playCopy('onlyThisGamesMediatorRuns')}
+        body={playCopy('mediateIsForWhoeverMediates')}
+        link={{ href: gamePath(gameId), label: playCopy('game') }}
       />
     )
   }

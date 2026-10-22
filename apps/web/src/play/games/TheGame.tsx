@@ -37,6 +37,7 @@ import {
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
+import { playGamesCopy } from '../../messages/play-games'
 import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -59,7 +60,7 @@ function memberModel(name: string, avatarUrl: string | undefined): EntityFormMod
     id: `member/${name}`,
     slug: name,
     name,
-    kind: { label: 'Member', domain: 'pilot' },
+    kind: { label: playGamesCopy('member'), domain: 'pilot' },
     tone: 'discord',
     ...(avatarUrl ? { art: { kind: 'image', url: avatarUrl } } : {}),
   })
@@ -104,7 +105,7 @@ export function TheGame({
       as="h2"
       bodyStyle={HUB_BODY}
       id="the-game-heading"
-      title="The Game"
+      title={playGamesCopy('theGame')}
       actions={
         organizer ? (
           <>
@@ -116,18 +117,18 @@ export function TheGame({
                 setHanding(true)
               }}
             >
-              {appointing ? 'Appoint' : 'Hand over'}
+              {appointing ? playGamesCopy('appoint') : playGamesCopy('handOver')}
             </Button>
             <HeaderMenu
               variant="overflow"
               size="compact"
               trigger={null}
-              label="More for The Game"
+              label={playGamesCopy('moreForTheGame')}
               sections={[
                 [
                   {
                     id: 'delete',
-                    label: 'Delete this Game…',
+                    label: playGamesCopy('deleteThisGame'),
                     tone: 'danger',
                     onSelect: canWrite ? onDelete : undefined,
                   },
@@ -138,8 +139,10 @@ export function TheGame({
         ) : undefined
       }
     >
-      {appointing && <Stat label="Mediator" value="Nobody yet" size="compact" wrap />}
-      <ul aria-label="Members" className="su-game-members" style={LINES}>
+      {appointing && (
+        <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="compact" wrap />
+      )}
+      <ul aria-label={playGamesCopy('members')} className="su-game-members" style={LINES}>
         {members?.map((m) => (
           <li key={m.userId}>
             <Entity
@@ -150,8 +153,8 @@ export function TheGame({
               labels={
                 m.mediator || m.organizer ? (
                   <>
-                    {m.mediator && <Stat label="Mediator" size="compact" />}
-                    {m.organizer && <Stat label="Organiser" size="compact" />}
+                    {m.mediator && <Stat label={playGamesCopy('mediator')} size="compact" />}
+                    {m.organizer && <Stat label={playGamesCopy('organiser')} size="compact" />}
                   </>
                 ) : undefined
               }
@@ -164,15 +167,15 @@ export function TheGame({
         open={handing}
         onOpenChange={setHanding}
         tone="danger"
-        title={appointing ? 'Appoint the Mediator' : 'Hand the table over?'}
+        title={appointing ? playGamesCopy('appointTheMediator') : playGamesCopy('handTheTableOver')}
         body={
           <>
             <span>
               The Mediator runs the table: the opposition, Downtime, the crawler, and proposals to
               the crew.
-              {appointing ? '' : ' Whoever mediates now stands down.'}
+              {appointing ? '' : playGamesCopy('whoeverMediatesNowStandsDown')}
             </span>
-            <Field label="Who mediates" htmlFor={`${id}-who`}>
+            <Field label={playGamesCopy('whoMediates')} htmlFor={`${id}-who`}>
               <Select id={`${id}-who`} value={chosen} onChange={(e) => setChosen(e.target.value)}>
                 {candidates.map((m) => (
                   <option key={m.userId} value={m.userId}>
@@ -183,7 +186,7 @@ export function TheGame({
             </Field>
           </>
         }
-        confirmLabel={appointing ? 'Appoint' : 'Hand over'}
+        confirmLabel={appointing ? playGamesCopy('appoint') : playGamesCopy('handOver')}
         describeError={(err) =>
           failureMessage(err, 'The table could not be handed over. Try again.')
         }

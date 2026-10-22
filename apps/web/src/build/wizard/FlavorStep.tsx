@@ -1,5 +1,6 @@
 import { Field, Input, Textarea } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { RollTableButton } from './RollTableButton'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
 import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'
@@ -41,7 +42,7 @@ export function FlavorStep({
             <RollTableButton
               field={field}
               onRoll={onChange}
-              label={`Roll ${label.toLowerCase()}`}
+              label={buildWizardCopy('roll', { lowerCase: label.toLowerCase() })}
               _deps={_rollDeps}
             />
             <Textarea

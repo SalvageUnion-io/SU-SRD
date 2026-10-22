@@ -29,6 +29,7 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { Badge, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { entityContainerCopy } from '../../messages/build-entity-container'
 import type { ContainerChoice } from './ContainerPicker'
 import { ContainerPicker } from './ContainerPicker'
 
@@ -43,7 +44,7 @@ function useGameEntries(): ContainerChoice[] | undefined {
   const games = useQuery(api.games.listMine, {})
   return games?.map((game) => ({
     label: game.name,
-    hint: game.mediator ? 'Mediator' : 'Player',
+    hint: game.mediator ? entityContainerCopy('mediator') : entityContainerCopy('player'),
     container: { kind: 'game', gameId: game._id },
   }))
 }
@@ -69,7 +70,7 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
       choices={games}
       onPick={open}
       loading="your Games"
-      empty="No Games yet."
+      empty={entityContainerCopy('noGamesYet')}
     />
   )
 }
@@ -92,20 +93,20 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
   const open = useOpenGame()
 
   return (
-    <nav aria-label="Games" style={LIST}>
+    <nav aria-label={entityContainerCopy('games')} style={LIST}>
       <div>
-        <Badge shape="stamp">Games</Badge>
+        <Badge shape="stamp">{entityContainerCopy('games')}</Badge>
       </div>
       <ContainerPicker
         variant="list"
-        label="Your Games"
+        label={entityContainerCopy('yourGames')}
         choices={games}
         onPick={(choice) => {
           open(choice)
           onPick()
         }}
         loading="your Games"
-        empty="No Games yet."
+        empty={entityContainerCopy('noGamesYet')}
       />
     </nav>
   )

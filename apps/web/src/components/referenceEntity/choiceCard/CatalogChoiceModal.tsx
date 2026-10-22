@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { EntitySchemaName, RefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { EntitySearcher } from '../../compositions/EntitySearcher'
 import { ModalShell } from '../../containers/ModalShell'
 
@@ -62,8 +63,8 @@ export function CatalogChoiceModal({
         selected={selected}
         onToggle={(ref) => onSelect(selected.includes(ref) ? [] : [ref])}
         filter={(item) => eligibleIds.has(item.id)}
-        chosenLabel="Chosen"
-        emptyMessage="No matching entities."
+        chosenLabel={referenceEntityCopy('chosen')}
+        emptyMessage={referenceEntityCopy('noMatchingEntities')}
         title={choice.name}
         onClose={onClose}
       />

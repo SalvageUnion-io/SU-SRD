@@ -23,6 +23,7 @@ import { publicPath } from 'game-domain/entityKinds'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import { useMemo } from 'react'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { READ_ONLY_BANNER } from './readOnlyBanner.model'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
@@ -69,13 +70,8 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     // moves afterwards can still land somebody here.
     return (
       <NotFoundPanel
-        title="Could not render this sheet"
-        message={
-          <>
-            This build&rsquo;s data doesn&rsquo;t match anything this app knows how to show. It may
-            have been made with a newer or older version.
-          </>
-        }
+        title={buildSheetCopy('couldNotRenderThisSheet')}
+        message={<>{buildSheetCopy('thisBuildsDataDoesntMatch')}</>}
       />
     )
   }
@@ -84,12 +80,12 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     <div>
       <div
         role="note"
-        aria-label="Read-only sheet"
+        aria-label={buildSheetCopy('readOnlySheet')}
         className="su-sheet-public-banner"
         // Its side padding widens at `sm` (`.su-sheet-public-banner`).
         style={READ_ONLY_BANNER}
       >
-        This sheet is shared read-only. It updates as its owner plays.
+        {buildSheetCopy('thisSheetIsSharedRead')}
       </div>
 
       <Sheet

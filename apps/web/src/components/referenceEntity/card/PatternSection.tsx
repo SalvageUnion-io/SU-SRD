@@ -1,6 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaAction } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
@@ -47,7 +48,7 @@ export function PatternSection({
       )}
       {actions.length > 0 && (
         <>
-          <Slab label="Pattern Actions" as={sectionAs} />
+          <Slab label={referenceEntityCopy('patternActions')} as={sectionAs} />
           {nestsMinis(host) ? (
             <ActionMinis
               actions={actions}

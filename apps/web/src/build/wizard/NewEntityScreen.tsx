@@ -20,6 +20,7 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { CreateMode } from '../../lib/wizard/createMode'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { SignInToBuild } from '../account/SignInToBuild'
 import { BlankCreateDialog } from './BlankCreateDialog'
 import { CreateModeChooser } from './CreateModeChooser'
@@ -59,7 +60,11 @@ export function NewEntityScreen({
     // band is not the page's leading band and the Union bar stays ink above it.
     const gate = (
       <SignInToBuild
-        title={kind === 'npc' ? 'Sign in to build an NPC' : `Sign in to build a ${kind}`}
+        title={
+          kind === 'npc'
+            ? buildWizardCopy('signInToBuildAn')
+            : buildWizardCopy('signInToBuildA', { kind })
+        }
         redirectTo={returnTo}
       />
     )
