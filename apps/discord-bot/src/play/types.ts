@@ -21,6 +21,8 @@ import type { BotDenialReason } from 'game-domain/botWire'
 
 export type {
   BindChannelResult,
+  BotFeedbackResult,
+  BotUsageResult,
   ChannelBindingSummary,
   EntityBody,
   GameSummary,

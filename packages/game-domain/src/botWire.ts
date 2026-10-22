@@ -33,9 +33,10 @@ import type { SheetTable } from './entityKinds'
 export const BOT_PATH_PREFIX = '/bot/'
 
 /**
- * Every operation the bot may invoke through that door. `bindChannel` and
- * `unbindChannel` are the only writes (`/su bind`, `/su unbind`): a channel
- * binding is the bot's own apparatus, never anybody's sheet.
+ * Every operation the bot may invoke through that door. The writes never touch
+ * anybody's sheet: `bindChannel` and `unbindChannel` (`/su bind`, `/su
+ * unbind`) are the bot's own apparatus, `usage` bumps a weekly command tally
+ * and `feedback` hands on a `/su feedback` note (ADR-053).
  */
 export const BOT_OP_NAMES = [
   'me',
@@ -44,6 +45,8 @@ export const BOT_OP_NAMES = [
   'mine',
   'bindChannel',
   'unbindChannel',
+  'usage',
+  'feedback',
 ] as const
 
 /** One of {@link BOT_OP_NAMES}. */
@@ -294,3 +297,19 @@ export function bearerToken(header: string | null): string | null {
   const match = /^Bearer (.+)$/.exec(header.trim())
   return match?.[1] ?? null
 }
+
+/**
+ * `usage`: one answered command, for the weekly tallies (ADR-053). `name` is
+ * the command as `interactionName` spells it (`su roll`); `guildId` the server
+ * it ran in, absent in a DM. Nothing about who ran it.
+ */
+export type BotUsageArgs = { name: string; guildId?: string }
+
+/** `usage` answers only that it counted. */
+export type BotUsageResult = { ok: true }
+
+/** `feedback`: a `/su feedback` note, sent on for filing as a GitHub issue. */
+export type BotFeedbackArgs = { discordId: string; kind: 'suggestion' | 'report'; text: string }
+
+/** Whether the note was taken, and the words to show its sender either way. */
+export type BotFeedbackResult = { ok: true; accepted: boolean; message: string }

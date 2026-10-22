@@ -16,10 +16,10 @@ const SUBCOMMAND_GROUP = 2
 
 /**
  * The subcommands that answer with no app account: the reference
- * tools. Everything else reads or writes a Game, so a new subcommand is listed
- * as needing an account until it is named here.
+ * tools and feedback. Everything else reads or writes a Game, so a new
+ * subcommand is listed as needing an account until it is named here.
  */
-const NO_ACCOUNT = new Set(['roll', 'lookup'])
+const NO_ACCOUNT = new Set(['roll', 'lookup', 'feedback'])
 
 type CommandOption = { name: string; required: boolean }
 

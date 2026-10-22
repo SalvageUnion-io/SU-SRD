@@ -6,6 +6,7 @@ import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { playTables } from './model/playTables'
+import { signalTables } from './model/signalTables'
 import { literalUnion } from './model/validators'
 
 /**
@@ -543,4 +544,6 @@ export default defineSchema({
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
   ...playTables,
+
+  ...signalTables,
 })

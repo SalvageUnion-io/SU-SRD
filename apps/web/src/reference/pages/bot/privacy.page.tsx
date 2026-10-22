@@ -16,14 +16,14 @@ const BODY = proseColumn(space[16])
 const LIST = bulletList(space[4], 'padding')
 const AFTER_LIST = { marginTop: space[8] }
 
-const LAST_UPDATED = '21 October 2026'
+const LAST_UPDATED = '22 October 2026'
 
 function page(): PageResult {
   return {
     meta: {
       title: pageTitle('Discord Bot Privacy Policy'),
       description:
-        'Privacy Policy for the Salvage Union Discord bot: what it stores when you link an account or bind a channel, and how to remove it.',
+        'Privacy Policy for the Salvage Union Discord bot: what it stores when you link an account, bind a channel or send feedback, what it counts, and how to remove it.',
     },
     children: (
       <DocPage title="Salvage Union Bot — Privacy Policy" measure="48rem" gap={space[24]}>
@@ -31,10 +31,11 @@ function page(): PageResult {
 
         <section style={BODY}>
           <p style={BOLD}>
-            Short version: rolling and looking things up store nothing. If you sign in to
-            salvageunion.io with Discord, the Bot can show your account, Games and sheets, and post
-            Play’s rolls to a channel you bind. We store only what those features need, and you can
-            export or delete it from Settings.
+            Short version: rolling and looking things up store nothing about you; we count how often
+            each command is used, and in how many servers. If you sign in to salvageunion.io with
+            Discord, the Bot can show your account, Games and sheets, and post Play’s rolls to a
+            channel you bind. We store only what those features need, and you can export or delete
+            it from Settings.
           </p>
 
           <div>
@@ -42,8 +43,20 @@ function page(): PageResult {
             <ul style={LIST}>
               <li>
                 <strong>Rolls and lookups</strong> (<code>/su roll</code>, <code>/su lookup</code>):
-                nothing. They answer in real time and keep no record. Buttons such as “Roll again”
-                carry the table or dice in the button itself.
+                nothing about you. They answer in real time and keep no record. Buttons such as
+                “Roll again” carry the table or dice in the button itself.
+              </li>
+              <li>
+                <strong>Usage counts:</strong> for every command, a weekly count of how many times
+                it was used, and the ID of each server it was used in, with when it was first and
+                last used there. Never who ran it. These tell us how many tables the Bot serves.
+              </li>
+              <li>
+                <strong>Feedback</strong> (<code>/su feedback</code>, and “Suggest or report” on
+                salvageunion.io): your note is posted as a public issue on our GitHub repository,
+                without your name or ID. Until it is posted we hold the note with your Discord user
+                ID (or your account, from the site); once posted we delete the note’s text, and the
+                rest within a day. We keep that day to limit how many notes one person sends.
               </li>
               <li>
                 <strong>Your linked account:</strong> when you sign in to salvageunion.io with
@@ -93,6 +106,9 @@ function page(): PageResult {
               <li>
                 <strong>Convex</strong> — stores salvageunion.io accounts, Games and bound channels.
               </li>
+              <li>
+                <strong>GitHub</strong> — hosts the public issues your feedback becomes.
+              </li>
             </ul>
           </div>
 
@@ -104,8 +120,9 @@ function page(): PageResult {
                 Settings
               </InlineRef>{' '}
               lets you export everything your account holds or delete the account. Deleting it
-              removes your Discord link and your solo channel. A Game’s bound channel stays with the
-              Game until someone runs <code>/su unbind</code>. For anything else, contact{' '}
+              removes your Discord link, your solo channel and any feedback not yet posted. A Game’s
+              bound channel stays with the Game until someone runs <code>/su unbind</code>. For
+              anything else, contact{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                 privacy@salvageunion.io
               </InlineRef>

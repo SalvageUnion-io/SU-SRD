@@ -9,6 +9,7 @@ import { requireMediator, requireMember, requireUser } from './model/permissions
 import { downtimeClaim } from './model/playTables'
 import { loadReferenceData } from './model/referenceData'
 import { readSeat, writeSeat } from './model/seats'
+import { bumpCount } from './model/usage'
 import { shelfRowOf, writablePilot } from './seats'
 
 /**
@@ -274,6 +275,7 @@ export const begin = mutation({
       claimed: [],
       completedBy: [],
     })
+    await bumpCount(ctx, args.gameId === null ? 'downtime:solo' : 'downtime:game')
   },
 })
 

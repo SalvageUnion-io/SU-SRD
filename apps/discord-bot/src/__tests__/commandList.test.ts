@@ -19,15 +19,16 @@ describe('the /su command list', () => {
       'sheet',
       'bind',
       'unbind',
+      'feedback',
     ])
   })
 
-  test('only the reference tools answer without an account', () => {
+  test('only the reference tools and feedback answer without an account', () => {
     expect(
       commandList()
         .filter((c) => !c.needsAccount)
         .map((c) => c.name)
-    ).toEqual(['roll', 'lookup'])
+    ).toEqual(['roll', 'lookup', 'feedback'])
   })
 
   test('carries each description and option, required or not', () => {

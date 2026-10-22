@@ -1,8 +1,10 @@
-import type { BindChannelArgs, BotOpName } from 'game-domain/botWire'
+import type { BindChannelArgs, BotFeedbackArgs, BotOpName, BotUsageArgs } from 'game-domain/botWire'
 import { BOT_PATH_PREFIX } from 'game-domain/botWire'
 import { PRODUCT } from 'game-domain/product'
 import type {
   BindChannelResult,
+  BotFeedbackResult,
+  BotUsageResult,
   DenialReason,
   GamesResult,
   MeResult,
@@ -67,6 +69,14 @@ export type SiteClient = {
   ): Promise<SiteResult<BindChannelResult>>
   /** `/su unbind`: release whatever `channelId` is bound to. */
   unbindChannel(discordId: string, channelId: string): Promise<SiteResult<UnbindChannelResult>>
+  /** One answered command for the weekly tallies (ADR-053): its name and server, never who. */
+  usage(name: string, guildId: string | null): Promise<SiteResult<BotUsageResult>>
+  /** `/su feedback`: hand a note on to be filed as a GitHub issue. */
+  feedback(
+    discordId: string,
+    kind: BotFeedbackArgs['kind'],
+    text: string
+  ): Promise<SiteResult<BotFeedbackResult>>
 }
 
 export type SiteClientConfig = {
@@ -175,5 +185,13 @@ export function createSiteClient(config: Partial<SiteClientConfig>): SiteClient 
       return call('bindChannel', args)
     },
     unbindChannel: (discordId, channelId) => call('unbindChannel', { discordId, channelId }),
+    usage: (name, guildId) => {
+      const args: BotUsageArgs = { name, ...(guildId === null ? {} : { guildId }) }
+      return call('usage', args)
+    },
+    feedback: (discordId, kind, text) => {
+      const args: BotFeedbackArgs = { discordId, kind, text }
+      return call('feedback', args)
+    },
   }
 }

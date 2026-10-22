@@ -78,5 +78,20 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
     "description": "Stop posting Play’s rolls to this channel",
     "options": [],
     "needsAccount": true
+  },
+  {
+    "name": "feedback",
+    "description": "Suggest an idea or report a problem (filed publicly on GitHub, without your name)",
+    "options": [
+      {
+        "name": "kind",
+        "required": true
+      },
+      {
+        "name": "text",
+        "required": true
+      }
+    ],
+    "needsAccount": false
   }
 ]
