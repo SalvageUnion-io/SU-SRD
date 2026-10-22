@@ -8,6 +8,7 @@
 
 import type { CSSProperties } from 'react'
 import { Entity, StatColumn, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { MechSheetModel } from './mechSheet.model'
 
 /** One track the column's width: an `auto` track would take the Mini's widest chips. */
@@ -31,9 +32,9 @@ type MechHeroChassisProps = {
 export function MechHeroChassis({ stats, abilities }: MechHeroChassisProps) {
   return (
     <div className="su-sheet-mech-hero-chassis">
-      <StatColumn stats={stats} label="Chassis stats" compact />
+      <StatColumn stats={stats} label={buildSheetCopy('chassisStats')} compact />
       {abilities.length > 0 && (
-        <ul aria-label="Chassis ability" style={ABILITY}>
+        <ul aria-label={buildSheetCopy('chassisAbility')} style={ABILITY}>
           {abilities.map((ability) => (
             <li key={ability.id}>
               <Entity size="mini" context="play" entity={ability} mode={LINK} body={{}} />

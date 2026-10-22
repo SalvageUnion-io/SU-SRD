@@ -1,5 +1,5 @@
 /**
- * The Homebrew library (ADR-053), as the client reads it: what a listing is
+ * The Homebrew library (ADR-056), as the client reads it: what a listing is
  * once its body is parsed, where it opens, what the gallery's search matches,
  * and what "Make a copy" writes to your own Training Bay.
  *

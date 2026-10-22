@@ -12,6 +12,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { Box } from '../../components/index'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
 const GRID = { display: 'grid' } satisfies CSSProperties
@@ -63,7 +64,7 @@ export function SheetHero({
 }: SheetHeroProps) {
   return (
     <section
-      aria-label={`${name} sheet header`}
+      aria-label={buildSheetCopy('sheetHeader', { name })}
       // The gauges card is content-width ("long" — a narrow tall column);
       // the fields card takes the rest ("thick"). They stack on narrow
       // viewports so neither ever crushes.
@@ -89,7 +90,7 @@ export function SheetHero({
         {fields}
       </SheetPanel>
       {vitals && (
-        <SheetPanel title="Vitals" actions={vitalsActions}>
+        <SheetPanel title={buildSheetCopy('vitals')} actions={vitalsActions}>
           <div className="su-sheet-vitals" style={VITALS}>
             {vitals}
           </div>

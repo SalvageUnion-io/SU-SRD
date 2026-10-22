@@ -4,6 +4,7 @@ import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-refer
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
 import { maxAddableCopies } from '../../lib/rules/creation'
 import '../../styles/build/wizard.css'
+import { mechCopy } from '../../messages/build-mech'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
 type CraftItemsStepProps = {
@@ -50,7 +51,7 @@ export function CraftItemsStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label={`Tech 1 ${noun}s`} count="Duplicates allowed" countInk="inherit" />
+      <Slab label={mechCopy('tech1S', { noun })} count="Duplicates allowed" countInk="inherit" />
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id
@@ -92,7 +93,7 @@ export function CraftItemsStep({
                 {
                   key: 'qty',
                   stepper: {
-                    label: 'Qty',
+                    label: mechCopy('qty'),
                     subject: `${name} count`,
                     value: count,
                     ceiling: count + maxAdd,
@@ -101,7 +102,7 @@ export function CraftItemsStep({
                 },
               ]}
               footMeta={[
-                { label: 'Costs', value: `${sv} scrap` },
+                { label: mechCopy('costs'), value: `${sv} scrap` },
                 ...(disabledReason ? [{ label: disabledReason, value: '' }] : []),
               ]}
               suggested={'recommended' in item && item.recommended === true}
@@ -110,7 +111,7 @@ export function CraftItemsStep({
         })}
       </MasonryColumns>
       {items.length === 0 && (
-        <EmptyState variant="inline" body={`No Tech 1 ${kind} found.`} bodyInk="inherit" />
+        <EmptyState variant="inline" body={mechCopy('noTech1Found', { kind })} bodyInk="inherit" />
       )}
     </div>
   )

@@ -26,6 +26,7 @@ import {
   repairPoolTl,
   repairScrapCost,
 } from '../../lib/rules/mechItems'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { SheetItemLine } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
 
@@ -130,13 +131,12 @@ export function MechItemMini({
         onOpenChange={(next) => {
           if (!next) setConfirmingRepair(false)
         }}
-        title={`Repair ${entity.name}`}
+        title={buildSheetCopy('repair2', { name: entity.name })}
         width="narrow"
       >
         <div style={CONFIRM}>
           <p style={{ ...BODY_SM, margin: 0 }}>
-            Repairing costs {cost} Scrap (Tech {Math.max(1, itemTl ?? 1)} or higher) from the
-            crawler pool.
+            {buildSheetCopy('repairingCostsScrapTechOr', { cost, max: Math.max(1, itemTl ?? 1) })}
           </p>
           <DialogActions>
             <Button
@@ -144,26 +144,29 @@ export function MechItemMini({
               variant="primary"
               disabled={deductTl === null}
               title={deductDisabledReason ?? undefined}
-              aria-label={`Repair ${entity.name} and deduct scrap`}
+              aria-label={buildSheetCopy('repairAndDeductScrap', { name: entity.name })}
               onClick={() => {
                 onRepair(deductTl, cost)
                 setConfirmingRepair(false)
               }}
             >
-              Deduct {cost} from the Tech {deductTl ?? Math.max(1, itemTl ?? 1)} pool
+              {buildSheetCopy('deductFromTheTechPool', {
+                cost,
+                value: deductTl ?? Math.max(1, itemTl ?? 1),
+              })}
             </Button>
             <Button
               size="compact"
-              aria-label={`Repair ${entity.name} without deducting scrap`}
+              aria-label={buildSheetCopy('repairWithoutDeductingScrap', { name: entity.name })}
               onClick={() => {
                 onRepair(null, cost)
                 setConfirmingRepair(false)
               }}
             >
-              Repair without deducting
+              {buildSheetCopy('repairWithoutDeducting')}
             </Button>
             <Button size="compact" variant="ghost" onClick={() => setConfirmingRepair(false)}>
-              Cancel
+              {buildSheetCopy('cancel')}
             </Button>
           </DialogActions>
         </div>
@@ -194,10 +197,10 @@ export function MechItemMini({
               size="mini"
               variant="primary"
               className="su-sheet-item__repair"
-              aria-label={`Repair ${entity.name}`}
+              aria-label={buildSheetCopy('repair2', { name: entity.name })}
               onClick={() => setConfirmingRepair(true)}
             >
-              Repair · {cost} Scrap
+              {buildSheetCopy('repairScrap', { cost })}
             </Button>
           )
         }

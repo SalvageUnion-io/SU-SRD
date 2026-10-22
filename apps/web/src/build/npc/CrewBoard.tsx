@@ -72,6 +72,7 @@ import {
   crewDraftToCreateInput,
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
+import { npcCopy } from '../../messages/build-npc'
 import { useEntityStore } from '../../stores/entityStore'
 import { npcStats } from '../roster/rowStats.model'
 import { rowAppId } from '../sheet/readOnlySheetStore.model'
@@ -137,25 +138,19 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
   if (crawler === undefined) {
     return (
       <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
-        <SlabSection as="h2" id="crew-pick" title="Which crawler" bodyStyle={COLUMN}>
+        <SlabSection as="h2" id="crew-pick" title={npcCopy('whichCrawler')} bodyStyle={COLUMN}>
           {crawlerId !== undefined ? (
-            <EmptyState
-              variant="quiet"
-              body="That crawler is not one this browser holds. Open it from its sheet's Crew… link."
-            />
+            <EmptyState variant="quiet" body={npcCopy('thatCrawlerIsNotOne')} />
           ) : candidates.length === 0 ? (
-            <EmptyState
-              variant="quiet"
-              body="You have no crawler to crew here. A crawler in your Training Bay is yours to crew; in a Game, only the Mediator assigns crawler crew. Design an NPC under Any NPC and move it into the Game to offer it."
-            />
+            <EmptyState variant="quiet" body={npcCopy('youHaveNoCrawlerTo')} />
           ) : (
-            <Field label="Crawler" htmlFor="crew-crawler">
+            <Field label={npcCopy('crawler')} htmlFor="crew-crawler">
               <Select
                 id="crew-crawler"
                 value=""
                 onChange={(e) => onSelect({ crawler: e.target.value || undefined })}
               >
-                <option value="">Choose a crawler…</option>
+                <option value="">{npcCopy('chooseACrawler')}</option>
                 {candidates.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -240,11 +235,7 @@ function CrewSlots({
   /** In the modal the slot's name is the modal title, so the panel drops its own. */
   const panel = (inModal: boolean) =>
     selected === undefined ? (
-      <p style={HINT}>
-        {allowed
-          ? 'Choose a slot to design its crew, or to see who fills it.'
-          : 'Choose a slot to see who fills it.'}
-      </p>
+      <p style={HINT}>{allowed ? npcCopy('chooseASlotToDesign') : npcCopy('chooseASlotToSee')}</p>
     ) : (
       <SlotPanel
         key={selected.key}
@@ -264,21 +255,14 @@ function CrewSlots({
 
   return (
     <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
-      <SlabSection as="h2" id="crew-slots" title="Crew slots" bodyStyle={COLUMN}>
+      <SlabSection as="h2" id="crew-slots" title={npcCopy('crewSlots')} bodyStyle={COLUMN}>
         <p style={HINT}>
-          {typeName
-            ? 'One slot for the crawler type’s NPC, then one per bay. '
-            : 'One slot per bay. '}
+          {typeName ? npcCopy('oneSlotForTheCrawler') : npcCopy('oneSlotPerBay')}
           An empty slot uses the book’s crew line; assigning a designed NPC replaces it, and
           unassigning brings the book’s line back.
         </p>
-        {!writer && (
-          <p style={NOTE}>
-            Only the Mediator assigns crawler crew. Design an NPC in your Training Bay and move it
-            into this Game to offer it.
-          </p>
-        )}
-        <ul style={LIST} aria-label={`${crawler.name} crew slots`}>
+        {!writer && <p style={NOTE}>{npcCopy('onlyTheMediatorAssignsCrawler')}</p>}
+        <ul style={LIST} aria-label={npcCopy('crewSlots2', { name: crawler.name })}>
           {slots.map((s) => (
             <SlotRow
               key={s.key}
@@ -293,7 +277,7 @@ function CrewSlots({
       </SlabSection>
 
       {wide ? (
-        <section style={COLUMN} aria-label="Crew slot">
+        <section style={COLUMN} aria-label={npcCopy('crewSlot')}>
           {panel(false)}
         </section>
       ) : (
@@ -302,7 +286,7 @@ function CrewSlots({
           onOpenChange={(open) => {
             if (!open) onSelect(undefined)
           }}
-          title={selected ? slotTitle(selected) : 'Crew slot'}
+          title={selected ? slotTitle(selected) : npcCopy('crewSlot')}
           align="top"
         >
           {/* ModalShell's Card body supplies no padding: the gutter is ours. */}
@@ -347,13 +331,13 @@ function SlotRow({
   const readings: UnitReading[] = assignment
     ? npc
       ? [
-          { label: 'Role', value: npc.position ?? slot.position },
-          { label: 'HP', value: npc.hitPoints },
+          { label: npcCopy('role'), value: npc.position ?? slot.position },
+          { label: npcCopy('hp'), value: npc.hitPoints },
         ]
       : []
     : [
-        ...(designing || !slot.bookName ? [] : [{ label: 'Role', value: slot.position }]),
-        { label: 'HP', value: slot.hitPoints },
+        ...(designing || !slot.bookName ? [] : [{ label: npcCopy('role'), value: slot.position }]),
+        { label: npcCopy('hp'), value: slot.hitPoints },
       ]
   return (
     <li>
@@ -378,7 +362,7 @@ function SlotRow({
         labels={
           assignment ? undefined : (
             <Badge shape="stamp" size="mini">
-              {designing ? 'Designing now' : 'Book’s crew line'}
+              {designing ? npcCopy('designingNow') : npcCopy('booksCrewLine')}
             </Badge>
           )
         }
@@ -388,9 +372,9 @@ function SlotRow({
               size="compact"
               variant="default"
               onClick={onOpen}
-              aria-label={`Design ${slot.name} crew`}
+              aria-label={npcCopy('designCrew', { name: slot.name })}
             >
-              Design
+              {npcCopy('design')}
             </Button>
           ) : undefined
         }
@@ -466,9 +450,7 @@ function SlotPanel({
             )}
           />
         ) : (
-          <p style={HINT}>
-            The NPC assigned here cannot be shown. It may have been deleted or moved.
-          </p>
+          <p style={HINT}>{npcCopy('theNpcAssignedHereCannot')}</p>
         )}
         {!allowed ? (
           <WritesBlockedNotice />
@@ -479,7 +461,7 @@ function SlotPanel({
             </Button>
           </div>
         )}
-        <p style={HINT}>Unassigning keeps both the NPC and the book’s crew line.</p>
+        <p style={HINT}>{npcCopy('unassigningKeepsBothTheNpc')}</p>
       </>
     )
   }
@@ -499,10 +481,10 @@ function SlotPanel({
     const assigned = await assign.run(created.id)
     if (!assigned.ok) {
       // The NPC stays saved: the two writes are separate on purpose (D8).
-      toast.error(`${created.name} is saved, but not assigned: ${assigned.error}`)
+      toast.error(npcCopy('isSavedButNotAssigned', { name: created.name, error: assigned.error }))
       return
     }
-    toast.success(`${created.name} crews the ${slot.name}.`)
+    toast.success(npcCopy('crewsThe', { name: created.name, name2: slot.name }))
     onDone()
   }
 
@@ -512,7 +494,7 @@ function SlotPanel({
       toast.error(assigned.error)
       return
     }
-    toast.success(`${npc.name} crews the ${slot.name}.`)
+    toast.success(npcCopy('crewsThe', { name: npc.name, name2: slot.name }))
     onDone()
   }
 
@@ -521,8 +503,10 @@ function SlotPanel({
       <>
         {heading}
         <p style={HINT}>
-          {slot.bookName ? `${slot.bookName}, the ${slot.position}` : `The ${slot.position}`} holds
-          this slot from the book&rsquo;s crew line ({slot.hitPoints} Hit Points).
+          {slot.bookName
+            ? npcCopy('the', { bookName: slot.bookName, position: slot.position })
+            : npcCopy('the2', { position: slot.position })}{' '}
+          holds this slot from the book&rsquo;s crew line ({slot.hitPoints} Hit Points).
         </p>
         <p style={NOTE}>{GAME_RULE}</p>
       </>
@@ -533,8 +517,7 @@ function SlotPanel({
     <>
       {heading}
       <p style={HINT}>
-        The slot fixes the template: position {slot.position}, {slot.hitPoints} Hit Points. You fill
-        in what the book asks for.
+        {npcCopy('theSlotFixesTheTemplate', { position: slot.position, hitPoints: slot.hitPoints })}
       </p>
       {slot.choices.map((choice) => {
         const id = `crew-${nameToSlug(slot.key)}-${nameToSlug(choice.name)}`
@@ -572,7 +555,7 @@ function SlotPanel({
               {table && (
                 <RollTableButton
                   table={table}
-                  ariaLabel={`Roll ${choice.name} on the ${table} table`}
+                  ariaLabel={npcCopy('rollOnTheTable', { name: choice.name, table })}
                   onRoll={(rolled) => {
                     set(rolled)
                     setAnnouncement(`Rolled: ${rolled}`)
@@ -587,7 +570,7 @@ function SlotPanel({
         {announcement}
       </p>
 
-      <section aria-label="Preview" style={COLUMN}>
+      <section aria-label={npcCopy('preview')} style={COLUMN}>
         <NpcCard npc={view} madeBy={madeBy} size="compact" kicker={`Crawler crew · ${slot.name}`} />
       </section>
 
@@ -595,22 +578,22 @@ function SlotPanel({
       <div style={ROW}>
         {allowed ? (
           <Button variant="primary" disabled={busy} onClick={() => void saveAndAssign()}>
-            {busy ? 'Saving…' : `Save and assign to ${slot.name}`}
+            {busy ? npcCopy('saving') : npcCopy('saveAndAssignTo', { name: slot.name })}
           </Button>
         ) : (
           <WritesBlockedNotice />
         )}
         <Button variant="default" disabled={busy} onClick={onDone}>
-          Keep the book’s line
+          {npcCopy('keepTheBooksLine')}
         </Button>
       </div>
 
       {allowed && candidates.length > 0 && (
         <>
           <p className={CAPS_LABEL} style={CAPS}>
-            Or assign an NPC already here
+            {npcCopy('orAssignAnNpcAlready')}
           </p>
-          <ul style={LIST} aria-label={`NPCs that can crew the ${slot.name}`}>
+          <ul style={LIST} aria-label={npcCopy('npcsThatCanCrewThe', { name: slot.name })}>
             {candidates.map((npc) => (
               <li key={npc.id}>
                 <UnitRow
@@ -624,9 +607,9 @@ function SlotPanel({
                       variant="default"
                       disabled={busy}
                       onClick={() => void assignExisting(npc)}
-                      aria-label={`Assign ${npc.name} to ${slot.name}`}
+                      aria-label={npcCopy('assignTo', { name: npc.name, name2: slot.name })}
                     >
-                      Assign
+                      {npcCopy('assign')}
                     </Button>
                   }
                 />

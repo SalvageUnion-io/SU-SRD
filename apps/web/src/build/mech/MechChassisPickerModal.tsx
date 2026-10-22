@@ -17,6 +17,7 @@
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { Button, ConfirmDialog, EntitySearcher, ModalShell } from '../../components/index'
+import { mechCopy } from '../../messages/build-mech'
 import '../../styles/build/wizard.css'
 
 type MechChassisPickerModalProps = {
@@ -71,7 +72,7 @@ export function MechChassisPickerModal({
       <ModalShell
         open={open && !confirming}
         onOpenChange={onOpenChange}
-        title="Change Chassis"
+        title={mechCopy('changeChassis')}
         width="page"
         bare
       >
@@ -92,18 +93,18 @@ export function MechChassisPickerModal({
           // "Chosen only / Not yet added" is meaningless when the answer is
           // always exactly one entity.
           facets={{ status: false }}
-          chosenLabel="Chosen"
-          title="Change Chassis"
-          subtitle="Swapping chassis clears the current loadout."
-          emptyMessage="No matching chassis."
+          chosenLabel={mechCopy('chosen')}
+          title={mechCopy('changeChassis')}
+          subtitle={mechCopy('swappingChassisClearsTheCurrent')}
+          emptyMessage={mechCopy('noMatchingChassis')}
           onClose={() => onOpenChange(false)}
           railActions={
             <>
               <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
-                Cancel
+                {mechCopy('cancel')}
               </Button>
               <Button size="compact" disabled={!changed} onClick={apply}>
-                Apply chassis
+                {mechCopy('applyChassis')}
               </Button>
             </>
           }
@@ -113,10 +114,10 @@ export function MechChassisPickerModal({
       <ConfirmDialog
         open={confirming}
         onOpenChange={setConfirming}
-        title="Change chassis?"
+        title={mechCopy('changeChassis2')}
         tone="danger"
-        body="Changing chassis clears the current loadout (pattern, systems, and modules). Continue?"
-        confirmLabel="Change chassis"
+        body={mechCopy('changingChassisClearsTheCurrent')}
+        confirmLabel={mechCopy('changeChassis3')}
         onConfirm={confirmChange}
       />
     </>

@@ -114,6 +114,33 @@ export async function requireMember(ctx: AnyCtx, gameId: Id<'games'>): Promise<D
   return await requireMemberAs(ctx, gameId, await requireUser(ctx))
 }
 
+/**
+ * The caller's membership in `gameId`, or null — for a **query** a page keeps
+ * open. A Game changes under an open page (the caller leaves, is removed, or
+ * the Game is deleted), and the subscription re-runs before the page hears of
+ * it; throwing there only reports a race as an error. A read for a non-member
+ * answers empty instead, as `games.get` answers null. Mutations still throw.
+ */
+export async function membershipOrNull(
+  ctx: AnyCtx,
+  gameId: Id<'games'>
+): Promise<Doc<'memberships'> | null> {
+  return await getMembership(ctx, gameId, await requireUser(ctx))
+}
+
+/**
+ * The caller's membership while they mediate `gameId`, or null: the
+ * Mediator-only reads' `membershipOrNull`, for a Game handed to a new Mediator
+ * under the old one's open Cockpit.
+ */
+export async function mediatorOrNull(
+  ctx: AnyCtx,
+  gameId: Id<'games'>
+): Promise<Doc<'memberships'> | null> {
+  const membership = await membershipOrNull(ctx, gameId)
+  return membership?.mediator === true ? membership : null
+}
+
 /** Membership with `mediator: true`, or a throw. */
 export async function requireMediator(
   ctx: AnyCtx,

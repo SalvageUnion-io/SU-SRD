@@ -23,6 +23,7 @@ import type { CSSProperties } from 'react'
 import { Button, Entity, Stat, tokens } from '../../components/index'
 import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { MediatorSeat } from './mediatorTable.model'
 
 const CHIPS = {
@@ -91,13 +92,13 @@ export function PlayMediatorSeat({
           role: 'toggle',
           selected: picked,
           onSelect: onPick,
-          label: `${seat.label}. Aim Propose here`,
+          label: mediatorCopy('aimProposeHere', { label: seat.label }),
         }}
         dim={dim}
         {...(pair.relations ? { relations: [...pair.relations] } : {})}
         state={
           <>
-            <Stat size="mini" label={away ? 'Away' : 'Here'} />
+            <Stat size="mini" label={away ? mediatorCopy('away') : mediatorCopy('here')} />
             {flagged ? (
               <Stat
                 size="mini"
@@ -113,10 +114,10 @@ export function PlayMediatorSeat({
           <Button
             variant="ghost"
             size="mini"
-            aria-label={`Open ${seat.name}’s sheet`}
+            aria-label={mediatorCopy('openSSheet', { name: seat.name })}
             onClick={onOpenSheet}
           >
-            Sheet
+            {mediatorCopy('sheet')}
           </Button>
         }
         body={{
@@ -152,7 +153,7 @@ function SeatMount({ seat }: { seat: MediatorSeat }) {
 /** What they are doing now: the step, the roll, the problem, or where they were last seen. */
 function SeatLine({ seat, stepLine }: { seat: MediatorSeat; stepLine: string | null }) {
   if (!seat.present) {
-    return <p style={MUTED}>Last seen {seat.mount}</p>
+    return <p style={MUTED}>{mediatorCopy('lastSeen', { mount: seat.mount })}</p>
   }
   return (
     <>

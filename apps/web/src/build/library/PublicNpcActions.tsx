@@ -2,7 +2,7 @@
  * PublicNpcActions — a shared NPC's page corner (`/p/npc/:appId`): Make a
  * copy, signed in, as a shared pattern's page has always offered, and, while
  * it is in the Homebrew library, Report and a site admin's Hide
- * (`LibraryPageControls`, ADR-053).
+ * (`LibraryPageControls`, ADR-056).
  */
 
 import type { Npc } from 'game-domain/schemas/npc'

@@ -10,6 +10,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { Conditions, Eyebrow, heatDangerFrom, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { useEntityStore } from '../../stores/entityStore'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import type { MechSheetModel } from './mechSheet.model'
@@ -93,7 +94,7 @@ export function MechVitals({ mech, model, actions, readOnly, store }: MechVitals
           prints as chips only when there is one to read. */}
       {(!readOnly || readConditions.length > 0) && (
         <div style={CONDITIONS}>
-          <Eyebrow tone="toneDeep">Conditions</Eyebrow>
+          <Eyebrow tone="toneDeep">{buildSheetCopy('conditions')}</Eyebrow>
           {readOnly ? (
             <Conditions conditions={readConditions} />
           ) : (

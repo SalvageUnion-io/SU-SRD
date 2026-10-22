@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
+import { atomsCopy } from '../../messages/components-atoms'
 
 /**
  * NextLabel — what a forward control says (chrome K11, hard rule R23), the
@@ -22,7 +23,7 @@ export function NextLabel({
 }) {
   return (
     <>
-      <span className="su-sr-only">Next: </span>
+      <span className="su-sr-only">{atomsCopy('next')} </span>
       {to}
       <ChevronRight size={iconSize[size]} aria-hidden="true" />
     </>

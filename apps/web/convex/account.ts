@@ -93,7 +93,7 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
-    /** Their reports of Homebrew library listings (ADR-053): what they said, and when. */
+    /** Their reports of Homebrew library listings (ADR-056): what they said, and when. */
     libraryReports: v.array(v.object({ reason: v.string(), at: v.number() })),
     games: v.array(
       v.object({
@@ -209,7 +209,7 @@ export const deleteAccount = mutation({
         const passedOn = await reassignOrganizer(ctx, membership.gameId, userId)
         if (!passedOn) {
           // Last member out: the Game has nobody left to run or play it, and
-          // what it held has nowhere to go — unclaimed entities in a Game with
+          // what it held has nowhere to go — unassigned entities in a Game with
           // no members included.
           for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs', 'npcs'] as const) {
             const rows = await ctx.db

@@ -1,3 +1,5 @@
+import { atomsCopy } from '../../messages/components-atoms'
+
 /**
  * Text is the PROSE primitive — running copy, reference paragraphs, asides.
  *
@@ -24,8 +26,8 @@ type TextVariant = 'default' | 'body' | 'hint' | 'flavor'
  */
 const VARIANT_CLASS: Record<TextVariant, string> = {
   default: 'su-text su-text--default',
-  body: 'su-text su-text--body',
-  hint: 'su-text su-text--hint',
+  body: atomsCopy('suTextSuTextBody'),
+  hint: atomsCopy('suTextSuTextHint'),
   flavor: 'su-text su-text--flavor',
 }
 

@@ -257,7 +257,7 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   const pilot = await oldestByAppId(ctx, 'pilots', link.to.id)
   if (pilot === null) return []
 
-  // The pilot must be the mech owner's own, or unclaimed alongside it.
+  // The pilot must be the mech owner's own, or unassigned alongside it.
   //
   // "Same Game" is deliberately NOT enough. `upsertSoftLink` validates only the
   // `from` anchor, so a member could point a link from their own mech at a
@@ -265,7 +265,7 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   // abilities to anonymous readers. Members can already read each other's
   // sheets inside a Game — but republishing that outside the membership
   // boundary is the owner's call, which is the whole consent argument this
-  // module rests on. An unclaimed pilot in the same Game has no owner to ask
+  // module rests on. An unassigned pilot in the same Game has no owner to ask
   // and is already visible to the table, so it stays allowed.
   //
   // A pilot published in its own right is the third case: its abilities are on
@@ -275,10 +275,10 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
   const mechOwnerId = mech.ownerId
   const pilotOwnerId = pilot.ownerId
   const sameOwner = pilotOwnerId !== null && pilotOwnerId === mechOwnerId
-  const unclaimedInSameGame =
+  const unassignedInSameGame =
     pilotOwnerId === null && mech.gameId !== null && pilot.gameId === mech.gameId
   const publishedAlongside = pilot.publicRead === true && sameContainerRows(mech, pilot)
-  if (!sameOwner && !unclaimedInSameGame && !publishedAlongside) return []
+  if (!sameOwner && !unassignedInSameGame && !publishedAlongside) return []
 
   const abilities = (pilot.body as { abilities?: unknown }).abilities
   return Array.isArray(abilities) ? abilities.filter((a): a is string => typeof a === 'string') : []
@@ -303,9 +303,9 @@ async function pilotAbilitiesForMech(ctx: QueryCtx, mech: Doc<PublicTable>): Pro
  * caller already has it in hand.
  *
  * The two gates cannot simply be merged, even though all three rows carry
- * the same columns, because an **unclaimed** row means opposite things per
- * table. An unclaimed pilot is a character waiting for a taker and may not be
- * published until somebody owns it; an unclaimed crawler is the normal state of
+ * the same columns, because an **unassigned** row means opposite things per
+ * table. An unassigned pilot is a character waiting for a taker and may not be
+ * published until somebody owns it; an unassigned crawler is the normal state of
  * a crew's home and is published by whoever runs the table.
  */
 async function assertMayPublish(
@@ -328,13 +328,13 @@ async function assertMayPublish(
   }
   if (row.ownerId === userId) return
   if (row.ownerId === null) {
-    // **Unclaimed blocks publishing, never UN-publishing.** `ownership.release`
+    // **Unassigned blocks publishing, never UN-publishing.** `ownership.release`
     // nulls `ownerId` on a row still in the Game, so refusing withdrawal would
     // leave a published sheet un-revocable (ADR-032 §6). Withdrawal only
     // reduces exposure.
     if (!isPublic) return
     throw new NotAuthorized(
-      'That entity is unclaimed — it must be assigned before it can be shared'
+      'That entity is unassigned — it must be assigned before it can be shared'
     )
   }
   throw new NotAuthorized("You cannot publish another player's entity")
@@ -441,7 +441,7 @@ const previewKindValidator = v.union(...entityRefType.members, v.literal('patter
 const previewAnswer = v.object({
   kind: previewKindValidator,
   body: v.any(),
-  /** The player who owns it (a sheet) or made it (a pattern); null when unclaimed. */
+  /** The player who owns it (a sheet) or made it (a pattern); null when unassigned. */
   ownerName: v.union(v.string(), v.null()),
   /** The Game a sheet sits in; null on a shelf, and always null for a pattern. */
   gameName: v.union(v.string(), v.null()),

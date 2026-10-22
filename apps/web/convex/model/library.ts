@@ -3,7 +3,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import type { LibraryKind } from './libraryTables'
 
 /**
- * The Homebrew library's shared reads and its one invariant (ADR-053).
+ * The Homebrew library's shared reads and its one invariant (ADR-056).
  *
  * **A listing is only ever as public as its source.** The library lists what
  * its maker already shares by link (`publicRead`), so every read checks the

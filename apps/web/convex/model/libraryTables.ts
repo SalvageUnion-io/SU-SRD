@@ -3,7 +3,7 @@ import { v } from 'convex/values'
 import { literalUnion } from './validators'
 
 /**
- * The Homebrew library's tables (ADR-053), spread into `schema.ts`.
+ * The Homebrew library's tables (ADR-056), spread into `schema.ts`.
  *
  * The library is an index over things that already exist: a listing names a
  * player's saved pattern or built NPC by kind and app id, and every read goes

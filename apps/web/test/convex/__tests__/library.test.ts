@@ -6,7 +6,7 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * The Homebrew library (ADR-053): a maker lists a pattern or NPC they already
+ * The Homebrew library (ADR-056): a maker lists a pattern or NPC they already
  * share by link; anyone reads the gallery with no account; a signed-in reader
  * reports; a site admin hides. A listing is never more public than its source.
  */

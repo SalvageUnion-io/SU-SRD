@@ -1,6 +1,6 @@
 /**
  * LibraryPageControls — what a listed pattern's or NPC's own page offers about
- * the Homebrew library (ADR-053), in its corner beside Make a copy: Report…
+ * the Homebrew library (ADR-056), in its corner beside Make a copy: Report…
  * for a signed-in reader who did not make it, and a site admin's Hide or Put
  * back. Nothing while it is not listed (and not taken down), so an unlisted
  * share link reads exactly as before.

@@ -103,7 +103,7 @@ export function bayChips(crawler: Crawler): BayChip[] {
 
 /**
  * The pilot's other mechs, as the hangar lists them: those Board offers that
- * are the pilot's own (in a Game, a crewmate's mech or an unclaimed spare is
+ * are the pilot's own (in a Game, a crewmate's mech or an unassigned spare is
  * the Board menu's, not this hangar's), less the one the column already shows.
  */
 export function hangarMechs(options: readonly BoardOption[], shownId: string | null) {

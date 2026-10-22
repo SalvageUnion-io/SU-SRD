@@ -15,6 +15,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { playGamesCopy } from '../../messages/play-games'
 
 /**
  * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
@@ -55,10 +56,10 @@ export function GameBand({
               // The stamp and its link wrap as one piece, centred on each other.
               <Cluster gap={8}>
                 <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
-                  You mediate
+                  {playGamesCopy('youMediate')}
                 </Badge>
                 <Button href={`/play/game/${gameId}`} variant="ink" size="compact">
-                  Mediate
+                  {playGamesCopy('mediate')}
                 </Button>
               </Cluster>
             )}

@@ -1,5 +1,5 @@
 /**
- * The Homebrew library's surfaces (ADR-053): the gallery, its admin queue, the
+ * The Homebrew library's surfaces (ADR-056): the gallery, its admin queue, the
  * Share dialog's opt-in, and a listed page's Report and Hide. Pins what each
  * shows to whom and which server write each control makes.
  */

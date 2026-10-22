@@ -159,7 +159,7 @@ describe('sent: what the Mediator has asked, in every state', () => {
   test('a player cannot read it', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
-    await expect(player.as.query(api.proposals.sent, { gameId })).rejects.toThrow(/mediator/i)
+    expect(await player.as.query(api.proposals.sent, { gameId })).toEqual([])
   })
 })
 

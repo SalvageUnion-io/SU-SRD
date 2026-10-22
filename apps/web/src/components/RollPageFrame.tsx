@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { RefText } from '../lib/rollTablePage'
 import { plainText } from '../lib/rollTablePage'
+import { componentsCopy } from '../messages/components'
 import { InlineRef } from './index'
 import { MentionProse } from './MentionProse'
 
@@ -31,7 +32,7 @@ export function RollPageFrame({ density, description, children }: RollPageFrameP
       <p className="su-roll-page__credit">
         Dice rolling powered by{' '}
         <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
-          Randsum.dev
+          {componentsCopy('randsumDev')}
         </InlineRef>
       </p>
     </div>

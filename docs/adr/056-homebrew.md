@@ -1,4 +1,4 @@
-# ADR-053: The Homebrew Library
+# ADR-056: The Homebrew Library
 
 Decided and built for 4.1.0. Amends [ADR-032](032-public-read-only-sheets.md)
 (a second account-free surface) and narrows the "net-new homebrew authoring is

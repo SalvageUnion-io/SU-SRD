@@ -45,6 +45,7 @@ import {
   tokens,
 } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { playGamesCopy } from '../../messages/play-games'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
@@ -78,12 +79,10 @@ function NotInGame() {
   return (
     <div style={NOT_IN_NOTE}>
       <Callout role="note">
-        <Text>
-          You are not in this Game. Ask its Organiser for the invite link, then open it to join.
-        </Text>
+        <Text>{playGamesCopy('youAreNotInThis')}</Text>
         <div>
           <Button href={PLAY_HUB} back size="compact">
-            Play
+            {playGamesCopy('play')}
           </Button>
         </div>
       </Callout>
@@ -119,7 +118,7 @@ function GameSections({ game }: { game: Game }) {
             <SlabSection
               as="h2"
               id="invite-link-heading"
-              title="Invite link"
+              title={playGamesCopy('inviteLink')}
               actions={
                 <>
                   <CopyInviteLink gameId={gameId} />
@@ -173,7 +172,7 @@ export function GameHub({ gameId }: GameHubProps) {
     >
       {game === undefined ? (
         <div style={PENDING}>
-          <Pending label="this Game" />
+          <Pending label={playGamesCopy('thisGame')} />
         </div>
       ) : game === null ? (
         <NotInGame />

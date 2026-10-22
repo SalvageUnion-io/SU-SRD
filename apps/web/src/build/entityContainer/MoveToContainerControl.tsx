@@ -66,6 +66,7 @@ import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
+import { entityContainerCopy } from '../../messages/build-entity-container'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import { ContainerPicker } from './ContainerPicker'
@@ -144,7 +145,7 @@ function ConnectedMoveToContainerControl({
   return (
     <div className={className}>
       {/* The one label treatment (R16): `Field`'s, over the select. */}
-      <Field label="In" htmlFor={`container-move-${entityId}`}>
+      <Field label={entityContainerCopy('in')} htmlFor={`container-move-${entityId}`}>
         {/* A record left in a container that is not among the user's Games —
             a v13 phantom id, or a Game they have since left — is named
             "Unknown game" by `moveDestinations` rather than passed off as
@@ -152,7 +153,7 @@ function ConnectedMoveToContainerControl({
         <ContainerPicker
           variant="select"
           id={`container-move-${entityId}`}
-          label="Move to a Game or your Training Bay"
+          label={entityContainerCopy('moveToAGameOr')}
           value={current}
           choices={destinations}
           onPick={(choice) => handlePick(choice.container)}

@@ -11,6 +11,7 @@
 
 import type { CSSProperties } from 'react'
 import { ChapterBand, Text, tokens } from '../../components/index'
+import { buildAccountCopy } from '../../messages/build-account'
 import { SignInControl } from './SignInControl'
 
 /** The column under the band; the band's notch starts where it does. */
@@ -43,11 +44,7 @@ export function SignInToBuild({ title, redirectTo }: SignInToBuildProps) {
         {title}
       </ChapterBand>
       <div style={COLUMN}>
-        <Text variant="body">
-          Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you
-          build is kept in your account, saved as you go, and ready to share with a Game, so
-          building needs you signed in.
-        </Text>
+        <Text variant="body">{buildAccountCopy('buildAndRunYourSalvage')}</Text>
         <SignInControl size="full" redirectTo={redirectTo} />
       </div>
     </section>

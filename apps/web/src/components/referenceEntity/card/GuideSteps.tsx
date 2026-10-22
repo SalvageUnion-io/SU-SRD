@@ -4,6 +4,7 @@ import type { RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
 import { Slab } from '../../atoms/Slab'
@@ -269,14 +270,14 @@ export function GuideSteps({
       {/* A phone lists the contents above the steps, always open under their
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
-      <nav className="su-guide__toc-block" aria-label="On this page">
-        <Slab label="On this page" flush />
+      <nav className="su-guide__toc-block" aria-label={referenceEntityCopy('onThisPage')}>
+        <Slab label={referenceEntityCopy('onThisPage')} flush />
         {contents}
       </nav>
       <div className="su-guide__flow">{body}</div>
-      <nav className="su-guide__rail" aria-label="On this page">
+      <nav className="su-guide__rail" aria-label={referenceEntityCopy('onThisPage')}>
         <p className={TOC_TITLE} aria-hidden="true">
-          On this page
+          {referenceEntityCopy('onThisPage')}
         </p>
         {contents}
       </nav>

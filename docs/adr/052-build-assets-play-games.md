@@ -19,7 +19,7 @@ then one entry per Game.
 
 ### 2. Build lists only what you own
 
-Unclaimed units, and a Game's units you do not own, appear only on that Game's
+Unassigned units, and a Game's units you do not own, appear only on that Game's
 page in Play.
 
 ### 3. Asset actions stay in Build

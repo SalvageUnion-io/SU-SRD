@@ -1,5 +1,5 @@
 /**
- * HomebrewLibrary — `/library`, the Homebrew library (ADR-053): the patterns
+ * HomebrewLibrary — `/library`, the Homebrew library (ADR-056): the patterns
  * and built NPCs players chose to list, one more Catalog.
  *
  * Laid out as a listing page is: the band (hatched, user-made, ruleset §3.9)

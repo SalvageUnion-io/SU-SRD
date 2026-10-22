@@ -1,6 +1,6 @@
 /**
  * LibraryModeration — a site admin's queue on the Homebrew library page
- * (ADR-053): the listings readers reported, most reported first, with their
+ * (ADR-056): the listings readers reported, most reported first, with their
  * reasons, to hide or dismiss; and the listings taken down, to put back.
  * Rendered only for a site admin (`library.moderation` answers null to
  * everyone else, and the server refuses their writes either way).

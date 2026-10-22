@@ -28,6 +28,7 @@ import {
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { getEntitySchemas } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
 
@@ -198,88 +199,82 @@ function page(): PageResult {
         '@context': 'https://schema.org',
         '@type': 'TechArticle',
         name: 'Salvage Union SRD JSON API Reference',
-        description:
-          'Documentation for the public JSON API endpoints available at salvageunion.io.',
+        description: pagesCopy('documentationForThePublicJson'),
         url: `${SITE_URL}/api/`,
         isPartOf: WEBSITE,
       },
     },
     children: (
-      <DocPage title="JSON API Reference" measure="64rem" gap={space[32]}>
+      <DocPage title={pagesCopy('jsonApiReference')} measure="64rem" gap={space[32]}>
         {/* Overview */}
-        <SlabSection as="h2" title="Overview" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('overview')} bodyStyle={PROSE_12} page>
+          <p>{pagesCopy('allGameDataOnSalvageunion')}</p>
           <p>
-            All game data on salvageunion.io is available as machine-readable JSON. The API is
-            static — every endpoint is a plain file served directly from the site. No authentication
-            is required.
-          </p>
-          <p>
-            CORS is fully open (<code style={CODE}>Access-Control-Allow-Origin: *</code>
+            CORS is fully open (<code style={CODE}>{pagesCopy('accessControlAllowOrigin')}</code>
             ), so you can fetch from any origin, including browser JavaScript.
           </p>
           <p>
-            <strong>Base URL:</strong> <code style={CODE}>{SITE_URL}</code>
+            <strong>{pagesCopy('baseUrl')}</strong> <code style={CODE}>{SITE_URL}</code>
           </p>
           <p style={ASIDE}>
-            <strong>Tip:</strong> every page on this site has its data under{' '}
-            <code style={CODE_ON_GROUND}>/schema/</code>. For example,{' '}
+            <strong>{pagesCopy('tip')}</strong> every page on this site has its data under{' '}
+            <code style={CODE_ON_GROUND}>{pagesCopy('schema')}</code>. For example,{' '}
             <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML index, and{' '}
-            <code style={CODE_ON_GROUND}>/schema/chassis.json</code> serves the raw array. The same
-            applies to individual entities:{' '}
+            <code style={CODE_ON_GROUND}>{pagesCopy('schemaChassisJson')}</code> serves the raw
+            array. The same applies to individual entities:{' '}
             <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page, and{' '}
-            <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code> its data.
+            <code style={CODE_ON_GROUND}>
+              {pagesCopy('schemaChassisItemJson', { slug: samples.slug })}
+            </code>{' '}
+            its data.
           </p>
         </SlabSection>
 
         {/* Endpoints */}
         <Stack as="section" gap={24}>
-          <Slab as="h2" label="Endpoints" />
+          <Slab as="h2" label={pagesCopy('endpoints')} />
 
-          <DocPanel title="Every entity of a schema" chips={GET}>
+          <DocPanel title={pagesCopy('everyEntityOfASchema')} chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
               </code>
             </p>
-            <p>Returns the full data array for a schema. Each element is a game entity.</p>
+            <p>{pagesCopy('returnsTheFullDataArray')}</p>
             <p>
-              <strong>Example:</strong>{' '}
+              <strong>{pagesCopy('example')}</strong>{' '}
               <InlineRef
                 href={`${SITE_URL}/schema/chassis.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {SITE_URL}/schema/chassis.json
+                {pagesCopy('schemaChassisJson2', { siteUrl: SITE_URL })}
               </InlineRef>
             </p>
             <CodeSample>{samples.schemaArray}</CodeSample>
           </DocPanel>
-          <DocPanel title="A schema's JSON Schema" chips={GET}>
+          <DocPanel title={pagesCopy('aSchemasJsonSchema')} chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
               </code>
             </p>
+            <p>{pagesCopy('returnsTheJsonSchemaDefinition')}</p>
             <p>
-              Returns the JSON Schema definition for a schema, generated from the Zod validation
-              schemas used in this site's codebase. Useful for validating data or understanding the
-              shape of entity objects.
-            </p>
-            <p>
-              <strong>Example:</strong>{' '}
+              <strong>{pagesCopy('example')}</strong>{' '}
               <InlineRef
                 href={`${SITE_URL}/schema/chassis.schema.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {SITE_URL}/schema/chassis.schema.json
+                {pagesCopy('schemaChassisSchemaJson', { siteUrl: SITE_URL })}
               </InlineRef>
             </p>
             <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
           </DocPanel>
-          <DocPanel title="One entity" chips={GET}>
+          <DocPanel title={pagesCopy('oneEntity')} chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
@@ -293,14 +288,14 @@ function page(): PageResult {
               site.
             </p>
             <p>
-              <strong>Example:</strong>{' '}
+              <strong>{pagesCopy('example')}</strong>{' '}
               <InlineRef
                 href={`${SITE_URL}/schema/chassis/item/${samples.slug}.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {SITE_URL}/schema/chassis/item/{samples.slug}.json
+                {pagesCopy('schemaChassisItemJson2', { siteUrl: SITE_URL, slug: samples.slug })}
               </InlineRef>
             </p>
             <CodeSample>{samples.entity}</CodeSample>
@@ -308,33 +303,31 @@ function page(): PageResult {
         </Stack>
 
         {/* Usage example */}
-        <DocPanel title="Usage example">
-          <p>Fetch all chassis data in browser JavaScript:</p>
+        <DocPanel title={pagesCopy('usageExample')}>
+          <p>{pagesCopy('fetchAllChassisDataIn')}</p>
           <CodeSample roomy>{samples.fetch}</CodeSample>
         </DocPanel>
 
         {/* Available schemas */}
         <Stack as="section" gap={16}>
-          <Slab as="h2" label="Available Schemas" />
-          <p style={PROSE}>
-            The following schema IDs are available. Use them in the endpoint patterns above.
-          </p>
+          <Slab as="h2" label={pagesCopy('availableSchemas')} />
+          <p style={PROSE}>{pagesCopy('theFollowingSchemaIdsAre')}</p>
 
-          <DocPanel title="Schema IDs" flush>
+          <DocPanel title={pagesCopy('schemaIds')} flush>
             <table style={TABLE} className="su-api__schemas">
               <thead>
                 <tr className="su-print-ink" style={TABLE_HEAD}>
                   <th className={TH_CAPS} style={TH}>
-                    Schema ID
+                    {pagesCopy('schemaId')}
                   </th>
                   <th className={TH_CAPS} style={TH}>
-                    Name
+                    {pagesCopy('name')}
                   </th>
                   <th className={cn('su-api__wide-cell', TH_CAPS)} style={TH}>
-                    Description
+                    {pagesCopy('description')}
                   </th>
                   <th className={TH_CAPS} style={TH_END}>
-                    Items
+                    {pagesCopy('items')}
                   </th>
                 </tr>
               </thead>
@@ -365,16 +358,17 @@ function page(): PageResult {
         </Stack>
 
         {/* CORS & headers */}
-        <DocPanel title="CORS policy">
+        <DocPanel title={pagesCopy('corsPolicy')}>
           <p>
-            All <code style={CODE}>/schema/</code> endpoints include the following response headers:
+            All <code style={CODE}>{pagesCopy('schema')}</code> endpoints include the following
+            response headers:
           </p>
           <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
-          <p>No preflight requests are required for standard GET requests.</p>
+          <p>{pagesCopy('noPreflightRequestsAreRequired')}</p>
         </DocPanel>
 
         {/* Licensing note */}
-        <SlabSection as="h2" title="Licensing" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('licensing')} bodyStyle={PROSE_12} page>
           <p>
             Data returned by this API is published under the{' '}
             <InlineRef
@@ -383,7 +377,7 @@ function page(): PageResult {
               rel="noopener noreferrer"
               style={BOLD}
             >
-              Salvage Union Open Game Licence (OGL 1.0b)
+              {pagesCopy('salvageUnionOpenGameLicence2')}
             </InlineRef>
             . Salvage Union is created and published by{' '}
             <InlineRef
@@ -392,15 +386,16 @@ function page(): PageResult {
               rel="noopener noreferrer"
               style={BOLD}
             >
-              Leyline Press
+              {pagesCopy('leylinePress')}
             </InlineRef>
             .
           </p>
           <p>
-            The licence covers game text and mechanics only. Entity artwork is <strong>not</strong>{' '}
-            covered — those images are used on this site with special permission from Leyline Press
-            and may not be redistributed. Republication of licensed text must include the legal
-            notices required by the Salvage Union Open Game Licence 1.0b.
+            The licence covers game text and mechanics only. Entity artwork is{' '}
+            <strong>{pagesCopy('not')}</strong> covered — those images are used on this site with
+            special permission from Leyline Press and may not be redistributed. Republication of
+            licensed text must include the legal notices required by the Salvage Union Open Game
+            Licence 1.0b.
           </p>
         </SlabSection>
       </DocPage>

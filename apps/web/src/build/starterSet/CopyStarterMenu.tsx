@@ -23,6 +23,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 
 type CopyStarterMenuProps = {
@@ -42,18 +43,18 @@ function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStart
   function copyTo(target: Destination) {
     const to = target.container
     confirm({
-      title: `Copy ${name} to ${target.label}?`,
+      title: buildStarterSetCopy('copyTo', { name, label: target.label }),
       body: [
         `This makes ${name} a build of your own in ${target.label}, to edit and play.`,
         `The Starter Set's ${name} stays as ${STARTER_SET_PUBLISHER} published it. Don't want the copy later? Delete it like any other build.`,
       ],
-      confirmLabel: 'Make a copy',
-      pendingLabel: 'Copying…',
+      confirmLabel: buildStarterSetCopy('makeACopy'),
+      pendingLabel: buildStarterSetCopy('copying'),
       tone: 'default',
       failure: `${name} could not be copied. Try again.`,
       onConfirm: async () => {
         await copyStarter(kind, templateId, to)
-        toast.success(`Copied ${name} to ${target.label}.`)
+        toast.success(buildStarterSetCopy('copiedTo', { name, label: target.label }))
       },
     })
   }
@@ -63,7 +64,7 @@ function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStart
       variant="button"
       size="mini"
       trigger="Copy to…"
-      label={`Copy ${name} to…`}
+      label={buildStarterSetCopy('copyTo2', { name })}
       sections={[
         destinations.map((d) => ({
           id: serializeContainer(d.container),

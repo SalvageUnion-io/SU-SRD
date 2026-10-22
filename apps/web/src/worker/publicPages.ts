@@ -60,7 +60,7 @@ const STARTER_SET: PublicPage = {
   },
 }
 
-/** The Homebrew library (ADR-053): what is listed changes, what the page is does not. */
+/** The Homebrew library (ADR-056): what is listed changes, what the page is does not. */
 const LIBRARY: PublicPage = {
   path: '/library',
   words: {

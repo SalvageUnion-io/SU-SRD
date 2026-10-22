@@ -1,6 +1,6 @@
 /**
  * LibraryShareToggle — "List it in the Homebrew library", under the link in a
- * pattern's or a built NPC's "Who can see it" (ADR-053). It shows only while
+ * pattern's or a built NPC's "Who can see it" (ADR-056). It shows only while
  * anyone with the link may read the thing, because the library lists nothing
  * more public than its link; going back to a narrower answer delists it on
  * the server.

@@ -29,6 +29,7 @@ import {
   SlabSection,
   tokens,
 } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -130,16 +131,16 @@ export function PilotSheetAbilities({
       {!(readOnly && none) && (
         <SlabSection
           fold="open"
-          title="Abilities"
+          title={buildSheetCopy('abilities')}
           actions={
             readOnly ? undefined : (
               <Button size="compact" onClick={onManage}>
-                Manage Abilities
+                {buildSheetCopy('manageAbilities')}
               </Button>
             )
           }
         >
-          {none && <EmptyState variant="quiet" body="No abilities learned yet." />}
+          {none && <EmptyState variant="quiet" body={buildSheetCopy('noAbilitiesLearnedYet')} />}
           {classTrees.length > 0 && (
             // The trees as the class page draws them, each on its track with
             // its stems, side by side, three across at most.
@@ -150,7 +151,7 @@ export function PilotSheetAbilities({
             </div>
           )}
           {unresolvedAbilities.length > 0 && (
-            <MiniGrid label="Unknown Abilities" edit={!readOnly}>
+            <MiniGrid label={buildSheetCopy('unknownAbilities')} edit={!readOnly}>
               {unresolvedAbilities.map((slug) => (
                 <li key={slug}>
                   <UnknownItemLine
@@ -166,8 +167,8 @@ export function PilotSheetAbilities({
         </SlabSection>
       )}
       {genericAbilities.length > 0 && (
-        <SlabSection fold="closed" title="Generic Abilities">
-          <MiniGrid label="Generic Abilities" edit={!readOnly}>
+        <SlabSection fold="closed" title={buildSheetCopy('genericAbilities')}>
+          <MiniGrid label={buildSheetCopy('genericAbilities')} edit={!readOnly}>
             {genericAbilities.map((entry) => (
               <li key={entry.slug}>{renderAbility(entry)}</li>
             ))}

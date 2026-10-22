@@ -11,6 +11,7 @@
 import type { CSSProperties } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
 import { useConnection } from '../lib/connection/connectionContext'
+import { playCopy } from '../messages/play'
 
 const BASE = {
   whiteSpace: 'nowrap',
@@ -27,21 +28,21 @@ export function SavedIndicator() {
   if (mode === 'connected') {
     return (
       <span role="status" className={CAPS} style={SAVED}>
-        ● Saved
+        {playCopy('saved')}
       </span>
     )
   }
   if (mode === 'disconnected') {
     return (
       <span role="status" className={CAPS} style={OFFLINE}>
-        ○ Offline · read-only
+        {playCopy('offlineReadOnly')}
       </span>
     )
   }
   if (mode === 'connecting') {
     return (
       <span role="status" className={CAPS} style={SAVED}>
-        Connecting…
+        {playCopy('connecting')}
       </span>
     )
   }

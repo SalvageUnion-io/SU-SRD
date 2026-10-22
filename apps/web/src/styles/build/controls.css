@@ -58,17 +58,17 @@
 
 /* The claimable seal lifts a pixel on hover; disabled, it fades and stops
    looking pressable. */
-.su-owner-seal__claim {
+.su-owner-seal__assign {
   cursor: pointer;
   opacity: 1;
   translate: none;
 }
 @media (hover: hover) {
-  .su-owner-seal__claim:hover {
+  .su-owner-seal__assign:hover {
     translate: 0 -1px;
   }
 }
-.su-owner-seal__claim:disabled {
+.su-owner-seal__assign:disabled {
   cursor: default;
   opacity: 50%;
 }

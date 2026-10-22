@@ -65,6 +65,7 @@ import {
 } from '../../components/index'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { StorageManifestSide } from './CargoLotItem'
 import { CargoLotItem } from './CargoLotItem'
 import { HoldAdder } from './HoldAdder'
@@ -162,7 +163,7 @@ export function StorageManifest({
           <>
             <Stat
               size="compact"
-              label="Units"
+              label={buildSheetCopy('units')}
               value={used}
               max={cap}
               state={over ? 'critical' : undefined}
@@ -176,20 +177,20 @@ export function StorageManifest({
               readOnly={readOnly}
               label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
             />
-            {free > 0 && <span style={MUTED_TEXT}>{free} free</span>}
-            {over && <span style={OVER_TEXT}>Over capacity</span>}
+            {free > 0 && <span style={MUTED_TEXT}>{buildSheetCopy('free', { free })}</span>}
+            {over && <span style={OVER_TEXT}>{buildSheetCopy('overCapacity')}</span>}
           </>
         ) : (
           <>
-            <Stat size="compact" label="Units" value={totalLotUnits(lots)} />
-            <Stat size="compact" label="Lots" value={lots.length} />
-            <span style={MUTED_TEXT}>Unlimited</span>
+            <Stat size="compact" label={buildSheetCopy('units')} value={totalLotUnits(lots)} />
+            <Stat size="compact" label={buildSheetCopy('lots')} value={lots.length} />
+            <span style={MUTED_TEXT}>{buildSheetCopy('unlimited')}</span>
           </>
         )}
       </div>
 
       {lots.length === 0 ? (
-        <EmptyState variant="quiet" body="Hold empty." />
+        <EmptyState variant="quiet" body={buildSheetCopy('holdEmpty')} />
       ) : (
         <ul className="su-entity-mini-list" style={{ padding: pad.list }}>
           {lots.map((lot) => (
@@ -217,7 +218,9 @@ export function StorageManifest({
         <div style={{ padding: pad.adder }}>
           <HoldAdder
             verb={side === 'mech' ? 'Load' : 'Stow'}
-            containerLabel={side === 'mech' ? 'mech hold' : 'Storage Bay'}
+            containerLabel={
+              side === 'mech' ? buildSheetCopy('mechHold') : buildSheetCopy('storageBay')
+            }
             onAdd={(lot) =>
               side === 'mech' ? report(cargo.addMechLot(lot)) : report(cargo.addCrawlerLot(lot))
             }
@@ -242,7 +245,7 @@ export function StorageManifest({
       {framed ? (
         <TitledBox
           as="section"
-          title="Mech Hold"
+          title={buildSheetCopy('mechHold2')}
           chips={
             mechName ? (
               <Chips
@@ -261,7 +264,7 @@ export function StorageManifest({
         </TitledBox>
       ) : (
         // The Storage Bay's other sections' Mini Size.
-        <SlabSection title="Crawler Hold" id={holdId} size="mini">
+        <SlabSection title={buildSheetCopy('crawlerHold')} id={holdId} size="mini">
           {holdBody}
         </SlabSection>
       )}
@@ -278,11 +281,9 @@ export function StorageManifest({
               href={counterpartHref}
             />
             {side === 'mech' ? (
-              <span style={SMALL_TEXT}>&infin; Storage Bay &middot; unlimited</span>
+              <span style={SMALL_TEXT}>{buildSheetCopy('storageBayUnlimited')}</span>
             ) : (
-              <span style={SMALL_TEXT}>
-                {used}/{cap} slots &middot; {free} free
-              </span>
+              <span style={SMALL_TEXT}>{buildSheetCopy('slotsFree', { used, cap, free })}</span>
             )}
             {cargo.crawlerLocked !== null && !readOnly && <p style={NOTE}>{cargo.crawlerLocked}</p>}
           </Box>
@@ -291,8 +292,8 @@ export function StorageManifest({
             headline={targetLabel}
             body={
               side === 'mech'
-                ? 'No crawler assigned — stow is disabled until a home crawler is assigned.'
-                : 'No mech assigned — load is disabled until a mech is assigned.'
+                ? buildSheetCopy('noCrawlerAssignedStowIs')
+                : buildSheetCopy('noMechAssignedLoadIs')
             }
           />
         ))}

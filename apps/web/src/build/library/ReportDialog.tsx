@@ -1,6 +1,6 @@
 /**
  * ReportDialog — a signed-in reader tells the site admins what is wrong with
- * one Homebrew library listing (ADR-053): copied book text, something
+ * one Homebrew library listing (ADR-056): copied book text, something
  * offensive, spam. One report per reader; reporting again replaces the
  * reason (`library.report`). The maker is not told who reported it.
  */

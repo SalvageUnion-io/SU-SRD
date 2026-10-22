@@ -9,6 +9,7 @@ import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { borderWidth, iconSize, space } from '../../design/tokens'
 import type { Disclosure } from '../../lib/useDisclosure'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { Field } from '../atoms/Field'
@@ -32,7 +33,7 @@ const SWATCH = {
  */
 function FacetChips({ row }: { row: FacetRowConfig }) {
   return (
-    <Segmented label={`Filter by ${row.label}`} size="compact" wrap>
+    <Segmented label={compositionsCopy('filterBy', { label: row.label })} size="compact" wrap>
       {row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
         <SegmentedOption key={key} pressed={active} onClick={onClick}>
           {swatchStyle != null && (
@@ -81,7 +82,7 @@ export function SearcherToolbar({
               <>
                 {' '}
                 <Badge shape="chip">{activeFilters}</Badge>
-                <span className="su-sr-only"> active</span>
+                <span className="su-sr-only"> {compositionsCopy('active')}</span>
               </>
             )}
             <ChevronDown aria-hidden="true" size={iconSize.compact} style={chevronStyle(open)} />

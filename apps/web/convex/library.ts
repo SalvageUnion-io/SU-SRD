@@ -14,7 +14,7 @@ import { libraryKind } from './model/libraryTables'
 import { NotAuthorized, requireUser } from './model/permissions'
 
 /**
- * The Homebrew library (ADR-053): a public gallery of the patterns and built
+ * The Homebrew library (ADR-056): a public gallery of the patterns and built
  * NPCs their makers chose to list.
  *
  * - **Opt-in, on top of the link.** Only a thing its maker already shares
