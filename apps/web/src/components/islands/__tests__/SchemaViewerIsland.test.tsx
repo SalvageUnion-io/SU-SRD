@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, spyOn } from 'bun:test'
+import { afterEach, it as bunIt, describe, expect, spyOn } from 'bun:test'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import {
   getEntitySchemas,
@@ -13,6 +13,11 @@ import {
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
+
+// Measured: each test renders a whole schema's listing, and under coverage on a
+// quiet machine the heaviest (every ability, every system) take 5.2–6.1 s alone,
+// over Bun's 5 s default. This file's tests alone get the longer limit.
+const it = (name: string, fn: () => void | Promise<void>) => bunIt(name, fn, 15_000)
 
 /** Narrowing guard for fixture lookups — fails the test loudly instead of `!`. */
 function required<T>(value: T | null | undefined, label: string): T {
