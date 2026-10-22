@@ -226,6 +226,28 @@ describe('watchChipFill', () => {
     expect(heads.map((el) => prop(el, '--su-beside'))).toEqual(Array(6).fill('2'))
   })
 
+  test('heads the browser skips (content-visibility) are not measured to place them, and fit in later turns', async () => {
+    const heads = Array.from(
+      { length: 6 },
+      () => head([50, 40, 30], { room: 200, name: 100, cost: 20, route: 'body' }).el
+    )
+    let placed = 0
+    for (const el of heads) {
+      el.checkVisibility = () => false
+      el.getBoundingClientRect = () => {
+        placed++
+        return new DOMRect()
+      }
+    }
+    watchStaticChipFill()
+    expect(placed).toBe(0)
+    expect(heads.map((el) => prop(el, '--su-beside'))).toEqual(Array(6).fill(''))
+    while (document.documentElement.hasAttribute('data-chip-fitting')) {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+    expect(heads.map((el) => prop(el, '--su-beside'))).toEqual(Array(6).fill('2'))
+  })
+
   test('a head with no name is left alone', () => {
     const el = document.createElement('div')
     el.setAttribute('data-chip-fill', '')
