@@ -19,8 +19,8 @@
  *     `console.*` line; a zod `.describe(…)`) and the JSX attributes that carry markup rather
  *     than words (`NON_COPY_ATTRS`).
  *
- * A one-word string literal is an identifier far more often than copy (`schema === 'mech'`), so
- * it is not read; a one-word JSX text node is copy, and so is every catalogue string (ADR-053).
+ * A one-word string literal is an identifier far more often than copy (`schema === 'mech'`): not
+ * read; a one-word JSX text node is. A catalogue message (ADR-053) is read without its `{name}`s.
  *
  * ## The rules
  *
@@ -47,7 +47,7 @@ import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 import { loneSignFindings } from './loneSign'
-import { CATALOGUE_DIR } from './uiStrings'
+import { CATALOGUE_DIR as CATALOGUE } from './uiStrings'
 
 // ── the corpus ───────────────────────────────────────────────────────────────
 
@@ -128,7 +128,7 @@ function attrName(n: Node): string | undefined {
 export function extractCopy(file: string, source: string): CopyString[] {
   const lineOf = lineIndex(source)
   const out: CopyString[] = []
-  const prose = file.startsWith(`${CATALOGUE_DIR}/`) ? /[A-Za-z]/ : PROSE
+  const words = (s: string) => (file.startsWith(`${CATALOGUE}/`) ? s.replace(/\{\w+\}/g, '') : s)
   const push = (text: string, start: unknown) => {
     const trimmed = text.replace(/\s+/g, ' ').trim()
     if (trimmed) out.push({ file, line: lineOf(Number(start)), text: trimmed })
@@ -161,11 +161,11 @@ export function extractCopy(file: string, source: string): CopyString[] {
         if (typeof v.value === 'string' && /[A-Za-z]/.test(v.value)) push(v.value, v.start)
         return
       case 'Literal':
-        if (typeof v.value === 'string' && prose.test(v.value)) push(v.value, v.start)
+        if (typeof v.value === 'string' && PROSE.test(words(v.value))) push(words(v.value), v.start)
         return
       case 'TemplateElement': {
         const cooked = (v.value as { cooked?: unknown } | undefined)?.cooked
-        if (typeof cooked === 'string' && prose.test(cooked)) push(cooked, v.start)
+        if (typeof cooked === 'string' && PROSE.test(cooked)) push(cooked, v.start)
         return
       }
     }

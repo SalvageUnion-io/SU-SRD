@@ -44,6 +44,11 @@ function fixture(files: Record<string, string>): string {
 const texts = (file: string, source: string) => extractCopy(file, source).map((c) => c.text)
 
 describe('extractCopy', () => {
+  test('reads a catalogue message without its placeholders', () => {
+    const src = "export const c = messages({ a: 'No Push at Heat {heat}', b: 'TL {level}' })"
+    expect(texts('apps/web/src/messages/play.ts', src)).toEqual(['No Push at Heat'])
+  })
+
   test('reads JSX text, copy attributes and prose string literals', () => {
     const src = [
       "import x from 'some mech module'",
