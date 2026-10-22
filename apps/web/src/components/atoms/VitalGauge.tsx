@@ -1,7 +1,7 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import { borderWidth, color, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { color, fontSize, space, weight } from '../../design/tokens'
 import { atomsCopy } from '../../messages/components-atoms'
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
@@ -24,6 +24,8 @@ import {
   STEPPERS,
 } from './vitalGaugeCompact'
 import {
+  CAPTION,
+  CAPTION_OVERRIDE,
   HEAD,
   HEAD_LEFT,
   MAX_BUTTON,
@@ -31,9 +33,15 @@ import {
   MAX_TEXT,
   NUMERAL,
   OVERRIDE_SUP,
+  PIP,
+  PIP_DENSE,
+  PIP_ROOMY,
   REVERT,
+  ROOT,
   SLASH,
   STAMP,
+  STEP_FULL,
+  STEPPERS_FULL,
   SUB_LABEL,
 } from './vitalGaugeFull'
 import {
@@ -108,10 +116,11 @@ export type VitalGaugeProps = {
    */
   provenance?: ProvenanceLine[]
   /**
-   * The compact rung's − / + (Play's instrument): with `onChange`, a
-   * `StepButton` pair after the track, each one step, clamped to 0…max — the
-   * pair an editable `Stat` draws, at the line's Compact Size (44px on touch).
-   * The sheet's `full` rung has none: its track is the control.
+   * The − / + (Play's instrument): with `onChange`, a `StepButton` pair,
+   * each one step, clamped to 0…max — the pair an editable `Stat` draws. On
+   * the compact rung after the track, at the line's Compact Size (44px on
+   * touch); on the `full` rung under the track, sharing its width at the Full
+   * Size (Play's table mode). The sheet passes none: its track is the control.
    */
   steppers?: boolean
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
@@ -159,35 +168,6 @@ export type VitalGaugeProps = {
  * glyphs that ink on hover, the provenance triggers, which take no `style`) as
  * `.su-vital-gauge__*` in `styles/partials/atoms.css`.
  */
-
-// — full —
-const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
-const PIP = {
-  minHeight: 0,
-  minWidth: 0,
-  flex: 1,
-  borderWidth: borderWidth.chrome,
-  // `solid`, set explicitly: a segment once rendered as a `<button>`, whose
-  // base-layer `border: none` made an unlit pip vanish in Edit while Read drew it.
-  borderStyle: 'solid',
-  padding: 0,
-} satisfies CSSProperties
-const PIP_DENSE = { height: 'var(--size-mini)', borderRadius: radius.badge } satisfies CSSProperties
-const PIP_ROOMY = { height: '22px', borderRadius: radius.card } satisfies CSSProperties
-const CAPTION = {
-  marginTop: space[6],
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: space[4],
-  lineHeight: 1,
-  color: color.ink75,
-} satisfies CSSProperties
-const CAPTION_OVERRIDE = {
-  marginRight: 'auto',
-  letterSpacing: tracking.capsSnug,
-  color: 'var(--tone-deep)',
-} satisfies CSSProperties
 
 export function VitalGauge({
   label,
@@ -265,6 +245,7 @@ export function VitalGauge({
     if (!editable) return
     onChange?.(clamp(next))
   }
+  const stepper = editable && steppers ? { label, shown, max, set: setValue } : null
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (!editable) return
@@ -402,26 +383,7 @@ export function VitalGauge({
         style={{ ...C_SHELL, ...style }}
       >
         {readout}
-        {editable && steppers ? (
-          <span style={STEPPERS}>
-            <StepButton
-              aria-label={atomsCopy('decrease2', { label })}
-              disabled={shown <= 0}
-              onClick={() => setValue(shown - 1)}
-              style={STEP}
-            >
-              −
-            </StepButton>
-            <StepButton
-              aria-label={atomsCopy('increase2', { label })}
-              disabled={shown >= max}
-              onClick={() => setValue(shown + 1)}
-              style={STEP}
-            >
-              +
-            </StepButton>
-          </span>
-        ) : null}
+        {stepper && <Steppers {...stepper} rung="compact" />}
       </div>
     )
   }
@@ -579,6 +541,8 @@ export function VitalGauge({
         </div>
       )}
 
+      {stepper && <Steppers {...stepper} rung="full" />}
+
       {/* No Current / Max caption, in Read or Edit: the numeral already says
           current / max, and Edit looks like Read. An
           override note still says where the max came from. */}
@@ -588,5 +552,36 @@ export function VitalGauge({
         </div>
       )}
     </div>
+  )
+}
+
+/** The − / + pair, one step each, clamped to 0…max: the compact rung's or the full one's. */
+function Steppers(p: {
+  label: string
+  shown: number
+  max: number
+  set: (v: number) => void
+  rung: 'compact' | 'full'
+}) {
+  const step = p.rung === 'full' ? STEP_FULL : STEP
+  return (
+    <span style={p.rung === 'full' ? STEPPERS_FULL : STEPPERS}>
+      <StepButton
+        aria-label={atomsCopy('decrease2', { label: p.label })}
+        disabled={p.shown <= 0}
+        onClick={() => p.set(p.shown - 1)}
+        style={step}
+      >
+        −
+      </StepButton>
+      <StepButton
+        aria-label={atomsCopy('increase2', { label: p.label })}
+        disabled={p.shown >= p.max}
+        onClick={() => p.set(p.shown + 1)}
+        style={step}
+      >
+        +
+      </StepButton>
+    </span>
   )
 }

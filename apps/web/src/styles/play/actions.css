@@ -63,6 +63,16 @@
   max-width: none;
 }
 
+/* On a phone the type filter is full width too, its options sharing the line. */
+.su-play-root--phone .su-play-act-tools .su-seg {
+  display: flex;
+  width: 100%;
+}
+
+.su-play-root--phone .su-play-act-tools .su-seg__option {
+  flex: 1 1 auto;
+}
+
 .su-play-act__need,
 .su-play-act__state {
   font-family: var(--font-body);

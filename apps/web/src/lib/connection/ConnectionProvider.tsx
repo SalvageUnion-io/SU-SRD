@@ -1,6 +1,7 @@
 import { useConvexAuth } from 'convex/react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { sessionAccount } from '../../stores/deviceCopy'
 import { setEntityBackendAuthState } from '../../stores/entityBackend'
 import { useBuildFloor } from './buildFloor'
 import type { ConnectionState } from './connectionContext'
@@ -42,16 +43,22 @@ function useConnectionState(
   outdated: boolean
 ): ConnectionState {
   const online = useOnline()
+  // Read again whenever the network or the handshake moves; it is one scan of
+  // localStorage's keys.
+  const storedSession = useMemo(
+    () => !authSettled && !online && sessionAccount() !== null,
+    [authSettled, online]
+  )
 
   // The stores are not components and cannot call hooks, so the mode is PUSHED
   // to them from here rather than pulled. One writer, one direction — and it
   // happens in an effect so a render never has a side effect.
   useEffect(() => {
-    setEntityBackendAuthState({ signedIn, online, authSettled, outdated })
-  }, [signedIn, online, authSettled, outdated])
+    setEntityBackendAuthState({ signedIn, online, authSettled, outdated, storedSession })
+  }, [signedIn, online, authSettled, outdated, storedSession])
 
   return useMemo(() => {
-    const mode = resolveConnectionMode({ authSettled, signedIn, online })
+    const mode = resolveConnectionMode({ authSettled, signedIn, online, storedSession })
     return {
       mode,
       canWrite: writesAllowed(mode) && !outdated,
@@ -59,7 +66,7 @@ function useConnectionState(
       settling: isSettlingConnection(mode),
       outdated,
     }
-  }, [signedIn, online, authSettled, outdated])
+  }, [signedIn, online, authSettled, outdated, storedSession])
 }
 
 /** Supplies the current storage mode (ADR-030 §1) to the tree. */

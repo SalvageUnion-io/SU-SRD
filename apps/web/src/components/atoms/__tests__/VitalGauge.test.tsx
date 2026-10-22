@@ -373,6 +373,25 @@ describe('VitalGauge steppers (the compact rung)', () => {
   })
 })
 
+describe('VitalGauge steppers (the full rung, table mode)', () => {
+  test('a live full gauge draws the pair under its track, at the Full Size', () => {
+    const onChange = mock((_: number) => {})
+    render(<VitalGauge label="Heat" value={0} max={9} onChange={onChange} steppers />)
+    const minus = screen.getByRole<HTMLButtonElement>('button', { name: 'Decrease Heat' })
+    expect(minus.disabled).toBe(true)
+    expect(minus.style.height).toBe('var(--size-full)')
+    fireEvent.click(screen.getByRole('button', { name: 'Increase Heat' }))
+    expect(onChange).toHaveBeenCalledWith(1)
+    cleanup()
+  })
+
+  test('the sheet passes none: its track is the control', () => {
+    render(<VitalGauge label="HP" value={4} max={10} onChange={() => {}} />)
+    expect(screen.queryByRole('button', { name: /Increase HP/ })).toBeNull()
+    cleanup()
+  })
+})
+
 describe('VitalGauge — mini HP cells', () => {
   test('read-only: label, value/max and one square cell per point in a square block', () => {
     render(<VitalGauge size="mini" label="HP" value={3} max={9} readOnly />)

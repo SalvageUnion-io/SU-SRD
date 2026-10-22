@@ -7,8 +7,8 @@
  * (salvageunion.io, the app at `/build`, ADR-048), so they share
  * `localStorage`: the app writes the display name and avatar here whenever
  * `api.account.me` answers, and clears them on sign-out. It is the one
- * account value kept on the device (the no-device-cache rule's exception): a
- * name and a picture URL, never a record.
+ * account value the SRD reads from the device: a name and a picture URL, never
+ * a record (the app's records are the device copy's, ADR-058).
  *
  * A hint alone is not trusted. Convex Auth keeps its refresh token in the same
  * storage and removes it on sign-out and on a refresh the server refuses, so
