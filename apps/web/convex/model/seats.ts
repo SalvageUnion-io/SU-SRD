@@ -237,9 +237,8 @@ export async function handOffSoloSeat(
  *
  * Each one goes with the Game. `softLinks` are the table's wiring (a
  * pilot-to-crawler assignment stops being true when the crew disbands, so
- * shelved entities land unwired); `invites`, `inviteRedemptions` and
- * `joinRequests` are ways into a Game that no longer exists; its
- * `channelBindings` row stops naming a channel it posts to (a personal binding
+ * shelved entities land unwired); `invites` are ways into a Game that no
+ * longer exists; its `channelBindings` row stops naming a channel it posts to (a personal binding
  * has no `gameId` and outlives every Game); `downtime` and `seats` are its play
  * state (ADR-038 §2).
  *
@@ -251,8 +250,6 @@ export async function handOffSoloSeat(
 export const GAME_APPARATUS_TABLES = [
   'softLinks',
   'invites',
-  'inviteRedemptions',
-  'joinRequests',
   'memberships',
   'channelBindings',
   'downtime',

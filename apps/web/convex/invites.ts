@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import { internalMutation, mutation } from './model/entities'
+import { mutation } from './model/entities'
 import { currentInvite, inviteByCode, isCurrent, mintInvite } from './model/invites'
 import { getMembership, NotAuthorized, requireOrganizer, requireUser } from './model/permissions'
 
@@ -99,66 +99,5 @@ export const redeem = mutation({
       joinedAt: Date.now(),
     })
     return { kind: 'joined', gameId: invite.gameId }
-  },
-})
-
-/** The invite columns nothing reads now that a Game has one invite URL. */
-const RETIRED_COLUMNS = [
-  'expiresAt',
-  'role',
-  'requiresApproval',
-  'usesRemaining',
-  'label',
-  'grants',
-] as const
-
-/**
- * One-off repair, run once on production after the release deploys: clears the
- * retired columns from every invite and empties `joinRequests` and
- * `inviteRedemptions`, so a later schema change can drop them. Reports what it
- * would change unless passed `{ apply: true }`. Deleted with that schema change.
- * The addressed-invite fields (`target`, `declinedAt`, `delivery`,
- * `sourceInteractionId`) stay until the last addressed invite has expired.
- *
- * @operator Run by hand from the dashboard; nothing calls it.
- */
-export const dropRetired = internalMutation({
-  args: { apply: v.optional(v.boolean()) },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{
-    invites: number
-    joinRequests: number
-    inviteRedemptions: number
-  }> => {
-    const apply = args.apply === true
-    let invites = 0
-    const now = Date.now()
-    for (const invite of await ctx.db.query('invites').collect()) {
-      const stale = RETIRED_COLUMNS.filter((column) => invite[column] !== undefined)
-      if (stale.length === 0) continue
-      invites++
-      // An approval-only link is no candidate for the invite URL; without the
-      // column it would read as one, so it is revoked as the column clears.
-      const revoke = invite.requiresApproval === true && invite.revokedAt === undefined
-      if (apply) {
-        await ctx.db.patch(invite._id, {
-          ...Object.fromEntries(stale.map((column) => [column, undefined])),
-          ...(revoke ? { revokedAt: now } : {}),
-        })
-      }
-    }
-    const joinRequests = await ctx.db.query('joinRequests').collect()
-    const inviteRedemptions = await ctx.db.query('inviteRedemptions').collect()
-    if (apply) {
-      for (const row of joinRequests) await ctx.db.delete(row._id)
-      for (const row of inviteRedemptions) await ctx.db.delete(row._id)
-    }
-    return {
-      invites,
-      joinRequests: joinRequests.length,
-      inviteRedemptions: inviteRedemptions.length,
-    }
   },
 })

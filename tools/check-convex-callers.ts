@@ -26,7 +26,7 @@
  * same reason. So each must be referenced as `internal.<module>.<name>` from
  * non-test code in `convex/` (a cron, the bot's op table, another function) or
  * the client, unless its doc comment carries `@operator`: a one-off run by hand
- * from the dashboard (`invites.dropRetired`), deleted once it has run.
+ * from the dashboard, deleted once it has run.
  *
  * Neither check covers `httpAction`s, which are reachable through the router in
  * `http.ts` rather than through `api`, nor `auth.ts`, whose exports are

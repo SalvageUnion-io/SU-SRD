@@ -131,7 +131,6 @@ export const changeLogState = v.union(
  * `invites.role`: new invites leave it unset; `'mediator'` survives on older
  * rows until `invites.dropRetired` clears it.
  */
-const inviteRole = v.union(v.literal('player'), v.literal('mediator'))
 
 /**
  * The tables an entity can be handed over from: a pilot or a mech, never the
@@ -286,35 +285,17 @@ export default defineSchema({
   /**
    * Invites. A Game has one invite URL, `/invite/<code>`: the newest open
    * `standing` row not yet `revokedAt` (`model/invites.ts#currentInvite`).
-   * Opening it joins as a player; every other row opens nothing. `expiresAt`,
-   * `usesRemaining`, `label`, `role`, `requiresApproval`, `grants`, `target`,
-   * `declinedAt`, `delivery` and `sourceInteractionId` are read by nothing;
-   * `invites.dropRetired` clears the first six before a schema change drops them.
+   * Opening it joins as a player; every other row opens nothing. `target`,
+   * `declinedAt`, `delivery` and `sourceInteractionId` are read by nothing, and
+   * go once the last addressed invite has expired.
    */
   invites: defineTable({
     gameId: v.id('games'),
     /** The link token. The column keeps its name: rows minted as typed codes still resolve. */
     code: v.string(),
     createdBy: v.id('users'),
-    expiresAt: v.optional(v.number()),
-    usesRemaining: v.optional(v.number()),
 
     createdAt: v.number(),
-
-    label: v.optional(v.string()),
-
-    role: v.optional(inviteRole),
-
-    grants: v.optional(
-      v.array(
-        v.object({
-          table: ownableTable,
-          entityId: v.string(),
-        })
-      )
-    ),
-
-    requiresApproval: v.optional(v.boolean()),
 
     /** Set when the Organizer resets the Game's invite URL: this code stops working. */
     revokedAt: v.optional(v.number()),
@@ -346,37 +327,6 @@ export default defineSchema({
   })
     .index('by_code', ['code'])
     .index('by_game', ['gameId']),
-
-  /** Who used which invite. Written by nothing now; `invites.dropRetired` empties it. */
-  inviteRedemptions: defineTable({
-    inviteId: v.id('invites'),
-    gameId: v.id('games'),
-    userId: v.id('users'),
-    redeemedAt: v.number(),
-  })
-    .index('by_invite', ['inviteId'])
-    .index('by_game', ['gameId']),
-
-  /**
-   * Asks to join, from approval links. Written and read by nothing now but the
-   * Game and account sweeps; `invites.dropRetired` empties it.
-   */
-  joinRequests: defineTable({
-    gameId: v.id('games'),
-    inviteId: v.id('invites'),
-    userId: v.id('users'),
-    requestedAt: v.number(),
-    state: v.union(v.literal('pending'), v.literal('approved'), v.literal('declined')),
-    decidedBy: v.optional(v.id('users')),
-    decidedAt: v.optional(v.number()),
-  })
-    .index('by_game_state', ['gameId', 'state'])
-    // Plain `by_game` as well as the compound: deleting a Game sweeps every
-    // request regardless of state, and a prefix scan of `by_game_state` would
-    // read as "pending only" to the next person who touched it.
-    .index('by_game', ['gameId'])
-    .index('by_user', ['userId'])
-    .index('by_invite_user', ['inviteId', 'userId']),
 
   pilots: containerTable(),
 
