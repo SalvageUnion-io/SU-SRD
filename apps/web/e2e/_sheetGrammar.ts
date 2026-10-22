@@ -10,7 +10,7 @@ import type { Finding } from './_findings'
  *   write the band offers Read | Edit.
  * - `hero` — the body opens on `SheetHero` (`.su-sheet-hero`), its vitals the
  *   one stack (`.su-sheet-vitals`).
- * - `vitals` — every gauge in the opening is a `SheetVitalGauge`
+ * - `vitals` — every gauge in the opening but a Mini's own is a `SheetVitalGauge`
  *   (`[data-vital]`), captioned in full words from the one map
  *   (`SHEET_VITAL_WORDS`, kept equal to `sheetVitals.model.ts` by
  *   `sheetVitals.test.ts`).
@@ -21,7 +21,8 @@ import type { Finding } from './_findings'
  * - `aside` — what the unit carries is the permanent right sidebar
  *   (`SheetColumns`, ruleset §1.2): a sheet that carries something has one
  *   (`[data-sheet-aside]`), every carried list (`[data-sheet-carried]`) and
- *   hold (`[data-storage-side]`) is in it, nothing in it folds, and it is
+ *   hold (`[data-storage-side]`) is in it, none of its sections folds (an
+ *   entity's own sections, a bay's Bay Info, fold as R46 says), and it is
  *   under the opening: from the 64rem rung a column beside the main column
  *   (its top the main column's, its left past the main column's right), else
  *   stacked straight under the opening and over the main column. A sheet that
@@ -99,7 +100,8 @@ export function scanSheetGrammar({
   const vitals = hero?.querySelector('.su-sheet-vitals')
   if (hero && !vitals) found.push({ rule: 'hero', detail: `${kind}: no vitals stack` })
   for (const pip of hero?.querySelectorAll('[data-pip]') ?? []) {
-    if (!pip.closest('[data-vital]')) {
+    // A Mini's own gauge (a crew lead's HP cells, R46) is the entity's, not a sheet vital.
+    if (!pip.closest('[data-vital]') && !pip.closest('.su-entity-mini')) {
       found.push({ rule: 'vitals', detail: `${kind}: a gauge that is no SheetVitalGauge` })
       break
     }
@@ -127,7 +129,10 @@ export function scanSheetGrammar({
     }
   }
   if (aside) {
-    if (aside.querySelector('.su-slab-section__head--fold')) {
+    // An entity's own sections (a bay's Bay Info and When Damaged, R46) are its
+    // to fold; the sidebar's sections are not.
+    const folds = [...aside.querySelectorAll('.su-slab-section__head--fold')]
+    if (folds.some((head) => !head.closest('.su-entity-mini'))) {
       found.push({ rule: 'aside', detail: `${kind}: a section in the sidebar folds` })
     }
     const opening = body.querySelector('.su-sheet-columns__hero')?.getBoundingClientRect()

@@ -29,7 +29,9 @@ import { fromFaults } from './_findings'
  * body's first row (`[data-chip-overflow]`, C2b): its chip group still. A contentful
  * Mini's body holds its host's content and, in Edit, its fields (a crew
  * lead's name, keepsake and facts: `MiniBody`), which are no strip's. A
- * nested entity's controls are that entity's, held to its own chip group.
+ * Mention in an entity's text (a name the rules text links, `InlineRef`) is
+ * its prose, not a control. A nested entity's controls are that entity's,
+ * held to its own chip group.
  */
 export type StripControlSelectors = {
   /** A list item: an `li`, an ARIA list item or option. */
@@ -48,6 +50,8 @@ export type StripControlSelectors = {
   check: string
   /** A contentful Mini's body: its host's content and, in Edit, its fields. */
   body: string
+  /** A Mention in an entity's text: its prose, not a control. */
+  mention: string
   /** A Card's frame: an entity nested in it is the Card's, its controls the Card's. */
   card: string
   /**
@@ -81,6 +85,7 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   group: '[data-chip-group], [data-chip-overflow]',
   check: '.su-entity-compact__head input[type="checkbox"]',
   body: '.su-entity-mini[data-contentful] > .su-entity-mini__body',
+  mention: '.su-inline-ref',
   card: '.su-ec-frame',
   tokenGroup: '.su-mini-group',
   section:
@@ -124,6 +129,7 @@ export function scanStripControls(a: StripControlSelectors): string[] {
         control.matches(a.entity) ||
         control.matches(a.surface) ||
         control.matches(a.check) ||
+        control.matches(a.mention) ||
         control.closest(a.body) !== null ||
         control.querySelector(a.head) !== null
       ) {

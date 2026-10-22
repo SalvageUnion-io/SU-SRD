@@ -227,3 +227,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
     Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy.
     Amends ADR-052 §1.
+60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
+    Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.

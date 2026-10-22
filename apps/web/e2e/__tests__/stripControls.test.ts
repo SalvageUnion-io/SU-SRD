@@ -75,6 +75,12 @@ describe('strip-control scan', () => {
     expect(scan()).toEqual(['under: button "Details" under the strip of “Bonesaw”'])
   })
 
+  test("a Mention in an entity's text is its prose, not a control under the strip", () => {
+    const prose = '<p>Built for <a class="su-inline-ref" href="/mechs/">Mechs</a>.</p>'
+    document.body.innerHTML = `<ul><li data-top="0">${row('Buzzard', '', prose)}</li></ul>`
+    expect(scan()).toEqual([])
+  })
+
   test('a sibling item right after an entity’s item is found', () => {
     document.body.innerHTML = `<ul><li data-top="0">${row('Bonesaw')}</li><li data-top="40"><button>Copy to…</button></li></ul>`
     expect(scan()).toEqual(['under: button "Copy to…" under “Bonesaw”, a sibling'])
