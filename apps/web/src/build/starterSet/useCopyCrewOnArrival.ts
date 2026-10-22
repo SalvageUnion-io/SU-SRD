@@ -21,7 +21,7 @@ type Destination = ReturnType<typeof moveDestinations>[number]
 /** Ask, then copy the crew into `target`. */
 export function confirmCopyCrew(confirm: Confirm, target: Destination) {
   confirm({
-    title: `Copy the whole crew to ${target.label}?`,
+    title: 'Copy the whole crew?',
     body: [
       `This puts all six Pilots, their Mechs and Crawler #430 'Tenacity' in ${target.label}, each a build of your own, crewed and docked as the Starter Set has them.`,
       `The Starter Set stays as ${STARTER_SET_PUBLISHER} published it. Don't want a copy later? Delete it like any other build.`,
