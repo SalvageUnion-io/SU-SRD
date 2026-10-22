@@ -4,6 +4,7 @@ import { capsLabel } from '../components/atoms/capsLabel'
 import { Box, Entity, Slab } from '../components/index'
 import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
+import { referenceCopy } from '../messages/reference'
 
 /**
  * CrawlerTechLevelPage — a Union Crawler Tech Level's Page (R47): mostly
@@ -44,14 +45,14 @@ type BookLine = { label: string; figure?: string; rest?: string }
 function bookLines(level: TechLevel): BookLine[] {
   const scrap = `Tech ${level.techLevel} Scrap`
   return [
-    { label: 'Upkeep', figure: `${level.upkeepCost}×`, rest: scrap },
+    { label: referenceCopy('upkeep'), figure: `${level.upkeepCost}×`, rest: scrap },
     level.upgradeCost == null
       ? {
-          label: 'Upgrade',
+          label: referenceCopy('upgrade'),
           rest: `Tech ${level.techLevel} is the highest level of Union Crawler and it cannot be upgraded further.`,
         }
-      : { label: 'Upgrade', figure: `${level.upgradeCost}×`, rest: scrap },
-    { label: 'Approximate Population', figure: population(level) },
+      : { label: referenceCopy('upgrade'), figure: `${level.upgradeCost}×`, rest: scrap },
+    { label: referenceCopy('approximatePopulation'), figure: population(level) },
   ]
 }
 
@@ -79,8 +80,8 @@ export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
           ))}
         </div>
       </Box>
-      <aside className="su-tech-level__ladder" aria-label="Union Crawler Tech Levels">
-        <Slab as="h2" label="Tech Levels" />
+      <aside className="su-tech-level__ladder" aria-label={referenceCopy('unionCrawlerTechLevels')}>
+        <Slab as="h2" label={referenceCopy('techLevels')} />
         <ol className="su-tech-level__rungs">
           {ladder.map((rung) => {
             const here = rung.id === item.id

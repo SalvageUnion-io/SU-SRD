@@ -6,6 +6,7 @@
 
 import type { EntityKind } from 'game-domain/entityKinds'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { SheetSkeleton } from './SheetSkeleton'
 
 /** The kind as the panels name it. */
@@ -34,23 +35,23 @@ export function SheetFallback({
       // app, and a bare one-liner stranded the user.
       return (
         <NotFoundPanel
-          title={`${name} not found`}
-          message={`This ${name} may have been deleted, or the link may be stale.`}
+          title={buildSheetCopy('notFound', { name })}
+          message={buildSheetCopy('thisMayHaveBeenDeleted', { name })}
           back={back}
         />
       )
     case 'offline':
       return (
         <NotFoundPanel
-          title={`${name} unavailable offline`}
-          message={`This ${name} was not loaded before the connection dropped, and loading it needs a connection.`}
+          title={buildSheetCopy('unavailableOffline', { name })}
+          message={buildSheetCopy('thisWasNotLoadedBefore', { name })}
         />
       )
     case 'unreadable':
       return (
         <NotFoundPanel
-          title={`Could not show this ${name}`}
-          message={`This ${name}’s data doesn’t match anything this app knows how to show. It may have been built in a newer version.`}
+          title={buildSheetCopy('couldNotShowThis', { name })}
+          message={buildSheetCopy('thisSDataDoesntMatch', { name })}
           back={back}
         />
       )

@@ -5,6 +5,7 @@ import {
   PILOT_BASE_INVENTORY_SLOTS,
 } from 'salvageunion-reference/rules'
 import { Stat, tokens } from '../../components/index'
+import { pilotCopy } from '../../messages/build-pilot'
 
 /** The three stat lozenges, wrapping on a narrow column. */
 const STAT_ROW = {
@@ -23,9 +24,13 @@ const STAT_ROW = {
 export function StatsStep() {
   return (
     <div style={STAT_ROW}>
-      <Stat label="HP" value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
-      <Stat label="AP" value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
-      <Stat label="INV" value={PILOT_BASE_INVENTORY_SLOTS} max={PILOT_BASE_INVENTORY_SLOTS} />
+      <Stat label={pilotCopy('hp')} value={PILOT_BASE_HP} max={PILOT_BASE_HP} />
+      <Stat label={pilotCopy('ap')} value={PILOT_BASE_AP} max={PILOT_BASE_AP} />
+      <Stat
+        label={pilotCopy('inv')}
+        value={PILOT_BASE_INVENTORY_SLOTS}
+        max={PILOT_BASE_INVENTORY_SLOTS}
+      />
     </div>
   )
 }

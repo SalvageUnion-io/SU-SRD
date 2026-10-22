@@ -27,6 +27,7 @@ import {
   tokens,
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -38,9 +39,9 @@ type ChangeLogDrawerProps = {
 
 /** Kind → human label + its chip: a tone chip for the two kinds a rule wrote, quiet for a hand edit. */
 const KIND_META: Record<ChangeLogKind, { label: string; tone?: BadgeTone }> = {
-  transaction: { label: 'Transaction', tone: 'mech' },
-  override: { label: 'Override', tone: 'pilot' },
-  manual: { label: 'Manual' },
+  transaction: { label: buildSheetCopy('transaction'), tone: 'mech' },
+  override: { label: buildSheetCopy('override'), tone: 'pilot' },
+  manual: { label: buildSheetCopy('manual') },
 }
 
 /** A kind's chip: the Badge chip, toned or quiet. */
@@ -96,7 +97,7 @@ function ChangeLogEntries({
     return (
       <EmptyState
         variant="quiet"
-        body={`No changes recorded yet. Edits to this ${entityType} will appear here.`}
+        body={buildSheetCopy('noChangesRecordedYetEdits', { entityType })}
       />
     )
   }
@@ -110,7 +111,7 @@ function ChangeLogEntries({
             head={
               <>
                 <KindChip label={kind.label} tone={kind.tone} />
-                {entry.state === 'proposed' && <KindChip label="Proposed" />}
+                {entry.state === 'proposed' && <KindChip label={buildSheetCopy('proposed')} />}
                 <span>{entry.field}</span>
                 <span style={PUSH}>
                   <FeedTime ts={entry.ts} format="datetime" />
@@ -145,19 +146,17 @@ export function ChangeLogDrawer({
     <ModalShell
       open={open}
       onOpenChange={onOpenChange}
-      title="Change Log"
+      title={buildSheetCopy('changeLog')}
       subtitle={entityName}
       tone="danger"
       width="default"
-      description={`Change history for ${entityName}`}
+      description={buildSheetCopy('changeHistoryFor', { entityName })}
     >
       <div className="su-sheet-changelog-body" style={BODY}>
         {live ? (
           <ChangeLogEntries entityType={entityType} entityId={entityId} />
         ) : (
-          <p style={NOTE}>
-            The Change Log is kept with your account. It shows here while you are connected.
-          </p>
+          <p style={NOTE}>{buildSheetCopy('theChangeLogIsKept')}</p>
         )}
       </div>
     </ModalShell>

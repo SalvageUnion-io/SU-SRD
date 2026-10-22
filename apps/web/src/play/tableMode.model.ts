@@ -9,9 +9,10 @@
  */
 
 import type { PinnedUnit } from './playPhone.model'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 
 /** The table every big roll is on. */
-export const TABLE_ROLL = 'Core Mechanic'
+export const TABLE_ROLL = CORE_MECHANIC_TABLE
 
 /** The record field each pinned vital writes, as `PlayUnits` writes it. */
 const FIELD = {

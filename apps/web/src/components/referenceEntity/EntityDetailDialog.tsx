@@ -4,6 +4,7 @@ import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion
 import { toEntityModel } from 'salvageunion-reference'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, layer, shadow, space } from '../../design/tokens'
+import { referenceEntityCopy } from '../../messages/components-reference-entity'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
@@ -146,7 +147,7 @@ export function EntityDetailPage({
           // An ability's level, left of its title as its Compact sets it: just the number.
           meta.numeral && (
             <>
-              <span className="su-sr-only">Level </span>
+              <span className="su-sr-only">{referenceEntityCopy('level')} </span>
               {meta.numeral}
             </>
           )
@@ -192,7 +193,7 @@ export function EntityDetailDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      description="Entity display details"
+      description={referenceEntityCopy('entityDisplayDetails')}
       ownTitle
       width="page"
       bare

@@ -42,6 +42,7 @@ import {
 } from '../../lib/npcs/npcModel'
 import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
+import { npcCopy } from '../../messages/build-npc'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
@@ -130,12 +131,12 @@ export function NpcSheet({
 
   function remove() {
     confirm?.({
-      title: `Delete ${npc.name}?`,
+      title: npcCopy('delete', { name: npc.name }),
       body: [
         `This cannot be undone. ${npc.name} will be permanently removed${crewing ? `, and ${slotPhrase(crewing.slot)} on ${crewing.crawlerName} goes back to the book's crew line` : ''}.`,
       ],
-      confirmLabel: 'Delete',
-      pendingLabel: 'Deleting…',
+      confirmLabel: npcCopy('delete2'),
+      pendingLabel: npcCopy('deleting'),
       tone: 'danger',
       failure: `${npc.name} could not be deleted. Try again.`,
       onConfirm: async () => {
@@ -156,10 +157,10 @@ export function NpcSheet({
       {!writesBlocked && (
         <Button
           onClick={() => setShareOpen(true)}
-          aria-label={`Share ${npc.name}`}
+          aria-label={npcCopy('share2', { name: npc.name })}
           className="su-page-action"
         >
-          Share
+          {npcCopy('share')}
         </Button>
       )}
       {confirm && (
@@ -170,8 +171,12 @@ export function NpcSheet({
             entity={npc}
             confirm={confirm}
           />
-          <Button variant="ghost" onClick={remove} aria-label={`Delete ${npc.name}`}>
-            Delete
+          <Button
+            variant="ghost"
+            onClick={remove}
+            aria-label={npcCopy('delete3', { name: npc.name })}
+          >
+            {npcCopy('delete2')}
           </Button>
         </SheetActionsMenu>
       )}
@@ -196,13 +201,13 @@ export function NpcSheet({
         actions={actions}
         kindDetail={npcStamp(npc.templateRef)}
         userMade={{ madeBy }}
-        out={
-          isNpcDown(view)
-            ? { stamp: 'Down', note: 'At 0 HP. Nothing is removed: heal them on the HP track.' }
-            : undefined
-        }
+        out={isNpcDown(view) ? { stamp: 'Down', note: npcCopy('at0HpNothingIs') } : undefined}
         renderBody={() => (
-          <section aria-label={`${npc.name} NPC sheet`} className="su-sheet-section" style={SHEET}>
+          <section
+            aria-label={npcCopy('npcSheet', { name: npc.name })}
+            className="su-sheet-section"
+            style={SHEET}
+          >
             {readOnlyProp && readOnlyNote && (
               <p role="note" style={NOTE}>
                 {readOnlyNote}
@@ -212,7 +217,7 @@ export function NpcSheet({
                 nothing (its schema holds no equipment or cargo), so it has no
                 sidebar and its main column takes the width. */}
             <SheetColumns
-              asideLabel={`What ${npc.name} carries`}
+              asideLabel={npcCopy('whatCarries', { name: npc.name })}
               hero={
                 <SheetHero
                   name={npc.name}
@@ -291,7 +296,7 @@ export function NpcSheet({
               }
             >
               {npcActions.length > 0 && (
-                <SlabSection fold="open" title="Actions" count={npcActions.length}>
+                <SlabSection fold="open" title={npcCopy('actions')} count={npcActions.length}>
                   <ActionMinis
                     actions={npcActions}
                     size="compact"

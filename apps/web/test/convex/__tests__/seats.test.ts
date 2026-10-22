@@ -74,7 +74,7 @@ describe('reading seats', () => {
     const t = testConvex()
     const { gameId } = await seatedTable(t)
     const stranger = await makeUser(t, 'Stranger')
-    await expect(stranger.as.query(api.seats.forGame, { gameId })).rejects.toThrow(/not a member/i)
+    expect(await stranger.as.query(api.seats.forGame, { gameId })).toEqual([])
   })
 })
 
@@ -120,17 +120,17 @@ describe('writing a seat', () => {
   test('a spare is boarded only once it is claimed, and claiming assigns nothing', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seatedTable(t)
-    // The organizer offers a mech to the crew: an unclaimed spare in the Game.
+    // The organizer offers a mech to the crew: an unassigned spare in the Game.
     await addMech(organizer, 'm-spare', gameId)
     const entityId = await serverId(t, 'mechs', 'm-spare')
-    await organizer.as.mutation(api.ownership.release, { table: 'mechs', entityId })
+    await organizer.as.mutation(api.ownership.unassign, { table: 'mechs', entityId })
     const seat = { gameId, pilotId: 'p1', mechId: 'm-spare' }
 
     // The seat first would be refused: the Board menu claims, then boards.
-    await expect(player.as.mutation(api.seats.board, seat)).rejects.toThrow(/unclaimed/i)
+    await expect(player.as.mutation(api.seats.board, seat)).rejects.toThrow(/unassigned/i)
     expect(await seatRows(t)).toHaveLength(0)
 
-    await player.as.mutation(api.ownership.claim, { table: 'mechs', entityId })
+    await player.as.mutation(api.ownership.assign, { table: 'mechs', entityId })
     await player.as.mutation(api.seats.board, seat)
     expect((await seatOf(player, gameId, 'p1'))?.mount).toEqual({
       kind: 'boarded',

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, radius, space } from '../../design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { sharedCopy } from '../../messages/components-shared'
 import { capsLabel } from '../atoms/capsLabel'
 
 /**
@@ -50,10 +51,10 @@ export function WritesBlockedNotice() {
       <span aria-hidden="true">◆</span>
       <span>
         {mode === 'solo'
-          ? 'Read-only — sign in to edit'
+          ? sharedCopy('readOnlySignInTo')
           : outdated
-            ? 'Read-only — updating'
-            : 'Read-only for now'}
+            ? sharedCopy('readOnlyUpdating')
+            : sharedCopy('readOnlyForNow')}
       </span>
     </span>
   )

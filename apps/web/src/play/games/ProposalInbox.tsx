@@ -6,6 +6,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { playGamesCopy } from '../../messages/play-games'
 import { HUB_BODY } from './hubStyles.model'
 
 /**
@@ -53,9 +54,9 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
       as="h2"
       bodyStyle={HUB_BODY}
       id="proposal-inbox-heading"
-      title="Awaiting your answer"
+      title={playGamesCopy('awaitingYourAnswer')}
     >
-      <FeedList label="Proposals awaiting your answer">
+      <FeedList label={playGamesCopy('proposalsAwaitingYourAnswer')}>
         {pending.map((p) => {
           const what = `${p.targetName ?? p.entityType} · ${fieldLabel(p.field)} → ${show(p.after)}`
           return (
@@ -67,19 +68,19 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
                     variant="primary"
                     size="compact"
                     disabled={!canWrite}
-                    aria-label={`Apply ${what}`}
+                    aria-label={playGamesCopy('apply2', { what })}
                     onClick={() => answer(() => apply({ proposalId: p._id as Id<'changeLog'> }))}
                   >
-                    Apply
+                    {playGamesCopy('apply')}
                   </Button>
                   <Button
                     variant="default"
                     size="compact"
                     disabled={!canWrite}
-                    aria-label={`Decline ${what}`}
+                    aria-label={playGamesCopy('decline2', { what })}
                     onClick={() => answer(() => decline({ proposalId: p._id as Id<'changeLog'> }))}
                   >
-                    Decline
+                    {playGamesCopy('decline')}
                   </Button>
                 </span>
               }

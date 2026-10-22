@@ -1,5 +1,5 @@
 /**
- * An offline boot's restore of the device copy (ADR-053): the copy's rows
+ * An offline boot's restore of the device copy (ADR-056): the copy's rows
  * reach the stores through the served answer's own apply, a store's
  * `hydrate()` waits for it, and a served answer this load means there is
  * nothing to restore.

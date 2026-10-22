@@ -18,9 +18,10 @@ export const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/npc-builder.md': 2_000,
   'docs/architecture/play.md': 10_500,
   'docs/design-system/chrome.md': 3_000,
-  'docs/design-system/entity-display-language.md': 6_000,
-  'docs/design-system/hard-rules.md': 48_700,
-  'docs/design-system/ruleset.md': 13_350,
+  'docs/design-system/chips-and-actions.md': 7_700,
+  'docs/design-system/entity-display-language.md': 5_800,
+  'docs/design-system/hard-rules.md': 16_200,
+  'docs/design-system/ruleset.md': 13_250,
   'docs/ops/cloud-environment.md': 3_800,
 }
 

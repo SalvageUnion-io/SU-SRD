@@ -2,6 +2,7 @@ import type { CSSProperties, ElementType } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
 import { MiniGrid } from '../../containers/MiniGrid'
 import { SlabSection } from '../../containers/SlabSection'
@@ -133,9 +134,9 @@ function PatternDrones({
 }) {
   return (
     <div className="su-pattern-loadout__drones" style={columnStyle}>
-      <Slab label="Drones" as={sectionAs} />
+      <Slab label={referenceEntityCopy('drones')} as={sectionAs} />
       <ul
-        aria-label={`${owner ? `${owner} ` : ''}Drones installed`}
+        aria-label={referenceEntityCopy('dronesInstalled', { value: owner ? `${owner} ` : '' })}
         className="su-entity-mini-list"
         style={dronesStyle}
       >

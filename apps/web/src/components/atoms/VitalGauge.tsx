@@ -2,6 +2,7 @@ import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { color, fontSize, space, weight } from '../../design/tokens'
+import { atomsCopy } from '../../messages/components-atoms'
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
@@ -467,14 +468,14 @@ export function VitalGauge({
               onChange={(event) => setMaxDraft(event.target.value)}
               onKeyDown={onMaxKeyDown}
               onBlur={commitMax}
-              aria-label={`Set ${label} max`}
+              aria-label={atomsCopy('setMax', { label })}
               style={MAX_INPUT}
             />
           ) : editableMax ? (
             <button
               type="button"
               onClick={beginEditMax}
-              aria-label={`Override ${label} max (currently ${max})`}
+              aria-label={atomsCopy('overrideMaxCurrently', { label, max })}
               className="su-vital-gauge__mini su-hit-area"
               style={{ ...MAX_BUTTON, color: isOverridden ? 'var(--tone-deep)' : color.ink75 }}
             >
@@ -486,7 +487,7 @@ export function VitalGauge({
           {isOverridden &&
             (provenance ? (
               <StatProvenance
-                statLabel={`Max ${label}`}
+                statLabel={atomsCopy('max', { label })}
                 lines={provenance}
                 total={max}
                 overridden
@@ -495,13 +496,13 @@ export function VitalGauge({
                 *
               </StatProvenance>
             ) : (
-              <sup title={`Overridden from ${overriddenFrom}`} style={OVERRIDE_SUP}>
+              <sup title={atomsCopy('overriddenFrom', { overriddenFrom })} style={OVERRIDE_SUP}>
                 *
               </sup>
             ))}
           {!isOverridden && provenance && (
             <StatProvenance
-              statLabel={`Max ${label}`}
+              statLabel={atomsCopy('max', { label })}
               lines={provenance}
               total={max}
               className="su-vital-gauge__prov-info su-vital-gauge__mini su-hit-area"
@@ -513,8 +514,8 @@ export function VitalGauge({
             <button
               type="button"
               onClick={onRevertOverride}
-              aria-label={`Revert ${label} max to derived ${overriddenFrom}`}
-              title={`Revert to derived (${overriddenFrom})`}
+              aria-label={atomsCopy('revertMaxToDerived', { label, overriddenFrom })}
+              title={atomsCopy('revertToDerived', { overriddenFrom })}
               className="su-vital-gauge__revert su-vital-gauge__mini su-hit-area"
               style={REVERT}
             >
@@ -547,7 +548,7 @@ export function VitalGauge({
           override note still says where the max came from. */}
       {isOverridden && (
         <div className={capsLabel({ size: 'badge', weight: 'semibold' })} style={CAPTION}>
-          <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>
+          <span style={CAPTION_OVERRIDE}>{atomsCopy('overriddenFrom2', { overriddenFrom })}</span>
         </div>
       )}
     </div>
@@ -566,7 +567,7 @@ function Steppers(p: {
   return (
     <span style={p.rung === 'full' ? STEPPERS_FULL : STEPPERS}>
       <StepButton
-        aria-label={`Decrease ${p.label}`}
+        aria-label={atomsCopy('decrease2', { label: p.label })}
         disabled={p.shown <= 0}
         onClick={() => p.set(p.shown - 1)}
         style={step}
@@ -574,7 +575,7 @@ function Steppers(p: {
         −
       </StepButton>
       <StepButton
-        aria-label={`Increase ${p.label}`}
+        aria-label={atomsCopy('increase2', { label: p.label })}
         disabled={p.shown >= p.max}
         onClick={() => p.set(p.shown + 1)}
         style={step}

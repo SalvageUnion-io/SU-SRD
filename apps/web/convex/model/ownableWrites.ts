@@ -51,7 +51,7 @@ export function assertMayWrite(
   if (doc.ownerId === userId) return
   if (doc.ownerId === null) {
     throw new NotAuthorized(
-      'That entity is unclaimed — it must be assigned before it can be edited'
+      'That entity is unassigned — it must be assigned before it can be edited'
     )
   }
   throw new NotAuthorized("You cannot edit another player's entity")

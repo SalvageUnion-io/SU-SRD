@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { Avatar } from '../atoms/Avatar'
 import { HeaderMenu } from '../containers/HeaderMenu'
 
@@ -54,24 +55,32 @@ export function AccountMenu({
 }: AccountMenuProps) {
   return (
     <HeaderMenu
-      label={name === null ? 'Account menu' : `Account menu for ${name}`}
+      label={
+        name === null
+          ? compositionsCopy('accountMenu')
+          : compositionsCopy('accountMenuFor', { name })
+      }
       chevron={!compact}
       trigger={
         <>
           <Avatar src={avatarUrl} name={name ?? ''} size={compact ? 32 : 28} />
-          {!compact && <span style={NAME}>{name ?? 'Account'}</span>}
+          {!compact && <span style={NAME}>{name ?? compositionsCopy('account')}</span>}
         </>
       }
       sections={[
         [
-          { id: 'settings', label: 'Settings', onSelect: onSettings },
-          { id: 'sign-out', label: 'Sign out', onSelect: onSignOut },
+          { id: 'settings', label: compositionsCopy('settings'), onSelect: onSettings },
+          { id: 'sign-out', label: compositionsCopy('signOut'), onSelect: onSignOut },
         ],
         [
-          { id: 'about', label: 'About', onSelect: () => window.location.assign(aboutHref) },
+          {
+            id: 'about',
+            label: compositionsCopy('about'),
+            onSelect: () => window.location.assign(aboutHref),
+          },
           {
             id: 'changelog',
-            label: 'Changelog',
+            label: compositionsCopy('changelog'),
             onSelect: () => window.location.assign(changelogHref),
           },
         ],

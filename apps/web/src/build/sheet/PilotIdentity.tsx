@@ -33,6 +33,7 @@ import { useState } from 'react'
 import { Badge, Button, Field, Toggle, tokens } from '../../components/index'
 import { resolveClassName } from '../../lib/classRef'
 import { classChangePatch } from '../../lib/rules/classPath'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { PhotoBeside } from './PhotoBeside'
@@ -127,9 +128,11 @@ function UsedChip({
       pressed={used}
       glyph={<UsedPip used={used} />}
       onClick={() => onToggle(!used)}
-      aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
+      aria-label={
+        used ? buildSheetCopy('resetUsed', { label }) : buildSheetCopy('markUsed', { label })
+      }
     >
-      Used
+      {buildSheetCopy('used')}
     </Toggle>
   )
 }
@@ -230,7 +233,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
             {/* Appearance spans the card: it is prose, and a half-width column
                 wrapped it into a narrow ribbon beside the single-line fields. */}
             <Field
-              label="Appearance"
+              label={buildSheetCopy('appearance')}
               value={pilot.appearance}
               multiline
               onSave={canEdit ? saveText('appearance') : undefined}
@@ -239,12 +242,12 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
             {/* Bio — the freeform backstory, a full-width identity field. */}
             <div style={BIO}>
               <Field
-                label="Bio"
+                label={buildSheetCopy('bio')}
                 value={pilot.description ?? ''}
                 multiline
                 fill
                 onSave={canEdit ? saveText('description') : undefined}
-                placeholder="No bio written yet."
+                placeholder={buildSheetCopy('noBioWrittenYet')}
                 className="su-sheet-pilot-fill"
               />
             </div>
@@ -275,7 +278,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
                 <div className="su-sheet-pilot-split" style={FIELD_GRID}>
                   {showCallsign && (
                     <Field
-                      label="Callsign"
+                      label={buildSheetCopy('callsign')}
                       value={pilot.callsign}
                       onSave={canEdit ? saveRequired('callsign') : undefined}
                       prominent
@@ -283,7 +286,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
                   )}
                   {canEdit && (
                     <Field
-                      label="Class"
+                      label={buildSheetCopy('class')}
                       value={resolveClassName(pilot.classRef)}
                       onEditClick={openClassPicker}
                       prominent
@@ -292,9 +295,15 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
                 </div>
               )}
               {/* Read omits the name: it is the band's title. */}
-              {canEdit && <Field label="Name" value={pilot.name} onSave={saveRequired('name')} />}
+              {canEdit && (
+                <Field
+                  label={buildSheetCopy('name')}
+                  value={pilot.name}
+                  onSave={saveRequired('name')}
+                />
+              )}
               <Field
-                label="Pronouns"
+                label={buildSheetCopy('pronouns')}
                 value={pilot.pronouns ?? ''}
                 onSave={canEdit ? saveText('pronouns') : undefined}
                 placeholder="—"
@@ -309,21 +318,21 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
             style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}
           >
             <Field
-              label="Motto"
+              label={buildSheetCopy('motto')}
               value={pilot.motto}
               multiline
               onSave={canEdit ? saveText('motto') : undefined}
               labelAction={usedChip('motto', 'motto')}
             />
             <Field
-              label="Keepsake"
+              label={buildSheetCopy('keepsake')}
               value={pilot.keepsake}
               multiline
               onSave={canEdit ? saveText('keepsake') : undefined}
               labelAction={usedChip('keepsake', 'keepsake')}
             />
             <Field
-              label="Background"
+              label={buildSheetCopy('background')}
               value={pilot.background}
               multiline
               onSave={canEdit ? saveText('background') : undefined}
@@ -344,7 +353,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
       <SheetPickerModal
         open={classPickerOpen}
         onClose={() => setClassPickerOpen(false)}
-        title="Change Class"
+        title={buildSheetCopy('changeClass')}
       >
         <ClassPathPicker
           allClasses={allClasses}
@@ -356,7 +365,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
         />
         <div style={PICKER_ACTIONS}>
           <Button variant="ghost" size="compact" onClick={() => setClassPickerOpen(false)}>
-            Cancel
+            {buildSheetCopy('cancel')}
           </Button>
           <Button
             variant="primary"
@@ -364,7 +373,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
             disabled={!pendingClass || pendingClass === pilot.classRef}
             onClick={confirmClass}
           >
-            Change Class
+            {buildSheetCopy('changeClass')}
           </Button>
         </div>
       </SheetPickerModal>

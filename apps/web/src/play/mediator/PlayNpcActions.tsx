@@ -20,6 +20,7 @@
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Button, EmptyState, Entity, rollForTable, Slab } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
 import { playLineModel } from '../playLine.model'
 import { reportingRoll } from '../playRolls.model'
@@ -62,11 +63,15 @@ export function PlayNpcActions({
   const live = canWrite && !npc.down
   return (
     <>
-      <Slab as="h3" label={`${npc.name} · Actions`} />
+      <Slab as="h3" label={mediatorCopy('actions', { name: npc.name })} />
       {actions.length === 0 ? (
-        <EmptyState variant="inline" body="The reference gives it no actions." />
+        <EmptyState variant="inline" body={mediatorCopy('theReferenceGivesItNo')} />
       ) : null}
-      <ul className="su-entity-mini-list" aria-label={`${npc.name}’s actions`} data-play-list="">
+      <ul
+        className="su-entity-mini-list"
+        aria-label={mediatorCopy('sActions', { name: npc.name })}
+        data-play-list=""
+      >
         {actions.map((entry) => (
           <NpcActionRow
             key={entry.key}
@@ -138,22 +143,22 @@ function NpcActionRow({
           open ? (
             <Button
               size="mini"
-              aria-label={`Cancel ${entry.name} for ${npc.name}`}
+              aria-label={mediatorCopy('cancelFor', { name: entry.name, name2: npc.name })}
               onClick={() => {
                 setRolled(null)
                 onOpen(false)
               }}
             >
-              Cancel
+              {mediatorCopy('cancel')}
             </Button>
           ) : (
             <Button
               size="mini"
               disabled={!live}
-              aria-label={`Use ${entry.name} for ${npc.name}`}
+              aria-label={mediatorCopy('useFor', { name: entry.name, name2: npc.name })}
               onClick={() => onOpen(true)}
             >
-              Use
+              {mediatorCopy('use')}
             </Button>
           )
         }

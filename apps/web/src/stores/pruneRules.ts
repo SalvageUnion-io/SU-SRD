@@ -25,7 +25,7 @@ import { containerOf } from 'game-domain/container'
  * owned row is in `listMine`. Absence means deleted.
  *
  * A **Game** row is ambiguous on its own. `entities.listMine` returns what the
- * caller **owns**, wherever it lives, and a Game's unclaimed pre-gens and its
+ * caller **owns**, wherever it lives, and a Game's unassigned pre-gens and its
  * communal crawler have no owner at all, so they are absent from that query
  * while being entirely legitimate. A Game row is therefore pruned only when
  * `knownMine`: this browser recorded a server version for it

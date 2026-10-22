@@ -23,6 +23,7 @@ import { DEFAULT_DESCRIPTION, DISCORD_INSTALL_URL, WEBSITE } from '../../lib/con
 import { itemHref } from '../../lib/entityHref'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import { DiscordButton, HomeStartHere } from '../HomeContents'
 import '../../lib/gameData'
 
@@ -44,11 +45,11 @@ const STEP_GUIDES = {
 
 /** The rules a table reaches for mid-session ("At the table"). */
 const AT_THE_TABLE: { schema: RefEnumSchemaName; name: string; label: string }[] = [
-  { schema: 'roll-tables', name: 'Core Mechanic', label: 'The Core Mechanic' },
-  { schema: 'guides', name: 'Heat', label: 'Heat' },
-  { schema: 'guides', name: 'Mech Damage', label: 'Mech Damage' },
-  { schema: 'guides', name: 'Tough Choices', label: 'Tough Choices' },
-  { schema: 'guides', name: 'Salvaging', label: 'Salvaging' },
+  { schema: 'roll-tables', name: 'Core Mechanic', label: pagesCopy('theCoreMechanic') },
+  { schema: 'guides', name: 'Heat', label: pagesCopy('heat') },
+  { schema: 'guides', name: 'Mech Damage', label: pagesCopy('mechDamage') },
+  { schema: 'guides', name: 'Tough Choices', label: pagesCopy('toughChoices') },
+  { schema: 'guides', name: 'Salvaging', label: pagesCopy('salvaging') },
 ]
 
 function page(): PageResult {
@@ -87,7 +88,7 @@ function page(): PageResult {
               </div>
             }
           >
-            The Salvage Union SRD
+            {pagesCopy('theSalvageUnionSrd')}
           </ChapterBand>
         </div>
         <div className="su-home__body su-page-body">
@@ -102,9 +103,14 @@ function page(): PageResult {
                 total={chapter.total}
               />
             ))}
-            <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
+            <ContentsChapter
+              id="at-the-table"
+              title={pagesCopy('atTheTable')}
+              tone="ink"
+              rows={atTheTable}
+            />
           </div>
-          <aside className="su-home__aside" aria-label="Getting started">
+          <aside className="su-home__aside" aria-label={pagesCopy('gettingStarted')}>
             <HomeStartHere guideHrefs={guideHrefs} />
             <DiscordButton installHref={DISCORD_INSTALL_URL} />
           </aside>

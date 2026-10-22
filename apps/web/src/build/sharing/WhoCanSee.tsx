@@ -17,6 +17,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Radio, tokens } from '../../components/index'
 import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
+import { buildSharingCopy } from '../../messages/build-sharing'
 
 const FIELDSET = {
   border: 0,
@@ -51,7 +52,7 @@ export function WhoCanSee({ name, choices, value, onChange, disabled, children }
   return (
     <fieldset style={FIELDSET} disabled={disabled || value === null}>
       <legend className={LEGEND_CAPS} style={LEGEND}>
-        Who can see it
+        {buildSharingCopy('whoCanSeeIt')}
       </legend>
       {choices.map((choice) => (
         <Radio

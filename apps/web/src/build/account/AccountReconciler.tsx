@@ -2,7 +2,7 @@
  * AccountReconciler — keeps the stores the signed-in account's.
  *
  * The stores hold one account's Convex rows in memory, and the device copy
- * keeps the last of them for an offline reload (ADR-053;
+ * keeps the last of them for an offline reload (ADR-056;
  * `docs/ARCHITECTURE.md#device-copy`). Nothing held is ever sent up: every
  * row came from the server or from a write it accepted first, so the server is
  * always the copy to keep.

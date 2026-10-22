@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayNpc } from './opposition.model'
 import { PlayNpcActions } from './PlayNpcActions'
@@ -40,28 +41,25 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
     <>
       <Slab
         as="h2"
-        label="Opposition"
+        label={mediatorCopy('opposition')}
         actions={
           <Button
             variant="default"
             size="mini"
             disabled={!canWrite}
-            aria-label="Add opposition from the reference"
+            aria-label={mediatorCopy('addOppositionFromTheReference')}
             onClick={() => setPicking(true)}
           >
-            + Add
+            {mediatorCopy('add')}
           </Button>
         }
       />
       {npcs === null ? (
-        <EmptyState variant="inline" body="The tray is on its way." />
+        <EmptyState variant="inline" body={mediatorCopy('theTrayIsOnIts')} />
       ) : npcs.length === 0 ? (
-        <EmptyState
-          variant="inline"
-          body="No opposition yet. Add NPCs, Mechs, Squads and Creatures from the reference; players never see them."
-        />
+        <EmptyState variant="inline" body={mediatorCopy('noOppositionYetAddNpcs')} />
       ) : (
-        <ul className="su-play-npcs" aria-label="Opposition">
+        <ul className="su-play-npcs" aria-label={mediatorCopy('opposition')}>
           {npcs.map((npc) => (
             <PlayNpcBox
               key={npc.id}
@@ -88,7 +86,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
       <SheetPickerModal
         open={picking}
         onClose={() => setPicking(false)}
-        title="Add opposition from the reference"
+        title={mediatorCopy('addOppositionFromTheReference')}
         floating
       >
         <OppositionPicker

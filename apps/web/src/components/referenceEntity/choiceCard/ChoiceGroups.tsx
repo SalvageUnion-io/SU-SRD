@@ -5,6 +5,7 @@ import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import { capsLabel } from '../../atoms/capsLabel'
 import { Field } from '../../atoms/Field'
@@ -192,7 +193,7 @@ function ChoiceOption({
     return (
       <SlabSection title={label} style={chosen ? SELECTED_RING : undefined}>
         {/* The ring is the mark; a screen reader hears it said. */}
-        {chosen && <span className="su-sr-only">Chosen</span>}
+        {chosen && <span className="su-sr-only">{referenceEntityCopy('chosen')}</span>}
         {description && <p style={optionTextStyle}>{parsedDescription}</p>}
       </SlabSection>
     )
@@ -205,7 +206,11 @@ function ChoiceOption({
       title={label}
       paint={optionPaint(toneColor)}
       affordance={
-        chosen ? <SelectedSeal word="Chosen" /> : <Stat label="Choice" size="compact" hollow />
+        chosen ? (
+          <SelectedSeal word="Chosen" />
+        ) : (
+          <Stat label={referenceEntityCopy('choice')} size="compact" hollow />
+        )
       }
     >
       {text}

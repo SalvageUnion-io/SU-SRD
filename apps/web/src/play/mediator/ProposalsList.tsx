@@ -12,6 +12,7 @@
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { Button, EmptyState, FeedList, tokens } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
@@ -37,18 +38,18 @@ export function ProposalsList({
   onMore: () => void
   empty?: string
 }) {
-  if (proposals === null) return <p style={MUTED}>Proposals are on their way.</p>
+  if (proposals === null) return <p style={MUTED}>{mediatorCopy('proposalsAreOnTheirWay')}</p>
   if (proposals.length === 0) return <EmptyState variant="quiet" body={empty} />
   return (
     <div style={COLUMN}>
-      <FeedList label="Proposals">
+      <FeedList label={mediatorCopy('proposals')}>
         {proposals.map((p) => (
           <ProposalRow key={p._id} proposal={p} now={now} />
         ))}
       </FeedList>
       {proposals.length >= limit && (
         <Button variant="ghost" size="compact" style={MORE} onClick={onMore}>
-          Show {PROPOSALS_PAGE} more
+          {mediatorCopy('showMore', { proposalsPage: PROPOSALS_PAGE })}
         </Button>
       )}
     </div>

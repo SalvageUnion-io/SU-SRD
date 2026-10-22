@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { Button, ConfirmDialog } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
+import { mechCopy } from '../../../messages/build-mech'
 import { useEntityStore } from '../../../stores/entityStore'
 
 type InstantiateFromPatternProps = {
@@ -56,16 +57,16 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         disabled={isInstantiating}
         // "Build With This", as every build action reads; the accessible name
         // starts with it and says what it builds.
-        aria-label={`Build With This: a mech from ${pattern.name}`}
+        aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
       >
-        {isInstantiating ? 'Building…' : 'Build With This'}
+        {isInstantiating ? mechCopy('building') : mechCopy('buildWithThis')}
       </Button>
       <ConfirmDialog
         open={confirming}
         onOpenChange={setConfirming}
-        title={`Build a mech from ${pattern.name}?`}
-        body="This may exceed the starting rules — a freeform build, like Blank. It stamps the mech exactly as saved; edit freely on its live sheet."
-        confirmLabel="Build"
+        title={mechCopy('buildAMechFrom', { name: pattern.name })}
+        body={mechCopy('thisMayExceedTheStarting')}
+        confirmLabel={mechCopy('build')}
         onConfirm={() => void handleInstantiate()}
       />
     </>

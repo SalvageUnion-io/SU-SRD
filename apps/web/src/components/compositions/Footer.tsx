@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import { citeLine } from 'salvageunion-reference'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { ChapterFoot } from '../atoms/ChapterFoot'
 import { FOCUS_RING } from '../atoms/interaction'
 
@@ -64,13 +65,7 @@ const SITE_MEASURE = '85rem'
  * §3.1), and the band holds no action. The About pages link the licence.
  */
 function Legal() {
-  return (
-    <p className="su-footer__legal">
-      Salvage Union is copyrighted by Leyline Press. Salvage Union and the “Powered by Salvage” logo
-      are used with permission of Leyline Press, under the Salvage Union Open Game Licence 1.0b. All
-      Workshop Manual Images are used with special permission from Leyline Press.
-    </p>
-  )
+  return <p className="su-footer__legal">{compositionsCopy('salvageUnionIsCopyrightedBy')}</p>
 }
 
 function End({
@@ -84,7 +79,7 @@ function End({
 }) {
   return (
     <div className="su-footer__end">
-      <nav aria-label="Site">
+      <nav aria-label={compositionsCopy('site')}>
         <ul className="su-footer__links">
           {links.map((link) => (
             <li key={link.href}>
@@ -104,7 +99,7 @@ function End({
       */}
       <img
         src={src}
-        alt="Powered by Salvage"
+        alt={compositionsCopy('poweredBySalvage')}
         className="su-footer__mark"
         width={40}
         height={40}

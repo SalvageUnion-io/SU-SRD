@@ -109,7 +109,7 @@ export type TargetCrew = {
 /**
  * Every pilot and mech somebody can answer for, pilots first.
  *
- * Unclaimed ones are left out: a proposal needs an owner to apply or decline
+ * Unassigned ones are left out: a proposal needs an owner to apply or decline
  * it, and the server refuses one with none. A mech is labelled by the pilot it
  * is assigned to, because that is who the Mediator is looking at.
  */

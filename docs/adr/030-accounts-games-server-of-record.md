@@ -6,6 +6,8 @@ and the `convex-ops` skill. Amended by [ADR-051](051-play-mode.md): a pilot on a
 Shelf has a seat too, seats carry presence, and a Game can bind a Discord
 channel (`channelBindings`). Amended by [ADR-052](052-build-assets-play-games.md):
 Build's Hangar lists what a player owns; a Game's page and joining are Play's.
+Amended by [ADR-055](055-crew-assets-assign.md): in a Game a pilot or mech is
+**assigned** to a member, never claimed (§2, §4–6).
 
 ## 1. Identity and the storage modes
 
@@ -15,7 +17,7 @@ the bot becomes a first-class authenticated client.
 **Convex is the server of record.** A signed-in client reads through reactive
 subscriptions (the live table is the point) and writes to Convex; nothing is
 kept on the device but a read-only copy of the player's own rows
-([device copy](../ARCHITECTURE.md#device-copy), ADR-053).
+([device copy](../ARCHITECTURE.md#device-copy), ADR-056).
 Signed out, nothing persists (ADR-034). The four modes (Solo, Connected,
 Disconnected, Outdated) are
 [`.claude/rules/app-data-access.md`](../../.claude/rules/app-data-access.md);
@@ -35,8 +37,8 @@ An entity is in exactly one container, encoded as two nullable columns:
 
 | `gameId` | `ownerId` | State                                                  |
 | -------- | --------- | ------------------------------------------------------ |
-| set      | set       | claimed and in play                                    |
-| set      | null      | **unclaimed**, awaiting assignment (communal for a crawler) |
+| set      | set       | assigned to that member, in play                       |
+| set      | null      | **unassigned**, awaiting assignment (communal for a crawler) |
 | null     | set       | on the owner's shelf                                   |
 | null     | null      | **invalid**: unreachable through any mutation          |
 
@@ -75,11 +77,16 @@ Game page, and the player applies or declines it. Proposals persist until
 answered: no expiry, **no force-apply**. A newer proposal on the same field
 supersedes the older one. Alerts and cross-player writes are one mechanism.
 
-Owners may always **release** what they hold; the Mediator may **reassign**. A
-player may own any number of entities in a Game. **Players self-claim** an
-unclaimed entity (it is an offer to the crew), but claiming touches only what
-is free: a held entity must be released first. `assign` is the table runner's
-power to place an entity with a particular person.
+**Assign, never claim** (ADR-055). Inside a Game, `ownerId` names who a
+pilot or mech is **assigned** to, not who owns it: the assigned member edits
+it, the rest of the crew reads it (§5), and the table runner may assign it to
+any member, reassigning what somebody holds (`ownership.assign`). A player may
+assign a free one to themselves (an unassigned entity is an offer to the crew;
+Play's "Assign and board" does it for a spare mech), but never takes what a
+crewmate holds. Its holder may always **unassign** it, and so may the table
+runner (`ownership.unassign`). A member may hold any number of entities in a
+Game. On the shelf `ownerId` is plain ownership, as before. Reassigning is not
+a write to the sheet, so it needs no proposal.
 
 ## 5. Visibility
 
@@ -89,6 +96,11 @@ hidden. The **crawler is communal** (`ownerId: null` in a Game): read by every
 member, edited only by the table runner ([ADR-038](038-dashboard-game-surface.md) §5),
 writes merged per field. A public sheet ([ADR-032](032-public-read-only-sheets.md))
 is the one exception.
+
+A Game read answers empty, never an error, to a caller who is no longer a
+member, and a Mediator-only read to one who no longer mediates: a Game changes
+under an open page before the page hears of it (`membershipOrNull`,
+`mediatorOrNull`). Writes still refuse.
 
 ## 5a. Setting the table up
 
@@ -114,7 +126,8 @@ unit's Game a relation chip and a Showing filter, never a place
 are shelves of their own. A Game's page is Play's, `/play/games/:id`: its roster
 in the same ontology-toned columns of Rows (`UnitRow`), then the members',
 Mediator's and Organizer's sections. A shared roster adds an owner chip per row
-and an **UNCLAIMED** seal that opens the pick-up confirm. Every row opens its
+and an **UNASSIGNED** seal that opens the Assign to me confirm; the table
+runner's row menu assigns any pilot or mech to any member, and unassigns it. Every row opens its
 live sheet, editable or the read-only drill-in §5 permits (`/sheet/:kind/:id`).
 The Mediator's live screen is Play's Cockpit, `/play/game/:id`
 ([play.md](../architecture/play.md) §10), which links to the Game's page.
@@ -135,7 +148,7 @@ Game's newest open standing invite row (`convex/model/invites.ts#currentInvite`)
 | What                            | Where it lands                 |
 | ------------------------------- | ------------------------------ |
 | a pilot or mech with an owner    | that owner's shelf            |
-| an **unclaimed** pilot or mech   | the deleting Organizer's shelf |
+| an **unassigned** pilot or mech  | the deleting Organizer's shelf |
 | every **crawler**                | the deleting Organizer's shelf |
 
 A shelved crawler takes an owner (`null`/`null` stays invalid). What goes is

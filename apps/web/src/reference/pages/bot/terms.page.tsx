@@ -9,6 +9,7 @@ import { InlineRef, Slab } from '../../../components/index'
 import { space } from '../../../design/tokens'
 import { BOLD, proseColumn, SMALL_PRINT } from '../../../lib/docPageStyles'
 import { pageTitle } from '../../../lib/pageTitle'
+import { pagesCopy } from '../../../messages/reference-pages'
 import { DocPage } from '../../DocPage'
 
 const BODY = proseColumn(space[16])
@@ -19,42 +20,34 @@ function page(): PageResult {
   return {
     meta: {
       title: pageTitle('Discord Bot Terms of Service'),
-      description:
-        'Terms of Service for the Salvage Union Discord bot — an unofficial, community reference tool for the Salvage Union TTRPG.',
+      description: pagesCopy('termsOfServiceForThe'),
     },
     children: (
-      <DocPage title="Salvage Union Bot — Terms of Service" measure="48rem" gap={space[24]}>
-        <p style={SMALL_PRINT}>Last updated: {LAST_UPDATED}</p>
+      <DocPage title={pagesCopy('salvageUnionBotTermsOf')} measure="48rem" gap={space[24]}>
+        <p style={SMALL_PRINT}>{pagesCopy('lastUpdated', { lastUpdated: LAST_UPDATED })}</p>
 
         <section style={BODY}>
-          <p>
-            By adding or using the Salvage Union bot (“the Bot”) in a Discord server or via user
-            install, you agree to these terms.
-          </p>
+          <p>{pagesCopy('byAddingOrUsingThe')}</p>
 
           <div>
-            <Slab as="h2" label="The service" />
+            <Slab as="h2" label={pagesCopy('theService')} />
             <p>
               The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop
-              roleplaying game via Discord slash commands (<code>/su</code>). With a salvageunion.io
-              account signed in with Discord, it also shows your account, Games and sheets, and
-              posts Play’s rolls to a channel you bind. It is provided free of charge, “as is,”
-              without warranty of any kind. We may change, suspend, or discontinue the Bot at any
-              time.
+              roleplaying game via Discord slash commands (<code>{pagesCopy('su')}</code>). With a
+              salvageunion.io account signed in with Discord, it also shows your account, Games and
+              sheets, and posts Play’s rolls to a channel you bind. It is provided free of charge,
+              “as is,” without warranty of any kind. We may change, suspend, or discontinue the Bot
+              at any time.
             </p>
           </div>
 
           <div>
-            <Slab as="h2" label="Acceptable use" />
-            <p>
-              Don’t use the Bot to break Discord’s Terms of Service or Community Guidelines, to
-              abuse or overload the service, or for any unlawful purpose. Bind a channel only where
-              you’re allowed to post.
-            </p>
+            <Slab as="h2" label={pagesCopy('acceptableUse')} />
+            <p>{pagesCopy('dontUseTheBotTo')}</p>
           </div>
 
           <div>
-            <Slab as="h2" label="Intellectual property" />
+            <Slab as="h2" label={pagesCopy('intellectualProperty')} />
             <p>
               Salvage Union is copyrighted by{' '}
               <InlineRef
@@ -63,31 +56,28 @@ function page(): PageResult {
                 rel="noopener noreferrer"
                 style={BOLD}
               >
-                Leyline Press
+                {pagesCopy('leylinePress')}
               </InlineRef>
               . The Bot is an unofficial, community reference tool and is not affiliated with or
               endorsed by Leyline Press. Game data is drawn from the community reference at{' '}
               <InlineRef href="/" style={BOLD}>
-                salvageunion.io
+                {pagesCopy('salvageunionIo')}
               </InlineRef>
               .
             </p>
           </div>
 
           <div>
-            <Slab as="h2" label="Liability" />
-            <p>
-              To the maximum extent permitted by law, the operators of the Bot are not liable for
-              any damages arising from its use or unavailability.
-            </p>
+            <Slab as="h2" label={pagesCopy('liability')} />
+            <p>{pagesCopy('toTheMaximumExtentPermitted')}</p>
           </div>
 
           <div>
-            <Slab as="h2" label="Contact" />
+            <Slab as="h2" label={pagesCopy('contact')} />
             <p>
               Questions about these terms:{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
-                privacy@salvageunion.io
+                {pagesCopy('privacySalvageunionIo')}
               </InlineRef>
               .
             </p>
@@ -96,7 +86,7 @@ function page(): PageResult {
           <p style={SMALL_PRINT}>
             See also the{' '}
             <InlineRef href="/bot/privacy/" style={BOLD}>
-              Privacy Policy
+              {pagesCopy('privacyPolicy')}
             </InlineRef>
             .
           </p>

@@ -10,6 +10,7 @@ import {
 } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'
@@ -230,7 +231,7 @@ export function PatternListing({
         href && !edit ? (
           <a
             href={href}
-            aria-label={`${name} — ${chassisName} pattern`}
+            aria-label={referenceEntityCopy('pattern2', { name, chassisName })}
             className={cn('su-pattern-rows__head', FOCUS_RING)}
           >
             {head}
@@ -296,7 +297,7 @@ export function PatternLinkRows({
     <SlabSection
       as={sectionAs}
       id="patterns"
-      title="Patterns"
+      title={referenceEntityCopy('patterns')}
       page
       className="su-pattern-rows"
       bodyClassName="su-pattern-rows__body"
@@ -310,7 +311,7 @@ export function PatternLinkRows({
       </ul>
       {count > PATTERNS_ON_A_PHONE && (
         <a href="#patterns" className={cn('su-pattern-rows__more', capsLabel(), FOCUS_RING)}>
-          Show all {count} patterns
+          {referenceEntityCopy('showAllPatterns', { count })}
         </a>
       )}
     </SlabSection>

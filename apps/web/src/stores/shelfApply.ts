@@ -4,7 +4,7 @@
  * is pruned only where its absence is unambiguous (`rowMayBePruned`).
  *
  * Split out of `ShelfSync` so the device copy's restore (`deviceCopyRestore`,
- * ADR-053) applies a saved answer through exactly the code a live one takes:
+ * ADR-056) applies a saved answer through exactly the code a live one takes:
  * the copy IS a served answer, only an older one.
  *
  * Every write here is `adopt` or `forget`, never a store write: holding a

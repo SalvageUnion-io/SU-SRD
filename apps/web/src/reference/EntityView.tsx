@@ -42,6 +42,7 @@ import { nameRefIndexWithout, nameRefsFor } from '../lib/nameRefIndex'
 import { pageRefsFor } from '../lib/pageRefIndex'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
+import { referenceCopy } from '../messages/reference'
 import { Island } from '../runtime/Island'
 import { StaticEntityContent } from './StaticEntityContent'
 
@@ -105,7 +106,7 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
         parent={
           pattern
             ? {
-                label: 'Pattern of',
+                label: referenceCopy('patternOf'),
                 name: item.name,
                 href: itemHref(schemaId, getEntitySlug(item)),
               }

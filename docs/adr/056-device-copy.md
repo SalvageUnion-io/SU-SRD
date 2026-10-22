@@ -1,4 +1,4 @@
-# ADR-053: A Read-Only Device Copy of the Player's Own Sheets
+# ADR-056: A Read-Only Device Copy of the Player's Own Sheets
 
 Decided 2026-10-22 (4.1.0, Jrvs: "SRD + the signed-in player's own sheets,
 read-only; edits wait until back online").

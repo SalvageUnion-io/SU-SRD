@@ -4,6 +4,7 @@ import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { referenceCopy } from '../messages/reference'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity: its chapter's
@@ -33,7 +34,7 @@ type EntityParent = { label: string; entityRef: EntityRef; href: string }
  */
 function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   return (
-    <nav className="su-guide-exits" aria-label="Where next">
+    <nav className="su-guide-exits" aria-label={referenceCopy('whereNext')}>
       <Button
         href={build.href}
         aria-label={build.ariaLabel}
@@ -118,7 +119,7 @@ export function EntityPageFrame({
           // An ability's level, left of its title as its Compact sets it: just the number.
           meta.numeral && (
             <>
-              <span className="su-sr-only">Level </span>
+              <span className="su-sr-only">{referenceCopy('level')} </span>
               {meta.numeral}
             </>
           )

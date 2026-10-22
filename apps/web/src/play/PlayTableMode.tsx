@@ -29,6 +29,7 @@ import {
   VitalGauge,
 } from '../components/index'
 import { dieForTable } from '../lib/dice'
+import { playCopy } from '../messages/play'
 import { recordPlayRoll } from './playRolls.model'
 import type { TableUnit } from './tableMode.model'
 import { TABLE_ROLL } from './tableMode.model'
@@ -135,22 +136,26 @@ export function PlayTableMode({
   }
 
   return (
-    <section aria-label="Table mode" style={ROOT}>
+    <section aria-label={playCopy('tableMode')} style={ROOT}>
       <div style={ROLL_BLOCK}>
         <Button variant="primary" size="full" style={ROLL} disabled={rolling} onClick={roll}>
-          Roll the die
+          {playCopy('rollTheDie')}
         </Button>
         {last ? (
-          <p style={RESULT} role="status" aria-label={`Rolled ${last.die}, ${last.band}`}>
+          <p
+            style={RESULT}
+            role="status"
+            aria-label={playCopy('rolledBand', { die: last.die, band: last.band })}
+          >
             <span style={RESULT_DIE}>{last.die}</span>
             <span className={RESULT_BAND}>{last.band}</span>
           </p>
         ) : null}
       </div>
       {units.length === 0 ? (
-        <EmptyState variant="inline" body="Nothing to track in Downtime: the tabs hold the step." />
+        <EmptyState variant="inline" body={playCopy('nothingToTrackInDowntime')} />
       ) : (
-        <section aria-label="Vitals" style={ROOT}>
+        <section aria-label={playCopy('vitals')} style={ROOT}>
           {units.map((unit) => (
             <Box
               key={unit.kind}
@@ -161,7 +166,7 @@ export function PlayTableMode({
               <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
                 {unit.name}
               </p>
-              <ul aria-label={`${unit.name}’s vitals`} style={GAUGES}>
+              <ul aria-label={playCopy('unitVitals', { name: unit.name })} style={GAUGES}>
                 {unit.vitals.map((v) => (
                   <li key={v.label}>
                     <VitalGauge
@@ -194,8 +199,8 @@ export function PlayTableMode({
 export function TableModeToggle() {
   const [on, setOn] = useTableMode()
   return (
-    <Toggle pressed={on} aria-label="Table mode" onClick={() => setOn(!on)}>
-      Table
+    <Toggle pressed={on} aria-label={playCopy('tableMode')} onClick={() => setOn(!on)}>
+      {playCopy('table')}
     </Toggle>
   )
 }
