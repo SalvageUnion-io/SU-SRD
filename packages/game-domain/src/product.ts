@@ -19,7 +19,8 @@
  * account is a salvageunion.io account).
  *
  * - `descriptor` — what Build is, said plainly, wherever its name is
- *   introduced (the front door's eyebrow).
+ *   introduced (the front door's eyebrow); `playDescriptor` the same for
+ *   Play (the Play hub's eyebrow).
  * - `tagline` — the old name's banner line, kept as the legacy tagline, and
  *   `taglineBy`, who it is quoted from.
  * - `wordmark` — the site's own name, as the reference OG card draws it.
@@ -32,6 +33,7 @@ export const PRODUCT = {
   build: 'Training Bay',
   play: 'The Cantina',
   descriptor: 'The Salvage Union Character Builder',
+  playDescriptor: 'The Salvage Union Table Manager',
   tagline: 'You’re in The Union, now!',
   taglineBy: 'Lester “Stumpy” Owens',
   wordmark: 'salvageunion.io',
