@@ -19,7 +19,7 @@ import { CANVAS, MID, PHONE } from './_play'
  * (`_designTable.ts`) signed in on the one seeded account
  * (`gates/lib/seedAccount.ts`), or the signed-out reference corpus
  * (`corpusRoutes`). Each route opens at each of its widths, in the state it
- * names (Edit, a Peek open, each of Play's phone tabs), at rest, and each view
+ * names (Edit, a Peek open, each of Play's phone tabs and table mode), at rest, and each view
  * goes to the gate's scan. The gate's findings are then held against its
  * baseline (`againstBaseline`, `_designTable.ts`), the debt it has recorded, by
  * route family and rule.
@@ -137,6 +137,17 @@ export async function visitDesignViews(
           await tabs.filter({ hasText: name }).first().click()
           await settle(page)
           await visit({ ...view, where: `${where}, ${name.trim()} tab` })
+        }
+        // The player's table mode, then back to the tabs for the next route.
+        const table = page.locator('.su-play-root--phone').getByRole('button', {
+          name: 'Table mode',
+        })
+        if ((await table.count()) > 0) {
+          await table.click()
+          await settle(page)
+          await visit({ ...view, where: `${where}, table mode` })
+          await table.click()
+          await settle(page)
         }
       } else {
         await visit(view)

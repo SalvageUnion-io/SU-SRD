@@ -9,6 +9,9 @@
  *  - **The open tab's panel**, the only thing that scrolls: the page never
  *    does (`PlayCanvas`'s phone form fits the screen).
  *  - **The tabs** along the bottom, at thumb height, in a fixed order.
+ *  - **Or the focus**: table mode's one screen (`PlayTableMode`) in place of
+ *    the tabs, the panels kept mounted under it, so leaving it finds every
+ *    tab as it was.
  *
  * Every panel stays mounted while closed (`keepMounted`, `hidden`), so a
  * half-typed Find, an open filter or a resolve in hand survives a switch, and
@@ -50,6 +53,9 @@ const TABS = {
   flexDirection: 'column',
   minHeight: 0,
 } satisfies CSSProperties
+
+/** The tabs under table mode: mounted, not drawn. */
+const HIDDEN = { display: 'none' } satisfies CSSProperties
 
 /** A panel: the only scroller on the screen. No `display` here: `hidden` must win. */
 const PANEL = {
@@ -102,6 +108,8 @@ type PlayPhoneProps<Value extends string> = {
   onTab: (tab: Value) => void
   /** Each tab's panel: the canvas's column components. */
   panels: Record<Value, ReactNode>
+  /** Table mode's screen: shown in place of the tabs while set. */
+  focus?: ReactNode
 }
 
 export function PlayPhone<Value extends string>({
@@ -111,12 +119,19 @@ export function PlayPhone<Value extends string>({
   tab,
   onTab,
   panels,
+  focus,
 }: PlayPhoneProps<Value>) {
+  const focused = focus !== undefined && focus !== null
   return (
     <div className="su-play-phone" style={ROOT}>
       {bar}
       <div style={PINNED}>{pinned}</div>
-      <Tabs value={tab} onValueChange={onTab} style={TABS}>
+      {focused ? (
+        <div style={PANEL}>
+          <div style={PANEL_BODY}>{focus}</div>
+        </div>
+      ) : null}
+      <Tabs value={tab} onValueChange={onTab} style={focused ? HIDDEN : TABS}>
         {tabs.map((t) => (
           <TabPanel key={t.value} value={t.value} keepMounted style={PANEL}>
             <div style={PANEL_BODY}>{panels[t.value]}</div>
