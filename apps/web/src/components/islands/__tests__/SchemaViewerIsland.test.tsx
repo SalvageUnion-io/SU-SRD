@@ -1,4 +1,4 @@
-import { afterEach, it as bunIt, describe, expect, spyOn } from 'bun:test'
+import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import {
   getEntitySchemas,
@@ -14,10 +14,11 @@ import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 const entitySchemas = getEntitySchemas()
 
-// Measured: each test renders a whole schema's listing, and under coverage on a
-// quiet machine the heaviest (every ability, every system) take 5.2–6.1 s alone,
-// over Bun's 5 s default. This file's tests alone get the longer limit.
-const it = (name: string, fn: () => void | Promise<void>) => bunIt(name, fn, 15_000)
+/**
+ * The tests that render a whole schema's listing (every ability, every
+ * system): measured alone under coverage at 5.2–6.1 s, over Bun's 5 s default.
+ */
+const HEAVY = 15_000
 
 /** Narrowing guard for fixture lookups — fails the test loudly instead of `!`. */
 function required<T>(value: T | null | undefined, label: string): T {
@@ -167,34 +168,38 @@ describe('SchemaViewerIsland', () => {
     cleanup()
   })
 
-  it('shows an empty state with a clear-filters action when filters match nothing', () => {
-    const firstSchema = required(entitySchemas[0], 'first entity schema')
-    const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
-    const entities = model.all()
+  it(
+    'shows an empty state with a clear-filters action when filters match nothing',
+    () => {
+      const firstSchema = required(entitySchemas[0], 'first entity schema')
+      const model = required(getModel(firstSchema.id), `model for ${firstSchema.id}`)
+      const entities = model.all()
 
-    render(
-      <SchemaViewerIsland
-        schemaId={firstSchema.id}
-        techLevels={[1, 2, 3]}
-        sources={['Core', 'Rig', 'Nope']}
-      />
-    )
+      render(
+        <SchemaViewerIsland
+          schemaId={firstSchema.id}
+          techLevels={[1, 2, 3]}
+          sources={['Core', 'Rig', 'Nope']}
+        />
+      )
 
-    // Pick the 'Nope' source — no entity carries it, so the grid empties and
-    // the empty-state message + clear button appear.
-    fireEvent.change(screen.getByRole('combobox', { name: 'Source' }), {
-      target: { value: 'Nope' },
-    })
+      // Pick the 'Nope' source — no entity carries it, so the grid empties and
+      // the empty-state message + clear button appear.
+      fireEvent.change(screen.getByRole('combobox', { name: 'Source' }), {
+        target: { value: 'Nope' },
+      })
 
-    expect(screen.getByText('No items match the current filters.')).toBeTruthy()
+      expect(screen.getByText('No items match the current filters.')).toBeTruthy()
 
-    // Clicking "Clear filters" should restore entity cards.
-    const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
-    fireEvent.click(clearBtn)
+      // Clicking "Clear filters" should restore entity cards.
+      const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
+      fireEvent.click(clearBtn)
 
-    const links = document.querySelectorAll('a[aria-label]')
-    expect(links.length).toBe(entities.length)
-  })
+      const links = document.querySelectorAll('a[aria-label]')
+      expect(links.length).toBe(entities.length)
+    },
+    HEAVY
+  )
 
   it('a source filter counts reprints: ?source= lists every system the Starter Set prints', () => {
     const starter = 'Salvage Union Starter Set'
@@ -470,18 +475,22 @@ describe('SchemaViewerIsland', () => {
       expect(container.querySelector('.su-rail__status')).toBeNull()
     })
 
-    it('a schema with no art takes the wider art-less columns', () => {
-      const systems = required(getModel('systems'), 'systems model').all()
-      const { container } = render(
-        <SchemaViewerIsland
-          schemaId="systems"
-          techLevels={getUniqueTechLevels(systems)}
-          sources={getUniqueSources(systems)}
-        />
-      )
-      expect(container.querySelector('.su-listing[data-catalog]')).toBeTruthy()
-      expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(systems.length)
-    })
+    it(
+      'a schema with no art takes the wider art-less columns',
+      () => {
+        const systems = required(getModel('systems'), 'systems model').all()
+        const { container } = render(
+          <SchemaViewerIsland
+            schemaId="systems"
+            techLevels={getUniqueTechLevels(systems)}
+            sources={getUniqueSources(systems)}
+          />
+        )
+        expect(container.querySelector('.su-listing[data-catalog]')).toBeTruthy()
+        expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(systems.length)
+      },
+      HEAVY
+    )
 
     it('a ?view=list or ?view=tree link elsewhere is ignored', () => {
       window.location.href = 'http://localhost/systems/?view=tree'
@@ -526,39 +535,47 @@ describe('SchemaViewerIsland', () => {
       expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
     })
 
-    it('the Catalog is one flat grid of CompactIndexes, by name, under no tree heading', () => {
-      const { container } = renderAbilities()
-      fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-      expect(container.querySelector('.su-ability-track')).toBeNull()
-      const groups = container.querySelectorAll('.su-listing__group')
-      expect(groups.length).toBe(1)
-      expect(groups[0]?.getAttribute('aria-label')).toBeNull()
-      const names = [...container.querySelectorAll('.su-listing__tiles > li > a[aria-label]')].map(
-        (tile) => tile.getAttribute('aria-label') ?? ''
-      )
-      expect(names.length).toBe(abilities().length)
-      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
-    })
-
-    it('remembers the choice, and a chosen view rides the URL', () => {
-      const replaceSpy = spyOn(window.history, 'replaceState')
-      try {
-        renderAbilities()
+    it(
+      'the Catalog is one flat grid of CompactIndexes, by name, under no tree heading',
+      () => {
+        const { container } = renderAbilities()
         fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
-        expect(window.localStorage.getItem('srd:listing-view:abilities')).toBe('catalog')
-        const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
-        expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
-      } finally {
-        replaceSpy.mockRestore()
-      }
-      cleanup()
-      window.localStorage.clear()
-      window.location.href = 'http://localhost/abilities/?view=catalog'
-      renderAbilities()
-      expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
-        'true'
-      )
-    })
+        expect(container.querySelector('.su-ability-track')).toBeNull()
+        const groups = container.querySelectorAll('.su-listing__group')
+        expect(groups.length).toBe(1)
+        expect(groups[0]?.getAttribute('aria-label')).toBeNull()
+        const names = [
+          ...container.querySelectorAll('.su-listing__tiles > li > a[aria-label]'),
+        ].map((tile) => tile.getAttribute('aria-label') ?? '')
+        expect(names.length).toBe(abilities().length)
+        expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)))
+      },
+      HEAVY
+    )
+
+    it(
+      'remembers the choice, and a chosen view rides the URL',
+      () => {
+        const replaceSpy = spyOn(window.history, 'replaceState')
+        try {
+          renderAbilities()
+          fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
+          expect(window.localStorage.getItem('srd:listing-view:abilities')).toBe('catalog')
+          const urls = replaceSpy.mock.calls.map((c) => String(c[2]))
+          expect(urls.some((u) => u.includes('view=catalog'))).toBe(true)
+        } finally {
+          replaceSpy.mockRestore()
+        }
+        cleanup()
+        window.localStorage.clear()
+        window.location.href = 'http://localhost/abilities/?view=catalog'
+        renderAbilities()
+        expect(screen.getByRole('button', { name: 'Catalog' }).getAttribute('aria-pressed')).toBe(
+          'true'
+        )
+      },
+      HEAVY
+    )
   })
 
   // The page hands the roll tables their top-level ids (`listingEntries`): the

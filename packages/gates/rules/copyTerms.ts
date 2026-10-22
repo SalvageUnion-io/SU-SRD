@@ -329,7 +329,7 @@ export const BANNED: readonly Banned[] = [
     pattern: /(?<!Salvage Union\s)(?<![\w(-])SRD(?![\w)-])/g,
     say: 'Reference',
     why: 'the tool is "Reference" in the header switch; one name per area (hard rule R16)',
-    // The drawer's brand stamp; a pattern's Homebrew switch (the owner's words).
+    // The drawer's brand stamp; the Homebrew switch, in the owner's words (ADR-061).
     allowWhole: /^(?:SRD|Share with the SRD)$/,
   },
   {
