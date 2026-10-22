@@ -27,7 +27,7 @@
 import { useMutation, useQuery } from 'convex/react'
 import { publicPath } from 'game-domain/entityKinds'
 import { Copy } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -63,10 +63,12 @@ type ShareSettingsProps = {
   clipboardWriter?: (text: string) => Promise<void>
 }
 
+/** The answers' own hint (`Radio`'s description): every line under Public reads as one. */
 const MUTED_CAPTION = {
   color: tokens.color.wkMuted,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 
 const ROW = { display: 'flex', alignItems: 'center', gap: tokens.space[8] } satisfies CSSProperties
@@ -82,7 +84,14 @@ const URL_TEXT = {
 
 const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
 
-const QR_ROW = { ...ROW, gap: tokens.space[12] } satisfies CSSProperties
+/** The QR on the left, what goes with it on the right; the link along the bottom. */
+const QR_ROW = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const QR_SIDE = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
 const QR_NOTE = { ...MUTED_CAPTION, margin: 0 } satisfies CSSProperties
 
@@ -186,13 +195,11 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
         disabled={busy}
         details={{
           link: (
-            <>
-              <ShareOnReference appId={appId} shared={mine?.homebrew === true} />
-              <ShareLink
-                url={appUrl(publicPath('pattern', appId, name))}
-                clipboardWriter={clipboardWriter}
-              />
-            </>
+            <ShareLink
+              url={appUrl(publicPath('pattern', appId, name))}
+              clipboardWriter={clipboardWriter}
+              aside={<ShareOnReference appId={appId} shared={mine?.homebrew === true} />}
+            />
           ),
         }}
       >
@@ -240,12 +247,18 @@ function ShareOnReference({ appId, shared }: { appId: string; shared: boolean })
   )
 }
 
-/** The public link while there is one: the URL, a copy button and a QR of it. */
+/**
+ * The public link while there is one: a QR of it on the left, `aside` (a
+ * pattern's Reference switch) and the scan note on the right, and the URL with
+ * its copy button along the bottom.
+ */
 function ShareLink({
   url,
+  aside,
   clipboardWriter = (text) => navigator.clipboard.writeText(text),
 }: {
   url: string
+  aside?: ReactNode
   clipboardWriter?: (text: string) => Promise<void>
 }) {
   const { copied, flash } = useCopied()
@@ -262,7 +275,19 @@ function ShareLink({
   }
 
   return (
-    <Stack gap={8}>
+    <Stack gap={12}>
+      {/*
+        Passing a phone across a table is the actual use, so the QR needs no
+        heading and no placeholder — it is simply there while there is a
+        public link to encode.
+      */}
+      <div style={QR_ROW}>
+        <LinkQr url={url} />
+        <Stack gap={8} style={QR_SIDE}>
+          {aside}
+          <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
+        </Stack>
+      </div>
       <div style={ROW}>
         <code style={URL_TEXT}>{url}</code>
         <Button
@@ -278,15 +303,6 @@ function ShareLink({
           />
         </Button>
         <CopiedStatus copied={copied} />
-      </div>
-      {/*
-        Passing a phone across a table is the actual use, so the QR needs no
-        heading and no placeholder — it is simply there while there is a public
-        link to encode.
-      */}
-      <div style={QR_ROW}>
-        <LinkQr url={url} />
-        <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
       </div>
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>

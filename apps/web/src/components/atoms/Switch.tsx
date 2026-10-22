@@ -40,6 +40,7 @@ const ROW = {
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
   gap: space[8],
+  lineHeight: 'calc(1.25 / 0.875)',
   padding: 0,
   textAlign: 'left',
 } satisfies CSSProperties
