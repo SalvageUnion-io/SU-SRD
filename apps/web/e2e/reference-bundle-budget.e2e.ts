@@ -92,11 +92,11 @@ test.describe('bundle-size budget', () => {
     // Every island here waits for a reader (`interaction`), so React and the
     // data chunks load only when one is reached for.
     //
-    // A ratchet: it fails on any growth past the measured ~24 KB (the island
-    // entry, the chip lanes, the overflow and the bottom-right fill's
-    // runtime). Something
+    // A ratchet: it fails on any growth past the measured ~26 KB (the island
+    // entry, the chip lanes, the overflow, the bottom-right fill's runtime
+    // and its watch, which fits off-screen heads in later turns). Something
     // loading React or game data at page load again lands far above it.
-    expect(totals.bytes).toBeLessThan(25_000)
+    expect(totals.bytes).toBeLessThan(27_000)
   })
 
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
@@ -113,7 +113,7 @@ test.describe('bundle-size budget', () => {
 
     // The same ratchet as the leaf page: a chassis page's card is static HTML,
     // and nothing on it loads React or data until a reader reaches for it.
-    expect(totals.bytes).toBeLessThan(25_000)
+    expect(totals.bytes).toBeLessThan(27_000)
   })
 
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
