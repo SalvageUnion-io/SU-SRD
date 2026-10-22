@@ -47,7 +47,7 @@ describe('GET /llms.txt', () => {
     const text = render()
     expect(text).toContain('## Rules Content Map')
     expect(text).toContain('https://salvageunion.io/guides/')
-    expect(text).toContain('https://salvageunion.io/schema/guides.json')
+    expect(text).toContain('https://salvageunion.io/api/v1/guides.json')
   })
 
   it('does not include meta schema IDs in the endpoint list', () => {

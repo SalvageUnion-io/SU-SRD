@@ -10,13 +10,16 @@ import { STARTER_SET_TITLE } from '../../lib/starterSet/starterTemplates'
  */
 export const Route = createFileRoute('/starter/')({
   head: () => ({ meta: [{ title: STARTER_SET_TITLE }] }),
+  validateSearch: (search: Record<string, unknown>): { copy?: string } =>
+    typeof search.copy === 'string' ? { copy: search.copy } : {},
   component: StarterSetRoute,
 })
 
 function StarterSetRoute() {
+  const { copy } = Route.useSearch()
   return (
     <PageShell>
-      <StarterSetRoster headingLevel="h1" />
+      <StarterSetRoster headingLevel="h1" copy={copy} />
     </PageShell>
   )
 }

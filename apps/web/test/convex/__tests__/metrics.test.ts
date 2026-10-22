@@ -6,7 +6,7 @@ import { addPilot, makeUser, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Usage metrics (ADR-056): aggregate counts only, for the admins
+ * Usage metrics (ADR-057): aggregate counts only, for the admins
  * `ADMIN_DISCORD_IDS` names and nobody else.
  */
 

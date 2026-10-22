@@ -57,8 +57,8 @@ describe('the JSON API', () => {
     expect(JSON.parse(emitted(outputPath)).$id).toBe(`${SITE_URL}/${outputPath}`)
   })
 
-  test('every /schema/…json URL in llms.txt is an emitted endpoint', () => {
-    const urls = emitted('llms.txt').match(/\/schema\/[^\s`)]+\.json/g) ?? []
+  test('every /schema/… and /api/v1/… json URL in llms.txt is an emitted endpoint', () => {
+    const urls = emitted('llms.txt').match(/\/(?:schema|api\/v1)\/[^\s`)]+\.json/g) ?? []
     const concrete = urls.filter((url) => !url.includes('{'))
     expect(concrete.length).toBeGreaterThan(0)
     expect(concrete.filter((url) => !outputs.has(url.slice(1)))).toEqual([])

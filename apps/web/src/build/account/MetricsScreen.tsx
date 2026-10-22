@@ -21,7 +21,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
 
 /**
- * The admin metrics page (ADR-056), at `/admin/metrics`: aggregate counts
+ * The admin metrics page (ADR-057), at `/admin/metrics`: aggregate counts
  * only, for the accounts `ADMIN_DISCORD_IDS` names. Everybody else, signed in
  * or not, is told there is nothing here; the query itself answers them null.
  *

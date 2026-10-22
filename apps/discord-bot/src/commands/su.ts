@@ -38,7 +38,7 @@ export const suCommand = {
     // Which channel Play's rolls post to: a Game's, or one person's solo play.
     .addSubcommand((sub) => bindCommand.subcommand(sub))
     .addSubcommand((sub) => unbindCommand.subcommand(sub))
-    // Suggest or report, filed as a GitHub issue (ADR-056).
+    // Suggest or report, filed as a GitHub issue (ADR-057).
     .addSubcommand((sub) => feedbackCommand.subcommand(sub)),
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {

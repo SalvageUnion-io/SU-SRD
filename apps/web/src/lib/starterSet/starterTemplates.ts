@@ -23,13 +23,14 @@ export const STARTER_SET_PUBLISHER = 'Leyline Press'
 /** The adventure the pre-generated crew comes from. */
 export const STARTER_SET_ADVENTURE = 'Reclamation of the Wastes'
 
-function templatesOf(kind: SheetKind): readonly (Pilot | Mech | Crawler)[] {
+/** Every template of a kind, as the Starter Set lists them. */
+export function starterTemplates(kind: SheetKind): readonly (Pilot | Mech | Crawler)[] {
   return kind === 'pilot' ? STARTER_PILOTS : kind === 'mech' ? STARTER_MECHS : STARTER_CRAWLERS
 }
 
 /** One template by kind and id, or null when there is no such template. */
 export function starterTemplate(kind: SheetKind, id: string): Pilot | Mech | Crawler | null {
-  return templatesOf(kind).find((t) => t.id === id) ?? null
+  return starterTemplates(kind).find((t) => t.id === id) ?? null
 }
 
 /** What a page calls a build of each kind. */
@@ -69,7 +70,7 @@ export function starterPage(kind: string, id: string): StarterPage | null {
 
 /** Every build's page, pilots first, as the Starter Set lists them. */
 export function starterPages(): StarterPage[] {
-  return SHEET_KINDS.flatMap((kind) => templatesOf(kind).map((t) => pageOf(kind, t)))
+  return SHEET_KINDS.flatMap((kind) => starterTemplates(kind).map((t) => pageOf(kind, t)))
 }
 
 /** The Starter Set roster's own title, and any build's page that names nothing. */
