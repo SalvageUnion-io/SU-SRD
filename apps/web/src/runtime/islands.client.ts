@@ -23,6 +23,7 @@ import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/ent
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { replayInteraction, watchInteraction } from './interaction'
@@ -154,6 +155,7 @@ function onSearchShortcut(event: KeyboardEvent): void {
 
 document.addEventListener('keydown', onSearchShortcut)
 revealWikiLinks(document)
+watchSharePage(document)
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', mountIslands, { once: true })
