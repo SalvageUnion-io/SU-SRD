@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { editSheet, sheetLink, visit, waitForReady } from 'gates/lib/appPage'
 import { at, BASE } from './_base'
 
 /**
@@ -47,59 +48,43 @@ export function selectedOption(page: Page): Locator {
 }
 
 /**
- * Navigate to `path`, tolerating the transient
- * `net::ERR_ABORTED; maybe frame was detached?` that the preview build
- * occasionally throws.
- *
- * The builders end on a *client-side* router redirect to `/` (the create flow
- * pushes the Training Bay's route). A full `page.goto('/')` issued right afterward
- * can race the tail of that client navigation and the browser aborts the
- * superseded load — this is why `goto('/')` flakes while `goto('/pilots/new')`
- * (a distinct URL) does not. The abort is transient: the competing navigation
- * settles within a tick, so an immediate re-`goto` lands. Playwright's
- * test-level `retries` re-run the whole `beforeEach` and re-hit the same race,
- * so we retry at the `goto` boundary instead. Only the ERR_ABORTED /
- * detached-frame class is swallowed; any other navigation error rethrows.
+ * Open an app route (`/pilots/new`, written root-relative as the app writes
+ * it) and wait for it to hydrate: `visit` retries the transient `ERR_ABORTED`
+ * a client redirect can cause, then `waitForReady` waits for the game data
+ * (`gates/lib/appPage.ts`, which the seeded account opens the app with too).
+ * Every spec opens an app page this way.
  */
-export async function gotoStable(page: Page, path: string): Promise<void> {
-  const MAX_ATTEMPTS = 4
-  let lastError: unknown
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      await page.goto(at(path))
-      return
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      if (!/ERR_ABORTED|frame was detached/i.test(message)) throw error
-      lastError = error
-      // Let the competing client navigation settle deterministically before
-      // re-issuing the goto — wait for the superseding load to reach
-      // `domcontentloaded` rather than blindly sleeping a fixed delay. Swallow:
-      // the aborted load may already be gone, in which case there is nothing to
-      // wait for and we retry immediately.
-      await page.waitForLoadState('domcontentloaded').catch(() => {})
-    }
-  }
-  throw lastError
+export async function openApp(page: Page, route: string): Promise<void> {
+  await gotoStable(page, route)
+  await waitForReady(page)
 }
 
 /**
- * Wait for the page to finish hydrating (router + game data preload).
- *
- * The router root wraps its Outlet in `<GameDataReady>`, which holds it until
- * `SalvageUnionReference.preload('all')` resolves and then sets
- * `body[data-game-data-ready="true"]`. We wait on that single marker — once
- * it's true, every consumer of game data has its lookups resolved
- * synchronously, so card/label queries downstream are race-free.
- *
- * The wait is generous (60 s) because cold-start preload on a CI runner can
- * be slow; once the marker is set, subsequent queries respond instantly.
+ * `page.goto` an app route, retrying the transient `ERR_ABORTED` (`visit`),
+ * without waiting for the game data: for a spec that waits on something else
+ * (Play's socket, a sign-in panel). Most specs want `openApp`.
  */
-export async function waitForReady(page: Page): Promise<void> {
-  await page.waitForLoadState('domcontentloaded')
-  await page.waitForFunction(() => document.body?.dataset?.gameDataReady === 'true', null, {
-    timeout: 60_000,
-  })
+export async function gotoStable(page: Page, route: string): Promise<void> {
+  await visit(page, at(route))
+}
+
+export { editSheet, waitForReady }
+
+/** A `/new` wizard (`pilots`, `mechs`, `crawlers`). */
+export type WizardKind = 'pilots' | 'mechs' | 'crawlers'
+
+/**
+ * Open a `/new` wizard on its first step: `?mode=guided` skips the
+ * `CreateModeChooser` ("Guided vs Blank") gate in front of every wizard, and
+ * `game` builds into that Game (`?game=`, ADR-052 §3).
+ */
+export async function openWizard(page: Page, kind: WizardKind, game?: string): Promise<void> {
+  await openApp(page, `/${kind}/new?mode=guided${game ? `&game=${game}` : ''}`)
+}
+
+/** The option cells not chosen yet, in either selection semantic (see `optionCells`). */
+export function unselectedOptions(page: Page): Locator {
+  return page.locator('[aria-pressed="false"], [aria-checked="false"]')
 }
 
 /**
@@ -196,11 +181,27 @@ export async function installLoadoutItem(page: Page, name: string): Promise<void
  * list and added from its Page's action bar (`<name> actions`), never toggled
  * in the list.
  */
-export async function addFromSearcher(picker: Locator, name: string): Promise<void> {
+async function addFromSearcher(picker: Locator, name: string): Promise<void> {
   await picker.getByRole('button', { name, exact: true }).first().click()
   const actions = picker.getByRole('group', { name: `${name} actions` })
   await expect(actions, `the searcher opens ${name}'s Page`).toBeVisible()
   await actions.getByRole('button').last().click()
+}
+
+/**
+ * Add `name` through one of the open sheet's pickers: Edit, the section's
+ * control that opens it (`Manage abilities`, `Manage systems`, a bay's
+ * `Mount`), the searcher (`addFromSearcher`), then close it. A picker writes
+ * through as it adds; there is no Save to press.
+ */
+export async function addThroughPicker(page: Page, control: RegExp, name: string): Promise<void> {
+  await editSheet(page)
+  await page.getByRole('button', { name: control }).click()
+  const picker = page.getByRole('dialog')
+  await expect(picker).toBeVisible()
+  await addFromSearcher(picker, name)
+  await page.keyboard.press('Escape')
+  await expect(picker).toBeHidden()
 }
 
 /**
@@ -271,7 +272,7 @@ function isContainerPage(pathname: string): boolean {
  */
 async function runWizard(
   page: Page,
-  kind: 'pilots' | 'mechs' | 'crawlers',
+  kind: WizardKind,
   identity: Record<string, string>,
   createLabel: RegExp,
   /**
@@ -287,8 +288,7 @@ async function runWizard(
   /** Started from this Game's page (`?game=`): the unit lands there, and so does the walk. */
   game?: string
 ): Promise<void> {
-  await gotoStable(page, `/${kind}/new?mode=guided${game ? `&game=${game}` : ''}`)
-  await waitForReady(page)
+  await openWizard(page, kind, game)
 
   const MAX_STEPS = 16
   for (let step = 0; step < MAX_STEPS; step++) {
@@ -334,7 +334,7 @@ async function runWizard(
         // DEselect) what it had just chosen. Measured on the class step: 9
         // cells, 1 picked, `hasNot` reported 9 unselected; the attribute
         // selector reports the correct 8.
-        const unselected = page.locator('[aria-pressed="false"], [aria-checked="false"]')
+        const unselected = unselectedOptions(page)
 
         // Take a named pick when one is on offer, so the built entity is the
         // same every run.
@@ -402,50 +402,20 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Open the live sheet for the named entity from the Training Bay.
- *
- * Each item on a shelf is one line, a link to its sheet named for the entity
- * (its text, or its `aria-label` when it is a cover). Match the link by its
- * `/sheet/` href and that name, not by
- * the row around it: an item's chips name the units linked to it ("Linked:
- * Stomper"), so the first row mentioning a name may be somebody else's. The
- * href is the contract this helper depends on, and it survives a copy change
- * that would otherwise leave the helper waiting until the job's 30-minute
- * ceiling.
+ * Open the live sheet for the named entity from the Training Bay, by its
+ * shelf item's `/sheet/` link (`sheetLink`, `gates/lib/appPage.ts`): the href
+ * is the contract, and it survives a copy change that would otherwise leave
+ * the helper waiting until the job's ceiling.
  */
 export async function openSheetFor(page: Page, name: string): Promise<void> {
-  await gotoStable(page, '/')
-  await waitForReady(page)
-  // A shelf item with a menu draws its link as a cover over the Compact, named by
-  // its `aria-label` and holding no text; one without a menu wraps its text.
-  const line = page
-    .locator(`a[href*="/sheet/"][aria-label="${name}"]`)
-    .or(page.locator('a[href*="/sheet/"]', { hasText: name }))
-    .first()
+  await openApp(page, '/')
+  const line = sheetLink(page, name)
   await expect(line, `shelf item for "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })
   await line.click()
   await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
-}
-
-/**
- * Put the open sheet in Edit. A sheet opens in Read ("print reads, pencil
- * writes"), so every Manage, Assign and bay control is
- * one press of the band's Edit away: a toggle on the band, or a Read | Edit
- * radio. Pressing it when it is already on is a no-op, and the choice holds
- * for the rest of the visit.
- */
-export async function editSheet(page: Page): Promise<void> {
-  const control = page
-    .getByRole('button', { name: 'Edit', exact: true })
-    .or(page.getByRole('radio', { name: 'Edit', exact: true }))
-    .first()
-  await expect(control, 'the sheet offers Edit').toBeVisible({ timeout: 15_000 })
-  const on = async () =>
-    (await control.getAttribute('aria-pressed')) ?? (await control.getAttribute('aria-checked'))
-  if ((await on()) !== 'true') await control.click()
-  await expect.poll(on, { message: 'the sheet is in Edit' }).toBe('true')
+  await waitForReady(page)
 }
 
 /**

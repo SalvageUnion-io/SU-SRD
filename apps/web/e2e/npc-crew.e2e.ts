@@ -1,4 +1,6 @@
-import { buildCrawler, editSheet, gotoStable, openSheetFor, waitForReady } from './_helpers'
+import type { Page } from '@playwright/test'
+import { buildCrawler, editSheet, openApp, openSheetFor } from './_helpers'
+import { openTrainingBay } from './_trainingBay'
 import { expect, test } from './fixtures'
 
 /**
@@ -11,7 +13,7 @@ import { expect, test } from './fixtures'
  */
 
 /** The Med Bay's crew inset on the crawler sheet that is showing (never folded away). */
-function medBayCrew(page: import('@playwright/test').Page) {
+function medBayCrew(page: Page) {
   return page.getByRole('group', { name: 'Med Bay crew lead' })
 }
 
@@ -21,8 +23,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await buildCrawler(page, 'Tin Lizzy')
 
   // --- N1: Any NPC, from the Veteran ---
-  await gotoStable(page, '/npcs/new')
-  await waitForReady(page)
+  await openApp(page, '/npcs/new')
   // The band names the page; the wizard's step is its h1 (WizShell).
   await expect(page.getByText('Design an NPC', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { level: 1, name: /Template/ })).toBeVisible()
@@ -84,7 +85,6 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await expect(page.getByText('Homebrew')).toHaveCount(0)
 
   // The NPC is still on the shelf.
-  await gotoStable(page, '/')
-  await waitForReady(page)
+  await openTrainingBay(page)
   await expect(page.locator('li', { hasText: 'Sergeant Kessler' }).first()).toBeVisible()
 })

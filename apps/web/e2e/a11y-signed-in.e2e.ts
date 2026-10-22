@@ -1,7 +1,8 @@
 import { scanPages } from 'gates/a11y'
 import { SEED_KEYS, seedAccount } from 'gates/lib/seedAccount'
+import { expectNoA11yViolations } from './_a11y'
 import { at } from './_base'
-import { expect, test } from './fixtures'
+import { test } from './fixtures'
 
 /**
  * WCAG 2.2 AA on the pages only an account reaches, at desktop and as a
@@ -32,7 +33,7 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
 
   // The scan opens a context per device; each starts with this session.
   const storageState = await page.context().storageState({ indexedDB: true })
-  const { results, violations } = await scanPages({
+  const scan = await scanPages({
     browser,
     baseURL: baseURL ?? '',
     pages: [
@@ -50,12 +51,5 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
     ready: 'main',
     storageState,
   })
-  await testInfo.attach('a11y-report.json', {
-    body: JSON.stringify(results, null, 2),
-    contentType: 'application/json',
-  })
-  expect(
-    violations,
-    'accessibility violations: the attached a11y-report.json has the details'
-  ).toEqual([])
+  await expectNoA11yViolations(testInfo, scan)
 })

@@ -17,6 +17,7 @@
  */
 import type { Page } from '@playwright/test'
 import { APP_BASE } from '../../../apps/web/src/lib/appBase'
+import { copyStarter, editSheet, openApp, sheetLink, waitForReady } from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -55,70 +56,11 @@ export function resolveSeedPath(path: string, seed: Partial<Seed>): string | und
 
 const LONG = { timeout: 20_000 }
 
-/** `page.goto`, again when a client navigation aborts it (`ERR_ABORTED`, a detached frame). */
-async function visit(page: Page, url: string): Promise<void> {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      await page.goto(url)
-      return
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      if (attempt === 4 || !/ERR_ABORTED|frame was detached/i.test(message)) throw error
-      // Let the navigation that won settle; it may already be gone.
-      await page.waitForLoadState('domcontentloaded').catch(() => undefined)
-    }
-  }
-}
-
-/** Wait until the app has its game data (`body[data-game-data-ready]`). */
-async function ready(page: Page): Promise<void> {
-  await page.waitForLoadState('domcontentloaded')
-  await page.waitForFunction("document.body?.dataset?.gameDataReady === 'true'", null, {
-    timeout: 60_000,
-  })
-}
-
-/** Open an app route (`/play/`) under `base` and wait for its game data. */
-async function openApp(page: Page, base: string, route: string): Promise<void> {
-  await visit(page, `${base}${APP_BASE}${route}`)
-  await ready(page)
-}
-
-/** Put the open sheet in Edit: its Edit button, or the Read | Edit switch's Edit. */
-async function edit(page: Page): Promise<void> {
-  const control = page
-    .getByRole('button', { name: 'Edit', exact: true })
-    .or(page.getByRole('radio', { name: 'Edit', exact: true }))
-    .first()
-  await control.waitFor({ timeout: 15_000 })
-  const on = async () =>
-    (await control.getAttribute('aria-pressed')) ?? (await control.getAttribute('aria-checked'))
-  if ((await on()) !== 'true') await control.click()
-  for (let i = 0; i < 50 && (await on()) !== 'true'; i++) await page.waitForTimeout(100)
-  if ((await on()) !== 'true') throw new Error(`the sheet at ${page.url()} did not go into Edit`)
-}
-
-/** Copy a Starter Set build to the Training Bay from its sheet's "Make a copy". */
-async function copyStarter(page: Page, base: string, sheet: string, name: string): Promise<void> {
-  await openApp(page, base, `/starter/${sheet}`)
-  await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
-  // A crawler's name is its number and name ("Crawler #430 'Tenacity'").
-  await page
-    .getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`))
-    .first()
-    .waitFor(LONG)
-}
-
 /** A Training Bay item's sheet, by kind and (when the shelf holds several) name. */
 async function sheetPath(page: Page, kind: string, name?: string): Promise<string> {
-  const all = page.locator(`a[href*="/sheet/${kind}/"]`)
   const link = name
-    ? page
-        .locator(`a[href*="/sheet/${kind}/"][aria-label="${name}"]`)
-        .or(all.filter({ hasText: name }))
-        .first()
-    : all.first()
+    ? sheetLink(page, name, kind)
+    : page.locator(`a[href*="/sheet/${kind}/"]`).first()
   await link.waitFor(LONG)
   const href = await link.getAttribute('href')
   if (!href) throw new Error(`the Training Bay's ${kind}${name ? ` ${name}` : ''} has no href`)
@@ -139,8 +81,8 @@ async function seedCarried(
   const carried = (name: string) =>
     page.locator('.su-sheet-live-body .su-entity-mini__name').filter({ hasText: name }).first()
   await page.goto(`${base}${sheets.pilot}`, { waitUntil: 'networkidle' })
-  await ready(page)
-  await edit(page)
+  await waitForReady(page)
+  await editSheet(page)
   await page.getByRole('button', { name: 'Add Scrap (3 slots)' }).click()
   await carried('Scrap').waitFor(LONG)
   for (const [path, into, lot] of [
@@ -148,8 +90,8 @@ async function seedCarried(
     [sheets.crawler, 'Stow cargo into the Storage Bay', 'Sealed Crate'],
   ] as const) {
     await page.goto(`${base}${path}`, { waitUntil: 'networkidle' })
-    await ready(page)
-    await edit(page)
+    await waitForReady(page)
+    await editSheet(page)
     const adder = page.getByRole('button', { name: into })
     await adder.scrollIntoViewIfNeeded()
     await adder
@@ -163,7 +105,7 @@ async function seedCarried(
 
 /** "+ New Game" from the Play hub, named; resolves to the new Game's id, its page open. */
 export async function createGame(page: Page, name: string, base = ''): Promise<string> {
-  await openApp(page, base, '/play/')
+  await openApp(page, '/play/', base)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByLabel('New Game name').fill(name)
   await page.getByRole('button', { name: 'Create', exact: true }).click()
@@ -195,7 +137,7 @@ export async function makeInviteLink(page: Page): Promise<string> {
 
 /** A Play hub door's path (`Play Driftwood solo`, `Mediate <Game>`), read off its link. */
 async function playDoor(page: Page, base: string, name: string): Promise<string> {
-  await openApp(page, base, '/play/')
+  await openApp(page, '/play/', base)
   const door = page.getByRole('link', { name }).first()
   await door.waitFor({ timeout: 30_000 })
   const href = await door.getAttribute('href')
@@ -209,12 +151,12 @@ async function playDoor(page: Page, base: string, name: string): Promise<string>
  * `baseURL`.
  */
 export async function seedAccount(page: Page, base = ''): Promise<Seed> {
-  await copyStarter(page, base, 'pilot/starter-pilot-bonesaw', SEED_IN_GAME)
-  await copyStarter(page, base, 'pilot/starter-pilot-driftwood', SEED_SOLO)
-  await copyStarter(page, base, 'mech/starter-mech-mazona', 'Mazona')
-  await copyStarter(page, base, 'crawler/starter-crawler-tenacity', 'Tenacity')
+  await copyStarter(page, 'pilot/starter-pilot-bonesaw', SEED_IN_GAME, base)
+  await copyStarter(page, 'pilot/starter-pilot-driftwood', SEED_SOLO, base)
+  await copyStarter(page, 'mech/starter-mech-mazona', 'Mazona', base)
+  await copyStarter(page, 'crawler/starter-crawler-tenacity', 'Tenacity', base)
 
-  await openApp(page, base, '/')
+  await openApp(page, '/', base)
   const pilot = await sheetPath(page, 'pilot', SEED_IN_GAME)
   const mech = await sheetPath(page, 'mech')
   const crawler = await sheetPath(page, 'crawler')
@@ -229,7 +171,7 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   const token = await makeInviteLink(page)
 
   // Bonesaw moves in from the Training Bay's ⋯ menu.
-  await openApp(page, base, '/')
+  await openApp(page, '/', base)
   await page.getByRole('button', { name: `More for ${SEED_IN_GAME}` }).click()
   await page.getByRole('menuitem', { name: 'Move to a Game…' }).first().click()
   await page.getByRole('dialog').getByRole('button', { name: SEED_GAME }).click()
@@ -238,7 +180,7 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.getByText(`Moved ${SEED_IN_GAME} to ${SEED_GAME}.`).first().waitFor(LONG)
 
   // An NPC, from the Veteran.
-  await openApp(page, base, '/npcs/new')
+  await openApp(page, '/npcs/new', base)
   await page.getByRole('radio', { name: 'Start from Veteran' }).click()
   await page.getByRole('button', { name: 'Next: Stats' }).click()
   await page.getByRole('button', { name: 'Next: Actions & traits' }).click()

@@ -1,5 +1,4 @@
-import { at } from './_base'
-import { advanceUntilVisible, buildPilot, openSheetFor, pickByName, waitForReady } from './_helpers'
+import { advanceUntilVisible, buildPilot, openSheetFor, openWizard, pickByName } from './_helpers'
 import { expect, test } from './fixtures'
 
 // Signed in (the fixture's default): building needs an account, so a
@@ -8,39 +7,13 @@ import { expect, test } from './fixtures'
 /**
  * Display verification — confirms that the right *information* renders on
  * each surface, not just that the page loads. Catches regressions where a
- * card silently drops critical fields (stats, descriptions, traits).
+ * card silently drops critical fields (stats, descriptions, traits). The
+ * class step's trees are `pilot-wizard.e2e.ts`'s.
  */
-
-test.describe('class step displays meaningful class info', () => {
-  test('class card surfaces ability tree names', async ({ page }) => {
-    await page.goto(at('/pilots/new?mode=guided'))
-    await waitForReady(page)
-
-    // Master-detail: selecting a class row renders its full card + ability
-    // trees in the detail pane (no disclosure). Engineer's tree set is
-    // "Mechanical Knowledge, Forging, Mech-Tech".
-    await pickByName(page, 'Engineer')
-    await expect(page.getByText(/Mechanical Knowledge/i).first()).toBeVisible()
-    await expect(page.getByText(/Forging/i).first()).toBeVisible()
-    await expect(page.getByText(/Mech-Tech/i).first()).toBeVisible()
-  })
-
-  test('selected class reveals trees + abilities listing', async ({ page }) => {
-    await page.goto(at('/pilots/new?mode=guided'))
-    await waitForReady(page)
-    await pickByName(page, 'Engineer')
-
-    // The detail pane shows the trees + abilities directly (no disclosure).
-    // Verify a tree name and a known L1 ability (Engineering Expertise).
-    await expect(page.getByText(/Mechanical Knowledge/i).first()).toBeVisible()
-    await expect(page.getByText(/Engineering Expertise/i).first()).toBeVisible()
-  })
-})
 
 test.describe('ability cards show their descriptions', () => {
   test('Engineering Expertise card includes its rules text', async ({ page }) => {
-    await page.goto(at('/pilots/new?mode=guided'))
-    await waitForReady(page)
+    await openWizard(page, 'pilots')
     // The first-Ability pool lives on the SAME step as the class, so the
     // ability's rules text is on screen as soon as a class is picked; a
     // clickNext here would advance past it to Equipment.
@@ -57,8 +30,7 @@ test.describe('ability cards show their descriptions', () => {
 
 test.describe('chassis cards show stats from the SRD', () => {
   test('Mule chassis card renders its name and at least one stat', async ({ page }) => {
-    await page.goto(at('/mechs/new?mode=guided'))
-    await waitForReady(page)
+    await openWizard(page, 'mechs')
 
     // The mech wizard opens on the informational "Gain Scrap" step, so the
     // chassis list is one step in.

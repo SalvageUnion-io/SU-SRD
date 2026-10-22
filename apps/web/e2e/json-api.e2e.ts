@@ -1,10 +1,14 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 /**
  * (d) The static JSON API endpoint (`/schema/[schemaId].json`) returns a valid
  * JSON array of entities. This is a pre-rendered file, so no page hydration is
  * involved — a plain request assertion is sufficient.
  */
+
+// What any visitor sees: nothing here needs an account.
+test.use({ account: 'anonymous' })
+
 test('schema JSON endpoint returns a valid entity array', async ({ request }) => {
   const res = await request.get('/schema/chassis.json')
 

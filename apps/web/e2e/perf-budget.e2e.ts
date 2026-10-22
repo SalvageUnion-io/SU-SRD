@@ -1,6 +1,5 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs'
 import type { Browser } from '@playwright/test'
-import { expect, test } from '@playwright/test'
 import type { Budget, LayoutShift, LongTask, Vitals } from 'gates/lib/webVitals'
 import {
   cumulativeLayoutShift,
@@ -9,6 +8,7 @@ import {
   totalBlockingTime,
   vitalsTable,
 } from 'gates/lib/webVitals'
+import { expect, test } from './fixtures'
 
 /**
  * Performance budget: LCP, TBT and CLS on one page of each shape, loaded the
@@ -129,6 +129,10 @@ async function measure(browser: Browser, url: string, throttle = true): Promise<
 }
 
 // A retry must not hide a slow run.
+
+// What any visitor sees: nothing here needs an account.
+test.use({ account: 'anonymous' })
+
 test.describe.configure({ retries: 0 })
 
 const SUMMARY_HEADING = '## srd performance budget'

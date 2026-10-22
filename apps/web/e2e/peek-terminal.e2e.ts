@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
-import { expect, test } from '@playwright/test'
 import { at } from './_base'
+import { expect, test } from './fixtures'
 
 /**
  * Hard rule R33, "A Peek is terminal" (ruleset §1.6; EDL E16), on the rendered
@@ -161,6 +161,9 @@ async function peekAt(page: Page, trigger: Locator, where: string): Promise<stri
   await expect(popup).toHaveCount(0)
   return faults
 }
+
+// What any visitor sees: nothing here needs an account.
+test.use({ account: 'anonymous' })
 
 test.describe.configure({ retries: 0 })
 test.use({ viewport: { width: 1440, height: 900 } })

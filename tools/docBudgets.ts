@@ -41,7 +41,7 @@ export const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 export const SESSION_CEILINGS: Record<string, number> = {
-  web: 23_226,
+  web: 24_080,
   convex: 27_588,
   bot: 11_463,
 }

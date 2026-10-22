@@ -1,6 +1,6 @@
 import type { Browser, BrowserContext, Page, TestInfo } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { gotoStable, waitForReady } from './_helpers'
+import { openApp } from './_helpers'
 import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
 
 /**
@@ -9,6 +9,8 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
  * These are the steps the Play and signed-in a11y specs share.
  */
 
+/** A Starter Set build copied to the Training Bay, the seed's own step (`gates/lib/appPage.ts`). */
+export { copyStarter } from 'gates/lib/appPage'
 /**
  * "+ New Game" and the invite link: the seeded account's own steps
  * (`gates/lib/seedAccount.ts`), so a change to either is made once.
@@ -22,11 +24,23 @@ export async function secondAccount(
 ): Promise<{ context: BrowserContext; page: Page }> {
   const context = await browser.newContext()
   const page = await context.newPage()
-  await gotoStable(page, '/')
-  await waitForReady(page)
+  await openApp(page, '/')
   requireSeam(await seamIsPresent(page), testInfo)
   await signInFresh(page)
   return { context, page }
+}
+
+/**
+ * Open an invite link by its token and join: joining lands on the Game's own
+ * page in Play, `/play/games/<id>`. Resolves to the Game's id.
+ */
+export async function joinByInvite(page: Page, token: string): Promise<string> {
+  await openApp(page, `/invite/${token}`)
+  await page.getByRole('button', { name: 'Join this Game' }).click()
+  await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
+  const id = new URL(page.url()).pathname.split('/').pop()
+  if (!id) throw new Error(`No Game id in ${page.url()}`)
+  return id
 }
 
 /**
@@ -51,8 +65,7 @@ async function pickUp(page: Page, name: string): Promise<void> {
  * in it offers: that door moves to Play (ADR-051) while the stamp stays.
  */
 export async function setUpTable(page: Page): Promise<{ gameId: string; gameName: string }> {
-  await gotoStable(page, '/play/')
-  await waitForReady(page)
+  await openApp(page, '/play/')
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()
   await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })

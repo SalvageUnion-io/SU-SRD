@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
 import { captureJsTotals, jsChunkTotals } from './_bundle'
+import { expect, test } from './fixtures'
 
 /**
  * Bundle-size budget suite — proves the per-route preload lists
@@ -32,6 +32,10 @@ import { captureJsTotals, jsChunkTotals } from './_bundle'
  * than letting each test fail on its own misleading assertion. CI always builds
  * (`bun run build && bun run preview`), so this never trips there.
  */
+
+// What any visitor sees: nothing here needs an account.
+test.use({ account: 'anonymous' })
+
 test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage()
   try {

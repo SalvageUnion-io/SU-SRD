@@ -1,5 +1,6 @@
-import { gotoStable, waitForReady } from './_helpers'
-import { createGame, makeInviteLink, secondAccount } from './_table'
+import { openApp } from './_helpers'
+import { copyStarter, createGame, joinByInvite, makeInviteLink, secondAccount } from './_table'
+import { moveToGame } from './_trainingBay'
 import { expect, test } from './fixtures'
 
 /**
@@ -36,19 +37,10 @@ test('a Game made in Play: invite, join, a pilot moved in from Build, then Play'
   const player = await secondAccount(browser, info)
   try {
     // A pilot in the player's Training Bay: Bonesaw, copied from the Starter Set.
-    await gotoStable(player.page, `/starter/pilot/starter-pilot-${PILOT.toLowerCase()}`)
-    await waitForReady(player.page)
-    await player.page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
-    await player.page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
-    await expect(
-      player.page.getByText(new RegExp(`^Copied .*${PILOT}.* to your Training Bay`)).first()
-    ).toBeVisible({ timeout: 20_000 })
+    await copyStarter(player.page, `pilot/starter-pilot-${PILOT.toLowerCase()}`, PILOT)
 
     // --- 2. Invite → join: joining lands on the Game's page in Play ---
-    await gotoStable(player.page, `/invite/${token}`)
-    await waitForReady(player.page)
-    await player.page.getByRole('button', { name: 'Join this Game' }).click()
-    await player.page.waitForURL(new RegExp(`/play/games/${gameId}$`), { timeout: 20_000 })
+    expect(await joinByInvite(player.page, token)).toBe(gameId)
     await expect(player.page.getByRole('heading', { level: 1, name: GAME })).toBeVisible({
       timeout: 20_000,
     })
@@ -58,20 +50,11 @@ test('a Game made in Play: invite, join, a pilot moved in from Build, then Play'
     await expect(player.page.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeVisible({
       timeout: 20_000,
     })
-    await player.page
-      .getByRole('button', { name: `More for ${PILOT}` })
-      .first()
-      .click()
-    await player.page.getByRole('menuitem', { name: 'Move to a Game…' }).click()
-    await player.page
-      .getByRole('list', { name: 'Where to' })
-      .getByRole('button', { name: GAME })
-      .click()
+    await moveToGame(player.page, PILOT, GAME)
     await expect(player.page.getByText(`Moved ${PILOT} to ${GAME}.`).first()).toBeVisible({
       timeout: 20_000,
     })
-    await gotoStable(player.page, `/play/games/${gameId}`)
-    await waitForReady(player.page)
+    await openApp(player.page, `/play/games/${gameId}`)
     await expect(
       player.page.getByRole('region', { name: 'Crew' }).getByText(PILOT).first()
     ).toBeVisible({ timeout: 20_000 })

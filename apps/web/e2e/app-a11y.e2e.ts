@@ -1,6 +1,7 @@
-import { expect, test } from '@playwright/test'
 import { scanPages } from 'gates/a11y'
+import { expectNoA11yViolations } from './_a11y'
 import { at } from './_base'
+import { test } from './fixtures'
 
 /**
  * WCAG 2.2 AA on every route in `PAGES`, signed out, at desktop and as a
@@ -34,23 +35,20 @@ const PAGES = [
 ]
 
 // A violation that fires only sometimes must not pass on a retry.
+
+// What any visitor sees: nothing here needs an account.
+test.use({ account: 'anonymous' })
+
 test.describe.configure({ retries: 0 })
 
 test('no accessibility violations', async ({ browser, baseURL }, testInfo) => {
   test.setTimeout(10 * 60_000)
-  const { results, violations } = await scanPages({
+  const scan = await scanPages({
     browser,
     baseURL: baseURL ?? '',
     pages: PAGES.map(at),
     // The reference-data gate's loading screen has no <main>.
     ready: 'main',
   })
-  await testInfo.attach('a11y-report.json', {
-    body: JSON.stringify(results, null, 2),
-    contentType: 'application/json',
-  })
-  expect(
-    violations,
-    'accessibility violations: the attached a11y-report.json has the details'
-  ).toEqual([])
+  await expectNoA11yViolations(testInfo, scan)
 })

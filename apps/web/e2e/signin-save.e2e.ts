@@ -1,5 +1,5 @@
-import { at } from './_base'
-import { buildPilot, gotoStable, waitForReady } from './_helpers'
+import { buildPilot, openApp, waitForReady } from './_helpers'
+import { openTrainingBay } from './_trainingBay'
 import { expect, requireSeam, seamIsPresent, signInFresh, test } from './fixtures'
 
 // Anonymous on purpose: it starts signed out, and signs in mid-test.
@@ -46,8 +46,7 @@ test.use({ account: 'anonymous' })
 test('a signed-out visitor is asked to sign in, and what they build then is saved', async ({
   page,
 }, testInfo) => {
-  await page.goto(at('/'))
-  await waitForReady(page)
+  await openApp(page, '/')
 
   // Skips in an ordinary build, THROWS in a run that provisioned the seam —
   // see `fixtures.ts`. Historical note, because it is the reason the throw
@@ -56,8 +55,7 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   requireSeam(await seamIsPresent(page), testInfo)
 
   // Signed out, the wizard is a sign-in panel: nothing can be built.
-  await gotoStable(page, '/pilots/new')
-  await waitForReady(page)
+  await openApp(page, '/pilots/new')
   await expect(page.getByRole('heading', { name: 'Sign in to build a pilot' })).toBeVisible()
   await expect(page.getByRole('button', { name: /guided/i })).toHaveCount(0)
 
@@ -69,10 +67,6 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   // nothing is kept on the device, so what shows after a reload came from Convex.
   await page.reload()
   await waitForReady(page)
-  // The roster is `/` (`src/routes/index.tsx`); there is no `/roster` route.
-  await gotoStable(page, '/')
-  await waitForReady(page)
-
-  await expect(page.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeVisible()
+  await openTrainingBay(page)
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible()
 })

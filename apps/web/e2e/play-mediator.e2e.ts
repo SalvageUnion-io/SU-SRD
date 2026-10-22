@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { buildPilot, gotoStable, waitForReady } from './_helpers'
+import { buildPilot } from './_helpers'
 import {
   axeViolations,
   expectNoPageScroll,
@@ -8,7 +8,7 @@ import {
   playDoor,
   situation,
 } from './_play'
-import { createGame, makeInviteLink, secondAccount } from './_table'
+import { createGame, joinByInvite, makeInviteLink, secondAccount } from './_table'
 import { expect, test } from './fixtures'
 
 /**
@@ -64,12 +64,8 @@ test('the Mediator runs the table from Play, and the player answers', async ({
 
   const player = await secondAccount(browser, info)
   try {
-    await gotoStable(player.page, `/invite/${token}`)
-    await waitForReady(player.page)
-    await player.page.getByRole('button', { name: 'Join this Game' }).click()
-    await player.page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
     // Joining lands on the Game's page in Play; its Create Pilot builds into it.
-    const gameId = new URL(player.page.url()).pathname.split('/').pop()
+    const gameId = await joinByInvite(player.page, token)
     await buildPilot(player.page, 'Mira Voss', 'Sparks', gameId)
 
     // --- Both screens, from the Play landing ---

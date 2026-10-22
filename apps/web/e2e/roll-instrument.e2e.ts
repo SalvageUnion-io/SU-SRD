@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 /**
  * R8, one roll instrument (docs/design-system/hard-rules.md; ruleset §2.4,
@@ -20,6 +20,9 @@ const PAGES = [
   '/roll-tables/core-mechanic/',
   '/guides/create-a-pilot/',
 ] as const
+
+// What any visitor sees: nothing here needs an account.
+test.use({ account: 'anonymous' })
 
 for (const path of PAGES) {
   test(`${path} shows its table's bands without a click`, async ({ page }) => {
