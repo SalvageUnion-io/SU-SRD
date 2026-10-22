@@ -39,8 +39,9 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
 11. **Convex, the server of record** <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
     Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
-12. **No device cache** <a id="no-device-cache"></a>
-    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/app-offline.e2e.ts` pins both.
+12. **Device copy** <a id="device-copy"></a>
+    One IndexedDB record, `stores/deviceCopy.ts`: the last `listMine` + `listWiring` answers, read back only on an offline boot with a session on the device, read-only (ADR-058).
+    Signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
 13. **Zustand stores** <a id="stores"></a>
     `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
     No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
@@ -154,17 +155,17 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052 and ADR-055.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055 and ADR-058.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
-    Amends ADR-030's visibility rule; amended by ADR-036, ADR-058.
+    Amends ADR-030's visibility rule; amended by ADR-036, ADR-059.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
 34. **ADR-034 Persistence requires an account**
-    Signed out is read-only, every record is Convex-backed, the app is a PWA; then [no device cache](#no-device-cache).
-    Amends ADR-022 and ADR-030.
+    Signed out is read-only, every record is Convex-backed, the app is a PWA.
+    Amends ADR-022 and ADR-030; amended by ADR-058.
 36. **ADR-036 Retire snapshot shares**
     The public sheet is the only account-free share; no `/api/snapshots`. Amends ADR-032.
 37. **ADR-037 The assignment model**
@@ -220,6 +221,9 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Supersedes ADR-043 decision 1 (via ADR-047); amends ADR-040.
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.
-58. **ADR-058 Homebrew on the SRD** · [full text](adr/058-homebrew.md)
+58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
+    Built: offline, the player's own sheets come back from the device, read-only; Convex stays of record.
+    Amends ADR-030 §1 and ADR-034.
+59. **ADR-059 Homebrew on the SRD** · [full text](adr/059-homebrew.md)
     Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.

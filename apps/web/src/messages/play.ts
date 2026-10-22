@@ -180,4 +180,11 @@ export const playCopy = messages({
   saved: '● Saved',
   offlineReadOnly: '○ Offline · read-only',
   connecting: 'Connecting…',
+  tableMode: 'Table mode',
+  table: 'Table',
+  rollTheDie: 'Roll the die',
+  rolledBand: 'Rolled {die}, {band}',
+  nothingToTrackInDowntime: 'Nothing to track in Downtime: the tabs hold the step.',
+  vitals: 'Vitals',
+  unitVitals: '{name}’s vitals',
 })

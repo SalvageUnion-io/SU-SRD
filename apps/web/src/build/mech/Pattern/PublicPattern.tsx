@@ -17,7 +17,7 @@
  * maker changes who can see it with the Share button every player thing
  * carries: the same "Who can see it" dialog a sheet opens (`ShareStatusDialog`).
  * Shared on the Reference it is homebrew, so its corner also offers Report, and a
- * site admin's Hide (`HomebrewControls`, ADR-058).
+ * site admin's Hide (`HomebrewControls`, ADR-059).
  */
 
 import { useNavigate } from '@tanstack/react-router'

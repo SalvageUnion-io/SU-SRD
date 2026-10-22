@@ -13,7 +13,7 @@
  *    and the page cannot disagree.
  *  - **A pattern** takes all three through `shelf.setPatternVisibility`, read
  *    back from `shelf.patternSharing`. Shared by link, it may also be shared
- *    with everyone on the Reference as Homebrew (`homebrew.setShared`, ADR-058).
+ *    with everyone on the Reference as Homebrew (`homebrew.setShared`, ADR-059).
  *
  * Either way the link is `/p/:kind/<name>-<short id>` (`shareSegment`): one
  * derived URL, so going back to a narrower answer revokes it everywhere at once.
@@ -227,7 +227,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
   )
 }
 
-/** A link-shared pattern's second opt-in: Homebrew on the Reference (ADR-058). */
+/** A link-shared pattern's second opt-in: Homebrew on the Reference (ADR-059). */
 function ShareOnReference({ appId, shared }: { appId: string; shared: boolean }) {
   const setShared = useMutation(api.homebrew.setShared)
   const write = useServerAction(

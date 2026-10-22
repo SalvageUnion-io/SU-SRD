@@ -94,7 +94,7 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
-    /** Their reports of Homebrew patterns (ADR-058): what they said, and when. */
+    /** Their reports of Homebrew patterns (ADR-059): what they said, and when. */
     homebrewReports: v.array(v.object({ reason: v.string(), at: v.number() })),
     games: v.array(
       v.object({

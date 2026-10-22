@@ -175,7 +175,7 @@ export const patternSharing = query({
       gameId: v.union(v.id('games'), v.null()),
       gameName: v.union(v.string(), v.null()),
       builtCount: v.number(),
-      /** Shared with everyone on the Reference as Homebrew (ADR-058). */
+      /** Shared with everyone on the Reference as Homebrew (ADR-059). */
       homebrew: v.boolean(),
     })
   ),
