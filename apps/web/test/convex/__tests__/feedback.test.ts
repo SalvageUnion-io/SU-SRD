@@ -4,6 +4,7 @@ import {
   FEEDBACK_DAILY_LIMIT,
   FEEDBACK_REFUSAL,
   issueFor,
+  pagePath,
   quoteNote,
 } from '../../../convex/feedback'
 import { makeUser } from '../fixtures'
@@ -157,6 +158,14 @@ describe('the issue a note becomes', () => {
     expect(quoted).not.toMatch(/@alxjrvs/)
     expect(quoted).not.toMatch(/#12/)
     expect(quoted.split('\n').every((line) => line.startsWith('> '))).toBe(true)
+  })
+
+  test('only a site path is kept as the page a note came from', () => {
+    expect(pagePath('/build/pilots/')).toBe('/build/pilots/')
+    expect(pagePath(undefined)).toBeNull()
+    expect(pagePath('x\n\n@SalvageUnion-io/team #1')).toBeNull()
+    expect(pagePath('/build/ @someone')).toBeNull()
+    expect(pagePath(`/${'a'.repeat(200)}`)).toBeNull()
   })
 
   test('a suggestion is an enhancement, and a long first line is cut for the title', () => {

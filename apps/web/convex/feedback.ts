@@ -97,7 +97,7 @@ export const submit = mutation({
       source: 'app',
       kind: args.kind,
       text: args.text,
-      page: args.page?.slice(0, 200) ?? null,
+      page: pagePath(args.page),
     })
     return null
   },
@@ -129,6 +129,16 @@ export const fromBot = internalMutation({
     }
   },
 })
+
+/**
+ * The page a note was sent from, as the issue names it: a site path (`/build/`)
+ * and nothing else. Anything that is not one (spaces, a line break, a mention)
+ * is dropped, since the caller sends it and the issue is public.
+ */
+export function pagePath(raw: string | undefined): string | null {
+  if (raw === undefined) return null
+  return /^\/[\w\-./~%?=&+]{0,199}$/.test(raw) ? raw : null
+}
 
 /** Neutralise what GitHub would act on in a stranger's words: mentions and issue links. */
 export function quoteNote(text: string): string {
