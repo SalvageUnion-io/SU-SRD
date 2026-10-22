@@ -21,10 +21,10 @@ type LinkQrProps = {
   url: string
 }
 
-/** The 84px square the tile fills, shared by the placeholder and the code. */
+/** The 128px square the tile fills, shared by the placeholder and the code. */
 const TILE = {
-  height: '84px',
-  width: '84px',
+  height: '128px',
+  width: '128px',
   flexShrink: 0,
 } satisfies CSSProperties
 

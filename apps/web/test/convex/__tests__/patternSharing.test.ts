@@ -237,13 +237,21 @@ describe('the maker’s shelf reads who can see each pattern', () => {
     expect(facts).toHaveLength(2)
     expect(facts).toEqual(
       expect.arrayContaining([
-        { appId: PATTERN_ID, visibility: 'game', gameId, gameName: 'Tenacity', builtCount: 0 },
+        {
+          appId: PATTERN_ID,
+          visibility: 'game',
+          gameId,
+          gameName: 'Tenacity',
+          builtCount: 0,
+          homebrew: false,
+        },
         {
           appId: 'pat-quiet-hours',
           visibility: 'private',
           gameId: null,
           gameName: null,
           builtCount: 0,
+          homebrew: false,
         },
       ])
     )

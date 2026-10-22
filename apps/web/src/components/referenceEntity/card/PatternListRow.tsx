@@ -25,6 +25,7 @@ import { labelChips } from './labelChips'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
+import { PATTERNS_ON_A_PHONE } from './patternsOnAPhone'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 import { resolvePatternDrones, resolvePatternGroups } from './resolveNestedEntities'
 
@@ -268,8 +269,25 @@ export type PatternRowsHost = {
   chassisName: string | undefined
 }
 
-/** How many patterns a phone shows before "Show all N patterns". */
-const PATTERNS_ON_A_PHONE = 2
+/**
+ * A phone's "Show all N patterns": a link to a pattern list's heading, whose
+ * `:target` opens the rest (no script). A chassis page draws it once, under
+ * its Homebrew, counting both (`HomebrewIsland`); the book's own is then hidden.
+ */
+export function ShowAllPatterns({
+  count,
+  target = 'patterns',
+}: {
+  count: number
+  target?: string
+}) {
+  if (count <= PATTERNS_ON_A_PHONE) return null
+  return (
+    <a href={`#${target}`} className={cn('su-pattern-rows__more', capsLabel(), FOCUS_RING)}>
+      {referenceEntityCopy('showAllPatterns', { count })}
+    </a>
+  )
+}
 
 /**
  * PAGE view — a basic host's patterns under an ink section stamp with its
@@ -292,7 +310,6 @@ export function PatternLinkRows({
   host: PatternRowsHost
 }) {
   if (patterns.length === 0) return null
-  const count = patterns.length
   return (
     <SlabSection
       as={sectionAs}
@@ -309,11 +326,7 @@ export function PatternLinkRows({
           </li>
         ))}
       </ul>
-      {count > PATTERNS_ON_A_PHONE && (
-        <a href="#patterns" className={cn('su-pattern-rows__more', capsLabel(), FOCUS_RING)}>
-          {referenceEntityCopy('showAllPatterns', { count })}
-        </a>
-      )}
+      <ShowAllPatterns count={patterns.length} />
     </SlabSection>
   )
 }

@@ -67,6 +67,7 @@ const ROSTER = {
     'TabPanel',
     'Segmented',
     'SegmentedOption',
+    'Switch', // K10: a standing setting drawn on or off
     'Toggle',
     'ToggleCard', // R16: an on/off whose face is a card (a choice's option)
     'TrackStep', // R16: a step on a numbered track (the wizard rail, the Downtime track)

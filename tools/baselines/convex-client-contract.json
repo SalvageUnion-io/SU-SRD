@@ -1598,6 +1598,94 @@
         }
       }
     },
+    "homebrew:dismissReports": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:moderation": {
+      "type": "object",
+      "value": {}
+    },
+    "homebrew:patterns": {
+      "type": "object",
+      "value": {
+        "chassisRef": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "homebrew:report": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "reason": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:setHidden": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "hidden": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:setShared": {
+      "type": "object",
+      "value": {
+        "patternId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "shared": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:status": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "invites:link": {
       "type": "object",
       "value": {

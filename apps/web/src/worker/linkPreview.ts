@@ -114,7 +114,7 @@ type Fetch = (input: Request | string, init?: RequestInit) => Promise<Response>
  * One public Convex query over its HTTP API. `undefined` means Convex did not
  * answer — distinct from a `null` answer, which means "not shared".
  */
-async function convexQuery<T>(
+export async function convexQuery<T>(
   env: PreviewEnv,
   path: string,
   args: Record<string, unknown>,

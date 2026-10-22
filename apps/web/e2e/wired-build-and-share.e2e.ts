@@ -82,7 +82,7 @@ test('publish the live public sheet and open it with no account', async ({ page,
   await expect(dialog.getByRole('button', { name: /snapshot/i })).toHaveCount(0)
 
   // Who can see it: the same control every player thing opens.
-  await dialog.getByRole('radio', { name: /anyone with the link/i }).check()
+  await dialog.getByRole('radio', { name: /^public/i }).check()
 
   // The link appears only once the server has the sheet as public.
   await expect(

@@ -111,9 +111,9 @@ describe('the sheet', () => {
     })
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.getByText(/choose who can see sergeant kessler/i)).toBeTruthy()
-    expect(
-      (screen.getByRole('radio', { name: /anyone with the link/i }) as HTMLInputElement).checked
-    ).toBe(false)
+    expect((screen.getByRole('radio', { name: /^public/i }) as HTMLInputElement).checked).toBe(
+      false
+    )
   })
 
   test('a read-only NPC has no corner actions, and says why when told', async () => {

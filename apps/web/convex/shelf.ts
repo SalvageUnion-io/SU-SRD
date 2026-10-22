@@ -7,16 +7,9 @@ import type { Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import type { PatternVisibility } from './model/entities'
-import {
-  bodyAppId,
-  findOwnedByAppId,
-  mutation,
-  PARSERS,
-  parseBody,
-  patternVisibility,
-  patternVisibilityOf,
-} from './model/entities'
+import { bodyAppId, findOwnedByAppId, mutation, PARSERS, parseBody } from './model/entities'
+import type { PatternVisibility } from './model/patternAccess'
+import { patternVisibility, patternVisibilityOf } from './model/patternAccess'
 import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
 
 /**
@@ -115,6 +108,8 @@ export const setPatternVisibility = mutation({
 
     await ctx.db.patch(row._id, {
       publicRead: args.visibility === 'link',
+      // Homebrew rides the link: withdrawing the link takes it off the Reference.
+      ...(args.visibility === 'link' ? {} : { homebrew: undefined }),
       gameId,
       sharedAt: args.visibility === 'private' ? undefined : Date.now(),
     })
@@ -184,6 +179,8 @@ export const patternSharing = query({
       gameId: v.union(v.id('games'), v.null()),
       gameName: v.union(v.string(), v.null()),
       builtCount: v.number(),
+      /** Shared with everyone on the Reference as Homebrew (ADR-061). */
+      homebrew: v.boolean(),
     })
   ),
   handler: async (ctx) => {
@@ -202,6 +199,7 @@ export const patternSharing = query({
           gameId: row.gameId,
           gameName: game?.name ?? null,
           builtCount: row.builtCount ?? 0,
+          homebrew: row.homebrew === true && row.publicRead === true,
         }
       })
     )

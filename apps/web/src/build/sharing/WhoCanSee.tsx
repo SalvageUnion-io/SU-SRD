@@ -3,7 +3,9 @@
  * share: pilot, mech, crawler, built NPC and mech pattern.
  *
  * Three stacked radios in the same words everywhere — Only me, My Game's crew,
- * Anyone with the link (`lib/sharing/visibility.ts`). An answer the thing
+ * Public (`lib/sharing/visibility.ts`). The chosen answer may open onto what
+ * goes with it (`details`): Public's link, QR and Reference switch, inside its
+ * own frame. An answer the thing
  * cannot take where it is now stays on screen, disabled, with the reason in
  * its hint: a choice that silently vanished would read as one that does not
  * exist.
@@ -29,6 +31,18 @@ const FIELDSET = {
   padding: 0,
 } satisfies CSSProperties
 
+/** A chosen answer with details: the checked row's frame, drawn around both. */
+const OPEN_FRAME = {
+  borderColor: tokens.color.ink,
+  borderRadius: tokens.radius.card,
+  borderStyle: 'solid',
+  borderWidth: tokens.borderWidth.entityCompact,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+  padding: `calc(${tokens.space[8]} - (${tokens.borderWidth.entityCompact} - ${tokens.borderWidth.chrome}))`,
+} satisfies CSSProperties
+
 const LEGEND = {
   marginBottom: tokens.space[8],
   padding: 0,
@@ -46,27 +60,49 @@ type WhoCanSeeProps = {
   disabled?: boolean
   /** Below the answers: the Save as pattern page's Game picker. */
   children?: ReactNode
+  /** What opens inside an answer's frame while it is the chosen one. */
+  details?: Partial<Record<Visibility, ReactNode>>
 }
 
-export function WhoCanSee({ name, choices, value, onChange, disabled, children }: WhoCanSeeProps) {
+export function WhoCanSee({
+  name,
+  choices,
+  value,
+  onChange,
+  disabled,
+  children,
+  details,
+}: WhoCanSeeProps) {
   return (
     <fieldset style={FIELDSET} disabled={disabled || value === null}>
       <legend className={LEGEND_CAPS} style={LEGEND}>
         {buildSharingCopy('whoCanSeeIt')}
       </legend>
-      {choices.map((choice) => (
-        <Radio
-          key={choice.value}
-          stacked
-          name={name}
-          value={choice.value}
-          checked={value === choice.value}
-          onChange={() => onChange(choice.value)}
-          disabled={choice.disabled}
-          label={choice.label}
-          description={choice.description}
-        />
-      ))}
+      {choices.map((choice) => {
+        const open = value === choice.value ? details?.[choice.value] : undefined
+        const radio = (
+          <Radio
+            key={choice.value}
+            stacked
+            bare={open != null}
+            name={name}
+            value={choice.value}
+            checked={value === choice.value}
+            onChange={() => onChange(choice.value)}
+            disabled={choice.disabled}
+            label={choice.label}
+            description={choice.description}
+          />
+        )
+        return open == null ? (
+          radio
+        ) : (
+          <div key={choice.value} style={OPEN_FRAME}>
+            {radio}
+            {open}
+          </div>
+        )
+      })}
       {children}
     </fieldset>
   )

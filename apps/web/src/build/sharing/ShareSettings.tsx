@@ -1,18 +1,19 @@
 /**
  * ShareSettings — who can see one player thing, set where it stands: the
- * "Who can see it" answers (`WhoCanSee`), and, while anyone with the link may
- * read it, the link, a copy button and a QR of it.
+ * "Who can see it" answers (`WhoCanSee`), and, while it is Public, the link, a
+ * copy button and a QR of it inside that answer's frame.
  *
  * One control for the five kinds a player can share (`lib/sharing/visibility.ts`).
  * Each answer writes as it is picked, server first:
  *
  *  - **A sheet** (pilot, mech, crawler, built NPC) switches `publicRead` with
- *    `publicSheet.setPublic` (ADR-032): "Anyone with the link" sets it, the
+ *    `publicSheet.setPublic` (ADR-032): "Public" sets it, the
  *    answer its container gives clears it. Whether it is public is read back
  *    from `publicSheet.get`, the query its public page reads, so the control
  *    and the page cannot disagree.
  *  - **A pattern** takes all three through `shelf.setPatternVisibility`, read
- *    back from `shelf.patternSharing`.
+ *    back from `shelf.patternSharing`. Shared by link, it may also be shared
+ *    with everyone on the Reference as Homebrew (`homebrew.setShared`, ADR-061).
  *
  * Either way the link is `/p/:kind/<name>-<short id>` (`shareSegment`): one
  * derived URL, so going back to a narrower answer revokes it everywhere at once.
@@ -26,7 +27,7 @@
 import { useMutation, useQuery } from 'convex/react'
 import { publicPath } from 'game-domain/entityKinds'
 import { Copy } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -38,6 +39,7 @@ import {
   FieldError,
   Select,
   Stack,
+  Switch,
   tokens,
   useCopied,
 } from '../../components/index'
@@ -61,10 +63,12 @@ type ShareSettingsProps = {
   clipboardWriter?: (text: string) => Promise<void>
 }
 
+/** The answers' own hint (`Radio`'s description): every line under Public reads as one. */
 const MUTED_CAPTION = {
   color: tokens.color.wkMuted,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
+  fontSize: tokens.fontSize.xs,
+  lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 
 const ROW = { display: 'flex', alignItems: 'center', gap: tokens.space[8] } satisfies CSSProperties
@@ -80,7 +84,14 @@ const URL_TEXT = {
 
 const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
 
-const QR_ROW = { ...ROW, gap: tokens.space[12] } satisfies CSSProperties
+/** The QR on the left, what goes with it on the right; the link along the bottom. */
+const QR_ROW = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: tokens.space[12],
+} satisfies CSSProperties
+
+const QR_SIDE = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
 const QR_NOTE = { ...MUTED_CAPTION, margin: 0 } satisfies CSSProperties
 
@@ -133,10 +144,15 @@ function SheetShareSettings({
           void share.run(next)
         }}
         disabled={busy}
+        details={{
+          link: (
+            <ShareLink
+              url={appUrl(publicPath(kind, appId, name))}
+              clipboardWriter={clipboardWriter}
+            />
+          ),
+        }}
       />
-      {value === 'link' && (
-        <ShareLink url={appUrl(publicPath(kind, appId, name))} clipboardWriter={clipboardWriter} />
-      )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
   )
@@ -177,6 +193,15 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
         value={value}
         onChange={(next) => choose(next)}
         disabled={busy}
+        details={{
+          link: (
+            <ShareLink
+              url={appUrl(publicPath('pattern', appId, name))}
+              clipboardWriter={clipboardWriter}
+              aside={<ShareOnReference appId={appId} shared={mine?.homebrew === true} />}
+            />
+          ),
+        }}
       >
         {value === 'game' && gameChoices.length > 1 && (
           <Field label={buildSharingCopy('whichGame')} htmlFor={`share-game-${appId}`}>
@@ -197,23 +222,43 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
           </Field>
         )}
       </WhoCanSee>
-      {value === 'link' && (
-        <ShareLink
-          url={appUrl(publicPath('pattern', appId, name))}
-          clipboardWriter={clipboardWriter}
-        />
-      )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
   )
 }
 
-/** The public link while there is one: the URL, a copy button and a QR of it. */
+/** A link-shared pattern's second opt-in: Homebrew on the Reference (ADR-061). */
+function ShareOnReference({ appId, shared }: { appId: string; shared: boolean }) {
+  const setShared = useMutation(api.homebrew.setShared)
+  const write = useServerAction(
+    (next: boolean) => setShared({ patternId: appId, shared: next }),
+    SHARE_FAILURE
+  )
+  return (
+    <Stack gap={4}>
+      <div>
+        <Switch checked={shared} disabled={write.pending} onClick={() => void write.run(!shared)}>
+          {buildSharingCopy('shareOnReference')}
+        </Switch>
+      </div>
+      <p style={QR_NOTE}>{buildSharingCopy('shareOnReferenceHint')}</p>
+      {write.error !== null && <FieldError spaceAbove={8}>{write.error}</FieldError>}
+    </Stack>
+  )
+}
+
+/**
+ * The public link while there is one: a QR of it on the left; on the right,
+ * `aside` (a pattern's SRD switch) and the scan note, then the URL and its copy
+ * button at the foot.
+ */
 function ShareLink({
   url,
+  aside,
   clipboardWriter = (text) => navigator.clipboard.writeText(text),
 }: {
   url: string
+  aside?: ReactNode
   clipboardWriter?: (text: string) => Promise<void>
 }) {
   const { copied, flash } = useCopied()
@@ -231,30 +276,35 @@ function ShareLink({
 
   return (
     <Stack gap={8}>
-      <div style={ROW}>
-        <code style={URL_TEXT}>{url}</code>
-        <Button
-          size="compact"
-          onClick={() => void copy()}
-          aria-label={buildSharingCopy('copyPublicLink')}
-          style={NO_SHRINK}
-        >
-          <CopiedIcon
-            copied={copied}
-            size="compact"
-            icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
-          />
-        </Button>
-        <CopiedStatus copied={copied} />
-      </div>
       {/*
         Passing a phone across a table is the actual use, so the QR needs no
-        heading and no placeholder — it is simply there while there is a public
-        link to encode.
+        heading and no placeholder — it is simply there while there is a
+        public link to encode.
       */}
       <div style={QR_ROW}>
         <LinkQr url={url} />
-        <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
+        <div style={QR_SIDE}>
+          <Stack gap={8}>
+            {aside}
+            <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
+          </Stack>
+          <div style={ROW}>
+            <code style={URL_TEXT}>{url}</code>
+            <Button
+              size="compact"
+              onClick={() => void copy()}
+              aria-label={buildSharingCopy('copyPublicLink')}
+              style={NO_SHRINK}
+            >
+              <CopiedIcon
+                copied={copied}
+                size="compact"
+                icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
+              />
+            </Button>
+            <CopiedStatus copied={copied} />
+          </div>
+        </div>
       </div>
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>

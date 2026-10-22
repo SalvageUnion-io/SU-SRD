@@ -16,6 +16,8 @@
  *     (`errorReports.ts`).
  *   - `app`: `/build` and below → the app (`./app.ts`); a file it does not
  *     have falls through to the rules below.
+ *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
+ *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   - `api-miss`: `/api/v1` and below → a JSON **404** naming the manifest, so a
  *     client reading the Dataset API never parses the HTML page (ADR-056).
@@ -40,6 +42,7 @@
 
 import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
+import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
 import type { AppEnv } from './app'
 import { isBuildPath, serveApp } from './app'
@@ -50,6 +53,7 @@ import {
   handleConvexLogStream,
   handleErrorReport,
 } from './errorReports'
+import { serveHomebrew } from './homebrew'
 
 export type Env = AppEnv & {
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
@@ -120,6 +124,11 @@ export default {
     if (isBuildPath(url.pathname)) {
       const res = await serveApp(request, env)
       if (res !== null) return res
+    }
+
+    // H. Homebrew for the SRD's pages, from Convex.
+    if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {
+      return serveHomebrew(url, env)
     }
 
     // 1. Nothing at this address in the Dataset API.

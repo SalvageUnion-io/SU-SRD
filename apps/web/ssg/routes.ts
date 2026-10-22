@@ -20,6 +20,7 @@ import { botPrivacyPage } from '../src/reference/pages/bot/privacy.page'
 import { botTermsPage } from '../src/reference/pages/bot/terms.page'
 import { changelogPage } from '../src/reference/pages/changelog.page'
 import { discordPage } from '../src/reference/pages/discord.page'
+import { homebrewPage } from '../src/reference/pages/homebrew.page'
 import { indexPage } from '../src/reference/pages/index.page'
 import { ogCardPage } from '../src/reference/pages/og-card.page'
 import { roadmapPage } from '../src/reference/pages/roadmap.page'
@@ -43,6 +44,7 @@ export const routes: RouteRegistration[] = [
   register(discordPage),
   register(roadmapPage),
   register(starterPage),
+  register(homebrewPage),
   // Build-only screenshot surface for the per-entity og:images. Noindexed, and
   // `sitemap: false` keeps it out of sitemap-0.xml (the URL filter in
   // ssg/sitemap.ts also drops `/og-card`).

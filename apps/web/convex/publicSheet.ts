@@ -10,17 +10,15 @@ import { displayNameOf } from './account'
 import { oldestByAddress, patternByAddress } from './model/addresses'
 import {
   linksTouching,
-  mayReadPattern,
   mutation,
   oldestByAppId,
   parseBody,
-  patternVisibility,
-  patternVisibilityOf,
   resolveLinkEnd,
   sameContainerRows,
 } from './model/entities'
 import { entityNameOf } from './model/entityName'
 import { inviteByCode, isCurrent } from './model/invites'
+import { mayReadPattern, patternVisibility, patternVisibilityOf } from './model/patternAccess'
 import { patternEmbedJson } from './model/patternEmbed'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
 import { entityRef, entityRefType, softLinkType } from './schema'

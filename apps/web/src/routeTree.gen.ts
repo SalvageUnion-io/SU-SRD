@@ -14,6 +14,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
+import { Route as AdminHomebrewRouteImport } from './routes/admin/homebrew'
 import { Route as AdminMetricsRouteImport } from './routes/admin/metrics'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as EncountersIdRouteImport } from './routes/encounters/$id'
@@ -57,6 +58,11 @@ const SignInRoute = SignInRouteImport.update({
 const SignOutRoute = SignOutRouteImport.update({
   id: '/sign-out',
   path: '/sign-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHomebrewRoute = AdminHomebrewRouteImport.update({
+  id: '/admin/homebrew',
+  path: '/admin/homebrew',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMetricsRoute = AdminMetricsRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/encounters/$id': typeof EncountersIdRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/encounters/$id': typeof EncountersIdRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/encounters/$id': typeof EncountersIdRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
     | '/admin/metrics'
     | '/crawlers/new'
     | '/encounters/$id'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
     | '/admin/metrics'
     | '/crawlers/new'
     | '/encounters/$id'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
     | '/admin/metrics'
     | '/crawlers/new'
     | '/encounters/$id'
@@ -321,6 +333,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SignOutRoute: typeof SignOutRoute
+  AdminHomebrewRoute: typeof AdminHomebrewRoute
   AdminMetricsRoute: typeof AdminMetricsRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   EncountersIdRoute: typeof EncountersIdRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-out'
       fullPath: '/sign-out'
       preLoaderRoute: typeof SignOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/homebrew': {
+      id: '/admin/homebrew'
+      path: '/admin/homebrew'
+      fullPath: '/admin/homebrew'
+      preLoaderRoute: typeof AdminHomebrewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/metrics': {
@@ -521,6 +541,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SignOutRoute: SignOutRoute,
+  AdminHomebrewRoute: AdminHomebrewRoute,
   AdminMetricsRoute: AdminMetricsRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   EncountersIdRoute: EncountersIdRoute,

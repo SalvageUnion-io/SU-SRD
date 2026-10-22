@@ -5,6 +5,7 @@ import { query } from './_generated/server'
 import { deleteFeedbackOf } from './feedback'
 import { personalBinding } from './model/channelBindings'
 import { mutation, pruneLinksOfRow } from './model/entities'
+import { deleteReportsBy } from './model/homebrew'
 import { requireUser } from './model/permissions'
 import { deleteGameApparatus, releaseSeatsOf, soloSeatsOf } from './model/seats'
 
@@ -93,6 +94,8 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
+    /** Their reports of Homebrew patterns (ADR-061): what they said, and when. */
+    homebrewReports: v.array(v.object({ reason: v.string(), at: v.number() })),
     encounters: v.array(v.any()),
     games: v.array(
       v.object({
@@ -130,6 +133,10 @@ export const exportMine = query({
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect()
+    const reports = await ctx.db
+      .query('homebrewReports')
+      .withIndex('by_reporter', (q) => q.eq('reporterId', userId))
+      .collect()
 
     return {
       exportedAt: new Date().toISOString(),
@@ -137,6 +144,7 @@ export const exportMine = query({
       mechs: mechs.map((m) => m.body),
       npcs: npcs.map((n) => n.body),
       mechPatterns: mechPatterns.map((p) => p.body),
+      homebrewReports: reports.map((r) => ({ reason: r.reason, at: r.at })),
       encounters: encounters.map((e) => e.body),
       games: memberships.map((m) => ({
         gameId: m.gameId,
@@ -276,6 +284,9 @@ export const deleteAccount = mutation({
     }
     // Any solo seat still on the shelf (one whose pilot row was already gone).
     for (const seat of await soloSeatsOf(ctx, userId)) await ctx.db.delete(seat._id)
+    // Their patterns' reports went with the patterns (the trigger in
+    // `model/entities.ts`); their reports of other people's patterns go too.
+    await deleteReportsBy(ctx, userId)
 
     // Feedback still waiting or still counted against today's limit, before
     // the Discord link that names some of it goes.

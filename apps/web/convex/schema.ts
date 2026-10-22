@@ -5,6 +5,7 @@ import { zodToConvex } from 'convex-helpers/server/zod4'
 import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
+import { homebrewTables } from './model/homebrewTables'
 import { playTables } from './model/playTables'
 import { prepTables } from './model/prepTables'
 import { signalTables } from './model/signalTables'
@@ -61,7 +62,8 @@ import { literalUnion } from './model/validators'
  * Play's tables (the seat, the Game's Downtime and the Discord channel
  * bindings) and their validators are `model/playTables.ts`, spread in below.
  * The Mediator's prep (encounters, and the one a Game runs) is
- * `model/prepTables.ts`, spread in after it.
+ * `model/prepTables.ts`, and Homebrew's moderation is
+ * `model/homebrewTables.ts`, both spread in after it.
  *
  * The function modules take their arguments and declare their `returns`
  * against these same validators, never a hand-copied union.
@@ -462,11 +464,18 @@ export default defineSchema({
      * carries `body.sourcePattern`, so the page reads one number, not a scan.
      */
     builtCount: v.optional(v.number()),
+    /**
+     * Shared with everyone on the Reference as Homebrew (ADR-061): its maker's
+     * second opt-in, held only while `publicRead` is.
+     */
+    homebrew: v.optional(v.boolean()),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".
     .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_app_id', ['appId'])
-    .index('by_game', ['gameId']),
+    .index('by_game', ['gameId'])
+    // Homebrew (ADR-061): every pattern shared on the Reference, newest share first.
+    .index('by_homebrew', ['homebrew', 'sharedAt']),
 
   /**
    * One row per uploaded entity photo in file storage (`photos.ts`).
@@ -549,5 +558,6 @@ export default defineSchema({
   ...playTables,
   ...prepTables,
 
+  ...homebrewTables,
   ...signalTables,
 })

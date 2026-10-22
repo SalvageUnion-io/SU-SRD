@@ -10,9 +10,10 @@
  */
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
-import { truncate } from 'salvageunion-reference'
+import { getPatterns, truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
+import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
@@ -24,6 +25,7 @@ import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
+import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
@@ -144,6 +146,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ) : (
             <EntityView item={item} schemaId={schemaId} />
           ))}
+        {/* A chassis's players' patterns, under the book's (ADR-061). */}
+        {schemaId === 'chassis' && (
+          <Island
+            name="HomebrewIsland"
+            client="visible"
+            ssr
+            props={{ chassisRef: itemId, bookPatterns: getPatterns(item)?.length ?? 0 }}
+          >
+            <HomebrewIsland chassisRef={itemId} bookPatterns={getPatterns(item)?.length ?? 0} />
+          </Island>
+        )}
       </EntityPageFrame>
     ),
   }
