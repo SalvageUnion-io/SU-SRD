@@ -50,8 +50,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 1
+          # The merge commit and its base, so the diff needs no API: `gh pr
+          # diff` refuses a PR of more than 300 files (the release PR).
+          fetch-depth: 2
           persist-credentials: false
+
+      - name: Write the diff
+        run: |
+          mkdir -p .claude-review
+          git diff --name-status HEAD^1 HEAD > .claude-review/files.txt
+          git diff HEAD^1 HEAD > .claude-review/pr.diff
+          echo "$(wc -l < .claude-review/files.txt) changed file(s)"
 
       - name: Review
         id: review
@@ -62,11 +71,17 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Review this pull request's diff (`gh pr diff`) against the repository's
+            Review this pull request's diff against the repository's
             own rules: AGENTS.md, CLAUDE.md, the `.claude/rules/` files whose
             `paths:` match the changed files, and the docs they point to. Read
             those rules and every changed file in full before you judge: a
-            verdict from the diff alone is not a review.
+            verdict from the diff alone is not a review. The changed files are
+            listed in `.claude-review/files.txt` and the whole diff is in
+            `.claude-review/pr.diff` (read it in parts when it is long).
+            `git diff HEAD^1 HEAD -- <path>` shows one file's change. When
+            there are too many files to read them all, read the riskiest
+            first (code over docs, backend and auth over styling) and list
+            only what you read.
 
             Report only what should block a merge:
             - a correctness bug, with the input or state that triggers it;
@@ -81,7 +96,7 @@ jobs:
             finding with its file, line and what is wrong, `read` as the files
             you read, and `clean` true only when there are no findings.
           claude_args: |
-            --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git show:*),Bash(git log:*),Bash(gh pr view:*)"
             --json-schema '{"type":"object","properties":{"clean":{"type":"boolean"},"read":{"type":"array","items":{"type":"string"}},"findings":{"type":"array","items":{"type":"object","properties":{"file":{"type":"string"},"line":{"type":"integer"},"problem":{"type":"string"}},"required":["file","problem"]}}},"required":["clean","read","findings"]}'
 
       # The verdict is posted here, from the structured output, so a failing
@@ -97,7 +112,7 @@ jobs:
           if [ -z "$VERDICT" ]; then
             body="**Claude review: not reviewed.** The action returned no verdict (a PR that edits this workflow is skipped until it is on main)."
           elif [ "$(printf '%s' "$VERDICT" | jq -r '.clean')" = "true" ] && [ "$(printf '%s' "$VERDICT" | jq '.findings | length')" = "0" ]; then
-            body=$(printf '%s' "$VERDICT" | jq -r '"**Claude review: clean.** Read \(.read | length) file(s): " + (.read | map("`" + . + "`") | join(", "))')
+            body=$(printf '%s' "$VERDICT" | jq -r --arg total "$(wc -l < .claude-review/files.txt)" '"**Claude review: clean.** Read \(.read | length) file(s) of \($total | tonumber) changed: " + (.read | map("`" + . + "`") | join(", "))')
           else
             body=$(printf '%s' "$VERDICT" | jq -r '"**Claude review: \(.findings | length) finding(s).**\n\n" + (.findings | map("- `\(.file)\(if .line then ":\(.line)" else "" end)`: \(.problem)") | join("\n"))')
             printf '%s' "$VERDICT" | jq -r '.findings[] | "::error file=\(.file),line=\(.line // 1)::\(.problem | gsub("\n"; " "))"'
