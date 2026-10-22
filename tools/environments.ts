@@ -139,7 +139,7 @@ export const MAIN_RULESET: RulesetSpec = {
     'code_scanning',
     'pull_request',
   ],
-  requiredChecks: ['CI Success', 'PR title is a conventional commit'],
+  requiredChecks: ['CI Success', 'PR title is a conventional commit', 'Claude review'],
   codeScanning: [
     { tool: 'CodeQL', security_alerts_threshold: 'high_or_higher', alerts_threshold: 'errors' },
   ],

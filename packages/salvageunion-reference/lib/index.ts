@@ -56,6 +56,7 @@ export {
   getReferenceEntityName,
   getSlotsRequired,
   getSource,
+  getSources,
   getTechLevel,
   getTree,
 } from './entityFields'

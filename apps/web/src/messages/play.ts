@@ -3,8 +3,8 @@
 import { messages } from './define'
 
 export const playCopy = messages({
-  claimAndBoard: 'Claim and board',
-  claimAndBoard2: 'Claim and board {name}',
+  assignAndBoard: 'Assign and board',
+  assignAndBoard2: 'Assign and board {name}',
   step: 'Step {max}',
   endDowntime: 'End Downtime',
   cancel: 'Cancel',
@@ -149,6 +149,7 @@ export const playCopy = messages({
   rollATable2: 'Roll a table',
   tablesFound: 'Tables found',
   pinnedTables: 'Pinned tables',
+  thisEncountersTables: "This encounter's tables",
   noChannelIsBoundYet:
     'No channel is bound yet, so rolls stay in Play. Connect one from the channel button.',
   sheet: 'Sheet',
@@ -180,4 +181,11 @@ export const playCopy = messages({
   saved: '● Saved',
   offlineReadOnly: '○ Offline · read-only',
   connecting: 'Connecting…',
+  tableMode: 'Table mode',
+  table: 'Table',
+  rollTheDie: 'Roll the die',
+  rolledBand: 'Rolled {die}, {band}',
+  nothingToTrackInDowntime: 'Nothing to track in Downtime: the tabs hold the step.',
+  vitals: 'Vitals',
+  unitVitals: '{name}’s vitals',
 })

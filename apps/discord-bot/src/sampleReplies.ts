@@ -4,7 +4,7 @@ import type { ButtonSpec, ContainerBlock, ContainerData } from './container'
 import { entityFromKey } from './lookupCard'
 
 /**
- * The replies the reference site's `/discord` page shows as its screenshots: a
+ * The replies the reference site's `/bot` page shows as its screenshots: a
  * `/su roll` and a
  * `/su lookup`, built by the very builders the bot answers with, a fixed die
  * and a fixed entry so the page does not change between builds. Written by
@@ -68,7 +68,7 @@ export function renderSampleRepliesModule(): string {
 // Regenerate with: bun --filter discord-bot gen:sample-replies
 //
 // A /su roll and a /su lookup reply, built by the bot's own builders, for the
-// /discord page's screenshots. apps/discord-bot/src/__tests__/sampleReplies.test.ts
+// /bot page's screenshots. apps/discord-bot/src/__tests__/sampleReplies.test.ts
 // fails if this file goes stale.
 
 export type SampleButton =

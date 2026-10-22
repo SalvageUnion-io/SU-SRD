@@ -2,6 +2,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { deleteFeedbackOf } from './feedback'
 import { personalBinding } from './model/channelBindings'
 import { mutation, pruneLinksOfRow } from './model/entities'
 import { requireUser } from './model/permissions'
@@ -92,6 +93,7 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
+    encounters: v.array(v.any()),
     games: v.array(
       v.object({
         gameId: v.id('games'),
@@ -120,6 +122,10 @@ export const exportMine = query({
       .query('mechPatterns')
       .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
       .collect()
+    const encounters = await ctx.db
+      .query('encounters')
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+      .collect()
     const memberships = await ctx.db
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -131,6 +137,7 @@ export const exportMine = query({
       mechs: mechs.map((m) => m.body),
       npcs: npcs.map((n) => n.body),
       mechPatterns: mechPatterns.map((p) => p.body),
+      encounters: encounters.map((e) => e.body),
       games: memberships.map((m) => ({
         gameId: m.gameId,
         mediator: m.mediator,
@@ -201,7 +208,7 @@ export const deleteAccount = mutation({
         const passedOn = await reassignOrganizer(ctx, membership.gameId, userId)
         if (!passedOn) {
           // Last member out: the Game has nobody left to run or play it, and
-          // what it held has nowhere to go — unclaimed entities in a Game with
+          // what it held has nowhere to go — unassigned entities in a Game with
           // no members included.
           for (const table of ['crawlers', 'encounterNpcs', 'pilots', 'mechs', 'npcs'] as const) {
             const rows = await ctx.db
@@ -243,9 +250,14 @@ export const deleteAccount = mutation({
         .query('npcs')
         .withIndex('by_owner_game', (q) => q.eq('ownerId', userId))
         .collect(),
+      ctx.db
+        .query('encounters')
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+        .collect(),
     ])
-    const [pilots, mechs, patterns, npcs] = personal
+    const [pilots, mechs, patterns, npcs, encounters] = personal
     for (const row of patterns) await ctx.db.delete(row._id)
+    for (const row of encounters) await ctx.db.delete(row._id)
     // A deleted NPC's crew link goes with it, so its bay falls back to the
     // book's line (ADR-044).
     for (const row of npcs) {
@@ -264,6 +276,10 @@ export const deleteAccount = mutation({
     }
     // Any solo seat still on the shelf (one whose pilot row was already gone).
     for (const seat of await soloSeatsOf(ctx, userId)) await ctx.db.delete(seat._id)
+
+    // Feedback still waiting or still counted against today's limit, before
+    // the Discord link that names some of it goes.
+    await deleteFeedbackOf(ctx, userId)
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

@@ -16,4 +16,8 @@ export const referenceCopy = messages({
   traits: 'Traits:',
   wiki: 'WIKI',
   signInWithDiscord: 'Sign in with Discord',
+  shareThisPage: 'Share this page',
+  share: 'Share',
+  shareFailed: 'The page could not be shared. Try again.',
+  copyLinkFailed: 'The link could not be copied. Try again.',
 })

@@ -61,7 +61,8 @@ export function PlayTablesSection({
   idPrefix,
   downtime,
   solo,
-}: SideSectionProps & { downtime: boolean; solo: boolean }) {
+  prepared,
+}: SideSectionProps & { downtime: boolean; solo: boolean; prepared?: readonly string[] }) {
   return (
     <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
       <PlayTables
@@ -70,6 +71,7 @@ export function PlayTablesSection({
         post={side.post}
         onPostChange={side.setPost}
         binding={side.binding}
+        prepared={prepared}
       />
     </SlabSection>
   )

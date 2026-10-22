@@ -256,17 +256,17 @@ describe('useSeat writes', () => {
   })
 })
 
-describe('claim and board', () => {
+describe('assign and board', () => {
   const spare = { mechId: 'seat-spare', serverId: 'row-spare' }
 
-  test('writes the claim before the seat', async () => {
+  test('writes the assignment before the seat', async () => {
     setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
     const seat = await renderProbe()
     await act(async () => {
-      seat.claimAndBoard(spare)
+      seat.assignAndBoard(spare)
     })
     expect(sent).toEqual([
-      { name: 'ownership:claim', args: { table: 'mechs', entityId: 'row-spare' } },
+      { name: 'ownership:assign', args: { table: 'mechs', entityId: 'row-spare' } },
       {
         name: 'seats:board',
         args: { gameId: GAME_ID, pilotId: 'seat-rook', mechId: 'seat-spare' },
@@ -274,17 +274,17 @@ describe('claim and board', () => {
     ])
   })
 
-  test('a refused claim leaves the seat untouched, and says why', async () => {
+  test('a refused assignment leaves the seat untouched, and says why', async () => {
     setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
     refusedBy.set(
-      'ownership:claim',
-      new ConvexError('A crewmate already holds that — it has to be released first')
+      'ownership:assign',
+      new ConvexError('A crewmate already holds that — it has to be unassigned first')
     )
     const seat = await renderProbe()
     await act(async () => {
-      seat.claimAndBoard(spare)
+      seat.assignAndBoard(spare)
     })
-    expect(sent.map((s) => s.name)).toEqual(['ownership:claim'])
+    expect(sent.map((s) => s.name)).toEqual(['ownership:assign'])
     expect(await screen.findByText(/A crewmate already holds that/)).toBeTruthy()
   })
 
@@ -292,7 +292,7 @@ describe('claim and board', () => {
     setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
     const seat = await renderProbe('disconnected')
     await act(async () => {
-      seat.claimAndBoard(spare)
+      seat.assignAndBoard(spare)
     })
     expect(sent).toEqual([])
   })

@@ -5,10 +5,11 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { mutation } from './model/entities'
-import { requireMediator, requireMember, requireUser } from './model/permissions'
+import { membershipOrNull, requireMediator, requireMember, requireUser } from './model/permissions'
 import { downtimeClaim } from './model/playTables'
 import { loadReferenceData } from './model/referenceData'
 import { readSeat, writeSeat } from './model/seats'
+import { bumpCount } from './model/usage'
 import { shelfRowOf, writablePilot } from './seats'
 
 /**
@@ -225,7 +226,7 @@ export const state = query({
       if ((await shelfRowOf(ctx, userId, 'pilots', pilotId)) === null) return null
       running = soloRunning(await readSeat(ctx, { ownerId: userId }, pilotId), pilotId)
     } else {
-      await requireMember(ctx, args.gameId)
+      if ((await membershipOrNull(ctx, args.gameId)) === null) return null
       running = gameRunning(await gameRow(ctx, args.gameId))
     }
     if (running === null) {
@@ -274,6 +275,7 @@ export const begin = mutation({
       claimed: [],
       completedBy: [],
     })
+    await bumpCount(ctx, args.gameId === null ? 'downtime:solo' : 'downtime:game')
   },
 })
 

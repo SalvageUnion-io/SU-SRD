@@ -6,17 +6,16 @@
  * it plays at — so the page lists every pilot, mech and crawler of yours this
  * browser holds, wherever it is, and a relation chip on each names its Game
  * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a detail
- * here, never a place: unclaimed units and other players' units show only on
+ * here, never a place: unassigned units and other players' units show only on
  * the Game's page, and a Game is started or joined from the Play hub.
  *
  *  - **The band** (ink, paper flecks): the notched title and, right of it on
  *    the band's foot, **Import**, **Export all** and the **Showing** select
  *    (Everything, Not in a Game, then one entry per Game); what does not fit
  *    beside the name wraps up over it (`asideAt="controls"`).
- *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
- *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
- *    folded, the Starter Set, read-only, as the front door shows it
- *    (`StarterShelf`).
+ *  - **Three rows of shelves**: Pilots, Mechs and Crawlers; then the user-made,
+ *    dashed NPCs, Patterns and Encounters (ruleset §3.9, `EncounterShelf`); then,
+ *    folded, the read-only Starter Set, as the front door shows it (`StarterShelf`).
  *
  * Each item is a library Compact (`UnitRow`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
@@ -103,6 +102,7 @@ import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
+import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
 import { Shelf } from './Shelf'
@@ -576,6 +576,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 />
               ))}
             </Shelf>
+            <EncounterShelf confirm={confirm} />
           </Grid>
         </>
       )}

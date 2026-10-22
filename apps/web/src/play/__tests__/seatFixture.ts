@@ -21,7 +21,7 @@ export function fakeSeat(seat: Partial<SeatView> = {}): { handle: SeatHandle; ca
     handle: {
       seat: { ...DEFAULT_SEAT, ...seat },
       board: record('board'),
-      claimAndBoard: record('claimAndBoard'),
+      assignAndBoard: record('assignAndBoard'),
       dismount: record('dismount'),
       eject: record('eject'),
       setRange: record('setRange'),

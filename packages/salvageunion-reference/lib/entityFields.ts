@@ -248,6 +248,27 @@ export function getSource(entity: RefMetaEntity): string | undefined {
 }
 
 /**
+ * Every book an entity is printed in: its own source first, then each reprint
+ * (`additionalSources`), once each. A Starter Set reprint of a Workshop Manual
+ * system is in the Starter Set too, so a source filter asks this, not `getSource`.
+ * @param entity - The entity to extract from
+ * @returns The sources, primary first
+ */
+
+export function getSources(entity: RefMetaEntity): string[] {
+  const sources = new Set<string>()
+  const primary = getSource(entity)
+  if (primary) sources.add(primary)
+  const reprints = 'additionalSources' in entity ? entity.additionalSources : undefined
+  if (Array.isArray(reprints)) {
+    for (const reprint of reprints) {
+      if (typeof reprint?.source === 'string') sources.add(reprint.source)
+    }
+  }
+  return [...sources]
+}
+
+/**
  * Extract booklet code from an entity (e.g. "CR" / "PH" / "PC" / "CB" for SUSS).
  * Only meaningful when the primary source is a multi-booklet product.
  * @param entity - The entity to extract from

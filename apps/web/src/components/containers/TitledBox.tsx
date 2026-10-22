@@ -38,7 +38,8 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  * TITLED BOX — the `Box` with the house cut-out head: a band in the box's
  * tone, the title notched into its foot on a square paper tab in ink (ruleset,
  * "Chapter band"), chips beside it on the band and controls at its end. The
- * tab opens into the paper body with no rule between them.
+ * tab opens into the paper body with no rule between them. The frame round a
+ * body wears the band's colour (R51); a head alone keeps its clear edge (R42).
  *
  * Every titled container that is not an entity wears it: dialogs
  * (`ModalShell`), a sheet's panels (a mech's Chassis and Hold), wizard briefs,
@@ -70,9 +71,11 @@ export function TitledBox({
 }: TitledBoxProps) {
   const surface = useEntitySurface()
   const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
+  const hasBody = box.children !== null && box.children !== undefined && box.children !== false
   return (
     <Box
       {...box}
+      {...(hasBody ? { frameColor: paint.background } : {})}
       label={label ?? title}
       {...(select ? { select } : {})}
       head={

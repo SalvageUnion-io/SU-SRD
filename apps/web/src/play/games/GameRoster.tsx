@@ -16,13 +16,14 @@
  *
  * The crawler (★ Primary first), then the pilots, each with its seat (its HP)
  * and the mech assigned to it as a linked Mini, then the mechs, each its own
- * row so an unclaimed one can be picked up. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
- * an UNCLAIMED seal picking it up. The head counts the seats.
+ * row so an unassigned one can be picked up. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
+ * an UNASSIGNED seal assigning it to you. The head counts the seats.
  *
  * ## What stays here
  *
- * The verbs about a unit's place at this table, in a row's ⋯ menu: Offer to
- * the crew, Make primary (the table runner's crawler), Move to your Training
+ * The verbs about a unit's place at this table, in a row's ⋯ menu: Unassign
+ * (its holder's, or the table runner's), Assign to each member (the table
+ * runner's), Make primary (the table runner's crawler), Move to your Training
  * Bay and Delete… (your own, or the table runner's crawler).
  * Each asks first through one shared confirm (`useConfirm`); their words live
  * in `useRowActions` and `lib/games/rowActionCopy.ts`.
@@ -148,7 +149,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     primaryCrawlerId: listing?.primaryCrawlerId ?? null,
   })
   // The seats are no section of their own: each pilot's HP and mech ride its row, the
-  // head counts the claimed ones, the crawler's row its vitals.
+  // head counts the assigned ones, the crawler's row its vitals.
   const seats =
     listing === undefined || members === undefined
       ? null
@@ -207,14 +208,15 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const verbs: HeaderMenuItem[] = [
       { id: 'open', label: playGamesCopy('openSheet'), onSelect: () => go(rosterSheetHref(row)) },
     ]
-    // Picking up is the SEAL's job, not a menu row's (`OwnerSeal`). Any owner
-    // may hand back, not just the table runner: ADR-030 §4 makes ownership
-    // voluntary outward, and the pick-up confirm promises this way back out.
-    if (row.can.release) {
+    // Assigning yourself a free one is the SEAL's job, not a menu row's
+    // (`OwnerSeal`). Any holder may hand back, not just the table runner:
+    // ADR-030 §4 makes an assignment voluntary outward, and the seal's confirm
+    // promises this way back out.
+    if (row.can.unassign) {
       verbs.push({
-        id: 'offer',
-        label: playGamesCopy('offerToTheCrew'),
-        onSelect: act(() => rowActions.offer(row)),
+        id: 'unassign',
+        label: playGamesCopy('unassign'),
+        onSelect: act(() => rowActions.unassign(row)),
       })
     }
     if (row.can.makePrimary) {
@@ -250,7 +252,18 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         onSelect: act(() => (row.can.delete ? rowActions.remove(row) : rowActions.scrap(row))),
       })
     }
-    return [verbs, danger]
+    // The table runner places it with anyone in the Game (ADR-030 §4).
+    const assign: HeaderMenuItem[] = row.can.assignTo.map((member) => {
+      const self = member.userId === viewerId
+      return {
+        id: `assign-${member.userId}`,
+        label: self
+          ? playGamesCopy('assignToMe')
+          : playGamesCopy('assignTo', { name: member.displayName }),
+        onSelect: act(() => rowActions.assignTo(row, member, self)),
+      }
+    })
+    return [verbs, assign, danger]
   }
 
   function renderRow(row: RosterRow): ReactNode {
@@ -272,9 +285,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             row.owner === null ? undefined : (
               <OwnerSeal
                 owner={row.owner}
-                claimable={row.can.claim}
+                assignable={row.can.assignSelf}
                 disabled={busy}
-                onClaim={() => rowActions.pickUp(row)}
+                onAssign={() => rowActions.assignSelf(row)}
               />
             )
           }

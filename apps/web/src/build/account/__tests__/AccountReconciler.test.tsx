@@ -72,6 +72,7 @@ function answers(over: Record<string, unknown> = {}) {
   return {
     'entities:listMine': EMPTY_ROSTER,
     'entities:listWiring': EMPTY_WIRING,
+    'shelf:encounters': [],
     ...over,
   }
 }

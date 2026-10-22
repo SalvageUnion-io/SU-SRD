@@ -300,8 +300,8 @@ describe('crew.vitals keys a template pre-gen by its link id', () => {
     const mech = before.mechs.find((m) => m.linkId === mechId)
     expect(mech).toBeDefined()
 
-    await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: pilot?._id ?? '' })
-    await u.as.mutation(api.ownership.claim, { table: 'mechs', entityId: mech?._id ?? '' })
+    await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: pilot?._id ?? '' })
+    await u.as.mutation(api.ownership.assign, { table: 'mechs', entityId: mech?._id ?? '' })
     await u.as.mutation(api.seats.board, { gameId, pilotId, mechId })
 
     const crew = await u.as.query(api.crew.vitals, { gameId })

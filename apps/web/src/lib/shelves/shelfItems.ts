@@ -17,6 +17,7 @@
 import type { ContainerFields } from 'game-domain/container'
 import { gamePath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Encounter } from 'game-domain/schemas/encounter'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { Npc } from 'game-domain/schemas/npc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
@@ -251,4 +252,18 @@ export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolea
 /** The personal tray's NPCs live in the Training Bay alone, so only the owner sees them. */
 export function encounterNpcChips(): ShelfChip[] {
   return [{ key: 'who', label: WHO.me }]
+}
+
+/** An encounter's reading: what it fields, `OPPOSITION | 4` (ADR-059). */
+export function encounterReading(encounter: Pick<Encounter, 'opposition'>): UnitReading {
+  return { label: 'Opposition', value: encounter.opposition.length }
+}
+
+/** An encounter is only ever its maker's: the label every one wears. */
+export function encounterChips(encounter: Pick<Encounter, 'tables'>): ShelfChip[] {
+  const tables = encounter.tables.length
+  return [
+    { key: 'who', label: WHO.me },
+    ...(tables > 0 ? [{ key: 'tables', label: 'Tables', value: String(tables) }] : []),
+  ]
 }

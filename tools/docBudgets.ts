@@ -20,8 +20,8 @@ export const COLLAPSED_DOCS: Record<string, number> = {
   'docs/design-system/chrome.md': 3_250,
   'docs/design-system/chips-and-actions.md': 7_700,
   'docs/design-system/entity-display-language.md': 5_800,
-  'docs/design-system/hard-rules.md': 16_250,
-  'docs/design-system/ruleset.md': 13_300,
+  'docs/design-system/hard-rules.md': 16_350,
+  'docs/design-system/ruleset.md': 13_350,
   'docs/ops/cloud-environment.md': 3_800,
 }
 

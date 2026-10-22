@@ -40,10 +40,15 @@ const QUERIES = {
   mine: internal.botClient.mine,
 } as const
 
-/** The write operations (`/su bind`, `/su unbind`), mapped to their internal mutation. */
+/**
+ * The write operations (`/su bind`, `/su unbind`, the usage tally, `/su
+ * feedback`), mapped to their internal mutation.
+ */
 const MUTATIONS = {
   bindChannel: internal.botClient.bindChannel,
   unbindChannel: internal.botClient.unbindChannel,
+  usage: internal.botClient.usage,
+  feedback: internal.feedback.fromBot,
 } as const
 
 /**

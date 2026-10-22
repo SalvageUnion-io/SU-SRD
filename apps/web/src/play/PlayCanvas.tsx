@@ -1,11 +1,13 @@
 /**
- * PlayCanvas — the fixed 1280×800 design canvas, scaled to fit its host with
- * a single `transform: scale(...)`, letterboxed, never scrolling (ADR-038
- * §9). It scales linearly to fill the available space: the host is sized to
- * the viewport height below its own top offset (nothing on the ancestor chain
- * establishes a height, so `height: 100%` alone would collapse to the canvas's
- * fixed 800px layout box and leave dead space below), then the canvas grows
- * uniformly to fill whichever axis binds first.
+ * PlayCanvas — the 1280×800 design canvas, scaled to fit its host with a
+ * single `transform: scale(...)`, never scrolling (ADR-038 §9). It scales
+ * linearly with the available space: the host is sized to the viewport height
+ * below its own top offset (nothing on the ancestor chain establishes a
+ * height, so `height: 100%` alone would collapse to the canvas's layout box
+ * and leave dead space below), the scale is whichever axis binds first, and
+ * the canvas then widens (or lengthens) in its own units to fill the other
+ * axis too. So the Play bar and foot run edge to edge, as every page's band
+ * and foot do, and no page ground letterboxes the screen.
  *
  * **Below its design size on either axis it renders the phone form instead**
  * (`phone`, ADR-045 decision 1; play.md §11): the canvas
@@ -29,12 +31,15 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { CANVAS_H, CANVAS_W, isPhoneForm, layoutWidth, pageZoom } from './playCanvas.model'
-
-// Uniform upscale cap — generous enough to fill a 4K display's height while
-// still guarding against an absurdly large render on giant panels (beyond which
-// the ground letterboxes).
-const MAX_SCALE = 2.6
+import type { CanvasFit } from './playCanvas.model'
+import {
+  CANVAS_H,
+  CANVAS_W,
+  canvasFit,
+  isPhoneForm,
+  layoutWidth,
+  pageZoom,
+} from './playCanvas.model'
 
 /** The canvas form's host: the page ground, the canvas centred in it. */
 const HOST = {
@@ -62,7 +67,7 @@ type PlayCanvasProps = {
 
 export function PlayCanvas({ children, phone }: PlayCanvasProps) {
   const hostRef = useRef<HTMLElement>(null)
-  const [scale, setScale] = useState(1)
+  const [fit, setFit] = useState<CanvasFit>({ scale: 1, width: CANVAS_W, height: CANVAS_H })
   const [phoneForm, setPhoneForm] = useState(false)
   // Explicit viewport-anchored height: the host fills from its top offset down
   // to the viewport bottom so the scale math sees the true available space (and
@@ -81,8 +86,6 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
       setHostH(availH)
       const w = host.clientWidth
       if (!w || !availH) return
-      const rawW = w / CANVAS_W
-      const rawH = availH / CANVAS_H
       const zoom = pageZoom({
         devicePixelRatio: window.devicePixelRatio,
         // In a frame, `outerWidth` is the top window's: no reading.
@@ -90,10 +93,10 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
         viewportWidth: layoutWidth(document.documentElement.clientWidth, window.innerWidth),
       })
       setPhoneForm(isPhoneForm(w, availH, zoom))
-      // Uniform scale that fits whichever axis binds first (never clipping),
-      // capped so it can fill space without ballooning on giant panels. The
-      // canvas only draws at 1 or more: below that the phone form is up.
-      setScale(Math.min(MAX_SCALE, Math.min(rawW, rawH)))
+      // Uniform scale by whichever axis binds first, the canvas widened to
+      // fill the other. It only draws at 1 or more: below that the phone
+      // form is up.
+      setFit(canvasFit(w, availH))
     }
     compute()
     // ResizeObserver catches host/layout changes; the window resize listener
@@ -125,11 +128,17 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
   }
 
   return (
-    // Centred, so a downscaled canvas letterboxes evenly above and below.
+    // Centred, so any rounding left over splits evenly on both sides.
     <main ref={hostRef} className="su-play-root" style={{ ...HOST, height: hostH }}>
       <div
         className="su-play-canvas"
-        style={{ flexShrink: 0, transform: `scale(${scale})`, transformOrigin: 'center center' }}
+        style={{
+          flexShrink: 0,
+          height: fit.height,
+          transform: `scale(${fit.scale})`,
+          transformOrigin: 'center center',
+          width: fit.width,
+        }}
       >
         {children}
       </div>

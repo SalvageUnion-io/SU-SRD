@@ -6,7 +6,7 @@
  *  - **Board** names the mech: "Boarded · <mech>" while boarded. With several
  *    mechs it is a menu ("▾") listing each, with why one cannot be boarded;
  *    with one it boards it; with none it is disabled and says so. An
- *    unclaimed spare in the Game is claimed first, behind a confirm.
+ *    unassigned spare in the Game is assigned to you first, behind a confirm.
  *  - **Downtime**: in a Game it is the Mediator's, so a player's option is
  *    locked (🔒, "set by the Mediator") and only shows it running. Solo (or for
  *    the Mediator) it starts Downtime; leaving it for On foot or Board ends
@@ -22,9 +22,9 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ConfirmDialog, HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
-import { ClaimAndBoardConfirm } from './ClaimAndBoardConfirm'
 import type { Play } from './situation.model'
 
 const ROW = {
@@ -69,7 +69,7 @@ export function PlaySituationSwitch({
   fill?: boolean
 }) {
   const [leaving, setLeaving] = useState<Leave | null>(null)
-  const [claiming, setClaiming] = useState<BoardOption | null>(null)
+  const [assigning, setAssigning] = useState<BoardOption | null>(null)
   const { situation, mechs, canWrite, canChangeDowntime } = play
   const { downtime, locked } = play.downtime
   const running = downtime.running
@@ -85,7 +85,7 @@ export function PlaySituationSwitch({
 
   function arrive(to: Leave) {
     if (to.kind === 'foot') play.setOnFoot()
-    else if (to.option.state === 'spare') setClaiming(to.option)
+    else if (to.option.state === 'spare') setAssigning(to.option)
     else play.board(to.option.mechId)
   }
 
@@ -156,7 +156,7 @@ export function PlaySituationSwitch({
           if (to !== null) arrive(to)
         }}
       />
-      <ClaimAndBoardConfirm play={play} claiming={claiming} onClose={() => setClaiming(null)} />
+      <AssignAndBoardConfirm play={play} assigning={assigning} onClose={() => setAssigning(null)} />
     </div>
   )
 }

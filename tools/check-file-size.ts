@@ -43,7 +43,7 @@ const SCAN_FLOOR = 630
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 664,
-  'apps/web/convex/entities.ts': 852,
+  'apps/web/convex/entities.ts': 850,
   'apps/web/convex/model/entities.ts': 901,
   'apps/web/src/build/npc/CrewBoard.tsx': 625,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 658,
@@ -55,7 +55,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 1_022,
   'tools/check-rules-fidelity.ts': 1_014,
-  'tools/check-workflows.ts': 797,
+  'tools/check-workflows.ts': 796,
 }
 
 const SOURCE = /\.(tsx?|m?js)$/

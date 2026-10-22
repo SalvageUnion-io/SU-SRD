@@ -1,5 +1,5 @@
 /**
- * `/api` — the public JSON API reference.
+ * `/api` — the Dataset API reference: v1 and its stability promise (ADR-056).
  *
  * Pure static prose plus one table driven by the reference dataset. The code
  * samples live in template literals rather than as JSX text: JSX collapses
@@ -14,6 +14,7 @@ import { capsLabel } from '../../components/atoms/capsLabel'
 import { Chips, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
+import { API_V1_PATH } from '../../lib/apiV1Paths'
 import { cn } from '../../lib/cn'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
 import {
@@ -31,10 +32,14 @@ import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
+import { apiV1Manifest } from '../endpoints/apiV1'
 
-const TITLE = pageTitle('API Reference')
+const TITLE = pageTitle('Dataset API')
 const DESCRIPTION =
-  'Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.'
+  'The SalvageUnion.io Dataset API, version 1: every piece of Salvage Union game data as versioned, CORS-enabled JSON with a stability promise.'
+
+/** The v1 tree, absolute: every endpoint below sits under it. */
+const BASE = `${SITE_URL}${API_V1_PATH}`
 
 const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
@@ -164,10 +169,21 @@ function buildSamples() {
     name,
     schemaArray: `[\n  {\n${json('  ')}\n  },\n  ...\n]`,
     entity: `{\n${json('')}\n}`,
-    fetch: `const response = await fetch('${SITE_URL}/schema/chassis.json')
+    fetch: `const response = await fetch('${BASE}/chassis.json')
 const chassis = await response.json()
 console.log(chassis[0].name) // ${JSON.stringify(name)}`,
+    manifest: manifestSample(),
   }
+}
+
+/** The manifest's head and its first schema, as the build emits them. */
+function manifestSample(): string {
+  const { schemas, licence: _licence, stability: _stability, ...head } = apiV1Manifest()
+  const first = JSON.stringify(schemas[0], null, 2).replace(/\n/g, '\n    ')
+  const lines = Object.entries(head).map(
+    ([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)},`
+  )
+  return `{\n${lines.join('\n')}\n  ...\n  "schemas": [\n    ${first},\n    ...\n  ]\n}`
 }
 
 const JSON_SCHEMA_SAMPLE = `{
@@ -198,14 +214,14 @@ function page(): PageResult {
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'TechArticle',
-        name: 'Salvage Union SRD JSON API Reference',
+        name: 'SalvageUnion.io Dataset API v1',
         description: pagesCopy('documentationForThePublicJson'),
         url: `${SITE_URL}/api/`,
         isPartOf: WEBSITE,
       },
     },
     children: (
-      <DocPage title={pagesCopy('jsonApiReference')} measure="64rem" gap={space[32]}>
+      <DocPage title={pagesCopy('datasetApi')} measure="64rem" gap={space[32]}>
         {/* Overview */}
         <SlabSection as="h2" title={pagesCopy('overview')} bodyStyle={PROSE_12} page>
           <p>{pagesCopy('allGameDataOnSalvageunion')}</p>
@@ -214,19 +230,30 @@ function page(): PageResult {
             ), so you can fetch from any origin, including browser JavaScript.
           </p>
           <p>
-            <strong>{pagesCopy('baseUrl')}</strong> <code style={CODE}>{SITE_URL}</code>
+            {pagesCopy('everyEndpointSitsUnder')} <code style={CODE}>{`${API_V1_PATH}/`}</code>.{' '}
+            {pagesCopy('startAtTheManifest')} <code style={CODE}>{`${BASE}/index.json`}</code>
           </p>
           <p style={ASIDE}>
-            <strong>{pagesCopy('tip')}</strong> every page on this site has its data under{' '}
-            <code style={CODE_ON_GROUND}>{pagesCopy('schema')}</code>. For example,{' '}
-            <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML index, and{' '}
-            <code style={CODE_ON_GROUND}>{pagesCopy('schemaChassisJson')}</code> serves the raw
-            array. The same applies to individual entities:{' '}
+            <strong>{pagesCopy('tip')}</strong> every page on this site has its data in the API. For
+            example, <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML
+            index, and <code style={CODE_ON_GROUND}>{`${API_V1_PATH}/chassis.json`}</code> serves
+            the raw array. The same applies to individual entities:{' '}
             <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page, and{' '}
-            <code style={CODE_ON_GROUND}>
-              {pagesCopy('schemaChassisItemJson', { slug: samples.slug })}
-            </code>{' '}
-            its data.
+            <code style={CODE_ON_GROUND}>{`${API_V1_PATH}/chassis/${samples.slug}.json`}</code> its
+            data.
+          </p>
+        </SlabSection>
+
+        {/* Versions */}
+        <SlabSection as="h2" title={pagesCopy('versionsAndStability')} bodyStyle={PROSE_12} page>
+          <p>{pagesCopy('thisIsVersion1')}</p>
+          <p>{pagesCopy('aBreakingChangeShips')}</p>
+          <p>{pagesCopy('theManifestGivesEachSchema')}</p>
+          <p style={ASIDE}>
+            {pagesCopy('theOlderUnversionedUrls', {
+              data: '/schema/chassis.json',
+              item: `/schema/chassis/item/${samples.slug}.json`,
+            })}
           </p>
         </SlabSection>
 
@@ -234,22 +261,42 @@ function page(): PageResult {
         <Stack as="section" gap={24}>
           <Slab as="h2" label={pagesCopy('endpoints')} />
 
+          <DocPanel title={pagesCopy('theManifest')} chips={GET}>
+            <p style={BREAKABLE_BOLD}>
+              <code>{`${API_V1_PATH}/index.json`}</code>
+            </p>
+            <p>{pagesCopy('listsEverySchema')}</p>
+            <p>
+              <strong>{pagesCopy('example')}</strong>{' '}
+              <InlineRef
+                href={`${BASE}/index.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={BREAKABLE_BOLD}
+              >
+                {`${BASE}/index.json`}
+              </InlineRef>
+            </p>
+            <CodeSample>{samples.manifest}</CodeSample>
+          </DocPanel>
+
           <DocPanel title={pagesCopy('everyEntityOfASchema')} chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
-                /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
+                {`${API_V1_PATH}/`}
+                <span style={ITALIC}>{'{schemaId}'}</span>.json
               </code>
             </p>
             <p>{pagesCopy('returnsTheFullDataArray')}</p>
             <p>
               <strong>{pagesCopy('example')}</strong>{' '}
               <InlineRef
-                href={`${SITE_URL}/schema/chassis.json`}
+                href={`${BASE}/chassis.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {pagesCopy('schemaChassisJson2', { siteUrl: SITE_URL })}
+                {`${BASE}/chassis.json`}
               </InlineRef>
             </p>
             <CodeSample>{samples.schemaArray}</CodeSample>
@@ -257,19 +304,20 @@ function page(): PageResult {
           <DocPanel title={pagesCopy('aSchemasJsonSchema')} chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
-                /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
+                {`${API_V1_PATH}/`}
+                <span style={ITALIC}>{'{schemaId}'}</span>.schema.json
               </code>
             </p>
             <p>{pagesCopy('returnsTheJsonSchemaDefinition')}</p>
             <p>
               <strong>{pagesCopy('example')}</strong>{' '}
               <InlineRef
-                href={`${SITE_URL}/schema/chassis.schema.json`}
+                href={`${BASE}/chassis.schema.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {pagesCopy('schemaChassisSchemaJson', { siteUrl: SITE_URL })}
+                {`${BASE}/chassis.schema.json`}
               </InlineRef>
             </p>
             <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
@@ -277,8 +325,9 @@ function page(): PageResult {
           <DocPanel title={pagesCopy('oneEntity')} chips={GET}>
             <p style={BREAKABLE_BOLD}>
               <code>
-                /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
-                <span style={ITALIC}>{'{itemId}'}</span>.json
+                {`${API_V1_PATH}/`}
+                <span style={ITALIC}>{'{schemaId}'}</span>/<span style={ITALIC}>{'{slug}'}</span>
+                .json
               </code>
             </p>
             <p>
@@ -290,12 +339,12 @@ function page(): PageResult {
             <p>
               <strong>{pagesCopy('example')}</strong>{' '}
               <InlineRef
-                href={`${SITE_URL}/schema/chassis/item/${samples.slug}.json`}
+                href={`${BASE}/chassis/${samples.slug}.json`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={BREAKABLE_BOLD}
               >
-                {pagesCopy('schemaChassisItemJson2', { siteUrl: SITE_URL, slug: samples.slug })}
+                {`${BASE}/chassis/${samples.slug}.json`}
               </InlineRef>
             </p>
             <CodeSample>{samples.entity}</CodeSample>
@@ -312,6 +361,9 @@ function page(): PageResult {
         <Stack as="section" gap={16}>
           <Slab as="h2" label={pagesCopy('availableSchemas')} />
           <p style={PROSE}>{pagesCopy('theFollowingSchemaIdsAre')}</p>
+          <p style={PROSE}>
+            {pagesCopy('oneMoreActions', { path: `${API_V1_PATH}/actions.json` })}
+          </p>
 
           <DocPanel title={pagesCopy('schemaIds')} flush>
             <table style={TABLE} className="su-api__schemas">
@@ -359,10 +411,7 @@ function page(): PageResult {
 
         {/* CORS & headers */}
         <DocPanel title={pagesCopy('corsPolicy')}>
-          <p>
-            All <code style={CODE}>{pagesCopy('schema')}</code> endpoints include the following
-            response headers:
-          </p>
+          <p>{pagesCopy('everyEndpointIncludesHeaders', { v1: `${API_V1_PATH}/` })}</p>
           <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
           <p>{pagesCopy('noPreflightRequestsAreRequired')}</p>
         </DocPanel>

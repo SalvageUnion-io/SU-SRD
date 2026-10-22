@@ -81,6 +81,35 @@ describe('EntityPageFrame', () => {
     expect(link.className).toContain('su-hit-area')
   })
 
+  test('every show page carries Share, before "Build With This" where it has one', () => {
+    const mule = must(SalvageUnionReference.Chassis.getByName('Mule'))
+    render(
+      <EntityPageFrame
+        title={mule.name}
+        tone="mech"
+        meta={resolveEntityPageMeta(mule)}
+        build={buildLinkFor('chassis', mule)}
+      >
+        <p>Mule body</p>
+      </EntityPageFrame>
+    )
+    const share = screen.getByRole('button', { name: 'Share this page' })
+    const build = screen.getByRole('link', { name: 'Build With This: a mech' })
+    // Both are the band's action, Build With This last (EDL E20).
+    expect(share.closest('.su-chapter-band__action')).toBe(
+      build.closest('.su-chapter-band__action')
+    )
+    expect(share.compareDocumentPosition(build) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // Static markup the client entry makes live (`watchSharePage`): no island.
+    expect(share.hasAttribute('data-share-page')).toBe(true)
+    expect(share.closest('[data-island]')).toBeNull()
+  })
+
+  test('a page with nothing to build still carries Share', () => {
+    renderGuide('Heat')
+    expect(screen.getByRole('button', { name: 'Share this page' })).toBeDefined()
+  })
+
   test('a pattern page links back to its parent beside the title', () => {
     const mule = must(SalvageUnionReference.Chassis.getByName('Mule'))
     const hauler = must(mule.patterns?.find((p) => p.name === 'Hauler'))

@@ -71,7 +71,15 @@ describe('the shell’s Union bar', () => {
       Array.from(end?.children ?? []).map(
         (el) => el.className || el.getAttribute('data-union-slot')
       )
-    ).toEqual(['search', expect.stringContaining('su-union-bar__buy'), 'actions'])
+    ).toEqual([
+      'su-union-bar__search',
+      expect.stringContaining('su-union-bar__buy'),
+      'su-union-bar__actions',
+    ])
+    expect(end?.querySelector('.su-union-bar__search > [data-union-slot="search"]')).not.toBeNull()
+    expect(
+      end?.querySelector('.su-union-bar__actions > [data-union-slot="actions"]')
+    ).not.toBeNull()
   })
 })
 

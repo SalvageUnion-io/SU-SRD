@@ -33,7 +33,8 @@ const LINK = cn('su-union-bar__link', capsLabel())
  * ## One geometry
  *
  * Both tools wear the same bar (one product at one domain): one
- * 56px row at every width, one height for the mark and every control in it
+ * 56px row at every width (below `lg` the search takes a full-width row of
+ * its own under it), one height for the mark and every control in it
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (the one `SearchField` combobox). There are no
@@ -225,8 +226,15 @@ export function AppBar({
 
   // The switcher: same-tab anchors to each mode's home — tabs on one bar,
   // not off-site links. Their hrefs are site paths, whichever is current.
-  const tabs: { key: AppBarProduct; label: string; href: string }[] = [
-    { key: 'reference', label: compositionsCopy('reference'), href: referenceHref },
+  // `short`, where given, is the tab's label below `sm` (`data-short`, drawn by
+  // `shell.css`); its name stays `label`.
+  const tabs: { key: AppBarProduct; label: string; short?: string; href: string }[] = [
+    {
+      key: 'reference',
+      label: compositionsCopy('reference'),
+      short: compositionsCopy('ref'),
+      href: referenceHref,
+    },
     { key: 'build', label: compositionsCopy('build'), href: buildHref },
     { key: 'play', label: compositionsCopy('play'), href: playHref },
   ]
@@ -283,8 +291,13 @@ export function AppBar({
                 data-tool={tab.key}
                 // Last, where the shell's marking adds it (`markUnionRoute`).
                 aria-current={tab.key === product ? 'true' : undefined}
+                {...(tab.short ? { 'aria-label': tab.label, 'data-short': tab.short } : {})}
               >
-                {tab.label}
+                {tab.short ? (
+                  <span className="su-union-bar__tab-long">{tab.label}</span>
+                ) : (
+                  tab.label
+                )}
               </a>
             ))}
           </nav>
@@ -302,9 +315,10 @@ export function AppBar({
 
           {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="bar" />}
 
-          {/* Desktop: the right-hand cluster, pushed to the end. */}
+          {/* Desktop: the right-hand cluster, pushed to the end. Below `lg`
+              only its search shows, on a row of its own under the bar. */}
           <div className="su-union-bar__end">
-            {search}
+            {search && <div className="su-union-bar__search">{search}</div>}
             {buyHref && (
               <a
                 href={buyHref}
@@ -315,7 +329,7 @@ export function AppBar({
                 Buy the game <span aria-hidden="true">↗</span>
               </a>
             )}
-            {actions}
+            {actions && <div className="su-union-bar__actions">{actions}</div>}
           </div>
 
           {/* Mobile: search trigger + hamburger, below `lg`. */}

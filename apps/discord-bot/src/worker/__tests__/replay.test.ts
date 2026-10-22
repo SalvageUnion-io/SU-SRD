@@ -316,6 +316,34 @@ describe('interaction dispatch', () => {
     ])
   })
 
+  test('a slash command is tallied with the app by name and server, never by who', async () => {
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const posted: Array<{ url: string; body: unknown }> = []
+    const realFetch = globalThis.fetch
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      posted.push({ url: String(url), body: JSON.parse(String(init?.body ?? 'null')) })
+      return Response.json({ ok: true })
+    }) as typeof fetch
+    try {
+      const raw = {
+        ...interaction.command('roll', [{ name: 'table', value: 'core' }]),
+        guild_id: 'guild-1',
+      }
+      await worker.fetch(
+        await signedRequest(raw, keys),
+        { ...envFor(keys), BACKEND_SITE_URL: 'https://app.test', BOT_SECRET: 's' },
+        ctx
+      )
+      await settled()
+    } finally {
+      globalThis.fetch = realFetch
+    }
+    expect(posted).toEqual([
+      { url: 'https://app.test/bot/usage', body: { name: 'su roll', guildId: 'guild-1' } },
+    ])
+  })
+
   test('autocomplete answers with a choices payload, never a defer', async () => {
     const keys = await generateKeyPair()
     const { ctx, settled } = executionContext()
