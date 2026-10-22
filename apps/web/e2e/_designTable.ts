@@ -145,8 +145,17 @@ export const designRoutes: readonly DesignRoute[] = [
  * - `seam`: a border-riding stamp: a guide step's "Note" (`GuideSteps`), the one
  *   outside `designRoutes` since a field's label is the Eyebrow over its
  *   control (R16) (`design-walk.e2e.ts`'s value cells).
+ * - `ability-trees`: ability trees on their tracks: a Core class's page, a
+ *   Hybrid Class's, the abilities index's Tree, and every Starter pilot's sheet,
+ *   each class's trees (`ability-trees.e2e.ts`).
  */
-export type CorpusTrait = 'contentful-mini' | 'stat-column' | 'search' | 'rhythm' | 'seam'
+export type CorpusTrait =
+  | 'contentful-mini'
+  | 'stat-column'
+  | 'search'
+  | 'rhythm'
+  | 'seam'
+  | 'ability-trees'
 
 /** One signed-out page of the reference corpus: its family, its path, what it is picked for. */
 export type CorpusPage = {
@@ -174,7 +183,12 @@ const STARTER_SHEETS = [
 
 /** Traits a Starter Set sheet carries, by sheet; the rest carry none. */
 const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly CorpusTrait[]>> = {
-  'pilot/starter-pilot-bonesaw': ['contentful-mini'],
+  'pilot/starter-pilot-bonesaw': ['contentful-mini', 'ability-trees'],
+  'pilot/starter-pilot-driftwood': ['ability-trees'],
+  'pilot/starter-pilot-hotdog': ['ability-trees'],
+  'pilot/starter-pilot-judge': ['ability-trees'],
+  'pilot/starter-pilot-pickle': ['ability-trees'],
+  'pilot/starter-pilot-razor': ['ability-trees'],
   'mech/starter-mech-mazona': ['stat-column'],
   'mech/starter-mech-mule': ['contentful-mini'],
   'crawler/starter-crawler-tenacity': ['contentful-mini'],
@@ -205,7 +219,7 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   index('/chassis/', 'search'),
   index('/systems/', 'search'),
   index('/modules/'),
-  index('/abilities/', 'search'),
+  index('/abilities/', 'search', 'ability-trees'),
   index('/creatures/'),
   page('/chassis/mazona/', 'stat-column', 'rhythm'),
   page('/chassis/mazona/pattern/buzzard/', 'stat-column', 'rhythm'),
@@ -217,8 +231,9 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/systems/50-cal-machine-gun/'),
   page('/modules/survey-scanner/'),
   page('/abilities/mass-field-maintenance/'),
-  page('/classes/hacker/', 'contentful-mini', 'rhythm'),
+  page('/classes/hacker/', 'contentful-mini', 'rhythm', 'ability-trees'),
   page('/classes/engineer/'),
+  page('/classes/fabricator/', 'ability-trees'),
   page('/bio-titans/tyrant/', 'rhythm'),
   page('/npcs/saboteur/', 'rhythm'),
   page('/drones/pest-drone/', 'rhythm'),

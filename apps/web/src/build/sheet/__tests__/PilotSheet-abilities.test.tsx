@@ -341,6 +341,20 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     expect(at('Tip Top Shape')).toBe(3)
   })
 
+  test('the trees the pilot has taken an Ability from come first', () => {
+    // Driftwood's: a Salvager, Squeeze It In from Salvaging, the class's
+    // seventh Core tree; every other tree untaken, in its own order after.
+    const pilot = makePilot({ classRef: 'salvager', abilities: ['squeeze-it-in'] })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+
+    const trees = Array.from(
+      treesOf().querySelectorAll(':scope > .su-ability-tree__group [data-slab] > :first-child')
+    ).map((label) => label.textContent)
+    expect(trees.length).toBeGreaterThan(2)
+    expect(trees[0]).toBe('Salvaging')
+    expect(trees[1]).toBe('Mechanical Knowledge')
+  })
+
   test("Edit puts each ability's controls in its Mini's chip group", async () => {
     const pilot = makePilot({ currentAP: 5 })
     const updateSpy = mock(async () => pilot)

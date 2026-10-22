@@ -7,9 +7,9 @@
  *   1. **Abilities**, on top and open by default: the trees the class
  *      itself opens (its Core trees; no Advanced trees for a Core class, R48)
  *      and any tree the pilot has taken from, each drawn as the
- *      class page draws it, on its track with its stems, three across where
- *      they fit, the untaken abilities greyed and read-only; then any the
- *      reference does not know.
+ *      class page draws it, on its track with its stems, three across at
+ *      most, the trees the pilot has taken from first, the untaken abilities
+ *      greyed and read-only; then any the reference does not know.
  *   2. **Generic Abilities**, below and folded by default: the Generic tree
  *      every pilot has.
  *
@@ -142,7 +142,7 @@ export function PilotSheetAbilities({
           {none && <EmptyState variant="quiet" body="No abilities learned yet." />}
           {classTrees.length > 0 && (
             // The trees as the class page draws them, each on its track with
-            // its stems, side by side, three across where they fit.
+            // its stems, side by side, three across at most.
             <div className="su-pilot-trees">
               {classTrees.map((group) => (
                 <TreeTrackSection key={group.tree} group={group} render={renderAbility} />
