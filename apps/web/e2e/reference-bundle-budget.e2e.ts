@@ -96,9 +96,9 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // entry, the chip lanes, the overflow, the bottom-right fill's runtime
     // and its watch, which fits off-screen heads in later turns). Something
     // loading React or game data at page load again lands far above it.
-    // Measured 27,260 with the Homebrew island registered (its loader and
-    // preload list are 323 bytes of the island entry; ADR-061).
-    expect(totals.bytes).toBeLessThan(27_500)
+    // Measured 27,098 with the Homebrew island registered (ADR-061): one hop
+    // away (`runtime/homebrewLoad.ts`), it costs the island entry 161 bytes.
+    expect(totals.bytes).toBeLessThan(27_200)
   })
 
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
@@ -115,7 +115,7 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
 
     // The same ratchet as the leaf page: a chassis page's card is static HTML,
     // and nothing on it loads React or data until a reader reaches for it.
-    expect(totals.bytes).toBeLessThan(27_500)
+    expect(totals.bytes).toBeLessThan(27_200)
   })
 
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
