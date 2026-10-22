@@ -213,6 +213,19 @@ describe('watchChipFill', () => {
     expect(prop(el, '--su-beside')).toBe('2')
   })
 
+  test('heads off screen fit in later turns, the root marked until the last has', async () => {
+    const heads = Array.from(
+      { length: 6 },
+      () => head([50, 40, 30], { room: 200, name: 100, cost: 20, route: 'body' }).el
+    )
+    watchStaticChipFill()
+    expect(document.documentElement.hasAttribute('data-chip-fitting')).toBe(true)
+    while (document.documentElement.hasAttribute('data-chip-fitting')) {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+    expect(heads.map((el) => prop(el, '--su-beside'))).toEqual(Array(6).fill('2'))
+  })
+
   test('a head with no name is left alone', () => {
     const el = document.createElement('div')
     el.setAttribute('data-chip-fill', '')

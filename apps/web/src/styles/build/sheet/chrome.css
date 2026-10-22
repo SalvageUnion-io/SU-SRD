@@ -161,7 +161,7 @@
    beside it, its word on their centre line. On a phone the chips draw at its
    own height already. */
 @media (width >= 40rem) {
-  .su-sheet-band-stamps > .su-badge-stamp {
+  .su-sheet-band-stamps > .su-chip-lane > .su-badge-stamp {
     align-items: center;
     align-self: stretch;
     display: inline-flex;

@@ -25,11 +25,11 @@ describe('Callout', () => {
     ]
     for (const [tone, accent] of cases) {
       const { container, unmount } = render(<Callout tone={tone}>body</Callout>)
-      expect(root(container).style.borderColor).toBe(accent)
+      expect(root(container).style.getPropertyValue('--su-compact-frame')).toBe(accent)
       unmount()
     }
     const { container } = render(<Callout tone="ink">Pick one of the following.</Callout>)
-    expect(root(container).style.borderColor).toBe('var(--color-ink)')
+    expect(root(container).style.getPropertyValue('--su-compact-frame')).toBe('var(--color-ink)')
   })
 
   test('it paints no band — just a framed paper panel', () => {

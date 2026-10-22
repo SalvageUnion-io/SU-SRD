@@ -44,12 +44,18 @@ export type DesignView = {
 /** What a gate's scan reads off one view: a rule and a line for each finding. */
 export type DesignScan = (view: DesignView) => Promise<{ rule: string; line: string }[]>
 
-/** Let the page come to rest: game data, the network, the fonts, any "Loading …". */
+/** Let the page come to rest: game data, the network, the fonts, any "Loading …", the chip fits. */
 async function settle(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle').catch(() => {})
   await page.evaluate(() => document.fonts.ready.then(() => undefined))
   await expect(page.getByText(/^Loading\b.*…$/))
     .toHaveCount(0, { timeout: 15_000 })
+    .catch(() => {})
+  // The chip fill's later turns (`chipFillWatch.ts`): every head fitted.
+  await page
+    .waitForFunction(() => !document.documentElement.hasAttribute('data-chip-fitting'), null, {
+      timeout: 15_000,
+    })
     .catch(() => {})
   await page.waitForTimeout(300)
 }

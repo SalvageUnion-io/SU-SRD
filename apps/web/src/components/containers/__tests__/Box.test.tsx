@@ -27,7 +27,7 @@ describe('Box', () => {
       </Box>
     )
     const frame = container.querySelector<HTMLElement>('.su-entity-compact__frame')
-    expect(frame?.style.borderColor).toBe('var(--color-sheet-mech)')
+    expect(frame?.style.getPropertyValue('--su-compact-frame')).toBe('var(--color-sheet-mech)')
     expect(container.querySelector('.su-entity-compact__main > .head')).not.toBeNull()
     expect(container.querySelector('.su-box__body')?.hasAttribute('data-flush')).toBe(true)
   })

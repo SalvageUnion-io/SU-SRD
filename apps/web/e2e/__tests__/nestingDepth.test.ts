@@ -165,6 +165,12 @@ describe('N3: a Mini nests nothing', () => {
     )
     expect(scan(card('Mini Mortar', 'Weapon System', html))).toEqual([])
   })
+
+  test("a crawler bay's body holds its crew lead (R46)", () => {
+    const crew = token('Quartermaster', 'NPC')
+    const html = `<div class="su-entity-mini"><div class="su-entity-mini__head" data-peek="crawler-bays:1"><span class="su-entity-mini__pill"><span class="su-entity-mini__name">Storage Bay</span></span></div><div class="su-entity-mini__body">${crew}</div></div>`
+    expect(scan(html).filter((f) => f.rule === 'N3')).toEqual([])
+  })
 })
 
 describe('N5: no titled box inside an entity', () => {

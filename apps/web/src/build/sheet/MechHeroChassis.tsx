@@ -10,9 +10,11 @@ import type { CSSProperties } from 'react'
 import { Entity, StatColumn, tokens } from '../../components/index'
 import type { MechSheetModel } from './mechSheet.model'
 
+/** One track the column's width: an `auto` track would take the Mini's widest chips. */
 const ABILITY = {
   display: 'grid',
   gap: tokens.space[8],
+  gridTemplateColumns: 'minmax(0, 1fr)',
   listStyle: 'none',
   margin: 0,
   minWidth: 0,

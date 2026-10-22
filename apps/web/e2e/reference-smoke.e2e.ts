@@ -148,6 +148,8 @@ for (const [schema, part] of [
         if (header.scrollWidth > header.clientWidth) problems.push('scrolls')
         for (const part of header.children) {
           const edge = part.getBoundingClientRect()
+          // An empty overflow row is hidden: no box, so nothing to hold in.
+          if (edge.width === 0 && edge.height === 0) continue
           if (edge.left < box.left || edge.right > box.right + 0.5) problems.push('part outside')
         }
         return problems.length ? [`${name}: ${problems.join(', ')}`] : []

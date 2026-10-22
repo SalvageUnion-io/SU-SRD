@@ -16,10 +16,12 @@
   overflow: hidden;
 }
 
+/* The command as typed: Discord's message-box text, its normal colour (the
+   muted grey falls short of 4.5:1 on the box). */
 .su-discord__typed {
   background-color: #383a40;
   border-radius: var(--radius-card);
-  color: #949ba4;
+  color: #dbdee1;
   font-family: monospace;
   margin: var(--space-12) var(--space-12) 0;
   padding: var(--space-8) var(--space-12);

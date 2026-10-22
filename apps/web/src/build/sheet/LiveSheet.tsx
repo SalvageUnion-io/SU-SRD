@@ -28,7 +28,7 @@ import {
   Badge,
   Button,
   ChapterBand,
-  Cluster,
+  Chips,
   cn,
   EntitySurfaceProvider,
   HomebrewStamp,
@@ -41,6 +41,9 @@ import {
 } from '../../components/index'
 import type { BandStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
+
+/** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
+const NO_CHIPS = { durations: [], facts: [], tags: [] }
 
 /** No "View in the Reference" in a sheet's body (the surface's `externalLink`, E13). */
 const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
@@ -446,29 +449,43 @@ export function LiveSheet({
         }
         aside={
           <>
-            {(stamp || rank || out || userMade || source || quoted) && (
-              <Cluster gap={8} className="su-sheet-band-stamps">
-                {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
-                {source === 'starter' && <Stat label="Starter Kit" />}
-                {/* Its name is a pattern's: it says so. */}
-                {quoted && <Stat label="Pattern" />}
-                {rank}
-                {stamp &&
-                  (stamp.entityRef ? (
-                    <Tag
-                      tag={relation('stamp', stamp.label, stamp.entityRef.name, {
-                        ref: stamp.entityRef,
-                      })}
-                      linkable
-                      wrap
-                    />
-                  ) : (
-                    <Stat label={stamp.label} value={stamp.name} wrap />
-                  ))}
-                {userMade && <Stat label="Made by" value={userMade.madeBy} wrap />}
-                {out && <Stat label={out.stamp} state="critical" wrap />}
-              </Cluster>
-            )}
+            {/* One `Chips` strip (C2a), each stamp in its class's lane: the
+                marks, the rank, what it is built as and who made it (the
+                relations), then the unit-out state. Nothing to stamp, none. */}
+            <Chips
+              className="su-entity-stamps su-sheet-band-stamps"
+              size="full"
+              chips={NO_CHIPS}
+              marks={
+                <>
+                  {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
+                  {source === 'starter' && <Stat label="Starter Kit" />}
+                  {/* Its name is a pattern's: it says so. */}
+                  {quoted && <Stat label="Pattern" />}
+                </>
+              }
+              nodes={{
+                rank,
+                relation: (
+                  <>
+                    {stamp &&
+                      (stamp.entityRef ? (
+                        <Tag
+                          tag={relation('stamp', stamp.label, stamp.entityRef.name, {
+                            ref: stamp.entityRef,
+                          })}
+                          linkable
+                          wrap
+                        />
+                      ) : (
+                        <Stat label={stamp.label} value={stamp.name} wrap />
+                      ))}
+                    {userMade && <Stat label="Made by" value={userMade.madeBy} wrap />}
+                  </>
+                ),
+              }}
+              state={out && <Stat label={out.stamp} state="critical" wrap />}
+            />
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width
                 under the name so it stays thumb-reachable. The active segment
                 is the sheet being viewed (an ink plate, never rust: a

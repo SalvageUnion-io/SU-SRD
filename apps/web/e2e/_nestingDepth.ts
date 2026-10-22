@@ -9,7 +9,8 @@ import type { Page } from '@playwright/test'
  *   of its own: a dialog's cut-out head is its chrome, so it is level 0 too.
  *   Every headed frame around a frame adds a level, so a Page's Card is 1 and
  *   a Compact inside it 2.
- * - **N3** an entity inside a Mini: a Mini nests nothing (E6).
+ * - **N3** an entity inside a Mini: a Mini nests nothing (E6), bar a crawler
+ *   bay (R46, `n3Except`).
  * - **N4** a Mini narrower than its line, by more than a pixel: one Mini a
  *   line, filling it. In a two-up list (a pattern drone's parts) and a
  *   masonry grid of contentful Minis (`MiniGrid`) each column is a line, as
@@ -91,6 +92,11 @@ export type NestingSelectors = {
    * ability trees (`ClassAbilityTree`) keep their Minis one level deep.
    */
   n8Except: string
+  /**
+   * N3's named exception (R46): a crawler bay is a contentful Mini whose body
+   * holds its choices, roll table, what it holds and its crew lead's Mini.
+   */
+  n3Except: string
 }
 
 export const NESTING_SELECTORS: NestingSelectors = {
@@ -111,6 +117,7 @@ export const NESTING_SELECTORS: NestingSelectors = {
   notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
   n8Except:
     '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree, .su-entity-page__neighbours',
+  n3Except: '.su-entity-mini:has(> .su-entity-mini__head[data-peek^="crawler-bays:"])',
 }
 
 /**
@@ -174,8 +181,9 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       found.push({ rule: 'N6', chain, detail: "a TitledBox around a wizard step's entities" })
   }
 
-  // N3: a Mini nests nothing.
+  // N3: a Mini nests nothing, bar a crawler bay (R46).
   for (const t of tokens) {
+    if (t.matches(a.n3Except)) continue
     const inner = [
       ...frames.filter((f) => t.contains(f.el)).map((f) => f.name),
       ...tokens.filter((o) => o !== t && t.contains(o)).map(tokenName),

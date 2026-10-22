@@ -16,7 +16,11 @@ type BoxSelect = Extract<EntityMode, { kind: 'select' }>
 export type BoxProps = {
   /** The band over the body: `TitledBox`'s cut-out head. Omitted, the box is its frame and body. */
   head?: ReactNode
-  /** The frame's colour token value (`var(--color-…)`); ink by default. */
+  /**
+   * The frame's colour token value (`var(--color-…)`), set through
+   * `--su-compact-frame`, the one hook that colours a frame (R38); the subtle
+   * ink-40 by default.
+   */
   frameColor?: string
   /**
    * The frame's weight: the Compact's (`compact`), or one light hairline all
@@ -102,7 +106,7 @@ export function Box({
         weight === 'hairline' || frameColor || select?.selected
           ? {
               ...(weight === 'hairline' ? HAIRLINE : {}),
-              ...(frameColor ? { borderColor: frameColor } : {}),
+              ...(frameColor ? ({ '--su-compact-frame': frameColor } as CSSProperties) : {}),
               ...(select?.selected && SELECTED_RING),
             }
           : undefined

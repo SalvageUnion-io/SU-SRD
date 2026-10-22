@@ -184,6 +184,20 @@ const TURN_MS = 30
 const STEP = 4
 
 /**
+ * Set on the root while heads wait for a later turn, so a capture (the layout
+ * gates' settle) can wait for every head to be fitted.
+ */
+const FITTING_ATTRIBUTE = 'data-chip-fitting'
+/** The fits still queued, across every `fitInTurns`. */
+let queued = 0
+
+function markQueued(delta: number): void {
+  queued += delta
+  if (typeof document === 'undefined') return
+  document.documentElement.toggleAttribute(FITTING_ATTRIBUTE, queued > 0)
+}
+
+/**
  * Fit many watched heads a turn at a time: those on screen first, now (a
  * shift in view counts against the page, one off screen does not), the rest
  * in tasks of at most `TURN_MS`, so the main thread is never held long (TBT).
@@ -202,13 +216,16 @@ function fitInTurns(containers: HTMLElement[]): void {
     else later.push(head)
   }
   fitAll(now)
+  if (later.length === 0) return
+  markQueued(1)
   const next = () => {
     const start = performance.now()
     do fitAll(later.splice(0, STEP))
     while (later.length > 0 && performance.now() - start < TURN_MS)
     if (later.length > 0) setTimeout(next, 0)
+    else markQueued(-1)
   }
-  if (later.length > 0) setTimeout(next, 0)
+  setTimeout(next, 0)
 }
 
 /**
