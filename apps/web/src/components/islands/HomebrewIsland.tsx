@@ -3,7 +3,7 @@
  *
  * - **On a chassis page** (`chassisRef`): a "Show Homebrew" switch under the
  *   book's patterns. On, it lists the patterns players built on this chassis
- *   and share with "Anyone with the link". The switch is the reader's, held
+ *   and share with everyone on the Reference. The switch is the reader's, held
  *   in this browser, so it stays as set from one chassis to the next.
  * - **On `/homebrew/`** (no `chassisRef`): every one, newest share first.
  *

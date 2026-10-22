@@ -166,7 +166,7 @@ export const pagesCopy = messages({
   homebrewDescription:
     'Mech patterns Salvage Union players built and shared: homebrew, not from the book.',
   homebrewLede:
-    'Mech patterns players built in the Training Bay and shared with anyone with the link. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. Share one of your own from its Share settings.',
+    'Mech patterns players built in the Training Bay and shared with everyone on the Reference. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. To add one of yours, share it with anyone with the link, then with everyone on the Reference, from its Share settings.',
   starterTitle: 'Starter Set',
   starterDescription:
     'Got the Salvage Union Starter Set? Start here: the premade crew of Crawler #430 ready to copy and play, the rules for your first session, and every chapter of the Pilot’s Handbook, Parts Catalogue and Core Rulebook mapped to its page.',

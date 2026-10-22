@@ -1,6 +1,6 @@
 /**
  * Homebrew on the SRD (ADR-057), as a page reads it: every pattern a player
- * shares with "Anyone with the link", served by the Worker at
+ * shares with everyone on the Reference, served by the Worker at
  * `HOMEBREW_PATTERNS_PATH` (`./endpoint.ts`, `worker/homebrew.ts`, from
  * `convex/homebrew.ts`), parsed here into what a row draws.
  *

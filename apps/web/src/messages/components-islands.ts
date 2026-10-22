@@ -33,6 +33,7 @@ export const islandsCopy = messages({
   homebrewPatterns: 'Homebrew Patterns',
   showHomebrew: 'Show Homebrew',
   homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
-  homebrewOff: 'Patterns players built on this chassis and shared by link. Not from the book.',
+  homebrewOff:
+    'Patterns players built on this chassis and shared on the Reference. Not from the book.',
   homebrewNone: 'No player has shared a pattern yet.',
 })

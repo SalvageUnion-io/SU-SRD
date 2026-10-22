@@ -12,7 +12,8 @@
  *    from `publicSheet.get`, the query its public page reads, so the control
  *    and the page cannot disagree.
  *  - **A pattern** takes all three through `shelf.setPatternVisibility`, read
- *    back from `shelf.patternSharing`.
+ *    back from `shelf.patternSharing`. Shared by link, it may also be shared
+ *    with everyone on the Reference as Homebrew (`homebrew.setShared`, ADR-057).
  *
  * Either way the link is `/p/:kind/<name>-<short id>` (`shareSegment`): one
  * derived URL, so going back to a narrower answer revokes it everywhere at once.
@@ -38,6 +39,7 @@ import {
   FieldError,
   Select,
   Stack,
+  Toggle,
   tokens,
   useCopied,
 } from '../../components/index'
@@ -198,12 +200,35 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
         )}
       </WhoCanSee>
       {value === 'link' && (
-        <ShareLink
-          url={appUrl(publicPath('pattern', appId, name))}
-          clipboardWriter={clipboardWriter}
-        />
+        <>
+          <ShareOnReference appId={appId} shared={mine?.homebrew === true} />
+          <ShareLink
+            url={appUrl(publicPath('pattern', appId, name))}
+            clipboardWriter={clipboardWriter}
+          />
+        </>
       )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
+    </Stack>
+  )
+}
+
+/** A link-shared pattern's second opt-in: Homebrew on the Reference (ADR-057). */
+function ShareOnReference({ appId, shared }: { appId: string; shared: boolean }) {
+  const setShared = useMutation(api.homebrew.setShared)
+  const write = useServerAction(
+    (next: boolean) => setShared({ patternId: appId, shared: next }),
+    SHARE_FAILURE
+  )
+  return (
+    <Stack gap={4}>
+      <div>
+        <Toggle pressed={shared} disabled={write.pending} onClick={() => void write.run(!shared)}>
+          {buildSharingCopy('shareOnReference')}
+        </Toggle>
+      </div>
+      <p style={QR_NOTE}>{buildSharingCopy('shareOnReferenceHint')}</p>
+      {write.error !== null && <FieldError spaceAbove={8}>{write.error}</FieldError>}
     </Stack>
   )
 }

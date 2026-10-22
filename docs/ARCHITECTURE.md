@@ -219,5 +219,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: static files on the one Worker; additive-only within v1, breaking changes as `/api/v2/`; manifest with hashes.
     Supersedes ADR-043 decision 1 (via ADR-047); amends ADR-040.
 57. **ADR-057 Homebrew on the SRD** · [full text](adr/057-homebrew.md)
-    Built: link-shared patterns at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides.
+    Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.

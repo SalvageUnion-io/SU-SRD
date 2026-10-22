@@ -4,8 +4,8 @@ import { v } from 'convex/values'
 /**
  * Homebrew's moderation tables (ADR-057), spread into `schema.ts`.
  *
- * Homebrew itself is no table: it is every saved pattern its maker shares with
- * "Anyone with the link" (`mechPatterns.publicRead`). These hold only what a
+ * Homebrew itself is no table: it is every saved pattern its maker shares by
+ * link and on the Reference (`mechPatterns.publicRead` and `.homebrew`). These hold only what a
  * reader and a site admin add to one: its reports, and whether it is hidden.
  * Both are keyed by the pattern's row, so a takedown outlives its link being
  * withdrawn and shared again, and deleting the pattern deletes them

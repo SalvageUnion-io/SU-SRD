@@ -1625,6 +1625,23 @@
         }
       }
     },
+    "homebrew:setShared": {
+      "type": "object",
+      "value": {
+        "patternId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "shared": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
     "homebrew:status": {
       "type": "object",
       "value": {

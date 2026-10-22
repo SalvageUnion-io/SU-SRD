@@ -256,6 +256,41 @@ describe('ShareStatusDialog — a mech pattern', () => {
     expect(radio(/my game’s crew/i).disabled).toBe(true)
     expect(screen.getByText(`${pageOrigin()}${APP_BASE}/p/pattern/pattern-1`)).toBeTruthy()
   })
+
+  test('shared by link, it may also be shared on the Reference; otherwise that is not offered', async () => {
+    const share = (homebrew: boolean, visibility = 'link') => ({
+      'shelf:patternSharing': [
+        { appId: 'pattern-1', visibility, gameId: null, gameName: null, builtCount: 0, homebrew },
+      ],
+      'games:listMine': [],
+    })
+    const onReference = () =>
+      screen.queryByRole('button', { name: 'Share with everyone on the Reference' })
+
+    setQueryAnswers(share(false, 'private'))
+    const { unmount } = renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    expect(onReference()).toBeNull()
+    unmount()
+
+    setQueryAnswers(share(false))
+    const second = renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    expect(onReference()?.getAttribute('aria-pressed')).toBe('false')
+    await act(async () => {
+      fireEvent.click(onReference() as HTMLElement)
+    })
+    second.unmount()
+
+    setQueryAnswers(share(true))
+    renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    expect(onReference()?.getAttribute('aria-pressed')).toBe('true')
+    await act(async () => {
+      fireEvent.click(onReference() as HTMLElement)
+    })
+    expect(mutations).toEqual([
+      { patternId: 'pattern-1', shared: true },
+      { patternId: 'pattern-1', shared: false },
+    ])
+  })
 })
 
 afterAll(convexMocks.restore)

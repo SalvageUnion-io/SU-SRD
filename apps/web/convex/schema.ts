@@ -460,13 +460,18 @@ export default defineSchema({
      * carries `body.sourcePattern`, so the page reads one number, not a scan.
      */
     builtCount: v.optional(v.number()),
+    /**
+     * Shared with everyone on the Reference as Homebrew (ADR-057): its maker's
+     * second opt-in, held only while `publicRead` is.
+     */
+    homebrew: v.optional(v.boolean()),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".
     .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_app_id', ['appId'])
     .index('by_game', ['gameId'])
-    // Homebrew (ADR-057): every pattern shared by link, newest share first.
-    .index('by_public', ['publicRead', 'sharedAt']),
+    // Homebrew (ADR-057): every pattern shared on the Reference, newest share first.
+    .index('by_homebrew', ['homebrew', 'sharedAt']),
 
   /**
    * One row per uploaded entity photo in file storage (`photos.ts`).

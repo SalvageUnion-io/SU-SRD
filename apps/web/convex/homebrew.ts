@@ -9,15 +9,15 @@ import { patternByAddress } from './model/addresses'
 import { callerIsAdmin, isAdmin, requireAdmin } from './model/admin'
 import { mutation, parseBody } from './model/entities'
 import { deletePatternReports, hiddenPatternIds, moderationOf } from './model/homebrew'
-import { requireUser } from './model/permissions'
+import { NotAuthorized, requireUser } from './model/permissions'
 
 /**
  * Homebrew (ADR-057): the players' own mech patterns, on the SRD beside the
  * book's.
  *
- * - **Public is the link.** Every saved pattern its maker shares with "Anyone
- *   with the link" (ADR-032) is homebrew; there is no second opt-in, and
- *   withdrawing the link takes it off the SRD at once.
+ * - **Two opt-ins.** A pattern is homebrew when its maker shares it with
+ *   "Anyone with the link" (ADR-032) and then also with everyone on the
+ *   Reference (`setShared`). Withdrawing the link takes it off at once.
  * - **Read with no account.** `patterns` is unauthenticated: the SRD's
  *   Worker reads it over Convex's HTTP API (`worker/homebrew.ts`), and it
  *   serves only what anyone with the link could already read.
@@ -57,9 +57,14 @@ function chassisRefOf(body: unknown): unknown {
   return (body as { chassisRef?: unknown } | null)?.chassisRef
 }
 
+/** Shared by link and on the Reference: homebrew, unless an admin hid it. */
+function isHomebrew(row: Doc<'mechPatterns'>): boolean {
+  return row.publicRead === true && row.homebrew === true
+}
+
 /**
  * Every homebrew pattern, newest share first, or one chassis's: shared by
- * link, not hidden, and drawable.
+ * link and on the Reference, not hidden, and drawable.
  *
  * **Unauthenticated by design.** It serves only what anyone with the link
  * could already read, and names only the maker its pages already credit.
@@ -71,14 +76,14 @@ export const patterns = query({
     const [rows, hidden] = await Promise.all([
       ctx.db
         .query('mechPatterns')
-        .withIndex('by_public', (q) => q.eq('publicRead', true))
+        .withIndex('by_homebrew', (q) => q.eq('homebrew', true))
         .order('desc')
         .take(HOMEBREW_LIMIT),
       hiddenPatternIds(ctx),
     ])
     const shown: HomebrewPattern[] = []
     for (const row of rows) {
-      if (hidden.has(row._id)) continue
+      if (!isHomebrew(row) || hidden.has(row._id)) continue
       const body = readableBody(row)
       if (body === null) continue
       if (args.chassisRef !== undefined && chassisRefOf(body) !== args.chassisRef) continue
@@ -96,7 +101,7 @@ export const patterns = query({
 
 /** Where one pattern stands as homebrew, as its page reads it. */
 const homebrewStatus = v.object({
-  /** On the SRD now: shared by link and not hidden. */
+  /** On the SRD now: shared by link and on the Reference, and not hidden. */
   listed: v.boolean(),
   /** Taken down by a site admin: told to its maker and admins only. */
   hidden: v.boolean(),
@@ -117,7 +122,7 @@ export const status = query({
     const userId = await getAuthUserId(ctx)
     const admin = userId !== null && (await isAdmin(ctx, userId))
     const row = await patternByAddress(ctx, args.appId)
-    if (row === null || row.publicRead !== true) {
+    if (row === null || !isHomebrew(row)) {
       return { listed: false, hidden: false, reported: false, mine: false, admin }
     }
     const mine = row.ownerId === userId
@@ -142,10 +147,31 @@ export const status = query({
   },
 })
 
-/** A shared pattern by its page's address, or a refusal. */
+/**
+ * Share one of the caller's own patterns with everyone on the Reference, or
+ * stop. Only while it is shared by link: the link is the first opt-in.
+ */
+export const setShared = mutation({
+  args: { patternId: v.string(), shared: v.boolean() },
+  handler: async (ctx, args): Promise<{ shared: boolean }> => {
+    const userId = await requireUser(ctx)
+    const row = await ctx.db
+      .query('mechPatterns')
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId).eq('appId', args.patternId))
+      .first()
+    if (row === null) throw new NotAuthorized('That pattern no longer exists')
+    if (args.shared && row.publicRead !== true) {
+      throw new ConvexError('Share it with anyone with the link first')
+    }
+    await ctx.db.patch(row._id, { homebrew: args.shared ? true : undefined })
+    return { shared: args.shared }
+  },
+})
+
+/** A homebrew pattern by its page's address, or a refusal. */
 async function requireShared(ctx: MutationCtx, appId: string): Promise<Doc<'mechPatterns'>> {
   const row = await patternByAddress(ctx, appId)
-  if (row === null || row.publicRead !== true) {
+  if (row === null || !isHomebrew(row)) {
     throw new ConvexError('That pattern is not shared as homebrew')
   }
   return row

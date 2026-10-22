@@ -17,4 +17,7 @@ export const buildSharingCopy = messages({
   sharingSettingsNeedALive:
     'Sharing settings need a live connection to your account. Try again once you are connected.',
   whoCanSeeIt: 'Who can see it',
+  shareOnReference: 'Share with everyone on the Reference',
+  shareOnReferenceHint:
+    'Lists it as Homebrew on the Reference, under its chassis and on the Homebrew page, credited to you.',
 })

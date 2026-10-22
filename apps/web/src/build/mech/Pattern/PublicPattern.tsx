@@ -16,7 +16,7 @@
  * and copying it to your own shelf, need an account, as every write does. Its
  * maker changes who can see it with the Share button every player thing
  * carries: the same "Who can see it" dialog a sheet opens (`ShareStatusDialog`).
- * Shared by link it is homebrew, so its corner also offers Report, and a
+ * Shared on the Reference it is homebrew, so its corner also offers Report, and a
  * site admin's Hide (`HomebrewControls`, ADR-057).
  */
 

@@ -6,9 +6,10 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Homebrew (ADR-057): every saved pattern its maker shares with "Anyone with
- * the link" is on the SRD, read with no account; a signed-in reader reports
- * one; a site admin hides one. Never more public than the link.
+ * Homebrew (ADR-057): a saved pattern its maker shares with "Anyone with the
+ * link" and then with everyone on the Reference is on the SRD, read with no
+ * account; a signed-in reader reports one; a site admin hides one. Never more
+ * public than the link.
  */
 
 const PATTERN_ID = 'pat-tow-rig'
@@ -36,6 +37,12 @@ async function share(maker: User, patternId = PATTERN_ID, visibility = 'link' as
   await maker.as.mutation(api.shelf.setPatternVisibility, { patternId, visibility })
 }
 
+/** Both opt-ins: the link, then the Reference. */
+async function list(maker: User, patternId = PATTERN_ID) {
+  await share(maker, patternId)
+  await maker.as.mutation(api.homebrew.setShared, { patternId, shared: true })
+}
+
 async function shownIds(t: Ctx, chassisRef?: string) {
   return (await t.query(api.homebrew.patterns, chassisRef ? { chassisRef } : {})).map(
     (row) => row.appId
@@ -53,13 +60,13 @@ afterEach(() => {
 })
 
 describe('what is homebrew', () => {
-  test('every pattern shared by link, newest share first, credited, with no account', async () => {
+  test('every pattern shared on the Reference, newest share first, credited, with no account', async () => {
     const t = testConvex()
     const maker = await makeUser(t, 'Rosa')
     await savePattern(maker)
     await savePattern(maker, { id: 'pat-two', name: 'Two', chassisRef: 'mule' })
-    await share(maker)
-    await share(maker, 'pat-two')
+    await list(maker)
+    await list(maker, 'pat-two')
 
     const rows = await t.query(api.homebrew.patterns, {})
     expect(rows.map((r) => [r.appId, r.madeBy])).toEqual([
@@ -73,22 +80,39 @@ describe('what is homebrew', () => {
     })
   })
 
-  test('private and crew-only patterns are not homebrew; withdrawing the link takes it off', async () => {
+  test('the link alone is not homebrew; the Reference needs the link; withdrawing the link takes it off', async () => {
     const t = testConvex()
     const maker = await makeUser(t, 'Rosa')
+    const stranger = await makeUser(t, 'Ash')
     await savePattern(maker)
-    expect(await shownIds(t)).toEqual([])
+    const setShared = (who: User, shared: boolean) =>
+      who.as.mutation(api.homebrew.setShared, { patternId: PATTERN_ID, shared })
+    await expect(setShared(maker, true)).rejects.toThrow(/link first/)
 
     await share(maker)
+    expect(await shownIds(t)).toEqual([])
+    await expect(setShared(stranger, true)).rejects.toThrow(/no longer exists/)
+    await setShared(maker, true)
     expect(await shownIds(t)).toEqual([PATTERN_ID])
+    const sharing = async () =>
+      (await maker.as.query(api.shelf.patternSharing, {})).map((row) => row.homebrew)
+    expect(await sharing()).toEqual([true])
+    await setShared(maker, false)
+    expect(await shownIds(t)).toEqual([])
+    await setShared(maker, true)
+
     await maker.as.mutation(api.shelf.setPatternVisibility, {
       patternId: PATTERN_ID,
       visibility: 'private',
     })
     expect(await shownIds(t)).toEqual([])
+    expect(await sharing()).toEqual([false])
     expect(await t.query(api.homebrew.status, { appId: PATTERN_ID })).toMatchObject({
       listed: false,
     })
+    // Sharing the link again does not put it back on the Reference.
+    await share(maker)
+    expect(await shownIds(t)).toEqual([])
   })
 })
 
@@ -99,7 +123,7 @@ describe('reports and takedown', () => {
     const reader = await makeUser(t, 'Reader')
     const admin = await makeUser(t, 'Admin', ADMIN_DISCORD)
     await savePattern(maker)
-    await share(maker)
+    await list(maker)
     return { t, maker, reader, admin }
   }
 
@@ -158,7 +182,7 @@ describe('reports and takedown', () => {
     expect(queue?.hidden.map((row) => row.appId)).toEqual([PATTERN_ID])
 
     await share(maker, PATTERN_ID, 'private' as 'link')
-    await share(maker)
+    await list(maker)
     expect(await shownIds(t)).toEqual([])
 
     await admin.as.mutation(api.homebrew.setHidden, { ...target, hidden: false })
