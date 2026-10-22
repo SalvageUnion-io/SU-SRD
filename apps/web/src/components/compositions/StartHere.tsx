@@ -13,7 +13,8 @@ import { grainClass } from '../referenceEntity/card/cardGrain'
  * tile (`.su-entity-index`): its chapter's tone band
  * with the step's number at its left, as a tree ability's tier numeral,
  * and the title notched into
- * its foot, then one line on what the step is. The steps' words are `START_HERE_STEPS`,
+ * its foot, then one line on what the step is, framed in the band's colour
+ * (R51: a step is no entity, so not R38's subtle ink-40). The steps' words are `START_HERE_STEPS`,
  * spelled once here, so the two tools cannot drift into two onboardings again.
  *
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
@@ -67,7 +68,7 @@ const STEPS = {
 function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   const paint = paintFor(step.tone, { texture: true })
   return (
-    <div className="su-entity-index__frame">
+    <div className="su-entity-index__frame" style={{ borderColor: paint.background }}>
       <div
         className={cn('su-entity-index__band su-start-here__band', grainClass(paint.grain))}
         data-grain={paint.grain}

@@ -36,6 +36,28 @@ describe('TitledBox', () => {
     expect(close?.textContent).toBe('Close')
   })
 
+  test("frames its body in its band's colour, a head alone in none (R51)", () => {
+    const { container } = render(
+      <TitledBox title="Hold" tone="mech">
+        Body
+      </TitledBox>
+    )
+    const frame = container.querySelector<HTMLElement>('.su-entity-compact__frame')
+    expect(frame?.style.getPropertyValue('--su-compact-frame')).toBe('var(--color-mech)')
+    const ink = render(<TitledBox title="Rule">Body</TitledBox>).container
+    expect(
+      ink
+        .querySelector<HTMLElement>('.su-entity-compact__frame')
+        ?.style.getPropertyValue('--su-compact-frame')
+    ).toBe('var(--color-ink)')
+    const bare = render(<TitledBox title="Alone" tone="mech" />).container
+    expect(
+      bare
+        .querySelector<HTMLElement>('.su-entity-compact__frame')
+        ?.style.getPropertyValue('--su-compact-frame')
+    ).toBe('')
+  })
+
   test('closes on its head with no body, and is a named section on request', () => {
     const { container } = render(<TitledBox as="section" title="Mech Hold" label="Hold" />)
     expect(container.querySelector('[data-bodyless]')).not.toBeNull()
