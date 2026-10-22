@@ -45,7 +45,7 @@ import { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
-import { copyStarter } from '../copyStarter'
+import { copyStarter, copyStarterCrew } from '../copyStarter'
 
 // Copying is a write, and building needs an account: these run signed in.
 withSignedInBackend()
@@ -299,5 +299,45 @@ describe('Starter Set — copying a template', () => {
   test('copies nothing that is not in the Starter Set', async () => {
     await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no Starter Set/)
     expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+  })
+})
+
+describe('copyStarterCrew — the whole crew in one go', () => {
+  beforeEach(resetStores)
+  afterEach(resetStores)
+
+  test('copies every build into the container, linked as the box links them', async () => {
+    const result = await copyStarterCrew({ kind: 'game', gameId: 'g1' })
+    const state = useEntityStore.getState()
+    const pilots = state.list('pilot')
+    const mechs = state.list('mech')
+    const crawlers = state.list('crawler')
+
+    expect(pilots).toHaveLength(STARTER_PILOTS.length)
+    expect(mechs).toHaveLength(STARTER_MECHS.length)
+    expect(crawlers).toHaveLength(STARTER_CRAWLERS.length)
+    expect(result).toEqual({
+      builds: STARTER_PILOTS.length + STARTER_MECHS.length + STARTER_CRAWLERS.length,
+      links: STARTER_SOFT_LINKS.length,
+    })
+    for (const row of [...pilots, ...mechs, ...crawlers]) expect(row.gameId).toBe('g1')
+
+    // Every link joins two copies, never a template.
+    const copied = new Set([...pilots, ...mechs, ...crawlers].map((row) => row.id))
+    const links = state.softLinks
+    expect(links).toHaveLength(STARTER_SOFT_LINKS.length)
+    for (const link of links) {
+      expect(copied.has(link.from.id)).toBe(true)
+      expect(copied.has(link.to.id)).toBe(true)
+    }
+
+    // Bonesaw's copy flies the Scrapper's copy, as on the sheet.
+    const bonesaw = pilots.find((p) => p.seedRef === 'starter-pilot-bonesaw')
+    const scrapper = mechs.find((m) => m.seedRef === 'starter-mech-scrapper')
+    expect(
+      links.some(
+        (l) => l.type === 'mech-to-pilot' && l.from.id === scrapper?.id && l.to.id === bonesaw?.id
+      )
+    ).toBe(true)
   })
 })

@@ -26,8 +26,9 @@
 import type { Container } from 'game-domain/container'
 import { moveTo } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
+import { STARTER_SOFT_LINKS } from 'game-domain/starterSet/starterSet'
 import { useEntityStore } from '../../stores/entityStore'
-import { starterTemplate } from './starterTemplates'
+import { starterTemplate, starterTemplates } from './starterTemplates'
 
 /**
  * Copy one template into `to`, as a build the player owns. Resolves to what was
@@ -55,3 +56,44 @@ export async function copyStarter(
     .getState()
     .create(kind, { ...body, seedRef: templateId, ...moveTo(to) } as never)
 }
+
+/** What a whole-crew copy made: how many builds, and how many links between them. */
+export type CrewCopy = { builds: number; links: number }
+
+/**
+ * Copy the whole crew into `to` in one go: every Starter Set build, then the
+ * links the box draws between them (each pilot flies their mech, and pilots
+ * and mechs crew the Tenacity), redrawn between the copies.
+ *
+ * The crawler goes first, so a destination that refuses it (a Game the player
+ * does not run) refuses before anything else is made. Links go last, through
+ * the assignment model like any other link: both ends are in `to`, so none
+ * straddles two containers.
+ */
+export async function copyStarterCrew(to: Container): Promise<CrewCopy> {
+  const copies = new Map<string, string>()
+  for (const kind of CREW_ORDER) {
+    for (const template of starterTemplates(kind)) {
+      const copy = await copyStarter(kind, template.id, to)
+      copies.set(template.id, copy.id)
+    }
+  }
+
+  const store = useEntityStore.getState()
+  let links = 0
+  for (const link of STARTER_SOFT_LINKS) {
+    const from = copies.get(link.from.id)
+    const toId = copies.get(link.to.id)
+    if (from === undefined || toId === undefined) continue
+    await store.create('softLink', {
+      from: { type: link.from.type, id: from },
+      to: { type: link.to.type, id: toId },
+      type: link.type,
+    })
+    links += 1
+  }
+  return { builds: copies.size, links }
+}
+
+/** The crawler first (the one a destination may refuse), then the pilots, then their mechs. */
+const CREW_ORDER: readonly SheetKind[] = ['crawler', 'pilot', 'mech']

@@ -61,7 +61,8 @@ const SOURCE_LISTINGS: ReadonlySet<string> = new Set(['roll-tables'])
  * One group per book, headed by the name a cite prints for it (`bookName`:
  * "Workshop Manual" for the core book), in the order the rail's source filter
  * lists them (`getUniqueSources`: the core book, then the supplements by
- * name); within a book, by page.
+ * name); within a book, by page. An entry sits under its own book only, so a
+ * book that only reprints (the Starter Set's tables) heads no empty group.
  */
 function groupBySource(items: RefEntity[]): ListingGroup[] {
   const bySource = new Map<string, RefEntity[]>()
@@ -69,14 +70,16 @@ function groupBySource(items: RefEntity[]): ListingGroup[] {
     const source = getSource(item) ?? ''
     bySource.set(source, [...(bySource.get(source) ?? []), item])
   }
-  return getUniqueSources(items).map((source) => ({
-    key: `source:${source}`,
-    label: bookName(source),
-    // A stable sort keeps the dataset's order on a shared page.
-    items: [...(bySource.get(source) ?? [])].sort(
-      (a, b) => (getPageReference(a) ?? 0) - (getPageReference(b) ?? 0)
-    ),
-  }))
+  return getUniqueSources(items)
+    .filter((source) => bySource.has(source))
+    .map((source) => ({
+      key: `source:${source}`,
+      label: bookName(source),
+      // A stable sort keeps the dataset's order on a shared page.
+      items: [...(bySource.get(source) ?? [])].sort(
+        (a, b) => (getPageReference(a) ?? 0) - (getPageReference(b) ?? 0)
+      ),
+    }))
 }
 
 /**

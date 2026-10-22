@@ -23,6 +23,8 @@ export type ContentsRow = {
   label: string
   href: string
   count?: number
+  /** Where a book prints it (`p.14`), in the count's place: the Starter Set landing's chapter maps. */
+  page?: string
   /** Open the row in place on a plain click, rather than following `href`. */
   onOpen?: () => void
 }
@@ -68,7 +70,9 @@ export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapte
               }
             >
               <span>{row.label}</span>
-              {row.count !== undefined && <span className="su-contents__count">{row.count}</span>}
+              {(row.count ?? row.page) !== undefined && (
+                <span className="su-contents__count">{row.count ?? row.page}</span>
+              )}
             </a>
           </li>
         ))}

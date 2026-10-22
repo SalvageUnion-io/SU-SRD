@@ -17,20 +17,24 @@ import { grainClass } from '../referenceEntity/card/cardGrain'
  * spelled once here, so the two tools cannot drift into two onboardings again.
  *
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
- * creation guide; the app's front door its builders).
+ * creation guide; the app's front door its builders). The SRD's Starter Set
+ * landing passes its own `steps` and `title` for a box owner's way in.
  *
  * The tiles stack in the SRD's 20rem sidebar and on a phone, and run three
  * across once the block is 48rem wide (The app's front door) — the
  * `.su-start-here__steps` container query.
  */
 
-type StartHereStepKey = SheetKind
-
-/** Each step wears its chapter's tone: Pilot Bay, Mech Workshop, Union Crawler. */
-type StartHereStep = { key: StartHereStepKey; title: string; body: string; tone: string }
+/** One step: its key (what `hrefs` is keyed by), title, one line, and the tone its band wears. */
+export type StartHereStep = {
+  key: string
+  title: string
+  body: string
+  tone: string
+}
 
 /** The three steps, in order. Playing a Game happens from the Crawler, so it is not a step. */
-const START_HERE_STEPS: readonly StartHereStep[] = [
+const START_HERE_STEPS: readonly (StartHereStep & { key: SheetKind })[] = [
   {
     key: 'pilot',
     title: 'Create a Pilot',
@@ -55,7 +59,13 @@ type StartHereProps = {
   /** The heading's id, which names the section. */
   id: string
   /** Where each step opens, by key. A step without one is not a link. */
-  hrefs?: Partial<Record<StartHereStepKey, string>>
+  hrefs?: Partial<Record<string, string>>
+  /**
+   * Another front door's own steps and heading, in the same tiles: the
+   * Starter Set landing's. Every other caller shows the three below.
+   */
+  steps?: readonly StartHereStep[]
+  title?: string
 }
 
 const STEPS = {
@@ -93,11 +103,16 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   )
 }
 
-export function StartHere({ id, hrefs = {} }: StartHereProps) {
+export function StartHere({
+  id,
+  hrefs = {},
+  steps = START_HERE_STEPS,
+  title = 'Start here',
+}: StartHereProps) {
   return (
-    <SlabSection title="Start here" id={id} as="h2" className="su-start-here" page>
+    <SlabSection title={title} id={id} as="h2" className="su-start-here" page>
       <ol className="su-start-here__steps" style={STEPS}>
-        {START_HERE_STEPS.map((step, index) => {
+        {steps.map((step, index) => {
           const href = hrefs[step.key]
           return (
             <li key={step.key} className="su-start-here__item">
