@@ -1037,8 +1037,7 @@
 
 /* `action`, a show page's Share and "Build With This": the Union bar's
    buttons, their height (the Compact Size, as the chips beside them) and
-   type, a chip's gap apart. Share's island draws no box: its button is the
-   row's item. */
+   type, a chip's gap apart. */
 .su-chapter-band__action {
   --su-band-action: var(--size-compact);
   column-gap: var(--space-8);
@@ -1046,8 +1045,11 @@
   flex: none;
 }
 
-.su-chapter-band__action > [data-island] {
-  display: contents;
+/* Share's Check stands in for its glyph while a copy has just landed
+   (`data-copied`, `lib/sharePage.ts`). */
+.su-share-page:not([data-copied]) .su-share-page__done,
+.su-share-page[data-copied] .su-share-page__rest {
+  display: none;
 }
 
 .su-chapter-band__action .su-page-action {

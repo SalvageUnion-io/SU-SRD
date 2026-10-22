@@ -2,10 +2,9 @@ import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
-import { SharePageIsland } from '../components/islands/SharePageIsland'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { Island } from '../runtime/Island'
+import { SharePageButton } from './SharePageButton'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity: its chapter's
@@ -102,11 +101,7 @@ export function EntityPageFrame({
         asideAt="notch"
         action={
           <>
-            {/* Live from the first idle moment, so a phone's share sheet opens
-                inside the reader's own tap. */}
-            <Island name="SharePageIsland" client="idle" ssr hydrate>
-              <SharePageIsland />
-            </Island>
+            <SharePageButton />
             {build && (
               // A link drawn as the shared Button (`Button href`): same tab, no
               // off-site arrow — the Reference and Build are one union

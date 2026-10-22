@@ -62,8 +62,6 @@ export const islandRegistry = {
     import('../components/islands/DidYouMeanIsland').then((m) => asIsland(m.DidYouMeanIsland)),
   OgCardIsland: () =>
     import('../components/islands/OgCardIsland').then((m) => asIsland(m.OgCardIsland)),
-  SharePageIsland: () =>
-    import('../components/islands/SharePageIsland').then((m) => asIsland(m.SharePageIsland)),
   PeekIsland: () => import('../components/islands/PeekIsland').then((m) => asIsland(m.PeekIsland)),
 } satisfies Record<string, IslandLoader>
 

@@ -3,13 +3,12 @@
  * and, on a creation guide, the foot that ends the page on its exits.
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveEntityPageMeta } from '../../components/index'
 import { appPath } from '../../lib/appBase'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
-import { beginIslandCollection, endIslandCollection } from '../../runtime/Island'
 import { EntityPageFrame } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {
@@ -32,10 +31,6 @@ function renderGuide(name: string) {
     </EntityPageFrame>
   )
 }
-
-// The frame's Share is an island, which renders only inside a page's collection window.
-beforeEach(beginIslandCollection)
-afterEach(endIslandCollection)
 
 describe('EntityPageFrame', () => {
   test('a creation guide ends on its exits: build, the next guide, and the Starter Set', () => {
@@ -105,8 +100,9 @@ describe('EntityPageFrame', () => {
       build.closest('.su-chapter-band__action')
     )
     expect(share.compareDocumentPosition(build) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    // The server draws it; the client adopts that markup (`hydrate`).
-    expect(share.closest('[data-island]')?.getAttribute('data-island')).toBe('SharePageIsland')
+    // Static markup the client entry makes live (`watchSharePage`): no island.
+    expect(share.hasAttribute('data-share-page')).toBe(true)
+    expect(share.closest('[data-island]')).toBeNull()
   })
 
   test('a page with nothing to build still carries Share', () => {
