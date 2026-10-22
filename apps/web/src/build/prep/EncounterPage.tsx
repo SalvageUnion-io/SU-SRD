@@ -17,7 +17,6 @@
  * another so two quick adds both land.
  */
 
-import { useNavigate } from '@tanstack/react-router'
 import type { Encounter, EncounterOpponent } from 'game-domain/schemas/encounter'
 import { ENCOUNTER_MAX_NOTES, ENCOUNTER_MAX_TABLES } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
@@ -45,6 +44,7 @@ import {
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
@@ -98,7 +98,7 @@ export function EncounterPage({ id }: { id: string }) {
 
 function EncounterBody({ encounter }: { encounter: Encounter }) {
   const { canWrite } = useConnection()
-  const navigate = useNavigate()
+  const go = useGo()
   const { confirm, dialog } = useConfirm()
   const patterns = usePatternStore((s) => s.mechPatterns)
   const [picking, setPicking] = useState(false)
@@ -153,7 +153,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
       ...ROW_ACTION_COPY.deleteBuild(encounter.name),
       onConfirm: async () => {
         await usePrepStore.getState().delete(encounter.id)
-        void navigate({ to: '/' })
+        go('/')
       },
     })
 
