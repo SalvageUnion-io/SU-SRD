@@ -8,7 +8,7 @@ already make is in scope; new authoring surfaces still are not.
 
 1. **What is homebrew.** A saved mech pattern its maker shares with "Anyone
    with the link" (ADR-032) and then, a second opt-in offered only while it
-   is, "Share with everyone on the Reference" (`mechPatterns.homebrew`,
+   is, "Share with the SRD" (`mechPatterns.homebrew`,
    `homebrew.setShared`). Withdrawing the link clears both, and sharing the
    link again does not restore the second. Patterns only for now; NPCs and
    custom crawler bays (#403) are not part of this.

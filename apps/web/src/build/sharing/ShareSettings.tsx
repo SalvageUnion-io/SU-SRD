@@ -248,9 +248,9 @@ function ShareOnReference({ appId, shared }: { appId: string; shared: boolean })
 }
 
 /**
- * The public link while there is one: a QR of it on the left, `aside` (a
- * pattern's Reference switch) and the scan note on the right, and the URL with
- * its copy button along the bottom.
+ * The public link while there is one: a QR of it on the left; on the right,
+ * `aside` (a pattern's SRD switch) and the scan note, then the URL and its copy
+ * button at the foot.
  */
 function ShareLink({
   url,
@@ -275,7 +275,7 @@ function ShareLink({
   }
 
   return (
-    <Stack gap={12}>
+    <Stack gap={8}>
       {/*
         Passing a phone across a table is the actual use, so the QR needs no
         heading and no placeholder — it is simply there while there is a
@@ -283,26 +283,28 @@ function ShareLink({
       */}
       <div style={QR_ROW}>
         <LinkQr url={url} />
-        <Stack gap={8} style={QR_SIDE}>
-          {aside}
-          <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
-        </Stack>
-      </div>
-      <div style={ROW}>
-        <code style={URL_TEXT}>{url}</code>
-        <Button
-          size="compact"
-          onClick={() => void copy()}
-          aria-label={buildSharingCopy('copyPublicLink')}
-          style={NO_SHRINK}
-        >
-          <CopiedIcon
-            copied={copied}
-            size="compact"
-            icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
-          />
-        </Button>
-        <CopiedStatus copied={copied} />
+        <div style={QR_SIDE}>
+          <Stack gap={8}>
+            {aside}
+            <p style={QR_NOTE}>{buildSharingCopy('scanToOpenOnAnother')}</p>
+          </Stack>
+          <div style={ROW}>
+            <code style={URL_TEXT}>{url}</code>
+            <Button
+              size="compact"
+              onClick={() => void copy()}
+              aria-label={buildSharingCopy('copyPublicLink')}
+              style={NO_SHRINK}
+            >
+              <CopiedIcon
+                copied={copied}
+                size="compact"
+                icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
+              />
+            </Button>
+            <CopiedStatus copied={copied} />
+          </div>
+        </div>
       </div>
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>

@@ -264,8 +264,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
       ],
       'games:listMine': [],
     })
-    const onReference = () =>
-      screen.queryByRole('switch', { name: 'Share with everyone on the Reference' })
+    const onReference = () => screen.queryByRole('switch', { name: 'Share with the SRD' })
 
     setQueryAnswers(share(false, 'private'))
     const { unmount } = renderDialog({ kind: 'pattern', id: 'pattern-1' })

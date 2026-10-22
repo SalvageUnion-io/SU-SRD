@@ -62,7 +62,7 @@
   }
 }
 
-/* LinkQr: the tile is a Box at the code's 84px, under the Compact's 12rem floor. */
+/* LinkQr: the tile is a Box at the code's 128px, under the Compact's 12rem floor. */
 .su-sheet-qr-tile {
   min-width: 0;
 }

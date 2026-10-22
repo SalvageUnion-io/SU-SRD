@@ -329,8 +329,8 @@ export const BANNED: readonly Banned[] = [
     pattern: /(?<!Salvage Union\s)(?<![\w(-])SRD(?![\w)-])/g,
     say: 'Reference',
     why: 'the tool is "Reference" in the header switch; one name per area (hard rule R16)',
-    // The drawer's brand stamp pairs a bare "SRD" with "Salvage Union".
-    allowWhole: /^SRD$/,
+    // The drawer's brand stamp; a pattern's Homebrew switch (the owner's words).
+    allowWhole: /^(?:SRD|Share with the SRD)$/,
   },
   {
     // Hard rule R5: a linked unit is its relation chip, `MECH | Mazona`.

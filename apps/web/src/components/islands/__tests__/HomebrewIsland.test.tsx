@@ -62,7 +62,8 @@ describe('on a chassis page', () => {
     expect(localStorage.getItem(SHOW_HOMEBREW_KEY)).toBe('on')
     const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
     expect(links).toEqual(['/build/p/pattern/pat-a', '/build/p/pattern/pat-b'])
-    expect(screen.getAllByText(/^homebrew$/i)).toHaveLength(2)
+    // The section's title, then each row's HOMEBREW stamp.
+    expect(screen.getAllByText(/^homebrew$/i)).toHaveLength(3)
   })
 
   test('remembered on, it lists at once; none shared, it says so; turned off, it hides them', async () => {
