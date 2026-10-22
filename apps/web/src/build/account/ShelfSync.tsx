@@ -2,10 +2,13 @@
  * ShelfSync — brings the account's rows down from the server of record.
  *
  * The read-down half of ADR-034 decision 2: writes go **up** server-first, and
- * this brings the account's rows back **down**. There is no device cache, so
- * this is the only way a row reaches the stores: every page load starts empty
- * and fills from here, and the stores' `hydrate()` resolves once the first
- * answer is applied (`markArrived`, `stores/rowArrival.ts`).
+ * this brings the account's rows back **down**. Online this is the only way a
+ * row reaches the stores: every page load starts empty and fills from here,
+ * and the stores' `hydrate()` resolves once the first answer is applied
+ * (`markArrived`, `stores/rowArrival.ts`). Each applied answer is also saved
+ * as the device copy (`stores/deviceCopy.ts`, ADR-053), which an offline boot
+ * applies the same way (`stores/deviceCopyRestore.ts`). The apply itself is
+ * `stores/shelfApply.ts`.
  *
  * ## Server wins, and that is the point
  *
@@ -63,29 +66,14 @@
  */
 
 import { useQuery } from 'convex/react'
-import { containerOf } from 'game-domain/container'
-import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
-import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
-import type { ServedRow } from '../../lib/links/linkSync'
-import { planCrawlerSync, planLinkSync, planRowSync } from '../../lib/links/linkSync'
-import { captureException } from '../../lib/observability'
+import { noteServed, saveCopy } from '../../stores/deviceCopy'
 import { useEncounterStore } from '../../stores/encounterStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePatternStore } from '../../stores/patternStore'
-import { rowMayBePruned } from '../../stores/pruneRules'
 import { registerSync } from '../../stores/rowArrival'
-import { noteVersion, serverVersions } from '../../stores/serverVersions'
-
-/** The body ids a served answer carries. */
-function servedIds(rows: readonly ServedRow[]): Set<string> {
-  return new Set(
-    rows
-      .map((r) => (r.body as { id?: unknown } | null)?.id)
-      .filter((id): id is string => typeof id === 'string')
-  )
-}
+import { applyMine, applyWiring } from '../../stores/shelfApply'
 
 function ConnectedShelfSync() {
   // `undefined` while in flight — the Convex convention, not a loading flag.
@@ -96,6 +84,7 @@ function ConnectedShelfSync() {
     // A newer emission supersedes this one; stop before pruning against an
     // answer that is already out of date.
     let superseded = false
+    noteServed()
 
     // `listMine` is a live subscription, so it re-emits on every server change,
     // this browser's own writes included. Each emission is planned per row
@@ -104,7 +93,8 @@ function ConnectedShelfSync() {
     // edit on another device — adopts exactly that row.
     void (async () => {
       try {
-        await applyMine()
+        await applyMine(mine, () => superseded)
+        if (!superseded) void saveCopy({ mine })
       } finally {
         // The first answer is in, even where a row failed to parse: what
         // arrived is what there is. A superseded run leaves it to the next.
@@ -115,111 +105,6 @@ function ConnectedShelfSync() {
         }
       }
     })()
-
-    async function applyMine(): Promise<void> {
-      if (mine === undefined) return
-      const store = useEntityStore.getState()
-      const patterns = usePatternStore.getState()
-      const npcs = useEncounterStore.getState()
-      // Built NPCs (ADR-044) are owned rows like pilots, so they come down,
-      // and are pruned, on exactly the pilot's rule.
-      const kinds = [
-        ['pilot', mine.pilots],
-        ['mech', mine.mechs],
-        ['crawler', mine.crawlers],
-        ['npc', mine.npcs],
-      ] as const
-
-      for (const [kind, rows] of kinds) {
-        const plan = planRowSync({
-          local: useEntityStore.getState().list(kind),
-          served: rows as ServedRow[],
-          adoptedAt: serverVersions(),
-        })
-        for (const { id, updatedAt, row } of plan) {
-          // A newer emission has spoken: this plan may name a row the player
-          // has deleted since, and adopting it would bring it back.
-          if (superseded) return
-          try {
-            await store.adopt(kind, row.body as never)
-            noteVersion(id, updatedAt)
-          } catch (err) {
-            // One unreadable row must not stop the rest of the roster arriving.
-            // A body the server accepted that this build cannot parse is a real
-            // schema disagreement worth reporting, but the other builds are
-            // fine and the player should see them.
-            captureException(err)
-          }
-        }
-      }
-
-      // Patterns and the NPC tray live in their own stores. Their rows carry
-      // only `{ body }` — no `appId`, no `updatedAt` column — because each is
-      // addressed by the id inside its body, so `rowVersion` reads the body's
-      // own stamp.
-      const patternPlan = planRowSync({
-        local: usePatternStore.getState().list(),
-        served: mine.mechPatterns as ServedRow[],
-        adoptedAt: serverVersions(),
-      })
-      for (const { id, updatedAt, row } of patternPlan) {
-        if (superseded) return
-        try {
-          await patterns.adopt(row.body as MechPattern)
-          noteVersion(id, updatedAt)
-        } catch (err) {
-          // Same rule as the roster loop above: one unreadable pattern must not
-          // stop the rest of the library arriving.
-          captureException(err)
-        }
-      }
-
-      const npcPlan = planRowSync({
-        local: useEncounterStore.getState().list(),
-        served: mine.encounterNpcs as ServedRow[],
-        adoptedAt: serverVersions(),
-      })
-      for (const { id, updatedAt, row } of npcPlan) {
-        if (superseded) return
-        try {
-          await npcs.adopt(row.body as EncounterNpc)
-          noteVersion(id, updatedAt)
-        } catch (err) {
-          captureException(err)
-        }
-      }
-
-      // Prune only where absence is unambiguous — see the header. Dropping the
-      // guard turns this into a roster-deleter.
-      if (superseded) return
-
-      // `forget`, never `delete`, everywhere below: this removes the local COPY
-      // and must never become a server delete. The row is already gone there —
-      // that is why it is being pruned — and issuing a delete would turn a sync
-      // into a destructive write against whatever the server does hold.
-      for (const [kind, rows] of kinds) {
-        const served = servedIds(rows as ServedRow[])
-        for (const local of store.list(kind)) {
-          if (served.has(local.id)) continue
-          // A Game crawler is the crew's, never `listMine`'s; `WiringSync`
-          // prunes it.
-          const knownMine = kind !== 'crawler' && serverVersions().has(local.id)
-          if (!rowMayBePruned(local, knownMine)) continue
-          await store.forget(kind, local.id)
-        }
-      }
-
-      // Patterns and the tray are personal: every one is owned, so every one is
-      // in `listMine`, and absence means deleted — the shelf rule.
-      const servedPatterns = servedIds(mine.mechPatterns as ServedRow[])
-      for (const local of usePatternStore.getState().list()) {
-        if (!servedPatterns.has(local.id)) await patterns.forget(local.id)
-      }
-      const servedNpcs = servedIds(mine.encounterNpcs as ServedRow[])
-      for (const local of useEncounterStore.getState().list()) {
-        if (!servedNpcs.has(local.id)) await npcs.forget(local.id)
-      }
-    }
 
     return () => {
       superseded = true
@@ -249,64 +134,16 @@ function ConnectedWiringSync() {
     // A newer emission supersedes this one; stop before pruning against an
     // answer that is already out of date.
     let superseded = false
+    noteServed()
 
     void (async () => {
       try {
-        await applyWiring()
+        await applyWiring(wiring, adoptedAt.current, () => superseded)
+        if (!superseded) void saveCopy({ wiring })
       } finally {
         if (!superseded) useEntityStore.getState().markArrived(['softLink'])
       }
     })()
-
-    async function applyWiring(): Promise<void> {
-      if (wiring === undefined) return
-      const store = useEntityStore.getState()
-      const gameIds = new Set<string>(wiring.gameIds)
-
-      const crawlerPlan = planCrawlerSync({
-        local: useEntityStore.getState().crawlers,
-        served: wiring.crawlers,
-        gameIds,
-        adoptedAt: adoptedAt.current,
-      })
-      for (const crawler of crawlerPlan.adopt) {
-        try {
-          await store.adopt('crawler', crawler.body as never)
-          adoptedAt.current.set(crawler.id, crawler.updatedAt)
-        } catch (err) {
-          // One unreadable crawler must not stop the rest arriving — the same
-          // rule as the roster loop in `ConnectedShelfSync`.
-          captureException(err)
-        }
-      }
-      if (superseded) return
-      for (const id of crawlerPlan.prune) {
-        // `forget`, never `delete`: the row is already gone or elsewhere on the
-        // server, and a server delete would destroy whatever it now is.
-        await store.forget('crawler', id)
-        adoptedAt.current.delete(id)
-      }
-
-      const cached = useEntityStore.getState()
-      const linkPlan = planLinkSync({
-        local: cached.softLinks,
-        served: wiring.softLinks,
-        gameIds,
-        containerOfEnd: (ref) => {
-          const entity = cached.get(ref.type, ref.id)
-          return entity === null ? null : containerOf(entity)
-        },
-      })
-      for (const link of linkPlan.adopt) {
-        try {
-          await store.adopt('softLink', link)
-        } catch (err) {
-          captureException(err)
-        }
-      }
-      if (superseded) return
-      for (const id of linkPlan.prune) await store.forget('softLink', id)
-    }
 
     return () => {
       superseded = true

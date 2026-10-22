@@ -44,6 +44,24 @@ describe('the unsettled auth handshake is its own mode, not Solo', () => {
     expect(resolveConnectionMode(inputs({ authSettled: false, signedIn: true }))).toBe('connecting')
   })
 
+  test('booted offline with a session on the device -> disconnected (ADR-053)', () => {
+    // Offline the handshake never settles; a token on the device says this is
+    // a signed-in player out of reach, whose device copy may be read.
+    expect(
+      resolveConnectionMode(
+        inputs({ authSettled: false, signedIn: false, online: false, storedSession: true })
+      )
+    ).toBe('disconnected')
+    // Online, the handshake will finish: still connecting.
+    expect(
+      resolveConnectionMode(inputs({ authSettled: false, signedIn: false, storedSession: true }))
+    ).toBe('connecting')
+    // Offline with no session on the device: still connecting, never Solo.
+    expect(
+      resolveConnectionMode(inputs({ authSettled: false, signedIn: false, online: false }))
+    ).toBe('connecting')
+  })
+
   test('connecting refuses writes but does not raise the alarm', () => {
     // Refusing is the point: nobody knows yet which store a write belongs in.
     // Warning is not — this window closes in well under a second, and

@@ -48,18 +48,30 @@ export type ConnectionInputs = {
   signedIn: boolean
   /** Whether the browser believes it has a network connection. */
   online: boolean
+  /**
+   * Whether a session token is on the device (`sessionAccount`). Offline the
+   * handshake can never settle, so this is what tells an offline boot that
+   * was signed in from one that was not.
+   */
+  storedSession?: boolean
 }
 
 /**
  * Resolve the current mode.
  *
- * Order is deliberate: settling, then identity, then connectivity. A signed-out user is Solo *whatever* the network is doing,
+ * Order is deliberate: settling, then identity, then connectivity. The one
+ * exception is an offline boot with a session on the device, which can never
+ * settle: it is Disconnected straight away. A signed-out user is Solo *whatever* the network is doing,
  * because there is no server-of-record relationship to lose — but only once we
  * know they are signed out, which is what the settling check comes before
  * identity to establish.
  */
 export function resolveConnectionMode(inputs: ConnectionInputs): ConnectionMode {
-  if (!inputs.authSettled) return 'connecting'
+  if (!inputs.authSettled) {
+    // Booted offline with a session on the device: signed in and unreachable,
+    // the device copy's case (ADR-053), not a handshake that will finish.
+    return !inputs.online && inputs.storedSession === true ? 'disconnected' : 'connecting'
+  }
   if (!inputs.signedIn) return 'solo'
   return inputs.online ? 'connected' : 'disconnected'
 }
