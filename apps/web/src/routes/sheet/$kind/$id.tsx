@@ -39,7 +39,7 @@ function SheetKindNotFound() {
   return (
     <NotFoundPanel
       title={routesSheetCopy('sheetNotFound')}
-      message={<>{routesSheetCopy('isNotASheetType', { kind: params.kind })}</>}
+      message={routesSheetCopy('isNotASheetType', { kind: params.kind })}
     />
   )
 }

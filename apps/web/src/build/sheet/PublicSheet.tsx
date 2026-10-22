@@ -71,7 +71,7 @@ export function PublicSheet({ appId, answer }: PublicSheetProps) {
     return (
       <NotFoundPanel
         title={buildSheetCopy('couldNotRenderThisSheet')}
-        message={<>{buildSheetCopy('thisBuildsDataDoesntMatch')}</>}
+        message={buildSheetCopy('thisBuildsDataDoesntMatch')}
       />
     )
   }

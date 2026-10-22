@@ -18,7 +18,7 @@ function RetiredShareLink() {
   return (
     <NotFoundPanel
       title={routesSCopy('thisShareLinkHasBeen')}
-      message={<>{routesSCopy('snapshotLinksNoLongerShow')}</>}
+      message={routesSCopy('snapshotLinksNoLongerShow')}
     />
   )
 }
