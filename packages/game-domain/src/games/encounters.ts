@@ -1,5 +1,5 @@
 /**
- * Running an encounter (ADR-056), pure: what the Game's tray gains when the
+ * Running an encounter (ADR-058), pure: what the Game's tray gains when the
  * Mediator runs one of their shelf encounters. Shared by `mediator.runEncounter`,
  * which writes it, and its tests.
  */

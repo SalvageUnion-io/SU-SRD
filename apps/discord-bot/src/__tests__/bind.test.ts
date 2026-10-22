@@ -34,6 +34,8 @@ function client(overrides: Partial<SiteClient>): SiteClient {
     gamesForAutocomplete: unexpected,
     bindChannel: unexpected,
     unbindChannel: unexpected,
+    usage: unexpected,
+    feedback: unexpected,
     ...overrides,
   }
 }

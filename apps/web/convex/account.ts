@@ -2,6 +2,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { deleteFeedbackOf } from './feedback'
 import { personalBinding } from './model/channelBindings'
 import { mutation, pruneLinksOfRow } from './model/entities'
 import { requireUser } from './model/permissions'
@@ -275,6 +276,10 @@ export const deleteAccount = mutation({
     }
     // Any solo seat still on the shelf (one whose pilot row was already gone).
     for (const seat of await soloSeatsOf(ctx, userId)) await ctx.db.delete(seat._id)
+
+    // Feedback still waiting or still counted against today's limit, before
+    // the Discord link that names some of it goes.
+    await deleteFeedbackOf(ctx, userId)
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

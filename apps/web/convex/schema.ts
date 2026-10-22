@@ -7,6 +7,7 @@ import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { playTables } from './model/playTables'
 import { prepTables } from './model/prepTables'
+import { signalTables } from './model/signalTables'
 import { literalUnion } from './model/validators'
 
 /**
@@ -547,4 +548,6 @@ export default defineSchema({
 
   ...playTables,
   ...prepTables,
+
+  ...signalTables,
 })

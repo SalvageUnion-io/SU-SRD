@@ -1,6 +1,6 @@
 /**
  * RunEncounterDialog — "Run an encounter" from the Opposition (play.md §10,
- * ADR-056): one of the Mediator's shelf encounters, and what becomes of the
+ * ADR-058): one of the Mediator's shelf encounters, and what becomes of the
  * Opposition already on the tray. Running copies the encounter in, so the
  * saved one stays as it was built.
  *

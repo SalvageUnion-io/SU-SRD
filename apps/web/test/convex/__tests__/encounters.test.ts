@@ -6,7 +6,7 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * The Mediator's prep kit (ADR-056): encounters on a shelf, and running one
+ * The Mediator's prep kit (ADR-058): encounters on a shelf, and running one
  * in a Game. An encounter is its maker's alone, and what a Game runs is a
  * copy that stays as secret as the tray it lands on.
  */

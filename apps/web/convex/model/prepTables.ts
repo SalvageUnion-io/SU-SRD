@@ -2,7 +2,7 @@ import { defineTable } from 'convex/server'
 import { v } from 'convex/values'
 
 /**
- * The Mediator's prep (ADR-056), spread into `schema.ts`: encounters built on
+ * The Mediator's prep (ADR-058), spread into `schema.ts`: encounters built on
  * a shelf, and the one a Game is running. Split out like `playTables.ts`, and
  * the rules in `schema.ts`'s header hold here too: each body is `v.any()` and
  * parsed at the edge (`EncounterSchema`, `RunningEncounterSchema`).

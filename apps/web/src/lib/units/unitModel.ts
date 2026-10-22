@@ -58,7 +58,7 @@ const KIND: Record<
   crawler: { schemaName: 'crawlers', tone: 'crawler', domain: 'crawler', label: 'Crawler' },
   pattern: { schemaName: 'chassis', tone: 'mech', domain: 'mech', label: 'Pattern' },
   npc: { schemaName: 'npcs', tone: 'adversary', domain: 'actor', label: 'NPC' },
-  // A Mediator's prepared encounter (ADR-056) wears the Opposition's tone.
+  // A Mediator's prepared encounter (ADR-058) wears the Opposition's tone.
   encounter: { schemaName: 'npcs', tone: 'adversary', domain: 'actor', label: 'Encounter' },
 }
 

@@ -35,6 +35,8 @@ function clientReturning(result: SiteResult<unknown>): SiteClient {
     gamesForAutocomplete: answer,
     bindChannel: answer,
     unbindChannel: answer,
+    usage: answer,
+    feedback: answer,
   }
 }
 

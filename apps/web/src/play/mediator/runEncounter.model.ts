@@ -1,5 +1,5 @@
 /**
- * Run an encounter's words (play.md §10, ADR-056), pure: how an encounter
+ * Run an encounter's words (play.md §10, ADR-058), pure: how an encounter
  * reads in the dialog's list, and the choice that clears the tray first.
  */
 

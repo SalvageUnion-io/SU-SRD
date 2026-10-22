@@ -2,7 +2,7 @@ import { z } from 'salvageunion-reference/zod'
 import { EncounterNpcSchema } from './encounterNpc'
 
 /**
- * Encounter — one piece of a Mediator's prep (ADR-056): the opposition, the
+ * Encounter — one piece of a Mediator's prep (ADR-058): the opposition, the
  * roll tables to hand and private notes, built on the owner's shelf before a
  * Game sits down and run into a Game's Opposition when the fight starts.
  *

@@ -1,5 +1,5 @@
 /**
- * prepStore — Zustand store for the Mediator's encounters (ADR-056): the
+ * prepStore — Zustand store for the Mediator's encounters (ADR-058): the
  * opposition, tables and notes they prep on their shelf before a session.
  *
  * Built on the shared collection slice, so every write commits to the server

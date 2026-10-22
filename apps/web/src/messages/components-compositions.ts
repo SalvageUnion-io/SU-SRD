@@ -3,6 +3,7 @@
 import { messages } from './define'
 
 export const compositionsCopy = messages({
+  suggestOrReport: 'Suggest or report',
   or: 'or',
   accountMenu: 'Account menu',
   accountMenuFor: 'Account menu for {name}',

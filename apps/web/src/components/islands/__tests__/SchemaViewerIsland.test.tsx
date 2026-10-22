@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import {
   getEntitySchemas,
   getModel,
+  getSources,
   getTechLevel,
   getTree,
   getUniqueSources,
@@ -188,6 +189,28 @@ describe('SchemaViewerIsland', () => {
 
     const links = document.querySelectorAll('a[aria-label]')
     expect(links.length).toBe(entities.length)
+  })
+
+  it('a source filter counts reprints: ?source= lists every system the Starter Set prints', () => {
+    const starter = 'Salvage Union Starter Set'
+    const systems = required(getModel('systems'), 'systems model').all()
+    const inTheBox = systems.filter((s) => getSources(s).includes(starter))
+    // Most of the box's systems are Workshop Manual systems it reprints.
+    expect(inTheBox.length).toBeGreaterThan(
+      systems.filter((s) => (s as { source?: string }).source === starter).length
+    )
+    window.location.href = `http://localhost/systems/?${new URLSearchParams({ source: starter })}`
+
+    const { container } = render(
+      <SchemaViewerIsland
+        schemaId="systems"
+        techLevels={getUniqueTechLevels(systems)}
+        sources={getUniqueSources(systems)}
+      />
+    )
+    expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(inTheBox.length)
+    const select = screen.getByRole('combobox', { name: 'Source' }) as HTMLSelectElement
+    expect(select.value).toBe(starter)
   })
 
   it('URL sync: initializes the name filter from ?q= on mount', () => {

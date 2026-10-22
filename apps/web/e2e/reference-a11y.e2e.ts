@@ -12,7 +12,7 @@ const PAGES = [
   '/',
   '/about/',
   '/api/',
-  '/discord/',
+  '/bot/',
   '/bot/terms/',
   '/bot/privacy/',
   '/chassis/',

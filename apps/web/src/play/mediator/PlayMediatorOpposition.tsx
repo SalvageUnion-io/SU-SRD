@@ -1,7 +1,7 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
  * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
- * running (`RUNNING | its name`, End; ADR-056), then each NPC,
+ * running (`RUNNING | its name`, End; ADR-058), then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1),
  * then the chosen one's actions (`PlayNpcActions`).
  *

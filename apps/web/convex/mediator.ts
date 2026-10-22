@@ -201,7 +201,7 @@ export const amMediator = query({
 })
 
 /**
- * The encounter this Game is running (ADR-056): its name, tables and notes,
+ * The encounter this Game is running (ADR-058): its name, tables and notes,
  * or null when none is. Mediator-only, like the tray it was run into.
  */
 export const running = query({
@@ -216,7 +216,7 @@ export const running = query({
 })
 
 /**
- * Run one of the caller's shelf encounters in this Game (ADR-056): its
+ * Run one of the caller's shelf encounters in this Game (ADR-058): its
  * opposition joins the tray as fresh NPCs at full HP or SP, named apart from
  * those already there, and its name, tables and notes become the Game's
  * running encounter, in place of any it was running. The shelf encounter is

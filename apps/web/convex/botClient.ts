@@ -4,6 +4,7 @@ import type {
   BotDenialReason,
   BotFailure,
   BotSuccess,
+  BotUsageResult,
   EntityBody,
   GamesResult,
   MeResult,
@@ -28,6 +29,7 @@ import {
 } from './model/channelBindings'
 import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
+import { bumpCount, touchGuild } from './model/usage'
 import { literalUnion } from './model/validators'
 
 /**
@@ -274,5 +276,20 @@ export const unbindChannel = internalMutation({
     const user = await userByDiscordId(ctx, args.discordId)
     if (user === null) return fail('unlinked')
     return await unbindChannelAs(ctx, user._id, args.channelId.trim())
+  },
+})
+
+/**
+ * One answered command, for the weekly tallies (ADR-057): `bot:<name>` this
+ * week, and the server it ran in. Nothing about who ran it.
+ */
+export const usage = internalMutation({
+  args: { name: v.string(), guildId: v.optional(v.string()) },
+  handler: async (ctx, args): Promise<BotUsageResult> => {
+    const name = args.name.trim().slice(0, 64)
+    if (name.length > 0) await bumpCount(ctx, `bot:${name}`)
+    const guildId = args.guildId?.trim() ?? ''
+    if (guildId.length > 0) await touchGuild(ctx, guildId.slice(0, 32))
+    return { ok: true }
   },
 })

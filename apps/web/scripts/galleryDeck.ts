@@ -63,7 +63,7 @@ export function siteRoutes(): DesignRoute[] {
     ref('/about/'),
     ref('/changelog/'),
     ref('/api/'),
-    ref('/discord/'),
+    ref('/bot/'),
     ref('/no-such-page/'),
     { family: 'listing', path: '/drill/', widths: BOTH },
   ]
