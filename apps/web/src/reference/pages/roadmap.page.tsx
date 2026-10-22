@@ -25,35 +25,29 @@ const TITLE = pageTitle(pagesCopy('roadmap'))
 const DESCRIPTION = pagesCopy('roadmapDescription')
 
 /** The areas an item is tagged with, each in its band's tone (`.su-roadmap__tag[data-area]`). */
-type Area = 'reference' | 'cantina' | 'play' | 'beyond' | 'yourSay'
+type Area = 'reference' | 'cantina' | 'play' | 'beyond'
 
 const AREA_LABEL: Record<Area, string> = {
   reference: pagesCopy('roadmapAreaReference'),
   cantina: pagesCopy('roadmapAreaCantina'),
   play: pagesCopy('roadmapAreaPlay'),
   beyond: pagesCopy('roadmapAreaBeyond'),
-  yourSay: pagesCopy('roadmapAreaYourSay'),
 }
 
 /** One item of the roadmap: its area and its headline, in plain words. */
 type Item = { area: Area; name: string }
 
-/** Coming soon: being built for the next release. */
+/** Coming soon: what is built after this release. */
 const SOON: readonly Item[] = [
-  { area: 'reference', name: pagesCopy('roadmapStarterSet') },
-  { area: 'cantina', name: pagesCopy('roadmapOffline') },
-  { area: 'cantina', name: pagesCopy('roadmapHomebrew') },
-  { area: 'play', name: pagesCopy('roadmapTableMode') },
-  { area: 'play', name: pagesCopy('roadmapPrepKit') },
-  { area: 'play', name: pagesCopy('roadmapSharedMachines') },
-  { area: 'beyond', name: pagesCopy('roadmapDataOut') },
-  { area: 'yourSay', name: pagesCopy('roadmapFeedback') },
-]
-
-/** Planned once the current work is out. */
-const NEXT: readonly Item[] = [
   { area: 'beyond', name: pagesCopy('roadmapAppDirectory') },
   { area: 'beyond', name: pagesCopy('roadmapOwlbear') },
+]
+
+/** Planned once the soon work is out. */
+const NEXT: readonly Item[] = [
+  { area: 'cantina', name: pagesCopy('roadmapCustomBays') },
+  { area: 'cantina', name: pagesCopy('roadmapPrintableSheets') },
+  { area: 'play', name: pagesCopy('roadmapSessionLog') },
 ]
 
 /** Further out, and less certain. */
