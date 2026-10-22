@@ -3,8 +3,8 @@
 import { messages } from './define'
 
 export const playCopy = messages({
-  claimAndBoard: 'Claim and board',
-  claimAndBoard2: 'Claim and board {name}',
+  assignAndBoard: 'Assign and board',
+  assignAndBoard2: 'Assign and board {name}',
   step: 'Step {max}',
   endDowntime: 'End Downtime',
   cancel: 'Cancel',

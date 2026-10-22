@@ -19,11 +19,11 @@ describe('authentication', () => {
     await expect(t.mutation(api.games.create, { name: 'Nope' })).rejects.toThrow(/not signed in/i)
   })
 
-  test('a non-member cannot read a game roster', async () => {
+  test('a non-member reads an empty roster, not an error (a Game left under an open page)', async () => {
     const t = testConvex()
     const { gameId } = await seedTable(t)
     const outsider = await makeUser(t, 'Outsider')
-    await expect(outsider.as.query(api.games.members, { gameId })).rejects.toThrow(/not a member/i)
+    expect(await outsider.as.query(api.games.members, { gameId })).toEqual([])
   })
 })
 
@@ -68,56 +68,68 @@ describe('roles are a base role plus one modifier', () => {
   })
 })
 
-describe('release', () => {
-  test('an owner can release their own entity', async () => {
+describe('unassign', () => {
+  test('a holder can unassign their own entity', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
     const pilotId = await seedRawPilot(t, gameId, player.userId)
 
-    await player.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })
+    await player.as.mutation(api.ownership.unassign, { table: 'pilots', entityId: pilotId })
 
     const pilot = await t.run(async (ctx) => await ctx.db.get(pilotId))
     expect(pilot?.ownerId).toBeNull()
-    // Unclaimed, not destroyed, and still in the game.
+    // Unassigned, not destroyed, and still in the game.
     expect(pilot?.gameId).toBe(gameId)
   })
 
-  test("a bystander cannot release somebody else's entity", async () => {
+  test("a bystander cannot unassign somebody else's entity", async () => {
+    const t = testConvex()
+    const { organizer, player, gameId } = await seedTable(t)
+    const pilotId = await seedRawPilot(t, gameId, player.userId)
+    const bystander = await makeUser(t, 'Bystander')
+    await bystander.as.mutation(api.invites.redeem, {
+      code: await organizer.as.mutation(api.invites.link, { gameId }),
+    })
+
+    await expect(
+      bystander.as.mutation(api.ownership.unassign, { table: 'pilots', entityId: pilotId })
+    ).rejects.toThrow(/holder or the mediator/i)
+  })
+
+  test('the table runner may unassign it: the Organizer while nobody mediates', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
     const pilotId = await seedRawPilot(t, gameId, player.userId)
 
-    // The Organizer is not the owner and (here) not the Mediator either.
-    await expect(
-      organizer.as.mutation(api.ownership.release, { table: 'pilots', entityId: pilotId })
-    ).rejects.toThrow(/owner or the mediator/i)
+    await organizer.as.mutation(api.ownership.unassign, { table: 'pilots', entityId: pilotId })
+    expect((await t.run(async (ctx) => await ctx.db.get(pilotId)))?.ownerId).toBeNull()
   })
 })
 
 describe('destroying a game preserves everything anybody built', () => {
-  test("owned entities go to their owner's shelf; unclaimed ones to the deleter's", async () => {
+  test("owned entities go to their owner's shelf; unassigned ones to the deleter's", async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
     const ownedId = await seedRawPilot(t, gameId, player.userId)
-    const unclaimedId = await seedRawPilot(t, gameId, null)
+    const unassignedId = await seedRawPilot(t, gameId, null)
 
     await organizer.as.mutation(api.games.destroy, { gameId })
 
     const owned = await t.run(async (ctx) => await ctx.db.get(ownedId))
-    const unclaimed = await t.run(async (ctx) => await ctx.db.get(unclaimedId))
+    const unassigned = await t.run(async (ctx) => await ctx.db.get(unassignedId))
 
     // Deleting a campaign must never delete somebody's character.
     expect(owned).not.toBeNull()
     expect(owned?.gameId).toBeNull()
     expect(owned?.ownerId).toBe(player.userId)
 
-    // An unclaimed entity is not DELETED here, though it has no owner to fall
+    // An unassigned entity is not DELETED here, though it has no owner to fall
     // back to and `gameId: null` with `ownerId: null` is the one invalid
     // combination: the Organizer doing the deleting is a perfectly good owner, and is the person standing
     // in front of the consequence. So it survives, on their shelf.
-    expect(unclaimed).not.toBeNull()
-    expect(unclaimed?.gameId).toBeNull()
-    expect(unclaimed?.ownerId).toBe(organizer.userId)
+    expect(unassigned).not.toBeNull()
+    expect(unassigned?.gameId).toBeNull()
+    expect(unassigned?.ownerId).toBe(organizer.userId)
   })
 
   test('the crawler comes to the deleting Organizer, and stops being communal', async () => {
@@ -222,8 +234,9 @@ describe('requireMediator', () => {
     // setMediator is Organizer-gated, so exercise the Mediator gate through a
     // read that actually requires it: the opposition tray.
     expect(await player.as.query(api.mediator.npcs, { gameId })).toEqual([])
-    // The Organizer holds no content authority by holding the flag.
-    await expect(organizer.as.query(api.mediator.npcs, { gameId })).rejects.toThrow(/mediator/i)
+    // The Organizer holds no content authority by holding the flag: the tray
+    // reads empty for them, as for anyone who does not mediate.
+    expect(await organizer.as.query(api.mediator.npcs, { gameId })).toEqual([])
   })
 })
 
@@ -256,7 +269,7 @@ describe('a shelved entity cannot be released', () => {
     // invalid and requires to be unreachable through any mutation. Hence a
     // refusal rather than a no-op.
     await expect(
-      organizer.as.mutation(api.ownership.release, { table: 'pilots', entityId: shelved })
+      organizer.as.mutation(api.ownership.unassign, { table: 'pilots', entityId: shelved })
     ).rejects.toThrow(/already yours/i)
 
     const pilot = await t.run(async (ctx) => await ctx.db.get(shelved))
@@ -264,20 +277,20 @@ describe('a shelved entity cannot be released', () => {
     expect(pilot?.gameId).toBeNull()
   })
 
-  test('and the refusal does not call a shelved build "unclaimed"', async () => {
+  test('and the refusal does not call a shelved build "unassigned"', async () => {
     const t = testConvex()
     const { organizer } = await seedTable(t)
     const shelved = await seedRawPilot(t, null, organizer.userId)
 
-    // Not "An entity on a shelf is already unclaimed", which teaches the wrong
-    // model to the person least able to check it: unclaimed is `ownerId: null`
+    // Not "An entity on a shelf is already unassigned", which teaches the wrong
+    // model to the person least able to check it: unassigned is `ownerId: null`
     // *inside a Game*, waiting for a taker; a shelf is already somebody's.
     // `NotAuthorized` extends `ConvexError`, so the string reaches the player.
     const err = await organizer.as
-      .mutation(api.ownership.release, { table: 'pilots', entityId: shelved })
+      .mutation(api.ownership.unassign, { table: 'pilots', entityId: shelved })
       .catch((e: unknown) => e)
 
-    expect(String((err as { data?: unknown })?.data ?? err)).not.toMatch(/unclaimed/i)
+    expect(String((err as { data?: unknown })?.data ?? err)).not.toMatch(/unassigned/i)
   })
 })
 

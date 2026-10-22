@@ -2,9 +2,9 @@
  * PlayMountRow — getting in and out of a mech, as a row of the Actions list
  * (play.md §3, §5): on foot, Board (the pilot's own mech first, the rest in a
  * menu); Boarded, Dismount and Eject. The writes are the seat's, through
- * `Play` (`board`, `claimAndBoard`, `setOnFoot`, `seat.eject`).
+ * `Play` (`board`, `assignAndBoard`, `setOnFoot`, `seat.eject`).
  *
- * ADR-007: Eject is behind a confirm, and so is claiming an unclaimed spare.
+ * ADR-007: Eject is behind a confirm, and so is assigning an unassigned spare.
  * A Mini one a line in the list (ruleset §1.3; `playLineModel`, Mount being
  * no reference entity), its controls in its chip group (R6); not on hand, the
  * need is its chip.
@@ -13,9 +13,9 @@
 import { useState } from 'react'
 import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
 import { playCopy } from '../messages/play'
+import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
-import { ClaimAndBoardConfirm } from './ClaimAndBoardConfirm'
 import { NeedChip } from './PlayActionRow'
 import { playLineModel } from './playLine.model'
 import type { Play } from './situation.model'
@@ -30,14 +30,14 @@ type PlayMountRowProps = {
 
 export function PlayMountRow({ play, need }: PlayMountRowProps) {
   const [ejecting, setEjecting] = useState(false)
-  const [claiming, setClaiming] = useState<BoardOption | null>(null)
+  const [assigning, setAssigning] = useState<BoardOption | null>(null)
   const away = need !== null
   const off = !play.canWrite
   const boarded = play.situation === 'boarded' || play.boardedMechId !== null
   const boardedName = boardedMechName(play)
 
   function choose(option: BoardOption) {
-    if (option.state === 'spare') setClaiming(option)
+    if (option.state === 'spare') setAssigning(option)
     else play.board(option.mechId)
   }
 
@@ -63,7 +63,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         // beside the Use and Eject a filled one draws.
         <Button size="mini" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare'
-            ? playCopy('claimAndBoard2', { name: main.name })
+            ? playCopy('assignAndBoard2', { name: main.name })
             : playCopy('board2', { name: main.name })}
         </Button>
       )}
@@ -105,7 +105,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           setEjecting(false)
         }}
       />
-      <ClaimAndBoardConfirm play={play} claiming={claiming} onClose={() => setClaiming(null)} />
+      <AssignAndBoardConfirm play={play} assigning={assigning} onClose={() => setAssigning(null)} />
     </li>
   )
 }

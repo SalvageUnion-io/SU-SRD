@@ -8,7 +8,7 @@
  *    local store. In a Game it also reads the Game's listing (`others`), so its
  *    rail shows assignments to crewmates' entities this browser does not cache:
  *    your crawler's whole crew, the crewmate's mech flying your pilot.
- *  - **Readable but not yours** — a crewmate's pilot or mech, an unclaimed
+ *  - **Readable but not yours** — a crewmate's pilot or mech, an unassigned
  *    pre-gen, and for a player the Game's crawler, which is the Mediator's
  *    (ADR-038 §5) — the same `<Sheet>`, read-only, from a store built out of
  *    `entities.listForGame` (`readOnlySheetStore.model.ts`). Every body and link in

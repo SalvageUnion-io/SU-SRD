@@ -30,7 +30,7 @@
  *
  * **Only rows known to be the caller's.** A local row absent from `listMine`
  * is ambiguous, and the ambiguity differs by container. `listMine` returns what
- * the caller *owns*, wherever it lives — but a Game's **unclaimed** pre-gens
+ * the caller *owns*, wherever it lives — but a Game's **unassigned** pre-gens
  * and its communal crawler have no owner at all, and are legitimately held
  * (`WiringSync` brings the crawler down). So a Game row is pruned only when this browser recorded a server
  * version for it, which only `listMine` or the owner's own write does

@@ -84,12 +84,12 @@ describe('what the game will accept', () => {
     const caps = tableCapabilities({ viewerId: 'u-med', members: ALL, crawlerCount: 0 })
     expect(caps.canAddCrew).toBe(true)
     expect(caps.canRaiseCrawler).toBe(true)
-    expect(caps.canOfferUnclaimed).toBe(true)
+    expect(caps.canOfferUnassigned).toBe(true)
   })
 
-  test('only the table runner may leave a character unclaimed', () => {
+  test('only the table runner may leave a character unassigned', () => {
     const caps = tableCapabilities({ viewerId: 'u-play', members: ALL, crawlerCount: 1 })
-    expect(caps.canOfferUnclaimed).toBe(false)
+    expect(caps.canOfferUnassigned).toBe(false)
   })
 })
 
@@ -109,16 +109,17 @@ describe('rows carry ownership as a state, never a blank', () => {
       localIds: new Set(localIds),
     })
 
-  test('an unclaimed pilot reads as Unclaimed and offers a pick-up', () => {
+  test('an unassigned pilot reads as Unassigned and offers to assign it to you', () => {
     const [, pregen] = built('u-play')
-    expect(pregen?.owner?.label).toBe('Unclaimed')
-    expect(pregen?.can.claim).toBe(true)
+    expect(pregen?.owner?.label).toBe('Unassigned')
+    expect(pregen?.can.assignSelf).toBe(true)
   })
 
-  test("a crewmate's pilot is neither claimable nor openable", () => {
+  test("a crewmate's pilot is neither assignable nor editable", () => {
     const [, , theirs] = built('u-play')
     expect(theirs?.owner?.label).toBe('Mediator')
-    expect(theirs?.can.claim).toBe(false)
+    expect(theirs?.can.assignSelf).toBe(false)
+    expect(theirs?.can.unassign).toBe(false)
     // The sheet is a live editing surface; opening one whose writes the server
     // refuses would be worse than not linking it.
     expect(theirs?.can.openSheet).toBe(false)
@@ -128,7 +129,22 @@ describe('rows carry ownership as a state, never a blank', () => {
     const [mine] = built('u-play')
     expect(mine?.owner?.label).toBe('You')
     expect(mine?.can.openSheet).toBe(true)
-    expect(mine?.can.release).toBe(true)
+    expect(mine?.can.unassign).toBe(true)
+  })
+
+  test('only the table runner may assign to somebody else, or unassign what a crewmate holds', () => {
+    // Mirrors `ownership.assign` and `unassign`: a player places
+    // nothing but a free one with themselves.
+    for (const row of built('u-play')) expect(row.can.assignTo).toEqual([])
+    const [roach, pregen, theirs] = built('u-med')
+    expect(roach?.can.unassign).toBe(true)
+    expect(pregen?.can.unassign).toBe(false)
+    // Everyone but its holder, the table runner included.
+    expect(roach?.can.assignTo.map((m) => m.userId)).toEqual(['u-med', 'u-org'])
+    expect(pregen?.can.assignTo.map((m) => m.userId)).toEqual(['u-med', 'u-org', 'u-play'])
+    expect(theirs?.can.assignTo.map((m) => m.userId)).toEqual(['u-org', 'u-play'])
+    // The Organizer runs the table only while nobody mediates.
+    for (const row of built('u-org')) expect(row.can.assignTo).toEqual([])
   })
 
   test('localId is set only when this browser actually holds a copy', () => {
@@ -136,7 +152,7 @@ describe('rows carry ownership as a state, never a blank', () => {
     expect(built('u-play', ['a1'])[0]?.localId).toBe('a1')
   })
 
-  test('a claimed template pre-gen, with no app id, is held by its body id', () => {
+  test('an assigned template pre-gen, with no app id, is held by its body id', () => {
     const [row] = ownableRows({
       kind: 'pilot',
       rows: [{ _id: 's4', appId: null, ownerId: 'u-play', body: { id: 'bonesaw', name: 'B' } }],
@@ -172,33 +188,33 @@ describe('deleting from a game', () => {
     ownableRows({ kind: 'pilot', rows, viewerId, members: ALL, localIds: new Set() })
 
   test('the owner may delete their own', () => {
-    // A Game had no delete at all before this — only "Offer to the crew", which
+    // A Game had no delete at all before this — only handing back, which
     // hands a character over rather than ending it. The reported version was
     // blunter: "u can't delete pilots or mechs".
     const [mine] = built('u-play')
     expect(mine?.can.delete).toBe(true)
   })
 
-  test("nobody may delete a crewmate's, or an unclaimed pre-gen", () => {
+  test("nobody may delete a crewmate's, or an unassigned pre-gen", () => {
     const [, pregen, theirs] = built('u-play')
-    // Mirrors `assertMayWrite`: an unclaimed row has no owner to be, and
+    // Mirrors `assertMayWrite`: an unassigned row has no owner to be, and
     // somebody else's is theirs. Both refuse on the server, so neither offers.
     expect(pregen?.can.delete).toBe(false)
     expect(theirs?.can.delete).toBe(false)
   })
 
-  test('delete is not release — a row that can do one can do both', () => {
-    // They are separate verbs on purpose: releasing is generous and reversible,
+  test('delete is not unassign — a row that can do one can do both', () => {
+    // They are separate verbs on purpose: unassigning is generous and reversible,
     // deleting is neither. A surface that collapsed them would guess wrong in
     // the one direction that cannot be undone.
     const [mine] = built('u-play')
-    expect(mine?.can.release).toBe(true)
+    expect(mine?.can.unassign).toBe(true)
     expect(mine?.can.delete).toBe(true)
   })
 
   test('only the owner may take a pilot or mech out of the game, to your shelves', () => {
     // Mirrors the server's move rule (ADR-037): leaving a Game needs ownership
-    // and nothing else, so an unclaimed pre-gen and a crewmate's stay put.
+    // and nothing else, so an unassigned pre-gen and a crewmate's stay put.
     const [mine, pregen, theirs] = built('u-play')
     expect(mine?.can.removeFromGame).toBe(true)
     expect(pregen?.can.removeFromGame).toBe(false)
@@ -213,9 +229,10 @@ describe('crawler rows are communal', () => {
     const [row] = crawlerRows({ rows, tableRunner: false, localIds: new Set() })
     expect(row?.can.openSheet).toBe(true)
     // No owner chip at all: "who owns the crawler" is not a question with an
-    // answer, and rendering "Unclaimed" would invite somebody to claim it.
+    // answer, and rendering "Unassigned" would invite somebody to take it.
     expect(row?.owner).toBeNull()
-    expect(row?.can.claim).toBe(false)
+    expect(row?.can.assignSelf).toBe(false)
+    expect(row?.can.assignTo).toEqual([])
   })
 
   test('the primary is marked, and only the table runner may make another one primary', () => {
@@ -316,7 +333,7 @@ describe('groupColumn — yours first, then everyone else', () => {
     localIds: new Set(),
   })
 
-  test("the viewer's own rows lead, in listing order; the rest follow, unclaimed included", () => {
+  test("the viewer's own rows lead, in listing order; the rest follow, unassigned included", () => {
     const { yours, others } = groupColumn(ownable)
     expect(yours.map((r) => r.name)).toEqual(['Mine A', 'Mine B'])
     expect(others.map((r) => r.name)).toEqual(['Theirs', 'Pre-gen'])

@@ -5,7 +5,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { linkIdOf, mutation, oldestByAppId, resolveLinkEnd, rowsInGame } from './model/entities'
 import { assertMayWrite } from './model/ownableWrites'
-import { NotAuthorized, requireMember, requireUser } from './model/permissions'
+import { membershipOrNull, NotAuthorized, requireMember, requireUser } from './model/permissions'
 import { seatMount, seatRange, seatResolving, soloDowntime } from './model/playTables'
 import type { SeatPlace, SeatState } from './model/seats'
 import { defaultSeat, readSeat, remount, seatsAt, seatsInGame, writeSeat } from './model/seats'
@@ -201,7 +201,7 @@ export const presence = query({
   args: { gameId: v.id('games') },
   returns: v.array(v.number()),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
     const rows = await seatsInGame(ctx, args.gameId)
     return rows.flatMap((row) => (row.lastSeenAt === undefined ? [] : [row.lastSeenAt]))
   },
@@ -230,7 +230,7 @@ export const forGame = query({
   args: { gameId: v.id('games') },
   returns: v.array(seatRead),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
     const [pilots, rows] = await Promise.all([
       rowsInGame(ctx, 'pilot', args.gameId),
       seatsInGame(ctx, args.gameId),
