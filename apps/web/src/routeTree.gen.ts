@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
 import { Route as AdminHomebrewRouteImport } from './routes/admin/homebrew'
+import { Route as AdminMetricsRouteImport } from './routes/admin/metrics'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
@@ -61,6 +62,11 @@ const SignOutRoute = SignOutRouteImport.update({
 const AdminHomebrewRoute = AdminHomebrewRouteImport.update({
   id: '/admin/homebrew',
   path: '/admin/homebrew',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMetricsRoute = AdminMetricsRouteImport.update({
+  id: '/admin/metrics',
+  path: '/admin/metrics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
   '/admin/homebrew': typeof AdminHomebrewRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
   '/admin/homebrew': typeof AdminHomebrewRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
@@ -207,6 +215,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
   '/admin/homebrew': typeof AdminHomebrewRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-out'
     | '/admin/homebrew'
+    | '/admin/metrics'
     | '/crawlers/new'
     | '/invite/$token'
     | '/mechs/new'
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-out'
     | '/admin/homebrew'
+    | '/admin/metrics'
     | '/crawlers/new'
     | '/invite/$token'
     | '/mechs/new'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-out'
     | '/admin/homebrew'
+    | '/admin/metrics'
     | '/crawlers/new'
     | '/invite/$token'
     | '/mechs/new'
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SignOutRoute: typeof SignOutRoute
   AdminHomebrewRoute: typeof AdminHomebrewRoute
+  AdminMetricsRoute: typeof AdminMetricsRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MechsNewRoute: typeof MechsNewRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/homebrew'
       fullPath: '/admin/homebrew'
       preLoaderRoute: typeof AdminHomebrewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/metrics': {
+      id: '/admin/metrics'
+      path: '/admin/metrics'
+      fullPath: '/admin/metrics'
+      preLoaderRoute: typeof AdminMetricsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crawlers/new': {
@@ -502,6 +522,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SignOutRoute: SignOutRoute,
   AdminHomebrewRoute: AdminHomebrewRoute,
+  AdminMetricsRoute: AdminMetricsRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   InviteTokenRoute: InviteTokenRoute,
   MechsNewRoute: MechsNewRoute,

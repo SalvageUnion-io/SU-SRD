@@ -1217,3 +1217,78 @@ a.su-home__discord:hover {
     flex: 0 0 24rem;
   }
 }
+
+/* The roadmap's board (`reference/pages/roadmap.page.tsx`): Soon, Next and Later stack on a phone
+   and stand side by side from `sm` (40rem) up, a hairline between them. Each headline wears its
+   area's tag, in that area's band tone with the text colour the tone carries. */
+.su-roadmap__lane {
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-roadmap__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-roadmap__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-roadmap__items > li {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+}
+
+.su-roadmap__tag {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  padding: var(--space-2) var(--space-6);
+}
+
+.su-roadmap__tag[data-area='reference'] {
+  background-color: var(--color-tl-3);
+  color: var(--color-ink);
+}
+
+.su-roadmap__tag[data-area='cantina'] {
+  background-color: var(--color-pilot);
+  color: var(--color-ink);
+}
+
+.su-roadmap__tag[data-area='play'] {
+  background-color: var(--color-denizen-band);
+}
+
+.su-roadmap__tag[data-area='beyond'] {
+  background-color: var(--color-discord);
+}
+
+@media (width >= 40rem) {
+  .su-roadmap__lane {
+    gap: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .su-roadmap__cell {
+    padding-inline: var(--space-12);
+  }
+
+  .su-roadmap__cell:first-child {
+    padding-inline-start: 0;
+  }
+
+  .su-roadmap__cell:last-child {
+    padding-inline-end: 0;
+  }
+
+  .su-roadmap__cell + .su-roadmap__cell {
+    border-inline-start: var(--bw-hairline) solid var(--color-wk-faint);
+  }
+}

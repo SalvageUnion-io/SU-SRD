@@ -103,6 +103,7 @@ const NON_COPY_ATTRS = new Set([
   'accept',
   'autoComplete',
   'href',
+  'rel',
   'src',
   'id',
   'key',

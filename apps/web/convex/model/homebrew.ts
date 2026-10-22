@@ -2,7 +2,7 @@ import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
 /**
- * Homebrew's shared reads and writes (ADR-057): a pattern's moderation row,
+ * Homebrew's shared reads and writes (ADR-058): a pattern's moderation row,
  * and the clean-up when a pattern or a reporter goes.
  */
 

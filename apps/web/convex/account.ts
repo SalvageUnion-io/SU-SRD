@@ -2,6 +2,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { deleteFeedbackOf } from './feedback'
 import { personalBinding } from './model/channelBindings'
 import { mutation, pruneLinksOfRow } from './model/entities'
 import { deleteReportsBy } from './model/homebrew'
@@ -93,7 +94,7 @@ export const exportMine = query({
     mechs: v.array(v.any()),
     npcs: v.array(v.any()),
     mechPatterns: v.array(v.any()),
-    /** Their reports of Homebrew patterns (ADR-057): what they said, and when. */
+    /** Their reports of Homebrew patterns (ADR-058): what they said, and when. */
     homebrewReports: v.array(v.object({ reason: v.string(), at: v.number() })),
     games: v.array(
       v.object({
@@ -275,6 +276,10 @@ export const deleteAccount = mutation({
     // Their patterns' reports went with the patterns (the trigger in
     // `model/entities.ts`); their reports of other people's patterns go too.
     await deleteReportsBy(ctx, userId)
+
+    // Feedback still waiting or still counted against today's limit, before
+    // the Discord link that names some of it goes.
+    await deleteFeedbackOf(ctx, userId)
 
     // Auth rows, so the identity cannot be resurrected by signing in again.
     //

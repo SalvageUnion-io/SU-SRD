@@ -7,6 +7,7 @@ import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { homebrewTables } from './model/homebrewTables'
 import { playTables } from './model/playTables'
+import { signalTables } from './model/signalTables'
 import { literalUnion } from './model/validators'
 
 /**
@@ -461,7 +462,7 @@ export default defineSchema({
      */
     builtCount: v.optional(v.number()),
     /**
-     * Shared with everyone on the Reference as Homebrew (ADR-057): its maker's
+     * Shared with everyone on the Reference as Homebrew (ADR-058): its maker's
      * second opt-in, held only while `publicRead` is.
      */
     homebrew: v.optional(v.boolean()),
@@ -470,7 +471,7 @@ export default defineSchema({
     .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_app_id', ['appId'])
     .index('by_game', ['gameId'])
-    // Homebrew (ADR-057): every pattern shared on the Reference, newest share first.
+    // Homebrew (ADR-058): every pattern shared on the Reference, newest share first.
     .index('by_homebrew', ['homebrew', 'sharedAt']),
 
   /**
@@ -554,4 +555,5 @@ export default defineSchema({
   ...playTables,
 
   ...homebrewTables,
+  ...signalTables,
 })

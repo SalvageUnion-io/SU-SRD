@@ -1,5 +1,5 @@
 /**
- * HomebrewIsland — the players' own mech patterns on the SRD (ADR-057).
+ * HomebrewIsland — the players' own mech patterns on the SRD (ADR-058).
  *
  * - **On a chassis page** (`chassisRef`): a "Show Homebrew" switch under the
  *   book's patterns. On, it lists the patterns players built on this chassis

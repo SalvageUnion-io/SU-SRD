@@ -1,5 +1,5 @@
 /**
- * Homebrew on the SRD (ADR-057), as a page reads it: every pattern a player
+ * Homebrew on the SRD (ADR-058), as a page reads it: every pattern a player
  * shares with everyone on the Reference, served by the Worker at
  * `HOMEBREW_PATTERNS_PATH` (`./endpoint.ts`, `worker/homebrew.ts`, from
  * `convex/homebrew.ts`), parsed here into what a row draws.

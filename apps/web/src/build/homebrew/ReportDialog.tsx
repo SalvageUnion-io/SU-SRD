@@ -1,6 +1,6 @@
 /**
  * ReportDialog — a signed-in reader tells the site admins what is wrong with
- * one homebrew pattern (ADR-057): copied book text, something offensive,
+ * one homebrew pattern (ADR-058): copied book text, something offensive,
  * spam. One report per reader; reporting again replaces the reason
  * (`homebrew.report`). The maker is not told who reported it.
  */

@@ -5,7 +5,7 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
 
 /**
  * DocPage — the frame every plain document page wears (`/about`, `/api`,
- * `/changelog`, `/discord` and the two `/bot` policies): the page column, its
+ * `/changelog`, `/bot` and its two policies): the page column, its
  * `ChapterBand` title, then the body on the one page measure the band shares
  * (`.su-page-body`), its text in a reading column from the same gutter.
  */

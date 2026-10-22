@@ -6,7 +6,7 @@ import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Homebrew (ADR-057): a saved pattern its maker shares with "Anyone with the
+ * Homebrew (ADR-058): a saved pattern its maker shares with "Anyone with the
  * link" and then with everyone on the Reference is on the SRD, read with no
  * account; a signed-in reader reports one; a site admin hides one. Never more
  * public than the link.

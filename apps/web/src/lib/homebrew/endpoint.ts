@@ -1,5 +1,5 @@
 /**
- * The Worker's Homebrew endpoint (ADR-057), shared by the Worker that serves
+ * The Worker's Homebrew endpoint (ADR-058), shared by the Worker that serves
  * it (`worker/homebrew.ts`) and the pages that read it (`./homebrew.ts`).
  * Kept apart so the Worker carries none of the reference data a page parses
  * the rows with.
