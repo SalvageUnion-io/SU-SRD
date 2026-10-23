@@ -13,38 +13,21 @@ import { capsLabel } from '../components/atoms/capsLabel'
 import { useConnection } from '../lib/connection/connectionContext'
 import { playCopy } from '../messages/play'
 
-const BASE = {
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-const CAPS = capsLabel({ size: 'badge' })
-
 /** On the foot's band: its own foreground (`PlayFoot`); the words say the state. */
-const SAVED = { ...BASE, color: 'inherit' } satisfies CSSProperties
-
-const OFFLINE = { ...BASE, color: 'inherit' } satisfies CSSProperties
+const WORDS = { whiteSpace: 'nowrap', color: 'inherit' } satisfies CSSProperties
+const CAPS = capsLabel({ size: 'badge' })
 
 export function SavedIndicator() {
   const { mode } = useConnection()
-  if (mode === 'connected') {
-    return (
-      <span role="status" className={CAPS} style={SAVED}>
-        {playCopy('saved')}
-      </span>
-    )
-  }
-  if (mode === 'disconnected') {
-    return (
-      <span role="status" className={CAPS} style={OFFLINE}>
-        {playCopy('offlineReadOnly')}
-      </span>
-    )
-  }
-  if (mode === 'connecting') {
-    return (
-      <span role="status" className={CAPS} style={SAVED}>
-        {playCopy('connecting')}
-      </span>
-    )
-  }
-  return null
+  // Signed out there is no Play, so the foot says nothing.
+  if (mode === 'solo') return null
+  return (
+    <span role="status" className={CAPS} style={WORDS}>
+      {mode === 'connected'
+        ? playCopy('saved')
+        : mode === 'disconnected'
+          ? playCopy('offlineReadOnly')
+          : playCopy('connecting')}
+    </span>
+  )
 }
