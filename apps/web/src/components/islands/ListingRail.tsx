@@ -180,9 +180,9 @@ export function ListingRail({
         <div className="su-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
             <Segmented label={islandsCopy('techLevel')}>
-              <Badge shape="stamp" size="full" className="su-rail__stamp" aria-hidden="true">
+              <span className="su-rail__stamp" aria-hidden="true">
                 {islandsCopy('tl')}
-              </Badge>
+              </span>
               <SegmentedOption pressed={filters.techLevels.size === 0} onClick={on.clearTechLevels}>
                 {islandsCopy('all')}
               </SegmentedOption>
