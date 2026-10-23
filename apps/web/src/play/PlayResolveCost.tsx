@@ -26,7 +26,7 @@ const NO_COST = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.note,
-  color: color.wkMuted,
+  color: color.wkMuted, // design-tokens-ignore: a condensed label
 } satisfies CSSProperties
 
 /**

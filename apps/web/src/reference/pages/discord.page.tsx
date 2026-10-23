@@ -78,7 +78,7 @@ const KEY_CAP = {
 } satisfies CSSProperties
 
 const LEGAL = {
-  color: color.wkMuted,
+  color: color.wkMuted, // design-tokens-ignore: the legal line
   fontSize: fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
   textAlign: 'center',

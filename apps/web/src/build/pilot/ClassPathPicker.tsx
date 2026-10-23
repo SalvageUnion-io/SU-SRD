@@ -14,27 +14,26 @@ import type { RefClass } from 'salvageunion-reference'
 import {
   Callout,
   Entity,
+  Eyebrow,
   RadioCardGroup,
   SELECT_DIM,
   Slab,
   SlabSection,
   Stack,
+  Text,
   tokens,
 } from '../../components/index'
 import { cn } from '../../lib/cn'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/build/wizard.css'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import { pilotCopy } from '../../messages/build-pilot'
 
-/** The caps note under a class card ("current", "via Hacker", …). */
+/** The caps note's place under a class card ("current", "via Hacker", …). */
 const OPTION_NOTE = {
   margin: `0 0 ${tokens.space[8]}`,
   paddingLeft: tokens.space[4],
-  color: tokens.color.wkMuted,
 } satisfies CSSProperties
-const OPTION_NOTE_CAPS = capsLabel({ size: 'badge' })
 
 /** A line that names no entity (a tree, what it costs), in the body face. */
 const LEDGER_LINE = {
@@ -51,14 +50,6 @@ const GROUP = { marginBottom: tokens.space[16] } satisfies CSSProperties
 
 /** The origin question's copy, the whole of its note. */
 const ORIGIN_COPY = { margin: 0 } satisfies CSSProperties
-
-/** The derived-origin note. */
-const IMPLIED_ORIGIN = {
-  margin: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 type ClassPathPickerProps = {
   allClasses: readonly RefClass[]
@@ -102,9 +93,9 @@ function OptionCard({
         />
       </div>
       {note !== undefined && (
-        <p className={OPTION_NOTE_CAPS} style={OPTION_NOTE}>
+        <Eyebrow as="p" tone="muted" style={OPTION_NOTE}>
           {note}
-        </p>
+        </Eyebrow>
       )}
     </div>
   )
@@ -241,10 +232,10 @@ export function ClassPathPicker({
             )}
 
             {consequence.impliedOrigin !== undefined && (
-              <p style={IMPLIED_ORIGIN}>
+              <Text variant="note">
                 Recorded as <strong>{consequence.impliedOrigin}</strong> — derived from this pilot's
                 trees, so nothing extra is stored.
-              </p>
+              </Text>
             )}
           </>
         )}

@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize } from '../../../design/tokens'
-import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { SlabSection } from '../../containers/SlabSection'
+import { TraitProse } from '../../TraitProse'
 
 const EFFECT = {
   color: color.ink,
@@ -20,11 +20,6 @@ const EFFECT_PAGE = {
 
 /** In a card (a live sheet's bay, a Peek), at the card body's size. */
 const EFFECT_CARD = { ...EFFECT, fontSize: fontSize.xs } satisfies CSSProperties
-
-/** The effect's words, its references Mentions as in any prose. */
-function EffectText({ effect }: { effect: string }) {
-  return <>{useParseTraitReferences(effect)}</>
-}
 
 /**
  * WHEN DAMAGED — a crawler bay's rules block, one renderer in every context
@@ -69,7 +64,7 @@ export function WhenDamaged({
         bodyClassName="su-entity-page__section-body su-entity-page__prose"
       >
         <p style={EFFECT_PAGE}>
-          <EffectText effect={effect} />
+          <TraitProse text={effect} />
         </p>
       </SlabSection>
     )
@@ -83,7 +78,7 @@ export function WhenDamaged({
       className="su-ec-block"
     >
       <p style={EFFECT_CARD}>
-        <EffectText effect={effect} />
+        <TraitProse text={effect} />
       </p>
     </SlabSection>
   )

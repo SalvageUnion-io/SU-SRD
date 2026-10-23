@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
 import { ChipOverflowRow } from '../../atoms/chipOverflow'
@@ -12,6 +11,7 @@ import { Stat } from '../../atoms/Stat'
 import { Content } from '../../referenceEntity/Content'
 import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
 import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
+import { TraitProse } from '../../TraitProse'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { SELECT_DIM, SELECTED_RING } from '../modes/selectedRing'
@@ -84,15 +84,12 @@ export type MiniBody = {
 
 const READ: EntityMode = { kind: 'read' }
 
-/** A contentful Mini's lead, its references Mentions as in any prose. */
-function MiniLead({ text }: { text: string }) {
-  return <p className="su-entity-mini__lead">{useParseTraitReferences(text)}</p>
-}
-
 /** The text under a contentful Mini's head: the model's prose, else its lead. */
 function MiniText({ model, chassisName }: { model: EntityFormModel; chassisName?: string }) {
   if (model.prose?.length) return <Content body={model.prose} chassisName={chassisName} />
-  return model.lead ? <MiniLead text={model.lead} /> : null
+  return model.lead ? (
+    <TraitProse as="p" className="su-entity-mini__lead" text={model.lead} />
+  ) : null
 }
 
 type ToggleMode = Extract<EntityMode, { kind: 'select' }>

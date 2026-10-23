@@ -468,7 +468,7 @@ const SUBTITLE_STYLE = {
   padding: `${space[12]} ${space[16]} 0`,
   fontSize: fontSize.xs,
   lineHeight: 1.2,
-  color: color.wkMuted,
+  color: color.wkMuted, // design-tokens-ignore: the dialog subtitle, in caps
 } satisfies CSSProperties
 const SUBTITLE_CAPS = capsLabel()
 

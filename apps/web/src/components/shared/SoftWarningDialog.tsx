@@ -15,8 +15,9 @@
 
 import type { CSSProperties } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { color, space } from '../../design/tokens'
 import { sharedCopy } from '../../messages/components-shared'
+import { Text } from '../atoms/Text'
 import { Banner, Button, DialogActions, ModalShell } from '../index'
 
 const BODY = {
@@ -25,14 +26,6 @@ const BODY = {
   flexDirection: 'column',
   gap: space[16],
   padding: space[20],
-} satisfies CSSProperties
-
-const LEDE = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: '1.25rem',
-  margin: 0,
 } satisfies CSSProperties
 
 type SoftWarningDialogProps = {
@@ -66,7 +59,7 @@ export function SoftWarningDialog({
       width="narrow"
     >
       <div style={BODY}>
-        <p style={LEDE}>{sharedCopy('thisEditIsLegalTo')}</p>
+        <Text variant="note">{sharedCopy('thisEditIsLegalTo')}</Text>
         <Banner warnings={warnings} />
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onCancel}>

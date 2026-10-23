@@ -11,11 +11,12 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { borderWidth, color, font, fontSize, iconSize, space } from '../../design/tokens'
+import { borderWidth, color, iconSize, space } from '../../design/tokens'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { Button } from '../atoms/Button'
 import { Slab } from '../atoms/Slab'
+import { Text } from '../atoms/Text'
 import { Entity } from '../entity/Entity'
 import { BudgetChips } from './EntitySearcherBudget'
 import { chevronStyle } from './entitySearcherChrome'
@@ -222,7 +223,7 @@ export function SelectionRail({
         </div>
       ))}
       {entries.length === 0 && (
-        <p style={EMPTY_STYLE}>{compositionsCopy('nothingYet', { chosen })}</p>
+        <Text variant="note">{compositionsCopy('nothingYet', { chosen })}</Text>
       )}
     </div>
   )
@@ -330,13 +331,6 @@ const LIST_STYLE = { padding: `${space[12]} ${space[16]}` } satisfies CSSPropert
 const ENTRY_STYLE = { marginBottom: space[6] } satisfies CSSProperties
 /** The sidebar's Minis leave their Tech level to the list. */
 const RAIL_OMIT = ['tech-level'] as const
-
-const EMPTY_STYLE = {
-  margin: 0,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  color: color.wkMuted,
-} satisfies CSSProperties
 
 const ACTIONS_STYLE = {
   display: 'flex',

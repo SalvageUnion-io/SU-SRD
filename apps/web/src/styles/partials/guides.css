@@ -493,17 +493,9 @@
 }
 
 .su-pattern-rows__more {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
   display: flex;
-  font-size: var(--text-lede);
   justify-content: center;
   margin-top: var(--space-12);
-  min-height: var(--size-full);
-  text-decoration: none;
 }
 
 @media not (width >= 40rem) {

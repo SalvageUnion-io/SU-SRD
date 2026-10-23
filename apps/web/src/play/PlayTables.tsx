@@ -21,7 +21,14 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { RollMini } from '../components/entity/forms/RollMini'
-import { CHAPTER_BAND_COLOR, Checkbox, MiniGrid, SearchField, tokens } from '../components/index'
+import {
+  CHAPTER_BAND_COLOR,
+  Checkbox,
+  MiniGrid,
+  SearchField,
+  Text,
+  tokens,
+} from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
@@ -43,13 +50,6 @@ const POST = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
   gap: tokens.space[8],
-} satisfies CSSProperties
-
-const HINT = {
-  color: tokens.color.ink75,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
-  margin: 0,
 } satisfies CSSProperties
 
 type PlayTablesProps = {
@@ -151,7 +151,7 @@ export function PlayTables({
         />
         <span id={`${postId}-label`}>{postLabel(solo, binding)}</span>
       </div>
-      {binding === null && <p style={HINT}>{playCopy('noChannelIsBoundYet')}</p>}
+      {binding === null && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
     </div>
   )
 }

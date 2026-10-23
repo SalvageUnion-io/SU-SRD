@@ -13,12 +13,7 @@
 
 import type { RefObjectTable } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import { digestRollTable, RollTableInstrument, useParseTraitReferences } from '../components/index'
-
-/** A row's text, its trait references as Mentions. */
-function TraitText({ text }: { text: string }) {
-  return <>{useParseTraitReferences(text)}</>
-}
+import { digestRollTable, RollTableInstrument, TraitProse } from '../components/index'
 
 export type PlayRollInstrumentProps = {
   /** The table rolled on, by its name ("Core Mechanic"): its bands and its accessible name. */
@@ -47,7 +42,7 @@ export function PlayRollInstrument({ table, roll, stamp, onRoll }: PlayRollInstr
       title={table}
       table={{
         kind: 'bands',
-        rows: rows.map((row) => ({ ...row, value: <TraitText text={row.value} /> })),
+        rows: rows.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
         mark: key === null || roll === null ? undefined : { key, roll },
       }}
     />

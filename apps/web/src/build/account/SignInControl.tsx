@@ -6,16 +6,16 @@ import { useSignOut } from './useSignOut'
 
 /**
  * The Union bar's treatment: an outline in the bar's own foreground
- * (`--su-bar-fg`, whatever band the bar wears). `.su-sign-in-control--bar`
- * (`styles/screens.css`) is an app rule outside the cascade layers, so it wins
- * over the variant's own border/text colours and its hover ink wash.
+ * (`--su-bar-fg`, whatever band the bar wears), `.su-union-bar__action`
+ * (`partials/shell.css`), the bar's one outlined control, which "Buy the game"
+ * and the Reference's Sign in wear too.
  *
  * Both states use it, including sign-in. `variant="primary"` is right on the
  * paper settings screen and in the mobile drawer, but in the masthead it would
  * put a second rust button directly beside "Buy the game" — two identical
  * CTAs, neither reading as the primary one. The bar keeps one loud action.
  */
-const BAR_BUTTON = 'su-sign-in-control--bar'
+const BAR_BUTTON = 'su-union-bar__action'
 
 type SignInControlProps = {
   /** Sits in the Union bar: outlined in the bar's foreground, never a second rust CTA. */

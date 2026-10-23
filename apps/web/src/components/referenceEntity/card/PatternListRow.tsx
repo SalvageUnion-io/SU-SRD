@@ -9,15 +9,15 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
-import { capsLabel } from '../../atoms/capsLabel'
+import { Button } from '../../atoms/Button'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
 import { Head, paintFor } from '../../entity'
 import { Entity } from '../../entity/Entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
+import { TraitProse } from '../../TraitProse'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
@@ -123,11 +123,6 @@ function PatternListRow({
       }
     />
   )
-}
-
-/** A pattern's description, its references Mentions as in any prose. */
-function PatternProse({ text }: { text: string }) {
-  return <p className="su-pattern-rows__prose">{useParseTraitReferences(text)}</p>
 }
 
 /** BASIC HOST CARD → the list of its patterns, each its Mini (contentful
@@ -242,7 +237,11 @@ export function PatternListing({
         )
       }
     >
-      {edit ? edit.description : description && <PatternProse text={description} />}
+      {edit
+        ? edit.description
+        : description && (
+            <TraitProse as="p" className="su-pattern-rows__prose" text={description} />
+          )}
       {(loadout.length > 0 || drones.length > 0) && (
         <PatternLoadout
           groups={loadout}
@@ -283,9 +282,9 @@ export function ShowAllPatterns({
 }) {
   if (count <= PATTERNS_ON_A_PHONE) return null
   return (
-    <a href={`#${target}`} className={cn('su-pattern-rows__more', capsLabel(), FOCUS_RING)}>
+    <Button href={`#${target}`} size="full" className="su-pattern-rows__more">
       {referenceEntityCopy('showAllPatterns', { count })}
-    </a>
+    </Button>
   )
 }
 

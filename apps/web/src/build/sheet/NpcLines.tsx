@@ -42,7 +42,7 @@ const ROW_VALUE = { margin: 0, minWidth: 0 } satisfies CSSProperties
 const ROW_VALUE_GROW = { flex: '1 1 0%' } satisfies CSSProperties
 
 const ROW_VALUE_PROSE = {
-  color: tokens.color.wkMuted,
+  color: tokens.color.wkMuted, // design-tokens-ignore: a row value, set in its row
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.note,
   lineHeight: 1.375,

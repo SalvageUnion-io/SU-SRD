@@ -15,8 +15,9 @@
  */
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { color, space } from '../../design/tokens'
 import { sharedCopy } from '../../messages/components-shared'
+import { Text } from '../atoms/Text'
 import { Button, Pending, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
@@ -36,13 +37,6 @@ const PANEL = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
 
 /** Its body: a column, the exit at its head's edge. */
 const PANEL_BODY = { alignItems: 'flex-start', gap: space[16] } satisfies CSSProperties
-
-const PANEL_MESSAGE = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: '1.25rem',
-} satisfies CSSProperties
 
 /** The 404's exit, at the head of its column (a flex column that would stretch it). */
 const HANGAR_LINK = { alignSelf: 'flex-start' } satisfies CSSProperties
@@ -83,7 +77,7 @@ export function NotFoundPanel({
           bodyClassName="su-not-found-panel"
           bodyStyle={PANEL_BODY}
         >
-          <p style={PANEL_MESSAGE}>{message}</p>
+          <Text variant="note">{message}</Text>
           <Button href={back.href} back variant="ghost" size="compact">
             {back.label}
           </Button>

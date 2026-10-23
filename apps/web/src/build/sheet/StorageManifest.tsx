@@ -60,6 +60,7 @@ import {
   SlabSection,
   SlotGrid,
   Stat,
+  Text,
   TitledBox,
   tokens,
 } from '../../components/index'
@@ -126,14 +127,6 @@ const HOLD_PAD = {
 
 /** The linked counterpart's body: its lines a step apart, its Mini filling its line (N4). */
 const COUNTERPART = { gap: tokens.space[8] } satisfies CSSProperties
-
-const NOTE = {
-  margin: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
-  lineHeight: 1.375,
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 export function StorageManifest({
   side,
@@ -285,7 +278,9 @@ export function StorageManifest({
             ) : (
               <span style={SMALL_TEXT}>{buildSheetCopy('slotsFree', { used, cap, free })}</span>
             )}
-            {cargo.crawlerLocked !== null && !readOnly && <p style={NOTE}>{cargo.crawlerLocked}</p>}
+            {cargo.crawlerLocked !== null && !readOnly && (
+              <Text variant="note">{cargo.crawlerLocked}</Text>
+            )}
           </Box>
         ) : (
           <EmptyState
