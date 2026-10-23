@@ -230,7 +230,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
     Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
-    Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides.
+    Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides. Built-in homebrew (credited Mech Monday patterns in the data) lists with them.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.
 62. **ADR-062 Play at /play, one URL grammar** · [full text](adr/062-play-at-play.md)
     Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.

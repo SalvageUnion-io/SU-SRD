@@ -1,9 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import { Box } from '../../components/containers/Box'
-import { tokens } from '../../components/index'
+import { Eyebrow, tokens } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
 /** Per-step rule metadata carried by each wizard's step table. */
@@ -28,11 +27,7 @@ const ruleStyle = {
 } satisfies CSSProperties
 
 /** The cite under the rule: plain text, as every foot cites (E9). */
-const citeStyle = {
-  color: tokens.color.wkMuted,
-  margin: 0,
-} satisfies CSSProperties
-const citeCaps = capsLabel({ size: 'badge', weight: 'semibold' })
+const citeStyle = { margin: 0 } satisfies CSSProperties
 
 /**
  * RuleBrief — the rule a wizard step (or a blocked Play action) answers
@@ -46,9 +41,9 @@ export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
     <Box as="section" label={buildWizardCopy('theRule')} className={className}>
       <p style={ruleStyle}>{rule}</p>
       {cite && (
-        <p className={citeCaps} style={citeStyle}>
+        <Eyebrow as="p" tone="muted" style={citeStyle}>
           {formatCite(cite)}
-        </p>
+        </Eyebrow>
       )}
     </Box>
   )

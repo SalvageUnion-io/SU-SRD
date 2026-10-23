@@ -22,8 +22,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { Field, tokens } from '../../components/index'
+import { Eyebrow, Field, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { ChipListEditor } from './ChipListEditor'
 import { FACT_DRAFT } from './chipWell.model'
@@ -36,12 +35,7 @@ const ROW = {
   minWidth: 0,
 } satisfies CSSProperties
 
-const ROW_LABEL = {
-  color: tokens.color.ink,
-  flexShrink: 0,
-  lineHeight: 1,
-} satisfies CSSProperties
-const ROW_LABEL_CAPS = capsLabel({ size: 'badge' })
+const ROW_LABEL = { flexShrink: 0, lineHeight: 1 } satisfies CSSProperties
 
 const ROW_VALUE = { margin: 0, minWidth: 0 } satisfies CSSProperties
 
@@ -106,9 +100,9 @@ function NpcRow({
 }) {
   return (
     <div className={className} style={ROW}>
-      <span className={ROW_LABEL_CAPS} style={ROW_LABEL}>
+      <Eyebrow tone="ink" style={ROW_LABEL}>
         {label}
-      </span>
+      </Eyebrow>
       <div
         style={{
           ...ROW_VALUE,

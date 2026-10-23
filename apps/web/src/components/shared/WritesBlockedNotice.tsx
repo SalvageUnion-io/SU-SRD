@@ -1,26 +1,6 @@
-import type { CSSProperties } from 'react'
-import { borderWidth, radius, space } from '../../design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { sharedCopy } from '../../messages/components-shared'
-import { capsLabel } from '../atoms/capsLabel'
-
-/**
- * In the ground's own ink (`currentColor`): a state, not an outcome, so no
- * roll-tier or status colour (chrome K5, ruleset §3.4). It sits on a band or
- * on paper, and reads on either.
- */
-const LOZENGE = {
-  alignItems: 'center',
-  borderColor: 'currentColor',
-  borderRadius: radius.badge,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.pill,
-  display: 'inline-flex',
-  gap: space[6],
-  paddingBlock: space[4],
-  paddingInline: space[8],
-} satisfies CSSProperties
-const LOZENGE_CAPS = capsLabel({ size: 'badge' })
+import { Badge } from '../atoms/Badge'
 
 /**
  * The in-place "this surface is read-only right now" lozenge (ADR-030 §1).
@@ -47,15 +27,12 @@ export function WritesBlockedNotice() {
   if (canWrite || settling) return null
 
   return (
-    <span role="status" aria-live="polite" className={LOZENGE_CAPS} style={LOZENGE}>
-      <span aria-hidden="true">◆</span>
-      <span>
-        {mode === 'solo'
-          ? sharedCopy('readOnlySignInTo')
-          : outdated
-            ? sharedCopy('readOnlyUpdating')
-            : sharedCopy('readOnlyForNow')}
-      </span>
-    </span>
+    <Badge surface="outline" className="su-page-action" role="status" aria-live="polite">
+      {mode === 'solo'
+        ? sharedCopy('readOnlySignInTo')
+        : outdated
+          ? sharedCopy('readOnlyUpdating')
+          : sharedCopy('readOnly')}
+    </Badge>
   )
 }

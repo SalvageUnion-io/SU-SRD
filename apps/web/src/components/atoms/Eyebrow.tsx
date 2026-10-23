@@ -18,7 +18,7 @@ type EyebrowTone = keyof typeof TONE
 type EyebrowProps = {
   tone: EyebrowTone
   /** The element it renders; the label keeps its semantics (`label`, `h3`, …). */
-  as?: 'span' | 'p' | 'div' | 'label' | 'h2' | 'h3'
+  as?: 'span' | 'p' | 'div' | 'label' | 'legend' | 'h2' | 'h3'
   children: ReactNode
   id?: string
   /** For `as="label"`. */

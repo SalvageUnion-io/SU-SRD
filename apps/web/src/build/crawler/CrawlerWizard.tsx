@@ -14,7 +14,6 @@ import {
   isWeaponSystem,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { slotPips } from '../../components/atoms/pipRows'
 import { toast, tokens } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { useMechs, usePilots } from '../../lib/entities'
@@ -337,12 +336,10 @@ export function CrawlerWizard({
     step === 'weapons' ? (
       <WizTracker
         label={crawlerCopy('weapons')}
-        value={
-          <span data-testid="weapon-system-count">
-            {slotPips(installedWeaponCount, weaponSlots)}
-            {installedWeaponCount} / {weaponSlots}
-          </span>
-        }
+        value={installedWeaponCount}
+        max={weaponSlots}
+        pips
+        testId="weapon-system-count"
       />
     ) : undefined
 

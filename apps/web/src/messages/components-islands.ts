@@ -12,6 +12,7 @@ export const islandsCopy = messages({
   filterByName: 'Filter {count} by name',
   filterItemsByName: 'Filter items by name',
   view: 'View',
+  active: 'active',
   techLevel: 'Tech Level',
   tl: 'TL',
   all: 'All',
@@ -34,6 +35,6 @@ export const islandsCopy = messages({
   showHomebrew: 'Show Homebrew',
   homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
   homebrewOff:
-    'Patterns players built on this chassis and shared on the Reference. Not from the book.',
+    'Community patterns for this chassis, from Mech Monday and from players on the Reference. Not from the book.',
   homebrewNone: 'No player has shared a pattern yet.',
 })

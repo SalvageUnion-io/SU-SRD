@@ -182,35 +182,9 @@ a.su-home__discord:hover {
   border-top: var(--bw-chrome) solid var(--color-ink);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-8) var(--space-20);
+  gap: var(--space-8);
   margin-block-start: var(--space-24);
   padding-block-start: var(--space-16);
-}
-
-.su-guide-exits__next,
-.su-guide-exits__starter {
-  align-items: center;
-  color: var(--color-ink);
-  display: inline-flex;
-  font-family: var(--font-cond);
-  min-height: var(--size-full);
-  text-underline-offset: 3px;
-}
-
-.su-guide-exits__next {
-  font-size: var(--text-readout);
-  gap: var(--space-4);
-  font-weight: var(--font-weight-bold);
-  text-decoration: none;
-}
-
-.su-guide-exits__next:hover {
-  text-decoration: underline;
-}
-
-.su-guide-exits__starter {
-  font-weight: var(--font-weight-semibold);
-  text-decoration: underline;
 }
 
 /*
@@ -600,18 +574,6 @@ a.su-home__discord:hover {
 /* The Filters toggle is a Full `Button`; the rail shows it only when narrow. */
 .su-rail__filters {
   display: none;
-}
-
-.su-rail__count {
-  align-items: center;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  display: inline-flex;
-  font-size: var(--text-xs);
-  height: 20px;
-  justify-content: center;
-  min-width: 20px;
-  padding: 0 var(--space-4);
 }
 
 .su-rail .su-rail__menu {

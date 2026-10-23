@@ -7,7 +7,7 @@ import { extractVisibleActions, getChassisAbilities } from '../../actionResoluti
 import { isAbility, isBaseAdvancedClass, isCoreClass } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
-import { getPatterns, isBioTitanPattern } from '../../patterns'
+import { getBookPatterns, isBioTitanPattern } from '../../patterns'
 import type {
   RefEntity,
   RefMetaAction,
@@ -153,7 +153,7 @@ export function chassisCardGroups(chassis: EntityRef): { label: string; items: E
     const slug = getEntitySlug(drone as RefEntity)
     drones.push({ schemaName: 'drones', id: drone.id, slug, name: drone.name })
   }
-  const patterns = (getPatterns(record) ?? []).map((pattern) => ({
+  const patterns = (getBookPatterns(record) ?? []).map((pattern) => ({
     ...chassis,
     name: pattern.name,
     pattern: pattern.name,

@@ -283,7 +283,6 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   // (correctly) not part of any pattern, vehicle, drone, or bio-titan loadout.
   // Verified: none appear in a `systems` array on any entity file.
   { file: 'systems.json', name: 'Adv. Fabrication Arm' },
-  { file: 'systems.json', name: 'Snub-Nosed Blue Laser' },
   { file: 'systems.json', name: 'Multi-Function Repair Arm' },
   { file: 'systems.json', name: 'Rad Wave Generator' },
   { file: 'systems.json', name: 'Bio-Wings' },
@@ -302,7 +301,6 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   // modules are installed into mech slots and need not appear in any pre-built
   // pattern. Verified: none appear in a `modules` array on any entity file.
   { file: 'modules.json', name: 'Hacking Repeater Node' },
-  { file: 'modules.json', name: 'Reactor Transference' },
   { file: 'modules.json', name: 'Corrupted Neuralink Module' },
   { file: 'modules.json', name: 'Chimerium Cell' },
   { file: 'modules.json', name: 'Meld Module Replicator' },

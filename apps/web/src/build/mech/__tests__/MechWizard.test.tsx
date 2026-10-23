@@ -134,7 +134,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
 
     // --- Step 1: Gain Scrap (briefing — Next always enabled; tracker debuts) ---
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${MECH_CREATION_SCRAP_CAP} / ${MECH_CREATION_SCRAP_CAP}`
+      `${MECH_CREATION_SCRAP_CAP}/${MECH_CREATION_SCRAP_CAP}`
     )
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
@@ -142,7 +142,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     // --- Step 2: Chassis (radio; SV debits the budget) ---
     await pickRadio('Mule')
     const afterChassis = MECH_CREATION_SCRAP_CAP - mule().salvageValue
-    expect(screen.getByTestId('scrap-remaining').textContent).toContain(`${afterChassis} /`)
+    expect(screen.getByTestId('scrap-remaining').textContent).toContain(`${afterChassis}/`)
     await clickNext()
 
     // --- Step 3: Statistics (display only) ---
@@ -153,14 +153,14 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     const cargoPod = systemByName('Cargo Pod')
     await addOne('Cargo Pod')
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${afterChassis - cargoPod.salvageValue} /`
+      `${afterChassis - cargoPod.salvageValue}/`
     )
-    expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('1/')
     await clickNext()
 
     // --- Step 5: Modules (optional; module slots) ---
     await addOne('Comms Module')
-    expect(screen.getByTestId('module-slot-count').textContent).toContain('1 /')
+    expect(screen.getByTestId('module-slot-count').textContent).toContain('1/')
     await clickNext()
 
     // --- Steps 6–7: Quirk + Appearance (flavor — never gate) ---
@@ -260,7 +260,7 @@ describe('MechWizard — hard creation enforcement', () => {
     await clickNext() // → Stats
     await clickNext() // → Systems
     await addOne('Cargo Pod')
-    expect(screen.getByTestId('system-slot-count').textContent).toContain('1 /')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('1/')
 
     // Back to the chassis step, swap to another Tech 1 chassis.
     await act(async () => {
@@ -269,13 +269,13 @@ describe('MechWizard — hard creation enforcement', () => {
     await pickRadio('Scrapper')
     const scrapper = SalvageUnionReference.Chassis.getByName('Scrapper')
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${MECH_CREATION_SCRAP_CAP - must(scrapper).salvageValue} /`
+      `${MECH_CREATION_SCRAP_CAP - must(scrapper).salvageValue}/`
     )
     await clickNext() // → Stats
     await clickNext() // → Systems
     // Loadout wiped — the Cargo Pod copy is gone (its Qty stepper reads 0).
     expect(qtyOf('Cargo Pod')).toBe('0')
-    expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
+    expect(screen.getByTestId('system-slot-count').textContent).toContain('0/')
   })
 })
 
@@ -343,7 +343,7 @@ describe('MechWizard — preselected chassis', () => {
     render(<MechWizard onComplete={() => {}} onCancel={onCancel} preselectChassis="mule" />)
 
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
-      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue} /`
+      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue}/`
     )
     await clickNext()
     expect(screen.getByRole('radio', { name: 'Mule' }).getAttribute('aria-checked')).toBe('true')
@@ -369,7 +369,7 @@ describe('MechWizard — preselected chassis', () => {
     )
     // The pattern's loadout is debited along with the chassis.
     expect(screen.getByTestId('scrap-remaining').textContent).not.toContain(
-      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue} /`
+      `${MECH_CREATION_SCRAP_CAP - mule().salvageValue}/`
     )
     await clickNext()
     expect(

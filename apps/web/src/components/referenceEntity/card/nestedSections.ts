@@ -14,8 +14,8 @@ import type {
 import {
   extractPatternActions,
   extractVisibleActions,
+  getBookPatterns,
   getChassisAbilities,
-  getPatterns,
   isTitanicAction,
   vehicleSystemNames,
 } from 'salvageunion-reference'
@@ -88,7 +88,7 @@ export function resolveNestedSections({
     ? resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones')
     : []
   const patternActions: RefMetaAction[] = pattern && canExpand ? extractPatternActions(pattern) : []
-  const patternList: RefObjectAnyPattern[] = !isPattern ? (getPatterns(entity) ?? []) : []
+  const patternList: RefObjectAnyPattern[] = !isPattern ? (getBookPatterns(entity) ?? []) : []
 
   // TITANIC actions always get their own full-width row (never the masonry).
   const titanicActions = allActions.filter(isTitanicAction)

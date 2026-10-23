@@ -128,12 +128,12 @@ test('the craft steps show their scrap and slot budget trackers', async ({ page 
   const systemSlots = page.getByTestId('system-slot-count')
   await advanceUntilVisible(page, systemSlots)
   await expect(page.getByTestId('scrap-remaining')).toBeVisible()
-  await expect(systemSlots).toHaveText(/\d+ \/ \d+/)
+  await expect(systemSlots).toHaveText(/\d+\/\d+/)
 
   // Modules craft step — Scrap plus its own Module Slots budget. These are
   // separate steps now, not two tabs of one Loadout step.
   const moduleSlots = page.getByTestId('module-slot-count')
   await advanceUntilVisible(page, moduleSlots)
   await expect(page.getByTestId('scrap-remaining')).toBeVisible()
-  await expect(moduleSlots).toHaveText(/\d+ \/ \d+/)
+  await expect(moduleSlots).toHaveText(/\d+\/\d+/)
 })

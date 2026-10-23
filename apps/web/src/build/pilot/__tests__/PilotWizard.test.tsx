@@ -127,7 +127,7 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     await pick('Engineer')
     expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
     await pick('Engineering Expertise')
-    expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
@@ -140,7 +140,7 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: `Increase ${item.name} count` })) // copy #2
     })
-    expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
+    expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
     expect(getNextButton().disabled).toBe(false)
     // At the budget every '+' disables.
     const plusButtons = screen.getAllByRole<HTMLButtonElement>('button', {
@@ -198,10 +198,10 @@ describe('PilotWizard — hard creation enforcement', () => {
     await clickNext() // Stats → Class & Ability
     await pick('Engineer')
     await pick('Engineering Expertise')
-    expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     await pick('Jury Rig')
     // Still exactly one pick — replaced, not added.
-    expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     expect(getPickByName('Jury Rig').getAttribute('aria-checked')).toBe('true')
     expect(getPickByName('Engineering Expertise').getAttribute('aria-checked')).toBe('false')
   })
@@ -212,7 +212,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Engineer')
     await pick('Engineering Expertise') // Mechanical Knowledge L1
     await pick('Soldier') // Mechanical Knowledge ∉ Soldier trees
-    expect(screen.getByTestId('ability-count').textContent).toContain('0 / 1')
+    expect(screen.getByTestId('ability-count').textContent).toContain('0/1')
     expect(getNextButton().disabled).toBe(true)
   })
 
@@ -222,7 +222,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Engineer')
     await pick('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
     await pick('Salvager')
-    expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
   })
 
   it('offers the Salvager all 15 core-tree Level-1 abilities and no specialisation classes', async () => {
@@ -273,12 +273,12 @@ describe('PilotWizard — hard creation enforcement', () => {
     await act(async () => {
       fireEvent.click(plus())
     })
-    expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
+    expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
     expect(plus().disabled).toBe(true)
     await act(async () => {
       fireEvent.click(minus())
     })
-    expect(screen.getByTestId('equipment-count').textContent).toContain('1 / 2')
+    expect(screen.getByTestId('equipment-count').textContent).toContain('1/2')
     expect(plus().disabled).toBe(false)
   })
 
@@ -289,7 +289,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Engineering Expertise')
     await clickNext()
     // 0 picks → 0 / 6 slots (base capacity).
-    expect(screen.getByTestId('slot-preview').textContent).toContain('/ 6')
+    expect(screen.getByTestId('slot-preview').textContent).toContain('/6')
   })
 })
 
@@ -324,10 +324,10 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     await clickNext() // Stats → Class & Ability
 
     // Oldest-first removal keeps the NEWEST ability pick (a3).
-    expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     expect(getPickByName('Mass Field Maintenance').getAttribute('aria-checked')).toBe('true')
     await clickNext() // → Equipment
-    expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
+    expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
   })
 })
 

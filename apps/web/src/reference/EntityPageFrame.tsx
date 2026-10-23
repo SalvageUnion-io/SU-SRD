@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
+import type { HomebrewCredit } from '../components/referenceEntity/card/HomebrewCreditChip'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { referenceCopy } from '../messages/reference'
@@ -46,13 +47,13 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
         {build.label}
       </Button>
       {next && (
-        <a href={next.href} className="su-guide-exits__next">
-          <NextLabel to={next.label} size="full" />
-        </a>
+        <Button href={next.href} size="compact" className="su-page-action">
+          <NextLabel to={next.label} />
+        </Button>
       )}
-      <a href={starterSet.href} className="su-guide-exits__starter">
+      <Button href={starterSet.href} variant="ghost" size="compact" className="su-page-action">
         {starterSet.label}
-      </a>
+      </Button>
     </nav>
   )
 }
@@ -68,6 +69,10 @@ type EntityPageFrameProps = {
   parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
+  /** A built-in Homebrew Pattern (a community design): the band wears the HOMEBREW stamp. */
+  homebrew?: boolean
+  /** That pattern's credit chip, beside the stamp, linking the post it came from. */
+  credit?: HomebrewCredit | undefined
   /** "Build With This": the deep link into the app's builder (`buildLinkFor`), ending the cluster after Share (the band's `action`). */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
@@ -82,6 +87,8 @@ export function EntityPageFrame({
   meta,
   parent,
   legalStartingPattern,
+  homebrew,
+  credit,
   build,
   exits,
   children,
@@ -96,6 +103,8 @@ export function EntityPageFrame({
           <EntityPageStamps
             meta={meta}
             legalStartingPattern={legalStartingPattern}
+            homebrew={homebrew}
+            credit={credit}
             parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
           />
         }
