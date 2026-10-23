@@ -17,13 +17,14 @@ import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { commands } from '../commands/index'
 import { setSiteClient } from '../commands/siteReply'
-import { APP_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards'
+import { publicSheetUrl, sheetCard } from '../gameCards'
 import type { SiteClient } from '../play/client'
 import type { EntityBody, SheetResult } from '../play/types'
 import { blockStarting, cardText, cardTexts } from './cardText'
 import { fakeExecute } from './fakeInteraction'
 
-const WEB = APP_ORIGIN
+/** The Training Bay's links, under the base; Play's are at the site's root. */
+const WEB = 'https://salvageunion.io/build'
 
 function sheetResult(overrides: Partial<SheetResult> = {}): SheetResult {
   return {

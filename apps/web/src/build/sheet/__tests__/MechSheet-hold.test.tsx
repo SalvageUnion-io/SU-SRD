@@ -197,7 +197,7 @@ describe('MechSheet — The Hold panel', () => {
       <MechSheet
         mech={mech}
         crawler={crawler}
-        crawlerHref="/sheet/crawler/crawler-hold-1"
+        crawlerHref="/crawlers/crawler-hold-1"
         store={makeStore(mech, [], crawler)}
       />
     )
@@ -215,7 +215,7 @@ describe('MechSheet — The Hold panel', () => {
     expect(units?.textContent).toBe('Units2/6')
     // The linked crawler is its relation chip (R5), opening its sheet.
     const token = screen.getByRole('link', { name: /Hold Crawler$/ })
-    expect(token.getAttribute('href')).toBe('/sheet/crawler/crawler-hold-1')
+    expect(token.getAttribute('href')).toBe('/crawlers/crawler-hold-1')
   })
 })
 

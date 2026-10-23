@@ -5,8 +5,9 @@
  * ## The words
  *
  * An unfurl bot (`Discordbot/2.0`) asks for `/p/:kind/:appId` or
- * `/invite/:token` (the link the app and the bot hand out; an old
- * `/join/:code` link 301s there first, `../lib/redirects.ts`) without
+ * `/play/invite/:token` (the link the app and the bot hand out; an old
+ * `/build/invite/:token` or `/join/:code` link 301s there first,
+ * `../lib/redirects.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
  * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a
  * stranger may see (`publicSheet.preview`, `publicSheet.invitePreview`), turns
@@ -99,10 +100,10 @@ export function previewRouteOf(path: string): PreviewRoute | null {
     const [, kind = '', id = ''] = parts
     return isPreviewKind(kind) && SEGMENT.test(id) ? { type: 'sheet', kind, id } : null
   }
-  // `/invite/:token` is every invite link handed out today (`invitePath`, and
-  // the bot's DM); the token is the invite's code.
-  if (parts.length === 2 && parts[0] === 'invite') {
-    const code = parts[1] ?? ''
+  // `/play/invite/:token` is every invite link handed out today (`invitePath`,
+  // and the bot's DM); the token is the invite's code.
+  if (parts.length === 3 && parts[0] === 'play' && parts[1] === 'invite') {
+    const code = parts[2] ?? ''
     return SEGMENT.test(code) ? { type: 'invite', code } : null
   }
   return null

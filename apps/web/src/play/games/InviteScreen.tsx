@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
+import { invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -16,11 +17,10 @@ import {
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { invitePath } from '../../lib/games/inviteLink'
 import { playGamesCopy } from '../../messages/play-games'
 
 /**
- * `/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
+ * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
  * and mode tab. A Game is joined from its link, never a typed code, and joins
  * you as a player.
  *

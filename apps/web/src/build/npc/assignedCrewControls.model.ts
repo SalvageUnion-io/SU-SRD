@@ -29,7 +29,7 @@ export function assignedCrewControls(
 ): ReferenceEntityControl[] {
   const open: ReferenceEntityControl = {
     key: 'open',
-    href: `/sheet/npc/${npc.id}`,
+    href: `/npcs/${npc.id}`,
     label: 'Open',
     ariaLabel: `Open ${npc.name}`,
   }

@@ -112,15 +112,13 @@ describe('a unit’s crew link', () => {
         softLinks: [LINK],
         names: new Map([['m1', 'Scrapper']]),
       })
-    ).toEqual([
-      { key: 'mech:m1', kind: 'mech', name: 'Scrapper', href: '/sheet/mech/m1', readings: [] },
-    ])
+    ).toEqual([{ key: 'mech:m1', kind: 'mech', name: 'Scrapper', href: '/mechs/m1', readings: [] }])
   })
 
   test('a mech’s pilot is a Mini of its own kind', () => {
     expect(
       crewLinked({ kind: 'mech', id: 'm1', softLinks: [LINK], names: new Map([['p1', 'Bonesaw']]) })
-    ).toMatchObject([{ kind: 'pilot', name: 'Bonesaw', href: '/sheet/pilot/p1' }])
+    ).toMatchObject([{ kind: 'pilot', name: 'Bonesaw', href: '/pilots/p1' }])
   })
 
   test('a linked unit carries its own stat chips onto its Mini', () => {

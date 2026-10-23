@@ -355,7 +355,9 @@ describe('the Mediator on the Game page', () => {
     })
 
     expect(screen.getByText('You mediate')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Mediate' }).getAttribute('href')).toBe('/play/game/g1')
+    expect(screen.getByRole('link', { name: 'Mediate' }).getAttribute('href')).toBe(
+      '/play/games/g1/mediate'
+    )
     expect(heading('Proposals you sent')).toBeTruthy()
     expect(screen.getByText('Judge · HP → 4 · “Ejection burn”')).toBeTruthy()
     expect(screen.getByText('Pending')).toBeTruthy()
@@ -489,7 +491,7 @@ describe('Play from the Game page', () => {
     })
     expect(launcher()).toBeNull()
     const links = screen.getAllByRole('link', { name: 'Mediate' })
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/play/game/g1'])
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/play/games/g1/mediate'])
   })
 
   test('a Game with no Mediator plays too', async () => {
@@ -499,7 +501,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/play/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/play/pilots/$pilotId', params: { pilotId: 'hub-mine' } }])
   })
 
   test('nothing shows while the crew is still loading', async () => {
@@ -521,7 +523,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/play/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/play/pilots/$pilotId', params: { pilotId: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -562,7 +564,9 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(launch)
     })
-    expect(navigations).toEqual([{ to: '/play/$pilotId', params: { pilotId: 'hub-pregen' } }])
+    expect(navigations).toEqual([
+      { to: '/play/pilots/$pilotId', params: { pilotId: 'hub-pregen' } },
+    ])
   })
 
   test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {

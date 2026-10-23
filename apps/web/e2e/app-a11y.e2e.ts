@@ -10,7 +10,7 @@ import { test } from './fixtures'
  */
 
 /**
- * The anonymous routes (app paths; `at` puts them under `/build`) a build with no Convex backend can render — the same
+ * The anonymous routes (app paths; `at` puts them on the site) a build with no Convex backend can render — the same
  * build the PR-blocking smoke specs run against.
  */
 const PAGES = [
@@ -18,7 +18,7 @@ const PAGES = [
   '/pilots/new',
   '/mechs/new',
   '/crawlers/new',
-  '/mechs/patterns',
+  '/patterns/',
   '/settings',
   '/starter',
   // The Starter Set sheets, one of each kind: a sheet's one <main> and its
@@ -30,8 +30,8 @@ const PAGES = [
   // screen's sign-in refusal (`PlayGate`, `PlayMediatorGate`). The signed-in
   // states are `play-*.e2e.ts`'s.
   '/play/',
-  '/play/a11y-probe',
-  '/play/game/a11y-probe',
+  '/play/pilots/a11y-probe',
+  '/play/games/a11y-probe/mediate',
 ]
 
 // A violation that fires only sometimes must not pass on a retry.

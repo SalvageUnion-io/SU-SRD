@@ -33,7 +33,7 @@ const ruleFor = (mode: RequestMode, path: string) =>
   )
 
 describe('builder navigations', () => {
-  test.each([APP_BASE, appPath('/'), appPath('/sheet/pilot/x')])(
+  test.each([APP_BASE, appPath('/'), appPath('/pilots/x')])(
     '%s goes to the network, then the precached shell',
     (path) => {
       const rule = ruleFor('navigate', path)

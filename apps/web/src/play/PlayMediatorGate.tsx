@@ -1,6 +1,6 @@
 /**
  * PlayMediatorGate — who may open the Mediator's Play screen for a Game: the
- * body of `/play/game/$gameId`:
+ * body of `/play/games/$gameId/mediate`:
  *
  *  - **Signed out:** sign in first. There are no Games signed out.
  *  - **Connected, the Mediator** (`mediator.amMediator`, the server's one

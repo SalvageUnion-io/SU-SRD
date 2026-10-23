@@ -7,7 +7,7 @@
  *
  * An unmatched URL is the site's own 404 (`NotFound`, as the static `/404`
  * draws it) with a way back to the Training Bay. `NotFoundPanel` is the missing
- * record's: `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s
+ * record's: `Sheet`'s missing-entity state and the sheet routes'
  * unknown-kind state compose it. Neither is the UI library's `RecoveryPanel`:
  * that panel carries `role="alert"` and centres its content, which is right for
  * a crash and wrong for a mistyped URL — announcing every 404 as an alert is an

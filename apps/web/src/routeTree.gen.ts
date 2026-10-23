@@ -16,24 +16,27 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
 import { Route as AdminHomebrewRouteImport } from './routes/admin/homebrew'
 import { Route as AdminMetricsRouteImport } from './routes/admin/metrics'
+import { Route as CrawlersIdRouteImport } from './routes/crawlers/$id'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as EncountersIdRouteImport } from './routes/encounters/$id'
-import { Route as InviteTokenRouteImport } from './routes/invite/$token'
+import { Route as MechsIdRouteImport } from './routes/mechs/$id'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
+import { Route as NpcsIdRouteImport } from './routes/npcs/$id'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
 import { Route as OgPrivateRouteImport } from './routes/og/private'
+import { Route as PatternsIndexRouteImport } from './routes/patterns/index'
+import { Route as PilotsIdRouteImport } from './routes/pilots/$id'
 import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as PlayIndexRouteImport } from './routes/play/index'
-import { Route as PlayPilotIdRouteImport } from './routes/play/$pilotId'
 import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as StarterIndexRouteImport } from './routes/starter/index'
-import { Route as MechsPatternsIndexRouteImport } from './routes/mechs/patterns/index'
 import { Route as OgKindIdRouteImport } from './routes/og/$kind/$id'
 import { Route as PKindAppIdRouteImport } from './routes/p/$kind/$appId'
-import { Route as PlayGameGameIdRouteImport } from './routes/play/game/$gameId'
 import { Route as PlayGamesGameIdRouteImport } from './routes/play/games/$gameId'
-import { Route as SheetKindIdRouteImport } from './routes/sheet/$kind/$id'
+import { Route as PlayInviteTokenRouteImport } from './routes/play/invite/$token'
+import { Route as PlayPilotsPilotIdRouteImport } from './routes/play/pilots/$pilotId'
 import { Route as StarterKindIdRouteImport } from './routes/starter/$kind/$id'
+import { Route as PlayGamesGameIdMediateRouteImport } from './routes/play/games/$gameId_/mediate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +73,11 @@ const AdminMetricsRoute = AdminMetricsRouteImport.update({
   path: '/admin/metrics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrawlersIdRoute = CrawlersIdRouteImport.update({
+  id: '/crawlers/$id',
+  path: '/crawlers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
   id: '/crawlers/new',
   path: '/crawlers/new',
@@ -80,14 +88,19 @@ const EncountersIdRoute = EncountersIdRouteImport.update({
   path: '/encounters/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InviteTokenRoute = InviteTokenRouteImport.update({
-  id: '/invite/$token',
-  path: '/invite/$token',
+const MechsIdRoute = MechsIdRouteImport.update({
+  id: '/mechs/$id',
+  path: '/mechs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MechsNewRoute = MechsNewRouteImport.update({
   id: '/mechs/new',
   path: '/mechs/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NpcsIdRoute = NpcsIdRouteImport.update({
+  id: '/npcs/$id',
+  path: '/npcs/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NpcsNewRoute = NpcsNewRouteImport.update({
@@ -100,6 +113,16 @@ const OgPrivateRoute = OgPrivateRouteImport.update({
   path: '/og/private',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatternsIndexRoute = PatternsIndexRouteImport.update({
+  id: '/patterns/',
+  path: '/patterns/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilotsIdRoute = PilotsIdRouteImport.update({
+  id: '/pilots/$id',
+  path: '/pilots/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PilotsNewRoute = PilotsNewRouteImport.update({
   id: '/pilots/new',
   path: '/pilots/new',
@@ -108,11 +131,6 @@ const PilotsNewRoute = PilotsNewRouteImport.update({
 const PlayIndexRoute = PlayIndexRouteImport.update({
   id: '/play/',
   path: '/play/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlayPilotIdRoute = PlayPilotIdRouteImport.update({
-  id: '/play/$pilotId',
-  path: '/play/$pilotId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SIdRoute = SIdRouteImport.update({
@@ -125,11 +143,6 @@ const StarterIndexRoute = StarterIndexRouteImport.update({
   path: '/starter/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MechsPatternsIndexRoute = MechsPatternsIndexRouteImport.update({
-  id: '/mechs/patterns/',
-  path: '/mechs/patterns/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OgKindIdRoute = OgKindIdRouteImport.update({
   id: '/og/$kind/$id',
   path: '/og/$kind/$id',
@@ -140,24 +153,29 @@ const PKindAppIdRoute = PKindAppIdRouteImport.update({
   path: '/p/$kind/$appId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlayGameGameIdRoute = PlayGameGameIdRouteImport.update({
-  id: '/play/game/$gameId',
-  path: '/play/game/$gameId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PlayGamesGameIdRoute = PlayGamesGameIdRouteImport.update({
   id: '/play/games/$gameId',
   path: '/play/games/$gameId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SheetKindIdRoute = SheetKindIdRouteImport.update({
-  id: '/sheet/$kind/$id',
-  path: '/sheet/$kind/$id',
+const PlayInviteTokenRoute = PlayInviteTokenRouteImport.update({
+  id: '/play/invite/$token',
+  path: '/play/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayPilotsPilotIdRoute = PlayPilotsPilotIdRouteImport.update({
+  id: '/play/pilots/$pilotId',
+  path: '/play/pilots/$pilotId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StarterKindIdRoute = StarterKindIdRouteImport.update({
   id: '/starter/$kind/$id',
   path: '/starter/$kind/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayGamesGameIdMediateRoute = PlayGamesGameIdMediateRouteImport.update({
+  id: '/play/games/$gameId_/mediate',
+  path: '/play/games/$gameId/mediate',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -169,24 +187,27 @@ export interface FileRoutesByFullPath {
   '/sign-out': typeof SignOutRoute
   '/admin/homebrew': typeof AdminHomebrewRoute
   '/admin/metrics': typeof AdminMetricsRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/encounters/$id': typeof EncountersIdRoute
-  '/invite/$token': typeof InviteTokenRoute
+  '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/npcs/$id': typeof NpcsIdRoute
   '/npcs/new': typeof NpcsNewRoute
   '/og/private': typeof OgPrivateRoute
+  '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
-  '/play/$pilotId': typeof PlayPilotIdRoute
   '/s/$id': typeof SIdRoute
+  '/patterns/': typeof PatternsIndexRoute
   '/play/': typeof PlayIndexRoute
   '/starter/': typeof StarterIndexRoute
   '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
-  '/play/game/$gameId': typeof PlayGameGameIdRoute
   '/play/games/$gameId': typeof PlayGamesGameIdRoute
-  '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/play/invite/$token': typeof PlayInviteTokenRoute
+  '/play/pilots/$pilotId': typeof PlayPilotsPilotIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
-  '/mechs/patterns/': typeof MechsPatternsIndexRoute
+  '/play/games/$gameId/mediate': typeof PlayGamesGameIdMediateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -196,24 +217,27 @@ export interface FileRoutesByTo {
   '/sign-out': typeof SignOutRoute
   '/admin/homebrew': typeof AdminHomebrewRoute
   '/admin/metrics': typeof AdminMetricsRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/encounters/$id': typeof EncountersIdRoute
-  '/invite/$token': typeof InviteTokenRoute
+  '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/npcs/$id': typeof NpcsIdRoute
   '/npcs/new': typeof NpcsNewRoute
   '/og/private': typeof OgPrivateRoute
+  '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
-  '/play/$pilotId': typeof PlayPilotIdRoute
   '/s/$id': typeof SIdRoute
+  '/patterns': typeof PatternsIndexRoute
   '/play': typeof PlayIndexRoute
   '/starter': typeof StarterIndexRoute
   '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
-  '/play/game/$gameId': typeof PlayGameGameIdRoute
   '/play/games/$gameId': typeof PlayGamesGameIdRoute
-  '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/play/invite/$token': typeof PlayInviteTokenRoute
+  '/play/pilots/$pilotId': typeof PlayPilotsPilotIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
-  '/mechs/patterns': typeof MechsPatternsIndexRoute
+  '/play/games/$gameId/mediate': typeof PlayGamesGameIdMediateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -224,24 +248,27 @@ export interface FileRoutesById {
   '/sign-out': typeof SignOutRoute
   '/admin/homebrew': typeof AdminHomebrewRoute
   '/admin/metrics': typeof AdminMetricsRoute
+  '/crawlers/$id': typeof CrawlersIdRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/encounters/$id': typeof EncountersIdRoute
-  '/invite/$token': typeof InviteTokenRoute
+  '/mechs/$id': typeof MechsIdRoute
   '/mechs/new': typeof MechsNewRoute
+  '/npcs/$id': typeof NpcsIdRoute
   '/npcs/new': typeof NpcsNewRoute
   '/og/private': typeof OgPrivateRoute
+  '/pilots/$id': typeof PilotsIdRoute
   '/pilots/new': typeof PilotsNewRoute
-  '/play/$pilotId': typeof PlayPilotIdRoute
   '/s/$id': typeof SIdRoute
+  '/patterns/': typeof PatternsIndexRoute
   '/play/': typeof PlayIndexRoute
   '/starter/': typeof StarterIndexRoute
   '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
-  '/play/game/$gameId': typeof PlayGameGameIdRoute
   '/play/games/$gameId': typeof PlayGamesGameIdRoute
-  '/sheet/$kind/$id': typeof SheetKindIdRoute
+  '/play/invite/$token': typeof PlayInviteTokenRoute
+  '/play/pilots/$pilotId': typeof PlayPilotsPilotIdRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
-  '/mechs/patterns/': typeof MechsPatternsIndexRoute
+  '/play/games/$gameId_/mediate': typeof PlayGamesGameIdMediateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -253,24 +280,27 @@ export interface FileRouteTypes {
     | '/sign-out'
     | '/admin/homebrew'
     | '/admin/metrics'
+    | '/crawlers/$id'
     | '/crawlers/new'
     | '/encounters/$id'
-    | '/invite/$token'
+    | '/mechs/$id'
     | '/mechs/new'
+    | '/npcs/$id'
     | '/npcs/new'
     | '/og/private'
+    | '/pilots/$id'
     | '/pilots/new'
-    | '/play/$pilotId'
     | '/s/$id'
+    | '/patterns/'
     | '/play/'
     | '/starter/'
     | '/og/$kind/$id'
     | '/p/$kind/$appId'
-    | '/play/game/$gameId'
     | '/play/games/$gameId'
-    | '/sheet/$kind/$id'
+    | '/play/invite/$token'
+    | '/play/pilots/$pilotId'
     | '/starter/$kind/$id'
-    | '/mechs/patterns/'
+    | '/play/games/$gameId/mediate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -280,24 +310,27 @@ export interface FileRouteTypes {
     | '/sign-out'
     | '/admin/homebrew'
     | '/admin/metrics'
+    | '/crawlers/$id'
     | '/crawlers/new'
     | '/encounters/$id'
-    | '/invite/$token'
+    | '/mechs/$id'
     | '/mechs/new'
+    | '/npcs/$id'
     | '/npcs/new'
     | '/og/private'
+    | '/pilots/$id'
     | '/pilots/new'
-    | '/play/$pilotId'
     | '/s/$id'
+    | '/patterns'
     | '/play'
     | '/starter'
     | '/og/$kind/$id'
     | '/p/$kind/$appId'
-    | '/play/game/$gameId'
     | '/play/games/$gameId'
-    | '/sheet/$kind/$id'
+    | '/play/invite/$token'
+    | '/play/pilots/$pilotId'
     | '/starter/$kind/$id'
-    | '/mechs/patterns'
+    | '/play/games/$gameId/mediate'
   id:
     | '__root__'
     | '/'
@@ -307,24 +340,27 @@ export interface FileRouteTypes {
     | '/sign-out'
     | '/admin/homebrew'
     | '/admin/metrics'
+    | '/crawlers/$id'
     | '/crawlers/new'
     | '/encounters/$id'
-    | '/invite/$token'
+    | '/mechs/$id'
     | '/mechs/new'
+    | '/npcs/$id'
     | '/npcs/new'
     | '/og/private'
+    | '/pilots/$id'
     | '/pilots/new'
-    | '/play/$pilotId'
     | '/s/$id'
+    | '/patterns/'
     | '/play/'
     | '/starter/'
     | '/og/$kind/$id'
     | '/p/$kind/$appId'
-    | '/play/game/$gameId'
     | '/play/games/$gameId'
-    | '/sheet/$kind/$id'
+    | '/play/invite/$token'
+    | '/play/pilots/$pilotId'
     | '/starter/$kind/$id'
-    | '/mechs/patterns/'
+    | '/play/games/$gameId_/mediate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,24 +371,27 @@ export interface RootRouteChildren {
   SignOutRoute: typeof SignOutRoute
   AdminHomebrewRoute: typeof AdminHomebrewRoute
   AdminMetricsRoute: typeof AdminMetricsRoute
+  CrawlersIdRoute: typeof CrawlersIdRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   EncountersIdRoute: typeof EncountersIdRoute
-  InviteTokenRoute: typeof InviteTokenRoute
+  MechsIdRoute: typeof MechsIdRoute
   MechsNewRoute: typeof MechsNewRoute
+  NpcsIdRoute: typeof NpcsIdRoute
   NpcsNewRoute: typeof NpcsNewRoute
   OgPrivateRoute: typeof OgPrivateRoute
+  PilotsIdRoute: typeof PilotsIdRoute
   PilotsNewRoute: typeof PilotsNewRoute
-  PlayPilotIdRoute: typeof PlayPilotIdRoute
   SIdRoute: typeof SIdRoute
+  PatternsIndexRoute: typeof PatternsIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
   StarterIndexRoute: typeof StarterIndexRoute
   OgKindIdRoute: typeof OgKindIdRoute
   PKindAppIdRoute: typeof PKindAppIdRoute
-  PlayGameGameIdRoute: typeof PlayGameGameIdRoute
   PlayGamesGameIdRoute: typeof PlayGamesGameIdRoute
-  SheetKindIdRoute: typeof SheetKindIdRoute
+  PlayInviteTokenRoute: typeof PlayInviteTokenRoute
+  PlayPilotsPilotIdRoute: typeof PlayPilotsPilotIdRoute
   StarterKindIdRoute: typeof StarterKindIdRoute
-  MechsPatternsIndexRoute: typeof MechsPatternsIndexRoute
+  PlayGamesGameIdMediateRoute: typeof PlayGamesGameIdMediateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -406,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMetricsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crawlers/$id': {
+      id: '/crawlers/$id'
+      path: '/crawlers/$id'
+      fullPath: '/crawlers/$id'
+      preLoaderRoute: typeof CrawlersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crawlers/new': {
       id: '/crawlers/new'
       path: '/crawlers/new'
@@ -420,11 +466,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EncountersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/invite/$token': {
-      id: '/invite/$token'
-      path: '/invite/$token'
-      fullPath: '/invite/$token'
-      preLoaderRoute: typeof InviteTokenRouteImport
+    '/mechs/$id': {
+      id: '/mechs/$id'
+      path: '/mechs/$id'
+      fullPath: '/mechs/$id'
+      preLoaderRoute: typeof MechsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mechs/new': {
@@ -432,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/mechs/new'
       fullPath: '/mechs/new'
       preLoaderRoute: typeof MechsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/npcs/$id': {
+      id: '/npcs/$id'
+      path: '/npcs/$id'
+      fullPath: '/npcs/$id'
+      preLoaderRoute: typeof NpcsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/npcs/new': {
@@ -448,6 +501,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OgPrivateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patterns/': {
+      id: '/patterns/'
+      path: '/patterns'
+      fullPath: '/patterns/'
+      preLoaderRoute: typeof PatternsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilots/$id': {
+      id: '/pilots/$id'
+      path: '/pilots/$id'
+      fullPath: '/pilots/$id'
+      preLoaderRoute: typeof PilotsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pilots/new': {
       id: '/pilots/new'
       path: '/pilots/new'
@@ -460,13 +527,6 @@ declare module '@tanstack/react-router' {
       path: '/play'
       fullPath: '/play/'
       preLoaderRoute: typeof PlayIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/play/$pilotId': {
-      id: '/play/$pilotId'
-      path: '/play/$pilotId'
-      fullPath: '/play/$pilotId'
-      preLoaderRoute: typeof PlayPilotIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/s/$id': {
@@ -483,13 +543,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StarterIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mechs/patterns/': {
-      id: '/mechs/patterns/'
-      path: '/mechs/patterns'
-      fullPath: '/mechs/patterns/'
-      preLoaderRoute: typeof MechsPatternsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/og/$kind/$id': {
       id: '/og/$kind/$id'
       path: '/og/$kind/$id'
@@ -504,13 +557,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PKindAppIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/play/game/$gameId': {
-      id: '/play/game/$gameId'
-      path: '/play/game/$gameId'
-      fullPath: '/play/game/$gameId'
-      preLoaderRoute: typeof PlayGameGameIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/play/games/$gameId': {
       id: '/play/games/$gameId'
       path: '/play/games/$gameId'
@@ -518,11 +564,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayGamesGameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sheet/$kind/$id': {
-      id: '/sheet/$kind/$id'
-      path: '/sheet/$kind/$id'
-      fullPath: '/sheet/$kind/$id'
-      preLoaderRoute: typeof SheetKindIdRouteImport
+    '/play/invite/$token': {
+      id: '/play/invite/$token'
+      path: '/play/invite/$token'
+      fullPath: '/play/invite/$token'
+      preLoaderRoute: typeof PlayInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/pilots/$pilotId': {
+      id: '/play/pilots/$pilotId'
+      path: '/play/pilots/$pilotId'
+      fullPath: '/play/pilots/$pilotId'
+      preLoaderRoute: typeof PlayPilotsPilotIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/starter/$kind/$id': {
@@ -530,6 +583,13 @@ declare module '@tanstack/react-router' {
       path: '/starter/$kind/$id'
       fullPath: '/starter/$kind/$id'
       preLoaderRoute: typeof StarterKindIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/games/$gameId_/mediate': {
+      id: '/play/games/$gameId_/mediate'
+      path: '/play/games/$gameId/mediate'
+      fullPath: '/play/games/$gameId/mediate'
+      preLoaderRoute: typeof PlayGamesGameIdMediateRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -543,24 +603,27 @@ const rootRouteChildren: RootRouteChildren = {
   SignOutRoute: SignOutRoute,
   AdminHomebrewRoute: AdminHomebrewRoute,
   AdminMetricsRoute: AdminMetricsRoute,
+  CrawlersIdRoute: CrawlersIdRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   EncountersIdRoute: EncountersIdRoute,
-  InviteTokenRoute: InviteTokenRoute,
+  MechsIdRoute: MechsIdRoute,
   MechsNewRoute: MechsNewRoute,
+  NpcsIdRoute: NpcsIdRoute,
   NpcsNewRoute: NpcsNewRoute,
   OgPrivateRoute: OgPrivateRoute,
+  PilotsIdRoute: PilotsIdRoute,
   PilotsNewRoute: PilotsNewRoute,
-  PlayPilotIdRoute: PlayPilotIdRoute,
   SIdRoute: SIdRoute,
+  PatternsIndexRoute: PatternsIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
   StarterIndexRoute: StarterIndexRoute,
   OgKindIdRoute: OgKindIdRoute,
   PKindAppIdRoute: PKindAppIdRoute,
-  PlayGameGameIdRoute: PlayGameGameIdRoute,
   PlayGamesGameIdRoute: PlayGamesGameIdRoute,
-  SheetKindIdRoute: SheetKindIdRoute,
+  PlayInviteTokenRoute: PlayInviteTokenRoute,
+  PlayPilotsPilotIdRoute: PlayPilotsPilotIdRoute,
   StarterKindIdRoute: StarterKindIdRoute,
-  MechsPatternsIndexRoute: MechsPatternsIndexRoute,
+  PlayGamesGameIdMediateRoute: PlayGamesGameIdMediateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

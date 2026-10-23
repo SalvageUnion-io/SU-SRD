@@ -1,11 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { BOT_OP_NAMES, BOT_PATH_PREFIX } from '../botWire'
 import {
+  cockpitPath,
   ENTITY_KINDS,
   gamePath,
   isEntityKind,
   isSheetKind,
   kindOf,
+  mediatePath,
   publicPath,
   sheetPath,
   TABLE_OF_KIND,
@@ -32,15 +34,19 @@ describe('kinds and tables', () => {
 })
 
 describe('app addresses', () => {
-  test('the live sheet, the public page and the Game', () => {
-    expect(sheetPath('mech', 'm1')).toBe('/sheet/mech/m1')
+  test('the live sheet, the public page, the Game and its Cockpits', () => {
+    expect(sheetPath('mech', 'm1')).toBe('/mechs/m1')
+    expect(sheetPath('npc', 'n1')).toBe('/npcs/n1')
     expect(publicPath('npc', 'n1')).toBe('/p/npc/n1')
     expect(publicPath('pattern', 'pat-1')).toBe('/p/pattern/pat-1')
     expect(gamePath('g1')).toBe('/play/games/g1')
+    expect(mediatePath('g1')).toBe('/play/games/g1/mediate')
+    expect(cockpitPath('p1')).toBe('/play/pilots/p1')
   })
 
   test('an id is one path segment', () => {
-    expect(sheetPath('pilot', 'a/b c')).toBe('/sheet/pilot/a%2Fb%20c')
+    expect(sheetPath('pilot', 'a/b c')).toBe('/pilots/a%2Fb%20c')
+    expect(cockpitPath('a/b')).toBe('/play/pilots/a%2Fb')
   })
 })
 

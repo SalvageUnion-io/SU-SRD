@@ -1,5 +1,5 @@
 /**
- * NpcSheetView — `/sheet/npc/:id`'s body: which NPC, and whether the viewer
+ * NpcSheetView — `/npcs/:id`'s body: which NPC, and whether the viewer
  * may edit it (ADR-044).
  *
  * The same three answers `SheetView` gives a pilot, from the same

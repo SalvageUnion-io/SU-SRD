@@ -360,7 +360,7 @@ describe('Sheet', () => {
       })
       expect(screen.queryByRole('dialog')).toBeNull()
       expect(assigned).toHaveLength(1)
-      expect(assigned[0]).toMatch(/^\/sheet\/pilot\//)
+      expect(assigned[0]).toMatch(/^\/pilots\//)
     } finally {
       assign.mockRestore()
     }

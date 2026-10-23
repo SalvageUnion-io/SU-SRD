@@ -73,23 +73,23 @@ describe('installSoftUpdate', () => {
   it('turns a page change into one full load of that page', () => {
     const s = setup()
     s.signal.markLive()
-    expect(s.navigate('/', '/sheet/pilot/abc?tab=gear')).toBe(true)
-    expect(s.loads).toEqual(['/sheet/pilot/abc?tab=gear'])
+    expect(s.navigate('/', '/pilots/abc?tab=gear')).toBe(true)
+    expect(s.loads).toEqual(['/pilots/abc?tab=gear'])
   })
 
   it('loads once, however many times the player clicks while it is under way', () => {
     const s = setup()
     s.signal.markLive()
-    s.navigate('/', '/sheet/pilot/abc')
-    expect(s.navigate('/', '/sheet/mech/def')).toBe(true)
-    expect(s.loads).toEqual(['/sheet/pilot/abc'])
+    s.navigate('/', '/pilots/abc')
+    expect(s.navigate('/', '/mechs/def')).toBe(true)
+    expect(s.loads).toEqual(['/pilots/abc'])
   })
 
   it('leaves same-page updates and back/forward in-app', () => {
     const s = setup()
     s.signal.markLive()
     expect(s.navigate('/roster?show=all', '/roster?show=game', 'REPLACE')).toBe(false)
-    expect(s.navigate('/roster', '/sheet/pilot/abc', 'BACK')).toBe(false)
+    expect(s.navigate('/roster', '/pilots/abc', 'BACK')).toBe(false)
     expect(s.loads).toEqual([])
   })
 

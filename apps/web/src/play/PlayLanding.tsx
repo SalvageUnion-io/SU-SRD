@@ -32,7 +32,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
-import { gamePath, sheetPath } from 'game-domain/entityKinds'
+import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
 import { isPresent } from 'game-domain/schemas/seat'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
@@ -61,7 +61,7 @@ import { Tagline } from '../components/Tagline'
 import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
-import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
+import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
@@ -257,7 +257,7 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
           })}
       controls={
         <Button
-          href={`/play/${pilot.pilotId}`}
+          href={cockpitPath(pilot.pilotId)}
           aria-label={playCopy('playSolo2', { name: pilot.name })}
           variant="ink"
           size="mini"

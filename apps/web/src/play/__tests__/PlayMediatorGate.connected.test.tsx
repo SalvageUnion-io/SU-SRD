@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { createElement } from 'react'
 
 /**
- * Who may open the Mediator's Play screen (`/play/game/$gameId`). Signed
+ * Who may open the Mediator's Play screen (`/play/games/$gameId/mediate`). Signed
  * out, sign in; a
  * member who does not mediate, or a stranger, one line and the way to the
  * Game page; the Mediator, the screen under the Game's name.

@@ -44,7 +44,7 @@ test.describe('wired sheet segment switch', () => {
 
     // Tapping the pilot segment navigates to the wired pilot's sheet.
     await nav.getByRole('link', { name: 'Pilot' }).click()
-    await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
+    await page.waitForURL(/\/build\/pilots\/(?!new)/, { timeout: 10_000 })
 
     // The switch follows: Pilot is now active, Mech is the link back.
     const pilotNav = page.getByRole('navigation', { name: /assigned sheets/i })

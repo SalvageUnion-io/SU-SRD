@@ -34,7 +34,7 @@ describe('AssignedUnits', () => {
             key: 'm1',
             kind: 'mech',
             name: 'Scrapper',
-            href: '/build/sheet/mech/m1',
+            href: '/build/mechs/m1',
             readings: [{ label: 'SP', value: '9/9' }],
           },
           { key: 'p1', kind: 'pilot', name: 'Not shared' },
@@ -47,7 +47,7 @@ describe('AssignedUnits', () => {
       within(list)
         .getByRole('link', { name: /Scrapper/ })
         .getAttribute('href')
-    ).toBe('/build/sheet/mech/m1')
+    ).toBe('/build/mechs/m1')
     expect(list.textContent).toContain('9/9')
     // No relation chip label ("MECH | Scrapper").
     expect(list.querySelector('.su-chip-link')).toBeNull()
@@ -90,9 +90,9 @@ describe('AssignedUnits', () => {
 
 describe('LinkedUnitLink', () => {
   test('a unit named outside Assigned units is a Mini linking to its sheet', () => {
-    render(<LinkedUnitLink kind="crawler" name="Tenacity" href="/build/sheet/crawler/c1" />)
+    render(<LinkedUnitLink kind="crawler" name="Tenacity" href="/build/crawlers/c1" />)
     expect(screen.getByRole('link', { name: /Tenacity/ }).getAttribute('href')).toBe(
-      '/build/sheet/crawler/c1'
+      '/build/crawlers/c1'
     )
   })
 })

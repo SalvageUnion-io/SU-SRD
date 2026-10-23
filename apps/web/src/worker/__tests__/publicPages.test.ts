@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'bun:test'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { color } from '../../design/tokens'
+import { appPath } from '../../lib/appBase'
 import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
@@ -53,7 +54,7 @@ function env(): Env & { asked: string[] } {
 }
 
 /** A crawler: no `Sec-Fetch-Mode`. */
-const crawl = (path: string, origin = PROD) => new Request(`${origin}${BASE}${path}`)
+const crawl = (path: string, origin = PROD) => new Request(`${origin}${appPath(path)}`)
 
 /** A page's pre-rendered shell by its path inside the app, as the build writes it. */
 function shellFor(path: string, origin = PROD): string {
@@ -186,7 +187,7 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
 })
 
 describe('a private or signed-in route gets no canonical', () => {
-  for (const path of ['/sheet/pilot/xyz', '/play/games/g1', '/pilots/new', '/settings']) {
+  for (const path of ['/pilots/xyz', '/play/games/g1', '/pilots/new', '/settings']) {
     it(`leaves ${path} as the shell, noindex`, async () => {
       const res = await worker.fetch(crawl(path), env())
       // The shell as every route gets it: its Union bar marked for the route.

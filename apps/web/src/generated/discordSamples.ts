@@ -71,7 +71,7 @@ export const DISCORD_SAMPLES: { roll: SampleReply; lookup: SampleReply } = {
       "blocks": [
         {
           "kind": "text",
-          "content": "## [Green Laser](https://salvageunion.io/systems/green-laser)\n**Tech Level** 2 · **Slots Required** 4 · **Salvage Value** 2\n**Turn Action** · **Range** Medium · **Damage** 4 Structure Points\n[Energy](https://salvageunion.io/traits/energy) · [Hot](https://salvageunion.io/traits/hot) 2"
+          "content": "## [Green Laser](https://salvageunion.io/systems/green-laser/)\n**Tech Level** 2 · **Slots Required** 4 · **Salvage Value** 2\n**Turn Action** · **Range** Medium · **Damage** 4 Structure Points\n[Energy](https://salvageunion.io/traits/energy/) · [Hot](https://salvageunion.io/traits/hot/) 2"
         },
         {
           "kind": "separator"

@@ -49,7 +49,7 @@ test('wire pilot + mech + crawler on the live sheets', async ({ page }) => {
 
   // --- the relation chip navigates (TanStack Link, client-side) to the pilot sheet ---
   await assignedUnit(page, 'Mira Voss').click()
-  await page.waitForURL(/\/sheet\/pilot\//, { timeout: 10_000 })
+  await page.waitForURL(/\/build\/pilots\/(?!new)/, { timeout: 10_000 })
 
   // There is deliberately no top-bar "edit this pilot" link: the Live Sheet is
   // itself the Free Edit surface under ADR-021, edited in place per section.

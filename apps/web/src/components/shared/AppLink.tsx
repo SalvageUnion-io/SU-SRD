@@ -8,7 +8,7 @@
  * `<a href>` when no router is mounted — same accessible markup, no thrown
  * context error.
  *
- * `href` takes a concrete pre-built route of the app (e.g. `/sheet/mech/<id>`
+ * `href` takes a concrete pre-built route of the app (e.g. `/mechs/<id>`
  * — slugs/ids interpolated by the caller), which the router puts under the
  * base; TanStack resolves concrete paths at runtime, so the static
  * route-literal union on `to` is bypassed with a narrowing assertion rather

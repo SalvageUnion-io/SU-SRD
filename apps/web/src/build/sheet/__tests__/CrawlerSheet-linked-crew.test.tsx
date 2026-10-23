@@ -74,7 +74,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     expect(screen.getAllByText('Homebrew').length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' })).toHaveProperty(
       'href',
-      expect.stringContaining('/sheet/npc/n1')
+      expect.stringContaining('/npcs/n1')
     )
     // No edit control writes the crawler's inline crew while it is linked.
     expect(within(inset).queryByRole('button', { name: /Edit Med Bay crew/ })).toBeNull()

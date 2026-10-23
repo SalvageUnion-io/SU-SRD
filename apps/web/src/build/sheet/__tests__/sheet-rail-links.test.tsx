@@ -104,8 +104,8 @@ describe('Sheet — rail cross-links', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler])}
       />
     )
-    expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
-    expect(linkTo('/sheet/crawler/crawler-1')).toBeTruthy()
+    expect(linkTo('/mechs/mech-1')).toBeTruthy()
+    expect(linkTo('/crawlers/crawler-1')).toBeTruthy()
   })
 
   test('wired mech sheet links to its assigned pilot', () => {
@@ -117,7 +117,7 @@ describe('Sheet — rail cross-links', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
       />
     )
-    expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
+    expect(linkTo('/pilots/pilot-1')).toBeTruthy()
   })
 
   test('wired mech sheet links to the crawler it is docked in by its own link', () => {
@@ -129,7 +129,7 @@ describe('Sheet — rail cross-links', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToCrawler])}
       />
     )
-    expect(linkTo('/sheet/crawler/crawler-1')).toBeTruthy()
+    expect(linkTo('/crawlers/crawler-1')).toBeTruthy()
   })
 
   test('wired crawler sheet links to its pilots and docked mechs', () => {
@@ -143,8 +143,8 @@ describe('Sheet — rail cross-links', () => {
     )
     // Crew = every pilot wired to the crawler; the bay = every mech docked by
     // its own mech-to-crawler link (ADR-037), not reached through a pilot.
-    expect(linkTo('/sheet/pilot/pilot-1')).toBeTruthy()
-    expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
+    expect(linkTo('/pilots/pilot-1')).toBeTruthy()
+    expect(linkTo('/mechs/mech-1')).toBeTruthy()
   })
 })
 
@@ -252,7 +252,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
     )
 
     // Sanity: the wired mech row is present.
-    expect(linkTo('/sheet/mech/mech-1')).toBeTruthy()
+    expect(linkTo('/mechs/mech-1')).toBeTruthy()
 
     // Collection add/remove is ALWAYS available on editable sheets — no edit
     // mode gate (redesign archetype B).
@@ -299,16 +299,14 @@ describe('Sheet — every slot can be assigned from its own sheet (ADR-037)', ()
     // the assignment rather than showing the pilot's crawler.
     renderOver('mech', 'mech-1', [mechToPilot, pilotToCrawler])
     expect(
-      screen
-        .queryAllByRole('link')
-        .some((a) => a.getAttribute('href') === '/sheet/crawler/crawler-1')
+      screen.queryAllByRole('link').some((a) => a.getAttribute('href') === '/crawlers/crawler-1')
     ).toBe(false)
     expect(button(/^Assign crawler to mech$/i)).toBeTruthy()
     expect(button(/^Change pilot for this mech$/i)).toBeTruthy()
     cleanup()
 
     renderOver('mech', 'mech-1', [mechToCrawler])
-    expect(linkTo('/sheet/crawler/crawler-1')).toBeTruthy()
+    expect(linkTo('/crawlers/crawler-1')).toBeTruthy()
     expect(button(/^Change crawler for this mech$/i)).toBeTruthy()
     expect(button(/^Assign pilot to mech$/i)).toBeTruthy()
   })

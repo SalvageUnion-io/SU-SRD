@@ -63,7 +63,7 @@ test.describe('The Training Bay surfaces created entities with their identity', 
     // screen-reader user can tell which unit each opens (WCAG 2.4.4).
     const line = page.getByRole('link', { name: /Display Test Pilot/ })
     await expect(line).toBeVisible({ timeout: 15_000 })
-    await expect(line).toHaveAttribute('href', /\/sheet\/pilot\//)
+    await expect(line).toHaveAttribute('href', /\/build\/pilots\/(?!new)/)
   })
 })
 

@@ -70,8 +70,8 @@ test.use({ account: 'anonymous' })
  *
  * ## Play (ADR-051)
  *
- * Both Play routes measure ~2.43 MB (`/play/:pilotId` 2,429,094 B,
- * `/play/game/:gameId` 2,431,749 B) on a local production build, beside a
+ * Both Play routes measure ~2.43 MB (`/play/pilots/:pilotId` 2,429,094 B,
+ * `/play/games/:gameId/mediate` 2,431,749 B) on a local production build, beside a
  * roster of 2,178,292 B on the same build, and their ceilings sit ~20% above
  * that: 2,920,000 B. Re-take them from a CI run's `[bundle-budget]` lines when
  * the table is next re-based.
@@ -161,8 +161,8 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // route chunk, so this measures the route's real JS cost without paying
     // for a full wizard run to seed an entity first.
     const CEILING = 2_590_000
-    const totals = await captureRouteJs(page, '/sheet/pilot/budget-probe')
-    report('/sheet/pilot/:id', totals, CEILING)
+    const totals = await captureRouteJs(page, '/pilots/budget-probe')
+    report('/pilots/:id', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 
@@ -173,16 +173,16 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // imports `PlayCockpit` statically). The byte count is the route's true
     // cost.
     const CEILING = 2_920_000
-    const totals = await captureRouteJs(page, '/play/budget-probe')
-    report('/play/:pilotId', totals, CEILING)
+    const totals = await captureRouteJs(page, '/play/pilots/budget-probe')
+    report('/play/pilots/:pilotId', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 
   test('the Mediator’s Play stays under budget', async ({ page }) => {
     // The same probe through `PlayMediatorGate`'s "Sign in to run your Game".
     const CEILING = 2_920_000
-    const totals = await captureRouteJs(page, '/play/game/budget-probe')
-    report('/play/game/:gameId', totals, CEILING)
+    const totals = await captureRouteJs(page, '/play/games/budget-probe/mediate')
+    report('/play/games/:gameId/mediate', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 })

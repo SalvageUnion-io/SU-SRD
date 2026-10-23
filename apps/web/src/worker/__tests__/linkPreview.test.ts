@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test'
 import { color } from '../../design/tokens'
+import { appPath } from '../../lib/appBase'
 import { META_END, META_START } from '../../lib/documentHead'
 import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
@@ -105,7 +106,7 @@ function env(over: Partial<Env> = {}): Env {
 
 /** Discord's unfurler: no Sec-Fetch-Mode, so the request reaches the Worker. */
 const discordbot = (path: string) =>
-  new Request(`https://salvageunion.io/build${path}`, {
+  new Request(`https://salvageunion.io${appPath(path)}`, {
     headers: { 'user-agent': 'Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)' },
   })
 
@@ -249,29 +250,29 @@ describe('a Discordbot fetch of a private sheet', () => {
 })
 
 describe('a Discordbot fetch of an invite', () => {
-  it('unfurls the /invite/<token> link the app and the bot hand out', async () => {
-    const html = await unfurl('/invite/K7QR2XA')
+  it('unfurls the /play/invite/<token> link the app and the bot hand out', async () => {
+    const html = await unfurl('/play/invite/K7QR2XA')
     expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
     expect(meta(html, 'og:title')).not.toContain('K7QR2XA')
     expect(meta(html, 'og:description')).not.toContain('K7QR2XA')
-    expect(meta(html, 'og:url')).toBe('https://salvageunion.io/build/invite/K7QR2XA')
+    expect(meta(html, 'og:url')).toBe('https://salvageunion.io/play/invite/K7QR2XA')
     expect(meta(html, 'theme-color')).toBe(color.crawlerBand)
     expect(html).toContain('<title>Reclamation of the Wastes</title>')
   })
 
-  it('sends an old /join/<code> link to /invite/<code> before unfurling, so the bot unfurls that', async () => {
+  it('sends an old /join/<code> link to /play/invite/<code> before unfurling, so the bot unfurls that', async () => {
     // Where intheunionnow.com's zone Redirect Rule sends an old link.
     const old = new Request('https://salvageunion.io/build/join/K7QR2XA', {
       headers: { 'user-agent': 'Discordbot/2.0' },
     })
     const res = await worker.fetch(old, env())
     expect(res.status).toBe(301)
-    expect(res.headers.get('location')).toBe('/build/invite/K7QR2XA')
+    expect(res.headers.get('location')).toBe('/play/invite/K7QR2XA')
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe(
+    expect(meta(await unfurl('/play/invite/DEADCODE'), 'og:title')).toBe(
       'Training Bay · SalvageUnion.io'
     )
   })
@@ -301,12 +302,13 @@ describe('previewRouteOf', () => {
     expect(previewRouteOf('/p/pilot/abc')).toEqual({ type: 'sheet', kind: 'pilot', id: 'abc' })
     expect(previewRouteOf('/p/pattern/abc')).toEqual({ type: 'sheet', kind: 'pattern', id: 'abc' })
     expect(previewRouteOf('/p/npc/abc')).toEqual({ type: 'sheet', kind: 'npc', id: 'abc' })
-    expect(previewRouteOf('/invite/0123456789ABCDEF')).toEqual({
+    expect(previewRouteOf('/play/invite/0123456789ABCDEF')).toEqual({
       type: 'invite',
       code: '0123456789ABCDEF',
     })
     expect(previewRouteOf('/join/K7QR2XA')).toBeNull()
-    expect(previewRouteOf('/invite')).toBeNull()
+    expect(previewRouteOf('/play/invite')).toBeNull()
+    expect(previewRouteOf('/invite/0123456789ABCDEF')).toBeNull()
     expect(previewRouteOf('/p/encounter/abc')).toBeNull()
     expect(previewRouteOf('/sheet/pilot/abc')).toBeNull()
     expect(previewRouteOf('/p/pilot/<script>')).toBeNull()

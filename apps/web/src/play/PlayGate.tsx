@@ -1,6 +1,6 @@
 /**
  * PlayGate — who may open Play for a pilot, decided live: the body of
- * `/play/$pilotId`.
+ * `/play/pilots/$pilotId`.
  *
  * Play opens for any pilot of yours, in a Game or solo. The store holds only
  * your own pilots (a crewmate's never reaches this browser), so a pilot the
@@ -82,7 +82,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
 
   useEffect(() => {
     if (flownBy !== null) {
-      void navigate({ to: '/play/$pilotId', params: { pilotId: flownBy }, replace: true })
+      void navigate({ to: '/play/pilots/$pilotId', params: { pilotId: flownBy }, replace: true })
     }
   }, [flownBy, navigate])
 

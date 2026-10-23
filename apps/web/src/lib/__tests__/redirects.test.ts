@@ -152,17 +152,36 @@ describe('retiredDocPage', () => {
 
 describe('retiredTarget', () => {
   it('maps each retired shape', () => {
-    expect(retiredTarget('/games')).toBe('/')
-    expect(retiredTarget('/games/g1/view/pilot/row-1')).toBe('/sheet/pilot/row-1')
-    expect(retiredTarget('/join/ABCD')).toBe('/invite/ABCD')
+    expect(retiredTarget('/games')).toBe('/play/')
+    expect(retiredTarget('/games/g1/view/pilot/row-1')).toBe('/pilots/row-1')
+    expect(retiredTarget('/join/ABCD')).toBe('/play/invite/ABCD')
     expect(retiredTarget('/games/g1')).toBe('/play/games/g1')
     expect(retiredTarget('/games/g1/')).toBe('/play/games/g1')
-    expect(retiredTarget('/dashboard/p1')).toBe('/play/p1')
-    expect(retiredTarget('/mediator/g1')).toBe('/play/game/g1')
+    expect(retiredTarget('/dashboard/p1')).toBe('/play/pilots/p1')
+    expect(retiredTarget('/mediator/g1')).toBe('/play/games/g1/mediate')
+  })
+
+  it('moves the app-era addresses Play and the sheets left behind', () => {
+    expect(retiredTarget('/play')).toBe('/play/')
+    expect(retiredTarget('/play/')).toBe('/play/')
+    expect(retiredTarget('/play/p1')).toBe('/play/pilots/p1')
+    expect(retiredTarget('/play/game/g1')).toBe('/play/games/g1/mediate')
+    expect(retiredTarget('/play/games/g1')).toBe('/play/games/g1')
+    expect(retiredTarget('/invite/t1')).toBe('/play/invite/t1')
+    expect(retiredTarget('/sheet/pilot/x')).toBe('/pilots/x')
+    expect(retiredTarget('/sheet/npc/x')).toBe('/npcs/x')
+    expect(retiredTarget('/mechs/patterns')).toBe('/patterns/')
+    expect(retiredTarget('/mechs/patterns/')).toBe('/patterns/')
   })
 
   it('leaves a live route under a retired prefix alone', () => {
-    for (const path of ['/games/g1/view', '/join/a/b', '/dashboard', '/sheet/pilot/x']) {
+    for (const path of [
+      '/games/g1/view',
+      '/join/a/b',
+      '/dashboard',
+      '/sheet/nope/x',
+      '/pilots/x',
+    ]) {
       expect(retiredTarget(path)).toBeNull()
     }
   })

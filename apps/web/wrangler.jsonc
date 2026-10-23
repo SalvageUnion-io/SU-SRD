@@ -1,7 +1,7 @@
 {
   // salvageunion.io on Workers Static Assets (ADR-033): the one Worker for
   // the whole app. The script runs only for a miss and for everything under
-  // `/build`, the app's (src/worker/index.ts, src/worker/app.ts);
+  // `/build` and `/play`, the app's (src/worker/index.ts, src/worker/app.ts);
   // every header on a real file is public/_headers. Built in GitHub Actions, not Workers Builds
   // (ADR-033 §4).
   "name": "su-srd",
@@ -73,12 +73,12 @@
     // `/assets/*` rule's year of `immutable`. Not SPA mode either: the reference site is
     // pre-rendered, so a miss is genuinely a miss.
     "not_found_handling": "none",
-    // `/build` and below: the app, whose Worker reads every answer
+    // `/build`, `/play` and below: the app, whose Worker reads every answer
     // (src/worker/app.ts, `RUN_WORKER_FIRST`, which the routing test holds
     // equal). A positive list only: a negative pattern sends its matches
     // straight to the assets, and `true` would run the script for every SRD
     // page.
-    "run_worker_first": ["/build", "/build/*"]
+    "run_worker_first": ["/build", "/build/*", "/play", "/play/*"]
   },
 
   // Traces: a span per binding call and outbound fetch (Convex, R2, Images,

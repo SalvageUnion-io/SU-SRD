@@ -770,17 +770,17 @@ describe('SRD site URLs', () => {
     expect(srdEntityPath('chassis', 'iron-mongrel')).toBe('/chassis/iron-mongrel')
   })
 
-  it('builds the absolute URL as the site origin plus that path', () => {
+  it('builds the absolute URL as the site origin plus that path and its slash', () => {
     expect(srdEntityUrl('traits', 'melee')).toBe(
-      `${SRD_SITE_URL}${srdEntityPath('traits', 'melee')}`
+      `${SRD_SITE_URL}${srdEntityPath('traits', 'melee')}/`
     )
-    expect(srdEntityUrl('traits', 'melee')).toBe('https://salvageunion.io/traits/melee')
+    expect(srdEntityUrl('traits', 'melee')).toBe('https://salvageunion.io/traits/melee/')
   })
 
   it('links a real entity at the slug its own page uses', () => {
     const mule = defined(getReference().Chassis.getByName('Mule'))
     expect(srdEntityUrl('chassis', getEntitySlug(mule))).toBe(
-      'https://salvageunion.io/chassis/mule'
+      'https://salvageunion.io/chassis/mule/'
     )
   })
 })

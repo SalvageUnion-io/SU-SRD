@@ -185,8 +185,8 @@ describe('Sheet — mobile segment switch', () => {
       a.getAttribute('href'),
     ])
     expect(links).toEqual([
-      ['Mech', '/sheet/mech/mech-1'],
-      ['Crawler', '/sheet/crawler/crawler-1'],
+      ['Mech', '/mechs/mech-1'],
+      ['Crawler', '/crawlers/crawler-1'],
     ])
   })
 
@@ -203,6 +203,6 @@ describe('Sheet — mobile segment switch', () => {
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Mech')
     const links = Array.from(nav.querySelectorAll('a')).map((a) => a.getAttribute('href'))
-    expect(links).toEqual(['/sheet/pilot/pilot-1'])
+    expect(links).toEqual(['/pilots/pilot-1'])
   })
 })

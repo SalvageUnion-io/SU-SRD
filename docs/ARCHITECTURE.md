@@ -196,7 +196,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033; its `api.` host superseded by ADR-056.
 48. **ADR-048 The app at salvageunion.io/build**
-    `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
+    `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050, ADR-062.
 49. **ADR-049 Workers Issues, not Sentry**
     No SDK; browsers and Convex report via the Workers; browser stacks minified.
 50. **ADR-050 One app** · [full text](adr/050-one-app.md)
@@ -207,7 +207,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Supersedes ADR-038 §1 and its layout; amends ADR-030, ADR-045; amended by ADR-052. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
-    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059.
+    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.
 53. **ADR-053 Canon as gates**
     Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
     hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
@@ -232,3 +232,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
     Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides. Built-in homebrew (credited Mech Monday patterns in the data) lists with them.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.
+62. **ADR-062 Play at /play, one URL grammar** · [full text](adr/062-play-at-play.md)
+    Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.
+    Amends ADR-048, ADR-050 and ADR-052 §4–5.

@@ -1,5 +1,5 @@
 /**
- * Play route, the Mediator's — /play/game/:gameId
+ * Play route, the Mediator's — /play/games/:gameId/mediate
  *
  * The Mediator's Play screen for one Game, on the same frame as the
  * player's (`PlayMediatorCockpit`). Who may open it, in each storage mode, is
@@ -10,10 +10,10 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { areaTitle } from '../../../lib/pageTitle'
-import { PlayMediatorGate } from '../../../play/PlayMediatorGate'
+import { areaTitle } from '../../../../lib/pageTitle'
+import { PlayMediatorGate } from '../../../../play/PlayMediatorGate'
 
-export const Route = createFileRoute('/play/game/$gameId')({
+export const Route = createFileRoute('/play/games/$gameId_/mediate')({
   head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Mediate') }] }),
   component: PlayMediatorPage,
 })

@@ -180,7 +180,7 @@ describe('what a row offers', () => {
     // One door per row, to the one sheet: it opens editable because it is
     // yours (`SheetView`), so there is no second verb for editing.
     const row = screen.getByRole('link', { name: 'Roach-Boy' })
-    expect(row.getAttribute('href')).toBe('/sheet/pilot/a-mine')
+    expect(row.getAttribute('href')).toBe('/pilots/a-mine')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     expect(await verbsOf('Roach-Boy')).not.toContain('Edit')
   })
@@ -193,7 +193,7 @@ describe('what a row offers', () => {
   test('a pre-gen with no app id opens by its body id', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
     const view = screen.getByRole('link', { name: 'Pre-gen' })
-    expect(view.getAttribute('href')).toBe('/sheet/pilot/a-free')
+    expect(view.getAttribute('href')).toBe('/pilots/a-free')
   })
 
   test('no row opens Play: that is the hub’s Play', async () => {
@@ -235,7 +235,7 @@ describe('what a row offers', () => {
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
     const row = screen.getByRole('link', { name: 'Ash' })
-    expect(row.getAttribute('href')).toBe('/sheet/pilot/a-theirs')
+    expect(row.getAttribute('href')).toBe('/pilots/a-theirs')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // Nor is it takeable: somebody already holds it.
     expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
@@ -350,7 +350,7 @@ describe('what the game will accept', () => {
 
     expect(screen.getByText('#430 Tenacity')).toBeTruthy()
     expect(screen.getByRole('link', { name: '#430 Tenacity' }).getAttribute('href')).toBe(
-      '/sheet/crawler/a-crawler'
+      '/crawlers/a-crawler'
     )
     // It has no owner at all, so it carries no ownership seal — neither a
     // claim invitation nor a holder's name. "Who owns the crawler" is not a

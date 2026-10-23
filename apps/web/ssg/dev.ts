@@ -286,7 +286,7 @@ async function main(): Promise<void> {
   // Created first so Vite attaches its HMR socket to it.
   const server = createHttpServer()
   // The same config `vite build` reads (ADR-050). Its shell plugin answers the
-  // app's navigations (`/build/**`) with the shell, as production does;
+  // app's navigations (`/build/**`, `/play/**`) with the shell, as production does;
   // every other document comes from the route registry below.
   const vite = await createViteServer({
     configFile: viteConfigFile,

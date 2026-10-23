@@ -1,26 +1,31 @@
 /**
  * salvageunion.io on Workers Static Assets (ADR-033): the one Worker for the
  * whole app. Every reference page is pre-rendered, so this script answers only
- * the requests no file matches, and everything under `/build`, the app's
- * (`./app.ts`).
+ * the requests no file matches, and everything under `/build` and `/play`, the
+ * app's (`./app.ts`).
  *
  * ## What reaches this script, and what does not
  *
  * Static Assets answers first, with `public/_headers` applied: a real file is
  * served as itself and never runs this script. `not_found_handling` is `none`,
  * so a miss lands here instead of on the platform's `404-page` handling.
- * `run_worker_first` sends `/build` and below here before Static Assets looks.
+ * `run_worker_first` sends `/build`, `/play` and below here before Static
+ * Assets looks.
  *
  *   - `error-intake`: `POST /__errors` → a browser error report, and `POST /__convex-logs` →
  *     Convex's log stream, both logged for Workers Issues
  *     (`errorReports.ts`).
- *   - `app`: `/build` and below → the app (`./app.ts`); a file it does not
- *     have falls through to the rules below.
+ *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
+ *     does not have falls through to the rules below.
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
- *   - `api-miss`: `/api/v1` and below → a JSON **404** naming the manifest, so a
- *     client reading the Dataset API never parses the HTML page (ADR-056).
+ *   - `api-root`: `/api/v1` or `/api/v1/` itself → a **301** to the tree's
+ *     manifest, `/api/v1/index.json`: still JSON for a client, and the list of
+ *     every file for a person.
+ *   - `api-miss`: anything else under `/api/v1` → a JSON **404** naming the
+ *     manifest, so a client reading the Dataset API never parses the HTML page
+ *     (ADR-056).
  *   - `legacy-301`: a page path from before the move out of `/schema/…/item/`
  *     → a **301** to where it lives now (`../lib/redirects.ts`).
  *   - `not-found`: anything else → `404.html`, read through the asset
@@ -45,7 +50,7 @@ import { appPath } from '../lib/appBase'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
 import type { AppEnv } from './app'
-import { isBuildPath, serveApp } from './app'
+import { isAppPath, serveApp } from './app'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -120,8 +125,8 @@ export default {
       return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
-    // B. The app, under its base.
-    if (isBuildPath(url.pathname)) {
+    // B. The app, under its base and Play's root.
+    if (isAppPath(url.pathname)) {
       const res = await serveApp(request, env)
       if (res !== null) return res
     }
@@ -131,7 +136,11 @@ export default {
       return serveHomebrew(url, env)
     }
 
-    // 1. Nothing at this address in the Dataset API.
+    // 1. The Dataset API's root, a directory with no file: its manifest.
+    // Anything else under it with no file is a JSON miss.
+    if (url.pathname.replace(/\/+$/, '') === API_V1_PATH) {
+      return Response.redirect(new URL(`${API_V1_PATH}/index.json${url.search}`, url).href, 301)
+    }
     if (isApiPath(url.pathname)) return apiNotFound(url)
 
     // 2. A rotated or never-built chunk.

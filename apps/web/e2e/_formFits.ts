@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Page } from '@playwright/test'
+import { sheetHref } from 'gates/lib/appPage'
 import type { Finding } from './_findings'
 import { NESTING_SELECTORS } from './_nestingDepth'
 
@@ -77,7 +78,7 @@ const FORM_SELECTORS: FormSelectors = {
   tile: '.su-entity-index',
   token: '.su-entity-mini',
   card: '.su-ec-outer',
-  unitLink: 'a[href*="/sheet/"]',
+  unitLink: sheetHref(),
   head: NESTING_SELECTORS.head,
   frame: NESTING_SELECTORS.frame,
   title: NESTING_SELECTORS.title,

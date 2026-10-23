@@ -42,7 +42,7 @@ describe('LinkedCrewMini', () => {
     expect(within(lead).getByText('Bleed later.')).toBeTruthy()
     expect(within(lead).getByRole('img', { name: 'HP 4 of 4' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' }).getAttribute('href')).toBe(
-      '/sheet/npc/n1'
+      '/npcs/n1'
     )
     expect(screen.queryByText('inline crew')).toBeNull()
   })

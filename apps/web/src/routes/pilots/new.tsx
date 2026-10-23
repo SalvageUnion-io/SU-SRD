@@ -65,7 +65,7 @@ function NewPilotRoute() {
         onModeChange={(next) =>
           void navigate({ to: '/pilots/new', search: (prev) => ({ ...prev, mode: next }) })
         }
-        onCreated={(id) => void navigate({ to: '/sheet/$kind/$id', params: { kind: 'pilot', id } })}
+        onCreated={(id) => void navigate({ to: '/pilots/$id', params: { id } })}
       />
     </main>
   )

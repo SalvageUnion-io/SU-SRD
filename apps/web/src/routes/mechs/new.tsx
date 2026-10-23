@@ -69,7 +69,7 @@ function NewMechRoute() {
         onModeChange={(next) =>
           void navigate({ to: '/mechs/new', search: (prev) => ({ ...prev, mode: next }) })
         }
-        onCreated={(id) => void navigate({ to: '/sheet/$kind/$id', params: { kind: 'mech', id } })}
+        onCreated={(id) => void navigate({ to: '/mechs/$id', params: { id } })}
       />
     </main>
   )

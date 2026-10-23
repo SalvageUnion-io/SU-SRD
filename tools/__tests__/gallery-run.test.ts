@@ -204,7 +204,7 @@ describe('gallery run', () => {
     const seeded = {
       pilot: '/build/sheet/pilot/p1',
       mech: '/build/sheet/mech/m1',
-      game: '/build/play/games/g1',
+      game: '/play/games/g1',
     }
     const seeds: string[] = []
     const r = await gallery(['--base', SITE, '--signed-in'], w, async (_page, base) => {

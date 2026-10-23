@@ -61,7 +61,7 @@ export function LinkedCrewMini({ slotName, assignment, fallback }: LinkedCrewMin
         model={unitRowModel({ kind: 'npc', name: npc.name, userMade: true })}
         mode={{
           kind: 'link',
-          href: `/sheet/npc/${npc.id}`,
+          href: `/npcs/${npc.id}`,
           attrs: { 'aria-label': `Open ${npc.name}` },
         }}
       />

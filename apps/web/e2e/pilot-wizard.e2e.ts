@@ -1,3 +1,4 @@
+import { sheetHref } from 'gates/lib/appPage'
 import {
   addThroughPicker,
   advanceUntilVisible,
@@ -104,7 +105,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await openApp(page, '/')
   // One sheet link on the roster, matched by href: this asserts a COUNT across
   // all rows, so it must not depend on any single entity's name.
-  await expect(page.locator('a[href*="/sheet/"]')).toHaveCount(1)
+  await expect(page.locator(sheetHref())).toHaveCount(1)
 })
 
 /**
@@ -236,7 +237,7 @@ test('cancel mid-wizard leaves the Training Bay with no new pilot', async ({ pag
   // Count pilots already in the Training Bay (0 for the fresh account, but count
   // rather than assume), by their sheet links: an item's link is named for
   // the pilot, so only its href says what it is.
-  const sheets = shelf(page).locator('a[href*="/sheet/pilot/"]')
+  const sheets = shelf(page).locator(sheetHref('pilot'))
   const initialCount = await sheets.count()
 
   await openWizard(page, 'pilots')

@@ -62,7 +62,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
   const BAR_ROUTES = [
     { path: at('/'), mode: 'build', nav: ['Training Bay', 'Patterns', 'Starter Set'] },
     {
-      path: at('/mechs/patterns/'),
+      path: at('/patterns/'),
       mode: 'build',
       nav: ['Training Bay', 'Patterns', 'Starter Set'],
     },

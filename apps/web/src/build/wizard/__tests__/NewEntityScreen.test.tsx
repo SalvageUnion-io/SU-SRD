@@ -204,7 +204,7 @@ describe('NewEntityScreen — mode routing', () => {
 })
 
 describe('CreateModeChooser — mech third door', () => {
-  test('mech chooser surfaces Instantiate from Pattern linking to /mechs/patterns', () => {
+  test('mech chooser surfaces Instantiate from Pattern linking to /patterns/', () => {
     render(
       <NewEntityScreen
         kind="mech"
@@ -216,7 +216,7 @@ describe('CreateModeChooser — mech third door', () => {
     )
     const patternDoor = screen.getByRole('link', { name: /instantiate from pattern/i })
     expect(patternDoor).toBeTruthy()
-    expect((patternDoor as HTMLAnchorElement).href).toContain('/mechs/patterns')
+    expect(patternDoor.getAttribute('href')).toBe('/patterns/')
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {

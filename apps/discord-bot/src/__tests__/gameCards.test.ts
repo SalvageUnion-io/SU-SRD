@@ -1,14 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { DISCORD_ROLL_ACCENT } from 'salvageunion-reference'
-import {
-  APP_ORIGIN,
-  denialMessage,
-  gamesCard,
-  gameUrl,
-  gauge,
-  sheetCard,
-  sheetUrl,
-} from '../gameCards'
+import { denialMessage, gamesCard, gameUrl, gauge, sheetCard, sheetUrl } from '../gameCards'
 import type { EntityBody, SheetResult } from '../play/types'
 import { cardText, cardUrl } from './cardText'
 
@@ -22,7 +14,8 @@ import { cardText, cardUrl } from './cardText'
  * fresh pilot and a bare Mule.
  */
 
-const WEB = APP_ORIGIN
+/** The Training Bay's links, under the base; Play's are at the site's root. */
+const WEB = 'https://salvageunion.io/build'
 const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /** A fresh pilot as the server derives it: base HP 10 and AP 5, alive. */
@@ -219,7 +212,7 @@ describe('denialMessage', () => {
     // The whole point of Discord-as-sole-provider: signing in IS the linking
     // step, so the message must not imply a code to paste.
     expect(message).toContain('nothing to copy across')
-    expect(message).toContain(`${WEB}/account`)
+    expect(message).toContain(`${WEB}/settings`)
   })
 
   test('every reason produces a non-empty message', () => {
@@ -234,15 +227,15 @@ describe('deep links', () => {
     // /play/games/$gameId is the real TanStack route, the Game's page in Play
     // (ADR-052 §5). A link that 404s reads as the app having lost the game,
     // not as the bot guessing.
-    expect(gameUrl('g1')).toBe(`${WEB}/play/games/g1`)
+    expect(gameUrl('g1')).toBe(`https://salvageunion.io/play/games/g1`)
   })
 
   test('every sheet links to the live sheet by its row id', () => {
-    // /sheet/$kind/$id resolves a Convex row id for anyone allowed to see the
+    // The sheet route resolves a Convex row id for anyone allowed to see the
     // row (The app's entities.locate), so one shape serves the owner and the crew.
-    expect(sheetUrl('pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
-    expect(sheetUrl('mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
-    expect(sheetUrl('crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
+    expect(sheetUrl('pilots', 'cx-p1')).toBe(`${WEB}/pilots/cx-p1`)
+    expect(sheetUrl('mechs', 'cx-m1')).toBe(`${WEB}/mechs/cx-m1`)
+    expect(sheetUrl('crawlers', 'cx-c1')).toBe(`${WEB}/crawlers/cx-c1`)
   })
 
   test('a sheet with no row id has no link at all', () => {
@@ -258,9 +251,9 @@ describe('gamesCard', () => {
   })
 
   test('links to Play’s hub, where your Games are listed; each Game to its page in Play', () => {
-    expect(cardUrl(gamesCard([]))).toBe(`${WEB}/play/`)
+    expect(cardUrl(gamesCard([]))).toBe(`https://salvageunion.io/play/`)
     const card = gamesCard([{ gameId: 'g1', name: 'Tenacity', mediator: false, organizer: false }])
-    expect(cardText(card)).toContain(`[Tenacity](${WEB}/play/games/g1)`)
+    expect(cardText(card)).toContain(`[Tenacity](https://salvageunion.io/play/games/g1)`)
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {

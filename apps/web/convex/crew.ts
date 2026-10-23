@@ -29,7 +29,7 @@ import { mirrors } from './model/validators'
  *
  * Every member sees every crewmate's **vitals** live: Play's Crew,
  * the Game hub's crew strip and the Mediator's proposal form all read this
- * query. Drill-in is the live sheet (`/sheet/$kind/$id`), read-only for a
+ * query. Drill-in is the live sheet (`/<kind>s/$id`, `sheetPath`), read-only for a
  * crewmate's. What stays hidden is the Mediator's prepared opposition — that
  * is the one thing a player must not be able to read, and it is simply not
  * queried here.
@@ -347,7 +347,7 @@ export const vitals = query({
           _id: p._id,
           appId: p.appId ?? null,
           /**
-           * The id links, seats and `/sheet/$kind/$id` use: the app id, or a
+           * The id links, seats and the sheet routes use: the app id, or a
            * template pre-gen's body id (`linkIdOf`). Key on this, not `appId`,
            * which a Starter Set row never has.
            */

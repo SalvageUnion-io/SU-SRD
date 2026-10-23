@@ -121,7 +121,7 @@ describe('lookupCard — the card', () => {
     const card = lookupCard(hit('chassis', 'goliath'))
     expect(card.accent).toBe(0x7a978a)
     const text = cardText(card)
-    expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath)')
+    expect(text).toContain('## [Goliath](https://salvageunion.io/chassis/goliath/)')
     // A line to each stat group, Tech Level first, every label spelled out;
     // Cargo and Heat are its Page's.
     expect(text).toContain(
@@ -139,14 +139,14 @@ describe('lookupCard — the card', () => {
     expect(cardText(card)).toContain('-# PATTERNS (3)')
     expect(menuOf(card)?.options.map((option) => option.value)).toContain('drones::sestra-drone')
     expect(cardText(openCard('drones::sestra-drone') ?? { accent: 0, blocks: [] })).toContain(
-      '## [Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
+      '## [Sestra Drone](https://salvageunion.io/drones/sestra-drone/)'
     )
   })
 
   test('a class heads with the classes it advances into, and the menu opens them', () => {
     const card = lookupCard(hit('classes', 'engineer'))
     expect(cardText(card)).toContain(
-      '**Abilities** Up to 10\n**Advances into** [Fabricator](https://salvageunion.io/classes/fabricator)'
+      '**Abilities** Up to 10\n**Advances into** [Fabricator](https://salvageunion.io/classes/fabricator/)'
     )
     expect(cardText(card)).not.toContain('-# ADVANCEMENT')
     const options = menuOf(card)?.options ?? []
@@ -160,10 +160,10 @@ describe('lookupCard — the card', () => {
   test('a weapon system prints its facets as label-first chips and its traits as links', () => {
     const text = cardText(lookupCard(hit('systems', '50-cal-machine-gun')))
     expect(text).toContain(
-      '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun)'
+      '## [.50 Cal Machine Gun](https://salvageunion.io/systems/50-cal-machine-gun/)'
     )
     expect(text).toContain('**Range** Close · **Damage** 2 Structure Points')
-    expect(text).toContain('[Ballistic](https://salvageunion.io/traits/ballistic)')
+    expect(text).toContain('[Ballistic](https://salvageunion.io/traits/ballistic/)')
     expect(text.toLowerCase()).toContain('ballistic weapon')
   })
 
@@ -184,7 +184,7 @@ describe('lookupCard — the card', () => {
 
   test('[[Trait]] references in body text become links', () => {
     const text = cardText(lookupCard(hit('abilities', 'overpower')))
-    expect(text).toContain('[Vulnerable](https://salvageunion.io/traits/vulnerable)')
+    expect(text).toContain('[Vulnerable](https://salvageunion.io/traits/vulnerable/)')
   })
 })
 
@@ -196,7 +196,7 @@ describe('lookupCard — the linked-entries menu', () => {
     const card = lookupCard({ ...kelpie, pattern })
     const text = cardText(card)
     expect(text).toContain('-# SYSTEMS (3)')
-    expect(text).toContain('[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)')
+    expect(text).toContain('[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter/)')
     expect(menuOf(card)?.options.map((option) => option.value)).toEqual([
       'systems::nanite-sifter',
       'systems::cryopod-system',
@@ -221,7 +221,7 @@ describe('lookupCard — the linked-entries menu', () => {
 
   test('openCard answers with the entry’s own card, and null for one that is gone', () => {
     expect(cardText(openCard('systems::nanite-sifter') ?? { accent: 0, blocks: [] })).toContain(
-      '## [Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)'
+      '## [Nanite Sifter](https://salvageunion.io/systems/nanite-sifter/)'
     )
     expect(openCard('systems::no-such-system')).toBeNull()
   })
@@ -251,7 +251,7 @@ describe('lookupCard — tables and roll buttons', () => {
     // E17: the cost closes the chips, under the title.
     expect(cardText(card)).toContain('**Reaction** · **Range** Medium')
     expect(cardText(card)).toContain(
-      '[Hacking](https://salvageunion.io/traits/hacking) · `1 Ability Point`'
+      '[Hacking](https://salvageunion.io/traits/hacking/) · `1 Ability Point`'
     )
     expect(labels(card)).toEqual(['Roll Counter-Hacking'])
   })
@@ -262,7 +262,7 @@ describe('lookupCard — patterns are entries of their own', () => {
     const card = lookupCard(hit('chassis', 'mule'))
     const text = cardText(card)
     expect(text).toContain(
-      '-# PATTERNS (6)\n[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler) · '
+      '-# PATTERNS (6)\n[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler/) · '
     )
     expect(card.blocks.some((block) => block.kind === 'section' && block.button)).toBe(false)
     expect(menuOf(card)?.options.map((option) => option.value)).toContain('chassis::mule::hauler')
@@ -275,7 +275,7 @@ describe('lookupCard — patterns are entries of their own', () => {
     expect(one.pattern?.name).toBe('Hauler')
     const text = cardText(lookupCard(one))
     expect(text).toContain('-# PATTERN OF MULE')
-    expect(text).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
+    expect(text).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm/)')
     // Its host's ability is the host card's, never repeated here.
     expect(text).not.toContain('Integrated Cargo Bay')
   })
@@ -368,7 +368,7 @@ describe('lookupCard — a long card is whole, as its pasted link draws it', () 
     expect(read.accent).toBe(lookupCard(hit('bio-titans', 'cortex-bio-titan')).accent)
     const text = cardText(read)
     expect(text).toContain(
-      '-# [Cortex Bio-Titan](https://salvageunion.io/bio-titans/cortex-bio-titan)'
+      '-# [Cortex Bio-Titan](https://salvageunion.io/bio-titans/cortex-bio-titan/)'
     )
     expect(text).toContain('### Proboscis\n-# **Turn Action** · **Range** Close')
     expect(text).toContain('pierce through the cockpit')

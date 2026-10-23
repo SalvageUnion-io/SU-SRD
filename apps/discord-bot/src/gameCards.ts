@@ -1,3 +1,4 @@
+import { appPath } from 'game-domain/appAddress'
 import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
@@ -62,12 +63,8 @@ import type {
  */
 const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
-/**
- * Where In The Union Now is served, base included: the production origin's
- * `/build` (ADR-048). Cards link back here by appending a route; it only
- * ever builds a URL, never a request. Old intheunionnow.com links 301 here.
- */
-export const APP_ORIGIN = `${SRD_SITE_URL}/build`
+/** An app route as a production link (`appPath`: `/build`, or `/play`; ADR-062). */
+const appUrl = (route: string): string => `${SRD_SITE_URL}${appPath(route)}`
 
 const FOOTER = PRODUCT.wordmark
 
@@ -181,11 +178,12 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
  * Both mirror real TanStack routes — `/play/games/$gameId`, the Game's page in
- * Play (ADR-052 §5), and `/sheet/$kind/$id`. A link that 404s is worse than no
- * link: it reads as the app having lost the thing, not the bot having guessed.
+ * Play (ADR-052 §5), and `/pilots/$id` and its siblings (`sheetPath`). A link
+ * that 404s is worse than no link: it reads as the app having lost the thing,
+ * not the bot having guessed.
  */
 export function gameUrl(gameId: string): string {
-  return `${APP_ORIGIN}${gamePath(gameId)}`
+  return appUrl(gamePath(gameId))
 }
 
 /**
@@ -206,7 +204,7 @@ export function publicSheetUrl(
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${APP_ORIGIN}${publicPath(kindOf(table), appId, name)}`
+  return appUrl(publicPath(kindOf(table), appId, name))
 }
 
 /**
@@ -221,7 +219,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${APP_ORIGIN}${sheetPath(kindOf(table), rowId)}`
+  return appUrl(sheetPath(kindOf(table), rowId))
 }
 
 /**
@@ -247,7 +245,7 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
     'Sign in with this same Discord account and the bot will recognise you here',
     'automatically — there’s nothing to copy across and no code to enter.',
     '',
-    `${APP_ORIGIN}/account`,
+    appUrl('/settings'),
   ].join('\n')
 }
 
@@ -268,7 +266,7 @@ function gameLines(games: GameSummary[]): string {
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
     title: `${me.user.displayName} — ${PRODUCT.wordmark}`,
-    url: `${APP_ORIGIN}/account`,
+    url: appUrl('/settings'),
     accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
@@ -285,7 +283,7 @@ export function meCard(me: MeResult): ContainerData {
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: `${APP_ORIGIN}/play/`,
+    url: appUrl('/play/'),
     accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],

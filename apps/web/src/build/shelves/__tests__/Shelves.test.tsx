@@ -305,7 +305,7 @@ describe('a unit’s ⋯ menu', () => {
   test('Open goes to its sheet', async () => {
     await renderShelves()
     await choose(await openMenu('Nia Vale'), 'Open')
-    expect(assigned).toEqual(['/sheet/pilot/p-nia'])
+    expect(assigned).toEqual(['/pilots/p-nia'])
   })
 
   test('a mech’s Save as pattern opens its dialog over the Hangar', async () => {

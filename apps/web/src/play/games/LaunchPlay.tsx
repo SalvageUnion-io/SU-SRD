@@ -94,7 +94,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
     if (chosen?.localId == null) return
     setOpen(false)
     // The local id: the one `PlayGate` looks the pilot up by.
-    void router?.navigate({ to: '/play/$pilotId', params: { pilotId: chosen.localId } })
+    void router?.navigate({ to: '/play/pilots/$pilotId', params: { pilotId: chosen.localId } })
   }
 
   return (

@@ -101,7 +101,13 @@ check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ 
 check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "app old host 301s to salvageunion.io/build"
 check_redirect https://intheunionnow.com/p/pilot/smoke?x=1 301 "https://salvageunion.io/build/p/pilot/smoke?x=1" "app old link keeps its path and query"
 check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/join/SMOKE "app old host keeps a retired path"
-check_redirect https://salvageunion.io/build/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "app retired /join link 301s to /invite (D6)"
+check_redirect https://salvageunion.io/build/join/SMOKE 301 https://salvageunion.io/play/invite/SMOKE "app retired /join link 301s to Play's invite (D6)"
+check_redirect https://www.intheunionnow.com/games/SMOKE 301 https://salvageunion.io/build/games/SMOKE "app old www host goes straight to salvageunion.io"
+check https://salvageunion.io/play/ 200 "Play hub at its own root"
+check_redirect https://salvageunion.io/build/play/ 301 https://salvageunion.io/play/ "Play's old address 301s to its root"
+check_redirect https://salvageunion.io/build/play/game/SMOKE 301 https://salvageunion.io/play/games/SMOKE/mediate "the old Mediator Cockpit 301s under its Game"
+check_redirect https://salvageunion.io/build/sheet/pilot/SMOKE 301 https://salvageunion.io/build/pilots/SMOKE "an old sheet address 301s to its plural"
+check_redirect https://salvageunion.io/api/v1/ 301 https://salvageunion.io/api/v1/index.json "the API root is its manifest"
 # Plain http must never be served. Always Use HTTPS is a zone toggle, not repo
 # config (ADR-033, "Configuration outside the repo"); without it every hostname
 # answers http with 200 and HSTS never reaches a first-time visitor.

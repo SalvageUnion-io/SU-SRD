@@ -29,7 +29,7 @@ it('clears its precache, unregisters, and reloads its windows', async () => {
     },
     clients: {
       matchAll: () =>
-        Promise.resolve([{ url: 'https://salvageunion.io/build/sheet/pilot/1', navigate }]),
+        Promise.resolve([{ url: 'https://salvageunion.io/build/pilots/1', navigate }]),
     },
     skipWaiting: mock(() => Promise.resolve()),
     addEventListener: (type: string, listener: Listener) => listeners.set(type, listener),
@@ -47,5 +47,5 @@ it('clears its precache, unregisters, and reloads its windows', async () => {
   expect(sw.skipWaiting).toHaveBeenCalledTimes(1)
   expect([...caches]).toEqual(['workbox-precache-v2-https://salvageunion.io/', 'pages'])
   expect(unregister).toHaveBeenCalledTimes(1)
-  expect(navigate).toHaveBeenCalledWith('https://salvageunion.io/build/sheet/pilot/1')
+  expect(navigate).toHaveBeenCalledWith('https://salvageunion.io/build/pilots/1')
 })

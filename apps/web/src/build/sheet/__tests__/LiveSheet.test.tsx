@@ -225,8 +225,8 @@ describe('LiveSheet — the chapter band', () => {
       kindDetail: ENGINEER,
       actions: <button type="button">Share</button>,
       segments: [
-        { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
-        { key: 'mech', label: 'Mech', name: 'Iron Jaw', href: '/sheet/mech/m', active: false },
+        { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/pilots/p', active: true },
+        { key: 'mech', label: 'Mech', name: 'Iron Jaw', href: '/mechs/m', active: false },
       ],
     })
     const title = screen.getByRole('heading', { level: 1, name: 'Mara Vex (Pilot)' })
@@ -244,15 +244,15 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
   test('each other unit is its header-only Mini, linking to its sheet, never a chip', () => {
     renderShell({
       segments: [
-        { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
-        { key: 'mech', label: 'Mech', name: 'Iron Jaw', href: '/sheet/mech/m', active: false },
+        { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/pilots/p', active: true },
+        { key: 'mech', label: 'Mech', name: 'Iron Jaw', href: '/mechs/m', active: false },
       ],
     })
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     const link = bar().getByRole('link', { name: /Iron Jaw/ })
-    expect(link.getAttribute('href')).toContain('/sheet/mech/m')
+    expect(link.getAttribute('href')).toContain('/mechs/m')
     expect(link.hasAttribute('data-tag')).toBe(false)
     expect(link.closest('.su-entity-mini')).not.toBeNull()
     // The sheet being read is not linked from its own bar.

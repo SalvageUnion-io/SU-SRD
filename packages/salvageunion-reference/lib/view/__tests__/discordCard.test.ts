@@ -50,7 +50,7 @@ describe('discordCardParts', () => {
     const parts = partsFor('chassis', 'mule')
     expect(parts.tone).toBe('mech')
     // No kicker: a chassis has no parent, and the kind is never one.
-    expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule)')
+    expect(parts.head[0]).toBe('## [Mule](https://salvageunion.io/chassis/mule/)')
     expect(parts.head.slice(1)).toEqual([
       '**Tech Level** 1 · **Salvage Value** 7',
       '**Structure Points** 12 · **Energy Points** 4',
@@ -68,7 +68,7 @@ describe('discordCardParts', () => {
     expect(sestra.actions.map((action) => action.name)).toEqual(['Sestra Drone Controller'])
     expect(sestra.children.map((group) => group.label)).toEqual(['Drones', 'Patterns'])
     expect(sestra.children[0]?.line).toBe(
-      '[Sestra Drone](https://salvageunion.io/drones/sestra-drone)'
+      '[Sestra Drone](https://salvageunion.io/drones/sestra-drone/)'
     )
   })
 
@@ -77,7 +77,9 @@ describe('discordCardParts', () => {
       partsFor('chassis', 'mule').children.find((group) => group.label === 'Patterns'),
       'patterns'
     )
-    expect(patterns.line).toContain('[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler)')
+    expect(patterns.line).toContain(
+      '[Hauler](https://salvageunion.io/chassis/mule/pattern/hauler/)'
+    )
     expect(patterns.items.every((item) => item.pattern === item.name)).toBe(true)
   })
 
@@ -86,7 +88,7 @@ describe('discordCardParts', () => {
     expect(parts.head[0]).toStartWith('## 2 · [Counter-Hacking](')
     expect(parts.head[1]).toBe('**Reaction** · **Range** Medium')
     expect(parts.head[2]).toBe(
-      '[Hacking](https://salvageunion.io/traits/hacking) · `1 Ability Point`'
+      '[Hacking](https://salvageunion.io/traits/hacking/) · `1 Ability Point`'
     )
     expect(parts.table?.rows.map((row) => row.key)).toEqual(['20', '11-19', '6-10', '2-5', '1'])
   })
@@ -132,13 +134,13 @@ describe('discordCardParts', () => {
     )
     const parts = discordCardParts(toEntityModel(mule, undefined, { pattern: hauler }))
     expect(parts.head[0]).toBe('-# PATTERN OF MULE')
-    expect(parts.url).toBe('https://salvageunion.io/chassis/mule/pattern/hauler')
+    expect(parts.url).toBe('https://salvageunion.io/chassis/mule/pattern/hauler/')
     const systems = need(
       parts.children.find((group) => group.label === 'Systems'),
       'systems'
     )
     expect(systems.count).toBe(7)
-    expect(systems.line).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm)')
+    expect(systems.line).toContain('[Rigging Arm](https://salvageunion.io/systems/rigging-arm/)')
     // Its host's ability is the host card's, never repeated here.
     expect(parts.actions).toEqual([])
   })
@@ -158,7 +160,7 @@ describe('discordCardParts', () => {
       'Mech Acquisition',
     ])
     expect(engineer.children[0]?.line).toStartWith(
-      '[Engineering Expertise](https://salvageunion.io/abilities/engineering-expertise)'
+      '[Engineering Expertise](https://salvageunion.io/abilities/engineering-expertise/)'
     )
     // A Hybrid Class: its own tree; never its Legendary tree.
     const fabricator = discordCardParts(
@@ -173,7 +175,7 @@ describe('discordCardParts', () => {
     const engineer = parts('engineer')
     expect(engineer.head.slice(1)).toEqual([
       '**Abilities** Up to 10',
-      '**Advances into** [Fabricator](https://salvageunion.io/classes/fabricator) · [Union Rep](https://salvageunion.io/classes/union-rep)',
+      '**Advances into** [Fabricator](https://salvageunion.io/classes/fabricator/) · [Union Rep](https://salvageunion.io/classes/union-rep/)',
     ])
     expect(engineer.headLinks.map((ref) => ref.name)).toEqual(['Fabricator', 'Union Rep'])
     // A Hybrid Class: its requirement, then its limit; it advances no further.
@@ -217,7 +219,7 @@ describe('discordCardParts', () => {
 describe('linkTraitReferences', () => {
   test('links a known trait and keeps its parameter', () => {
     expect(linkTraitReferences('gains the [[Vulnerable]] Trait')).toBe(
-      'gains the [Vulnerable](https://salvageunion.io/traits/vulnerable) Trait'
+      'gains the [Vulnerable](https://salvageunion.io/traits/vulnerable/) Trait'
     )
   })
 })
@@ -242,7 +244,7 @@ describe('discordCard', () => {
     const card = discordCard(parts, { fits: (c) => discordCardTextLength(c) <= 300 })
     expect(text(card)).not.toContain('ROLL THE DIE')
     expect(text(card)).toContain(
-      '[The full entry on salvageunion.io](https://salvageunion.io/systems/mechapult)'
+      '[The full entry on salvageunion.io](https://salvageunion.io/systems/mechapult/)'
     )
   })
 })

@@ -144,7 +144,7 @@ describe('/su bind', () => {
     const { interaction, edits } = fakeExecute({ subcommand: 'bind' })
     await bindCommand.execute(interaction)
     expect(edits[0]?.content).toContain('account')
-    expect(edits[0]?.content).toContain('/account')
+    expect(edits[0]?.content).toContain('/settings')
   })
 
   test('an outage reads as an outage', async () => {

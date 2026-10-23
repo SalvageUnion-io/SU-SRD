@@ -30,7 +30,7 @@ type SeatVital = {
 
 /** One seat at the table, as the Mediator's left column draws it. */
 export type MediatorSeat = {
-  /** The pilot's link id (`/sheet/pilot/<id>`). */
+  /** The pilot's link id (`/pilots/<id>`). */
   pilotId: string
   /** The pilot's Convex row id: what a tap aims Propose at. */
   rowId: string

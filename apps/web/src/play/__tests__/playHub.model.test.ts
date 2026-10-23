@@ -37,7 +37,7 @@ describe('its one door', () => {
   test('Mediate where you mediate, even with a pilot there', () => {
     expect(gameDoor({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }])).toEqual({
       label: 'Mediate',
-      href: '/play/game/g1',
+      href: '/play/games/g1/mediate',
       ariaLabel: 'Mediate The Rust Belt Run',
     })
   })
@@ -45,7 +45,7 @@ describe('its one door', () => {
   test('else Play your pilot', () => {
     expect(gameDoor(GAME, [{ id: 'p1', name: 'Bonesaw' }])).toEqual({
       label: 'Play Bonesaw',
-      href: '/play/p1',
+      href: '/play/pilots/p1',
       ariaLabel: 'Play Bonesaw in The Rust Belt Run',
     })
   })
@@ -113,7 +113,7 @@ describe('its crew', () => {
       { label: 'Heat', value: '0/9' },
     ])
     expect(crew[2]?.relations?.[0]?.param).toBe('Rook')
-    expect(crew[3]?.href).toBe('/sheet/pilot/a-p2')
+    expect(crew[3]?.href).toBe('/pilots/a-p2')
   })
 
   test('a member’s own: each unit carries whose it is', () => {

@@ -3,7 +3,7 @@
  *
  * The Game's management page in Play: its roster, crew and seats, proposals,
  * the invite link, the Mediator and the Game's settings (`GamePage`). Separate
- * from the Mediator's live Cockpit (`/play/game/:gameId`); both Cockpits link
+ * from the Mediator's live Cockpit (`/play/games/:gameId/mediate`); both Cockpits link
  * here from their ⋯. Who may see it is `games.get`'s question, asked live in
  * the component: a Game you are not in reads as an explanation.
  */

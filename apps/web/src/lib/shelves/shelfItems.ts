@@ -15,7 +15,7 @@
  */
 
 import type { ContainerFields } from 'game-domain/container'
-import { gamePath } from 'game-domain/entityKinds'
+import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
@@ -185,7 +185,7 @@ export function crewLinked(args: {
     pairSide(other, {
       id: otherId,
       name,
-      href: `/sheet/${other}/${otherId}`,
+      href: sheetPath(other, otherId),
       readings: args.readings?.get(otherId),
     }),
   ]

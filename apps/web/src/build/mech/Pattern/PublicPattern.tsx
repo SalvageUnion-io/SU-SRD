@@ -146,7 +146,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     try {
       const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
       toast.success(mechCopy('builtFromThePattern', { name: mech.name }))
-      void navigate({ to: '/sheet/$kind/$id', params: { kind: 'mech', id: mech.id } })
+      void navigate({ to: '/mechs/$id', params: { id: mech.id } })
     } catch (err) {
       toast.error(serverMessage(err) ?? mechCopy('theMechCouldNotBe2'))
       setBusy(null)

@@ -185,7 +185,8 @@ describe('/su sheet', () => {
     ['just-a-name'],
     ['pilots:'],
     ['bogus:p1'],
-    ['https://salvageunion.io/build/play/games/g1'],
+    ['https://salvageunion.io/play/games/g1'],
+    ['https://salvageunion.io/build/pilots/new'],
   ])('refuses a value that is neither a pick nor a sheet link (%s)', async (typed) => {
     connect(OK_SHEET)
     const { interaction, replies, deferred } = fakeExecute({
@@ -235,6 +236,8 @@ describe('/su sheet', () => {
 describe('parseSheetTarget', () => {
   test.each([
     ['pilots:p1', { table: 'pilots', entityId: 'p1' }],
+    ['https://salvageunion.io/build/pilots/jd7k2m9p', { table: 'pilots', entityId: 'jd7k2m9p' }],
+    ['<https://preview.example/build/crawlers/c1>', { table: 'crawlers', entityId: 'c1' }],
     [
       'https://salvageunion.io/build/sheet/pilot/jd7k2m9p',
       { table: 'pilots', entityId: 'jd7k2m9p' },
@@ -249,7 +252,13 @@ describe('parseSheetTarget', () => {
     expect(parseSheetTarget(raw)).toEqual(expected as ReturnType<typeof parseSheetTarget>)
   })
 
-  test.each([['Rook'], ['/p/npc/app1'], ['/sheet/pilot/%E0%A4%A']])('rejects %s', (raw) => {
+  test.each([
+    ['Rook'],
+    ['/p/npc/app1'],
+    ['/sheet/pilot/%E0%A4%A'],
+    ['/build/npcs/n1'],
+    ['/build/mechs/new?x=1'],
+  ])('rejects %s', (raw) => {
     expect(parseSheetTarget(raw)).toBeNull()
   })
 })

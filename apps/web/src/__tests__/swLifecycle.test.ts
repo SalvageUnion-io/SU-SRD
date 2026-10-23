@@ -15,7 +15,7 @@ const SOURCE = readFileSync(join(import.meta.dir, '../../public/sw-lifecycle.js'
 type Listener = (event: { waitUntil(promise: Promise<unknown>): void }) => void
 
 const READER = 'https://salvageunion.io/chassis/mule/'
-const BUILDER = appUrl('/sheet/pilot/1', 'https://salvageunion.io')
+const BUILDER = appUrl('/pilots/1', 'https://salvageunion.io')
 
 function fakeWorker({
   active,
@@ -94,14 +94,16 @@ describe('sw-lifecycle', () => {
     expect(navigate).not.toHaveBeenCalled()
   })
 
-  it('counts /build itself as the builder, and not /buildings/', async () => {
+  it('counts /build and Play as the app, and not /buildings/ or /playlists/', async () => {
     const at = async (url: string) => {
       const { sw, lifecycle } = fakeWorker({ active: true, marker: true, windows: [url] })
       await lifecycle()
       return sw.skipWaiting.mock.calls.length
     }
     expect(await at(appUrl('', 'https://salvageunion.io'))).toBe(0)
+    expect(await at(appUrl('/play/pilots/p1', 'https://salvageunion.io'))).toBe(0)
     expect(await at('https://salvageunion.io/buildings/')).toBe(1)
+    expect(await at('https://salvageunion.io/playlists/')).toBe(1)
   })
 
   it('reloads nothing on a first install, and marks the origin', async () => {

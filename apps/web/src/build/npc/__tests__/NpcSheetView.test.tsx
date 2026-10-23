@@ -1,5 +1,5 @@
 /**
- * NpcSheetView — `/sheet/npc/:id`: which NPC, and whether the viewer may edit
+ * NpcSheetView — `/npcs/:id`: which NPC, and whether the viewer may edit
  * it (ADR-044).
  *
  * Yours (held here, and the server agrees) is editable and names the crawler
