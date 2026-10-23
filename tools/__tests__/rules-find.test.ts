@@ -74,12 +74,14 @@ describe('sources', () => {
     'False Flag Digital Edition 2.0a.txt',
     'We Were Here First Digital Edition 2.0.txt',
     'SUSS Core Rulebook 1.1.txt',
+    'Leyline Changelog Errata.txt',
   ]
 
   test('defaults to the latest edition of each book, when it is 2.0a', () => {
     expect(sources(files, false)).toEqual([
       { label: 'Core Book', file: 'Salvage Union Digital Edition 2.0a.txt' },
       { label: 'False Flag', file: 'False Flag Digital Edition 2.0a.txt' },
+      { label: 'Errata', file: 'Leyline Changelog Errata.txt' },
     ])
   })
 
@@ -95,6 +97,15 @@ describe('findHits', () => {
     const dir = extract({ [core]: ['no hit', 'over your Heat\nCapacity.'] })
     expect(findHits(dir, [{ label: 'Core Book', file: core }], 'heat capacity')).toEqual([
       'Core Book p.2: over your Heat Capacity.',
+    ])
+  })
+
+  test('reads a text with no page markers as page 1', () => {
+    const dir = extract({})
+    const errata = 'Leyline Changelog Errata.txt'
+    writeFileSync(join(dir, errata), 'Pg.109: Removed Comms Module from Butcher Pattern Thresher.')
+    expect(findHits(dir, [{ label: 'Errata', file: errata }], 'butcher pattern')).toEqual([
+      'Errata p.1: Pg.109: Removed Comms Module from Butcher Pattern Thresher.',
     ])
   })
 

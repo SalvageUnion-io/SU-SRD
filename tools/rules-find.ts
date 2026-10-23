@@ -11,6 +11,7 @@
  * a term matches across a line break and a hyphenated line end.
  *
  *   bun run rules:find heat cap           the 2.0a books (Core Book, expansions)
+ *                                         and Leyline's errata
  *   bun run rules:find heat cap --all     every extracted text, every edition
  *   bun run rules:find heat cap --raw     the content-stream layer, for a
  *                                         snippet that reads scrambled: the
@@ -80,19 +81,25 @@ export function snippets(text: string, pattern: RegExp, context = CONTEXT): stri
 
 export type Source = { label: string; file: string }
 
+/** Leyline's changelog of corrections; it amends the books, so it is searched by default. */
+const ERRATA = /errata/i
+
 /**
  * The extract files to search, each with the label its hits cite. Default:
- * each book whose latest edition is 2.0a, labelled by book. `all`: every
- * extracted text, labelled by file name.
+ * each book whose latest edition is 2.0a, labelled by book, then the errata.
+ * `all`: every extracted text, labelled by file name.
  */
 export function sources(files: string[], all: boolean): Source[] {
   if (all) return files.map((f) => ({ label: f.replace(/\.txt$/, ''), file: f }))
   const picked = pickLatest(files)
-  return BOOK_SPECS.flatMap((spec) =>
-    (picked.get(spec) ?? [])
-      .filter((f) => /\b2\.0a\b/.test(f))
-      .map((file) => ({ label: spec.id, file }))
-  )
+  return [
+    ...BOOK_SPECS.flatMap((spec) =>
+      (picked.get(spec) ?? [])
+        .filter((f) => /\b2\.0a\b/.test(f))
+        .map((file) => ({ label: spec.id, file }))
+    ),
+    ...files.filter((f) => ERRATA.test(f)).map((file) => ({ label: 'Errata', file })),
+  ]
 }
 
 /** Every hit in `searched`, as `Book p.N: …snippet…` lines in book and page order. */

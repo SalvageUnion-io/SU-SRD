@@ -18,7 +18,8 @@
  * The PDFs and this extract are gitignored (`rules/*`) — they are copyright-
  * bearing verbatim material and must never be committed to this public repo.
  * Their source of record is the private `SalvageUnion-io/su-rules` repo, which
- * commits the extract for cloud sessions (they attach it as a second repo).
+ * commits the extract for cloud sessions (they attach it as a second repo) and
+ * keeps the PDFs in R2 (`bun tools/binaries.ts pull` there).
  * Locally the extract is a regenerable substrate: a greppable full-text
  * fallback for "what does the book actually say".
  *
@@ -77,7 +78,9 @@ async function extractPdf(pdfPath: string, layer: Layer = 'flow'): Promise<strin
 }
 
 export function withPageMarkers(text: string): string {
+  // pdftotext ends every page with a form feed, the last one too: no page after it
   return text
+    .replace(/\f$/, '')
     .split('\f')
     .map((page, i) => `<!-- page ${i + 1} -->\n${page.trimEnd()}`)
     .join('\n\n')
@@ -101,7 +104,7 @@ export async function extractAll(rulesDir = 'rules'): Promise<string[]> {
       process.stdout.write(`Extracting ${pdf} (${layer}) … `)
       const raw = await extractPdf(src, layer)
       writeFileSync(dest, withPageMarkers(raw))
-      console.log(`${raw.split('\f').length} pages → ${dest}`)
+      console.log(`${raw.replace(/\f$/, '').split('\f').length} pages → ${dest}`)
       written.push(dest)
     }
   }
