@@ -7,10 +7,12 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * page draws it. `findRhythm` reads every Page body on the page (an
  * SRD show page's, the app's detail dialog's) and returns each place it breaks:
  *
- * - **start** the body's first block more than `start` px under the band (or
- *   the band's overflow row, its chips that did not fit beside the title): the
- *   body starts under the band at any length, so a short page is never
- *   centred in the window.
+ * - **start** on a body its content fills, the first block more than `start`
+ *   px under the band (or the band's overflow row, its chips that did not fit
+ *   beside the title): a long page starts under the band.
+ * - **centre** on a body taller than its content (a short page), the content
+ *   not centred in it: a short page sits midway between the band and the
+ *   foot, never spread and never left at the top.
  * - **gap** a block whose nearest block above it (the one with the lowest foot
  *   above its top, across its width) is not `gap` px away: level-1 blocks sit
  *   one 12px gap apart, a Slab and the block it heads included.
@@ -26,7 +28,7 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * run of paragraphs one block. A block inside another block is the outer one's.
  */
 type RhythmFinding = {
-  rule: 'start' | 'gap' | 'stat-frame' | 'stat-label'
+  rule: 'start' | 'centre' | 'gap' | 'stat-frame' | 'stat-label'
   /** What breaks it, `The Armoury (TitledBox) 20px under the prose`. */
   detail: string
 }
@@ -189,9 +191,28 @@ function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
     )
     kept.sort((x, y) => x.rect.top - y.rect.top || x.rect.left - y.rect.left)
 
+    // The body's content box, and the space its content leaves in it.
+    const box = body.getBoundingClientRect()
+    const pad = getComputedStyle(body)
+    const boxTop = box.top + Number.parseFloat(pad.paddingTop)
+    const boxBottom = box.bottom - Number.parseFloat(pad.paddingBottom)
+    const content = [...body.children].filter(visible).map((c) => c.getBoundingClientRect())
+    const contentTop = Math.min(...content.map((r) => r.top))
+    const contentBottom = Math.max(...content.map((r) => r.bottom))
+    const short =
+      content.length > 0 && boxBottom - boxTop - (contentBottom - contentTop) > a.tolerance
+
     const bandFoot = band?.getBoundingClientRect().bottom ?? body.getBoundingClientRect().top
     const first = kept[0]
-    if (first && first.rect.top - bandFoot > a.start + a.tolerance)
+    if (short) {
+      const over = contentTop - boxTop
+      const under = boxBottom - contentBottom
+      if (Math.abs(over - under) > a.tolerance)
+        found.push({
+          rule: 'centre',
+          detail: `a short page ${round(over)}px under its top and ${round(under)}px over its foot`,
+        })
+    } else if (first && first.rect.top - bandFoot > a.start + a.tolerance)
       found.push({
         rule: 'start',
         detail: `${first.name} starts ${round(first.rect.top - bandFoot)}px under the band`,

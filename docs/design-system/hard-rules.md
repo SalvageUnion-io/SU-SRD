@@ -63,7 +63,7 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 - **R12 One Size per line; 44px on touch; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every line's controls one height, menu items included, stamps and chips on that line too; no text under 11px as drawn; on a coarse pointer every menu item is 44px. One stepper (`StepButton`): a count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`. Play's canvas never draws below its design size: under 1280 × 800 it draws its phone form.
 - **R13 Tokens only** (§4.1–§4.4, §4.7) — no literal tracking, control height, ink `color-mix`, border width, radius or off-scale spacing; one frame rounding (`radius.card`, 3px) for every frame that is no entity; a component fit that is not spacing carries `design-tokens-ignore` and its reason.
 - **R14 Caps through the stamp, `Button` and `capsLabel`** (§3.12, §4.2) — no other `uppercase`; 11px caps are snug.
-- **R17 A Page has one rhythm** (§1.7, §7.1) — the first block within 24px of the band; 12px between level-1 blocks; every stat value framed 1px, every stat label 14px.
+- **R17 A Page has one rhythm** (§1.7, §7.1) — the first block ≤24px under the band (short: centred); 12px between level-1 blocks; every stat value framed 1px, every stat label 14px.
 - **R21 One breakpoint ladder** (K2) — 40, 48, 64, 80rem, `width >=`, in media, container and JS alike; no px or `max-width` query.
 - **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; an `infinite` loop only for loading, under `no-preference`.
 - **R26 One lift, one layer scale** (§4.4, K4) — `--shadow-lift`, 3px popups, z-index from `layer` (a literal above 3 fails).

@@ -8,8 +8,8 @@ import { expect, test } from './fixtures'
 
 /**
  * Hard rule R17, a Page has one rhythm (ruleset §1.7, §1.3, §7.1), on the
- * rendered Page (`_pageRhythm.ts`): the body starts under the band at any
- * length (a short page is never centred), every level-1 block and the Slab
+ * rendered Page (`_pageRhythm.ts`): a long body starts under the band and a
+ * short one sits centred between the band and the foot, every level-1 block and the Slab
  * heading one sits one 12px gap from the next, and the stat column's value
  * cells wear a 1px frame and its labels 14px type.
  *
