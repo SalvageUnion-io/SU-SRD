@@ -50,6 +50,10 @@ describe('withPageMarkers', () => {
     )
   })
 
+  test("the last page's form feed opens no page after it", () => {
+    expect(withPageMarkers('Cover\fBack\f')).toBe('<!-- page 1 -->\nCover\n\n<!-- page 2 -->\nBack')
+  })
+
   test('a text with no form feed is one page', () => {
     expect(withPageMarkers('only')).toBe('<!-- page 1 -->\nonly')
   })
