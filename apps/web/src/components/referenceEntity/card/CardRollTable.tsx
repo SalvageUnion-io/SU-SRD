@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../lib/dice'
-import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import type { Size } from '../../../styles/sizing'
 import {
   digestColumnsTable,
@@ -13,17 +12,13 @@ import { RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import { toastRoll } from '../../containers/toastRoll'
 import { RollMini } from '../../entity/forms/RollMini'
+import { TraitProse } from '../../TraitProse'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
 
 /** A pair of rolls on a columns table: where they landed, and the entry's die. */
 type ColumnsRoll = { column: string; entry: string; roll: number; value: string }
-
-/** A row's text, its trait references as Mentions. */
-function TraitText({ text }: { text: string }) {
-  return <>{useParseTraitReferences(text)}</>
-}
 
 /**
  * An entity's own ROLL TABLE (EDL E14, R8): the shared `RollTableInstrument`,
@@ -160,7 +155,7 @@ export function CardRollTable({
             }
           : {
               kind: 'bands',
-              rows: rows.map((row) => ({ ...row, value: <TraitText text={row.value} /> })),
+              rows: rows.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
               mark: rolled ?? undefined,
             }
       }
