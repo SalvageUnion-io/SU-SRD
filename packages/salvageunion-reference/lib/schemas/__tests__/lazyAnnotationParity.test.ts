@@ -80,6 +80,8 @@ const PATTERN_KEYS = [
   'legalStarting',
   'hidden',
   'homebrew',
+  'author',
+  'origin',
   'source',
   'page',
   'booklet',

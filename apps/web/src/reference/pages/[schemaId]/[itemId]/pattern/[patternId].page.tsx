@@ -8,7 +8,7 @@
  */
 
 import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { toEntityModel, truncate } from 'salvageunion-reference'
+import { isHomebrewPattern, toEntityModel, truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../../../ssg/types'
 import { isLegalStartingPatternOf, resolveEntityPageMeta } from '../../../../../components/index'
 import { patternBuildLinkFor } from '../../../../../lib/buildLink'
@@ -48,6 +48,9 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const summary = patternStaticSummary(host, pattern)
   const chapter = chapterForSchema(schemaId)
   const pageMeta = resolveEntityPageMeta(host, pattern)
+  // A built-in Homebrew Pattern credits its designer, not a page, and links
+  // the post it was published in.
+  const homebrew = isHomebrewPattern(pattern) && 'author' in pattern ? pattern : null
 
   // The PATTERN's own prose (`summary.description`), not the leading host
   // prose — otherwise every pattern of a host ships the same meta description
@@ -78,7 +81,9 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       ],
       crumb: patternName,
     }),
-    foot: { printings: pageMeta.printings },
+    foot: homebrew?.author
+      ? { credit: pagesCopy('homebrewCredit', { author: homebrew.author }) }
+      : { printings: pageMeta.printings },
     children: (
       <EntityPageFrame
         title={`“${patternName}”`}
@@ -92,6 +97,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           href: itemHref(schemaId, itemId),
         }}
         legalStartingPattern={isLegalStartingPatternOf(pattern)}
+        homebrew={homebrew !== null}
+        credit={
+          homebrew?.author && homebrew.source
+            ? { source: homebrew.source, author: homebrew.author, href: homebrew.origin }
+            : undefined
+        }
         build={patternBuildLinkFor(schemaId, host, pattern)}
       >
         {/* The pattern renders through the same Entity unit as every other page —

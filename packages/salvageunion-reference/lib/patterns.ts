@@ -22,6 +22,27 @@ export function getPatterns(entity: RefMetaEntity): RefObjectAnyPattern[] | unde
 }
 
 /**
+ * The patterns the book prints: the visible ones minus the stored `homebrew`
+ * set, which a page lists with the players' Homebrew instead (ADR-061).
+ */
+export function getBookPatterns(entity: RefMetaEntity): RefObjectAnyPattern[] | undefined {
+  return getPatterns(entity)?.filter((pattern) => !isHomebrewPattern(pattern))
+}
+
+/**
+ * The built-in Homebrew Patterns: visible, tagged `homebrew` (community
+ * designs such as Mech Monday's), each crediting its `author` and `origin`.
+ */
+export function getHomebrewPatterns(entity: RefMetaEntity): RefObjectAnyPattern[] {
+  return (getPatterns(entity) ?? []).filter(isHomebrewPattern)
+}
+
+/** A pattern carrying the stored `homebrew` tag (only mech patterns can). */
+export function isHomebrewPattern(pattern: RefObjectAnyPattern): boolean {
+  return 'homebrew' in pattern && pattern.homebrew === true
+}
+
+/**
  * A Bio-Titan pattern (it names the ACTIONS it adds) rather than a mech
  * pattern (it installs systems and modules). Read off the shape, not the
  * host's schema, so a surface handed a bare pattern can still tell.

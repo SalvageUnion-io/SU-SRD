@@ -24,7 +24,14 @@ import {
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
 import type { SalvageUnionReference as RefType } from '../index'
 import { SRD_SITE_URL } from '../origin'
-import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from '../patterns'
+import {
+  getBookPatterns,
+  getHomebrewPatterns,
+  getPatterns,
+  isHiddenPattern,
+  normalizePatternName,
+  visiblePatterns,
+} from '../patterns'
 import { getEntitySlug } from '../slug'
 
 let SalvageUnionReference: typeof RefType
@@ -710,11 +717,17 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
     }
   })
 
-  it('every visible pattern carries its own source and page', () => {
+  it('every visible pattern carries its own source and page, or a homebrew credit', () => {
     for (const chassis of getReference().Chassis.all()) {
       for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
         expect(pattern.source).toBeTruthy()
-        expect(typeof pattern.page).toBe('number')
+        if (pattern.homebrew) {
+          // A built-in Homebrew Pattern has no book page: it credits its designer and post.
+          expect(pattern.author).toBeTruthy()
+          expect(pattern.origin).toMatch(/^https:\/\//)
+        } else {
+          expect(typeof pattern.page).toBe('number')
+        }
       }
     }
   })
@@ -730,6 +743,20 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
       .filter((p) => p.source === 'Mech Monday')
     expect(mechMonday.length).toBeGreaterThan(0)
     expect(mechMonday.every((p) => p.homebrew === true)).toBe(true)
+  })
+
+  it('splits a chassis’s visible patterns into the book’s and the built-in homebrew', () => {
+    const gatecrasher = defined(getReference().Chassis.getByName('Gatecrasher'))
+    expect((getBookPatterns(gatecrasher) ?? []).map((p) => p.name)).toEqual([
+      'Moth',
+      'Grond',
+      'APC',
+    ])
+    const homebrew = getHomebrewPatterns(gatecrasher)
+    expect(homebrew).toHaveLength(8)
+    expect(homebrew.length + (getBookPatterns(gatecrasher)?.length ?? 0)).toBe(
+      getPatterns(gatecrasher)?.length ?? 0
+    )
   })
 })
 

@@ -102,13 +102,33 @@ describe('on a chassis page', () => {
   })
 })
 
+describe('built-in homebrew', () => {
+  test('a chassis’s Mech Monday patterns list first, credited by their chip', async () => {
+    localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
+    answer(() => new Response('[]'))
+    render(<HomebrewIsland chassisRef="gatecrasher" bookPatterns={3} builtInPatterns={8} />)
+    await settle()
+    const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
+    expect(links).toContain('/chassis/gatecrasher/pattern/retiarius-terebro/')
+    expect(screen.getByRole('link', { name: 'Show all 11 patterns' })).toBeTruthy()
+    expect(screen.getByText('blk_ivy')).toBeTruthy()
+    expect(screen.getAllByText(/^mech monday$/i)).toHaveLength(8)
+    // Players' "none yet" is only for a chassis with nothing to list.
+    expect(screen.queryByText('No player has shared a pattern for this chassis yet.')).toBeNull()
+  })
+})
+
 describe('on the Homebrew page', () => {
   test('lists every one', async () => {
     const asked = answer(() => new Response(JSON.stringify(ROWS)))
     render(<HomebrewIsland />)
     await settle()
     expect(asked).toEqual(['/homebrew/patterns.json'])
-    expect(screen.getAllByRole('link')).toHaveLength(2)
+    const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
+    // The reference's built-in ones first (the Gatecrasher's Mech Monday eight), then the players'.
+    expect(links).toHaveLength(10)
+    expect(links[0]).toBe('/chassis/gatecrasher/pattern/cornerstone/')
+    expect(links.slice(-2)).toEqual(['/build/p/pattern/pat-a', '/build/p/pattern/pat-b'])
   })
 
   test('a failed read says so', async () => {
