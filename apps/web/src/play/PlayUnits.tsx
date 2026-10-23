@@ -43,6 +43,7 @@ import {
   SegmentedOption,
   Slab,
   Stat,
+  Text,
   TitledBox,
   tokens,
 } from '../components/index'
@@ -72,14 +73,8 @@ const CHIPS = {
   minWidth: 0,
 } satisfies CSSProperties
 
-const NOTE = {
-  color: 'var(--color-wk-muted)',
-  fontSize: tokens.fontSize.sm,
-  margin: 0,
-} satisfies CSSProperties
-
 const RANGE_LABEL = {
-  color: 'var(--color-wk-muted)',
+  color: 'var(--color-wk-muted)', // design-tokens-ignore: the range label
   fontSize: tokens.fontSize.sm,
 } satisfies CSSProperties
 
@@ -360,7 +355,7 @@ export function PlayMechUnit({
           </Segmented>
         </div>
       ) : null}
-      {place === 'parked' ? <p style={NOTE}>{playCopy('readOnlyUntilBoarded')}</p> : null}
+      {place === 'parked' ? <Text variant="note">{playCopy('readOnlyUntilBoarded')}</Text> : null}
     </TitledBox>
   )
 }

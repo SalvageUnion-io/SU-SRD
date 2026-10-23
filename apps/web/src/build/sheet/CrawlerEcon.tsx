@@ -23,8 +23,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { Button, Stat, tokens } from '../../components/index'
+import { Button, Eyebrow, Stat, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
 export type EconLozItem = {
@@ -72,12 +71,6 @@ const LOZ = {
   alignItems: 'center',
   gap: tokens.space[4],
 } satisfies CSSProperties
-
-const CAPTION = {
-  // The muted text tone: 11px caps need 4.5:1, which ink55 (3.6:1) missed.
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
-const CAPTION_CAPS = capsLabel({ size: 'badge', weight: 'semibold' })
 
 type CrawlerEconFrameProps = {
   /** The SP `VitalGauge`. */
@@ -132,11 +125,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
     <div style={LOZ}>
       {/* A label-first chip, as every stat reads; `full` is the reading rung. */}
       <Stat label={item.label} value={item.value} max={item.max} />
-      {item.caption && (
-        <span className={CAPTION_CAPS} style={CAPTION}>
-          {item.caption}
-        </span>
-      )}
+      {item.caption && <Eyebrow tone="muted">{item.caption}</Eyebrow>}
     </div>
   )
 }

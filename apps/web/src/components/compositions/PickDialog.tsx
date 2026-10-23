@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { color, space } from '../../design/tokens'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
+import { Text } from '../atoms/Text'
 import { DialogActions } from '../containers/DialogActions'
 import { EmptyState } from '../containers/EmptyState'
 import { ModalShell } from '../containers/ModalShell'
@@ -86,14 +87,6 @@ const GROUP = {
   gap: space[8],
 } satisfies CSSProperties
 
-const NOTE = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-  margin: 0,
-} satisfies CSSProperties
-
 /**
  * PickDialog — the one pick dialog (ruleset §6.6): a narrow `ModalShell`
  * (chrome K7) around one radio group of Compacts in select mode (EDL "Modes":
@@ -175,7 +168,7 @@ export function PickDialog({
           </RadioCardGroup>
         )}
 
-        {note && <p style={NOTE}>{note}</p>}
+        {note && <Text variant="note">{note}</Text>}
 
         {error && <FieldError>{error}</FieldError>}
 

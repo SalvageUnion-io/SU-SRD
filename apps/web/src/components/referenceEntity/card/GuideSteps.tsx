@@ -3,7 +3,6 @@ import { useContext, useEffect, useRef } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
@@ -12,6 +11,7 @@ import { Callout } from '../../containers/Callout'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
+import { TraitProse } from '../../TraitProse'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
@@ -26,11 +26,6 @@ import type { ResolvedGuideStep } from './resolveGuideSteps'
 
 const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
 const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section su-hit-area', capsLabel())
-
-/** A step's page pointer, its references as Mentions (E4). */
-function GuideNote({ text }: { text: string }) {
-  return <p className="su-guide__note">{useParseTraitReferences(text)}</p>
-}
 
 /**
  * A step's aside — a tip or a worked example — is the note every rules block
@@ -57,7 +52,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
           {label}
         </Badge>
       )}
-      <p>{useParseTraitReferences(text)}</p>
+      <TraitProse as="p" text={text} />
     </Callout>
   )
 }
@@ -161,7 +156,7 @@ export function GuideSteps({
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
       if (chunk.kind === 'note') {
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
-        return <GuideNote key={index} text={chunk.text} />
+        return <TraitProse key={index} as="p" className="su-guide__note" text={chunk.text} />
       }
       if (chunk.kind === 'aside') {
         return (

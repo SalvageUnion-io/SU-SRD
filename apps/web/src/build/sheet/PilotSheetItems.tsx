@@ -8,7 +8,7 @@
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { GenericInventoryEntry } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { extractVisibleActions } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
@@ -380,6 +380,8 @@ type GenericEntryAdderProps = {
  * the free form covers everything else with an explicit slot cost.
  */
 export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
+  const slotsId = useId()
+  const qtyId = useId()
   const [name, setName] = useState('')
   const [slots, setSlots] = useState(1)
   const [qty, setQty] = useState(1)
@@ -418,10 +420,10 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         onChange={(e) => setName(e.target.value)}
         style={NAME_INPUT}
       />
-      <AdderField label={buildSheetCopy('slots')} htmlFor="new-item-slots">
+      <AdderField label={buildSheetCopy('slots')} htmlFor={slotsId}>
         <Input
           size="compact"
-          id="new-item-slots"
+          id={slotsId}
           type="number"
           numeric
           min={0}
@@ -431,10 +433,10 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           style={NUMBER_INPUT}
         />
       </AdderField>
-      <AdderField label={buildSheetCopy('qty')} htmlFor="new-item-qty">
+      <AdderField label={buildSheetCopy('qty')} htmlFor={qtyId}>
         <Input
           size="compact"
-          id="new-item-qty"
+          id={qtyId}
           type="number"
           numeric
           min={1}

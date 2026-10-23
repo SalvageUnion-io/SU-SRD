@@ -38,6 +38,7 @@ import {
   SlabSection,
   Stack,
   Stat,
+  Text,
   toast,
   tokens,
 } from '../../components/index'
@@ -59,13 +60,6 @@ import { usePatternStore } from '../../stores/patternStore'
 import { usePrepStore } from '../../stores/prepStore'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { hasRoomFor, opponentAsTray, opponentFrom, pinTable, unpinTable } from './encounter.model'
-
-const LEDE = {
-  color: tokens.color.ink75,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  margin: 0,
-} satisfies CSSProperties
 
 const LIST = {
   display: 'flex',
@@ -177,7 +171,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         </ChapterBand>
       }
     >
-      <p style={LEDE}>{buildPrepCopy('lede')}</p>
+      <Text variant="note">{buildPrepCopy('lede')}</Text>
       <Field
         label={buildPrepCopy('name')}
         value={encounter.name}

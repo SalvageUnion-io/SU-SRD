@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
-import { Field, Input, SlabSection, tokens } from '../../components/index'
+import { Field, Input, SlabSection, Text, tokens } from '../../components/index'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { RollTableButton } from '../wizard/RollTableButton'
@@ -11,14 +11,7 @@ import '../../styles/build/wizard.css'
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
-/** The Scrap Pool's hint, above its buckets. */
-const SCRAP_HINT = {
-  margin: `0 0 ${tokens.space[12]}`,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
+const SCRAP_HINT = { marginBottom: tokens.space[12] } satisfies CSSProperties
 
 /** The bucket inputs; the column count is `.su-wiz-scrap-grid`. */
 const SCRAP_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
@@ -84,7 +77,9 @@ export function CrawlerIdentityStep({
       />
 
       <SlabSection title={crawlerCopy('scrapPool')} id={scrapId}>
-        <p style={SCRAP_HINT}>{crawlerCopy('theGroupsBankedScrapBucketed')}</p>
+        <Text variant="note" style={SCRAP_HINT}>
+          {crawlerCopy('theGroupsBankedScrapBucketed')}
+        </Text>
 
         <div className="su-wiz-scrap-grid" style={SCRAP_GRID}>
           {SCRAP_BUCKETS.map((bucket, i) => {

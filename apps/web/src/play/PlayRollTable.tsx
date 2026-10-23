@@ -10,18 +10,13 @@ import {
   digestColumnsTable,
   digestRollTable,
   RollTableInstrument,
+  TraitProse,
   toastRoll,
   tokens,
   useCopied,
-  useParseTraitReferences,
 } from '../components/index'
 import { dieForTable, rollD20 } from '../lib/rollTableDice'
 import { playCopy } from '../messages/play'
-
-/** A row's text, its trait references as Mentions. */
-function TraitText({ text }: { text: string }) {
-  return <>{useParseTraitReferences(text)}</>
-}
 
 /** Where a roll landed, and the words it reads as (the toast, the log, Copy). */
 type Landed =
@@ -150,7 +145,7 @@ export function PlayRollTable({
             }
           : {
               kind: 'bands',
-              rows: rows.map((row) => ({ ...row, value: <TraitText text={row.value} /> })),
+              rows: rows.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),
               mark: landed?.kind === 'bands' ? { key: landed.key, roll: landed.roll } : undefined,
             }
       }

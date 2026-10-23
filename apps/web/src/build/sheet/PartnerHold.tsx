@@ -22,7 +22,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, SlabSection, Stack, Stat, tokens } from '../../components/index'
+import { Button, EmptyState, SlabSection, Stack, Stat, Text, tokens } from '../../components/index'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -35,12 +35,7 @@ type PartnerHoldProps = {
   readOnly?: boolean
 }
 
-const LOCKED_NOTE = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  marginBottom: tokens.space[4],
-} satisfies CSSProperties
+const LOCKED_NOTE = { marginBottom: tokens.space[4] } satisfies CSSProperties
 
 /** One lot line a row, as a sheet's item list (`.su-entity-mini-list`). */
 const LOT_LIST = 'su-entity-mini-list'
@@ -99,7 +94,11 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           an empty "no crawler" panel would be noise on a partner sheet. */}
       {crawlerLinked && (
         <SlabSection as="h4" title={buildSheetCopy('storageBay')}>
-          {editable && crawlerLocked !== null && <p style={LOCKED_NOTE}>{crawlerLocked}</p>}
+          {editable && crawlerLocked !== null && (
+            <Text variant="note" style={LOCKED_NOTE}>
+              {crawlerLocked}
+            </Text>
+          )}
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body={buildSheetCopy('theStorageBayIsEmpty')} />
           ) : (

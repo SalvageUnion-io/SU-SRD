@@ -24,6 +24,7 @@ import {
   FeedTime,
   ModalShell,
   Pending,
+  Text,
   tokens,
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -54,13 +55,6 @@ function KindChip({ label, tone }: { label: string; tone?: BadgeTone | undefined
     <Badge surface="quiet">{label}</Badge>
   )
 }
-
-const NOTE = {
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 /** The time keeps to the head line's far end. */
 const PUSH = { marginLeft: 'auto' } satisfies CSSProperties
@@ -156,7 +150,7 @@ export function ChangeLogDrawer({
         {live ? (
           <ChangeLogEntries entityType={entityType} entityId={entityId} />
         ) : (
-          <p style={NOTE}>{buildSheetCopy('theChangeLogIsKept')}</p>
+          <Text variant="note">{buildSheetCopy('theChangeLogIsKept')}</Text>
         )}
       </div>
     </ModalShell>

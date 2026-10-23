@@ -1,11 +1,13 @@
+import { ArrowUpRight } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
-import { borderWidth, layer, radius, space } from '../../design/tokens'
+import { borderWidth, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
 import { compositionsCopy } from '../../messages/components-compositions'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
+import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
@@ -320,14 +322,18 @@ export function AppBar({
           <div className="su-union-bar__end">
             {search && <div className="su-union-bar__search">{search}</div>}
             {buyHref && (
-              <a
+              <Button
                 href={buyHref}
+                linkAs="a"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn('su-union-bar__buy', capsLabel({ tracking: 'snug' }), FOCUS_RING)}
+                variant="ghost"
+                size="compact"
+                className="su-union-bar__action su-union-bar__buy"
               >
-                Buy the game <span aria-hidden="true">↗</span>
-              </a>
+                Buy the game
+                <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+              </Button>
             )}
             {actions && <div className="su-union-bar__actions">{actions}</div>}
           </div>

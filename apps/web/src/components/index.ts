@@ -23,8 +23,6 @@ export { dieForTable, rollD20, rollForTable } from '../lib/dice'
 export { useDisclosure } from '../lib/useDisclosure'
 // The one viewport media-query hook (a breakpoint read in JS, not CSS).
 export { useMediaQuery } from '../lib/useMediaQuery'
-// Prose with its `[[Trait]]` references drawn as Mentions (The app's `PlayRollTable`).
-export { useParseTraitReferences } from '../lib/useProseRefs'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from '../styles/cssVars'
 export { ActivationCost } from './atoms/ActivationCost'
@@ -313,3 +311,5 @@ export { quotePatternName } from './referenceEntity/pattern/quotePatternName'
 export { navigateControl } from './referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './referenceEntity/referenceEntityControlTypes'
 export { useDetailModal } from './referenceEntity/useDetailModal'
+// TraitProse — prose whose trait and entity names resolve as it renders, one per row.
+export { TraitProse } from './TraitProse'

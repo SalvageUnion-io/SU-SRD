@@ -1,10 +1,10 @@
 # The Hard Rules
 
 Each law of [ruleset.md](ruleset.md), [EDL](entity-display-language.md), [chips-and-actions.md](chips-and-actions.md) and [chrome.md](chrome.md), said the way a machine checks it.
-Every law in those five docs names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`; `bun tools/check-canon.ts --list` prints each law's gates. A law lands with its gate, or not at all.
+Every law in those five docs names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate, or not at all.
 A rule is **held** (its gate fails the build) unless it says **pending**: its gate runs and reports, but fails nothing until the screens hold it (an entry in `PENDING_RULES`, `apps/web/e2e/_pendingRules.ts`). The loop: land the gate pending, burn the findings to zero, delete the entry.
 
-Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6, R37 · [Primitives](#primitives) R1, R7–R11, R15, R16, R18, R19, R23, R30, R32, R34, R36, R38, R39, R42–R51 · [Chrome](#chrome) R20, R22, R24, R27–R29 · [Measures](#measures) R12–R14, R17, R21, R25, R26, R31, R33, R35, R40, R41.
+Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6, R37 · [Primitives](#primitives) R1, R7–R11, R15, R16, R18, R19, R23, R30, R32, R34, R36, R38, R39, R42–R51 · [Chrome](#chrome) R20, R22, R24, R27–R29, R52 · [Measures](#measures) R12–R14, R17, R21, R25, R26, R31, R33, R35, R40, R41.
 
 ## Coverage
 
@@ -56,11 +56,12 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 - **R24 Three dialog widths** (K7) — `ModalShell` narrow, default or page (28, 48, 72rem), no per-dialog `max-width`. One pick dialog (§6.6): `PickDialog`, narrow, its Compacts in select mode in one radio group, Cancel and the act in `DialogActions`; `RadioCardGroup` only there and in the wizards' steps.
 - **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again", never "Retry"; `role="alert"` only in `Message`, `RecoveryPanel` and `Banner`. There is no search page: `/search` 301s home.
 - **R28 One focus ring** (K9) — `--focus-ring-shadow` on `:focus-visible`, everywhere, 3:1 on every ground; no `:focus` indicator of its own.
+- **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.
 - **R29 Tabs, Segmented, Toggle by job** (K10) — `role="tab"` only in `Tabs`, `aria-pressed` only in `Segmented` and `Toggle`; no tab or segment label clipped or ellipsized.
 
 ## Measures
 
-- **R12 One Size per line; 44px on touch; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every line's controls one height, menu items included, stamps and chips on that line too; no text under 11px as drawn; on a coarse pointer every menu item is 44px. One stepper (`StepButton`): a count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`. Play's canvas never draws below its design size: under 1280 × 800 it draws its phone form.
+- **R12 One Size per line; 44px on touch; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every line's controls one height, menu items included, stamps and chips on that line too; no text under 11px as drawn. One stepper (`StepButton`): a count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`. Play's canvas never draws below its design size: under 1280 × 800 it draws its phone form.
 - **R13 Tokens only** (§4.1–§4.4, §4.7) — no literal tracking, control height, ink `color-mix`, border width, radius or off-scale spacing; one frame rounding (`radius.card`, 3px) for every frame that is no entity; a component fit that is not spacing carries `design-tokens-ignore` and its reason.
 - **R14 Caps through the stamp, `Button` and `capsLabel`** (§3.12, §4.2) — no other `uppercase`; 11px caps are snug.
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the first block ≤24px under the band (short: centred); 12px between level-1 blocks; every stat value framed 1px, every stat label 14px.
@@ -68,7 +69,7 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 - **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; an `infinite` loop only for loading, under `no-preference`.
 - **R26 One lift, one layer scale** (§4.4, K4) — `--shadow-lift`, 3px popups, z-index from `layer` (a literal above 3 fails).
 - **R31 Value cells and seams** (§7.1, §7.2) — a value cell is paper with a 1px ink frame on every side (a paper rule on ink, the state colour under a state); a border-riding stamp centres within 1px on its line.
-- **R33 A Peek is terminal** (§1.6, E16) — no button, link, input, tab stop or nested Peek on its plate; its one link is its card's name, to the entity's Page.
+- **R33 A Peek is terminal** (§1.6, E16) — no button, link, input, tab stop or nested Peek on its plate; its one link is its name, to its Page.
 - **R35 The form fits the place** (E2, E3, E11, E19, §1.3, §6.6) — a list item is a Compact, index Compact or Mini; every item of a Live Sheet's lists is or holds a Mini or Compact (a carried thing the reference lacks is a Mini from `syntheticItemModel`); a Play list's line is a Mini; a `Lead` only on an SRD index; a chassis ability at level 1 only on its chassis or pattern Page and the mech hero, else a contentful Mini.
 - **R40 A name sits at the left** (E22) — a name and its cut-out start at their head's left; only the art or the tier stands before them. Pending: `align`.
 - **R41 A Button beside Tabs is their Size** (§4.7) — on the Tabs' line or in the band that holds them. Pending: `tab-size`.

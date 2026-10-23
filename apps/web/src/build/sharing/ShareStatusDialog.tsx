@@ -31,7 +31,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ModalShell, tokens } from '../../components/index'
+import { ModalShell, Text, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ShareKind } from '../../lib/sharing/visibility'
 import { buildSharingCopy } from '../../messages/build-sharing'
@@ -51,15 +51,6 @@ type ShareStatusDialogProps = {
   /** Injectable clipboard writer for testing. */
   clipboardWriter?: (text: string) => Promise<void>
 }
-
-const NOTE = {
-  color: tokens.color.wkMuted,
-  marginBottom: 0,
-  marginTop: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  lineHeight: 1.625,
-} satisfies CSSProperties
 
 /** The dialog body's stack; its padding steps up at `sm` (`.su-sheet-share-body`). */
 const BODY = {
@@ -105,7 +96,7 @@ export function ShareStatusDialog({
       */}
       <div className="su-sheet-share-body" style={BODY}>
         {/* Read-only is the promise that holds whichever branch renders below. */}
-        <p style={NOTE}>{buildSharingCopy('whoeverCanSeeGetsA', { name })}</p>
+        <Text variant="note">{buildSharingCopy('whoeverCanSeeGetsA', { name })}</Text>
 
         {showLive ? (
           <ShareSettings
@@ -117,11 +108,11 @@ export function ShareStatusDialog({
           />
         ) : mode === 'solo' ? (
           <section style={SIGN_IN}>
-            <p style={NOTE}>{buildSharingCopy('sharingNeedsAnAccountThe')}</p>
+            <Text variant="note">{buildSharingCopy('sharingNeedsAnAccountThe')}</Text>
             <SignInControl />
           </section>
         ) : (
-          <p style={NOTE}>{buildSharingCopy('sharingSettingsNeedALive')}</p>
+          <Text variant="note">{buildSharingCopy('sharingSettingsNeedALive')}</Text>
         )}
       </div>
     </ModalShell>

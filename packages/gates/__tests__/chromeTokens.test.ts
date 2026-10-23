@@ -368,6 +368,22 @@ describe('chrome-tokens/badge-caps-snug', () => {
   })
 })
 
+describe('chrome-tokens/muted-note', () => {
+  test('a muted ink with a font size fails outside the atoms and containers; either alone passes', () => {
+    const body = [
+      'const A = { color: color.wkMuted, fontSize: fontSize.sm }',
+      'const B = { color: tokens.color.ink75, fontSize: tokens.fontSize.note }',
+      "const C = { color: 'var(--color-wk-muted)', fontSize: fontSize.xs }",
+      'const D = { color: color.wkMuted, margin: 0 }',
+      'const E = { color: color.ink, fontSize: fontSize.sm }',
+      'const F = { color: color.wkMuted, fontSize: fontSize.sm } // design-tokens-ignore: a label',
+    ].join('\n')
+    expect(lines(scan('apps/web/src/X.tsx', body), 'muted-note')).toEqual([1, 2, 3])
+    expect(scan('apps/web/src/components/atoms/X.tsx', body)['muted-note']).toEqual([])
+    expect(scan('apps/web/src/components/containers/X.tsx', body)['muted-note']).toEqual([])
+  })
+})
+
 describe('chrome-tokens/raw-breakpoint', () => {
   test('the gate’s ladder is design/tokens.ts’s `breakpoint`', () => {
     const tokens = readFileSync(
