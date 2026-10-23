@@ -12,7 +12,7 @@ import {
 } from '../actionResolution'
 import { getReferenceEntityName, getTechLevel } from '../entityFields'
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
-import { resolveActivationCurrency } from '../helpers'
+import { actionCostCurrency } from '../helpers'
 import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
 import type {
@@ -187,10 +187,7 @@ export function toEntityModel(
   const costSource = action ?? (folded as ActionFacets | undefined)
   const cost =
     costSource?.activationCost != null
-      ? formatCost(
-          costSource.activationCost,
-          resolveActivationCurrency(costSource.actionSource as RefEnumSchemaName | undefined)
-        )
+      ? formatCost(costSource.activationCost, actionCostCurrency(costSource))
       : undefined
 
   const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined

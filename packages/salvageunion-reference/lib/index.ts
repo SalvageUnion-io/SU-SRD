@@ -69,6 +69,7 @@ export { formerSlugsIn, resolveFormerSlug } from './formerSlugs'
 // need a barrel edit to get its type.
 export type * from './generated/entityTypes.generated'
 export {
+  actionCostCurrency,
   byTechLevelThenName,
   extractStaticEntitySummary,
   getEntitySchemas,

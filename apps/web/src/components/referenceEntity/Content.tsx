@@ -274,6 +274,7 @@ export function Content({
                   <ContentBlock
                     key={originalIndex}
                     block={block}
+                    omitLabel={!!labelText && originalIndex === firstBlock?.originalIndex}
                     fontSize={fontSize}
                     compact={compact}
                     rulesBearing={rulesBearing}
@@ -297,6 +298,7 @@ function ContentBlock({
   chassisName,
   rulesBearing = false,
   labelStampSize = 'compact',
+  omitLabel = false,
 }: {
   block: RefObjectContentBlock
   fontSize: ContentFontSize
@@ -306,6 +308,8 @@ function ContentBlock({
   rulesBearing?: boolean
   /** See `ContentProps.labelStampSize`. */
   labelStampSize?: 'compact' | 'full'
+  /** The block's label already prints as its section's head. */
+  omitLabel?: boolean
 }) {
   const type = block.type || 'paragraph'
   const blockValue = block.value
@@ -316,18 +320,37 @@ function ContentBlock({
   // This ensures React hooks are called in the same order every render
   const stringValue = parseContentBlockString(block, chassisName)
   const parsedValue = useParseTraitReferences(stringValue)
+  // A labelled block leads with its label in bold (a list item's "Bright:", a
+  // paragraph's "Integrated Hover Locomotion System:").
+  // A label with no text of its own is not a run-in (a bay's damaged effect,
+  // printed by its WHEN DAMAGED block instead).
+  const runInLabel =
+    block.label && stringValue ? (
+      <span style={{ fontWeight: weight.bold }}>{String(block.label)}: </span>
+    ) : null
 
   // Handle datavalues type - value is an array of dataValue objects
   if (type === 'datavalues') {
     if (!Array.isArray(blockValue) || blockValue.length === 0) {
       return null
     }
-    return (
+    const chips = (
       <div style={dataValuesStyle}>
         {blockValue.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: datavalues come from static reference content blocks and never reorder
           <DataValueChip key={index} item={item} compact={compact} />
         ))}
+      </div>
+    )
+    // A grouped section prints the label as its own head (`Content`); a flat
+    // flow prints it here, over its chips.
+    if (!block.label || omitLabel) return chips
+    return (
+      <div style={{ marginBottom: space[4] }}>
+        <Text variant="body" as="div" style={{ marginBottom: space[4], ...sizeStyle }}>
+          {block.label}
+        </Text>
+        {chips}
       </div>
     )
   }
@@ -350,6 +373,7 @@ function ContentBlock({
               Auto<span className="su-sr-only">: {AUTO_NOTE.toLowerCase()}.</span>
             </Badge>
           )}
+          {runInLabel}
           {parsedValue}
         </Text>
       )
@@ -372,9 +396,7 @@ function ContentBlock({
             -
           </span>
           <Text variant="body" as="div" style={{ flex: 1, ...sizeStyle, ...breakWord }}>
-            {block.label ? (
-              <span style={{ fontWeight: weight.bold }}>{String(block.label)}: </span>
-            ) : null}
+            {runInLabel}
             {parsedValue}
           </Text>
         </div>

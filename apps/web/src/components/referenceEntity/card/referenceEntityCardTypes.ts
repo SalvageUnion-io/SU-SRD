@@ -241,6 +241,7 @@ export type ActionFields = {
   damage?: RefObjectDamage
   traits?: RefObjectTrait[]
   activationCost?: string | number
+  activationCurrency?: string
   actionType?: string
   actionSource?: RefEnumSchemaName | 'actions'
 }

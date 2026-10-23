@@ -18,7 +18,12 @@ import type {
   RefObjectChoice,
   RefObjectContentBlock,
 } from 'salvageunion-reference'
-import { getChoices, isAbility, resolveGrantedEntities } from 'salvageunion-reference'
+import {
+  extractVisibleActions,
+  getChoices,
+  isAbility,
+  resolveGrantedEntities,
+} from 'salvageunion-reference'
 import type { Size } from '../../../styles/sizing'
 import { BonusPerTechLevel } from './BonusPerTechLevel'
 import { choiceKey, hideShownProse, proseKey, resolveBodyBlocks } from './bodyBlocks'
@@ -32,6 +37,7 @@ import { blockPlainText, choiceRendersNothing, isRulesBearing } from './cardHelp
 import type { AnchoredContentBlock } from './choiceAnchoring'
 import { anchorBonusMarker, anchorChoiceMarkers } from './choiceAnchoring'
 import type { DomainTone } from './entityCardTone'
+import { factionSectionBlocks } from './factionProse'
 import type { NestedCardHost } from './NestedCards'
 import { resolveNestedSections } from './nestedSections'
 import type {
@@ -127,9 +133,18 @@ export function resolveBodyProse(input: CardBodyInput) {
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description
   // leads, then the granted cards.
-  const grantedCount = resolveGrantedEntities(entity as RefEntity).length
-  const isGrantingAbility = isAbility(entity) && grantedCount > 0
-  const content = 'content' in entity ? entity.content : undefined
+  const granted = resolveGrantedEntities(entity as RefEntity)
+  const isGrantingAbility = isAbility(entity) && granted.length > 0
+  // Everything the granted cards print: their own prose and their actions'.
+  const grantedText = granted
+    .flatMap((g) => [g, ...(extractVisibleActions(g) ?? [])])
+    .flatMap((g) => ('content' in g && Array.isArray(g.content) ? g.content : []))
+    .map(blockPlainText)
+    .join('\n')
+  const ownContent = 'content' in entity ? entity.content : undefined
+  // A faction's GOALS, ASSETS, WEAKNESSES and LANCE FORMATION follow its prose.
+  const factionBlocks = factionSectionBlocks(entity)
+  const content = factionBlocks.length > 0 ? [...(ownContent ?? []), ...factionBlocks] : ownContent
   // The crawler-bay damaged-effect string also appears as the last content
   // paragraph; it renders in its WHEN DAMAGED block instead (`WhenDamaged`).
   const damagedEffect = damagedEffectOf(entity)
@@ -153,13 +168,19 @@ export function resolveBodyProse(input: CardBodyInput) {
   const foldedActionContent = foldedAction?.content ?? undefined
   // A SELF-action renders ITS content as the body, merged with the entity's own.
   const isSelfAction = !!foldedAction && foldedAction.name === entityName
+  // A granting ability folds no action, but its self-action's rule is still
+  // its own; `resolveBodyBlocks` keeps what the granted card does not print.
+  const grantingSelfContent = isGrantingAbility
+    ? extractVisibleActions(entity)?.find((a) => a.name === entityName)?.content
+    : undefined
   const resolvedBody = resolveBodyBlocks({
     content: rawBodyContent,
     damagedEffect,
     isGrantContext,
-    selfActionContent: isSelfAction ? foldedActionContent : undefined,
+    selfActionContent: isSelfAction ? foldedActionContent : grantingSelfContent,
     alwaysShow: isPattern || isTitanicMeta,
     isGrantingAbility,
+    grantedText,
   })
   // NO REPEATED PROSE: a nested child hides what its parent already prints.
   const bodyBlocks = hideShownProse(resolvedBody.bodyBlocks, shownProse, resolvedChassisName)

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useContext } from 'react'
 import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
+  actionCostCurrency,
   extractVisibleActions,
   foldedActionOf,
   formatCost,
@@ -12,7 +13,6 @@ import {
   isAbility,
   isBioTitanPattern,
   isTitanicAction,
-  resolveActivationCurrency,
   resolveGrantedEntities,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
@@ -308,7 +308,7 @@ function ReferenceEntityCardInner({
   const costSource = action ?? foldedActionFields
   const costLabel =
     costSource?.activationCost != null
-      ? formatCost(costSource.activationCost, resolveActivationCurrency(costSource.actionSource))
+      ? formatCost(costSource.activationCost, actionCostCurrency(costSource))
       : undefined
 
   // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`).
