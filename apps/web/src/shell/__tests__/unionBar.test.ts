@@ -32,7 +32,7 @@ describe('the shell’s Union bar', () => {
     expect(tabs.map((tab) => [tab.textContent, tab.getAttribute('href')])).toEqual([
       ['Reference', '/'],
       ['Build', '/build/'],
-      ['Play', '/build/play/'],
+      ['Play', '/play/'],
     ])
     expect(tabs.map((tab) => tab.getAttribute('data-tool'))).toEqual(['reference', 'build', 'play'])
     expect(tabs[1]?.getAttribute('aria-current')).toBe('true')
@@ -43,8 +43,8 @@ describe('the shell’s Union bar', () => {
       Array.from(
         bar().querySelector(`.su-union-bar__nav[data-mode="${mode}"]`)?.children ?? []
       ).map((el) => el.getAttribute('data-union-slot') ?? el.getAttribute('href'))
-    expect(nav('build')).toEqual(['/build/', '/build/mechs/patterns/', '/build/starter/'])
-    expect(nav('play')).toEqual(['games', '/build/play/#play-solo'])
+    expect(nav('build')).toEqual(['/build/', '/build/patterns/', '/build/starter/'])
+    expect(nav('play')).toEqual(['games', '/play/#play-solo'])
   })
 
   test('is served on Build’s front door: Build’s tab, Build’s nav, Training Bay here', () => {
@@ -107,7 +107,7 @@ describe('the shell’s Union bar, marked for its route', () => {
   })
 
   test('on Build’s pages: Build’s tab, the page’s link here', () => {
-    expect(hereIn(markUnionRoute(renderUnionBar(), '/mechs/patterns/'))).toEqual({
+    expect(hereIn(markUnionRoute(renderUnionBar(), '/patterns/'))).toEqual({
       mode: 'build',
       current: ['Build=true', 'Patterns=page'],
     })
@@ -124,7 +124,7 @@ describe('the shell’s Union bar, marked for its route', () => {
   test('says what the bar rendered for that route says, on every kind of route', () => {
     for (const route of [
       '/',
-      '/mechs/patterns/',
+      '/patterns/',
       '/starter/',
       '/pilots/new',
       '/play/',

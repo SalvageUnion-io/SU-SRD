@@ -126,14 +126,14 @@ describe('Button', () => {
     test("a root-relative href takes the surface's router link; a URL or a static page, an anchor", () => {
       render(
         <EntitySurfaceProvider value={{ linkAs: RouterLink }}>
-          <Button href="/sheet/pilot/p1">Open</Button>
+          <Button href="/pilots/p1">Open</Button>
           <Button href="https://discord.com/x">Add</Button>
         </EntitySurfaceProvider>
       )
       expect(screen.getByRole('link', { name: 'Open' }).hasAttribute('data-router')).toBe(true)
       expect(screen.getByRole('link', { name: 'Add' }).hasAttribute('data-router')).toBe(false)
       cleanup()
-      render(<Button href="/sheet/pilot/p1">Open</Button>)
+      render(<Button href="/pilots/p1">Open</Button>)
       expect(screen.getByRole('link', { name: 'Open' }).hasAttribute('data-router')).toBe(false)
     })
 

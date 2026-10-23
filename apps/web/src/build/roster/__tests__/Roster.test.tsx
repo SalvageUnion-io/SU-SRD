@@ -288,7 +288,7 @@ describe('Training Bay — one shelf per kind', () => {
     // the Compact (`.su-entity-compact`) holds what it reads.
     const line = within(npcs)
       .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
+      .find((a) => a.getAttribute('href') === `/npcs/${npc.id}`)
       ?.closest('.su-entity-compact')
     expect(line?.querySelector('[data-user-made]')).not.toBeNull()
     // The HOMEBREW stamp says it in a word.
@@ -330,7 +330,7 @@ describe('Training Bay — items', () => {
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     const link = within(pilots)
       .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === `/sheet/pilot/${id}`)
+      .find((a) => a.getAttribute('href') === `/pilots/${id}`)
     expect(link?.getAttribute('aria-label')).toContain('Nia Vale')
     const line = link?.closest('.su-entity-compact')
     expect(line?.textContent).toContain('Nia Vale')

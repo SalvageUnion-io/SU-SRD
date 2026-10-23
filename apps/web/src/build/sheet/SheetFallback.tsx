@@ -1,5 +1,5 @@
 /**
- * SheetFallback — what a `/sheet/$kind/$id` page shows in place of a sheet
+ * SheetFallback — what a sheet page (`/pilots/$id`, …) shows in place of a sheet
  * (`useLocatedSheet`), worded alike for every kind: still loading, not found,
  * unavailable offline, or a body this app cannot show.
  */

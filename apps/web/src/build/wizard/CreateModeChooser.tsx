@@ -6,7 +6,7 @@
  * tone, and BLANK (the escape hatch — an empty sheet, no steps, no limits),
  * headed in ink. Solid, both: neither is user-made (ruleset §3.9). For mechs a
  * third door joins the Blank family: Instantiate from Pattern, which links to
- * the existing /mechs/patterns flow.
+ * the existing /patterns/ flow.
  *
  * The title is the ChapterBand every page wears.
  */
@@ -124,10 +124,10 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
         </div>
 
         {/* Mech only: the third Blank-family door — Instantiate from Pattern,
-            a link to the /mechs/patterns flow. */}
+            a link to the /patterns/ flow. */}
         {kind === 'mech' && (
           <AppLink
-            href="/mechs/patterns"
+            href="/patterns/"
             className={cn('su-wiz-chooser-pattern', patternLinkCaps)}
             style={patternLinkStyle}
           >

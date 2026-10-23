@@ -70,7 +70,7 @@ describe('UnionBarSlots', () => {
     expect(currentIn('Build')).toEqual(['Starter Set'])
     rerender(<UnionBarSlots pathname="/" />)
     expect(currentIn('Build')).toEqual(['Training Bay'])
-    rerender(<UnionBarSlots pathname="/mechs/patterns/" />)
+    rerender(<UnionBarSlots pathname="/patterns/" />)
     expect(currentIn('Build')).toEqual(['Patterns'])
     rerender(<UnionBarSlots pathname="/pilots/new" />)
     expect(currentIn('Build')).toEqual([])
@@ -182,10 +182,10 @@ describe('UnionBarSlots', () => {
 
 describe('the bar’s rules', () => {
   test('a Play screen and the link-preview surface draw no bar', () => {
-    expect(hidesUnionBar('/play/abc')).toBe(true)
-    expect(hidesUnionBar('/play/game/g1')).toBe(true)
+    expect(hidesUnionBar('/play/pilots/abc')).toBe(true)
+    expect(hidesUnionBar('/play/games/g1/mediate')).toBe(true)
     expect(hidesUnionBar('/og/pilot/abc')).toBe(true)
-    expect(hidesUnionBar('/sheet/pilot/abc')).toBe(false)
+    expect(hidesUnionBar('/pilots/abc')).toBe(false)
   })
 
   test('the Play landing keeps the bar: its Play tab is how you got there', () => {
@@ -195,7 +195,7 @@ describe('the bar’s rules', () => {
 
   test('where a route is: Build’s nav item, or Play with Games ▾ on the hub and any Game route', () => {
     expect(unionHere('/')).toEqual({ mode: 'build', nav: 'hangar' })
-    expect(unionHere('/mechs/patterns/')).toEqual({ mode: 'build', nav: 'patterns' })
+    expect(unionHere('/patterns/')).toEqual({ mode: 'build', nav: 'patterns' })
     expect(unionHere('/mechs/new')).toEqual({ mode: 'build', nav: null })
     expect(unionHere('/starter/pilot/x')).toEqual({ mode: 'build', nav: 'starter' })
     expect(unionHere('/settings')).toEqual({ mode: 'build', nav: null })
@@ -203,18 +203,18 @@ describe('the bar’s rules', () => {
     expect(unionHere('/play')).toEqual({ mode: 'play', nav: 'games' })
     expect(unionHere('/play/')).toEqual({ mode: 'play', nav: 'games' })
     expect(unionHere('/play/games/g1')).toEqual({ mode: 'play', nav: 'games' })
-    expect(unionHere('/play/game/g1')).toEqual({ mode: 'play', nav: 'games' })
+    expect(unionHere('/play/games/g1/mediate')).toEqual({ mode: 'play', nav: 'games' })
     // A solo Cockpit is Play's, under no nav item (and draws no bar).
-    expect(unionHere('/play/p1')).toEqual({ mode: 'play', nav: null })
+    expect(unionHere('/play/pilots/p1')).toEqual({ mode: 'play', nav: null })
     // An invite joins a Game: Play's, under no nav item (ADR-052 §4).
-    expect(unionHere('/invite/abc')).toEqual({ mode: 'play', nav: null })
+    expect(unionHere('/play/invite/abc')).toEqual({ mode: 'play', nav: null })
   })
 
   test('a Game’s page keeps the bar, in Play: it is a Manage page, not a Cockpit', () => {
     expect(hidesUnionBar('/play/games/g1')).toBe(false)
     expect(unionHere('/play/games/g1').mode).toBe('play')
     // The Mediator's Cockpit for the same Game still draws its own bar.
-    expect(hidesUnionBar('/play/game/g1')).toBe(true)
+    expect(hidesUnionBar('/play/games/g1/mediate')).toBe(true)
   })
 
   test('Training Bay is here only at the root; Starter Set on every page under it', () => {

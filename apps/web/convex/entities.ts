@@ -239,7 +239,7 @@ function servedLink(l: Doc<'softLinks'>): Infer<typeof servedLinkValidator> {
 
 /**
  * Where one sheet lives and whether the caller may edit it — the question the
- * live sheet route (`/sheet/$kind/$id`) asks of anything this browser does not
+ * live sheet routes (`/pilots/$id`, …) ask of anything this browser does not
  * hold, and of anything it does, to learn which Game to read alongside it.
  *
  * `id` is what the client addresses an entity by: its app id, or — for a

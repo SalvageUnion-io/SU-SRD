@@ -1,5 +1,5 @@
 /**
- * Play route — /play/:pilotId
+ * Play route — /play/pilots/:pilotId
  *
  * Play runs one pilot of yours, in a Game or solo, on the Cockpit
  * (`PlayCockpit`). An old mech-keyed URL lands here too (from the retired
@@ -15,11 +15,11 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { areaTitle } from '../../lib/pageTitle'
-import { PlayGate } from '../../play/PlayGate'
-import { useEntityStore } from '../../stores/entityStore'
+import { areaTitle } from '../../../lib/pageTitle'
+import { PlayGate } from '../../../play/PlayGate'
+import { useEntityStore } from '../../../stores/entityStore'
 
-export const Route = createFileRoute('/play/$pilotId')({
+export const Route = createFileRoute('/play/pilots/$pilotId')({
   head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Play') }] }),
   loader: async () => {
     const store = useEntityStore.getState()

@@ -15,7 +15,7 @@ import { createElement } from 'react'
  *    crewmate's read-only with no edit controls and no Edit, at one address;
  *  - your crawler's crew lists crewmates' pilots this browser does not cache,
  *    as read-only rows that link to their live view;
- *  - a Convex row id — what the Discord bot's /sheet/ links carry, and what
+ *  - a Convex row id — what the Discord bot's sheet links carry, and what
  *    redirected crew-view links arrive with — is replaced by the canonical
  *    app id.
  *
@@ -159,10 +159,10 @@ describe("a crewmate's sheet", () => {
 
     // The assignments the frozen crew view could never show.
     expect(screen.getByRole('link', { name: /Iron Mongrel$/ }).getAttribute('href')).toBe(
-      '/sheet/mech/m-theirs'
+      '/mechs/m-theirs'
     )
     expect(screen.getByRole('link', { name: /#430 Tenacity$/ }).getAttribute('href')).toBe(
-      '/sheet/crawler/c-home'
+      '/crawlers/c-home'
     )
   })
 
@@ -302,7 +302,7 @@ describe('your own sheet', () => {
     expect(screen.getByRole('button', { name: /^Share this crawler$/ })).toBeTruthy()
     // The crewmate this browser does not cache is on the crew list…
     expect(screen.getByRole('link', { name: /Ash Vey$/ }).getAttribute('href')).toBe(
-      '/sheet/pilot/p-theirs'
+      '/pilots/p-theirs'
     )
     // …read-only: their crew link is theirs to undraw.
     expect(screen.queryByRole('button', { name: /^Unassign Ash Vey$/ })).toBeNull()
@@ -310,7 +310,7 @@ describe('your own sheet', () => {
     expect(screen.getByRole('button', { name: /^Unassign Roach-Boy$/ })).toBeTruthy()
     // A crewmate's mech docked here is in the bay too — and theirs to undock.
     expect(screen.getByRole('link', { name: /Iron Mongrel$/ }).getAttribute('href')).toBe(
-      '/sheet/mech/m-theirs'
+      '/mechs/m-theirs'
     )
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
     // Each wears whose it is on its head: yours, or the crewmate's name.
@@ -426,7 +426,7 @@ describe('the tab title', () => {
 })
 
 describe('addresses', () => {
-  test("a row id (the bot's /sheet/ links, redirected crew-view links) is replaced by the canonical app id", async () => {
+  test("a row id (the bot's sheet links, redirected crew-view links) is replaced by the canonical app id", async () => {
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
@@ -436,9 +436,7 @@ describe('addresses', () => {
     })
     await view('pilot', 'row-theirs')
 
-    expect(navigations).toEqual([
-      { to: '/sheet/$kind/$id', params: { kind: 'pilot', id: THEIR_PILOT.id }, replace: true },
-    ])
+    expect(navigations).toEqual([{ to: `/pilots/${THEIR_PILOT.id}`, replace: true }])
   })
 
   test('something you cannot see is simply not found', async () => {

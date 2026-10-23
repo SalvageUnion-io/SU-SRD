@@ -21,7 +21,7 @@ export type UnionNavLink = { id: UnionNavId; label: string; path: string }
 /** Build's nav: your assets. */
 const BUILD_NAV: readonly UnionNavLink[] = [
   { id: 'hangar', label: 'Training Bay', path: '/' },
-  { id: 'patterns', label: 'Patterns', path: '/mechs/patterns/' },
+  { id: 'patterns', label: 'Patterns', path: '/patterns/' },
   { id: 'starter', label: 'Starter Set', path: '/starter/' },
 ]
 
@@ -46,18 +46,16 @@ export function isCurrent(path: string, pathname: string): boolean {
 }
 
 /**
- * Whether a route is one of Play's: the hub or anything under it, and an
- * invite link, which joins a Game (ADR-052 §4).
+ * Whether a route is one of Play's: the hub or anything under it, an invite
+ * link (which joins a Game, ADR-052 §4) among them.
  */
-const isPlayRoute = (path: string): boolean =>
-  path === '/play' || path.startsWith('/play/') || path.startsWith('/invite/')
+const isPlayRoute = (path: string): boolean => path === '/play' || path.startsWith('/play/')
 
 /**
- * Whether a route is a Game's: its page in Play or a Mediator's Cockpit.
- * Games ▾ is current on both.
+ * Whether a route is a Game's: its page in Play or its Mediator's Cockpit
+ * under it. Games ▾ is current on both.
  */
-const isGameRoute = (path: string): boolean =>
-  path.startsWith('/play/games/') || path.startsWith('/play/game/')
+const isGameRoute = (path: string): boolean => path.startsWith('/play/games/')
 
 /**
  * Where a route (a path inside the app) is in the bar: its mode, and the nav

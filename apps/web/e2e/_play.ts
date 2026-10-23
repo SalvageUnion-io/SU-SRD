@@ -1,8 +1,9 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { cockpitPath } from 'game-domain/entityKinds'
 import { runAxeOnPage } from 'gates/a11y'
 import { playDoor as openDoor } from 'gates/lib/appPage'
-import { BASE } from './_base'
+import { routeInApp } from '../src/lib/appBase'
 import { openApp, pageOverflow, seedDice } from './_helpers'
 
 /**
@@ -56,13 +57,14 @@ export async function openPlay(page: Page, path: string, { dice = false } = {}):
   if (dice) await seedDice(page)
 }
 
-/** A Play hub door's path (`playDoor`, `gates/lib/appPage.ts`), as a route under the app's base. */
+/** A Play hub door's path (`playDoor`, `gates/lib/appPage.ts`), as a route in the app. */
 export async function playDoor(page: Page, name: string | RegExp): Promise<string> {
-  return (await openDoor(page, name)).slice(BASE.length)
+  const path = await openDoor(page, name)
+  return routeInApp(path) ?? path
 }
 
 /**
- * A pilot's Play screen, `/play/<id>`, read off its Training Bay Compact's sheet link.
+ * A pilot's Play screen, `/play/pilots/<id>`, read off its Training Bay Compact's sheet link.
  * For a pilot in a Game its player also mediates: that Game's Compact on the Play
  * hub has one door, Mediate (ADR-052 §4), so there is no "Play <pilot>" to
  * follow.
@@ -72,9 +74,9 @@ export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   const row = page.getByRole('region', { name: 'Pilots' }).getByRole('link', { name, exact: true })
   await expect(row, `the Training Bay lists ${name}`).toBeVisible({ timeout: 30_000 })
   const href = await row.first().getAttribute('href')
-  const id = href?.match(/\/sheet\/pilot\/([^/?#]+)/)?.[1]
+  const id = href?.match(/\/pilots\/([^/?#]+)/)?.[1]
   if (!id) throw new Error(`${name}'s Training Bay Compact has no sheet link: ${href}`)
-  return `/play/${id}`
+  return cockpitPath(id)
 }
 
 /** The Situation switch in the bar (canvas) or under the pinned vitals (phone). */

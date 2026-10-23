@@ -22,7 +22,7 @@ describe('isFrontDoor', () => {
 
   test('is no other page', () => {
     expect(isFrontDoor('/build/starter', '/build')).toBe(false)
-    expect(isFrontDoor('/build/sheet/pilot/x', '/build')).toBe(false)
+    expect(isFrontDoor('/build/pilots/x', '/build')).toBe(false)
     expect(isFrontDoor('/', '/build')).toBe(false)
   })
 

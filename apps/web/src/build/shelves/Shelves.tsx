@@ -232,7 +232,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     const inGame = typeof unit.gameId === 'string'
     return [
       [
-        { id: 'open', label: 'Open', onSelect: () => go(`/sheet/${type}/${unit.id}`) },
+        { id: 'open', label: 'Open', onSelect: () => go(`/${type}s/${unit.id}`) },
         {
           id: 'move',
           label: 'Move to a Game…',
@@ -431,7 +431,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   note={pilotFact(p)}
                   name={p.name}
                   reading={rowStats(pilotRailItems(p))[0]}
-                  href={`/sheet/pilot/${p.id}`}
+                  href={`/pilots/${p.id}`}
                   chips={linkChip(sharedByLink, p.id)}
                   linked={crewLinked({
                     kind: 'pilot',
@@ -460,7 +460,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   note={chassisFact(m.chassisRef)}
                   name={m.name}
                   reading={rowStats(mechRailItems(m))[0]}
-                  href={`/sheet/mech/${m.id}`}
+                  href={`/mechs/${m.id}`}
                   chips={linkChip(sharedByLink, m.id)}
                   linked={crewLinked({
                     kind: 'mech',
@@ -489,7 +489,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   note={crawlerFact(c)}
                   name={c.name}
                   reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
-                  href={`/sheet/crawler/${c.id}`}
+                  href={`/crawlers/${c.id}`}
                   chips={[...crawlerChips({ crawler: c, games }), ...linkChip(sharedByLink, c.id)]}
                   relations={gameRelation(c, games)}
                   menu={unitMenu('crawler', c, c)}
@@ -519,7 +519,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   note={n.position}
                   name={n.name}
                   reading={npcReading(n)}
-                  href={`/sheet/npc/${n.id}`}
+                  href={`/npcs/${n.id}`}
                   userMade
                   chips={npcChips({
                     npc: n,

@@ -5,7 +5,7 @@ import type { DesignWidth } from 'gates/lib/designViewports'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import type { Seed } from 'gates/lib/seedAccount'
 import { resolveSeedPath } from 'gates/lib/seedAccount'
-import { BASE } from './_base'
+import { routeInApp } from '../src/lib/appBase'
 import type { DesignDebt, DesignFamily, DesignFinding, DesignRoute } from './_designTable'
 import { againstBaseline, corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
 import type { Finding, Placed } from './_findings'
@@ -77,7 +77,7 @@ async function open(page: Page, route: DesignRoute, path: string): Promise<void>
     await expect(page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
   } else {
     await page.goto(path, { waitUntil: 'networkidle' })
-    if (path.startsWith(`${BASE}/`)) await waitForReady(page)
+    if (routeInApp(path) !== null) await waitForReady(page)
   }
   await settle(page)
   if (route.edit === true) await edit(page)

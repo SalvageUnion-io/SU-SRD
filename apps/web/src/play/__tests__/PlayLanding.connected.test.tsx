@@ -143,7 +143,7 @@ describe('the Play landing', () => {
       '/play/games/land-g1'
     )
     const play = tenacity.getByRole('link', { name: 'Play Rook in Tenacity' })
-    expect(play.getAttribute('href')).toBe('/play/land-rook')
+    expect(play.getAttribute('href')).toBe('/play/pilots/land-rook')
     expect(play.textContent).toBe('Play Rook')
     expect(tenacity.getByText('Player')).toBeTruthy()
     expect(tenacity.queryByRole('link', { name: /^Mediate/ })).toBeNull()
@@ -155,7 +155,7 @@ describe('the Play landing', () => {
     const wastes = card('Wastes')
     expect(wastes.getByText('Mediator')).toBeTruthy()
     const mediate = wastes.getByRole('link', { name: 'Mediate Wastes' })
-    expect(mediate.getAttribute('href')).toBe('/play/game/land-g2')
+    expect(mediate.getAttribute('href')).toBe('/play/games/land-g2/mediate')
     expect(mediate.textContent).toBe('Mediate')
     // One door per Game.
     expect(wastes.queryByRole('link', { name: /^Play / })).toBeNull()
@@ -187,7 +187,7 @@ describe('the Play landing', () => {
     await renderAs('connected')
     const solo = section('Play solo')
     expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
-      '/play/land-wren'
+      '/play/pilots/land-wren'
     )
     const row = (name: string) => {
       const item = solo.getByRole('link', { name: `Play ${name} solo` }).closest('li')
@@ -246,7 +246,7 @@ describe('the Play landing', () => {
       await act(async () => {
         fireEvent.click(join)
       })
-      expect(assigned).toEqual(['/invite/AB12CD34EF56'])
+      expect(assigned).toEqual(['/play/invite/AB12CD34EF56'])
     } finally {
       assign.mockRestore()
     }
@@ -368,8 +368,8 @@ describe('the Play landing', () => {
     const hrefs = [...(tenacity?.querySelectorAll('[data-entity-linked] a') ?? [])].map((a) =>
       a.getAttribute('href')
     )
-    expect(hrefs).toContain('/sheet/mech/a-m1')
-    expect(hrefs).toContain('/sheet/pilot/a-p2')
+    expect(hrefs).toContain('/mechs/a-m1')
+    expect(hrefs).toContain('/pilots/a-p2')
   })
 
   test('Your Games: how many are here now, from the seats’ heartbeat', async () => {

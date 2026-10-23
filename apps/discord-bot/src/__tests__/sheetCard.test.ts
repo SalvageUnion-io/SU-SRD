@@ -7,11 +7,12 @@
  * `armour-plating`.
  */
 import { describe, expect, test } from 'bun:test'
-import { APP_ORIGIN, sheetCard } from '../gameCards'
+import { sheetCard } from '../gameCards'
 import type { EntityBody, SheetResult, SheetTable } from '../play/types'
 import { blockStarting, cardHeading, cardText, cardTexts, cardUrl } from './cardText'
 
-const WEB = APP_ORIGIN
+/** The Training Bay's links, under the base; Play's are at the site's root. */
+const WEB = 'https://salvageunion.io/build'
 
 function sheet(table: SheetTable, body: EntityBody, overrides: Partial<SheetResult> = {}) {
   return sheetCard({
@@ -176,7 +177,7 @@ describe('crawler sheet', () => {
 
   test('links to the live crawler sheet by its row id', () => {
     const card = sheet('crawlers', { name: 'The Ossuary' })
-    expect(cardUrl(card)).toBe(`${WEB}/sheet/crawler/cx1`)
+    expect(cardUrl(card)).toBe(`${WEB}/crawlers/cx1`)
   })
 })
 

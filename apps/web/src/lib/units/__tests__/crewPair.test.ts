@@ -6,29 +6,29 @@ import { crewPair, gauge, pool } from '../crewPair'
 const PILOT = {
   id: 'p1',
   name: 'Rook',
-  href: '/sheet/pilot/p1',
+  href: '/pilots/p1',
   readings: [{ label: 'HP', value: '4/10' }],
 }
 const MECH = {
   id: 'm1',
   name: 'Spectrum',
-  href: '/sheet/mech/m1',
+  href: '/mechs/m1',
   readings: [{ label: 'SP', value: '6/9' }],
 }
 
 describe('crewPair', () => {
   test('boarded: the mech, its stats, a PILOT chip naming who is aboard', () => {
     const unit = crewPair({ pilot: PILOT, mech: MECH, boarded: true })
-    expect(unit).toMatchObject({ kind: 'mech', name: 'Spectrum', href: '/sheet/mech/m1' })
+    expect(unit).toMatchObject({ kind: 'mech', name: 'Spectrum', href: '/mechs/m1' })
     expect(unit.readings).toEqual([{ label: 'SP', value: '6/9' }])
     expect(unit.relations?.map((r) => [r.name, r.param, r.href])).toEqual([
-      ['Pilot', 'Rook', '/sheet/pilot/p1'],
+      ['Pilot', 'Rook', '/pilots/p1'],
     ])
   })
 
   test('not boarded: the pilot, its stats, a MECH chip naming its mech', () => {
     const unit = crewPair({ pilot: PILOT, mech: MECH, boarded: false })
-    expect(unit).toMatchObject({ kind: 'pilot', name: 'Rook', href: '/sheet/pilot/p1' })
+    expect(unit).toMatchObject({ kind: 'pilot', name: 'Rook', href: '/pilots/p1' })
     expect(unit.readings).toEqual([{ label: 'HP', value: '4/10' }])
     expect(unit.relations?.map((r) => [r.name, r.param])).toEqual([['Mech', 'Spectrum']])
   })

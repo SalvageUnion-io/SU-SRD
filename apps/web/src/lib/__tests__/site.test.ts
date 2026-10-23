@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { renderShell } from '../../shell/shell'
 import { APP_BASE, appPath, routeInApp } from '../appBase'
-import { appRoot, appUrl, originOf, pageOrigin } from '../site'
+import { appUrl, originOf, pageOrigin } from '../site'
 
 const siteUrl = appUrl('/', originOf())
 
@@ -56,6 +56,11 @@ describe('appUrl', () => {
     expect(appUrl('/p/mech/abc', 'https://salvageunion.io')).toBe(
       'https://salvageunion.io/build/p/mech/abc'
     )
-    expect(appRoot('https://salvageunion.io/')).toBe('https://salvageunion.io/build')
+  })
+
+  test('a Play route is at its own path, outside the base', () => {
+    expect(appUrl('/play/games/g1', 'https://salvageunion.io/')).toBe(
+      'https://salvageunion.io/play/games/g1'
+    )
   })
 })

@@ -4,7 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
-import { APP_BASE } from './lib/appBase'
+import { APP_BASE, APP_REWRITE } from './lib/appBase'
 import {
   initBrowserObservability,
   installChunkRecovery,
@@ -18,8 +18,10 @@ import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
-  // The app at salvageunion.io/build (ADR-048, lib/appBase.ts). Routes and links stay root-relative; the router adds it.
-  basepath: APP_BASE,
+  // The app at salvageunion.io/build, and Play at /play (ADR-048, ADR-062,
+  // lib/appBase.ts). Routes and links stay root-relative; the rewrite puts each
+  // on its path.
+  rewrite: APP_REWRITE,
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,
   // Every route gets its own error boundary, so a crash in one route replaces

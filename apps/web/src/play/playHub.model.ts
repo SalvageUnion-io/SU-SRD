@@ -6,7 +6,7 @@
  * header-only Minis; its one door is the way into play, Mediate or Play <pilot>.
  */
 
-import { sheetPath } from 'game-domain/entityKinds'
+import { cockpitPath, mediatePath, sheetPath } from 'game-domain/entityKinds'
 import type { LinkedUnit } from '../components/entity/LinkedUnits'
 import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
@@ -57,13 +57,13 @@ export function gameDoor(
   pilots: readonly { id: string; name: string }[]
 ): GameDoor | null {
   if (game.mediator) {
-    return { label: 'Mediate', href: `/play/game/${game._id}`, ariaLabel: `Mediate ${game.name}` }
+    return { label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }
   }
   const pilot = pilots[0]
   if (pilot === undefined) return null
   return {
     label: `Play ${pilot.name}`,
-    href: `/play/${pilot.id}`,
+    href: cockpitPath(pilot.id),
     ariaLabel: `Play ${pilot.name} in ${game.name}`,
   }
 }

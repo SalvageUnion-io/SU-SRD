@@ -16,8 +16,17 @@
  * origin, empty where the page has a `baseURL` (the e2e specs).
  */
 import type { Page } from '@playwright/test'
-import { APP_BASE } from '../../../apps/web/src/lib/appBase'
-import { copyStarter, editSheet, openApp, playDoor, sheetLink, waitForReady } from './appPage'
+import { appPath } from '../../../apps/web/src/lib/appBase'
+import { cockpitPath, invitePath } from '../../game-domain/src/entityKinds'
+import {
+  copyStarter,
+  editSheet,
+  openApp,
+  playDoor,
+  sheetHref,
+  sheetLink,
+  waitForReady,
+} from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -58,9 +67,7 @@ const LONG = { timeout: 20_000 }
 
 /** A Training Bay item's sheet, by kind and (when the shelf holds several) name. */
 async function sheetPath(page: Page, kind: string, name?: string): Promise<string> {
-  const link = name
-    ? sheetLink(page, name, kind)
-    : page.locator(`a[href*="/sheet/${kind}/"]`).first()
+  const link = name ? sheetLink(page, name, kind) : page.locator(sheetHref(kind)).first()
   await link.waitFor(LONG)
   const href = await link.getAttribute('href')
   if (!href) throw new Error(`the Training Bay's ${kind}${name ? ` ${name}` : ''} has no href`)
@@ -178,12 +185,12 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.getByLabel(/^Name/).fill('Sergeant Kessler')
   await page.getByRole('button', { name: 'Next: Review' }).click()
   await page.getByRole('button', { name: 'Save NPC' }).click()
-  await page.waitForURL(/\/sheet\/npc\//, LONG)
+  await page.waitForURL(/\/build\/npcs\/(?!new)/, LONG)
   const npc = new URL(page.url()).pathname
 
   // Play's screens. The Organizer mediates the Game, so its Compact's one door
   // is Mediate (ADR-052 §4): the player's screen is the pilot's own, `/play/<id>`.
-  const pilotId = pilot.match(/\/sheet\/pilot\/([^/?#]+)/)?.[1]
+  const pilotId = pilot.match(/\/pilots\/([^/?#]+)/)?.[1]
   if (!pilotId) throw new Error(`no pilot id in ${pilot}`)
   const playSolo = await playDoor(page, `Play ${SEED_SOLO} solo`, base)
   const playMediator = await playDoor(page, `Mediate ${SEED_GAME}`, base)
@@ -194,8 +201,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
     crawler,
     npc,
     game,
-    invite: `${APP_BASE}/invite/${token}`,
-    playPlayer: `${APP_BASE}/play/${pilotId}`,
+    invite: appPath(invitePath(token)),
+    playPlayer: appPath(cockpitPath(pilotId)),
     playSolo,
     playMediator,
   }

@@ -60,12 +60,12 @@ function NpcsNewPage() {
               replace: true,
             })
           }
-          onCreated={(id) => void navigate({ to: '/sheet/$kind/$id', params: { kind: 'npc', id } })}
+          onCreated={(id) => void navigate({ to: '/npcs/$id', params: { id } })}
           onCancel={() => void navigate({ to: '/' })}
         />
       }
       onModeChange={() => undefined}
-      onCreated={(id) => void navigate({ to: '/sheet/$kind/$id', params: { kind: 'npc', id } })}
+      onCreated={(id) => void navigate({ to: '/npcs/$id', params: { id } })}
     />
   )
 }

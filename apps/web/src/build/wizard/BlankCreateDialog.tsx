@@ -41,7 +41,7 @@ type BlankCreateDialogProps = {
   open: boolean
   /** Dismissed without creating — navigate back to the chooser. */
   onClose: () => void
-  /** Created — navigate to /sheet/{kind}/{id}. */
+  /** Created — navigate to /{kind}s/{id}. */
   onCreated: (id: string) => void
   /** The Game the new unit lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
   gameId?: string | undefined

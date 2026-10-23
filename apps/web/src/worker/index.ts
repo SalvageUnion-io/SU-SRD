@@ -1,21 +1,22 @@
 /**
  * salvageunion.io on Workers Static Assets (ADR-033): the one Worker for the
  * whole app. Every reference page is pre-rendered, so this script answers only
- * the requests no file matches, and everything under `/build`, the app's
- * (`./app.ts`).
+ * the requests no file matches, and everything under `/build` and `/play`, the
+ * app's (`./app.ts`).
  *
  * ## What reaches this script, and what does not
  *
  * Static Assets answers first, with `public/_headers` applied: a real file is
  * served as itself and never runs this script. `not_found_handling` is `none`,
  * so a miss lands here instead of on the platform's `404-page` handling.
- * `run_worker_first` sends `/build` and below here before Static Assets looks.
+ * `run_worker_first` sends `/build`, `/play` and below here before Static
+ * Assets looks.
  *
  *   - `error-intake`: `POST /__errors` → a browser error report, and `POST /__convex-logs` →
  *     Convex's log stream, both logged for Workers Issues
  *     (`errorReports.ts`).
- *   - `app`: `/build` and below → the app (`./app.ts`); a file it does not
- *     have falls through to the rules below.
+ *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
+ *     does not have falls through to the rules below.
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -49,7 +50,7 @@ import { appPath } from '../lib/appBase'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
 import type { AppEnv } from './app'
-import { isBuildPath, serveApp } from './app'
+import { isAppPath, serveApp } from './app'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -124,8 +125,8 @@ export default {
       return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
-    // B. The app, under its base.
-    if (isBuildPath(url.pathname)) {
+    // B. The app, under its base and Play's root.
+    if (isAppPath(url.pathname)) {
       const res = await serveApp(request, env)
       if (res !== null) return res
     }

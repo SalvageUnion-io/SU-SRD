@@ -46,7 +46,7 @@ describe('Compact controls', () => {
       <Entity
         size="compact"
         model={MODEL}
-        mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
+        mode={{ kind: 'link', href: '/pilots/ace' }}
         controls={unassign()}
       />
     )
@@ -62,7 +62,7 @@ describe('Compact controls', () => {
       <Entity
         size="compact"
         model={MODEL}
-        mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
+        mode={{ kind: 'link', href: '/pilots/ace' }}
         labels={
           <button type="button" onClick={() => undefined}>
             Claim
@@ -80,7 +80,7 @@ describe('Compact controls', () => {
       <Entity
         size="compact"
         model={MODEL}
-        mode={{ kind: 'link', href: '/sheet/pilot/ace' }}
+        mode={{ kind: 'link', href: '/pilots/ace' }}
         trailing={
           <button type="button" onClick={() => undefined}>
             More for Ace

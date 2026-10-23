@@ -1,5 +1,5 @@
 /**
- * `/sheet/npc/:id` (ADR-044): the stat block as a user-made card, the
+ * `/npcs/:id` (ADR-044): the stat block as a user-made card, the
  * identity panel, and the crew slot it fills — editable for its owner,
  * read-only for a crewmate, down at 0 HP and never at max 0.
  */

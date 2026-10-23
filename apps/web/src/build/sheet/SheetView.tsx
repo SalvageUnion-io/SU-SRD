@@ -1,6 +1,7 @@
 /**
- * SheetView — the `/sheet/$kind/$id` page body, minus the router: the one way
- * to view a pilot, mech or crawler, whoever holds it.
+ * SheetView — a sheet route's page body (`/pilots/$id`, `/mechs/$id`,
+ * `/crawlers/$id`), minus the router: the one way to view a pilot, mech or
+ * crawler, whoever holds it.
  *
  * One address per entity, and what it renders depends on who is looking:
  *

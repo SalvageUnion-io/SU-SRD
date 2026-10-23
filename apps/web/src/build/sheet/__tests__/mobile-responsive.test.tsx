@@ -227,7 +227,7 @@ describe('LiveSheet rail replaces the segment switcher', () => {
     // what this test was ever asserting.
     const viewLink = screen
       .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === '/sheet/pilot/pilot-1')
+      .find((a) => a.getAttribute('href') === '/pilots/pilot-1')
     expect(viewLink).toBeTruthy()
   })
 })

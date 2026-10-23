@@ -39,7 +39,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await page.getByRole('button', { name: 'Next: Review' }).click()
   await expect(page.getByText('From Veteran').first()).toBeVisible()
   await page.getByRole('button', { name: 'Save NPC' }).click()
-  await page.waitForURL(/\/sheet\/npc\//, { timeout: 20_000 })
+  await page.waitForURL(/\/build\/npcs\/(?!new)/, { timeout: 20_000 })
   await expect(page.getByRole('heading', { level: 1, name: /Sergeant Kessler/i })).toBeVisible()
 
   // --- The crawler's Med Bay keeps the book's line until it is crewed ---

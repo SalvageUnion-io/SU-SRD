@@ -35,7 +35,7 @@ describe('Compact relations', () => {
       <Entity
         size="compact"
         entity={shield}
-        relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
+        relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/pilots/p1' })]}
       />
     )
     const chips = chipTexts(container)
@@ -79,12 +79,12 @@ describe('Compact relations', () => {
         <Entity
           size="compact"
           model={unitRowModel({ kind: 'mech', name: 'Scrapper' })}
-          relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
+          relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/pilots/p1' })]}
         />
       </EntitySurfaceContext.Provider>
     )
-    expect(container.querySelector('a[data-tag]')?.getAttribute('href')).toBe('/sheet/pilot/p1')
-    expect(routed).toEqual(['/sheet/pilot/p1'])
+    expect(container.querySelector('a[data-tag]')?.getAttribute('href')).toBe('/pilots/p1')
+    expect(routed).toEqual(['/pilots/p1'])
   })
 
   test('a link-mode Compact is covered: the relation links, outside the Compact’s link', () => {
@@ -92,14 +92,14 @@ describe('Compact relations', () => {
       <Entity
         size="compact"
         model={unitRowModel({ kind: 'mech', name: 'Scrapper' })}
-        mode={{ kind: 'link', href: '/sheet/mech/m1' }}
-        relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
+        mode={{ kind: 'link', href: '/mechs/m1' }}
+        relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/pilots/p1' })]}
       />
     )
     const chip = container.querySelector('a[data-tag]')
-    expect(chip?.getAttribute('href')).toBe('/sheet/pilot/p1')
+    expect(chip?.getAttribute('href')).toBe('/pilots/p1')
     const cover = container.querySelector('.su-entity-compact__cover')
-    expect(cover?.getAttribute('href')).toBe('/sheet/mech/m1')
+    expect(cover?.getAttribute('href')).toBe('/mechs/m1')
     expect(cover?.contains(chip ?? null)).toBe(false)
   })
 })

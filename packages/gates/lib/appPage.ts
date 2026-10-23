@@ -7,7 +7,7 @@
  * Every path is a browser path; `openApp` puts the app's base in front.
  */
 import type { Page } from '@playwright/test'
-import { APP_BASE } from '../../../apps/web/src/lib/appBase'
+import { APP_BASE, appPath } from '../../../apps/web/src/lib/appBase'
 
 /**
  * `page.goto`, again when a client navigation aborts it.
@@ -47,7 +47,7 @@ export async function waitForReady(page: Page): Promise<void> {
 
 /** Open an app route (`/play/`) under `base` (the origin, empty against a `baseURL`) and wait for its game data. */
 export async function openApp(page: Page, route: string, base = ''): Promise<void> {
-  await visit(page, `${base}${APP_BASE}${route}`)
+  await visit(page, `${base}${appPath(route)}`)
   await waitForReady(page)
 }
 
@@ -70,15 +70,25 @@ export async function editSheet(page: Page): Promise<void> {
 }
 
 /**
+ * A link to a sheet, by kind (`pilot`, or any): its href is the plural of the
+ * kind under the base (`/build/pilots/<id>`), never a wizard's `…/new`.
+ */
+export function sheetHref(kind = ''): string {
+  const kinds = kind ? [kind] : ['pilot', 'mech', 'crawler', 'npc']
+  const hrefs = kinds.map((k) => `[href*="${APP_BASE}/${k}s/"]`).join(',')
+  return `a:is(${hrefs}):not([href$="/new"])`
+}
+
+/**
  * The link to a Training Bay item's sheet, by kind (`pilot`, or any) and name.
- * Matched by its `/sheet/` href and the name, never the row around it: an
+ * Matched by its sheet href (`sheetHref`) and the name, never the row around it: an
  * item's chips name the units linked to it ("Linked: Stomper"), so the first
  * row mentioning a name may be somebody else's. A shelf item with a menu draws
  * its link as a cover named by its `aria-label` and holding no text; one
  * without a menu wraps its text.
  */
 export function sheetLink(page: Page, name: string, kind = '') {
-  const href = `a[href*="/sheet/${kind ? `${kind}/` : ''}"]`
+  const href = sheetHref(kind)
   return page
     .locator(`${href}[aria-label="${name}"]`)
     .or(page.locator(href, { hasText: name }))

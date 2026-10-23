@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { editSheet, sheetLink, visit, waitForReady } from 'gates/lib/appPage'
-import { at, BASE } from './_base'
+import { at } from './_base'
 
 /**
  * Shared helpers for the app end-to-end tests.
@@ -288,7 +288,7 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
 
 /** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || new RegExp(`^${BASE}/play/games/[^/]+/?$`).test(pathname)
+  return pathname === at('/') || /^\/play\/games\/[^/]+\/?$/.test(pathname)
 }
 
 /**
@@ -466,7 +466,7 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 
 /**
  * Open the live sheet for the named entity from the Training Bay, by its
- * shelf item's `/sheet/` link (`sheetLink`, `gates/lib/appPage.ts`): the href
+ * shelf item's sheet link (`sheetLink`, `gates/lib/appPage.ts`): the href
  * is the contract, and it survives a copy change that would otherwise leave
  * the helper waiting until the job's ceiling.
  */
@@ -477,7 +477,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
     timeout: 15_000,
   })
   await line.click()
-  await page.waitForURL(/\/sheet\//, { timeout: 20_000 })
+  await page.waitForURL(/\/build\/(pilots|mechs|crawlers|npcs)\/(?!new)/, { timeout: 20_000 })
   await waitForReady(page)
 }
 

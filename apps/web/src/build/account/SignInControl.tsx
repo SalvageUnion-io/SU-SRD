@@ -21,10 +21,11 @@ type SignInControlProps = {
   /** Sits in the Union bar: outlined in the bar's foreground, never a second rust CTA. */
   inBar?: boolean
   /**
-   * Where Discord's round trip lands, as a path on this site (Convex Auth
-   * accepts a relative `redirectTo`). An invite link passes its own address,
-   * so signing in from it comes back to it and joins. Unset, the
-   * deployment's site URL.
+   * Where Discord's round trip lands, as a route in the app: Convex Auth
+   * appends a relative `redirectTo` to its `SITE_URL`, the app's base. An
+   * invite link passes its own route, so signing in from it comes back to it
+   * and joins; a Play route lands under the base, and the Worker 301s it to
+   * `/play` (`retiredTarget`). Unset, the deployment's site URL.
    */
   redirectTo?: string
   /** The button's words. Defaults to "Sign in with Discord". */

@@ -1,18 +1,21 @@
 /**
- * The app under `/build`, as the one Worker (`index.ts`) answers it.
+ * The app under `/build`, and Play at `/play` (ADR-062), as the one Worker
+ * (`index.ts`) answers them.
  *
- * `wrangler.jsonc`'s `run_worker_first` sends `/build` and everything under it
- * to the Worker before Static Assets looks (`RUN_WORKER_FIRST`, which the
- * routing test holds equal), so no file under the base is served before these
+ * `wrangler.jsonc`'s `run_worker_first` sends `/build`, `/play` and everything
+ * under them to the Worker before Static Assets looks (`RUN_WORKER_FIRST`,
+ * which the routing test holds equal), so no file there is served before these
  * rules read it. The binding is the site's own, `not_found_handling: none`;
  * `spaAssets` answers a miss under the base with the shell, as a single-page
  * app's binding would.
  *
- * Under `/build/` the rules read the path inside the base (`routeInApp`):
+ * The rules read the route inside the app (`routeInApp`): the path inside the
+ * base, or a Play path as it is:
  *
  *   - `doc-301`: `/about`, `/changelog` → a 301 to the SRD's page.
- *   - `retired-301`: a retired address (`/games`, `/join/:code`, the old crew
- *     view) → a 301 to where it lives now. Both read the moved-path table
+ *   - `retired-301`: a retired address under the base (Play's old `/build/play/…`
+ *     and `/build/invite/:token`, `/build/sheet/:kind/:id`, intheunionnow.com's
+ *     `/games`, `/join/:code`) → a 301 to where it lives now. Both read the moved-path table
  *     (`../lib/redirects.ts`). intheunionnow.com's zone Redirect Rule sends
  *     its old links here.
  *   - `og-image`: `/og/*.png` → a link preview's picture (`linkPreview.ts`),
@@ -22,7 +25,7 @@
  *     not comes back as the shell, and these rules answer `null`: the site's
  *     own miss (`index.ts`), never the shell.
  *   - `share-preview`: a shared thing's route (`/p/:kind/:appId`,
- *     `/invite/:token`) asked for without `Sec-Fetch-Mode: navigate` (a
+ *     `/play/invite/:token`) asked for without `Sec-Fetch-Mode: navigate` (a
  *     crawler, an unfurl bot) → the shell with its `app:meta` block swapped
  *     for that thing's preview (`shellMeta.ts`). The front door asked for the
  *     same way gets the shell with its canonical.
@@ -48,7 +51,7 @@
  * never has a file extension, so a dot in the last segment means a FILE.
  */
 
-import { APP_BASE, routeInApp } from '../lib/appBase'
+import { APP_BASE, appPath, PLAY_ROOT, routeInApp, underBase } from '../lib/appBase'
 import { retiredDocPage, retiredTarget } from '../lib/redirects'
 import { hidesUnionBar } from '../shell/unionSlots'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
@@ -61,7 +64,7 @@ import { applyMeta, hideUnionBar, markUnionRoute } from './shellMeta'
  * pattern sends its matches straight to the assets, and `true` would run the
  * script for every SRD page.
  */
-export const RUN_WORKER_FIRST = [APP_BASE, `${APP_BASE}/*`]
+export const RUN_WORKER_FIRST = [APP_BASE, `${APP_BASE}/*`, PLAY_ROOT, `${PLAY_ROOT}/*`]
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
@@ -70,20 +73,22 @@ export type AppEnv = PreviewEnv & {
   ASSETS: Assets
 }
 
-/** Whether a path is the app's: `/build` itself or anything under it. */
-export function isBuildPath(pathname: string): boolean {
+/** Whether a path is the app's: `/build` or `/play` itself, or anything under either. */
+export function isAppPath(pathname: string): boolean {
   return routeInApp(pathname) !== null
 }
 
 /**
- * A binding that answers a miss under the base with the shell, as Static
- * Assets' `single-page-application` mode does. Anything else passes through.
+ * A binding that answers a miss in the app (under the base, or under Play's
+ * root) with the shell, as Static Assets' `single-page-application` mode does.
+ * Anything else passes through.
  */
 export function spaAssets(assets: Assets, base: string): Assets {
   return {
     async fetch(request: Request): Promise<Response> {
       const res = await assets.fetch(request)
-      if (res.status !== 404 || !new URL(request.url).pathname.startsWith(`${base}/`)) return res
+      const route = routeInApp(new URL(request.url).pathname, base)
+      if (res.status !== 404 || route === null || route === '/') return res
       const shell = new Request(new URL(`${base}/`, request.url), {
         method: request.method,
         headers: request.headers,
@@ -99,7 +104,7 @@ function defaultCache(): ImageCache | undefined {
 }
 
 /**
- * A request under the base (`isBuildPath`); `null` for a missing file, which
+ * A request for the app (`isAppPath`); `null` for a missing file, which
  * the site answers as any other miss.
  */
 export async function serveApp(
@@ -114,22 +119,23 @@ export async function serveApp(
   }
   const env = { ...siteEnv, ASSETS: spaAssets(siteEnv.ASSETS, base) }
 
-  // Every rule below reads the path inside the app; a URL it builds puts the
-  // base back. A path outside the base is left whole: nothing the app serves
-  // lives there, so the rules answer it as the miss it is.
+  // Every rule below reads the route inside the app; a URL it builds puts it
+  // back on the site (`appPath`). A path outside the app is left whole: nothing
+  // the app serves lives there, so the rules answer it as the miss it is.
   const path = routeInApp(url.pathname, base) ?? url.pathname
 
-  // D. A doc page the app no longer has: the SRD's on this origin.
-  const docPage = retiredDocPage(path)
-  if (docPage !== null) return Response.redirect(new URL(docPage, url).href, 301)
+  // Only an address under the base is retired: Play's own root is current.
+  if (underBase(url.pathname, base)) {
+    // D. A doc page the app no longer has: the SRD's on this origin.
+    const docPage = retiredDocPage(path)
+    if (docPage !== null) return Response.redirect(new URL(docPage, url).href, 301)
 
-  // R. A retired address: one hop to where it lives now, query kept.
-  const retired = retiredTarget(path)
-  if (retired !== null) {
-    return new Response(null, {
-      status: 301,
-      headers: { location: `${base}${retired}${url.search}` },
-    })
+    // R. A retired address: one hop to where it lives now, query kept.
+    const retired = retiredTarget(path)
+    const moved = retired === null ? null : appPath(retired, base)
+    if (moved !== null && moved !== url.pathname) {
+      return new Response(null, { status: 301, headers: { location: `${moved}${url.search}` } })
+    }
   }
 
   // 0. A link preview's picture — a file that exists only on request.

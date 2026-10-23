@@ -155,7 +155,7 @@ function fakeSys(over: Partial<World> = {}): { sys: Sys; world: World } {
     seed: async (_page, base, account) => {
       world.calls.push(`seed ${base} ${account?.email}`)
       if (world.seedFails) throw new Error('no chrome\nstack')
-      return { pilot: '/build/sheet/pilot/p', game: '/build/play/games/g' }
+      return { pilot: '/build/pilots/p', game: '/play/games/g' }
     },
     log: (line) => world.logs.push(line),
     error: (line) => world.errors.push(line),
@@ -279,8 +279,8 @@ describe('main', () => {
     expect(world.calls).toContain(`seed ${s.dev} ${SEED_ACCOUNT.email}`)
     expect(JSON.parse(readFileSync(join(state, 'seed.json'), 'utf8'))).toEqual({
       ...SEED_ACCOUNT,
-      pilot: '/build/sheet/pilot/p',
-      game: '/build/play/games/g',
+      pilot: '/build/pilots/p',
+      game: '/play/games/g',
     })
     expect(world.logs.at(-1)).toContain('ready:')
     expect(world.calls.slice(-2)).toEqual(['stop bun', 'stop convex-local-backend'])

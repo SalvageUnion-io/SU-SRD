@@ -1,6 +1,7 @@
 /**
  * Where things live on salvageunion.io: the reference pages at the site's
- * root, the app under its base (`appBase.ts`, ADR-048), all on one origin.
+ * root, the app under its base and Play at `/play` (`appBase.ts`, ADR-048,
+ * ADR-062), all on one origin.
  *
  * The one home of the origin. The build reads the origin it is served from
  * once (`SITE_URL`, `constants.ts`); a page reads its own (`pageOrigin`); the
@@ -32,9 +33,4 @@ export function pageOrigin(origin = globalThis.location?.origin): string {
  */
 export function appUrl(route: string, origin: string = pageOrigin()): string {
   return `${originOf(origin)}${appPath(route)}`
-}
-
-/** The app's root, absolute: `inviteUrl` and friends append a route to it. */
-export function appRoot(origin: string = pageOrigin()): string {
-  return appUrl('', origin)
 }

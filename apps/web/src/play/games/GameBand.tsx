@@ -7,11 +7,12 @@
  *
  * Every member gets one way into the Cockpit. The
  * Mediator's is a **Mediate** chip after a **YOU MEDIATE** stamp, opening
- * Play's Mediator screen (`/play/game/$gameId`, play.md §10); a player's is
+ * Play's Mediator screen (`/play/games/$gameId/mediate`, play.md §10); a player's is
  * the hub's `actions`, a **Play** chip that asks which pilot to play
  * (`LaunchPlay`).
  */
 
+import { mediatePath } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
@@ -58,7 +59,7 @@ export function GameBand({
                 <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                   {playGamesCopy('youMediate')}
                 </Badge>
-                <Button href={`/play/game/${gameId}`} variant="ink" size="compact">
+                <Button href={mediatePath(gameId)} variant="ink" size="compact">
                   {playGamesCopy('mediate')}
                 </Button>
               </Cluster>

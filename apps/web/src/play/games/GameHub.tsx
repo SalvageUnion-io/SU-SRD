@@ -8,7 +8,7 @@
  *
  *  0. **The band** (`GameBand`): the Game's name on Play's band, and one way
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
- *     opens Play's Mediator screen (`/play/game/$gameId`); a player's **Play**
+ *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); a player's **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it.
  *  1. Two columns of sections. **Every member:** the Crew (`GameRoster`):
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on

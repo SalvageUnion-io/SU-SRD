@@ -196,7 +196,7 @@ describe('old mech-keyed URLs', () => {
     setQueryAnswers({ 'games:get': GAME })
     await renderGate('play-mech')
     expect(convexMocks.navigations).toEqual([
-      { to: '/play/$pilotId', params: { pilotId: 'play-rook' }, replace: true },
+      { to: '/play/pilots/$pilotId', params: { pilotId: 'play-rook' }, replace: true },
     ])
     expect(opened()?.pilotId).toBe('play-rook')
   })

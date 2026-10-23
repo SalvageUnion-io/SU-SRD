@@ -69,7 +69,7 @@ function isAppNavigation(url: string, accept: string): boolean {
 /**
  * The shell (`src/shell/shell.ts`) is the app's HTML entry: the
  * build loads it as `APP_ENTRY` and emits `build/index.html` from it; the
- * dev server answers every navigation under `/build` with it, once Vite's own
+ * dev server answers every navigation under `/build` and `/play` with it, once Vite's own
  * middlewares (modules, `public/`) have passed the request on.
  */
 export function appShell(): Plugin {

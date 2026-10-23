@@ -56,7 +56,7 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
 
   // --- Build a mech from it, signed in ---
   await page.getByRole('button', { name: /^Build With This: a mech from / }).click()
-  await page.waitForURL(/\/sheet\/mech\//, { timeout: 20_000 })
+  await page.waitForURL(/\/build\/mechs\/(?!new)/, { timeout: 20_000 })
   await expect(page.getByRole('heading', { name: 'Tow Rig' }).first()).toBeVisible()
 
   // The pattern page counts it.

@@ -65,9 +65,7 @@ function CrawlersNewPage() {
         onModeChange={(next) =>
           void navigate({ to: '/crawlers/new', search: (prev) => ({ ...prev, mode: next }) })
         }
-        onCreated={(id) =>
-          void navigate({ to: '/sheet/$kind/$id', params: { kind: 'crawler', id } })
-        }
+        onCreated={(id) => void navigate({ to: '/crawlers/$id', params: { id } })}
       />
     </main>
   )

@@ -1,5 +1,5 @@
 /**
- * NpcSheet — a built NPC's own page, `/sheet/npc/:id` (ADR-044;
+ * NpcSheet — a built NPC's own page, `/npcs/:id` (ADR-044;
  * `docs/architecture/npc-builder.md` §4.2), on the shell every Live Sheet
  * shares (hard rule R11): `LiveSheet`'s chapter band, Read | Edit and the
  * corner actions (Share, then Move and Delete under "⋯"), a `SheetHero`
@@ -272,7 +272,7 @@ export function NpcSheet({
                         {crewing && (
                           <p style={NOTE}>
                             Crews {slotPhrase(crewing.slot)} on{' '}
-                            <AppLink href={`/sheet/crawler/${crewing.crawlerId}`}>
+                            <AppLink href={`/crawlers/${crewing.crawlerId}`}>
                               {crewing.crawlerName}
                             </AppLink>
                             . Whoever runs that crawler assigns and unassigns its crew.

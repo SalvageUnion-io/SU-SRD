@@ -20,7 +20,7 @@
  *
  * Neither half boots the build a returning visitor last saw:
  *
- * - **The builder (`/build/…`)** is a single-page app: the network's shell, or
+ * - **The app (`/build/…` and `/play/…`)** is a single-page app: the network's shell, or
  *   the precached `build/index.html` when the network fails. No copy of the
  *   shell is kept in a runtime cache, because one saved from the network can
  *   name a NEWER or an OLDER build's chunks than the precache holds; the
@@ -115,10 +115,11 @@ const BUILDER_SHELL = `${APP_DIR}/index.html`
  */
 export const RUNTIME_CACHING = [
   {
-    // The builder: the network's shell, else the precached one. A literal
-    // `APP_BASE`: workbox-build stringifies the function on its own.
+    // The app, Build and Play: the network's shell, else the precached one.
+    // Literal `APP_BASE` and `PLAY_ROOT`: workbox-build stringifies the
+    // function on its own.
     urlPattern: ({ request, url }: { request: Request; url: URL }) =>
-      request.mode === 'navigate' && /^\/build(\/|$)/.test(url.pathname),
+      request.mode === 'navigate' && /^\/(build|play)(\/|$)/.test(url.pathname),
     handler: 'NetworkOnly' as const,
     options: { precacheFallback: { fallbackURL: BUILDER_SHELL } },
   },

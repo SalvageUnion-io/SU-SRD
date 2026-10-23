@@ -163,9 +163,9 @@ describe('UnitRow', () => {
   })
 
   test('View opens the sheet, named for the unit', () => {
-    render(<UnitRow kind="pilot" name="Yara Voss" href="/sheet/pilot/yara" />)
+    render(<UnitRow kind="pilot" name="Yara Voss" href="/pilots/yara" />)
     const view = screen.getByRole('link', { name: 'View Yara Voss' })
-    expect(view.getAttribute('href')).toContain('/sheet/pilot/yara')
+    expect(view.getAttribute('href')).toContain('/pilots/yara')
     // In the chip group's last slot, never beside the strip (C8, R6).
     expect(view.closest('[data-chip-class]')?.getAttribute('data-chip-class')).toBe('menu')
   })
@@ -187,7 +187,7 @@ describe('UnitRow', () => {
       <UnitRow
         kind="mech"
         name="Iron Fist"
-        href="/sheet/mech/iron"
+        href="/mechs/iron"
         onUnassign={() => undefined}
         controls={<button type="button">Change Mech</button>}
       />

@@ -27,7 +27,6 @@ import {
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
-import { appRoot } from '../../lib/site'
 import { playGamesCopy } from '../../messages/play-games'
 
 type CopyInviteLinkProps = {
@@ -59,7 +58,7 @@ function ConnectedCopyInviteLink({
   // Both calls start inside the press: the action runs synchronously up to its
   // first await, which is what keeps WebKit's gesture alive for the clipboard.
   const copyLink = useServerAction(
-    () => clipboardWriter(link({ gameId }).then((token) => inviteUrl(appRoot(), token))),
+    () => clipboardWriter(link({ gameId }).then((token) => inviteUrl(token))),
     { failure: 'The invite link could not be copied. Try again.', toastId: 'invite-link-copy' }
   )
 

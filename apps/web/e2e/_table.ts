@@ -1,5 +1,6 @@
 import type { Browser, BrowserContext, Page, TestInfo } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { invitePath } from 'game-domain/entityKinds'
 import { openApp } from './_helpers'
 import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
 
@@ -35,7 +36,7 @@ export async function secondAccount(
  * page in Play, `/play/games/<id>`. Resolves to the Game's id.
  */
 export async function joinByInvite(page: Page, token: string): Promise<string> {
-  await openApp(page, `/invite/${token}`)
+  await openApp(page, invitePath(token))
   await page.getByRole('button', { name: 'Join this Game' }).click()
   await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
   const id = new URL(page.url()).pathname.split('/').pop()

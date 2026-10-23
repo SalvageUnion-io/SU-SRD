@@ -1,6 +1,6 @@
 /**
  * useLocatedSheet — the one "yours, a crewmate's, or not found" answer every
- * `/sheet/$kind/$id` page gives, pilot, mech, crawler and NPC alike (`SheetView`,
+ * sheet page gives (`/pilots/$id` and its siblings), pilot, mech, crawler and NPC alike (`SheetView`,
  * `NpcSheetView`).
  *
  * `entities.locate` is what tells them apart: which Game holds the entity, and
@@ -21,15 +21,16 @@
  *    browser (`ShelfSync`), the listing on its way, or a Convex row id being
  *    swapped for the canonical app id.
  *
- * A Convex row id is what the Discord bot's /sheet/ links carry, and what links
+ * A Convex row id is what the Discord bot's sheet links carry, and what links
  * already posted to the retired crew-view URL redirect with. Once located, it
  * is replaced by the canonical app id every other link uses.
  */
 
+import type { LinkProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { gamePath } from 'game-domain/entityKinds'
+import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -85,11 +86,7 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const canonical = held === null && located ? located.id : id
   useEffect(() => {
     if (canonical === id) return
-    void router?.navigate({
-      to: '/sheet/$kind/$id',
-      params: { kind, id: canonical },
-      replace: true,
-    })
+    void router?.navigate({ to: sheetPath(kind, canonical) as LinkProps['to'], replace: true })
   }, [canonical, id, kind, router])
 
   const listedRow =

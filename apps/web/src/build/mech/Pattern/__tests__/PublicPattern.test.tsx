@@ -176,9 +176,7 @@ describe('signed in', () => {
 
     const [mech] = useEntityStore.getState().mechs
     expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
-    expect(convexMocks.navigations).toEqual([
-      { to: '/sheet/$kind/$id', params: { kind: 'mech', id: mech?.id } },
-    ])
+    expect(convexMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
   })
 
   test('Copy to my shelf saves it under a new id', async () => {

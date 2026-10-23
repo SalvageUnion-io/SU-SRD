@@ -3,8 +3,8 @@
  * which search params each `/…/new` route keeps and hands its wizard (a deep
  * link's chassis, pattern, class or crawler type — dropped when it names
  * nothing legal), where each callback navigates, the NPC designer's view and
- * crew in the URL, and `/sheet/$kind/$id` choosing its page or saying the kind
- * is not a sheet. Also Play's two screens.
+ * crew in the URL, and each sheet route (`/pilots/$id`, …) handing its kind and
+ * id to its page. Also Play's screens.
  *
  * The screens themselves have their own suites, so each is replaced here by a
  * stub that shows what the route handed it and offers the route's callbacks as
@@ -175,7 +175,7 @@ describe('/mechs/new', () => {
     await press('Mech wizard: off rules')
     expect(at(router).search).toEqual({ mode: 'blank' })
     await press('Created')
-    expect(at(router).pathname).toBe('/sheet/mech/new-id')
+    expect(at(router).pathname).toBe('/mechs/new-id')
     expect(await screen.findByText('Live sheet: mech new-id')).toBeTruthy()
   })
 })
@@ -190,7 +190,7 @@ describe('/pilots/new', () => {
     await press('Pilot wizard: off rules')
     expect(at(router).search).toEqual({ mode: 'blank' })
     await press('Created')
-    expect(at(router).pathname).toBe('/sheet/pilot/new-id')
+    expect(at(router).pathname).toBe('/pilots/new-id')
   })
 
   test('a class slug that names no class is dropped', async () => {
@@ -209,7 +209,7 @@ describe('/crawlers/new', () => {
     await press('Crawler builder: off rules')
     expect(at(router).search).toEqual({ mode: 'blank' })
     await press('Created')
-    expect(at(router).pathname).toBe('/sheet/crawler/new-id')
+    expect(at(router).pathname).toBe('/crawlers/new-id')
   })
 
   test('the builder finishing goes back to the Training Bay', async () => {
@@ -244,7 +244,7 @@ describe('/npcs/new', () => {
   test('a designed NPC opens its sheet; cancel goes home', async () => {
     const router = await mountAt('/npcs/new')
     await press('Designed')
-    expect(at(router).pathname).toBe('/sheet/npc/npc-7')
+    expect(at(router).pathname).toBe('/npcs/npc-7')
     expect(await screen.findByText('NPC sheet: npc-7')).toBeTruthy()
     await go(router, '/npcs/new')
     await press('Cancel design')
@@ -255,26 +255,27 @@ describe('/npcs/new', () => {
     const router = await mountAt('/npcs/new')
     expect(await screen.findByText('npc screen, mode guided')).toBeTruthy()
     await press('Created')
-    expect(at(router).pathname).toBe('/sheet/npc/new-id')
+    expect(at(router).pathname).toBe('/npcs/new-id')
   })
 })
 
-describe('/sheet/$kind/$id', () => {
-  test('a pilot, mech or crawler is the Live Sheet', async () => {
-    await mountAt('/sheet/crawler/c1')
-    expect(await screen.findByText('Live sheet: crawler c1')).toBeTruthy()
-  })
+describe('a sheet route', () => {
+  for (const kind of ['pilot', 'mech', 'crawler'] as const) {
+    test(`/${kind}s/$id is the Live Sheet of that kind`, async () => {
+      await mountAt(`/${kind}s/x1`)
+      expect(await screen.findByText(`Live sheet: ${kind} x1`)).toBeTruthy()
+    })
+  }
 
-  test('a kind that is not a sheet says so', async () => {
-    await mountAt('/sheet/dropship/x1')
-    expect(await screen.findByText('Sheet not found')).toBeTruthy()
-    expect(screen.getByText(/“dropship” is not a sheet type\./)).toBeTruthy()
+  test('/npcs/$id is the NPC sheet', async () => {
+    await mountAt('/npcs/n1')
+    expect(await screen.findByText('NPC sheet: n1')).toBeTruthy()
   })
 })
 
-describe('/play/$pilotId', () => {
+describe('/play/pilots/$pilotId', () => {
   test("hands the pilot's id to the gate", async () => {
-    await mountAt('/play/p1')
+    await mountAt('/play/pilots/p1')
     expect(await screen.findByText('Play gate for p1')).toBeTruthy()
   })
 })
@@ -317,9 +318,9 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
   })
 })
 
-describe('/play/game/$gameId', () => {
+describe('/play/games/$gameId/mediate', () => {
   test("hands the Game's id to the Mediator's gate", async () => {
-    await mountAt('/play/game/g1')
+    await mountAt('/play/games/g1/mediate')
     expect(await screen.findByText('Mediate gate for g1')).toBeTruthy()
   })
 })

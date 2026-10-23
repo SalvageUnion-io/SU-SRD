@@ -11,11 +11,20 @@
  *   (`currentPathFor`): one pattern, not a rule per page.
  * - The app's rules (`worker/app.ts`) for the paths under `/build` it
  *   no longer has (`retiredDocPage`, `retiredTarget`): the Worker runs first
- *   there, so `_redirects` never sees them.
+ *   there, so `_redirects` never sees them. Play moved out from under the base
+ *   to its own root, `/play` (ADR-062), so its old addresses are among them.
  *
  * A published URL never dies (ADR-043, decision 4). Pure: the Worker bundles it.
  */
 
+import {
+  cockpitPath,
+  gamePath,
+  invitePath,
+  isEntityKind,
+  mediatePath,
+  sheetPath,
+} from 'game-domain/entityKinds'
 import { DOC_PAGES } from './docPages'
 
 /** An exact `from → to` 301. */
@@ -134,44 +143,71 @@ export function retiredDocPage(path: string): string | null {
 }
 
 /**
- * Retired addresses that links in Discord history still point at, all on
- * intheunionnow.com. These were once TanStack routes that redirected in the
- * browser. intheunionnow.com's zone Redirect Rule sends every path to the same
- * path under salvageunion.io/build, and the Worker 301s each of these from
- * there to where it lives now:
+ * Retired addresses under the base, each read as a route inside it, and where
+ * each lives now. Two generations:
  *
- *   - `/games`                                → `/` (the Games page became the hub)
- *   - `/games/:gameId/view/:kind/:entityId`   → `/sheet/:kind/:entityId` (the old
- *     crew view; the live read-only sheet takes the same row id)
- *   - `/join/:code`                           → `/invite/:code` (an invite's
+ * Play's and the sheets' addresses before Play had its own root (ADR-062),
+ * from links pasted into Discord, bookmarks and installed apps:
+ *
+ *   - `/play/…`                              → `/play/…` at its own root:
+ *     `/play/game/:gameId`                   → `/play/games/:gameId/mediate`,
+ *     `/play/:pilotId`                       → `/play/pilots/:pilotId`, and
+ *     every other Play path keeps its own (`/play/`, `/play/games/:gameId`)
+ *   - `/invite/:token`                       → `/play/invite/:token`
+ *   - `/sheet/:kind/:id`                     → `/<kind>s/:id` (`sheetPath`)
+ *   - `/mechs/patterns`                      → `/patterns/`
+ *
+ * And intheunionnow.com's, once TanStack routes that redirected in the
+ * browser; that zone's Redirect Rule sends every path to the same path under
+ * salvageunion.io/build:
+ *
+ *   - `/games`                               → `/play/` (Your Games is Play's hub)
+ *   - `/games/:gameId`                       → `/play/games/:gameId` (ADR-052 §5)
+ *   - `/games/:gameId/view/:kind/:entityId`  → `/<kind>s/:entityId` (the old crew
+ *     view; the live read-only sheet takes the same row id)
+ *   - `/join/:code`                          → `/play/invite/:code` (an invite's
  *     token is its old join code, so the invite page joins or explains)
- *   - `/games/:gameId`                        → `/play/games/:gameId` (Build's
- *     Game page; a Game's page is Play's, ADR-052 §5)
- *   - `/dashboard/:pilotId`                   → `/play/:pilotId` (Play replaced
- *     the Dashboard; `PlayGate` resolves an old mech-keyed id to its pilot)
- *   - `/mediator/:gameId`                     → `/play/game/:gameId` (Play
- *     replaced the Mediator Dashboard)
+ *   - `/dashboard/:pilotId`                  → `/play/pilots/:pilotId` (`PlayGate`
+ *     resolves an old mech-keyed id to its pilot)
+ *   - `/mediator/:gameId`                    → `/play/games/:gameId/mediate`
  *
- * A trailing slash names the same address.
- *
- * A path under one of these prefixes that names none of these shapes keeps its
- * own path: it never matched a route before either, and lands on the app's
- * not-found page.
+ * Each lands where it lives now in one hop. A trailing slash names the same
+ * address. A path under one of these prefixes that names none of these shapes
+ * keeps its own path: it never matched a route before either, and lands on the
+ * app's not-found page.
  *
  * `/s/:id` (ADR-036) is not here: its page explains a retired snapshot link and
  * has nowhere to send anyone, so it stays a route.
  *
- * @returns The address inside the base, without its query string, or null
+ * @returns The route it lives at now (`appPath` puts it on the site), without
+ *   its query string, or null
  */
 export function retiredTarget(path: string): string | null {
   const parts = path.split('/').filter((part) => part.length > 0)
   const [first, second, third, fourth, fifth] = parts
-  if (first === 'games' && parts.length === 1) return '/'
-  if (first === 'games' && parts.length === 2) return `/play/games/${second}`
-  if (first === 'games' && parts.length === 5 && third === 'view')
-    return `/sheet/${fourth}/${fifth}`
-  if (first === 'join' && parts.length === 2) return `/invite/${second}`
-  if (first === 'dashboard' && parts.length === 2) return `/play/${second}`
-  if (first === 'mediator' && parts.length === 2) return `/play/game/${second}`
+  if (first === 'play') return playTarget(parts)
+  if (first === 'sheet' && parts.length === 3 && second !== undefined && third !== undefined)
+    return isEntityKind(second) ? sheetPath(second, third) : null
+  if (first === 'mechs' && second === 'patterns' && parts.length === 2) return '/patterns/'
+  if (first === 'invite' && parts.length === 2 && second !== undefined) return invitePath(second)
+  if (first === 'games' && parts.length === 1) return '/play/'
+  if (first === 'games' && parts.length === 2 && second !== undefined) return gamePath(second)
+  if (first === 'games' && parts.length === 5 && third === 'view') {
+    return fourth !== undefined && fifth !== undefined && isEntityKind(fourth)
+      ? sheetPath(fourth, fifth)
+      : null
+  }
+  if (first === 'join' && parts.length === 2 && second !== undefined) return invitePath(second)
+  if (first === 'dashboard' && parts.length === 2 && second !== undefined)
+    return cockpitPath(second)
+  if (first === 'mediator' && parts.length === 2 && second !== undefined) return mediatePath(second)
   return null
+}
+
+/** A Play path from under the base, at its own root and its current name. */
+function playTarget(parts: readonly string[]): string {
+  const [, second, third] = parts
+  if (parts.length === 3 && second === 'game' && third !== undefined) return mediatePath(third)
+  if (parts.length === 2 && second !== undefined && second !== 'games') return cockpitPath(second)
+  return parts.length === 1 ? '/play/' : `/${parts.join('/')}`
 }

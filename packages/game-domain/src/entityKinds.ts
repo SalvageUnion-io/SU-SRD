@@ -68,11 +68,12 @@ export function isSheetKind(value: string): value is SheetKind {
 }
 
 /**
- * The live sheet's address under the app's base, by row id or app id:
- * `/sheet/<kind>/<id>`.
+ * The live sheet's route in the app, by row id or app id: the plural of its
+ * kind, then the id (`/pilots/<id>`, `/npcs/<id>`), as the wizard that makes
+ * it is `/pilots/new`.
  */
 export function sheetPath(kind: EntityKind, id: string): string {
-  return `/sheet/${kind}/${encodeURIComponent(id)}`
+  return `/${kind}s/${encodeURIComponent(id)}`
 }
 
 /**
@@ -87,4 +88,22 @@ export function publicPath(kind: PublicKind, appId: string, name?: string): stri
 /** A Game's own page, in Play (ADR-052 §5): `/play/games/<gameId>`. */
 export function gamePath(gameId: string): string {
   return `/play/games/${encodeURIComponent(gameId)}`
+}
+
+/** A Game's Mediator Cockpit, under its page: `/play/games/<gameId>/mediate`. */
+export function mediatePath(gameId: string): string {
+  return `${gamePath(gameId)}/mediate`
+}
+
+/**
+ * An invite link's route, the Game's door (ADR-052 §4): `/play/invite/<token>`,
+ * the token being the invite's code.
+ */
+export function invitePath(token: string): string {
+  return `/play/invite/${encodeURIComponent(token)}`
+}
+
+/** One pilot's Cockpit in Play (ADR-051): `/play/pilots/<pilotId>`. */
+export function cockpitPath(pilotId: string): string {
+  return `/play/pilots/${encodeURIComponent(pilotId)}`
 }

@@ -48,7 +48,7 @@ async function mountAt(path: string) {
     createRoute({ getParentRoute: () => root, path: '/', component: page('The roster') }),
     createRoute({
       getParentRoute: () => root,
-      path: '/play/$pilotId',
+      path: '/play/pilots/$pilotId',
       component: page('The Play screen'),
     }),
     createRoute({ getParentRoute: () => root, path: '/og/$id', component: page('The card') }),
@@ -85,7 +85,7 @@ describe('the root route', () => {
   })
 
   test('a Play screen draws its own bar, so the Union bar and the foot step aside', async () => {
-    await mountAt('/play/p1')
+    await mountAt('/play/pilots/p1')
     expect(screen.getByText('The Play screen')).toBeTruthy()
     expect(barHidden()).toBe(true)
     expect(searchSlot()?.childElementCount).toBe(0)

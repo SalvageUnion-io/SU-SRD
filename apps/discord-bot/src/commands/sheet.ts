@@ -13,7 +13,7 @@ import { respondWithSite, site } from './siteReply'
  * The picker offers what is **yours**: every pilot, mech and crawler you own,
  * and the crawler of each Game you are in. Anything else — a crewmate's
  * sheet, a stranger's published one — is reached by pasting its link, the
- * `/sheet/…` or `/p/…` address the app shows. The server decides what the caller
+ * `/build/pilots/…` (and its siblings) or `/p/…` address the app shows. The server decides what the caller
  * may read (theirs, a Game they belong to, or published), so the link is an
  * address, never a permission.
  *
@@ -22,8 +22,13 @@ import { respondWithSite, site } from './siteReply'
  * sheet on any surface, so there is deliberately no `/su damage` here.
  */
 
-/** An app sheet address: `/sheet/<kind>/<rowId>` or the public `/p/<kind>/<appId>`. */
-const SHEET_LINK = /\/(?:sheet|p)\/(pilot|mech|crawler)\/([^/?#\s>]+)/
+/**
+ * An app sheet address: `/build/<kind>s/<rowId>`, the public `/p/<kind>/<appId>`,
+ * or the older `/sheet/<kind>/<rowId>`, which the site still 301s. Never a
+ * wizard's `…/new`.
+ */
+const SHEET_LINK =
+  /(?:\/(?:sheet|p)\/(pilot|mech|crawler)|\/build\/(pilot|mech|crawler)s)\/(?!new(?:[/?#\s>]|$))([^/?#\s>]+)/
 
 /**
  * What the `entity` option names: a picked `<table>:<id>`, or a pasted link.
@@ -35,10 +40,11 @@ const SHEET_LINK = /\/(?:sheet|p)\/(pilot|mech|crawler)\/([^/?#\s>]+)/
 export function parseSheetTarget(raw: string): { table: SheetTable; entityId: string } | null {
   const text = raw.trim()
   const link = SHEET_LINK.exec(text)
-  if (link?.[1] !== undefined && link[2] !== undefined) {
-    const table = TABLE_OF_KIND[link[1] as SheetKind]
+  const kind = link?.[1] ?? link?.[2]
+  if (kind !== undefined && link?.[3] !== undefined) {
+    const table = TABLE_OF_KIND[kind as SheetKind]
     try {
-      return { table, entityId: decodeURIComponent(link[2]) }
+      return { table, entityId: decodeURIComponent(link[3]) }
     } catch {
       return null
     }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
-import { APP_BASE } from '../../lib/appBase'
+import { APP_BASE, appPath } from '../../lib/appBase'
 import { appUrl, originOf } from '../../lib/site'
 import { renderUnionBar } from '../../shell/unionBar'
 import type { Env } from '../index'
@@ -76,9 +76,9 @@ function envWith(
  */
 const { Request } = NATIVE_FETCH_GLOBALS
 
-/** A request for an app path (`/p/x`), under the base on salvageunion.io. */
+/** A request for an app route (`/p/x`) where it lives on salvageunion.io (`appPath`). */
 const req = (path: string, headers: Record<string, string> = {}) =>
-  new Request(`https://salvageunion.io${BASE}${path}`, { headers })
+  new Request(`https://salvageunion.io${appPath(path)}`, { headers })
 /** A browser opening `url` (`Sec-Fetch-Mode: navigate`). */
 const navigateTo = (url: string) => new Request(url, { headers: { 'sec-fetch-mode': 'navigate' } })
 /** A module import: what a tab still running the previous build sends. */
@@ -189,26 +189,29 @@ describe("a missing FILE is the site's 404, not the shell", () => {
 
 /** A browser opening any client route gets the shell, `_headers` and all. */
 describe('a navigation gets the shell', () => {
-  for (const path of ['/', '/p/pilot/x', '/mechs/new?kind=x', '/sheet/pilot/xyz']) {
+  for (const path of ['/', '/p/pilot/x', '/mechs/new?kind=x', '/pilots/xyz', '/play/games/g1']) {
     it(`serves the shell with 200 and the CSP for ${path}`, async () => {
       const env = envWith()
-      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), env)
+      const res = await worker.fetch(navigateTo(`https://salvageunion.io${appPath(path)}`), env)
 
       expect(res.status).toBe(200)
       expect(await res.text()).toBe(SHELL)
       expect(res.headers.get('content-security-policy')).toBe(CSP)
       expect(res.headers.get('cache-control')).not.toContain('immutable')
       // The asset server's own answer, never a shared thing's preview.
-      expect(env.ASSETS.asked).toEqual([`${BASE}${path.split('?')[0]}`])
+      expect(env.ASSETS.asked).toEqual([appPath(path.split('?')[0] ?? '')])
     })
   }
 })
 
 /** A Play screen and the link-preview surface draw no Union bar, from the first paint. */
 describe('a route that draws no Union bar', () => {
-  for (const path of ['/play/abc', '/play/game/g1', '/og/pilot/abc']) {
+  for (const path of ['/play/pilots/abc', '/play/games/g1/mediate', '/og/pilot/abc']) {
     it(`gets a shell marked to hide it for ${path}`, async () => {
-      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      const res = await worker.fetch(
+        navigateTo(`https://salvageunion.io${appPath(path)}`),
+        envWith()
+      )
       expect(res.status).toBe(200)
       expect(await res.text()).toBe('<!doctype html><html data-union-bar-hidden lang="en">SPA')
       expect(res.headers.get('content-security-policy')).toBe(CSP)
@@ -216,7 +219,7 @@ describe('a route that draws no Union bar', () => {
   }
 
   it('leaves a file alone', async () => {
-    const env = envWith({ [`${BASE}/play/x.png`]: { body: 'png', type: 'image/png' } })
+    const env = envWith({ '/play/x.png': { body: 'png', type: 'image/png' } })
     const res = await worker.fetch(req('/play/x.png'), env)
     expect(await res.text()).toBe('png')
   })
@@ -230,8 +233,8 @@ describe('a route that draws no Union bar', () => {
 describe('the shell’s Union bar is marked for the route', () => {
   const BAR_SHELL = `<!doctype html><html lang="en"><body>${renderUnionBar()}</body></html>`
   const served = async (path: string) => {
-    const env = envWith({ [`${BASE}${path}`]: { body: BAR_SHELL, type: 'text/html' } })
-    const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), env)
+    const env = envWith({ [appPath(path)]: { body: BAR_SHELL, type: 'text/html' } })
+    const res = await worker.fetch(navigateTo(`https://salvageunion.io${appPath(path)}`), env)
     const doc = new DOMParser().parseFromString(await res.text(), 'text/html')
     return {
       mode: doc.querySelector('.su-union-bar')?.getAttribute('data-mode'),
@@ -245,7 +248,7 @@ describe('the shell’s Union bar is marked for the route', () => {
   })
 
   it('wears Build on Build’s pages, the page’s nav link current', async () => {
-    expect(await served('/mechs/patterns/')).toEqual({
+    expect(await served('/patterns/')).toEqual({
       mode: 'build',
       current: ['Build', 'Patterns'],
       hidden: false,
@@ -258,7 +261,16 @@ describe('the shell’s Union bar is marked for the route', () => {
   })
 
   it('marks, and hides, a Cockpit’s', async () => {
-    expect(await served('/play/game/g1')).toEqual({ mode: 'play', current: ['Play'], hidden: true })
+    expect(await served('/play/games/g1/mediate')).toEqual({
+      mode: 'play',
+      current: ['Play'],
+      hidden: true,
+    })
+    expect(await served('/play/pilots/p1')).toEqual({
+      mode: 'play',
+      current: ['Play'],
+      hidden: true,
+    })
   })
 })
 
@@ -267,7 +279,7 @@ describe('the shell’s Union bar is marked for the route', () => {
  * Discord unfurling a `/p/` link — gets the same shell a browser does.
  */
 describe('a client route that is not a navigation gets the shell', () => {
-  for (const path of ['/p/pilot/abc', '/s/AAAAAAAA', '/sheet/pilot/xyz', '/deep/unknown/route']) {
+  for (const path of ['/p/pilot/abc', '/s/AAAAAAAA', '/pilots/xyz', '/deep/unknown/route']) {
     it(`serves the shell with 200 for ${path}`, async () => {
       const env = envWith()
       const res = await worker.fetch(req(path), env)
@@ -293,20 +305,20 @@ describe('a client route that is not a navigation gets the shell', () => {
 describe('only the public client routes are indexable', () => {
   for (const path of ['/', '/starter', '/starter/pilot/bonesaw', '/p/pilot/abc']) {
     it(`leaves ${path} indexable`, async () => {
-      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      const res = await worker.fetch(
+        navigateTo(`https://salvageunion.io${appPath(path)}`),
+        envWith()
+      )
       expect(res.headers.get('x-robots-tag')).toBeNull()
     })
   }
 
-  for (const path of [
-    '/sheet/pilot/xyz',
-    '/play/games/g1',
-    '/pilots/new',
-    '/settings',
-    '/s/AAAAAAAA',
-  ]) {
+  for (const path of ['/pilots/xyz', '/play/games/g1', '/pilots/new', '/settings', '/s/AAAAAAAA']) {
     it(`marks ${path} noindex, keeping the shell and its headers`, async () => {
-      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      const res = await worker.fetch(
+        navigateTo(`https://salvageunion.io${appPath(path)}`),
+        envWith()
+      )
       expect(res.status).toBe(200)
       expect(await res.text()).toBe(SHELL)
       expect(res.headers.get('x-robots-tag')).toBe('noindex')
@@ -315,7 +327,7 @@ describe('only the public client routes are indexable', () => {
   }
 
   it("marks an invite's unfurl noindex", async () => {
-    const res = await worker.fetch(req('/invite/abc123'), envWith())
+    const res = await worker.fetch(req('/play/invite/abc123'), envWith())
     expect(res.headers.get('x-robots-tag')).toBe('noindex')
   })
 
@@ -366,30 +378,36 @@ describe('the doc pages 301 to the SRD', () => {
  */
 describe('a retired address 301s to where it lives now', () => {
   const cases: [string, string][] = [
-    ['/games', '/'],
-    ['/games?from=discord', '/?from=discord'],
-    ['/games/g1/view/pilot/row-1', '/sheet/pilot/row-1'],
-    ['/join/A1B2C3D4', '/invite/A1B2C3D4'],
-    ['/join/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
+    ['/games', '/play/'],
+    ['/games?from=discord', '/play/?from=discord'],
+    ['/games/g1/view/pilot/row-1', `${BASE}/pilots/row-1`],
+    ['/join/A1B2C3D4', '/play/invite/A1B2C3D4'],
+    ['/join/A1B2C3D4?ref=dm', '/play/invite/A1B2C3D4?ref=dm'],
     ['/games/g1', '/play/games/g1'],
     ['/games/g1/', '/play/games/g1'],
-    ['/dashboard/p1', '/play/p1'],
-    ['/mediator/g1', '/play/game/g1'],
+    ['/dashboard/p1', '/play/pilots/p1'],
+    ['/mediator/g1', '/play/games/g1/mediate'],
+    ['/play/game/g1', '/play/games/g1/mediate'],
+    ['/invite/A1B2C3D4', '/play/invite/A1B2C3D4'],
+    ['/sheet/mech/m1', `${BASE}/mechs/m1`],
   ]
   for (const [from, to] of cases) {
-    it(`${BASE}${from} → ${BASE}${to}`, async () => {
+    it(`${BASE}${from} → ${to}`, async () => {
       const env = envWith()
       const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${from}`), env)
 
       expect(res.status).toBe(301)
-      expect(res.headers.get('location')).toBe(`${BASE}${to}`)
+      expect(res.headers.get('location')).toBe(to)
       expect(env.ASSETS.asked).toEqual([])
     })
   }
 
   it('leaves a live route under a retired prefix alone', async () => {
     for (const path of ['/games/g1/view', '/join/a/b', '/dashboard/p1/x']) {
-      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      const res = await worker.fetch(
+        navigateTo(`https://salvageunion.io${appPath(path)}`),
+        envWith()
+      )
       expect(res.status).toBe(200)
     }
   })

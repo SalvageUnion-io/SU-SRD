@@ -1,5 +1,5 @@
 /**
- * SheetSkeleton — a `SkeletonFrame` composed as /sheet/:kind/:id while the
+ * SheetSkeleton — a `SkeletonFrame` composed as a sheet page (`/pilots/:id`, …) while the
  * route loader hydrates the entity store.
  *
  * Mirrors the LiveSheet shell (sticky top bar → hero band → body slabs) so
