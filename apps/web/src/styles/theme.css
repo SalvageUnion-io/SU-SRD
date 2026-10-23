@@ -122,16 +122,12 @@
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 
   /* Class ability-tier ramp: Core = pilot orange,
-     Advanced and Hybrid = this rust, Legendary = crawler pink. Core and
+     Advanced and Hybrid = this rust (a Hybrid Class wears it too, R44),
+     Legendary = crawler pink. Core and
      Legendary reuse the ontology hues. The tier rust is its own hue, never
      `var(--color-rust)` or its value: nothing may wear the action colour
      (ruleset §3.1). It carries paper text (design/__tests__/contrast.test.ts). */
   --color-tier-hybrid: rgb(183, 65, 14); /* #b7410e */
-  /* A Hybrid Class's brown (R44), apart from the ability tiers' rust and the
-     adversary brown. It
-     carries paper text (design/__tests__/contrast.test.ts). */
-  --color-class-hybrid: rgb(107, 68, 35); /* #6b4423 */
-
   /* The Heat guide's own red: its band and its tile. It
      carries paper (design/__tests__/contrast.test.ts). */
   --color-heat: rgb(166, 38, 34); /* #a62622 */
