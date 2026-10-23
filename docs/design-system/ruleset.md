@@ -26,7 +26,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
    5. **Compact — one entity, one click** — `<Entity size="compact">`, an entity in a list at level 1 (E6): one-row head, chip group (E17); nothing edits or expands in place.
    6. **Peek — the glance** — a Compact contentful (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app. Terminal: no buttons, links (but its name's), nested Peeks or steppers (E16, E19).
    7. **Page — the entity's own route** — on desktop the hero floats, the body flowing round it, then full width.
-      The body starts under the band; short, it fills the height from the top; level-1 blocks sit 12px apart.
+      The body starts under the band; short, it is centred between band and foot; level-1 blocks sit 12px apart.
    8. **Entity forms** — Mention, the Sizes and Page: [entity-display-language.md](entity-display-language.md).
    9. **Manage — the owner's desk** — Training Bay, Play hub, a Game, invites: paper under the area's band, level 0, Slab sections, Compacts that link.
       No stepper or in-place edit; acts are Buttons in a chip group or under a Slab, destruction `confirm`. Rust is a door into play or a make (Play, Mediate, New Game); Open and filters are ink.
