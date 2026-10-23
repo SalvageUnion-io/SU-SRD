@@ -130,6 +130,12 @@
   justify-content: center;
 }
 
+/* A budget (`WizTracker`) stands as tall as the Full buttons beside it. */
+.su-wiz-pill-start .su-stat-cell {
+  box-sizing: border-box;
+  height: var(--size-full);
+}
+
 .su-wiz-pill-note {
   text-align: center;
 }

@@ -27,12 +27,12 @@ export function WritesBlockedNotice() {
   if (canWrite || settling) return null
 
   return (
-    <Badge surface="outline" role="status" aria-live="polite">
+    <Badge surface="outline" className="su-page-action" role="status" aria-live="polite">
       {mode === 'solo'
         ? sharedCopy('readOnlySignInTo')
         : outdated
           ? sharedCopy('readOnlyUpdating')
-          : sharedCopy('readOnlyForNow')}
+          : sharedCopy('readOnly')}
     </Badge>
   )
 }
