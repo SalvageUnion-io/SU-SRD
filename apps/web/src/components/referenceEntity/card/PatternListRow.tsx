@@ -175,7 +175,9 @@ export function PatternList({
  *
  * A player's pattern is listed the same way, in Edit while they save it:
  * `edit` swaps the name for its field and the prose for its own, and
- * `homebrew` puts the HOMEBREW stamp among its chips (ruleset §3.9).
+ * `homebrew` puts the HOMEBREW stamp among its chips (ruleset §3.9), with
+ * `credit` (its maker) beside it. A chassis page's Homebrew lists its
+ * patterns this way too, each opening its own `href`.
  */
 export function PatternListing({
   chassis,
@@ -183,6 +185,8 @@ export function PatternListing({
   pattern,
   host,
   homebrew = false,
+  credit,
+  href: hrefOverride,
   edit,
 }: {
   chassis: ReferenceCardEntity
@@ -191,10 +195,15 @@ export function PatternListing({
   host: PatternRowsHost
   /** A player made it: the HOMEBREW stamp among its chips. */
   homebrew?: boolean
+  /** Who made it, a chip beside the HOMEBREW stamp (`MECH MONDAY | Murkdice`, `BY | Rosa`). */
+  credit?: ReactNode
+  /** Where the head opens, over the surface's own pattern page (a player's pattern's page in the app). */
+  href?: string
   /** Edit: the name's field, in its cut-out, and the description's, in the prose's place. */
   edit?: { name: ReactNode; description: ReactNode }
 }) {
-  const href = usePatternHref(chassis, pattern)
+  const surfaceHref = usePatternHref(chassis, pattern)
+  const href = hrefOverride ?? surfaceHref
   const surface = useEntitySurface()
   const model = useMemo(
     () => toEntityModel(chassis as RefEntity, undefined, { pattern }),
@@ -214,10 +223,13 @@ export function PatternListing({
   const legalStartingPattern = isLegalStartingPatternOf(pattern)
   const chips =
     legalStartingPattern || homebrew
-      ? labelChips(
-          { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-          'compact'
-        )
+      ? [
+          ...labelChips(
+            { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
+            'compact'
+          ),
+          credit,
+        ]
       : undefined
   // The name on the paper cut-out (`Head`'s): the body below is paper.
   const head = <Head title={`“${name}”`} titleContent={edit?.name} paint={paint} chips={chips} />
