@@ -124,7 +124,10 @@ describe('on the Homebrew page', () => {
     render(<HomebrewIsland />)
     await settle()
     expect(asked).toEqual(['/homebrew/patterns.json'])
-    const links = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
+    // Each pattern's head opens it (its loadout's parts link to their own pages).
+    const links = [...document.querySelectorAll('a.su-pattern-rows__head')].map((a) =>
+      a.getAttribute('href')
+    )
     // The reference's built-in ones first (the Gatecrasher's Mech Monday eight), then the players'.
     expect(links).toHaveLength(10)
     expect(links[0]).toBe('/chassis/gatecrasher/pattern/cornerstone/')

@@ -9,7 +9,9 @@
  *   is pressed a phone shows the first two of them all.
  * - **On `/homebrew/`** (no `chassisRef`): every one, newest share first.
  *
- * Each is a Compact with the HOMEBREW hatch, credited "By" its maker. The
+ * Each is listed as the book's patterns are (`PatternListing`): its
+ * description and loadout under a head with the HOMEBREW stamp and its
+ * maker beside it (`MECH MONDAY | Murkdice`, `BY | Rosa`). The
  * reference's built-in ones (Mech Monday designs) come first and open their
  * SRD page, which links the post they came from; the players' follow, opening
  * their own page in the app (where they can be copied, reported or hidden).
@@ -28,25 +30,21 @@ import {
   readShowHomebrew,
   writeShowHomebrew,
 } from '../../lib/homebrew/homebrew'
+import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { islandsCopy } from '../../messages/components-islands'
 import { Toggle } from '../atoms/Toggle'
-import { Grid } from '../containers/Grid'
 import { loadingCopy } from '../containers/loadingCopy'
 import { SlabSection } from '../containers/SlabSection'
-import { Entity } from '../entity/Entity'
 import { GameDataGate } from '../GameDataGate'
 import { Stat, Text } from '../index'
+import { ReferenceSurface } from '../ReferenceSurface'
 import { HomebrewCreditChip } from '../referenceEntity/card/HomebrewCreditChip'
-import { ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
+import { PatternListing, ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
 import { PATTERNS_ON_A_PHONE } from '../referenceEntity/card/patternsOnAPhone'
-import { quotePatternName } from '../referenceEntity/pattern/quotePatternName'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
-/** What a pattern's Compact needs from the reference. */
-const SCHEMAS = ['chassis', 'systems', 'modules'] as const
-
-/** The narrowest a row's column gets. */
-const COLUMN_MIN = '28rem'
+/** What a pattern's listing needs from the reference: a chassis page's own bundle (its parts' actions and traits too). */
+const SCHEMAS = getSchemaPreloadList('chassis')
 
 type Load = { state: 'idle' | 'loading' | 'failed' } | { state: 'ready'; rows: HomebrewRow[] }
 
@@ -72,15 +70,24 @@ function useHomebrew(on: boolean, chassisRef: string | undefined): Load {
   return load
 }
 
-function HomebrewCompact({ entry }: { entry: HomebrewEntry }) {
+/** No pattern of a chassis page's Homebrew is drawn under a down host. */
+const HOST = { hostDown: false, chassisName: undefined } as const
+
+/**
+ * One homebrew pattern, listed as the book's are above it (`PatternListing`):
+ * its head opening its page, the HOMEBREW stamp with its maker beside it, then
+ * its description and loadout.
+ */
+function HomebrewListing({ entry }: { entry: HomebrewEntry }) {
   return (
-    <Entity
-      size="compact"
-      entity={entry.chassis}
+    <PatternListing
+      chassis={entry.chassis}
+      chassisName={entry.chassis.name}
       pattern={entry.pattern}
-      instance={{ title: quotePatternName(entry.pattern.name), userMade: true }}
-      mode={{ kind: 'link', href: entry.href }}
-      labels={
+      host={HOST}
+      homebrew
+      href={entry.href}
+      credit={
         entry.source ? (
           <HomebrewCreditChip
             key="credit"
@@ -111,13 +118,16 @@ function HomebrewList({
   if (load.state === 'idle') return null
   return (
     <>
-      <GameDataGate schemas={[...SCHEMAS]} fallback={null}>
-        <HomebrewGrid
-          rows={load.state === 'ready' ? load.rows : []}
-          chassisRef={chassisRef}
-          empty={load.state === 'ready' ? empty : null}
-          shown={shown}
-        />
+      <GameDataGate schemas={SCHEMAS} fallback={null}>
+        {/* The SRD's surface: a listing's loadout links to each part's page, as the book's do. */}
+        <ReferenceSurface>
+          <HomebrewGrid
+            rows={load.state === 'ready' ? load.rows : []}
+            chassisRef={chassisRef}
+            empty={load.state === 'ready' ? empty : null}
+            shown={shown}
+          />
+        </ReferenceSurface>
       </GameDataGate>
       {load.state !== 'ready' && (
         <Text variant="hint">
@@ -152,13 +162,13 @@ function HomebrewGrid({
   ]
   if (entries.length === 0) return empty === null ? null : <Text variant="hint">{empty}</Text>
   return (
-    <Grid min={COLUMN_MIN} gap={12}>
+    <ul className="su-pattern-rows__list">
       {entries.map((entry, i) => (
-        <div key={entry.key} className={i < shown ? undefined : 'su-homebrew__more'}>
-          <HomebrewCompact entry={entry} />
-        </div>
+        <li key={entry.key} className={i < shown ? undefined : 'su-homebrew__more'}>
+          <HomebrewListing entry={entry} />
+        </li>
       ))}
-    </Grid>
+    </ul>
   )
 }
 
@@ -184,6 +194,7 @@ function ChassisHomebrew({
         id="homebrew-patterns"
         title={islandsCopy('homebrewPatterns')}
         page
+        className="su-homebrew"
         actions={
           <Toggle
             pressed={on}
