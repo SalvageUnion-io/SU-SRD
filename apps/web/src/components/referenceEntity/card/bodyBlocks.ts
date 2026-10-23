@@ -39,6 +39,7 @@ export function resolveBodyBlocks({
   selfActionContent,
   alwaysShow,
   isGrantingAbility,
+  grantedText = '',
 }: {
   /** The entity's own content (or the titanic meta-action's remainder). */
   content: RefObjectContentBlock[] | undefined
@@ -50,6 +51,8 @@ export function resolveBodyBlocks({
   alwaysShow: boolean
   /** A granting ability collapses its own prose in favour of the granted cards. */
   isGrantingAbility: boolean
+  /** The granted cards' prose: a granting ability keeps only what they do not print. */
+  grantedText?: string
 }): { bodyBlocks: RefObjectContentBlock[]; showBody: boolean } {
   const bodyContent = content?.filter((block) => {
     if (
@@ -62,10 +65,8 @@ export function resolveBodyBlocks({
     if (isGrantContext && block.lead === true) return false
     return true
   })
-  const entityBodyBlocks = (bodyContent ?? []).filter((b) => b?.type !== 'datavalues')
-  const selfActionBlocks = selfActionContent
-    ? selfActionContent.filter((b) => b?.type !== 'datavalues')
-    : []
+  const entityBodyBlocks = withoutDataValues(bodyContent ?? [])
+  const selfActionBlocks = selfActionContent ? withoutDataValues(selfActionContent) : []
   const selfActionText = selfActionBlocks.map(blockPlainText).join('\n')
   const dedupedEntityBlocks = selfActionBlocks.length
     ? entityBodyBlocks.filter((b) => {
@@ -73,9 +74,31 @@ export function resolveBodyBlocks({
         return t.length === 0 || !selfActionText.includes(t.slice(0, 40))
       })
     : entityBodyBlocks
-  const bodyBlocks: RefObjectContentBlock[] = [...dedupedEntityBlocks, ...selfActionBlocks]
-  const showBody = alwaysShow ? bodyBlocks.length > 0 : !isGrantingAbility && bodyBlocks.length > 0
+  const allBlocks: RefObjectContentBlock[] = [...dedupedEntityBlocks, ...selfActionBlocks]
+  // A granting ability's prose mostly repeats the card it grants; what the
+  // granted card does not print (Mecha Packmaster's second companion) stays.
+  const grantedKey = proseKey(grantedText, undefined)
+  const bodyBlocks =
+    isGrantingAbility && !alwaysShow
+      ? allBlocks.filter((b) => {
+          const key = proseKey(blockPlainText(b), undefined)
+          return key.length > 0 && !grantedKey.includes(key)
+        })
+      : allBlocks
+  const showBody = bodyBlocks.length > 0
   return { bodyBlocks, showBody }
+}
+
+/**
+ * A body's blocks less its `datavalues`, whose chips the card's band prints. A
+ * labelled one keeps its label in its place, so the prose still says what the
+ * chips are ("You are able to make the following Meld Tendril Attack:").
+ */
+function withoutDataValues(blocks: RefObjectContentBlock[]): RefObjectContentBlock[] {
+  return blocks.flatMap((b): RefObjectContentBlock[] => {
+    if (b?.type !== 'datavalues') return [b]
+    return b.label ? [{ type: 'paragraph', value: b.label }] : []
+  })
 }
 
 /** Below this length a paragraph is too short to call a repeat of anything. */

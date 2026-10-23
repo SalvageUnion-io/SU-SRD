@@ -192,19 +192,23 @@ export function patternGroups(pattern: RefObjectAnyPattern): NestedGroup[] {
   return [...groups.entries()].map(([label, entities]) => ({ label, entities }))
 }
 
-/** Systems and modules named by name arrays, resolved; unknown names dropped. */
+/**
+ * Systems and modules named by name arrays, resolved; unknown names dropped.
+ * A name the book lists under the other heading (a TDA drone's "Systems: …
+ * Comms Module") resolves from the other catalogue and keeps its listed place.
+ */
 export function resolveLoadout(
   systemNames: string[],
   moduleNames: string[]
 ): { systems: RefEntity[]; modules: RefEntity[] } {
-  const systems = systemNames.flatMap((name) => {
-    const found = SalvageUnionReference.getByNameIn('systems', name)
+  const resolve = (name: string, first: 'systems' | 'modules', other: 'systems' | 'modules') => {
+    const found =
+      SalvageUnionReference.getByNameIn(first, name) ??
+      SalvageUnionReference.getByNameIn(other, name)
     return found ? [found] : []
-  })
-  const modules = moduleNames.flatMap((name) => {
-    const found = SalvageUnionReference.getByNameIn('modules', name)
-    return found ? [found] : []
-  })
+  }
+  const systems = systemNames.flatMap((name) => resolve(name, 'systems', 'modules'))
+  const modules = moduleNames.flatMap((name) => resolve(name, 'modules', 'systems'))
   return { systems, modules }
 }
 

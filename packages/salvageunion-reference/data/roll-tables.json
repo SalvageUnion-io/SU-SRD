@@ -4021,5 +4021,125 @@
         "value": "A fragment of the meteor that landed upon the mesa was made of Chimerium: a mutative, bio-organic substance that is known to rapidly grow life around it."
       }
     ]
+  },
+  {
+    "id": "dc3416cc-741f-4254-ae5c-1a6a8fc075b4",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Morph Scythes",
+    "table": {
+      "1": {
+        "value": "The target is turned into another random entity of its type. For example, a Mech would morph into another random Mech, a Vehicle into a random Vehicle, a creature into another random creature."
+      },
+      "20": {
+        "value": "The target is phased permanently from reality entering the Nether Zone, from whence there is no known escape."
+      },
+      "11-19": {
+        "value": "A random System or appendage on the target is phased from reality and enters the Nether Zone."
+      },
+      "6-10": {
+        "value": "A random Module or sense organ on the target is phased from reality and enters the Nether Zone."
+      },
+      "2-5": {
+        "value": "The target's form discombobulates. A Mech replaces a random System and a random Module with another System or Module of its Tech Level. A creature hit has its flesh hideously rearranged, dying a painful death."
+      },
+      "type": "standard"
+    },
+    "page": 283
+  },
+  {
+    "id": "ac5d5915-2dab-4542-9cf9-bc3a25b7bb32",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Swallow Whole",
+    "table": {
+      "1": {
+        "value": "Typhon misses the target and its jaws become locked. It cannot use its Swallow Whole attack for one turn."
+      },
+      "20": {
+        "value": "The target is swallowed whole and entirely mulched in the jaws of Typhon. A Mech or Vehicle is destroyed, a creature is killed."
+      },
+      "11-19": {
+        "value": "Typhon swallows the target whole. The target takes 10 SP damage as it enters the Bio-Titan's gullet. Whilst swallowed, the target takes 5 SP damage at the end of their turn, and cannot move. They can attempt to use a Turn Action to escape. If Typhon takes 25 or more SP damage in one round it will regurgitate whatever it has swallowed."
+      },
+      "6-10": {
+        "value": "Typhon chews through the target. A random System on the target is destroyed and the target takes 5 SP damage."
+      },
+      "2-5": {
+        "value": "Typhon misses the target."
+      },
+      "type": "standard"
+    },
+    "page": 279
+  },
+  {
+    "id": "d219458b-ba0c-40f1-a409-4cf12f5924a4",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Entrancing Song",
+    "table": {
+      "1": {
+        "value": "They resist Chrysalis' will and the psychic rejection causes Chrysalis to be stunned until the end of its next turn."
+      },
+      "20": {
+        "value": "All targets become thralls to Chrysalis and are under its control for the next 24 hours. Chrysalis can end this effect at any time."
+      },
+      "11-19": {
+        "value": "All targets become temporary thralls to Chrysalis. They are under its control until the end of its next turn."
+      },
+      "6-10": {
+        "value": "In their futility, the targets attempt to resist the song. Chrysalis will transmit two commands to all targets and they must choose which to follow."
+      },
+      "2-5": {
+        "value": "All targets are temporarily enthralled by its song. They are stunned until the end of its next turn. They cannot act and gain the [[Vulnerable]] Trait."
+      },
+      "type": "standard"
+    },
+    "page": 281
+  },
+  {
+    "id": "3ef3853a-2723-4db4-9501-2f8f9195ce7b",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Bio-Electric Shield",
+    "table": {
+      "1": {
+        "value": "The Shield fails and is unusable for 24 hours."
+      },
+      "20": {
+        "value": "Electrophorus prevents the attack and can make a free Bio-Electric Arc attack against the attacker."
+      },
+      "11-19": {
+        "value": "Electrophorus prevents the attack."
+      },
+      "6-10": {
+        "value": "Electrophorus takes half damage from the attack."
+      },
+      "2-5": {
+        "value": "The Shield fails and cannot be used until the end of Electrophorus' next turn."
+      },
+      "type": "standard"
+    },
+    "page": 285
+  },
+  {
+    "id": "afaff456-b7fb-4e01-9158-49e66dd28c27",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Tail Swat",
+    "table": {
+      "1": {
+        "value": "Tyrant fails to deflect the hit and its mammoth tail is torn off. It gains the [[Vulnerable]] Trait until the start of its next turn."
+      },
+      "20": {
+        "value": "Tyrant deflects the hit back. It hits the target for double damage."
+      },
+      "11-19": {
+        "value": "Tyrant deflects the hit, it misses and Tyrant takes no damage."
+      },
+      "6-10": {
+        "value": "Tyrant partially deflects the hit, it hits and Tyrant takes half damage rounded down from the attack."
+      },
+      "2-5": {
+        "value": "Tyrant fails to deflect the hit and is hit as normal and takes full damage. It cannot use Tail Swat until the start of the next Turn."
+      },
+      "type": "standard"
+    },
+    "page": 287
   }
 ]
