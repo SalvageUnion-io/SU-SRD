@@ -1,20 +1,21 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { borderWidth, color, fontSize, space } from '../../design/tokens'
 import { NAV_CATALOG } from '../../generated/navCatalog'
 import { SIGN_IN_HREF } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
 import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
+import { MARK_SRC } from '../../lib/documentHead'
 import { unionBarCopy } from '../../messages/components-union-bar'
+import { FOCUS_RING } from '../atoms/interaction'
 import type { NavDrawerItem } from '../index'
-import { Badge, Button, NavDrawer } from '../index'
+import { Button, NavDrawer } from '../index'
 
 /**
  * UnionDrawer — the Union bar's one phone drawer, the same in both render
  * modes: the reference pages mount it as `MobileNavIsland`, the app in its
  * bar's `mobile` slot (`UnionBarSlots`).
  *
- * The wordmark home, the search, the book's chapter index with its counts
+ * The mark home, the search, the book's chapter index with its counts
  * (`NAV_CATALOG`, frozen at build time: building it at runtime would pull the
  * reference ORM onto every page, which `reference-bundle-budget.e2e.ts` forbids), then the
  * site's pages and "Buy the game". The app adds its own nav ahead of those
@@ -22,39 +23,16 @@ import { Badge, Button, NavDrawer } from '../index'
  * offers Sign in while nobody is signed in, from the account hint.
  */
 
-/** The wordmark's frame: one ink rule around both stamps. */
-const BRAND_FRAME = {
-  borderColor: color.ink,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  cursor: 'pointer',
-  display: 'inline-flex',
-  flexShrink: 0,
+// The Union bar's lockup, the mark alone (ruleset §3.11), at the Compact Size.
+const MARK = {
+  display: 'block',
+  height: 'var(--size-compact)',
+  width: 'var(--size-compact)',
 } satisfies CSSProperties
-
-// 1.25rem sits above the stamp ladder's top rung (`full` = 0.875rem), so the
-// wordmark keeps an explicit size over the rung, inline over its class.
-const BRAND_STAMP = {
-  fontSize: fontSize.xl,
-  letterSpacing: 'normal',
-  lineHeight: 'calc(1.75 / 1.25)',
-  paddingBlock: space[2],
-  paddingInline: space[4],
-} satisfies CSSProperties
-
-// No inset ring: the frame above draws the ink rule.
-const BRAND_STAMP_INVERSE = { ...BRAND_STAMP, boxShadow: 'none' } satisfies CSSProperties
 
 const BRAND = (
-  <a href="/">
-    <span style={BRAND_FRAME}>
-      <Badge shape="stamp" size="full" style={BRAND_STAMP}>
-        {unionBarCopy('salvageUnion')}
-      </Badge>
-      <Badge shape="stamp" size="full" surface="inverse" style={BRAND_STAMP_INVERSE}>
-        {unionBarCopy('srd')}
-      </Badge>
-    </span>
+  <a href="/" className={FOCUS_RING}>
+    <img src={MARK_SRC} alt={unionBarCopy('salvageUnion')} width={40} height={40} style={MARK} />
   </a>
 )
 

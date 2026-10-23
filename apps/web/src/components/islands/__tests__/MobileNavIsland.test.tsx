@@ -29,21 +29,19 @@ describe('MobileNavIsland', () => {
       .map((h) => h.textContent)
       // The drawer's own (visually hidden) title heads the dialog.
       .filter((label) => label !== 'Navigation menu')
-    expect(chapters).toEqual(NAV_CATALOG.map((chapter) => chapter.label))
-    const first = NAV_CATALOG[0]?.schemas[0]
-    if (!first?.href) throw new Error('empty NAV_CATALOG')
-    const row = within(menu).getByRole('link', { name: new RegExp(`^${first.displayName}`) })
+    expect(chapters).toEqual(NAV_CATALOG.map((chapter) => `${chapter.title}${chapter.total}`))
+    const first = NAV_CATALOG[0]?.rows[0]
+    if (!first) throw new Error('empty NAV_CATALOG')
+    const row = within(menu).getByRole('link', { name: new RegExp(`^${first.label}`) })
     expect(row.getAttribute('href')).toBe(first.href)
     expect(row.textContent).toContain(String(first.count))
   })
 
-  test('carries the search and the wordmark home', async () => {
+  test('carries the search and the mark home', async () => {
     render(<MobileNavIsland />)
     const menu = await openMenu()
     expect(within(menu).getByRole('combobox', { name: 'Search the Reference' })).toBeTruthy()
-    expect(within(menu).getByRole('link', { name: 'Salvage Union SRD' }).getAttribute('href')).toBe(
-      '/'
-    )
+    expect(within(menu).getByRole('link', { name: 'Salvage Union' }).getAttribute('href')).toBe('/')
   })
 
   test('marks the link for the page you are on as current; the store opens in a new tab', async () => {
