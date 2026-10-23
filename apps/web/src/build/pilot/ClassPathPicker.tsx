@@ -14,6 +14,7 @@ import type { RefClass } from 'salvageunion-reference'
 import {
   Callout,
   Entity,
+  Eyebrow,
   RadioCardGroup,
   SELECT_DIM,
   Slab,
@@ -25,16 +26,13 @@ import { cn } from '../../lib/cn'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/build/wizard.css'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import { pilotCopy } from '../../messages/build-pilot'
 
-/** The caps note under a class card ("current", "via Hacker", …). */
+/** The caps note's place under a class card ("current", "via Hacker", …). */
 const OPTION_NOTE = {
   margin: `0 0 ${tokens.space[8]}`,
   paddingLeft: tokens.space[4],
-  color: tokens.color.wkMuted,
 } satisfies CSSProperties
-const OPTION_NOTE_CAPS = capsLabel({ size: 'badge' })
 
 /** A line that names no entity (a tree, what it costs), in the body face. */
 const LEDGER_LINE = {
@@ -102,9 +100,9 @@ function OptionCard({
         />
       </div>
       {note !== undefined && (
-        <p className={OPTION_NOTE_CAPS} style={OPTION_NOTE}>
+        <Eyebrow as="p" tone="muted" style={OPTION_NOTE}>
           {note}
-        </p>
+        </Eyebrow>
       )}
     </div>
   )

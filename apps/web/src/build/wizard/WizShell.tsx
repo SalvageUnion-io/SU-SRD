@@ -1,4 +1,5 @@
 import type { SheetKind } from 'game-domain/entityKinds'
+import { Check } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Box } from '../../components/containers/Box'
@@ -225,7 +226,7 @@ function RailStep({
         className={active ? 'su-wiz-rail-tab--active' : undefined}
         style={active ? railTabActiveStyle : done ? railTabDoneStyle : railTabFutureStyle}
       >
-        {done ? '✓' : index + 1}
+        {done ? <Check size={tokens.iconSize.full} /> : index + 1}
       </span>
       <span
         className={cn('su-wiz-rail-label', railLabelCaps)}

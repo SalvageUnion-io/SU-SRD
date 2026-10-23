@@ -11,7 +11,7 @@ import {
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/useProseRefs'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
-import { capsLabel } from '../../atoms/capsLabel'
+import { Button } from '../../atoms/Button'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
@@ -283,9 +283,9 @@ export function ShowAllPatterns({
 }) {
   if (count <= PATTERNS_ON_A_PHONE) return null
   return (
-    <a href={`#${target}`} className={cn('su-pattern-rows__more', capsLabel(), FOCUS_RING)}>
+    <Button href={`#${target}`} size="full" className="su-pattern-rows__more">
       {referenceEntityCopy('showAllPatterns', { count })}
-    </a>
+    </Button>
   )
 }
 
