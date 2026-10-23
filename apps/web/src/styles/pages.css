@@ -602,18 +602,6 @@ a.su-home__discord:hover {
   display: none;
 }
 
-.su-rail__count {
-  align-items: center;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  display: inline-flex;
-  font-size: var(--text-xs);
-  height: 20px;
-  justify-content: center;
-  min-width: 20px;
-  padding: 0 var(--space-4);
-}
-
 .su-rail .su-rail__menu {
   font-family: var(--font-cond);
   font-size: var(--text-sm);
@@ -629,18 +617,12 @@ a.su-home__discord:hover {
   color: var(--color-paper);
 }
 
-/* The TL badge: its ink stamp leads the Tech Level `Segmented`, as `[TL | 2]` reads on a card. */
+/* The TL stamp (`Badge shape="stamp"`) leads the Tech Level `Segmented`, as
+   `[TL | 2]` reads on a card: it stands the control's full height. */
 .su-rail__stamp {
   align-items: center;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
   display: flex;
   flex: none;
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  padding: 0 var(--space-8);
 }
 
 /* What is filtered: the count, a token per filter, Clear all. On an index it

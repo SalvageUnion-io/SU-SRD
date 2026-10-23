@@ -16,8 +16,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { Radio, tokens } from '../../components/index'
+import { Eyebrow, Radio, tokens } from '../../components/index'
 import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
 import { buildSharingCopy } from '../../messages/build-sharing'
 
@@ -47,7 +46,6 @@ const LEGEND = {
   marginBottom: tokens.space[8],
   padding: 0,
 } satisfies CSSProperties
-const LEGEND_CAPS = capsLabel({ size: 'badge' })
 
 type WhoCanSeeProps = {
   /** The radio group's name: unique on the page. */
@@ -75,9 +73,9 @@ export function WhoCanSee({
 }: WhoCanSeeProps) {
   return (
     <fieldset style={FIELDSET} disabled={disabled || value === null}>
-      <legend className={LEGEND_CAPS} style={LEGEND}>
+      <Eyebrow as="legend" tone="ink" style={LEGEND}>
         {buildSharingCopy('whoCanSeeIt')}
-      </legend>
+      </Eyebrow>
       {choices.map((choice) => {
         const open = value === choice.value ? details?.[choice.value] : undefined
         const radio = (

@@ -5,7 +5,7 @@ import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
 import { islandsCopy } from '../../messages/components-islands'
 import { capsLabel } from '../atoms/capsLabel'
-import { Button, SearchField, Segmented, SegmentedOption, Select } from '../index'
+import { Badge, Button, SearchField, Segmented, SegmentedOption, Select } from '../index'
 
 /** The rail's menu is a caps label that keeps its rule's face and tracking. */
 const MENU = cn('su-rail__menu', capsLabel({ weight: 'inherit', tracking: 'inherit' }))
@@ -152,7 +152,13 @@ export function ListingRail({
           onClick={on.toggleFacets}
         >
           Filters
-          {activeFacets > 0 && <span className="su-rail__count">{activeFacets}</span>}
+          {activeFacets > 0 && (
+            <>
+              {' '}
+              <Badge shape="chip">{activeFacets}</Badge>
+              <span className="su-sr-only"> {islandsCopy('active')}</span>
+            </>
+          )}
         </Button>
       )}
       {status}
@@ -174,9 +180,9 @@ export function ListingRail({
         <div className="su-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
             <Segmented label={islandsCopy('techLevel')}>
-              <span className="su-rail__stamp" aria-hidden="true">
+              <Badge shape="stamp" size="full" className="su-rail__stamp" aria-hidden="true">
                 {islandsCopy('tl')}
-              </span>
+              </Badge>
               <SegmentedOption pressed={filters.techLevels.size === 0} onClick={on.clearTechLevels}>
                 {islandsCopy('all')}
               </SegmentedOption>
