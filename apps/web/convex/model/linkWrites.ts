@@ -7,7 +7,7 @@ import type { MutationCtx } from '../_generated/server'
 import { crewSlot, entityRef, softLinkType } from '../schema'
 import type { OwnedTable } from './entities'
 import { findSoftLink, resolveLinkEnd, sameContainerRows, writeSoftLink } from './entities'
-import { assertMayWrite, byAppId } from './ownableWrites'
+import { assertMayWrite, byAppId, writeTarget } from './ownableWrites'
 import { getMembership, isTableRunner, NotAuthorized, requireUser } from './permissions'
 
 /**
@@ -140,12 +140,41 @@ export async function unwireSoftLink(
     await unwireCrewLink(ctx, userId, args)
     return
   }
-  const anchor = await byAppId(ctx, SOFT_LINK_FROM_TABLE[args.type], args.from.id)
+  // The anchor is found as a write finds it (`writeTarget`): a claimed
+  // pre-gen's body id repeats in every Game made from its template, so the
+  // caller's own row answers before anyone else's.
+  const anchor = await writeTarget(ctx, userId, {
+    table: SOFT_LINK_FROM_TABLE[args.type],
+    appId: args.from.id,
+    gameId: undefined,
+  })
   if (anchor === null) return
   assertMayWrite(anchor, userId)
 
-  const existing = await findSoftLink(ctx, args.from.id, args.to.id, args.type)
+  const existing =
+    anchor.appId === undefined
+      ? await seededLink(ctx, anchor.gameId, args)
+      : await findSoftLink(ctx, args.from.id, args.to.id, args.type)
   if (existing === null) return
 
   await ctx.db.delete(existing._id)
+}
+
+/**
+ * `findSoftLink` for a template-seeded anchor: its body id repeats in every
+ * Game made from the template, and its links are filed in its own Game.
+ */
+async function seededLink(
+  ctx: MutationCtx,
+  gameId: Id<'games'> | null,
+  args: ObjectType<typeof LINK>
+): Promise<Doc<'softLinks'> | null> {
+  const candidates = await ctx.db
+    .query('softLinks')
+    .withIndex('by_from', (q) => q.eq('from.id', args.from.id))
+    .collect()
+  return (
+    candidates.find((l) => l.to.id === args.to.id && l.type === args.type && l.gameId === gameId) ??
+    null
+  )
 }
