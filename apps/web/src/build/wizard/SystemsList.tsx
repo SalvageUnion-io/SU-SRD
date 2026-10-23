@@ -1,6 +1,7 @@
 import type { RefSystem } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../../components/index'
+import { buildWizardCopy } from '../../messages/build-wizard'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
@@ -54,7 +55,12 @@ export function SystemsList({
   }
 
   if (systems.length === 0) {
-    return <EmptyState headline="No Systems" body="No weapons systems available." />
+    return (
+      <EmptyState
+        headline={buildWizardCopy('noSystems')}
+        body={buildWizardCopy('noWeaponsSystemsAvailable')}
+      />
+    )
   }
 
   return (
@@ -76,7 +82,12 @@ export function SystemsList({
             hide={{ actions: true, choices: true }}
             footMeta={
               disabled
-                ? [{ label: `Armament Bay full · ${installedWeaponCount} mounted`, value: '' }]
+                ? [
+                    {
+                      label: buildWizardCopy('armamentBayFullMounted', { installedWeaponCount }),
+                      value: '',
+                    },
+                  ]
                 : undefined
             }
           />

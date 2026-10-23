@@ -1,0 +1,39 @@
+/** The words of apps/web/src/components/islands: the message catalogue (ADR-054). */
+
+import { messages } from './define'
+
+export const islandsCopy = messages({
+  didYouMean: 'Did you mean',
+  nothingCloseTo: 'Nothing close to “{query}”',
+  searchTheReferenceFor: 'Search the Reference for “{query}”',
+  somethingWentWrong: 'Something went wrong',
+  somethingWentWrongRenderingThis: 'Something went wrong rendering this entry.',
+  tryAgain: 'Try again',
+  filterByName: 'Filter {count} by name',
+  filterItemsByName: 'Filter items by name',
+  view: 'View',
+  techLevel: 'Tech Level',
+  tl: 'TL',
+  all: 'All',
+  source: 'Source',
+  allSources: 'All sources',
+  tree: 'Tree',
+  allTrees: 'All {count} trees',
+  of: '{count} of {count2}',
+  tl2: 'TL {level}',
+  clearAll: 'Clear all',
+  nothingHere: 'Nothing here',
+  noItemsMatchTheCurrent: 'No items match the current filters.',
+  clearFilters: 'Clear filters',
+  remove: 'Remove {name}',
+  searchTheReference: 'Search the Reference',
+  homebrewBy: 'By',
+  homebrewNoun: 'homebrew',
+  homebrewFailed: 'Homebrew did not load. Try again later.',
+  homebrewPatterns: 'Homebrew',
+  showHomebrew: 'Show Homebrew',
+  homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
+  homebrewOff:
+    'Patterns players built on this chassis and shared on the Reference. Not from the book.',
+  homebrewNone: 'No player has shared a pattern yet.',
+})

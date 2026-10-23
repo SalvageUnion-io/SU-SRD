@@ -133,7 +133,8 @@ input.su-text-input--compact {
 }
 
 /* `atoms/Radio.tsx`: the choice row fills on hover, and the stacked row
- * thickens its border (padding paying the difference) once checked. */
+ * thickens its border (padding paying the difference) once checked, unless it
+ * is bare inside a frame that already does (`WhoCanSee`'s open answer). */
 .su-choice {
   background-color: var(--color-paper);
   border-width: var(--bw-chrome);
@@ -153,7 +154,7 @@ input.su-text-input--compact {
   padding: 0;
 }
 
-.su-choice--stacked:has(:checked) {
+.su-choice--stacked:not(.su-choice--bare):has(:checked) {
   border-width: var(--bw-entity-compact);
   padding: calc(var(--space-8) - (var(--bw-entity-compact) - var(--bw-chrome)));
 }

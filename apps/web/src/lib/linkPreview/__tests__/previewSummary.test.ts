@@ -110,7 +110,7 @@ describe('sheetCard', () => {
     })
   })
 
-  test('an unclaimed sheet says so plainly', () => {
+  test('an unassigned sheet says so plainly', () => {
     expect(sheetCard({ ...MECH, ownerName: null }, titleCaseSlug, ADDRESS)).toMatchObject({
       byline: 'A mech',
     })

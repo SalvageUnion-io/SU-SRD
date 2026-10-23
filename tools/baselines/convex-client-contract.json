@@ -1,5 +1,5 @@
 {
-  "floor": 1792621092,
+  "floor": 1792644675,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1464,6 +1464,39 @@
         }
       }
     },
+    "feedback:submit": {
+      "type": "object",
+      "value": {
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "suggestion"
+              },
+              {
+                "type": "literal",
+                "value": "report"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "text": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "page": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
     "games:create": {
       "type": "object",
       "value": {
@@ -1565,6 +1598,94 @@
         }
       }
     },
+    "homebrew:dismissReports": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:moderation": {
+      "type": "object",
+      "value": {}
+    },
+    "homebrew:patterns": {
+      "type": "object",
+      "value": {
+        "chassisRef": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "homebrew:report": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "reason": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:setHidden": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "hidden": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:setShared": {
+      "type": "object",
+      "value": {
+        "patternId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "shared": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "homebrew:status": {
+      "type": "object",
+      "value": {
+        "appId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "invites:link": {
       "type": "object",
       "value": {
@@ -1641,6 +1762,18 @@
         }
       }
     },
+    "mediator:endEncounter": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
     "mediator:npcs": {
       "type": "object",
       "value": {
@@ -1672,6 +1805,42 @@
           "fieldType": {
             "type": "id",
             "tableName": "encounterNpcs"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:runEncounter": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "encounterId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "clear": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:running": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
           },
           "optional": false
         }
@@ -1724,7 +1893,15 @@
         }
       }
     },
-    "ownership:claim": {
+    "metrics:forAdmin": {
+      "type": "object",
+      "value": {}
+    },
+    "metrics:refresh": {
+      "type": "object",
+      "value": {}
+    },
+    "ownership:assign": {
       "type": "object",
       "value": {
         "table": {
@@ -1748,10 +1925,17 @@
             "type": "string"
           },
           "optional": false
+        },
+        "userId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "users"
+          },
+          "optional": true
         }
       }
     },
-    "ownership:release": {
+    "ownership:unassign": {
       "type": "object",
       "value": {
         "table": {
@@ -2429,9 +2613,24 @@
       "type": "object",
       "value": {}
     },
+    "shelf:encounters": {
+      "type": "object",
+      "value": {}
+    },
     "shelf:patternSharing": {
       "type": "object",
       "value": {}
+    },
+    "shelf:removeEncounter": {
+      "type": "object",
+      "value": {
+        "encounterId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
     },
     "shelf:removeEncounterNpc": {
       "type": "object",
@@ -2496,6 +2695,17 @@
     "shelf:sharedByLink": {
       "type": "object",
       "value": {}
+    },
+    "shelf:upsertEncounter": {
+      "type": "object",
+      "value": {
+        "body": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        }
+      }
     },
     "shelf:upsertEncounterNpc": {
       "type": "object",

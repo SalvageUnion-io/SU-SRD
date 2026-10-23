@@ -15,6 +15,7 @@ import {
   SegmentedOption,
   tokens,
 } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
 function coerceSlots(raw: string): number {
@@ -85,10 +86,10 @@ export function HoldAdder({
   return (
     <AdderBox style={ADDER}>
       {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
-      <Segmented label="Cargo kind" size="compact">
+      <Segmented label={buildSheetCopy('cargoKind')} size="compact">
         {(['cargo', 'scrap'] as const).map((k) => (
           <SegmentedOption key={k} pressed={kind === k} onClick={() => setKind(k)}>
-            {k === 'cargo' ? 'Cargo' : 'Scrap'}
+            {k === 'cargo' ? buildSheetCopy('cargo') : buildSheetCopy('scrap')}
           </SegmentedOption>
         ))}
       </Segmented>
@@ -98,8 +99,8 @@ export function HoldAdder({
           size="compact"
           type="text"
           value={name}
-          aria-label="New cargo name"
-          placeholder="Cargo name"
+          aria-label={buildSheetCopy('newCargoName')}
+          placeholder={buildSheetCopy('cargoName')}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') commit()
@@ -107,7 +108,7 @@ export function HoldAdder({
           style={NAME_INPUT}
         />
       ) : (
-        <AdderField label="Tech" htmlFor={tlId}>
+        <AdderField label={buildSheetCopy('tech3')} htmlFor={tlId}>
           <Input
             size="compact"
             id={tlId}
@@ -117,14 +118,17 @@ export function HoldAdder({
             max={6}
             step={1}
             value={tl}
-            aria-label="Scrap tech level"
+            aria-label={buildSheetCopy('scrapTechLevel')}
             onChange={(e) => setTl(coerceTl(e.target.value))}
             style={NUMBER_INPUT}
           />
         </AdderField>
       )}
 
-      <AdderField label={kind === 'scrap' ? 'Qty' : 'Slots'} htmlFor={slotsId}>
+      <AdderField
+        label={kind === 'scrap' ? buildSheetCopy('qty') : buildSheetCopy('slots')}
+        htmlFor={slotsId}
+      >
         <Input
           size="compact"
           id={slotsId}
@@ -133,7 +137,9 @@ export function HoldAdder({
           min={0}
           step={1}
           value={amount}
-          aria-label={kind === 'scrap' ? 'Scrap quantity' : 'New cargo slot cost'}
+          aria-label={
+            kind === 'scrap' ? buildSheetCopy('scrapQuantity') : buildSheetCopy('newCargoSlotCost')
+          }
           // `CargoLotSchema.units` is `.int()`, and a `type="number"` field still
           // accepts a typed "1.5". Without truncating here the lot fails its Zod
           // parse on commit — and since the form clears itself immediately, the
@@ -145,7 +151,7 @@ export function HoldAdder({
       <Button
         size="compact"
         disabled={!canCommit}
-        aria-label={`${verb} ${kind} into the ${containerLabel}`}
+        aria-label={buildSheetCopy('intoThe', { verb, kind, containerLabel })}
         onClick={commit}
       >
         {verb}

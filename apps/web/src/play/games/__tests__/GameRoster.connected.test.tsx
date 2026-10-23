@@ -203,16 +203,27 @@ describe('what a row offers', () => {
     expect(screen.queryByRole('link', { name: /^(Play|Mediate)$/ })).toBeNull()
   })
 
-  test('what you own can be handed back to the crew', async () => {
+  test('what is assigned to you can be handed back to the crew', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    // Ownership is voluntary outward (ADR-030 §4), and the pick-up confirm
+    // An assignment is voluntary outward (ADR-030 §4), and the seal's confirm
     // promises this as the way back out — so it cannot be Mediator-only.
-    expect(await verbsOf('Roach-Boy')).toContain('Offer to the crew')
+    expect(await verbsOf('Roach-Boy')).toContain('Unassign')
   })
 
-  test("but a crewmate's cannot", async () => {
+  test("but a crewmate's cannot, nor be assigned to anyone", async () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
-    expect(await verbsOf('Ash')).not.toContain('Offer to the crew')
+    const verbs = await verbsOf('Ash')
+    expect(verbs).not.toContain('Unassign')
+    expect(verbs.filter((v) => v.startsWith('Assign to'))).toEqual([])
+  })
+
+  test('the Mediator may unassign or reassign anybody’s, to anyone in the Game', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [MY_PILOT, PRE_GEN] }))
+    const verbs = await verbsOf('Roach-Boy')
+    expect(verbs).toContain('Unassign')
+    expect(verbs).toContain('Assign to me')
+    // Not to the member who already holds it.
+    expect(verbs).not.toContain('Assign to Me')
   })
 
   test("a crewmate's pilot names its holder and opens the same live sheet", async () => {
@@ -227,38 +238,38 @@ describe('what a row offers', () => {
     expect(row.getAttribute('href')).toBe('/sheet/pilot/a-theirs')
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // Nor is it takeable: somebody already holds it.
-    expect(screen.queryByRole('button', { name: /Unclaimed/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
   })
 
   test('a crewmate has no delete affordance on your screen', async () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     // Game rows carry no trash at all — leaving a character you hold is
-    // "Offer to the crew", and deleting the crawler is the table runner's;
+    // "Unassign", and deleting the crawler is the table runner's;
     // copying is Build's. Nothing here can destroy somebody else's build.
     expect(await verbsOf('Ash')).toEqual(['Open sheet'])
   })
 })
 
-describe('picking up what nobody holds', () => {
-  test('an unclaimed pre-gen carries an UNCLAIMED seal', async () => {
+describe('assigning yourself what nobody holds', () => {
+  test('an unassigned pre-gen carries an UNASSIGNED seal', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
 
-    // Unclaimed is a STATE, not a blank — and the mark announcing it is the
+    // Unassigned is a STATE, not a blank — and the mark announcing it is the
     // same control you press to take the character.
-    expect(screen.getByRole('button', { name: /Unclaimed/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
   })
 
-  test('pressing the seal asks before it claims', async () => {
+  test('pressing the seal asks before it assigns', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    fireEvent.click(screen.getByRole('button', { name: /Unclaimed/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Unassigned/i }))
 
     // Taking a character is a commitment at the table, so the seal opens a
-    // confirm that says what happens next rather than claiming on one click.
+    // confirm that says what happens next rather than assigning on one click.
     // The dialog carries its title twice — visible heading plus the sr-only
     // accessible label — so this counts rather than demanding a single match.
-    expect(screen.getAllByText(/Pick up Pre-gen\?/i).length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: 'Pick up' })).toBeTruthy()
+    expect(screen.getAllByText(/Assign Pre-gen to you\?/i).length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Assign to me' })).toBeTruthy()
   })
 })
 
@@ -344,7 +355,7 @@ describe('what the game will accept', () => {
     // It has no owner at all, so it carries no ownership seal — neither a
     // claim invitation nor a holder's name. "Who owns the crawler" is not a
     // question the game asks.
-    expect(screen.queryByRole('button', { name: /Unclaimed/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Unassigned/i })).toBeNull()
   })
 })
 
@@ -356,13 +367,13 @@ describe('yours first, then everyone else', () => {
     expect(screen.queryByText('Yours')).toBeNull()
     expect(screen.queryByText('Everyone else')).toBeNull()
     // Yours leads, whatever order the server listed them in; then the
-    // crewmate's and the unclaimed pre-gen, in the listing's order.
+    // crewmate's and the unassigned pre-gen, in the listing's order.
     const names = screen
       .getAllByRole('link', { name: /^(Roach-Boy|Ash|Pre-gen)$/ })
       .map((link) => link.getAttribute('aria-label'))
     expect(names).toEqual(['Roach-Boy', 'Ash', 'Pre-gen'])
     expect(screen.getByText('Mediator')).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Unclaimed/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
   })
 
   test("crawlers are nobody's — the primary leads", async () => {
@@ -429,17 +440,17 @@ async function confirmWith(label: string): Promise<void> {
 }
 
 describe('every verb that changes who has a build asks first', () => {
-  test('Offer to the crew says what you give up, and releases nothing until confirmed', async () => {
+  test('Unassign says what you give up, and unassigns nothing until confirmed', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = await press('Roach-Boy', 'Offer to the crew')
+    const dialog = await press('Roach-Boy', 'Unassign')
 
-    expect(dialog.textContent).toContain('Offer Roach-Boy to the crew?')
-    expect(dialog.textContent).toContain("You'll stop owning Roach-Boy")
+    expect(dialog.textContent).toContain('Unassign Roach-Boy?')
+    expect(dialog.textContent).toContain("You'll stop editing Roach-Boy")
     expect(mutations).toHaveLength(0)
 
-    await confirmWith('Offer to the crew')
+    await confirmWith('Unassign')
     expect(mutations).toEqual([
-      { name: 'ownership:release', args: { table: 'pilots', entityId: 's-mine' } },
+      { name: 'ownership:unassign', args: { table: 'pilots', entityId: 's-mine' } },
     ])
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
@@ -471,19 +482,36 @@ describe('every verb that changes who has a build asks first', () => {
     ])
   })
 
-  test('Pick up claims nothing until confirmed', async () => {
+  test('Assign to me assigns nothing until confirmed', async () => {
     await renderAs(ME, listing({ pilots: [PRE_GEN] }))
-    fireEvent.click(screen.getByRole('button', { name: /Unclaimed/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Unassigned/i }))
     expect(mutations).toHaveLength(0)
 
-    await confirmWith('Pick up')
+    await confirmWith('Assign to me')
     expect(mutations).toEqual([
-      { name: 'ownership:claim', args: { table: 'pilots', entityId: 's-free' } },
+      { name: 'ownership:assign', args: { table: 'pilots', entityId: 's-free' } },
+    ])
+  })
+
+  test('the Mediator reassigning names who edits it next, and assigns nothing until confirmed', async () => {
+    await renderAs({ ...ME, _id: 'u-med' }, listing({ pilots: [MY_PILOT] }))
+    const dialog = await press('Roach-Boy', 'Assign to me')
+
+    expect(dialog.textContent).toContain('Assign Roach-Boy to you?')
+    expect(dialog.textContent).toContain('instead of Me')
+    expect(mutations).toHaveLength(0)
+
+    await confirmWith('Assign to you')
+    expect(mutations).toEqual([
+      {
+        name: 'ownership:assign',
+        args: { table: 'pilots', entityId: 's-mine', userId: 'u-med' },
+      },
     ])
   })
 
   test.each([
-    ['Offer to the crew', MY_PILOT],
+    ['Unassign', MY_PILOT],
     ['Delete…', MY_PILOT],
   ] as const)('Cancel on %s leaves everything as it was', async (verb, pilot) => {
     await renderAs(ME, listing({ pilots: [pilot] }))
@@ -507,10 +535,10 @@ describe('every verb that changes who has a build asks first', () => {
 
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    await press('Roach-Boy', 'Offer to the crew')
+    await press('Roach-Boy', 'Unassign')
     mutationError = new ConvexError('A build in your Training Bay is already yours')
 
-    await confirmWith('Offer to the crew')
+    await confirmWith('Unassign')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(screen.getByRole('alert').textContent).toBe(
       'A build in your Training Bay is already yours'

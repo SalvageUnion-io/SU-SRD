@@ -78,6 +78,7 @@ import {
   resolveCrawlerSystem,
 } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
@@ -256,11 +257,11 @@ export function CrawlerSheet({
   const armamentContents =
     crawler.systems.length === 0 ? (
       readOnly ? undefined : (
-        <EmptyState variant="quiet" body="No weapons mounted." />
+        <EmptyState variant="quiet" body={buildSheetCopy('noWeaponsMounted')} />
       )
     ) : (
       // Header-only Minis across the bay, each Peeking its whole card.
-      <MiniGrid label="Weapons mounted">
+      <MiniGrid label={buildSheetCopy('weaponsMounted')}>
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
@@ -291,11 +292,11 @@ export function CrawlerSheet({
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
-        <SlabSection title="Scrap Pool" size="mini" bodyStyle={POOL_ROW}>
+        <SlabSection title={buildSheetCopy('scrapPool')} size="mini" bodyStyle={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat
               key={t}
-              label={`T${t}`}
+              label={buildSheetCopy('t', { t })}
               value={scrapPoolBucket(pool, t)}
               min={0}
               mode={readOnly ? 'read' : 'edit'}
@@ -367,7 +368,7 @@ export function CrawlerSheet({
 
   return (
     <section
-      aria-label={`${crawler.name} crawler sheet`}
+      aria-label={buildSheetCopy('crawlerSheet', { name: crawler.name })}
       // `.su-sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
@@ -379,7 +380,7 @@ export function CrawlerSheet({
           weapons inside their bay) → Assigned Units, and the Storage Bay, what
           the crawler carries, in the sidebar (ruleset §1.2). ===== */}
       <SheetColumns
-        asideLabel={`What ${crawler.name} carries`}
+        asideLabel={buildSheetCopy('whatCarries', { name: crawler.name })}
         hero={
           // ===== Identity Band (Workshop-Manual crawler sheet top region) =====
           // Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
@@ -431,7 +432,9 @@ export function CrawlerSheet({
                     </div>
                   ))
                 : storageContents && (
-                    <SlabSection title="Storage Bay">{storageContents}</SlabSection>
+                    <SlabSection title={buildSheetCopy('storageBay')}>
+                      {storageContents}
+                    </SlabSection>
                   )}
               {linkedUnits}
             </>
@@ -443,23 +446,23 @@ export function CrawlerSheet({
         {bays.length > storageBays.length && (
           <SlabSection
             fold="open"
-            title="Bays"
-            count={{ label: 'Intact', value: intactBays, max: bays.length }}
+            title={buildSheetCopy('bays')}
+            count={{ label: buildSheetCopy('intact'), value: intactBays, max: bays.length }}
             actions={
               crewHref === undefined ? undefined : (
                 <Button
                   href={crewHref}
                   size="compact"
-                  aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
+                  aria-label={buildSheetCopy('crewDesignAndAssignCrawler', { name: crawler.name })}
                 >
-                  Crew…
+                  {buildSheetCopy('crew')}
                 </Button>
               )
             }
           >
             {/* Each bay a contentful Mini and what belongs to it, in one
                 subtle border (`MiniGroup`), a cell of the masonry grid. */}
-            <MiniGrid label="Bays">
+            <MiniGrid label={buildSheetCopy('bays')}>
               {bays.map((entry, i) =>
                 bayKind(entry) === 'storage' ? null : (
                   // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet

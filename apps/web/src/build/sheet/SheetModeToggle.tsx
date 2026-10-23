@@ -6,6 +6,7 @@
  */
 
 import { Segmented, SegmentedOption } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { SheetMode } from './sheetMode.model'
 
 /**
@@ -14,12 +15,12 @@ import type { SheetMode } from './sheetMode.model'
  */
 export function SheetModeToggle({ mode, kind }: { mode: SheetMode; kind: string }) {
   return (
-    <Segmented label={`Read or edit this ${kind}`} size="compact">
+    <Segmented label={buildSheetCopy('readOrEditThis', { kind })} size="compact">
       <SegmentedOption pressed={!mode.editing} onClick={() => mode.setEditing(false)}>
-        Read
+        {buildSheetCopy('read')}
       </SegmentedOption>
       <SegmentedOption pressed={mode.editing} onClick={() => mode.setEditing(true)}>
-        Edit
+        {buildSheetCopy('edit')}
       </SegmentedOption>
     </Segmented>
   )

@@ -14,16 +14,17 @@ import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { Box, SkeletonFrame, tokens } from '../../components/index'
+import { buildSharingCopy } from '../../messages/build-sharing'
 
 type LinkQrProps = {
   /** Absolute URL to encode. */
   url: string
 }
 
-/** The 84px square the tile fills, shared by the placeholder and the code. */
+/** The 128px square the tile fills, shared by the placeholder and the code. */
 const TILE = {
-  height: '84px',
-  width: '84px',
+  height: '128px',
+  width: '128px',
   flexShrink: 0,
 } satisfies CSSProperties
 
@@ -53,7 +54,7 @@ export function LinkQr({ url }: LinkQrProps) {
 
   if (svg === null) {
     return (
-      <SkeletonFrame label="the QR code" style={TILE}>
+      <SkeletonFrame label={buildSharingCopy('theQrCode')} style={TILE}>
         <Box fill body="flush" bodyStyle={CODE_BODY} className="su-sheet-qr-tile">
           <div style={CODE} />
         </Box>
@@ -66,7 +67,7 @@ export function LinkQr({ url }: LinkQrProps) {
       <Box fill body="flush" bodyStyle={CODE_BODY} className="su-sheet-qr-tile">
         <div
           role="img"
-          aria-label="QR code linking to this sheet"
+          aria-label={buildSharingCopy('qrCodeLinkingToThis')}
           data-testid="share-qr"
           className="su-sheet-qr"
           style={CODE}

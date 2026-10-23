@@ -11,6 +11,7 @@ import { Button, FieldError, Stack, toast, tokens } from '../../components/index
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
+import { buildExportCopy } from '../../messages/build-export'
 import { useEntityStore } from '../../stores/entityStore'
 
 /** The 44px touch target. */
@@ -40,14 +41,14 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
 
   async function handleExport() {
     const result = await exportOne.run()
-    if (result.ok) toast.success(`Exported ${name}.`)
+    if (result.ok) toast.success(buildExportCopy('exported', { name }))
     else toast.error(result.error)
   }
 
   return (
     <Stack gap={4}>
       <Button size="compact" disabled={busy} onClick={() => void handleExport()} style={BUTTON}>
-        {busy ? 'Exporting…' : 'Export'}
+        {busy ? buildExportCopy('exporting') : buildExportCopy('export')}
       </Button>
       <FieldError>{error}</FieldError>
     </Stack>

@@ -12,7 +12,7 @@
  *   pattern's page (with and without the trailing slash, since a hand-typed
  *   link may have either, and under both the legacy `/schema/…/item/` grammar
  *   and the current one), and the item's `.json` to its host's, which carries
- *   the pattern. Its `.og.png` unfurl image 301s to the pattern's, under
+ *   the pattern, under `/schema/` and `/api/v1/` alike. Its `.og.png` unfurl image 301s to the pattern's, under
  *   both grammars too.
  *
  * The bulk move of every page out of `/schema/…/item/` is NOT here: that is one
@@ -24,6 +24,7 @@
 
 import { formerSlugsIn } from 'salvageunion-reference'
 import type { EndpointModule } from '../../../ssg/types'
+import { apiV1ItemPath } from '../../lib/apiV1Paths'
 import { itemHref } from '../../lib/entityHref'
 import { getEntitySchemas, getReferenceEntityData } from '../../lib/gameData'
 import { ogImagePath } from '../../lib/ogCard'
@@ -52,10 +53,12 @@ export function redirectRules(): Array<{ from: string; to: string }> {
       ]) {
         rules.push({ from: oldImage, to: patternImage })
       }
-      rules.push({
-        from: itemJsonPath(schema.id, slug),
-        to: itemJsonPath(schema.id, getReferenceEntityData(host).slug),
-      })
+      // The item's data, under the unversioned grammar and under v1.
+      const hostSlug = getReferenceEntityData(host).slug
+      rules.push(
+        { from: itemJsonPath(schema.id, slug), to: itemJsonPath(schema.id, hostSlug) },
+        { from: apiV1ItemPath(schema.id, slug), to: apiV1ItemPath(schema.id, hostSlug) }
+      )
     }
   }
   return rules

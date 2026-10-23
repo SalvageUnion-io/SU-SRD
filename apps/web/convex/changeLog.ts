@@ -5,7 +5,7 @@ import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
-import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
+import { membershipOrNull, NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
 import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } from './schema'
 
 /**
@@ -153,7 +153,7 @@ export const rolls = query({
     })
   ),
   handler: async (ctx, args) => {
-    await requireMember(ctx, args.gameId)
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
     const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 30) : 30
     const limit = Math.min(Math.max(requested, 0), MAX_ROLLS)
     const rows = await ctx.db

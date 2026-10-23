@@ -1,6 +1,7 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10): "Opposition", a Slab with + Add, then each NPC,
+ * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
+ * running (`RUNNING | its name`, End; ADR-059), then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1),
  * then the chosen one's actions (`PlayNpcActions`).
  *
@@ -10,15 +11,26 @@
  * own; until one is chosen it is the first still standing.
  */
 
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
 import type { rollForTable } from '../../components/index'
-import { Button, EmptyState, Slab } from '../../components/index'
+import { Button, EmptyState, Slab, Stat, tokens } from '../../components/index'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayNpc } from './opposition.model'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
+import { RunEncounterDialog } from './RunEncounterDialog'
 import type { PlayMediator } from './usePlayMediator'
+
+/** The encounter running: its chip, then End, on one line. */
+const RUNNING = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
 
 type PlayMediatorOppositionProps = {
   mediator: PlayMediator
@@ -27,9 +39,10 @@ type PlayMediatorOppositionProps = {
 }
 
 export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOppositionProps) {
-  const { npcs, tray, canWrite, onFailure } = mediator
+  const { npcs, tray, prep, canWrite, onFailure } = mediator
   const [chosenId, setChosenId] = useState<string | null>(null)
   const [picking, setPicking] = useState(false)
+  const [running, setRunning] = useState(false)
   const [removing, setRemoving] = useState<TrayNpc | null>(null)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
   const chosen =
@@ -40,28 +53,49 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
     <>
       <Slab
         as="h2"
-        label="Opposition"
+        label={mediatorCopy('opposition')}
         actions={
-          <Button
-            variant="default"
-            size="mini"
-            disabled={!canWrite}
-            aria-label="Add opposition from the reference"
-            onClick={() => setPicking(true)}
-          >
-            + Add
-          </Button>
+          <>
+            <Button
+              variant="default"
+              size="mini"
+              disabled={!canWrite}
+              onClick={() => setRunning(true)}
+            >
+              {mediatorCopy('runAnEncounter')}
+            </Button>
+            <Button
+              variant="default"
+              size="mini"
+              disabled={!canWrite}
+              aria-label={mediatorCopy('addOppositionFromTheReference')}
+              onClick={() => setPicking(true)}
+            >
+              {mediatorCopy('add')}
+            </Button>
+          </>
         }
       />
+      {prep.running !== null && (
+        <div style={RUNNING} role="status">
+          <Stat label={mediatorCopy('running')} value={prep.running.name} size="compact" />
+          <Button
+            variant="ghost"
+            size="mini"
+            disabled={!canWrite}
+            aria-label={mediatorCopy('endEncounter', { name: prep.running.name })}
+            onClick={() => fail(prep.end())}
+          >
+            {mediatorCopy('end')}
+          </Button>
+        </div>
+      )}
       {npcs === null ? (
-        <EmptyState variant="inline" body="The tray is on its way." />
+        <EmptyState variant="inline" body={mediatorCopy('theTrayIsOnIts')} />
       ) : npcs.length === 0 ? (
-        <EmptyState
-          variant="inline"
-          body="No opposition yet. Add NPCs, Mechs, Squads and Creatures from the reference; players never see them."
-        />
+        <EmptyState variant="inline" body={mediatorCopy('noOppositionYetAddNpcs')} />
       ) : (
-        <ul className="su-play-npcs" aria-label="Opposition">
+        <ul className="su-play-npcs" aria-label={mediatorCopy('opposition')}>
           {npcs.map((npc) => (
             <PlayNpcBox
               key={npc.id}
@@ -88,7 +122,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
       <SheetPickerModal
         open={picking}
         onClose={() => setPicking(false)}
-        title="Add opposition from the reference"
+        title={mediatorCopy('addOppositionFromTheReference')}
         floating
       >
         <OppositionPicker
@@ -97,6 +131,20 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
           onAdd={(schema, entity, draw) => fail(tray.add(schema, entity, draw))}
         />
       </SheetPickerModal>
+      <RunEncounterDialog
+        open={running}
+        onClose={() => setRunning(false)}
+        encounters={prep.encounters}
+        onTray={npcs?.length ?? 0}
+        onRun={async (encounterId, clear) => {
+          try {
+            return await prep.run(encounterId, clear)
+          } catch (err) {
+            onFailure(err)
+            throw err
+          }
+        }}
+      />
       <OppositionDialogs
         removing={removing}
         renaming={renaming}

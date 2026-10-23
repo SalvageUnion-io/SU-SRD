@@ -1,12 +1,11 @@
 /**
  * Copy lint for game terms — the `copy` rule set of `tools/check-rule-sets.ts`.
  *
- * The book capitalises its game nouns: the Core Book writes "Mech" 968 times
- * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the app's copy found it
- * lower case about half the time ("mech" 91, "Mech" 77), "TL" where the book
- * says "Tech N" or "Tech Level", "Heat Cap" in prose where the book says "Heat
- * Capacity", and the product named three ways. None of that fails typecheck,
- * lint or a test, so nothing held it.
+ * The book capitalises its game nouns: the Core Book writes "Mech" 968 times and "mech" 15,
+ * "Pilot" 452 and "pilot" 16. An audit of the app's copy found it lower case about half the time
+ * ("mech" 91, "Mech" 77), "TL" where the book says "Tech N" or "Tech Level", "Heat Cap" in prose
+ * where the book says "Heat Capacity", and the product named three ways. None of that fails
+ * typecheck, lint or a test, so nothing held it.
  *
  * ## The corpus: what counts as copy
  *
@@ -14,15 +13,14 @@
  * with oxc, contributes:
  *
  *   - every JSX text node;
- *   - every string literal and template-literal chunk that reads as prose (two
- *     words separated by whitespace), outside an import, the calls whose
- *     arguments are not copy (`isSkippedCall`: a `bookQuote(…)`, the book's
- *     own words held to the book by the rules-fidelity lock; a `console.*`
- *     line; a zod `.describe(…)`) and the JSX attributes that carry markup
- *     rather than words (`NON_COPY_ATTRS`).
+ *   - every string literal and template-literal chunk that reads as prose (two words separated
+ *     by whitespace), outside an import, the calls whose arguments are not copy (`isSkippedCall`:
+ *     a `bookQuote(…)`, the book's own words held to the book by the rules-fidelity lock; a
+ *     `console.*` line; a zod `.describe(…)`) and the JSX attributes that carry markup rather
+ *     than words (`NON_COPY_ATTRS`).
  *
- * A one-word string literal is an identifier far more often than copy
- * (`schema === 'mech'`), so it is not read; a one-word JSX text node is copy.
+ * A one-word string literal is an identifier far more often than copy (`schema === 'mech'`): not
+ * read; a one-word JSX text node is. A catalogue message (ADR-054) is read without its `{name}`s.
  *
  * ## The rules
  *
@@ -49,6 +47,7 @@ import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 import { loneSignFindings } from './loneSign'
+import { CATALOGUE_DIR as CATALOGUE } from './uiStrings'
 
 // ── the corpus ───────────────────────────────────────────────────────────────
 
@@ -129,6 +128,7 @@ function attrName(n: Node): string | undefined {
 export function extractCopy(file: string, source: string): CopyString[] {
   const lineOf = lineIndex(source)
   const out: CopyString[] = []
+  const words = (s: string) => (file.startsWith(`${CATALOGUE}/`) ? s.replace(/\{\w+\}/g, '') : s)
   const push = (text: string, start: unknown) => {
     const trimmed = text.replace(/\s+/g, ' ').trim()
     if (trimmed) out.push({ file, line: lineOf(Number(start)), text: trimmed })
@@ -161,7 +161,7 @@ export function extractCopy(file: string, source: string): CopyString[] {
         if (typeof v.value === 'string' && /[A-Za-z]/.test(v.value)) push(v.value, v.start)
         return
       case 'Literal':
-        if (typeof v.value === 'string' && PROSE.test(v.value)) push(v.value, v.start)
+        if (typeof v.value === 'string' && PROSE.test(words(v.value))) push(words(v.value), v.start)
         return
       case 'TemplateElement': {
         const cooked = (v.value as { cooked?: unknown } | undefined)?.cooked
@@ -329,8 +329,8 @@ export const BANNED: readonly Banned[] = [
     pattern: /(?<!Salvage Union\s)(?<![\w(-])SRD(?![\w)-])/g,
     say: 'Reference',
     why: 'the tool is "Reference" in the header switch; one name per area (hard rule R16)',
-    // The drawer's brand stamp pairs a bare "SRD" with "Salvage Union".
-    allowWhole: /^SRD$/,
+    // The drawer's brand stamp; the Homebrew switch, in the owner's words (ADR-061).
+    allowWhole: /^(?:SRD|Share with the SRD)$/,
   },
   {
     // Hard rule R5: a linked unit is its relation chip, `MECH | Mazona`.

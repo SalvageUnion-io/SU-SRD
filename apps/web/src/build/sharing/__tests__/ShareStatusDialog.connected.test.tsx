@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
  * ShareStatusDialog when Connected: one "Who can see it" control for every
- * kind a player shares — Only me, My Game's crew, Anyone with the link — and,
+ * kind a player shares — Only me, My Game's crew, Public — and,
  * while it is shared by link, the `/p/:kind/:appId` link, a copy button and a
  * QR of it (ADR-032, ADR-036). No snapshot control survives anywhere in it.
  *
@@ -86,7 +86,7 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
 
     expect(screen.getByRole('group', { name: /who can see it/i })).toBeTruthy()
     expect(radio(/only me/i).checked).toBe(true)
-    expect(radio(/anyone with the link/i).checked).toBe(false)
+    expect(radio(/^public/i).checked).toBe(false)
     // On the shelf there is no crew to share with: shown, disabled, explained.
     expect(radio(/my game’s crew/i).disabled).toBe(true)
     expect(screen.getByText(/move it into a game/i)).toBeTruthy()
@@ -96,14 +96,14 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
     expect(screen.queryByTestId('share-qr')).toBeNull()
   })
 
-  test('Anyone with the link sets publicRead on exactly this entity', async () => {
+  test('Public sets publicRead on exactly this entity', async () => {
     setQueryAnswers({ 'publicSheet:get': null })
     await act(async () => {
       renderDialog()
     })
 
     await act(async () => {
-      fireEvent.click(radio(/anyone with the link/i))
+      fireEvent.click(radio(/^public/i))
     })
 
     expect(mutations).toEqual([{ kind: 'pilot', appId: 'pilot-1', isPublic: true }])
@@ -134,7 +134,7 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
     })
 
     const url = `${pageOrigin()}${APP_BASE}/p/pilot/pilot-1`
-    expect(radio(/anyone with the link/i).checked).toBe(true)
+    expect(radio(/^public/i).checked).toBe(true)
     expect(screen.getByText(url)).toBeTruthy()
 
     await act(async () => {
@@ -196,7 +196,7 @@ describe('ShareStatusDialog — a built NPC', () => {
       renderDialog({ kind: 'npc', id: 'npc-1' })
     })
 
-    expect(radio(/anyone with the link/i).checked).toBe(true)
+    expect(radio(/^public/i).checked).toBe(true)
     expect(screen.getByText(`${pageOrigin()}${APP_BASE}/p/npc/npc-1`)).toBeTruthy()
 
     await act(async () => {
@@ -231,7 +231,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
       fireEvent.click(radio(/my game’s crew/i))
     })
     await act(async () => {
-      fireEvent.click(radio(/anyone with the link/i))
+      fireEvent.click(radio(/^public/i))
     })
 
     expect(mutations).toEqual([
@@ -251,10 +251,44 @@ describe('ShareStatusDialog — a mech pattern', () => {
       renderDialog({ kind: 'pattern', id: 'pattern-1' })
     })
 
-    expect(radio(/anyone with the link/i).checked).toBe(true)
+    expect(radio(/^public/i).checked).toBe(true)
     // No Game to share with: the crew answer is shown, disabled, explained.
     expect(radio(/my game’s crew/i).disabled).toBe(true)
     expect(screen.getByText(`${pageOrigin()}${APP_BASE}/p/pattern/pattern-1`)).toBeTruthy()
+  })
+
+  test('shared by link, it may also be shared on the Reference; otherwise that is not offered', async () => {
+    const share = (homebrew: boolean, visibility = 'link') => ({
+      'shelf:patternSharing': [
+        { appId: 'pattern-1', visibility, gameId: null, gameName: null, builtCount: 0, homebrew },
+      ],
+      'games:listMine': [],
+    })
+    const onReference = () => screen.queryByRole('switch', { name: 'Share with the SRD' })
+
+    setQueryAnswers(share(false, 'private'))
+    const { unmount } = renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    expect(onReference()).toBeNull()
+    unmount()
+
+    setQueryAnswers(share(false))
+    const second = renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    expect(onReference()?.getAttribute('aria-checked')).toBe('false')
+    await act(async () => {
+      fireEvent.click(onReference() as HTMLElement)
+    })
+    second.unmount()
+
+    setQueryAnswers(share(true))
+    renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    expect(onReference()?.getAttribute('aria-checked')).toBe('true')
+    await act(async () => {
+      fireEvent.click(onReference() as HTMLElement)
+    })
+    expect(mutations).toEqual([
+      { patternId: 'pattern-1', shared: true },
+      { patternId: 'pattern-1', shared: false },
+    ])
   })
 })
 

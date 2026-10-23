@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from 'bun:test'
+import { referenceCopy } from '../../messages/reference'
 import type { SharePageDeps } from '../sharePage'
 import { SHARE_PAGE_ATTRIBUTE, sharePageUrl, watchSharePage } from '../sharePage'
 
@@ -6,7 +7,7 @@ import { SHARE_PAGE_ATTRIBUTE, sharePageUrl, watchSharePage } from '../sharePage
 function page(deps: SharePageDeps) {
   const doc = document.implementation.createHTMLDocument()
   doc.title = 'Mule // Salvage Union'
-  doc.body.innerHTML = `<button ${SHARE_PAGE_ATTRIBUTE}><span>Share</span></button><span role="status"></span>`
+  doc.body.innerHTML = `<button ${SHARE_PAGE_ATTRIBUTE} data-share-failed="${referenceCopy('shareFailed')}" data-copy-failed="${referenceCopy('copyLinkFailed')}"><span>Share</span></button><span role="status"></span>`
   watchSharePage(doc, () => deps)
   const button = doc.querySelector('button') as HTMLButtonElement
   const status = doc.querySelector('[role="status"]') as HTMLElement

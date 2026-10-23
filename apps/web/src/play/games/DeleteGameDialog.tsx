@@ -13,7 +13,7 @@
  *
  * A generic "this is permanent" would be both frightening and wrong. Deleting a
  * Game destroys the *table* and nothing anybody built: pilots and mechs fall
- * back to their owners' shelves, and the crawler plus anything unclaimed comes
+ * back to their owners' shelves, and the crawler plus anything unassigned comes
  * to the shelves of whoever is doing the deleting. The dialog names those
  * outcomes with the actual counts in front of the reader, because "4 pilots"
  * and "2 mechs" is what makes the sentence checkable against the row they just
@@ -36,6 +36,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { ConfirmDialog, Stack, Text } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { playGamesCopy } from '../../messages/play-games'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {
@@ -101,10 +102,10 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       onOpenChange={(next) => {
         if (!next) onClose()
       }}
-      title={`Delete ${game?.name ?? ''}?`}
+      title={playGamesCopy('delete', { value: game?.name ?? '' })}
       tone="danger"
-      confirmLabel="Delete Game"
-      pendingLabel="Deleting…"
+      confirmLabel={playGamesCopy('deleteGame')}
+      pendingLabel={playGamesCopy('deleting')}
       onConfirm={handleConfirm}
       // A refusal carries wording the server chose for the player —
       // `NotAuthorized` extends `ConvexError` precisely so it survives the wire
@@ -116,13 +117,11 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       describeError={(err) => failureMessage(err, 'That Game could not be deleted. Try again.')}
       body={
         <>
-          <Text>
-            This ends the table for all {game?.memberCount ?? 0} of you. It cannot be undone.
-          </Text>
+          <Text>{playGamesCopy('thisEndsTheTableFor', { value: game?.memberCount ?? 0 })}</Text>
 
           <Stack gap={8}>
             <Text variant="hint" style={LEFT}>
-              Nothing anybody built is destroyed:
+              {playGamesCopy('nothingAnybodyBuiltIsDestroyed')}
             </Text>
             <ul style={SURVIVOR_LIST}>
               {surviving.length > 0 && (
@@ -136,16 +135,18 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               <li>
                 <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? `Anything unclaimed comes to you, in your ${PRODUCT.build}.`
-                    : `${game.crawlerName} and anything unclaimed come to you, in your ${PRODUCT.build}.`}
+                    ? playGamesCopy('anythingUnassignedComesToYou', { build: PRODUCT.build })
+                    : playGamesCopy('andAnythingUnassignedComeTo', {
+                        crawlerName: game.crawlerName,
+                        build: PRODUCT.build,
+                      })}
                 </Text>
               </li>
             </ul>
           </Stack>
 
           <Text variant="hint" style={LEFT}>
-            The crew, its invite link, the opposition tray and the assignments between everyone's
-            builds go with the Game.
+            {playGamesCopy('theCrewItsInviteLink')}
           </Text>
         </>
       }

@@ -171,7 +171,7 @@ describe('crawler sheet', () => {
   test('is communal, so it never claims an owner', () => {
     const card = sheet('crawlers', { name: 'The Ossuary' }, { ownerName: null })
     expect(cardText(card)).toContain('Communal')
-    expect(cardText(card)).not.toContain('Unclaimed')
+    expect(cardText(card)).not.toContain('Unassigned')
   })
 
   test('links to the live crawler sheet by its row id', () => {

@@ -6,6 +6,7 @@
  * Pure apart from the reference lookups.
  */
 
+import { instanceName } from 'game-domain/games/encounters'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'game-domain/schemas/encounterNpc'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
@@ -149,15 +150,6 @@ export function patternSlugOf(pattern: { name: string }): string {
 
 function patternBySlug(entity: RefEntity, slug: string): RefObjectAnyPattern | null {
   return patternsOf(entity).find((p) => patternSlugOf(p) === slug) ?? null
-}
-
-/** "Raider Band", or "Raider Band 2" when the tray already has one. */
-export function instanceName(refName: string, taken: readonly string[]): string {
-  const names = new Set(taken)
-  if (!names.has(refName)) return refName
-  let n = 2
-  while (names.has(`${refName} ${n}`)) n += 1
-  return `${refName} ${n}`
 }
 
 /** The slug a reference entity is stored by (data conventions: slugs, never ids). */

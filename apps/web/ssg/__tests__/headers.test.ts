@@ -131,3 +131,20 @@ describe('pages', () => {
     }
   )
 })
+
+describe('the Dataset API', () => {
+  test.each([
+    '/schema/chassis.json',
+    '/schema/chassis/item/mule.json',
+    '/api/v1/index.json',
+    '/api/v1/chassis.json',
+    '/api/v1/chassis.schema.json',
+    '/api/v1/chassis/mule.json',
+  ])('%s is short-lived, CORS-open JSON, headed once', (path) => {
+    expect(cacheControlsFor(path)).toEqual(['public, max-age=3600, stale-while-revalidate=86400'])
+    const cors = RULES.filter((rule) => rule.matcher.test(path)).map((rule) =>
+      rule.headers.get('access-control-allow-origin')
+    )
+    expect(cors.filter((value) => value !== undefined)).toEqual(['*'])
+  })
+})

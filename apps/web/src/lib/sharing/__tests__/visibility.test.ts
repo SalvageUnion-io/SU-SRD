@@ -12,7 +12,7 @@ const open = (choices: { value: string; disabled: boolean }[]) =>
 
 describe('the same three answers for every kind', () => {
   test('a sheet (pilot, mech, crawler, NPC) and a pattern ask in the same words', () => {
-    const words = ['Only me', 'My Game’s crew', 'Anyone with the link']
+    const words = ['Only me', 'My Game’s crew', 'Public']
     expect(labels(sheetChoices({ inGame: false, gameName: null }))).toEqual(words)
     expect(labels(patternChoices({ gameName: 'Dustbowl Run' }))).toEqual(words)
   })

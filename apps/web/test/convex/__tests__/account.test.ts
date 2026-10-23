@@ -154,15 +154,15 @@ describe('deleteAccount — the campaign survives', () => {
       async (ctx) =>
         await ctx.db.insert('crawlers', { gameId, ownerId: null, body: {}, updatedAt: 1 })
     )
-    const unclaimed = await seedRawPilot(t, gameId, null)
+    const unassigned = await seedRawPilot(t, gameId, null)
 
     await solo.as.mutation(api.account.deleteAccount, {})
 
     // An empty Game is not a campaign anybody can come back to, and its
-    // unclaimed entities have no shelf to fall back to.
+    // unassigned entities have no shelf to fall back to.
     expect(await t.run(async (ctx) => await ctx.db.get(gameId))).toBeNull()
     expect(await t.run(async (ctx) => await ctx.db.get(crawlerId))).toBeNull()
-    expect(await t.run(async (ctx) => await ctx.db.get(unclaimed))).toBeNull()
+    expect(await t.run(async (ctx) => await ctx.db.get(unassigned))).toBeNull()
   })
 
   test('the user row and its auth rows are gone', async () => {

@@ -14,6 +14,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { AssignedUnits } from './AssignedUnits'
 import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
@@ -54,8 +55,8 @@ export function PilotLiveSheet({
   const ap = resolvePool(pilot.currentAP, maxAP)
 
   const strip: LiveSheetStripItem[] = [
-    { key: 'hp', label: 'HP', value: hp, max: maxHP },
-    { key: 'ap', label: 'AP', value: ap, max: maxAP },
+    { key: 'hp', label: buildSheetCopy('hp'), value: hp, max: maxHP },
+    { key: 'ap', label: buildSheetCopy('ap'), value: ap, max: maxAP },
   ]
 
   // Assigned units: the mech it flies and the crawler it crews; an empty
@@ -78,7 +79,7 @@ export function PilotLiveSheet({
     extra: {
       crawler: (
         <Stat
-          label="Mock Crawler Level"
+          label={buildSheetCopy('mockCrawlerLevel')}
           value={pilot.crawlerLevel ?? 1}
           max={6}
           mode="edit"
@@ -106,7 +107,7 @@ export function PilotLiveSheet({
         isPilotDead(statInput)
           ? {
               stamp: 'Killed in Action',
-              note: 'Injuries have reduced this Pilot’s maximum HP to 0. Remove an injury if this was a bookkeeping error.',
+              note: buildSheetCopy('injuriesHaveReducedThisPilots'),
             }
           : undefined
       }

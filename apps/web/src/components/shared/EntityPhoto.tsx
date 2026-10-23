@@ -22,6 +22,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
 import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
+import { sharedCopy } from '../../messages/components-shared'
 import { assetSrcSetFor, Button, EmptyState, tokens } from '../index'
 
 /** Default art from the artwork CDN, which serves `-440q80`/`-880q80` derivatives. */
@@ -136,7 +137,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
     <figure style={FIGURE} className="su-entity-photo">
       {src === undefined ? (
         <div style={{ ...EMPTY, ...frame }}>
-          <EmptyState variant="inline" body="No picture yet." bodyInk="inherit" />
+          <EmptyState variant="inline" body={sharedCopy('noPictureYet')} bodyInk="inherit" />
         </div>
       ) : (
         <div style={{ ...FRAME, ...frame }}>
@@ -162,17 +163,21 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
             style={CONTROL}
           >
             {/* The labels name the act; the picture above says what of. */}
-            {upload.pending ? 'Uploading…' : photo ? 'Replace' : 'Upload photo'}
+            {upload.pending
+              ? sharedCopy('uploading')
+              : photo
+                ? sharedCopy('replace')
+                : sharedCopy('uploadPhoto')}
           </Button>
           {photo && (
             <Button
               size="compact"
               disabled={busy}
               onClick={() => void removal.run()}
-              aria-label={`Remove ${name}'s photo`}
+              aria-label={sharedCopy('removeSPhoto', { name })}
               style={CONTROL}
             >
-              {removal.pending ? 'Removing…' : 'Remove'}
+              {removal.pending ? sharedCopy('removing') : sharedCopy('remove')}
             </Button>
           )}
           <input

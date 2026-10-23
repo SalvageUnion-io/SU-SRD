@@ -28,6 +28,7 @@ import { SearchIsland } from '../components/islands/SearchIsland'
 import { UnionBar } from '../components/unionBar/UnionBar'
 import { SIGN_IN_HREF } from '../lib/accountBar'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
+import { referenceCopy } from '../messages/reference'
 import { Island } from '../runtime/Island'
 
 /**
@@ -43,7 +44,7 @@ function WikiLink() {
       hidden
       {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
     >
-      WIKI
+      {referenceCopy('wiki')}
     </a>
   )
 }
@@ -64,7 +65,7 @@ function SignInLink() {
         FOCUS_RING
       )}
     >
-      Sign in with Discord
+      {referenceCopy('signInWithDiscord')}
     </a>
   )
 }

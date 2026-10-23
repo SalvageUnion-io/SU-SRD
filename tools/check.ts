@@ -146,6 +146,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'canon',
+    guards:
+      'every law in docs/design-system (ruleset §, K, E, N, C, R) names the gate or test that holds it, and each named gate exists',
+    fix: "name the law's gate in CANON (packages/gates/lib/canon.ts), or cut the law; `bun tools/check-canon.ts --list` prints the map",
+    cmd: ['bun', 'tools/check-canon.ts'],
+    areas: REPO_INVARIANT,
+    profiles: ALL,
+  },
+  {
     id: 'observability',
     guards:
       'browser errors reach Workers Issues: reporters started and routed, CSP, and its Web Analytics origins',

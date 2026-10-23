@@ -6,6 +6,7 @@ import { Entity, Field, navigateControl, ReferenceEntityCard, tokens } from '../
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
+import { crawlerCopy } from '../../messages/build-crawler'
 import '../../styles/build/wizard.css'
 
 /** The step's column, capped at 48rem. */
@@ -101,10 +102,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
 
   return (
     <div className="su-wiz-stack su-wiz-stack--12" style={COLUMN}>
-      <p style={LEDE}>
-        Each crewed Bay is run by its own lead, and your Crawler type brings a special NPC. Open one
-        to name and detail them now, or leave them blank and fill them in during play.
-      </p>
+      <p style={LEDE}>{crawlerCopy('eachCrewedBayIsRun')}</p>
 
       {sources.map((source) => {
         const value = crew[source.ref] ?? {}
@@ -132,34 +130,34 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
             {isOpen && (
               <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
                 <Field
-                  label="Name"
+                  label={crawlerCopy('name')}
                   value={value.name ?? ''}
                   onSave={(next) => updateNpc(source.ref, { name: next })}
-                  placeholder="Name this crew lead"
+                  placeholder={crawlerCopy('nameThisCrewLead')}
                   ariaLabel={`${source.npc.position ?? 'crew'} name`}
                 />
                 <Field
-                  label="Background"
+                  label={crawlerCopy('background')}
                   value={value.description ?? ''}
                   onSave={(next) => updateNpc(source.ref, { description: next })}
-                  placeholder="Appearance and personality"
+                  placeholder={crawlerCopy('appearanceAndPersonality')}
                   ariaLabel={`${source.npc.position ?? 'crew'} background`}
                 />
                 {showKeepsake && (
                   <Field
-                    label="Keepsake"
+                    label={crawlerCopy('keepsake')}
                     value={value.keepsake ?? ''}
                     onSave={(next) => updateNpc(source.ref, { keepsake: next })}
-                    placeholder="A personal item"
+                    placeholder={crawlerCopy('aPersonalItem')}
                     ariaLabel={`${source.npc.position ?? 'crew'} keepsake`}
                   />
                 )}
                 {showMotto && (
                   <Field
-                    label="Motto"
+                    label={crawlerCopy('motto')}
                     value={value.motto ?? ''}
                     onSave={(next) => updateNpc(source.ref, { motto: next })}
-                    placeholder="A personal saying"
+                    placeholder={crawlerCopy('aPersonalSaying')}
                     ariaLabel={`${source.npc.position ?? 'crew'} motto`}
                   />
                 )}

@@ -39,8 +39,8 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
 
 - `selectBackend()` is `signedOut | remote | blocked`; check `canWrite` before
   offering an edit. A unit test that writes calls `withSignedInBackend()`.
-- **No device cache:** nothing player-owned in IndexedDB or `localStorage` but
-  `accountHint`.
+- **Device copy:** only `deviceCopy.ts` (ADR-058) and `accountHint` keep
+  player data on a device.
 - A container written twice (the row's `gameId` column and the body's) is
   written together; the column wins.
 - e2e durability specs need `VITE_TEST_AUTH` and `TEST_AUTH`, else they skip.

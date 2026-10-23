@@ -7,6 +7,7 @@ import { ChapterBand, PageShell } from '../../../components/index'
 import { color, font, fontSize } from '../../../design/tokens'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
+import { mechsCopy } from '../../../messages/routes-mechs'
 
 export const Route = createFileRoute('/mechs/patterns/')({
   head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Mech Patterns') }] }),
@@ -29,13 +30,11 @@ function MechPatternsPage() {
       measure={PAGE_MEASURE}
       band={
         <ChapterBand tone="mech" measure={PAGE_MEASURE}>
-          Mech Patterns
+          {mechsCopy('mechPatterns')}
         </ChapterBand>
       }
     >
-      <p style={LEDE}>
-        A pattern keeps a chassis and its loadout. A mech built from one starts fresh.
-      </p>
+      <p style={LEDE}>{mechsCopy('aPatternKeepsAChassis')}</p>
       <PatternList
         onInstantiated={() => {
           void navigate({ to: '/' })

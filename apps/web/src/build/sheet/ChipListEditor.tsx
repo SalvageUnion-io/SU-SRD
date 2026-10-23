@@ -23,6 +23,7 @@
  */
 
 import { Conditions, EmptyState, Input } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { CHIP_WELL } from './chipWell.model'
 import { useChipDraft } from './useChipDraft'
 
@@ -71,7 +72,7 @@ export function ChipListEditor({
   return (
     <div style={CHIP_WELL} data-chip-well="">
       {items.length === 0 && !draft.adding && (
-        <EmptyState variant="inline" body={`No ${noun}s yet.`} />
+        <EmptyState variant="inline" body={buildSheetCopy('noSYet', { noun })} />
       )}
 
       {/* Only rendered when it has chips or the '+ Add' affordance to show —
@@ -83,7 +84,7 @@ export function ChipListEditor({
           onRemove={readOnly ? undefined : (_item, index) => void removeAt(index)}
           removeLabel={(item) => `Remove ${subject} ${item}`}
           onAdd={readOnly || draft.adding ? undefined : draft.startAdd}
-          addLabel={`Add ${subject}`}
+          addLabel={buildSheetCopy('add', { subject })}
         />
       )}
 
@@ -91,7 +92,7 @@ export function ChipListEditor({
         <Input
           {...draft.inputProps}
           size="compact"
-          aria-label={`New ${subject}`}
+          aria-label={buildSheetCopy('new', { subject })}
           style={{ width: draftWidth }}
         />
       )}

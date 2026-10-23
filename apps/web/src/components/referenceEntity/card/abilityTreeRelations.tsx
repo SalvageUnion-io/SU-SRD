@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { EntityRef, RefAbility, RefClass, RefMetaEntity } from 'salvageunion-reference'
 import { getEntitySlug, isAbility, SalvageUnionReference } from 'salvageunion-reference'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
 import { Stat } from '../../atoms/Stat'
 import { relation, Tag } from '../../entity'
@@ -48,7 +49,7 @@ export function abilityTreeRelations(entity: RefMetaEntity): EntityRelation[] {
   const owner = treeOwner(tree)
   return [
     {
-      label: 'Tree',
+      label: referenceEntityCopy('tree'),
       value: tree,
       // The tree's chip opens its class, under the tree's name.
       ...(owner

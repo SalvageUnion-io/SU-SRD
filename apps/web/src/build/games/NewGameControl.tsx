@@ -37,6 +37,7 @@ import {
 import { useGo } from '../../components/shared/useGo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { buildGamesCopy } from '../../messages/build-games'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 
@@ -107,15 +108,15 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   }
 
   return (
-    <ModalShell open={open} onOpenChange={onOpenChange} title="New Game">
+    <ModalShell open={open} onOpenChange={onOpenChange} title={buildGamesCopy('newGame')}>
       <div style={BODY}>
-        <SlabSection as="h3" id="new-game-start" title="Start a Game">
+        <SlabSection as="h3" id="new-game-start" title={buildGamesCopy('startAGame')}>
           <div style={ROW}>
             <div style={GROW}>
-              <Field label="Name">
+              <Field label={buildGamesCopy('name')}>
                 <Input
-                  aria-label="New Game name"
-                  placeholder="Union Crawler #430"
+                  aria-label={buildGamesCopy('newGameName')}
+                  placeholder={buildGamesCopy('unionCrawler430')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -127,12 +128,17 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
               disabled={busy || name.trim().length === 0}
               onClick={() => void startGame({ name })}
             >
-              Create
+              {buildGamesCopy('create')}
             </Button>
           </div>
         </SlabSection>
 
-        <SlabSection as="h3" id="new-game-template" title="From a template" bodyStyle={STACK}>
+        <SlabSection
+          as="h3"
+          id="new-game-template"
+          title={buildGamesCopy('fromATemplate')}
+          bodyStyle={STACK}
+        >
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
             <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
@@ -147,7 +153,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
                   // `t.id`, not a hardcoded template id — see `templates.list`.
                   onClick={() => void startGame({ templateId: t.id })}
                 >
-                  Start this Game
+                  {buildGamesCopy('startThisGame')}
                 </Button>
               </div>
             </SlabSection>
@@ -155,7 +161,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
         </SlabSection>
 
         <Text variant="hint" style={HINT}>
-          Joining a friend’s Game? Open the invite link they sent you.
+          {buildGamesCopy('joiningAFriendsGameOpen')}
         </Text>
 
         <FieldError>{error}</FieldError>
@@ -170,7 +176,7 @@ function ConnectedNewGameControl() {
     <>
       {/* A make, so rust (ruleset §1.9). */}
       <Button variant="primary" size="mini" onClick={() => setOpen(true)}>
-        + New Game
+        {buildGamesCopy('newGame2')}
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />
     </>

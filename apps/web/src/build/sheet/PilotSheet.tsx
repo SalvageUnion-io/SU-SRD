@@ -72,6 +72,7 @@ import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { resolveClass } from '../../lib/classRef'
 import { classArt } from '../../lib/photos/defaultArt'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { ChipListEditor } from './ChipListEditor'
@@ -106,7 +107,7 @@ function TpBlock({
 }) {
   return (
     <Stat
-      label="Training Points"
+      label={buildSheetCopy('trainingPoints')}
       value={value}
       mode={editable ? 'edit' : 'read'}
       onChange={editable ? onChange : undefined}
@@ -195,7 +196,7 @@ export function PilotSheet({
 
   return (
     <section
-      aria-label={`${pilot.name} pilot details`}
+      aria-label={buildSheetCopy('pilotDetails', { name: pilot.name })}
       // `.su-sheet-section` is a print-stylesheet target (page-break rules);
       // `@container` scopes the poster region grid below to the SHEET's own
       // width, not the viewport.
@@ -206,7 +207,7 @@ export function PilotSheet({
           fields beside the vitals. HP, AP and TP are what a player reaches for
           mid-session, so on a phone they come straight after the identity. */}
       <SheetColumns
-        asideLabel={`What ${pilot.name} carries`}
+        asideLabel={buildSheetCopy('whatCarries', { name: pilot.name })}
         hero={
           <SheetHero
             name={pilot.name}
@@ -290,7 +291,7 @@ export function PilotSheet({
                   pilot.conditions.length > 0 && (
                     <div style={MIN_W_0}>
                       <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
-                        Conditions
+                        {buildSheetCopy('conditions')}
                       </Eyebrow>
                       <Conditions conditions={[...pilot.conditions]} />
                     </div>
@@ -298,7 +299,7 @@ export function PilotSheet({
                 ) : (
                   <div style={MIN_W_0}>
                     <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
-                      Conditions
+                      {buildSheetCopy('conditions')}
                     </Eyebrow>
                     <ChipListEditor
                       items={pilot.conditions}
@@ -335,9 +336,9 @@ export function PilotSheet({
             <>
               {!(readOnly && empty) && (
                 <SlabSection
-                  title="Inventory"
+                  title={buildSheetCopy('inventory')}
                   count={{
-                    label: 'Slots',
+                    label: buildSheetCopy('slots'),
                     value: model.slotsUsed,
                     max: model.slotsCap,
                     state: model.overCapacity ? 'critical' : undefined,
@@ -345,20 +346,20 @@ export function PilotSheet({
                   actions={
                     readOnly ? undefined : (
                       <Button size="compact" onClick={() => setPicker('equipment')}>
-                        Manage Equipment
+                        {buildSheetCopy('manageEquipment')}
                       </Button>
                     )
                   }
                 >
                   {empty ? (
-                    <EmptyState variant="quiet" body="Nothing carried." />
+                    <EmptyState variant="quiet" body={buildSheetCopy('nothingCarried')} />
                   ) : (
                     // One item a line, in Read and Edit alike: each piece of
                     // equipment a contentful Mini (its head, then its text), a
                     // generic entry its Mini; in Edit their controls ride the
                     // chip group (`SheetItemLine`), as a mech's Systems do.
                     <ul
-                      aria-label={`${pilot.name}'s equipment`}
+                      aria-label={buildSheetCopy('sEquipment', { name: pilot.name })}
                       data-sheet-carried=""
                       className={
                         readOnly ? 'su-entity-mini-list' : 'su-entity-mini-list su-sheet-items'
@@ -456,7 +457,7 @@ export function PilotSheet({
           hold, and a partner acts on its own turn rather than being one item
           among the pilot's carried gear. */}
         {model.partners.length > 0 && (
-          <SlabSection fold="open" title="Partners" count={model.partners.length}>
+          <SlabSection fold="open" title={buildSheetCopy('partners')} count={model.partners.length}>
             <Stack gap={12}>
               {model.partners.map((partner) => (
                 <PartnerCard
@@ -481,7 +482,7 @@ export function PilotSheet({
       <SheetPickerModal
         open={picker === 'abilities'}
         onClose={() => setPicker(null)}
-        title="Add Abilities"
+        title={buildSheetCopy('addAbilities')}
         floating
       >
         <EntitySearcher
@@ -495,17 +496,17 @@ export function PilotSheet({
               : undefined
           }
           facets={{
-            category: { label: 'Tree', of: (item) => (item as RefAbility).tree },
+            category: { label: buildSheetCopy('tree'), of: (item) => (item as RefAbility).tree },
           }}
           railName={pilot.name}
-          chosenLabel="Learned"
-          emptyMessage="No abilities match those filters."
+          chosenLabel={buildSheetCopy('learned')}
+          emptyMessage={buildSheetCopy('noAbilitiesMatchThoseFilters')}
         />
       </SheetPickerModal>
       <SheetPickerModal
         open={picker === 'equipment'}
         onClose={() => setPicker(null)}
-        title="Add Equipment"
+        title={buildSheetCopy('addEquipment')}
         floating
       >
         <EntitySearcher
@@ -514,9 +515,13 @@ export function PilotSheet({
           onToggle={actions.toggleEquipment}
           idOf={(item) => nameToSlug(item.name)}
           railName={pilot.name}
-          chosenLabel="Equipped"
-          emptyMessage="No equipment matches those filters."
-          budget={{ label: 'Inventory slots', used: model.slotsUsed, max: model.slotsCap }}
+          chosenLabel={buildSheetCopy('equipped')}
+          emptyMessage={buildSheetCopy('noEquipmentMatchesThoseFilters')}
+          budget={{
+            label: buildSheetCopy('inventorySlots'),
+            used: model.slotsUsed,
+            max: model.slotsCap,
+          }}
         />
       </SheetPickerModal>
 

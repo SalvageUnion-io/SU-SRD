@@ -3,6 +3,7 @@ import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { color, fontSize, iconSize, layer, radius, space } from '../design/tokens'
+import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { POPUP_SURFACE } from './atoms/popupSurface'
 import { Button, CloseButton } from './index'
@@ -88,7 +89,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
             size="iconOnly"
             className="su-mobile-search__trigger"
             style={TRIGGER}
-            aria-label="Search the Reference"
+            aria-label={componentsCopy('searchTheReference')}
           >
             <Search aria-hidden="true" size={iconSize.full} />
           </Button>
@@ -101,9 +102,9 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
               <Drawer.Title className={TITLE_CAPS} style={TITLE}>
-                Search
+                {componentsCopy('search')}
               </Drawer.Title>
-              <Drawer.Close render={<CloseButton label="Close search" />} />
+              <Drawer.Close render={<CloseButton label={componentsCopy('closeSearch')} />} />
             </div>
             {children}
           </Drawer.Popup>

@@ -12,6 +12,7 @@ import {
   tokens,
 } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
@@ -57,8 +58,8 @@ export function CrawlerTypeSelectStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label="Crawler Types" count="Choose 1" countInk="inherit" />
-      <RadioCardGroup label="Crawler type">
+      <Slab label={buildWizardCopy('crawlerTypes')} count="Choose 1" countInk="inherit" />
+      <RadioCardGroup label={buildWizardCopy('crawlerType')}>
         <Grid min={TYPE_COLUMN} gap={16}>
           {types.map((type) => {
             const slots = crawlerWeaponSlots(type.mutations)
@@ -74,8 +75,10 @@ export function CrawlerTypeSelectStep({
                 onCardClick={() => onSelect(getEntitySlug(type))}
                 hide={{ actions: true, choices: true }}
                 footMeta={[
-                  { label: 'Weapon slots', value: String(slots) },
-                  ...(spBonus > 0 ? [{ label: 'Max SP', value: `+${spBonus}` }] : []),
+                  { label: buildWizardCopy('weaponSlots'), value: String(slots) },
+                  ...(spBonus > 0
+                    ? [{ label: buildWizardCopy('maxSp'), value: `+${spBonus}` }]
+                    : []),
                 ]}
               />
             )
@@ -85,15 +88,19 @@ export function CrawlerTypeSelectStep({
 
       {selected ? (
         <>
-          <Slab label="Your Crawler Type" count={selected.name} countInk="inherit" />
+          <Slab
+            label={buildWizardCopy('yourCrawlerType')}
+            count={selected.name}
+            countInk="inherit"
+          />
           <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
             <ReferenceEntityCard data={selected} />
             {isAugmented && (
               <Callout tone="crawler">
                 <span style={bonusStyle}>
-                  Every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
-                  <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet
-                  yourself — the wizard never writes to other characters.
+                  Every Pilot gains <strong>{buildWizardCopy('n1TrainingPoint')}</strong>, spendable
+                  on the <strong>{buildWizardCopy('augmentAbilityTreeOnly')}</strong>. Apply it on
+                  each Pilot&rsquo;s sheet yourself — the wizard never writes to other characters.
                 </span>
               </Callout>
             )}
@@ -101,8 +108,8 @@ export function CrawlerTypeSelectStep({
         </>
       ) : (
         <EmptyState
-          headline="No type selected"
-          body="Pick a type to preview its unique Ability and special NPC."
+          headline={buildWizardCopy('noTypeSelected')}
+          body={buildWizardCopy('pickATypeToPreview')}
         />
       )}
     </div>

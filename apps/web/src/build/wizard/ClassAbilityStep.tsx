@@ -4,6 +4,7 @@ import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-refer
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
 import { selectableClasses } from './classOptions.model'
 import '../../styles/build/wizard.css'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle } from './wizardStyles.model'
 
 type SURClassesAccessor = {
@@ -87,28 +88,31 @@ export function ClassAbilityStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label="Pilot Class" count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2} radio ariaLabel="Pilot class">
+      <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
+      <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('pilotClass2')}>
         {legalClasses.map(renderClassCard)}
       </MasonryColumns>
 
       {selectedClass === undefined ? (
         <EmptyState
-          headline="No Class selected"
-          body="Pick a class to reveal its first-Ability choices."
+          headline={buildWizardCopy('noClassSelected')}
+          body={buildWizardCopy('pickAClassToReveal')}
         />
       ) : (
         <>
           <Slab
-            label={`First Ability · ${selectedClass.name} Trees · Level 1`}
+            label={buildWizardCopy('firstAbilityTreesLevel1', { name: selectedClass.name })}
             count="Choose 1"
             countInk="inherit"
           />
-          <MasonryColumns maxColumns={2} radio ariaLabel="First ability">
+          <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('firstAbility')}>
             {legalPool.map(renderAbilityCard)}
           </MasonryColumns>
           {legalPool.length === 0 && (
-            <EmptyState headline="No Abilities" body="No Level-1 abilities found for this class." />
+            <EmptyState
+              headline={buildWizardCopy('noAbilities')}
+              body={buildWizardCopy('noLevel1AbilitiesFound')}
+            />
           )}
         </>
       )}

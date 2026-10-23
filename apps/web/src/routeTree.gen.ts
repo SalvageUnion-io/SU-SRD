@@ -14,7 +14,10 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignOutRouteImport } from './routes/sign-out'
+import { Route as AdminHomebrewRouteImport } from './routes/admin/homebrew'
+import { Route as AdminMetricsRouteImport } from './routes/admin/metrics'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
+import { Route as EncountersIdRouteImport } from './routes/encounters/$id'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as MechsNewRouteImport } from './routes/mechs/new'
 import { Route as NpcsNewRouteImport } from './routes/npcs/new'
@@ -57,9 +60,24 @@ const SignOutRoute = SignOutRouteImport.update({
   path: '/sign-out',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminHomebrewRoute = AdminHomebrewRouteImport.update({
+  id: '/admin/homebrew',
+  path: '/admin/homebrew',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMetricsRoute = AdminMetricsRouteImport.update({
+  id: '/admin/metrics',
+  path: '/admin/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
   id: '/crawlers/new',
   path: '/crawlers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EncountersIdRoute = EncountersIdRouteImport.update({
+  id: '/encounters/$id',
+  path: '/encounters/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -149,7 +167,10 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/encounters/$id': typeof EncountersIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -173,7 +194,10 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/encounters/$id': typeof EncountersIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -198,7 +222,10 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-out': typeof SignOutRoute
+  '/admin/homebrew': typeof AdminHomebrewRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/crawlers/new': typeof CrawlersNewRoute
+  '/encounters/$id': typeof EncountersIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/mechs/new': typeof MechsNewRoute
   '/npcs/new': typeof NpcsNewRoute
@@ -224,7 +251,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
+    | '/admin/metrics'
     | '/crawlers/new'
+    | '/encounters/$id'
     | '/invite/$token'
     | '/mechs/new'
     | '/npcs/new'
@@ -248,7 +278,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
+    | '/admin/metrics'
     | '/crawlers/new'
+    | '/encounters/$id'
     | '/invite/$token'
     | '/mechs/new'
     | '/npcs/new'
@@ -272,7 +305,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sign-in'
     | '/sign-out'
+    | '/admin/homebrew'
+    | '/admin/metrics'
     | '/crawlers/new'
+    | '/encounters/$id'
     | '/invite/$token'
     | '/mechs/new'
     | '/npcs/new'
@@ -297,7 +333,10 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SignOutRoute: typeof SignOutRoute
+  AdminHomebrewRoute: typeof AdminHomebrewRoute
+  AdminMetricsRoute: typeof AdminMetricsRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
+  EncountersIdRoute: typeof EncountersIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MechsNewRoute: typeof MechsNewRoute
   NpcsNewRoute: typeof NpcsNewRoute
@@ -353,11 +392,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignOutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/homebrew': {
+      id: '/admin/homebrew'
+      path: '/admin/homebrew'
+      fullPath: '/admin/homebrew'
+      preLoaderRoute: typeof AdminHomebrewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/metrics': {
+      id: '/admin/metrics'
+      path: '/admin/metrics'
+      fullPath: '/admin/metrics'
+      preLoaderRoute: typeof AdminMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crawlers/new': {
       id: '/crawlers/new'
       path: '/crawlers/new'
       fullPath: '/crawlers/new'
       preLoaderRoute: typeof CrawlersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/encounters/$id': {
+      id: '/encounters/$id'
+      path: '/encounters/$id'
+      fullPath: '/encounters/$id'
+      preLoaderRoute: typeof EncountersIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -481,7 +541,10 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SignOutRoute: SignOutRoute,
+  AdminHomebrewRoute: AdminHomebrewRoute,
+  AdminMetricsRoute: AdminMetricsRoute,
   CrawlersNewRoute: CrawlersNewRoute,
+  EncountersIdRoute: EncountersIdRoute,
   InviteTokenRoute: InviteTokenRoute,
   MechsNewRoute: MechsNewRoute,
   NpcsNewRoute: NpcsNewRoute,

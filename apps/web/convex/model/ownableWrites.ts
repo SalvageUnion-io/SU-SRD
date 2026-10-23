@@ -5,13 +5,13 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import type { OwnedTable } from './entities'
 import {
   assignToPrimary,
-  countPatternBuild,
   linkIdOf,
   oldestByAppId,
   parseBody,
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
 } from './entities'
+import { countPatternBuild } from './patternAccess'
 import { getMembership, NotAuthorized } from './permissions'
 import { handOffSoloSeat, releaseSeatsOf } from './seats'
 import { staleWriteError } from './staleWrite'
@@ -51,7 +51,7 @@ export function assertMayWrite(
   if (doc.ownerId === userId) return
   if (doc.ownerId === null) {
     throw new NotAuthorized(
-      'That entity is unclaimed — it must be assigned before it can be edited'
+      'That entity is unassigned — it must be assigned before it can be edited'
     )
   }
   throw new NotAuthorized("You cannot edit another player's entity")

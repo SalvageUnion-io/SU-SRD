@@ -91,7 +91,7 @@ describe("listMine returns nothing that is not the caller's", () => {
     expect(mine.pilots).toEqual([])
   })
 
-  test('an UNCLAIMED pilot in a game is not returned', async () => {
+  test('an UNASSIGNED pilot in a game is not returned', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
     const gameId = await t.run(async (ctx) => await ctx.db.insert('games', { name: 'Table' }))
@@ -106,7 +106,7 @@ describe("listMine returns nothing that is not the caller's", () => {
     )
 
     // Excluded by construction — no `ownerId` means the index cannot return it
-    // — and that is the right answer rather than a lucky one: an unclaimed
+    // — and that is the right answer rather than a lucky one: an unassigned
     // pre-gen belongs to the Game's view, not to anybody's roster.
     const mine = await me.as.query(api.entities.listMine, {})
     expect(mine.pilots).toEqual([])

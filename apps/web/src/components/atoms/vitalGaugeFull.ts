@@ -1,5 +1,14 @@
 import type { CSSProperties } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import { TABULAR } from './vitalGaugeCompact'
 
 /** VitalGauge's full-rung head style objects: the stamp, the numeral and its max controls. */
@@ -76,4 +85,51 @@ export const REVERT = {
   cursor: 'pointer',
   verticalAlign: 'middle',
   fontSize: fontSize.caption,
+} satisfies CSSProperties
+/**
+ * The Full rung's − / + (Play's table mode): under the track, the pair
+ * sharing its width, each the Full Size tall (44px), so a thumb finds it
+ * without looking.
+ */
+export const STEPPERS_FULL = {
+  display: 'flex',
+  gap: space[8],
+  marginTop: space[8],
+} satisfies CSSProperties
+export const STEP_FULL = {
+  flex: '1 1 0%',
+  fontSize: fontSize.display,
+  height: 'var(--size-full)',
+  width: 'auto',
+} satisfies CSSProperties
+/** The full rung's track and caption. */
+export const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
+export const PIP = {
+  minHeight: 0,
+  minWidth: 0,
+  flex: 1,
+  borderWidth: borderWidth.chrome,
+  // `solid`, set explicitly: a segment once rendered as a `<button>`, whose
+  // base-layer `border: none` made an unlit pip vanish in Edit while Read drew it.
+  borderStyle: 'solid',
+  padding: 0,
+} satisfies CSSProperties
+export const PIP_DENSE = {
+  height: 'var(--size-mini)',
+  borderRadius: radius.badge,
+} satisfies CSSProperties
+export const PIP_ROOMY = { height: '22px', borderRadius: radius.card } satisfies CSSProperties
+export const CAPTION = {
+  marginTop: space[6],
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: space[4],
+  lineHeight: 1,
+  color: color.ink75,
+} satisfies CSSProperties
+export const CAPTION_OVERRIDE = {
+  marginRight: 'auto',
+  letterSpacing: tracking.capsSnug,
+  color: 'var(--tone-deep)',
 } satisfies CSSProperties

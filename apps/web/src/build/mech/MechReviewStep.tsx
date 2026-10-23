@@ -11,6 +11,7 @@ import {
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/build/wizard.css'
 import { readReference } from '../../lib/readReference'
+import { mechCopy } from '../../messages/build-mech'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
@@ -67,20 +68,17 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
         <Box bodyClassName="su-wiz-review-panel">
           {/* The recap: Stats, the chassis as its chip, the parts as Minis. */}
           <Recap>
-            <RecapStat label="Name" value={form.name.trim()} required />
-            <RecapEntity label="Chassis" entity={chassis} required />
-            <RecapStat label="Pattern" value={form.patternName.trim()} />
-            <RecapMinis label="Systems" entities={chosenSystems} />
-            <RecapMinis label="Modules" entities={chosenModules} />
+            <RecapStat label={mechCopy('name')} value={form.name.trim()} required />
+            <RecapEntity label={mechCopy('chassis')} entity={chassis} required />
+            <RecapStat label={mechCopy('pattern')} value={form.patternName.trim()} />
+            <RecapMinis label={mechCopy('systems')} entities={chosenSystems} />
+            <RecapMinis label={mechCopy('modules')} entities={chosenModules} />
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>
         {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder. */}
         <Callout role="note">
-          <span style={NOTE}>
-            {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
-            Scrap Pool.
-          </span>
+          <span style={NOTE}>{mechCopy('tech1ScrapBanksTo', { bankedScrap })}</span>
         </Callout>
         {form.chassisName && (
           <div>
@@ -109,7 +107,11 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
           />
         ))}
         {chosenSystems.length === 0 && chosenModules.length === 0 && (
-          <EmptyState variant="quiet" body="No systems or modules installed." bodyInk="inherit" />
+          <EmptyState
+            variant="quiet"
+            body={mechCopy('noSystemsOrModulesInstalled')}
+            bodyInk="inherit"
+          />
         )}
       </div>
     </div>

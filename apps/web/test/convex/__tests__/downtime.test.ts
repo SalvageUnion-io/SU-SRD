@@ -312,9 +312,7 @@ describe('non-members', () => {
     const outsider = await makeUser(t, 'Outsider')
     await gm.as.mutation(api.downtime.begin, { gameId })
 
-    await expect(outsider.as.query(api.downtime.state, { gameId }))?.rejects.toThrow(
-      /not a member/i
-    )
+    expect(await outsider.as.query(api.downtime.state, { gameId })).toEqual(null)
     await expect(
       outsider.as.mutation(api.downtime.markStepDone, { gameId, done: true })
     ).rejects.toThrow(/not a member/i)

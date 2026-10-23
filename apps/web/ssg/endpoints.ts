@@ -25,6 +25,12 @@
  */
 
 import { SITE_URL } from '../src/lib/constants'
+import {
+  apiV1DataEndpoint,
+  apiV1IndexEndpoint,
+  apiV1ItemEndpoint,
+  apiV1SchemaEndpoint,
+} from '../src/reference/endpoints/apiV1'
 import { itemJsonEndpoint } from '../src/reference/endpoints/itemJson'
 import { llmsTxtEndpoint } from '../src/reference/endpoints/llmsTxt'
 import { redirectsEndpoint } from '../src/reference/endpoints/redirects'
@@ -92,4 +98,8 @@ export const endpoints: EndpointRegistration[] = [
   registerEndpoint(schemaJsonEndpoint),
   registerEndpoint(schemaDefinitionJsonEndpoint),
   registerEndpoint(itemJsonEndpoint),
+  registerEndpoint(apiV1IndexEndpoint),
+  registerEndpoint(apiV1DataEndpoint),
+  registerEndpoint(apiV1SchemaEndpoint),
+  registerEndpoint(apiV1ItemEndpoint),
 ]

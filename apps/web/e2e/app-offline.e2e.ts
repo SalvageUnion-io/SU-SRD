@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { sheetLink } from 'gates/lib/appPage'
 import { at } from './_base'
 import { buildPilot, editSheet, openApp, openSheetFor, waitForReady } from './_helpers'
 import { serviceWorkerReady } from './_serviceWorker'
@@ -16,16 +17,15 @@ import { expect, test } from './fixtures'
  *
  * ## What offline promises
  *
- * There is no device cache (`docs/ARCHITECTURE.md#no-device-cache`): nothing
- * player-owned is kept on the device. So offline promises two things, and this
- * spec pins both:
+ * The device copy (`docs/ARCHITECTURE.md#device-copy`, ADR-058) keeps the
+ * signed-in player's own rows, read-only. So offline promises two things, and
+ * this spec pins both:
  *
  *  - **Mid-session**, a signed-in player's open sheet stays on screen,
  *    read-only, under the NOT CONNECTED banner. The rows are this page load's
  *    in-memory copy; no worker is involved.
- *  - **After a reload**, the shell boots from the worker's precache, and
- *    nothing of the player's comes back: there is no device copy to read.
- *    Reading sheets after an offline reload is deliberately not a requirement.
+ *  - **After a reload**, the shell boots from the worker's precache and the
+ *    player's own sheets come back from the device copy, read-only.
  *
  * ## Why service workers are re-enabled only here
  *
@@ -218,30 +218,54 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
   })
 
   /**
-   * What is not kept, pinned so it is not quietly half-restored: an offline
-   * reload boots the precached shell, and the player's rows do not come back,
-   * because nothing kept them.
+   * What is kept (ADR-058): the device copy. An offline reload boots the
+   * precached shell, and the player's own sheets come back from the copy
+   * `ShelfSync` saved, read-only under the NOT CONNECTED banner; with the
+   * connection back the sheet is editable again.
    */
   test.describe(() => {
     test.use({ serviceWorkers: 'allow' })
 
-    test('an offline reload boots the shell and brings back none of their rows', async ({
+    test('an offline reload brings their sheets back from the device, read-only', async ({
       page,
       context,
     }) => {
-      await buildPilot(page, 'Not On This Device', 'Ember')
-      await openSheetFor(page, 'Not On This Device')
+      await buildPilot(page, 'Kept On This Device', 'Ember')
+      await openSheetFor(page, 'Kept On This Device')
       await requireServiceWorker(page)
-      await expect(page.getByText('Not On This Device').first()).toBeVisible()
+      await expect(page.getByText('Kept On This Device').first()).toBeVisible()
 
+      // CI's headless Chromium keeps `navigator.onLine` true on a document
+      // loaded while the context is offline, where a real browser reports
+      // false, so the reload is told the truth through the same getter.
+      await page.addInitScript(() => {
+        if (sessionStorage.getItem('e2e:offline') === 'on') {
+          Object.defineProperty(Navigator.prototype, 'onLine', { get: () => false })
+        }
+      })
+      await page.evaluate(() => sessionStorage.setItem('e2e:offline', 'on'))
       await context.setOffline(true)
+      try {
+        await page.reload()
+        await waitForReady(page)
+
+        await expect(page).toHaveTitle(/SalvageUnion\.io/)
+        await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+        await expect(page.getByText('Kept On This Device').first()).toBeVisible()
+        await expect(page.getByRole('group', { name: /read or edit this/i })).toHaveCount(0)
+
+        // The Training Bay lists it too: the copy is the roster, not one page.
+        await page.goto(at('/'))
+        await waitForReady(page)
+        await expect(sheetLink(page, 'Kept On This Device')).toBeVisible()
+      } finally {
+        await context.setOffline(false)
+        await page.evaluate(() => sessionStorage.removeItem('e2e:offline'))
+      }
+
       await page.reload()
       await waitForReady(page)
-
-      await expect(page).toHaveTitle(/SalvageUnion\.io/)
-      await expect(page.getByText('Not On This Device')).toHaveCount(0)
-
-      await context.setOffline(false)
+      await expect(page.getByText('Not connected — your Games are read-only')).toHaveCount(0)
     })
   })
 })

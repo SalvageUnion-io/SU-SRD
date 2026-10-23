@@ -57,10 +57,15 @@ type RowCapabilities = {
    * Every row opens (`rosterSheetHref`); this only says whether it opens to edit.
    */
   openSheet: boolean
-  /** Free, and the viewer is in the Game: they can take it. */
-  claim: boolean
-  /** The viewer holds it and can hand it back to the crew. */
-  release: boolean
+  /** Free, and the viewer is in the Game: they can assign it to themselves. */
+  assignSelf: boolean
+  /**
+   * The members the viewer may assign it to instead: everyone but its holder,
+   * for the table runner (`ownership.assign`); nobody for anyone else.
+   */
+  assignTo: GameMember[]
+  /** The viewer holds it, or runs the table, and can unassign it. */
+  unassign: boolean
   /** Crawler only: the table runner may scrap it. */
   scrap: boolean
   /** Crawler only: the table runner may make it the Game's primary (ADR-037). */
@@ -76,10 +81,10 @@ type RowCapabilities = {
    * The viewer may destroy this row outright. Mirrors `removeByAppId`, so:
    * the owner, and nobody else.
    *
-   * A mistaken build needs a way off the roster: "Offer to the crew" hands a
-   * character over rather than ending it.
+   * A mistaken build needs a way off the roster: "Unassign" hands a
+   * character back to the crew rather than ending it.
    *
-   * Deliberately distinct from `release`. Releasing is generous and reversible
+   * Deliberately distinct from `unassign`. Unassigning is generous and reversible
    * — somebody else picks the character up. Deleting is neither, which is why
    * the two are separate verbs with separate confirms rather than one control
    * that guesses.
@@ -116,8 +121,8 @@ export type TableCapabilities = {
   canAddCrew: boolean
   /** Why not, in the surface's own words. Null when they can. */
   addCrewBlocked: string | null
-  /** Only the table runner may leave a new character unclaimed for the crew. */
-  canOfferUnclaimed: boolean
+  /** Only the table runner may leave a new character unassigned for the crew. */
+  canOfferUnassigned: boolean
 }
 
 /**
@@ -156,7 +161,7 @@ export function tableCapabilities(args: {
     canRaiseCrawler: tableRunner,
     canAddCrew,
     addCrewBlocked: canAddCrew ? null : 'Only members of this Game can bring builds into it.',
-    canOfferUnclaimed: tableRunner,
+    canOfferUnassigned: tableRunner,
   }
 }
 
@@ -219,7 +224,7 @@ export function moveDestinations(args: {
 export type RosterColumnGroups = {
   /** The viewer's own rows — listed first, under YOURS. */
   yours: RosterRow[]
-  /** Everyone else's, unclaimed included; the primary crawler leads. */
+  /** Everyone else's, unassigned included; the primary crawler leads. */
   others: RosterRow[]
 }
 
@@ -305,11 +310,14 @@ export function ownableRows(args: {
   const namesById = new Map(args.members.map((m) => [m.userId, m.displayName]))
   const lookup = { viewerId: args.viewerId, namesById }
   const memberOfGame = args.viewerId !== null
+  // Mirrors `ownership.assign` and `unassign`: the table runner places and
+  // takes back any pilot or mech in the Game.
+  const tableRunner = isTableRunner(args.viewerId, args.members)
 
   return args.rows.map((row) => {
     const owner = ownerChipFor(row.ownerId, lookup)
     const mine = owner.mine
-    // A template pre-gen has no app id: a claimed one is held here under its
+    // A template pre-gen has no app id: an assigned one is held here under its
     // body id (`listMine` serves the body), so that is the id it is found by.
     const heldAs = row.appId ?? bodyIdOf(row.body)
     const localId = heldAs !== null && args.localIds.has(heldAs) ? heldAs : null
@@ -326,8 +334,9 @@ export function ownableRows(args: {
       body: bodyOf(row.body),
       can: {
         openSheet: mine,
-        claim: memberOfGame && owner.unclaimed,
-        release: mine,
+        assignSelf: memberOfGame && owner.unassigned,
+        assignTo: tableRunner ? args.members.filter((m) => m.userId !== row.ownerId) : [],
+        unassign: !owner.unassigned && (mine || tableRunner),
         scrap: false,
         makePrimary: false,
         removeFromGame: mine,
@@ -364,8 +373,9 @@ export function crawlerRows(args: {
       body: bodyOf(row.body),
       can: {
         openSheet: true,
-        claim: false,
-        release: false,
+        assignSelf: false,
+        assignTo: [],
+        unassign: false,
         scrap: args.tableRunner,
         // Mirrors `games.setPrimaryCrawler`: the table runner's call.
         makePrimary: args.tableRunner && !primary,

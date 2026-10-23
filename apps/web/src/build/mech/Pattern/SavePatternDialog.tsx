@@ -35,6 +35,7 @@ import {
   patternFromMech,
   patternHref,
 } from '../../../lib/patterns/patterns'
+import { mechCopy } from '../../../messages/build-mech'
 import { usePatternStore } from '../../../stores/patternStore'
 
 /** What a pattern is cut from: a mech's name, chassis and loadout. */
@@ -77,7 +78,12 @@ export function SavePatternDialog({
   stay = false,
 }: SavePatternDialogProps) {
   return (
-    <ModalShell open={open} onOpenChange={onOpenChange} title="Save as pattern" width="default">
+    <ModalShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title={mechCopy('saveAsPattern')}
+      width="default"
+    >
       {/* Mounted only while open, so every opening starts from the mech's name. */}
       {open && (
         <SavePatternBody
@@ -125,14 +131,14 @@ function SavePatternBody({
     const result = await save.run(name)
     if (!result.ok) return
     onClose()
-    toast.success(`Saved pattern ${result.value.name}.`)
+    toast.success(mechCopy('savedPattern', { name: result.value.name }))
     onSaved?.(result.value.id)
     if (!stay) go(patternHref(result.value.id))
   }
 
   const nameField = (
     <Input
-      aria-label="Pattern name"
+      aria-label={mechCopy('patternName')}
       value={name}
       onChange={(e) => setName(e.target.value)}
       onKeyDown={(e) => {
@@ -144,8 +150,8 @@ function SavePatternBody({
   )
   const descriptionField = (
     <Textarea
-      aria-label="Pattern description"
-      placeholder="What it is for, and how to drive it."
+      aria-label={mechCopy('patternDescription')}
+      placeholder={mechCopy('whatItIsForAnd')}
       value={description}
       onChange={(e) => setDescription(e.target.value)}
       rows={3}
@@ -171,13 +177,11 @@ function SavePatternBody({
           {descriptionField}
         </>
       )}
-      <Text variant="hint">
-        Damage, Heat and cargo stay on the mech. Only you can see the pattern until you share it.
-      </Text>
+      <Text variant="hint">{mechCopy('damageHeatAndCargoStay')}</Text>
       {error && <FieldError>{error}</FieldError>}
       <DialogActions>
         <Button variant="ghost" size="compact" onClick={onClose} disabled={save.pending}>
-          Cancel
+          {mechCopy('cancel')}
         </Button>
         <Button
           variant="primary"
@@ -185,7 +189,7 @@ function SavePatternBody({
           onClick={() => void confirm()}
           disabled={save.pending || !name.trim()}
         >
-          {save.pending ? 'Saving…' : 'Save pattern'}
+          {save.pending ? mechCopy('saving') : mechCopy('savePattern')}
         </Button>
       </DialogActions>
     </div>

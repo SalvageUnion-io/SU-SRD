@@ -1,26 +1,23 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
+import type { Encounter } from 'game-domain/schemas/encounter'
+import { EncounterSchema } from 'game-domain/schemas/encounter'
 import type { Id } from './_generated/dataModel'
+import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import type { PatternVisibility } from './model/entities'
-import {
-  bodyAppId,
-  findOwnedByAppId,
-  mutation,
-  PARSERS,
-  parseBody,
-  patternVisibility,
-  patternVisibilityOf,
-} from './model/entities'
+import { bodyAppId, findOwnedByAppId, mutation, PARSERS, parseBody } from './model/entities'
+import type { PatternVisibility } from './model/patternAccess'
+import { patternVisibility, patternVisibilityOf } from './model/patternAccess'
 import { NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
 
 /**
- * The server-first writes for the two shelf-only collections: saved mech
- * patterns and the personal NPC tray (ADR-034).
+ * The server-first writes for the shelf-only collections: saved mech
+ * patterns, the personal NPC tray (ADR-034) and the Mediator's encounters
+ * (ADR-059).
  *
- * Both are owned by one account, live on its shelf (`gameId: null`), and are
+ * Each is owned by one account, live on its shelf (`gameId: null`), and are
  * addressed by the id inside their body rather than by an `appId` the client
  * minted for a server row — which is why they share none of the ownable-entity
  * machinery in `entities.ts`. A tray
@@ -111,6 +108,8 @@ export const setPatternVisibility = mutation({
 
     await ctx.db.patch(row._id, {
       publicRead: args.visibility === 'link',
+      // Homebrew rides the link: withdrawing the link takes it off the Reference.
+      ...(args.visibility === 'link' ? {} : { homebrew: undefined }),
       gameId,
       sharedAt: args.visibility === 'private' ? undefined : Date.now(),
     })
@@ -180,6 +179,8 @@ export const patternSharing = query({
       gameId: v.union(v.id('games'), v.null()),
       gameName: v.union(v.string(), v.null()),
       builtCount: v.number(),
+      /** Shared with everyone on the Reference as Homebrew (ADR-061). */
+      homebrew: v.boolean(),
     })
   ),
   handler: async (ctx) => {
@@ -198,6 +199,7 @@ export const patternSharing = query({
           gameId: row.gameId,
           gameName: game?.name ?? null,
           builtCount: row.builtCount ?? 0,
+          homebrew: row.homebrew === true && row.publicRead === true,
         }
       })
     )
@@ -272,6 +274,77 @@ export const removeEncounterNpc = mutation({
   handler: async (ctx, args): Promise<void> => {
     const userId = await requireUser(ctx)
     const existing = await findOwnedByAppId(ctx, 'encounterNpcs', userId, args.npcId)
+    if (existing === null) return
+    await ctx.db.delete(existing._id)
+  },
+})
+
+/**
+ * The caller's encounters (ADR-059), for `EncounterSync` to bring down. Bodies
+ * only, as `entities.listMine` serves patterns: each is addressed by the id
+ * inside it, and versioned by its own `updatedAt`.
+ */
+export const encounters = query({
+  args: {},
+  returns: v.array(v.object({ body: v.any() })),
+  handler: async (ctx) => {
+    const userId = await requireUser(ctx)
+    const rows = await ctx.db
+      .query('encounters')
+      .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+      .collect()
+    return rows.map((r) => ({ body: r.body }))
+  },
+})
+
+/** An encounter body parsed at the edge, as `parseBody` parses the others, or a legible throw. */
+function parseEncounter(body: unknown): Encounter {
+  const result = EncounterSchema.safeParse(body)
+  if (!result.success) {
+    throw new Error(`Invalid encounters payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
+  }
+  return result.data
+}
+
+/** One of the caller's own encounters, by the id in its body. */
+async function findOwnEncounter(ctx: QueryCtx | MutationCtx, ownerId: Id<'users'>, appId: string) {
+  return await ctx.db
+    .query('encounters')
+    .withIndex('by_owner_app_id', (q) => q.eq('ownerId', ownerId).eq('appId', appId))
+    .first()
+}
+
+/**
+ * Write one encounter (ADR-059), addressed by the id inside its body, as a
+ * pattern is: the same write twice is a patch, not a duplicate. Shelf only
+ * and always the caller's; a Game reaches an encounter only by running a copy
+ * of it (`mediator.runEncounter`).
+ */
+export const upsertEncounter = mutation({
+  args: { body: v.any() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const parsed = parseEncounter(args.body)
+    const encounterId = bodyAppId(args.body)
+    if (encounterId === undefined) {
+      throw new Error('[app] an encounter must carry a string id in its body')
+    }
+
+    const existing = await findOwnEncounter(ctx, userId, encounterId)
+    if (existing === null) {
+      await ctx.db.insert('encounters', { ownerId: userId, appId: encounterId, body: parsed })
+      return
+    }
+    await ctx.db.patch(existing._id, { body: parsed })
+  },
+})
+
+/** Delete one encounter. Absent is success, as for patterns. A Game running a copy keeps it. */
+export const removeEncounter = mutation({
+  args: { encounterId: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const userId = await requireUser(ctx)
+    const existing = await findOwnEncounter(ctx, userId, args.encounterId)
     if (existing === null) return
     await ctx.db.delete(existing._id)
   },

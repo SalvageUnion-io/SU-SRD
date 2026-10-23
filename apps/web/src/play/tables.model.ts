@@ -14,6 +14,9 @@ const COMBAT_TABLES = [
   'Critical Injury',
 ] as const
 
+/** The Core Mechanic, first of the combat tables: the table every check rolls on. */
+export const CORE_MECHANIC_TABLE = COMBAT_TABLES[0]
+
 /** Downtime's tables. */
 const DOWNTIME_TABLES = ['Core Mechanic', 'Critical Injury', 'Rumour'] as const
 

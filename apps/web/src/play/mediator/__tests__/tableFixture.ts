@@ -1,7 +1,7 @@
 /**
  * A table to run, for the Mediator's tests: a crew of Bonesaw on foot,
  * Pickle boarded in an overheating Spectrum,
- * Judge ejected, Driftwood in Mazona — plus Hotdog, an unclaimed pre-gen who
+ * Judge ejected, Driftwood in Mazona — plus Hotdog, an unassigned pre-gen who
  * is an open seat, not a card.
  */
 

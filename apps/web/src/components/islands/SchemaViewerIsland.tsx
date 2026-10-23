@@ -5,7 +5,7 @@ import {
   getAssetUrl,
   getEntitySlug,
   getModel,
-  getSource,
+  getSources,
   getTechLevel,
   getTree,
 } from 'salvageunion-reference'
@@ -30,6 +30,7 @@ import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
+import { islandsCopy } from '../../messages/components-islands'
 import { GameDataGate } from '../GameDataGate'
 import {
   Button,
@@ -256,7 +257,7 @@ function SchemaViewer({
         const itemTechLevel = getTechLevel(item)?.toString()
         if (!itemTechLevel || !techLevelFilters.has(itemTechLevel)) return false
       }
-      if (sourceFilter && getSource(item) !== sourceFilter) return false
+      if (sourceFilter && !getSources(item).includes(sourceFilter)) return false
       if (treeFilter && getTree(item) !== treeFilter) return false
       if (name && !item.name.toLowerCase().includes(name)) return false
       return true
@@ -356,7 +357,7 @@ function SchemaViewer({
         filteredData.length > 0 && (
           <output className="su-rail__status" aria-live="polite">
             <span className="su-rail__tally">
-              {filteredData.length} of {initialData.length}
+              {islandsCopy('of', { count: filteredData.length, count2: initialData.length })}
             </span>
             {[...techLevelFilters].map((key) => {
               const level = orderedTechLevels.find((tl) => String(tl) === key)
@@ -364,7 +365,9 @@ function SchemaViewer({
               return (
                 <FilterToken
                   key={key}
-                  label={typeof level === 'number' ? `TL ${level}` : tlButtonLabel(level)}
+                  label={
+                    typeof level === 'number' ? islandsCopy('tl2', { level }) : tlButtonLabel(level)
+                  }
                   name={tlName(level)}
                   onRemove={() => toggleTechLevel(level)}
                 />
@@ -392,7 +395,7 @@ function SchemaViewer({
               />
             )}
             <Button variant="ghost" size="compact" onClick={clearFilters}>
-              Clear all
+              {islandsCopy('clearAll')}
             </Button>
           </output>
         )
@@ -412,12 +415,12 @@ function SchemaViewer({
 
         {filteredData.length === 0 ? (
           <EmptyState
-            headline="Nothing here"
-            body="No items match the current filters."
+            headline={islandsCopy('nothingHere')}
+            body={islandsCopy('noItemsMatchTheCurrent')}
             action={
               hasActiveFilters ? (
                 <Button variant="primary" size="mini" onClick={clearFilters}>
-                  Clear filters
+                  {islandsCopy('clearFilters')}
                 </Button>
               ) : undefined
             }
@@ -566,7 +569,7 @@ function FilterToken({
   onRemove: () => void
 }) {
   return (
-    <Button size="compact" aria-label={`Remove ${name}`} onClick={onRemove}>
+    <Button size="compact" aria-label={islandsCopy('remove', { name })} onClick={onRemove}>
       {label}
       <X aria-hidden="true" size={tokens.iconSize.compact} />
     </Button>

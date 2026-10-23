@@ -4,6 +4,7 @@ import { formatCite } from 'salvageunion-reference'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Box } from '../../components/containers/Box'
 import { tokens } from '../../components/index'
+import { buildWizardCopy } from '../../messages/build-wizard'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {
@@ -42,7 +43,7 @@ const citeCaps = capsLabel({ size: 'badge', weight: 'semibold' })
  */
 export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
   return (
-    <Box as="section" label="The rule" className={className}>
+    <Box as="section" label={buildWizardCopy('theRule')} className={className}>
       <p style={ruleStyle}>{rule}</p>
       {cite && (
         <p className={citeCaps} style={citeStyle}>

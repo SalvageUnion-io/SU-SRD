@@ -1,5 +1,5 @@
 /**
- * `/discord` — the Discord bot landing page.
+ * `/bot` — the Discord bot landing page (`/discord` 301s here).
  *
  * The command list is the bot's own: `DISCORD_COMMANDS` is generated from the
  * registered `/su` builder (`apps/discord-bot/src/commandList.ts`), so every
@@ -30,6 +30,7 @@ import {
 } from '../../lib/docPageStyles'
 import { SalvageUnionReference } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
+import { pagesCopy } from '../../messages/reference-pages'
 import { DiscordReply } from '../DiscordReply'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
@@ -118,28 +119,25 @@ function commandDetail(
       return (
         <>
           <p>
-            Rolls a d20 on any Salvage Union table. Leave <code style={CODE}>table</code> empty to
-            roll on the <strong>Core Mechanic</strong> table — the game&rsquo;s basic d20 resolution
-            roll.
+            Rolls a d20 on any Salvage Union table. Leave{' '}
+            <code style={CODE}>{pagesCopy('table')}</code> empty to roll on the{' '}
+            <strong>{pagesCopy('coreMechanic')}</strong> table — the game&rsquo;s basic d20
+            resolution roll.
           </p>
+          <p>{pagesCopy('startTypingATableName', { rollTableCount: examples.rollTableCount })}</p>
           <p>
-            Start typing a table name and autocomplete suggests matches from all{' '}
-            {examples.rollTableCount} tables — Critical Damage, Reactor Overload, Area Salvage, NPC
-            generators, Keepsake, Motto, and every table from the expansions. Column tables (like
-            the NPC tables) roll two d20s: one for the column, one for the entry.
-          </p>
-          <p>
-            <strong>Examples:</strong>
+            <strong>{pagesCopy('examples')}</strong>
           </p>
           <ul style={LIST_4}>
             <li>
-              <code style={CODE}>/su roll</code> — Core Mechanic d20
+              <code style={CODE}>{pagesCopy('suRoll')}</code> — Core Mechanic d20
             </li>
             <li>
-              <code style={CODE}>/su roll table: Critical Damage</code> — what happens at 0 SP
+              <code style={CODE}>{pagesCopy('suRollTableCriticalDamage')}</code> — what happens at 0
+              SP
             </li>
             <li>
-              <code style={CODE}>/su roll table: Group Initiative</code> — who acts first
+              <code style={CODE}>{pagesCopy('suRollTableGroupInitiative')}</code> — who acts first
             </li>
           </ul>
         </>
@@ -149,22 +147,24 @@ function commandDetail(
         <>
           <p>
             Looks up any entity in the reference — the same search as this site&rsquo;s
-            <kbd style={KEY_CAP}>Cmd&nbsp;K</kbd> box. Autocomplete searches as you type (multi-word
-            queries and small typos are fine); the reply shows the entity&rsquo;s key stats and
-            links to its full page here.
+            <kbd style={KEY_CAP}>{pagesCopy('cmdK')}</kbd> box. Autocomplete searches as you type
+            (multi-word queries and small typos are fine); the reply shows the entity&rsquo;s key
+            stats and links to its full page here.
           </p>
           <p>
-            <strong>Examples:</strong>
+            <strong>{pagesCopy('examples')}</strong>
           </p>
           <ul style={LIST_4}>
             <li>
-              <code style={CODE}>/su lookup entity: green laser</code>
+              <code style={CODE}>{pagesCopy('suLookupEntityGreenLaser')}</code>
             </li>
             <li>
-              <code style={CODE}>/su lookup entity: {examples.lookupExample.toLowerCase()}</code>
+              <code style={CODE}>
+                {pagesCopy('suLookupEntity', { lowerCase: examples.lookupExample.toLowerCase() })}
+              </code>
             </li>
             <li>
-              <code style={CODE}>/su lookup entity: overheat</code>
+              <code style={CODE}>{pagesCopy('suLookupEntityOverheat')}</code>
             </li>
           </ul>
         </>
@@ -189,17 +189,16 @@ function page(): PageResult {
         name: 'SalvageUnion.io Discord Bot',
         applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Discord',
-        description:
-          'Roll on Salvage Union tables and look up any game entity without leaving your Discord server.',
-        url: `${SITE_URL}/discord/`,
+        description: pagesCopy('rollOnSalvageUnionTables'),
+        url: `${SITE_URL}/bot/`,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         isPartOf: WEBSITE,
       },
-      breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
+      breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/bot/` }],
     },
     children: (
       <DocPage
-        title="Discord Bot"
+        title={pagesCopy('discordBot')}
         measure="48rem"
         gap={space[32]}
         // Discord's own colour, the band its page wears (R42), its install
@@ -209,9 +208,9 @@ function page(): PageResult {
           // What it sends: the bot's own replies, drawn from its builders,
           // in the page's sidebar.
           <Stack as="section" gap={16}>
-            <Slab as="h2" label="In your server" />
-            <DiscordReply sample={DISCORD_SAMPLES.roll} label="The bot's reply to /su roll" />
-            <DiscordReply sample={DISCORD_SAMPLES.lookup} label="The bot's reply to /su lookup" />
+            <Slab as="h2" label={pagesCopy('inYourServer')} />
+            <DiscordReply sample={DISCORD_SAMPLES.roll} label={pagesCopy('theBotsReplyToSu')} />
+            <DiscordReply sample={DISCORD_SAMPLES.lookup} label={pagesCopy('theBotsReplyToSu2')} />
           </Stack>
         }
         controls={
@@ -222,27 +221,19 @@ function page(): PageResult {
             variant="ink"
             size="full"
           >
-            Add to your Discord server
+            {pagesCopy('addToYourDiscordServer')}
           </Button>
         }
       >
         {/* Overview + install */}
         <section style={PROSE_16}>
-          <p>
-            The SalvageUnion.io bot brings this reference to your table&rsquo;s Discord server: roll
-            on every Salvage Union table and look up any game entity — chassis, systems, modules,
-            equipment, keywords, and more — without leaving the conversation. Results link back to
-            the full entry on this site.
-          </p>
-          <p>
-            It asks for no server permissions — it only ever replies to slash commands. Free and
-            with no configuration; rolling and lookups need no account.
-          </p>
+          <p>{pagesCopy('theSalvageunionIoBotBrings')}</p>
+          <p>{pagesCopy('itAsksForNoServer')}</p>
         </section>
 
         {/* Commands: every /su subcommand, from the bot's own builder */}
         <Stack as="section" gap={24}>
-          <Slab as="h2" label="Commands" />
+          <Slab as="h2" label={pagesCopy('commands')} />
 
           {reference.map((command) => (
             <DocPanel key={command.name} title={`/su ${command.name}`} tone="discord">
@@ -256,11 +247,11 @@ function page(): PageResult {
           ))}
         </Stack>
 
-        <SlabSection as="h2" title="With your account" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('withYourAccount')} bodyStyle={PROSE_12} page>
           <p>
             These read your {PRODUCT.wordmark} account and its Games.{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
-              Sign in
+              {pagesCopy('signIn')}
             </InlineRef>{' '}
             with the same Discord account and the bot knows you; until then each one says how.
           </p>
@@ -277,23 +268,18 @@ function page(): PageResult {
         </SlabSection>
 
         {/* Notes */}
-        <SlabSection as="h2" title="Good to know" bodyStyle={PROSE_12} page>
+        <SlabSection as="h2" title={pagesCopy('goodToKnow')} bodyStyle={PROSE_12} page>
           <ul style={LIST_8}>
             <li>
-              Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just
-              this bot — no more fishing your roll out of a pile of identically-named commands from
-              other bots.
+              Typing <code style={CODE}>{pagesCopy('su')}</code> filters Discord&rsquo;s command
+              picker to just this bot — no more fishing your roll out of a pile of identically-named
+              commands from other bots.
             </li>
-            <li>
-              The bot serves the same dataset as this site, including expansion content and the
-              community Mech Monday patterns. It updates automatically when the reference does.
-            </li>
-            <li>
-              It never reads messages — its only Discord capability is answering slash commands.
-            </li>
+            <li>{pagesCopy('theBotServesTheSame')}</li>
+            <li>{pagesCopy('itNeverReadsMessagesIts')}</li>
           </ul>
           <p style={ASIDE}>
-            <strong>Running a campaign?</strong> Pair the bot with the app: the{' '}
+            <strong>{pagesCopy('runningACampaign')}</strong> Pair the bot with the app: the{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
               {PRODUCT.build}
             </InlineRef>
@@ -320,16 +306,16 @@ function page(): PageResult {
             rel="noopener noreferrer"
             style={BOLD}
           >
-            Randsum.dev
+            {pagesCopy('randsumDev')}
           </InlineRef>
           .
         </p>
 
         {/* Legal */}
         <p style={LEGAL}>
-          <InlineRef href="/bot/terms/">Terms of Service</InlineRef>
+          <InlineRef href="/bot/terms/">{pagesCopy('termsOfService')}</InlineRef>
           <span style={LEGAL_DOT}>·</span>
-          <InlineRef href="/bot/privacy/">Privacy Policy</InlineRef>
+          <InlineRef href="/bot/privacy/">{pagesCopy('privacyPolicy')}</InlineRef>
         </p>
       </DocPage>
     ),
@@ -337,6 +323,6 @@ function page(): PageResult {
 }
 
 export const discordPage: PageModule = {
-  pattern: '/discord',
+  pattern: '/bot',
   page,
 }

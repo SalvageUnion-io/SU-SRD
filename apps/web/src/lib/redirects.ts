@@ -93,9 +93,13 @@ export function legacyItemHref(schemaId: string, slug: string): string {
  * A site page that no longer exists, and where its address lands. The search
  * page went (the bar's dropdown is the search, EDL "Which form, where"): its
  * address goes to the home page, and the Worker keeps the query string, so
- * `/search/?q=mule` opens the Union bar's search on "mule".
+ * `/search/?q=mule` opens the Union bar's search on "mule". The bot's page
+ * moved from `/discord/` to `/bot/`, beside its terms and privacy policy.
  */
-const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([['/search', '/']])
+const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([
+  ['/search', '/'],
+  ['/discord', '/bot/'],
+])
 
 /**
  * Where a retired site page's address lands, with or without its trailing

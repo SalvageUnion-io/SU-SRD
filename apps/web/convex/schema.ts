@@ -5,7 +5,10 @@ import { zodToConvex } from 'convex-helpers/server/zod4'
 import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
+import { homebrewTables } from './model/homebrewTables'
 import { playTables } from './model/playTables'
+import { prepTables } from './model/prepTables'
+import { signalTables } from './model/signalTables'
 import { literalUnion } from './model/validators'
 
 /**
@@ -17,7 +20,7 @@ import { literalUnion } from './model/validators'
  *
  *   - Two containers, not one (ADR-030 §2). An entity lives in a shared `games` row OR
  *     on its owner's personal shelf. Null `gameId` MEANS shelf (Play's tables: absent = solo).
- *   - Ownership is nullable too (ADR-030 §2). A null `ownerId` is an *unclaimed*
+ *   - Ownership is nullable too (ADR-030 §2). A null `ownerId` is an *unassigned*
  *     entity — a normal state, arising when a player leaves, when the
  *     Mediator pre-builds a character, or from a Game template.
  *   - `gameId == null && ownerId == null` is the one invalid combination. It is
@@ -58,6 +61,9 @@ import { literalUnion } from './model/validators'
  *
  * Play's tables (the seat, the Game's Downtime and the Discord channel
  * bindings) and their validators are `model/playTables.ts`, spread in below.
+ * The Mediator's prep (encounters, and the one a Game runs) is
+ * `model/prepTables.ts`, and Homebrew's moderation is
+ * `model/homebrewTables.ts`, both spread in after it.
  *
  * The function modules take their arguments and declare their `returns`
  * against these same validators, never a hand-copied union.
@@ -458,11 +464,18 @@ export default defineSchema({
      * carries `body.sourcePattern`, so the page reads one number, not a scan.
      */
     builtCount: v.optional(v.number()),
+    /**
+     * Shared with everyone on the Reference as Homebrew (ADR-061): its maker's
+     * second opt-in, held only while `publicRead` is.
+     */
+    homebrew: v.optional(v.boolean()),
   })
     // `ownerId` alone is a prefix, so this also serves "all of mine".
     .index('by_owner_app_id', ['ownerId', 'appId'])
     .index('by_app_id', ['appId'])
-    .index('by_game', ['gameId']),
+    .index('by_game', ['gameId'])
+    // Homebrew (ADR-061): every pattern shared on the Reference, newest share first.
+    .index('by_homebrew', ['homebrew', 'sharedAt']),
 
   /**
    * One row per uploaded entity photo in file storage (`photos.ts`).
@@ -543,4 +556,8 @@ export default defineSchema({
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
   ...playTables,
+  ...prepTables,
+
+  ...homebrewTables,
+  ...signalTables,
 })

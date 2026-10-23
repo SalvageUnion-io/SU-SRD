@@ -20,7 +20,7 @@
  * escape hatch — *"a player who wants to keep a character copies it to their
  * shelf first, which is a separate, explicit act"* — while the act did not
  * exist. A character you release, or leave behind in a Game, stays there
- * unclaimed; copying it is how you keep one.
+ * unassigned; copying it is how you keep one.
  *
  * ## The container it lands in follows from the ownership table
  *
@@ -29,19 +29,19 @@
  * | `gameId` | `ownerId` | State                     |
  * | -------- | --------- | ------------------------- |
  * | set      | set       | claimed and in play       |
- * | set      | null      | unclaimed, awaiting a taker |
+ * | set      | null      | unassigned, awaiting a taker |
  * | **null** | **set**   | **on the owner's shelf**  |
  * | null     | null      | invalid                   |
  *
  * So a copy is `gameId: null` with the copier as owner. It cannot be
- * "unclaimed" in the `ownerId: null` sense — that is the invalid row. No one
+ * "unassigned" in the `ownerId: null` sense — that is the invalid row. No one
  * mutation refuses it; the server simply never writes one. Every shelf insert
  * in `convex/entities.ts` and `convex/shelf.ts` sets
  * `ownerId` to the caller, `games.destroy` gives
- * an unclaimed row the Organizer as it shelves it, an unclaimed row cannot be
+ * an unassigned row the Organizer as it shelves it, an unassigned row cannot be
  * written (so cannot be moved out of its Game), and `ownership.release`
  * refuses a shelved build (*"A build in your Shelves is already yours"*).
- * Unclaimed is a thing a character can be **inside a Game**, waiting for
+ * Unassigned is a thing a character can be **inside a Game**, waiting for
  * somebody to take it; a shelf is already somebody's.
  */
 

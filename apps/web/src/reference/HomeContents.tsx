@@ -35,7 +35,7 @@ const DISCORD_MARK =
  * The SalvageUnion.io Discord bot, offered straight under "Start here": one full-size
  * button in Discord's blurple (a one-off exception to the tone palette) with
  * Discord's mark, opening the bot's install link. The
- * site footer links `/discord`, which documents the commands.
+ * site footer links `/bot`, which documents the commands.
  */
 export function DiscordButton({ installHref }: { installHref: string }) {
   return (

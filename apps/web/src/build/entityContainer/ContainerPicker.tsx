@@ -31,6 +31,7 @@ import {
   tokens,
 } from '../../components/index'
 import { gameRowModel, hangarRowModel } from '../../lib/games/containerRow.model'
+import { entityContainerCopy } from '../../messages/build-entity-container'
 import { serializeContainer } from './containerKey.model'
 
 /** One container on offer: what it is called and, optionally, a quieter hint (a role). */
@@ -141,7 +142,7 @@ function PickerSelect({
         </option>
       ))}
       {games.length > 0 && (
-        <optgroup label="Games">
+        <optgroup label={entityContainerCopy('games')}>
           {games.map((c) => (
             <option key={serializeContainer(c.container)} value={serializeContainer(c.container)}>
               {c.hint ? `${c.label} · ${c.hint}` : c.label}

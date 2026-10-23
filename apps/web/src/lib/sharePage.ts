@@ -9,7 +9,9 @@
  * for); anywhere else it copies the page's link. Copied is the control's own
  * Check swap (`data-copied`) and its polite status, never a toast (chrome
  * K5); with no React on the page, a copy that does not land says so in that
- * same status. Closing the sheet unshared is no failure.
+ * same status, in the words the button carries (`data-share-failed`,
+ * `data-copy-failed`), so the catalogue never ships with the page.
+ * Closing the sheet unshared is no failure.
  */
 
 /** The attribute that marks the button; its status is the element right after it. */
@@ -25,7 +27,7 @@ export type SharePageDeps = {
 }
 
 function browserDeps(): SharePageDeps {
-  const coarse = globalThis.matchMedia?.('(pointer: coarse)').matches ?? false
+  const coarse = globalThis.matchMedia?.('(pointer:coarse)').matches ?? false
   return {
     share:
       coarse && typeof navigator.share === 'function' ? (data) => navigator.share(data) : undefined,
@@ -52,14 +54,14 @@ async function sharePage(button: HTMLElement, deps: SharePageDeps): Promise<void
       await deps.share({ title: doc.title, url })
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return
-      if (status) status.textContent = 'The page could not be shared. Try again.'
+      if (status) status.textContent = button.dataset.shareFailed ?? ''
     }
     return
   }
   try {
     await deps.writeClipboard(url)
   } catch {
-    if (status) status.textContent = 'The link could not be copied. Try again.'
+    if (status) status.textContent = button.dataset.copyFailed ?? ''
     return
   }
   button.setAttribute('data-copied', '')

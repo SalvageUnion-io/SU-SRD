@@ -394,8 +394,8 @@ describe('every page ends on one footer', () => {
   }
 })
 
-describe('/discord documents the bot it installs', () => {
-  const html = page('/discord')
+describe('/bot documents the bot it installs', () => {
+  const html = page('/bot')
 
   it('lists every /su subcommand the bot registers, under the name Discord shows', () => {
     for (const command of DISCORD_COMMANDS) {

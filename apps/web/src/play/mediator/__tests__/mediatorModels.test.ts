@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { instanceName } from 'game-domain/games/encounters'
 import {
   clampProposalValue,
   fieldLabel,
@@ -15,7 +16,7 @@ import {
 } from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mediatorSeats } from '../mediatorTable.model'
-import { instanceName, newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
+import { newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { proposalLine } from '../proposalLine.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
@@ -25,7 +26,7 @@ describe('the seats, in one layer over the crew lines', () => {
   const seats = mediatorSeats(TABLE_CREW, TABLE_SEATS, TABLE_MEMBERS, NOW)
 
   test('one per claimed pilot, in join order — never re-sorted by the numbers', () => {
-    // Hotdog is unclaimed: an open seat on the Game page, not a seat here.
+    // Hotdog is unassigned: an open seat on the Game page, not a seat here.
     expect(seats.map((c) => c.name)).toEqual(['Bonesaw', 'Pickle', 'Judge', 'Driftwood'])
   })
 

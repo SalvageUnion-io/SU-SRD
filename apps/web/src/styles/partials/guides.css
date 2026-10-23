@@ -514,6 +514,15 @@
   .su-pattern-rows:has(:target) .su-pattern-rows__more {
     display: none;
   }
+
+  /* A chassis page's one "Show all" sits under its Homebrew, counting both, so
+     the book's own steps aside; the Homebrew rows past the first two wait for
+     it too (HomebrewIsland). */
+  :root:has([id='homebrew-patterns']) .su-pattern-rows .su-pattern-rows__more,
+  :root:has([id='patterns']:target, [id='homebrew-patterns']:target) .su-pattern-rows__more,
+  :root:not(:has([id='patterns']:target, [id='homebrew-patterns']:target)) .su-homebrew__more {
+    display: none;
+  }
 }
 
 @media (width >= 40rem) {

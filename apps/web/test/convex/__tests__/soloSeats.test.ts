@@ -535,7 +535,7 @@ describe('presence heartbeat', () => {
     expect(await organizer.as.query(api.seats.presence, { gameId })).toEqual([70_000])
 
     const stranger = await makeUser(t, 'Stranger')
-    await expect(stranger.as.query(api.seats.presence, { gameId })).rejects.toThrow(/not a member/i)
+    expect(await stranger.as.query(api.seats.presence, { gameId })).toEqual([])
   })
 
   test('a beat inside the write interval writes nothing', async () => {
