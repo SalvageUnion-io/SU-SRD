@@ -79,6 +79,16 @@ export const PatternSchema = z
             'Homebrew Pattern: community-designed, not printed in a Leyline Press book. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on every "Mech Monday" pattern.'
           )
           .optional(),
+        author: NameSchema.describe(
+          'Who designed this Homebrew Pattern, as its origin post credits them. Only on `homebrew` patterns.'
+        ).optional(),
+        origin: z
+          .string()
+          .url()
+          .describe(
+            'The post this Homebrew Pattern was published in (e.g. its Mech Monday blog post). Only on `homebrew` patterns.'
+          )
+          .optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),
         page: PositiveIntegerSchema.describe('Page number in the source book').optional(),
         booklet: z

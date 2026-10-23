@@ -89,8 +89,11 @@ export { nameToSlug } from './nameToSlug'
 export { displayTitle } from './naming'
 export { SRD_SITE_URL } from './origin'
 export {
+  getBookPatterns,
+  getHomebrewPatterns,
   getPatterns,
   isBioTitanPattern,
+  isHomebrewPattern,
   normalizePatternName,
   visiblePatterns,
 } from './patterns'
