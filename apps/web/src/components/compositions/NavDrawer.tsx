@@ -1,16 +1,16 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { Menu } from 'lucide-react'
+import { ExternalLink, Menu } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
-import { srdSchemaPath } from 'salvageunion-reference'
-import { borderWidth, color, iconSize, layer, radius, space } from '../../design/tokens'
+import { color, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { compositionsCopy } from '../../messages/components-compositions'
-import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { CloseButton } from '../atoms/CloseButton'
 import { FOCUS_RING } from '../atoms/interaction'
 import { TRANSITION_COLORS } from '../atoms/transition'
+import type { ContentsChapterProps } from './ContentsChapter'
+import { ContentsChapter } from './ContentsChapter'
 
 /**
  * NavDrawer — the hamburger + slide-in mobile nav drawer under the Union bar's
@@ -18,13 +18,14 @@ import { TRANSITION_COLORS } from '../atoms/transition'
  * hamburger trigger, the shared `.su-backdrop` scrim, and a right-side panel
  * that slides in (`.su-drawer`) and can be swiped back out.
  *
- * Content is fully driven by props: a `brand` lockup, primary `navItems`
- * (rendered as the shared ghost `buttonVariants` buttons; the page you are on is
- * the inverse ink plate, never rust — ruleset §3.1), optional `categories` + `search` slot for the
- * SRD's richer drawer, and an optional `extra` slot for app-owned controls
- * (The app's Games list and sign-in). Router-agnostic: internal items render
- * through the injected `LinkComponent` (defaults to a plain anchor), external
- * ones as `<a target=_blank>`. Every item closes the drawer on tap.
+ * Content is fully driven by props: a `brand` lockup, an optional `search`
+ * slot, an optional `extra` slot for app-owned controls (the app's Games list
+ * and sign-in), the index `categories` (the SRD's chapters, drawn as the home
+ * page's Contents: `ContentsChapter`), then the `navItems`, rows of the same
+ * index. The page you are on is ruled under in ink, never rust (ruleset
+ * §3.1, §3.11). Router-agnostic: internal items render through the injected
+ * `LinkComponent` (defaults to a plain anchor), external ones as
+ * `<a target=_blank>`. Every item closes the drawer on tap.
  *
  * `extra` is a render function, not a node, so its controls can close the
  * drawer too: the drawer owns its open state, and a control that navigates or
@@ -34,7 +35,7 @@ import { TRANSITION_COLORS } from '../atoms/transition'
 export type NavDrawerItem = {
   label: ReactNode
   href: string
-  /** The page you are on: an ink plate and `aria-current="page"`. */
+  /** The page you are on: ruled under in ink, and `aria-current="page"`. */
   active?: boolean
   /** Opens in a new tab via a plain anchor (bypasses LinkComponent). */
   external?: boolean
@@ -42,55 +43,27 @@ export type NavDrawerItem = {
   badge?: ReactNode
 }
 
-type SchemaLink = {
-  id: string
-  displayName: string
-  href?: string
-  /** How many entries the link opens onto, shown at the row's end. */
-  count?: number
-}
-
-/**
- * A section of the drawer's index: an ink section stamp over compact rows
- * (the SRD's chapters with their counts), the same index the SRD's
- * home page prints.
- */
-export type NavDrawerCategory = {
-  label: string
-  schemas: SchemaLink[]
-}
+/** A section of the drawer's index: one chapter of the home page's Contents. */
+export type NavDrawerCategory = Omit<ContentsChapterProps, 'onFollow'>
 
 type NavDrawerProps = {
-  /** Brand lockup shown top-left of the panel (e.g. the two-tone wordmark tag). */
+  /** Brand lockup shown top-left of the panel (the Union bar's mark). */
   brand: ReactNode
-  /** Primary nav links, rendered as buttonVariants buttons. */
+  /** Primary nav links, rows under the index. */
   navItems: NavDrawerItem[]
   /** Optional index sections (the SRD's chapters), rendered above navItems. */
   categories?: NavDrawerCategory[]
   /** Optional search slot (SRD combobox), rendered under the brand row. */
   search?: ReactNode
   /**
-   * Optional app-owned controls above the nav links (The app's Games list and
-   * sign-in), ruled off from them. Handed `close` so a control can dismiss the
-   * drawer when it is used.
+   * Optional app-owned controls above the index (the app's Games list and
+   * sign-in). Handed `close` so a control can dismiss the drawer when it is
+   * used.
    */
   extra?: (close: () => void) => ReactNode
   /** Link component for internal items. Defaults to a plain anchor; the app passes SiteLink. */
   LinkComponent?: ElementType
 }
-
-// The rule between the app's `extra` controls and the nav links — the same
-// faint hairline that divides the SRD's catalog from its links. Hidden by
-// `.su-nav-drawer-extra:empty` when the app's controls render nothing (a
-// signed-in player who is offline has neither Games nor a sign-in to offer), so
-// the drawer never shows a rule under an empty box.
-const EXTRA = {
-  borderBottomColor: color.wkFaint,
-  borderBottomStyle: 'solid',
-  borderBottomWidth: borderWidth.hairline,
-  marginBottom: space[8],
-  paddingBottom: space[16],
-} satisfies CSSProperties
 
 // The full-screen layer the panel sits in, against its right edge.
 const VIEWPORT = {
@@ -122,22 +95,13 @@ const BRAND_ROW = {
   marginBottom: space[16],
 } satisfies CSSProperties
 
+// The blocks under the search, the space between blocks apart (ruleset §4.4).
 const BODY = {
   display: 'flex',
   flex: '1 1 0%',
   flexDirection: 'column',
-  gap: space[8],
+  gap: space[24],
   overflowY: 'auto',
-} satisfies CSSProperties
-
-const NAV = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
-
-// Under the index, the nav links drop to the drawer's foot behind a rule.
-const NAV_UNDER_INDEX = {
-  ...NAV,
-  borderTop: `${borderWidth.hairline} solid ${color.wkFaint}`,
-  marginTop: 'auto',
-  paddingTop: space[16],
 } satisfies CSSProperties
 
 export function NavDrawer({
@@ -182,61 +146,40 @@ export function NavDrawer({
             {search && <div className="su-nav-drawer__search">{search}</div>}
 
             <div style={BODY}>
-              {extra && (
-                <div className="su-nav-drawer-extra" style={EXTRA}>
-                  {extra(close)}
-                </div>
-              )}
+              {extra && <div className="su-nav-drawer-extra">{extra(close)}</div>}
 
-              {/* The index (SRD): a section stamp over compact rows, each with
-                  its count — the home page's chapters, one tap each. */}
+              {/* The index (SRD): the home page's Contents, one tap each. Its
+                  anchors are the drawer's own, so the home page's stay unique. */}
               {categories?.map((cat) => (
-                <section key={cat.label} className="su-nav-drawer__section">
-                  <Badge shape="stamp" as="h2">
-                    {cat.label}
-                  </Badge>
-                  <ul className="su-nav-drawer__rows">
-                    {cat.schemas.map((schema) => (
-                      <li key={schema.id}>
-                        <a
-                          href={schema.href || `${srdSchemaPath(schema.id)}/`}
-                          className={cn('su-nav-drawer__row', FOCUS_RING)}
-                          onClick={close}
-                        >
-                          <span>{schema.displayName}</span>
-                          {schema.count != null && (
-                            <span className="su-nav-drawer__count">{schema.count}</span>
-                          )}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                <ContentsChapter key={cat.id} {...cat} id={`menu-${cat.id}`} onFollow={close} />
               ))}
 
-              {/* Primary nav links */}
-              <div style={categories && categories.length > 0 ? NAV_UNDER_INDEX : NAV}>
+              {/* The site's pages: rows of the same index. */}
+              <ul className="su-contents__rows">
                 {navItems.map((item) => {
                   // External items render a plain anchor in a new tab; internal
                   // ones route through LinkComponent. One element either way.
+                  const Link = item.external ? 'a' : LinkComponent
                   return (
-                    <Button
-                      key={item.href}
-                      href={item.href}
-                      linkAs={item.external ? 'a' : LinkComponent}
-                      variant="ghost"
-                      className={cn('su-nav-drawer__link', item.active && 'su-btn--here')}
-                      onClick={close}
-                      {...(item.external
-                        ? { target: '_blank', rel: 'noopener noreferrer' }
-                        : { 'aria-current': item.active ? ('page' as const) : undefined })}
-                    >
-                      {item.label}
-                      {item.badge}
-                    </Button>
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={cn('su-contents__row su-nav-drawer__link', FOCUS_RING)}
+                        onClick={close}
+                        {...(item.external
+                          ? { target: '_blank', rel: 'noopener noreferrer' }
+                          : { 'aria-current': item.active ? ('page' as const) : undefined })}
+                      >
+                        <span>{item.label}</span>
+                        {item.badge}
+                        {item.external && (
+                          <ExternalLink size={iconSize.compact} aria-hidden="true" />
+                        )}
+                      </Link>
+                    </li>
                   )
                 })}
-              </div>
+              </ul>
             </div>
           </Drawer.Popup>
         </Drawer.Viewport>

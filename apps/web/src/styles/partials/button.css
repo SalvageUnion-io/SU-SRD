@@ -142,19 +142,6 @@
 }
 
 /*
- * "You are here" on a ghost button (NavDrawer's current page): the inverse
- * plate — ink with paper text — never the rust primary, because the current
- * page is a state, not an action (ruleset §3.1). Two classes, so it outranks
- * the plain ghost resting and hover colours without leaning on source order.
- */
-.su-btn--ghost.su-btn--here,
-.su-btn--ghost.su-btn--here:hover:not(:disabled) {
-  background-color: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-/*
  * INSTRUMENT × ghost — an ink hairline on the cream instrument chassis, going to
  * a paper fill on hover. The one variant Play's canvas uses.
  *

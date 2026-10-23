@@ -81,12 +81,6 @@
   width: 100% !important;
 }
 
-/* A primary nav link spans the drawer. A class, because the link is a
-   `buttonVariants` element rendered through the app's own LinkComponent. */
-.su-nav-drawer__link {
-  width: 100%;
-}
-
 /* ── compositions/AbilityTrack ──
  * An ability tree on the book's chain (Core Book 2.0a p.33; ruleset, "Where
  * the screen departs from print"): each Compact joined to the next by a short,

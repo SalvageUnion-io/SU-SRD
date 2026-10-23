@@ -1,6 +1,6 @@
 /*
  * The package stylesheet, part 6 of 21: the Union bar, breadcrumbs, the page
- * shell, the chapter band, the nav drawer's index and the foot band.
+ * shell, the chapter band and the foot band.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -170,14 +170,22 @@
 }
 
 /* Below `sm` "Reference" is "Ref" (`data-short`; its `aria-label` keeps
-   its name). */
+   its name), centred in a square of the bar's control height. The tracking
+   trails its last letter, so the word takes it back to sit centred. */
 @media not (width >= 40rem) {
+  .su-union-bar__tab[data-short] {
+    justify-content: center;
+    padding-inline: 0;
+    width: var(--su-union-bar-control);
+  }
+
   .su-union-bar__tab[data-short] .su-union-bar__tab-long {
     display: none;
   }
 
   .su-union-bar__tab[data-short]::after {
     content: attr(data-short);
+    margin-inline-end: calc(-1 * var(--tracking-caps-snug));
   }
 }
 
@@ -1174,47 +1182,6 @@
 
 :root:has(.su-crumbs--band) :is(.su-crumbs--bar, .su-crumbs--row) {
   display: none;
-}
-
-/* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════
- *
- * A section stamp over compact rows: each row the full width, the
- * name at its start and the count at its end, 44px tall — the drawer is a
- * phone's nav, so its rows sit on the touch floor at every pointer.
- */
-.su-nav-drawer__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  margin-bottom: var(--space-12);
-}
-
-.su-nav-drawer__rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.su-nav-drawer__rows > li + li {
-  border-top: var(--bw-hairline) solid var(--color-ink-15);
-}
-
-.su-nav-drawer__row {
-  align-items: center;
-  color: var(--color-ink);
-  display: flex;
-  font-size: var(--text-base);
-  gap: var(--space-12);
-  justify-content: space-between;
-  min-height: var(--size-full);
-  text-decoration: none;
-}
-
-.su-nav-drawer__count {
-  color: var(--color-ink-2);
-  font-family: var(--font-cond);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-semibold);
 }
 
 /* ══ The foot band (`components/atoms/ChapterFoot.tsx`) ════════════════════

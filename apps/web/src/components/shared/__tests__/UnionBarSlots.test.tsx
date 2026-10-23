@@ -143,11 +143,10 @@ describe('UnionBarSlots', () => {
       />
     )
     const { drawer, names } = drawerLinks()
-    expect(drawer.getByRole('link', { name: 'Salvage Union SRD' }).getAttribute('href')).toBe('/')
+    expect(drawer.getByRole('link', { name: 'Salvage Union' }).getAttribute('href')).toBe('/')
     const hangar = drawer.getByRole('link', { name: 'Training Bay' })
-    // The page you are on is an ink plate, never the rust primary.
+    // The page you are on is marked current (ruled under in ink, never rust).
     expect(hangar.getAttribute('aria-current')).toBe('page')
-    expect(hangar.className).toContain('su-btn--here')
     expect(names).toEqual([
       'Training Bay',
       'Patterns',
@@ -163,7 +162,7 @@ describe('UnionBarSlots', () => {
       '_blank'
     )
     // The book's chapter index, as on a reference page.
-    expect(drawer.getByRole('heading', { name: 'Mech Workshop' })).toBeTruthy()
+    expect(drawer.getByRole('heading', { name: /^Mech Workshop/ })).toBeTruthy()
     fireEvent.click(drawer.getByRole('button', { name: 'Sign in' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
