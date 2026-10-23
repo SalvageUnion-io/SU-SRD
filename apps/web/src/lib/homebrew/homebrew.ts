@@ -11,9 +11,16 @@
 import { publicPath } from 'game-domain/entityKinds'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
-import type { RefChassis } from 'salvageunion-reference'
+import type { RefChassis, RefObjectPattern } from 'salvageunion-reference'
+import {
+  getEntitySlug,
+  getHomebrewPatterns,
+  nameToSlug,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { appPath } from '../appBase'
-import { patternChassis } from '../patterns/patterns'
+import { patternHref } from '../entityHref'
+import { asReferencePattern, patternChassis } from '../patterns/patterns'
 import type { HomebrewRow } from './endpoint'
 import { homebrewPatternsUrl } from './endpoint'
 
@@ -43,6 +50,58 @@ export function homebrewItem(row: HomebrewRow): HomebrewItem | null {
 /** Where a homebrew pattern opens: its public page in the app (ADR-032). */
 export function homebrewHref(item: HomebrewItem): string {
   return appPath(publicPath('pattern', item.appId, item.pattern.name))
+}
+
+/**
+ * One row of a Homebrew list, whoever made it: a player's shared pattern, or a
+ * built-in one from the reference (a Mech Monday design), credited to its
+ * author and opening its own SRD page, which links the post it came from.
+ */
+export type HomebrewEntry = {
+  key: string
+  madeBy: string
+  pattern: RefObjectPattern
+  chassis: RefChassis
+  href: string
+  /** A built-in one's credit: where it was published (`Mech Monday`), beside its stamp. */
+  source?: string
+}
+
+/** A player's shared pattern as a list row. */
+export function playerHomebrewEntry(item: HomebrewItem): HomebrewEntry {
+  return {
+    key: item.appId,
+    madeBy: item.madeBy,
+    pattern: asReferencePattern(item.pattern),
+    chassis: item.chassis,
+    href: homebrewHref(item),
+  }
+}
+
+/**
+ * The reference's built-in Homebrew Patterns (`homebrew` in the data), one
+ * chassis's or every chassis's, in the data's order. Needs the chassis data
+ * loaded.
+ */
+export function builtInHomebrewEntries(chassisRef?: string): HomebrewEntry[] {
+  const hosts = SalvageUnionReference.findAllIn(
+    'chassis',
+    (chassis) => chassisRef === undefined || getEntitySlug(chassis) === chassisRef
+  )
+  return hosts.flatMap((chassis) => {
+    const slug = getEntitySlug(chassis)
+    return getHomebrewPatterns(chassis).map((pattern) => {
+      const ref = pattern as RefObjectPattern
+      return {
+        key: `${slug}/${nameToSlug(ref.name)}`,
+        madeBy: ref.author ?? '',
+        pattern: ref,
+        chassis,
+        href: patternHref('chassis', slug, nameToSlug(ref.name)),
+        ...(ref.source ? { source: ref.source } : {}),
+      }
+    })
+  })
 }
 
 /**

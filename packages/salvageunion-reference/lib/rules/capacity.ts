@@ -26,6 +26,7 @@ export type AsPrintedOverflow = {
 }
 
 const MM_GOLIATH = 'Mech Monday Goliath Patterns'
+const MM_GATECRASHER = 'Mech Monday Gatecrasher Patterns'
 const MM_BOBCAT = 'Mech Monday Bobcat Patterns'
 const SS_PARTS = 'Salvage Union Starter Set, Parts Catalogue'
 const WM = 'Salvage Union Workshop Manual'
@@ -45,6 +46,9 @@ const WM = 'Salvage Union Workshop Manual'
  * cause: the Parts Catalogue prints the same costs as the Workshop Manual
  * (30mm Autocannon 5 and Riveting Gun 3 on p.53, Blue Mining Laser 7 on p.54,
  * Cargo Pod 1 on p.48). The data follows the Starter Set.
+ *
+ * The Gatecrasher's are the same story in Module Slots: the Starter Set prints
+ * 3 (Parts Catalogue p.42), and the Mech Monday patterns carry 4 (K.A.M., 5).
  *
  * The Cerberus is modelled with its three heads (Rainmaker p.72–73), and TAC-OS
  * places each item on the head the book does (p.75). Kyrios and Phren fit;
@@ -97,6 +101,13 @@ export const AS_PRINTED_OVERFLOW: readonly AsPrintedOverflow[] = [
   { chassis: 'Bobcat', pattern: 'Magic Bus', cite: `${MM_BOBCAT} p.5` },
   { chassis: 'Bobcat', pattern: 'Nyaa~', cite: `${MM_BOBCAT} p.6` },
   { chassis: 'Bobcat', pattern: 'Osiris', cite: `${MM_BOBCAT} p.7` },
+  { chassis: 'Gatecrasher', pattern: 'Cornerstone', cite: `${MM_GATECRASHER} p.1` },
+  { chassis: 'Gatecrasher', pattern: 'Crash Cart', cite: `${MM_GATECRASHER} p.2` },
+  { chassis: 'Gatecrasher', pattern: 'K.A.M.', cite: `${MM_GATECRASHER} p.3` },
+  { chassis: 'Gatecrasher', pattern: 'One-Punch', cite: `${MM_GATECRASHER} p.4` },
+  { chassis: 'Gatecrasher', pattern: 'Pioneer', cite: `${MM_GATECRASHER} p.5` },
+  { chassis: 'Gatecrasher', pattern: 'Tsunami', cite: `${MM_GATECRASHER} p.7` },
+  { chassis: 'Gatecrasher', pattern: 'The Quaestor', cite: `${MM_GATECRASHER} p.8` },
 ]
 
 /**

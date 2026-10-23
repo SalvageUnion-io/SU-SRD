@@ -9,23 +9,25 @@
  *   is pressed a phone shows the first two of them all.
  * - **On `/homebrew/`** (no `chassisRef`): every one, newest share first.
  *
- * Each is a Compact with the HOMEBREW hatch, credited "By" its maker, opening
- * its own page in the app (where it can be copied, reported or hidden). The
- * rows come from the Worker (`lib/homebrew/homebrew.ts`); nothing is fetched
- * until the switch is on.
+ * Each is a Compact with the HOMEBREW hatch, credited "By" its maker. The
+ * reference's built-in ones (Mech Monday designs) come first and open their
+ * SRD page, which links the post they came from; the players' follow, opening
+ * their own page in the app (where they can be copied, reported or hidden).
+ * The players' rows come from the Worker (`lib/homebrew/homebrew.ts`); nothing
+ * is fetched until the switch is on.
  */
 
 import { useEffect, useState } from 'react'
 import type { HomebrewRow } from '../../lib/homebrew/endpoint'
-import type { HomebrewItem } from '../../lib/homebrew/homebrew'
+import type { HomebrewEntry } from '../../lib/homebrew/homebrew'
 import {
+  builtInHomebrewEntries,
   fetchHomebrewPatterns,
-  homebrewHref,
   homebrewItems,
+  playerHomebrewEntry,
   readShowHomebrew,
   writeShowHomebrew,
 } from '../../lib/homebrew/homebrew'
-import { asReferencePattern } from '../../lib/patterns/patterns'
 import { islandsCopy } from '../../messages/components-islands'
 import { Toggle } from '../atoms/Toggle'
 import { Grid } from '../containers/Grid'
@@ -34,6 +36,7 @@ import { SlabSection } from '../containers/SlabSection'
 import { Entity } from '../entity/Entity'
 import { GameDataGate } from '../GameDataGate'
 import { Stat, Text } from '../index'
+import { HomebrewCreditChip } from '../referenceEntity/card/HomebrewCreditChip'
 import { ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
 import { PATTERNS_ON_A_PHONE } from '../referenceEntity/card/patternsOnAPhone'
 import { quotePatternName } from '../referenceEntity/pattern/quotePatternName'
@@ -69,16 +72,24 @@ function useHomebrew(on: boolean, chassisRef: string | undefined): Load {
   return load
 }
 
-function HomebrewCompact({ item }: { item: HomebrewItem }) {
+function HomebrewCompact({ entry }: { entry: HomebrewEntry }) {
   return (
     <Entity
       size="compact"
-      entity={item.chassis}
-      pattern={asReferencePattern(item.pattern)}
-      instance={{ title: quotePatternName(item.pattern.name), userMade: true }}
-      mode={{ kind: 'link', href: homebrewHref(item) }}
+      entity={entry.chassis}
+      pattern={entry.pattern}
+      instance={{ title: quotePatternName(entry.pattern.name), userMade: true }}
+      mode={{ kind: 'link', href: entry.href }}
       labels={
-        <Stat key="by" label={islandsCopy('homebrewBy')} value={item.madeBy} size="compact" />
+        entry.source ? (
+          <HomebrewCreditChip
+            key="credit"
+            credit={{ source: entry.source, author: entry.madeBy }}
+            size="compact"
+          />
+        ) : (
+          <Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="compact" />
+        )
       }
     />
   )
@@ -86,48 +97,65 @@ function HomebrewCompact({ item }: { item: HomebrewItem }) {
 
 function HomebrewList({
   load,
+  chassisRef,
   empty,
   shown = Number.POSITIVE_INFINITY,
 }: {
   load: Load
+  /** One chassis's, or every chassis's when absent. */
+  chassisRef?: string
   empty: string
   /** How many a phone shows before "Show all"; the rest wait for it. */
   shown?: number
 }) {
-  if (load.state !== 'ready') {
-    if (load.state === 'idle') return null
-    return (
-      <Text variant="hint">
-        {load.state === 'loading'
-          ? loadingCopy(islandsCopy('homebrewNoun'))
-          : islandsCopy('homebrewFailed')}
-      </Text>
-    )
-  }
+  if (load.state === 'idle') return null
   return (
-    <GameDataGate schemas={[...SCHEMAS]} fallback={null}>
-      <HomebrewGrid rows={load.rows} empty={empty} shown={shown} />
-    </GameDataGate>
+    <>
+      <GameDataGate schemas={[...SCHEMAS]} fallback={null}>
+        <HomebrewGrid
+          rows={load.state === 'ready' ? load.rows : []}
+          chassisRef={chassisRef}
+          empty={load.state === 'ready' ? empty : null}
+          shown={shown}
+        />
+      </GameDataGate>
+      {load.state !== 'ready' && (
+        <Text variant="hint">
+          {load.state === 'loading'
+            ? loadingCopy(islandsCopy('homebrewNoun'))
+            : islandsCopy('homebrewFailed')}
+        </Text>
+      )}
+    </>
   )
 }
 
-/** The rows that draw, once the reference data they resolve against is loaded. */
+/**
+ * The rows that draw, once the reference data they resolve against is loaded:
+ * the built-in ones, then the players'.
+ */
 function HomebrewGrid({
   rows,
+  chassisRef,
   empty,
   shown,
 }: {
   rows: HomebrewRow[]
-  empty: string
+  chassisRef: string | undefined
+  /** Said when there are none; null while the players' are still coming. */
+  empty: string | null
   shown: number
 }) {
-  const items = homebrewItems(rows)
-  if (items.length === 0) return <Text variant="hint">{empty}</Text>
+  const entries = [
+    ...builtInHomebrewEntries(chassisRef),
+    ...homebrewItems(rows).map(playerHomebrewEntry),
+  ]
+  if (entries.length === 0) return empty === null ? null : <Text variant="hint">{empty}</Text>
   return (
     <Grid min={COLUMN_MIN} gap={12}>
-      {items.map((item, i) => (
-        <div key={item.appId} className={i < shown ? undefined : 'su-homebrew__more'}>
-          <HomebrewCompact item={item} />
+      {entries.map((entry, i) => (
+        <div key={entry.key} className={i < shown ? undefined : 'su-homebrew__more'}>
+          <HomebrewCompact entry={entry} />
         </div>
       ))}
     </Grid>
@@ -138,16 +166,18 @@ function HomebrewGrid({
 function ChassisHomebrew({
   chassisRef,
   bookPatterns,
+  builtInPatterns,
 }: {
   chassisRef: string
   bookPatterns: number
+  builtInPatterns: number
 }) {
   const [on, setOn] = useState(false)
   // After mount: the server's render has no storage to read.
   useEffect(() => setOn(readShowHomebrew()), [])
   const load = useHomebrew(on, chassisRef)
   // Counted as served: resolving them waits on the reference data (the gate below).
-  const homebrew = on && load.state === 'ready' ? load.rows.length : 0
+  const homebrew = on ? builtInPatterns + (load.state === 'ready' ? load.rows.length : 0) : 0
   return (
     <>
       <SlabSection
@@ -169,6 +199,7 @@ function ChassisHomebrew({
         {on ? (
           <HomebrewList
             load={load}
+            chassisRef={chassisRef}
             empty={islandsCopy('homebrewNoneOnChassis')}
             shown={Math.max(0, PATTERNS_ON_A_PHONE - bookPatterns)}
           />
@@ -187,10 +218,13 @@ function ChassisHomebrew({
 export function HomebrewIsland({
   chassisRef,
   bookPatterns = 0,
+  builtInPatterns = 0,
 }: {
   chassisRef?: string
   /** How many patterns the book prints for the chassis, listed above. */
   bookPatterns?: number
+  /** How many built-in Homebrew Patterns the reference holds for the chassis. */
+  builtInPatterns?: number
 }) {
   const all = useHomebrew(chassisRef === undefined, undefined)
   return (
@@ -198,7 +232,11 @@ export function HomebrewIsland({
       {chassisRef === undefined ? (
         <HomebrewList load={all} empty={islandsCopy('homebrewNone')} />
       ) : (
-        <ChassisHomebrew chassisRef={chassisRef} bookPatterns={bookPatterns} />
+        <ChassisHomebrew
+          chassisRef={chassisRef}
+          bookPatterns={bookPatterns}
+          builtInPatterns={builtInPatterns}
+        />
       )}
     </IslandErrorBoundary>
   )

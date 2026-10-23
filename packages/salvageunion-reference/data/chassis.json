@@ -9876,6 +9876,354 @@
             "value": "A battlefield transportation build, designed by the TDA to safely deliver troops into the breach of a siege and then provide fire support."
           }
         ]
+      },
+      {
+        "name": "Cornerstone",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "Murkdice",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Articulated Rigging Arm",
+            "count": 2
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Mining Rig"
+          },
+          {
+            "name": "Composite Armour"
+          },
+          {
+            "name": "Floodlights"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Navigation Module"
+          },
+          {
+            "name": "Deep Survey Scanner"
+          },
+          {
+            "name": "Metal Detector"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Outfitted for optimal salvage and mining site identification, plus harvesting. Climbs or drills to wherever it needs to be. Floodlights and armour aid in sub-surface exploration. If it gets into trouble those rigging arms rip and tear."
+          }
+        ]
+      },
+      {
+        "name": "Crash Cart",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "Laughing Penguin",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Spider Locomotion System"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Armour Plating"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Chaff Launcher"
+          },
+          {
+            "name": "Fabrication Bay"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Auto-Repair Droid"
+          },
+          {
+            "name": "Damage Assessor"
+          },
+          {
+            "name": "Comms Module"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "A Mech pattern developed during an extended siege on a Sakura corporation facility, the Crash Cart was designed to break through roadblocks and obstacles to reach disabled Mechs and get them back into the fight."
+          }
+        ]
+      },
+      {
+        "name": "K.A.M.",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "Laughing Penguin",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Red Laser"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Loudspeakers"
+          },
+          {
+            "name": "Rigging Arm"
+          },
+          {
+            "name": "Dozer Blades"
+          },
+          {
+            "name": "High Pressure Hose"
+          },
+          {
+            "name": "Module Switch"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Dash Protocols"
+          },
+          {
+            "name": "He₂ Coolant Flush"
+          },
+          {
+            "name": "Mech Scrambler"
+          },
+          {
+            "name": "Reactor Overload"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "With a mighty \"OH YEEEAH!!!\" this bright red Mech bursts onto the scene through walls and debris to bring refreshment to allies in need. Even enemy Mechs go crazy with thirst when he arrives! All you need to do is call out for him: \"Hey, Kool Aid Man!\""
+          }
+        ]
+      },
+      {
+        "name": "One-Punch",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "CosmicX",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Ejection System"
+          },
+          {
+            "name": "Heat Sink",
+            "count": 5
+          },
+          {
+            "name": "Dozer Blades"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "He₂ Coolant Flush"
+          },
+          {
+            "name": "Reactor Transference"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "When rogue Opus scientists acquired this chassis, they didn't stop to think if they should, only if they could. By pushing the heat capacity of this Mech to the limit, they produced a siege ram that could punch a hole in all but the largest Mechs."
+          }
+        ]
+      },
+      {
+        "name": "Pioneer",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "ShyGuy",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Spider Locomotion System"
+          },
+          {
+            "name": "Electro-Magnetic Shield Projector"
+          },
+          {
+            "name": "Personnel Transport Pod",
+            "count": 2
+          },
+          {
+            "name": "Composite Armour"
+          },
+          {
+            "name": ".50 Cal Machine Gun"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Navigation Module"
+          },
+          {
+            "name": "Coolant Flow Manifold"
+          },
+          {
+            "name": "Reactor Safety Protocols"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Originally developed as a 'lifeboat' of sorts, the Pioneer pattern is intended to serve as an impromptu lifeboat in an emergency, with the siege ram useful for forging a path forward and putting as much distance between itself and threats."
+          }
+        ]
+      },
+      {
+        "name": "The Quaestor",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "Titan",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Stabilising Locomotion System"
+          },
+          {
+            "name": "Chainsaw Arm",
+            "count": 3
+          },
+          {
+            "name": "Composite Armour"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Energy Cell"
+          },
+          {
+            "name": "He₂ Coolant Flush"
+          },
+          {
+            "name": "MRSI Co-Ordinator"
+          },
+          {
+            "name": "Weapon Link"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Ferrous Range Waster lore has it that those who do not pay their tributes to their corporate masters shall be paid a visit by the wandering Quaestor and his lance of Retributors."
+          }
+        ]
+      },
+      {
+        "name": "Retiarius Terebro",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "blk_ivy",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Heavy Duty Mining Rig"
+          },
+          {
+            "name": "Chainsaw Arm"
+          },
+          {
+            "name": "Nanofibre Net Launcher"
+          },
+          {
+            "name": "Locomotion System"
+          },
+          {
+            "name": "Escape Hatch"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Coolant Flow Manifold"
+          },
+          {
+            "name": "Comms Module"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Based on the simple four-legged \"spider\" style chassis, the Terebro is specialized in capturing and carrying large loads of raw materials, and pneumatically breaking down rocks via a siege mining rig. Equipped with heavy coolant rigging and a huge net, the Terebro can capture 'resources' and instantly decimate them before chilling their systems. Specialized, and pathetic at range, but exceptional for CQB and resource management."
+          }
+        ]
+      },
+      {
+        "name": "Tsunami",
+        "homebrew": true,
+        "source": "Mech Monday",
+        "author": "DemonDownload",
+        "origin": "https://leyline.press/blogs/leyline-press-blog/mech-monday-community-designed-gatecrasher-mechs",
+        "systems": [
+          {
+            "name": "Snub-Nosed Blue Laser"
+          },
+          {
+            "name": "Chaff Launcher"
+          },
+          {
+            "name": "Escape Hatch"
+          },
+          {
+            "name": "Armour Plating",
+            "count": 4
+          },
+          {
+            "name": "Locomotion System"
+          }
+        ],
+        "modules": [
+          {
+            "name": "Coolant Flow Manifold"
+          },
+          {
+            "name": "Comms Module"
+          },
+          {
+            "name": "Firewall"
+          },
+          {
+            "name": "Dash Protocols"
+          }
+        ],
+        "content": [
+          {
+            "type": "paragraph",
+            "value": "Originally designed as an anti-Crawler pattern during early-years Union in-fighting, but Union pilots have since discovered that it's even more effective against corporate arcos."
+          }
+        ]
       }
     ],
     "structurePoints": 32,

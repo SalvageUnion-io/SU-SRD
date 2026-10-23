@@ -10,7 +10,7 @@
  */
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
-import { getPatterns, truncate } from 'salvageunion-reference'
+import { getBookPatterns, getHomebrewPatterns, truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
@@ -152,9 +152,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             name="HomebrewIsland"
             client="visible"
             ssr
-            props={{ chassisRef: itemId, bookPatterns: getPatterns(item)?.length ?? 0 }}
+            props={{
+              chassisRef: itemId,
+              bookPatterns: getBookPatterns(item)?.length ?? 0,
+              builtInPatterns: getHomebrewPatterns(item).length,
+            }}
           >
-            <HomebrewIsland chassisRef={itemId} bookPatterns={getPatterns(item)?.length ?? 0} />
+            <HomebrewIsland
+              chassisRef={itemId}
+              bookPatterns={getBookPatterns(item)?.length ?? 0}
+              builtInPatterns={getHomebrewPatterns(item).length}
+            />
           </Island>
         )}
       </EntityPageFrame>
