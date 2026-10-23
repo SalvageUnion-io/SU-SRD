@@ -7,7 +7,7 @@ Guidance for every coding agent here. Instructions only: history is in git.
 - **Find a doc:** [`docs/README.md`](docs/README.md) maps a task to its doc. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) is what is true now (Areas by slug, `#convex`) and the decisions (grep `ADR-NNN`); §-cited ADRs keep their text in [`docs/adr/`](docs/adr/).
 - **Before rules work:** [ADR-021](docs/adr/021-cantina-surface-taxonomy.md) (which surface enforces a rule) and [ADR-007](docs/adr/007-automation-boundary.md) (never destroy without the player). Accounts and Games: [ADR-030](docs/adr/030-accounts-games-server-of-record.md).
 - **Path rules:** the [`.claude/rules/`](.claude/rules/) whose `paths:` match your files, and the workspace's `CLAUDE.md`.
-- **Rules text:** gitignored here; the private `SalvageUnion-io/su-rules` is the source. Locally `bun run rules:extract`; in the cloud attach `su-rules` as a second repo. Then `bun run rules:find <term>`.
+- **Rules text:** gitignored here; the private `SalvageUnion-io/su-rules` is the source (its AGENTS.md: use, PDFs). In the cloud attach it as a second repo. Then `bun run rules:find <term>`.
 - **Artwork** never lives in git: `apps/su-assets/` serves it from R2.
 
 ## Critical Rules

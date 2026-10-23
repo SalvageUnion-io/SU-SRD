@@ -11,172 +11,163 @@ import type { NavDrawerCategory } from '../components/index'
 
 export const NAV_CATALOG: readonly NavDrawerCategory[] = [
   {
-    "label": "Pilot Bay",
-    "schemas": [
+    "id": "pilot-bay",
+    "title": "Pilot Bay",
+    "tone": "pilot",
+    "rows": [
       {
-        "id": "classes",
-        "displayName": "Classes",
+        "label": "Classes",
         "href": "/classes/",
         "count": 11
       },
       {
-        "id": "abilities",
-        "displayName": "Abilities",
+        "label": "Abilities",
         "href": "/abilities/",
         "count": 103
       },
       {
-        "id": "equipment",
-        "displayName": "Equipment",
+        "label": "Equipment",
         "href": "/equipment/",
         "count": 82
       }
-    ]
+    ],
+    "total": 196
   },
   {
-    "label": "Mech Workshop",
-    "schemas": [
+    "id": "mech-workshop",
+    "title": "Mech Workshop",
+    "tone": "mech",
+    "rows": [
       {
-        "id": "chassis",
-        "displayName": "Chassis",
+        "label": "Chassis",
         "href": "/chassis/",
         "count": 51
       },
       {
-        "id": "systems",
-        "displayName": "Systems",
+        "label": "Systems",
         "href": "/systems/",
         "count": 126
       },
       {
-        "id": "modules",
-        "displayName": "Modules",
+        "label": "Modules",
         "href": "/modules/",
         "count": 84
       }
-    ]
+    ],
+    "total": 261
   },
   {
-    "label": "Union Crawler",
-    "schemas": [
+    "id": "union-crawler",
+    "title": "Union Crawler",
+    "tone": "crawler",
+    "rows": [
       {
-        "id": "crawlers",
-        "displayName": "Crawlers",
+        "label": "Crawlers",
         "href": "/crawlers/",
         "count": 5
       },
       {
-        "id": "crawler-bays",
-        "displayName": "Crawler Bays",
+        "label": "Crawler Bays",
         "href": "/crawler-bays/",
         "count": 14
       },
       {
-        "id": "crawler-tech-levels",
-        "displayName": "Crawler Tech Levels",
+        "label": "Crawler Tech Levels",
         "href": "/crawler-tech-levels/",
         "count": 6
       }
-    ]
+    ],
+    "total": 25
   },
   {
-    "label": "Denizens of the Wasteland",
-    "schemas": [
+    "id": "denizens",
+    "title": "Denizens of the Wasteland",
+    "tone": "adversary",
+    "rows": [
       {
-        "id": "bio-titans",
-        "displayName": "Bio-Titans",
+        "label": "Bio-Titans",
         "href": "/bio-titans/",
         "count": 11
       },
       {
-        "id": "creatures",
-        "displayName": "Creatures",
+        "label": "Creatures",
         "href": "/creatures/",
         "count": 13
       },
       {
-        "id": "drones",
-        "displayName": "Drones",
+        "label": "Drones",
         "href": "/drones/",
         "count": 14
       },
       {
-        "id": "factions",
-        "displayName": "Factions",
+        "label": "Factions",
         "href": "/factions/",
         "count": 10
       },
       {
-        "id": "meld",
-        "displayName": "Meld",
+        "label": "Meld",
         "href": "/meld/",
         "count": 5
       },
       {
-        "id": "npcs",
-        "displayName": "NPCs",
+        "label": "NPCs",
         "href": "/npcs/",
         "count": 19
       },
       {
-        "id": "squads",
-        "displayName": "Squads",
+        "label": "Squads",
         "href": "/squads/",
         "count": 23
       },
       {
-        "id": "vehicles",
-        "displayName": "Vehicles",
+        "label": "Vehicles",
         "href": "/vehicles/",
         "count": 11
       }
-    ]
+    ],
+    "total": 106
   },
   {
-    "label": "Rules & Reference",
-    "schemas": [
+    "id": "rules-reference",
+    "title": "Rules & Reference",
+    "tone": "rules",
+    "rows": [
       {
-        "id": "guides",
-        "displayName": "Guides",
+        "label": "Guides",
         "href": "/guides/",
         "count": 15
       },
       {
-        "id": "roll-tables",
-        "displayName": "Roll Tables",
+        "label": "Roll Tables",
         "href": "/roll-tables/",
         "count": 50
       },
       {
-        "id": "keywords",
-        "displayName": "Keywords",
+        "label": "Keywords",
         "href": "/keywords/",
         "count": 82
       },
       {
-        "id": "traits",
-        "displayName": "Traits",
+        "label": "Traits",
         "href": "/traits/",
         "count": 48
       },
       {
-        "id": "distances",
-        "displayName": "Distances",
+        "label": "Distances",
         "href": "/distances/",
         "count": 4
       },
       {
-        "id": "sources",
-        "displayName": "Sources",
+        "label": "Sources",
         "href": "/sources/",
         "count": 10
       },
       {
-        "id": "tech-levels",
-        "displayName": "Tech Levels",
+        "label": "Tech Levels",
         "href": "/tech-levels/",
         "count": 6
       }
-    ]
+    ],
+    "total": 215
   }
 ] as const

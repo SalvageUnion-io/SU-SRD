@@ -212,6 +212,8 @@
   font-weight: var(--font-weight-bold);
   gap: var(--space-12);
   justify-content: space-between;
+  /* Untracked in the app too, over its headings' caps tracking (`app.css`). */
+  letter-spacing: normal;
   line-height: 1.1;
   margin: 0;
   padding: var(--space-6) 0;
@@ -261,4 +263,20 @@
   .su-contents__row {
     min-height: var(--size-full);
   }
+}
+
+/* The Contents in the Union bar's phone drawer (`compositions/NavDrawer.tsx`):
+   the chapters, then the site's pages as rows of the same index. The drawer
+   is a phone's nav, so its rows sit on the touch floor at every pointer. The
+   page you are on is ruled under in ink, as the bar's nav link is (ruleset
+   §3.11), never rust (§3.1). */
+.su-nav-drawer__panel .su-contents__row {
+  min-height: var(--size-full);
+}
+
+.su-nav-drawer__link[aria-current='page'] {
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-pill);
+  text-underline-offset: 3px;
 }

@@ -141,12 +141,14 @@ const GLYPH_LINE = /^\s*(\d{1,3}|(?![AI]$)[A-Z]{1,3}|T\d|[×x] _)\s*$/
 
 /**
  * A book's extract split at its `<!-- page N -->` markers: page number to
- * text. `dropGlyphs` removes layout-glyph lines, a PDF-side clean-up for
+ * text. A text with no marker (a transcribed errata list) is one page, page 1. `dropGlyphs` removes layout-glyph lines, a PDF-side clean-up for
  * reading prose; a stat block's digits are such lines, so keep them to read
  * one.
  */
 export function readPages(path: string, { dropGlyphs = false } = {}): Map<number, string> {
-  const parts = readFileSync(path, 'utf8').split(/<!-- page (\d+) -->/)
+  const raw = readFileSync(path, 'utf8')
+  const parts = raw.split(/<!-- page (\d+) -->/)
+  if (parts.length === 1) parts.push('1', raw)
   const pages = new Map<number, string>()
   for (let i = 1; i < parts.length; i += 2) {
     const text = parts[i + 1] ?? ''

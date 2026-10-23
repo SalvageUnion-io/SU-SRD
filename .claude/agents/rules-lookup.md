@@ -16,8 +16,8 @@ hit, `Book p.N: …snippet…`, with the page already resolved and line wraps
 joined, so a term split across lines still matches. It finds the extract
 itself (`findExtractDir` in `tools/extract-rules.ts`).
 
-- It searches the 2.0a books by default (the Core Book and its expansions).
-  Cite those first. `--all` adds every other edition (the 1.1 `SUSS` books,
+- It searches the 2.0a books and Leyline's errata by default. Cite those
+  first; an `Errata` hit corrects the page it names, so it outranks it. `--all` adds every other edition (the 1.1 `SUSS` books,
   the Quickstart and quick-reference sheets, Mech Monday); flag any that
   disagrees with 2.0a rather than reconciling them yourself.
 - Matching is case-insensitive and by prefix: `heat cap` also finds "Heat
@@ -32,6 +32,9 @@ itself (`findExtractDir` in `tools/extract-rules.ts`).
 - A snippet is a window. To quote a whole rule, Read the page: its last
   line names each book's file and the extract directory; the page is the text
   after `<!-- page N -->` in that file.
+- To find a section rather than a word, read the book's contents page,
+  `toc/<file>.md` in the extract directory: its bookmarks, with pages.
+  `manifest.json` beside `extracted/` says which file is which edition.
 
 If it reports no extract, stop and say so: locally the fix is
 `bun run rules:extract` (needs the PDFs in `rules/`); in the cloud, attach

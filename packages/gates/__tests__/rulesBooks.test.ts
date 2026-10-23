@@ -65,4 +65,10 @@ describe('readPages', () => {
   test('dropGlyphs removes layout-glyph lines and keeps prose', () => {
     expect(readPages(path, { dropGlyphs: true }).get(1)?.trim()).toBe('Heat Cap')
   })
+
+  test('a text with no markers is page 1', () => {
+    const errata = join(dir, 'errata.txt')
+    writeFileSync(errata, 'Pg. 53: Change 18-20 to 19-20')
+    expect([...readPages(errata)]).toEqual([[1, 'Pg. 53: Change 18-20 to 19-20']])
+  })
 })

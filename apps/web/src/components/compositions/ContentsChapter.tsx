@@ -7,7 +7,8 @@ import { ToneStrip } from '../atoms/ToneStrip'
  * One chapter of the Contents: the manual's chapter opened by a band
  * in its colour, then its name and real entry count, then its rows, each a
  * plain link with its count. The SRD home page's index draws these, and the
- * Mediator's Reference draws the same chapters inside Play (`SrdExplorer`).
+ * Mediator's Reference draws the same chapters inside Play (`SrdExplorer`),
+ * and the Union bar's phone drawer its index (`NavDrawer`).
  *
  * Every row is a real link to its page. A row with `onOpen` opens in place
  * instead on a plain click (a host that must not leave its screen, Play),
@@ -29,13 +30,15 @@ export type ContentsRow = {
   onOpen?: () => void
 }
 
-type ContentsChapterProps = {
+export type ContentsChapterProps = {
   id: string
   title: string
   /** The band's colour: a chapter's tone, or ink for a section of rules. */
   tone: ChapterTone | 'ink'
   rows: ContentsRow[]
   total?: number
+  /** Called as any row is followed (the nav drawer closes on it). */
+  onFollow?: () => void
 }
 
 /** A plain left click, the one an in-place open takes over. */
@@ -44,7 +47,7 @@ function isPlainClick(event: MouseEvent): boolean {
 }
 
 /** One section of the index: its colour band; its name and count; its rows. */
-export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapterProps) {
+export function ContentsChapter({ id, title, tone, rows, total, onFollow }: ContentsChapterProps) {
   const headingId = `${id}-heading`
   return (
     <section id={id} className="su-contents__chapter" aria-labelledby={headingId}>
@@ -59,15 +62,12 @@ export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapte
             <a
               href={row.href}
               className="su-contents__row"
-              onClick={
-                row.onOpen
-                  ? (event) => {
-                      if (!isPlainClick(event)) return
-                      event.preventDefault()
-                      row.onOpen?.()
-                    }
-                  : undefined
-              }
+              onClick={(event) => {
+                onFollow?.()
+                if (!row.onOpen || !isPlainClick(event)) return
+                event.preventDefault()
+                row.onOpen()
+              }}
             >
               <span>{row.label}</span>
               {(row.count ?? row.page) !== undefined && (

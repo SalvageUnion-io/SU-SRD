@@ -41,13 +41,11 @@ export async function renderNavCatalogModule(): Promise<string> {
   }
   const { buildChapters } = await import('../src/lib/chapters')
   const sections = buildChapters().map((chapter) => ({
-    label: chapter.title,
-    schemas: chapter.rows.map((row) => ({
-      id: row.schemaId,
-      displayName: row.label,
-      href: row.href,
-      count: row.count,
-    })),
+    id: chapter.id,
+    title: chapter.title,
+    tone: chapter.tone,
+    rows: chapter.rows.map((row) => ({ label: row.label, href: row.href, count: row.count })),
+    total: chapter.total,
   }))
 
   if (sections.length === 0) {
