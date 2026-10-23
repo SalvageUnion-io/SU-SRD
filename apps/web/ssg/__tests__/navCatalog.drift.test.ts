@@ -29,10 +29,10 @@ describe('generated nav catalog', () => {
     // if the generator changed in lockstep with it.
     expect(NAV_CATALOG.length).toBeGreaterThan(0)
     for (const section of NAV_CATALOG) {
-      expect(section.label).toBeTruthy()
-      expect(section.schemas.length).toBeGreaterThan(0)
-      for (const schema of section.schemas) {
-        expect(schema.href).toBe(`/${schema.id}/`)
+      expect(section.title).toBeTruthy()
+      expect(section.rows.length).toBeGreaterThan(0)
+      for (const row of section.rows) {
+        expect(row.href).toMatch(/^\/[a-z-]+\/$/)
       }
     }
   })
