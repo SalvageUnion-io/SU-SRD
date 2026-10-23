@@ -115,6 +115,19 @@ export function resolveActivationCurrency(
   return 'AP'
 }
 
+/**
+ * The currency an action's cost is paid in: its own `activationCurrency` when
+ * the book prints a choice ("Cost: 2 SP or 2HP"), otherwise its source's.
+ */
+export function actionCostCurrency(action: {
+  actionSource?: string
+  activationCurrency?: string
+}): string {
+  const own = action.activationCurrency
+  if (own === 'EP or AP' || own === 'SP or HP') return own
+  return resolveActivationCurrency(action.actionSource as RefEnumSchemaName | undefined)
+}
+
 // ============================================================================
 // SCHEMA HELPERS
 // ============================================================================

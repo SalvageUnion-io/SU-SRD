@@ -104,16 +104,36 @@ describe('bodyBlocks', () => {
     ])
   })
 
-  test('a granting ability shows no body unless the card always shows one', () => {
+  test('a granting ability shows only the prose its granted card does not print', () => {
     const args = {
       content: [paragraph('Grants a thing.')],
       damagedEffect: undefined,
       isGrantContext: false,
       selfActionContent: undefined,
       isGrantingAbility: true,
+      grantedText: 'Grants a thing.',
     }
     expect(resolveBodyBlocks({ ...args, alwaysShow: false }).showBody).toBe(false)
     expect(resolveBodyBlocks({ ...args, alwaysShow: true }).showBody).toBe(true)
+    // Mecha Packmaster's second companion is its own rule, not the granted card's.
+    const own = resolveBodyBlocks({ ...args, grantedText: 'Something else.', alwaysShow: false })
+    expect(own.showBody).toBe(true)
+    expect(own.bodyBlocks).toEqual([paragraph('Grants a thing.')])
+  })
+
+  test("a labelled datavalues block keeps its label as the prose's line", () => {
+    const { bodyBlocks } = resolveBodyBlocks({
+      content: [
+        { type: 'datavalues', label: 'You make this attack:', value: [] },
+        { type: 'datavalues', value: [] },
+      ],
+      damagedEffect: undefined,
+      isGrantContext: false,
+      selfActionContent: undefined,
+      isGrantingAbility: false,
+      alwaysShow: false,
+    })
+    expect(bodyBlocks).toEqual([paragraph('You make this attack:')])
   })
 
   test('aside lead needs artwork, and a pattern takes it on its own identity', () => {

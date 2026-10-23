@@ -31,6 +31,7 @@ export type ActionFacets = {
   damage?: RefObjectDamage
   traits?: RefObjectTrait[]
   activationCost?: string | number
+  activationCurrency?: string
   actionSource?: string
 }
 

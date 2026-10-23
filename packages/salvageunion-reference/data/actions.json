@@ -1079,7 +1079,8 @@
         "value": "As a Reaction may when hit by an attack, Electrophorus may trigger its Bio-Electric Shield to deflect the blow."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "tableName": "Bio-Electric Shield"
   },
   {
     "id": "ab8b327f-3f29-406a-af7e-5719bfffaccd",
@@ -1264,6 +1265,25 @@
       {
         "type": "paragraph",
         "value": "Chrysalis Lays d20 Egg Sacs in an area within Close Range. At the start of its next turn they are born as a Child of Chrysalis and join the combat. Egg Sacs have 1 SP before they hatch."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "value": "Child of Chrysalis"
+      },
+      {
+        "type": "paragraph",
+        "value": "5 Structure Pts."
+      },
+      {
+        "type": "list-item",
+        "label": "Fly",
+        "value": "Passive // May fly as per Chrysalis"
+      },
+      {
+        "type": "list-item",
+        "label": "Energy Bomb",
+        "value": "Turn Action // Range: Long // Damage: 3 SP // Explosive (3)"
       }
     ],
     "actionSource": "bio-titans"
@@ -2986,7 +3006,8 @@
         "value": "Chrysalis emits an entrancing song by vibrating its wings at a series of different frequencies. This Ability affects all targets that can hear Chrysalis within Medium Range including those in a Mech unless it is somehow sound sealed."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "tableName": "Entrancing Song"
   },
   {
     "id": "4d313bcd-751e-4d74-aa2f-e8600915d571",
@@ -6148,10 +6169,11 @@
     "content": [
       {
         "type": "paragraph",
-        "value": "The molecular structure of a target hit by Phantom's Morph Scythes begins to unravel with bizarre results."
+        "value": "The molecular structure of a target hit by Phantom's Morph Scythes begins to unravel with bizarre results. When a target is hit by Morph Scythes, roll on this table to find out what additional effect they suffer."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "tableName": "Morph Scythes"
   },
   {
     "actionType": "Turn",
@@ -7127,6 +7149,15 @@
       {
         "type": "paragraph",
         "value": "Phantom is permanently phased. It can move through walls and obstacles and is invisible except for a faint blue outline. Phantom can make attacks whilst phased."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "value": "Nether Zone"
+      },
+      {
+        "type": "paragraph",
+        "value": "This alternate pocket dimension is the domain of Phantom. It is a bizarre non-euclidean realm where its most choice victims exist endlessly, floating in the void. Phantom is safe here and only beings that can Phase can enter the Nether Zone willingly."
       }
     ],
     "actionSource": "bio-titans"
@@ -9234,7 +9265,8 @@
         "value": "Typhon attempts to swallow a target into its humongous maw. Typhon may have multiple targets swallowed at once."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "tableName": "Swallow Whole"
   },
   {
     "name": "Swing",
@@ -9468,9 +9500,18 @@
       {
         "type": "paragraph",
         "value": "The Tyrant swipes with its tail, casually knocking over skyscrapers and swatting away projectiles."
+      },
+      {
+        "type": "paragraph",
+        "value": "The Tyrant may make its Tail Swat attack as a Reaction to anything that moves within Close Range of it. On a successful hit the target is knocked Prone."
+      },
+      {
+        "type": "paragraph",
+        "value": "In addition, if The Tyrant is attacked by any weapons with the [[Missile]] or [[Melee]] Trait, it may attempt to deflect the attack with its Tail."
       }
     ],
-    "actionSource": "bio-titans"
+    "actionSource": "bio-titans",
+    "tableName": "Tail Swat"
   },
   {
     "name": "Tail Sweep",
