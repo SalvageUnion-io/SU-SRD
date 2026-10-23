@@ -8,12 +8,14 @@ import {
   ChapterBand,
   ConfirmDialog,
   NextLabel,
+  Stat,
   TrackStep,
   tokens,
 } from '../../components/index'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { slotPips } from '../../components/atoms/pipRows'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
@@ -81,36 +83,28 @@ type WizShellProps = {
   submitLabel: string
 }
 
-const trackerStyle = {
-  alignItems: 'baseline',
-  backgroundColor: tokens.color.ink,
-  borderRadius: tokens.radius.badge,
-  boxShadow: 'inset 0 0 0 1.5px var(--color-paper-30)',
-  color: tokens.color.paper,
-  display: 'inline-flex',
-  gap: tokens.space[8],
-  lineHeight: 1,
-  padding: `${tokens.space[6]} ${tokens.space[12]}`,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-const trackerCaps = capsLabel({ size: 'caption', tracking: 'caps' })
-
-const trackerValueStyle = {
-  color: tokens.color.pilot,
-  fontSize: tokens.fontSize.lede,
-  letterSpacing: tokens.tracking.capsTight,
-} satisfies CSSProperties
-
 /**
- * Black tracker tab: condensed-caps label
- * with an amber value, hosted in the WizShell action pill. Its value is the
- * caller's: the tab does no budget math.
+ * A wizard budget in the action pill (`SCRAP | 20/20`): the `Stat` cell, its
+ * value read against its cap. `pips` leads the reading with one pip a slot
+ * (`slotPips`). Its value is the caller's: the tracker does no budget math.
  */
-export function WizTracker({ label, value }: { label: string; value: ReactNode }) {
+export function WizTracker({
+  label,
+  value,
+  max,
+  pips = false,
+  testId,
+}: {
+  label: string
+  value: number
+  max: number
+  pips?: boolean
+  /** The reading's test hook. */
+  testId?: string
+}) {
   return (
-    <span className={trackerCaps} style={trackerStyle}>
-      <span>{label}</span>
-      <span style={trackerValueStyle}>{value}</span>
+    <span data-testid={testId}>
+      <Stat label={label} value={pips ? `${slotPips(value, max)}${value}` : value} max={max} />
     </span>
   )
 }

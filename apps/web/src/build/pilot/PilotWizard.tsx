@@ -358,24 +358,18 @@ export function PilotWizard({
         return (
           <WizTracker
             label={pilotCopy('ability')}
-            value={
-              <span data-testid="ability-count">
-                {form.abilities.length}
-                {` / ${PILOT_CREATION_ABILITY_PICKS}`}
-              </span>
-            }
+            value={form.abilities.length}
+            max={PILOT_CREATION_ABILITY_PICKS}
+            testId="ability-count"
           />
         )
       case 'equipment': {
         const picks = (
           <WizTracker
             label={pilotCopy('picks')}
-            value={
-              <span data-testid="equipment-count">
-                {form.equipment.length}
-                {` / ${PILOT_CREATION_EQUIPMENT_PICKS}`}
-              </span>
-            }
+            value={form.equipment.length}
+            max={PILOT_CREATION_EQUIPMENT_PICKS}
+            testId="equipment-count"
           />
         )
         const slotsUsed = pilotInventoryUsed({ equipment: form.equipment, genericInventory: [] })
@@ -384,11 +378,9 @@ export function PilotWizard({
             {picks}
             <WizTracker
               label={pilotCopy('slots')}
-              value={
-                <span data-testid="slot-preview">
-                  {slotsUsed} / {pilotInventoryCapacity()}
-                </span>
-              }
+              value={slotsUsed}
+              max={pilotInventoryCapacity()}
+              testId="slot-preview"
             />
           </>
         )

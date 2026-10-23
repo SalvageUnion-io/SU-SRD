@@ -244,14 +244,14 @@ describe('CrawlerWizard — create mode', () => {
     // Install one — the count hits the cap and the other cards disable
     // (a disabled card drops its role=button, so it is no longer pickable).
     await pick(must(first).name)
-    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/1')
     expect(screen.queryByRole('button', { name: must(second).name })).toBeNull()
     // The installed card stays interactive so it can be swapped out.
     expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
 
     // Removing it frees the slot — the other weapon becomes selectable again.
     await pick(must(first).name)
-    expect(screen.getByTestId('weapon-system-count').textContent).toContain('0 / 1')
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('0/1')
     await waitFor(() => {
       expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
     })
@@ -270,7 +270,7 @@ describe('CrawlerWizard — create mode', () => {
     await waitFor(() => screen.getByRole('button', { name: must(first).name }))
     await pick(must(first).name)
     await pick(must(second).name)
-    expect(screen.getByTestId('weapon-system-count').textContent).toContain('2 / 2')
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('2/2')
 
     // Back to step 1: switching Battle → Engineering re-clamps to 1 slot,
     // dropping the NEWEST mount.
@@ -280,7 +280,7 @@ describe('CrawlerWizard — create mode', () => {
     await pickType('Engineering')
     await clickNext() // Statistics
     await clickNext() // -> Armament Bay
-    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 / 1')
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/1')
   })
 
   it('walks every book step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
@@ -302,7 +302,7 @@ describe('CrawlerWizard — create mode', () => {
     // --- Step 3: Arm the Armament Bay (min 1, Tech 1 weapons) ---
     const tl1 = weaponSystemAtTL(1)
     await pick(tl1.name)
-    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1 /')
+    expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/')
     await clickNext()
 
     // --- Step 4: Name your Crew (roster rows → IdentityFields) ---
