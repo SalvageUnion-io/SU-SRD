@@ -251,6 +251,100 @@ describe('starter-set template', () => {
     expect((legacy?.body as { name: string } | undefined)?.name).toBe('Legacy')
   })
 
+  // The same stamped rows once refused deletes: `removeByAppId` and
+  // `removeSoftLink` looked the body id up across every account and found
+  // another player's row first ("You cannot edit another player's entity").
+  test("deleting a claimed pre-gen deletes the caller's row, not a stamped one of theirs", async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const other = await makeUser(t, 'Other')
+    const gameId = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const seeded = await t.run(async (ctx) => await ctx.db.query('pilots').first())
+    if (!seeded) throw new Error('no pre-gen pilot')
+    const bodyId = (seeded.body as { id: string }).id
+    const stampedId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId: null,
+          ownerId: other.userId,
+          appId: bodyId,
+          body: { ...(seeded.body as object), name: 'Theirs' },
+          updatedAt: 1,
+        })
+    )
+    await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: seeded._id })
+
+    await u.as.mutation(api.entities.removeByAppId, { table: 'pilots', appId: bodyId, gameId })
+
+    const { mine, theirs } = await t.run(async (ctx) => ({
+      mine: await ctx.db.get(seeded._id),
+      theirs: await ctx.db.get(stampedId),
+    }))
+    expect(mine).toBeNull()
+    expect(theirs?.ownerId).toBe(other.userId)
+  })
+
+  test('the same pre-gen claimed in two Games: a delete takes only its own Game', async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const first = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const second = await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const pilots = await t.run(async (ctx) => await ctx.db.query('pilots').collect())
+    const idOf = (p: { body: unknown }) => (p.body as { id: string }).id
+    const bodyId = pilots[0] ? idOf(pilots[0]) : 'missing'
+    const twins = pilots.filter((p) => idOf(p) === bodyId)
+    for (const twin of twins) {
+      await u.as.mutation(api.ownership.assign, { table: 'pilots', entityId: twin._id })
+    }
+
+    await u.as.mutation(api.entities.removeByAppId, {
+      table: 'pilots',
+      appId: bodyId,
+      gameId: second,
+    })
+
+    const left = await t.run(async (ctx) =>
+      (await ctx.db.query('pilots').collect()).filter((p) => idOf(p) === bodyId)
+    )
+    expect(left.map((p) => p.gameId)).toEqual([first])
+  })
+
+  test("unwiring a claimed pre-gen's link is not refused by a stamped row of theirs", async () => {
+    const t = testConvex()
+    const u = await makeUser(t, 'Organizer')
+    const other = await makeUser(t, 'Other')
+    await u.as.mutation(api.templates.createGame, { templateId: 'starter-set' })
+    const link = await t.run(async (ctx) =>
+      (await ctx.db.query('softLinks').collect()).find((l) => l.type === 'mech-to-pilot')
+    )
+    if (!link) throw new Error('no mech-to-pilot link')
+    const mech = await t.run(async (ctx) =>
+      (await ctx.db.query('mechs').collect()).find(
+        (m) => (m.body as { id: string }).id === link.from.id
+      )
+    )
+    if (!mech) throw new Error('no seeded mech')
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechs', {
+          gameId: null,
+          ownerId: other.userId,
+          appId: link.from.id,
+          body: mech.body,
+          updatedAt: 1,
+        })
+    )
+    await u.as.mutation(api.ownership.assign, { table: 'mechs', entityId: mech._id })
+
+    await u.as.mutation(api.entities.removeSoftLink, {
+      from: link.from,
+      to: link.to,
+      type: link.type,
+    })
+
+    expect(await t.run(async (ctx) => await ctx.db.get(link._id))).toBeNull()
+  })
+
   test('an anonymous caller cannot create one', async () => {
     const t = testConvex()
     await expect(

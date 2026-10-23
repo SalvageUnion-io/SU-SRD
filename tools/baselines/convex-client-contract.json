@@ -746,6 +746,21 @@
             "type": "string"
           },
           "optional": false
+        },
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": true
         }
       }
     },
@@ -1077,6 +1092,21 @@
                         "type": "string"
                       },
                       "optional": false
+                    },
+                    "gameId": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "id",
+                            "tableName": "games"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": true
                     }
                   }
                 },

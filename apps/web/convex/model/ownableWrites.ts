@@ -26,6 +26,17 @@ import { staleWriteError } from './staleWrite'
 /** The tables written whole by their owner: pilots, mechs and built NPCs (ADR-044). */
 export const OWNED = v.union(v.literal('pilots'), v.literal('mechs'), v.literal('npcs'))
 
+/**
+ * A delete by app id (`removeByAppId`). `gameId` names a claimed pre-gen's Game,
+ * as its body id repeats in every Game seeded from the template; an older
+ * client leaves it out and is answered from the caller's rows anywhere.
+ */
+export const OWNABLE_REMOVE = {
+  table: OWNED,
+  appId: v.string(),
+  gameId: v.optional(v.union(v.id('games'), v.null())),
+}
+
 /** A pilot, mech or NPC body write, addressed by app id (`upsertByAppId`). */
 export const OWNABLE_WRITE = {
   table: OWNED,
@@ -131,11 +142,17 @@ async function ownedTemplateRow(
  *
  * A stamped row the writer does not own still loses to a seeded row of theirs
  * elsewhere (a claimed pre-gen moved to the shelf names the shelf).
+ *
+ * Deletes and unwires find their row the same way. `gameId` is `undefined`
+ * when the caller did not say where the row is, and then the writer's own rows
+ * are searched in every container.
  */
-async function writeTarget(
+export async function writeTarget(
   ctx: MutationCtx,
   userId: Id<'users'>,
-  args: Pick<ObjectType<typeof OWNABLE_WRITE>, 'table' | 'gameId' | 'appId'>
+  args: Pick<ObjectType<typeof OWNABLE_WRITE>, 'table' | 'appId'> & {
+    gameId: Id<'games'> | null | undefined
+  }
 ): Promise<Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | null> {
   const seededHere = await ownedTemplateRow(ctx, userId, args.table, args.gameId, args.appId)
   if (seededHere !== null) return seededHere
@@ -228,14 +245,19 @@ export async function writeOwnable(
 /**
  * `removeByAppId`'s delete, shared with `transfer`. The row's links go with it
  * (`pruneLinksOfRow`), as they do on every remove path.
+ *
+ * The row is found as a write finds it (`writeTarget`), so deleting a claimed
+ * pre-gen deletes the writer's own seeded row, not another player's row that
+ * was stamped with the same template body id.
  */
 export async function removeOwnable(
   ctx: MutationCtx,
   userId: Id<'users'>,
   table: OwnedTable,
-  appId: string
+  appId: string,
+  gameId?: Id<'games'> | null
 ): Promise<void> {
-  const existing = await byAppId(ctx, table, appId)
+  const existing = await writeTarget(ctx, userId, { table, appId, gameId })
   if (existing === null) return
 
   assertMayWrite(existing, userId)

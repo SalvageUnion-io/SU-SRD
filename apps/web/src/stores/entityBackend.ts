@@ -274,7 +274,11 @@ export async function commitEntityWrite(
 
   const table = TABLE_OF_KIND[type]
   if (op.kind === 'delete') {
-    await convexClient.mutation(api.entities.removeByAppId, { table, appId: op.appId })
+    await convexClient.mutation(api.entities.removeByAppId, {
+      table,
+      appId: op.appId,
+      gameId: op.gameId === null ? null : (op.gameId as Id<'games'>),
+    })
     return
   }
   // The version this browser last saw goes with the body, and the server

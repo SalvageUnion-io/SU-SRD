@@ -37,8 +37,8 @@ import {
 import {
   assertMayWrite,
   byAppId,
+  OWNABLE_REMOVE,
   OWNABLE_WRITE,
-  OWNED,
   removeOwnable,
   writeOwnable,
 } from './model/ownableWrites'
@@ -783,9 +783,9 @@ export const removeSoftLink = mutation({
 
 /** Delete by app id. A row that is already gone is not an error. */
 export const removeByAppId = mutation({
-  args: { table: OWNED, appId: v.string() },
+  args: OWNABLE_REMOVE,
   handler: async (ctx, args): Promise<void> =>
-    removeOwnable(ctx, await requireUser(ctx), args.table, args.appId),
+    removeOwnable(ctx, await requireUser(ctx), args.table, args.appId, args.gameId),
 })
 
 /**
@@ -816,7 +816,7 @@ export const transfer = mutation({
     ),
     deletes: v.array(
       v.union(
-        v.object({ table: OWNED, appId: v.string() }),
+        v.object(OWNABLE_REMOVE),
         v.object({ table: v.literal('crawlers'), appId: v.string() }),
         v.object({ table: v.literal('softLinks'), ...LINK })
       )
@@ -842,7 +842,7 @@ export const transfer = mutation({
       } else if (removal.table === 'crawlers') {
         await removeCrawlerRow(ctx, removal.appId)
       } else {
-        await removeOwnable(ctx, userId, removal.table, removal.appId)
+        await removeOwnable(ctx, userId, removal.table, removal.appId, removal.gameId)
       }
     }
     return { versions }
