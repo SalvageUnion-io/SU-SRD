@@ -3,26 +3,17 @@ import { useContext, useMemo, useState } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectChoice } from 'salvageunion-reference'
 import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
-import { color, font, fontSize, space } from '../../../design/tokens'
+import { space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Button } from '../../atoms/Button'
+import { Text } from '../../atoms/Text'
 import { SlabSection } from '../../containers/SlabSection'
 import { InsidePeekContext } from '../../entity/peekContext'
 import { Stack } from '../../index'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityMiniList } from './EntityMiniList'
-
-/** The prompt: a caption (13px body face, `wkMuted`, sentence case), the
- *  rung the type ladder names for hints. */
-const promptStyle = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.caption,
-  lineHeight: 1.4,
-  margin: 0,
-} satisfies CSSProperties
 
 const LIST = { marginTop: space[8] } satisfies CSSProperties
 
@@ -94,7 +85,7 @@ export function CatalogChoiceListing({
   if (editable) {
     return (
       <Stack gap={6}>
-        {prompt && <p style={promptStyle}>{prompt}</p>}
+        {prompt && <Text variant="note">{prompt}</Text>}
         {chosenEntity && renderEntity(chosenEntity, 'chosen')}
         <Button
           variant="primary"
@@ -134,7 +125,7 @@ export function CatalogChoiceListing({
   const label = chosen ? `${choice.name}: ${chosen}` : choice.name
   return (
     <Stack gap={6}>
-      {prompt && <p style={promptStyle}>{prompt}</p>}
+      {prompt && <Text variant="note">{prompt}</Text>}
       <SlabSection title={label}>
         {!insidePeek && (
           <Button size="compact" {...options.toggleProps}>

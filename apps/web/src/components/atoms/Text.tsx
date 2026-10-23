@@ -1,4 +1,4 @@
-import { atomsCopy } from '../../messages/components-atoms'
+import { cn } from '../../lib/cn'
 
 /**
  * Text is the PROSE primitive — running copy, reference paragraphs, asides.
@@ -9,7 +9,7 @@ import { atomsCopy } from '../../messages/components-atoms'
  * Badge is label-only (uppercase, condensed, `w-fit`, `leading-none`) and is
  * the wrong shape for wrapping prose — which is why Text exists.
  */
-type TextVariant = 'default' | 'body' | 'hint' | 'flavor'
+type TextVariant = 'default' | 'body' | 'hint' | 'flavor' | 'note'
 
 /**
  * Each variant is a `.su-text--*` class in `styles/partials/atoms-leaves.css`, not a style
@@ -23,12 +23,15 @@ type TextVariant = 'default' | 'body' | 'hint' | 'flavor'
  *   flavor   italic flavour text in `ink-2`, the second rung of BODY ink — prose
  *            to be read, set one step back from primary, not a de-emphasised
  *            label (`wk-muted` owns de-emphasised secondary copy)
+ *   note     that de-emphasised copy: a lede, a hint, a note under a control,
+ *            the body face at the caption size in `wk-muted` (R52)
  */
 const VARIANT_CLASS: Record<TextVariant, string> = {
-  default: 'su-text su-text--default',
-  body: atomsCopy('suTextSuTextBody'),
-  hint: atomsCopy('suTextSuTextHint'),
-  flavor: 'su-text su-text--flavor',
+  default: 'su-text--default',
+  body: 'su-text--body',
+  hint: 'su-text--hint',
+  flavor: 'su-text--flavor',
+  note: 'su-text--note',
 }
 
 type TextProps = {
@@ -61,11 +64,7 @@ export function Text({
   return (
     <Tag
       ref={ref as React.Ref<never>}
-      className={
-        className
-          ? `${VARIANT_CLASS[variant ?? 'default']} ${className}`
-          : VARIANT_CLASS[variant ?? 'default']
-      }
+      className={cn('su-text', VARIANT_CLASS[variant ?? 'default'], className)}
       style={style}
       {...props}
     >

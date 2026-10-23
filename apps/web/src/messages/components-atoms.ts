@@ -18,8 +18,6 @@ export const atomsCopy = messages({
   howThisIsDerived: '{statLabel}: how this is derived',
   showing: 'Showing',
   activateToMark: '{current}. Activate to mark {value}',
-  suTextSuTextBody: 'su-text su-text--body',
-  suTextSuTextHint: 'su-text su-text--hint',
   decrease2: 'Decrease {label}',
   increase2: 'Increase {label}',
   setMax: 'Set {label} max',

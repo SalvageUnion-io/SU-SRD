@@ -248,6 +248,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R49: ['Box.test.tsx', 'AssignedUnits.test.tsx', 'unitOwners.model.test.ts'],
   R50: ['GameHub.connected.test.tsx', 'Roster.test.tsx'],
   R51: ['TitledBox.test.tsx', 'StartHere.test.tsx'],
+  R52: ['chrome-tokens/muted-note'],
 }
 
 /** A law's id as the canon and its citations spell it. */

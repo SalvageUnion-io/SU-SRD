@@ -20,6 +20,7 @@ import {
   Slab,
   SlabSection,
   Stack,
+  Text,
   tokens,
 } from '../../components/index'
 import { cn } from '../../lib/cn'
@@ -49,14 +50,6 @@ const GROUP = { marginBottom: tokens.space[16] } satisfies CSSProperties
 
 /** The origin question's copy, the whole of its note. */
 const ORIGIN_COPY = { margin: 0 } satisfies CSSProperties
-
-/** The derived-origin note. */
-const IMPLIED_ORIGIN = {
-  margin: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 type ClassPathPickerProps = {
   allClasses: readonly RefClass[]
@@ -239,10 +232,10 @@ export function ClassPathPicker({
             )}
 
             {consequence.impliedOrigin !== undefined && (
-              <p style={IMPLIED_ORIGIN}>
+              <Text variant="note">
                 Recorded as <strong>{consequence.impliedOrigin}</strong> — derived from this pilot's
                 trees, so nothing extra is stored.
-              </p>
+              </Text>
             )}
           </>
         )}

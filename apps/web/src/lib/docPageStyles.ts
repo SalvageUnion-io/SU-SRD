@@ -70,7 +70,7 @@ export function inlineCode(onPaper = false): CSSProperties {
 /** The "last updated" stamp and small print of the policies, in `wkMuted`:
  *  12px text needs 4.5:1, which `ink60` misses on the page ground. */
 export const SMALL_PRINT = {
-  color: color.wkMuted,
+  color: color.wkMuted, // design-tokens-ignore: the policies' small print
   fontSize: fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties

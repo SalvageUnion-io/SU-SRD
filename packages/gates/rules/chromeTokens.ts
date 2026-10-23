@@ -382,6 +382,20 @@ const badgeSnugScript = (text: string) => [
   }),
 ]
 
+// ── Muted notes (R52) ─────────────────────────────────────────────────────────
+
+/** The primitives that set their own muted lines inside (a Radio's description, a dialog's lede). */
+const NOTE_OWNERS = ['apps/web/src/components/atoms/', 'apps/web/src/components/containers/']
+
+const MUTED_INK =
+  /\bcolor\s*:\s*(?:(?:tokens\.)?color\.(?:wkMuted|ink75)\b|['"`]var\(--color-(?:wk-muted|ink-75)\)['"`])/g
+
+/** A style object that pairs a muted ink with a font size: a hand-set `Text variant="note"`. */
+const mutedNoteScript = (text: string, rel: string) =>
+  NOTE_OWNERS.some((dir) => rel.startsWith(dir))
+    ? []
+    : matchesIn(text, MUTED_INK, (m) => /\bfontSize\s*:/.test(enclosingObject(text, m.index ?? 0)))
+
 // ── The rules ─────────────────────────────────────────────────────────────────
 
 const CHROME_RULES: ChromeRule[] = [
@@ -455,6 +469,13 @@ const CHROME_RULES: ChromeRule[] = [
     fix: 'At the floor (`fontSize.badge`, `var(--text-badge)`, `capsLabel({ size: "badge" })`) the tracking is `tracking.capsSnug` / `var(--tracking-caps-snug)` / `tracking: "snug"` (the recipe’s default at that size): drop the other rung.',
     css: badgeSnugCss,
     script: badgeSnugScript,
+  },
+  {
+    id: 'muted-note',
+    mode: 'zero',
+    rule: 'hard rule R52 — a muted note is `Text variant="note"`: no style object pairs a muted ink with a font size',
+    fix: 'Render the line as `<Text variant="note">` and drop the style object\'s colour, face and size (keep only its margin). A muted label that is not a note (a caps label, a status word, a row value) keeps its object with `// design-tokens-ignore: <what it is>` on the colour line. The atoms and containers that own their lines are NOTE_OWNERS (packages/gates/rules/chromeTokens.ts).',
+    script: mutedNoteScript,
   },
   {
     id: 'raw-breakpoint',

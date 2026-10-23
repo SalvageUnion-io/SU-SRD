@@ -11,7 +11,6 @@
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import {
@@ -19,8 +18,8 @@ import {
   ConfirmDialog,
   EntitySearcher,
   ModalShell,
+  Text,
   toast,
-  tokens,
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -30,15 +29,6 @@ import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
 import type { EntityState } from '../../stores/entityStore'
 import '../../styles/build/wizard.css'
-
-/** The confirm dialog's consequence copy. */
-const CONFIRM_COPY = {
-  margin: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 type CrawlerTypeEditModalProps = {
   open: boolean
@@ -145,11 +135,11 @@ export function CrawlerTypeEditModal({
         title={crawlerCopy('changeCrawlerType2')}
         tone="danger"
         body={
-          <p style={CONFIRM_COPY}>
+          <Text variant="note">
             Change to <strong>{selectedEntity?.name}</strong>? This resets the crawler's special NPC
             to the new type's default (its name, description and HP are cleared) and drops the old
             type's Keepsake/Motto. Your bays and their crew are kept.
-          </p>
+          </Text>
         }
         confirmLabel={crawlerCopy('changeType2')}
         pendingLabel={crawlerCopy('changing')}
