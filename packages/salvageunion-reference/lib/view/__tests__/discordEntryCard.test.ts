@@ -44,7 +44,7 @@ describe('discordEntryCard', () => {
     if (!pattern) throw new Error('the Mule has no pattern')
     const host = componentEmbedJson(discordEntryCard(mule))
     expect(host).toContain(
-      `[${pattern.name}](https://salvageunion.io/chassis/mule/pattern/${nameToSlug(pattern.name)})`
+      `[${pattern.name}](https://salvageunion.io/chassis/mule/pattern/${nameToSlug(pattern.name)}/)`
     )
     const own = componentEmbedJson(discordEntryCard(mule, pattern as never))
     expect(own).toContain(pattern.name)

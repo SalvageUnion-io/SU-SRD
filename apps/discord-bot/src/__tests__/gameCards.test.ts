@@ -219,7 +219,7 @@ describe('denialMessage', () => {
     // The whole point of Discord-as-sole-provider: signing in IS the linking
     // step, so the message must not imply a code to paste.
     expect(message).toContain('nothing to copy across')
-    expect(message).toContain(`${WEB}/account`)
+    expect(message).toContain(`${WEB}/settings`)
   })
 
   test('every reason produces a non-empty message', () => {

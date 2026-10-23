@@ -247,7 +247,7 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
     'Sign in with this same Discord account and the bot will recognise you here',
     'automatically — there’s nothing to copy across and no code to enter.',
     '',
-    `${APP_ORIGIN}/account`,
+    `${APP_ORIGIN}/settings`,
   ].join('\n')
 }
 
@@ -268,7 +268,7 @@ function gameLines(games: GameSummary[]): string {
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
     title: `${me.user.displayName} — ${PRODUCT.wordmark}`,
-    url: `${APP_ORIGIN}/account`,
+    url: `${APP_ORIGIN}/settings`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [

@@ -86,9 +86,10 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  *
  * The other half of the route grammar, and it exists for the same reason
  * {@link srdEntityPath} does. Both are written WITHOUT a trailing slash; the reference site
- * emits directory-style output and appends the slash itself in exactly one
- * place (`apps/web/src/lib/entityHref.ts`), so the slash is a rendering
- * decision of that app rather than part of the grammar.
+ * emits directory-style output and appends the slash itself
+ * (`apps/web/src/lib/entityHref.ts`), and so do the absolute URLs below, which
+ * link in from outside. The slash is how the page is served, not part of the
+ * grammar.
  *
  * Keep this the only place either shape is spelled. Directory-style output
  * redirects an un-slashed form rather than 404ing, so a second spelling would
@@ -104,18 +105,21 @@ export function srdSchemaPath(schemaName: string): string {
 
 /**
  * The reference site's ABSOLUTE URL for one schema's listing page —
- * {@link SRD_SITE_URL} + {@link srdSchemaPath}.
+ * {@link SRD_SITE_URL} + {@link srdSchemaPath}, with the trailing slash the
+ * site serves the page at, so a link from outside (the bot) lands in one
+ * request rather than through the asset server's 307.
  *
  * @param schemaName - The entity's schema id (e.g. `'chassis'`)
  * @returns The absolute listing URL
  */
 export function srdSchemaUrl(schemaName: string): string {
-  return `${SRD_SITE_URL}${srdSchemaPath(schemaName)}`
+  return `${SRD_SITE_URL}${srdSchemaPath(schemaName)}/`
 }
 
 /**
  * The reference site's ABSOLUTE URL for one entity's page —
- * {@link SRD_SITE_URL} + {@link srdEntityPath}.
+ * {@link SRD_SITE_URL} + {@link srdEntityPath}, with its trailing slash, as
+ * {@link srdSchemaUrl}.
  *
  * @param schemaName - The entity's schema id (e.g. `'chassis'`)
  * @param slug - The entity's slug
@@ -123,5 +127,5 @@ export function srdSchemaUrl(schemaName: string): string {
  */
 
 export function srdEntityUrl(schemaName: string, slug: string): string {
-  return `${SRD_SITE_URL}${srdEntityPath(schemaName, slug)}`
+  return `${SRD_SITE_URL}${srdEntityPath(schemaName, slug)}/`
 }

@@ -162,8 +162,21 @@ describe("POST /__convex-logs — Convex's log stream", () => {
   }
 })
 
+describe("the Dataset API's root is its manifest", () => {
+  for (const path of ['/api/v1', '/api/v1/']) {
+    it(path, async () => {
+      const env = envWith()
+      const res = await worker.fetch(req(`${path}?x=1`), env)
+
+      expect(res.status).toBe(301)
+      expect(res.headers.get('location')).toBe('https://salvageunion.io/api/v1/index.json?x=1')
+      expect(env.ASSETS.asked).toEqual([])
+    })
+  }
+})
+
 describe('a miss under the Dataset API is a JSON 404, not the page', () => {
-  for (const path of ['/api/v1', '/api/v1/', '/api/v1/chassis/no-such-mech.json']) {
+  for (const path of ['/api/v1/chassis/no-such-mech.json', '/api/v1/nope']) {
     it(path, async () => {
       const env = envWith()
       const res = await worker.fetch(req(path), env)

@@ -54,7 +54,7 @@ describe('su:open', () => {
     expect(replies).toHaveLength(1)
     expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
     expect(textOf(replies[0])).toContain(
-      '[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter)'
+      '[Nanite Sifter](https://salvageunion.io/systems/nanite-sifter/)'
     )
   })
 

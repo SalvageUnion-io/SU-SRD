@@ -103,7 +103,7 @@ function link(label: string, url: string | undefined): string {
 function discordRefUrl(ref: EntityRef): string | undefined {
   if (ref.synthetic || ref.schemaName === 'actions') return undefined
   const base = srdEntityUrl(ref.schemaName, ref.slug)
-  return ref.pattern ? `${base}/pattern/${nameToSlug(ref.pattern)}` : base
+  return ref.pattern ? `${base}pattern/${nameToSlug(ref.pattern)}/` : base
 }
 
 /** A glossary entry's page, by the name the prose prints. */

@@ -57,7 +57,7 @@ describe('lookUpMessageContainer', () => {
     const data = lookUpMessageContainer("we're Vulnerable now", 'Rook')
     const text = cardText(data)
     expect(text).toContain("-# FOUND IN ROOK'S MESSAGE (1)")
-    expect(text).toContain('### [Vulnerable](https://salvageunion.io/traits/vulnerable)')
+    expect(text).toContain('### [Vulnerable](https://salvageunion.io/traits/vulnerable/)')
     const row = data.blocks.find((block) => block.kind === 'section')
     expect(row?.kind === 'section' ? row.button?.label : undefined).toBe('Post to channel')
   })

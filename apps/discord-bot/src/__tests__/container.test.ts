@@ -21,7 +21,7 @@ const base: ContainerData = {
       kind: 'buttons',
       buttons: [
         { kind: 'action', customId: 'su:roll:Core Mechanic', label: 'Roll again' },
-        { kind: 'link', url: 'https://salvageunion.io/roll-tables', label: 'See table' },
+        { kind: 'link', url: 'https://salvageunion.io/roll-tables/', label: 'See table' },
       ],
     },
   ],
