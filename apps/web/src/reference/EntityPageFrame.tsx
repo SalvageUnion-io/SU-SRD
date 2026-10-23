@@ -47,13 +47,13 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
         {build.label}
       </Button>
       {next && (
-        <a href={next.href} className="su-guide-exits__next">
-          <NextLabel to={next.label} size="full" />
-        </a>
+        <Button href={next.href} size="compact" className="su-page-action">
+          <NextLabel to={next.label} />
+        </Button>
       )}
-      <a href={starterSet.href} className="su-guide-exits__starter">
+      <Button href={starterSet.href} variant="ghost" size="compact" className="su-page-action">
         {starterSet.label}
-      </a>
+      </Button>
     </nav>
   )
 }

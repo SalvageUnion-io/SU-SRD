@@ -496,7 +496,7 @@ const RULES: ChromeRule[] = [
     id: 'offline-copy',
     mode: 'zero',
     rule: 'hard rule R20 (chrome K5) — offline is one notice in one wording, `NotConnectedBanner`',
-    fix: 'Say the consequence here ("Read-only for now", "That change was not saved") and leave the condition to `NotConnectedBanner`, which is up whenever the app is offline.',
+    fix: 'Say the consequence here ("Read Only", "That change was not saved") and leave the condition to `NotConnectedBanner`, which is up whenever the app is offline.',
     scan: scanOfflineCopy,
   },
   {

@@ -23,7 +23,7 @@ import { Banner, tokens } from '../index'
  * ## The one offline notice (chrome K5, hard rule R20)
  *
  * This is the only place the app words being offline. The in-place lozenge
- * (`WritesBlockedNotice`) says what it costs here, "Read-only for now"; a
+ * (`WritesBlockedNotice`) says what it costs here, "Read Only"; a
  * refused write's toast says what happened to that change. Neither restates
  * the condition, and `chrome/offline-copy` fails a second wording.
  */

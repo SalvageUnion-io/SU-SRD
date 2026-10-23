@@ -30,7 +30,7 @@ export const sharedCopy = messages({
   unassign2: 'Unassign {name}',
   readOnlySignInTo: 'Read-only — sign in to edit',
   readOnlyUpdating: 'Read-only — updating',
-  readOnlyForNow: 'Read-only for now',
+  readOnly: 'Read Only',
   viewInTheReference: 'View in the Reference',
   viewInTheReference2: 'View {entityName} in the Reference',
 })

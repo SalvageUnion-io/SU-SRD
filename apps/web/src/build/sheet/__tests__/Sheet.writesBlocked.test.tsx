@@ -86,7 +86,7 @@ describe('Sheet — writes blocked by connectivity', () => {
   test('Connected renders Share, and no refusal lozenge', () => {
     renderSheetIn(CONNECTED)
     expect(screen.getByLabelText(/Share this pilot/i)).toBeTruthy()
-    expect(screen.queryByText(/Read-only for now/i)).toBeNull()
+    expect(screen.queryByText(/^Read Only$/i)).toBeNull()
   })
 
   test('Disconnected replaces Share with a stated refusal', () => {
@@ -94,7 +94,7 @@ describe('Sheet — writes blocked by connectivity', () => {
     // app, so the lozenge takes its place rather than leaving a hole.
     renderSheetIn(DISCONNECTED)
     expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
-    expect(screen.getByText(/Read-only for now/i)).toBeTruthy()
+    expect(screen.getByText(/^Read Only$/i)).toBeTruthy()
   })
 
   test('signed out, the refusal asks for a sign-in rather than blaming the connection', () => {
@@ -111,6 +111,6 @@ describe('Sheet — writes blocked by connectivity', () => {
     // pre-emptively dismantling the sheet.
     renderSheetIn(CONNECTING)
     expect(screen.getByLabelText(/Share this pilot/i)).toBeTruthy()
-    expect(screen.queryByText(/Read-only for now/i)).toBeNull()
+    expect(screen.queryByText(/^Read Only$/i)).toBeNull()
   })
 })

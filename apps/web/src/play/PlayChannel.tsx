@@ -13,6 +13,7 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Button, Callout, ModalShell, tokens } from '../components/index'
+import { inlineCode } from '../lib/docPageStyles'
 import { formatDateTime } from '../lib/formatDate'
 import { playCopy } from '../messages/play'
 import type { ChannelOwner, PlayBinding } from './channels.model'
@@ -29,7 +30,7 @@ const BODY = {
 
 const P = { margin: 0 } satisfies CSSProperties
 
-const CODE = { fontWeight: tokens.weight.bold, whiteSpace: 'nowrap' } satisfies CSSProperties
+const CODE = { ...inlineCode(), whiteSpace: 'nowrap' } satisfies CSSProperties
 
 type PlayChannelDialogProps = {
   open: boolean
@@ -60,13 +61,13 @@ function PlayChannelDialog({ open, onClose, owner, binding }: PlayChannelDialogP
         )}
         <p style={P}>
           {binding === null ? playCopy('toConnectOneRun') : playCopy('toMoveItRun')}
-          <span style={CODE}>{playCopy('suBind')}</span>
+          <code style={CODE}>{playCopy('suBind')}</code>
           {owner.kind === 'solo'
             ? playCopy('inTheDiscordChannelYou')
             : playCopy('inTheDiscordChannelYou2')}{' '}
           {binding !== null && (
             <>
-              <span style={CODE}>{playCopy('suUnbind')}</span> stops posting.
+              <code style={CODE}>{playCopy('suUnbind')}</code> stops posting.
             </>
           )}
         </p>

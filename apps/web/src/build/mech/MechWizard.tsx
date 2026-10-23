@@ -2,7 +2,6 @@ import { MechSchema } from 'game-domain/schemas/mech'
 import { useMemo } from 'react'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { slotPips } from '../../components/atoms/pipRows'
 import { toast } from '../../components/index'
 import type { MechWizardStepId } from '../../lib/rules/creation'
 import {
@@ -359,11 +358,9 @@ export function MechWizard({
     const scrap = (
       <WizTracker
         label={mechCopy('scrap')}
-        value={
-          <span data-testid="scrap-remaining">
-            {budget.remaining} / {MECH_CREATION_SCRAP_CAP}
-          </span>
-        }
+        value={budget.remaining}
+        max={MECH_CREATION_SCRAP_CAP}
+        testId="scrap-remaining"
       />
     )
     switch (step) {
@@ -373,12 +370,10 @@ export function MechWizard({
             {scrap}
             <WizTracker
               label={mechCopy('systemSlots')}
-              value={
-                <span data-testid="system-slot-count">
-                  {slotPips(capacity.systemSlotsUsed, capacity.systemSlotsMax)}
-                  {capacity.systemSlotsUsed} / {capacity.systemSlotsMax}
-                </span>
-              }
+              value={capacity.systemSlotsUsed}
+              max={capacity.systemSlotsMax}
+              pips
+              testId="system-slot-count"
             />
           </>
         )
@@ -388,12 +383,10 @@ export function MechWizard({
             {scrap}
             <WizTracker
               label={mechCopy('moduleSlots')}
-              value={
-                <span data-testid="module-slot-count">
-                  {slotPips(capacity.moduleSlotsUsed, capacity.moduleSlotsMax)}
-                  {capacity.moduleSlotsUsed} / {capacity.moduleSlotsMax}
-                </span>
-              }
+              value={capacity.moduleSlotsUsed}
+              max={capacity.moduleSlotsMax}
+              pips
+              testId="module-slot-count"
             />
           </>
         )
