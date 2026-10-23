@@ -248,27 +248,23 @@
   margin-left: auto;
 }
 
-/* "Buy the game ↗" — an outline on the ink bar, never a rust fill (§3.1).
-   The SRD's "Sign in" link wears it too, as the app's Sign in button is
-   dressed to (`.su-sign-in-control--bar`). */
-.su-union-bar__buy,
-.su-union-bar__sign-in {
-  align-items: center;
-  border: var(--bw-chrome) solid var(--su-bar-fg-60);
-  border-radius: var(--radius-card);
+/* The bar's outlined control: "Buy the game", and Sign in on both sides
+   (`SignInControl inBar`, the Reference's `SignInLink`). The ghost `Button`
+   in the bar's own foreground, a rule at 60% that goes full on hover, never a
+   rust fill (§3.1). Scoped to the bar so it outranks the ghost variant, its
+   on-ink ground and their hover washes (button.css loads earlier). */
+.su-union-bar .su-union-bar__action {
+  background-color: transparent;
+  border-color: var(--su-bar-fg-60);
   color: var(--su-bar-fg);
-  display: inline-flex;
   flex-shrink: 0;
   font-size: var(--text-caption);
   gap: var(--space-4);
-  height: var(--su-union-bar-control);
   padding-inline: var(--space-14);
-  text-decoration: none;
-  transition: border-color var(--dur-fast) var(--ease);
 }
 
-.su-union-bar__buy:hover,
-.su-union-bar__sign-in:hover {
+.su-union-bar .su-union-bar__action:hover:not(:disabled) {
+  background-color: transparent;
   border-color: var(--su-bar-fg);
 }
 
