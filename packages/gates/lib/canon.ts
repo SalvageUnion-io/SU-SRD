@@ -230,7 +230,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'abilityTreeRelations.test.tsx',
     'rollTablePage.test.ts',
   ],
-  R44: ['_pageWhole.ts#scroll', 'chapters.test.ts', 'guideTone.test.ts'],
+  R44: ['_pageWhole.ts#scroll', 'chapters.test.ts', 'guideTone.test.ts', 'toEntityModel.test.ts'],
   R45: ['token-cutout.e2e.ts'],
   R46: [
     'damagedEffect.test.tsx',

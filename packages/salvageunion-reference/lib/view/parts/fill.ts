@@ -112,9 +112,9 @@ export function entityTone(
   // A bio-chassis wears the bio gear's mutant green, not chassis green.
   if (schemaName === 'chassis' && getTechLevel(entity) === 'B') return 'tl-b'
   if (getBlackMarket(entity) === true) return 'ink-2'
-  // A Hybrid Class wears its own brown, apart from the Core classes' orange
-  // (R44).
-  if (schemaName === 'classes' && classKind(entity) === 'HYBRID') return 'class-hybrid'
+  // A Hybrid Class wears the tier rust its Advanced and Hybrid abilities wear,
+  // apart from the Core classes' orange (R44).
+  if (schemaName === 'classes' && classKind(entity) === 'HYBRID') return 'tier-hybrid'
   const bySchema = SCHEMA_TONE[schemaName]
   if (bySchema) return bySchema
   if (schemaName === 'abilities') return abilityTierTone(entity)

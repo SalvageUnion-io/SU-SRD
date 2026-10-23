@@ -253,10 +253,9 @@ describe('ink on colour — the refresh pairs', () => {
     // The Avatar fallback initial sits on pilot (Avatar.tsx).
     { band: 'avatar', ground: color.pilot, text: 'ink' },
     // The ability tiers' Compact banners and tree tracks: Advanced and Hybrid
-    // rust; Core is pilot, Legendary the crawler band (above).
+    // rust, as a Hybrid Class's band; Core is pilot, Legendary the crawler band
+    // (above).
     { band: 'tierHybrid', ground: color.tierHybrid, text: 'paper' },
-    // A Hybrid Class's brown.
-    { band: 'classHybrid', ground: color.classHybrid, text: 'paper' },
     // The Heat guide's band.
     { band: 'heat', ground: color.heat, text: 'paper' },
     // The SRD home's Discord button (`DiscordButton`).

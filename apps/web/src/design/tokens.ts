@@ -281,11 +281,9 @@ const base = {
    *  despite the tone. */
   adversary: 'rgb(140, 75, 56)',
 
-  // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust.
-  //   Core and Legendary reuse pilot/crawler. —
+  // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust, and
+  //   the Hybrid Classes with them. Core and Legendary reuse pilot/crawler. —
   tierHybrid: 'rgb(183, 65, 14)',
-  /** The Hybrid Classes' brown, apart from the tier rust. */
-  classHybrid: 'rgb(107, 68, 35)',
 
   /** The Heat guide's own red (R44): its band and its tile. Carries
    *  paper. */
