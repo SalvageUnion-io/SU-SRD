@@ -393,7 +393,7 @@ describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', (
     expect(burnt && pilotOverloadPatch(pilot, burnt.effect)).toEqual({ currentHP: 4 })
     const hurt = mechPush(fleshripper, seqRoll([2, 4]))
     expect(hurt && pilotOverloadPatch(pilot, hurt.effect)).toEqual({
-      injuries: [{ severity: 'major', note: 'Bio-Chassis Overload' }],
+      injuries: [{ severity: 'major', note: 'Bio-Chassis Overload Table' }],
     })
   })
 

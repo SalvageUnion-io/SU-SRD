@@ -33,6 +33,7 @@ import {
   describePushOutcome,
   mechMaxHeat,
   mechMaxSP,
+  overloadTableName,
   overloadTableOf,
   performHeatCheck,
   performPush,
@@ -146,7 +147,7 @@ export function pilotOverloadPatch(pilot: Pilot, effect: HeatCheckEffect): Parti
   if (effect.pilotInjury !== undefined) {
     patch.injuries = [
       ...(pilot.injuries ?? []),
-      { severity: effect.pilotInjury, note: 'Bio-Chassis Overload' },
+      { severity: effect.pilotInjury, note: overloadTableName('bio') },
     ]
   }
   return Object.keys(patch).length === 0 ? null : patch

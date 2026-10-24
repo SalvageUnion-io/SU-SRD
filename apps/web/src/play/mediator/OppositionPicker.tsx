@@ -30,6 +30,7 @@ import {
   tokens,
 } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
+import type { RosterLine } from './encounterRoster.model'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
@@ -42,6 +43,8 @@ export type TrayWrites = {
   morale: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
   rename: (npc: TrayNpc, name: string) => Promise<unknown>
+  /** Field an encounter row's roster (p.270): every line it names, how many it says. */
+  field: (lines: readonly RosterLine[]) => Promise<number>
 }
 
 const PATTERN_ACTIONS = {

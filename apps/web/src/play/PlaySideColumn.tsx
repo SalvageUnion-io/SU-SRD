@@ -26,6 +26,7 @@ import type { OverloadTable } from 'salvageunion-reference/rules'
 import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
 import { SlabSection, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import type { RosterLine } from './mediator/encounterRoster.model'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'
@@ -65,11 +66,14 @@ export function PlayTablesSection({
   solo,
   prepared,
   mechTables,
+  onField,
 }: SideSectionProps & {
   downtime: boolean
   solo: boolean
   prepared?: readonly string[]
   mechTables?: OverloadTable
+  /** The Mediator's: field a rolled encounter row on the Opposition. */
+  onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
 }) {
   return (
     <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
@@ -81,6 +85,7 @@ export function PlayTablesSection({
         onPostChange={side.setPost}
         binding={side.binding}
         prepared={prepared}
+        onField={onField}
       />
     </SlabSection>
   )

@@ -90,6 +90,7 @@ export function MediatorTablesAndFeed({
         downtime={mediator.downtime.downtime.running}
         solo={false}
         prepared={running?.tables}
+        onField={mediator.canWrite ? mediator.tray.field : undefined}
       />
       <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
     </>

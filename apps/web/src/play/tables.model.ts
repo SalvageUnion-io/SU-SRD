@@ -34,12 +34,8 @@ export function pinnedTables(
 ): readonly string[] {
   if (downtime) return DOWNTIME_TABLES
   if (mechTables === 'reactor') return COMBAT_TABLES
-  return [
-    'Core Mechanic',
-    damageTableName(mechTables),
-    overloadTableName(mechTables),
-    'Critical Injury',
-  ]
+  const [core, , , injury] = COMBAT_TABLES
+  return [core, damageTableName(mechTables), overloadTableName(mechTables), injury]
 }
 
 /** How many tables a search lists at once. */
