@@ -60,6 +60,7 @@ import {
   EmptyState,
   Entity,
   MiniGrid,
+  Select,
   SlabSection,
   Stack,
   Stat,
@@ -77,7 +78,15 @@ import {
   bayRepairShortfall,
   resolveCrawlerSystem,
 } from '../../lib/rules/crawlerItems'
+import type { ExoticKey } from '../../lib/rules/exoticSalvage'
+import {
+  addToExotic,
+  EXOTIC_RESOURCES,
+  exoticBucket,
+  hasExotic,
+} from '../../lib/rules/exoticSalvage'
 import { runWrite } from '../../lib/runWrite'
+import { expansionCrawlerBays } from '../../lib/wizard/crawlerFormState'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
@@ -85,6 +94,7 @@ import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
+import { EXOTIC_NAME } from './exoticNames.model'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
@@ -102,6 +112,13 @@ const ROOT = {
 } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
+
+/** The "+ Bay" picker at a compact button's height, beside Crew. */
+const ADD_BAY = {
+  height: 'var(--size-compact)',
+  paddingInline: tokens.space[8],
+  fontSize: tokens.fontSize.xs,
+} satisfies CSSProperties
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -246,9 +263,49 @@ export function CrawlerSheet({
     )
   }
 
+  const expansionBays = expansionCrawlerBays()
+  const expansionSlugs = new Set(expansionBays.map((b) => b.slug))
+  const installable = expansionBays.filter((b) => !bays.some((e) => e.bayRef === b.slug))
+
+  /** Set one expansion resource to `next` (Free Edit), as `setScrapBucket` does a Tech bucket. */
+  function setExotic(key: ExoticKey, next: number) {
+    if (readOnly) return
+    const fresh = storeState.get('crawler', crawler.id) ?? crawler
+    const currentPool = fresh.scrapPool ?? {}
+    const delta = next - exoticBucket(currentPool, key)
+    if (delta === 0) return
+    runWrite(() =>
+      storeState.update(
+        'crawler',
+        crawler.id,
+        { scrapPool: addToExotic(currentPool, key, delta) },
+        LIVE_SHEET_MANUAL
+      )
+    )
+  }
+
+  /**
+   * Install an expansion bay (Free Edit): the Bio-Mech, Bio-Crafting and
+   * Nanite Processing Bays and VR Tubes are built or found in play, so the
+   * seed leaves them out. What it cost is the table's to take from the pool.
+   */
+  function addExpansionBay(slug: string) {
+    const bay = expansionBays.find((b) => b.slug === slug)
+    if (!bay) return
+    patchCrawler((current) => ({ crawlerBays: [...(current.crawlerBays ?? []), bay.entry] }))
+  }
+
+  /** Uninstall the expansion bay at `index` (Free Edit). */
+  function removeBay(index: number) {
+    patchCrawler((current) => ({
+      crawlerBays: (current.crawlerBays ?? []).filter((_, i) => i !== index),
+    }))
+  }
+
   // Read leaves what is empty out (ruleset §1.2): an empty state only where
   // Edit can fill it.
   const poolEmpty = SCRAP_TLS.every((t) => scrapPoolBucket(pool, t) === 0)
+  const showExotic = !readOnly || hasExotic(pool)
   const holdEmpty = (crawler.cargoLots ?? []).length === 0
   const showPool = !readOnly || !poolEmpty
   const showHold = !readOnly || !holdEmpty
@@ -305,6 +362,22 @@ export function CrawlerSheet({
           ))}
         </SlabSection>
       )}
+      {/* Bio-Salvage, Chimerium and Meld Nanites: not Scrap of any Tech
+          Level, so each its own stepper beside the Tech buckets. */}
+      {showExotic && (
+        <SlabSection title={buildSheetCopy('bioAndNanites')} size="mini" bodyStyle={POOL_ROW}>
+          {EXOTIC_RESOURCES.map((r) => (
+            <Stat
+              key={r.key}
+              label={EXOTIC_NAME[r.key]}
+              value={exoticBucket(pool, r.key)}
+              min={0}
+              mode={readOnly ? 'read' : 'edit'}
+              onChange={readOnly ? undefined : (next) => setExotic(r.key, next)}
+            />
+          ))}
+        </SlabSection>
+      )}
       {showHold && (
         <StorageManifest
           side="crawler"
@@ -357,6 +430,7 @@ export function CrawlerSheet({
         contents={
           kind === 'armament' ? armamentContents : kind === 'storage' ? storageContents : undefined
         }
+        onRemove={expansionSlugs.has(entry.bayRef) ? () => removeBay(i) : undefined}
       />
     )
   }
@@ -449,14 +523,35 @@ export function CrawlerSheet({
             title={buildSheetCopy('bays')}
             count={{ label: buildSheetCopy('intact'), value: intactBays, max: bays.length }}
             actions={
-              crewHref === undefined ? undefined : (
-                <Button
-                  href={crewHref}
-                  size="compact"
-                  aria-label={buildSheetCopy('crewDesignAndAssignCrawler', { name: crawler.name })}
-                >
-                  {buildSheetCopy('crew')}
-                </Button>
+              crewHref === undefined && (readOnly || installable.length === 0) ? undefined : (
+                <>
+                  {!readOnly && installable.length > 0 && (
+                    <Select
+                      aria-label={buildSheetCopy('addAnExpansionBay')}
+                      style={ADD_BAY}
+                      value=""
+                      onChange={(e) => addExpansionBay(e.target.value)}
+                    >
+                      <option value="">{buildSheetCopy('addBay')}</option>
+                      {installable.map((b) => (
+                        <option key={b.slug} value={b.slug}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                  {crewHref !== undefined && (
+                    <Button
+                      href={crewHref}
+                      size="compact"
+                      aria-label={buildSheetCopy('crewDesignAndAssignCrawler', {
+                        name: crawler.name,
+                      })}
+                    >
+                      {buildSheetCopy('crew')}
+                    </Button>
+                  )}
+                </>
               )
             }
           >
