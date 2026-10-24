@@ -27,6 +27,9 @@
   },
   "overrides": {
     "@randsum/roller": "4.0.0",
+    "miniflare": {
+      "undici": "7.30.1"
+    },
     "salvageunion-reference": "workspace:*",
     "sharp": ">=0.35.5"
   },
