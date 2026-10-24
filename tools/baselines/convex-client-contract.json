@@ -1916,6 +1916,42 @@
                   "type": "any"
                 },
                 "optional": true
+              },
+              "important": {
+                "fieldType": {
+                  "type": "boolean"
+                },
+                "optional": true
+              },
+              "maxEp": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "heatCap": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "currentEp": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "currentHeat": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "lastImportantRoll": {
+                "fieldType": {
+                  "type": "any"
+                },
+                "optional": true
               }
             }
           },

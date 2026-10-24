@@ -191,6 +191,10 @@ describe('updateNpc moves a tray NPC through the fight', () => {
       name: string
       currentHp: number
       lastMediatorRoll?: { roll: number; label?: string }
+      important?: boolean
+      currentEp?: number
+      currentHeat?: number
+      lastImportantRoll?: { table: string; roll: number }
     }
   }
 
@@ -207,6 +211,40 @@ describe('updateNpc moves a tray NPC through the fight', () => {
 
     await gm.as.mutation(api.mediator.updateNpc, { npcId, patch: { currentHp: -4 } })
     expect((await bodyOf(seeded)).currentHp).toBe(0)
+  })
+
+  test('an important NPC steps its EP and Heat, clamped to what was frozen when it was marked', async () => {
+    const t = testConvex()
+    const seeded = await seedNpc(t)
+    const { gm, npcId } = seeded
+
+    await gm.as.mutation(api.mediator.updateNpc, {
+      npcId,
+      patch: { important: true, maxEp: 6, heatCap: 8, currentEp: 6, currentHeat: 0 },
+    })
+    await gm.as.mutation(api.mediator.updateNpc, {
+      npcId,
+      patch: { currentEp: 9, currentHeat: 12 },
+    })
+    expect(await bodyOf(seeded)).toMatchObject({ important: true, currentEp: 6, currentHeat: 8 })
+
+    await gm.as.mutation(api.mediator.updateNpc, {
+      npcId,
+      patch: {
+        lastImportantRoll: {
+          table: 'critical-damage',
+          roll: 20,
+          label: 'Miraculous Survival',
+          value: 'It has 1 SP.',
+          rolledAt: FIXTURE_NOW,
+        },
+        currentHp: 1,
+      },
+    })
+    expect(await bodyOf(seeded)).toMatchObject({
+      currentHp: 1,
+      lastImportantRoll: { table: 'critical-damage', roll: 20 },
+    })
   })
 
   test('a Morale result stays on the NPC, and nothing reaches the crew-readable log', async () => {

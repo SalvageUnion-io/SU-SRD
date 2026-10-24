@@ -24,13 +24,22 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
 import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { dieForTable, toast } from '../../components/index'
+import { dieForTable, rollForTable, toast } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { rollMorale } from '../../lib/rules/opposition'
+import type { ImportantRoll } from '../../lib/rules/opposition'
+import {
+  criticalTable,
+  npcHeatCheck,
+  REACTOR_OVERLOAD,
+  rollMorale,
+  rollNpcCritical,
+} from '../../lib/rules/opposition'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePrepStore } from '../../stores/prepStore'
 import type { PlayReadOnly } from '../play.model'
@@ -197,6 +206,86 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         tableName: 'Morale',
         rolls: [result.roll],
         label: `${npc.name} · Morale`,
+        outcome: result.label ?? result.value,
+      })
+    },
+    setImportant: (npc, important) =>
+      updateNpc({
+        npcId: npcId(npc),
+        patch:
+          important && npc.track?.reactor && npc.reactor === null
+            ? {
+                important,
+                maxEp: npc.track.reactor.maxEp,
+                heatCap: npc.track.reactor.heatCap,
+                currentEp: npc.track.reactor.maxEp,
+                currentHeat: 0,
+              }
+            : { important },
+      }),
+    setReactor: (npc, patch) => updateNpc({ npcId: npcId(npc), patch }),
+    critical: async (npc) => {
+      if (npc.track === null) return
+      const tableName = criticalTable(npc.track.critical)?.name
+      if (tableName === undefined) throw new Error('The Critical table could not be read')
+      const rolled = rollNpcCritical(
+        npc.track.critical,
+        await dieForTable(tableName),
+        new Date().toISOString()
+      )
+      if (rolled === null) throw new Error('The Critical table could not be read')
+      await updateNpc({
+        npcId: npcId(npc),
+        patch: {
+          lastImportantRoll: rolled.result,
+          ...(rolled.nextHp === null ? {} : { currentHp: rolled.nextHp }),
+        },
+      })
+      recordPlayRoll({
+        tableName,
+        rolls: [rolled.result.roll],
+        label: `${npc.name} · ${tableName}`,
+        outcome: rolled.result.label ?? rolled.result.value,
+      })
+    },
+    heatCheck: async (npc) => {
+      if (npc.reactor === null) return
+      const overloadTable = SalvageUnionReference.RollTables.getBySlug(REACTOR_OVERLOAD)?.name
+      if (overloadTable === undefined) throw new Error('The overload table could not be read')
+      // The check's own d20 is plain; the overload roll is the table's.
+      const roll = await rollForTable(overloadTable, { plainD20s: 1 })
+      const now = new Date().toISOString()
+      const checked = npcHeatCheck(npc.reactor.heat, npc.currentHp, roll, now)
+      if (checked === null) throw new Error('The overload table could not be read')
+      const { overload } = checked
+      const result: ImportantRoll = {
+        table: 'heat-check',
+        roll: checked.roll,
+        label: overload?.label ?? mediatorCopy('passed'),
+        value:
+          overload === null
+            ? mediatorCopy('heatCheckPassed', { roll: checked.roll, heat: checked.heat })
+            : mediatorCopy('heatCheckOverload', {
+                roll: checked.roll,
+                heat: checked.heat,
+                table: overloadTable,
+                overload: overload.roll,
+                value: overload.value,
+              }),
+        rolledAt: now,
+      }
+      await updateNpc({
+        npcId: npcId(npc),
+        patch: {
+          lastImportantRoll: result,
+          ...(checked.nextSp === npc.currentHp ? {} : { currentHp: checked.nextSp }),
+        },
+      })
+      const heatCheck = mediatorCopy('heatCheck')
+      recordPlayRoll({
+        tableName: heatCheck,
+        rolls: overload === null ? [checked.roll] : [checked.roll, overload.roll],
+        label: `${npc.name} · ${heatCheck}`,
         outcome: result.label ?? result.value,
       })
     },
