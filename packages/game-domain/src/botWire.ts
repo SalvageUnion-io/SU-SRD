@@ -258,6 +258,17 @@ export type PostRollRelayResponse =
   | { ok: false; status: number | null; message: string }
 
 /**
+ * The same door for a Stop Sign (`convex/safety.ts#postStop`): Convex asks the
+ * Worker to tell a Game's bound channel that the game is paused, on a table
+ * that opted in. The message is the Worker's own fixed words, so nothing a
+ * player typed reaches Discord this way. It answers as the roll relay does.
+ */
+export const BOT_RELAY_POST_STOP_PATH = '/relay/post-stop'
+
+/** Where the Stop Sign posts. */
+export type PostStopRelayRequest = { channelId: string }
+
+/**
  * Whether a roll is one the card can replay: a named table and one die (two on
  * a columns table), each a whole number on the d20. Convex checks it before it
  * relays (`channelBindings.postRoll`) and the relay again on receipt.
