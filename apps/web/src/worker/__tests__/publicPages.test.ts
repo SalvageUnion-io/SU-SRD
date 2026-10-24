@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
+import { QUICKSTART_MECHS, QUICKSTART_PILOTS } from 'game-domain/starterSet/quickstart'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { color } from '../../design/tokens'
@@ -142,6 +143,8 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
       ...STARTER_PILOTS.map((t) => `starter/pilot/${t.id}.html`),
       ...STARTER_MECHS.map((t) => `starter/mech/${t.id}.html`),
       ...STARTER_CRAWLERS.map((t) => `starter/crawler/${t.id}.html`),
+      ...QUICKSTART_PILOTS.map((t) => `starter/pilot/${t.id}.html`),
+      ...QUICKSTART_MECHS.map((t) => `starter/mech/${t.id}.html`),
     ])
   })
 
@@ -207,6 +210,8 @@ describe('sitemap.xml', () => {
       ...STARTER_PILOTS.map((t) => `/starter/pilot/${t.id}`),
       ...STARTER_MECHS.map((t) => `/starter/mech/${t.id}`),
       ...STARTER_CRAWLERS.map((t) => `/starter/crawler/${t.id}`),
+      ...QUICKSTART_PILOTS.map((t) => `/starter/pilot/${t.id}`),
+      ...QUICKSTART_MECHS.map((t) => `/starter/mech/${t.id}`),
     ]
     expect(locs()).toEqual([
       `${PROD}${BASE}/`,
