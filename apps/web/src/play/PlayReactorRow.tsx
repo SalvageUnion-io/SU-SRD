@@ -22,11 +22,15 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
+import type { HeatCheckEffect } from 'salvageunion-reference/rules'
 import {
   canPush,
   mechMaxHeat,
   mechMaxSP,
+  overloadTableName,
+  overloadTableOf,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
@@ -36,6 +40,7 @@ import {
   describeHeatCheck,
   heatCheckOncePatch,
   mechPush,
+  pilotOverloadPatch,
   shutdownTogglePatch,
   VENT_PATCH,
 } from '../lib/rules/actionPatches'
@@ -52,13 +57,12 @@ import type { PlayActions } from './usePlayActions'
 /** What the last roll or act came to; `overloadRoll` marks the table. */
 type ReactorLog = { text: string; meltdown: boolean; overloadRoll?: number }
 
-/** The table a Heat Check overloads on. */
-const REACTOR_OVERLOAD = 'Reactor Overload'
-
 const MODEL = playLineModel({ name: 'Reactor', key: 'reactor' })
 
 type PlayReactorRowProps = {
   mech: Mech
+  /** The pilot aboard, whom a Bio-Chassis's overload can hurt (WWHF p.79). */
+  pilot: Pilot | null
   store: PlayStore
   rollFor: PlayActions['rollFor']
   /** Why it is not on hand ("needs Boarded"), or null when it is. */
@@ -66,12 +70,22 @@ type PlayReactorRowProps = {
   canWrite: boolean
 }
 
-export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayReactorRowProps) {
+export function PlayReactorRow({
+  mech,
+  pilot,
+  store,
+  rollFor,
+  need,
+  canWrite,
+}: PlayReactorRowProps) {
   const [log, setLog] = useState<ReactorLog | null>(null)
   // Push pressed: the stamp's next roll is a Push.
   const [pushing, setPushing] = useState(false)
   const fresh = () => store.get('mech', mech.id) ?? mech
   const chassis = resolveChassisRef(mech.chassisRef)
+  // A Bio-Chassis overloads on its own table (We Were Here First p.79).
+  const overloadTable = overloadTableOf(chassis)
+  const overloadTableTitle = overloadTableName(overloadTable)
   const now = fresh()
   const cap = mechMaxHeat(now, chassis)
   const heat = resolveGauge(now.currentHeat, cap)
@@ -83,23 +97,33 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
     setPushing(false)
     // What the Push came to, read by the roll log once the dice are.
     let said: string | undefined
-    const roll = await rollFor(REACTOR_OVERLOAD, 'Push', {
+    const roll = await rollFor(overloadTableTitle, 'Push', {
       plainD20s: 1,
       outcome: () => said,
     })
     const pushed = mechPush(fresh(), roll)
     if (pushed === null) return
-    const { patch, text, meltdown, overloadRoll } = pushed
+    const { patch, text, meltdown, overloadRoll, effect } = pushed
     said = text
     runWrite(
       () => store.update('mech', mech.id, patch, PLAY_TXN),
-      () => setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
+      () => {
+        setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
+        hurtPilot(effect)
+      }
     )
+  }
+
+  /** A Bio-Chassis overload's harm to the pilot aboard, written to the pilot. */
+  function hurtPilot(effect: HeatCheckEffect) {
+    if (pilot === null) return
+    const patch = pilotOverloadPatch(store.get('pilot', pilot.id) ?? pilot, effect)
+    if (patch !== null) runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN))
   }
 
   async function doHeatCheck() {
     let said: string | undefined
-    const roll = await rollFor(REACTOR_OVERLOAD, 'Heat Check', {
+    const roll = await rollFor(overloadTableTitle, 'Heat Check', {
       plainD20s: 1,
       outcome: () => said,
     })
@@ -109,13 +133,17 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
       heat: resolveGauge(m.currentHeat, mcap),
       currentSP: resolvePoolStart(m.currentSP, mechMaxSP(m, chassis)),
       roll,
+      table: overloadTable,
     })
-    const text = describeHeatCheck(effect)
+    const text = describeHeatCheck(effect, overloadTable)
     const { overloadRoll } = effect.result
     said = text
     runWrite(
       () => store.update('mech', mech.id, patch, PLAY_TXN),
-      () => setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
+      () => {
+        setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
+        hurtPilot(effect)
+      }
     )
   }
 
@@ -197,7 +225,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
                 children: (
                   <div className="su-play-resolve">
                     <PlayRollInstrument
-                      table={REACTOR_OVERLOAD}
+                      table={overloadTableTitle}
                       roll={log?.overloadRoll ?? null}
                       stamp={pushing ? 'Push:' : 'Heat Check:'}
                       onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}

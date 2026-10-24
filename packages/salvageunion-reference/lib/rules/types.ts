@@ -240,6 +240,26 @@ export type ReactorOverloadOutcome =
   | 'module-destroyed'
   | 'overheat'
   | 'overdrive'
+  | BioOverloadOutcome
+
+/**
+ * The Bio-Chassis Overload Table's own bands (We Were Here First p.79), which
+ * a Bio-Chassis rolls in place of Reactor Overload. Its 2-3, 6-8 and 20 rows
+ * are the reactor's `system-destroyed`, `module-destroyed` and `overdrive`.
+ *   1     → death-throes          (Death Throes: the Bio-Chassis is destroyed)
+ *   4-5   → severe-pilot-overload (the Pilot suffers a Major Injury)
+ *   9-10  → pilot-overload        (the Pilot suffers a Minor Injury)
+ *   11-19 → bio-overload          (Vulnerable, cannot act for a Turn; the
+ *                                  Pilot takes HP damage equal to current Heat)
+ */
+export type BioOverloadOutcome =
+  | 'death-throes'
+  | 'severe-pilot-overload'
+  | 'pilot-overload'
+  | 'bio-overload'
+
+/** Which table an overload rolls on: a mech's reactor, or a Bio-Chassis's own. */
+export type OverloadTable = 'reactor' | 'bio'
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
@@ -275,6 +295,10 @@ export type HeatCheckEffect = {
   destroyed: boolean
   /** True when the player must pick a System/Module to mark destroyed (2-5 / 6-10). */
   requiresPlayerChoice: boolean
+  /** HP the Pilot takes (a Bio-Overload: the current Heat). Absent is none. */
+  pilotDamage?: number
+  /** The Injury the Pilot suffers (a Bio-Chassis's Pilot Overload rows). */
+  pilotInjury?: 'minor' | 'major'
 }
 
 export type PushResult = {

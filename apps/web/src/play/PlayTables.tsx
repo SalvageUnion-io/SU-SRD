@@ -20,6 +20,7 @@
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { OverloadTable } from 'salvageunion-reference/rules'
 import { RollMini } from '../components/entity/forms/RollMini'
 import {
   CHAPTER_BAND_COLOR,
@@ -55,6 +56,8 @@ const POST = {
 type PlayTablesProps = {
   /** Downtime is running: its tables are the pinned ones. */
   downtime: boolean
+  /** Which Damage and Overload tables the fight pins: a Bio-Chassis's own, or the reactor's. */
+  mechTables?: OverloadTable | undefined
   /** Solo: rolls post to my own channel. */
   solo: boolean
   /** The screen's Post toggle. */
@@ -68,6 +71,7 @@ type PlayTablesProps = {
 
 export function PlayTables({
   downtime,
+  mechTables = 'reactor',
   solo,
   post,
   onPostChange,
@@ -123,7 +127,7 @@ export function PlayTables({
       )}
       <TableMinis
         label={playCopy('pinnedTables')}
-        names={pinnedTables(downtime)}
+        names={pinnedTables(downtime, mechTables)}
         open={open}
         onPick={pick}
       />

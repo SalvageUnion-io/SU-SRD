@@ -8,9 +8,14 @@
 
 import { describe, expect, test } from 'bun:test'
 import {
+  bioOverloadOutcome,
   canActivateAction,
   canPush,
   clampHeat,
+  damageTableName,
+  isBioChassis,
+  overloadTableName,
+  overloadTableOf,
   PUSH_HEAT,
   performHeatCheck,
   performPush,
@@ -231,5 +236,81 @@ describe('canPush', () => {
   test('allows a Push that lands exactly on the Heat Cap', () => {
     expect(canPush(8, 10)).toBe(true)
     expect(canPush(0, 10)).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// A Bio-Chassis overloads on its own table (We Were Here First p.79)
+// ---------------------------------------------------------------------------
+
+describe('the Bio-Chassis Overload Table', () => {
+  test('each band of the d20', () => {
+    expect([1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 19, 20].map(bioOverloadOutcome)).toEqual([
+      'death-throes',
+      'system-destroyed',
+      'system-destroyed',
+      'severe-pilot-overload',
+      'severe-pilot-overload',
+      'module-destroyed',
+      'module-destroyed',
+      'pilot-overload',
+      'pilot-overload',
+      'bio-overload',
+      'bio-overload',
+      'overdrive',
+    ])
+  })
+
+  test('a Bio-Overload shuts the chassis down, Vulnerable, and burns the Pilot for the Heat', () => {
+    const effect = performHeatCheck({
+      heat: 6,
+      currentSP: 10,
+      roll: seqRoll(3, 15),
+      now: fixedNow,
+      table: 'bio',
+    })
+    expect(effect.result.outcome).toBe('bio-overload')
+    expect(effect.shutdown).toBe(true)
+    expect(effect.vulnerable).toBe(true)
+    // The chassis keeps its SP: the Heat is the Pilot's.
+    expect(effect.nextSP).toBe(10)
+    expect(effect.pilotDamage).toBe(6)
+  })
+
+  test('Pilot Overloads injure the Pilot; Death Throes destroy the chassis', () => {
+    const at = (overload: number) =>
+      performHeatCheck({ heat: 6, currentSP: 10, roll: seqRoll(3, overload), table: 'bio' })
+    expect(at(9).pilotInjury).toBe('minor')
+    expect(at(4).pilotInjury).toBe('major')
+    expect(at(1).destroyed).toBe(true)
+    expect(at(7).requiresPlayerChoice).toBe(true)
+  })
+
+  test('a Push carries the table through to its Heat Check', () => {
+    const { effect } = performPush({
+      heat: 4,
+      heatCap: 10,
+      currentSP: 10,
+      roll: seqRoll(2, 12),
+      table: 'bio',
+    })
+    expect(effect.result.outcome).toBe('bio-overload')
+    expect(effect.pilotDamage).toBe(6)
+  })
+
+  test('the reactor is still the default', () => {
+    const effect = performHeatCheck({ heat: 6, currentSP: 10, roll: seqRoll(3, 15) })
+    expect(effect.result.outcome).toBe('overheat')
+    expect(effect.pilotDamage).toBeUndefined()
+  })
+
+  test('a chassis of the Bio tier rolls the Bio-Chassis tables', () => {
+    expect(isBioChassis({ techLevel: 'B' })).toBe(true)
+    expect(isBioChassis({ techLevel: 3 })).toBe(false)
+    expect(overloadTableOf({ techLevel: 'B' })).toBe('bio')
+    expect(overloadTableOf(null)).toBe('reactor')
+    expect(overloadTableName('bio')).toBe('Bio-Chassis Overload Table')
+    expect(damageTableName('bio')).toBe('Bio-Chassis Damage Table')
+    expect(damageTableName('reactor')).toBe('Critical Damage')
   })
 })

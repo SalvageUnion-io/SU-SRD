@@ -22,6 +22,8 @@
  */
 
 import type { CSSProperties } from 'react'
+import type { OverloadTable } from 'salvageunion-reference/rules'
+import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
 import { SlabSection, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayCrew } from './PlayCrew'
@@ -62,11 +64,18 @@ export function PlayTablesSection({
   downtime,
   solo,
   prepared,
-}: SideSectionProps & { downtime: boolean; solo: boolean; prepared?: readonly string[] }) {
+  mechTables,
+}: SideSectionProps & {
+  downtime: boolean
+  solo: boolean
+  prepared?: readonly string[]
+  mechTables?: OverloadTable
+}) {
   return (
     <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
       <PlayTables
         downtime={downtime}
+        mechTables={mechTables}
         solo={solo}
         post={side.post}
         onPostChange={side.setPost}
@@ -103,6 +112,11 @@ export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { 
         side={side}
         idPrefix="play"
         downtime={play.situation === 'downtime'}
+        mechTables={
+          play.boardedMech
+            ? overloadTableOf(resolveChassisRef(play.boardedMech.chassisRef))
+            : 'reactor'
+        }
         solo={target.gameId === null}
       />
       <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />
