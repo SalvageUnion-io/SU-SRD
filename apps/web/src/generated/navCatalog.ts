@@ -135,7 +135,7 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "label": "Guides",
         "href": "/guides/",
-        "count": 15
+        "count": 16
       },
       {
         "label": "Roll Tables",
@@ -168,6 +168,6 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
         "count": 6
       }
     ],
-    "total": 215
+    "total": 216
   }
 ] as const
