@@ -1557,5 +1557,29 @@
         "value": "Scrip is also unique to each corporate settlement, and isn't tradable between them. For example, DronTek scrip is worthless in a Stefanus Arco."
       }
     ]
+  },
+  {
+    "id": "494c010c-8766-4156-b210-f2091cb377b6",
+    "source": "Salvage Union Workshop Manual",
+    "name": "radiation storm",
+    "page": 305,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Numerous particles carried by high speed winds harbour deadly levels of radiation that can kill a person and damage Mechs."
+      },
+      {
+        "type": "paragraph",
+        "value": "A Pilot within a Mech is safe from the Radiation Storm."
+      },
+      {
+        "type": "paragraph",
+        "value": "For each hour a Mech is exposed to the Radiation Storm it takes 2 SP damage, gains 2 Heat, and must make a Heat Check. In addition, when it generates Heat, it generates twice as much. For example, Pushing would generate 4 Heat instead of 2."
+      },
+      {
+        "type": "paragraph",
+        "value": "Pilots exposed to a Radiation Storm suffer a Major Injury every hour, reducing their Max HP by 2 each hour."
+      }
+    ]
   }
 ]

@@ -1,6 +1,6 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
+ * §10): the Scene's conditions (`PlayMediatorScene`), then "Opposition", a Slab with Run an encounter and + Add, the encounter
  * running (`RUNNING | its name`, End; ADR-059), then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1),
  * then the chosen one's actions (`PlayNpcActions`).
@@ -19,6 +19,7 @@ import { Button, EmptyState, Slab, Stat, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayNpc } from './opposition.model'
+import { PlayMediatorScene } from './PlayMediatorScene'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { RunEncounterDialog } from './RunEncounterDialog'
@@ -51,6 +52,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
 
   return (
     <>
+      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
         label={mediatorCopy('opposition')}

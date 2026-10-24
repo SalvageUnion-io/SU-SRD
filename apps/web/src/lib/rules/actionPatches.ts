@@ -13,6 +13,7 @@
  * patch — it stays an explicit player call at the UI layer.
  */
 
+import { pushHeatAt, scaleHeat } from 'game-domain/rules/sceneConditions'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -65,7 +66,14 @@ function autoApplyPatch(patch: Partial<Mech>): { patch: Partial<Mech>; meltdown:
  * held back (`meltdown: true`) for the caller's player-confirm (ADR-007).
  * Destroyed System/Module bands are likewise left for the player to mark.
  */
-export function pushPatch(args: { heat: number; heatCap: number; currentSP: number; roll: Roll }): {
+export function pushPatch(args: {
+  heat: number
+  heatCap: number
+  currentSP: number
+  roll: Roll
+  /** The Push's Heat where a Scene scales it (`pushHeatAt`); 2 by default. */
+  gain?: number
+}): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   nextHeat: number
@@ -80,11 +88,14 @@ export function pushPatch(args: { heat: number; heatCap: number; currentSP: numb
  * A Push on `mech` as it stands (the caller reads it fresh from the store): the
  * patch, what it came to and whether it melted down, or null where +2 Heat
  * would pass the Heat Cap (Core Book p.234). The resolve's Push
- * (`useActionsDeck`) and `PlayReactorRow`'s both run it.
+ * (`useActionsDeck`) and `PlayReactorRow`'s both run it. Under a Scene's
+ * conditions the Push's Heat is scaled (`heatScale`: 4 in a Radiation Storm,
+ * 1 Freezing; `pushHeatAt`).
  */
 export function mechPush(
   mech: Mech,
-  roll: Roll
+  roll: Roll,
+  heatScale = 1
 ): {
   patch: Partial<Mech>
   text: string
@@ -95,10 +106,12 @@ export function mechPush(
   const chassis = resolveChassisRef(mech.chassisRef)
   const heatCap = mechMaxHeat(mech, chassis)
   const heat = resolveGauge(mech.currentHeat, heatCap)
-  if (!canPush(heat, heatCap)) return null
+  const gain = pushHeatAt(heatScale)
+  if (!canPush(heat, heatCap, gain)) return null
   const { patch, effect, nextHeat, meltdown } = pushPatch({
     heat,
     heatCap,
+    gain,
     // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
     // to SP 0 — one hit from destroyed — without it ever having taken damage.
     currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
@@ -107,7 +120,7 @@ export function mechPush(
   const { overloadRoll } = effect.result
   return {
     patch,
-    text: describePushOutcome(nextHeat, effect),
+    text: describePushOutcome(nextHeat, effect, gain),
     meltdown,
     ...(overloadRoll === undefined ? {} : { overloadRoll }),
   }
@@ -407,6 +420,11 @@ export function economyForActivation(
 ): MechItemEconomy {
   if (!hasVariableHot(action)) return base
   return { ...base, heat: hotHeatFor(action, hotX) }
+}
+
+/** The economy with its Hot Heat scaled by a Scene's conditions (`sceneHeatScale`), rounded down. */
+export function economyUnderScene(base: MechItemEconomy, heatScale: number): MechItemEconomy {
+  return heatScale === 1 ? base : { ...base, heat: scaleHeat(base.heat, heatScale) }
 }
 
 /** Whether one activation's Hot Heat applies, and whether it fits under the Heat Cap. */

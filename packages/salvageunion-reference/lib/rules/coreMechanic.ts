@@ -25,6 +25,7 @@
 import { SalvageUnionReference } from '../index'
 import { plainTraitText } from '../traitText'
 import { resultForTable } from '../utils/resultForTable'
+import { PUSH_HEAT } from './heatCheck'
 import type { HeatCheckEffect, ReactorOverloadOutcome, Roll } from './types'
 
 export type CoreRollBand = 'nailed' | 'success' | 'tough' | 'failure' | 'cascade'
@@ -162,8 +163,13 @@ export function describeOverloadOutcome(result: HeatCheckEffect['result']): stri
  * re-rolled d20 in the quick-roll log. Mirrors HeatCheckControl's wording so
  * the FAB and the sheet-body readout never disagree.
  */
-export function describePushOutcome(nextHeat: number, effect: HeatCheckEffect): string {
+export function describePushOutcome(
+  nextHeat: number,
+  effect: HeatCheckEffect,
+  /** The Heat the Push added, where a Scene scales it. */
+  gain: number = PUSH_HEAT
+): string {
   const r = effect.result
-  const head = `+2 Heat → ${nextHeat}. Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
+  const head = `+${gain} Heat → ${nextHeat}. Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
   return `${head} — ${describeOverloadOutcome(r)}`
 }

@@ -2,9 +2,10 @@ import { defineTable } from 'convex/server'
 import type { GenericId } from 'convex/values'
 import { v } from 'convex/values'
 import { zodToConvex } from 'convex-helpers/server/zod4'
+import { SCENE_CONDITION_IDS } from 'game-domain/schemas/scene'
 import type { Seat } from 'game-domain/schemas/seat'
 import { SeatSchema } from 'game-domain/schemas/seat'
-import { mirrors } from './validators'
+import { literalUnion, mirrors } from './validators'
 
 /**
  * Play's tables (ADR-051), spread into `schema.ts`: the Discord channel
@@ -40,6 +41,9 @@ export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 
 /** `SoloDowntime` (game-domain/schemas/seat). Exported for the solo seat reads. */
 export const soloDowntime = zodToConvex(SeatSchema.shape.downtime.unwrap())
+
+/** `SCENE_CONDITION_IDS` (salvageunion-reference/rules): what a Scene can be under. */
+export const sceneCondition = literalUnion(SCENE_CONDITION_IDS)
 
 /** One pilot's claim on one Downtime step (`downtime.claimStep`). */
 export const downtimeClaim = v.object({ pilotId: v.string(), stepIndex: v.number() })
@@ -90,6 +94,21 @@ export const playTables = {
      * absent on a row written before it existed, which reads as none.
      */
     claimed: v.optional(v.array(downtimeClaim)),
+  }).index('by_game', ['gameId']),
+
+  /**
+   * The environmental conditions a Game's Scene is under (`scenes.ts`): a
+   * Radiation Storm, Freezing, Low Visibility and the rest
+   * (`salvageunion-reference/rules` sceneConditions). One row per Game, written
+   * by its Mediator and read by every member, since every seat's Heat and range
+   * follow it. `hours` counts the hours passed under them, back to 0 when the
+   * last one lifts. No row is a clear Scene.
+   */
+  scenes: defineTable({
+    gameId: v.id('games'),
+    conditions: v.array(sceneCondition),
+    hours: v.number(),
+    updatedAt: v.number(),
   }).index('by_game', ['gameId']),
 
   /**

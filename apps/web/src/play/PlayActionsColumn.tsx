@@ -9,6 +9,9 @@
  * Mini's contentful body: Activate, Roll, Push?, Apply, on the seat's
  * `resolving`.
  *
+ * Over it, the Scene's conditions when the Mediator has put it under any
+ * (`PlayScene`): what scales the Heat a Push and a Hot action make.
+ *
  * In Downtime it becomes the Downtime track and the current step
  * (`PlayDowntimeColumn`), the Downtime actions under it.
  *
@@ -21,6 +24,7 @@ import { Slab } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayActionsList, PlayActionsTools } from './PlayActionsList'
 import { PlayDowntimeColumn } from './PlayDowntimeColumn'
+import { PlayScene } from './PlayScene'
 import type { PlayColumnProps } from './situation.model'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayActions } from './usePlayActions'
@@ -30,6 +34,7 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
   if (play.situation === 'downtime') return <PlayDowntimeColumn play={play} actions={actions} />
   return (
     <>
+      <PlayScene scene={play.scene} />
       <Slab
         as="h2"
         label={playCopy('actions')}

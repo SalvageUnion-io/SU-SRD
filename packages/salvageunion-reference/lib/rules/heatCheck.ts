@@ -58,10 +58,11 @@ export const PUSH_HEAT = 2
 /**
  * Whether the Mech may Push: not when the Heat gained would take it over its
  * Heat Cap (Core Book p.234 — a Mech with a Heat Capacity of 10 on 9 Heat
- * cannot Push).
+ * cannot Push). `gain` is the Push's Heat where a Scene scales it
+ * (`pushHeatAt`, sceneConditions.ts).
  */
-export function canPush(currentHeat: number, heatCap: number): boolean {
-  return canActivateAction(currentHeat, PUSH_HEAT, heatCap)
+export function canPush(currentHeat: number, heatCap: number, gain: number = PUSH_HEAT): boolean {
+  return canActivateAction(currentHeat, gain, heatCap)
 }
 
 /**
@@ -161,6 +162,8 @@ type PushInput = {
   currentSP: number
   /** Injectable d20 roller. */
   roll: Roll
+  /** The Heat the Push adds; 2 unless a Scene scales it (`pushHeatAt`). */
+  gain?: number
   /** Injectable clock. */
   now?: () => Date
 }
@@ -169,8 +172,15 @@ type PushInput = {
  * Performs a Push (rule 3): +2 Heat (clamped to cap), then an immediate Heat
  * Check at the new heat. Returns both the new heat and the check effect.
  */
-export function performPush({ heat, heatCap, currentSP, roll, now }: PushInput): PushResult {
-  const nextHeat = clampHeat(heat + PUSH_HEAT, heatCap)
+export function performPush({
+  heat,
+  heatCap,
+  currentSP,
+  roll,
+  gain = PUSH_HEAT,
+  now,
+}: PushInput): PushResult {
+  const nextHeat = clampHeat(heat + gain, heatCap)
   const effect = performHeatCheck({ heat: nextHeat, currentSP, roll, now })
   return { nextHeat, effect }
 }

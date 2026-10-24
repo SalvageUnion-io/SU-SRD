@@ -22,7 +22,7 @@ describe('roll tables by source', () => {
   test('the core book under its cite name, then the supplements by name, each with its tables', () => {
     expect(groups.map((group) => [group.label, group.items.length])).toEqual([
       ['Workshop Manual', 22],
-      ['False Flag', 3],
+      ['False Flag', 4],
       ['Reclamation of the Wastes', 11],
       ['Relics of a Time Gone By', 2],
       ["Thatcher's Mech Base", 1],

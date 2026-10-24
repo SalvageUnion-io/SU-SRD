@@ -189,4 +189,23 @@ describe('lockReason', () => {
     const hot = { ...ok, economy: { epCost: 1, heat: 3, maxUses: 0 } }
     expect(lockReason(hot, 'Close', { current: 9, cap: 10 })).toBe('Over the Heat Capacity')
   })
+
+  test('the Scene scales the Hot Heat it weighs', () => {
+    const hot = action('hot', 'Turn', 'EP', { range: ['Close'] })
+    const warm = { ...hot, economy: { epCost: 1, heat: 3, maxUses: 0 } }
+    expect(lockReason(warm, 'Close', { current: 5, cap: 10 })).toBeNull()
+    expect(lockReason(warm, 'Close', { current: 5, cap: 10, scale: 2 })).toBe(
+      'Over the Heat Capacity'
+    )
+  })
+
+  test('Low Visibility holds a ranged action to Close; one with no range is free', () => {
+    const gun = action('gun', 'Turn', 'EP', { range: ['Close', 'Medium'] })
+    const tool = action('tool', 'Turn', 'EP')
+    const heat = { current: 0, cap: 10 }
+    expect(lockReason(gun, 'Medium', heat, true)).toBe('Low Visibility: Close Range only')
+    expect(lockReason(gun, 'Close', heat, true)).toBeNull()
+    expect(lockReason(tool, 'Far', heat, true)).toBeNull()
+    expect(lockReason(gun, 'Medium', heat)).toBeNull()
+  })
 })
