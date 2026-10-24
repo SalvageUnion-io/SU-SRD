@@ -7,7 +7,10 @@
  * Back, End Downtime and Next); then **Upkeep** and **Gather Cantina
  * Rumours**, a list of Minis one a line (ruleset §1.3: Play's lists are
  * Minis), Pay in Upkeep's chip group and what it came to its contentful
- * body.
+ * body. Between them, once the crew has a faction deal (the Game page's
+ * Factions), **Deal income**: a Scrap of the crawler's Tech Level per deal,
+ * collected beside Upkeep in the same step and once per Downtime
+ * (`ledger.collectIncome`, Reclamation of the Wastes p.7).
  *
  * Next stops at the
  * last step, and ending before it asks first, because ending and beginning
@@ -49,6 +52,7 @@ import { doneOf, seatDone } from './mediatorTable.model'
 import type { PlayMediator } from './usePlayMediator'
 
 const UPKEEP = playLineModel({ name: 'Upkeep', key: 'upkeep' })
+const INCOME = playLineModel({ name: mediatorCopy('dealIncome'), key: 'deal-income' })
 
 type PlayMediatorDowntimeProps = {
   mediator: PlayMediator
@@ -61,9 +65,10 @@ export function PlayMediatorDowntime({
   rollFor: baseRoll = rollForTable,
 }: PlayMediatorDowntimeProps) {
   const store = useEntityStore()
-  const { downtime, seats, canWrite, crawler } = mediator
+  const { downtime, seats, canWrite, crawler, income } = mediator
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [upkeepNote, setUpkeepNote] = useState<string | null>(null)
+  const [incomeNote, setIncomeNote] = useState<string | null>(null)
   const { steps, index: idx, step, count, last } = currentDowntimeStep(downtime.downtime.stepIndex)
   const { completedBy, upkeepSpent } = downtime.downtime
   const { done, of } = doneOf(seats, completedBy)
@@ -88,6 +93,23 @@ export function PlayMediatorDowntime({
     setUpkeepNote(
       await payDowntimeUpkeep({ crawler: unit, store, spendUpkeep: downtime.spendUpkeep })
     )
+  }
+
+  async function collect() {
+    try {
+      const paid = await income.collect()
+      setIncomeNote(
+        paid === null
+          ? mediatorCopy('incomeAlreadyCollected')
+          : mediatorCopy('collectedInto', {
+              scrap: paid.scrap,
+              tl: paid.tl,
+              crawler: paid.crawlerName ?? mediatorCopy('theCrawler'),
+            })
+      )
+    } catch (err) {
+      mediator.onFailure(err)
+    }
   }
 
   return (
@@ -200,6 +222,55 @@ export function PlayMediatorDowntime({
               : {})}
           />
         </li>
+        {/* The crew's faction deals (the Game page's Factions): offered only once there is one. */}
+        {(income.deals > 0 || income.collected) && (
+          <li className="su-play-act" data-action-key="deal-income">
+            <Entity
+              size="mini"
+              context="play"
+              model={INCOME}
+              state={
+                <Stat
+                  size="mini"
+                  label={mediatorCopy('dealScrap', { deals: income.deals })}
+                  value={unit === null ? undefined : `T${crawlerTl(unit)}`}
+                />
+              }
+              controls={
+                income.collected ? (
+                  <Stat size="mini" label={mediatorCopy('collected')} />
+                ) : (
+                  <Button
+                    size="mini"
+                    disabled={off || !upkeepStep || unit === null}
+                    title={
+                      upkeepStep
+                        ? undefined
+                        : mediatorCopy('incomeIsCollectedInThe', {
+                            upkeepStepName: UPKEEP_STEP_NAME,
+                          })
+                    }
+                    onClick={() => void collect()}
+                  >
+                    {mediatorCopy('collect')}
+                  </Button>
+                )
+              }
+              {...(incomeNote
+                ? {
+                    body: {
+                      text: false,
+                      children: (
+                        <p className="su-play-resolve__note" aria-live="polite">
+                          {incomeNote}
+                        </p>
+                      ),
+                    },
+                  }
+                : {})}
+            />
+          </li>
+        )}
         <PlayDowntimeActionRow
           id="rumours"
           name="Gather Cantina Rumours"

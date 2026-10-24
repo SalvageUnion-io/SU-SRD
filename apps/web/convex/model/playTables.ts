@@ -8,7 +8,7 @@ import { mirrors } from './validators'
 
 /**
  * Play's tables (ADR-051), spread into `schema.ts`: the Discord channel
- * bindings, the Game's Downtime and the pilot's seat, with the seat's
+ * bindings, the Game's Downtime and ledger, and the pilot's seat, with the seat's
  * validators the function modules take their arguments against. Split out of
  * `schema.ts` to hold it under its file-size budget; the rules in that file's
  * header hold here too.
@@ -90,6 +90,18 @@ export const playTables = {
      * absent on a row written before it existed, which reads as none.
      */
     claimed: v.optional(v.array(downtimeClaim)),
+  }).index('by_game', ['gameId']),
+
+  /**
+   * A Game's ledger (`game-domain/schemas/ledger`): its factions, their
+   * standing and deals, and its jobs and their pay. One row per Game at most,
+   * written by its Mediator (`ledger.ts`) and read by every member. The body
+   * is `v.any()`, parsed at the edge (`LedgerSchema`). Part of the Game's
+   * apparatus, so it goes with the Game (`GAME_APPARATUS_TABLES`).
+   */
+  ledgers: defineTable({
+    gameId: v.id('games'),
+    body: v.any(),
   }).index('by_game', ['gameId']),
 
   /**

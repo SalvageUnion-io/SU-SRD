@@ -26,6 +26,7 @@ import type * as games from "../games.js";
 import type * as homebrew from "../homebrew.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
+import type * as ledger from "../ledger.js";
 import type * as mediator from "../mediator.js";
 import type * as metrics from "../metrics.js";
 import type * as model_addresses from "../model/addresses.js";
@@ -85,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   homebrew: typeof homebrew;
   http: typeof http;
   invites: typeof invites;
+  ledger: typeof ledger;
   mediator: typeof mediator;
   metrics: typeof metrics;
   "model/addresses": typeof model_addresses;

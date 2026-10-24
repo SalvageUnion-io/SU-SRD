@@ -123,6 +123,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'proposals:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
+    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
     'proposals:sent': [],
     // A column's "Move in…" checks its moves against your Games.
     'games:listMine': [],
@@ -623,5 +624,67 @@ describe('Play from the Game page', () => {
     })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(navigations).toHaveLength(0)
+  })
+})
+
+describe('Factions and Jobs', () => {
+  const LEDGER = {
+    factions: [{ id: 'f1', name: 'Stefanus', standing: 'friendly', deal: true }],
+    jobs: [
+      { id: 'j1', name: 'Weapon Retrieval', factionId: 'f1', pay: 30, payTl: 3, state: 'open' },
+      { id: 'j2', name: 'Recruitment Drive', factionId: null, pay: 20, payTl: 1, state: 'done' },
+    ],
+    incomeCollected: false,
+  }
+
+  test('every member reads them: a faction’s standing and deal, a job’s faction and pay', async () => {
+    await renderHub({ 'ledger:get': LEDGER })
+
+    const factions = screen.getByRole('list', { name: 'Factions' })
+    expect(within(factions).getByText('Stefanus')).toBeTruthy()
+    expect(within(factions).getByText('Friendly')).toBeTruthy()
+    expect(within(factions).getByText('Deal')).toBeTruthy()
+    const jobs = screen.getByRole('list', { name: 'Jobs' })
+    expect(within(jobs).getByText('30 × T3')).toBeTruthy()
+    expect(within(jobs).getByText('Done')).toBeTruthy()
+    // A player writes none of it.
+    expect(screen.queryByRole('button', { name: 'Finish' })).toBeNull()
+    expect(screen.queryByRole('textbox', { name: 'New faction name' })).toBeNull()
+  })
+
+  test('the Mediator adds a faction, neutral and with no deal', async () => {
+    await renderHub({ 'games:get': { ...GAME, mediator: true }, 'ledger:get': LEDGER })
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'New faction name' }), {
+      target: { value: 'DronTek' },
+    })
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: 'Add' })[0] as HTMLElement)
+    })
+    const added = mutations.find((m) => m.name === 'ledger:setFaction')
+    expect(added?.args).toMatchObject({
+      gameId: 'g1',
+      faction: { name: 'DronTek', standing: 'neutral', deal: false },
+    })
+  })
+
+  test('Finish asks first, then pays the open job once, on the server', async () => {
+    await renderHub({ 'games:get': { ...GAME, mediator: true }, 'ledger:get': LEDGER })
+
+    // Only the open job offers it.
+    expect(screen.getAllByRole('button', { name: 'Finish' })).toHaveLength(1)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
+    })
+    const dialog = screen.getByRole('alertdialog')
+    expect(within(dialog).getByText('It pays 30 Tech 3 Scrap into the crawler, once.')).toBeTruthy()
+    expect(mutations.some((m) => m.name === 'ledger:completeJob')).toBe(false)
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Finish' }))
+    })
+    expect(mutations.find((m) => m.name === 'ledger:completeJob')?.args).toEqual({
+      gameId: 'g1',
+      id: 'j1',
+    })
   })
 })
