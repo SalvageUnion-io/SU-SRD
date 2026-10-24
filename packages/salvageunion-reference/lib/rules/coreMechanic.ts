@@ -25,7 +25,8 @@
 import { SalvageUnionReference } from '../index'
 import { plainTraitText } from '../traitText'
 import { resultForTable } from '../utils/resultForTable'
-import type { HeatCheckEffect, ReactorOverloadOutcome, Roll } from './types'
+import { overloadTableName } from './heatCheck'
+import type { HeatCheckEffect, OverloadTable, ReactorOverloadOutcome, Roll } from './types'
 
 export type CoreRollBand = 'nailed' | 'success' | 'tough' | 'failure' | 'cascade'
 
@@ -127,6 +128,10 @@ const OVERLOAD_BOOKKEEPING: Record<ReactorOverloadOutcome, string> = {
   'module-destroyed': 'Mark the Module on the sheet.',
   overheat: 'Shutdown, Vulnerable and the SP damage are applied.',
   overdrive: '',
+  'death-throes': '',
+  'severe-pilot-overload': 'The Major Injury is applied to the Pilot.',
+  'pilot-overload': 'The Minor Injury is applied to the Pilot.',
+  'bio-overload': "Shutdown, Vulnerable and the Pilot's HP damage are applied.",
 }
 
 /**
@@ -142,10 +147,14 @@ const OVERLOAD_BOOKKEEPING: Record<ReactorOverloadOutcome, string> = {
  *
  * Preload requirement: `roll-tables`.
  */
-export function describeOverloadOutcome(result: HeatCheckEffect['result']): string {
+export function describeOverloadOutcome(
+  result: HeatCheckEffect['result'],
+  overloadTable: OverloadTable = 'reactor'
+): string {
   if (!result.overloaded) return 'passed (no overload).'
 
-  const table = SalvageUnionReference.RollTables.getByName('Reactor Overload')?.table
+  const tableName = overloadTableName(overloadTable)
+  const table = SalvageUnionReference.RollTables.getByName(tableName)?.table
   const row = resultForTable(table, result.overloadRoll ?? 0)
   const text = row.success ? plainTraitText(row.result.value).trim() : ''
   // A row that stops without a full stop still reads as a sentence before the
@@ -154,7 +163,7 @@ export function describeOverloadOutcome(result: HeatCheckEffect['result']): stri
   const rowText = row.result.label && sentence ? `${row.result.label}: ${sentence}` : sentence
   const bookkeeping = result.outcome ? OVERLOAD_BOOKKEEPING[result.outcome] : ''
   const outcome = [rowText, bookkeeping].filter(Boolean).join(' ')
-  return `Overload. Reactor Overload ${result.overloadRoll}: ${outcome}`
+  return `Overload. ${tableName} ${result.overloadRoll}: ${outcome}`
 }
 
 /**
@@ -162,8 +171,12 @@ export function describeOverloadOutcome(result: HeatCheckEffect['result']): stri
  * re-rolled d20 in the quick-roll log. Mirrors HeatCheckControl's wording so
  * the FAB and the sheet-body readout never disagree.
  */
-export function describePushOutcome(nextHeat: number, effect: HeatCheckEffect): string {
+export function describePushOutcome(
+  nextHeat: number,
+  effect: HeatCheckEffect,
+  overloadTable: OverloadTable = 'reactor'
+): string {
   const r = effect.result
   const head = `+2 Heat → ${nextHeat}. Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
-  return `${head} — ${describeOverloadOutcome(r)}`
+  return `${head} — ${describeOverloadOutcome(r, overloadTable)}`
 }

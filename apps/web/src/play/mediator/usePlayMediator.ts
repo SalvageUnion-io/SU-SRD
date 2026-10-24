@@ -26,7 +26,7 @@ import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { dieForTable, toast } from '../../components/index'
+import { dieForTable, rollD20, toast } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { rollMorale } from '../../lib/rules/opposition'
@@ -202,6 +202,39 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     },
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
+    field: async (lines) => {
+      // One at a time, each name counted against the ones before it, so four
+      // Contour Hussars come out numbered.
+      const taken = (tray ?? []).map((n) => n.name)
+      let added = 0
+      for (const line of lines) {
+        if (line.draw === null) continue
+        const { schema, entity, pattern } = line.draw
+        let count = line.count
+        if (count === 'd20') {
+          count = rollD20()
+          recordPlayRoll({
+            tableName: 'd20',
+            rolls: [count],
+            label: line.text,
+            outcome: `${count}`,
+          })
+        }
+        for (let i = 0; i < count; i++) {
+          const body = newTrayNpc(
+            schema,
+            entity,
+            taken,
+            new Date().toISOString(),
+            pattern ? { pattern } : {}
+          )
+          await addNpc({ gameId: id, body })
+          taken.push(body.name)
+          added += 1
+        }
+      }
+      return added
+    },
   }
 
   return {

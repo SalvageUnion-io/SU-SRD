@@ -37,6 +37,10 @@ function trayWrites(refuse: ReadonlySet<keyof TrayWrites> = new Set()): TrayWrit
     morale: record('morale'),
     remove: record('remove'),
     rename: record('rename'),
+    field: async (...args: unknown[]) => {
+      await record('field')(...args)
+      return 0
+    },
   }
 }
 

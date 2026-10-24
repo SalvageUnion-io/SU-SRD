@@ -19,9 +19,12 @@
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
+import type { RefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { OverloadTable } from 'salvageunion-reference/rules'
 import { RollMini } from '../components/entity/forms/RollMini'
 import {
+  Button,
   CHAPTER_BAND_COLOR,
   Checkbox,
   MiniGrid,
@@ -32,6 +35,8 @@ import {
 import { playCopy } from '../messages/play'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
+import type { RosterLine } from './mediator/encounterRoster.model'
+import { readRoster } from './mediator/encounterRoster.model'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
 import { findTables, pinnedTables } from './tables.model'
@@ -55,6 +60,8 @@ const POST = {
 type PlayTablesProps = {
   /** Downtime is running: its tables are the pinned ones. */
   downtime: boolean
+  /** Which Damage and Overload tables the fight pins: a Bio-Chassis's own, or the reactor's. */
+  mechTables?: OverloadTable | undefined
   /** Solo: rolls post to my own channel. */
   solo: boolean
   /** The screen's Post toggle. */
@@ -64,17 +71,26 @@ type PlayTablesProps = {
   binding: PlayBinding | null | undefined
   /** The Mediator's running encounter's own tables (ADR-059), above the Situation's. */
   prepared?: readonly string[] | undefined
+  /**
+   * The Mediator's: field a rolled encounter row's roster on the Opposition
+   * (the Workshop Manual's region tables, p.270). Absent for a player.
+   */
+  onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
 }
 
 export function PlayTables({
   downtime,
+  mechTables = 'reactor',
   solo,
   post,
   onPostChange,
   binding,
   prepared = [],
+  onField,
 }: PlayTablesProps) {
   const [open, setOpen] = useState<string | null>(null)
+  // The row the open table last landed on, by its range key.
+  const [landed, setLanded] = useState<string | null>(null)
   const postId = useId()
   const [query, setQuery] = useState('')
   const findId = useId()
@@ -87,8 +103,10 @@ export function PlayTables({
 
   const pick = (name: string) => {
     setOpen((current) => (current === name ? null : name))
+    setLanded(null)
     setQuery('')
   }
+  const roster = onField && table && landed !== null ? rosterOf(table.table, landed) : []
 
   return (
     <div style={STACK}>
@@ -123,7 +141,7 @@ export function PlayTables({
       )}
       <TableMinis
         label={playCopy('pinnedTables')}
-        names={pinnedTables(downtime)}
+        names={pinnedTables(downtime, mechTables)}
         open={open}
         onPick={pick}
       />
@@ -134,10 +152,14 @@ export function PlayTables({
           name={table.name}
           size="mini"
           tone={CHAPTER_BAND_COLOR.rules}
-          onRollResult={(text, _key, dice) =>
+          onRollResult={(text, key, dice) => {
+            setLanded(key)
             recordPlayRoll({ tableName: table.name, rolls: dice, label: table.name, outcome: text })
-          }
+          }}
         />
+      )}
+      {onField && roster.length > 0 && (
+        <FieldRoster key={`${open}:${landed}`} lines={roster} onField={onField} />
       )}
       <div style={POST}>
         {/* Named by the words beside it, never a hand-rolled <label> (R16). */}
@@ -153,6 +175,61 @@ export function PlayTables({
       </div>
       {binding === null && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
     </div>
+  )
+}
+
+/** A rolled row's roster, read, when the table is an encounter table. */
+function rosterOf(table: RefObjectTable, key: string): RosterLine[] {
+  if (table.type !== 'encounter') return []
+  const row = (table as Record<string, unknown>)[key]
+  const lines =
+    row && typeof row === 'object' && Array.isArray((row as { roster?: unknown }).roster)
+      ? ((row as { roster: string[] }).roster ?? [])
+      : []
+  return readRoster(lines)
+}
+
+/** The rolled row's opposition, and the one press that fields it. */
+function FieldRoster({
+  lines,
+  onField,
+}: {
+  lines: RosterLine[]
+  onField: (lines: readonly RosterLine[]) => Promise<number>
+}) {
+  const [state, setState] = useState<'idle' | 'adding' | { added: number }>('idle')
+  const fieldable = lines.some((line) => line.draw !== null)
+  async function field() {
+    setState('adding')
+    try {
+      setState({ added: await onField(lines) })
+    } catch {
+      setState('idle')
+    }
+  }
+  return (
+    <section aria-label={playCopy('rolledRoster')} style={STACK}>
+      <ul className="su-play-roster">
+        {lines.map((line) => (
+          <li key={line.text}>
+            {line.draw === null ? `${line.text} (${playCopy('notAnNpc')})` : line.text}
+          </li>
+        ))}
+      </ul>
+      {typeof state === 'object' ? (
+        <Text variant="note" aria-live="polite">
+          {playCopy('addedToTheOpposition', { added: state.added })}
+        </Text>
+      ) : (
+        <Button
+          size="compact"
+          disabled={!fieldable || state === 'adding'}
+          onClick={() => void field()}
+        >
+          {state === 'adding' ? playCopy('addingToTheOpposition') : playCopy('addToTheOpposition')}
+        </Button>
+      )}
+    </section>
   )
 }
 
