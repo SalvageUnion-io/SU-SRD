@@ -18,6 +18,9 @@
  *
  * Upkeep is spent once per Downtime: the claim (`spendUpkeep`) answers false
  * when it is already paid, and the Scrap is drawn only when it answers true.
+ * Process Nanites (the Craft step, with a Nanite Processing Bay) goes to
+ * whoever pays Upkeep, and spends the piles it rolls, so a second press finds
+ * none (`processDowntimeNanites`).
  * Restore never confirms: its patches only heal, repair and recharge, and
  * refuse a Destroyed mech: nothing destructive, so nothing to confirm (ADR-007).
  *
@@ -42,12 +45,14 @@ import {
   Stat,
   TitledBox,
 } from '../components/index'
+import { rollD20 } from '../lib/dice'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import { crawlerTl, mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
+import { processDowntimeNanites } from './playNanites.model'
 import { recordPlayChange } from './playRolls.model'
 import { payDowntimeUpkeep } from './playUpkeep.model'
 import type { Play } from './situation.model'
@@ -157,8 +162,11 @@ export function PlayDowntimeStep({
     if (applied.length > 0) recordPlayChange(`${step.name} · ${applied.join(', ')}`)
     const upkeep = plan.find((l) => l.key === 'upkeep' && l.skippable && !unticked.has(l.key))
     const paid = upkeep ? await payTheUpkeep() : null
+    const nanites = plan.find((l) => l.key === 'nanites' && l.skippable && !unticked.has(l.key))
+    const processed = nanites ? processDowntimeNanites({ crawler, store, rollD20 }) : null
+    if (processed) recordPlayChange(`${step.name} · ${processed}`)
     setNote(
-      [applied.length > 0 ? `Applied to ${applied.join(' and ')}.` : null, paid]
+      [applied.length > 0 ? `Applied to ${applied.join(' and ')}.` : null, paid, processed]
         .filter(Boolean)
         .join(' ') || 'Nothing to apply.'
     )

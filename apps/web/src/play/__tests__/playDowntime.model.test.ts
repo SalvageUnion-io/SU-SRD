@@ -102,3 +102,45 @@ describe('stepsFor', () => {
     expect(Object.values(stepsFor(lines, new Set(['uses']))).some(Boolean)).toBe(false)
   })
 })
+
+describe('the craft step: Process Nanites (False Flag p.66)', () => {
+  const CRAFT = 'Craft Mech Chassis, Systems, and Modules'
+  const site = (condition: Condition, inertNanites: number) =>
+    crawlerFixture({
+      id: 'c',
+      name: 'Tenacity',
+      techLevel: 'tech-2',
+      crawlerBays: [{ bayRef: 'nanite-processing-bay', condition }],
+      scrapPool: { inertNanites },
+    })
+
+  test('a crawler with piles and the bay offers the line to whoever pays Upkeep', () => {
+    expect(plan({ stepName: CRAFT, crawler: site('intact', 4) })).toEqual([
+      {
+        key: 'nanites',
+        title: 'Process Nanites',
+        chips: [{ label: 'Inert piles', value: '4' }, { label: 'd20 each · 20 is Active' }],
+        steps: [],
+        skippable: true,
+      },
+    ])
+  })
+
+  test('in a Game a player reads that the Mediator processes them', () => {
+    const [line] = plan({
+      stepName: CRAFT,
+      crawler: site('intact', 4),
+      upkeep: { spent: false, canPay: false },
+    })
+    expect(line?.skippable).toBe(false)
+    expect(line?.chips[1]).toEqual({ label: 'The Mediator processes them' })
+  })
+
+  test('a Damaged bay blocks it; no piles or no bay, no line', () => {
+    expect(plan({ stepName: CRAFT, crawler: site('damaged', 4) })[0]?.blocked).toBe(
+      'Nanite Processing Bay damaged: no processing this Downtime'
+    )
+    expect(plan({ stepName: CRAFT, crawler: site('intact', 0) })).toEqual([])
+    expect(plan({ stepName: CRAFT, crawler: crawler('tech-2') })).toEqual([])
+  })
+})
