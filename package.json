@@ -1,7 +1,7 @@
 {
   "name": "susrd",
   "private": true,
-  "version": "4.2.4",
+  "version": "4.2.5",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
@@ -27,6 +27,9 @@
   },
   "overrides": {
     "@randsum/roller": "4.0.0",
+    "miniflare": {
+      "undici": "7.30.1"
+    },
     "salvageunion-reference": "workspace:*",
     "sharp": ">=0.35.5"
   },
