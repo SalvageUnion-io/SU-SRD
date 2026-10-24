@@ -32,6 +32,7 @@ import {
   QUICKSTART_BOOK,
   STARTER_SET_ADVENTURE,
   STARTER_SET_PUBLISHER,
+  starterRoster,
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import type { SegmentKind } from '../roster/RosterColumn'
@@ -128,6 +129,10 @@ function CrewColumns({ roster, confirm }: { roster: StarterRosterId; confirm: Co
             kind={kind}
             title={title}
             active={activeSegment === kind}
+            label={buildStarterSetCopy('crewKind', {
+              crew: starterRoster(roster).name,
+              lowerCase: title.toLowerCase(),
+            })}
             emptyMessage={buildStarterSetCopy('noCrawlerSheet')}
             empty={builds.length === 0}
           >
