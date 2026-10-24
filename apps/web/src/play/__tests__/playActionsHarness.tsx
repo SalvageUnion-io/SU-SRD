@@ -14,6 +14,8 @@ import type { BoardOption } from '../boardMenu.model'
 import { PlayActionsColumn } from '../PlayActionsColumn'
 import type { PlayStore } from '../play.model'
 import type { Play, Situation } from '../situation.model'
+import type { SceneState } from '../useScene'
+import { CLEAR_SCENE } from '../useScene'
 import { DEFAULT_SEAT } from '../useSeat'
 
 /** One write the column sent, by name. */
@@ -41,6 +43,8 @@ type HarnessProps = {
   }
   spendUpkeep?: () => Promise<boolean>
   canWrite?: boolean
+  /** The Game's Scene conditions; clear by default. */
+  scene?: SceneState
   writes: Write[]
 }
 
@@ -62,6 +66,7 @@ export function useHarnessPlay({
   downtime,
   spendUpkeep = async () => true,
   canWrite = true,
+  scene = CLEAR_SCENE,
   writes,
 }: Omit<HarnessProps, 'store' | 'rollFor'>): Play {
   const [resolving, setResolving] = useState<SeatResolving | null>(initialResolving)
@@ -122,6 +127,7 @@ export function useHarnessPlay({
         setResolving(null)
       },
     },
+    scene,
     downtime: {
       downtime: {
         running: situation === 'downtime',

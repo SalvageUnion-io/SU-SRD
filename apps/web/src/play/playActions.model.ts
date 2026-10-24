@@ -17,7 +17,8 @@
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
 import type { PlayAction } from '../lib/rules/actionPatches'
-import { actionInRange, actionReachable } from '../lib/rules/actionPatches'
+import { actionInRange, actionReachable, economyUnderScene } from '../lib/rules/actionPatches'
+import { playCopy } from '../messages/play'
 import type { Situation } from './situation.model'
 
 /** An action's type, as the list sorts and filters it. */
@@ -216,16 +217,24 @@ export function splitOnHand(entries: readonly ListEntry[]): {
 
 /**
  * Why an on-hand action cannot run as it stands, or null: its item is
- * Destroyed, the engagement range is outside its own, or its Hot would pass
- * the Heat Capacity. It stays usable: the resolve says the same.
+ * Destroyed, the engagement range is outside its own, its Hot would pass
+ * the Heat Capacity (scaled by the Scene's conditions, `heat.scale`), or
+ * Low Visibility holds it to Close Range (False Flag p.9: unless the pilot
+ * has other means of vision). It stays usable: the resolve says the same.
  */
 export function lockReason(
   action: PlayAction,
   range: RangeBand,
-  heat: { current: number; cap: number }
+  heat: { current: number; cap: number; scale?: number },
+  closeOnly = false
 ): string | null {
   if (action.condition === 'destroyed') return 'Destroyed'
   if (!actionInRange(action.action, range)) return `Out of Range at ${range}`
-  if (!actionReachable(action, range, heat.current, heat.cap)) return 'Over the Heat Capacity'
+  const scaled = { ...action, economy: economyUnderScene(action.economy, heat.scale ?? 1) }
+  if (!actionReachable(scaled, range, heat.current, heat.cap)) return 'Over the Heat Capacity'
+  // A ranged action needs a target it can see: at Close, or with no range declared, it has one.
+  if (closeOnly && range !== 'Close' && (action.action.range?.length ?? 0) > 0) {
+    return playCopy('lowVisibilityCloseOnly')
+  }
   return null
 }

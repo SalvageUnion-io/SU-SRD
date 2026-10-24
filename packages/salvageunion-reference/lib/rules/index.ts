@@ -87,6 +87,7 @@ export {
   canActivateAction,
   canPush,
   clampHeat,
+  PUSH_HEAT,
   performHeatCheck,
   performPush,
 } from './heatCheck'

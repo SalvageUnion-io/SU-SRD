@@ -7,9 +7,9 @@
  * `games.members` join order), the primary crawler (`entities.listForGame`;
  * the Mediator's store holds it, so its box is live), the Game's Downtime
  * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`), the saved
- * patterns the picker may field, the proposals sent, the alerts and the
- * Game's rolls — and makes the writes the Mediator holds: the Opposition,
- * proposals (ADR-030 §4) and alerts. It
+ * patterns the picker may field, the proposals sent, the alerts, the
+ * Game's rolls and its Scene's conditions (`useScene`) — and makes the writes the Mediator holds: the Opposition,
+ * proposals (ADR-030 §4), alerts and the Scene's conditions. It
  * writes nothing a player owns; a player's sheet is reached only by proposal.
  *
  * A Morale roll is kept on the NPC (`lastMediatorRoll`) and goes on Play's
@@ -23,6 +23,7 @@ import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
 import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
+import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
@@ -40,6 +41,8 @@ import type { PlayDowntime } from '../situation.model'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
 import { usePlayDowntime } from '../usePlayDowntime'
 import { usePresenceClock } from '../usePresenceClock'
+import type { SceneState } from '../useScene'
+import { useScene } from '../useScene'
 import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
@@ -63,6 +66,8 @@ export type PlayMediator = {
   crawler: { crawler: Crawler; held: boolean } | null
   /** The Game's Downtime, as its Mediator runs it. */
   downtime: PlayDowntime
+  /** The Scene's conditions, and the Mediator's writes to them (`scenes.ts`). */
+  scene: MediatorScene
   /** The tray, hidden from players; null while it loads. */
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
@@ -83,6 +88,14 @@ export type PlayMediator = {
   now: number
   canWrite: boolean
   readOnly: PlayReadOnly | null
+}
+
+/** The Scene's conditions as the Mediator sets them and passes the hours. */
+type MediatorScene = SceneState & {
+  /** Put the Scene under exactly these. */
+  set: (conditions: readonly SceneConditionId[]) => Promise<void>
+  /** Count an hour passed; resolves to the hour it now is. */
+  passHour: () => Promise<number>
 }
 
 /** The Mediator's encounters, and the one the Game is running (ADR-059). */
@@ -142,6 +155,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
+  const sceneState = useScene(gameId)
 
   const addNpc = useMutation(api.mediator.addNpc)
   const updateNpc = useMutation(api.mediator.updateNpc)
@@ -150,6 +164,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const endEncounter = useMutation(api.mediator.endEncounter)
   const proposeMutation = useMutation(api.proposals.propose)
   const broadcastMutation = useMutation(api.proposals.broadcast)
+  const setConditions = useMutation(api.scenes.setConditions)
+  const passHour = useMutation(api.scenes.passHour)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 
@@ -214,6 +230,20 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         ? null
         : primaryCrawler(listing, (crawlerId) => store.get('crawler', crawlerId)),
     downtime,
+    scene: {
+      ...sceneState,
+      set: said(async (conditions: readonly SceneConditionId[]) => {
+        await setConditions({ gameId: id, conditions: [...conditions] })
+      }),
+      passHour: async () => {
+        try {
+          return await passHour({ gameId: id })
+        } catch (err) {
+          onFailure(err)
+          throw err
+        }
+      },
+    },
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,

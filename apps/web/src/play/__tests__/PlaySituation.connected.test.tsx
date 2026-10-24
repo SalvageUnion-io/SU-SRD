@@ -78,6 +78,8 @@ function answer(name: string, args: Record<string, unknown>): unknown {
       return server.solo
     case 'seats:forGame':
       return server.gameSeats
+    case 'scenes:current':
+      return { conditions: [], hours: 0 }
     case 'downtime:state': {
       if (args.gameId !== null) {
         return {

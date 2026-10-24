@@ -4141,5 +4141,35 @@
       "type": "standard"
     },
     "page": 287
+  },
+  {
+    "id": "c8b246b8-f720-43dd-b0bc-31cf58011c4f",
+    "source": "False Flag",
+    "name": "Freezing",
+    "table": {
+      "1": {
+        "value": "The Mech’s core freezes. Its Chassis is damaged."
+      },
+      "20": {
+        "value": "The Mech is unscathed by the cold."
+      },
+      "11-19": {
+        "value": "The Mech takes 1 SP damage from cold erosion."
+      },
+      "6-10": {
+        "value": "The Mech’s electronics freeze over and a random Module is damaged."
+      },
+      "2-5": {
+        "value": "The Mech’s parts begin to seize in the cold. A random System is damaged."
+      },
+      "type": "standard"
+    },
+    "page": 9,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "For each hour a Mech spends in a Freezing area without protection, roll the die to determine the effect."
+      }
+    ]
   }
 ]

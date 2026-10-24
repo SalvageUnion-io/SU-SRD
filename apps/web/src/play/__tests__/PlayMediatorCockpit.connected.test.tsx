@@ -39,6 +39,7 @@ function useMutation(ref: unknown) {
   const mutate = async (args: Record<string, unknown>) => {
     sent.push({ name, args })
     if (name === 'mediator:runEncounter') return { added: 1 }
+    if (name === 'scenes:passHour') return 3
     return name === 'downtime:spendUpkeep' ? true : null
   }
   return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
@@ -143,6 +144,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       crawlers: [{ _id: 'c-ten', appId: 'med-tenacity', body: tenacity }],
       primaryCrawlerId: 'c-ten',
     },
+    'scenes:current': { conditions: [], hours: 0 },
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:npcs': NPCS,
     'mediator:patterns': [],
@@ -256,6 +258,79 @@ describe('the bar', () => {
     expect(sent).toEqual([
       { name: 'proposals:broadcast', args: { gameId: GAME, message: 'Two squads east' } },
     ])
+  })
+})
+
+describe('the Scene', () => {
+  const STORM = { 'scenes:current': { conditions: ['radiation-storm'], hours: 2 } }
+
+  test('every condition is a toggle; pressing one puts the Scene under it', async () => {
+    await renderCockpit()
+    const storm = named('The Scene is under Radiation Storm')
+    expect(storm.getAttribute('aria-pressed')).toBe('false')
+    expect(named('An hour passes').hasAttribute('disabled')).toBe(true)
+    await click(storm)
+    expect(sent).toEqual([
+      { name: 'scenes:setConditions', args: { gameId: GAME, conditions: ['radiation-storm'] } },
+    ])
+  })
+
+  test('pressed again, it lifts', async () => {
+    await renderCockpit(STORM)
+    const storm = named('The Scene is under Radiation Storm')
+    expect(storm.getAttribute('aria-pressed')).toBe('true')
+    await click(storm)
+    expect(sent).toEqual([{ name: 'scenes:setConditions', args: { gameId: GAME, conditions: [] } }])
+  })
+
+  test('an hour passes: each exposed unit is proposed its cost, and the table is told the rest', async () => {
+    await renderCockpit(STORM)
+    await click(named('An hour passes'))
+    const dialog = within(screen.getByRole('alertdialog'))
+    expect(screen.getByRole('alertdialog', { name: 'Pass hour 3?' })).toBeTruthy()
+    // Wren sheltered in the crawler: untick them.
+    await click(dialog.getByLabelText('Wren’s Mule · Radiation Storm'))
+    await click(dialog.getByRole('button', { name: 'An hour passes' }))
+    expect(names()[0]).toBe('scenes:passHour')
+    const proposals = sent.filter((s) => s.name === 'proposals:propose').map((s) => s.args)
+    expect(proposals).toContainEqual({
+      entityId: 'row-buzzard',
+      entityType: 'mech',
+      field: 'currentSP',
+      after: 12,
+      reason: 'Radiation Storm, hour 3',
+    })
+    expect(proposals).toContainEqual({
+      entityId: 'row-buzzard',
+      entityType: 'mech',
+      field: 'currentHeat',
+      after: 5,
+      reason: 'Radiation Storm, hour 3',
+    })
+    // Rook on foot takes no SP and no HP: a Major Injury is theirs to mark.
+    expect(proposals.some((p) => p.entityId === 'row-rook')).toBe(false)
+    expect(proposals.some((p) => p.entityId === 'row-mule')).toBe(false)
+    const alert = sent.find((s) => s.name === 'proposals:broadcast')?.args.message
+    expect(alert).toBe(
+      'Hour 3 under Radiation Storm. Bonesaw’s Buzzard: make a Heat Check. Mags’s Atlas: make a Heat Check. Rook: suffer a Major Injury.'
+    )
+  })
+
+  test('Freezing rolls each exposed Mech’s table; cold erosion is proposed as SP', async () => {
+    await renderCockpit({ 'scenes:current': { conditions: ['freezing'], hours: 0 } })
+    await click(named('An hour passes'))
+    await click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'An hour passes' })
+    )
+    // The dice read 14: 11–19, 1 SP from cold erosion.
+    const sp = sent
+      .filter((s) => s.name === 'proposals:propose' && s.args.entityId === 'row-buzzard')
+      .map((s) => [s.args.field, s.args.after])
+    expect(sp).toEqual([['currentSP', 13]])
+    const alert = String(sent.find((s) => s.name === 'proposals:broadcast')?.args.message)
+    expect(alert).toContain(
+      'Bonesaw’s Buzzard: Freezing 14: The Mech takes 1 SP damage from cold erosion.'
+    )
   })
 })
 
