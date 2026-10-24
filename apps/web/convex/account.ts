@@ -284,6 +284,13 @@ export const deleteAccount = mutation({
     }
     // Any solo seat still on the shelf (one whose pilot row was already gone).
     for (const seat of await soloSeatsOf(ctx, userId)) await ctx.db.delete(seat._id)
+    // The area their solo table was salvaging.
+    for (const area of await ctx.db
+      .query('salvageAreas')
+      .withIndex('by_owner', (q) => q.eq('ownerId', userId))
+      .collect()) {
+      await ctx.db.delete(area._id)
+    }
     // Their patterns' reports went with the patterns (the trigger in
     // `model/entities.ts`); their reports of other people's patterns go too.
     await deleteReportsBy(ctx, userId)

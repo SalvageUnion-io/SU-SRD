@@ -147,6 +147,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'mediator:npcs': NPCS,
     'mediator:patterns': [],
     'mediator:running': null,
+    'salvageAreas:here': null,
     'proposals:sent': [SENT_PROPOSAL],
     'proposals:alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
     'changeLog:rolls': [

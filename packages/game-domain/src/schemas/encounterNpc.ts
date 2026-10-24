@@ -92,6 +92,12 @@ export const EncounterNpcSchema = z
     /** Freeform condition ticks the table has established (add/remove). */
     conditions: z.array(z.string()),
 
+    /**
+     * Set once a downed wreck is salvaged or scrapped (Core Book pp.246, 248):
+     * what was left of it is destroyed, so it cannot be salvaged twice.
+     */
+    salvaged: z.boolean().optional(),
+
     /** Last Mediator table roll recorded against this NPC. */
     lastMediatorRoll: MediatorRollResultSchema.optional(),
 

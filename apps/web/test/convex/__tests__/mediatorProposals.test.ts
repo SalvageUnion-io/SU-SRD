@@ -253,6 +253,22 @@ describe('updateNpc moves a tray NPC through the fight', () => {
     expect((await bodyOf(seeded)).name).toBe('Rifle Squad')
   })
 
+  test('a wreck is claimed for salvage once, and only once it is down', async () => {
+    const t = testConvex()
+    const seeded = await seedNpc(t)
+    const { gm, npcId } = seeded
+
+    await expect(
+      gm.as.mutation(api.mediator.updateNpc, { npcId, patch: { salvaged: true } })
+    ).rejects.toThrow(/downed/)
+    await gm.as.mutation(api.mediator.updateNpc, { npcId, patch: { currentHp: 0 } })
+    await gm.as.mutation(api.mediator.updateNpc, { npcId, patch: { salvaged: true } })
+    expect((await bodyOf(seeded)) as { salvaged?: boolean }).toMatchObject({ salvaged: true })
+    await expect(
+      gm.as.mutation(api.mediator.updateNpc, { npcId, patch: { salvaged: true } })
+    ).rejects.toThrow(/already salvaged/)
+  })
+
   test('a player cannot change one', async () => {
     const t = testConvex()
     const { player, npcId } = await seedNpc(t)
