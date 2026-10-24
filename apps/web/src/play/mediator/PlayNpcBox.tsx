@@ -8,10 +8,13 @@
  * lists its actions under the Opposition (pressed while they are the ones
  * listed), and ⋯: the full reference card, Rename and Delete. At 0 it is
  * down: dashed, struck, and never removed for you (ADR-007); Delete is offered
- * as a chip on its band, before ⋯, behind a confirm.
+ * as a chip on its band, before ⋯, behind a confirm. A downed Mech or Vehicle
+ * offers its wreck's salvage under its vital (`PlayWreckSalvage`), into the
+ * crawler.
  */
 
 import type { CSSProperties } from 'react'
+import type { rollForTable } from '../../components/index'
 import {
   Button,
   HeaderMenu,
@@ -25,6 +28,9 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
+import { PlayWreckSalvage } from './PlayWreckSalvage'
+import type { PlayMediator } from './usePlayMediator'
+import { wreckOf } from './wreck.model'
 
 const LINE = {
   color: tokens.color.ink,
@@ -52,6 +58,11 @@ type PlayNpcBoxProps = {
   onHp: (next: number) => void
   onRename: () => void
   onRemove: () => void
+  /** Settle its wreck's salvage once it is down. */
+  onSalvage: PlayMediator['salvageWreck']
+  /** Whether the Mediator holds a crawler a wreck's haul can go to. */
+  hasCrawler: boolean
+  rollFor?: typeof rollForTable
 }
 
 export function PlayNpcBox({
@@ -62,9 +73,13 @@ export function PlayNpcBox({
   onHp,
   onRename,
   onRemove,
+  onSalvage,
+  hasCrawler,
+  rollFor,
 }: PlayNpcBoxProps) {
   const detail = useDetailModal(npc.entity ?? undefined, { pattern: npc.pattern ?? undefined })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
+  const wreck = npc.down ? wreckOf(npc) : null
   return (
     <li className="su-play-npc" data-chosen={chosen || undefined}>
       <TitledBox
@@ -143,6 +158,16 @@ export function PlayNpcBox({
           />
         ) : null}
         {npc.down ? <p style={MUTED}>{mediatorCopy('at0Down')}</p> : null}
+        {wreck !== null ? (
+          <PlayWreckSalvage
+            npc={npc}
+            wreck={wreck}
+            canWrite={canWrite}
+            hasCrawler={hasCrawler}
+            onSettle={onSalvage}
+            rollFor={rollFor}
+          />
+        ) : null}
         <p role="status" aria-live="polite" style={npc.lastRoll ? LINE : MUTED}>
           {npc.lastRoll ? (
             <>

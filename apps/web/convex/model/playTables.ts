@@ -8,7 +8,7 @@ import { mirrors } from './validators'
 
 /**
  * Play's tables (ADR-051), spread into `schema.ts`: the Discord channel
- * bindings, the Game's Downtime and the pilot's seat, with the seat's
+ * bindings, the Game's Downtime, the area being salvaged and the pilot's seat, with the seat's
  * validators the function modules take their arguments against. Split out of
  * `schema.ts` to hold it under its file-size budget; the rules in that file's
  * header hold here too.
@@ -91,6 +91,25 @@ export const playTables = {
      */
     claimed: v.optional(v.array(downtimeClaim)),
   }).index('by_game', ['gameId']),
+
+  /**
+   * The area a table is salvaging (Core Book p.245, `game-domain/schemas/
+   * salvageArea`): a Game's (`gameId`), set by its Mediator, or one player's
+   * solo table (`ownerId`). At most one row per place. Every member reads a
+   * Game's, since they roll against it; each Area Salvage roll spends 1
+   * Supply here (`salvageAreas.spend`), so two players never roll the same
+   * last Supply.
+   */
+  salvageAreas: defineTable({
+    gameId: v.optional(v.id('games')),
+    ownerId: v.optional(v.id('users')),
+    name: v.string(),
+    techLevel: v.number(),
+    supply: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_game', ['gameId'])
+    .index('by_owner', ['ownerId']),
 
   /**
    * A pilot's seat: its play state at a Game (ADR-038 §2) or solo, on its

@@ -612,3 +612,108 @@ describe('the resolve on the seat', () => {
     expect(written).toEqual([null])
   })
 })
+
+describe('Area Salvage (Core Book p.248)', () => {
+  const CAMP = { name: 'Raider Camp', techLevel: 2, supply: 3 }
+
+  /** The area, recording each Supply spent; `left` is what the server answers. */
+  function salvageArea(area: typeof CAMP | null, spent: string[] = []) {
+    return {
+      area,
+      canSet: false,
+      set: () => undefined,
+      spend: async (pilotId: string) => {
+        spent.push(pilotId)
+        return area === null ? null : { techLevel: area.techLevel, supply: area.supply - 1 }
+      },
+    }
+  }
+
+  test('every pilot has it, and it rolls the Area Salvage table, not the Core Mechanic', () => {
+    const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
+    const { store } = stubStore(pilot)
+    const { container } = render(
+      <ActionsDeck
+        mech={null}
+        pilot={pilot}
+        situation="onFoot"
+        store={store}
+        salvageArea={salvageArea(CAMP)}
+      />
+    )
+    clickActionByName(container, 'Area Salvage')
+    expect(screen.getByRole('button', { name: 'Roll the die on Area Salvage' })).toBeTruthy()
+    expect(screen.getByText('Raider Camp · Tech 2 · Supply 3')).toBeTruthy()
+  })
+
+  test('Boarded, Roll spends Supply first and Apply loads the Scrap into Cargo', async () => {
+    const mech = mechFixture({ id: 'm1', name: 'Rig', chassisRef: 'mule', cargoLots: [] })
+    const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
+    const { store, calls } = stubStore(mech, pilot)
+    const spent: string[] = []
+    const { container } = render(
+      <ActionsDeck mech={mech} pilot={pilot} store={store} salvageArea={salvageArea(CAMP, spent)} />
+    )
+    clickActionByName(container, 'Area Salvage')
+    await clickRolling('Roll the Die')
+    expect(spent).toEqual(['p1'])
+    fireEvent.click(screen.getByText('Apply'))
+    const cargo = calls.find((c) => c.type === 'mech' && 'cargoLots' in c.patch)
+    expect(cargo?.patch.cargoLots).toEqual([
+      expect.objectContaining({ cat: 'SCRAP', tl: 2, qty: 3, units: 3 }),
+    ])
+    expect(screen.getAllByText('3 Tech 2 Scrap into Rig’s Cargo.').length).toBeGreaterThan(0)
+  })
+
+  test('on foot, the Scrap goes into the pilot’s inventory at three Slots each', async () => {
+    const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
+    const { store, calls } = stubStore(pilot)
+    const { container } = render(
+      <ActionsDeck
+        mech={null}
+        pilot={pilot}
+        situation="onFoot"
+        store={store}
+        salvageArea={salvageArea(CAMP)}
+      />
+    )
+    clickActionByName(container, 'Area Salvage')
+    await clickRolling('Roll the Die')
+    fireEvent.click(screen.getByText('Apply'))
+    const carried = calls.find((c) => c.type === 'pilot' && 'genericInventory' in c.patch)
+    // Six Slots carry two Scrap of the three found.
+    expect(carried?.patch.genericInventory).toEqual([
+      expect.objectContaining({ name: 'Tech 2 Scrap', slotCost: 3, qty: 2 }),
+    ])
+    expect(
+      screen.getAllByText(/1 more stays in the area: there is no room for it\./).length
+    ).toBeGreaterThan(0)
+  })
+
+  test('with no area, or a picked-clean one, there is no roll', () => {
+    const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
+    const { store } = stubStore(pilot)
+    const { container, rerender } = render(
+      <ActionsDeck
+        mech={null}
+        pilot={pilot}
+        situation="onFoot"
+        store={store}
+        salvageArea={salvageArea(null)}
+      />
+    )
+    clickActionByName(container, 'Area Salvage')
+    expect(screen.getByText(/No area to salvage/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Roll the die on Area Salvage' })).toBeNull()
+    rerender(
+      <ActionsDeck
+        mech={null}
+        pilot={pilot}
+        situation="onFoot"
+        store={store}
+        salvageArea={salvageArea({ ...CAMP, supply: 0 })}
+      />
+    )
+    expect(screen.getByText('This area is picked clean.')).toBeTruthy()
+  })
+})

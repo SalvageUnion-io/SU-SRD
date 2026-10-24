@@ -111,9 +111,10 @@ export const removeNpc = mutation({
 
 /**
  * Change one tray NPC as the fight goes: its HP or SP, its
- * conditions, its name, or the last Morale roll made for it.
+ * conditions, its name, the last Morale roll made for it, or the claim on its
+ * wreck once it is down and salvaged.
  *
- * Only these four fields, merged into the stored body and parsed before it is
+ * Only these five fields, merged into the stored body and parsed before it is
  * written, like every other write to this table. HP is clamped to the
  * instance's own `maxHp` (and 0), so a stale tab cannot push it past either
  * end. A Morale result is stored here, on the NPC, and nowhere else: the
@@ -127,6 +128,8 @@ export const updateNpc = mutation({
       conditions: v.optional(v.array(v.string())),
       name: v.optional(v.string()),
       lastMediatorRoll: v.optional(v.any()),
+      /** Claim a downed wreck's salvage: refused once claimed, or while it still stands. */
+      salvaged: v.optional(v.literal(true)),
     }),
   },
   handler: async (ctx, args): Promise<void> => {
@@ -136,7 +139,7 @@ export const updateNpc = mutation({
 
     const body = doc.body as Record<string, unknown>
     const next: Record<string, unknown> = { ...body }
-    const { currentHp, conditions, name, lastMediatorRoll } = args.patch
+    const { currentHp, conditions, name, lastMediatorRoll, salvaged } = args.patch
     if (currentHp !== undefined) {
       const max = typeof body.maxHp === 'number' ? body.maxHp : Number.POSITIVE_INFINITY
       next.currentHp = Math.min(Math.max(0, Math.round(currentHp)), max)
@@ -149,6 +152,15 @@ export const updateNpc = mutation({
     }
     if (lastMediatorRoll !== undefined) {
       next.lastMediatorRoll = MediatorRollResultSchema.parse(lastMediatorRoll)
+    }
+    if (salvaged !== undefined) {
+      // The claim before the haul is written, as `downtime.claimStep` is: a
+      // second tab, or a second press, never pays out the same wreck twice.
+      if (body.salvaged === true) throw new ConvexError('That wreck is already salvaged')
+      if (typeof next.currentHp === 'number' && next.currentHp > 0) {
+        throw new ConvexError('Only a downed wreck can be salvaged')
+      }
+      next.salvaged = true
     }
     if (typeof body.updatedAt === 'string') next.updatedAt = new Date().toISOString()
 
