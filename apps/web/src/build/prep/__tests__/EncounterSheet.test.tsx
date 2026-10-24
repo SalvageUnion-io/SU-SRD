@@ -1,0 +1,188 @@
+/**
+ * An encounter's groups, waves and briefing on its page (ADR-059 §5), the
+ * surface behind the `encounterSheet` flag. A unit test builds for production,
+ * where every flag is off, so `flags` is replaced here with the real module
+ * and that flag on. `mock.module` is process-global (see
+ * `.claude/rules/testing-patterns.md`), hence the capture-before-mock and the
+ * `afterAll` restore.
+ */
+
+import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import type { Encounter } from 'game-domain/schemas/encounter'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+
+// Module scope, before the imports below — see `convexMock.ts`.
+const convexMocks = await installConvexMocks({
+  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+})
+
+// Capture before mocking: a module namespace is a live view.
+const realFlags = { ...(await import('../../../lib/flags')) }
+mock.module('../../../lib/flags', () => ({ ...realFlags, flagOn: () => true }))
+
+afterAll(async () => {
+  mock.module('../../../lib/flags', () => realFlags)
+  convexMocks.restore()
+  const { flagOn } = await import('../../../lib/flags')
+  if (flagOn('encounterSheet')) throw new Error('flags were not restored')
+})
+
+const { ToasterMount, toast } = await import('../../../components/index')
+const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { resetStores } = await import('../../../stores/__tests__/resetStores')
+const { usePrepStore } = await import('../../../stores/prepStore')
+const { usePatternStore } = await import('../../../stores/patternStore')
+const { EncounterPage } = await import('../EncounterPage')
+
+withSignedInBackend()
+
+const NOW = '2026-10-24T00:00:00.000Z'
+
+const raider = (id: string, name: string, groupId?: string) => ({
+  id,
+  refSchema: 'npcs' as const,
+  refSlug: 'raider',
+  refName: 'Raider',
+  name,
+  maxHp: 3,
+  statKind: 'hp' as const,
+  ...(groupId === undefined ? {} : { groupId }),
+})
+
+const AMBUSH: Encounter = {
+  id: 'enc-1',
+  schemaVersion: 1,
+  name: 'Ambush',
+  opposition: [raider('o1', 'Raider', 'band'), raider('o2', 'Lookout'), raider('o3', 'Sniper')],
+  groups: [{ id: 'band', name: 'Raider Band', wave: 1 }],
+  tables: [],
+  notes: '',
+  createdAt: NOW,
+  updatedAt: NOW,
+}
+
+const connection: ConnectionState = {
+  mode: 'connected',
+  canWrite: true,
+  showDisconnectedWarning: false,
+  settling: false,
+}
+
+beforeEach(() => {
+  toast.dismiss()
+  resetStores()
+  usePrepStore.setState({ encounters: [AMBUSH], hydrated: true } as never)
+  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+})
+
+async function settle(done: () => boolean = () => false): Promise<void> {
+  for (let i = 0; i < 40 && !done(); i++) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    })
+  }
+}
+
+const current = () => usePrepStore.getState().get('enc-1')
+
+async function renderPage() {
+  await act(async () => {
+    render(
+      <ConnectionContext.Provider value={connection}>
+        <ToasterMount />
+        <EncounterPage id="enc-1" />
+      </ConnectionContext.Provider>
+    )
+  })
+}
+
+async function click(el: HTMLElement) {
+  await act(async () => {
+    fireEvent.click(el)
+  })
+}
+
+async function choose(menuFor: string, item: string) {
+  await click(screen.getByRole('button', { name: `More for ${menuFor}` }))
+  await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: item }))
+}
+
+describe("an encounter's groups", () => {
+  test('lists those alone, then each group with its wave', async () => {
+    await renderPage()
+    expect(
+      within(screen.getByRole('list', { name: 'Fighting alone' })).getByText('Lookout')
+    ).toBeTruthy()
+    expect(
+      within(screen.getByRole('list', { name: 'Raider Band' })).getByText('Raider')
+    ).toBeTruthy()
+    expect(screen.getByText('Wave 1')).toBeTruthy()
+  })
+
+  test('+ Group names a new group, and refuses a blank name', async () => {
+    await renderPage()
+    await click(screen.getByRole('button', { name: 'Add a group' }))
+    const dialog = screen.getByRole('alertdialog', { name: 'Add a group' })
+    await click(within(dialog).getByRole('button', { name: 'Add group' }))
+    expect(within(dialog).getByText('A group needs a name.')).toBeTruthy()
+    await act(async () => {
+      fireEvent.change(within(dialog).getByRole('textbox'), {
+        target: { value: '  Gantry snipers ' },
+      })
+    })
+    await click(within(dialog).getByRole('button', { name: 'Add group' }))
+    await settle(() => current()?.groups?.length === 2)
+    expect(current()?.groups?.[1]).toMatchObject({ name: 'Gantry snipers', wave: 1 })
+  })
+
+  test('an opponent moves into a group and back out from its ⋯ menu', async () => {
+    await renderPage()
+    await choose('Sniper', 'Move to Raider Band')
+    await settle(() => current()?.opposition[2]?.groupId === 'band')
+    expect(current()?.opposition[2]?.groupId).toBe('band')
+    await choose('Raider', 'Fight alone')
+    await settle(() => current()?.opposition[0]?.groupId === undefined)
+    expect(current()?.opposition[0]).not.toHaveProperty('groupId')
+  })
+
+  test('a group is held back to a later wave, renamed and removed', async () => {
+    await renderPage()
+    await choose('Raider Band', 'Hold back to wave 2')
+    await settle(() => current()?.groups?.[0]?.wave === 2)
+    expect(screen.getByText('Wave 2 · held back')).toBeTruthy()
+
+    await choose('Raider Band', 'Rename…')
+    const dialog = screen.getByRole('alertdialog', { name: 'Rename Raider Band' })
+    await act(async () => {
+      fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Crusher crew' } })
+    })
+    await click(within(dialog).getByRole('button', { name: 'Rename' }))
+    await settle(() => current()?.groups?.[0]?.name === 'Crusher crew')
+
+    await choose('Crusher crew', 'Remove group')
+    await settle(() => current()?.groups?.length === 0)
+    expect(current()?.opposition).toHaveLength(3)
+    expect(current()?.opposition.every((o) => o.groupId === undefined)).toBe(true)
+  })
+})
+
+describe("an encounter's briefing", () => {
+  test('saves what the Pilots see, apart from the notes', async () => {
+    await renderPage()
+    expect(screen.getByText('Players see this')).toBeTruthy()
+    await click(screen.getByRole('button', { name: 'Edit what the pilots see' }))
+    const input = screen.getByLabelText(/what the pilots see/i, {
+      selector: 'textarea',
+    }) as HTMLTextAreaElement
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Smoke rises from the crusher.' } })
+      fireEvent.blur(input)
+    })
+    await settle(() => current()?.briefing !== undefined)
+    expect(current()?.briefing).toBe('Smoke rises from the crusher.')
+    expect(current()?.notes).toBe('')
+  })
+})

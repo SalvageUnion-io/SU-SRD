@@ -9,7 +9,10 @@ import { originOf } from './site'
  * no per-account, per-request or remote toggle. The PR that finishes a surface
  * deletes its entry and every `flagOn` that read it.
  */
-export const FLAGS = {} as const satisfies Record<string, string>
+export const FLAGS = {
+  encounterSheet:
+    "An encounter's groups, waves and briefing in the Training Bay, and the briefing in Play",
+} as const satisfies Record<string, string>
 
 export type Flag = keyof typeof FLAGS
 
