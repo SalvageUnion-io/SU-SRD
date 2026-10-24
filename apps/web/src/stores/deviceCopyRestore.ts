@@ -12,10 +12,12 @@
  * a restore that has run has nothing more to add.
  */
 
+import type { Encounter } from 'game-domain/schemas/encounter'
 import { beginRestore, hasServed, readCopy, settleRestore } from './deviceCopy'
 import { useEncounterStore } from './encounterStore'
 import { useEntityStore } from './entityStore'
 import { usePatternStore } from './patternStore'
+import { usePrepStore } from './prepStore'
 import { applyMine, applyWiring } from './shelfApply'
 
 let ran = false
@@ -35,10 +37,15 @@ export async function restoreDeviceCopy(): Promise<void> {
     if (copy === null || superseded()) return
     if (copy.mine !== null) await applyMine(copy.mine, superseded)
     if (copy.wiring !== null) await applyWiring(copy.wiring, new Map(), superseded)
+    for (const row of copy.encounters ?? []) {
+      if (superseded()) return
+      await usePrepStore.getState().adopt(row.body as Encounter)
+    }
     if (superseded()) return
     useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
     usePatternStore.getState().markArrived()
     useEncounterStore.getState().markArrived()
+    usePrepStore.getState().markArrived()
   } finally {
     settleRestore()
   }
