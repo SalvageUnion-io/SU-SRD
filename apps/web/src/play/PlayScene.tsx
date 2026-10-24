@@ -44,11 +44,9 @@ function conditionChips(condition: SceneCondition): ReactNode {
 export function SceneConditionMini({
   condition,
   mode,
-  dim,
 }: {
   condition: SceneCondition
   mode?: EntityMode
-  dim?: boolean
 }) {
   const keyword = SalvageUnionReference.Keywords.getById(condition.keyword)
   if (keyword === undefined) return null
@@ -60,7 +58,6 @@ export function SceneConditionMini({
         context="play"
         entity={keyword}
         {...(mode ? { mode } : {})}
-        {...(dim ? { dim } : {})}
         {...(state === null ? {} : { state })}
       />
     </li>

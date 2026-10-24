@@ -168,7 +168,6 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
             <SceneConditionMini
               key={id}
               condition={condition}
-              dim={!on.has(id)}
               mode={{
                 kind: 'select',
                 role: 'toggle',
