@@ -10,7 +10,9 @@
  * body. Between them, once the crew has a faction deal (the Game page's
  * Factions), **Deal income**: a Scrap of the crawler's Tech Level per deal,
  * collected beside Upkeep in the same step and once per Downtime
- * (`ledger.collectIncome`, Reclamation of the Wastes p.7).
+ * (`ledger.collectIncome`, Reclamation of the Wastes p.7). With a Nanite
+ * Processing Bay, **Process Nanites** joins them, live in the Craft step
+ * (`processDowntimeNanites`).
  *
  * Next stops at the
  * last step, and ending before it asks first, because ending and beginning
@@ -21,6 +23,7 @@
  */
 
 import {
+  CRAFT_STEP_NAME,
   currentDowntimeStep,
   DOWNTIME_UPKEEP_SCRAP,
   isUpkeepStep,
@@ -37,6 +40,7 @@ import {
   Stat,
   TitledBox,
 } from '../../components/index'
+import { rollD20 } from '../../lib/dice'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useEntityStore } from '../../stores/entityStore'
@@ -45,7 +49,8 @@ import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
 import { crawlerTl } from '../playDowntime.model'
 import { playLineModel } from '../playLine.model'
-import { reportingRoll } from '../playRolls.model'
+import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
+import { recordPlayChange, reportingRoll } from '../playRolls.model'
 import { payDowntimeUpkeep } from '../playUpkeep.model'
 import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
@@ -53,6 +58,7 @@ import type { PlayMediator } from './usePlayMediator'
 
 const UPKEEP = playLineModel({ name: 'Upkeep', key: 'upkeep' })
 const INCOME = playLineModel({ name: mediatorCopy('dealIncome'), key: 'deal-income' })
+const NANITES = playLineModel({ name: mediatorCopy('processNanites'), key: 'nanites' })
 
 type PlayMediatorDowntimeProps = {
   mediator: PlayMediator
@@ -69,12 +75,15 @@ export function PlayMediatorDowntime({
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [upkeepNote, setUpkeepNote] = useState<string | null>(null)
   const [incomeNote, setIncomeNote] = useState<string | null>(null)
+  const [naniteNote, setNaniteNote] = useState<string | null>(null)
   const { steps, index: idx, step, count, last } = currentDowntimeStep(downtime.downtime.stepIndex)
   const { completedBy, upkeepSpent } = downtime.downtime
   const { done, of } = doneOf(seats, completedBy)
   const upkeepStep = isUpkeepStep(idx)
   const unit = crawler?.crawler ?? null
   const off = !canWrite
+  const nanites = naniteStatus(unit)
+  const craftStep = step?.name === CRAFT_STEP_NAME
 
   const rollFor: PlayActions['rollFor'] = async (tableName, label, options) =>
     reportingRoll(
@@ -110,6 +119,12 @@ export function PlayMediatorDowntime({
     } catch (err) {
       mediator.onFailure(err)
     }
+  }
+
+  function processNanites() {
+    const said = processDowntimeNanites({ crawler: unit, store, rollD20 })
+    if (said) recordPlayChange(`${CRAFT_STEP_NAME} · ${said}`)
+    setNaniteNote(said)
   }
 
   return (
@@ -263,6 +278,52 @@ export function PlayMediatorDowntime({
                       children: (
                         <p className="su-play-resolve__note" aria-live="polite">
                           {incomeNote}
+                        </p>
+                      ),
+                    },
+                  }
+                : {})}
+            />
+          </li>
+        )}
+        {nanites.present && (
+          <li className="su-play-act" data-action-key="nanites">
+            <Entity
+              size="mini"
+              context="play"
+              model={NANITES}
+              state={
+                <Stat
+                  size="mini"
+                  label={mediatorCopy('inertPiles')}
+                  value={String(nanites.inert)}
+                />
+              }
+              controls={
+                <Button
+                  size="mini"
+                  disabled={off || !craftStep || !nanites.operational || nanites.inert === 0}
+                  title={
+                    !nanites.operational
+                      ? mediatorCopy('naniteBayDamaged')
+                      : craftStep
+                        ? undefined
+                        : mediatorCopy('nanitesAreProcessedInThe', {
+                            craftStepName: CRAFT_STEP_NAME,
+                          })
+                  }
+                  onClick={processNanites}
+                >
+                  {mediatorCopy('process')}
+                </Button>
+              }
+              {...(naniteNote
+                ? {
+                    body: {
+                      text: false,
+                      children: (
+                        <p className="su-play-resolve__note" aria-live="polite">
+                          {naniteNote}
                         </p>
                       ),
                     },

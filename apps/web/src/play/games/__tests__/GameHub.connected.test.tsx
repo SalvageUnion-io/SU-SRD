@@ -127,6 +127,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'proposals:sent': [],
     // A column's "Move in…" checks its moves against your Games.
     'games:listMine': [],
+    'safety:boundaries': [],
+    'safety:stopSign': { stop: null, mayLift: false, mayManage: false, postToChannel: false },
     ...over,
   }
 }
@@ -686,5 +688,122 @@ describe('Factions and Jobs', () => {
       gameId: 'g1',
       id: 'j1',
     })
+  })
+})
+
+describe('Safety (Core Book pp.12-13)', () => {
+  /** The hub as `GamePage` mounts it: connected, so the Stop Sign is read. */
+  async function renderConnected(over: QueryAnswers): Promise<void> {
+    setQueryAnswers(answers(over))
+    const connected = {
+      mode: 'connected' as const,
+      canWrite: true,
+      showDisconnectedWarning: false,
+      settling: false,
+    }
+    await act(async () => {
+      render(
+        <ConnectionContext.Provider value={connected}>
+          <GameHub gameId="g1" />
+        </ConnectionContext.Provider>
+      )
+    })
+  }
+
+  test('both lists, each boundary without a name, and × only on what you may take off', async () => {
+    await renderHub({
+      'safety:boundaries': [
+        { _id: 'b1', kind: 'outOfBounds', text: 'Graphic torture', mayRemove: true },
+        { _id: 'b2', kind: 'offCamera', text: 'Gore', mayRemove: false },
+      ],
+    })
+    expect(heading('Safety')).not.toBeNull()
+    const outOfBounds = screen.getByRole('list', { name: 'Out of Bounds' })
+    expect(outOfBounds.textContent).toContain('Graphic torture')
+    expect(screen.getByRole('list', { name: 'Off Camera' }).textContent).toContain('Gore')
+    expect(screen.queryByRole('button', { name: 'Take off Graphic torture' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Take off Gore' })).toBeNull()
+    expect(screen.getByRole('textbox', { name: 'Add to Out of Bounds' })).not.toBeNull()
+  })
+
+  test('the Discord opt-in is the table runner’s alone', async () => {
+    await renderHub()
+    expect(screen.queryByRole('switch', { name: 'Post it to the Discord channel' })).toBeNull()
+  })
+
+  test('while the Stop Sign is up, the page says the game is paused, without who', async () => {
+    await renderConnected({
+      'safety:stopSign': {
+        stop: { shownAt: 1, mine: false },
+        mayLift: false,
+        mayManage: false,
+        postToChannel: false,
+      },
+    })
+    expect(screen.getByText('Stop Sign: the game is paused')).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Resume play' })).toBeNull()
+    expect(
+      (screen.getByRole('button', { name: 'Show the Stop Sign' }) as HTMLButtonElement).disabled
+    ).toBe(true)
+  })
+
+  test('whoever may lift it gets Resume play', async () => {
+    await renderConnected({
+      'safety:stopSign': {
+        stop: { shownAt: 1, mine: true },
+        mayLift: true,
+        mayManage: true,
+        postToChannel: true,
+      },
+    })
+    expect(screen.queryByRole('button', { name: 'Resume play' })).not.toBeNull()
+    expect(
+      screen
+        .getByRole('switch', { name: 'Post it to the Discord channel' })
+        .getAttribute('aria-checked')
+    ).toBe('true')
+  })
+
+  test('every write is one call: add, take off, show, resume, opt in', async () => {
+    await renderConnected({
+      'safety:boundaries': [{ _id: 'b1', kind: 'outOfBounds', text: 'Spiders', mayRemove: true }],
+      'safety:stopSign': {
+        stop: { shownAt: 1, mine: true },
+        mayLift: true,
+        mayManage: true,
+        postToChannel: false,
+      },
+    })
+    const field = screen.getByRole('textbox', { name: 'Add to Off Camera' })
+    await act(async () => {
+      fireEvent.change(field, { target: { value: 'Gore' } })
+    })
+    await act(async () => {
+      fireEvent.submit(field.closest('form') as HTMLFormElement)
+    })
+    expect((field as HTMLInputElement).value).toBe('')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take off Spiders' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Resume play' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('switch', { name: 'Post it to the Discord channel' }))
+    })
+    expect(mutations).toEqual([
+      { name: 'safety:addBoundary', args: { gameId: 'g1', kind: 'offCamera', text: 'Gore' } },
+      { name: 'safety:removeBoundary', args: { boundaryId: 'b1' } },
+      { name: 'safety:liftStop', args: { gameId: 'g1' } },
+      { name: 'safety:setPostToChannel', args: { gameId: 'g1', on: true } },
+    ])
+  })
+
+  test('Stop Sign on the section’s head shows it', async () => {
+    await renderConnected({})
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Show the Stop Sign' }))
+    })
+    expect(mutations).toEqual([{ name: 'safety:showStop', args: { gameId: 'g1' } }])
   })
 })

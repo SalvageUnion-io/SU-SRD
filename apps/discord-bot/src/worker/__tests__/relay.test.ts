@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { PostRollRelayResponse } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
 import worker from '../index'
 
 /**
@@ -33,8 +33,12 @@ function env(overrides: Partial<Env> = {}): Env {
 
 const ctx = { waitUntil: () => {} }
 
-function relayRequest(body: unknown, secret = 'a-secret'): Request {
-  return new Request(`https://bot.example${BOT_RELAY_POST_ROLL_PATH}`, {
+function relayRequest(
+  body: unknown,
+  secret = 'a-secret',
+  path = BOT_RELAY_POST_ROLL_PATH
+): Request {
+  return new Request(`https://bot.example${path}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -142,5 +146,52 @@ describe('the post-roll relay', () => {
     const body = (await res.json()) as PostRollRelayResponse
     expect(res.status).toBe(422)
     expect(body.ok).toBe(false)
+  })
+})
+
+describe('the post-stop relay', () => {
+  const stop = (body: unknown, secret = 'a-secret') =>
+    relayRequest(body, secret, BOT_RELAY_POST_STOP_PATH)
+
+  test("posts the Stop Sign's fixed words to the channel", async () => {
+    let sent: { url: string; body: Record<string, unknown> } | null = null
+    stubFetch(async (input, init) => {
+      sent = { url: String(input), body: JSON.parse(String(init?.body)) as Record<string, unknown> }
+      return Response.json({ id: 'msg-2' }, { status: 200 })
+    })
+
+    const res = await worker.fetch(stop({ channelId: ROLL.channelId }), env(), ctx)
+    expect((await res.json()) as PostRollRelayResponse).toEqual({ ok: true, messageId: 'msg-2' })
+    if (sent === null) throw new Error('nothing was posted')
+    const posted = sent as { url: string; body: Record<string, unknown> }
+    expect(posted.url).toBe(`https://discord.com/api/v10/channels/${ROLL.channelId}/messages`)
+    expect(posted.body.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(JSON.stringify(posted.body.components)).toContain('the game is paused')
+  })
+
+  test('refuses a wrong secret, and posts nothing', async () => {
+    let called = false
+    stubFetch(async () => {
+      called = true
+      return Response.json({ id: 'x' })
+    })
+    const res = await worker.fetch(stop({ channelId: ROLL.channelId }, 'nope'), env(), ctx)
+    expect(res.status).toBe(401)
+    expect(called).toBe(false)
+  })
+
+  test('refuses a channel that is not a snowflake', async () => {
+    const res = await worker.fetch(stop({ channelId: 'general' }), env(), ctx)
+    expect(res.status).toBe(400)
+  })
+
+  test('a Discord refusal comes back in words', async () => {
+    stubFetch(async () =>
+      Response.json({ message: 'Missing Access', code: 50001 }, { status: 403 })
+    )
+    const body = (await (
+      await worker.fetch(stop({ channelId: ROLL.channelId }), env(), ctx)
+    ).json()) as PostRollRelayResponse
+    expect(body).toMatchObject({ ok: false, status: 403 })
   })
 })

@@ -34,3 +34,26 @@ another replaces it. End stops it and leaves the Opposition where it is.
 The running row is read only through `requireMediator`. Its notes show beside
 the Mediator's Tables, its tables lead the Tables list, and nothing reaches the
 players unless the Mediator posts a roll. Deleting the Game deletes it.
+
+### 5. Groups, waves and a briefing
+
+Amended for the Encounters build-out (behind the `encounterSheet` flag,
+ADR-060). The book rolls Reaction for a group the Pilots meet and checks a
+group's Morale when half of it falls (Core Book p.267–268), and asks the
+Mediator to be upfront about the situation (p.252).
+
+- **Groups.** An encounter may split its opposition into up to 12 named
+  groups; an opponent is in one group or fights alone. Removing a group keeps
+  its opponents.
+- **Waves.** Each group arrives in wave 1 (with the encounter) or is held back
+  to wave 2 or 3. Running fields the whole opposition until Play brings waves
+  in on their own.
+- **Briefing.** Up to 1,000 characters of what the Pilots see, apart from the
+  private notes. Running copies it to the Game's running encounter, where the
+  Mediator's side column shows it with Tell the table, which sends it as an
+  alert. Nothing reaches a player until the Mediator presses it.
+- **Additive.** `groups`, `groupId` and `briefing` are optional on
+  `schemaVersion` 1, so an encounter built before them reads as ungrouped with
+  no briefing. A tray NPC never carries a group.
+- **Offline.** `shelf.encounters` is saved to the device copy (ADR-058), so an
+  offline reload still has the Mediator's prep, read-only.

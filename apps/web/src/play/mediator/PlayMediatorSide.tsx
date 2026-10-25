@@ -1,6 +1,9 @@
 /**
  * PlayMediatorSide — the Mediator's right column (play.md §10): the running encounter's Notes, the player's Tables and Feed sections, then the Propose dock.
  *
+ *  - **Briefing** (ADR-059 §5): the running encounter's, what the Pilots
+ *    see, and Tell the table, which sends it as an alert. Shown only while
+ *    one with a briefing is running, behind the `encounterSheet` flag.
  *  - **Notes** (ADR-059): the running encounter's, the Mediator's alone,
  *    shown only while one with notes is running.
  *
@@ -26,12 +29,14 @@ import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
 import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
+import { flagOn } from '../../lib/flags'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { PlayBinding } from '../channels.model'
 import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
 import { ProposalsList } from './ProposalsList'
 import { ProposeDock } from './ProposeDock'
+import { RunningBriefing } from './RunningBriefing'
 import type { PlayMediator } from './usePlayMediator'
 import { usePlayMediatorSide } from './usePlayMediatorSide'
 
@@ -72,8 +77,16 @@ export function MediatorTablesAndFeed({
   side: SideFeed
 }) {
   const running = mediator.prep.running
+  const briefing = flagOn('encounterSheet') ? (running?.briefing ?? '') : ''
   return (
     <>
+      {briefing !== '' && (
+        <RunningBriefing
+          briefing={briefing}
+          canWrite={mediator.canWrite}
+          onTell={mediator.broadcast}
+        />
+      )}
       {running !== null && running.notes.trim() !== '' && (
         <SlabSection
           as="h2"
