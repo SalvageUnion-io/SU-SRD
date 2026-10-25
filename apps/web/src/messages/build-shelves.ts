@@ -12,4 +12,7 @@ export const buildShelvesCopy = messages({
     'You are in no Game to move it to. Start one with “+ New Game”, or join one from an invite link.',
   moreFor: 'More for {name}',
   starterSet: 'Starter Set',
+  quickstartCrew: 'Quickstart crew',
+  quickstartCredit:
+    'The premade crew of the {book}, by {publisher}. Open any sheet to read it, then make a copy to play it.',
 })
