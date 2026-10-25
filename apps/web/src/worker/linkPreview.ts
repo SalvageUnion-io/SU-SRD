@@ -62,11 +62,17 @@ import {
   titleCaseSlug,
 } from '../lib/linkPreview/previewSummary'
 import { reportError } from './errorReports'
+import type { SharedDb } from './shared/db'
+import { isFilled } from './shared/db'
+import { invitePreview } from './shared/games'
+import { publicPreview } from './shared/publicSheets'
 import type { ShellMeta } from './shellMeta'
 
 export type PreviewEnv = {
-  /** The Convex deployment's client URL (`*.convex.cloud`). */
+  /** The Convex deployment's client URL (`*.convex.cloud`): read until `SHARED` is filled. */
   CONVEX_URL?: string
+  /** The shared database (`./shared/db.ts`), read once the cutover has filled it. */
+  SHARED?: SharedDb
   /** The Cloudflare account Browser Rendering bills to. */
   CF_ACCOUNT_ID?: string
   /** An API token with Browser Rendering edit permission. */
@@ -155,6 +161,7 @@ async function resolve(
   fetchImpl: Fetch,
   appUrl?: string
 ): Promise<Resolved | undefined> {
+  if (env.SHARED && (await isFilled(env.SHARED))) return resolveShared(route, env.SHARED)
   if (route.type === 'sheet') {
     const answer = await convexQuery<PreviewAnswer>(
       env,
@@ -171,6 +178,19 @@ async function resolve(
     fetchImpl
   )
   return answer === undefined ? undefined : { kind: 'invite', route, answer }
+}
+
+/** The public answer behind a route, from the shared database; `undefined` when it failed. */
+async function resolveShared(route: PreviewRoute, db: SharedDb): Promise<Resolved | undefined> {
+  try {
+    if (route.type === 'sheet') {
+      return { kind: 'sheet', route, answer: await publicPreview(db, route.kind, route.id) }
+    }
+    return { kind: 'invite', route, answer: await invitePreview(db, route.code) }
+  } catch (error) {
+    reportError(error, { where: 'linkPreview.resolveShared', route: route.type })
+    return undefined
+  }
 }
 
 /**

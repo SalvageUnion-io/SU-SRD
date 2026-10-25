@@ -52,14 +52,16 @@ const DEFINE_MODULE = /(?:^|\/)messages\/define$/
 const CATALOGUE_MODULE = /(?:^|\/)messages\/(?!define$)[\w/-]+$/
 
 /**
- * A test, a declaration, a machine-written file, or the feature flags (each
+ * A test, a declaration, a machine-written file, the feature flags (each
  * flag's line says what it hides, for whoever reads the code; never drawn,
- * ADR-060): not shipped copy.
+ * ADR-060), or the shared database's module (its strings are SQL): not
+ * shipped copy.
  */
 const isSkipped = (f: string) =>
   /(?:^|\/)(?:__tests__|_generated|generated)\//.test(f) ||
   /\.(?:test|d)\.tsx?$/.test(f) ||
-  /(?:^|\/)src\/lib\/flags\.ts$/.test(f)
+  /(?:^|\/)src\/lib\/flags\.ts$/.test(f) ||
+  f.startsWith('apps/web/src/worker/shared/')
 
 /** The words an attribute carrying copy is named for, alone or as a suffix (`aria-label`, `confirmLabel`). */
 const COPY_WORDS = [
