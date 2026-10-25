@@ -102,8 +102,11 @@ describe('the Game room Durable Object', () => {
     })
     expect(game.unitsFor(PLAYER)).toMatchObject([{ id: 'p1', body: { motto: 'Keep moving' } }])
     expect(game.unitsFor('d-stranger')).toEqual([])
-    expect(game.unit(PLAYER, 'p1')).toMatchObject({ ownerName: 'Player' })
-    expect(game.unit('d-stranger', 'p1')).toBeNull()
+    expect(await game.unit(PLAYER, 'p1')).toMatchObject({
+      ownerName: 'Player',
+      vitals: { kind: 'pilot' },
+    })
+    expect(await game.unit('d-stranger', 'p1')).toBeNull()
   })
 
   test('an offer sets the alarm, and the alarm settles it back home', async () => {
@@ -118,7 +121,7 @@ describe('the Game room Durable Object', () => {
     })
     expect(store.state.alarm).not.toBeNull()
     await from.alarm()
-    expect(from.unit(PLAYER, 'p1')).not.toBeNull()
+    expect(await from.unit(PLAYER, 'p1')).not.toBeNull()
     const op = { id: 'op-back', unitId: 'p1', baseSeq: null, at: 0, kind: 'manual' as const }
     expect(
       from.act(PLAYER, 'submit', { ops: [{ ...op, source: 'live-sheet', patch: { motto: 'x' } }] })
@@ -143,8 +146,8 @@ describe('the Game room Durable Object', () => {
     expect(to.refuseLease('L2', Date.now())).toBe('accepted')
     from.release('L2')
     from.cancel('L2')
-    expect(from.unit(PLAYER, 'p1')).toBeNull()
-    expect(to.unit(PLAYER, 'p1')).not.toBeNull()
+    expect(await from.unit(PLAYER, 'p1')).toBeNull()
+    expect(await to.unit(PLAYER, 'p1')).not.toBeNull()
   })
 
   test('ending a Game hands everything to a Training Bay and wipes the room', async () => {
@@ -167,7 +170,7 @@ describe('the Game room Durable Object', () => {
   test('a Game whose last member leaves is wiped; an unread bundle is refused', async () => {
     const { game } = await seeded('g-forget')
     await game.forget(PLAYER)
-    expect(game.unit(ORGANIZER, 'p1')).toBeNull()
+    expect(await game.unit(ORGANIZER, 'p1')).toBeNull()
     await game.forget(ORGANIZER)
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
 
