@@ -3,6 +3,7 @@ import {
   ACCOUNT_HINT_KEY,
   clearAccountHint,
   readAccountHint,
+  STORED_SESSION_KEY,
   writeAccountHint,
 } from '../../lib/accountHint'
 import { SESSION_KEY } from '../../lib/auth/storedSession'
@@ -29,6 +30,10 @@ function memoryStorage(entries: Record<string, string> = {}): Storage {
 const SESSION = { [SESSION_KEY]: 'user123' }
 
 describe('account hint', () => {
+  test("reads the stored session under the app's own key", () => {
+    expect(STORED_SESSION_KEY).toBe(SESSION_KEY)
+  })
+
   test('reads back what was written while a session is stored', () => {
     const storage = memoryStorage(SESSION)
     writeAccountHint({ name: 'Rae Voss', avatarUrl: 'https://cdn.example/a.png' }, storage)

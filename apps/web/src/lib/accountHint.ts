@@ -12,7 +12,7 @@
  *
  * A hint alone is not trusted. The app keeps the device's stored session in the
  * same storage and removes it on sign-out and whenever the Worker answers
- * signed out (`lib/auth/storedSession.ts`), so the hint counts only while it
+ * signed out (`auth/storedSession.ts`), so the hint counts only while it
  * is present: a session that ended anywhere shows signed out here too.
  *
  * The library holds the contract, not the storage (ADR-010): each app passes
@@ -21,10 +21,15 @@
  * in React.
  */
 
-import { storedSessionAccount } from './auth/storedSession'
-
 /** The `localStorage` key. */
 export const ACCOUNT_HINT_KEY = 'su:account'
+
+/**
+ * The stored session's key (`auth/storedSession.ts`'s `SESSION_KEY`), spelt
+ * here rather than imported: an import gives every SRD page a chunk of its
+ * own to load. A test holds the two together.
+ */
+export const STORED_SESSION_KEY = 'su:session'
 
 export type AccountHint = {
   name: string | null
@@ -40,7 +45,7 @@ export function readAccountHint(storage: Storage | null): AccountHint | null {
   if (!storage) return null
   try {
     const raw = storage.getItem(ACCOUNT_HINT_KEY)
-    if (raw === null || storedSessionAccount(storage) === null) return null
+    if (raw === null || !storage.getItem(STORED_SESSION_KEY)) return null
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return null
     const { name, avatarUrl } = parsed as Record<string, unknown>

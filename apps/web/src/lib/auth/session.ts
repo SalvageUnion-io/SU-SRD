@@ -56,11 +56,14 @@ async function ask(): Promise<string | null | undefined> {
   } catch {
     return undefined
   }
-  if (res.status === 401) {
+  if (!res.ok) {
+    // Read to the end: a body left unread keeps the request open in the
+    // browser, and the page never goes network-idle.
+    await res.text().catch(() => '')
+    if (res.status !== 401) return undefined
     settle(null)
     return null
   }
-  if (!res.ok) return undefined
   const answer = (await res.json()) as TokenAnswer
   settle(answer)
   return answer.token
