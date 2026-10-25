@@ -11,7 +11,7 @@
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
  *    Game, the whole Compact opening the Game's page in Play
  *    (`/play/games/$gameId`). Its chips are your role, how many are here now
- *    (the seats' heartbeats, `seats.presence`, play.md §7), the Downtime state
+ *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
  *    its one door, last in the chip group: Mediate where you mediate it, else
@@ -33,7 +33,6 @@ import '../styles/play/play.css'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
-import { isPresent } from 'game-domain/schemas/seat'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
 import { api } from '../../convex/_generated/api'
@@ -67,11 +66,12 @@ import { playCopy } from '../messages/play'
 import { useSync } from '../replica/syncContext'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
+import { hereCount } from './crew.model'
 import { PlayRefusal } from './PlayRefusal'
 import type { SoloPilot } from './play.model'
 import { gamePilots, soloPilots } from './play.model'
 import { gameChips, gameCrew, gameDoor } from './playHub.model'
-import { usePresenceClock } from './usePresenceClock'
+import { useGamePresence } from './useGamePresence'
 
 type GameSummary = FunctionReturnType<typeof api.games.listMine>[number]
 
@@ -340,11 +340,10 @@ function PlayGameItem({
 }) {
   const gameId = game._id as Id<'games'>
   const downtime = useQuery(api.downtime.state, { gameId }) ?? undefined
-  const seen = useQuery(api.seats.presence, { gameId })
   const listing = useQuery(api.entities.listForGame, { gameId })
   const vitals = useQuery(api.crew.vitals, { gameId })
-  const now = usePresenceClock()
-  const here = seen?.filter((at) => isPresent(at, now)).length ?? 0
+  const presence = useGamePresence(gameId, 'watch')
+  const here = hereCount(vitals?.pilots, presence)
   const chips = gameChips({ mediator: game.mediator, here, downtime, channel })
   const door = gameDoor(game, pilots)
   const crew =

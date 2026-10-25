@@ -31,8 +31,11 @@ const mech = {
   attention: false,
 }
 
-/** The crew at `now`: who beat a moment ago, and who an hour ago. */
-export function crewAt(now: number): CrewVitals {
+/** Who has the Game open: everyone but Wren's player. */
+export const CREW_HERE: ReadonlySet<string> = new Set(['u-bonesaw', 'u-mags', 'u-rook'])
+
+/** The crew, each pilot assigned to their own player. */
+export function crewAt(): CrewVitals {
   return {
     viewerId: 'u-me' as Id<'users'>,
     pilots: [
@@ -44,7 +47,7 @@ export function crewAt(now: number): CrewVitals {
         name: 'Bonesaw',
         boarded: false,
         mechId: null,
-        lastSeenAt: now - 1_000,
+        ownerId: 'u-bonesaw' as Id<'users'>,
       },
       {
         ...pilot,
@@ -54,7 +57,7 @@ export function crewAt(now: number): CrewVitals {
         name: 'Mags',
         boarded: true,
         mechId: 'atlas',
-        lastSeenAt: now - 2_000,
+        ownerId: 'u-mags' as Id<'users'>,
       },
       {
         ...pilot,
@@ -67,7 +70,7 @@ export function crewAt(now: number): CrewVitals {
         mechId: null,
         status: { ...calm, injured: true },
         attention: true,
-        lastSeenAt: now - 3_000,
+        ownerId: 'u-rook' as Id<'users'>,
       },
       {
         ...pilot,
@@ -77,7 +80,7 @@ export function crewAt(now: number): CrewVitals {
         name: 'Wren',
         boarded: true,
         mechId: 'mule',
-        lastSeenAt: now - 3_600_000,
+        ownerId: 'u-wren' as Id<'users'>,
       },
     ],
     mechs: [

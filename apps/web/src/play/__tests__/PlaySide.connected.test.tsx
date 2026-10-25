@@ -15,13 +15,12 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import type { PostRollResult } from 'game-domain/games/discord'
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
-import { crewAt } from './crewFixture'
+import { CREW_HERE, crewAt } from './crewFixture'
 
 const mutations: { name: string; args: unknown }[] = []
 let postResult: () => Promise<PostRollResult> = async () => ({
@@ -30,6 +29,7 @@ let postResult: () => Promise<PostRollResult> = async () => ({
   messageId: 'm-1',
 })
 const postRoll = mock((_args: unknown) => postResult())
+const presence: { here: ReadonlySet<string> | null } = { here: CREW_HERE }
 
 const convexMocks = await installConvexMocks({
   convexReact: {
@@ -42,6 +42,8 @@ const convexMocks = await installConvexMocks({
     },
     useAction: () => postRoll,
   },
+  // Who the Game's room says is here (`useGamePresence`); a test changes it and rerenders.
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
 })
 
 const { PlayCrewSection, PlayerTablesAndFeed } = await import('../PlaySideColumn')
@@ -92,7 +94,7 @@ function answers(over: Record<string, unknown> = {}) {
     ],
     'changeLog:alerts': [],
     'ops:pending': [PROPOSAL],
-    'crew:vitals': crewAt(NOW),
+    'crew:vitals': crewAt(),
     'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
     'entities:listForGame': null,
     'seats:forGame': [],
@@ -217,7 +219,7 @@ describe('the Crew (play.md §7)', () => {
       expect(label('Rook')).toBe('Rook, here, On foot, Injured. Open their sheet')
 
       // Rook climbs into Mule, healed; Mags takes a hit. The crew read answers anew.
-      const crew = crewAt(NOW)
+      const crew = crewAt()
       crew.pilots = crew.pilots.map((p) => {
         if (p.linkId === 'rook') {
           return {
@@ -240,25 +242,13 @@ describe('the Crew (play.md §7)', () => {
       expect(label('Mags')).toBe('Mags, here, Boarded · Atlas, Injured. Open their sheet')
       expect(screen.getByText('▲ HP')).toBeTruthy()
 
-      // Rook closes the tab: Mags keeps beating (a fresh seat heartbeat),
-      // Rook does not, and the presence clock turns Rook away.
-      const later = NOW + PRESENCE_STALE_MS
-      answers({
-        'crew:vitals': {
-          ...crew,
-          pilots: crew.pilots.map((p) => (p.linkId === 'rook' ? p : { ...p, lastSeenAt: later })),
-        },
-      })
+      // Rook closes the tab: the room says so, and Rook turns away.
+      presence.here = new Set(['u-bonesaw', 'u-mags'])
       await rerender()
-      expect(label('Rook')).toMatch(/^Rook, here,/)
-      await act(async () => {
-        jest.advanceTimersByTime(
-          Math.ceil(PRESENCE_STALE_MS / PRESENCE_HEARTBEAT_MS) * PRESENCE_HEARTBEAT_MS
-        )
-      })
       expect(label('Rook')).toBe('Rook, away, Boarded · Mule, SP 26, fine. Open their sheet')
       expect(label('Mags')).toMatch(/^Mags, here,/)
     } finally {
+      presence.here = CREW_HERE
       jest.useRealTimers()
     }
   })

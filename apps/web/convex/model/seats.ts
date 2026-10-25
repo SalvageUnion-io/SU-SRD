@@ -220,7 +220,6 @@ export async function handOffSoloSeat(
     range: solo.range,
     activeEffects: solo.activeEffects,
     ejected: mount.kind === 'foot' ? solo.ejected : undefined,
-    lastSeenAt: solo.lastSeenAt,
     updatedAt: Date.now(),
   }
   const existing = await readSeat(ctx, { gameId }, pilotId)

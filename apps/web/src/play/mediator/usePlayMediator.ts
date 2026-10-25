@@ -37,9 +37,10 @@ import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
 import type { PlayDowntime } from '../situation.model'
+import { useClock } from '../useClock'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
+import { useGamePresence } from '../useGamePresence'
 import { usePlayDowntime } from '../usePlayDowntime'
-import { usePresenceClock } from '../usePresenceClock'
 import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
@@ -126,7 +127,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const id = gameId as Id<'games'>
   const connection = useSync()
   const { canWrite } = connection
-  const now = usePresenceClock()
+  const here = useGamePresence(gameId, 'seat')
+  const now = useClock()
   const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
@@ -207,7 +209,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   return {
     gameId,
     gameName,
-    seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], now),
+    seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], here),
     crew: crew ?? null,
     crawler:
       listing == null
