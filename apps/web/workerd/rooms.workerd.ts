@@ -91,4 +91,11 @@ describe('rooms', () => {
     })
     expect(res.status).toBe(403)
   })
+
+  it('refuses an account socket with no session', async () => {
+    const res = await exports.default.fetch('https://salvageunion.io/__rooms/account/socket', {
+      headers: { upgrade: 'websocket' },
+    })
+    expect(res.status).toBe(403)
+  })
 })
