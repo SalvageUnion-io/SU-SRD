@@ -286,6 +286,25 @@ describe('a step applies once per pilot (its step op)', () => {
     ])
   })
 
+  test('another member taking a step’s op id first on their own pilot takes nothing from yours', async () => {
+    const t = testConvex()
+    const { a, b, gameId, startedAt } = await stepTable(t)
+    await addPilot(b, 'pb', gameId)
+
+    // The id is guessable, so Bex sends Ash's step 0 on Bex's own pilot.
+    const taken = downtimeStepOpId(startedAt, 'pa', 0)
+    await b.as.mutation(
+      api.ops.apply,
+      unitOp('pilot', { appId: 'pb', gameId, id: taken, patch: {} })
+    )
+
+    expect((await a.as.query(api.downtime.state, { gameId, pilotId: 'pa' }))?.doneSteps).toEqual([])
+    expect((await a.as.mutation(api.ops.apply, step(gameId, startedAt, 'pa', 0)))?.fresh).toBe(true)
+    expect((await a.as.query(api.downtime.state, { gameId, pilotId: 'pa' }))?.doneSteps).toEqual([
+      0,
+    ])
+  })
+
   test('per pilot, not per member: a member’s second pilot takes its own', async () => {
     const t = testConvex()
     const { a, gameId, startedAt } = await stepTable(t)

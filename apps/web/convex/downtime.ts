@@ -6,6 +6,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { mutation } from './model/entities'
+import { opOnUnit } from './model/opWrites'
 import { membershipOrNull, requireMediator, requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { readSeat, writeSeat } from './model/seats'
@@ -214,11 +215,7 @@ async function doneStepsOf(
   loadReferenceData()
   const done: number[] = []
   for (let step = 0; step < downtimeGuideSteps().length; step++) {
-    const opId = downtimeStepOpId(startedAt ?? 0, pilotId, step)
-    const op = await ctx.db
-      .query('ops')
-      .withIndex('by_op_id', (q) => q.eq('opId', opId))
-      .first()
+    const op = await opOnUnit(ctx, downtimeStepOpId(startedAt ?? 0, pilotId, step), pilotId)
     if (op !== null) done.push(step)
   }
   return done

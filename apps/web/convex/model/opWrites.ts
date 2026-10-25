@@ -6,7 +6,7 @@ import type { OpInput } from 'game-domain/ops/applyOp'
 import { applyOp, diffBodies, isEmptyOp, unitOf } from 'game-domain/ops/applyOp'
 import { isDowntimeStepOp } from 'game-domain/ops/downtimeStep'
 import type { Doc, Id } from '../_generated/dataModel'
-import type { MutationCtx } from '../_generated/server'
+import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { assertMayEditCrawler, crawlerByAppId, moveCrawlerRow } from './crawlerWrites'
 import type { OwnedTable } from './entities'
 import { logIdOf, parseBody } from './entities'
@@ -81,6 +81,23 @@ export async function applyUnitOp(
 }
 
 /**
+ * The op `opId` names on one unit, or null. An op id is unique per unit, not
+ * across them: a Downtime step's is guessable, so an op another member sent on
+ * their own unit under the same id must not stand in for this one.
+ */
+export async function opOnUnit(
+  ctx: QueryCtx,
+  opId: string,
+  unitId: string
+): Promise<Doc<'ops'> | null> {
+  return await ctx.db
+    .query('ops')
+    .withIndex('by_op_id', (q) => q.eq('opId', opId))
+    .filter((q) => q.eq(q.field('unitId'), unitId))
+    .first()
+}
+
+/**
  * `applyUnitOp` on a row already found and checked. `proposal` is the
  * proposed op row being accepted, which becomes the applied op.
  */
@@ -93,10 +110,7 @@ export async function applyToRow(
   proposal?: Id<'ops'>
 ): Promise<Applied> {
   const unchanged = { headSeq: row.headSeq ?? 0, updatedAt: row.updatedAt, fresh: false }
-  const seen = await ctx.db
-    .query('ops')
-    .withIndex('by_op_id', (q) => q.eq('opId', input.id))
-    .first()
+  const seen = await opOnUnit(ctx, input.id, logIdOf(row))
   if (seen !== null && seen._id !== proposal) return unchanged
 
   const op = kind === 'crawler' ? withoutContainer(input) : input
