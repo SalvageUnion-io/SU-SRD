@@ -1,0 +1,9 @@
+# Dataset API
+
+The dataset's public interface ([dataset API](../ARCHITECTURE.md#dataset-api): ADR-014, ADR-040, ADR-043, ADR-056). Static files, emitted from the committed data by `apps/web/src/reference/endpoints/apiV1.ts` and served by the one Worker from the same `dist/` as every page; no query Worker, no other host. `/api/` is the human documentation page.
+
+1. **§1 Files** — `/api/v1/index.json`, the manifest: per schema its name, item count, the `sha256` of its data and its URLs, plus docs, licence and the stability promise. `/api/v1/<schema>.json` is `data/<schema>.json` verbatim; `/api/v1/<schema>.schema.json` the generated JSON Schema with `$id` set to that URL and nothing else changed; `/api/v1/<schema>/<slug>.json` one entity.
+2. **§2 Schemas** — `getEntitySchemas()`, the set every surface publishes, plus `actions` as data only (no page, no per-entity file): entities name their actions, and an action holds the cost, range, damage and traits.
+3. **§3 Serving** — A miss under `/api/v1` is a JSON 404 from the Worker, never the HTML page. `/schema/*` serves the same files byte for byte as the unversioned alias. Both are CORS-open and cached for an hour plus stale-while-revalidate.
+4. **§4 Stability** — Within v1 a change only adds: new schemas, optional fields, entities, corrected text. A field is never removed, renamed or retyped; a published slug never dies, and one that moves 301s from its old URL (`_redirects`, as pages do). A breaking change is `/api/v2/`, served beside v1. `apiV1.test.ts` holds v1 to `/schema/` and to its own manifest.
+5. **§5 No release stream** — The deployed commit is the release (ADR-041): the manifest carries no dataset version or date, only content hashes, which let a client see what changed without downloading it. Nothing is published to a package registry.

@@ -1,7 +1,7 @@
 # Architecture
 
-What is true now; cite an Area by its anchor (`#ci`).
-ADRs cited by § keep their full text in [`docs/adr/`](adr/).
+The living spec: what is true now, one Area per subject; cite an Area by its anchor (`#ci`).
+An Area's headline names the ADRs folded into it; its detail is the spec doc it links. ADRs still being built keep their entry, and full text in [`docs/adr/`](adr/).
 **Names:** one app, `apps/web` (ADR-050); areas `src/reference/`, `src/build/` (**Training Bay**), `src/play/` (**The Cantina**).
 
 ## Areas
@@ -9,9 +9,9 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
 1. **Packages** <a id="packages"></a>
    `salvageunion-reference` → every app; `game-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
-2. **salvageunion-reference** <a id="reference"></a>
-   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
-   Exports `.`, `./rules`, `./zod`, `./testing`, `./proseDeviations`, `./assetDerivatives`, `./data/*`, `./schemas/*`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
+2. **salvageunion-reference** · ADR-005, ADR-006, ADR-013 <a id="reference"></a>
+   Private, no build, no version. Zod in `lib/schemas/` is the one source of types, JSON Schema and validation: every schema imports `z` from `lib/zod.ts` (`jitless`, for the CSP), never `zod`; `Ref*` types and JSON Schema are gitignored, rebuilt on install, typecheck, build and test (`ref-generate`).
+   Rules in `lib/rules` are pure (state in, result out, callers persist; Randsum the one dice source, no RNG bound). Exports `.`, `./rules`, `./zod`, `./testing`, `./proseDeviations`, `./assetDerivatives`, `./data/*`, `./schemas/*` from the explicit barrel `lib/index.ts`; refs `schemaId::entityId`.
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload `salvageunion-reference/tools/testPreload.ts` from each `bunfig.toml`, never `preload('all')` per file.
@@ -24,9 +24,9 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
 6. **Static pages (SSG)** <a id="ssg"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
-7. **Dataset API** <a id="dataset-api"></a>
-   v1 at `/api/v1/` (manifest `index.json`, `<schema>.json`, `.schema.json`, `<schema>/<slug>.json`), only additive changes (ADR-056).
-   `/schema/*` serves the same files, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
+7. **Dataset API** · ADR-014, ADR-040, ADR-043, ADR-056 · [spec](architecture/dataset-api.md) <a id="dataset-api"></a>
+   The dataset's public interface: static files at `/api/v1/` from the committed data, additive only, a break is `/api/v2/`; never an npm package, no release stream.
+   `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
    Imports `game-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
@@ -118,14 +118,9 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
 
 ## Decisions
 
-ADRs are never renumbered: entry N is ADR-N.
-Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039.
+ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry and a change to its Area; once built, it folds into that Area.
+Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-047.
 
-5. **ADR-005 Game-data ORM**
-   Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
-   Its output (`schemas/`, `lib/generated/`) is gitignored and rebuilt on install, typecheck, build and test.
-6. **ADR-006 Rules logic as pure functions in `salvageunion-reference/rules`**
-   State in, result out, consumers persist. Randsum is the only dice source; the package binds no RNG.
 7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
    Automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
 8. **ADR-008 Sequential client-side mutations**
@@ -136,10 +131,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     `ChoiceGroups` is uncontrolled on reference pages and controlled, persisted, in the app; `readOnly` renders static text.
 11. **ADR-011 The UI library ships TypeScript source**
     No build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/components`).
-13. **ADR-013 CSP-compliant Zod**
-    Every schema imports `z` from `packages/salvageunion-reference/lib/zod.ts` (`jitless: true`), never `zod`.
-14. **ADR-014 The dataset's public interface is the JSON API**
-    No npm publishing. Amended by ADR-040 (served verbatim) and ADR-043 (versioned API).
 21. **ADR-021 App surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
     Governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
     Wins over any earlier ADR; the live matrix is [surfaces](#surfaces). Amended by ADR-051.
@@ -162,7 +153,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
-    Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
+    Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-048, ADR-050.
 34. **ADR-034 Persistence requires an account**
     Signed out is read-only, every record is Convex-backed, the app is a PWA.
     Amends ADR-022 and ADR-030; amended by ADR-058.
@@ -174,16 +165,11 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Built; ADR-051 keeps its seat and 1280×800 canvas, replacing Game-only and the slots. As built: [play.md](architecture/play.md).
     Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051.
-40. **ADR-040 The dataset is served verbatim with no release stream**
-    `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`. Amends ADR-014; amended by ADR-043, ADR-056.
 41. **ADR-041 The deployed commit is the release**
     No app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
 42. **ADR-042 Mid-tab updates**
     `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
     The `client-contract` gate catches argument breaks; anything else is a soft update.
-43. **ADR-043 The dataset is a versioned public contract at `api.salvageunion.io`**
-    Built as ADR-056: a static `/v1` tree emitted from the committed files; no query Worker.
-    Amends ADR-014, ADR-040; decision 1 superseded by ADR-047, then ADR-056.
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
@@ -192,9 +178,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amends ADR-038; ADR-051 replaces decisions 3–5.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
-47. **ADR-047 One salvageunion.io edge Worker**
-    Not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
-    Supersedes ADR-043 decision 1; amends ADR-033; its `api.` host superseded by ADR-056.
 48. **ADR-048 The app at salvageunion.io/build**
     `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050, ADR-062.
 49. **ADR-049 Workers Issues, not Sentry**
@@ -216,9 +199,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
     Amends ADR-030 §2, §4–6.
-56. **ADR-056 The Dataset API v1 at salvageunion.io/api/v1** · [full text](adr/056-dataset-api-v1.md)
-    Built: static files on the one Worker; additive-only within v1, breaking changes as `/api/v2/`; manifest with hashes.
-    Supersedes ADR-043 decision 1 (via ADR-047); amends ADR-040.
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
