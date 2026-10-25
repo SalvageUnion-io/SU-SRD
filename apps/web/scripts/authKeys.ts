@@ -12,7 +12,7 @@
  * deployment's private half is a Worker secret and lives nowhere else.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
 /** A fresh private JWK, `kid` included, as JSON. */
@@ -35,11 +35,16 @@ export function jwksDataUri(privateJwk: string): string {
 
 /** The private JWK kept in `file`, made there (mode 600) the first time. */
 export async function keyIn(file: string): Promise<string> {
-  if (existsSync(file)) return readFileSync(file, 'utf8').trim()
   const key = await generateAuthKey()
   mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(file, key, { mode: 0o600 })
-  return key
+  try {
+    // `wx`: made only if absent, in the one call, so two starts never race.
+    writeFileSync(file, key, { mode: 0o600, flag: 'wx' })
+    return key
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err
+    return readFileSync(file, 'utf8').trim()
+  }
 }
 
 if (import.meta.main) {
