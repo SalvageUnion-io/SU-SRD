@@ -74,15 +74,6 @@
     "GameRoom": { "type": "durable-object", "storage": "sqlite" }
   },
 
-  // The rooms (ADR-064, src/worker/rooms.ts), SQLite Durable Objects reached
-  // through `exports` from `cloudflare:workers`, so each Preview gets its own namespaces and no
-  // `durable_objects` binding is needed. A class is retired with a `deleted`
-  // tombstone, which drops its data: never without Jrvs's go.
-  "exports": {
-    "AccountRoom": { "type": "durable-object", "storage": "sqlite" },
-    "GameRoom": { "type": "durable-object", "storage": "sqlite" }
-  },
-
   // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors) per
   // address. OG_RENDER_LIMIT caps fresh link-preview
   // renders (Browser Rendering time) per Cloudflare location.
