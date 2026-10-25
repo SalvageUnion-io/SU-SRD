@@ -45,6 +45,8 @@ import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
 import type { D1Like } from './auth/store'
 import { roomMember } from './roomAuth'
+import type { StopSignEnv } from './shared/stopSign'
+import { postStopSign } from './shared/stopSign'
 
 type RoomHealth = { schema: number }
 
@@ -277,6 +279,9 @@ export class GameRoom extends Room implements UnitHome {
       name,
       args
     )
+    if (name === 'safety.showStop' && answer.ok && answer.value === true) {
+      this.ctx.waitUntil(this.postStop())
+    }
     if (answer.ok && !READ_ACTS.has(name)) {
       const result = answer.value as GameActResult<'submit'>
       if (name !== 'submit') this.broadcastSnapshots()
@@ -286,6 +291,11 @@ export class GameRoom extends Room implements UnitHome {
       }
     }
     return answer
+  }
+
+  /** The Stop Sign to the bound channel, while it is still up and the table still opted in. */
+  private async postStop(): Promise<void> {
+    if (this.logic.safety.stillPosting()) await postStopSign(this.env as StopSignEnv, this.gameId)
   }
 
   /** The actor's own units and the primary crawler, for the bot's sheets. */
@@ -452,6 +462,11 @@ const READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'runningEncounter',
   'unitsFor',
   'unit',
+  'scenes.current',
+  'salvageAreas.here',
+  'ledger.get',
+  'safety.boundaries',
+  'safety.stopSign',
 ])
 
 /** Each open socket's own snapshot, after a change that may touch several things. */

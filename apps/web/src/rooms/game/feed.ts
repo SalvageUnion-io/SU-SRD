@@ -18,8 +18,30 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
   return {
     type: 'snapshot',
     units: room.store.units().map((unit) => roomUnit(unit, gameId)),
-    records: { opposition: room.opposition.trayRecords(actor) },
+    records: { opposition: room.opposition.trayRecords(actor), ...tableRecords(room, actor) },
     links: roomLinks(room.store),
+  }
+}
+
+/**
+ * What the table plays under, as each member reads it: one record each for the
+ * Scene, the area, the ledger and the Stop Sign, and one per boundary. Who
+ * added a boundary or showed the Stop Sign stays in the room (`safety.ts`).
+ */
+function tableRecords(room: GameRoomLogic, actor: string) {
+  const area = room.scene.salvageArea(actor)
+  const ledger = room.ledger.ledger(actor)
+  const safety = room.safety.stopSign(actor)
+  const one = (appId: string, body: object | null, updatedAt: number) =>
+    body === null ? [] : [{ appId, body: { ...body }, updatedAt }]
+  return {
+    scene: one('scene', room.scene.scene(actor), room.scene.updatedAt('scene')),
+    salvageArea: one('salvageArea', area, room.scene.updatedAt('salvage_area')),
+    ledger: one('ledger', ledger, room.ledger.updatedAt()),
+    boundaries: room.safety
+      .boundaries(actor)
+      .map(({ id, addedAt, ...body }) => ({ appId: id, body, updatedAt: addedAt })),
+    safety: one('safety', safety, room.safety.updatedAt()),
   }
 }
 

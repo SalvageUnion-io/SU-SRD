@@ -101,3 +101,20 @@ describe('the account room’s alarm', () => {
     expect(room.unitsFor(PLAYER).map((u) => u.leaseId)).toEqual(['L1'])
   })
 })
+
+describe('the account room’s other doors', () => {
+  test('a unit with its vitals, and a socket only for its own player', async () => {
+    const { room } = shelf()
+    expect(await room.unit(PLAYER, 'p1')).toMatchObject({ id: 'p1', vitals: expect.anything() })
+    expect(await room.unit(PLAYER, 'nope')).toBeNull()
+    expect((await room.fetch(new Request('https://room/'))).status).toBe(400)
+    // A Request here drops `upgrade`, so the headers are handed in as the Worker sets them.
+    const headers = new Map([
+      ['x-su-member', 'd-stranger'],
+      ['upgrade', 'websocket'],
+    ])
+    const stranger = { headers: { get: (name: string) => headers.get(name) ?? null } }
+    expect((await room.fetch(stranger as never)).status).toBe(403)
+    expect(room.refuseLease('L-unknown', Date.now())).toBe('refused')
+  })
+})

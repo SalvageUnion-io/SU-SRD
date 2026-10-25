@@ -1,9 +1,12 @@
 import type { ApplyOp } from '../ops'
 import type { RoomSql } from '../sql'
+import { GameLedger } from './ledger'
 import { GameOpposition } from './opposition'
 import { GamePlay } from './play'
 import { GameProposals } from './proposals'
 import { GameRoster, randomInviteCode } from './roster'
+import { GameSafety } from './safety'
+import { GameScene } from './scene'
 import { GameStore } from './store'
 import { GameTransit } from './transit'
 import { GameUnits } from './units'
@@ -21,6 +24,9 @@ export class GameRoomLogic {
   readonly play: GamePlay
   readonly opposition: GameOpposition
   readonly transit: GameTransit
+  readonly scene: GameScene
+  readonly ledger: GameLedger
+  readonly safety: GameSafety
 
   constructor(
     sql: RoomSql,
@@ -35,5 +41,8 @@ export class GameRoomLogic {
     this.play = new GamePlay(store, this.units, newId)
     this.opposition = new GameOpposition(store, newId)
     this.transit = new GameTransit(store, this.units, this.play)
+    this.scene = new GameScene(store, this.units)
+    this.ledger = new GameLedger(store, this.units, this.play, newId)
+    this.safety = new GameSafety(store, newId)
   }
 }
