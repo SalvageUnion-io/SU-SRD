@@ -168,6 +168,13 @@ jobs:
           name: web-dist
           path: apps/web/dist
 
+      # The Previews' own shared database before the Preview that reads it
+      # (tools/d1-migrate.ts); production's is never touched from here.
+      - name: Migrate the Previews' shared database
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun tools/d1-migrate.ts su-shared-preview
+
       # A Preview, never a version or a deployment of the production Worker.
       # Its vars are wrangler.jsonc's `previews` block. Its URL is read back
       # from wrangler's output file, never guessed: `--json` still prints the

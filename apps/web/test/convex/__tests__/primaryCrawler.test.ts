@@ -8,6 +8,7 @@ import {
   addPilot,
   allLinks,
   crawlerBody,
+  crawlerOp,
   link,
   makeUser,
   moveOwnable,
@@ -188,10 +189,13 @@ describe('moves — crawlers are the table runner’s', () => {
     const { organizer: o, gameId } = await seedTable(t)
     await addCrawler(o, 'c1', gameId)
 
-    await o.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { gameId: null, name: 'Renamed' },
-    })
+    await o.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { gameId: null, name: 'Renamed' },
+      })
+    )
 
     const row = await crawlerRow(t, 'c1')
     expect(row?.gameId).toBe(gameId)

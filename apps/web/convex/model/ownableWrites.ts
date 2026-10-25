@@ -14,7 +14,6 @@ import {
 import { countPatternBuild } from './patternAccess'
 import { getMembership, NotAuthorized } from './permissions'
 import { handOffSoloSeat, releaseSeatsOf } from './seats'
-import { staleWriteError } from './staleWrite'
 
 /**
  * The owned-entity writes behind `entities.ts`: pilots, mechs and built NPCs,
@@ -76,7 +75,7 @@ export function assertMayWrite(
  * whether or not it has a crawler yet (ADR-037 dropped that gate); being a
  * member is the whole rule.
  */
-async function assertMayAddToContainer(
+export async function assertMayAddToContainer(
   ctx: QueryCtx | MutationCtx,
   gameId: Id<'games'> | null,
   userId: Id<'users'>
@@ -161,85 +160,71 @@ export async function writeTarget(
   return (await ownedTemplateRow(ctx, userId, args.table, undefined, args.appId)) ?? stamped
 }
 
-/** `upsertByAppId`'s write, shared with `transfer`. */
-export async function writeOwnable(
+/**
+ * `upsertByAppId`'s create: a row this writer does not have yet, inserted
+ * into its container. Every later change to it is an op (`opWrites.ts`).
+ */
+export async function createOwnable(
   ctx: MutationCtx,
   userId: Id<'users'>,
   args: ObjectType<typeof OWNABLE_WRITE>
 ): Promise<{ updatedAt: number }> {
   const body = parseBody(args.table, args.body)
-
+  const updatedAt = Date.now()
+  await assertMayAddToContainer(ctx, args.gameId, userId)
+  const id = await ctx.db.insert(args.table, {
+    gameId: args.gameId,
+    ownerId: userId,
+    appId: args.appId,
+    body,
+    updatedAt,
+  })
+  // Created in a Game: aboard its primary crawler from the start (ADR-037).
   // A built NPC is owned like a pilot but plays no part in the primary
   // crawler's crew or a seat: it boards nothing and is never auto-assigned.
-  const kind = args.table === 'pilots' ? 'pilot' : args.table === 'mechs' ? 'mech' : null
-  const existing = await writeTarget(ctx, userId, args)
-  const updatedAt = Date.now()
-  if (existing === null) {
-    await assertMayAddToContainer(ctx, args.gameId, userId)
-    const id = await ctx.db.insert(args.table, {
-      gameId: args.gameId,
-      ownerId: userId,
-      appId: args.appId,
-      body,
-      updatedAt,
-    })
-    // Created in a Game: aboard its primary crawler from the start (ADR-037).
-    const created = await ctx.db.get(id)
-    if (created !== null && kind !== null) {
-      await assignToPrimary(ctx, kind, created as Doc<'pilots'> | Doc<'mechs'>)
-    }
-    // Built from a saved pattern: the pattern page counts it. Only on
-    // the create — editing a mech built from one never counts it again.
-    if (args.table === 'mechs') await countPatternBuild(ctx, body, userId)
-    return { updatedAt }
+  const created = await ctx.db.get(id)
+  if (created !== null && args.table !== 'npcs') {
+    await assignToPrimary(
+      ctx,
+      args.table === 'pilots' ? 'pilot' : 'mech',
+      created as Doc<'pilots'> | Doc<'mechs'>
+    )
   }
-
-  assertMayWrite(existing, userId)
-  // After the ownership check, so the refusal hands the row only to its owner.
-  if (args.expectedUpdatedAt !== null && existing.updatedAt > args.expectedUpdatedAt) {
-    throw staleWriteError(existing)
-  }
-
-  /**
-   * The write also re-homes the row when the client has moved it.
-   *
-   * The move is a create *into* the target container as far as the rules are
-   * concerned, so it answers to the same gate; leaving the source is
-   * unconditional.
-   */
-  const previousGameId = existing.gameId
-  const moved = previousGameId !== args.gameId
-  if (moved) {
-    await assertMayAddToContainer(ctx, args.gameId, userId)
-    await ctx.db.patch(existing._id, { gameId: args.gameId })
-  }
-
-  await ctx.db.patch(existing._id, { body, updatedAt })
-
-  // A link may not straddle two containers (ADR-037), so a move takes with
-  // it only the links whose other end is already where it is going, and
-  // drops the rest in the same mutation.
-  if (moved) {
-    const row = await ctx.db.get(existing._id)
-    if (row !== null) {
-      await pruneLinksAcrossContainers(ctx, row, previousGameId)
-      if (kind !== null) {
-        const crew = row as Doc<'pilots'> | Doc<'mechs'>
-        // Moved off the shelf into a Game: the pilot's solo seat becomes its
-        // seat there, mount and all when its mech is already there.
-        if (kind === 'pilot' && previousGameId === null && crew.gameId !== null) {
-          await handOffSoloSeat(ctx, crew as Doc<'pilots'>, crew.gameId)
-        }
-        // Moved out of a Game: a pilot's seat there goes, and a mech leaves
-        // whoever was aboard it on foot (ADR-038). Off the shelf, a mech keeps
-        // its solo boarder aboard so the pilot can follow it in.
-        await releaseSeatsOf(ctx, kind, crew, previousGameId, { moved: true })
-        // Moved into a Game: aboard its primary crawler (ADR-037).
-        await assignToPrimary(ctx, kind, crew)
-      }
-    }
-  }
+  // Built from a saved pattern: the pattern page counts it. Only on
+  // the create — editing a mech built from one never counts it again.
+  if (args.table === 'mechs') await countPatternBuild(ctx, body, userId)
   return { updatedAt }
+}
+
+/**
+ * What follows a row's move between containers, after its `gameId` is
+ * written. A link may not straddle two containers (ADR-037), so a move takes
+ * with it only the links whose other end is already where it is going, and
+ * drops the rest in the same mutation.
+ */
+export async function afterOwnableMove(
+  ctx: MutationCtx,
+  table: OwnedTable,
+  rowId: Id<OwnedTable>,
+  previousGameId: Id<'games'> | null
+): Promise<void> {
+  const row = (await ctx.db.get(rowId)) as Doc<OwnedTable> | null
+  if (row === null) return
+  await pruneLinksAcrossContainers(ctx, row, previousGameId)
+  if (table === 'npcs') return
+  const kind = table === 'pilots' ? 'pilot' : 'mech'
+  const crew = row as Doc<'pilots'> | Doc<'mechs'>
+  // Moved off the shelf into a Game: the pilot's solo seat becomes its
+  // seat there, mount and all when its mech is already there.
+  if (kind === 'pilot' && previousGameId === null && crew.gameId !== null) {
+    await handOffSoloSeat(ctx, crew as Doc<'pilots'>, crew.gameId)
+  }
+  // Moved out of a Game: a pilot's seat there goes, and a mech leaves
+  // whoever was aboard it on foot (ADR-038). Off the shelf, a mech keeps
+  // its solo boarder aboard so the pilot can follow it in.
+  await releaseSeatsOf(ctx, kind, crew, previousGameId, { moved: true })
+  // Moved into a Game: aboard its primary crawler (ADR-037).
+  await assignToPrimary(ctx, kind, crew)
 }
 
 /**

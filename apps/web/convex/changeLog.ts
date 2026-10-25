@@ -1,5 +1,4 @@
 import { v } from 'convex/values'
-import type { EntityTable } from 'game-domain/entityKinds'
 import { isEntityKind, TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
@@ -62,6 +61,12 @@ export const appendChangeLog = mutation({
       throw new NotAuthorized('Alerts are written by the Mediator, not by a client append')
     }
 
+    // A unit's change is its op (ADR-063), stored where it was applied, so a
+    // row about one is the record of a tab older than ops and is not kept:
+    // kept, the drawer would show that change twice.
+    const entries = args.entries.filter((e) => !isEntityKind(e.entityType))
+    if (entries.length === 0) return
+
     // Membership is checked per distinct game, not per entry.
     //
     // Every field of an entry is client-supplied, `gameId` included, and
@@ -75,39 +80,13 @@ export const appendChangeLog = mutation({
     // touching several fields of ONE entity: deduplicating keeps this at one
     // membership read for the common case rather than one per row, which
     // preserves the round-trip argument the comment below makes.
-    const gameIds = [...new Set(args.entries.flatMap((e) => (e.gameId === null ? [] : [e.gameId])))]
+    const gameIds = [...new Set(entries.flatMap((e) => (e.gameId === null ? [] : [e.gameId])))]
     await Promise.all(gameIds.map((gameId) => requireMemberAs(ctx, gameId, userId)))
-
-    // The entity, too, not only the game. `forEntity` returns every row filed
-    // under an entity's id to its owner and crew, so an entry is history the
-    // moment it lands: without this, a stranger who knew a pilot's id could
-    // append `{ gameId: null, entityType: 'pilot', entityId }` — no game to be
-    // a member of — and plant rows in its owner's drawer under their own
-    // `actorId`. The caller must be able to write the entity: its owner, or a
-    // member of the Game it is in. The client appends only after the entity's
-    // own write has committed, so a row that does not exist is refused too.
-    // Distinct, as the games are, so a batch about one entity is one read.
-    const logged = new Map<string, { table: EntityTable; entityId: string }>()
-    for (const e of args.entries) {
-      if (isEntityKind(e.entityType)) {
-        const table = TABLE_OF_KIND[e.entityType]
-        logged.set(`${table}:${e.entityId}`, { table, entityId: e.entityId })
-      }
-    }
-    await Promise.all(
-      [...logged.values()].map(async ({ table, entityId }) => {
-        const row = await loadLogged(ctx, table, entityId)
-        if (row === null) throw new NotAuthorized('There is no such entity to log against')
-        if (row.ownerId === userId) return
-        if (row.gameId === null) throw new NotAuthorized('That is not yours to write')
-        await requireMemberAs(ctx, row.gameId, userId)
-      })
-    )
 
     // `Promise.all` rather than a serial loop: these are independent inserts and
     // this runs on every sheet edit, so the round trips are the cost.
     await Promise.all(
-      args.entries.map((e) =>
+      entries.map((e) =>
         ctx.db.insert('changeLog', {
           gameId: e.gameId,
           entityType: e.entityType,
@@ -184,21 +163,24 @@ export const rolls = query({
 /** The most rows `forEntity` returns: the drawer's newest page, not the whole history. */
 const MAX_ENTITY_ROWS = 100
 
+/** Fields an op writes that are bookkeeping, not history a player reads. */
+const UNLOGGED: ReadonlySet<string> = new Set(['updatedAt'])
+
 /**
- * One entity's Change Log, newest first: every applied row — a sheet edit from
- * any device, an ownership change, an applied proposal — and every proposal
- * still awaiting its answer. Declined and superseded proposals are not history
- * of the entity, and are left out.
+ * One entity's Change Log, newest first, one row per field: its ops (ADR-063)
+ * from any device or surface, and the rows logged beside them before ops and
+ * still — an ownership change, a proposal still awaiting its answer, an
+ * applied one. A proposal applied since ops is shown once, as its op (whose id
+ * is the proposal's). Declined and superseded proposals are not history of
+ * the entity, and are left out.
  *
  * `entityId` is the id the client addresses the entity by (`logIdOf`). Rows
  * written before every writer used it name the entity by its row id, so both
  * are read.
  *
- * Read off `by_entity_state_ts`: each stream — one id, one state — yields its
- * newest `MAX_ENTITY_ROWS` in order, and the newest `MAX_ENTITY_ROWS` overall
- * are among those, so merging the streams and cutting the sorted result is
- * exact. Every write appends a row, so a read that collected the entity's
- * history would grow all campaign toward Convex's per-query read limits.
+ * Read a page at a time off `by_unit_state_at` and `by_entity_state_ts`: every
+ * stream yields its newest `MAX_ENTITY_ROWS`, and the newest overall are among
+ * those, so merging the streams and cutting the sorted result is exact.
  *
  * Its owner reads it, and so does a member of the Game it is in. An entity the
  * server has no row for has no history here yet, and reads as empty.
@@ -210,7 +192,7 @@ export const forEntity = query({
   },
   returns: v.array(
     v.object({
-      _id: v.id('changeLog'),
+      _id: v.string(),
       ts: v.number(),
       kind: changeLogKind,
       field: v.string(),
@@ -230,29 +212,60 @@ export const forEntity = query({
     }
 
     const keys = [...new Set<string>([logIdOf(row), row._id])]
-    const reads = keys.flatMap((entityId) =>
-      (['applied', 'proposed'] as const).map((state) =>
-        ctx.db
-          .query('changeLog')
-          .withIndex('by_entity_state_ts', (q) => q.eq('entityId', entityId).eq('state', state))
-          .order('desc')
-          .take(MAX_ENTITY_ROWS)
-      )
-    )
-    const rows = (await Promise.all(reads))
-      .flat()
-      .sort((a, b) => b.ts - a.ts)
-      .slice(0, MAX_ENTITY_ROWS)
+    const [ops, logged] = await Promise.all([
+      Promise.all(
+        keys.map((unitId) =>
+          ctx.db
+            .query('ops')
+            .withIndex('by_unit_state_at', (q) => q.eq('unitId', unitId).eq('state', 'applied'))
+            .order('desc')
+            .take(MAX_ENTITY_ROWS)
+        )
+      ),
+      Promise.all(
+        keys.flatMap((entityId) =>
+          (['applied', 'proposed'] as const).map((state) =>
+            ctx.db
+              .query('changeLog')
+              .withIndex('by_entity_state_ts', (q) => q.eq('entityId', entityId).eq('state', state))
+              .order('desc')
+              .take(MAX_ENTITY_ROWS)
+          )
+        )
+      ),
+    ])
 
-    return rows.map((r) => ({
-      _id: r._id,
-      ts: r.ts,
-      kind: r.kind,
-      field: r.field,
-      before: r.before,
-      after: r.after,
-      source: r.source,
-      state: r.state,
-    }))
+    const opIds = new Set(ops.flat().map((op) => op.opId))
+    const fromOps = ops.flat().flatMap((op) => {
+      const patch = (op.patch ?? {}) as Record<string, unknown>
+      const before = (op.before ?? {}) as Record<string, unknown>
+      return [...Object.keys(patch), ...(op.unset ?? [])]
+        .filter((field) => !UNLOGGED.has(field))
+        .map((field) => ({
+          _id: `${op._id}:${field}`,
+          ts: op.at,
+          kind: op.kind,
+          field,
+          before: before[field] ?? null,
+          after: patch[field] ?? null,
+          source: op.source,
+          state: 'applied' as const,
+        }))
+    })
+    const fromLog = logged
+      .flat()
+      .filter((r) => !opIds.has(r._id))
+      .map((r) => ({
+        _id: r._id as string,
+        ts: r.ts,
+        kind: r.kind,
+        field: r.field,
+        before: r.before,
+        after: r.after,
+        source: r.source,
+        state: r.state,
+      }))
+
+    return [...fromOps, ...fromLog].sort((a, b) => b.ts - a.ts).slice(0, MAX_ENTITY_ROWS)
   },
 })

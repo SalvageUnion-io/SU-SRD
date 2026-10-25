@@ -43,6 +43,7 @@ export type ServedCrawler = {
   appId: string | null
   gameId: string | null
   updatedAt: number
+  headSeq?: number
   body: unknown
 }
 
@@ -119,7 +120,7 @@ function bodyId(body: unknown): string | null {
  * A row as `entities.listMine` serves it. `updatedAt` is the row's version;
  * patterns and the tray have no such column, so theirs is absent.
  */
-export type ServedRow = { updatedAt?: number; body: unknown }
+export type ServedRow = { updatedAt?: number; headSeq?: number; body: unknown }
 
 /**
  * A served row's version: its `updatedAt` column, or for a pattern or a tray
@@ -186,7 +187,12 @@ export function planCrawlerSync(args: {
   gameIds: ReadonlySet<string>
   adoptedAt: ReadonlyMap<string, number>
 }): {
-  adopt: Array<{ id: string; updatedAt: number; body: Record<string, unknown> }>
+  adopt: Array<{
+    id: string
+    updatedAt: number
+    headSeq?: number
+    body: Record<string, unknown>
+  }>
   prune: string[]
 } {
   const servedIds = new Set(
@@ -195,6 +201,7 @@ export function planCrawlerSync(args: {
   const adopt = planRowSync(args).map(({ id, updatedAt, row }) => ({
     id,
     updatedAt,
+    headSeq: row.headSeq,
     body: { ...(row.body as Record<string, unknown>), gameId: row.gameId },
   }))
 
