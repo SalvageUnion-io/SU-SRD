@@ -49,11 +49,75 @@ function gameRoom(sockets: Sock[]) {
 }
 
 describe('an account room', () => {
+  const received = (s: Sock) =>
+    s.sent.map((m) => JSON.parse(m) as { type: string; [key: string]: unknown })
+  const shelf = (...sockets: Sock[]) => {
+    const room = new AccountRoom(roomState(sockets, 'd-rook') as never, {} as never)
+    const body = pilotFixture({ id: 'p1', name: 'Pilot', callsign: 'p1', classRef: 'salvager' })
+    const unit = { kind: 'pilot', appId: 'p1', owner: 'd-rook', publicRead: false, body }
+    room.importAccount({
+      ...{ discordId: 'd-rook', name: 'Rook', avatarUrl: null, patterns: [], encounters: [] },
+      ...{ npcTray: [], links: [], seats: [], channelBindings: [] },
+      units: [{ ...unit, headSeq: 0, fieldSeqs: {}, updatedAt: 0, ops: [] }],
+    })
+    for (const socket of sockets) socket.sent.length = 0
+    return room
+  }
+
   test('is its player’s from the start, so a Game can hand them a unit before they open it', () => {
     const room = new AccountRoom(roomState([], 'd-rook') as never, {} as never)
     expect(() => room.fileTray('disband-tray:g1', [{ id: 'n1', name: 'Raider' }], 1)).not.toThrow()
     expect(room.unitsFor('d-rook')).toEqual([])
     expect(() => room.importAccount({ discordId: 'd-wren' })).toThrow()
+  })
+
+  test('opens a socket for its player only', async () => {
+    const upgrade = (member: string) =>
+      new Request('https://x/', { headers: { upgrade: 'websocket', 'x-su-member': member } })
+    expect((await shelf().fetch(upgrade('d-wren'))).status).toBe(403)
+    expect((await shelf().fetch(new Request('https://x/'))).status).toBe(400)
+  })
+
+  test('its player’s batch is acked and heard as applied; a tray filed sends the Shelf', () => {
+    const rook = sock('d-rook')
+    const room = shelf(rook)
+    const op = { id: 'op-1', unitId: 'p1', baseSeq: 0, at: 0, kind: 'manual', source: 'live-sheet' }
+    room.webSocketMessage(
+      rook as never,
+      JSON.stringify({ type: 'ops', ops: [{ ...op, patch: { motto: 'Up' } }] })
+    )
+    expect(received(rook).map((m) => m.type)).toEqual(['applied', 'ack'])
+    rook.sent.length = 0
+    room.fileTray('disband-tray:g1', [{ id: 'n1', name: 'Raider' }], 5)
+    expect(received(rook)).toEqual([
+      expect.objectContaining({
+        type: 'snapshot',
+        units: [expect.objectContaining({ appId: 'p1', gameId: null, headSeq: 1 })],
+        records: expect.objectContaining({
+          npcTray: [{ appId: 'n1', body: { id: 'n1', name: 'Raider' }, updatedAt: 5 }],
+        }),
+      }),
+    ])
+  })
+
+  test('a batch from anyone else, or a message it cannot read, is declined', () => {
+    const wren = sock('d-wren')
+    const room = shelf(wren)
+    const op = {
+      id: 'op-2',
+      unitId: 'p1',
+      baseSeq: 0,
+      at: 0,
+      kind: 'manual',
+      source: 'live-sheet',
+      patch: {},
+    }
+    room.webSocketMessage(wren as never, JSON.stringify({ type: 'ops', ops: [op] }))
+    room.webSocketMessage(wren as never, '{}')
+    expect(received(wren)).toEqual([
+      expect.objectContaining({ type: 'declined', opIds: ['op-2'] }),
+      expect.objectContaining({ type: 'declined', opIds: [] }),
+    ])
   })
 })
 
