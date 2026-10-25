@@ -57,7 +57,7 @@ async function table() {
   await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
   await putMembership(db, {
     gameId: 'g-1',
-    accountId: 'acct-rosa',
+    discordId: 'd-rosa',
     mediator: true,
     organizer: true,
   })
@@ -118,7 +118,7 @@ describe('sheet', () => {
     await putPublicSheet(db, {
       kind: 'pilot',
       appId: 'p-tam',
-      ownerId: 'acct-tam',
+      ownerId: 'd-tam',
       page: { kind: 'pilot', appId: 'p-tam', body: TAM_PILOT.body },
       preview: { kind: 'pilot', title: 'Tam', description: '' } as never,
     })

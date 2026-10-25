@@ -60,7 +60,7 @@ async function me(db: SharedDb, discordId: string): Promise<BotFailure | BotSucc
       displayName: account.display_name ?? account.name ?? 'Crewmate',
       avatarUrl: account.avatar_url,
     },
-    games: await gamesOf(db, account.account_id),
+    games: await gamesOf(db, discordId),
   }
 }
 
@@ -70,7 +70,7 @@ async function games(
 ): Promise<BotFailure | BotSuccess<GamesResult>> {
   const account = await accountByDiscordId(db, discordId)
   if (account === null) return botDenial('unlinked')
-  return { ok: true, games: await gamesOf(db, account.account_id) }
+  return { ok: true, games: await gamesOf(db, discordId) }
 }
 
 async function usage(db: SharedDb, args: BotUsageArgs): Promise<BotUsageResult> {
@@ -98,10 +98,10 @@ async function feedback(db: SharedDb, args: BotFeedbackArgs): Promise<BotFeedbac
  * The Game a `/su bind` option names among the account's own: the id the
  * autocomplete sends, or a name typed by hand (any case); null for neither.
  */
-async function callerGame(db: SharedDb, accountId: string, raw: string): Promise<string | null> {
+async function callerGame(db: SharedDb, discordId: string, raw: string): Promise<string | null> {
   const text = raw.trim()
-  if ((await membershipOf(db, text, accountId)) !== null) return text
-  const named = (await gamesOf(db, accountId)).find(
+  if ((await membershipOf(db, text, discordId)) !== null) return text
+  const named = (await gamesOf(db, discordId)).find(
     (game) => game.name.trim().toLowerCase() === text.toLowerCase()
   )
   return named?.gameId ?? null
@@ -117,10 +117,10 @@ async function bind(
   if (channelId.length === 0) return botDenial('not-found', CHANNEL_NOT_FOUND)
   let gameId: string | null = null
   if (args.game !== undefined && args.game.trim().length > 0) {
-    gameId = await callerGame(db, account.account_id, args.game)
+    gameId = await callerGame(db, args.discordId, args.game)
     if (gameId === null) return botDenial('not-found', GAME_NOT_FOUND)
   }
-  return bindChannel(db, account.account_id, {
+  return bindChannel(db, args.discordId, {
     channelId,
     gameId,
     channelName: args.channelName ?? null,
@@ -133,7 +133,7 @@ async function unbind(
 ): Promise<BotFailure | BotSuccess<UnbindChannelResult>> {
   const account = await accountByDiscordId(db, args.discordId)
   if (account === null) return botDenial('unlinked')
-  return unbindChannel(db, account.account_id, args.channelId.trim())
+  return unbindChannel(db, args.discordId, args.channelId.trim())
 }
 
 /**

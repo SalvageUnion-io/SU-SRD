@@ -8,9 +8,9 @@ async function table() {
   const db = testDb()
   await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
   await putGame(db, { gameId: 'g-2', name: 'Deep Salvage', mediatedBy: 'Tam' })
-  await putMembership(db, { gameId: 'g-1', accountId: 'rosa', mediator: true, organizer: false })
-  await putMembership(db, { gameId: 'g-1', accountId: 'tam', mediator: false, organizer: false })
-  await putMembership(db, { gameId: 'g-2', accountId: 'tam', mediator: true, organizer: false })
+  await putMembership(db, { gameId: 'g-1', discordId: 'rosa', mediator: true, organizer: false })
+  await putMembership(db, { gameId: 'g-1', discordId: 'tam', mediator: false, organizer: false })
+  await putMembership(db, { gameId: 'g-2', discordId: 'tam', mediator: true, organizer: false })
   return db
 }
 
