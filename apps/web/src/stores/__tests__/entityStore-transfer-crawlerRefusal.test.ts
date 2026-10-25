@@ -4,7 +4,7 @@
  *
  * In a Game only the table runner writes the crawler (ADR-038 §5). A stow or a
  * load writes the mech and the crawler, and `transfer` commits both in ONE
- * mutation (`entities.transfer`), mech first as `useCargo` pushes them. The
+ * mutation (`ops.transfer`), mech first as `useCargo` pushes them. The
  * crawler half is refused for a player, and because the mutation is one
  * transaction the mech half is rolled back with it: a stow cannot lose the lot
  * (gone from the mech, never in the Bay) and a load cannot duplicate it.
@@ -23,7 +23,13 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { api } from '../../../convex/_generated/api'
 import type { Ctx, User } from '../../../test/convex/fixtures'
-import { addCrawler, crawlerBody, mechBody, seedTable } from '../../../test/convex/fixtures'
+import {
+  addCrawler,
+  crawlerBody,
+  crawlerOp,
+  mechBody,
+  seedTable,
+} from '../../../test/convex/fixtures'
 import { testConvex } from '../../../test/convex/harness'
 import { withSignedInBackend } from './signedInBackend'
 
@@ -45,8 +51,8 @@ mock.module('../entityBackend', () => ({
   ...realBackend,
   commitTransfer: async (writes: Writes, removals: Removals) => {
     if (seam === null) return
-    committed.push(writes.map((w) => `${w.type}:${w.record.id}`))
-    await seam.as.mutation(api.entities.transfer, realBackend.transferArgs(writes, removals))
+    committed.push(writes.map((w) => `${w.unit}:${w.op.unitId}`))
+    await seam.as.mutation(api.ops.transfer, realBackend.transferArgs(writes, removals))
   },
 }))
 
@@ -78,10 +84,10 @@ async function seedHold(holder: 'organizer' | 'player', mechLots: CargoLot[], ba
   await addCrawler(table.organizer, 'c1', gameId)
   const crawler = { ...crawlerBody({ id: 'c1', gameId }), cargoLots: bayLots } as Crawler
   if (bayLots.length > 0) {
-    await table.organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { cargoLots: bayLots },
-    })
+    await table.organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({ appId: 'c1', patch: { cargoLots: bayLots } })
+    )
   }
   // Room in the hold for a load, whatever the fixture chassis carries.
   const mech = {

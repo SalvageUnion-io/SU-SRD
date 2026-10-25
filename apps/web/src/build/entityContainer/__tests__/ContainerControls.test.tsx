@@ -167,10 +167,10 @@ describe('MoveToContainerControl', () => {
     // One entity, moved — never a copy. A copy would leave two of the same
     // character with no way to tell which one the table can see.
     expect(pilots.map((p) => [p.id, p.gameId])).toEqual([['p1', 'g1']])
-    // The entity commit, not the Change Log row that follows it.
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
-      appId: 'p1',
+    // The unit's op: the move is the field it writes (ADR-063).
+    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
       gameId: 'g1',
+      op: { unitId: 'p1', patch: { gameId: 'g1' } },
     })
   })
 
@@ -205,8 +205,8 @@ describe('MoveToContainerControl', () => {
       appId: 'c1',
       gameId: 'g1',
     })
-    // Never as a body patch: a "moved" crawler stays put that way.
-    expect(serverWrites.some((w) => w.name === 'entities:patchCrawlerByAppId')).toBe(false)
+    // Never as an op: a "moved" crawler stays put that way.
+    expect(serverWrites.some((w) => w.name === 'ops:apply')).toBe(false)
   })
 
   test('a crawler in a Game somebody else runs offers nowhere to go', () => {
@@ -289,9 +289,9 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
     await waitFor(() => expect(changed).toBe(1))
     expect(gameIdOf()).toBe('g1')
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
-      appId: 'p1',
+    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
       gameId: 'g1',
+      op: { unitId: 'p1', patch: { gameId: 'g1' } },
     })
   })
 })
@@ -347,9 +347,9 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
 
     await waitFor(() => expect(gameIdOf()).toBeNull())
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
-      appId: 'p1',
+    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
       gameId: null,
+      op: { unitId: 'p1', patch: { gameId: null } },
     })
   })
 
@@ -455,9 +455,9 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
         .list('pilot')
         .map((p) => p.id)
     ).toEqual(['p1'])
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
-      appId: 'p1',
+    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
       gameId: 'g2',
+      op: { unitId: 'p1', patch: { gameId: 'g2' } },
     })
   })
 
@@ -489,9 +489,9 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     await waitFor(() => expect(gameIdOf()).toBe('g2'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
-      appId: 'p1',
+    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
       gameId: 'g2',
+      op: { unitId: 'p1', patch: { gameId: 'g2' } },
     })
   })
 

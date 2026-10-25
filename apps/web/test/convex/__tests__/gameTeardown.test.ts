@@ -19,10 +19,19 @@ import { testConvex } from '../harness'
  *
  * Each path shelves (destroy) or deletes (last member out) the entities itself
  * before the teardown runs, because what happens to something somebody built
- * depends on the path. `changeLog` is history, and outlives the Game it was
- * written in.
+ * depends on the path. `changeLog` and `ops` are history, and outlive the Game
+ * they were written in.
  */
-const EXEMPT = ['pilots', 'mechs', 'crawlers', 'npcs', 'encounterNpcs', 'mechPatterns', 'changeLog']
+const EXEMPT = [
+  'pilots',
+  'mechs',
+  'crawlers',
+  'npcs',
+  'encounterNpcs',
+  'mechPatterns',
+  'changeLog',
+  'ops',
+]
 
 /** A Discord channel bound to `gameId`, as a binding row already in the database is. */
 async function bindChannel(t: Ctx, gameId: Id<'games'>, channelId: string, boundBy: Id<'users'>) {

@@ -89,7 +89,9 @@ describe('container parity — every local store can reach the server', () => {
       mechPatterns: { fn: 'commitPatternWrite', consumer: 'patternStore.ts' },
       encounterNpcs: { fn: 'commitNpcWrite', consumer: 'encounterStore.ts' },
       encounters: { fn: 'commitEncounterWrite', consumer: 'prepStore.ts' },
-      changeLog: { fn: 'commitChangeLog', consumer: 'entityChangeLog.ts' },
+      // A unit's change is an op (ADR-063); the Change Log table keeps Play's rolls.
+      ops: { fn: 'commitOp', consumer: 'entityStore.ts' },
+      changeLog: { fn: 'commitChangeLog', consumer: '../play/usePlayChannel.ts' },
     }
 
     const undeclared = Object.entries(WRITERS)
