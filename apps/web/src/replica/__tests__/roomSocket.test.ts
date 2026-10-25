@@ -217,9 +217,10 @@ describe('openRoom', () => {
     socket.says(snapshot([unit('pilot', pilotFixture({ id: 'p1' }), null)]))
     expect(ids(getView().pilots)).toEqual(['p1'])
     socket.opens()
-    // It takes no ops yet: a Shelf unit still writes through Convex.
-    expect(roomOf(null)).toBeNull()
+    // While open, it is the room a Shelf unit writes through.
+    expect(roomOf(null)).not.toBeNull()
     close()
+    expect(roomOf(null)).toBeNull()
     socket.onclose?.()
     expect(socket.closedWith).toBe(1000)
     expect(FakeSocket.all).toHaveLength(1)
