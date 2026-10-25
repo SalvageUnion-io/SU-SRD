@@ -15,9 +15,9 @@
  * foreground is whichever of ink and paper prints on the band (ruleset
  * §3.8); a band that prints paper is an ink ground (`data-ground`, chrome
  * K1), so the outlined buttons on it draw in paper. The colour crossfades
- * between phases (`.su-play-band`, `play/bar.css`). On a phone the title
- * takes its own line under the controls, so its cut-out still sits on the
- * band's foot.
+ * between phases (`.su-play-band`, `play/bar.css`). Below `lg` the title
+ * takes its own line under the controls (`play/bar.css`, by the line's
+ * order), so its cut-out still sits on the band's foot.
  *
  * Presentational: what goes in the slots is the screen's. Everything on the
  * line is one Size, Compact (ruleset §4.7): the stamps (role, LIVE,
@@ -36,27 +36,16 @@ import type { PlayReadOnly } from './play.model'
 import { liveLabel, phaseBand } from './play.model'
 
 /**
- * The band: its controls on one line, the title's cut-out flush with its
- * foot (`play/bar.css` lifts every other item off the foot by the band's
- * padding, so the line keeps one centre).
+ * The band: its controls on a line, the title's cut-out flush with its foot
+ * (`play/bar.css` lifts every other item off the foot, so the line keeps one
+ * centre, and sets its gaps and padding by the width).
  */
 const BAR = {
   alignItems: 'flex-end',
   display: 'flex',
-  gap: tokens.space[12],
   isolation: 'isolate',
   minWidth: 0,
-  padding: `${tokens.space[12]} ${tokens.space[12]} 0`,
   position: 'relative',
-} satisfies CSSProperties
-
-/** The phone form's: the controls on the first line, the title on its own under them (`BREAK`). */
-const PHONE_BAR = {
-  ...BAR,
-  columnGap: tokens.space[8],
-  flexWrap: 'wrap',
-  padding: `${tokens.space[8]} ${tokens.space[8]} 0`,
-  rowGap: tokens.space[4],
 } satisfies CSSProperties
 
 const BACK = {
@@ -99,9 +88,6 @@ const SLOT = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-/** The phone bar's line break: the controls on the first line, the title on the second. */
-const BREAK = { flexBasis: '100%', height: 0 } satisfies CSSProperties
-
 /** Pushes the channel button and ⋯ to the bar's end. */
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
@@ -125,7 +111,7 @@ export type PlayBarProps = {
    * place, so the bar says so wherever the screen is read-only.
    */
   readOnly?: PlayReadOnly | null
-  /** The Situation switch: On foot / Boarded / Downtime. */
+  /** The Situation switch: On foot / Boarded / Downtime (from `lg`; below it, pinned under the bar). */
   situation?: ReactNode
   /** The Stop Sign's button (`StopSignButton`), in a Game. */
   stop?: ReactNode
@@ -133,13 +119,6 @@ export type PlayBarProps = {
   channel?: ReactNode
   /** The ⋯ menu. */
   menu?: ReactNode
-  /**
-   * The phone form's bar (play.md §11): flush across the top, on two lines
-   * (back, the stamps and the buttons, then the title on its cut-out) rather
-   * than squeezing the title. The Situation goes under the pinned vitals there,
-   * not in the bar.
-   */
-  phone?: boolean
   /** The phase's band (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
 }
@@ -157,26 +136,22 @@ export function PlayBar({
   stop,
   channel,
   menu,
-  phone = false,
   tone = 'play',
 }: PlayBarProps) {
   const band = phaseBand(tone)
-  const heading = (
-    <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
-      {title}
-    </h1>
-  )
   return (
     <header
       data-ground={band.ground}
       className="su-play-bar su-play-band"
-      style={{ ...(phone ? PHONE_BAR : BAR), ...band.style }}
+      style={{ ...BAR, ...band.style }}
     >
       <Speckle grain="ink" />
       <Button href={backHref} back surface="instrument" variant="ghost" size="compact" style={BACK}>
         {backLabel}
       </Button>
-      {!phone && heading}
+      <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
+        {title}
+      </h1>
       {stamp && (
         <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
           {stamp}
@@ -206,12 +181,7 @@ export function PlayBar({
       {stop}
       {channel}
       {menu}
-      {phone && (
-        <>
-          <span style={BREAK} aria-hidden="true" />
-          {heading}
-        </>
-      )}
+      <span className="su-play-bar__break" aria-hidden="true" />
     </header>
   )
 }

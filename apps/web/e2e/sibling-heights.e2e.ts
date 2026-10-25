@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { at } from './_base'
 import { expectCorpusClean } from './_designRoutes'
-import { board, CANVAS, openPlay, PHONE, pilotPlayPath } from './_play'
+import { board, openPlay, PHONE, pilotPlayPath, WIDE } from './_play'
 import {
   describeMismatch,
   findSiblingHeights,
@@ -107,14 +107,13 @@ test.describe('signed out', { tag: '@pr' }, () => {
 
 /**
  * Play's own lines: the Play bar, each unit box and each action row, open and
- * closed. On the canvas a unit box is scanned whole (its head and every body
+ * closed. On the columns a unit box is scanned whole (its head and every body
  * row: the vitals, the pilot's class / TP / injuries, the mech's range;
  * Sheet and Board are chips on the head); on a phone only its head
  * (`design-walk.e2e.ts` scans each phone tab whole, against its baseline). Play needs an account,
  * so this signs in, sets up the Starter Set table (`setUpTable`) and opens
- * Bonesaw's screen, on foot, then Boarded with an action open, at the
- * canvas's design size (scale 1, so a measured px is a drawn px) and as a
- * phone. Only those lines are scanned (`EXPECTED`); the rest of the page is
+ * Bonesaw's screen, on foot, then Boarded with an action open, in a wide
+ * window and as a phone. Only those lines are scanned (`EXPECTED`); the rest of the page is
  * the other specs'.
  *
  * Each line's selector must match something visible where it is expected, or
@@ -129,23 +128,23 @@ const UNITS = '.su-play-unit'
 const UNIT_HEADS = '.su-play-unit .su-entity-compact__head'
 const ACTIONS = 'li.su-play-act'
 
-/** Which lines each view shows and scans: the canvas all three, a phone's tab its own. */
+/** Which lines each view shows and scans: the columns all three, a phone's tab its own. */
 const EXPECTED: Record<string, readonly string[]> = {
-  canvas: [BAR, UNITS, ACTIONS],
+  wide: [BAR, UNITS, ACTIONS],
   Act: [BAR, ACTIONS],
   Units: [BAR, UNIT_HEADS],
 }
 
 async function playMismatches(page: Page, state: string): Promise<string[]> {
   const failures: string[] = []
-  for (const viewport of [CANVAS, PHONE]) {
+  for (const viewport of [WIDE, PHONE]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
-    // The phone form puts the Units on their own tab.
+    // A phone puts the Units on their own tab.
     for (const tab of viewport === PHONE ? ['Act', 'Units'] : [null]) {
       if (tab !== null) await page.getByRole('tab', { name: tab }).click()
       await page.evaluate(() => document.fonts.ready.then(() => undefined))
       const where = tab === null ? viewport.name : `${viewport.name}, ${tab}`
-      const lines = EXPECTED[tab ?? 'canvas'] ?? []
+      const lines = EXPECTED[tab ?? 'wide'] ?? []
       for (const selector of lines) {
         const seen = await page.locator(selector).filter({ visible: true }).count()
         expect(seen, `Play, ${state}, at ${where}: nothing matches ${selector}`).toBeGreaterThan(0)
@@ -173,7 +172,7 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
     }
     if (viewport === PHONE) await page.getByRole('tab', { name: 'Act' }).click()
   }
-  await page.setViewportSize({ width: CANVAS.width, height: CANVAS.height })
+  await page.setViewportSize({ width: WIDE.width, height: WIDE.height })
   return failures
 }
 
@@ -182,7 +181,7 @@ test('Play: the bar, unit boxes and action rows share one height', { tag: '@pr' 
 }) => {
   test.setTimeout(8 * 60_000)
   await setUpTable(page)
-  await page.setViewportSize({ width: CANVAS.width, height: CANVAS.height })
+  await page.setViewportSize({ width: WIDE.width, height: WIDE.height })
   await openPlay(page, await pilotPlayPath(page, 'Bonesaw'))
   const failures = await playMismatches(page, 'On foot')
 

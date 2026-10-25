@@ -1304,9 +1304,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 /* A TOKEN LIST (`.su-entity-mini-list`: a pattern's Systems and Modules,
    Play's lists): one Mini a line, each running the list's full width, its
    name taking the room and its fact at the right edge, where the facts scan
-   down the list. Under a coarse pointer, and in Play's phone form
-   (`.su-play-root--phone`, ADR-045), each line is a thumb's height (ruleset
-   §4.6): a row, not a control, so its pill is drawn that tall. */
+   down the list. Under a coarse pointer, and in a narrow Play (below `lg`,
+   a phone's), each line is a thumb's height (ruleset §4.6): a row, not a
+   control, so its pill is drawn that tall. */
 .su-entity-mini-list {
   display: flex;
   flex-direction: column;
@@ -1349,8 +1349,10 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   }
 }
 
-.su-play-root--phone .su-entity-mini-list .su-entity-mini__pill {
-  min-height: var(--size-full);
+@container play not (width >= 64rem) {
+  .su-play-root .su-entity-mini-list .su-entity-mini__pill {
+    min-height: var(--size-full);
+  }
 }
 
 /* A Mini with controls on its line (`.su-entity-mini-line`: the app's installed

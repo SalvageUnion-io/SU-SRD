@@ -33,7 +33,7 @@ const LABEL = {
   letterSpacing: tokens.tracking.capsTight,
 } satisfies CSSProperties
 
-/** The phone form's row: the options share the screen's width (`fill`). */
+/** Below `lg`, pinned: the options share the screen's width (`fill`). */
 const FILL_ROW = { ...ROW, width: '100%' } satisfies CSSProperties
 
 export function PlayGameStateSwitch({
@@ -43,7 +43,7 @@ export function PlayGameStateSwitch({
 }: {
   downtime: PlayDowntime
   canWrite: boolean
-  /** The phone form: no leading label, the options share the row (play.md §11). */
+  /** Pinned below `lg`: no leading label, the options share the row (play.md §11). */
   fill?: boolean
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false)

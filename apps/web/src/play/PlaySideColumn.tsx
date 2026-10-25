@@ -1,6 +1,7 @@
 /**
- * PlaySideColumn — the Cockpit's right column (~320px): the Crew (Game
- * only, play.md §7), the roll Tables and the Feed (§8), one under another.
+ * PlaySideColumn — the Cockpit's end column's panes: the Crew (Game only,
+ * play.md §7), then the roll Tables and the Feed (§8), one under another
+ * from `lg`, each its own tab below it.
  *
  *  - **Crew** (`PlayCrewSection`): one line per other seat, from `crew.vitals`
  *    (`useGameFeed`) and the seats (`useGameBoardSources`).
@@ -10,35 +11,23 @@
  *  - **Feed** (`PlayFeedSection`): the crew's rolls, alerts and proposals with
  *    my own rolls and changes (`playRolls`), newest first; solo only my own.
  *
- * What the three share is `usePlaySide`, called once per screen: the roll
- * dispatch lives there (`usePlayRollDispatch`), so every roll recorded
- * anywhere in Play is written to the Game's log and, per the toggle, posted to
- * Discord, its result on its Feed line. The phone form (`PlayCockpitPhone`,
- * play.md §11) calls it once too and puts the sections on its own tabs.
+ * What the three share is `usePlaySide`, called once per screen by
+ * `PlayCockpit`: the roll dispatch lives there (`usePlayRollDispatch`), so
+ * every roll recorded anywhere in Play is written to the Game's log and, per
+ * the toggle, posted to Discord, its result on its Feed line.
  *
  * Each section's heading is a Slab, never a `TitledBox`, so what a section
  * lists stays level 1 (play.md §12). The Tables and Feed sections are the
  * Mediator's too (`PlayMediatorSide`), over the same `useSideFeed`.
  */
 
-import type { CSSProperties } from 'react'
-import type { OverloadTable } from 'salvageunion-reference/rules'
-import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
-import { SlabSection, tokens } from '../components/index'
+import { SlabSection } from '../components/index'
 import { playCopy } from '../messages/play'
-import type { RosterLine } from './mediator/encounterRoster.model'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'
 import type { PlayColumnProps } from './situation.model'
 import type { PlaySide, SideFeed } from './usePlaySide'
-import { usePlaySide } from './usePlaySide'
-
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
 
 /** The Crew: a Game's other seats. Nothing solo. */
 export function PlayCrewSection({ target, side }: PlayColumnProps & { side: PlaySide }) {
@@ -65,27 +54,16 @@ export function PlayTablesSection({
   downtime,
   solo,
   prepared,
-  mechTables,
-  onField,
-}: SideSectionProps & {
-  downtime: boolean
-  solo: boolean
-  prepared?: readonly string[]
-  mechTables?: OverloadTable
-  /** The Mediator's: field a rolled encounter row on the Opposition. */
-  onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
-}) {
+}: SideSectionProps & { downtime: boolean; solo: boolean; prepared?: readonly string[] }) {
   return (
     <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
       <PlayTables
         downtime={downtime}
-        mechTables={mechTables}
         solo={solo}
         post={side.post}
         onPostChange={side.setPost}
         binding={side.binding}
         prepared={prepared}
-        onField={onField}
       />
     </SlabSection>
   )
@@ -109,7 +87,7 @@ export function PlayFeedSection({
   )
 }
 
-/** The player's Tables and Feed sections, as the canvas and the phone's Tables tab stack them. */
+/** The player's Tables and Feed sections: the Tables pane. */
 export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { side: SideFeed }) {
   return (
     <>
@@ -117,24 +95,9 @@ export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { 
         side={side}
         idPrefix="play"
         downtime={play.situation === 'downtime'}
-        mechTables={
-          play.boardedMech
-            ? overloadTableOf(resolveChassisRef(play.boardedMech.chassisRef))
-            : 'reactor'
-        }
         solo={target.gameId === null}
       />
       <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />
     </>
-  )
-}
-
-export function PlaySideColumn({ target, play }: PlayColumnProps) {
-  const side = usePlaySide({ target, play })
-  return (
-    <div style={STACK}>
-      <PlayCrewSection target={target} play={play} side={side} />
-      <PlayerTablesAndFeed target={target} play={play} side={side} />
-    </div>
   )
 }

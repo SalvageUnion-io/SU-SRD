@@ -24,7 +24,7 @@ import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
 import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt } from './mediatorFixture'
-import { phoneViewport } from './phoneViewport'
+import { narrowViewport } from './narrowViewport'
 
 type Sent = { name: string; args: Record<string, unknown> }
 const sent: Sent[] = []
@@ -940,10 +940,10 @@ describe('every Mediator capability is reachable here', () => {
   })
 })
 
-describe('on a phone (play.md §11)', () => {
+describe('below `lg`, on a phone (play.md §11)', () => {
   let restore = () => {}
   beforeEach(() => {
-    restore = phoneViewport()
+    restore = narrowViewport()
   })
   afterEach(() => restore())
 
@@ -958,7 +958,7 @@ describe('on a phone (play.md §11)', () => {
 
   test('Table, Opposition, Tables, Propose under the pinned Scene / Downtime switch', async () => {
     await renderCockpit()
-    expect(document.querySelector('.su-play-canvas')).toBeNull()
+    expect(screen.queryByRole('region', { name: 'The table' })).toBeNull()
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Tables', 'Propose'])
     const state = screen.getByRole('group', { name: 'Game state' })

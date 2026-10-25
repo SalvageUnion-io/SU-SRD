@@ -1,5 +1,5 @@
 /*
- * Play's instrument rules — the `.su-play-*` pieces inside the canvas that a
+ * Play's instrument rules — the `.su-play-*` pieces inside the frame that a
  * style object cannot say (ADR-046): the resolve's cost choice and Hot(X)
  * projection (`PlayResolveCost`; the Hot(X) stepper is `Stat`'s own) and the
  * SRD Explorer's scrolling body.
@@ -9,7 +9,7 @@
  * Muted text on the light grounds is `--color-wk-muted` (5.13:1 on
  * band-cream, 5.73:1 on paper), never an ink alpha (contrast.test.ts).
  *
- * The layout shell is `.su-play-root`/`.su-play-canvas` (canvas.css), before
+ * The layout shell is `.su-play-root`/`.su-play-frame` (frame.css), before
  * this file in `play.css`.
  */
 
