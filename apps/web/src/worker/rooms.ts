@@ -61,8 +61,18 @@ export class AccountRoom extends Room implements UnitHome {
   }
 
   /** The player's own units; anyone else is answered none. */
-  units(actor: string): UnitRow[] {
+  unitsFor(actor: string): UnitRow[] {
     return this.logic.shelf.list(actor)
+  }
+
+  /** One of the player's units, or null. */
+  unit(actor: string, unitId: string): UnitRow | null {
+    return this.logic.shelf.list(actor).find((u) => u.id === unitId) ?? null
+  }
+
+  /** A disbanded Game's Opposition, filed in its Organizer's NPC tray once per lease. */
+  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
+    this.logic.transit.fileTray(leaseId, npcs, at)
   }
 
   importAccount(bundle: unknown): { imported: boolean } {
