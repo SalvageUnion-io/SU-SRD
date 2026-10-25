@@ -5,12 +5,12 @@
  * no Mediator and so no conditions; before the first answer the Scene is clear.
  */
 
-import { useQuery } from 'convex/react'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 
 export type SceneState = {
   /** In catalogue order, each once. */
@@ -23,7 +23,7 @@ export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }
 
 export function useScene(gameId: string | null): SceneState {
   const signedIn = isSignedIn(useSync().status)
-  const scene = useQuery(
+  const scene = useTableRead(
     api.scenes.current,
     signedIn && gameId !== null ? { gameId: gameId as Id<'games'> } : 'skip'
   )

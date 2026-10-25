@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, useTransition } from 'react'
 import { toast } from '../../components/index'
+import { RoomDeclined } from '../../replica/roomSocket'
 import { StaleWriteRefused, WritesBlockedOffline } from '../../replica/sync'
 import { LinkRefused } from '../links/linkRefused'
 import { captureException } from '../observability'
@@ -33,6 +34,7 @@ export type PlayerError = abstract new (...args: never[]) => Error
 
 /** The entity store's own player-facing failures, said wherever a write is. */
 const STORE_PLAYER_ERRORS: readonly PlayerError[] = [
+  RoomDeclined,
   WritesBlockedOffline,
   StaleWriteRefused,
   LinkRefused,

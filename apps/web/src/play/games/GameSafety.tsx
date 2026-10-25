@@ -10,7 +10,6 @@
  * it posts to the Game's bound Discord channel (`safety.setPostToChannel`).
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import type { BoundaryKind } from 'game-domain/games/safety'
 import { BOUNDARY_KINDS, BOUNDARY_TEXT_MAX } from 'game-domain/games/safety'
 import type { CSSProperties } from 'react'
@@ -32,6 +31,7 @@ import {
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playSafetyCopy } from '../../messages/play-safety'
 import { useSync } from '../../replica/syncContext'
+import { useTableAct, useTableRead } from '../../replica/useTable'
 import { StopSignButton } from '../StopSign'
 import type { StopSign } from '../useStopSign'
 import { HUB_BODY } from './hubStyles.model'
@@ -90,10 +90,10 @@ function BoundaryList({
 }) {
   const id = useId()
   const [text, setText] = useState('')
-  const add = useServerAction(useMutation(api.safety.addBoundary), {
+  const add = useServerAction(useTableAct(api.safety.addBoundary, gameId), {
     failure: playSafetyCopy('couldNotAdd'),
   })
-  const remove = useServerAction(useMutation(api.safety.removeBoundary), {
+  const remove = useServerAction(useTableAct(api.safety.removeBoundary, gameId), {
     failure: playSafetyCopy('couldNotRemove'),
     toastId: 'boundary-remove',
   })
@@ -161,8 +161,8 @@ function BoundaryList({
 }
 
 export function GameSafety({ gameId, sign }: { gameId: Id<'games'>; sign: StopSign | null }) {
-  const boundaries = useQuery(api.safety.boundaries, { gameId })
-  const setPost = useServerAction(useMutation(api.safety.setPostToChannel), {
+  const boundaries = useTableRead(api.safety.boundaries, { gameId })
+  const setPost = useServerAction(useTableAct(api.safety.setPostToChannel, gameId), {
     failure: playSafetyCopy('couldNotChange'),
     toastId: 'stop-sign-post',
   })
