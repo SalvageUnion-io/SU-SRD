@@ -66,6 +66,7 @@ import {
 import { serveHomebrew } from './homebrew'
 import { serveRoomsHealth } from './rooms'
 
+export { BotGateway } from './botGateway'
 export { AccountRoom, GameRoom } from './rooms'
 
 export type Env = AppEnv &
