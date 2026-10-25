@@ -37,6 +37,11 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   encounters: 'encounter',
   npcTray: 'encounterNpc',
   opposition: null,
+  scene: null,
+  salvageArea: null,
+  ledger: null,
+  boundaries: null,
+  safety: null,
 }
 
 type RoomLink = Extract<ServerMessage, { type: 'links' }>['links'][number]
