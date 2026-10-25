@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { crawlerBody, makeUser, pilotBody, seedTable } from '../fixtures'
+import { crawlerBody, crawlerOp, makeUser, pilotBody, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -97,17 +97,23 @@ describe('every roster change reaches the stored summary', () => {
     })
 
     // The table runner keeps the crawler (ADR-038 §5): the Organizer, here.
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { name: 'Perseverance' },
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { name: 'Perseverance' },
+      })
+    )
     expect((await storedSummary(t, gameId))?.crawlerName).toBe('Perseverance')
 
     const before = await t.run(async (ctx) => await ctx.db.get(gameId))
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { techLevel: '2' },
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { techLevel: '2' },
+      })
+    )
     expect(await t.run(async (ctx) => await ctx.db.get(gameId))).toEqual(before)
   })
 

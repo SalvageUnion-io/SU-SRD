@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { FIXTURE_NOW } from '../../../src/components/__tests__/fixtures'
 import type { Ctx } from '../fixtures'
-import { crawlerBody, makeUser, pilotBody, seedTable } from '../fixtures'
+import { crawlerBody, crawlerOp, makeUser, pilotBody, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -270,14 +270,20 @@ describe("the crawler is the table runner's and merges per field", () => {
         })
     )
 
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { name: 'Tenacity' },
-    })
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { techLevel: '2' },
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { name: 'Tenacity' },
+      })
+    )
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { techLevel: '2' },
+      })
+    )
 
     const row = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     const body = row?.body as { name: string; techLevel: string; id: string }
@@ -307,27 +313,36 @@ describe("the crawler is the table runner's and merges per field", () => {
         | Record<string, unknown>
         | undefined
 
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { maxSpOverride: 30 },
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { maxSpOverride: 30 },
+      })
+    )
     expect((await crawlerBodyOnServer())?.maxSpOverride).toBe(30)
 
     // The revert as a client without `unset` sends it. The Convex client drops an
     // undefined field when it serialises the args, so this is `{}` on the wire
     // — and the pin survives. That is the bug `unset` exists for.
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { maxSpOverride: undefined },
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { maxSpOverride: undefined },
+      })
+    )
     expect((await crawlerBodyOnServer())?.maxSpOverride).toBe(30)
 
     // The revert as the client sends it now.
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { maxSpOverride: undefined },
-      unset: ['maxSpOverride'],
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { maxSpOverride: undefined },
+        unset: ['maxSpOverride'],
+      })
+    )
     const body = await crawlerBodyOnServer()
     expect(body && 'maxSpOverride' in body).toBe(false)
     // Only the named field went; the rest of the body is untouched.
@@ -335,19 +350,25 @@ describe("the crawler is the table runner's and merges per field", () => {
 
     // An unknown name is refused rather than silently stripping a key…
     await expect(
-      organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-        appId: 'c1',
-        patch: {},
-        unset: ['notAField'],
-      })
+      organizer.as.mutation(
+        api.ops.apply,
+        crawlerOp({
+          appId: 'c1',
+          patch: {},
+          unset: ['notAField'],
+        })
+      )
     ).rejects.toThrow(/cannot unset unknown field "notAField"/)
     // …and a required field cannot be unset: the merged body must still parse.
     await expect(
-      organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-        appId: 'c1',
-        patch: {},
-        unset: ['name'],
-      })
+      organizer.as.mutation(
+        api.ops.apply,
+        crawlerOp({
+          appId: 'c1',
+          patch: {},
+          unset: ['name'],
+        })
+      )
     ).rejects.toThrow(/Invalid crawlers payload/)
     expect((await crawlerBodyOnServer())?.name).toBe('#430')
   })
@@ -372,17 +393,23 @@ describe("the crawler is the table runner's and merges per field", () => {
 
     // ADR-038 §5: players read the crawler and ask at the table.
     await expect(
-      player.as.mutation(api.entities.patchCrawlerByAppId, {
-        appId: 'c9',
-        patch: { name: 'Mine now' },
-      })
+      player.as.mutation(
+        api.ops.apply,
+        crawlerOp({
+          appId: 'c9',
+          patch: { name: 'Mine now' },
+        })
+      )
     ).rejects.toThrow(/only the mediator/i)
     expect(await nameOnServer()).toBe('#430')
     // With no Mediator appointed, the Organizer runs the table and keeps it.
-    await organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c9',
-      patch: { name: 'Tenacity' },
-    })
+    await organizer.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c9',
+        patch: { name: 'Tenacity' },
+      })
+    )
     expect(await nameOnServer()).toBe('Tenacity')
   })
 
@@ -402,10 +429,13 @@ describe("the crawler is the table runner's and merges per field", () => {
     )
 
     await expect(
-      outsider.as.mutation(api.entities.patchCrawlerByAppId, {
-        appId: 'c1',
-        patch: { scrap: 999 },
-      })
+      outsider.as.mutation(
+        api.ops.apply,
+        crawlerOp({
+          appId: 'c1',
+          patch: { scrap: 999 },
+        })
+      )
     ).rejects.toThrow(/not a member/i)
   })
 })

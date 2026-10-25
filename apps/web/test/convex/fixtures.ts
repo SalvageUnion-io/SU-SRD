@@ -167,3 +167,40 @@ export async function allLinks(t: Ctx) {
   const rows = await t.run(async (ctx) => await ctx.db.query('softLinks').collect())
   return rows.map((l) => ({ type: l.type, from: l.from.id, to: l.to.id, gameId: l.gameId }))
 }
+
+/** `ops.apply`'s args for one op on a unit, the way the store sends one (ADR-063). */
+export function unitOp(
+  unit: 'pilot' | 'mech' | 'crawler' | 'npc',
+  args: {
+    appId: string
+    patch: Record<string, unknown>
+    unset?: string[]
+    gameId?: Id<'games'> | null
+    baseSeq?: number | null
+    id?: string
+  }
+) {
+  return {
+    unit,
+    gameId: args.gameId ?? null,
+    op: {
+      id: args.id ?? crypto.randomUUID(),
+      unitId: args.appId,
+      baseSeq: args.baseSeq ?? null,
+      at: Date.now(),
+      kind: 'manual' as const,
+      source: 'test',
+      patch: args.patch,
+      ...(args.unset === undefined ? {} : { unset: args.unset }),
+    },
+  }
+}
+
+/** `ops.apply`'s args for a crawler field patch. */
+export function crawlerOp(args: {
+  appId: string
+  patch: Record<string, unknown>
+  unset?: string[]
+}) {
+  return unitOp('crawler', args)
+}
