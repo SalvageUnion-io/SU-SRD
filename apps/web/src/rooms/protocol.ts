@@ -18,6 +18,10 @@
  *  - A client sends `ops`: one batch, applied all or none (a transfer is a
  *    batch), answered by `ack` or `declined` naming the batch's op ids.
  *    An op id is idempotent, so a replay after a reconnect is safe.
+ *  - Or an `act`: one named write the room has to decide (spending the last
+ *    Supply, passing an hour, showing the Stop Sign), answered by `answered`
+ *    with its value or `refused` with why, naming the act's id. Its effect
+ *    reaches every socket as `record` deltas, as any other write's does.
  *
  * Exports marked `@public` are the contract the client reads before the
  * rooms send them; each loses the mark when the room side lands.
@@ -79,8 +83,29 @@ export const RoomUnitSchema = z.object({
 })
 export type RoomUnit = z.infer<typeof RoomUnitSchema>
 
-/** The op-less bodies a room holds, each addressed by the id in its body. @public */
-export const RECORD_TABLES = ['patterns', 'encounters', 'npcTray', 'opposition'] as const
+/**
+ * The op-less bodies a room holds, each addressed by the id in its body.
+ * @public A Game room's table state, one record each unless named:
+ *  - `scene`: `{ conditions, hours }`.
+ *  - `salvageArea`: `{ name, techLevel, supply }`, none when unset; an
+ *    account room keeps its player's solo table's.
+ *  - `ledger`: `{ factions, jobs, incomeCollected }`.
+ *  - `boundaries`: one record per boundary, `{ kind, text, mine, mayRemove }`.
+ *  - `safety`: `{ stop: { shownAt, mine, mayLift } | null, mayManage, postToChannel }`.
+ * Who added a boundary or showed the Stop Sign never reaches a socket: each
+ * reader gets `mine` and what it may do, so these records are per reader.
+ */
+export const RECORD_TABLES = [
+  'patterns',
+  'encounters',
+  'npcTray',
+  'opposition',
+  'scene',
+  'salvageArea',
+  'ledger',
+  'boundaries',
+  'safety',
+] as const
 /** @public */
 export type RecordTable = (typeof RECORD_TABLES)[number]
 
@@ -116,6 +141,8 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('links'), links: z.array(RoomLinkSchema) }),
   z.object({ type: z.literal('ack'), opIds: z.array(z.string()) }),
   z.object({ type: z.literal('declined'), opIds: z.array(z.string()), reason: z.string() }),
+  z.object({ type: z.literal('answered'), id: z.string(), value: z.unknown().optional() }),
+  z.object({ type: z.literal('refused'), id: z.string(), reason: z.string() }),
   z.object({ type: z.literal('presence'), here: z.array(z.string()) }),
 ])
 export type ServerMessage = z.infer<typeof ServerMessageSchema>
@@ -123,6 +150,8 @@ export type ServerMessage = z.infer<typeof ServerMessageSchema>
 /** Client to room. */
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ops'), ops: z.array(OpInputSchema).min(1) }),
+  /** `name` is one of the room's acts (`salvageArea.spend`, `scene.passHour`, …). */
+  z.object({ type: z.literal('act'), id: z.string(), name: z.string(), args: z.unknown() }),
 ])
 /** @public */
 export type ClientMessage = z.infer<typeof ClientMessageSchema>
