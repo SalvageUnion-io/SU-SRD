@@ -105,21 +105,26 @@ runs:
     # Sign-in is the Worker's (apps/web/src/worker/auth/): `wrangler dev`
     # (Playwright's CI server) signs tokens with a fresh key from `.dev.vars`,
     # and the backend accepts them through AUTH_JWKS, the key's public half.
-    # TEST_AUTH on both opens the test seam; this backend dies with the runner.
-    - name: Provision the sign-in's key and the test seam
-      if: inputs.test-auth == 'true'
+    # Every variant sets it: `convex/auth.config.ts` reads it, and a push
+    # refuses a config whose variable is unset. TEST_AUTH on both opens the
+    # test seam; this backend dies with the runner.
+    - name: Provision the sign-in's key
       shell: bash
       working-directory: apps/web
       env:
         CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
         CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
+        TEST_AUTH: ${{ inputs.test-auth }}
       run: |
         key="$RUNNER_TEMP/auth-key.json"
         bunx convex env set AUTH_JWKS "$(bun scripts/authKeys.ts "$key")"
-        # `convex/accountLink.ts` links a test account only on the exact 'true'.
-        bunx convex env set TEST_AUTH true
         # The Worker's half: wrangler dev reads `.dev.vars`, and its Convex is this backend.
-        (umask 077 && printf "TEST_AUTH=true\nCONVEX_URL=http://127.0.0.1:3210\nAUTH_SIGNING_KEY='%s'\n" "$(cat "$key")" > .dev.vars)
+        (umask 077 && printf "CONVEX_URL=http://127.0.0.1:3210\nAUTH_SIGNING_KEY='%s'\n" "$(cat "$key")" > .dev.vars)
+        if [ "$TEST_AUTH" = 'true' ]; then
+          # `convex/accountLink.ts` links a test account only on the exact 'true'.
+          bunx convex env set TEST_AUTH true
+          echo 'TEST_AUTH=true' >> .dev.vars
+        fi
 
     # `build` does not typecheck: ci.yml's static-checks typechecks every
     # workspace, and nothing here is a type gate.

@@ -29,7 +29,7 @@ import {
 import type { TokenAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { SigningKey } from './crypto'
-import { base64urlJson, sha256Hex, signingKey, signToken } from './crypto'
+import { base64urlJson, passwordHash, sha256Hex, signingKey, signToken } from './crypto'
 import type { AuthSql, D1Like, SignIn } from './store'
 import {
   authStore,
@@ -93,8 +93,13 @@ function guarded(request: Request, url: URL, run: () => Promise<Response>): Prom
 
 /** A path on this site; anything else is the app's front door. */
 function sitePath(raw: string | null | undefined): string {
-  if (!raw?.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return `${APP_BASE}/`
-  return raw
+  if (!raw?.startsWith('/')) return `${APP_BASE}/`
+  // Parsed as a browser would, which drops tabs and newlines and reads `\` as
+  // `/`: whatever names another host is refused, and only the path is kept.
+  const here = 'https://site.invalid'
+  const parsed = new URL(raw, here)
+  if (parsed.origin !== here) return `${APP_BASE}/`
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`
 }
 
 function cookie(url: URL, name: string, value: string, maxAgeS: number, path = '/'): string {
@@ -341,7 +346,7 @@ async function testSignIn(request: Request, url: URL, deps: AuthDeps): Promise<R
   const { email, password, flow } = body ?? {}
   if (typeof email !== 'string' || typeof password !== 'string' || email === '')
     return new Response('email and password', { status: 400 })
-  const secret = await sha256Hex(password)
+  const secret = await passwordHash(password, email)
   const existing = await testSecret(await authStore(deps.sql), email)
   if (flow === 'signIn' ? existing !== secret : existing !== undefined)
     return new Response(flow === 'signIn' ? 'Invalid credentials' : 'Account exists', {

@@ -299,6 +299,23 @@ describe("Discord's round trip", () => {
     expect(value.to).toBe('/build/')
   })
 
+  it('refuses a way back that a browser would read as another host', async () => {
+    const d = deps()
+    for (const to of [
+      '/\t/evil.example',
+      '/\\evil.example',
+      '/\n/evil.example',
+      'https://evil.example',
+    ]) {
+      const res = await answer(
+        new Request(`${ORIGIN}${AUTH_PATHS.signIn}?to=${encodeURIComponent(to)}`),
+        d
+      )
+      const saved = cookieOf(res).replace('su_oauth=', '')
+      expect(JSON.parse(atob(saved.replace(/-/g, '+').replace(/_/g, '/'))).to).toBe('/build/')
+    }
+  })
+
   it('signs in on the way back, and lands on the invite it started from', async () => {
     const d = deps()
     const start = await answer(
