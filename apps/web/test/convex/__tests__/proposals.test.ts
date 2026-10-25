@@ -3,7 +3,7 @@ import { MechSchema } from 'game-domain/schemas/mech'
 import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { makeUser, mechBody, opRow } from '../fixtures'
+import { makeUser, mechBody, opRow, unitOp } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -264,6 +264,24 @@ describe('pending is scoped to the asker', () => {
 
     expect(await player.as.query(api.ops.pending, { gameId })).toEqual([])
     expect(await gm.as.query(api.ops.sent, { gameId })).toEqual([])
+  })
+})
+
+describe('only the Mediator proposes', () => {
+  test("a player's own op cannot pose as a proposal", async () => {
+    const t = testConvex()
+    const { gm, player, gameId, mechId } = await seedTable(t)
+    const forged = unitOp('mech', { appId: mechId, gameId, patch: { currentSP: 3 } })
+
+    await expect(
+      player.as.mutation(api.ops.apply, {
+        ...forged,
+        op: { ...forged.op, source: 'mediator-proposal' },
+      })
+    ).rejects.toThrow('That change is not a proposal')
+
+    expect(await gm.as.query(api.ops.sent, { gameId })).toEqual([])
+    expect(await opRow(t, forged.op.id)).toBeNull()
   })
 })
 

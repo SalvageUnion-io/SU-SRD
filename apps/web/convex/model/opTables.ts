@@ -18,6 +18,9 @@ export const unitKind = v.union(
   v.literal('npc')
 )
 
+/** The source only `ops.propose` writes: no op a client sends may claim it. */
+export const PROPOSAL_SOURCE = 'mediator-proposal'
+
 /** An op as its author sends it (`OpInput`). */
 export const opInput = v.object({
   id: v.string(),
