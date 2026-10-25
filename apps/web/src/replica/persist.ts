@@ -205,6 +205,34 @@ export function dropFromDevice(): Promise<void> {
   return enqueue(() => storage.drop())
 }
 
+// ── The outbox's waiting ops (`outbox.ts`), beside the rows ──────────────
+
+const OUTBOX = 'outbox'
+
+type KeptOutbox = { account: string; writes: unknown[] }
+
+/** The outbox kept for the account whose session is on the device; empty for any other. */
+export async function readOutbox<W>(): Promise<W[]> {
+  const account = sessionAccount()
+  if (account === null || !hasIdb()) return []
+  try {
+    const kept = await withDb<KeptOutbox | undefined>('readonly', (_, meta) => meta.get(OUTBOX))
+    return kept?.account === account ? (kept.writes as W[]) : []
+  } catch {
+    return []
+  }
+}
+
+/** Keep the outbox's ops for the account whose session is on the device; dropped with the rows. */
+export function keepOutbox(writes: readonly unknown[]): Promise<void> {
+  const account = sessionAccount()
+  if (account === null || !hasIdb()) return Promise.resolve()
+  const kept: KeptOutbox = { account, writes: [...writes] }
+  return enqueue(async () => {
+    await withDb('readwrite', (_, meta) => meta.put(kept, OUTBOX))
+  })
+}
+
 /** A unit test's reset. */
 export function resetPersist(): void {
   stopKeeping?.()

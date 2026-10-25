@@ -4,11 +4,12 @@
  * refused did not happen here either (the replica).
  *
  * Today the sends are Convex mutations; from the cutover they are `ops`
- * messages on the room socket (`rooms/protocol.ts`). The offline outbox
- * (the outbox) queues a player's own units' ops here and replays them on
- * reconnect; until it lands an offline write is refused (`requireWritable`).
+ * messages on the room socket (`rooms/protocol.ts`).
  *
- * Off `live` every send is a no-op: the replica has already refused the write.
+ * Offline, an op on the player's own pilot, mech or NPC waits here, kept on
+ * the device beside the rows (`persist.ts`), and goes up as a replay
+ * (`ops.replay`) when the status is `live` again (ADR-063 decision 9). Every
+ * other send off `live` is a no-op: the replica has already refused the write.
  */
 
 import type { FunctionArgs } from 'convex/server'
@@ -21,7 +22,8 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
-import { writable } from './sync'
+import { keepOutbox, readOutbox } from './persist'
+import { mayQueue, writable } from './sync'
 
 /** What the server answered for a unit it wrote: its new version and `headSeq`. */
 export type Applied = { version: number; headSeq: number }
@@ -100,7 +102,10 @@ export async function sendOp(
   op: OpInput,
   move?: string | null
 ): Promise<Applied | undefined> {
-  if (!writable()) return
+  if (!writable()) {
+    if (queues(unit, op.patch) && !isEmptyOp(op)) await queue({ unit, gameId, op })
+    return
+  }
   if (unit === 'crawler' && move !== undefined) {
     await convexClient.mutation(api.entities.moveCrawler, {
       appId: op.unitId,
@@ -115,6 +120,99 @@ export async function sendOp(
   })
   if (applied === null) return
   return { version: applied.updatedAt, headSeq: applied.headSeq }
+}
+
+// ── The outbox: own units' ops made offline ──────────────────────────────
+
+/** An op waiting to go, with where its author held the unit. */
+type Waiting = { unit: UnitKind; gameId: string | null; op: OpInput }
+
+/**
+ * Whether an edit to `unit` waits in the outbox now rather than being
+ * refused: offline, on the player's own pilot, mech or NPC, and not a move (a
+ * container is Game-wide, as a crawler is).
+ */
+export function queues(unit: EntityRef['type'] | 'softLink', patch: object): boolean {
+  return mayQueue() && unit !== 'crawler' && unit !== 'softLink' && !('gameId' in patch)
+}
+
+let waiting: Promise<Waiting[]> | null = null
+
+/** The ops waiting, oldest first, read from the device on first use. */
+function waitingOps(): Promise<Waiting[]> {
+  waiting ??= readOutbox<Waiting>()
+  return waiting
+}
+
+/**
+ * Keep one op until the connection returns. A unit holds at most one: a later
+ * op folds into the one waiting, which keeps its `baseSeq`, so a second edit
+ * offline is not refused on reconnect for a field the first one changed.
+ */
+async function queue(write: Waiting): Promise<void> {
+  const ops = await waitingOps()
+  const same = ops.find((w) => w.unit === write.unit && w.op.unitId === write.op.unitId)
+  if (same === undefined) ops.push(write)
+  else same.op = foldOps(same.op, write.op)
+  await keepOutbox(ops)
+}
+
+/** `a` then `b` as one op: `b`'s fields win, and its provenance. */
+function foldOps(a: OpInput, b: OpInput): OpInput {
+  const patch: Record<string, unknown> = { ...a.patch, ...b.patch }
+  const unset = new Set((a.unset ?? []).filter((field) => !(field in b.patch)))
+  for (const field of b.unset ?? []) {
+    unset.add(field)
+    delete patch[field]
+  }
+  const { unset: _was, ...rest } = a
+  return {
+    ...rest,
+    at: b.at,
+    kind: b.kind,
+    source: b.source,
+    patch,
+    ...(unset.size === 0 ? {} : { unset: [...unset] }),
+  }
+}
+
+let flushing: Promise<string[]> | null = null
+
+/**
+ * Send what waits, oldest first, one replay at a time (`ops.replay`); answers
+ * why each declined op was refused. A send that fails outright (the
+ * connection went again) stops, keeping the rest for the next time.
+ */
+export function flushOutbox(): Promise<string[]> {
+  flushing ??= (async () => {
+    const declined: string[] = []
+    const ops = await waitingOps()
+    try {
+      while (ops.length > 0 && writable()) {
+        const { unit, gameId, op } = ops[0] as Waiting
+        const answer = await convexClient.mutation(api.ops.replay, {
+          unit,
+          gameId: gameId as Id<'games'> | null,
+          op,
+        })
+        if (answer !== null && 'declined' in answer) declined.push(answer.declined)
+        ops.shift()
+        await keepOutbox(ops)
+      }
+    } catch {
+      // Gone again: what is left waits for the next reconnect.
+    } finally {
+      flushing = null
+    }
+    return declined
+  })()
+  return flushing
+}
+
+/** The session ended: what waited is nobody's now (the device's copy goes with the rows). */
+export function forgetOutbox(): void {
+  waiting = null
+  flushing = null
 }
 
 /**

@@ -12,6 +12,11 @@ export type SyncState = {
    * offers an edit consults this, so no control looks live and then throws.
    */
   canWrite: boolean
+  /**
+   * Whether the player's own pilot, mech or NPC takes an edit now: live, or
+   * offline, where it waits in the outbox. `canWrite` when left out.
+   */
+  canEditOwn?: boolean
   /** Below the backend's build floor: read-only until the tab reloads. */
   outdated: boolean
 }
