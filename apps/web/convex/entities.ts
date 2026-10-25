@@ -5,13 +5,7 @@ import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'game-domain/links/linkRules'
 import type { Doc, Id } from './_generated/dataModel'
 import { query } from './_generated/server'
-import {
-  assertMayScrapCrawler,
-  CRAWLER_PATCH,
-  moveCrawlerRow,
-  patchCrawler,
-  removeCrawlerRow,
-} from './model/crawlerWrites'
+import { assertMayScrapCrawler, moveCrawlerRow, removeCrawlerRow } from './model/crawlerWrites'
 import type { ContainedRow } from './model/entities'
 import {
   crawlerEnteredGame,
@@ -34,13 +28,13 @@ import {
   SOFT_LINK_FROM_TABLE,
   unwireSoftLink,
 } from './model/linkWrites'
+import { writeOwnable } from './model/opWrites'
 import {
   assertMayWrite,
   byAppId,
   OWNABLE_REMOVE,
   OWNABLE_WRITE,
   removeOwnable,
-  writeOwnable,
 } from './model/ownableWrites'
 import {
   getMembership,
@@ -127,7 +121,13 @@ const servedLinkValidator = v.object({
 })
 
 /** An owned row as `listMine` serves it: its app id, its version and its body. */
-const versionedRow = v.object({ appId: nullableAppId, updatedAt: v.number(), body: v.any() })
+const versionedRow = v.object({
+  appId: nullableAppId,
+  updatedAt: v.number(),
+  /** The last op folded into the body (ADR-063): what the next op is made against. */
+  headSeq: v.optional(v.number()),
+  body: v.any(),
+})
 
 const EMPTY = {
   pilots: [],
@@ -381,6 +381,7 @@ export const listMine = query({
     const versioned = (r: ContainedRow) => ({
       appId: r.appId ?? null,
       updatedAt: r.updatedAt,
+      headSeq: r.headSeq ?? 0,
       body:
         r.appId === undefined && typeof r.body === 'object' && r.body !== null
           ? { ...r.body, gameId: r.gameId }
@@ -439,6 +440,7 @@ export const listWiring = query({
         appId: nullableAppId,
         gameId: v.union(v.id('games'), v.null()),
         updatedAt: v.number(),
+        headSeq: v.optional(v.number()),
         body: v.any(),
       })
     ),
@@ -507,6 +509,7 @@ export const listWiring = query({
         appId: c.appId ?? null,
         gameId: c.gameId,
         updatedAt: c.updatedAt,
+        headSeq: c.headSeq ?? 0,
         body: c.body,
       })),
     }
@@ -609,8 +612,9 @@ export const removeCrawler = mutation({
 })
 
 /**
- * Write an entity to the server of record, addressed by app id — the target of
- * the store's awaited `commitEntityWrite`.
+ * Write an entity to the server of record, addressed by app id: the store's
+ * create, and the whole-body write of a tab older than ops, which lands as the
+ * op that takes the row to this body (`opWrites.writeOwnable`).
  *
  * Upsert rather than update: an entity's first write is its create, addressed
  * by the app id the client minted, so a missing row means "create it".
@@ -638,38 +642,6 @@ export const upsertByAppId = mutation({
   args: OWNABLE_WRITE,
   handler: async (ctx, args): Promise<{ updatedAt: number }> =>
     writeOwnable(ctx, await requireUser(ctx), args),
-})
-
-/**
- * Write a crawler, addressed by app id, as a **field-level merge**
- * (ADR-030 §5).
- *
- * The crawler needs its own write because it has no owner in a Game: its
- * writer is the table runner (`assertMayEditCrawler`), not whoever created
- * the row.
- *
- * Last-write-wins would still be wrong here: a full-body write from a client
- * holding a stale copy would silently undo whatever reached the server since
- * (an Upkeep paid from a second tab, a field the hub changed). Merging per
- * top-level field means two edits to different things both succeed, and only
- * a genuine same-field collision contends.
- *
- * Unlike the ownable tables this **never inserts** (`createCrawler` raises
- * one). A missing row means the crawler was scrapped. Creating one here would route around the rule that raising
- * a crawler is the table runner's act, which is precisely the hole the ownable
- * upsert had to be closed against.
- *
- * **Clearing a field needs `unset`.** A patch cannot carry `undefined`: the
- * Convex client drops undefined object fields when it serialises the args, so
- * `{ maxSpOverride: undefined }` (the ↺ revert of a pinned Max SP) would arrive
- * as `{}` and the merge would keep the pinned value.
- * The client names each cleared key in `unset` instead; each must be a field of
- * the crawler schema, and the merged body still has to parse — so a required
- * field cannot be unset either.
- */
-export const patchCrawlerByAppId = mutation({
-  args: CRAWLER_PATCH,
-  handler: async (ctx, args): Promise<void> => patchCrawler(ctx, args),
 })
 
 /** Scrap a crawler addressed by app id. Table runner only, like `removeCrawler`. */
@@ -786,65 +758,4 @@ export const removeByAppId = mutation({
   args: OWNABLE_REMOVE,
   handler: async (ctx, args): Promise<void> =>
     removeOwnable(ctx, await requireUser(ctx), args.table, args.appId, args.gameId),
-})
-
-/**
- * Move value between entities — cargo stow/load, a scrap hand-off — in ONE
- * mutation, so it lands whole or not at all (`entityStore.transfer`).
- *
- * Every record answers to the rule its own mutation enforces: only an owner
- * writes their pilot or mech, a body from a stale copy is refused, only the
- * table runner writes or scraps a Game's crawler. A Convex mutation is a
- * transaction, so a refusal anywhere rolls back every write before it — a stow
- * cannot land on the mech and be refused on the crawler.
- *
- * Returns the new version of each pilot and mech it wrote, as `upsertByAppId`
- * does for one.
- */
-export const transfer = mutation({
-  args: {
-    updates: v.array(
-      v.union(
-        v.object(OWNABLE_WRITE),
-        v.object({
-          table: v.literal('crawlers'),
-          ...CRAWLER_PATCH,
-          /** Present when the patch moves the crawler (`moveCrawler`). */
-          gameId: v.optional(v.union(v.id('games'), v.null())),
-        })
-      )
-    ),
-    deletes: v.array(
-      v.union(
-        v.object(OWNABLE_REMOVE),
-        v.object({ table: v.literal('crawlers'), appId: v.string() }),
-        v.object({ table: v.literal('softLinks'), ...LINK })
-      )
-    ),
-  },
-  handler: async (ctx, args): Promise<{ versions: { appId: string; updatedAt: number }[] }> => {
-    const userId = await requireUser(ctx)
-    const versions: { appId: string; updatedAt: number }[] = []
-    for (const update of args.updates) {
-      if (update.table === 'crawlers') {
-        const { table: _table, gameId, ...patch } = update
-        if (gameId !== undefined) await moveCrawlerRow(ctx, userId, update.appId, gameId)
-        await patchCrawler(ctx, patch)
-        continue
-      }
-      const { updatedAt } = await writeOwnable(ctx, userId, update)
-      versions.push({ appId: update.appId, updatedAt })
-    }
-    for (const removal of args.deletes) {
-      if (removal.table === 'softLinks') {
-        const { table: _table, ...link } = removal
-        await unwireSoftLink(ctx, userId, link)
-      } else if (removal.table === 'crawlers') {
-        await removeCrawlerRow(ctx, removal.appId)
-      } else {
-        await removeOwnable(ctx, userId, removal.table, removal.appId, removal.gameId)
-      }
-    }
-    return { versions }
-  },
 })

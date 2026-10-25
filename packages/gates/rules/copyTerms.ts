@@ -60,9 +60,9 @@ const COPY_DIRS = [
   'packages/salvageunion-reference/lib',
 ] as const
 
-/** Files in those trees that are not shipped copy. */
+/** Files in those trees that are not shipped copy; the shared database's strings are SQL. */
 const SKIP_FILE =
-  /(^|\/)(__tests__|_generated|generated)\/|\.(test|d)\.tsx?$|\/proseDeviations\.ts$/
+  /(^|\/)(__tests__|_generated|generated)\/|\.(test|d)\.tsx?$|\/proseDeviations\.ts$|(^|\/)src\/worker\/shared\//
 
 /**
  * JSX attributes whose value is markup, not words: a class list, an SVG path,

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { crawlerBody, makeUser, pilotBody } from '../fixtures'
+import { crawlerBody, crawlerOp, makeUser, pilotBody } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -174,22 +174,31 @@ describe('the table runner raises the crawler', () => {
 
     // A Game's crawler is the Mediator's (ADR-038 §5): a player asks at the table.
     await expect(
-      player.as.mutation(api.entities.patchCrawlerByAppId, {
-        appId: 'c1',
-        patch: { techLevel: '3' },
-      })
+      player.as.mutation(
+        api.ops.apply,
+        crawlerOp({
+          appId: 'c1',
+          patch: { techLevel: '3' },
+        })
+      )
     ).rejects.toThrow(/only the mediator/i)
     // Nor does the Organizer reach it once the Game has a Mediator.
     await expect(
-      organizer.as.mutation(api.entities.patchCrawlerByAppId, {
-        appId: 'c1',
-        patch: { techLevel: '3' },
-      })
+      organizer.as.mutation(
+        api.ops.apply,
+        crawlerOp({
+          appId: 'c1',
+          patch: { techLevel: '3' },
+        })
+      )
     ).rejects.toThrow(/only the mediator/i)
-    await mediator.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { techLevel: '2' },
-    })
+    await mediator.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { techLevel: '2' },
+      })
+    )
 
     const row = await t.run(async (ctx) => await ctx.db.get(crawlerId))
     expect((row?.body as { techLevel: string } | undefined)?.techLevel).toBe('2')
@@ -306,10 +315,13 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
     const { mediator, player, gameId } = await seedTable(t)
 
     // Nothing to address yet: this must be a no-op, not a way in.
-    await player.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { techLevel: '3' },
-    })
+    await player.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { techLevel: '3' },
+      })
+    )
     expect(await t.run(async (ctx) => await ctx.db.query('crawlers').collect())).toHaveLength(0)
 
     await mediator.as.mutation(api.entities.createCrawler, {
@@ -317,10 +329,13 @@ describe("a game takes any member's crew, crawler or not (ADR-037)", () => {
       appId: 'c1',
       body: crawlerBody(),
     })
-    await mediator.as.mutation(api.entities.patchCrawlerByAppId, {
-      appId: 'c1',
-      patch: { techLevel: '3' },
-    })
+    await mediator.as.mutation(
+      api.ops.apply,
+      crawlerOp({
+        appId: 'c1',
+        patch: { techLevel: '3' },
+      })
+    )
 
     const rows = await t.run(async (ctx) => await ctx.db.query('crawlers').collect())
     expect(rows).toHaveLength(1)

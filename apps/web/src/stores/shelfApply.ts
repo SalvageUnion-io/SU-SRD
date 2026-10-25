@@ -23,7 +23,7 @@ import { useEncounterStore } from './encounterStore'
 import { useEntityStore } from './entityStore'
 import { usePatternStore } from './patternStore'
 import { rowMayBePruned } from './pruneRules'
-import { noteVersion, serverVersions } from './serverVersions'
+import { noteSeq, noteVersion, serverVersions } from './serverVersions'
 
 /** The body ids a served answer carries. */
 function servedIds(rows: readonly ServedRow[]): Set<string> {
@@ -65,6 +65,7 @@ export async function applyMine(mine: MineAnswer, superseded: () => boolean): Pr
       try {
         await store.adopt(kind, row.body as never)
         noteVersion(id, updatedAt)
+        noteSeq(id, row.headSeq)
       } catch (err) {
         // One unreadable row must not stop the rest of the roster arriving.
         // A body the server accepted that this build cannot parse is a real
@@ -167,6 +168,7 @@ export async function applyWiring(
     try {
       await store.adopt('crawler', crawler.body as never)
       adoptedAt.set(crawler.id, crawler.updatedAt)
+      noteSeq(crawler.id, crawler.headSeq)
     } catch (err) {
       // One unreadable crawler must not stop the rest arriving — the same
       // rule as the roster loop in `applyMine`.

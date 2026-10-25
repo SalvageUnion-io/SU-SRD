@@ -2,15 +2,16 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { addMech, addPilot, makeUser, seedTable } from '../fixtures'
+import { addMech, addPilot, makeUser, seedTable, unitOp } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
  * One entity's Change Log, as the sheet's drawer reads it (`changeLog.forEntity`).
  *
  * The log is one spine: a device-only copy would never show a proposal, an
- * ownership change, or an edit made on another device. These pin that the server's one table is the whole history, read by
- * the id the client addresses the entity by, and that the rows written before
+ * ownership change, or an edit made on another device. These pin that the
+ * unit's ops and the rows logged beside them are the whole history, read by the
+ * id the client addresses the entity by, and that the rows written before
  * every writer used that id still appear.
  */
 
@@ -34,18 +35,9 @@ async function seedMech(t: Ctx) {
   return { ...table, mechId }
 }
 
-function edit(gameId: Id<'games'>, ts: number) {
-  return {
-    gameId,
-    entityType: 'mech' as const,
-    entityId: 'm-app',
-    ts,
-    kind: 'manual' as const,
-    field: 'name',
-    before: 'Mule',
-    after: 'Rook',
-    source: 'live-sheet',
-  }
+/** The player renames their mech: an op (ADR-063). */
+function rename(gameId: Id<'games'>) {
+  return unitOp('mech', { appId: 'm-app', gameId, patch: { name: 'Rook' } })
 }
 
 describe('changeLog.forEntity', () => {
@@ -53,7 +45,7 @@ describe('changeLog.forEntity', () => {
     const t = testConvex()
     const { organizer, player, gameId, mechId } = await seedMech(t)
 
-    await player.as.mutation(api.changeLog.appendChangeLog, { entries: [edit(gameId, 1)] })
+    await player.as.mutation(api.ops.apply, rename(gameId))
     // The Mediator's client addresses the mech by its row id; the row names it
     // by the app id its sheet's log is read by.
     const pending = await organizer.as.mutation(api.proposals.propose, {
@@ -101,10 +93,33 @@ describe('changeLog.forEntity', () => {
     expect(proposal?.before).toBeNull()
   })
 
+  test('an op is a row per field it wrote, with what each held; an applied proposal shows once', async () => {
+    const t = testConvex()
+    const { organizer, player, gameId, mechId } = await seedMech(t)
+    await player.as.mutation(api.ops.apply, rename(gameId))
+    const proposalId = await organizer.as.mutation(api.proposals.propose, {
+      entityId: mechId,
+      entityType: 'mech',
+      field: 'currentHeat',
+      after: 2,
+    })
+    await player.as.mutation(api.proposals.apply, { proposalId })
+
+    const log = await player.as.query(api.changeLog.forEntity, {
+      entityType: 'mech',
+      entityId: 'm-app',
+    })
+    expect(log.map((r) => [r.field, r.after, r.source])).toEqual([
+      ['currentHeat', 2, 'mediator-proposal'],
+      ['name', 'Rook', 'test'],
+    ])
+    expect(log[1]?.before).not.toBe('Rook')
+  })
+
   test('a crewmate reads it; somebody outside the Game does not', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedMech(t)
-    await player.as.mutation(api.changeLog.appendChangeLog, { entries: [edit(gameId, 1)] })
+    await player.as.mutation(api.ops.apply, rename(gameId))
     const stranger = await makeUser(t, 'Stranger')
 
     const args = { entityType: 'mech' as const, entityId: 'm-app' }

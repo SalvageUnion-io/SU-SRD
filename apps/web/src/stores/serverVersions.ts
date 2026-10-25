@@ -9,16 +9,17 @@
  *    recorded here, so a body edited on another device reaches this tab even
  *    though no id changed, and an emission older than a write this tab already
  *    made is not adopted over it.
- *  - **`commitEntityWrite`** sends it with a pilot or mech write as the version
- *    the edit was made against, and the server refuses the write when its row
- *    has moved on (`entities.upsertByAppId`). A whole-body write from a stale
- *    copy would otherwise undo the other device's edit without anyone seeing.
+ *  - **`commitOp`** sends the unit's `headSeq` beside it as the op's `baseSeq`,
+ *    and the server refuses an op whose fields changed after it (ADR-063).
  *
  * Module state rather than a store: nothing renders from it. It is one
  * account's, so it is forgotten when the session ends (`sessionRows.ts`).
  */
 
 const versions = new Map<string, number>()
+
+/** Each unit's `headSeq` as this browser last held it: what its next op is made against (ADR-063). */
+const seqs = new Map<string, number>()
 
 /** Every recorded version, for a sync plan to compare against. */
 export function serverVersions(): ReadonlyMap<string, number> {
@@ -36,7 +37,20 @@ export function noteVersion(id: string, updatedAt: number): void {
   if (known === undefined || updatedAt > known) versions.set(id, updatedAt)
 }
 
+/** The `headSeq` of the copy this browser holds of `id`, or `null` when it holds none. */
+export function knownSeq(id: string): number | null {
+  return seqs.get(id) ?? null
+}
+
+/** Record the `headSeq` of the copy this browser now holds, never moving one backwards. */
+export function noteSeq(id: string, headSeq: number | undefined): void {
+  if (headSeq === undefined) return
+  const known = seqs.get(id)
+  if (known === undefined || headSeq > known) seqs.set(id, headSeq)
+}
+
 /** Forget every version: the rows they describe are gone. */
 export function forgetVersions(): void {
   versions.clear()
+  seqs.clear()
 }

@@ -43,17 +43,17 @@ const SCAN_FLOOR = 630
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 662,
-  'apps/web/convex/entities.ts': 850,
-  'apps/web/convex/model/entities.ts': 831,
+  'apps/web/convex/entities.ts': 761,
+  'apps/web/convex/model/entities.ts': 807,
   'apps/web/src/build/npc/CrewBoard.tsx': 625,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 658,
   'apps/web/src/lib/rules/creation.ts': 722,
-  'apps/web/src/stores/entityStore.ts': 712,
+  'apps/web/src/stores/entityStore.ts': 706,
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 601,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 613,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
-  'tools/check-doc-drift.ts': 1_022,
+  'tools/check-doc-drift.ts': 840,
   'tools/check-rules-fidelity.ts': 1_014,
   'tools/check-workflows.ts': 796,
 }
