@@ -83,7 +83,7 @@ async function usage(db: SharedDb, args: BotUsageArgs): Promise<BotUsageResult> 
 
 async function feedback(db: SharedDb, args: BotFeedbackArgs): Promise<BotFeedbackResult> {
   const refusal = await acceptFeedback(db, {
-    sender: args.discordId,
+    sender: `discord:${args.discordId}`,
     source: 'bot',
     kind: args.kind,
     text: args.text,

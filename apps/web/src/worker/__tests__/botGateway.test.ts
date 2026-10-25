@@ -90,7 +90,7 @@ describe('answerBot', () => {
       message: FEEDBACK_REFUSAL.short,
     })
     expect(db.sqlite.query('select sender, source from feedback').all()).toEqual([
-      { sender: 'd-rosa', source: 'bot' },
+      { sender: 'discord:d-rosa', source: 'bot' },
     ])
   })
 

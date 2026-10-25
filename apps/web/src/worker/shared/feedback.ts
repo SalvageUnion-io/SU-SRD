@@ -30,7 +30,7 @@ const CLAIM_FOR = 15 * 60_000
 /** The most notes one sweep files: a backlog drains over a few hours, never in one burst. */
 const SWEEP_BATCH = 25
 
-/** One note as it is sent: `sender` is the Discord id, held for the limit alone. */
+/** One note as it is sent: `sender` is the account or the Discord id, held for the limit alone. */
 export type FeedbackNote = {
   sender: string
   source: FeedbackSource
