@@ -11,12 +11,11 @@ function bar(): Document {
 }
 
 describe('the shell’s Union bar', () => {
-  test('opens with the skip link, then the banner slot, then the bar', () => {
+  test('opens with the skip link, then the bar', () => {
     const body = bar().body
     // React hoists the mark's image preload ahead of it.
-    const [skip, banner, header] = Array.from(body.children).filter((el) => el.tagName !== 'LINK')
+    const [skip, header] = Array.from(body.children).filter((el) => el.tagName !== 'LINK')
     expect(skip?.getAttribute('href')).toBe('#main-content')
-    expect(banner?.matches(slotSelector('banner'))).toBe(true)
     expect(header?.tagName).toBe('HEADER')
     expect(header?.getAttribute('style')).toContain('view-transition-name:nav')
   })

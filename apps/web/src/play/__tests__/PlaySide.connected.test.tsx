@@ -116,7 +116,7 @@ function playFor(target: PlayTarget, canWrite: boolean): Play {
     pilot,
     situation: 'onFoot',
     canWrite,
-    readOnly: canWrite ? null : { stamp: 'Read-only · disconnected', says: 'offline' },
+    readOnly: canWrite ? null : { stamp: 'Offline · read-only', says: 'offline' },
   } as unknown as Play
 }
 

@@ -17,7 +17,6 @@ import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
 import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
-import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
@@ -54,7 +53,6 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
     <UnionBarSlots
       pathname={pathname}
       barHidden={barHidden}
-      banner={<NotConnectedBanner />}
       games={<HeaderGames pathname={pathname} />}
       search={<SearchIsland />}
       mobileSearch={<MobileSearchIsland />}
@@ -94,9 +92,8 @@ function RootComponent() {
       <HeadContent />
       <EntitySurfaceProvider value={ENTITY_SURFACE}>
         {/* The Union bar is the shell's, above this root, with the skip
-            link (WCAG 2.4.1) ahead of it. `RootHeader` fills the not-connected
-            banner above it on every route, and its slots on every route that
-            shows it. */}
+            link (WCAG 2.4.1) ahead of it. `RootHeader` fills its slots on every
+            route that shows it. */}
         {/* The account gate (ADR-034 decision 1) and the migration off
             device-only storage (ADR-035), as one surface: says what is at
             stake while signed out, moves it into the account on sign-in, and

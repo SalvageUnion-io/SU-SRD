@@ -31,7 +31,7 @@ const slot = (name: UnionSlot) =>
   createElement('div', { 'data-union-slot': name, style: { display: 'contents' } })
 
 /**
- * The skip link, the banner slot and the bar, ahead of the app's root: on
+ * The skip link and the bar, ahead of the app's root: on
  * Build's front door unless told where (a test renders each route's).
  */
 export function renderUnionBar(
@@ -43,7 +43,6 @@ export function renderUnionBar(
       null,
       // The skip link the reference layout draws too: the first focusable thing on the page.
       createElement(SkipLink),
-      slot('banner'),
       createElement(UnionBar, {
         product: where.mode,
         here: where.nav,

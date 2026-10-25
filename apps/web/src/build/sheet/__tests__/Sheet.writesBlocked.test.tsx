@@ -79,25 +79,18 @@ const CONNECTING: SyncState = {
 }
 
 describe('Sheet — writes blocked by connectivity', () => {
-  test('Connected renders Share, and no refusal lozenge', () => {
+  const share = () => screen.queryByLabelText(/Share this pilot/i)
+
+  test('Connected renders Share', () => {
     renderSheetIn(CONNECTED)
-    expect(screen.getByLabelText(/Share this pilot/i)).toBeTruthy()
-    expect(screen.queryByText(/^Read Only$/i)).toBeNull()
+    expect(share()).toBeTruthy()
   })
 
-  test('Disconnected replaces Share with a stated refusal', () => {
-    // The gap is the point: withdrawing the control silently reads as a broken
-    // app, so the lozenge takes its place rather than leaving a hole.
+  test('disconnected or signed out, Share is withdrawn; the bar’s sync badge says why', () => {
     renderSheetIn(DISCONNECTED)
-    expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
-    expect(screen.getByText(/^Read Only$/i)).toBeTruthy()
-  })
-
-  test('signed out, the refusal asks for a sign-in rather than blaming the connection', () => {
+    expect(share()).toBeNull()
     renderSheetIn(SOLO)
-    expect(screen.queryByLabelText(/Share this pilot/i)).toBeNull()
-    expect(screen.getByText(/Read-only — sign in to edit/i)).toBeTruthy()
-    expect(screen.queryByText(/not connected/i)).toBeNull()
+    expect(share()).toBeNull()
   })
 
   test('the settling handshake does NOT flash read-only', () => {
@@ -106,7 +99,6 @@ describe('Sheet — writes blocked by connectivity', () => {
     // still refused at the store; it is just refused with a toast, not by
     // pre-emptively dismantling the sheet.
     renderSheetIn(CONNECTING)
-    expect(screen.getByLabelText(/Share this pilot/i)).toBeTruthy()
-    expect(screen.queryByText(/^Read Only$/i)).toBeNull()
+    expect(share()).toBeTruthy()
   })
 })

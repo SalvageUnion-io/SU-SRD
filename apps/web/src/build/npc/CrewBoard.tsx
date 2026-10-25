@@ -50,7 +50,6 @@ import {
   useMediaQuery,
 } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
-import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../lib/entities'
 import { assignCrew } from '../../lib/links/assignLink'
@@ -452,9 +451,7 @@ function SlotPanel({
         ) : (
           <p style={HINT}>{npcCopy('theNpcAssignedHereCannot')}</p>
         )}
-        {!allowed ? (
-          <WritesBlockedNotice />
-        ) : npc ? null : (
+        {allowed && !npc && (
           <div style={ROW}>
             <Button variant="default" onClick={unassign}>
               {unassignLabel}
@@ -576,12 +573,10 @@ function SlotPanel({
 
       {error && <FieldError>{error}</FieldError>}
       <div style={ROW}>
-        {allowed ? (
+        {allowed && (
           <Button variant="primary" disabled={busy} onClick={() => void saveAndAssign()}>
             {busy ? npcCopy('saving') : npcCopy('saveAndAssignTo', { name: slot.name })}
           </Button>
-        ) : (
-          <WritesBlockedNotice />
         )}
         <Button variant="default" disabled={busy} onClick={onDone}>
           {npcCopy('keepTheBooksLine')}
