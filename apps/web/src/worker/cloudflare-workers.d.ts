@@ -17,6 +17,7 @@ declare module 'cloudflare:workers' {
     protected ctx: DurableObjectState
     protected env: Env
     constructor(ctx: DurableObjectState, env: Env)
+    alarm?(alarmInfo?: { retryCount: number; isRetry: boolean }): void | Promise<void>
   }
 
   export abstract class WorkerEntrypoint<Env = unknown> implements Rpc.WorkerEntrypointBranded {

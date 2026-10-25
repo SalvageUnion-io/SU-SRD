@@ -3,7 +3,7 @@ import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposal
 import { RoomRefusal } from '../refusal'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { GameUnits, SubmitResult } from './units'
-import { BatchRefused, unitName } from './units'
+import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
 
 /**
  * A Mediator's proposals (ADR-030 §4): an op in `proposed` state on a
@@ -70,7 +70,7 @@ export class GameProposals {
         baseSeq: unit.headSeq,
         at: args.at,
         kind: 'transaction',
-        source: 'mediator-proposal',
+        source: PROPOSAL_SOURCE,
         patch: { [args.field]: args.value },
         author: actor,
         state: 'proposed',
@@ -99,7 +99,8 @@ export class GameProposals {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     const rows = this.store.rows(
-      "select id from ops where source = 'mediator-proposal' order by at desc, id limit ?",
+      'select id from ops where source = ? order by at desc, id limit ?',
+      PROPOSAL_SOURCE,
       Math.min(Math.max(Math.floor(limit), 1), 100)
     )
     const out: SentProposal[] = []
@@ -124,7 +125,7 @@ export class GameProposals {
   applyProposal(actor: string, proposalId: string, at: number): SubmitResult {
     try {
       return this.store.sql.transaction(() => {
-        const proposal = this.store.op(proposalId)
+        const proposal = this.proposal(proposalId)
         if (proposal === null) throw new RoomRefusal('That proposal no longer exists')
         if (proposal.state !== 'proposed') {
           throw new RoomRefusal('That proposal has already been answered')
@@ -151,10 +152,16 @@ export class GameProposals {
     }
   }
 
+  /** A Mediator's proposal by id: an op from any other source is not one, whatever its state. */
+  private proposal(id: string): StoredOp | null {
+    const op = this.store.op(id)
+    return op?.source === PROPOSAL_SOURCE ? op : null
+  }
+
   /** Decline a proposal on your own unit. Kept, not deleted: the log is append-only. */
   declineProposal(actor: string, proposalId: string): void {
     this.store.sql.transaction(() => {
-      const proposal = this.store.op(proposalId)
+      const proposal = this.proposal(proposalId)
       if (proposal === null || proposal.state !== 'proposed') return
       const unit = this.store.unit(proposal.unitId)
       if (unit?.ownerId !== actor) throw new RoomRefusal('Only the owner can decline this')
