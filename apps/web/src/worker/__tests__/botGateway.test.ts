@@ -122,4 +122,21 @@ describe('answerBot', () => {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()
     }
   })
+
+  it('leaves the rooms’ ops to Convex when a room cannot answer', async () => {
+    const db = await filled()
+    const cannot = () => ({
+      unitsFor: async () => {
+        throw new TypeError('unitsFor is not a function')
+      },
+      unit: async () => {
+        throw new TypeError('unit is not a function')
+      },
+    })
+    const rooms = { account: cannot, game: cannot }
+    const args = { discordId: 'd-rosa', table: 'pilots', entityId: 'p-1' }
+    for (const op of ['sheet', 'mine'] as const) {
+      expect(await answerBot(db, op, args, rooms)).toBeNull()
+    }
+  })
 })

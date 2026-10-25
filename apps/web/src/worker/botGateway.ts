@@ -7,8 +7,10 @@
  *
  * It answers from the shared database once the cutover has filled it, with
  * the same wire bodies `/bot/*` sends (`game-domain/botWire`); `sheet` and
- * `mine` read the rooms (`./botSheets.ts`). Until then it answers null and
- * the bot asks Convex as before.
+ * `mine` read the rooms (`./botSheets.ts`). Until then, or when a room
+ * cannot answer, it answers null and the bot asks Convex as before. A sheet
+ * from the rooms carries no `vitals` yet, so the bot shows current values
+ * without their maxima.
  */
 
 import { exports, WorkerEntrypoint } from 'cloudflare:workers'
@@ -159,11 +161,25 @@ export async function answerBot(
     case 'unbindChannel':
       return unbind(db, args as { discordId: string; channelId: string })
     case 'mine':
-      return rooms ? mine(db, rooms, String(args.discordId)) : null
+      return rooms ? fromRooms(() => mine(db, rooms, String(args.discordId))) : null
     case 'sheet':
       return rooms
-        ? sheet(db, rooms, args as { discordId: string; table: SheetTable; entityId: string })
+        ? fromRooms(() =>
+            sheet(db, rooms, args as { discordId: string; table: SheetTable; entityId: string })
+          )
         : null
+  }
+}
+
+/**
+ * A room read, or null when a room cannot answer it (a room from before it
+ * held units, or one that throws), so the bot falls back rather than failing.
+ */
+async function fromRooms(read: () => Promise<BotAnswer>): Promise<BotAnswer | null> {
+  try {
+    return await read()
+  } catch {
+    return null
   }
 }
 
