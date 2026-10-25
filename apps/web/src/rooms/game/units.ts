@@ -140,7 +140,7 @@ export class GameUnits {
    * replayed outbox lands nothing twice. A `replayed` batch, sent from the
    * outbox after time offline, may touch only the player's own units: a
    * player plays their own units offline, and the crawler, like every other
-   * Game-wide act, waits for a connection (decided 2026-10-25).
+   * Game-wide act, waits for a connection.
    */
   submit(actor: string, ops: readonly OpInput[], { replayed = false } = {}): SubmitResult {
     try {
