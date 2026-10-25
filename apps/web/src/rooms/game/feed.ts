@@ -72,7 +72,7 @@ export function readOpsBatch(message: string | ArrayBuffer): OpInput[] | null {
   try {
     const text = typeof message === 'string' ? message : new TextDecoder().decode(message)
     const parsed = ClientMessageSchema.safeParse(JSON.parse(text))
-    return parsed.success ? parsed.data.ops : null
+    return parsed.success && parsed.data.type === 'ops' ? parsed.data.ops : null
   } catch {
     return null
   }
