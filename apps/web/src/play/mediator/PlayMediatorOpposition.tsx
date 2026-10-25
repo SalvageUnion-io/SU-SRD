@@ -145,6 +145,10 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
               onSalvage={mediator.salvageWreck}
               hasCrawler={mediator.crawler?.held === true}
               rollFor={rollFor}
+              onImportant={(important) => fail(tray.setImportant(npc, important))}
+              onReactor={(patch) => fail(tray.setReactor(npc, patch))}
+              onCritical={() => fail(tray.critical(npc))}
+              onHeatCheck={() => fail(tray.heatCheck(npc))}
             />
           ))}
         </ul>

@@ -18,8 +18,8 @@ import {
   resolveFormerSlug,
 } from 'salvageunion-reference'
 import { asReferencePattern } from '../../lib/patterns/patterns'
-import type { MoraleRoll } from '../../lib/rules/opposition'
-import { isDown, trackOf } from '../../lib/rules/opposition'
+import type { ImportantRoll, ImportantTrack, MoraleRoll } from '../../lib/rules/opposition'
+import { importantTrackOf, isDown, isImportantRoll, trackOf } from '../../lib/rules/opposition'
 
 export type EncounterRefSchema = (typeof ENCOUNTER_REF_SCHEMAS)[number]
 
@@ -56,6 +56,14 @@ export type TrayNpc = {
   /** Its wreck has been salvaged or scrapped: nothing is left to take. */
   salvaged: boolean
   lastRoll: MoraleRoll | null
+  /** What marking it important adds; null when it cannot be (a Bio-Titan, Meld). */
+  track: ImportantTrack | null
+  /** Marked important (Workshop Manual p.255): the Mediator tracks more of it. */
+  important: boolean
+  /** An important mech's EP and Heat; null while it is not one. */
+  reactor: { ep: number; maxEp: number; heat: number; heatCap: number } | null
+  /** Its last Critical roll or Heat Check. */
+  lastImportantRoll: ImportantRoll | null
   /** The schema it came from, for the picker's counts. */
   refSchema: EncounterRefSchema | null
   refSlug: string | null
@@ -86,6 +94,11 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const maxHp = num(body.maxHp, 0)
   const currentHp = num(body.currentHp, maxHp)
   const roll = body.lastMediatorRoll as MoraleRoll | undefined
+  const statKind = body.statKind === 'sp' ? 'sp' : 'hp'
+  const track = importantTrackOf(refSchema, entity, statKind)
+  const important = body.important === true && track !== null
+  const maxEp = num(body.maxEp, track?.reactor?.maxEp ?? 0)
+  const heatCap = num(body.heatCap, track?.reactor?.heatCap ?? 0)
   return {
     id: row._id,
     name: typeof body.name === 'string' ? body.name : 'Unnamed',
@@ -93,10 +106,18 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     pattern: picked ?? former?.pattern ?? null,
     currentHp,
     maxHp,
-    statKind: body.statKind === 'sp' ? 'sp' : 'hp',
+    statKind,
     down: isDown(currentHp, maxHp),
     salvaged: body.salvaged === true,
     lastRoll: roll && typeof roll.roll === 'number' ? roll : null,
+    track,
+    important,
+    reactor:
+      important && track?.reactor
+        ? { ep: num(body.currentEp, maxEp), maxEp, heat: num(body.currentHeat, 0), heatCap }
+        : null,
+    lastImportantRoll:
+      important && isImportantRoll(body.lastImportantRoll) ? body.lastImportantRoll : null,
     refSchema,
     refSlug,
   }
