@@ -125,7 +125,9 @@ export class AccountRoom extends Room implements UnitHome {
   }
 
   offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
-    return this.logic.transit.offer(args)
+    const parcel = this.logic.transit.offer(args)
+    void this.ctx.storage.setAlarm(Date.now() + LEASE_SETTLE_MS)
+    return parcel
   }
 
   accept(parcel: UnitParcel, actor: string, at: number): void {
@@ -143,10 +145,36 @@ export class AccountRoom extends Room implements UnitHome {
   refuseLease(leaseId: string, at: number): LeaseOutcome {
     return this.logic.transit.refuseLease(leaseId, at)
   }
+
+  override alarm(): Promise<void> {
+    return settleStaleOffers(this, this.logic.transit, this.ctx.storage)
+  }
 }
 
 /** How long an offer may wait on its target before the alarm settles it. */
 const LEASE_SETTLE_MS = 60_000
+
+/**
+ * A room's alarm: settle every offer its target never answered, so no unit is
+ * left leaving, and come back while any offer is still out.
+ */
+async function settleStaleOffers(
+  home: UnitHome,
+  transit: { staleOffers(before: number): { leaseId: string; to: HomeAddress }[] },
+  storage: RoomState['storage']
+): Promise<void> {
+  const now = Date.now()
+  for (const { leaseId, to } of transit.staleOffers(now - LEASE_SETTLE_MS + 1)) {
+    try {
+      await settleLease(home, homeOf(to), leaseId, now)
+    } catch (error) {
+      console.error('settling a lease failed', leaseId, error)
+    }
+  }
+  if (transit.staleOffers(Number.MAX_SAFE_INTEGER).length > 0) {
+    await storage.setAlarm(now + LEASE_SETTLE_MS)
+  }
+}
 
 /** What the Game room asks of a player's account room: the handoff, and the Opposition tray at a Game's end. */
 type AccountHome = UnitHome & {
@@ -219,19 +247,8 @@ export class GameRoom extends Room implements UnitHome {
     return this.logic.transit.refuseLease(leaseId, at)
   }
 
-  /** Settle every offer its target never answered, so no unit is left leaving. */
-  override async alarm(): Promise<void> {
-    const now = Date.now()
-    for (const { leaseId, to } of this.logic.transit.staleOffers(now - LEASE_SETTLE_MS + 1)) {
-      try {
-        await settleLease(this, homeOf(to), leaseId, now)
-      } catch (error) {
-        console.error('settling a lease failed', leaseId, error)
-      }
-    }
-    if (this.logic.transit.staleOffers(Number.MAX_SAFE_INTEGER).length > 0) {
-      await this.ctx.storage.setAlarm(now + LEASE_SETTLE_MS)
-    }
+  override alarm(): Promise<void> {
+    return settleStaleOffers(this, this.logic.transit, this.ctx.storage)
   }
 
   /**
