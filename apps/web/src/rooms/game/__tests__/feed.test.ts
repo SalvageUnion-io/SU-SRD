@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ServerMessageSchema } from '../../protocol'
-import { appliedMessages, gameSnapshot, readOpsBatch } from '../feed'
+import { appliedMessages, batchAnswer, gameSnapshot, readOpsBatch } from '../feed'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -91,6 +91,23 @@ describe('what a Game room tells a socket', () => {
       type: 'applied',
       op: { id: sent.id, seq: 1, state: 'applied' },
       unit: { appId: 'p1', headSeq: 1, body: { motto: 'Keep moving' } },
+    })
+  })
+})
+
+describe('what the sender of a batch hears', () => {
+  test('an ack, or the reason it was declined', () => {
+    expect(batchAnswer(['a'], { ok: true, applied: [{ id: 'a', seq: 1 }] })).toEqual({
+      type: 'ack',
+      opIds: ['a'],
+    })
+    expect(
+      batchAnswer(['a'], { ok: false, opId: 'a', reason: 'conflict', fields: ['motto', 'name'] })
+    ).toEqual({ type: 'declined', opIds: ['a'], reason: 'Changed elsewhere first: motto, name' })
+    expect(batchAnswer(['a'], { ok: false, opId: 'a', reason: 'invalid', message: 'No' })).toEqual({
+      type: 'declined',
+      opIds: ['a'],
+      reason: 'No',
     })
   })
 })

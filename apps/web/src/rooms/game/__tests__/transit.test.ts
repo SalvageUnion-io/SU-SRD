@@ -282,4 +282,39 @@ describe('the cutover import', () => {
     expect(room.transit.diffImport(bundle())).toEqual(['p1: head 1 ≠ 0', 'p1: body differs'])
     expect(() => table('g9').room.transit.importGame(bundle(), AT)).toThrow('already holds a Game')
   })
+
+  test('the diff names every way the room and its bundle part', () => {
+    const { room } = emptyRoom('convex-game-1')
+    room.transit.importGame(bundle({ runningEncounter: { name: 'Ambush' } }), AT)
+    expect(room.opposition.running(MEDIATOR)).toMatchObject({ name: 'Ambush' })
+    const [organizer, , mediator] = bundle().members
+    const [pilot, crawler] = bundle().units
+    if (!organizer || !mediator || !pilot || !crawler) throw new Error('bundle fixture')
+    const other = bundle({
+      name: 'Other',
+      members: [
+        { ...organizer, mediator: true },
+        mediator,
+        { discordId: 'd-new', mediator: false, organizer: false, joinedAt: AT },
+      ],
+      units: [
+        { ...crawler, kind: 'mech', owner: PLAYER },
+        { ...pilot, appId: 'p9' },
+      ],
+      links: [],
+      opposition: [],
+    })
+    expect(room.transit.diffImport(other)).toEqual([
+      'name: Tenacity ≠ Other',
+      `member ${ORGANIZER}: roles differ`,
+      'member d-new: missing',
+      `member ${PLAYER}: not in the bundle`,
+      'c1: a crawler, not a mech',
+      'c1: holder differs',
+      'pilot p9: missing',
+      'pilot p1: not in the bundle',
+      'links: 1 ≠ 0',
+      'tray: 1 ≠ 0',
+    ])
+  })
 })

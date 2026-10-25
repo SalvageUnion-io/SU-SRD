@@ -207,6 +207,22 @@ describe('the Game room Durable Object', () => {
     })
   })
 
+  test('a lease the alarm cannot settle is logged and tried again; a socket needs the Worker’s headers', async () => {
+    const { game, store } = await seeded('g-lost')
+    game.offer({
+      leaseId: 'L-lost',
+      unitId: 'p1',
+      actor: PLAYER,
+      to: { kind: 'game', gameId: 'g-nowhere' },
+      at: Date.now() - 120_000,
+    })
+    store.state.alarm = null
+    await game.alarm()
+    expect(store.state.alarm).not.toBeNull()
+    const plain = await game.fetch(new Request('https://room/'))
+    expect(plain.status).toBe(400)
+  })
+
   test('a room reached without a name is a defect', () => {
     const ctx = { id: {}, storage: storage(), blockConcurrencyWhile: async () => {} }
     const nameless = new GameRoom(ctx as never, {} as never)

@@ -1,7 +1,22 @@
 import { describe, expect, test } from 'bun:test'
 import { downtimeStepCount, isUpkeepStep } from 'game-domain/rules/downtime'
+import { bunSql } from '../../__tests__/bunSql'
+import { migrate } from '../../migrate'
+import { GAME_ROOM } from '../../schemas'
 import { runAct } from '../acts'
-import { AT, bodies, MEDIATOR, ORGANIZER, op, PLAYER, STRANGER, table } from './harness'
+import { GameRoomLogic } from '../gameRoomLogic'
+import {
+  AT,
+  bodies,
+  MEDIATOR,
+  ORGANIZER,
+  op,
+  PLAYER,
+  profile,
+  STRANGER,
+  stubApplyOp,
+  table,
+} from './harness'
 
 const faction = { id: 'f1', name: 'Union', standing: 'friendly' as const, deal: true }
 const job = { id: 'j1', name: 'Haul', factionId: 'f1', pay: 3, payTl: 2 }
@@ -107,6 +122,23 @@ describe('the ledger', () => {
     ).toThrow('only come from the Game')
   })
 
+  test('a crawler that refuses the pay leaves the job open and the ledger unpaid', () => {
+    const sql = bunSql()
+    migrate(sql, GAME_ROOM)
+    const room = new GameRoomLogic(sql, {
+      applyOp: (unit, input) =>
+        input.source === 'ledger'
+          ? { ok: false, reason: 'invalid', message: 'no' }
+          : stubApplyOp(unit, input),
+    })
+    room.roster.create(ORGANIZER, { gameId: 'g1', name: 'T', profile: profile('Org'), at: AT })
+    room.roster.setMediator(ORGANIZER, ORGANIZER, true)
+    room.units.create(ORGANIZER, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.ledger.setJob(ORGANIZER, job, AT)
+    expect(() => room.ledger.completeJob(ORGANIZER, 'j1', AT)).toThrow('could not take that pay')
+    expect(room.ledger.ledger(ORGANIZER)?.jobs[0]?.state).toBe('open')
+  })
+
   test('a Game with no crawler has nowhere to pay', () => {
     const { room } = table()
     room.ledger.setJob(MEDIATOR, { ...job, pay: 0 }, AT)
@@ -170,6 +202,7 @@ describe('Safety Protocols', () => {
     expect(room.safety.boundaries(STRANGER)).toEqual([])
     expect(() => room.safety.addBoundary(PLAYER, 'outOfBounds', '   ', AT)).toThrow('some words')
     expect(() => room.safety.addBoundary(STRANGER, 'offCamera', 'x', AT)).toThrow()
+    expect(() => room.safety.addBoundary(PLAYER, 'elsewhere' as never, 'x', AT)).toThrow()
     const theirs = room.safety.boundaries(PLAYER)[1]?.id ?? ''
     expect(() => room.safety.removeBoundary(PLAYER, theirs)).toThrow('Only whoever added')
     room.safety.removeBoundary(PLAYER, mine)
