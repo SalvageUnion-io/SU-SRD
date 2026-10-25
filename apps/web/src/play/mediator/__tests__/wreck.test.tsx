@@ -55,6 +55,19 @@ describe('wreckOf', () => {
       wreckOf(readTrayNpc({ _id: 's', body: newTrayNpc('squads', squad, [], NOW) }))
     ).toBeNull()
   })
+
+  test('a Vehicle off the scrap tiers, or worth nothing, and an NPC with no record leave nothing', () => {
+    const vehicle = SalvageUnionReference.Vehicles.all()[0]
+    if (vehicle === undefined) throw new Error('no reference')
+    const npc = readTrayNpc({ _id: 'v', body: newTrayNpc('vehicles', vehicle, [], NOW) })
+    const withEntity = (over: Record<string, unknown>) => ({
+      ...npc,
+      entity: { ...npc.entity, ...over } as typeof npc.entity,
+    })
+    expect(wreckOf(withEntity({ techLevel: 7 }))).toBeNull()
+    expect(wreckOf(withEntity({ salvageValue: 0 }))).toBeNull()
+    expect(wreckOf({ ...npc, entity: null })).toBeNull()
+  })
 })
 
 describe('the Salvage control', () => {
