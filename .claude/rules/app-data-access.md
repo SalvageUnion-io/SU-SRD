@@ -20,8 +20,8 @@ kept in IndexedDB, read through hooks. Accounts, Games, invites and crew are
 Convex hooks (`useQuery`; **loading is `undefined`**).
 
 One **sync status**, `useSync()` (`syncContext.ts`): `signedOut` (read-only,
-no Play), `syncing`, `live`, `offline`, plus `outdated`. Writes go only
-`live` and not outdated; offer an edit on `canWrite`, never on
+no Play), `syncing`, `live`, `offline`, plus `outdated`. Writes go
+`live` (own sheets queue offline); offer edits on `canWrite`, not
 `navigator.onLine` or an auth flag.
 
 ```typescript

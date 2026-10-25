@@ -13,6 +13,7 @@
 
 import { useEffect, useRef } from 'react'
 import { ConvexFeed } from './ConvexFeed'
+import { forgetOutbox } from './outbox'
 import { dropFromDevice, keepOnDevice, sessionAccount } from './persist'
 import { clear, markArrived, rowsComingChanged, setRowsComing, TABLES } from './replica'
 import type { SyncStatus } from './sync'
@@ -50,6 +51,7 @@ export function ReplicaSync() {
       // A session that ended here, or one that ended while the device was
       // away: its rows are nobody's to show.
       void dropFromDevice()
+      forgetOutbox()
       if (was !== null && was !== 'signedOut') clear()
       return
     }

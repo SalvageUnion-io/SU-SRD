@@ -7,6 +7,9 @@ read-only; edits wait until back online").
   [ADR-030](030-accounts-games-server-of-record.md) §1: "nothing is kept on
   the device" becomes "nothing but a read-only copy of the player's own rows".
   Convex stays the server of record; offline writes stay blocked, not queued.
+- **Replaced by** [ADR-063](063-typed-ops-are-the-write.md) decision 9: the
+  copy is kept, and no longer read-only; the player's own edits wait in an
+  outbox until the connection returns.
 - **Replaces** the Area "No device cache" with
   [Device copy](../ARCHITECTURE.md#device-copy).
 

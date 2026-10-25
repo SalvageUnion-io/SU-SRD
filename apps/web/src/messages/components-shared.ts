@@ -12,6 +12,7 @@ export const sharedCopy = messages({
   remove: 'Remove',
   referenceData: 'reference data',
   notConnectedYourGamesAre: 'Not connected — your Games are read-only until the connection returns',
+  offlineChangeDeclined: 'A change made offline was not saved: {reason}',
   somethingWentWrong: 'Something went wrong',
   theAppHitAnUnexpected: 'The app hit an unexpected error. {savedWorkCopy}',
   tryAgain: 'Try again',

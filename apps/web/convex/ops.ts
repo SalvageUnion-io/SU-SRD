@@ -6,7 +6,7 @@ import { LINK, unwireSoftLink } from './model/linkWrites'
 import * as proposals from './model/opProposals'
 import { PROPOSE, proposalRow, sentRow } from './model/opProposals'
 import type { Applied } from './model/opWrites'
-import { applyUnitOp, moveThenApply, UNIT_OP } from './model/opWrites'
+import { applyUnitOp, moveThenApply, replayUnitOp, UNIT_OP } from './model/opWrites'
 import { OWNABLE_REMOVE, removeOwnable } from './model/ownableWrites'
 import { mediatorOrNull, membershipOrNull, requireUser } from './model/permissions'
 
@@ -29,6 +29,16 @@ export const apply = mutation({
   args: UNIT_OP,
   handler: async (ctx, args): Promise<Applied | null> =>
     applyUnitOp(ctx, await requireUser(ctx), args),
+})
+
+/**
+ * `apply` for an op an outbox kept offline and sends after a reconnect: a
+ * refusal is kept as `declined`, with why, and answered rather than thrown.
+ */
+export const replay = mutation({
+  args: UNIT_OP,
+  handler: async (ctx, args): Promise<Applied | null | { declined: string }> =>
+    replayUnitOp(ctx, await requireUser(ctx), args),
 })
 
 /**
