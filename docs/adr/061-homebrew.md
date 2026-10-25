@@ -2,7 +2,7 @@
 
 Decided and built for 4.1.0. Amends [ADR-032](032-public-read-only-sheets.md)
 (a pattern shared by link may also be listed) and narrows the "net-new homebrew
-authoring is out of scope" line of [ADR-021](021-cantina-surface-taxonomy.md)
+authoring is out of scope" line of [ADR-021](../architecture/surfaces.md)
 and [ADR-030](030-accounts-games-server-of-record.md): showing what players
 already make is in scope; new authoring surfaces still are not.
 
