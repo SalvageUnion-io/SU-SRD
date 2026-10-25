@@ -12,7 +12,7 @@ export const OVER_BUDGET: Record<string, number> = {}
 
 /** Context docs collapsed to terse lists, held near that size: raise one only on purpose, in the PR. */
 export const COLLAPSED_DOCS: Record<string, number> = {
-  'apps/web/ssg/DESIGN.md': 5_400,
+  'apps/web/astro/DESIGN.md': 5_400,
   'docs/ARCHITECTURE.md': 21_200,
   'docs/README.md': 2_600,
   'docs/architecture/contributions.md': 3_700,

@@ -10,8 +10,8 @@
  * the build emits must be reachable from its old address.
  */
 import { describe, expect, it } from 'bun:test'
-import type { RouteContext } from '../../../ssg/types'
 import { redirectRules, redirectsEndpoint } from '../../reference/endpoints/redirects'
+import type { RouteContext } from '../../reference/types'
 import { DOC_PAGES } from '../docPages'
 import { itemHref, patternHref, schemaHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'

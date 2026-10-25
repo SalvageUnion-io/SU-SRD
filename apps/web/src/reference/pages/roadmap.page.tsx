@@ -7,7 +7,6 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { PageModule, PageResult } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Eyebrow, InlineRef, SlabSection } from '../../components/index'
 import { space, weight } from '../../design/tokens'
@@ -20,6 +19,7 @@ import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
+import type { PageModule, PageResult } from '../types'
 
 const TITLE = pageTitle(pagesCopy('roadmap'))
 const DESCRIPTION = pagesCopy('roadmapDescription')

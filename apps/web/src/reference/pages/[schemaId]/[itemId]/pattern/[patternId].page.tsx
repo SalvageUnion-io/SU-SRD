@@ -9,7 +9,6 @@
 
 import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { isHomebrewPattern, toEntityModel, truncate } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext } from '../../../../../../ssg/types'
 import { isLegalStartingPatternOf, resolveEntityPageMeta } from '../../../../../components/index'
 import { patternBuildLinkFor } from '../../../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../../../lib/chapters'
@@ -25,6 +24,7 @@ import { getPatternStaticPaths } from '../../../../../lib/staticPaths'
 import { pagesCopy } from '../../../../../messages/reference-pages'
 import { EntityPageFrame } from '../../../../EntityPageFrame'
 import { EntityView } from '../../../../EntityView'
+import type { PageModule, PageResult, RouteContext } from '../../../../types'
 
 type Params = { schemaId: string; itemId: string; patternId: string }
 

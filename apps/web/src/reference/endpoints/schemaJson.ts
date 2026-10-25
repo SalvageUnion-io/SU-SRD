@@ -4,12 +4,12 @@
  *
  * Dotted pattern: this emits `dist/schema/chassis.json` as a FILE, never a
  * `chassis.json/index.html` directory. See the URL -> file table in
- * `ssg/DESIGN.md`.
+ * `astro/DESIGN.md`.
  */
 
-import type { EndpointModule, StaticPath } from '../../../ssg/types'
 import { getEntitySchemas } from '../../lib/gameData'
 import { readReferenceFile } from '../../lib/referenceFiles'
+import type { EndpointModule, StaticPath } from '../types'
 
 type Params = { schemaId: string }
 type Props = { dataFile: string }

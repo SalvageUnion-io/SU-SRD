@@ -20,7 +20,7 @@
  * register through `siteWorker.ts`). main.tsx imports it and hands its
  * `registerSW` to `registerServiceWorker` below; the plugin injects no
  * registration script into the built index.html (`injectRegister: false` in
- * vite.config.ts). The virtual module resolves
+ * astro.config.ts). The virtual module resolves
  * only in Vite's build, so this file takes it as an argument and the tests
  * pass a stand-in. Under `vite dev` the plugin serves a no-op `registerSW`, so
  * HMR runs without a worker.
@@ -33,7 +33,7 @@
  * open and run `cleanupOutdatedCaches()`, deleting the precache entries that
  * page still resolves its code-split chunks against.
  *
- * `vite.config.ts` sets `registerType: 'prompt'`, which emits a worker that
+ * `astro.config.ts` sets `registerType: 'prompt'`, which emits a worker that
  * installs and WAITS. Nothing is swapped under a live page. The update lands
  * when this page asks for it (`reloadOntoNewBuild`: post `SKIP_WAITING`, then
  * reload on `controllerchange`) or when every tab has closed. In prompt mode,

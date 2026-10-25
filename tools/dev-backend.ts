@@ -29,7 +29,7 @@
  *   `TEST_AUTH`) and pushes `apps/web/convex/`, through
  *   an env file of its own, so an `apps/web/.env.local` naming another
  *   deployment is never read. It does not watch: rerun to push a backend edit.
- *   The dev server (`ssg/dev.ts`) reloads the site's code as usual.
+ *   The dev server (`astro dev`) reloads the site's code as usual.
  * - The first start seeds `SEED_ACCOUNT` through the test seam with the one
  *   account seed (`packages/gates/lib/seedAccount.ts`, by way of
  *   `tools/gallery.ts`'s `seed`: what the layout gates' e2e walk signs in to)
@@ -450,14 +450,19 @@ export async function main(
     await convex(sys, root, envFile, ['deploy', '-y'])
 
     children.push(
-      sys.spawn(['bun', 'ssg/dev.ts'], join(root, 'apps/web'), join(state, 'dev.log'), {
-        PORT: String(devPort),
-        VITE_CONVEX_URL: backendUrl_,
-        VITE_TEST_AUTH: 'true',
-        TEST_AUTH: 'true',
-        AUTH_SIGNING_KEY: await keyIn(join(state, AUTH_KEY_FILE)),
-        AUTH_DB: join(state, 'auth.sqlite'),
-      })
+      sys.spawn(
+        ['bun', '--bun', 'astro', 'dev', '--ignore-lock'],
+        join(root, 'apps/web'),
+        join(state, 'dev.log'),
+        {
+          PORT: String(devPort),
+          VITE_CONVEX_URL: backendUrl_,
+          VITE_TEST_AUTH: 'true',
+          TEST_AUTH: 'true',
+          AUTH_SIGNING_KEY: await keyIn(join(state, AUTH_KEY_FILE)),
+          AUTH_DB: join(state, 'auth.sqlite'),
+        }
+      )
     )
     // The first request renders a page server-side through a cold Vite.
     if (!(await waitFor(sys, `${base}/`, 120)))
