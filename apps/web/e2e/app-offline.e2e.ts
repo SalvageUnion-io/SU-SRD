@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { sheetLink } from 'gates/lib/appPage'
 import { at } from './_base'
-import { buildPilot, editSheet, openApp, openSheetFor, waitForReady } from './_helpers'
+import { buildMech, buildPilot, editSheet, openApp, openSheetFor, waitForReady } from './_helpers'
 import { serviceWorkerReady } from './_serviceWorker'
 import { expect, test } from './fixtures'
 
@@ -17,15 +17,16 @@ import { expect, test } from './fixtures'
  *
  * ## What offline promises
  *
- * The device copy (`docs/ARCHITECTURE.md#device-copy`, ADR-058) keeps the
- * signed-in player's own rows, read-only. So offline promises two things, and
- * this spec pins both:
+ * The device copy (`docs/ARCHITECTURE.md#device-copy`) keeps the signed-in
+ * player's own rows, and the outbox (ADR-063) keeps the edits they make to
+ * them offline. So offline promises three things, and this spec pins them:
  *
- *  - **Mid-session**, a signed-in player's open sheet stays on screen,
- *    read-only, under the NOT CONNECTED banner. The rows are this page load's
- *    in-memory copy; no worker is involved.
+ *  - **Mid-session**, a signed-in player's open sheet stays on screen under
+ *    the NOT CONNECTED banner, and still edits. No worker is involved.
  *  - **After a reload**, the shell boots from the worker's precache and the
- *    player's own sheets come back from the device copy, read-only.
+ *    player's own sheets come back from the device copy, with the edits still
+ *    waiting folded over them.
+ *  - **On reconnect**, the outbox goes up and the server holds the edits.
  *
  * ## Why service workers are re-enabled only here
  *
@@ -52,7 +53,7 @@ import { expect, test } from './fixtures'
  * Under `registerType: 'prompt'` a freshly installed worker does not claim the
  * page that installed it, so a visitor who arrives and immediately loses the
  * network gets nothing. Offline begins at the *second* navigation. That is the
- * deliberate trade documented in `vite.config.ts` — claiming the open page is
+ * deliberate trade documented in `astro.config.ts` — claiming the open page is
  * what deleted the precache it was still reading from — and these tests reload
  * once for exactly that reason rather than papering over it.
  */
@@ -191,13 +192,12 @@ test.describe('signed out: the shell', { tag: '@pr' }, () => {
 
 test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
   /**
-   * Mid-session: the sheet a player has open survives the network
-   * dropping. Writes are blocked, not queued (ADR-030 §1), so the sheet leaves
-   * Edit and its Read | Edit toggle goes; it comes back with the connection.
-   * No worker is involved, so this runs with service workers blocked, on the
-   * dev server too.
+   * Mid-session: the sheet a player has open survives the network dropping,
+   * and their own sheet keeps its Read | Edit toggle: its edits wait in the
+   * outbox (ADR-063). No worker is involved, so this runs with service
+   * workers blocked, on the dev server too.
    */
-  test('the open sheet stays up, read-only, when the network drops mid-session', async ({
+  test('the open sheet stays up, and editable, when the network drops mid-session', async ({
     page,
     context,
   }) => {
@@ -209,7 +209,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
 
     await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
     await expect(page.getByText('Offline Keeper').first()).toBeVisible()
-    await expect(page.getByRole('group', { name: /read or edit this/i })).toHaveCount(0)
+    await expect(page.getByRole('group', { name: /read or edit this/i })).toBeVisible()
 
     await context.setOffline(false)
 
@@ -218,18 +218,20 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
   })
 
   /**
-   * What is kept (ADR-058): the device copy. An offline reload boots the
-   * precached shell, and the player's own sheets come back from the copy
-   * `ConvexFeed` saved, read-only under the NOT CONNECTED banner; with the
-   * connection back the sheet is editable again.
+   * What is kept: the device copy and the outbox (ADR-063). Offline, the
+   * player takes a point of HP off their pilot and spends a point of EP on
+   * their mech. An offline reload boots the precached shell, and both sheets
+   * come back from the copy with those edits folded over them. With the
+   * connection back the outbox goes up, and the server holds both.
    */
   test.describe(() => {
     test.use({ serviceWorkers: 'allow' })
 
-    test('an offline reload brings their sheets back from the device, read-only', async ({
+    test('edits made offline survive a reload and reach the server on reconnect', async ({
       page,
       context,
     }) => {
+      await buildMech(page, 'Outbox Mule')
       await buildPilot(page, 'Kept On This Device', 'Ember')
       await openSheetFor(page, 'Kept On This Device')
       await requireServiceWorker(page)
@@ -245,14 +247,19 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       })
       await page.evaluate(() => sessionStorage.setItem('e2e:offline', 'on'))
       await context.setOffline(true)
+      let hp = 0
+      let ep = 0
       try {
+        await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+        hp = (await stepDown(page, 'Kept On This Device', 'HP')) - 1
+        ep = (await stepDown(page, 'Outbox Mule', 'EP')) - 1
+
         await page.reload()
         await waitForReady(page)
-
         await expect(page).toHaveTitle(/SalvageUnion\.io/)
         await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
-        await expect(page.getByText('Kept On This Device').first()).toBeVisible()
-        await expect(page.getByRole('group', { name: /read or edit this/i })).toHaveCount(0)
+        await expectVital(page, 'Outbox Mule', 'EP', ep)
+        await expectVital(page, 'Kept On This Device', 'HP', hp)
 
         // The Training Bay lists it too: the copy is the roster, not one page.
         await page.goto(at('/'))
@@ -266,6 +273,49 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       await page.reload()
       await waitForReady(page)
       await expect(page.getByText('Not connected — your Games are read-only')).toHaveCount(0)
+      // Sent: the outbox empties once the server has answered every op…
+      await expect.poll(() => outboxLength(page), { timeout: 20_000 }).toBe(0)
+      // …so what the sheets show now is the server's.
+      await expectVital(page, 'Kept On This Device', 'HP', hp)
+      await expectVital(page, 'Outbox Mule', 'EP', ep)
     })
   })
 })
+
+/** Open `name`'s sheet in Edit and take one point off `vital`; answers the value before. */
+async function stepDown(page: Page, name: string, vital: string): Promise<number> {
+  await openSheetFor(page, name)
+  await editSheet(page)
+  const gauge = page.getByRole('slider', { name: vital, exact: true }).first()
+  const before = Number(await gauge.getAttribute('aria-valuenow'))
+  expect(before, `${name}'s ${vital} should start above 0`).toBeGreaterThan(0)
+  await gauge.press('ArrowLeft')
+  await expect(gauge).toHaveAttribute('aria-valuenow', String(before - 1))
+  return before
+}
+
+/** `name`'s sheet shows `vital` at `value`. */
+async function expectVital(page: Page, name: string, vital: string, value: number): Promise<void> {
+  await openSheetFor(page, name)
+  await editSheet(page)
+  const gauge = page.getByRole('slider', { name: vital, exact: true }).first()
+  await expect(gauge).toHaveAttribute('aria-valuenow', String(value))
+}
+
+/** How many edits wait in the device's outbox (`replica/persist.ts`). */
+function outboxLength(page: Page): Promise<number> {
+  return page.evaluate(
+    () =>
+      new Promise<number>((resolve, reject) => {
+        const open = indexedDB.open('su-replica')
+        open.onerror = () => reject(open.error)
+        open.onsuccess = () => {
+          const db = open.result
+          if (!db.objectStoreNames.contains('meta')) return resolve(0)
+          const get = db.transaction('meta').objectStore('meta').get('outbox')
+          get.onerror = () => reject(get.error)
+          get.onsuccess = () => resolve(get.result?.writes?.length ?? 0)
+        }
+      })
+  )
+}

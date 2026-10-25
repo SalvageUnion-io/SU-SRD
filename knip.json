@@ -32,20 +32,14 @@
       "project": ["src/**/*.ts"]
     },
     "apps/web": {
-      // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
-      // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
-      // *client bundle* entries, named in vite.config.ts rather than
-      // imported by anything, so knip cannot infer them.
+      // Astro routes `astro/pages/` from `srcDir: './astro'`, which knip's astro
+      // plugin does not read, so the pages are named here.
       "entry": [
         // build/dev/preview are matched by knip's own bin/script detection from
         // package.json, so they are deliberately not listed here.
+        "astro/pages/**/*.{astro,ts}",
+        // Imported by `astro/layouts/Page.astro`'s `<script>`, which knip does not parse.
         "src/runtime/islands.client.ts",
-        "src/runtime/styles.entry.ts",
-        "src/runtime/assets.entry.ts",
-        // The dev server: `dev` starts it inside `convex dev --start '…'`, out of knip's sight.
-        "ssg/dev.ts",
-        // The render pass: the Vite pass spawns it (`prerender` in ssg/appPlugins.ts).
-        "ssg/prerender.ts",
         "src/routes/**/*.tsx",
         // The app's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
         "src/main.tsx",
@@ -59,17 +53,22 @@
       // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
       "project": [
         "src/**/*.{ts,tsx}",
-        "ssg/**/*.{ts,tsx}",
         "astro/**/*.{ts,tsx,astro}",
         "convex/**/*.ts",
         "test/**/*.ts",
         "e2e/**/*.ts"
       ],
-      // Off: vite.config.ts loads the app's own TSX through Vite's module
+      // Off: astro.config.ts loads the app's own TSX through Vite's module
       // runner, which knip's loader cannot parse; its entries are listed above.
       "vite": false,
+      // Imported only by CSS (`src/styles/base.css`), which knip does not read;
       // `cloudflare` is workerd's built-in `cloudflare:workers`, no package.
-      "ignoreDependencies": ["cloudflare"],
+      "ignoreDependencies": [
+        "@fontsource/barlow",
+        "@fontsource/barlow-semi-condensed",
+        "@fontsource/caveat",
+        "cloudflare"
+      ],
       // The router plugin's default is `src/routeTree.gen.ts`; the app's is a level down.
       "tanstack-router": {
         "entry": ["src/routeTree.gen.ts"]

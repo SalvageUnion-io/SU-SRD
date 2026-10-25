@@ -1,5 +1,5 @@
 {
-  "floor": 1792926703,
+  "floor": 1792927586,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -1758,6 +1758,131 @@
         }
       }
     },
+    "ops:replay": {
+      "type": "object",
+      "value": {
+        "unit": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "op": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "unitId": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "baseSeq": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "at": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "kind": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "transaction"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "override"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "manual"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "source": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "patch": {
+                "fieldType": {
+                  "type": "any"
+                },
+                "optional": false
+              },
+              "unset": {
+                "fieldType": {
+                  "type": "array",
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "optional": true
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
     "ops:sent": {
       "type": "object",
       "value": {
@@ -2483,44 +2608,6 @@
       }
     },
     "seats:forGame": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        }
-      }
-    },
-    "seats:heartbeat": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "id",
-                "tableName": "games"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "seats:presence": {
       "type": "object",
       "value": {
         "gameId": {

@@ -6,18 +6,18 @@
  *   <div data-island="SearchIsland" data-client="idle" data-island-id="i0">…</div>
  *
  * and records the island's props in a render-scoped collector so
- * `ssg/document.tsx` can emit them ONCE per page as a single JSON script tag
+ * `astro/lib/document.tsx` can emit them ONCE per page as a single JSON script tag
  * (`<script type="application/json" data-island-props>`), rather than as a
  * per-island attribute.
  *
  * Mounting on the client is always `createRoot`, never `hydrateRoot` (see
- * `ssg/DESIGN.md`), so the markup inside the placeholder is discarded and
+ * `astro/DESIGN.md`), so the markup inside the placeholder is discarded and
  * replaced. `ssr` is therefore purely an SEO / no-JS decision and can never
  * produce a hydration mismatch.
  *
  * Pages import it, never the client entry (the mounter reads the placeholder's
  * attributes, not this module), so `react-dom/server` stays out of the client
- * bundle. It must stay free of `.css` imports and of anything under `ssg/`.
+ * bundle. It must stay free of `.css` imports and of anything under `astro/build/`.
  */
 
 import type { ReactNode } from 'react'
@@ -44,7 +44,7 @@ export type IslandProps = {
   props?: Record<string, unknown>
   /**
    * Server-render `children` into the placeholder for crawlers / no-JS.
-   * Defaults to `false`. See the per-island table in `ssg/DESIGN.md`.
+   * Defaults to `false`. See the per-island table in `astro/DESIGN.md`.
    */
   ssr?: boolean
   /**

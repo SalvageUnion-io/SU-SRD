@@ -100,6 +100,67 @@ export async function opOnUnit(
 }
 
 /**
+ * `applyUnitOp` for an op an outbox sends after a reconnect (ADR-063 decision
+ * 9): one the server refuses is answered so rather than thrown, so the device
+ * drops it and the rest of its outbox still goes. Only a refusal on a unit the
+ * caller may write (a stale field, a body that no longer parses) is kept as a
+ * `declined` op, in that unit's history; a refusal of the writer is not
+ * recorded anywhere, so nobody can write into another's history.
+ */
+export async function replayUnitOp(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: UnitOpArgs
+): Promise<Applied | null | { declined: string }> {
+  // Only the player's own pilot, mech or NPC waits offline.
+  if (args.unit === 'crawler') return { declined: 'A crawler change needs the connection' }
+  if (args.op.source === PROPOSAL_SOURCE) return { declined: 'That change is not a proposal' }
+  let row: UnitRow | null
+  try {
+    row = await unitRow(ctx, userId, args)
+  } catch (err) {
+    return { declined: refusalOf(err) }
+  }
+  if (row === null) return null
+  try {
+    return await applyToRow(ctx, userId, args.unit, row, args.op)
+  } catch (err) {
+    const reason = refusalOf(err)
+    const unitId = logIdOf(row)
+    if ((await opOnUnit(ctx, args.op.id, unitId)) === null) {
+      await ctx.db.insert('ops', {
+        gameId: row.gameId,
+        unitKind: args.unit,
+        unitId,
+        opId: args.op.id,
+        seq: null,
+        baseSeq: args.op.baseSeq,
+        author: userId,
+        at: args.op.at,
+        kind: args.op.kind,
+        source: args.op.source,
+        state: 'declined',
+        patch: args.op.patch,
+        ...(args.op.unset === undefined ? {} : { unset: args.op.unset }),
+        before: null,
+        reason,
+      })
+    }
+    return { declined: reason }
+  }
+}
+
+/** A refusal's words: a stale write's `ConvexError` carries the row beside them. */
+function refusalOf(err: unknown): string {
+  if (err instanceof ConvexError) {
+    const data: unknown = err.data
+    if (typeof data === 'string') return data
+    if (typeof data === 'object' && data !== null && 'message' in data) return String(data.message)
+  }
+  return err instanceof Error ? err.message : String(err)
+}
+
+/**
  * `applyUnitOp` on a row already found and checked. `proposal` is the
  * proposed op row being accepted, which becomes the applied op.
  */

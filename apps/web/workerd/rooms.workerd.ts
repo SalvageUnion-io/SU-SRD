@@ -43,4 +43,37 @@ describe('rooms', () => {
       game: { schema: GAME_ROOM.length },
     })
   })
+
+  it('tells every socket who is here, and who has gone', async () => {
+    const room = exports.GameRoom.getByName('table')
+    const open = async (member: string, seat: '0' | '1') => {
+      const res = await room.fetch('https://room/', {
+        headers: { upgrade: 'websocket', 'x-su-member': member, 'x-su-seat': seat },
+      })
+      const ws = res.webSocket
+      if (ws === null) throw new Error('no socket')
+      const heard: string[][] = []
+      ws.addEventListener('message', (e) => heard.push(JSON.parse(String(e.data)).here))
+      ws.accept()
+      return { ws, heard }
+    }
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
+
+    const watcher = await open('mediator', '0')
+    const player = await open('player', '1')
+    await settle()
+    expect(watcher.heard.at(-1)).toEqual(['player'])
+    expect(player.heard.at(-1)).toEqual(['player'])
+
+    player.ws.close(1000)
+    await settle()
+    expect(watcher.heard.at(-1)).toEqual([])
+  })
+
+  it('refuses a socket with no member token', async () => {
+    const res = await exports.default.fetch('https://salvageunion.io/__rooms/games/g/socket', {
+      headers: { upgrade: 'websocket' },
+    })
+    expect(res.status).toBe(403)
+  })
 })

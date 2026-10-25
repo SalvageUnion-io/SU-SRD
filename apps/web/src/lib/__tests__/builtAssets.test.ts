@@ -10,7 +10,7 @@ describe('builtAssetUrl', () => {
   test('throws, naming the missing source and every known one, rather than an empty src', () => {
     const assets = { 'src/assets/b.webp': '/assets/b.webp', 'src/assets/a.webp': '/assets/a.webp' }
     expect(() => builtAssetUrl(assets, ELDRIDGE_COAST_MAP)).toThrow(
-      `No built asset for "${ELDRIDGE_COAST_MAP}". Is it imported by src/runtime/assets.entry.ts? Known: src/assets/a.webp, src/assets/b.webp`
+      `No built asset for "${ELDRIDGE_COAST_MAP}". Is it imported by astro/lib/assets.ts? Known: src/assets/a.webp, src/assets/b.webp`
     )
   })
 

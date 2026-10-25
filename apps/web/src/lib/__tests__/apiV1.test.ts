@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { z } from 'salvageunion-reference/zod'
-import { endpoints } from '../../../ssg/endpoints'
+import { emitted, outputs } from '../../../astro/lib/__tests__/emitted'
 import { redirectRules } from '../../reference/endpoints/redirects'
 import { API_V1_PATH, apiV1ItemPath } from '../apiV1Paths'
 import { SITE_URL } from '../constants'
@@ -12,16 +12,6 @@ import { getEntitySchemas } from '../gameData'
  * validates against its schema, and the manifest names only URLs the build
  * emits. These read the endpoints exactly as the build emits them.
  */
-
-const outputs = new Map(
-  endpoints.flatMap((endpoint) => endpoint.resolve()).map((output) => [output.outputPath, output])
-)
-
-function emitted(outputPath: string): string {
-  const output = outputs.get(outputPath)
-  if (!output) throw new Error(`the build emits no ${outputPath}`)
-  return output.body()
-}
 
 /** A URL's path under `dist`, for an absolute URL on this site. */
 function outputPathOf(url: string): string {

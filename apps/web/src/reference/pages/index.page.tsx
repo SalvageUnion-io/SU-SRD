@@ -14,7 +14,6 @@
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { PageModule, PageResult } from '../../../ssg/types'
 import type { ContentsRow } from '../../components/index'
 import { ChapterBand, ContentsChapter } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
@@ -25,6 +24,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { DiscordButton, HomeStartHere } from '../HomeContents'
+import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
 /** The site's name and what this page is: there is no page name to put ahead of it. */

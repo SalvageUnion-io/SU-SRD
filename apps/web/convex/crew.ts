@@ -192,7 +192,6 @@ export const vitals = query({
         currentAP: nullableNumber,
         boarded: v.boolean(),
         mechId: nullableString,
-        lastSeenAt: nullableNumber,
         ...pilotDerived.fields,
       })
     ),
@@ -286,8 +285,6 @@ export const vitals = query({
           boarded: boarded !== null,
           /** The mech they are aboard, else the one assigned to them (`mech-to-pilot`). */
           mechId: boarded ?? (id === null ? null : (mechOfPilot.get(id) ?? null)),
-          /** Their seat's last presence heartbeat (`seats.heartbeat`, `isPresent`), or null. */
-          lastSeenAt: seat?.lastSeenAt ?? null,
           ...derivePilot(crewUnit(p)),
         }
       }),

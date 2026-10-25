@@ -10,6 +10,7 @@ declare module 'cloudflare:workers' {
     DurableObjectState,
     ExecutionContext,
     Rpc,
+    WebSocket,
   } from '@cloudflare/workers-types'
 
   export abstract class DurableObject<Env = unknown> implements Rpc.DurableObjectBranded {
@@ -17,6 +18,15 @@ declare module 'cloudflare:workers' {
     protected ctx: DurableObjectState
     protected env: Env
     constructor(ctx: DurableObjectState, env: Env)
+    alarm?(alarmInfo?: { retryCount: number; isRetry: boolean }): void | Promise<void>
+    fetch?(request: Request): Response | Promise<Response>
+    webSocketClose?(
+      ws: WebSocket,
+      code: number,
+      reason: string,
+      wasClean: boolean
+    ): void | Promise<void>
+    webSocketError?(ws: WebSocket, error: unknown): void | Promise<void>
   }
 
   export abstract class WorkerEntrypoint<Env = unknown> implements Rpc.WorkerEntrypointBranded {

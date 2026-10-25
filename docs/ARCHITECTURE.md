@@ -2,7 +2,7 @@
 
 The living spec: what is true now, one Area per subject; cite an Area by its anchor (`#ci`).
 An Area's headline names the ADRs folded into it; its detail is the spec doc it links. ADRs still being built keep their entry, and full text in [`docs/adr/`](adr/).
-**Names:** one app, `apps/web` (ADR-050); areas `src/reference/`, `src/build/` (**Training Bay**), `src/play/` (**The Cantina**).
+**Names:** one app, `apps/web` ([one app](architecture/one-app.md)); areas `src/reference/`, `src/build/` (**Training Bay**), `src/play/` (**The Cantina**).
 
 ## Areas
 
@@ -21,9 +21,9 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 5. **Styling** · ADR-046 <a id="stylesheets"></a>
    Tokens in `apps/web/src/styles/theme.css`, mirrored as style objects by `apps/web/src/design/tokens.ts`; classes in one stylesheet, also for styles repeated per page; `no-tailwind` bars Tailwind. Rules: `.claude/rules/styling.md`.
    One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes; app stylesheets stay unlayered, so they win.
-6. **Static pages (SSG)** <a id="ssg"></a>
-   In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
-   No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
+6. **One app, static pages (Astro)** · ADR-050, ADR-065 · [spec](architecture/one-app.md) <a id="ssg"></a>
+   One app, one build, Worker, head, install and checks; Astro 7 with our React islands ([DESIGN.md](../apps/web/astro/DESIGN.md)); `apps/web/astro/pages/` lists every page and endpoint, each a shell over a `.tsx` module.
+   Pages link one stylesheet of their own (`astro/layouts/Page.astro`); no auth, router or Zustand.
 7. **Dataset API** · ADR-014, ADR-040, ADR-043, ADR-056 · [spec](architecture/dataset-api.md) <a id="dataset-api"></a>
    The dataset's public interface: static files at `/api/v1/` from the committed data, additive only, a break is `/api/v2/`; never an npm package, no release stream.
    `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
@@ -35,13 +35,13 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and the sync status** <a id="data-flow"></a>
     Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
-    One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held, writes blocked), plus `outdated`.
+    One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held; own pilot, mech and NPC edits wait in the outbox, the rest is blocked), plus `outdated`.
 11. **Convex, the server of record** · moving to rooms (ADR-064) <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`); an entity is [in a Game or on a Shelf](architecture/glossary.md). A unit's body changes only by an op (`ops.apply`, `ops.transfer`; ADR-063), parsed by `applyOp`.
     Every client write goes through `src/replica/outbox.ts`; each replica table has a `RECORD_KINDS` entry.
 12. **Device copy** <a id="device-copy"></a>
-    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, read-only (ADR-058).
-    Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
+    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, and beside them the outbox: one op per own unit made offline, replayed by `ops.replay` once `live` (ADR-063 decision 9).
+    Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell, the copy and the outbox.
 13. **The replica** <a id="stores"></a>
     `src/replica/` is the one holder of server rows, filled by the feed (`ConvexFeed` until the room sockets) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the server's answer; a refused op changes nothing.
     No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, `convex/react`. `src/stores/` is UI state only.
@@ -109,8 +109,8 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 35. **Cloudflare** <a id="cloudflare"></a>
     Workers `su-srd` (`salvageunion.io`, `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc`, `wrangler deployments list`.
-36. **Error tracking** <a id="errors"></a>
-    Workers Issues (ADR-049); browsers post to `/__errors`, Convex's log stream to `/__convex-logs`.
+36. **Error tracking** · ADR-049 <a id="errors"></a>
+    Workers Issues, no SDK, browser stacks minified; browsers post to `/__errors`, Convex's log stream to `/__convex-logs`.
     `tools/check-observability.ts` guards it.
 37. **Convex and GitHub identifiers** <a id="identifiers"></a>
     Project `alex-jarvis:susrd`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both "unreachable").
@@ -121,11 +121,14 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 39. **UI words** · ADR-054 · [spec](architecture/messages.md) <a id="messages"></a>
     Every word the app draws is a key in `apps/web/src/messages/`, values as `{name}` placeholders; English only.
     The `ui-strings` rule set ratchets the strings still typed at the call site.
+40. **Addresses** · ADR-048, ADR-062 · [spec](architecture/addresses.md) <a id="addresses"></a>
+    Reference `/`, Training Bay `/build/`, Play `/play/`, one app mapped by `appPath` / `routeInApp`; sheets `/build/<kind>s/:id`.
+    Every retired address 301s once (`retiredTarget`).
 
 ## Decisions
 
 ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry and a change to its Area; once built, it folds into that Area.
-Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-045, ADR-047.
+Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-031, ADR-035, ADR-039, ADR-045, ADR-047.
 
 8. **ADR-008 Sequential client-side mutations**
    No atomic transaction or rollback; affordability is checked before an action runs. Amended by ADR-063.
@@ -134,9 +137,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 and ADR-064.
-31. **ADR-031 Reference pages build on an in-house Vite SSG**
-    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050, ADR-065.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.
@@ -161,13 +162,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
-48. **ADR-048 The app at salvageunion.io/build**
-    `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050, ADR-062.
-49. **ADR-049 Workers Issues, not Sentry**
-    No SDK; browsers and Convex report via the Workers; browser stacks minified.
-50. **ADR-050 One app** · [full text](adr/050-one-app.md)
-    `apps/web` is one app: the pre-rendered reference and the client app at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
-    Amends ADR-011, ADR-031, ADR-033 and ADR-048; amended by ADR-065.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
     Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
     Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
@@ -180,8 +174,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
-    Built: offline, the player's own sheets come back from the device, read-only; Convex stays of record.
-    Amends ADR-030 §1 and ADR-034.
+    Built: offline, the player's own sheets come back from the device; Convex stays of record.
+    Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
     Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy.
     Amends ADR-052 §1.
@@ -190,15 +184,9 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
     Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides. Built-in homebrew (credited Mech Monday patterns in the data) lists with them.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.
-62. **ADR-062 Play at /play, one URL grammar** · [full text](adr/062-play-at-play.md)
-    Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.
-    Amends ADR-048, ADR-050 and ADR-052 §4–5.
 63. **ADR-063 Typed ops are the write** · [full text](adr/063-typed-ops-are-the-write.md)
-    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`.
-    Amends ADR-008, ADR-022 and ADR-030 §4.
+    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`. Offline, ops on your own units wait in an outbox.
+    Amends ADR-008, ADR-022 and ADR-030 §1, §4; replaces ADR-058.
 64. **ADR-064 Cloudflare rooms are the server of record** · [full text](adr/064-cloudflare-rooms.md)
     A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in. One cutover at 4.5.0.
     Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.
-65. **ADR-065 The reference on Astro 7** · [full text](adr/065-reference-on-astro.md)
-    Astro builds and serves the pages; `.tsx` pages behind thin `.astro` shells, our islands, static, no adapter.
-    Amends ADR-031 and ADR-050.

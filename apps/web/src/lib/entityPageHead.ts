@@ -3,8 +3,8 @@
  * share, so their JSON-LD, preview, preload and trail cannot drift apart.
  */
 
-import type { DocumentMeta, StructuredData } from '../../ssg/types'
 import { assetSrcSetFor, heroImageSizes } from '../components/index'
+import type { DocumentMeta, StructuredData } from '../reference/types'
 import { PUBLISHER, SRD_CRUMB } from './constants'
 import type { ogMetaFor } from './ogCard'
 

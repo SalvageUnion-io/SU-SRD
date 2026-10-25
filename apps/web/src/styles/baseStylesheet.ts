@@ -5,10 +5,10 @@
  * the reference site and the app once bundled the fonts and the package stylesheet into
  * their own CSS, under their own bases: a visit crossing from one to the other
  * downloaded the same ~115 KB twice, from two URLs. It is built once here, with
- * no config either app could change, and the one Vite pass (`vite.config.ts`)
+ * no config either app could change, and the one Vite pass (`astro.config.ts`)
  * emits it (`emitBaseStylesheet`) and links it from the app's shell
- * (`baseStylesheetLink`, `ssg/appPlugins.ts`); the reference site's pages link it from
- * the manifest (`ssg/build.ts`).
+ * (`baseStylesheetLink`, `astro/build/appPlugins.ts`); the reference site's pages link it from
+ * `virtual:base-stylesheet` (`astro/lib/document.tsx`).
  *
  * In dev there is nothing to build: both apps link `/src/styles/base.css`,
  * which the dev server serves as CSS.

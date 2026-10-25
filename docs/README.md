@@ -16,7 +16,7 @@ Intent → doc. Area links and "ADR-N" resolve in [ARCHITECTURE.md](ARCHITECTURE
 12. **Feature names in copy (Game, Shelf, assign)** — [glossary.md](architecture/glossary.md).
 13. **Discord bot** — [Game client](ARCHITECTURE.md#bot-game-client); [its CLAUDE.md](../apps/discord-bot/CLAUDE.md)
 14. **Package API, public dataset** — [packages](ARCHITECTURE.md#packages) to [dataset API](ARCHITECTURE.md#dataset-api); ADR-040, ADR-043.
-15. **Static pages (SSG)** — [`apps/web/ssg/DESIGN.md`](../apps/web/ssg/DESIGN.md); ADR-031, ADR-050.
+15. **Static pages (Astro)** — [`apps/web/astro/DESIGN.md`](../apps/web/astro/DESIGN.md); ADR-065, ADR-050.
 16. **Hosting, CI, deploys** — ADR-033; [CI](ARCHITECTURE.md#ci) to [previews](ARCHITECTURE.md#previews).
 17. **Dependencies** — [dependencies](ARCHITECTURE.md#dependencies) to [dead code](ARCHITECTURE.md#dead-code).
 18. **Services, MCP, cloud sessions** — [MCP](ARCHITECTURE.md#mcp) to [identifiers](ARCHITECTURE.md#identifiers); [cloud-environment.md](ops/cloud-environment.md).

@@ -2,12 +2,11 @@
  * The app's shell: the one HTML document every `/build/*` navigation gets,
  * rendered at build time rather than kept as a hand-written `index.html`.
  *
- * Vite takes it as the app's HTML entry (`appShell` in
- * `ssg/appPlugins.ts`): the build injects the hashed entry, its CSS and
- * modulepreloads and writes `dist/build/index.html`, which the Worker
- * serves and the service worker precaches; the dev server answers navigations
- * with it. Plain `createElement`, no JSX and only relative imports, because the
- * Vite config loads this module itself.
+ * The build writes it as a page (`astro/pages/build/index.astro`), which
+ * bundles the entry, its CSS and modulepreloads into `dist/build/index.html`;
+ * the Worker serves it and the service worker precaches it. The dev server
+ * answers navigations with it (`appShellInDev`). Plain `createElement`, no JSX
+ * and only relative imports, because the Astro config loads this module.
  *
  * - The app is client-rendered and a crawler runs no JavaScript, so anything a
  *   route sets at runtime is invisible to an unfurl. For the routes a player
@@ -18,8 +17,8 @@
  *   claims every client route is the homepage. The Worker adds each public
  *   page's own (`worker/publicPages.ts`) for a crawler's request.
  * - The base stylesheet (the Barlow faces and the package stylesheet, shared
- *   with the reference site) is linked after the title by the `app-base-stylesheet` plugin,
- *   which alone knows its built URL.
+ *   with the reference site) is linked after the title, by the page in the
+ *   build and by `baseStylesheetLink` in dev.
  */
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -89,21 +88,26 @@ function headTags(): string {
  * `main.tsx`, the source entry, which the build replaces with its hashed chunk
  * (and the dev server serves as is).
  */
+function bodyMarkup(): string {
+  return renderUnionBar() + renderToStaticMarkup(createElement('div', { id: 'root' }))
+}
+
 function bodyTags(): string {
   return (
-    renderUnionBar() +
-    renderToStaticMarkup(
-      createElement(
-        Fragment,
-        null,
-        createElement('div', { id: 'root' }),
-        createElement('script', { type: 'module', src: '/src/main.tsx' })
-      )
-    )
+    bodyMarkup() +
+    renderToStaticMarkup(createElement('script', { type: 'module', src: '/src/main.tsx' }))
   )
 }
 
-/** The shell as Vite's HTML entry. */
+/**
+ * The shell's head and body without its entry script, for the build's page
+ * (`astro/pages/build/index.astro`), which bundles the entry itself.
+ */
+export function shellParts(): { head: string; body: string } {
+  return { head: `${headTags()}${META_START}${previewTags()}${META_END}`, body: bodyMarkup() }
+}
+
+/** The shell as the dev server serves it, its entry from source (`appShellInDev`). */
 export function renderShell(): string {
   return [
     '<!doctype html>',

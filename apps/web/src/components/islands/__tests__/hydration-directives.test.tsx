@@ -2,7 +2,7 @@
  * Island directives — the guard on the in-house island protocol.
  *
  * A page renders `<Island name=… client=… ssr=…>` and the placeholder it emits
- * is the contract (see `ssg/DESIGN.md`, "The island protocol"). Every assertion
+ * is the contract (see `astro/DESIGN.md`, "The island protocol"). Every assertion
  * below renders the real component and reads the real placeholder, rather than
  * matching source text. The one exception is `Toaster`, an assertion about
  * ABSENCE that the module graph is the honest place to check — and even that is
@@ -59,7 +59,7 @@ function onlyIsland(islands: Placeholder[]): Placeholder {
   return island
 }
 
-/** Render inside a collection window, the way `ssg/document.tsx` does. */
+/** Render inside a collection window, the way `astro/lib/document.tsx` does. */
 function renderIslands(node: React.ReactNode): {
   markup: string
   islands: Placeholder[]
@@ -226,7 +226,7 @@ describe('hydration directives', () => {
       for (const island of chrome) expect(island.inner.length).toBeGreaterThan(0)
       // Chrome takes no props at all. `MobileNavIsland` computing its own
       // catalog instead of receiving one is what keeps 17.3 MB of duplicated
-      // props out of the build (ssg/DESIGN.md, "props designed out").
+      // props out of the build (astro/DESIGN.md, "props designed out").
       expect(props).toEqual({})
     })
 
