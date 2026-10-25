@@ -6,11 +6,7 @@
  */
 
 import { DurableObject, exports } from 'cloudflare:workers'
-import type {
-  DurableObjectNamespace,
-  DurableObjectState,
-  DurableObjectStorage,
-} from '@cloudflare/workers-types'
+import type { DurableObjectNamespace } from '@cloudflare/workers-types'
 import type { Migrations } from '../rooms/migrate'
 import { migrate } from '../rooms/migrate'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
@@ -18,21 +14,22 @@ import type { RoomSql } from '../rooms/sql'
 
 type RoomHealth = { schema: number }
 
-/** `GET /__rooms/health`: each room kind opens and migrates, or the answer is a 503. */
-export const ROOMS_HEALTH_PATH = '/__rooms/health'
+/** workerd's `DurableObjectState` and `Env`, however the program types `cloudflare:workers`. */
+type RoomState = ConstructorParameters<typeof DurableObject>[0]
+type RoomEnv = ConstructorParameters<typeof DurableObject>[1]
 
-function storageSql(storage: DurableObjectStorage): RoomSql {
+function storageSql(storage: RoomState['storage']): RoomSql {
   return {
     exec: (query, ...bindings) => storage.sql.exec(query, ...bindings).toArray() as never,
     transaction: (fn) => storage.transactionSync(fn),
   }
 }
 
-abstract class Room extends DurableObject {
+abstract class Room extends DurableObject<RoomEnv> {
   protected readonly sql: RoomSql
   private schema = 0
 
-  constructor(ctx: DurableObjectState, env: unknown, migrations: Migrations) {
+  constructor(ctx: RoomState, env: RoomEnv, migrations: Migrations) {
     super(ctx, env)
     this.sql = storageSql(ctx.storage)
     // Before the first request is delivered: no request sees an old schema.
@@ -48,14 +45,14 @@ abstract class Room extends DurableObject {
 
 /** @public A player's shelf; loaded by workerd (`wrangler.jsonc` `exports`). */
 export class AccountRoom extends Room {
-  constructor(ctx: DurableObjectState, env: unknown) {
+  constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
   }
 }
 
 /** @public A Game; loaded by workerd (`wrangler.jsonc` `exports`). */
 export class GameRoom extends Room {
-  constructor(ctx: DurableObjectState, env: unknown) {
+  constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, GAME_ROOM)
   }
 }

@@ -1,0 +1,8 @@
+{
+  "extends": "../../../tsconfig.json",
+  // workerd's globals, not the DOM's: only the rooms' wiring suite runs here.
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-plugin/types"]
+  },
+  "include": ["*.ts"]
+}
