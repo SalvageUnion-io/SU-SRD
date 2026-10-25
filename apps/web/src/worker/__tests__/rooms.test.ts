@@ -3,7 +3,13 @@ import { exports } from 'cloudflare:workers'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { bunSql } from '../../rooms/__tests__/bunSql'
-import { AccountRoom, GameRoom, serveGameSocket, serveRoomsHealth } from '../rooms'
+import {
+  AccountRoom,
+  GameRoom,
+  serveAccountSocket,
+  serveGameSocket,
+  serveRoomsHealth,
+} from '../rooms'
 
 /**
  * The rooms' Worker side under `bun test`, against a stand-in Durable Object
@@ -268,6 +274,46 @@ describe('serveGameSocket', () => {
     expect(forwarded?.headers.get('x-su-seat')).toBe('1')
     await serveGameSocket(upgrade('yes'), 'g1', env)
     expect(forwarded?.headers.get('x-su-seat')).toBe('0')
+  })
+})
+
+describe('serveAccountSocket', () => {
+  const env = { SHARED: {} as never }
+  const upgrade = () =>
+    new Request('https://salvageunion.io/__rooms/account/socket', {
+      headers: { upgrade: 'websocket' },
+    })
+  const signedIn = async () => ({ accountId: 'a1', discordId: 'd-rook', admin: false })
+  const signedOut = async () => null
+  const pageRequest = globalThis.Request
+
+  afterEach(() => {
+    globalThis.Request = pageRequest
+  })
+
+  test('wants an upgrade', async () => {
+    const res = await serveAccountSocket(new Request('https://x/'), env, signedIn)
+    expect(res.status).toBe(426)
+  })
+
+  test('refuses someone signed out', async () => {
+    expect((await serveAccountSocket(upgrade(), env, signedOut)).status).toBe(403)
+  })
+
+  test('hands the player to their own room, by Discord id', async () => {
+    globalThis.Request = Request
+    let forwarded: Request | undefined
+    namespaces.AccountRoom = {
+      getByName: (name: string) => ({
+        fetch: async (req: Request) => {
+          forwarded = req
+          return new Response(name)
+        },
+      }),
+    }
+    const res = await serveAccountSocket(upgrade(), env, signedIn)
+    expect(await res.text()).toBe('d-rook')
+    expect(forwarded?.headers.get('x-su-member')).toBe('d-rook')
   })
 })
 

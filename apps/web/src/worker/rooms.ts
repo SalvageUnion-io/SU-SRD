@@ -41,6 +41,9 @@ import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { unitVitals } from '../rooms/vitals'
+import type { Identity } from './auth/index'
+import { identityOf } from './auth/index'
+import type { D1Like } from './auth/store'
 import { roomMember } from './roomAuth'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign } from './shared/stopSign'
@@ -567,6 +570,23 @@ export async function serveGameSocket(
   headers.set(MEMBER_HEADER, member)
   headers.set(SEAT_HEADER, new URL(request.url).searchParams.get('seat') === '1' ? '1' : '0')
   const room = rooms().GameRoom.getByName(gameId)
+  // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
+  const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
+  return forward(new Request(request, { headers }))
+}
+
+/** The signed-in player's socket to their own account room; signed out, a 403. */
+export async function serveAccountSocket(
+  request: Request,
+  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  identify: (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null> = identityOf
+): Promise<Response> {
+  if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
+  const who = await identify(request, env)
+  if (who === null) return new Response(null, { status: 403 })
+  const headers = new Headers(request.headers)
+  headers.set(MEMBER_HEADER, who.discordId)
+  const room = rooms().AccountRoom.getByName(who.discordId)
   // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
   const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
   return forward(new Request(request, { headers }))
