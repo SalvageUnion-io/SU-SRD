@@ -126,3 +126,12 @@ export const GAME_ROOM_TABLES: readonly string[] = [
         imported_at integer not null
       )`,
 ]
+
+/**
+ * Step 2 of `GAME_ROOM`: when each link was drawn and each tray NPC last
+ * changed, which the socket's links and records carry (`../protocol.ts`).
+ */
+export const GAME_ROOM_STAMPS: readonly string[] = [
+  'alter table links add column created_at integer not null default 0',
+  'alter table tray add column updated_at integer not null default 0',
+]

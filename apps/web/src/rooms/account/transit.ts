@@ -277,7 +277,7 @@ export class AccountTransit {
         })
         for (const op of unit.ops) this.store.putOp(importedOp(op))
       }
-      for (const link of bundle.links) this.store.putLink(link as LinkShape)
+      for (const link of bundle.links) this.store.putLink(link as LinkShape, at)
       for (const seat of bundle.seats) this.importSeat(seat, at)
       for (const table of SHELF_RECORDS) {
         for (const record of bundle[table]) {

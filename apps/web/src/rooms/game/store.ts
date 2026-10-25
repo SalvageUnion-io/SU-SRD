@@ -253,14 +253,25 @@ export class GameStore {
       .map(linkOf)
   }
 
-  putLink(link: LinkShape): void {
+  /** Every link with its stable key (type, ends and slot) and when it was drawn. */
+  stampedLinks(): (LinkShape & { key: string; createdAt: number })[] {
+    return this.sql.exec('select * from links order by type, from_id, to_id').map((row) => ({
+      ...linkOf(row),
+      key: [row.type, row.from_id, row.to_id, row.slot_key].join(':'),
+      createdAt: Number(row.created_at),
+    }))
+  }
+
+  putLink(link: LinkShape, at = Date.now()): void {
     this.sql.exec(
-      'insert or ignore into links (type, from_id, to_id, slot_key, slot) values (?, ?, ?, ?, ?)',
+      `insert or ignore into links (type, from_id, to_id, slot_key, slot, created_at)
+       values (?, ?, ?, ?, ?, ?)`,
       link.type,
       link.from.id,
       link.to.id,
       slotKey(link.slot),
-      link.slot === undefined ? null : JSON.stringify(link.slot)
+      link.slot === undefined ? null : JSON.stringify(link.slot),
+      at
     )
   }
 
