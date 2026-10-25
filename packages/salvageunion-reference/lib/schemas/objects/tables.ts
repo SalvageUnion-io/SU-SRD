@@ -1,5 +1,5 @@
 /**
- * d20 roll tables — one entry shape, and the nine-variant discriminated union
+ * d20 roll tables — one entry shape, and the ten-variant discriminated union
  * of bucket layouts the books actually print.
  */
 
@@ -12,6 +12,12 @@ export const TableContentSchema = z
   .object({
     label: z.string().describe('Optional label for this table entry').optional(),
     value: z.string().describe('Result text for this table entry'),
+    roster: z
+      .array(z.string())
+      .describe(
+        'The opposition this result fields, one line each as printed ("2 × Contour Pattern Drop Bear")'
+      )
+      .optional(),
   })
   .strict()
   .describe('Table content with label and value for roll table entries')
@@ -144,6 +150,18 @@ export const TableSchema = z
         '16-17': TableContentSchema,
         '18-19': TableContentSchema,
         '20': TableContentSchema,
+      })
+      .strict(),
+    // Encounter table: the Workshop Manual's region encounter tables (p.270)
+    z
+      .object({
+        type: z.literal('encounter'),
+        '20': TableContentSchema,
+        '16-19': TableContentSchema,
+        '11-15': TableContentSchema,
+        '6-10': TableContentSchema,
+        '2-5': TableContentSchema,
+        '1': TableContentSchema,
       })
       .strict(),
     // Octet roll table (singletons at 1 and 20, six 3-wide buckets in between)

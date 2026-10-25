@@ -19,6 +19,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, tes
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
+import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
@@ -39,6 +40,7 @@ function useMutation(ref: unknown) {
   const mutate = async (args: Record<string, unknown>) => {
     sent.push({ name, args })
     if (name === 'mediator:runEncounter') return { added: 1 }
+    if (name === 'ledger:collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
     return name === 'downtime:spendUpkeep' ? true : null
   }
   return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
@@ -146,6 +148,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:npcs': NPCS,
     'mediator:patterns': [],
+    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
     'mediator:running': null,
     'salvageAreas:here': null,
     'proposals:sent': [SENT_PROPOSAL],
@@ -160,6 +163,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       },
     ],
     'channelBindings:current': { channelId: 'c-1', boundAt: 1 },
+    'safety:stopSign': null,
     'account:me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,
   }
@@ -428,6 +432,20 @@ describe('the Opposition', () => {
     await click(named('End Ambush'))
     expect(sent).toContainEqual({ name: 'mediator:endEncounter', args: { gameId: GAME } })
   })
+
+  test('a briefing stays behind its flag, off in a production build', async () => {
+    await renderCockpit({
+      'mediator:running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: '',
+        briefing: 'Smoke rises from the crusher.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(screen.queryByText('Smoke rises from the crusher.')).toBeNull()
+  })
 })
 
 describe('Downtime', () => {
@@ -489,6 +507,69 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP, true))
     expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull()
     expect(screen.getByText('Paid')).toBeTruthy()
+  })
+
+  /** A ledger with two signed deals, collected this Downtime or not. */
+  const dealsLedger = (incomeCollected: boolean): QueryAnswers => ({
+    'ledger:get': {
+      factions: [
+        { id: 'f1', name: 'Stefanus', standing: 'friendly', deal: true },
+        { id: 'f2', name: 'Vornaya', standing: 'neutral', deal: true },
+        { id: 'f3', name: 'DronTek', standing: 'hostile', deal: false },
+      ],
+      jobs: [],
+      incomeCollected,
+    },
+  })
+
+  test('with no deal there is no Deal income line', async () => {
+    await renderCockpit(downtimeAt(UPKEEP_STEP))
+    expect(screen.queryByText('Deal income')).toBeNull()
+  })
+
+  test('Deal income is a Scrap per deal, collected in Upkeep & Upgrade on the server', async () => {
+    await renderCockpit({ ...downtimeAt(0), ...dealsLedger(false) })
+    expect(screen.getByText('2 Scrap')).toBeTruthy()
+    expect((named('Collect') as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  test('in Upkeep & Upgrade, Collect pays it and says what it came to', async () => {
+    await renderCockpit({ ...downtimeAt(UPKEEP_STEP), ...dealsLedger(false) })
+    await click(named('Collect'))
+    await waitFor(() =>
+      expect(screen.getByText('Collected 2 Tech 2 Scrap into Tenacity.')).toBeTruthy()
+    )
+    expect(names()).toEqual(['ledger:collectIncome'])
+  })
+
+  test('collected, it says so', async () => {
+    await renderCockpit({ ...downtimeAt(UPKEEP_STEP), ...dealsLedger(true) })
+    expect(screen.queryByRole('button', { name: 'Collect' })).toBeNull()
+    expect(screen.getByText('Collected')).toBeTruthy()
+  })
+
+  test('with a Nanite Processing Bay, Process Nanites runs in the Craft step', async () => {
+    const store = useEntityStore.getState()
+    const before = store.get('crawler', tenacity.id) ?? tenacity
+    await store.adopt('crawler', {
+      ...before,
+      crawlerBays: [{ bayRef: 'nanite-processing-bay' }],
+      scrapPool: { ...before.scrapPool, inertNanites: 2 },
+    })
+    try {
+      await renderCockpit(downtimeAt(0))
+      expect((named('Process') as HTMLButtonElement).disabled).toBe(true)
+      cleanup()
+      await renderCockpit(downtimeAt(downtimeStepNames().indexOf(CRAFT_STEP_NAME)))
+      await click(named('Process'))
+      await waitFor(() =>
+        expect(screen.getByText(/^Processed 2 Inert Meld Nanite piles/)).toBeTruthy()
+      )
+      expect(useEntityStore.getState().get('crawler', tenacity.id)?.scrapPool?.inertNanites).toBe(0)
+    } finally {
+      cleanup()
+      await useEntityStore.getState().adopt('crawler', before)
+    }
   })
 })
 

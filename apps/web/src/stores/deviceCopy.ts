@@ -3,7 +3,8 @@
  * device so an offline reload can show them, read-only.
  *
  * Convex stays the server of record (ADR-030). The copy is the last answer
- * `ShelfSync` applied from `entities.listMine` and `entities.listWiring`,
+ * `ShelfSync` applied from `entities.listMine` and `entities.listWiring`, and
+ * `EncounterSync` from `shelf.encounters` (the Mediator's prep, ADR-059),
  * saved verbatim after each emission, and it is only ever READ back into the
  * stores, through the same apply as a served answer
  * (`shelfApply.ts`), when the app boots offline with a session
@@ -34,6 +35,8 @@ import { localStore } from '../lib/safeLocalStorage'
 export type MineAnswer = FunctionReturnType<typeof api.entities.listMine>
 /** `entities.listWiring`'s answer, as `WiringSync` applies it. */
 export type WiringAnswer = FunctionReturnType<typeof api.entities.listWiring>
+/** `shelf.encounters`' answer, as `EncounterSync` applies it. */
+export type EncountersAnswer = FunctionReturnType<typeof api.shelf.encounters>
 
 export type DeviceCopy = {
   /** The account the rows are, from the session token's subject. */
@@ -42,6 +45,8 @@ export type DeviceCopy = {
   savedAt: number
   mine: MineAnswer | null
   wiring: WiringAnswer | null
+  /** Absent on a copy saved before encounters were kept; read as none. */
+  encounters?: EncountersAnswer | null
 }
 
 /** Where the copy lives; IndexedDB in a browser, a fake in a unit test. */
@@ -157,8 +162,10 @@ function enqueue(task: () => Promise<void>): Promise<void> {
 /** The copy as this tab last wrote it, so each half saves without a read. */
 let latest: DeviceCopy | null = null
 
-/** Save one half of the account's served rows, after `ShelfSync` applied it. */
-export function saveCopy(part: { mine: MineAnswer } | { wiring: WiringAnswer }): Promise<void> {
+/** Save one part of the account's served rows, after its sync applied it. */
+export function saveCopy(
+  part: { mine: MineAnswer } | { wiring: WiringAnswer } | { encounters: EncountersAnswer }
+): Promise<void> {
   const account = sessionAccount()
   if (account === null) return Promise.resolve()
   const base = latest?.account === account ? latest : { account, mine: null, wiring: null }

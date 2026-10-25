@@ -87,6 +87,8 @@ export function npcKind(npc: Pick<TrayNpc, 'refSchema'>): string {
       return 'Creature'
     case 'vehicles':
       return 'Vehicle'
+    case 'drones':
+      return 'Drone'
     case 'bio-titans':
       return 'Bio-Titan'
     case 'meld':

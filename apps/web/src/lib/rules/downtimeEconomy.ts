@@ -24,7 +24,7 @@ import type { AreaSalvageResult, MechSalvageBand } from 'salvageunion-reference/
 import { mechSalvageAllows, mechSalvageScrap } from 'salvageunion-reference/rules'
 import { carrierCargoUsage } from '../cargo/cargoTransfer'
 import type { CraftableItem } from './crafting'
-import { craftedLot, craftQuote } from './crafting'
+import { craftBaysOf, craftedLot, craftQuote } from './crafting'
 import { pilotInventoryUsed } from './pilotInventory'
 import {
   depositScrapDeposits,
@@ -45,7 +45,10 @@ export type CraftOutcome = {
   quote: ReturnType<typeof craftQuote>
   /** Null when the craft is not allowed — the caller shows the reason instead. */
   patch: Partial<Crawler> | null
-  /** Why the craft is blocked, for the rule brief. Undefined when allowed. */
+  /**
+   * Why the craft is blocked, for the rule brief. Undefined when allowed.
+   * 'tech-level' covers a Bio or Nanite item with no bay to craft it in.
+   */
   blocked?: 'tech-level' | 'scrap'
 }
 
@@ -58,11 +61,16 @@ export type CraftOutcome = {
  * remember not to apply.
  */
 export function craftOutcome(
-  crawler: Pick<Crawler, 'techLevel' | 'scrapPool' | 'cargoLots'>,
+  crawler: Pick<Crawler, 'techLevel' | 'scrapPool' | 'cargoLots' | 'crawlerBays'>,
   item: CraftableItem
 ): CraftOutcome {
   const crawlerTl = crawlerTechLevelOf(crawler) ?? 0
-  const quote = craftQuote(item, (crawler.scrapPool ?? {}) as ScrapPool, crawlerTl)
+  const quote = craftQuote(
+    item,
+    (crawler.scrapPool ?? {}) as ScrapPool,
+    crawlerTl,
+    craftBaysOf(crawler)
+  )
   if (!quote.eligible) return { quote, patch: null, blocked: 'tech-level' }
   if (!quote.affordable) return { quote, patch: null, blocked: 'scrap' }
   return {

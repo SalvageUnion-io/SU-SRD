@@ -19,7 +19,12 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { CoreRollBand, HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
+import type {
+  CoreRollBand,
+  HeatCheckEffect,
+  OverloadTable,
+  Roll,
+} from 'salvageunion-reference/rules'
 import {
   AREA_SALVAGE_TABLE,
   canActivateAction,
@@ -29,8 +34,11 @@ import {
   describePushOutcome,
   mechMaxHeat,
   mechMaxSP,
+  overloadTableName,
+  overloadTableOf,
   performHeatCheck,
   performPush,
+  pilotMaxHP,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
@@ -66,7 +74,13 @@ function autoApplyPatch(patch: Partial<Mech>): { patch: Partial<Mech>; meltdown:
  * held back (`meltdown: true`) for the caller's player-confirm (ADR-007).
  * Destroyed System/Module bands are likewise left for the player to mark.
  */
-export function pushPatch(args: { heat: number; heatCap: number; currentSP: number; roll: Roll }): {
+export function pushPatch(args: {
+  heat: number
+  heatCap: number
+  currentSP: number
+  roll: Roll
+  table?: OverloadTable
+}): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   nextHeat: number
@@ -90,13 +104,16 @@ export function mechPush(
   patch: Partial<Mech>
   text: string
   meltdown: boolean
-  /** The Reactor Overload die, where the Heat Check overloaded. */
+  /** The overload die, where the Heat Check overloaded. */
   overloadRoll?: number
+  /** What the overload does to the Pilot (a Bio-Chassis's), for `pilotOverloadPatch`. */
+  effect: HeatCheckEffect
 } | null {
   const chassis = resolveChassisRef(mech.chassisRef)
   const heatCap = mechMaxHeat(mech, chassis)
   const heat = resolveGauge(mech.currentHeat, heatCap)
   if (!canPush(heat, heatCap)) return null
+  const table = overloadTableOf(chassis)
   const { patch, effect, nextHeat, meltdown } = pushPatch({
     heat,
     heatCap,
@@ -104,18 +121,46 @@ export function mechPush(
     // to SP 0 — one hit from destroyed — without it ever having taken damage.
     currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
     roll,
+    table,
   })
   const { overloadRoll } = effect.result
   return {
     patch,
-    text: describePushOutcome(nextHeat, effect),
+    text: describePushOutcome(nextHeat, effect, table),
     meltdown,
+    effect,
     ...(overloadRoll === undefined ? {} : { overloadRoll }),
   }
 }
 
+/**
+ * What a Bio-Chassis overload does to its Pilot (We Were Here First p.79): a
+ * Bio-Overload's HP damage equal to the Heat, or a Pilot Overload's Minor or
+ * Major Injury. Null when the overload leaves the Pilot alone, as every
+ * Reactor Overload row does.
+ */
+export function pilotOverloadPatch(pilot: Pilot, effect: HeatCheckEffect): Partial<Pilot> | null {
+  const patch: Partial<Pilot> = {}
+  if (effect.pilotDamage !== undefined) {
+    const hp = resolvePoolStart(pilot.currentHP, pilotMaxHP(pilot))
+    patch.currentHP = Math.max(0, hp - effect.pilotDamage)
+  }
+  if (effect.pilotInjury !== undefined) {
+    patch.injuries = [
+      ...(pilot.injuries ?? []),
+      { severity: effect.pilotInjury, note: overloadTableName('bio') },
+    ]
+  }
+  return Object.keys(patch).length === 0 ? null : patch
+}
+
 /** A standalone Heat Check at current Heat (no +2). Meltdown is player-confirmed. */
-export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll: Roll }): {
+export function heatCheckOncePatch(args: {
+  heat: number
+  currentSP: number
+  roll: Roll
+  table?: OverloadTable
+}): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   meltdown: boolean
@@ -148,10 +193,13 @@ export function shutdownTogglePatch(shutdown: boolean | undefined): Partial<Mech
  * which prefixes the same tail with its `+2 Heat → N.` head) — only the head is
  * Play's own.
  */
-export function describeHeatCheck(effect: HeatCheckEffect): string {
+export function describeHeatCheck(
+  effect: HeatCheckEffect,
+  table: OverloadTable = 'reactor'
+): string {
   const r = effect.result
   const head = `Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
-  return `${head} — ${describeOverloadOutcome(r)}`
+  return `${head} — ${describeOverloadOutcome(r, table)}`
 }
 
 // ---------------------------------------------------------------------------

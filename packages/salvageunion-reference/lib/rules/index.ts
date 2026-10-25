@@ -84,9 +84,14 @@ export {
   unifiedMechConditions,
 } from './derivedStats'
 export {
+  bioOverloadOutcome,
   canActivateAction,
   canPush,
   clampHeat,
+  damageTableName,
+  isBioChassis,
+  overloadTableName,
+  overloadTableOf,
   performHeatCheck,
   performPush,
 } from './heatCheck'
@@ -132,6 +137,7 @@ export {
 export type {
   HeatCheckEffect,
   MechSnapshot,
+  OverloadTable,
   PilotSnapshot,
   Roll,
   SoftWarning,

@@ -57,6 +57,7 @@ export function PlayActionEntry({
       return actions.mech === null ? null : (
         <PlayReactorRow
           mech={actions.mech}
+          pilot={actions.pilot}
           store={actions.store}
           rollFor={actions.rollFor}
           need={need}

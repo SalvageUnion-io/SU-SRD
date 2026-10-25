@@ -20,6 +20,8 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
+import type { FunctionReturnType } from 'convex/server'
+import { dealCount } from 'game-domain/games/ledger'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
@@ -27,7 +29,7 @@ import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { dieForTable, toast } from '../../components/index'
+import { dieForTable, rollD20, toast } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { rollMorale } from '../../lib/rules/opposition'
@@ -71,6 +73,8 @@ export type PlayMediator = {
   crawler: { crawler: Crawler; held: boolean } | null
   /** The Game's Downtime, as its Mediator runs it. */
   downtime: PlayDowntime
+  /** What the crew's faction deals pay this Downtime (`ledger.collectIncome`). */
+  income: DealIncome
   /** The tray, hidden from players; null while it loads. */
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
@@ -100,6 +104,16 @@ export type PlayMediator = {
   now: number
   canWrite: boolean
   readOnly: PlayReadOnly | null
+}
+
+/** The Game's deal income: a Scrap per deal, collected once per Downtime at Upkeep. */
+type DealIncome = {
+  /** The factions the crew has a deal with; 0 while the ledger loads. */
+  deals: number
+  /** This Downtime's is collected. */
+  collected: boolean
+  /** Collect it into the crawler: what it paid, or null when it already was. */
+  collect: () => Promise<FunctionReturnType<typeof api.ledger.collectIncome>>
 }
 
 /** The Mediator's encounters, and the one the Game is running (ADR-059). */
@@ -160,6 +174,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
   const area = useSalvageArea(mediatorTarget(gameId))
+  const ledger = useQuery(api.ledger.get, { gameId: id })
+  const collectIncome = useMutation(api.ledger.collectIncome)
 
   const addNpc = useMutation(api.mediator.addNpc)
   const updateNpc = useMutation(api.mediator.updateNpc)
@@ -220,6 +236,39 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     },
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
+    field: async (lines) => {
+      // One at a time, each name counted against the ones before it, so four
+      // Contour Hussars come out numbered.
+      const taken = (tray ?? []).map((n) => n.name)
+      let added = 0
+      for (const line of lines) {
+        if (line.draw === null) continue
+        const { schema, entity, pattern } = line.draw
+        let count = line.count
+        if (count === 'd20') {
+          count = rollD20()
+          recordPlayRoll({
+            tableName: 'd20',
+            rolls: [count],
+            label: line.text,
+            outcome: `${count}`,
+          })
+        }
+        for (let i = 0; i < count; i++) {
+          const body = newTrayNpc(
+            schema,
+            entity,
+            taken,
+            new Date().toISOString(),
+            pattern ? { pattern } : {}
+          )
+          await addNpc({ gameId: id, body })
+          taken.push(body.name)
+          added += 1
+        }
+      }
+      return added
+    },
   }
 
   const crawler =
@@ -232,6 +281,11 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     crew: crew ?? null,
     crawler,
     downtime,
+    income: {
+      deals: ledger ? dealCount(ledger) : 0,
+      collected: ledger?.incomeCollected ?? false,
+      collect: () => collectIncome({ gameId: id }),
+    },
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,

@@ -10,7 +10,9 @@
  *   3. A short pool is advisory — Repair still proceeds, never blocks.
  *   4. readOnly suppresses every edit affordance.
  *   5. The Storage Bay's Scrap Pool steppers hand-edit `crawler.scrapPool`
- *      (Free Edit) — a crawler can stow arbitrary scrap by tech level.
+ *      (Free Edit) — a crawler can stow arbitrary scrap by tech level, and
+ *      Bio-Salvage, Chimerium and Meld Nanites beside it.
+ *   6. Edit installs an expansion bay, and removes one; base bays stay.
  *
  * Uses the store-injection seam + a patched CrawlerBays.all. NO mock.module().
  */
@@ -50,6 +52,14 @@ const MOCK_BAYS: Array<RefCrawlerBay & { schemaName: string }> = [
     blackMarket: false,
     npc: { position: 'Greaser', hitPoints: 4 },
   },
+  {
+    id: 'nanite-processing-bay',
+    name: 'Nanite Processing Bay',
+    schemaName: 'crawler-bays',
+    source: 'False Flag',
+    page: 66,
+    expansion: true,
+  } as RefCrawlerBay & { schemaName: string },
 ]
 
 async function patchCrawlerBays(): Promise<() => void> {
@@ -365,5 +375,65 @@ describe('CrawlerSheet — Scrap Pool steppers', () => {
 
     expect(screen.queryByRole('button', { name: /increase t2/i })).toBeNull()
     expect(update).not.toHaveBeenCalled()
+  })
+})
+
+describe('CrawlerSheet — Bio-Salvage and Nanites, expansion bays', () => {
+  let restore: () => void
+  afterEach(() => {
+    restore?.()
+  })
+
+  test('a resource stepper patches its bucket beside the Tech buckets', async () => {
+    restore = await patchCrawlerBays()
+    const update = mock(async () => fakeCrawler)
+    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /increase inert meld nanites/i }))
+    })
+    const call = update.mock.calls.at(-1) as [string, string, Record<string, unknown>] | undefined
+    expect(call?.[2]).toMatchObject({ scrapPool: { tl2: 3, tl3: 4, inertNanites: 1 } })
+  })
+
+  test('Read leaves an empty resource row out', async () => {
+    restore = await patchCrawlerBays()
+    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} readOnly />)
+    expect(screen.queryByText('Bio-Salvage & Nanites')).toBeNull()
+  })
+
+  test('Edit installs an expansion bay with its entry, and only an expansion bay is removable', async () => {
+    restore = await patchCrawlerBays()
+    const update = mock(async () => fakeCrawler)
+    const installed: Crawler = {
+      ...fakeCrawler,
+      crawlerBays: [...(fakeCrawler.crawlerBays ?? []), { bayRef: 'nanite-processing-bay' }],
+    }
+    const { unmount } = render(
+      <CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />
+    )
+    await act(async () => {
+      fireEvent.change(screen.getByRole('combobox', { name: 'Add an expansion bay' }), {
+        target: { value: 'nanite-processing-bay' },
+      })
+    })
+    const call = update.mock.calls.at(-1) as [string, string, Record<string, unknown>] | undefined
+    expect(call?.[2]).toMatchObject({ crawlerBays: installed.crawlerBays })
+    unmount()
+
+    const removeSpy = mock(async () => installed)
+    render(
+      <CrawlerSheet crawler={installed} store={makeStubStore(installed, { update: removeSpy })} />
+    )
+    // Installed, it leaves the picker, and it alone offers Remove.
+    expect(screen.queryByRole('combobox', { name: 'Add an expansion bay' })).toBeNull()
+    const removes = screen.getAllByRole('button', { name: /remove/i })
+    expect(removes.length).toBe(1)
+    await act(async () => {
+      fireEvent.click(must(removes[0]))
+    })
+    const removed = removeSpy.mock.calls.at(-1) as
+      | [string, string, Record<string, unknown>]
+      | undefined
+    expect(removed?.[2]).toMatchObject({ crawlerBays: fakeCrawler.crawlerBays })
   })
 })

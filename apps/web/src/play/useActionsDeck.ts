@@ -49,6 +49,8 @@ import {
   mechMaxCargo,
   mechMaxEP,
   mechMaxHeat,
+  overloadTableName,
+  overloadTableOf,
   performCoreRoll,
   pilotMaxAP,
   pilotMaxInventorySlots,
@@ -71,6 +73,7 @@ import {
   isDestructiveOutcome,
   mechPush,
   pilotActivationPatch,
+  pilotOverloadPatch,
 } from '../lib/rules/actionPatches'
 import { areaSalvageToMech, areaSalvageToPilot } from '../lib/rules/downtimeEconomy'
 import type { MechItemEconomy } from '../lib/rules/mechItems'
@@ -370,14 +373,18 @@ export function useActionsDeck({
   async function doPush(current: SeatResolving) {
     // Push is the mech reactor's move: only a boarded deck offers it.
     if (!mech) return
-    // The Heat Check's own d20 is plain; an overload rolls on Reactor Overload.
-    const heatRoll = await rollFor('Reactor Overload', { plainD20s: 1 })
+    // The Heat Check's own d20 is plain; an overload rolls on Reactor Overload,
+    // or a Bio-Chassis's own table (We Were Here First p.79).
+    const overloadTable = overloadTableName(overloadTableOf(resolveChassisRef(mech.chassisRef)))
+    const heatRoll = await rollFor(overloadTable, { plainD20s: 1 })
     const coreRoll = await rollFor('Core Mechanic')
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
     const pushed = mechPush(s.get('mech', mech.id) ?? mech, heatRoll)
     if (pushed === null) return
     runWrite(() => s.update('mech', mech.id, pushed.patch, meta))
+    const hurt = pilot ? pilotOverloadPatch(s.get('pilot', pilot.id) ?? pilot, pushed.effect) : null
+    if (pilot && hurt !== null) runWrite(() => s.update('pilot', pilot.id, hurt, meta))
     const result = performCoreRoll(coreRoll)
     setPushLog(pushed.text)
     setMeltdown(pushed.meltdown)

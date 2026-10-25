@@ -196,6 +196,34 @@ describe('a solo Downtime, end to end', () => {
     expect(within(stepBox()).getByText('Upkeep is already paid this Downtime.')).toBeTruthy()
   })
 
+  test('the Craft step processes Nanites: every Inert pile spent, a 20 an Active one', async () => {
+    const { pilot, mech, crawler: base } = units()
+    const crawler: Crawler = {
+      ...base,
+      crawlerBays: [...(base.crawlerBays ?? []), { bayRef: 'nanite-processing-bay' }],
+      scrapPool: { tl2: 7, inertNanites: 3 },
+    }
+    const { store, calls } = stubStore(pilot, mech, crawler)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={store}
+        writes={[]}
+        downtime={{ stepIndex: STEPS.indexOf('Craft Mech Chassis, Systems, and Modules') }}
+      />
+    )
+    expect(within(stepBox()).getByText('Process Nanites')).toBeTruthy()
+    await click(button('Apply & mark done'))
+    const write = calls.find((c) => c.type === 'crawler')
+    const pool = (write?.patch as Partial<Crawler> | undefined)?.scrapPool
+    expect(pool?.inertNanites).toBe(0)
+    expect(pool?.activeNanites).toBeGreaterThanOrEqual(0)
+    expect(pool?.activeNanites).toBeLessThanOrEqual(3)
+    expect(within(stepBox()).getByText(/Processed 3 Inert Meld Nanite piles/)).toBeTruthy()
+  })
+
   test('a step done before a reload is not applied again: Train’s +1 TP lands once', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
