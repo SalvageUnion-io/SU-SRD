@@ -23,4 +23,10 @@ interface ImportMetaEnv {
    * (`astro.config.ts`); links need none.
    */
   readonly VITE_SITE_ORIGIN?: string
+  /**
+   * `'1'`: the replica is fed by the room sockets (`replica/RoomFeed.tsx`)
+   * rather than Convex's queries. Unset everywhere until the cutover fills
+   * the rooms (ADR-064 §7); then the switch and `ConvexFeed` go.
+   */
+  readonly VITE_ROOM_FEED?: string
 }

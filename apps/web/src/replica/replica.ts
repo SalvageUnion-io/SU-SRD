@@ -42,8 +42,22 @@ export type RowOf<T extends Table> =
 
 export const TABLES = Object.keys(RECORD_KINDS) as Table[]
 
-/** Whose answer holds a row: see the header. */
-export type Scope = 'account' | 'wiring'
+/**
+ * Whose answer holds a row: see the header. Convex serves `account` and
+ * `wiring`; the rooms serve `account` (the account room) and one scope per
+ * Game room (`gameScope`).
+ */
+export type Scope = 'account' | 'wiring' | `game:${string}`
+
+/** A Game room's scope. */
+export const gameScope = (gameId: string): Scope => `game:${gameId}`
+
+/** Whether written rows join the rooms' scopes rather than Convex's: set by the feed. */
+let roomScopes = false
+
+export function setRoomScopes(on: boolean): void {
+  roomScopes = on
+}
 
 type Held = {
   row: { id: string }
@@ -196,11 +210,23 @@ export function serve(scope: Scope, tables: readonly Table[], served: readonly S
   notifyArrival()
 }
 
-/** The scope the server will serve a written row in. */
-function scopeOfWrite(table: Table, row: { id: string }): Scope {
-  if (table === 'softLink') return 'wiring'
-  if (table === 'crawler' && containerOf(row as never).kind === 'game') return 'wiring'
-  return 'account'
+/** The scopes the server will serve a written row in. */
+function scopesOfWrite(table: Table, row: { id: string }): Scope[] {
+  if (!roomScopes) {
+    if (table === 'softLink') return ['wiring']
+    if (table === 'crawler' && containerOf(row as never).kind === 'game') return ['wiring']
+    return ['account']
+  }
+  // A room serves a link with the units it joins: it takes their scopes.
+  if (table === 'softLink') {
+    const link = row as SoftLink
+    const ends = [link.from, link.to].flatMap((end) => [
+      ...(tableOf(end.type as Table).get(end.id)?.scopes ?? []),
+    ])
+    return ends.length > 0 ? [...new Set(ends)] : ['account']
+  }
+  const where = containerOf(row as never)
+  return [where.kind === 'game' ? gameScope(where.gameId) : 'account']
 }
 
 /**
@@ -214,8 +240,7 @@ export function hold<T extends Table>(
 ): RowOf<T> {
   const id = (row as { id: string }).id
   const current = tableOf(table).get(id)
-  const scopes = new Set(current?.scopes)
-  scopes.add(scopeOfWrite(table, row as { id: string }))
+  const scopes = new Set([...(current?.scopes ?? []), ...scopesOfWrite(table, row as never)])
   put(table, id, {
     row: row as { id: string },
     version: version?.version,
@@ -233,8 +258,7 @@ export function holdAll(
 ): void {
   for (const p of puts) {
     const current = tableOf(p.table).get(p.row.id)
-    const scopes = new Set(current?.scopes)
-    scopes.add(scopeOfWrite(p.table, p.row))
+    const scopes = new Set([...(current?.scopes ?? []), ...scopesOfWrite(p.table, p.row)])
     put(p.table, p.row.id, {
       row: p.row,
       version: p.version,
@@ -277,6 +301,20 @@ export function restore(
   if (!any) return
   view = null
   for (const listener of [...listeners]) listener()
+}
+
+/**
+ * A room said a row left it (`gone`, `recordGone`): take `scope`'s claim off,
+ * dropping the row when no scope still claims it.
+ */
+export function release(scope: Scope, table: Table, id: string): void {
+  const current = tableOf(table).get(id)
+  if (current === undefined || !current.scopes.has(scope)) return
+  const scopes = new Set(current.scopes)
+  scopes.delete(scope)
+  if (scopes.size === 0) remove(table, id)
+  else put(table, id, { ...current, scopes })
+  commit()
 }
 
 /** Drop this tab's copy of a row (and an entity's links), never a server delete. */
@@ -443,5 +481,6 @@ export function resetReplica(): void {
   pending = []
   view = null
   rowsComing = () => false
+  roomScopes = false
   for (const listener of [...listeners]) listener()
 }
