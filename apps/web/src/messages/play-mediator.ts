@@ -58,6 +58,11 @@ export const mediatorCopy = messages({
   paid: 'Paid',
   pay: 'Pay',
   upkeepIsPaidInThe: 'Upkeep is paid in the {upkeepStepName} step',
+  inertPiles: 'Inert piles',
+  processNanites: 'Process Nanites',
+  process: 'Process',
+  naniteBayDamaged: 'The Nanite Processing Bay is Damaged',
+  nanitesAreProcessedInThe: 'Nanites are processed in the {craftStepName} step',
   theTableIsOnStep2: 'The table is on step {value} of {count}. Everyone goes back to their seat.',
   beginningAgainStartsFromThe:
     'Beginning again starts from the first step, and upkeep is due again in {upkeepStepName}.',
