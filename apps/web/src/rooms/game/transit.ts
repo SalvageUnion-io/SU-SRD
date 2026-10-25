@@ -1,5 +1,5 @@
 import type { LinkShape } from 'game-domain/links/linkRules'
-import type { GameBundle } from 'game-domain/migration/bundle'
+import type { BundleOp, GameBundle } from 'game-domain/migration/bundle'
 import { GameBundleSchema } from 'game-domain/migration/bundle'
 import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
 import { RoomRefusal } from '../refusal'
@@ -417,7 +417,7 @@ export class GameTransit {
 }
 
 /** A bundle op as the room keeps it: a superseded proposal is a declined one that names its successor. */
-function importedOp(op: GameBundle['units'][number]['ops'][number]): StoredOp {
+export function importedOp(op: BundleOp): StoredOp {
   const { state, author, ...rest } = op
   return {
     ...rest,
@@ -428,7 +428,7 @@ function importedOp(op: GameBundle['units'][number]['ops'][number]): StoredOp {
 }
 
 /** JSON with sorted keys, so two bodies compare by content. */
-function stable(value: unknown): string {
+export function stable(value: unknown): string {
   return JSON.stringify(value, (_key, v) =>
     v !== null && typeof v === 'object' && !Array.isArray(v)
       ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))

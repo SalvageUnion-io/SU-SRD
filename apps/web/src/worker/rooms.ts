@@ -7,6 +7,9 @@
 
 import { DurableObject, exports } from 'cloudflare:workers'
 import type { DurableObjectNamespace } from '@cloudflare/workers-types'
+import { applyOp } from 'game-domain/ops/applyOp'
+import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
+import type { LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
 import { migrate } from '../rooms/migrate'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
@@ -43,10 +46,41 @@ abstract class Room extends DurableObject<RoomEnv> {
   }
 }
 
-/** @public A player's shelf; loaded by workerd (`wrangler.jsonc` `exports`). */
-export class AccountRoom extends Room {
+/**
+ * @public A player's shelf, named by their Discord id; loaded by workerd
+ * (`wrangler.jsonc` `exports`). Its RPC is the handoff (`UnitHome`) and the
+ * cutover's import; the Worker names the actor.
+ */
+export class AccountRoom extends Room implements UnitHome {
+  private readonly logic: AccountRoomLogic
+
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
+    this.logic = new AccountRoomLogic(this.sql, { applyOp })
+  }
+
+  importAccount(bundle: unknown): { imported: boolean } {
+    return this.logic.transit.importAccount(bundle, Date.now())
+  }
+
+  offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
+    return this.logic.transit.offer(args)
+  }
+
+  accept(parcel: UnitParcel, actor: string, at: number): void {
+    this.logic.transit.accept(parcel, actor, at)
+  }
+
+  release(leaseId: string): void {
+    this.logic.transit.release(leaseId)
+  }
+
+  cancel(leaseId: string): void {
+    this.logic.transit.cancel(leaseId)
+  }
+
+  refuseLease(leaseId: string, at: number): LeaseOutcome {
+    return this.logic.transit.refuseLease(leaseId, at)
   }
 }
 
