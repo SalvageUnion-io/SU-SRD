@@ -20,7 +20,7 @@ async function filled() {
   await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
   await putMembership(db, {
     gameId: 'g-1',
-    accountId: 'acct-rosa',
+    discordId: 'd-rosa',
     mediator: true,
     organizer: true,
   })
@@ -90,7 +90,7 @@ describe('answerBot', () => {
       message: FEEDBACK_REFUSAL.short,
     })
     expect(db.sqlite.query('select sender, source from feedback').all()).toEqual([
-      { sender: 'discord:d-rosa', source: 'bot' },
+      { sender: 'd-rosa', source: 'bot' },
     ])
   })
 

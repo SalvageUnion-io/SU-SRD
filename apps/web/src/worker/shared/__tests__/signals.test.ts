@@ -47,7 +47,7 @@ describe('the daily snapshot', () => {
     const db = testDb()
     const now = MONDAY + 3 * DAY
     await putAccountTotals(db, {
-      accountId: 'u-1',
+      discordId: 'u-1',
       pilots: 2,
       mechs: 1,
       crawlers: 1,
@@ -55,7 +55,7 @@ describe('the daily snapshot', () => {
       patterns: 3,
     })
     await putAccountTotals(db, {
-      accountId: 'u-2',
+      discordId: 'u-2',
       pilots: 1,
       mechs: 1,
       crawlers: 0,
@@ -63,7 +63,7 @@ describe('the daily snapshot', () => {
       patterns: 0,
     })
     await putAccountTotals(db, {
-      accountId: 'u-3',
+      discordId: 'u-3',
       pilots: 9,
       mechs: 9,
       crawlers: 9,
@@ -73,9 +73,9 @@ describe('the daily snapshot', () => {
     await dropAccountTotals(db, 'u-3')
     await putGame(db, { gameId: 'g-1', name: 'Together', mediatedBy: null })
     await putGame(db, { gameId: 'g-2', name: 'Alone', mediatedBy: null })
-    await putMembership(db, { gameId: 'g-1', accountId: 'u-1', mediator: true, organizer: true })
-    await putMembership(db, { gameId: 'g-1', accountId: 'u-2', mediator: false, organizer: false })
-    await putMembership(db, { gameId: 'g-2', accountId: 'u-1', mediator: true, organizer: true })
+    await putMembership(db, { gameId: 'g-1', discordId: 'u-1', mediator: true, organizer: true })
+    await putMembership(db, { gameId: 'g-1', discordId: 'u-2', mediator: false, organizer: false })
+    await putMembership(db, { gameId: 'g-2', discordId: 'u-1', mediator: true, organizer: true })
     await touchGuild(db, 'guild-old', now - 30 * DAY)
     await touchGuild(db, 'guild-new', now - DAY)
 

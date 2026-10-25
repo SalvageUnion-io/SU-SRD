@@ -20,7 +20,7 @@ export type GameRow = {
 /** One member's place in a Game. */
 export type MembershipRow = {
   gameId: string
-  accountId: string
+  discordId: string
   mediator: boolean
   organizer: boolean
 }
@@ -53,33 +53,33 @@ export async function dropGame(db: SharedDb, gameId: string) {
 export async function putMembership(db: SharedDb, row: MembershipRow) {
   await db
     .prepare(
-      `insert into memberships (game_id, account_id, mediator, organizer) values (?1, ?2, ?3, ?4)
-       on conflict (game_id, account_id) do update set
+      `insert into memberships (game_id, discord_id, mediator, organizer) values (?1, ?2, ?3, ?4)
+       on conflict (game_id, discord_id) do update set
          mediator = excluded.mediator, organizer = excluded.organizer`
     )
-    .bind(row.gameId, row.accountId, flag(row.mediator), flag(row.organizer))
+    .bind(row.gameId, row.discordId, flag(row.mediator), flag(row.organizer))
     .run()
 }
 
 /** A member left, or was removed. */
-export async function dropMembership(db: SharedDb, gameId: string, accountId: string) {
+export async function dropMembership(db: SharedDb, gameId: string, discordId: string) {
   await db
-    .prepare('delete from memberships where game_id = ?1 and account_id = ?2')
-    .bind(gameId, accountId)
+    .prepare('delete from memberships where game_id = ?1 and discord_id = ?2')
+    .bind(gameId, discordId)
     .run()
 }
 
 type MemberGameColumns = { game_id: string; name: string; mediator: number; organizer: number }
 
 /** Every Game an account belongs to, by name. */
-export async function gamesOf(db: SharedDb, accountId: string): Promise<MemberGame[]> {
+export async function gamesOf(db: SharedDb, discordId: string): Promise<MemberGame[]> {
   const { results } = await db
     .prepare(
       `select g.game_id, g.name, m.mediator, m.organizer from memberships m
        join games g on g.game_id = m.game_id
-       where m.account_id = ?1 order by g.name`
+       where m.discord_id = ?1 order by g.name`
     )
-    .bind(accountId)
+    .bind(discordId)
     .all<MemberGameColumns>()
   return results.map((row) => ({
     gameId: row.game_id,
@@ -93,15 +93,15 @@ export async function gamesOf(db: SharedDb, accountId: string): Promise<MemberGa
 export async function membershipOf(
   db: SharedDb,
   gameId: string,
-  accountId: string
+  discordId: string
 ): Promise<MembershipRow | null> {
   const row = await db
-    .prepare('select mediator, organizer from memberships where game_id = ?1 and account_id = ?2')
-    .bind(gameId, accountId)
+    .prepare('select mediator, organizer from memberships where game_id = ?1 and discord_id = ?2')
+    .bind(gameId, discordId)
     .first<{ mediator: number; organizer: number }>()
   return row === null
     ? null
-    : { gameId, accountId, mediator: row.mediator === 1, organizer: row.organizer === 1 }
+    : { gameId, discordId, mediator: row.mediator === 1, organizer: row.organizer === 1 }
 }
 
 /** A Game's invite code, new or reset: the old code stops working at once. */

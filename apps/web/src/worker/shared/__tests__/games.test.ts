@@ -18,9 +18,9 @@ async function table() {
   const db = testDb()
   await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Jrvs' })
   await putGame(db, { gameId: 'g-2', name: 'Ashfall', mediatedBy: null })
-  await putMembership(db, { gameId: 'g-1', accountId: 'u-1', mediator: true, organizer: true })
-  await putMembership(db, { gameId: 'g-2', accountId: 'u-1', mediator: false, organizer: false })
-  await putMembership(db, { gameId: 'g-1', accountId: 'u-2', mediator: false, organizer: false })
+  await putMembership(db, { gameId: 'g-1', discordId: 'u-1', mediator: true, organizer: true })
+  await putMembership(db, { gameId: 'g-2', discordId: 'u-1', mediator: false, organizer: false })
+  await putMembership(db, { gameId: 'g-1', discordId: 'u-2', mediator: false, organizer: false })
   return db
 }
 
@@ -36,7 +36,7 @@ describe('memberships', () => {
 
   it('replaces a role, and forgets a member who left', async () => {
     const db = await table()
-    await putMembership(db, { gameId: 'g-1', accountId: 'u-2', mediator: true, organizer: false })
+    await putMembership(db, { gameId: 'g-1', discordId: 'u-2', mediator: true, organizer: false })
     expect((await membershipOf(db, 'g-1', 'u-2'))?.mediator).toBe(true)
     await dropMembership(db, 'g-1', 'u-2')
     expect(await membershipOf(db, 'g-1', 'u-2')).toBeNull()
