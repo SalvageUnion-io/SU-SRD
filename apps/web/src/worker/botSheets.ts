@@ -5,9 +5,9 @@
  * so that is the actor every call passes; a room answers a stranger nothing.
  *
  * A sheet nobody lets the caller reach may still be published (ADR-032):
- * its `/p/` page, from the shared database, serves the body. Vitals are the
- * rooms' to derive and are not sent yet, which the bot reads as "maxima
- * unknown".
+ * its `/p/` page, from the shared database, serves the body. A room derives
+ * a unit's vitals with the unit; a room that sends none, or a sheet read
+ * from its public page, reads as "maxima unknown".
  */
 
 import { botDenial, SHEET_NOT_FOUND } from 'game-domain/botDenials'
@@ -17,6 +17,7 @@ import type {
   EntityBody,
   MineResult,
   SheetResult,
+  SheetVitals,
 } from 'game-domain/botWire'
 import type { EntityKind, SheetKind, SheetTable } from 'game-domain/entityKinds'
 import { SHEET_KINDS, TABLE_OF_KIND } from 'game-domain/entityKinds'
@@ -28,6 +29,9 @@ import { publicPage } from './shared/publicSheets'
 /** One unit as a room hands it to the bot. */
 type RoomUnit = { id: string; kind: EntityKind; body: EntityBody }
 
+/** One unit read alone, with its derived vitals when the room sends them. */
+type RoomSheet = RoomUnit & { vitals?: SheetVitals | null }
+
 /** The two room calls the bot makes, on either kind of room. */
 type UnitReader<U> = {
   unitsFor(actor: string): Promise<RoomUnit[]>
@@ -36,8 +40,8 @@ type UnitReader<U> = {
 
 /** The rooms, by name: an account room by Discord id, a Game room by Game id. */
 export type BotRooms = {
-  account(discordId: string): UnitReader<RoomUnit & { publicRead?: boolean }>
-  game(gameId: string): UnitReader<RoomUnit & { ownerName: string | null }>
+  account(discordId: string): UnitReader<RoomSheet>
+  game(gameId: string): UnitReader<RoomSheet & { ownerName: string | null }>
 }
 
 const KIND_OF_TABLE = Object.fromEntries(
@@ -114,6 +118,7 @@ export async function sheet(
         ? (account?.display_name ?? account?.name ?? 'Crewmate')
         : found.ownerName,
       body: found.unit.body,
+      vitals: found.unit.vitals ?? null,
     }
   }
   if (published !== null) {
