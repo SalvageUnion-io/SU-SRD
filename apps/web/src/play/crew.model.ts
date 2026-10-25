@@ -2,14 +2,13 @@
  * The Crew list's lines (play.md §7) and the Play bar's "N here", from the
  * server's crew read (`crew.vitals`): pure, no React and no I/O.
  *
- * One line per other seat in the Game: whether they are here (their seat's
- * `lastSeenAt` heartbeat, `isPresent`), their callsign, their mount ("Boarded
+ * One line per other seat in the Game: whether they are here (their player
+ * has the Game open, `useGamePresence`), their callsign, their mount ("Boarded
  * · Atlas", "On foot") and one vital. Who needs looking at is `crewLines()`'s
  * verdict, the server's `attention`, so every screen at the table flags the
  * same crewmates; this only picks which number says it.
  */
 
-import { isPresent } from 'game-domain/schemas/seat'
 import type { PairSide } from '../lib/units/crewPair'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
@@ -43,7 +42,7 @@ type CrewVital = {
 
 /** One crewmate as the Crew list draws them: their crew line, and how the list reads it. */
 export type CrewSeatLine = CrewLine & {
-  /** Their seat beat within `PRESENCE_STALE_MS`. */
+  /** Their player has the Game open. */
   present: boolean
   /** "Boarded · Atlas", or "On foot". */
   mount: string
@@ -97,7 +96,7 @@ export function crewSeatLines(
   crew: CrewVitals | null,
   seats: BoardSources['seats'],
   selfPilotId: string | null,
-  now: number
+  here: ReadonlySet<string> | null
 ): CrewSeatLine[] {
   if (crew === null) return []
   const mechs = new Map<string, CrewMech>()
@@ -113,7 +112,7 @@ export function crewSeatLines(
     return [
       {
         ...line,
-        present: isPresent(pilot.lastSeenAt, now),
+        present: isHere(pilot, here),
         mount: boardedIn === null ? 'On foot' : `Boarded · ${boardedIn}`,
         boardedIn,
         vital: crewVital(pilot, mech, line.attention),
@@ -145,10 +144,15 @@ export function crewLineLabel(line: CrewSeatLine): string {
   ].join(', ')
 }
 
+/** A pilot is here when the member it is assigned to has the Game open. */
+function isHere(pilot: { ownerId: string | null }, here: ReadonlySet<string> | null): boolean {
+  return pilot.ownerId !== null && here?.has(pilot.ownerId) === true
+}
+
 /** How many seats in the Game are here now, the viewer's own included: the LIVE stamp's "N here". */
 export function hereCount(
-  seats: readonly { lastSeenAt: number | null }[] | null | undefined,
-  now: number
+  pilots: readonly { ownerId: string | null }[] | undefined,
+  here: ReadonlySet<string> | null
 ): number {
-  return (seats ?? []).filter((s) => isPresent(s.lastSeenAt, now)).length
+  return (pilots ?? []).filter((p) => isHere(p, here)).length
 }

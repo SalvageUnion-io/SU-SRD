@@ -11,8 +11,7 @@
  * `usePlaySituation` returns here (the seat, the Downtime and the Situation
  * they make), so all of them read the same thing. The side's shared state
  * (`usePlaySide`: the roll dispatch, the Post toggle) is read here once too,
- * so every roll made in any pane is dispatched whichever pane is open. While
- * the screen is open it beats for the seat's presence (`usePlayPresence`).
+ * so every roll made in any pane is dispatched whichever pane is open.
  *
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
  * `situation` slot; below it, it is pinned under the live vitals for the
@@ -21,7 +20,7 @@
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
  * The bar's LIVE stamp counts who is here in a Game ("● Live · 4 here",
- * `hereCount` over the seats' `lastSeenAt` from `seats.forGame`, play.md §7);
+ * `hereCount` over the Game's room, `useGamePresence`, play.md §7);
  * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
@@ -60,14 +59,13 @@ import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes } from './playPanes.model'
 import { tableUnits } from './tableMode.model'
+import { useGamePresence } from './useGamePresence'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayChannelBinding } from './usePlayChannel'
-import { usePlayPresence } from './usePlayPresence'
 import { usePlaySide } from './usePlaySide'
 import { usePlaySituation } from './usePlaySituation'
 import { usePlayUnits } from './usePlayUnits'
 import { usePlayWide } from './usePlayWide'
-import { usePresenceClock } from './usePresenceClock'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
 
@@ -90,15 +88,14 @@ type PlayCockpitProps = {
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { mode } = useConnection()
   const play = usePlaySituation(target)
-  usePlayPresence(target)
   const binding = usePlayChannelBinding(target)
-  const seats = useQuery(
-    api.seats.forGame,
+  const crew = useQuery(
+    api.crew.vitals,
     target.gameId !== null && mode === 'connected'
       ? { gameId: target.gameId as Id<'games'> }
       : 'skip'
   )
-  const now = usePresenceClock()
+  const here = useGamePresence(target.gameId, 'seat')
   const wide = usePlayWide()
   const [tab, setTab] = useState<PlayerPane>('act')
   const side = usePlaySide({ target, play })
@@ -140,7 +137,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
           backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
           backLabel={solo ? playCopy('play') : playCopy('game')}
           live={mode === 'connected' && !solo}
-          here={seats === undefined ? null : hereCount(seats, now)}
+          here={crew === undefined || here === null ? null : hereCount(crew.pilots, here)}
           readOnly={play.readOnly}
           situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
           channel={

@@ -17,10 +17,9 @@ import {
   seatStepLine,
 } from '../mediator/mediatorTable.model'
 import { npcActions, npcKind } from '../mediator/npcActions.model'
-import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt } from './mediatorFixture'
+import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 
-const NOW = 1_800_000_000_000
-const seats = mediatorSeats(mediatorCrewAt(NOW), MEDIATOR_SEATS, MEDIATOR_MEMBERS, NOW)
+const seats = mediatorSeats(mediatorCrewAt(), MEDIATOR_SEATS, MEDIATOR_MEMBERS, TABLE_HERE)
 const seat = (name: string) => {
   const found = seats.find((s) => s.name === name)
   if (found === undefined) throw new Error(`no seat for ${name}`)
@@ -67,7 +66,7 @@ describe('mediatorSeats', () => {
   })
 
   test('nothing until the crew read arrives', () => {
-    expect(mediatorSeats(null, [], [], NOW)).toEqual([])
+    expect(mediatorSeats(null, [], [], null)).toEqual([])
   })
 
   test('"3 of 4 here"', () => {

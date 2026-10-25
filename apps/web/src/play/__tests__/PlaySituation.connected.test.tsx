@@ -1,8 +1,7 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, jest, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import { PRESENCE_HEARTBEAT_MS } from 'game-domain/schemas/seat'
 import { createElement, useSyncExternalStore } from 'react'
 import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
@@ -13,7 +12,7 @@ import type { Play } from '../situation.model'
  * The Situation (play.md §3) through the whole Cockpit: the seat and the
  * Downtime it reads (`useSeatAt`, `usePlayDowntime`), the Situation they
  * make (`usePlaySituation`), the switch that changes it, the one `Play`
- * object every column is handed, and the presence heartbeat.
+ * object every column is handed.
  *
  * One stand-in for Convex: a solo seat and its Downtime, a Game's seats and
  * Downtime, each subscription re-rendering when a mutation changes them, as a
@@ -34,7 +33,6 @@ type SeatRow = {
   range: string
   activeEffects: string[]
   resolving: null
-  lastSeenAt: number | null
   updatedAt: number | null
 }
 
@@ -57,7 +55,6 @@ function seat(pilotId: string, mount: Mount = { kind: 'foot' }): SeatRow {
     range: 'Close',
     activeEffects: [],
     resolving: null,
-    lastSeenAt: null,
     updatedAt: null,
   }
 }
@@ -139,6 +136,9 @@ function answer(name: string, args: Record<string, unknown>): unknown {
           },
         ],
       }
+    // The bar's "N here" reads who holds each seat.
+    case 'crew:vitals':
+      return { viewerId: 'u-me', pilots: [], mechs: [] }
     default:
       throw new Error(`unanswered query ${name}`)
   }
@@ -203,7 +203,7 @@ function apply(name: string, args: Record<string, unknown>): unknown {
 /**
  * One sender per mutation, as Convex's own `useMutation` hands back the same
  * function every render: a fresh one would restart every effect that lists
- * it (the presence beat) whenever anything re-renders.
+ * it whenever anything re-renders.
  */
 const senders = new Map<string, ReturnType<typeof makeSender>>()
 
@@ -489,29 +489,6 @@ describe('one Play for the whole Cockpit', () => {
     for (const option of situationGroup().getAllByRole('button')) {
       expect(option.hasAttribute('disabled')).toBe(true)
     }
-  })
-})
-
-describe('presence', () => {
-  test('connected, it beats for the seat at once and every heartbeat interval', async () => {
-    jest.useFakeTimers()
-    try {
-      await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
-      expect(writes('seats:heartbeat')).toEqual([
-        { name: 'seats:heartbeat', args: { gameId: null, pilotId: 'ps-bonesaw' } },
-      ])
-      await act(async () => {
-        jest.advanceTimersByTime(PRESENCE_HEARTBEAT_MS)
-      })
-      expect(writes('seats:heartbeat')).toHaveLength(2)
-    } finally {
-      jest.useRealTimers()
-    }
-  })
-
-  test('offline, it sends nothing', async () => {
-    await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID }, 'disconnected')
-    expect(writes('seats:heartbeat')).toHaveLength(0)
   })
 })
 

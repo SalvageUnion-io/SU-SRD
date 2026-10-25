@@ -72,10 +72,9 @@ own abilities and equipment on hand. An action resolves inline in its Mini
 ### 7. Crew and presence
 
 In a Game the right column lists the other seats: presence, mount and the vital
-needing attention, each opening its sheet read-only. Presence is a heartbeat on
-the seat (`lastSeenAt`); each beat re-runs the Game's seat queries
-(`seats.forGame`, `crew.vitals`), so the server takes one write per 20 s per
-player. Disconnected and Outdated stay read-only.
+needing attention, each opening its sheet read-only. Presence was a heartbeat on
+the seat (`lastSeenAt`); from 4.5.0 it is who holds a socket open to the Game
+room (ADR-064), and nothing is written. Disconnected and Outdated stay read-only.
 
 ### 8. Tables post to Discord
 

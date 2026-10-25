@@ -11,7 +11,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * Signed out, sign in.
  *
  * Queries are answered by name (`convexMock.ts`): `games.listMine` and
- * `channelBindings.mine`, then `downtime.state`, `seats.presence`,
+ * `channelBindings.mine`, then `downtime.state`,
  * `entities.listForGame` and `crew.vitals` once per Game. Without a router,
  * so links are anchors.
  */
@@ -23,8 +23,13 @@ import {
 } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import { crewPilot } from './crewRows'
 
-const convexMocks = await installConvexMocks()
+// Who each Game's room says is here (`useGamePresence`): nobody, unless a test says.
+const presence: { here: ReadonlySet<string> | null } = { here: null }
+const convexMocks = await installConvexMocks({
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
+})
 
 const { PlayLanding } = await import('../PlayLanding')
 const { ConnectionContext } = await import('../../lib/connection/connectionContext')
@@ -55,10 +60,9 @@ const WASTES = {
 }
 const IN_DOWNTIME = { running: true, stepIndex: 2, completedBy: [], upkeepSpent: false }
 
-/** No channel bound anywhere, and nobody's seat beating: what most tests need answered. */
+/** No channel bound anywhere, and no crew: what most tests need answered. */
 const QUIET = {
   'channelBindings:mine': { personal: null, games: [] },
-  'seats:presence': [],
   'entities:listForGame': {
     pilots: [],
     mechs: [],
@@ -372,18 +376,28 @@ describe('the Play landing', () => {
     expect(hrefs).toContain('/pilots/a-p2')
   })
 
-  test('Your Games: how many are here now, from the seats’ heartbeat', async () => {
-    const now = Date.now()
+  test('Your Games: how many are here now, from the Game’s room', async () => {
     setQueryAnswers({
       'games:listMine': [TENACITY],
       'downtime:state': IN_DOWNTIME,
       ...QUIET,
-      // Two beat a moment ago; one has not beaten for an hour.
-      'seats:presence': [now - 1_000, now - 5_000, now - 3_600_000],
+      'crew:vitals': {
+        viewerId: 'u-me',
+        pilots: [
+          crewPilot('p1', 'Mags', 'u-mags'),
+          crewPilot('p2', 'Rook', 'u-rook'),
+          crewPilot('p3', 'Wren', 'u-wren'),
+        ],
+        mechs: [],
+      },
     })
-    await renderAs('connected')
-    const tenacity = card('Tenacity')
-    expect(tenacity.getByText('2 here')).toBeTruthy()
+    presence.here = new Set(['u-mags', 'u-rook', 'u-mediator'])
+    try {
+      await renderAs('connected')
+      expect(card('Tenacity').getByText('2 here')).toBeTruthy()
+    } finally {
+      presence.here = null
+    }
   })
 
   test('offline, the shelf still lists, and Your Games wait for the connection', async () => {

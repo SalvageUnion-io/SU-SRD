@@ -22,7 +22,7 @@ import { getFunctionName } from 'convex/server'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
-import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt } from './mediatorFixture'
+import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 import { narrowViewport } from './narrowViewport'
 
 type Sent = { name: string; args: Record<string, unknown> }
@@ -46,6 +46,7 @@ function useMutation(ref: unknown) {
 
 const convexMocks = await installConvexMocks({
   convexReact: { useMutation, useAction: () => postRoll },
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
   convexClient: {
     mutation: async (ref: unknown) => {
       commits.push(getFunctionName(ref as FunctionReference<'mutation'>))
@@ -133,7 +134,7 @@ const SENT_PROPOSAL = {
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
     'games:members': MEDIATOR_MEMBERS,
-    'crew:vitals': mediatorCrewAt(NOW),
+    'crew:vitals': mediatorCrewAt(),
     'seats:forGame': MEDIATOR_SEATS,
     'entities:listForGame': {
       pilots: [],

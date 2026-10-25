@@ -44,7 +44,6 @@ export function crewPilot(
     mechId: null,
     status: calm,
     attention: false,
-    lastSeenAt: null,
     ...over,
   }
 }
