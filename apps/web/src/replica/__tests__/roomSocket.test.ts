@@ -270,4 +270,36 @@ describe('openRoom', () => {
     await sent
     close()
   })
+
+  test('an act waits for its answer: a value, or the room’s refusal', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const socket = FakeSocket.all[0] as FakeSocket
+    socket.opens()
+    const room = roomOf('g1')
+
+    const spent = room?.act('salvageArea.spend', {})
+    const sent = socket.sent[0] as { type: string; id: string; name: string; args: unknown }
+    expect(sent).toEqual({ type: 'act', id: sent.id, name: 'salvageArea.spend', args: {} })
+    socket.says({ type: 'answered', id: sent.id, value: { techLevel: 2, supply: 3 } })
+    expect(await spent).toEqual({ techLevel: 2, supply: 3 })
+
+    const lifted = room?.act('safety.liftStop', {})
+    const second = socket.sent[1] as { id: string }
+    socket.says({ type: 'refused', id: second.id, reason: 'Not yours' })
+    await expect(lifted).rejects.toThrow(new RoomDeclined('Not yours'))
+    close()
+  })
+
+  test('an act in flight when the socket drops fails, and is not sent again', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const socket = FakeSocket.all[0] as FakeSocket
+    socket.opens()
+    const room = roomOf('g1')
+    const passed = room?.act('scene.passHour', {})
+    socket.readyState = 3
+    socket.onclose?.()
+    await expect(passed).rejects.toBeInstanceOf(WritesBlockedOffline)
+    await expect(room?.act('scene.passHour', {})).rejects.toBeInstanceOf(WritesBlockedOffline)
+    close()
+  })
 })
