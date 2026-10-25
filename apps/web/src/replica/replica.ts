@@ -33,6 +33,7 @@ import type { SoftLink } from 'game-domain/schemas/softLink'
 import { captureException } from '../lib/observability'
 import type { RecordKind } from './records'
 import { RECORD_KINDS } from './records'
+import { forgetTableState } from './tableState'
 
 export type Table = keyof typeof RECORD_KINDS
 
@@ -482,5 +483,6 @@ export function resetReplica(): void {
   view = null
   rowsComing = () => false
   roomScopes = false
+  forgetTableState()
   for (const listener of [...listeners]) listener()
 }

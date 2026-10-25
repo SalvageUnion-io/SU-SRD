@@ -4,12 +4,12 @@
  * it, or the table runner). Drawn by `StopSign.tsx`.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playSafetyCopy } from '../messages/play-safety'
 import { useSync } from '../replica/syncContext'
+import { useTableAct, useTableRead } from '../replica/useTable'
 
 export type StopSign = {
   /** True while the game is paused. */
@@ -31,15 +31,15 @@ export type StopSign = {
 /** The Game's Stop Sign, or null solo, signed out or while it loads. */
 export function useStopSign(gameId: string | null): StopSign | null {
   const { status, canWrite } = useSync()
-  const read = useQuery(
+  const read = useTableRead(
     api.safety.stopSign,
     gameId !== null && status === 'live' ? { gameId: gameId as Id<'games'> } : 'skip'
   )
-  const showStop = useServerAction(useMutation(api.safety.showStop), {
+  const showStop = useServerAction(useTableAct(api.safety.showStop, gameId), {
     failure: playSafetyCopy('couldNotShow'),
     toastId: 'stop-sign',
   })
-  const liftStop = useServerAction(useMutation(api.safety.liftStop), {
+  const liftStop = useServerAction(useTableAct(api.safety.liftStop, gameId), {
     failure: playSafetyCopy('couldNotResume'),
     toastId: 'stop-sign',
   })
