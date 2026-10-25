@@ -15,12 +15,12 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload `salvageunion-reference/tools/testPreload.ts` from each `bunfig.toml`, never `preload('all')` per file.
-4. **UI library** <a id="ui-library"></a>
-   `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `apps/web/src/design/tokens.ts`. Only the areas and `shared/` wire stores or Convex; the library imports no area.
+4. **UI library** · ADR-011 <a id="ui-library"></a>
+   `apps/web/src/components/index.ts` barrel, TypeScript source with no build; data-source agnostic, behaviour injected through slot props. Only the areas and `shared/` wire stores or Convex; the library imports no area.
    Unused exports: [knip](#dead-code).
-5. **Stylesheet wiring** <a id="stylesheets"></a>
-   One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes.
-   App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
+5. **Styling** · ADR-046 <a id="stylesheets"></a>
+   Tokens in `apps/web/src/styles/theme.css`, mirrored as style objects by `apps/web/src/design/tokens.ts`; classes in one stylesheet, also for styles repeated per page; `no-tailwind` bars Tailwind. Rules: `.claude/rules/styling.md`.
+   One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes; app stylesheets stay unlayered, so they win.
 6. **Static pages (SSG)** <a id="ssg"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
@@ -56,9 +56,9 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
-18. **Surfaces and enforcement (ADR-021)** <a id="surfaces"></a>
-    Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`).
-    Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
+18. **Surfaces and enforcement** · ADR-007, ADR-009, ADR-021 · [spec](architecture/surfaces.md) <a id="surfaces"></a>
+    Enforcement follows the surface's mode: Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`). Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
+    The app automates bookkeeping (Heat, EP / AP, uses, SP damage) but never changes a condition or destroys without the player; conditions cycle intact → damaged → destroyed by `StatusBadge`.
 19. **Live-Sheet transactions** <a id="live-sheet"></a>
     A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
     Any new transaction goes in Play.
@@ -68,9 +68,9 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 21. **Combat loop** <a id="combat"></a>
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
-22. **Display system** <a id="display"></a>
-    Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`.
-    `Box` is every other frame, never merged with it; app UI goes through `controls` and slot props, never schema props.
+22. **Display system** · ADR-010, ADR-026, ADR-028, ADR-053 · [spec](architecture/entity-card.md) <a id="display"></a>
+    Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`, the only one, app UI layered on. `Box` is every other frame, never merged with it.
+    App UI goes through `controls` and slot props, never schema props. Every design law in `docs/design-system/` names its gate (`CANON`, `bun run check canon`), or is cut.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.
     Writes only channel bindings; Convex unreachable: every Game command answers `unavailable`. Each interaction logs its command.
@@ -115,35 +115,23 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 37. **Convex and GitHub identifiers** <a id="identifiers"></a>
     Project `alex-jarvis:susrd`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both "unreachable").
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
+38. **Contributions and provenance** · ADR-029 · [spec](architecture/contributions.md) <a id="contributions"></a>
+    One source / op / target model in `salvageunion-reference/lib/rules/contributions.ts`; derivations return parts, so provenance shows wherever a value does.
+    Duration effects are Play's and never persisted; every stated mechanical change is a contribution or a reasoned exemption.
+39. **UI words** · ADR-054 · [spec](architecture/messages.md) <a id="messages"></a>
+    Every word the app draws is a key in `apps/web/src/messages/`, values as `{name}` placeholders; English only.
+    The `ui-strings` rule set ratchets the strings still typed at the call site.
 
 ## Decisions
 
 ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry and a change to its Area; once built, it folds into that Area.
 Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-047.
 
-7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
-   Automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
 8. **ADR-008 Sequential client-side mutations**
    No atomic transaction or rollback; affordability is checked before an action runs.
-9. **ADR-009 Item condition model**
-   Intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
-10. **ADR-010 Choices in the shared display**
-    `ChoiceGroups` is uncontrolled on reference pages and controlled, persisted, in the app; `readOnly` renders static text.
-11. **ADR-011 The UI library ships TypeScript source**
-    No build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/components`).
-21. **ADR-021 App surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
-    Governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
-    Wins over any earlier ADR; the live matrix is [surfaces](#surfaces). Amended by ADR-051.
 22. **ADR-022 Change Log and stat overrides**
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex.
-26. **ADR-026 Entity card design rules** · [full text](adr/026-entity-card-design-rules.md)
-    `ReferenceEntityCard` is the only entity card and Page; app UI layers onto it. Stats have no pips; a modified stat wears a heavier ink frame.
-28. **ADR-028 A partner renders in place**
-    A partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
-29. **ADR-029 Unified contribution model and stat provenance** · [full text](adr/029-contribution-model.md)
-    One source / op / target model; derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
-    §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
     Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055 and ADR-058.
@@ -176,8 +164,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
     Built: under its 1280×800 canvas Play renders a phone form; same seat and enforcement.
     Amends ADR-038; ADR-051 replaces decisions 3–5.
-46. **ADR-046 Styling is tokens, style objects and one stylesheet**
-    `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
 48. **ADR-048 The app at salvageunion.io/build**
     `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050, ADR-062.
 49. **ADR-049 Workers Issues, not Sentry**
@@ -191,11 +177,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.
-53. **ADR-053 Canon as gates**
-    Every law in `docs/design-system/` names the gate that holds it (`CANON`, `bun run check canon`); a law lands with its gate or is cut.
-    hard-rules.md says each law as its gate checks it; the gates' workings live in the gates.
-54. **ADR-054 One message catalogue** · [full text](adr/054-message-catalogue.md)
-    Built: UI words are keys in `apps/web/src/messages/`, values as `{name}`; English only; the `ui-strings` gate ratchets the rest.
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
     Amends ADR-030 §2, §4–6.

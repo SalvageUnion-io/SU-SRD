@@ -11,7 +11,7 @@
  *
  * ## Free Edit, so nothing is removed
  *
- * Every class stays selectable ([ADR-021](../../../../../docs/adr/021-cantina-surface-taxonomy.md):
+ * Every class stays selectable ([ADR-021](../../../../../docs/architecture/surfaces.md):
  * the sheet does not gate). Unreachable destinations are demoted and labelled,
  * not withheld — they are not INERT, they simply cost one extra question, which
  * is why they are dimmed rather than filtered the way an option that would do
