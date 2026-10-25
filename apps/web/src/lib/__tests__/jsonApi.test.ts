@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { z } from 'salvageunion-reference/zod'
-import { endpoints } from '../../../ssg/endpoints'
+import { emitted, outputs } from '../../../astro/lib/__tests__/emitted'
 import { SITE_URL } from '../constants'
 import { getEntitySchemas } from '../gameData'
 
@@ -10,16 +10,6 @@ import { getEntitySchemas } from '../gameData'
  * that serves it, and every `/schema/` URL `llms.txt` teaches is one the build
  * emits. These read the endpoints exactly as the build emits them.
  */
-
-const outputs = new Map(
-  endpoints.flatMap((endpoint) => endpoint.resolve()).map((output) => [output.outputPath, output])
-)
-
-function emitted(outputPath: string): string {
-  const output = outputs.get(outputPath)
-  if (!output) throw new Error(`the build emits no ${outputPath}`)
-  return output.body()
-}
 
 const schemaIds = getEntitySchemas().map((schema) => schema.id)
 const validators = new Map(
@@ -45,7 +35,7 @@ describe('the JSON API', () => {
       const id = outputPath.match(/^schema\/([^/]+)\/item\/[^/]+\.json$/)?.[1]
       if (!id) continue
       checked++
-      const result = validator(id).safeParse([JSON.parse(output.body())])
+      const result = validator(id).safeParse([JSON.parse(output)])
       if (!result.success) failures.push(`${outputPath}: ${result.error.issues[0]?.message}`)
     }
     expect(checked).toBeGreaterThan(schemaIds.length)

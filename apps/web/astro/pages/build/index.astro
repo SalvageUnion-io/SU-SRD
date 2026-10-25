@@ -1,0 +1,14 @@
+---
+/**
+ * The app's shell, `build/index.html` (ADR-050): the one document the Worker
+ * serves for every `/build/*` and `/play/*` navigation. Astro bundles the
+ * app's entry into it.
+ */
+import { appShell } from '../../build/appShell'
+
+const { head, body } = appShell(import.meta.env.VITE_SITE_ORIGIN)
+---
+<html lang="en">
+  <head><Fragment set:html={head} /></head>
+  <body><Fragment set:html={body} /><script>import '../../../src/main'</script></body>
+</html>

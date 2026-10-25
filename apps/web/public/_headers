@@ -53,7 +53,7 @@
 https://su-srd.alxjrvs.workers.dev/*
   X-Robots-Tag: noindex
 
-# Content-hashed bundle output (`vite.config.ts` uses Vite's default
+# Content-hashed bundle output (`astro.config.ts` uses Vite's default
 # assetsDir). If it ever sets a different build.assetsDir, change this with it,
 # and the Worker's `/assets/` prefix too. A MISS here never sees this rule: the
 # Worker answers it with `no-store` (src/worker/index.ts).
@@ -77,7 +77,7 @@ https://su-srd.alxjrvs.workers.dev/*
 #   cache-control: public, max-age=31536000, immutable, public, max-age=31536000, immutable
 # Harmless while both halves agreed, contradictory once they don't. An image
 # this list misses gets the platform default, `max-age=0, must-revalidate`:
-# always fresh, never stuck. `ssg/__tests__/headers.test.ts` holds all of this.
+# always fresh, never stuck. `astro/build/__tests__/headers.test.ts` holds all of this.
 /og-image.png
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 

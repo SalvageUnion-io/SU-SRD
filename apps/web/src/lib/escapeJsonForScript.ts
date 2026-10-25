@@ -6,11 +6,11 @@
  * legal JSON escape for `<`, so this is lossless: the browser's JSON parser
  * reads it back as `<`.
  *
- * This lives in `src/lib` rather than beside its first caller in `ssg/` because
- * BOTH sides need it and the layering only goes one way: `ssg/**` may import
- * app code, but nothing under `src/` may import `ssg/` at runtime
- * (ssg/DESIGN.md, hard rule 2). Its callers:
- *   - `ssg/document.tsx`, for the per-page island-props payload
+ * This lives in `src/lib` rather than beside its first caller in `astro/` because
+ * BOTH sides need it and the layering only goes one way: `astro/` may import
+ * app code, but nothing under `src/` imports `astro/build/`
+ * (astro/DESIGN.md, hard rule 2). Its callers:
+ *   - `astro/lib/document.tsx`, for the per-page island-props payload
  *   - `src/reference/layouts/BaseLayout.tsx`, for JSON-LD
  *   - `src/lib/documentHead.ts`, for the Discord Component Embed, which the
  *     reference pages and the Worker's shell swap both write (`metaTags`)

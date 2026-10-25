@@ -1,6 +1,6 @@
 /**
  * TanStack Router's file-route options — one object, read by two callers:
- * the Vite plugin in `vite.config.ts` (which generates `src/routeTree.gen.ts`
+ * the Vite plugin in `astro.config.ts` (which generates `src/routeTree.gen.ts`
  * on every dev start and build) and `scripts/generate-route-tree.ts` (which
  * generates it WITHOUT a build, so `tools/check-generated.ts` can prove the
  * committed tree is current in a couple of hundred milliseconds rather than a

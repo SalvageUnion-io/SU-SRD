@@ -4,7 +4,7 @@
  * Three build details worth knowing:
  *
  * 1. The shared markdown files are read from disk **at build time**.
- *    This module only ever runs in the build (and in `ssg/dev.ts`, which is the
+ *    This module only ever runs in the build (and in `astro dev`, which is the
  *    same render path), so a `node:fs` read here costs the browser nothing.
  *    The path is resolved from `import.meta.url` rather than `process.cwd()`
  *    so it does not depend on where the build was invoked from.
@@ -13,9 +13,9 @@
  *    stays a literal (`public/_headers`). Every navigation is a real document
  *    load, so it runs on every visit.
  * 3. The Eldridge Coast map is a build-emitted, content-hashed asset rather
- *    than an unhashed file in `public/`. The emit and the address are split — `src/runtime/assets.entry.ts` makes
- *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of the
- *    build manifest. See `BuiltAssets` in `ssg/types.ts`.
+ *    than an unhashed file in `public/`. The emit and the address are split — `astro/lib/assets.ts` makes
+ *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of
+ *    `RouteContext.builtAssets`. See `BuiltAssets` in `src/reference/types.ts`.
  */
 
 import { readFileSync } from 'node:fs'
@@ -24,7 +24,6 @@ import { PRODUCT } from 'game-domain/product'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
-import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Button, cn, InlineRef, SlabSection } from '../../components/index'
 import { ColophonIsland } from '../../components/islands/ColophonIsland'
@@ -37,6 +36,7 @@ import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
 import { DocPage } from '../DocPage'
+import type { PageModule, PageResult, RouteContext } from '../types'
 
 /** Repo root, relative to this module — `apps/web/src/reference/pages` -> five levels up. */
 const repoRootFile = (name: string): string =>
@@ -497,8 +497,8 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
             <div style={LIGHTBOX_BODY}>
               {/* Vite does not transcode images, so the webp is pre-encoded
                   once at 1800px and checked in beside the PNG; Vite still
-                  hashes and emits it, and the url comes from the build
-                  manifest (see `BuiltAssets`). One size: the image only ever
+                  hashes and emits it, and the url comes from
+                  `builtAssets` (see `BuiltAssets`). One size: the image only ever
                   appears in a full-viewport lightbox. */}
               <img
                 src={eldridgeCoastMapUrl}

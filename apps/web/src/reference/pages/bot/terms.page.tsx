@@ -4,13 +4,13 @@
  * A plain static document: no islands, no data, no structured data.
  */
 
-import type { PageModule, PageResult } from '../../../../ssg/types'
 import { InlineRef, Slab } from '../../../components/index'
 import { space } from '../../../design/tokens'
 import { BOLD, proseColumn, SMALL_PRINT } from '../../../lib/docPageStyles'
 import { pageTitle } from '../../../lib/pageTitle'
 import { pagesCopy } from '../../../messages/reference-pages'
 import { DocPage } from '../../DocPage'
+import type { PageModule, PageResult } from '../../types'
 
 const BODY = proseColumn(space[16])
 

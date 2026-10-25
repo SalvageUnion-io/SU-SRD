@@ -118,10 +118,10 @@ const REPO_PATH_ROOTS = [
 ]
 
 /** Directories that exist only inside a workspace: resolved under any `apps/*` / `packages/*`. */
-const WORKSPACE_PATH_ROOTS = ['src', 'ssg', 'convex', 'scripts', 'lib', 'e2e', 'public']
+const WORKSPACE_PATH_ROOTS = ['src', 'astro', 'convex', 'scripts', 'lib', 'e2e', 'public']
 
-/** Dependencies whose name is also a workspace directory: `convex/react` is an import. */
-const IMPORT_SPECIFIER_PACKAGES = new Set(['convex'])
+/** Dependencies whose name is also a workspace directory: `convex/react` and `astro/config` are imports. */
+const IMPORT_SPECIFIER_PACKAGES = new Set(['astro', 'convex'])
 
 /** Words that offer a path as not yet built. Judged on prose with backticked spans removed. */
 const CITATION_PROPOSAL =

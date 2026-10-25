@@ -1,7 +1,7 @@
 /**
  * Route files export `Route` and nothing else.
  *
- * `vite.config.ts` turns on TanStack Router's `autoCodeSplitting`, which moves
+ * `astro.config.ts` turns on TanStack Router's `autoCodeSplitting`, which moves
  * each route's component into its own lazily loaded chunk. It can only do that
  * when the component is private to the route file: any other export (a page
  * body "exported for testing", a helper) keeps the file's component graph in
