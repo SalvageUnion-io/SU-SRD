@@ -70,7 +70,7 @@ type ListedColumns = { app_id: string; body: string; made_by: string; shared_at:
 
 /** Every listed pattern not hidden, newest share first, or one chassis's. */
 export async function homebrewPatterns(db: SharedDb, chassisRef?: string): Promise<HomebrewRow[]> {
-  const chassis = chassisRef === undefined ? '' : 'AND p.chassis_ref = ?1'
+  const chassis = chassisRef === undefined ? '' : 'and p.chassis_ref = ?1'
   const statement = db.prepare(
     `select p.app_id, p.body, p.made_by, p.shared_at from homebrew_patterns p
      left join homebrew_moderation m on m.app_id = p.app_id
