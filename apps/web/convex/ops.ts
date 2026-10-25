@@ -1,7 +1,7 @@
 import { v } from 'convex/values'
 import { query } from './_generated/server'
 import { removeCrawlerRow } from './model/crawlerWrites'
-import { internalMutation, mutation } from './model/entities'
+import { mutation } from './model/entities'
 import { LINK, unwireSoftLink } from './model/linkWrites'
 import * as proposals from './model/opProposals'
 import { PROPOSE, proposalRow, sentRow } from './model/opProposals'
@@ -116,17 +116,4 @@ export const accept = mutation({
 export const decline = mutation({
   args: { opId: v.string() },
   handler: async (ctx, args): Promise<void> => proposals.decline(ctx, args.opId),
-})
-
-/**
- * One-off, run by hand after the deploy that made proposals ops: copies the
- * proposals still awaiting an answer from the Change Log into ops, a page at a
- * time (`npx convex run ops:copyLegacyProposals '{"cursor":null}'`, then again
- * with the answered `cursor` until `done`). Safe to run twice. Delete it
- * once it has run.
- * @operator
- */
-export const copyLegacyProposals = internalMutation({
-  args: { cursor: v.union(v.string(), v.null()) },
-  handler: async (ctx, args) => proposals.copyLegacyProposals(ctx, args.cursor),
 })
