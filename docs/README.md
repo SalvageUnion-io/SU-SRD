@@ -1,6 +1,6 @@
 # SUSRD Docs
 
-Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECTURE.md).
+Intent → doc. Area links and "ADR-N" resolve in [ARCHITECTURE.md](ARCHITECTURE.md): an entry, or the Area whose headline names it.
 
 1. **UI component** — [ruleset.md](design-system/ruleset.md) and [chrome.md](design-system/chrome.md) (the laws), [hard-rules.md](design-system/hard-rules.md) (gates); [display](ARCHITECTURE.md#display).
 2. **Drawing an entity** — [entity-display-language.md](design-system/entity-display-language.md); chips and actions: [chips-and-actions.md](design-system/chips-and-actions.md).

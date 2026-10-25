@@ -20,6 +20,7 @@ import {
   SESSION_CEILINGS,
   SESSION_PROFILES,
 } from './docBudgets'
+import { checkDecisions, entriesOf, liveTextOf } from './docDecisions'
 import type { DocDriftCheckId } from './docDriftChecks'
 import { fixLines, onlyIds } from './docDriftChecks'
 
@@ -101,53 +102,6 @@ export function splitMarkdownBlocks(source: string): { line: number; text: strin
 
 const lineOf = (block: { line: number; text: string }, index: number): number =>
   block.line + (block.text.slice(0, index).match(/\n/g)?.length ?? 0)
-
-/** The heading that opens the architecture decision records. */
-const DECISIONS_HEADING = /^## Decisions$/m
-
-/**
- * A markdown doc up to its `## Decisions` heading: the part that describes the
- * code as it is now. The ADR entries below also record what was retired.
- */
-function liveTextOf(source: string): string {
-  const at = source.search(DECISIONS_HEADING)
-  return at === -1 ? source : source.slice(0, at)
-}
-
-/** One numbered list entry: its number, the ADR it names (if any), its lines and their 0-based indices. */
-type Entry = { n: number; adr: number | undefined; start: number; lines: string[]; at: number[] }
-
-/** An entry's opening line: `12. **ADR-012 Title**` or `3. **Headline**`. */
-const ENTRY_START = /^(\d+)\.\s+\*\*(?:ADR-(\d+)\b)?/
-
-/** The numbered entries of each `## ` section, each with its continuation lines. */
-function entriesOf(source: string): (Entry & { section: string })[] {
-  const entries: (Entry & { section: string })[] = []
-  let section = ''
-  let inFence = false
-  for (const [i, line] of source.split('\n').entries()) {
-    if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence
-    if (inFence) continue
-    if (/^#{1,6}\s/.test(line)) {
-      section = line.replace(/^#+\s+/, '')
-      entries.push({ n: Number.NaN, adr: undefined, start: i, lines: [], at: [], section })
-      continue
-    }
-    const m = line.match(ENTRY_START)
-    if (m) {
-      const adr = m[2] === undefined ? undefined : Number(m[2])
-      entries.push({ n: Number(m[1]), adr, start: i, lines: [line], at: [i], section })
-    } else if (line.trim() !== '') {
-      entries.at(-1)?.lines.push(line)
-      entries.at(-1)?.at.push(i)
-    }
-  }
-  return entries.filter((entry) => !Number.isNaN(entry.n))
-}
-
-/** The ADR entries under `## Decisions`. */
-const adrEntries = (source: string) =>
-  entriesOf(source).filter((entry) => entry.section === 'Decisions' && entry.adr !== undefined)
 
 // ─── paths ──────────────────────────────────────────────────────────────────
 
@@ -737,142 +691,6 @@ export function checkAreaCitations(
   }
   return {
     ok: `${areas.length} Areas anchored; ${cited} ARCHITECTURE.md# citations in ${files.length} files resolve`,
-    failures,
-  }
-}
-
-// \u2500\u2500\u2500 decisions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-
-/** The one file the ADRs live in, as the numbered entries under its `## Decisions`. */
-const DECISIONS_DOC = 'docs/ARCHITECTURE.md'
-
-/** The ADR count when the ADRs became one-entry summaries: none may go missing. */
-const ADR_FLOOR = 45
-
-const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
-
-/**
- * The ADRs named on the `Retired …:` line under `## Decisions`: wholly
- * superseded, so they keep their number but no entry (their text is in git).
- */
-function retiredAdrs(source: string): Set<number> {
-  const at = source.search(DECISIONS_HEADING)
-  const section = at === -1 ? '' : source.slice(at).split(/\n## /)[0]
-  const line = section?.match(/^Retired\b[^:\n]*:(.*)$/m)?.[1] ?? ''
-  return new Set([...line.matchAll(/ADR-(\d{3})\b/g)].map((m) => Number(m[1])))
-}
-
-/** "Amends ADR-022", "Supersedes ADR-004", "reverses ADR-019": one ADR acting on another. */
-const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\b/gi
-
-/**
- * An ADR entry that amends, supersedes or reverses another must be named in
- * that other entry, which is where a reader of it looks first.
- */
-function missingBackReferences(source: string): string[] {
-  const text = new Map(adrEntries(source).map((entry) => [entry.adr, entry.lines.join('\n')]))
-  const failures: string[] = []
-  for (const [n, body] of text) {
-    const self = adrId(n as number)
-    for (const m of body.matchAll(ACTS_ON)) {
-      const target = Number(m[2])
-      if (target === n || !text.has(target) || text.get(target)?.includes(self)) continue
-      failures.push(
-        `${DECISIONS_DOC}: ${self} ${(m[1] as string).toLowerCase()} ${adrId(target)}, but ` +
-          `${adrId(target)}'s entry does not name ${self}. Add "amended by ${self}" there.`
-      )
-    }
-  }
-  return failures
-}
-
-/** Where an ADR's full text lives when it is kept: `docs/adr/NNN-slug.md`. */
-const ADR_DIR = 'docs/adr'
-const ADR_FILE = /^(\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/
-
-/** Every way a `docs/adr/` file breaks the layout or loses its entry's link. */
-function adrFileFailures(root: string, source: string): { count: number; failures: string[] } {
-  const failures: string[] = []
-  const dir = join(root, ADR_DIR)
-  const names = existsSync(dir) ? readdirSync(dir).sort() : []
-  const entries = new Map(adrEntries(source).map((entry) => [entry.adr, entry]))
-  const seen = new Map<number, string>()
-  for (const name of names) {
-    const doc = `${ADR_DIR}/${name}`
-    const m = name.match(ADR_FILE)
-    if (!m) {
-      failures.push(`${doc} is not an ADR file. Name it \`NNN-slug.md\` (lowercase, hyphenated).`)
-      continue
-    }
-    const n = Number(m[1])
-    const other = seen.get(n)
-    if (other) failures.push(`${adrId(n)} has two files, ${other} and ${doc}. Keep one.`)
-    seen.set(n, doc)
-    const entry = entries.get(n)
-    if (entry === undefined) {
-      failures.push(`${doc} has no ${adrId(n)} entry under \`## Decisions\` in ${DECISIONS_DOC}.`)
-    } else if (!(entry.lines[0] ?? '').includes(`](adr/${name})`)) {
-      failures.push(
-        `${DECISIONS_DOC}:${entry.start + 1} is ${adrId(n)}, whose full text is ${doc}: link it from the headline (\`· [full text](adr/${name})\`).`
-      )
-    }
-    const title = read(root, doc).split('\n')[0] ?? ''
-    if (title === '---') {
-      failures.push(
-        `${doc} has front-matter. Drop it: an ADR's status is recorded once, in its entry under \`## Decisions\` in ${DECISIONS_DOC}.`
-      )
-    } else if (!title.startsWith(`# ${adrId(n)}: `)) {
-      failures.push(`${doc} opens on "${title}"; its first line is \`# ${adrId(n)}: Title\`.`)
-    }
-  }
-  return { count: seen.size, failures }
-}
-
-export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckResult {
-  const failures: string[] = []
-  if (!existsSync(join(root, DECISIONS_DOC))) {
-    failures.push(`${DECISIONS_DOC}, which holds the ADRs, does not exist.`)
-    return { ok: '', failures }
-  }
-  const source = read(root, DECISIONS_DOC)
-  for (const [index, line] of source.split('\n').entries()) {
-    if (/^#{1,6}\s+ADR-\d/.test(line)) {
-      failures.push(
-        `${DECISIONS_DOC}:${index + 1} heads an ADR. An ADR is a numbered entry under \`## Decisions\`, not a heading.`
-      )
-    }
-  }
-  const count = new Map<number, number>()
-  for (const entry of entriesOf(source)) {
-    if (entry.adr === undefined) continue
-    const at = `${DECISIONS_DOC}:${entry.start + 1}`
-    if (entry.section !== 'Decisions') {
-      failures.push(`${at} is an ADR entry outside \`## Decisions\`. Move it there.`)
-    } else if (entry.n !== entry.adr) {
-      failures.push(`${at} numbers ${adrId(entry.adr)} as entry ${entry.n}. Entry N is ADR-N.`)
-    }
-    count.set(entry.adr, (count.get(entry.adr) ?? 0) + 1)
-  }
-  const retired = retiredAdrs(source)
-  const highest = Math.max(floor, ...count.keys(), ...retired)
-  for (let n = 1; n <= highest; n++) {
-    const seen = count.get(n) ?? 0
-    if (seen === 0 && !retired.has(n))
-      failures.push(
-        `${DECISIONS_DOC} has no ${adrId(n)} entry. ADRs are never renumbered: restore it, or name it on the \`Retired …:\` line if it is wholly superseded.`
-      )
-    if (seen > 0 && retired.has(n))
-      failures.push(`${DECISIONS_DOC} lists ${adrId(n)} as an entry and as retired. Keep one.`)
-    if (seen > 1)
-      failures.push(
-        `${DECISIONS_DOC} lists ${adrId(n)} ${seen} times. Give the new decision the next number.`
-      )
-  }
-  failures.push(...missingBackReferences(source))
-  const files = adrFileFailures(root, source)
-  failures.push(...files.failures)
-  return {
-    ok: `${count.size} live and ${retired.size} retired ADRs, ${adrId(1)} to ${adrId(highest)}, once each under ## Decisions in ${DECISIONS_DOC}, every amendment named in the entry it amends; ${files.count} full-text ADR files, each linked from its entry`,
     failures,
   }
 }

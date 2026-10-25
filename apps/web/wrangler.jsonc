@@ -42,15 +42,18 @@
   //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
-  // may see from: the URL the app is built against, `PRODUCTION_CONVEX_URL`
-  // in deploy-cloudflare.yml.
+  // may see from until SHARED is filled: the URL the app is built against,
+  // `PRODUCTION_CONVEX_URL` in deploy-cloudflare.yml.
   "vars": {
     "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
   },
 
-  // SHARED: the shared database (D1). Sign-in keeps accounts and sessions
-  // there (src/worker/auth/store.ts makes its tables on first use). No
-  // `database_id`: wrangler provisions it by name on the first deploy.
+  // SHARED: the shared database (D1), what crosses rooms: public sheets,
+  // Homebrew, Games, memberships and invites (src/worker/shared/). Its tables
+  // are migrations/*.sql, applied by the deploy before the Worker ships;
+  // sign-in's accounts and sessions make theirs on first use
+  // (src/worker/auth/store.ts). No `database_id`: wrangler provisions it by
+  // name on the first deploy.
   "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared" }],
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars and
