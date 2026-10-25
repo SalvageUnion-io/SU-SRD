@@ -69,7 +69,7 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // A Play screen draws its own bar at every width, so it has no masthead
-  // (ADR-045 §6): the Play bar, on the canvas and the phone form alike. Nor
+  // (ADR-051 §2): the Play bar, at every width. Nor
   // does a link preview's render surface. The shell's bar is hidden there.
   const barHidden = hidesUnionBar(pathname)
   useLayoutEffect(() => {

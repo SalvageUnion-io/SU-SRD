@@ -1,5 +1,5 @@
 /**
- * Tabs — the tabs keyboard model Play's phone tabs rely on:
+ * Tabs — the tabs keyboard model Play's narrow tabs rely on:
  * arrows and Home/End move and select, and every tab
  * names the panel it controls.
  */
