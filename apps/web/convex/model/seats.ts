@@ -240,8 +240,9 @@ export async function handOffSoloSeat(
  * shelved entities land unwired); `invites` are ways into a Game that no
  * longer exists; its `channelBindings` row stops naming a channel it posts to (a personal binding
  * has no `gameId` and outlives every Game); `downtime` and `seats` are its play
- * state (ADR-038 §2), `runningEncounters` the Mediator's (ADR-059), and
- * `boundaries` and `safety` the table's Safety Protocols.
+ * state (ADR-038 §2), `ledgers` its factions and jobs, `runningEncounters`
+ * the Mediator's (ADR-059), and `boundaries` and `safety` the table's Safety
+ * Protocols.
  *
  * Every other table with a `gameId` column holds something somebody built, or
  * history, and each teardown path shelves or deletes those rows itself first.
@@ -255,6 +256,7 @@ export const GAME_APPARATUS_TABLES = [
   'channelBindings',
   'downtime',
   'seats',
+  'ledgers',
   'runningEncounters',
   'boundaries',
   'safety',
