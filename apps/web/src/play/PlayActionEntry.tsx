@@ -40,7 +40,11 @@ export function PlayActionEntry({
           ? (() => {
               const fresh = actions.store.get('mech', mech.id) ?? mech
               const cap = mechMaxHeat(fresh, resolveChassisRef(fresh.chassisRef))
-              return { current: resolveGauge(fresh.currentHeat, cap), cap }
+              return {
+                current: resolveGauge(fresh.currentHeat, cap),
+                cap,
+                scale: actions.heatScale,
+              }
             })()
           : NO_HEAT
       return (
@@ -49,7 +53,11 @@ export function PlayActionEntry({
           resolve={open && resolve.kind === 'resolve' ? resolve : null}
           onUse={() => actions.open(entry.key)}
           canWrite={play.canWrite}
-          locked={entry.need === null ? lockReason(entry.action, play.seat.seat.range, heat) : null}
+          locked={
+            entry.need === null
+              ? lockReason(entry.action, play.seat.seat.range, heat, actions.closeOnly)
+              : null
+          }
         />
       )
     }
@@ -62,6 +70,7 @@ export function PlayActionEntry({
           rollFor={actions.rollFor}
           need={need}
           canWrite={play.canWrite}
+          heatScale={actions.heatScale}
         />
       )
     case 'mount':

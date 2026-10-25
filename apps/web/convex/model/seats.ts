@@ -239,8 +239,8 @@ export async function handOffSoloSeat(
  * pilot-to-crawler assignment stops being true when the crew disbands, so
  * shelved entities land unwired); `invites` are ways into a Game that no
  * longer exists; its `channelBindings` row stops naming a channel it posts to (a personal binding
- * has no `gameId` and outlives every Game); `downtime` and `seats` are its play
- * state (ADR-038 §2), as is the area it is salvaging (`salvageAreas`),
+ * has no `gameId` and outlives every Game); `downtime`, `scenes` and `seats` are its
+ * play state (ADR-038 §2), as is the area it is salvaging (`salvageAreas`),
  * `ledgers` its factions and jobs, `runningEncounters` the Mediator's
  * (ADR-059), and `boundaries` and `safety` the table's Safety Protocols.
  *
@@ -255,6 +255,7 @@ export const GAME_APPARATUS_TABLES = [
   'memberships',
   'channelBindings',
   'downtime',
+  'scenes',
   'seats',
   'ledgers',
   'runningEncounters',

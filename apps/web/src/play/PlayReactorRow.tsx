@@ -5,7 +5,8 @@
  *
  * The roll is the table's (`PlayRollInstrument`, R8): its stamp is the one
  * roll control, "Heat Check:", or "Push:" while Push is pressed (+2 Heat,
- * then the Heat Check, Core Book p.234); an overload is its marked row and
+ * then the Heat Check, Core Book p.234; the Scene's conditions scale it:
+ * `heatScale`); an overload is its marked row and
  * what it came to the line under it. Push is never a second roll button.
  *
  * ADR-007: Push, Heat Check, Vent and Shut down are bookkeeping and apply on
@@ -21,6 +22,7 @@
  * Not on hand, it is its head alone, the need its chip.
  */
 
+import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
@@ -68,6 +70,8 @@ type PlayReactorRowProps = {
   /** Why it is not on hand ("needs Boarded"), or null when it is. */
   need: string | null
   canWrite: boolean
+  /** What the Scene's conditions multiply Heat gained by (`sceneHeatScale`); 1 by default. */
+  heatScale?: number
 }
 
 export function PlayReactorRow({
@@ -77,6 +81,7 @@ export function PlayReactorRow({
   rollFor,
   need,
   canWrite,
+  heatScale = 1,
 }: PlayReactorRowProps) {
   const [log, setLog] = useState<ReactorLog | null>(null)
   // Push pressed: the stamp's next roll is a Push.
@@ -89,7 +94,8 @@ export function PlayReactorRow({
   const now = fresh()
   const cap = mechMaxHeat(now, chassis)
   const heat = resolveGauge(now.currentHeat, cap)
-  const pushLocked = !canPush(heat, cap)
+  const pushHeat = pushHeatAt(heatScale)
+  const pushLocked = !canPush(heat, cap, pushHeat)
   const away = need !== null
   const off = !canWrite || away
 
@@ -101,7 +107,7 @@ export function PlayReactorRow({
       plainD20s: 1,
       outcome: () => said,
     })
-    const pushed = mechPush(fresh(), roll)
+    const pushed = mechPush(fresh(), roll, heatScale)
     if (pushed === null) return
     const { patch, text, meltdown, overloadRoll, effect } = pushed
     said = text
@@ -179,7 +185,7 @@ export function PlayReactorRow({
   function togglePush() {
     if (!pushing && pushLocked) {
       setLog({
-        text: playCopy('noPushAtHeat2', { heat, cap }),
+        text: playCopy('noPushAtHeat2', { heat, cap, gain: pushHeat }),
         meltdown: false,
       })
       return
@@ -194,7 +200,11 @@ export function PlayReactorRow({
         onClick={togglePush}
         disabled={off}
         pressed={pushing}
-        title={pushLocked ? playCopy('noPushAtHeat', { heat, cap }) : playCopy('n2HeatThenTheHeat')}
+        title={
+          pushLocked
+            ? playCopy('noPushAtHeat', { heat, cap })
+            : playCopy('pushHeatThenTheHeatCheck', { gain: pushHeat })
+        }
       >
         {playCopy('push')}
       </Toggle>

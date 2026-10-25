@@ -1,6 +1,6 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
+ * §10): the Scene's conditions (`PlayMediatorScene`), then "Opposition", a Slab with Run an encounter and + Add, the encounter
  * running (`RUNNING | its name`, End; ADR-059), the area the crew is
  * salvaging (`AREA | its name, Tech Level and Supply`, set through
  * `SalvageAreaDialog`, Core Book p.245), then each NPC,
@@ -22,6 +22,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayNpc } from './opposition.model'
+import { PlayMediatorScene } from './PlayMediatorScene'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { RunEncounterDialog } from './RunEncounterDialog'
@@ -56,6 +57,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
 
   return (
     <>
+      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
         label={mediatorCopy('opposition')}

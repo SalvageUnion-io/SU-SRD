@@ -25,7 +25,7 @@
 import { SalvageUnionReference } from '../index'
 import { plainTraitText } from '../traitText'
 import { resultForTable } from '../utils/resultForTable'
-import { overloadTableName } from './heatCheck'
+import { overloadTableName, PUSH_HEAT } from './heatCheck'
 import type { HeatCheckEffect, OverloadTable, ReactorOverloadOutcome, Roll } from './types'
 
 export type CoreRollBand = 'nailed' | 'success' | 'tough' | 'failure' | 'cascade'
@@ -174,9 +174,11 @@ export function describeOverloadOutcome(
 export function describePushOutcome(
   nextHeat: number,
   effect: HeatCheckEffect,
+  /** The Heat the Push added, where a Scene scales it. */
+  gain: number = PUSH_HEAT,
   overloadTable: OverloadTable = 'reactor'
 ): string {
   const r = effect.result
-  const head = `+2 Heat → ${nextHeat}. Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
+  const head = `+${gain} Heat → ${nextHeat}. Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
   return `${head} — ${describeOverloadOutcome(r, overloadTable)}`
 }

@@ -92,6 +92,7 @@ export {
   isBioChassis,
   overloadTableName,
   overloadTableOf,
+  PUSH_HEAT,
   performHeatCheck,
   performPush,
 } from './heatCheck'

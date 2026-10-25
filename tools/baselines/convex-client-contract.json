@@ -2769,6 +2769,77 @@
         }
       }
     },
+    "scenes:current": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "scenes:passHour": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "scenes:setConditions": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "conditions": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "radiation-storm"
+                },
+                {
+                  "type": "literal",
+                  "value": "irradiated"
+                },
+                {
+                  "type": "literal",
+                  "value": "freezing"
+                },
+                {
+                  "type": "literal",
+                  "value": "low-visibility"
+                },
+                {
+                  "type": "literal",
+                  "value": "difficult-terrain"
+                },
+                {
+                  "type": "literal",
+                  "value": "anomalous-zone"
+                }
+              ]
+            }
+          },
+          "optional": false
+        }
+      }
+    },
     "seats:board": {
       "type": "object",
       "value": {

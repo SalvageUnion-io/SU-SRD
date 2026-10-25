@@ -33,6 +33,7 @@
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -67,6 +68,7 @@ import {
   buildPilotActions,
   coreMechanicRowText,
   economyForActivation,
+  economyUnderScene,
   hasCurrencyChoice,
   hasVariableHot,
   isAreaSalvage,
@@ -190,11 +192,10 @@ export type ActionsDeckProps = {
   onResolving: (resolving: SeatResolving | null) => void
   /** Injectable store (defaults to the live entity store). */
   store?: PlayStore
-  /**
-   * The dice for a roll on a table, by its name. Injectable so a test controls
-   * the roll; defaults to the UI library's `rollForTable` (Randsum).
-   */
+  /** The dice for a table roll, by name; injectable for tests (default `rollForTable`). */
   rollFor?: typeof rollForTable
+  /** The Scene's Heat multiplier (`sceneHeatScale`: 2 Radiation Storm, ½ Freezing), Hot and Push; 1 by default. */
+  heatScale?: number
   /** The area an Area Salvage spends Supply from; absent where no area is read. */
   salvageArea?: SalvageAreaView
 }
@@ -219,6 +220,7 @@ export function useActionsDeck({
   onResolving,
   store,
   rollFor = rollForTable,
+  heatScale = 1,
   salvageArea,
 }: ActionsDeckProps): ActionsDeck {
   const liveStore = useEntityStore()
@@ -380,7 +382,7 @@ export function useActionsDeck({
     const coreRoll = await rollFor('Core Mechanic')
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
-    const pushed = mechPush(s.get('mech', mech.id) ?? mech, heatRoll)
+    const pushed = mechPush(s.get('mech', mech.id) ?? mech, heatRoll, heatScale)
     if (pushed === null) return
     runWrite(() => s.update('mech', mech.id, pushed.patch, meta))
     const hurt = pilot ? pilotOverloadPatch(s.get('pilot', pilot.id) ?? pilot, pushed.effect) : null
@@ -465,7 +467,11 @@ export function useActionsDeck({
     // are offered only when boarded.
     const currencyChoice = hasCurrencyChoice(selected.action) && !onFoot
     const variableHot = hasVariableHot(selected.action) && !isPilotAction
-    const eco = economyForActivation(selected.economy, selected.action, hotX)
+    // The Scene's conditions scale the Hot Heat (Workshop Manual p.306, False Flag p.9).
+    const eco = economyUnderScene(
+      economyForActivation(selected.economy, selected.action, hotX),
+      heatScale
+    )
     // Area Salvage costs "1 AP for a Pilot or 1 EP in a Mech" (p.248).
     const salvaging = isAreaSalvage(selected.action)
     const effCurrency: PlayActionCurrency = currencyChoice
@@ -490,7 +496,8 @@ export function useActionsDeck({
     const pushed = pushLog !== null
     // Core Book pp.233–234: a Push adds 2 Heat, and a mech never exceeds its
     // Heat Cap, so it is refused where that would — as `PlayReactorRow` refuses it.
-    const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap)
+    const pushHeat = pushHeatAt(heatScale)
+    const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap, pushHeat)
 
     return {
       kind: 'resolve',
@@ -537,7 +544,7 @@ export function useActionsDeck({
                 disabled: roll === null || pushed || pushLocked,
                 pushed,
                 lockedReason: pushLocked
-                  ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +2 Heat would pass the Heat Capacity.`
+                  ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +${pushHeat} Heat would pass the Heat Capacity.`
                   : undefined,
                 onPush: () => void doPush(current),
               },

@@ -23,6 +23,7 @@ const NOT_RUNNING = { running: false, stepIndex: null, completedBy: [], upkeepSp
 const ANSWERS = {
   'seats:solo': null,
   'seats:forGame': [],
+  'scenes:current': { conditions: [], hours: 0 },
   'downtime:state': NOT_RUNNING,
   // No area named to Area Salvage.
   'salvageAreas:here': null,

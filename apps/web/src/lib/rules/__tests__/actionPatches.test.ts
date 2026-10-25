@@ -21,6 +21,7 @@ import {
   buildPilotActions,
   coreMechanicRowText,
   economyForActivation,
+  economyUnderScene,
   hasCurrencyChoice,
   hasVariableHot,
   heatCheckOncePatch,
@@ -101,6 +102,35 @@ describe('reactor patches', () => {
     expect(shutdownTogglePatch(false)).toEqual({ shutdown: true })
     expect(shutdownTogglePatch(true)).toEqual({ shutdown: false })
     expect(shutdownTogglePatch(undefined)).toEqual({ shutdown: true })
+  })
+})
+
+describe('under a Scene’s conditions (Workshop Manual p.306, False Flag p.9)', () => {
+  // A Mule's Heat Capacity is 6.
+  const mule = (currentHeat: number) =>
+    mechFixture({ id: 'm-scene', name: 'Rig', chassisRef: 'mule', currentHeat })
+
+  test('a Push in a Radiation Storm adds 4 Heat, and says so', () => {
+    const pushed = mechPush(mule(1), seqRoll([20]), 2)
+    expect(pushed?.patch.currentHeat).toBe(5)
+    expect(pushed?.text.startsWith('+4 Heat → 5.')).toBe(true)
+  })
+
+  test('Freezing halves it: a Push adds 1', () => {
+    expect(mechPush(mule(3), seqRoll([20]), 0.5)?.patch.currentHeat).toBe(4)
+  })
+
+  test('no Push where the scaled Heat would pass the Heat Cap', () => {
+    const hot = mule(4)
+    expect(mechPush(hot, seqRoll([20]))).not.toBeNull()
+    expect(mechPush(hot, seqRoll([20]), 2)).toBeNull()
+  })
+
+  test('Hot Heat scales, rounded down; EP and uses do not', () => {
+    const base = { epCost: 2, heat: 3, maxUses: 1 }
+    expect(economyUnderScene(base, 2)).toEqual({ epCost: 2, heat: 6, maxUses: 1 })
+    expect(economyUnderScene(base, 0.5)).toEqual({ epCost: 2, heat: 1, maxUses: 1 })
+    expect(economyUnderScene(base, 1)).toBe(base)
   })
 })
 

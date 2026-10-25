@@ -7,10 +7,11 @@
  * `games.members` join order), the primary crawler (`entities.listForGame`;
  * the Mediator's store holds it, so its box is live), the Game's Downtime
  * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`), the saved
- * patterns the picker may field, the proposals sent, the alerts and the
- * Game's rolls, the area being salvaged — and makes the writes the Mediator
- * holds: the Opposition, a downed wreck's salvage into the crawler, the area,
- * proposals (ADR-030 §4) and alerts. It
+ * patterns the picker may field, the proposals sent, the alerts, the
+ * Game's rolls, its Scene's conditions (`useScene`) and the area being
+ * salvaged — and makes the writes the Mediator holds: the Opposition, a
+ * downed wreck's salvage into the crawler, the area, proposals (ADR-030 §4),
+ * alerts and the Scene's conditions. It
  * writes nothing a player owns; a player's sheet is reached only by proposal.
  *
  * A Morale roll is kept on the NPC (`lastMediatorRoll`) and goes on Play's
@@ -26,6 +27,7 @@ import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
 import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
+import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
@@ -56,6 +58,8 @@ import { usePlayDowntime } from '../usePlayDowntime'
 import { usePresenceClock } from '../usePresenceClock'
 import type { SalvageAreaView } from '../useSalvageArea'
 import { useSalvageArea } from '../useSalvageArea'
+import type { SceneState } from '../useScene'
+import { useScene } from '../useScene'
 import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
@@ -82,6 +86,8 @@ export type PlayMediator = {
   crawler: { crawler: Crawler; held: boolean } | null
   /** The Game's Downtime, as its Mediator runs it. */
   downtime: PlayDowntime
+  /** The Scene's conditions, and the Mediator's writes to them (`scenes.ts`). */
+  scene: MediatorScene
   /** What the crew's faction deals pay this Downtime (`ledger.collectIncome`). */
   income: DealIncome
   /** The tray, hidden from players; null while it loads. */
@@ -113,6 +119,14 @@ export type PlayMediator = {
   now: number
   canWrite: boolean
   readOnly: PlayReadOnly | null
+}
+
+/** The Scene's conditions as the Mediator sets them and passes the hours. */
+type MediatorScene = SceneState & {
+  /** Put the Scene under exactly these. */
+  set: (conditions: readonly SceneConditionId[]) => Promise<void>
+  /** Count an hour passed; resolves to the hour it now is. */
+  passHour: () => Promise<number>
 }
 
 /** The Game's deal income: a Scrap per deal, collected once per Downtime at Upkeep. */
@@ -182,6 +196,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
+  const sceneState = useScene(gameId)
   const area = useSalvageArea(mediatorTarget(gameId))
   const ledger = useQuery(api.ledger.get, { gameId: id })
   const collectIncome = useMutation(api.ledger.collectIncome)
@@ -193,6 +208,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const endEncounter = useMutation(api.mediator.endEncounter)
   const proposeMutation = useMutation(api.proposals.propose)
   const broadcastMutation = useMutation(api.proposals.broadcast)
+  const setConditions = useMutation(api.scenes.setConditions)
+  const passHour = useMutation(api.scenes.passHour)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 
@@ -370,6 +387,20 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     crew: crew ?? null,
     crawler,
     downtime,
+    scene: {
+      ...sceneState,
+      set: said(async (conditions: readonly SceneConditionId[]) => {
+        await setConditions({ gameId: id, conditions: [...conditions] })
+      }),
+      passHour: async () => {
+        try {
+          return await passHour({ gameId: id })
+        } catch (err) {
+          onFailure(err)
+          throw err
+        }
+      },
+    },
     income: {
       deals: ledger ? dealCount(ledger) : 0,
       collected: ledger?.incomeCollected ?? false,
