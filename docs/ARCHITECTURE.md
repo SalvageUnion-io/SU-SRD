@@ -128,13 +128,13 @@ ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry an
 Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-047.
 
 8. **ADR-008 Sequential client-side mutations**
-   No atomic transaction or rollback; affordability is checked before an action runs.
+   No atomic transaction or rollback; affordability is checked before an action runs. Amended by ADR-063.
 22. **ADR-022 Change Log and stat overrides**
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
-    Amended by ADR-030 and ADR-034: the log is account data on Convex.
+    Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055 and ADR-058.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058 and ADR-063.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -196,3 +196,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 62. **ADR-062 Play at /play, one URL grammar** · [full text](adr/062-play-at-play.md)
     Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.
     Amends ADR-048, ADR-050 and ADR-052 §4–5.
+63. **ADR-063 Typed ops are the write** · [full text](adr/063-typed-ops-are-the-write.md)
+    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`.
+    Amends ADR-008, ADR-022 and ADR-030 §4.
