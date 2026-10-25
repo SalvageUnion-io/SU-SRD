@@ -25,11 +25,13 @@ let started = false
 const listeners = new Set<() => void>()
 
 function settle(answer: TokenAnswer | null): void {
+  const before = cached?.token ?? null
   cached = answer && { token: answer.token, expiresAt: expiryOf(answer.token) }
   writeStoredSession(localStore(), answer?.account ?? null)
   const next = { isLoading: false, isAuthenticated: answer !== null }
-  if (next.isLoading === state.isLoading && next.isAuthenticated === state.isAuthenticated) return
-  state = next
+  const same = next.isLoading === state.isLoading && next.isAuthenticated === state.isAuthenticated
+  if (same && before === (cached?.token ?? null)) return
+  if (!same) state = next
   for (const listener of listeners) listener()
 }
 
@@ -97,6 +99,19 @@ export function useWorkerAuth() {
   return useMemo(
     () => ({ isLoading, isAuthenticated, fetchAccessToken }),
     [isLoading, isAuthenticated, fetchAccessToken]
+  )
+}
+
+/**
+ * The session's current token, `null` until one is answered or once signed
+ * out; a new one each time Convex has it refreshed. For a room's socket
+ * (`useGamePresence`), which the Worker checks with Convex.
+ */
+export function useSessionToken(): string | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => cached?.token ?? null,
+    () => null
   )
 }
 

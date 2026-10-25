@@ -8,7 +8,7 @@ import { expect, test } from './fixtures'
  * A search field is full width on a phone (`_searchWidth.ts`), on the
  * signed-out pages that draw one: an SRD listing's rail (the reference
  * corpus's `search` pages, `_designTable.ts`), and the header's search, a
- * row of its own under the bar. Play's phone form is held to it in `play-turn.e2e.ts`.
+ * row of its own under the bar. Play's tabs on a phone are held to it in `play-turn.e2e.ts`.
  * Each page must draw a field, so the gate never passes by reading nothing.
  */
 

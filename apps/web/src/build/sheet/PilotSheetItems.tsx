@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * PilotSheetItems — the pilot sheet's per-item building blocks (abilities,
  * equipment, generic entries, injuries). Purely presentational and
@@ -32,7 +33,6 @@ import {
   resolveEquipment,
 } from '../../lib/rules/pilotInventory'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
 import { SheetItemLine } from './SheetItemLine'
 import { syntheticItemModel } from './syntheticItem.model'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -185,7 +185,7 @@ type PilotEquipmentItemProps = {
    */
   scalingParent: Record<string, unknown> | undefined
   /** Injectable store — forwarded to useEntityChoices for tests. */
-  store: typeof useEntityStore
+  store: UnitsStore
 }
 
 /**

@@ -9,13 +9,21 @@ import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { localStore } from '../../safeLocalStorage'
 import { AUTH_PATHS } from '../paths'
-import { signIn, signOut, testSignIn, useWorkerAuth } from '../session'
 import { SESSION_KEY } from '../storedSession'
+
+// A copy of its own: the session is the page's, and another file in the run
+// may have started the shared one already.
+const FRESH = '../session.ts?fresh'
+const { signIn, signOut, testSignIn, useSessionToken, useWorkerAuth } = (await import(
+  FRESH
+)) as typeof import('../session')
 
 const tokenExpiring = (exp: number) => `h.${btoa(JSON.stringify({ exp })).replace(/=+$/, '')}.s`
 
 type Answer = Response | Error
 let answers: Answer[] = []
+/** What every call answers once `answers` runs out, or `null` to refuse it. */
+let otherwise: (() => Response) | null = null
 const calls: { url: string; init?: RequestInit }[] = []
 let fetchSpy: ReturnType<typeof spyOn>
 
@@ -28,7 +36,7 @@ beforeAll(() => {
     init?: RequestInit
   ) => {
     calls.push({ url: String(input), init })
-    const next = answers.shift()
+    const next = answers.shift() ?? otherwise?.()
     if (next === undefined) throw new Error(`unexpected fetch of ${String(input)}`)
     if (next instanceof Error) throw next
     return next
@@ -51,11 +59,16 @@ describe('useWorkerAuth', () => {
     expect(result.current).toMatchObject({ isLoading: true, isAuthenticated: false })
     expect(localStore()?.getItem(SESSION_KEY)).toBe('stale')
 
-    answers = [new Response(null, { status: 401 })]
-    act(() => {
-      window.dispatchEvent(new Event('online'))
-    })
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    // Any other copy of the session still loading in this run asks too.
+    otherwise = () => new Response(null, { status: 401 })
+    try {
+      act(() => {
+        window.dispatchEvent(new Event('online'))
+      })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+    } finally {
+      otherwise = null
+    }
     expect(result.current.isAuthenticated).toBe(false)
     expect(calls[1]?.url).toBe(AUTH_PATHS.token)
     expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
@@ -75,6 +88,7 @@ describe('useWorkerAuth', () => {
     })
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
     expect(localStore()?.getItem(SESSION_KEY)).toBe('user1')
+    expect(renderHook(() => useSessionToken()).result.current).toBe(token)
 
     const before = calls.length
     expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe(token)
@@ -115,6 +129,7 @@ describe('signOut', () => {
     await act(() => signOut())
     expect(calls.at(-1)).toMatchObject({ url: AUTH_PATHS.signOut, init: { method: 'POST' } })
     expect(result.current).toMatchObject({ isLoading: false, isAuthenticated: false })
+    expect(renderHook(() => useSessionToken()).result.current).toBeNull()
     expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
   })
 })

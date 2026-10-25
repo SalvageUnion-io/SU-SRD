@@ -1,9 +1,8 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { useEncounterStore } from '../../stores/encounterStore'
-import { usePatternStore } from '../../stores/patternStore'
-import type { EntityType } from '../../stores/types'
+import { usePatterns, useTray } from '../../replica/collections'
+import type { EntityType } from '../../replica/types'
 import type { ExportBundle } from '../schemas/exportBundle'
 
 /**
@@ -12,7 +11,7 @@ import type { ExportBundle } from '../schemas/exportBundle'
  */
 type ExportStore = {
   hydrate: (type: EntityType) => Promise<void>
-  list: <T extends EntityType>(type: T) => import('../../stores/types').EntityForType<T>[]
+  list: <T extends EntityType>(type: T) => import('../../replica/types').EntityForType<T>[]
 }
 
 /**
@@ -55,8 +54,8 @@ function fromStore<T>(store: {
  */
 export async function buildExportBundle(
   entityStore: ExportStore,
-  patternStore: ExportPatternStore = fromStore<MechPattern>(usePatternStore),
-  encounterNpcStore: ExportEncounterNpcStore = fromStore<EncounterNpc>(useEncounterStore)
+  patternStore: ExportPatternStore = fromStore<MechPattern>(usePatterns),
+  encounterNpcStore: ExportEncounterNpcStore = fromStore<EncounterNpc>(useTray)
 ): Promise<ExportBundle> {
   const [mechPatterns, encounterNpcs] = await Promise.all([
     patternStore.list(),

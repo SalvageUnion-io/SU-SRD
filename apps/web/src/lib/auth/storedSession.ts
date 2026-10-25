@@ -4,7 +4,7 @@
  * answers signed out or the player signs out (`./session.ts`).
  *
  * The session itself is an HttpOnly cookie no script can read, so this is
- * what an offline boot (`deviceCopy`'s `sessionAccount`) and the SRD's bar
+ * what an offline boot (`replica/persist.ts`'s `sessionAccount`) and the SRD's bar
  * (`accountHint`) read instead. A hint, never a credential: the server checks
  * the cookie. Dependency-free, for the SRD's client entry.
  */

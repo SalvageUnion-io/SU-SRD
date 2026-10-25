@@ -34,7 +34,7 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { WritesBlockedOffline } = await import('../../../stores/entityBackend')
+const { WritesBlockedOffline } = await import('../../../replica/sync')
 const { LinkRefused } = await import('../../links/linkRefused')
 const { failureMessage, useServerAction } = await import('../useServerAction')
 

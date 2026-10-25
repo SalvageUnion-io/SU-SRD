@@ -46,7 +46,6 @@ describe('crewLines', () => {
     maxAP: 5,
     status: calm,
     attention: false,
-    lastSeenAt: null,
   }
   const mech = {
     ownerId: null,

@@ -60,8 +60,8 @@ import {
 } from '../lib/rules/actionPatches'
 import type { MechItemEconomy } from '../lib/rules/mechItems'
 import { runWrite } from '../lib/runWrite'
-import { useEntityStore } from '../stores/entityStore'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
+import { useUnits } from '../replica/units'
 import type { PlayStore } from './play.model'
 import type { Situation } from './situation.model'
 
@@ -184,7 +184,7 @@ export function useActionsDeck({
   store,
   rollFor = rollForTable,
 }: ActionsDeckProps): ActionsDeck {
-  const liveStore = useEntityStore()
+  const liveStore = useUnits()
   const s: PlayStore = store ?? liveStore
 
   // On foot the mech's actions are unreachable; boarded, the pilot's own actions

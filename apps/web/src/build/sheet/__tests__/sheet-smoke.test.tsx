@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Sheet pipeline smoke tests — consolidated end-to-end-ish coverage of the
  * entire sheet rendering pipeline.
@@ -41,7 +42,6 @@ import {
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
 
 // Module scope, before the import below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({ authReact: true })
@@ -99,7 +99,7 @@ const fakeCrawler = crawlerFixture({
 function makeZustandLikeStore(
   mechs: Mech[],
   onUpdate?: (id: string, patch: Partial<Mech>) => void
-): typeof useEntityStore {
+): UnitsStore {
   const updateMock = mock(async (_type: string, id: string, patch: Partial<Mech>) => {
     onUpdate?.(id, patch)
     const entity = mechs.find((e) => e.id === id)

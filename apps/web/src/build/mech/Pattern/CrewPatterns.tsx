@@ -13,9 +13,9 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import { Entity, quotePatternName, SlabSection, tokens } from '../../../components/index'
 import { AppLink } from '../../../components/shared/AppLink'
-import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
+import { useSync } from '../../../replica/syncContext'
 
 const LIST = {
   display: 'grid',
@@ -29,8 +29,8 @@ const LIST = {
 const LINK = { color: 'inherit', display: 'block', textDecoration: 'none' } satisfies CSSProperties
 
 export function CrewPatterns() {
-  const { mode } = useConnection()
-  const shared = useQuery(api.shelf.crewPatterns, mode === 'connected' ? {} : 'skip')
+  const { status } = useSync()
+  const shared = useQuery(api.shelf.crewPatterns, status === 'live' ? {} : 'skip')
 
   const rows = (shared ?? []).flatMap((row) => {
     const parsed = MechPatternSchema.safeParse(row.body)

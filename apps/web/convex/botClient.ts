@@ -1,7 +1,7 @@
 import { v } from 'convex/values'
+import { botDenial as fail, SHEET_NOT_FOUND } from 'game-domain/botDenials'
 import type {
   BindChannelResult,
-  BotDenialReason,
   BotFailure,
   BotSuccess,
   BotUsageResult,
@@ -13,7 +13,6 @@ import type {
   UnbindChannelResult,
 } from 'game-domain/botWire'
 import { SHEET_KINDS, TABLE_OF_KIND } from 'game-domain/entityKinds'
-import { PRODUCT } from 'game-domain/product'
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
@@ -67,15 +66,6 @@ import { literalUnion } from './model/validators'
  * to a return shape here is a compile error on both sides of the wire rather
  * than a silent drift between two hand-kept copies.
  */
-const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
-  unlinked: `No ${PRODUCT.wordmark} account is signed in with this Discord account.`,
-  'not-found': 'That could not be found.',
-  forbidden: 'You cannot do that here.',
-}
-
-function fail(reason: BotDenialReason, message?: string): BotFailure {
-  return { ok: false, reason, message: message ?? DENIAL_MESSAGE[reason] }
-}
 
 /**
  * Who the bot is talking to, and what they are part of.
@@ -157,9 +147,6 @@ export const mine = internalQuery({
     }
   },
 })
-
-/** One answer for absent and not-yours alike: either reply would otherwise disclose. */
-const SHEET_NOT_FOUND = 'That sheet could not be found, or it is not yours to read.'
 
 /**
  * One sheet, read-only: the caller's own, a crewmate's, or anybody's public one.

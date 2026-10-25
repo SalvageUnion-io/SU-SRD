@@ -19,7 +19,6 @@ import {
   pilotFixture,
   softLinkFixture,
 } from '../../components/__tests__/fixtures'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
@@ -28,8 +27,8 @@ const convexMocks = await installConvexMocks()
 setQueryAnswers({ 'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null } })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 const { Harness } = await import('./playActionsHarness')
 const { onPlayRoll } = await import('../playRolls.model')
 
@@ -37,14 +36,14 @@ const LINK = 'dt-link'
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  await useEntityStore
+  resetSync()
+  await useUnits
     .getState()
     .adopt('softLink', softLinkFixture('pilot-to-crawler', 'dt-p', 'dt-c', LINK))
 })
 
 afterAll(async () => {
-  await useEntityStore.getState().forget('softLink', LINK)
+  await useUnits.getState().forget('softLink', LINK)
   convexMocks.restore()
 })
 
@@ -168,7 +167,12 @@ describe('a solo Downtime, end to end', () => {
     expect(within(stepBox()).getByText('2→3')).toBeTruthy()
     calls.length = 0
     await click(button('Apply & mark done'))
-    expect(calls).toEqual([{ type: 'pilot', id: 'dt-p', patch: { trainingPoints: 3 } }])
+    // The pilot's share rides on the step's op, not a store write.
+    expect(calls).toEqual([])
+    expect(writes).toContainEqual({
+      name: 'downtime.markStepDone',
+      args: { stepIndex: currentStep(), patch: { trainingPoints: 3 } },
+    })
 
     // The last step ends Downtime.
     while (currentStep() < STEPS.length - 1) await click(button(/^Next: Step \d+$/))
@@ -199,7 +203,7 @@ describe('a solo Downtime, end to end', () => {
   test('a step done before a reload is not applied again: Train’s +1 TP lands once', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
-    const { store, calls, metas } = stubStore(pilot, mech, crawler)
+    const { store, calls } = stubStore(pilot, mech, crawler)
     const writes: Write[] = []
     render(
       <Harness
@@ -212,10 +216,11 @@ describe('a solo Downtime, end to end', () => {
       />
     )
     await click(button('Apply & mark done'))
-    expect(writes).toContainEqual({ name: 'downtime.markStepDone', args: train })
-    expect(calls).toEqual([{ type: 'pilot', id: 'dt-p', patch: { trainingPoints: 3 } }])
-    // Logged as Play's.
-    expect(metas).toEqual([PLAY_TXN])
+    expect(writes).toContainEqual({
+      name: 'downtime.markStepDone',
+      args: { stepIndex: train, patch: { trainingPoints: 3 } },
+    })
+    expect(calls).toEqual([])
 
     // The reload: the seat says the step is done, so the box offers no Apply.
     cleanup()
@@ -338,14 +343,18 @@ describe('a Game’s step', () => {
     ).toBeNull()
 
     await click(button('Apply & mark done'))
-    expect(calls.map((c) => c.type).sort()).toEqual(['mech', 'pilot'])
+    // The mech's share is a store write; the pilot's rides on the step's op.
+    expect(calls.map((c) => c.type)).toEqual(['mech'])
+    expect(writes.find((w) => w.name === 'downtime.markStepDone')?.args).toMatchObject({
+      patch: { currentHP: expect.any(Number) },
+    })
     expect(writes).toContainEqual({ name: 'downtime.markDone', args: true })
     expect(within(stepBox()).getByText('Mediator advances · 2 of 4 done')).toBeTruthy()
     await click(button('Undo'))
     expect(writes).toContainEqual({ name: 'downtime.markDone', args: false })
   })
 
-  test('a claimed step never applies twice: not after Undo, not after the Mediator’s Back', async () => {
+  test('a taken step never applies twice: not after Undo, not after the Mediator’s Back', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
     const { store, calls } = stubStore(pilot, mech, crawler)
@@ -362,8 +371,11 @@ describe('a Game’s step', () => {
       />
     )
     await click(button('Apply & mark done'))
-    expect(writes).toContainEqual({ name: 'downtime.markStepDone', args: train })
-    expect(calls).toEqual([{ type: 'pilot', id: 'dt-p', patch: { trainingPoints: 3 } }])
+    expect(writes).toContainEqual({
+      name: 'downtime.markStepDone',
+      args: { stepIndex: train, patch: { trainingPoints: 3 } },
+    })
+    expect(calls).toEqual([])
 
     // Undo unticks "done" only: the step stays applied, and Apply is not offered.
     await click(button('Undo'))
@@ -373,9 +385,9 @@ describe('a Game’s step', () => {
     expect(within(stepBox()).queryByRole('button', { name: 'Skip' })).toBeNull()
     await click(button('Mark done'))
     expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
-    expect(calls).toHaveLength(1)
+    expect(writes.filter((w) => w.name === 'downtime.markStepDone')).toHaveLength(1)
 
-    // The Mediator goes Back to the step: `completedBy` is cleared, the claim is not.
+    // The Mediator goes Back to the step: `completedBy` is cleared, the step stays taken.
     cleanup()
     render(
       <Harness
@@ -390,13 +402,14 @@ describe('a Game’s step', () => {
     )
     expect(within(stepBox()).getByText('Applied ✓')).toBeTruthy()
     expect(within(stepBox()).queryByRole('button', { name: 'Apply & mark done' })).toBeNull()
-    expect(calls).toHaveLength(1)
+    expect(calls).toHaveLength(0)
   })
 
-  test('done is per member, the claim per pilot: a second pilot still applies its step', async () => {
+  test('done is per member, the step per pilot: a second pilot still applies its step', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
-    const { store, calls } = stubStore(pilot, mech, crawler)
+    const { store } = stubStore(pilot, mech, crawler)
+    const writes: Write[] = []
     const me = MEMBERS[0] as (typeof MEMBERS)[number]
     render(
       <Harness
@@ -404,15 +417,18 @@ describe('a Game’s step', () => {
         mech={mech}
         situation="downtime"
         store={store}
-        writes={[]}
+        writes={writes}
         gameId="g1"
-        // This member is done (for their other pilot); this pilot has claimed nothing.
+        // This member is done (for their other pilot); this pilot has taken nothing.
         downtime={{ stepIndex: train, members: MEMBERS, done: [me] }}
       />
     )
     expect(within(stepBox()).queryByText('Done ✓')).toBeNull()
     await click(button('Apply & mark done'))
-    expect(calls).toEqual([{ type: 'pilot', id: 'dt-p', patch: { trainingPoints: 3 } }])
+    expect(writes).toContainEqual({
+      name: 'downtime.markStepDone',
+      args: { stepIndex: train, patch: { trainingPoints: 3 } },
+    })
   })
 
   test('the Mediator, at a player’s screen, advances the table; never Next step', async () => {

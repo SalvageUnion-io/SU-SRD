@@ -16,16 +16,16 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { NotConnectedBanner } = await import('../NotConnectedBanner')
 
 describe('NotConnectedBanner', () => {
   test('renders nothing in Solo mode', () => {
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <NotConnectedBanner />
-      </ConnectionProvider>
+      </SyncProvider>
     )
     expect(screen.queryByText(/Not connected/)).toBeNull()
   })
@@ -35,9 +35,9 @@ describe('NotConnectedBanner', () => {
     Object.defineProperty(navigator, 'onLine', { value: false, configurable: true })
     try {
       render(
-        <ConnectionProvider>
+        <SyncProvider>
           <NotConnectedBanner />
-        </ConnectionProvider>
+        </SyncProvider>
       )
       // Offline + signed out is Solo, not Disconnected. A user with no account
       // has nothing to be disconnected FROM.
@@ -54,16 +54,15 @@ describe('NotConnectedBanner', () => {
 
   test('disconnected, it is the shared Banner at warn: ink text, saying what it costs', () => {
     render(
-      <ConnectionContext.Provider
+      <SyncContext.Provider
         value={{
-          mode: 'disconnected',
+          status: 'offline',
           canWrite: false,
-          showDisconnectedWarning: true,
-          settling: false,
+          outdated: false,
         }}
       >
         <NotConnectedBanner />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
     const banner = screen.getByRole('alert')
     expect(banner.textContent).toContain('read-only until the connection returns')

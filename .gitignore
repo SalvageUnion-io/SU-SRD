@@ -90,3 +90,7 @@ rules/*
 /.dev-backend/
 # chrome-headless-shell for a sandbox the full Chromium cannot start in (packages/gates/lib/chromium.ts)
 /.pw-browsers/
+
+# Astro (ADR-065 spike): its generated types and its build
+apps/web/.astro/
+apps/web/dist-astro/

@@ -14,14 +14,14 @@
 import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 import type { BoardSources } from './boardMenu.model'
 
 /** One Game's board sources; with no Game, nothing is read. */
 export function useGameBoardSources(gameId: Id<'games'> | null): BoardSources {
-  const { mode } = useConnection()
-  const signedIn = isSignedIn(mode)
+  const { status } = useSync()
+  const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null ? { gameId } : 'skip'
 
   const me = useQuery(api.account.me, inGame === 'skip' ? 'skip' : {})

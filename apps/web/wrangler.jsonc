@@ -40,6 +40,8 @@
   //   public half is the Convex deployment's AUTH_JWKS. Without them
   //   /auth/sign-in answers 503 and nobody signs in (src/worker/auth/).
   //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
+  // - GITHUB_FEEDBACK_TOKEN, a GitHub token that may open issues on SU-SRD.
+  //   Without it feedback waits in the shared database and is never filed.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from until SHARED is filled: the URL the app is built against,
@@ -56,6 +58,10 @@
   // name on the first deploy.
   "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared" }],
 
+  // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
+  // which names each schedule).
+  "triggers": { "crons": ["13 5 * * *", "23 * * * *"] },
+
   // A Worker Preview (deploy-preview.yml) inherits none of the vars and
   // bindings above: the staging deployment the app is built against, and its
   // own shared database, so a Preview never reads or writes production's.
@@ -65,6 +71,15 @@
       "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
     },
     "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared-preview" }]
+  },
+
+  // The rooms (ADR-064, src/worker/rooms.ts), SQLite Durable Objects reached
+  // through `exports` from `cloudflare:workers`, so each Preview gets its own namespaces and no
+  // `durable_objects` binding is needed. A class is retired with a `deleted`
+  // tombstone, which drops its data: never without Jrvs's go.
+  "exports": {
+    "AccountRoom": { "type": "durable-object", "storage": "sqlite" },
+    "GameRoom": { "type": "durable-object", "storage": "sqlite" }
   },
 
   // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors) per

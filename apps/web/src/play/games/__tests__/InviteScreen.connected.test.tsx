@@ -52,7 +52,7 @@ const convexMocks = await installConvexMocks({
 const navigations = convexMocks.navigations
 
 const { InviteScreen } = await import('../InviteScreen')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
 function preview(over: Record<string, unknown> = {}) {
   return {
@@ -72,9 +72,9 @@ function renderJoin(value: unknown, joinOnArrival = false) {
   redeemError = null
   isAuthenticated = true
   return render(
-    <ConnectionProvider>
+    <SyncProvider>
       <InviteScreen token="A1B2C3D4E5F6G7H8" joinOnArrival={joinOnArrival} />
-    </ConnectionProvider>
+    </SyncProvider>
   )
 }
 
@@ -144,9 +144,9 @@ describe('a visitor who is not signed in', () => {
     cleanup()
     setQueryAnswers({ 'invites:preview': preview() })
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <InviteScreen token="A1B2C3D4E5F6G7H8" />
-      </ConnectionProvider>
+      </SyncProvider>
     )
 
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
@@ -160,9 +160,9 @@ describe('a visitor who is not signed in', () => {
     isAuthenticated = false
     setQueryAnswers({ 'invites:preview': null })
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <InviteScreen token="A1B2C3D4E5F6G7H8" />
-      </ConnectionProvider>
+      </SyncProvider>
     )
 
     expect(screen.getByText(/does not work/i)).toBeTruthy()

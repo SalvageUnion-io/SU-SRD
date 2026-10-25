@@ -12,7 +12,7 @@ import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { installConvexMocks } from '../../../../components/__tests__/convexMock'
-import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
+import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 
 let failWrites = false
 
@@ -27,8 +27,8 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { resetStores } = await import('../../../../stores/__tests__/resetStores')
-const { usePatternStore } = await import('../../../../stores/patternStore')
+const { resetStores } = await import('../../../../replica/__tests__/resetStores')
+const { usePatterns } = await import('../../../../replica/collections')
 const { SavePatternButton } = await import('../SavePatternButton')
 const { SavePatternDialog } = await import('../SavePatternDialog')
 
@@ -81,7 +81,7 @@ async function typeName(value: string) {
 beforeEach(async () => {
   failWrites = false
   resetStores()
-  await usePatternStore.getState().hydrate()
+  await usePatterns.getState().hydrate()
 })
 
 describe('SavePatternDialog', () => {
@@ -95,8 +95,8 @@ describe('SavePatternDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
     })
 
-    await waitFor(() => expect(usePatternStore.getState().mechPatterns).toHaveLength(1))
-    const [saved] = usePatternStore.getState().mechPatterns
+    await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
+    const [saved] = usePatterns.getState().mechPatterns
     expect(saved).toMatchObject({
       name: 'Brawler',
       chassisRef: 'mule',
@@ -122,8 +122,8 @@ describe('SavePatternDialog', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
     })
-    await waitFor(() => expect(usePatternStore.getState().mechPatterns).toHaveLength(1))
-    expect(usePatternStore.getState().mechPatterns[0]?.notes).toBe('Rig first, rivet later.')
+    await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
+    expect(usePatterns.getState().mechPatterns[0]?.notes).toBe('Rig first, rivet later.')
   })
 
   test('Enter saves too', async () => {
@@ -132,8 +132,8 @@ describe('SavePatternDialog', () => {
     await act(async () => {
       fireEvent.keyDown(nameField(), { key: 'Enter' })
     })
-    await waitFor(() => expect(usePatternStore.getState().mechPatterns).toHaveLength(1))
-    expect(usePatternStore.getState().mechPatterns[0]?.name).toBe('Iron Jaw')
+    await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
+    expect(usePatterns.getState().mechPatterns[0]?.name).toBe('Iron Jaw')
   })
 
   test('a blank name is refused, and Save is closed until there is one', async () => {
@@ -144,8 +144,8 @@ describe('SavePatternDialog', () => {
     await act(async () => {
       fireEvent.keyDown(nameField(), { key: 'Enter' })
     })
-    expect(usePatternStore.getState().mechPatterns).toHaveLength(0)
-    expect(usePatternStore.getState().mechPatterns).toHaveLength(0)
+    expect(usePatterns.getState().mechPatterns).toHaveLength(0)
+    expect(usePatterns.getState().mechPatterns).toHaveLength(0)
   })
 
   test('Cancel closes, writing nothing', async () => {
@@ -155,7 +155,7 @@ describe('SavePatternDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     })
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Pattern name' })).toBeNull())
-    expect(usePatternStore.getState().mechPatterns).toHaveLength(0)
+    expect(usePatterns.getState().mechPatterns).toHaveLength(0)
     expect(onSaved).not.toHaveBeenCalled()
   })
 
@@ -186,7 +186,7 @@ describe('SavePatternButton', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
     })
-    await waitFor(() => expect(usePatternStore.getState().mechPatterns).toHaveLength(1))
+    await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
     expect(convexMocks.navigations).toHaveLength(0)
   })
 })

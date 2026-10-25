@@ -56,9 +56,9 @@ const convexMocks = await installConvexMocks({
 })
 
 const { SheetView } = await import('../SheetView')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { useUnits } = await import('../../../replica/units')
 const { useSheetModeStore } = await import('../sheetMode.model')
 
 afterAll(() => {
@@ -74,14 +74,13 @@ beforeEach(async () => {
 
 afterEach(() => {
   cleanup()
-  useEntityStore.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
+  useUnits.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
 })
 
 const CONNECTED = {
-  mode: 'connected' as const,
+  status: 'live' as const,
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 const GAME = 'g1'
@@ -139,9 +138,9 @@ function runsTable(tableRunner: boolean) {
 async function view(kind: 'pilot' | 'mech' | 'crawler', id: string) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <SheetView kind={kind} id={id} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -183,13 +182,13 @@ describe("a crewmate's sheet", () => {
     // No unassign on a sheet that is not yours.
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
     // Nothing was cached: reading is not owning.
-    expect(useEntityStore.getState().get('pilot', THEIR_PILOT.id)).toBeNull()
+    expect(useUnits.getState().get('pilot', THEIR_PILOT.id)).toBeNull()
   })
 
   test('a local copy the server says is not yours opens read-only too', async () => {
     // A copy can outlive its ownership — offered to the crew, released by a
     // sweep. "Held here" is not "yours".
-    useEntityStore.setState({ pilots: [THEIR_PILOT] })
+    useUnits.setState({ pilots: [THEIR_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
@@ -206,7 +205,7 @@ describe("a crewmate's sheet", () => {
 
 describe('your own sheet', () => {
   test('opens in Read from the local store, with Edit one press away', async () => {
-    useEntityStore.setState({ pilots: [MY_PILOT] })
+    useUnits.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games:get': runsTable(false),
@@ -233,9 +232,9 @@ describe('your own sheet', () => {
   })
 
   test("shows the crewmate's mech flying it — but leaves its unassign to them", async () => {
-    useEntityStore.setState({
+    useUnits.setState({
       pilots: [MY_PILOT],
-      // WiringSync caches every link in your Games.
+      // The wiring feed holds every link in your Games.
       softLinks: [
         {
           id: 'l3',
@@ -262,7 +261,7 @@ describe('your own sheet', () => {
 
   test("the Mediator's crawler lists crewmates' pilots as read-only rows to their live view", async () => {
     useSheetModeStore.setState({ editing: true })
-    useEntityStore.setState({
+    useUnits.setState({
       crawlers: [CRAWLER],
       pilots: [MY_PILOT],
       softLinks: [
@@ -326,8 +325,8 @@ describe('your own sheet', () => {
 
 describe("a player's view of the Game's crawler", () => {
   test('is read-only even when this browser holds it, and says whose it is', async () => {
-    // WiringSync caches every crawler in your Games, so a player holds it.
-    useEntityStore.setState({ crawlers: [CRAWLER], pilots: [MY_PILOT] })
+    // The wiring feed holds every crawler in your Games, so a player holds it.
+    useUnits.setState({ crawlers: [CRAWLER], pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
       'games:get': runsTable(false),
@@ -356,8 +355,8 @@ describe("your own mech's hold, against the Game's crawler", () => {
   async function viewMyMech(tableRunner: boolean) {
     // Stowing is a write: the sheet is in Edit.
     useSheetModeStore.setState({ editing: true })
-    // WiringSync caches the crawler and the link docking your mech in it.
-    useEntityStore.setState({
+    // The wiring feed holds the crawler and the link docking your mech in it.
+    useUnits.setState({
       mechs: [MY_MECH],
       crawlers: [CRAWLER],
       softLinks: [
@@ -395,7 +394,7 @@ describe("your own mech's hold, against the Game's crawler", () => {
 
 describe('the tab title', () => {
   test('names your entity and follows a rename', async () => {
-    useEntityStore.setState({ pilots: [MY_PILOT] })
+    useUnits.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games:get': runsTable(false),
@@ -407,7 +406,7 @@ describe('the tab title', () => {
     expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
 
     await act(async () => {
-      useEntityStore.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
+      useUnits.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
     })
     expect(document.title).toBe('Roach-Man · Training Bay · SalvageUnion.io')
   })

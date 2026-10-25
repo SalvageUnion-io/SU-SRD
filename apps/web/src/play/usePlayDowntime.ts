@@ -12,21 +12,24 @@
  * each member marks themselves done with the step (`markStepDone`), and
  * `games.members` names everyone the ready pips count.
  *
- * The steps this pilot has done (`doneSteps`) are claimed before they apply
- * (`downtime.claimStep`, per pilot), so a step applies once however often the
- * screen reloads, a player presses Undo or the Mediator goes Back. The
- * Mediator's own screen (no pilot) claims nothing. Before the first answer
+ * A step this pilot takes is one op with a stable id (`downtimeStepOpId`,
+ * ADR-063 §6) carrying what it applies to the pilot, so it applies once
+ * however often the screen reloads, a player presses Undo or the Mediator
+ * goes Back; `doneSteps` reads them back. The Mediator's own screen (no
+ * pilot) takes no step. Before the first answer
  * Downtime reads as not running. Writes go through `useGuardedWrite`: refused
  * here while they cannot go (Disconnected, Outdated), never queued (ADR-030
  * §1), and a server refusal is said in its own words.
  */
 
 import { useMutation, useQuery } from 'convex/react'
+import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { PLAY_TXN } from '../replica/provenance'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 import type { PlayScreen } from './play.model'
 import type { DowntimeView, PlayDowntime } from './situation.model'
 
@@ -40,7 +43,7 @@ const NOT_RUNNING: DowntimeView = {
 }
 
 export function usePlayDowntime(target: PlayScreen): PlayDowntime {
-  const signedIn = isSignedIn(useConnection().mode)
+  const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
   const gameId = target.gameId as Id<'games'> | null
   const { pilotId } = target
@@ -48,14 +51,17 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const place = gameId === null ? { gameId, pilotId: pilotId ?? undefined } : { gameId }
   const readable = signedIn && (gameId !== null || pilotId !== null)
 
-  const state = useQuery(api.downtime.state, readable ? place : 'skip')
+  const state = useQuery(
+    api.downtime.state,
+    readable ? { ...place, pilotId: pilotId ?? undefined } : 'skip'
+  )
   const members = useQuery(api.games.members, signedIn && gameId !== null ? { gameId } : 'skip')
   const begin = useMutation(api.downtime.begin)
   const advance = useMutation(api.downtime.advance)
   const setStep = useMutation(api.downtime.setStep)
   const end = useMutation(api.downtime.end)
   const markStepDone = useMutation(api.downtime.markStepDone)
-  const claimStep = useMutation(api.downtime.claimStep)
+  const applyOp = useMutation(api.ops.apply)
   const spendUpkeep = useMutation(api.downtime.spendUpkeep)
 
   // `state` answers null for a solo pilot no longer on the shelf: not running.
@@ -81,14 +87,27 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     setStep: mayMove ? (stepIndex) => guarded.send(() => setStep({ ...place, stepIndex })) : null,
     end: () => guarded.send(() => end(place)),
     markDone: gameId === null ? null : (done) => guarded.send(() => markStepDone({ gameId, done })),
-    doneSteps:
-      pilotId === null
-        ? null
-        : (state?.claimed ?? []).filter((c) => c.pilotId === pilotId).map((c) => c.stepIndex),
+    doneSteps: pilotId === null ? null : (state?.doneSteps ?? []),
     markStepDone:
       pilotId === null
         ? null
-        : (stepIndex) => guarded.ask(() => claimStep({ gameId, pilotId, stepIndex })),
+        : (stepIndex, patch) =>
+            guarded.ask(async () => {
+              const applied = await applyOp({
+                unit: 'pilot',
+                gameId,
+                op: {
+                  id: downtimeStepOpId(state?.startedAt ?? 0, pilotId, stepIndex),
+                  unitId: pilotId,
+                  baseSeq: null,
+                  at: Date.now(),
+                  ...PLAY_TXN,
+                  patch,
+                },
+              })
+              // The pilot's new row reaches the replica through its feed.
+              return applied !== null && applied.fresh
+            }),
     spendUpkeep: () => guarded.ask(() => spendUpkeep(place)),
   }
 }

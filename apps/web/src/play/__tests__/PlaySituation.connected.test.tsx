@@ -1,19 +1,18 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, jest, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import { PRESENCE_HEARTBEAT_MS } from 'game-domain/schemas/seat'
 import { createElement, useSyncExternalStore } from 'react'
 import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 import type { Play } from '../situation.model'
 
 /**
  * The Situation (play.md §3) through the whole Cockpit: the seat and the
  * Downtime it reads (`useSeatAt`, `usePlayDowntime`), the Situation they
  * make (`usePlaySituation`), the switch that changes it, the one `Play`
- * object every column is handed, and the presence heartbeat.
+ * object every column is handed.
  *
  * One stand-in for Convex: a solo seat and its Downtime, a Game's seats and
  * Downtime, each subscription re-rendering when a mutation changes them, as a
@@ -34,7 +33,6 @@ type SeatRow = {
   range: string
   activeEffects: string[]
   resolving: null
-  lastSeenAt: number | null
   updatedAt: number | null
 }
 
@@ -57,7 +55,6 @@ function seat(pilotId: string, mount: Mount = { kind: 'foot' }): SeatRow {
     range: 'Close',
     activeEffects: [],
     resolving: null,
-    lastSeenAt: null,
     updatedAt: null,
   }
 }
@@ -86,7 +83,7 @@ function answer(name: string, args: Record<string, unknown>): unknown {
           startedAt: null,
           completedBy: [],
           upkeepSpent: false,
-          claimed: [],
+          doneSteps: [],
         }
       }
       const downtime = server.solo?.downtime ?? null
@@ -97,7 +94,7 @@ function answer(name: string, args: Record<string, unknown>): unknown {
             startedAt: null,
             completedBy: [],
             upkeepSpent: false,
-            claimed: [],
+            doneSteps: [],
           }
         : {
             running: true,
@@ -105,10 +102,7 @@ function answer(name: string, args: Record<string, unknown>): unknown {
             startedAt: downtime.startedAt,
             completedBy: [],
             upkeepSpent: downtime.upkeepSpent,
-            claimed: (downtime.doneSteps ?? []).map((stepIndex) => ({
-              pilotId: args.pilotId,
-              stepIndex,
-            })),
+            doneSteps: downtime.doneSteps ?? [],
           }
     }
     case 'games:members':
@@ -139,6 +133,9 @@ function answer(name: string, args: Record<string, unknown>): unknown {
           },
         ],
       }
+    // The bar's "N here" reads who holds each seat.
+    case 'crew:vitals':
+      return { viewerId: 'u-me', pilots: [], mechs: [] }
     default:
       throw new Error(`unanswered query ${name}`)
   }
@@ -181,17 +178,20 @@ function apply(name: string, args: Record<string, unknown>): unknown {
       if (!solo) server.gameDowntime = null
       else if (server.solo !== null) server.solo = { ...server.solo, downtime: null }
       break
-    case 'downtime:claimStep': {
+    // A Downtime step's op (`downtimeStepOpId`): a solo seat keeps which it took.
+    case 'ops:apply': {
+      const stepIndex = Number(
+        String((args.op as { id: string }).id)
+          .split(':')
+          .at(-1)
+      )
       const downtime = server.solo?.downtime
-      if (server.solo === null || downtime == null) return false
+      if (server.solo === null || downtime == null) return { headSeq: 1, updatedAt: 1, fresh: true }
       const done = downtime.doneSteps ?? []
-      if (done.includes(Number(args.stepIndex))) return false
-      server.solo = {
-        ...server.solo,
-        downtime: { ...downtime, doneSteps: [...done, Number(args.stepIndex)] },
-      }
+      if (done.includes(stepIndex)) return { headSeq: 1, updatedAt: 1, fresh: false }
+      server.solo = { ...server.solo, downtime: { ...downtime, doneSteps: [...done, stepIndex] } }
       changed()
-      return true
+      return { headSeq: 2, updatedAt: 2, fresh: true }
     }
     default:
       return undefined
@@ -203,7 +203,7 @@ function apply(name: string, args: Record<string, unknown>): unknown {
 /**
  * One sender per mutation, as Convex's own `useMutation` hands back the same
  * function every render: a fresh one would restart every effect that lists
- * it (the presence beat) whenever anything re-renders.
+ * it whenever anything re-renders.
  */
 const senders = new Map<string, ReturnType<typeof makeSender>>()
 
@@ -250,22 +250,27 @@ const convexMocks = await installConvexMocks({
   also: {
     '../../play/PlayUnitsColumn': () => ({ PlayUnitsColumn: probe('units') }),
     '../../play/PlayActionsColumn': () => ({ PlayActionsColumn: probe('actions') }),
-    '../../play/PlaySideColumn': () => ({ PlaySideColumn: probe('side') }),
+    '../../play/PlaySideColumn': () => ({
+      PlayCrewSection: probe('crew'),
+      PlayerTablesAndFeed: probe('side'),
+    }),
+    // The side's reads are `PlaySide.connected.test.tsx`'s.
+    '../../play/usePlaySide': () => ({ usePlaySide: () => ({}) }),
   },
 })
 
 const { PlayCockpit } = await import('../PlayCockpit')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 
 const LINKS = ['ps-l1', 'pg-l1']
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   // Solo: Bonesaw on the shelf, assigned Buzzard, and Old Faithful in the hangar.
   await store.adopt('pilot', pilotFixture({ id: 'ps-bonesaw', name: 'Bonesaw' }))
   await store.adopt('mech', mechFixture({ id: 'ps-faithful', name: 'Old Faithful' }))
@@ -281,7 +286,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   for (const id of LINKS) await store.forget('softLink', id)
   for (const id of ['ps-faithful', 'ps-buzzard', 'pg-atlas']) await store.forget('mech', id)
   for (const id of ['ps-bonesaw', 'pg-rook']) await store.forget('pilot', id)
@@ -298,22 +303,21 @@ beforeEach(() => {
   for (const column of Object.keys(seen)) seen[column] = []
 })
 
-function connection(mode: ConnectionMode) {
+function connection(status: SyncStatus) {
   return {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
 }
 
 async function renderPlay(
   target: { pilotId: string; gameId: string | null; mediator?: boolean },
-  mode: ConnectionMode = 'connected'
+  status: SyncStatus = 'live'
 ) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <PlayCockpit
           target={{
             gameName: target.gameId === null ? null : 'The Rust Belt Run',
@@ -321,7 +325,7 @@ async function renderPlay(
             ...target,
           }}
         />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -480,33 +484,10 @@ describe('one Play for the whole Cockpit', () => {
   })
 
   test('offline, every Situation option is off', async () => {
-    await renderPlay({ pilotId: 'ps-bonesaw', gameId: null }, 'disconnected')
+    await renderPlay({ pilotId: 'ps-bonesaw', gameId: null }, 'offline')
     for (const option of situationGroup().getAllByRole('button')) {
       expect(option.hasAttribute('disabled')).toBe(true)
     }
-  })
-})
-
-describe('presence', () => {
-  test('connected, it beats for the seat at once and every heartbeat interval', async () => {
-    jest.useFakeTimers()
-    try {
-      await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
-      expect(writes('seats:heartbeat')).toEqual([
-        { name: 'seats:heartbeat', args: { gameId: null, pilotId: 'ps-bonesaw' } },
-      ])
-      await act(async () => {
-        jest.advanceTimersByTime(PRESENCE_HEARTBEAT_MS)
-      })
-      expect(writes('seats:heartbeat')).toHaveLength(2)
-    } finally {
-      jest.useRealTimers()
-    }
-  })
-
-  test('offline, it sends nothing', async () => {
-    await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID }, 'disconnected')
-    expect(writes('seats:heartbeat')).toHaveLength(0)
   })
 })
 
@@ -531,7 +512,7 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     expect(writes('downtime:spendUpkeep')).toHaveLength(1)
   })
 
-  test('solo: the done steps come from the seat, and a step is claimed once', async () => {
+  test('solo: a step is one op with a stable id, taken once', async () => {
     await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
     await act(async () => {
       play()?.downtime.begin()
@@ -540,17 +521,17 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     let first: boolean | undefined
     let second: boolean | undefined
     await act(async () => {
-      first = await play()?.downtime.markStepDone?.(4)
+      first = await play()?.downtime.markStepDone?.(4, {})
     })
     await act(async () => {
-      second = await play()?.downtime.markStepDone?.(4)
+      second = await play()?.downtime.markStepDone?.(4, {})
     })
     expect([first, second]).toEqual([true, false])
     expect(play()?.downtime.doneSteps).toEqual([4])
-    expect(writes('downtime:claimStep')[0]?.args).toEqual({
+    expect(writes('ops:apply')[0]?.args).toMatchObject({
+      unit: 'pilot',
       gameId: null,
-      pilotId: 'ps-bonesaw',
-      stepIndex: 4,
+      op: { id: 'downtime:1:ps-bonesaw:4', unitId: 'ps-bonesaw', patch: {} },
     })
   })
 
@@ -566,15 +547,15 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     expect(writes('downtime:markStepDone')[0]?.args).toEqual({ gameId: GAME_ID, done: true })
   })
 
-  test('in a Game: a step is claimed for this pilot on the Game (`claimStep`)', async () => {
+  test('in a Game: a step is an op on this pilot, with what it applies', async () => {
     await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID })
     await act(async () => {
-      await play()?.downtime.markStepDone?.(2)
+      await play()?.downtime.markStepDone?.(2, { currentTP: 3 })
     })
-    expect(writes('downtime:claimStep')[0]?.args).toEqual({
+    expect(writes('ops:apply')[0]?.args).toMatchObject({
+      unit: 'pilot',
       gameId: GAME_ID,
-      pilotId: 'pg-rook',
-      stepIndex: 2,
+      op: { id: 'downtime:0:pg-rook:2', unitId: 'pg-rook', patch: { currentTP: 3 } },
     })
   })
 

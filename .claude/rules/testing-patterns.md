@@ -13,8 +13,8 @@ Layout, cleanup hooks, reference preloads and fixture clocks are gated
   warning fails the test: settle async work in `await act(async () => …)`, and in
   the app load the real stores with `hydrateStores`
   (`src/components/__tests__/hydrateStores.ts`).
-- The app's stores are in memory: reset with `resetStores()`, seed with `adopt`
-  (`src/stores/__tests__/`). Fixtures come from
+- The replica is in memory in tests: reset with `resetStores()`, seed with
+  `adopt` or `useUnits.setState` (`src/replica/__tests__/`). Fixtures come from
   `apps/web/src/components/__tests__/fixtures.ts`.
 
 ## `mock.module` is process-global: restore what you replace
@@ -24,10 +24,10 @@ the real exports first and put them back:
 
 ```typescript
 // Spread it: the namespace is a live view the mock rewrites in place.
-const realStore = { ...(await import('../../stores/entityStore')) }
-mock.module('../../stores/entityStore', () => ({ useEntityStore: fake }))
+const realStore = { ...(await import('../../replica/units')) }
+mock.module('../../replica/units', () => ({ useUnits: fake }))
 afterAll(() => {
-  mock.module('../../stores/entityStore', () => realStore)
+  mock.module('../../replica/units', () => realStore)
 })
 ```
 

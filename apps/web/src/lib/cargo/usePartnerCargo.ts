@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * usePartnerCargo — the partner side of the carrier⇄depot cargo boundary.
  *
@@ -25,9 +26,9 @@
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { ChangeMeta } from '../../stores/entityStore'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { ChangeMeta } from '../../replica/units'
+import { useUnits } from '../../replica/units'
 import { failureMessage } from '../connection/useServerAction'
 import type { PartnerWithHost } from '../partnerLookup'
 import { replacePartner } from '../partnerLookup'
@@ -47,7 +48,7 @@ type UsePartnerCargoOptions = {
   techLevel: number
   /** The depot side; null when the host has no crawler linked. */
   crawler?: Crawler | null
-  store?: typeof useEntityStore
+  store?: UnitsStore
   readOnly?: boolean
   /**
    * The viewer may not write the crawler (a player in a Game, ADR-038 §5):
@@ -77,7 +78,7 @@ export function usePartnerCargo({
   found,
   techLevel,
   crawler,
-  store = useEntityStore,
+  store = useUnits,
   readOnly = false,
   crawlerReadOnly = false,
   meta = LIVE_SHEET_MANUAL,

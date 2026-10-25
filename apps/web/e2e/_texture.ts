@@ -9,7 +9,7 @@ import type { Finding } from './_findings'
  * page ground (Play's included), the ink-deep, a button or a field.
  *
  * - `speckled`: every entity band (a Compact's, a TitledBox's or a unit box's
- *   head, a card's band) on a Play canvas or phone form (`.su-play-root`:
+ *   head, a card's band) on a Play screen at any width (`.su-play-root`:
  *   the player's, solo and the Mediator's), or on an overlay it lays over
  *   itself (a Peek, a menu, a dialog: the Mediator's Reference), that is a
  *   brand-colour ground carries its `[data-grain]`, as on the sheet.
@@ -20,7 +20,7 @@ import type { Finding } from './_findings'
  *   (`ChapterBand`'s `.su-grain-layer`).
  */
 
-/** The Cockpit, canvas or phone form. */
+/** The Cockpit, at any width. */
 export const COCKPIT = '.su-play-root'
 
 /** What the Cockpit lays over itself, portalled out of it. */
@@ -87,7 +87,7 @@ async function rest(page: Page): Promise<void> {
 }
 
 /**
- * Open each overlay the Cockpit has and read it: a Peek from the canvas's
+ * Open each overlay the Cockpit has and read it: a Peek from the wide layout's
  * first trigger, and the Mediator's More menu and its Reference. Each is
  * closed again, so the walk goes on from the screen it found.
  */

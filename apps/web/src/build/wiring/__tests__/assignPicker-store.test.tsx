@@ -19,10 +19,10 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactElement } from 'react'
-import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { SIGNED_OUT, SyncContext } from '../../../replica/syncContext'
+import { useUnits } from '../../../replica/units'
 import { AssignPicker } from '../AssignPicker'
 
 withSignedInBackend()
@@ -65,7 +65,7 @@ const crawlerInput = {
 
 beforeEach(async () => {
   resetStores()
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await Promise.all([
     store.hydrate('pilot'),
     store.hydrate('mech'),
@@ -80,13 +80,11 @@ afterEach(() => {
 })
 
 const shape = (l: SoftLink) => `${l.type}:${l.from.id}>${l.to.id}`
-const live = () => useEntityStore.getState().softLinks.map(shape).sort()
+const live = () => useUnits.getState().softLinks.map(shape).sort()
 
 function connected(ui: ReactElement) {
   return render(
-    <ConnectionContext.Provider value={{ ...SOLO_STATE, mode: 'connected' }}>
-      {ui}
-    </ConnectionContext.Provider>
+    <SyncContext.Provider value={{ ...SIGNED_OUT, status: 'live' }}>{ui}</SyncContext.Provider>
   )
 }
 
@@ -119,7 +117,7 @@ async function pick(trigger: RegExp, name: string, confirmName: RegExp) {
 
 describe('AssignPicker — through the store', () => {
   test('Change Crawler moves the pilot: the old link goes in the same write', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     const pilot = await store.create('pilot', pilotInput)
     const first = await store.create('crawler', crawlerInput)
     const second = await store.create('crawler', { ...crawlerInput, name: 'Second Home' })
@@ -145,7 +143,7 @@ describe('AssignPicker — through the store', () => {
   })
 
   test('Change Mech takes the picked mech off the pilot it flew', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     const yara = await store.create('pilot', pilotInput)
     const dag = await store.create('pilot', { ...pilotInput, name: 'Dag' })
     const fist = await store.create('mech', mechInput)
@@ -166,7 +164,7 @@ describe('AssignPicker — through the store', () => {
   })
 
   test('docking a mech leaves its pilot and its pilot’s crawler alone', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     const pilot = await store.create('pilot', pilotInput)
     const mech = await store.create('mech', mechInput)
     const home = await store.create('crawler', crawlerInput)

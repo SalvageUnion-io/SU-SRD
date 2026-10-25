@@ -19,6 +19,10 @@
  *     (`./auth/`).
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have falls through to the rules below.
+ *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
+ *     version, or a 503 (`./rooms.ts`).
+ *   - `game-socket`: `/__rooms/games/:id/socket` → a member's socket to the
+ *     Game's room (`./rooms.ts`, who may: `./roomAuth.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -52,11 +56,14 @@ import { appPath } from '../lib/appBase'
 import { AUTH_PREFIX } from '../lib/auth/paths'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
+import { gameOfSocketPath, ROOMS_HEALTH_PATH } from '../rooms/routes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import { handleAuth } from './auth/index'
 import type { D1Like } from './auth/store'
 import { d1Sql } from './auth/store'
+import type { CronEnv } from './crons'
+import { runCron } from './crons'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -65,25 +72,30 @@ import {
   handleErrorReport,
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
+import { serveGameSocket, serveRoomsHealth } from './rooms'
 
-export type Env = AppEnv & {
-  /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
-  ERROR_REPORT_LIMIT?: RateLimiter
-  /**
-   * The Convex log stream's webhook secret, from the Convex dashboard. Set
-   * with `wrangler secret put`; unset, the stream endpoint answers 503.
-   */
-  CONVEX_LOG_STREAM_SECRET?: string
-  /** The shared D1 database; sign-in keeps accounts and sessions there (`./auth/store.ts`). */
-  SHARED: D1Like
-  /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
-  DISCORD_CLIENT_ID?: string
-  DISCORD_CLIENT_SECRET?: string
-  /** The private JWK the session's Convex token is signed with (`scripts/authKeys.ts`). */
-  AUTH_SIGNING_KEY?: string
-  /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
-  TEST_AUTH?: string
-}
+export { BotGateway } from './botGateway'
+export { AccountRoom, GameRoom } from './rooms'
+
+export type Env = AppEnv &
+  CronEnv & {
+    /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
+    ERROR_REPORT_LIMIT?: RateLimiter
+    /**
+     * The Convex log stream's webhook secret, from the Convex dashboard. Set
+     * with `wrangler secret put`; unset, the stream endpoint answers 503.
+     */
+    CONVEX_LOG_STREAM_SECRET?: string
+    /** The shared D1 database; sign-in keeps accounts and sessions there (`./auth/store.ts`). */
+    SHARED: D1Like
+    /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
+    DISCORD_CLIENT_ID?: string
+    DISCORD_CLIENT_SECRET?: string
+    /** The private JWK the session's Convex token is signed with (`scripts/authKeys.ts`). */
+    AUTH_SIGNING_KEY?: string
+    /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
+    TEST_AUTH?: string
+  }
 
 /**
  * Where the Convex log stream posted before the app was one: the webhook the
@@ -126,6 +138,11 @@ function isChunk(pathname: string): boolean {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
+  /** A Cron Trigger (`./crons.ts`). */
+  async scheduled(controller: { cron: string; scheduledTime: number }, env: Env): Promise<void> {
+    await runCron(controller.cron, env, controller.scheduledTime)
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
 
@@ -160,6 +177,13 @@ export default {
       const res = await serveApp(request, env)
       if (res !== null) return res
     }
+
+    // R. The rooms answer for themselves.
+    if (url.pathname === ROOMS_HEALTH_PATH && request.method === 'GET') {
+      return serveRoomsHealth()
+    }
+    const gameId = gameOfSocketPath(url.pathname)
+    if (gameId !== null) return serveGameSocket(request, gameId, env)
 
     // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {

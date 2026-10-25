@@ -16,17 +16,17 @@ import {
   setQueryAnswers,
 } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../../lib/connection/connectionContext'
+import type { SyncState } from '../../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks()
 afterAll(() => convexMocks.restore())
 
-const { ConnectionContext } = await import('../../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../../replica/syncContext')
 const { CrewPatterns } = await import('../CrewPatterns')
 
-function connection(mode: ConnectionState['mode']): ConnectionState {
-  return { mode, canWrite: mode === 'connected', showDisconnectedWarning: false, settling: false }
+function connection(status: SyncState['status']): SyncState {
+  return { status, canWrite: status === 'live', outdated: false }
 }
 
 function patternBody(name: string, chassisRef = 'mule') {
@@ -42,12 +42,12 @@ function patternBody(name: string, chassisRef = 'mule') {
   }
 }
 
-async function renderCrew(mode: ConnectionState['mode'] = 'connected') {
+async function renderCrew(status: SyncState['status'] = 'live') {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <CrewPatterns />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -83,7 +83,7 @@ describe('CrewPatterns', () => {
 
   test('signed out, nobody is asked and nothing is shown', async () => {
     setQueryAnswers({})
-    await renderCrew('solo')
+    await renderCrew('signedOut')
     expect(queryCalls()).toHaveLength(0)
     expect(screen.queryByText('Shared by your crew')).toBeNull()
   })

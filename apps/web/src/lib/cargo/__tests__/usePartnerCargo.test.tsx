@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Tests for the usePartnerCargo persistence wrapper — specifically the
  * fresh-read guard its `useCargo` sibling has always had.
@@ -19,7 +20,6 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { usePartnerCargo } from '../usePartnerCargo'
 
 // ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ type CapturedUpdate = { type: string; id: string; patch: Record<string, unknown>
 function makeStore(
   captured: CapturedUpdate[],
   fresh: { host?: Mech; crawler?: Crawler } = {}
-): typeof useEntityStore {
+): UnitsStore {
   return makeEntityStoreMock({
     mechs: fresh.host ? [fresh.host] : [],
     crawlers: fresh.crawler ? [fresh.crawler] : [],

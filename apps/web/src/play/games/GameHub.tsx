@@ -108,7 +108,7 @@ function GameSections({ game }: { game: Game }) {
           <GameRoster gameId={gameId} gameName={game.name} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
-          {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
+          {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
         </div>
         <div className="su-hub-column" style={HUB_COLUMN}>

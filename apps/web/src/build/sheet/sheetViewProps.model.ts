@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * Shared props contract for the three per-kind sheet views.
  * Sheet.tsx keeps the store subscription and composition resolution; views
@@ -10,7 +11,7 @@ import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
-import type { EntityState, useEntityStore } from '../../stores/entityStore'
+import type { UnitsState } from '../../replica/units'
 import type { SheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 import type { OwnerOf } from './unitOwners.model'
@@ -50,8 +51,8 @@ export type SheetViewCommonProps = {
    */
   crawlerReadOnly: boolean
   /** Injectable store hook, forwarded to body sheets/controls. */
-  store: typeof useEntityStore
-  storeState: EntityState
+  store: UnitsStore
+  storeState: UnitsState
   /**
    * Whether this sheet's own store holds the entity — i.e. it is one the viewer
    * may edit, and a link drawn out of it is theirs to undraw. False for a

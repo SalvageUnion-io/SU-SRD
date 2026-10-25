@@ -13,9 +13,9 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { APP_BASE } from '../../../lib/appBase'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import type { ShareKind } from '../../../lib/sharing/visibility'
 import { pageOrigin } from '../../../lib/site'
+import type { SyncState } from '../../../replica/syncContext'
 
 const mutations: unknown[] = []
 
@@ -32,13 +32,12 @@ const convexMocks = await installConvexMocks({
 })
 
 const { ShareStatusDialog } = await import('../ShareStatusDialog')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 const GAMES = [{ _id: 'game-1', name: 'The Long Haul', mediator: false }]
@@ -55,7 +54,7 @@ function renderDialog({
   clipboardWriter?: (text: string) => Promise<void>
 } = {}) {
   return render(
-    <ConnectionContext.Provider value={CONNECTED}>
+    <SyncContext.Provider value={CONNECTED}>
       <ShareStatusDialog
         kind={kind}
         id={id}
@@ -65,7 +64,7 @@ function renderDialog({
         onOpenChange={() => {}}
         clipboardWriter={clipboardWriter}
       />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 

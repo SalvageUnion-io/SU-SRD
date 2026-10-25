@@ -33,27 +33,27 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
-10. **Data flow and connection modes** <a id="data-flow"></a>
+10. **Data flow and the sync status** <a id="data-flow"></a>
     Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
-    `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
-11. **Convex, the server of record** <a id="convex"></a>
+    One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held; own pilot, mech and NPC edits wait in the outbox, the rest is blocked), plus `outdated`.
+11. **Convex, the server of record** · moving to rooms (ADR-064) <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`); an entity is [in a Game or on a Shelf](architecture/glossary.md). A unit's body changes only by an op (`ops.apply`, `ops.transfer`; ADR-063), parsed by `applyOp`.
-    Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
+    Every client write goes through `src/replica/outbox.ts`; each replica table has a `RECORD_KINDS` entry.
 12. **Device copy** <a id="device-copy"></a>
-    One IndexedDB record, `stores/deviceCopy.ts`: the last `listMine` + `listWiring` answers, read back only on an offline boot with a session on the device, read-only (ADR-058).
-    Signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
-13. **Zustand stores** <a id="stores"></a>
-    `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` diffs into an op at its `headSeq` and awaits `commitOp`; a refused op changes nothing.
-    No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
-14. **Sharing** <a id="sharing"></a>
+    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, and beside them the outbox: one op per own unit made offline, replayed by `ops.replay` once `live` (ADR-063 decision 9).
+    Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell, the copy and the outbox.
+13. **The replica** <a id="stores"></a>
+    `src/replica/` is the one holder of server rows, filled by the feed (`ConvexFeed` until the room sockets) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the server's answer; a refused op changes nothing.
+    No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, `convex/react`. `src/stores/` is UI state only.
+14. **Sharing** · moving to rooms (ADR-064) <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
-15. **Convex deployments** <a id="deployments"></a>
+15. **Convex deployments** · moving to rooms (ADR-064) <a id="deployments"></a>
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
     `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
-16. **Convex environment** <a id="convex-env"></a>
+16. **Convex environment** · moving to rooms (ADR-064) <a id="convex-env"></a>
     Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): Convex holds `AUTH_JWKS`, its key's public half; bot: `BOT_SECRET`, `BOT_URL` (Play's posts).
     `TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
-17. **Convex conventions** <a id="convex-conventions"></a>
+17. **Convex conventions** · moving to rooms (ADR-064) <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
 18. **Surfaces and enforcement** · ADR-007, ADR-009, ADR-021 · [spec](architecture/surfaces.md) <a id="surfaces"></a>
@@ -71,7 +71,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 22. **Display system** · ADR-010, ADR-026, ADR-028, ADR-053 · [spec](architecture/entity-card.md) <a id="display"></a>
     Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`, the only one, app UI layered on. `Box` is every other frame, never merged with it.
     App UI goes through `controls` and slot props, never schema props. Every design law in `docs/design-system/` names its gate (`CANON`, `bun run check canon`), or is cut.
-23. **Discord bot as a Game client** <a id="bot-game-client"></a>
+23. **Discord bot as a Game client** · moving to rooms (ADR-064) <a id="bot-game-client"></a>
     Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.
     Writes only channel bindings; Convex unreachable: every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
@@ -97,7 +97,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.
 31. **Audit and overrides** <a id="audit"></a>
     `bun run audit` fails any advisory (PRs touching manifests, and nightly); it ignores nothing.
-    `overrides`: `sharp` is a floor and `miniflare`'s `undici` a pin until `miniflare` asks for the fix; `@randsum/roller` and `salvageunion-reference` pin one copy.
+    `overrides`: `sharp` is a floor and `miniflare`'s `undici` and `@cloudflare/vitest-plugin`'s `zod` pins until each asks for the fix; `@randsum/roller` and `salvageunion-reference` pin one copy.
 32. **Dead code** <a id="dead-code"></a>
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
 33. **MCP servers** <a id="mcp"></a>
@@ -125,7 +125,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 ## Decisions
 
 ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry and a change to its Area; once built, it folds into that Area.
-Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-047.
+Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-045, ADR-047.
 
 8. **ADR-008 Sequential client-side mutations**
    No atomic transaction or rollback; affordability is checked before an action runs. Amended by ADR-063.
@@ -134,14 +134,14 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058 and ADR-063.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
-    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
+    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050, ADR-065.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
-    Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-048, ADR-050.
+    Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-048, ADR-050, ADR-064.
 34. **ADR-034 Persistence requires an account**
     Signed out is read-only, every record is Convex-backed, the app is a PWA.
     Amends ADR-022 and ADR-030; amended by ADR-058.
@@ -151,8 +151,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     One-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
     Amends ADR-030; amended by ADR-044. Code: `packages/game-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
-    Built; ADR-051 keeps its seat and 1280×800 canvas, replacing Game-only and the slots. As built: [play.md](architecture/play.md).
-    Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051.
+    Built; ADR-051 keeps its seat, replacing Game-only, the slots and the 1280×800 canvas. As built: [play.md](architecture/play.md).
+    Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-051.
 41. **ADR-041 The deployed commit is the release**
     No app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
 42. **ADR-042 Mid-tab updates**
@@ -161,19 +161,16 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
-45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
-    Built: under its 1280×800 canvas Play renders a phone form; same seat and enforcement.
-    Amends ADR-038; ADR-051 replaces decisions 3–5.
 48. **ADR-048 The app at salvageunion.io/build**
     `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050, ADR-062.
 49. **ADR-049 Workers Issues, not Sentry**
     No SDK; browsers and Convex report via the Workers; browser stacks minified.
 50. **ADR-050 One app** · [full text](adr/050-one-app.md)
     `apps/web` is one app: the pre-rendered reference and the client app at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
-    Amends ADR-011, ADR-031, ADR-033 and ADR-048.
+    Amends ADR-011, ADR-031, ADR-033 and ADR-048; amended by ADR-065.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
-    Supersedes ADR-038 §1 and its layout; amends ADR-030, ADR-045; amended by ADR-052. As built: [play.md](architecture/play.md).
+    Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
+    Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.
@@ -183,8 +180,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
-    Built: offline, the player's own sheets come back from the device, read-only; Convex stays of record.
-    Amends ADR-030 §1 and ADR-034.
+    Built: offline, the player's own sheets come back from the device; Convex stays of record.
+    Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
     Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy.
     Amends ADR-052 §1.
@@ -197,5 +194,11 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.
     Amends ADR-048, ADR-050 and ADR-052 §4–5.
 63. **ADR-063 Typed ops are the write** · [full text](adr/063-typed-ops-are-the-write.md)
-    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`.
-    Amends ADR-008, ADR-022 and ADR-030 §4.
+    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`. Offline, ops on your own units wait in an outbox.
+    Amends ADR-008, ADR-022 and ADR-030 §1, §4; replaces ADR-058.
+64. **ADR-064 Cloudflare rooms are the server of record** · [full text](adr/064-cloudflare-rooms.md)
+    A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in. One cutover at 4.5.0.
+    Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.
+65. **ADR-065 The reference on Astro 7** · [full text](adr/065-reference-on-astro.md)
+    Astro builds and serves the pages; `.tsx` pages behind thin `.astro` shells, our islands, static, no adapter.
+    Amends ADR-031 and ADR-050.

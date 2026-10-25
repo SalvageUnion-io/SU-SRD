@@ -29,7 +29,7 @@ import type { CrewSeatLine } from './crew.model'
 import { crewLineLabel, crewSeatLines, pairedMech } from './crew.model'
 import { PlayCrewSheet } from './PlayCrewSheet'
 import type { CrewVitals } from './useGameFeed'
-import { usePresenceClock } from './usePresenceClock'
+import { useGamePresence } from './useGamePresence'
 
 const RESOLVING = {
   color: tokens.color.ink,
@@ -49,9 +49,9 @@ type PlayCrewProps = {
 }
 
 export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
-  const now = usePresenceClock()
+  const here = useGamePresence(gameId, 'seat')
   const [open, setOpen] = useState<CrewSeatLine | null>(null)
-  const lines = crewSeatLines(crew, seats, selfPilotId, now)
+  const lines = crewSeatLines(crew, seats, selfPilotId, here)
 
   return (
     <>

@@ -4,9 +4,9 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 import { HUB_BODY } from './hubStyles.model'
 
 /**
@@ -33,10 +33,10 @@ const REASON = { display: 'block', color: color.wkMuted } satisfies CSSPropertie
 const ACTIONS = { display: 'flex', gap: space[6] } satisfies CSSProperties
 
 export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
-  const pending = useQuery(api.proposals.pending, { gameId })
-  const apply = useMutation(api.proposals.apply)
-  const decline = useMutation(api.proposals.decline)
-  const { canWrite } = useConnection()
+  const pending = useQuery(api.ops.pending, { gameId })
+  const apply = useMutation(api.ops.accept)
+  const decline = useMutation(api.ops.decline)
+  const { canWrite } = useSync()
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
     failure: 'Your answer did not land. Try again.',
     toastId: 'proposal-answer',
@@ -69,7 +69,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
                     size="compact"
                     disabled={!canWrite}
                     aria-label={playGamesCopy('apply2', { what })}
-                    onClick={() => answer(() => apply({ proposalId: p._id as Id<'changeLog'> }))}
+                    onClick={() => answer(() => apply({ opId: p._id }))}
                   >
                     {playGamesCopy('apply')}
                   </Button>
@@ -78,7 +78,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
                     size="compact"
                     disabled={!canWrite}
                     aria-label={playGamesCopy('decline2', { what })}
-                    onClick={() => answer(() => decline({ proposalId: p._id as Id<'changeLog'> }))}
+                    onClick={() => answer(() => decline({ opId: p._id }))}
                   >
                     {playGamesCopy('decline')}
                   </Button>

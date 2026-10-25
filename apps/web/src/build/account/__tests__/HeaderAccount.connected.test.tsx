@@ -38,8 +38,8 @@ const convexMocks = await installConvexMocks({
 const { HeaderActions, HeaderDrawerAccount, HeaderGames, HeaderMobileActions } = await import(
   '../HeaderAccount'
 )
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const ME = { _id: 'u1', displayName: 'Beefcake', avatarUrl: null, email: null }
 const GAMES = [{ _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true }]
@@ -51,7 +51,7 @@ function setOnline(value: boolean): void {
   Object.defineProperty(navigator, 'onLine', { value, configurable: true })
 }
 
-const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 /** Open a `HeaderMenu` from its trigger and hand back the menu. */
 async function openMenu(trigger: HTMLElement): Promise<HTMLElement> {
@@ -68,7 +68,7 @@ afterEach(() => {
   signOut.mockClear()
   convexMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 afterAll(convexMocks.restore)

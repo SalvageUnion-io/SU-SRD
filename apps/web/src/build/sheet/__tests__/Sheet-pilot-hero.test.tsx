@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Pilot hero on the LiveSheet shell
  *
@@ -27,8 +28,7 @@ import {
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { pilotStamp } from '../bandStamps.model'
 import { Sheet } from '../Sheet'
 
@@ -52,7 +52,7 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   })
 }
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   const updateMock = updateSpy ?? mock(async () => pilot)
   return makeEntityStoreMock({
     pilots: [pilot],

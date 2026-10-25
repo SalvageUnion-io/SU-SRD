@@ -72,10 +72,10 @@ const convexMocks = await installConvexMocks({
 
 const { GameHub } = await import('../GameHub')
 const { PlayGate } = await import('../../../play/PlayGate')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { useUnits } = await import('../../../replica/units')
+const { resetSync } = await import('../../../replica/sync')
 const { CHAPTER_BAND_COLOR } = await import('../../../components/index')
 
 /** A colour as the DOM reads it back off an inline style. */
@@ -120,10 +120,10 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     ],
     'entities:listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
     'crew:vitals': undefined,
-    'proposals:pending': [],
+    'ops:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
-    'proposals:sent': [],
+    'ops:sent': [],
     // A column's "Move in…" checks its moves against your Games.
     'games:listMine': [],
     ...over,
@@ -175,7 +175,7 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
 describe('the sections under the roster', () => {
   test('every member gets the answer queue and The Game, below the lists; no Crew & seats', async () => {
     await renderHub({
-      'proposals:pending': [
+      'ops:pending': [
         { _id: 'c1', entityType: 'pilot', field: 'currentHP', after: 3, reason: null },
       ],
     })
@@ -337,7 +337,7 @@ describe('the Mediator on the Game page', () => {
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {
     await renderHub({
       'games:get': { ...GAME, mediator: true },
-      'proposals:sent': [
+      'ops:sent': [
         {
           _id: 'c1',
           entityId: 'p1',
@@ -430,8 +430,8 @@ describe('Play from the Game page', () => {
 
   beforeAll(async () => {
     // Filling the cache only: `adopt` is not a user write, so it needs no account.
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-    const store = useEntityStore.getState()
+    resetSync()
+    const store = useUnits.getState()
     for (const [id, name] of HELD) {
       await store.adopt('pilot', pilotFixture({ id, name, gameId: 'g1' }))
     }
@@ -439,7 +439,7 @@ describe('Play from the Game page', () => {
 
   afterAll(async () => {
     // Leave the shared store as this file found it.
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     for (const [id] of HELD) await store.forget('pilot', id)
   })
 
@@ -458,16 +458,15 @@ describe('Play from the Game page', () => {
   /** The body of `/play/<id>`, signed in and connected. */
   async function openGate(id: string): Promise<void> {
     const connected = {
-      mode: 'connected' as const,
+      status: 'live' as const,
       canWrite: true,
-      showDisconnectedWarning: false,
-      settling: false,
+      outdated: false,
     }
     await act(async () => {
       render(
-        <ConnectionContext.Provider value={connected}>
+        <SyncContext.Provider value={connected}>
           <PlayGate id={id} />
-        </ConnectionContext.Provider>
+        </SyncContext.Provider>
       )
     })
   }

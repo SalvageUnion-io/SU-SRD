@@ -63,12 +63,12 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import { Field, FieldError } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { entityContainerCopy } from '../../messages/build-entity-container'
-import { useEntityStore } from '../../stores/entityStore'
-import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
+import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { ContainerPicker } from './ContainerPicker'
 import { requestMove } from './requestMove.model'
 
@@ -118,7 +118,7 @@ function ConnectedMoveToContainerControl({
   }
 
   async function move(next: Container) {
-    await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    await useUnits.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
     onChanged?.()
   }
 
@@ -168,7 +168,7 @@ function ConnectedMoveToContainerControl({
 }
 
 export function MoveToContainerControl(props: MoveToContainerControlProps) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedMoveToContainerControl {...props} />
 }

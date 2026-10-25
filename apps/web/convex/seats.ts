@@ -1,5 +1,4 @@
 import { v } from 'convex/values'
-import { PRESENCE_WRITE_MIN_MS } from 'game-domain/schemas/seat'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -39,8 +38,7 @@ import { defaultSeat, readSeat, remount, seatsAt, seatsInGame, writeSeat } from 
  *   pilot without one reads as on foot, at Close, with nothing switched on.
  * - **A change of mount ends a resolve.** The deck it came from is gone, so
  *   board, dismount and eject clear `resolving` whenever the mount moves.
- * - **Presence is a heartbeat** (`heartbeat`), throttled on the server, that
- *   never counts as a change of play state.
+ * - **Presence is not here**: it is the Game room's (`src/worker/rooms.ts`).
  *
  * Cleanup lives with the paths that would orphan a seat (`model/seats.ts`).
  */
@@ -186,26 +184,8 @@ const SEAT_ARGS = { gameId: v.union(v.id('games'), v.null()), pilotId: v.string(
 type SeatRead = Omit<SeatState, 'resolving' | 'ejected'> & {
   pilotId: string
   resolving: NonNullable<SeatState['resolving']> | null
-  lastSeenAt: number | null
   updatedAt: number | null
 }
-
-/**
- * Presence at a Game, for the Play landing's "N here": the last heartbeat of
- * each seat that has one (`isPresent` reads them against the clock). Only the
- * seats, never the pilots: the landing lists every Game of mine, so it must
- * not read each Game's sheets to count heads. A seat left by a pilot that
- * moved out no longer beats, so it drops out within `PRESENCE_STALE_MS`.
- */
-export const presence = query({
-  args: { gameId: v.id('games') },
-  returns: v.array(v.number()),
-  handler: async (ctx, args) => {
-    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
-    const rows = await seatsInGame(ctx, args.gameId)
-    return rows.flatMap((row) => (row.lastSeenAt === undefined ? [] : [row.lastSeenAt]))
-  },
-})
 
 /** A seat as `forGame` returns it, and `solo` with its solo fields. */
 const seatRead = v.object({
@@ -214,7 +194,6 @@ const seatRead = v.object({
   range: seatRange,
   activeEffects: v.array(v.string()),
   resolving: v.union(seatResolving, v.null()),
-  lastSeenAt: v.union(v.number(), v.null()),
   updatedAt: v.union(v.number(), v.null()),
 })
 
@@ -224,7 +203,6 @@ const seatRead = v.object({
  * A pilot with no row yet gets the default seat, so every caller sees the same
  * answer for "never sat down" without inventing it. Rows for pilots no longer
  * in the Game are not returned; the cleanup paths delete them anyway.
- * `lastSeenAt` is the seat owner's last heartbeat (`isPresent` reads it).
  */
 export const forGame = query({
   args: { gameId: v.id('games') },
@@ -244,14 +222,13 @@ export const forGame = query({
       const row = byPilot.get(pilotId)
       seats.push(
         row === undefined
-          ? { pilotId, ...defaultSeat(), resolving: null, lastSeenAt: null, updatedAt: null }
+          ? { pilotId, ...defaultSeat(), resolving: null, updatedAt: null }
           : {
               pilotId,
               mount: row.mount,
               range: row.range,
               activeEffects: row.activeEffects,
               resolving: row.resolving ?? null,
-              lastSeenAt: row.lastSeenAt ?? null,
               updatedAt: row.updatedAt,
             }
       )
@@ -296,7 +273,6 @@ export const solo = query({
         resolving: null,
         ejected: false,
         downtime: null,
-        lastSeenAt: null,
         updatedAt: null,
       }
     }
@@ -312,7 +288,6 @@ export const solo = query({
       resolving: offShelf ? null : (row.resolving ?? null),
       ejected: row.ejected === true,
       downtime: row.downtime ?? null,
-      lastSeenAt: row.lastSeenAt ?? null,
       updatedAt: row.updatedAt,
     }
   },
@@ -417,38 +392,5 @@ export const clearResolving = mutation({
   handler: async (ctx, args): Promise<void> => {
     const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
     await writeSeat(ctx, place, args.pilotId, () => ({ resolving: undefined }))
-  },
-})
-
-/**
- * Presence: the screen showing this seat is open. Whoever may write the seat
- * beats for it, every `PRESENCE_HEARTBEAT_MS` (game-domain/schemas/seat).
- *
- * Cheap, and safe to call as often as a timer likes: a beat within
- * `PRESENCE_WRITE_MIN_MS` of the last one writes nothing, so a second tab
- * costs no write and wakes no subscriber. It stamps `lastSeenAt` only, never
- * `updatedAt`: being there is not a change of play state. A seat with no row
- * gets one, at the default seat.
- */
-export const heartbeat = mutation({
-  args: SEAT_ARGS,
-  handler: async (ctx, args): Promise<void> => {
-    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
-    const now = Date.now()
-    const existing = await readSeat(ctx, place, args.pilotId)
-    if (existing === null) {
-      await ctx.db.insert('seats', {
-        ...place,
-        pilotId: args.pilotId,
-        ...defaultSeat(),
-        lastSeenAt: now,
-        updatedAt: now,
-      })
-      return
-    }
-    if (existing.lastSeenAt !== undefined && now - existing.lastSeenAt < PRESENCE_WRITE_MIN_MS) {
-      return
-    }
-    await ctx.db.patch(existing._id, { lastSeenAt: now })
   },
 })

@@ -1,5 +1,5 @@
 /**
- * `WiringSync`'s reconcile plans (ADR-037): links and Game crawlers down from
+ * `ConvexFeed`'s reconcile plans (ADR-037): links and Game crawlers down from
  * `entities.listWiring`, server wins, pruning only where the server spoke.
  */
 

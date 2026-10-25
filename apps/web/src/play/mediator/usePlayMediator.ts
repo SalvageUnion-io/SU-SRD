@@ -27,19 +27,20 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, toast } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { rollMorale } from '../../lib/rules/opposition'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
-import { useEntityStore } from '../../stores/entityStore'
-import { usePrepStore } from '../../stores/prepStore'
+import { useEncounters } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
 import type { PlayDowntime } from '../situation.model'
+import { useClock } from '../useClock'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
+import { useGamePresence } from '../useGamePresence'
 import { usePlayDowntime } from '../usePlayDowntime'
-import { usePresenceClock } from '../usePresenceClock'
 import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
@@ -124,10 +125,11 @@ function primaryCrawler(
 
 export function usePlayMediator(gameId: string, gameName: string): PlayMediator {
   const id = gameId as Id<'games'>
-  const connection = useConnection()
+  const connection = useSync()
   const { canWrite } = connection
-  const now = usePresenceClock()
-  const store = useEntityStore()
+  const here = useGamePresence(gameId, 'seat')
+  const now = useClock()
+  const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
   const members = useQuery(api.games.members, { gameId: id })
@@ -136,10 +138,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const listing = useQuery(api.entities.listForGame, { gameId: id })
   const npcs = useQuery(api.mediator.npcs, { gameId: id })
   const running = useQuery(api.mediator.running, { gameId: id })
-  const encounters = usePrepStore((s) => s.encounters)
+  const encounters = useEncounters((s) => s.encounters)
   const patterns = useQuery(api.mediator.patterns, { gameId: id })
-  const sent = useQuery(api.proposals.sent, { gameId: id, limit: sentLimit })
-  const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
+  const sent = useQuery(api.ops.sent, { gameId: id, limit: sentLimit })
+  const alerts = useQuery(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
 
@@ -148,8 +150,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const removeNpc = useMutation(api.mediator.removeNpc)
   const runEncounter = useMutation(api.mediator.runEncounter)
   const endEncounter = useMutation(api.mediator.endEncounter)
-  const proposeMutation = useMutation(api.proposals.propose)
-  const broadcastMutation = useMutation(api.proposals.broadcast)
+  const proposeMutation = useMutation(api.ops.propose)
+  const broadcastMutation = useMutation(api.changeLog.broadcast)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 
@@ -207,7 +209,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   return {
     gameId,
     gameName,
-    seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], now),
+    seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], here),
     crew: crew ?? null,
     crawler:
       listing == null

@@ -9,7 +9,7 @@ import { BUILD_FLOOR } from './buildFloor'
  *
  * Unauthenticated on purpose — a signed-out tab is just as stale — and it
  * reveals nothing but a number. Every client subscribes once
- * (`ConnectionProvider`). So a push that raises the floor re-runs the query,
+ * (`SyncProvider`). So a push that raises the floor re-runs the query,
  * and every open tab below it hears at once: it stops writing and reloads onto
  * the new build (`src/lib/connection/buildFloor.ts`).
  */

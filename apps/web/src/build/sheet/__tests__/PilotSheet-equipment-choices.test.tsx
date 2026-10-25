@@ -21,7 +21,7 @@ import { expandCards } from '../../../components/__tests__/expandCards'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)

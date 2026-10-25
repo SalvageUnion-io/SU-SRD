@@ -10,7 +10,7 @@
 import type { CSSProperties } from 'react'
 import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { tokens } from '../components/index'
-import { useConnection } from '../lib/connection/connectionContext'
+import { useSync } from '../replica/syncContext'
 import { connectionLine, phaseBand } from './play.model'
 import { SavedIndicator } from './SavedIndicator'
 
@@ -47,11 +47,11 @@ export function PlayFoot({
   /** The phase's band, the bar's (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
 }) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   return (
     <footer className="su-play-band" style={{ ...FOOT, ...phaseBand(tone).style }}>
       <SavedIndicator />
-      <span style={LINE}>{connectionLine(mode, solo)}</span>
+      <span style={LINE}>{connectionLine(status, solo)}</span>
       {note && (
         <>
           <span style={SPACER} />

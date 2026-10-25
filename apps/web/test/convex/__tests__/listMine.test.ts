@@ -1,5 +1,5 @@
 /**
- * `entities.listMine` — the read that fills the stores (`ShelfSync`).
+ * `entities.listMine` — the read that fills the stores (`ConvexFeed`).
  *
  * Without it a signed-in player on a second device would see an empty roster
  * while their builds sat in Convex. These tests pin the two things that are
@@ -28,7 +28,7 @@ describe('listMine returns what the caller owns', () => {
 
     const mine = await me.as.query(api.entities.listMine, {})
     expect(mine.pilots).toHaveLength(1)
-    // The row's version rides along: `ShelfSync` adopts by it, and a write
+    // The row's version rides along: `ConvexFeed` adopts by it, and a write
     // sends it back as the version the edit was made against.
     expect(mine.pilots[0]?.updatedAt).toBe(1)
   })

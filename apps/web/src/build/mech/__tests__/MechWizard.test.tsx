@@ -16,9 +16,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import { MechWizard } from '../MechWizard'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -35,7 +35,7 @@ withSignedInBackend()
 beforeEach(async () => {
   sessionStorage.clear()
   resetStores()
-  await useEntityStore.getState().hydrate('mech')
+  await useUnits.getState().hydrate('mech')
 })
 
 afterEach(async () => {
@@ -182,7 +182,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await submit(/Create Mech/i)
 
     await waitFor(() => {
-      const mechs = useEntityStore.getState().list('mech')
+      const mechs = useUnits.getState().list('mech')
       expect(mechs.length).toBe(1)
       const m = must(mechs[0])
       expect(m.name).toBe('Iron Fist')
@@ -248,7 +248,7 @@ describe('MechWizard — hard creation enforcement', () => {
     // Name required — nothing persisted while blocked.
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText('Name your Pattern to continue')).toBeTruthy()
-    expect(useEntityStore.getState().list('mech').length).toBe(0)
+    expect(useUnits.getState().list('mech').length).toBe(0)
     await typeIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
   })
@@ -325,7 +325,7 @@ describe('MechWizard — legalStarting pattern strip', () => {
     await submit(/Create Mech/i)
 
     await waitFor(() => {
-      const m = must(useEntityStore.getState().list('mech')[0])
+      const m = must(useUnits.getState().list('mech')[0])
       expect(m.name).toBe(pattern.name)
       expect(m.systems).toEqual(expectedSystems)
       expect(m.modules).toEqual(expectedModules)

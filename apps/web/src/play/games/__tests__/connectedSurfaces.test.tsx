@@ -31,9 +31,9 @@ const convexMocks = await installConvexMocks({
 })
 
 const { ProposalInbox } = await import('../ProposalInbox')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
-const wrap = (ui: React.ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: React.ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 beforeEach(() => {
   mutations.length = 0
@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe('ProposalInbox', () => {
   test('renders nothing when there is nothing to answer', () => {
-    setQueryAnswers({ 'proposals:pending': [] })
+    setQueryAnswers({ 'ops:pending': [] })
     const { container } = wrap(<ProposalInbox gameId={'g1' as never} />)
     // An empty inbox should not occupy space on a play surface.
     expect(container.innerHTML).toBe('')
@@ -50,7 +50,7 @@ describe('ProposalInbox', () => {
 
   test('shows what is asked and why, with Apply and Decline', () => {
     setQueryAnswers({
-      'proposals:pending': [
+      'ops:pending': [
         {
           _id: 'c1',
           entityId: 'm1',
@@ -74,7 +74,7 @@ describe('ProposalInbox', () => {
 
   test('a null value renders as a dash rather than "null"', () => {
     setQueryAnswers({
-      'proposals:pending': [
+      'ops:pending': [
         {
           _id: 'c1',
           entityId: 'm1',

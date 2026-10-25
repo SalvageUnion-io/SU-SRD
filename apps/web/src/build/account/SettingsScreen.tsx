@@ -17,10 +17,10 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from './SignInControl'
 import { useSignOut } from './useSignOut'
 
@@ -180,11 +180,11 @@ function SignedInAccount() {
 }
 
 function SettingsBody() {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  if (mode === 'connected') return <SignedInAccount />
+  if (status === 'live') return <SignedInAccount />
 
-  if (mode === 'disconnected') {
+  if (status === 'offline') {
     return <EmptyState variant="quiet" body={buildAccountCopy('yourAccountIsUnreachableRight')} />
   }
 

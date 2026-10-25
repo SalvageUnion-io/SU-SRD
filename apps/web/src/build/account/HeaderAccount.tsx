@@ -1,5 +1,5 @@
 import { unionHere } from '../../lib/barLinks'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { useSync } from '../../replica/syncContext'
 import { GamesDrawerList, GamesMenu } from '../entityContainer/GamesMenu'
 import { AppAccountMenu } from './AppAccountMenu'
 import { SignInControl } from './SignInControl'
@@ -34,9 +34,9 @@ export function HeaderGames({ pathname = '' }: { pathname?: string }) {
 
 /** Desktop, at the bar's end: the account menu (or sign-in). */
 export function HeaderActions() {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  if (mode === 'connected' || mode === 'disconnected') return <AppAccountMenu />
+  if (status === 'live' || status === 'offline') return <AppAccountMenu />
   return <SignInControl inBar />
 }
 
@@ -56,12 +56,12 @@ export function HeaderDrawerAccount({
   close: () => void
   pathname?: string
 }) {
-  const { mode } = useConnection()
-  if (mode === 'connected') {
+  const { status } = useSync()
+  if (status === 'live') {
     return unionHere(pathname).mode === 'play' ? <GamesDrawerList onPick={close} /> : null
   }
   // Offline: the avatar menu in the header row already offers Sign out, and
   // there is nothing to list.
-  if (mode === 'disconnected') return null
+  if (status === 'offline') return null
   return <SignInControl />
 }

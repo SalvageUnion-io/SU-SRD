@@ -1,0 +1,12 @@
+{
+  "name": "astro-check",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "astro-check --root ../../apps/web --tsconfig ../../apps/web/astro/tsconfig.json"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  }
+}
