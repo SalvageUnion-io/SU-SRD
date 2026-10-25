@@ -19,7 +19,11 @@ import { Button, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
-import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import {
+  rosterOf,
+  STARTER_SET_PUBLISHER,
+  starterRoster,
+} from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { SignInControl } from '../account/SignInControl'
 
@@ -56,7 +60,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
           title: buildStarterSetCopy('makeACopyOf', { name }),
           body: [
             `This puts a copy of ${name} in your Training Bay, a build of your own to edit and play.`,
-            `The Starter Set's ${name} stays as ${STARTER_SET_PUBLISHER} published it.`,
+            `The ${(rosterOf(templateId) ?? starterRoster('starter-set')).name}'s ${name} stays as ${STARTER_SET_PUBLISHER} published it.`,
           ],
           confirmLabel: buildStarterSetCopy('makeACopy'),
           pendingLabel: buildStarterSetCopy('copying'),

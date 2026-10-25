@@ -19,6 +19,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, tes
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
+import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
@@ -191,6 +192,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       },
     ],
     'channelBindings:current': { channelId: 'c-1', boundAt: 1 },
+    'safety:stopSign': null,
     'account:me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,
   }
@@ -515,6 +517,20 @@ describe('the Opposition', () => {
     await click(named('End Ambush'))
     expect(sent).toContainEqual({ name: 'mediator:endEncounter', args: { gameId: GAME } })
   })
+
+  test('a briefing stays behind its flag, off in a production build', async () => {
+    await renderCockpit({
+      'mediator:running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: '',
+        briefing: 'Smoke rises from the crusher.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(screen.queryByText('Smoke rises from the crusher.')).toBeNull()
+  })
 })
 
 describe('Downtime', () => {
@@ -576,6 +592,30 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP, true))
     expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull()
     expect(screen.getByText('Paid')).toBeTruthy()
+  })
+
+  test('with a Nanite Processing Bay, Process Nanites runs in the Craft step', async () => {
+    const store = useEntityStore.getState()
+    const before = store.get('crawler', tenacity.id) ?? tenacity
+    await store.adopt('crawler', {
+      ...before,
+      crawlerBays: [{ bayRef: 'nanite-processing-bay' }],
+      scrapPool: { ...before.scrapPool, inertNanites: 2 },
+    })
+    try {
+      await renderCockpit(downtimeAt(0))
+      expect((named('Process') as HTMLButtonElement).disabled).toBe(true)
+      cleanup()
+      await renderCockpit(downtimeAt(downtimeStepNames().indexOf(CRAFT_STEP_NAME)))
+      await click(named('Process'))
+      await waitFor(() =>
+        expect(screen.getByText(/^Processed 2 Inert Meld Nanite piles/)).toBeTruthy()
+      )
+      expect(useEntityStore.getState().get('crawler', tenacity.id)?.scrapPool?.inertNanites).toBe(0)
+    } finally {
+      cleanup()
+      await useEntityStore.getState().adopt('crawler', before)
+    }
   })
 })
 

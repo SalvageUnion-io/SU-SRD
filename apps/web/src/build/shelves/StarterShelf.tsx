@@ -1,5 +1,6 @@
 /**
- * StarterShelf — the Starter Set at the foot of the Training Bay: the
+ * StarterShelf — the book crews at the foot of the Training Bay, the Starter
+ * Set's then the Quickstart's, each the
  * same grid of cards the signed-out front door shows (`StarterSetGrid`),
  * folded under its Slab until its fold opens it. Your own
  * builds come first; the book's are reference, read-only, and kept by making a
@@ -12,7 +13,11 @@
 
 import type { CSSProperties } from 'react'
 import { SlabSection, tokens } from '../../components/index'
-import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import {
+  QUICKSTART_BOOK,
+  STARTER_SET_ADVENTURE,
+  STARTER_SET_PUBLISHER,
+} from '../../lib/starterSet/starterTemplates'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
@@ -31,20 +36,39 @@ const CREDIT = {
 
 export function StarterShelf() {
   return (
-    <SlabSection
-      as="h2"
-      id="shelf-starter"
-      title={buildShelvesCopy('starterSet')}
-      count="read-only"
-      countAt="label"
-      fold="closed"
-      bodyStyle={PANEL}
-    >
-      <p style={CREDIT}>
-        The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}. Open
-        any sheet to read it, then make a copy to play it.
-      </p>
-      <StarterSetGrid />
-    </SlabSection>
+    <>
+      <SlabSection
+        as="h2"
+        id="shelf-starter"
+        title={buildShelvesCopy('starterSet')}
+        count="read-only"
+        countAt="label"
+        fold="closed"
+        bodyStyle={PANEL}
+      >
+        <p style={CREDIT}>
+          The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
+          Open any sheet to read it, then make a copy to play it.
+        </p>
+        <StarterSetGrid />
+      </SlabSection>
+      <SlabSection
+        as="h2"
+        id="shelf-quickstart"
+        title={buildShelvesCopy('quickstartCrew')}
+        count="read-only"
+        countAt="label"
+        fold="closed"
+        bodyStyle={PANEL}
+      >
+        <p style={CREDIT}>
+          {buildShelvesCopy('quickstartCredit', {
+            book: QUICKSTART_BOOK,
+            publisher: STARTER_SET_PUBLISHER,
+          })}
+        </p>
+        <StarterSetGrid roster="quickstart" />
+      </SlabSection>
+    </>
   )
 }

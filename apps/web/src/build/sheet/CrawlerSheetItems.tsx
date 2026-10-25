@@ -52,6 +52,9 @@ const BAY_FUNCTIONS: Record<string, string> = {
   'pilot-bay': 'Train',
   armoury: 'Equip',
   cantina: 'Rumour',
+  'bio-mech-bay': 'Restore',
+  'bio-crafting-bay': 'Craft',
+  'nanite-processing-bay': 'Process',
 }
 
 /**
@@ -129,6 +132,8 @@ type CrawlerBayCardProps = {
    * it was, and comes back when the link goes (Q2).
    */
   assigned?: CrewAssignment
+  /** Uninstall the bay (Edit, expansion bays only); absent, it cannot be removed. */
+  onRemove?: () => void
 }
 
 /**
@@ -158,6 +163,7 @@ export function CrawlerBayCard({
   contents,
   onFunction,
   assigned,
+  onRemove,
 }: CrawlerBayCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -342,6 +348,7 @@ export function CrawlerBayCard({
       onConditionCycle={toggleCondition}
       nextCondition={damaged ? 'intact' : 'damaged'}
       liveCondition={liveCondition}
+      onRemove={readOnly ? undefined : onRemove}
       actions={
         <>
           <Button

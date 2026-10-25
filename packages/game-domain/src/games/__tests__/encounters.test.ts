@@ -40,6 +40,11 @@ describe('the tray NPCs an encounter fields', () => {
     })
   })
 
+  test("a group is the encounter's; the tray NPC does not carry it", () => {
+    const [npc] = trayNpcsFor([{ ...raider, groupId: 'band' }], [], NOW)
+    expect(npc).not.toHaveProperty('groupId')
+  })
+
   test('named apart from the tray and from each other', () => {
     const names = trayNpcsFor([raider, { ...raider, id: 'o2' }], ['Raider'], NOW).map((n) => n.name)
     expect(names).toEqual(['Raider 2', 'Raider 3'])
@@ -67,5 +72,21 @@ describe('what a Game keeps of a running encounter', () => {
       startedAt: NOW,
     })
     expect(running.tables).not.toBe(encounter.tables)
+  })
+
+  test('its briefing, trimmed, when it has one', () => {
+    const encounter: Encounter = {
+      id: 'enc-1',
+      schemaVersion: 1,
+      name: 'Ambush',
+      opposition: [],
+      tables: [],
+      notes: '',
+      briefing: '  Smoke rises from the crusher.  ',
+      createdAt: NOW,
+      updatedAt: NOW,
+    }
+    expect(runningFrom(encounter, NOW).briefing).toBe('Smoke rises from the crusher.')
+    expect(runningFrom({ ...encounter, briefing: '   ' }, NOW)).not.toHaveProperty('briefing')
   })
 })

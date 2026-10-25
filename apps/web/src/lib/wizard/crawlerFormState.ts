@@ -30,8 +30,11 @@ export type CrewNpcForm = {
   motto?: string
 }
 
-/** Scrap-pool form shape: every TL bucket present (zeros allowed). */
-export type ScrapPoolForm = Required<ScrapPool>
+/**
+ * Scrap-pool form shape: every TL bucket present (zeros allowed). The
+ * expansion resources (Bio-Salvage, Nanites) are the sheet's, not the wizard's.
+ */
+export type ScrapPoolForm = Required<Pick<ScrapPool, 'tl1' | 'tl2' | 'tl3' | 'tl4' | 'tl5' | 'tl6'>>
 
 export const EMPTY_SCRAP_POOL: ScrapPoolForm = {
   tl1: 0,
@@ -136,6 +139,30 @@ export function seedDefaultCrawlerBays(): CrawlerBayEntry[] {
       return {
         bayRef: getEntitySlug(bay),
         ...(typeof maxHP === 'number' ? { npcCurrentHP: maxHP } : {}),
+      }
+    })
+}
+
+/**
+ * The expansion bays a crawler can gain in play (the ones the seed leaves
+ * out), by slug and name, each with the entry that installs it: its crew NPC
+ * at full HP, as the seed's.
+ */
+export function expansionCrawlerBays(): { slug: string; name: string; entry: CrawlerBayEntry }[] {
+  const bays = readReference(
+    'expansionCrawlerBays',
+    () => SalvageUnionReference.CrawlerBays.all(),
+    []
+  )
+  return bays
+    .filter((bay) => bay.expansion)
+    .map((bay) => {
+      const slug = getEntitySlug(bay)
+      const maxHP = bay.npc?.hitPoints
+      return {
+        slug,
+        name: bay.name,
+        entry: { bayRef: slug, ...(typeof maxHP === 'number' ? { npcCurrentHP: maxHP } : {}) },
       }
     })
 }

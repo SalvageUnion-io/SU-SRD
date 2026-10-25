@@ -2322,6 +2322,118 @@
         }
       }
     },
+    "safety:addBoundary": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "outOfBounds"
+              },
+              {
+                "type": "literal",
+                "value": "offCamera"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "text": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:boundaries": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:liftStop": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:removeBoundary": {
+      "type": "object",
+      "value": {
+        "boundaryId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "boundaries"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:setPostToChannel": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "on": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:showStop": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:stopSign": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
     "seats:board": {
       "type": "object",
       "value": {
