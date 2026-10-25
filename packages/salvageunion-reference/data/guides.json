@@ -1486,5 +1486,174 @@
         ]
       }
     ]
+  },
+  {
+    "id": "33866bac-00ad-4417-97ec-1cea9d1cb3f6",
+    "name": "Setbacks",
+    "source": "Salvage Union Workshop Manual",
+    "page": 252,
+    "guideType": "gameplay",
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A Setback is a kind of consequence that Pilots may face in the game. This is typically a result of a die roll made to resolve a situation, but can also emerge naturally in play based on the Mediator making a decision to add a Setback to a situation."
+      },
+      {
+        "type": "paragraph",
+        "value": "A Setback should never stall play entirely, or be magnified beyond what reasonable harm and difficulty it would cause within the narrative. Instead, it should be an opportunity for Pilots to exercise their problem solving skills, re-think a situation, and propel play forwards to different and unexpected avenues."
+      },
+      {
+        "type": "paragraph",
+        "value": "When dealing damage as a Setback, the default baseline is 2 SP for Mechs and 2 HP for Pilots. This can be adjusted as seen fit by the Mediator."
+      }
+    ],
+    "steps": [
+      {
+        "id": "454790db-a20b-4d75-bbef-3231bfd7b4c3",
+        "name": "They are hurt.",
+        "content": [
+          {
+            "type": "list-item",
+            "value": "They take damage (2 SP/2 HP by Default)."
+          },
+          {
+            "type": "list-item",
+            "value": "An NPC attacks them."
+          },
+          {
+            "type": "list-item",
+            "value": "They must roll on the Critical Damage or Critical Injury Table."
+          },
+          {
+            "type": "list-item",
+            "value": "A System or Module is damaged or destroyed."
+          },
+          {
+            "type": "list-item",
+            "value": "A Pilot suffers a Minor or Major Injury."
+          },
+          {
+            "type": "list-item",
+            "value": "They must roll on the Reactor Overload Table."
+          },
+          {
+            "type": "list-item",
+            "value": "They gain Heat and must roll on the Reactor Overload Table."
+          },
+          {
+            "type": "list-item",
+            "value": "Their weapon’s Trait is used against them."
+          }
+        ]
+      },
+      {
+        "id": "29e099e4-5acb-4237-ae94-345459570d2b",
+        "name": "Their reputation or standing is harmed.",
+        "content": [
+          {
+            "type": "list-item",
+            "value": "They offend someone important."
+          },
+          {
+            "type": "list-item",
+            "value": "They break a law, code, or unwritten rule and become targets for retributive justice."
+          },
+          {
+            "type": "list-item",
+            "value": "They are cast out of a community."
+          },
+          {
+            "type": "list-item",
+            "value": "A bounty is put on their heads."
+          },
+          {
+            "type": "list-item",
+            "value": "They lose an ally."
+          },
+          {
+            "type": "list-item",
+            "value": "Something from a Pilot’s background comes back to haunt them."
+          }
+        ]
+      },
+      {
+        "id": "d6ac04f3-a253-4826-8ada-aa87e2961406",
+        "name": "They lose something.",
+        "content": [
+          {
+            "type": "list-item",
+            "value": "Something important is stolen."
+          },
+          {
+            "type": "list-item",
+            "value": "Their ballistic weapon jams or runs out of ammo."
+          },
+          {
+            "type": "list-item",
+            "value": "Their items or weapons are less effective than they should be."
+          },
+          {
+            "type": "list-item",
+            "value": "A trader demands a costly deal."
+          }
+        ]
+      },
+      {
+        "id": "706e4e7c-3e6e-4c57-8fea-5c62f0d0fffc",
+        "name": "Their environment shifts.",
+        "content": [
+          {
+            "type": "list-item",
+            "value": "A sudden radiation storm makes a journey difficult."
+          },
+          {
+            "type": "list-item",
+            "value": "Acid rain causes them to seek shelter."
+          },
+          {
+            "type": "list-item",
+            "value": "A disease begins to spread."
+          },
+          {
+            "type": "list-item",
+            "value": "The path is blocked by debris."
+          },
+          {
+            "type": "list-item",
+            "value": "An enemy suddenly flanks them."
+          }
+        ]
+      },
+      {
+        "id": "323a1c90-4a08-4a15-b90c-03205029685a",
+        "name": "Their enemies advance.",
+        "content": [
+          {
+            "type": "list-item",
+            "value": "A faction gains power."
+          },
+          {
+            "type": "list-item",
+            "value": "A new enemy reinforcement suddenly joins the fight they are in."
+          },
+          {
+            "type": "list-item",
+            "value": "An Ally loses territory or resources."
+          },
+          {
+            "type": "list-item",
+            "value": "A settlement is taken over by a foe."
+          },
+          {
+            "type": "list-item",
+            "value": "A group is waiting to ambush the Pilots."
+          },
+          {
+            "type": "list-item",
+            "value": "A faction captures something powerful."
+          }
+        ]
+      }
+    ]
   }
 ]

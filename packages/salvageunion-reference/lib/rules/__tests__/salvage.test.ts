@@ -6,7 +6,17 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { AREA_SALVAGE_LABEL, areaSalvageBand, performAreaSalvage } from '../salvage'
+import {
+  AREA_SALVAGE_LABEL,
+  areaSalvageBand,
+  areaSalvageResult,
+  MECH_SALVAGE_LABEL,
+  mechSalvageAllows,
+  mechSalvageBand,
+  mechSalvageResult,
+  mechSalvageScrap,
+  performAreaSalvage,
+} from '../salvage'
 import type { Roll } from '../types'
 
 /** Returns a Roll that always yields `value`, ignoring `sides`. */
@@ -74,6 +84,56 @@ describe('performAreaSalvage', () => {
     expect(result.band).toBe('jackpot')
     expect(result.scrapQty).toBe(0)
     expect(result.requiresPlayerChoice).toBe(true)
+    expect(result.itemCount).toBe(1)
     expect(result.label).toBe('Jackpot!')
+  })
+})
+
+describe('Expert Salvager (p.40)', () => {
+  test('one more Scrap on every band, so a 1 still finds one', () => {
+    expect(areaSalvageResult({ areaTl: 2, d20: 1, expert: true }).scrapQty).toBe(1)
+    expect(areaSalvageResult({ areaTl: 2, d20: 4, expert: true }).scrapQty).toBe(2)
+    expect(areaSalvageResult({ areaTl: 2, d20: 15, expert: true }).scrapQty).toBe(4)
+  })
+
+  test('a 20 finds a second item, and the extra Scrap', () => {
+    const result = areaSalvageResult({ areaTl: 3, d20: 20, expert: true })
+    expect(result.itemCount).toBe(2)
+    expect(result.scrapQty).toBe(1)
+  })
+})
+
+describe('Mech Salvage (p.248)', () => {
+  test('bands follow the table', () => {
+    expect(mechSalvageBand(1)).toBe('ashes')
+    expect(mechSalvageBand(2)).toBe('nuts')
+    expect(mechSalvageBand(5)).toBe('nuts')
+    expect(mechSalvageBand(6)).toBe('bits')
+    expect(mechSalvageBand(10)).toBe('bits')
+    expect(mechSalvageBand(11)).toBe('meat')
+    expect(mechSalvageBand(19)).toBe('meat')
+    expect(mechSalvageBand(20)).toBe('lions')
+    expect(mechSalvageResult(20)).toEqual({ roll: 20, band: 'lions', label: 'Lions Share' })
+    expect(MECH_SALVAGE_LABEL.ashes).toBe('Ashes and Dust')
+  })
+
+  test('each band allows what it says, and never more', () => {
+    const none = { chassis: false, systems: 0, modules: 0 }
+    expect(mechSalvageAllows('ashes', none)).toBe(true)
+    expect(mechSalvageAllows('nuts', { ...none, systems: 1 })).toBe(false)
+    expect(mechSalvageAllows('bits', { ...none, modules: 1 })).toBe(true)
+    expect(mechSalvageAllows('bits', { ...none, chassis: true })).toBe(false)
+    expect(mechSalvageAllows('bits', { ...none, systems: 1, modules: 1 })).toBe(false)
+    expect(mechSalvageAllows('meat', { ...none, chassis: true })).toBe(true)
+    expect(mechSalvageAllows('meat', { chassis: true, systems: 1, modules: 0 })).toBe(false)
+    expect(mechSalvageAllows('lions', { chassis: true, systems: 1, modules: 1 })).toBe(true)
+    expect(mechSalvageAllows('lions', { chassis: true, systems: 2, modules: 0 })).toBe(false)
+  })
+
+  test('the 2–5 band pays half the Chassis Salvage Value, at least 1', () => {
+    expect(mechSalvageScrap(7)).toBe(3)
+    expect(mechSalvageScrap(8)).toBe(4)
+    expect(mechSalvageScrap(1)).toBe(1)
+    expect(mechSalvageScrap(0)).toBe(1)
   })
 })
