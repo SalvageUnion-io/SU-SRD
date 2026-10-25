@@ -11,7 +11,7 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { PlayTableMode, TableModeToggle } from '../PlayTableMode'
-import type { PinnedUnit } from '../playPhone.model'
+import type { PinnedUnit } from '../playPanes.model'
 import { clearPlayRolls, usePlayRollLog } from '../playRolls.model'
 import { tableUnits } from '../tableMode.model'
 import { resetTableMode, useTableMode } from '../useTableMode'

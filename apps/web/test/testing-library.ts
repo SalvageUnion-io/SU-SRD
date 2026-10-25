@@ -2,6 +2,7 @@ import { afterEach, expect } from 'bun:test'
 import { format } from 'node:util'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import { act, cleanup, configure } from '@testing-library/react'
+import { toast } from 'sonner'
 
 expect.extend(matchers)
 
@@ -19,6 +20,10 @@ afterEach(async () => {
   // into the next test's pristine mount.
   sessionStorage.clear()
   localStorage.clear()
+  // Sonner keeps every toast in module state and replays the active ones to
+  // the next `Toaster` that mounts, so one test's toasts would show in the
+  // next file's (`--no-isolate`). Dismissed toasts are never replayed.
+  toast.dismiss()
 })
 
 // These two React warnings fail the test that raises them rather than scroll past:

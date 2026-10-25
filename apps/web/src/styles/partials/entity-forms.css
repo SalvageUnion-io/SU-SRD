@@ -1294,8 +1294,8 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 /* A TOKEN LIST (`.su-entity-mini-list`: a pattern's Systems and Modules,
    Play's lists): one Mini a line, each running the list's full width, its
    name taking the room and its fact at the right edge, where the facts scan
-   down the list. Under a coarse pointer, and in Play's phone form (its touch
-   floor, `.su-play-root--phone`, ADR-045), each line is a 44px target (ruleset
+   down the list. Under a coarse pointer, and in a narrow Play (its touch
+   floor, `play/touch.css`), each line is a 44px target (ruleset
    §4.6, R12): the pill is the whole line's height, so a Mini whose surface
    is a control never sits short inside the floor's taller box. */
 .su-entity-mini-list {
@@ -1340,8 +1340,10 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   }
 }
 
-.su-play-root--phone .su-entity-mini-list .su-entity-mini__pill {
-  min-height: var(--size-full);
+@container play not (width >= 64rem) {
+  .su-play-root .su-entity-mini-list .su-entity-mini__pill {
+    min-height: var(--size-full);
+  }
 }
 
 /* A Mini with controls on its line (`.su-entity-mini-line`: the app's installed

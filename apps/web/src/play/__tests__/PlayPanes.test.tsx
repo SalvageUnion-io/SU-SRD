@@ -1,8 +1,10 @@
 /**
- * Play's phone form for the player (play.md §11, ADR-051 §10): `PlayCockpitPhone` over a stand-in `Play` (`useHarnessPlay`).
+ * Play below `lg` for the player (play.md §11, ADR-063): `PlayCockpit` on a
+ * 390px phone over a stand-in `Play` (`useHarnessPlay`, in place of
+ * `usePlaySituation`).
  *
  *  - The tabs: Act, Units, Tables, Crew, in that order (Crew a Game's only);
- *    a switch opens one panel and keeps the others mounted, hidden.
+ *    a switch opens one pane and keeps the others mounted, hidden.
  *  - Pinned above every tab, per Situation: on foot the pilot's HP and AP,
  *    Boarded the mech's SP, EP and Heat too, in Downtime nothing; the
  *    Situation switch under them.
@@ -14,7 +16,7 @@
  * bun:test's expect).
  */
 
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -24,12 +26,21 @@ import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { resolveSystem } from '../../lib/rules/mechItems'
 import type { Situation } from '../situation.model'
 import { mechStats } from '../unitStats.model'
+import { narrowViewport } from './narrowViewport'
 import { stubStore } from './stubStore'
+
+/** The screen under test: its Situation, solo or in a Game, its Downtime step. */
+type Screen = { situation: Situation; solo?: boolean; stepIndex?: number }
+let current: Screen = { situation: 'onFoot' }
 
 // Module scope, before the imports below — see `convexMock.ts`. The side's
 // reads (`usePlaySide`) and the Units' (`usePlayUnits`): nothing bound, no
 // crew read yet, nothing on the Game's log.
-const convexMocks = await installConvexMocks()
+const convexMocks = await installConvexMocks({
+  also: {
+    '../../play/usePlaySituation': () => ({ usePlaySituation: () => useScreenPlay() }),
+  },
+})
 setQueryAnswers({
   'account:me': null,
   'seats:forGame': [],
@@ -41,12 +52,13 @@ setQueryAnswers({
   'proposals:alerts': [],
   'proposals:pending': [],
   'crew:vitals': null,
+  'seats:solo': null,
 })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { rollFourteen, useHarnessPlay } = await import('./playActionsHarness')
-const { PlayCockpitPhone } = await import('../PlayCockpitPhone')
-const { mediatorPhoneTabs, pinnedUnits, playerPhoneTabs } = await import('../playPhone.model')
+const { PlayCockpit } = await import('../PlayCockpit')
+const { PLAYER_TABS, mediatorPanes, pinnedUnits, playerPanes } = await import('../playPanes.model')
 
 /** A system with an action that rolls: the turn's action. */
 let system = ''
@@ -68,6 +80,12 @@ beforeAll(async () => {
 
 afterAll(() => convexMocks.restore())
 
+let restoreViewport = () => {}
+beforeEach(() => {
+  restoreViewport = narrowViewport()
+})
+afterEach(() => restoreViewport())
+
 function makePilot(): Pilot {
   return pilotFixture({ id: 'p-phone', name: 'Bonesaw', currentHP: 7, currentAP: 3 })
 }
@@ -84,38 +102,35 @@ function makeMech(): Mech {
   })
 }
 
-function Phone({
-  situation,
-  solo = false,
-  stepIndex = 0,
-}: {
-  situation: Situation
-  solo?: boolean
-  stepIndex?: number
-}) {
-  const pilot = makePilot()
-  const mech = makeMech()
-  const play = useHarnessPlay({
-    pilot,
-    mech,
+/** The stand-in `Play` for `current`, as `usePlaySituation` would answer. */
+function useScreenPlay() {
+  const { situation, solo = false, stepIndex = 0 } = current
+  return useHarnessPlay({
+    pilot: makePilot(),
+    mech: makeMech(),
     situation,
     gameId: solo ? null : 'g-phone',
     writes: [],
     downtime: { stepIndex },
   })
-  return (
-    <PlayCockpitPhone
-      target={play.target}
-      play={play}
-      bar={<header>bar</header>}
-      actions={{ store: stubStore(pilot, mech).store, rollFor: rollFourteen }}
-    />
-  )
 }
 
-async function renderPhone(props: Parameters<typeof Phone>[0]) {
+async function renderPhone(screenProps: Screen) {
+  current = screenProps
+  const { solo = false } = screenProps
+  const target = {
+    pilotId: 'p-phone',
+    gameId: solo ? null : 'g-phone',
+    gameName: solo ? null : 'The Rust Belt Run',
+    mediator: false,
+  }
   await act(async () => {
-    render(<Phone {...props} />)
+    render(
+      <PlayCockpit
+        target={target}
+        actions={{ store: stubStore(makePilot(), makeMech()).store, rollFor: rollFourteen }}
+      />
+    )
   })
 }
 
@@ -128,7 +143,7 @@ async function click(el: Element) {
 const tab = (name: string) =>
   within(screen.getByRole('tablist', { name: 'Play' })).getByRole('tab', { name })
 
-/** The open panel: the one tabpanel not hidden. */
+/** The open pane: the one tabpanel not hidden. */
 function openPanel(): HTMLElement {
   const open = screen.getAllByRole('tabpanel').filter((p) => !p.hidden)
   expect(open).toHaveLength(1)
@@ -145,19 +160,25 @@ function pinned(): string[] {
 }
 
 describe('the model', () => {
-  test('the player’s four tabs in a fixed order; solo has no Crew', () => {
-    expect(playerPhoneTabs(false).map((t) => t.label)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
-    expect(playerPhoneTabs(true).map((t) => t.label)).toEqual(['Act', 'Units', 'Tables'])
+  test('the player’s four panes in reading order, their tabs in a fixed order; solo has no Crew', () => {
+    expect(playerPanes(false).map((p) => [p.label, p.column])).toEqual([
+      ['Units', 'start'],
+      ['Act', 'centre'],
+      ['Crew', 'end'],
+      ['Tables', 'end'],
+    ])
+    expect(PLAYER_TABS).toEqual(['act', 'units', 'tables', 'crew'])
+    expect(playerPanes(true).map((p) => p.label)).toEqual(['Units', 'Act', 'Tables'])
   })
 
-  test('the Mediator’s four; in Downtime the second says so, in its place', () => {
-    expect(mediatorPhoneTabs(false).map((t) => t.label)).toEqual([
-      'Table',
-      'Opposition',
-      'Tables',
-      'Propose',
+  test('the Mediator’s four, Propose docked; in Downtime the second says so, in its place', () => {
+    expect(mediatorPanes(false).map((p) => [p.label, p.column, p.dock ?? false])).toEqual([
+      ['Table', 'start', false],
+      ['Opposition', 'centre', false],
+      ['Tables', 'end', false],
+      ['Propose', 'end', true],
     ])
-    expect(mediatorPhoneTabs(true).map((t) => [t.value, t.label])).toEqual([
+    expect(mediatorPanes(true).map((t) => [t.value, t.label])).toEqual([
       ['table', 'Table'],
       ['opposition', 'Downtime'],
       ['tables', 'Tables'],
@@ -204,7 +225,7 @@ describe('the tabs', () => {
     expect(within(openPanel()).getByRole('heading', { name: 'Actions' })).toBeTruthy()
   })
 
-  test('a tab opens its panel; the others stay mounted, hidden', async () => {
+  test('a tab opens its pane; the others stay mounted, hidden', async () => {
     await renderPhone({ situation: 'boarded' })
     await click(tab('Units'))
     expect(tab('Units').getAttribute('aria-selected')).toBe('true')
@@ -233,7 +254,7 @@ describe('the tabs', () => {
   })
 })
 
-describe('pinned above every tab', () => {
+describe('pinned above every pane', () => {
   test('on foot: the pilot’s HP and AP, then the Situation switch', async () => {
     await renderPhone({ situation: 'onFoot' })
     expect(pinned()).toEqual(['Bonesaw’s vitals'])
@@ -260,7 +281,7 @@ describe('pinned above every tab', () => {
     expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
   })
 
-  test('the pinned row sits outside every panel, so it shows on each tab', async () => {
+  test('the pinned row sits outside every pane, so it shows on each tab', async () => {
     await renderPhone({ situation: 'boarded' })
     const section = screen.getByRole('region', { name: 'Pinned vitals' })
     expect(section.closest('[role="tabpanel"]')).toBeNull()
@@ -270,7 +291,7 @@ describe('pinned above every tab', () => {
 })
 
 describe('Act: resolve stays inline', () => {
-  test('Use opens the Compact in place, in the Act panel', async () => {
+  test('Use opens the Compact in place, in the Act pane', async () => {
     await renderPhone({ situation: 'boarded' })
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const panel = openPanel()
