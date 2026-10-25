@@ -103,6 +103,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'astro-check',
+    guards:
+      "the `.astro` shells' types (`astro check` on TypeScript 6's API until 7.1 ships one, #1795)",
+    fix: 'fix the type error it prints in apps/web/astro/',
+    cmd: ['bun', '--filter', 'astro-check', 'check'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'knip',
     guards: 'no unused files, exports or dependencies',
     fix: 'delete what it lists; docs/ARCHITECTURE.md#dead-code covers the two exceptions',

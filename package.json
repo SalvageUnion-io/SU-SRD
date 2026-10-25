@@ -9,7 +9,8 @@
     "packages": [
       "apps/*",
       "packages/*",
-      "tools"
+      "tools",
+      "tools/astro-check"
     ],
     "catalog": {
       "@base-ui/react": "1.6.0",

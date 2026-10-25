@@ -1,0 +1,6 @@
+---
+import { apiPage as module } from '../../src/reference/pages/api.page'
+import Page from '../layouts/Page.astro'
+import { renderReference } from '../lib/reference'
+---
+<Page doc={renderReference(module, {}, undefined)} />
