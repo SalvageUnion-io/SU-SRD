@@ -7,6 +7,7 @@
 
 import { DurableObject, exports } from 'cloudflare:workers'
 import type { DurableObjectNamespace, WebSocket as RoomSocket } from '@cloudflare/workers-types'
+import type { SheetVitals } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
 import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
 import type {
@@ -19,6 +20,7 @@ import type {
 import { runAct } from '../rooms/game/acts'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
 import type { UnitRow } from '../rooms/game/store'
+import { GameStore } from '../rooms/game/store'
 import type { HomeAddress, LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
 import { settleLease } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
@@ -28,6 +30,7 @@ import { presentMembers, ROOM_PROTOCOL, SEAT_TAG, WATCH_TAG } from '../rooms/pre
 import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
+import { unitVitals } from '../rooms/vitals'
 import { roomMember } from './roomAuth'
 
 type RoomHealth = { schema: number }
@@ -102,9 +105,14 @@ export class AccountRoom extends Room implements UnitHome {
     return this.logic.shelf.list(actor)
   }
 
-  /** One of the player's units, or null. */
-  unit(actor: string, unitId: string): UnitRow | null {
-    return this.logic.shelf.list(actor).find((u) => u.id === unitId) ?? null
+  /** One of the player's units with its vitals, or null. */
+  async unit(
+    actor: string,
+    unitId: string
+  ): Promise<(UnitRow & { vitals: SheetVitals | null }) | null> {
+    const unit = this.logic.shelf.list(actor).find((u) => u.id === unitId)
+    if (unit === undefined) return null
+    return { ...unit, vitals: await unitVitals(this.logic.shelf.store, unitId) }
   }
 
   /** A disbanded Game's Opposition, filed in its Organizer's NPC tray once per lease. */
@@ -179,10 +187,14 @@ export class GameRoom extends Room implements UnitHome {
     return answer.ok ? answer.value : []
   }
 
-  /** One unit a member may see, with its holder's name; null otherwise. */
-  unit(actor: string, unitId: string): GameActResult<'unit'> {
+  /** One unit a member may see, with its holder's name and its vitals; null otherwise. */
+  async unit(
+    actor: string,
+    unitId: string
+  ): Promise<(NonNullable<GameActResult<'unit'>> & { vitals: SheetVitals | null }) | null> {
     const answer = this.act(actor, 'unit', { unitId })
-    return answer.ok ? answer.value : null
+    if (!answer.ok || answer.value === null) return null
+    return { ...answer.value, vitals: await unitVitals(new GameStore(this.sql), unitId) }
   }
 
   offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { SHEET_NOT_FOUND } from 'game-domain/botDenials'
+import type { SheetVitals } from 'game-domain/botWire'
 import type { BotRooms } from '../botSheets'
 import { mine, sheet } from '../botSheets'
 import { testDb } from '../shared/__tests__/d1'
@@ -17,13 +18,23 @@ const ROSA_PILOT: Unit = { id: 'p-rosa', kind: 'pilot', body: { name: 'Rosa Vanc
 const SHELF_MECH: Unit = { id: 'm-shelf', kind: 'mech', body: { name: 'Spare Mule' } }
 const TAM_PILOT: Unit = { id: 'p-tam', kind: 'pilot', body: { name: 'Tam' } }
 const CRAWLER: Unit = { id: 'c-1', kind: 'crawler', body: { name: 'Rustbucket' } }
+const SHELF_VITALS: SheetVitals = {
+  kind: 'mech',
+  maxSP: 10,
+  maxEP: 6,
+  maxHeat: 8,
+  status: null,
+  attention: false,
+}
 
 /** Rooms that answer only Rosa: her Shelf, and Reclamation where Tam plays too. */
 const rooms: BotRooms = {
   account: (discordId) => ({
     unitsFor: async (actor) => (actor === discordId && actor === 'd-rosa' ? [SHELF_MECH] : []),
     unit: async (actor, id) =>
-      actor === 'd-rosa' && discordId === 'd-rosa' && id === SHELF_MECH.id ? SHELF_MECH : null,
+      actor === 'd-rosa' && discordId === 'd-rosa' && id === SHELF_MECH.id
+        ? { ...SHELF_MECH, vitals: SHELF_VITALS }
+        : null,
   }),
   game: (gameId) => ({
     unitsFor: async (actor) =>
@@ -82,6 +93,7 @@ describe('sheet', () => {
       publicRead: false,
       ownerName: 'Rosa',
       body: SHELF_MECH.body,
+      vitals: SHELF_VITALS,
     })
   })
 

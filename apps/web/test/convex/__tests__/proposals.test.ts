@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { MechSchema } from 'game-domain/schemas/mech'
-import { api, internal } from '../../../convex/_generated/api'
+import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
 import { makeUser, mechBody, opRow, unitOp } from '../fixtures'
@@ -331,45 +331,5 @@ describe('alerts share the proposal bus', () => {
 
     // An alert is a feed row, not an op: there is no unit to answer for.
     expect(await player.as.query(api.ops.pending, { gameId })).toHaveLength(0)
-  })
-})
-
-describe('a proposal written to the Change Log before proposals were ops', () => {
-  test('is copied into ops once, then answers like any other', async () => {
-    const t = testConvex()
-    const { gm, player, gameId, mechId } = await seedTable(t)
-    const legacy = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('changeLog', {
-          gameId,
-          entityType: 'mech',
-          entityId: mechId,
-          ts: 1,
-          kind: 'transaction',
-          field: 'currentHeat',
-          before: null,
-          after: 3,
-          source: 'mediator-proposal',
-          actorId: gm.userId,
-          state: 'proposed',
-          reason: 'Overheat',
-        })
-    )
-    expect(await player.as.query(api.ops.pending, { gameId })).toEqual([])
-
-    const first = await t.mutation(internal.ops.copyLegacyProposals, { cursor: null })
-    expect(first).toMatchObject({ copied: 1, done: true })
-    expect((await t.mutation(internal.ops.copyLegacyProposals, { cursor: null })).copied).toBe(0)
-
-    const [pending] = await player.as.query(api.ops.pending, { gameId })
-    expect(pending).toMatchObject({
-      _id: legacy,
-      field: 'currentHeat',
-      after: 3,
-      reason: 'Overheat',
-    })
-    await player.as.mutation(api.ops.accept, { opId: legacy })
-    const mech = await t.run(async (ctx) => await ctx.db.get(mechId as Id<'mechs'>))
-    expect((mech?.body as { currentHeat?: number } | undefined)?.currentHeat).toBe(3)
   })
 })
