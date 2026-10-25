@@ -64,7 +64,7 @@ describe('a Play roll round-trips through the log', () => {
       userId: organizer.userId,
       mediator: true,
     })
-    await organizer.as.mutation(api.proposals.broadcast, { gameId, message: 'Bio-Titan closing' })
+    await organizer.as.mutation(api.changeLog.broadcast, { gameId, message: 'Bio-Titan closing' })
     await addPilot(player, 'p-rook', gameId)
     await player.as.mutation(api.changeLog.appendChangeLog, {
       entries: [

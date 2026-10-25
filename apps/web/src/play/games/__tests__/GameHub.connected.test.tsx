@@ -120,10 +120,10 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     ],
     'entities:listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
     'crew:vitals': undefined,
-    'proposals:pending': [],
+    'ops:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
-    'proposals:sent': [],
+    'ops:sent': [],
     // A column's "Move in…" checks its moves against your Games.
     'games:listMine': [],
     ...over,
@@ -175,7 +175,7 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
 describe('the sections under the roster', () => {
   test('every member gets the answer queue and The Game, below the lists; no Crew & seats', async () => {
     await renderHub({
-      'proposals:pending': [
+      'ops:pending': [
         { _id: 'c1', entityType: 'pilot', field: 'currentHP', after: 3, reason: null },
       ],
     })
@@ -337,7 +337,7 @@ describe('the Mediator on the Game page', () => {
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {
     await renderHub({
       'games:get': { ...GAME, mediator: true },
-      'proposals:sent': [
+      'ops:sent': [
         {
           _id: 'c1',
           entityId: 'p1',

@@ -1,10 +1,16 @@
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import { isEntityKind, TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
-import { membershipOrNull, NotAuthorized, requireMemberAs, requireUser } from './model/permissions'
+import {
+  membershipOrNull,
+  NotAuthorized,
+  requireMediator,
+  requireMemberAs,
+  requireUser,
+} from './model/permissions'
 import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } from './schema'
 
 /**
@@ -12,13 +18,13 @@ import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } fro
  *
  * This table is the Change Log: the store's `emitChangeLog`
  * (`src/replica/outbox.ts`) and Play's rolls arrive here, and
- * `ownership`, `proposals` and `botClient` write beside them. There is no
+ * `ownership`, the Mediator's alerts (`broadcast`) and `botClient` write beside them. There is no
  * device copy; `forEntity` below is what the sheet's drawer reads.
  *
  * Rows land `state: 'applied'` and `actorId: userId`. A client append is a
  * record of something that ALREADY happened, not a request — the proposal
- * lifecycle (`proposed`/`declined`/`superseded`) belongs to `proposals.ts` and
- * is deliberately not reachable from here.
+ * lifecycle (`proposed`/`declined`/`superseded`) belongs to the ops
+ * (`ops.propose`) and is deliberately not reachable from here.
  *
  * `before` and `after` are optional on the wire and stored as `null` when
  * absent. A field set for the first time has no `before` and a field cleared
@@ -50,8 +56,8 @@ export const appendChangeLog = mutation({
     const userId = await requireUser(ctx)
 
     // `alert` is the Mediator's broadcast channel, not a field a client may
-    // append. `proposals.broadcast` writes those rows behind `requireMediator`,
-    // and `proposals.alerts` returns every one of them to every member of the
+    // append. `changeLog.broadcast` writes those rows behind `requireMediator`,
+    // and `changeLog.alerts` returns every one of them to every member of the
     // game — so without this line any signed-in user could post a message into
     // the whole crew's alert feed, carrying a real `actorId`, by calling this
     // mutation instead. The gate on the intended path is only a gate if the
@@ -73,7 +79,7 @@ export const appendChangeLog = mutation({
     // nothing here derived it from a record the caller can be shown to own. A
     // user who has left a game — or who holds its id from an unredeemed invite
     // link — could therefore write rows into that game's log indefinitely, and
-    // `proposals.alerts`/the Change Log drawer would render them as genuine
+    // `changeLog.alerts`/the Change Log drawer would render them as genuine
     // provenance attributed to them.
     //
     // Distinct rather than per-entry because the batch is usually one edit
@@ -114,7 +120,7 @@ const MAX_ROLLS = 100
  * `field 'roll'` rows ([ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2).
  *
  * Reads only the newest `limit` rows off `by_game_field`, as
- * `proposals.alerts` does, so the subscription stays the same size however
+ * `alerts` does, so the subscription stays the same size however
  * long the campaign runs. Each row's `after` is `{ description, result }`; a
  * row without a string description still appears, with a placeholder, rather
  * than vanishing from the log. The roller is named the way `games.members`
@@ -167,12 +173,12 @@ const MAX_ENTITY_ROWS = 100
 const UNLOGGED: ReadonlySet<string> = new Set(['updatedAt'])
 
 /**
- * One entity's Change Log, newest first, one row per field: its ops (ADR-063)
- * from any device or surface, and the rows logged beside them before ops and
- * still — an ownership change, a proposal still awaiting its answer, an
- * applied one. A proposal applied since ops is shown once, as its op (whose id
- * is the proposal's). Declined and superseded proposals are not history of
- * the entity, and are left out.
+ * One entity's Change Log, newest first, one row per field: its applied and
+ * proposed ops (ADR-063) from any device or surface, and the rows logged
+ * beside them, before ops and still (an ownership change). A proposal logged
+ * before ops and applied since is shown once, as its op (whose id is the
+ * proposal's). Declined and superseded proposals are not history of the
+ * entity, and are left out.
  *
  * `entityId` is the id the client addresses the entity by (`logIdOf`). Rows
  * written before every writer used it name the entity by its row id, so both
@@ -214,12 +220,14 @@ export const forEntity = query({
     const keys = [...new Set<string>([logIdOf(row), row._id])]
     const [ops, logged] = await Promise.all([
       Promise.all(
-        keys.map((unitId) =>
-          ctx.db
-            .query('ops')
-            .withIndex('by_unit_state_at', (q) => q.eq('unitId', unitId).eq('state', 'applied'))
-            .order('desc')
-            .take(MAX_ENTITY_ROWS)
+        keys.flatMap((unitId) =>
+          (['applied', 'proposed'] as const).map((state) =>
+            ctx.db
+              .query('ops')
+              .withIndex('by_unit_state_at', (q) => q.eq('unitId', unitId).eq('state', state))
+              .order('desc')
+              .take(MAX_ENTITY_ROWS)
+          )
         )
       ),
       Promise.all(
@@ -249,7 +257,7 @@ export const forEntity = query({
           before: before[field] ?? null,
           after: patch[field] ?? null,
           source: op.source,
-          state: 'applied' as const,
+          state: op.state,
         }))
     })
     const fromLog = logged
@@ -267,5 +275,69 @@ export const forEntity = query({
       }))
 
     return [...fromOps, ...fromLog].sort((a, b) => b.ts - a.ts).slice(0, MAX_ENTITY_ROWS)
+  },
+})
+
+/**
+ * Broadcast a table-wide alert.
+ *
+ * A feed row on the Game, not an op: it changes no unit (ADR-063 §7). Any
+ * member reads them; only the Mediator sends.
+ */
+export const broadcast = mutation({
+  args: { gameId: v.id('games'), message: v.string() },
+  handler: async (ctx, args): Promise<void> => {
+    const membership = await requireMediator(ctx, args.gameId)
+    const message = args.message.trim()
+    if (message.length === 0) throw new ConvexError('An alert needs a message')
+
+    await ctx.db.insert('changeLog', {
+      gameId: args.gameId,
+      entityType: 'game',
+      entityId: args.gameId,
+      ts: Date.now(),
+      kind: 'transaction',
+      field: 'alert',
+      before: null,
+      after: message,
+      source: 'mediator-alert',
+      actorId: membership.userId,
+      state: 'applied',
+    })
+  },
+})
+
+/** The most alerts one read returns, whatever the caller asks for. */
+const MAX_ALERTS = 100
+
+/**
+ * Table-wide alerts, newest first.
+ *
+ * Reads only the newest `limit` alert rows, in order, off `by_game_field`:
+ * collecting the whole change log and filtering in JS would, on a reactive
+ * query, re-run a read that grows for the life of the campaign on every write
+ * to any sheet in the Game.
+ */
+export const alerts = query({
+  args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  returns: v.array(
+    v.object({
+      _id: v.id('changeLog'),
+      message: v.string(),
+      ts: v.number(),
+      actorId: v.union(v.id('users'), v.null()),
+    })
+  ),
+  handler: async (ctx, args) => {
+    if ((await membershipOrNull(ctx, args.gameId)) === null) return []
+    const requested = Number.isFinite(args.limit) ? Math.floor(args.limit ?? 20) : 20
+    const limit = Math.min(Math.max(requested, 0), MAX_ALERTS)
+    const rows = await ctx.db
+      .query('changeLog')
+      .withIndex('by_game_field', (q) => q.eq('gameId', args.gameId).eq('field', 'alert'))
+      .order('desc')
+      .take(limit)
+
+    return rows.map((r) => ({ _id: r._id, message: String(r.after), ts: r.ts, actorId: r.actorId }))
   },
 })

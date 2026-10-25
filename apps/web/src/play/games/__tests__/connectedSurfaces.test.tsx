@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe('ProposalInbox', () => {
   test('renders nothing when there is nothing to answer', () => {
-    setQueryAnswers({ 'proposals:pending': [] })
+    setQueryAnswers({ 'ops:pending': [] })
     const { container } = wrap(<ProposalInbox gameId={'g1' as never} />)
     // An empty inbox should not occupy space on a play surface.
     expect(container.innerHTML).toBe('')
@@ -50,7 +50,7 @@ describe('ProposalInbox', () => {
 
   test('shows what is asked and why, with Apply and Decline', () => {
     setQueryAnswers({
-      'proposals:pending': [
+      'ops:pending': [
         {
           _id: 'c1',
           entityId: 'm1',
@@ -74,7 +74,7 @@ describe('ProposalInbox', () => {
 
   test('a null value renders as a dash rather than "null"', () => {
     setQueryAnswers({
-      'proposals:pending': [
+      'ops:pending': [
         {
           _id: 'c1',
           entityId: 'm1',

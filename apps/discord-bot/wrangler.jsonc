@@ -24,6 +24,10 @@
     "required": ["DISCORD_TOKEN", "BACKEND_SITE_URL", "BOT_SECRET"]
   },
 
+  // The site Worker's BotGateway (apps/web/src/worker/botGateway.ts): the
+  // Game client's first stop, ahead of Convex's /bot/*.
+  "services": [{ "binding": "SITE", "service": "su-srd", "entrypoint": "BotGateway" }],
+
   // Per-command usage, one data point per interaction (src/worker/index.ts),
   // queryable with SQL for months; Workers Logs keep the same line for days.
   // The dataset is created on the first write.

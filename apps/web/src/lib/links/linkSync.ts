@@ -7,8 +7,7 @@
  * see, and every crawler at your tables". These functions turn one answer plus
  * the local store into the writes that make the store reflect it — the same
  * "server wins" reconcile `ConvexFeed` does for owned rows. They live here, as
- * functions, so the tests assert the rule itself rather than a copy of it
- * (the reason `stores/pruneRules.ts` exists too).
+ * functions, so the tests assert the rule itself rather than a copy of it.
  *
  * ## Absence means deleted only where the server spoke
  *

@@ -1,6 +1,7 @@
 import type { BindChannelArgs, BotFeedbackArgs, BotOpName, BotUsageArgs } from 'game-domain/botWire'
 import { BOT_PATH_PREFIX } from 'game-domain/botWire'
 import { PRODUCT } from 'game-domain/product'
+import { reportError } from '../reportError'
 import type {
   BindChannelResult,
   BotFeedbackResult,
@@ -79,11 +80,21 @@ export type SiteClient = {
   ): Promise<SiteResult<BotFeedbackResult>>
 }
 
+/**
+ * The site Worker's `BotGateway`, over the `SITE` service binding: the same
+ * wire bodies as `/bot/<op>`, or null where it does not answer that op yet.
+ */
+export type SiteGateway = {
+  answer(op: BotOpName, args: Record<string, unknown>): Promise<unknown>
+}
+
 export type SiteClientConfig = {
   /** The deployment's HTTP-actions origin, e.g. `https://x.convex.site`. */
   siteUrl: string
   /** The bearer credential. See `convex/botHttp.ts` for what it authorizes. */
   botSecret: string
+  /** Asked first; Convex answers whatever it leaves (`null`) or fails on. */
+  gateway: SiteGateway
 }
 
 const DENIAL_REASONS: readonly string[] = ['unlinked', 'not-found', 'forbidden']
@@ -138,7 +149,7 @@ const UNCONFIGURED: SiteResult<never> = {
  * sit in this state unnoticed.
  */
 export function createSiteClient(config: Partial<SiteClientConfig>): SiteClient {
-  const { siteUrl, botSecret } = config
+  const { siteUrl, botSecret, gateway } = config
   const origin = siteUrl?.replace(/\/+$/, '') ?? ''
 
   async function call<T>(
@@ -146,6 +157,15 @@ export function createSiteClient(config: Partial<SiteClientConfig>): SiteClient 
     payload: Record<string, unknown>,
     forAutocomplete = false
   ): Promise<SiteResult<T>> {
+    if (gateway) {
+      try {
+        const answered = await gateway.answer(op, payload)
+        if (answered !== null) return interpret<T>(200, answered)
+      } catch (error) {
+        // The site Worker failing is no outage while Convex can still answer.
+        reportError(error, { where: 'site.gateway', op })
+      }
+    }
     if (!origin || !botSecret) return UNCONFIGURED
     try {
       const response = await fetch(`${origin}${BOT_PATH_PREFIX}${op}`, {
