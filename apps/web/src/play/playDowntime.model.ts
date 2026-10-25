@@ -8,6 +8,7 @@
 
 import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'game-domain/rules/downtime'
 import {
+  CRAFT_STEP_NAME,
   DOWNTIME_UPKEEP_SCRAP,
   downtimeMechPatch,
   downtimePilotPatch,
@@ -31,6 +32,8 @@ import {
 import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import { resolveModule, resolveSystem } from '../lib/rules/mechItems'
 import { resolveEquipment } from '../lib/rules/pilotInventory'
+import { playCopy } from '../messages/play'
+import { naniteStatus } from './playNanites.model'
 
 /** No crawler: no Med Bay to heal HP or injuries (AP still rests). */
 const NO_MED_BAY: MedBayStatus = {
@@ -45,11 +48,11 @@ const NO_MED_BAY: MedBayStatus = {
 type PlanChip = { label: string; value?: string }
 
 export type PlanLine = {
-  key: 'mech' | 'pilot' | 'uses' | 'resets' | 'train' | 'upkeep'
+  key: 'mech' | 'pilot' | 'uses' | 'resets' | 'train' | 'upkeep' | 'nanites'
   /** The unit or thing it applies to: "Buzzard", "Uses recharge". */
   title: string
   chips: PlanChip[]
-  /** The Downtime step keys the line governs (none for Upkeep). */
+  /** The Downtime step keys the line governs (none for Upkeep or Nanites). */
   steps: DowntimeStepKey[]
   /** Whether the reader may untick it; a line only read (Upkeep, someone else's) may not. */
   skippable: boolean
@@ -65,7 +68,10 @@ export type StepPlanInput = {
   crawler: Crawler | null
   /** The pilot's effective crawler Tech Level (Stat Training raises max HP/AP). */
   pilotCrawlerTl: number
-  /** Upkeep: whether it is paid this Downtime, and whether this reader pays it. */
+  /**
+   * Upkeep: whether it is paid this Downtime, and whether this reader pays it.
+   * Whoever pays the crawler's Upkeep also processes its Nanites.
+   */
   upkeep: { spent: boolean; canPay: boolean }
 }
 
@@ -212,6 +218,37 @@ function resetsLine(pilot: Pilot, crawler: Crawler | null, tl: number): PlanLine
 }
 
 /**
+ * The Nanite Processing Bay's line (False Flag p.66): every Inert pile rolls a
+ * d20, a 20 an Active Meld Nanite. None without the bay, or with nothing to
+ * process in an Intact one.
+ */
+function nanitesLine(crawler: Crawler, canProcess: boolean): PlanLine | null {
+  const bay = naniteStatus(crawler)
+  if (!bay.present) return null
+  const title = playCopy('processNanites')
+  if (bay.damaged)
+    return {
+      key: 'nanites',
+      title,
+      chips: [],
+      steps: [],
+      skippable: false,
+      blocked: playCopy('naniteBayDamagedNoProcessing'),
+    }
+  if (bay.inert === 0) return null
+  return {
+    key: 'nanites',
+    title,
+    chips: [
+      { label: playCopy('inertPiles'), value: String(bay.inert) },
+      { label: canProcess ? playCopy('d20EachActiveOn20') : playCopy('theMediatorProcessesThem') },
+    ],
+    steps: [],
+    skippable: canProcess,
+  }
+}
+
+/**
  * What the step will apply, line by line; empty when the step applies
  * nothing (the table does it: Tally Salvage, Trade, Craft, the rumours).
  */
@@ -246,6 +283,8 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
       steps: [],
       skippable: upkeep.canPay && !upkeep.spent,
     })
+  } else if (stepName === CRAFT_STEP_NAME && crawler) {
+    lines.push(nanitesLine(crawler, upkeep.canPay))
   }
   return lines.filter((line): line is PlanLine => line !== null)
 }

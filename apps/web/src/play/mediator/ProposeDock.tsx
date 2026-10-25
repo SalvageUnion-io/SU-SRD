@@ -13,6 +13,10 @@
  * derived maximum, clamped here; `ops.accept` still parses it on the
  * server. Tapping a seat card picks its pilot and moves focus to To.
  *
+ * **Setbacks**, beside "The player decides.", opens Setbacks & Tough Choices (`SetbacksDialog`):
+ * a default Setback picked there (2 SP or 2 HP damage, +2 Heat) fills Field,
+ * To and Reason for the target, to send as it is or change first.
+ *
  * A `TitledBox` filling its panel and scrolling its own body there (`fill`);
  * its head's last slot holds the host's controls (All proposals, hard rule R6).
  *
@@ -36,6 +40,7 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
+import { SetbacksDialog } from './SetbacksDialog'
 
 const { space } = tokens
 
@@ -99,6 +104,7 @@ export function ProposeDock({
   const [to, setTo] = useState('')
   const [reason, setReason] = useState('')
   const [sending, setSending] = useState(false)
+  const [setbacksOpen, setSetbacksOpen] = useState(false)
 
   const reading = target?.readings[field]
   const max = reading?.max ?? null
@@ -142,7 +148,23 @@ export function ProposeDock({
       fill
       controls={controls}
     >
-      <p style={MUTED}>{mediatorCopy('thePlayerDecides')}</p>
+      <SetbacksDialog
+        open={setbacksOpen}
+        onOpenChange={setSetbacksOpen}
+        target={target}
+        onPick={(draft) => {
+          setChosenField(draft.field)
+          setTo(String(draft.to))
+          setReason(draft.reason)
+          toRef.current?.focus()
+        }}
+      />
+      <div style={SEND_ROW}>
+        <p style={MUTED}>{mediatorCopy('thePlayerDecides')}</p>
+        <Button size="mini" disabled={!canWrite} onClick={() => setSetbacksOpen(true)}>
+          {mediatorCopy('setbacks')}
+        </Button>
+      </div>
       <div style={ROW}>
         <Field label={mediatorCopy('target')} htmlFor={`${id}-target`}>
           <Select

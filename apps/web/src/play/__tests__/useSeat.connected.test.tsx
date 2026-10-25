@@ -241,7 +241,9 @@ describe('useSeat writes', () => {
       seat.board('seat-own')
     })
     expect(sent).toEqual([])
-    expect(await screen.findByText(/that change was not saved/i)).toBeTruthy()
+    // Sonner's toast store is module-wide, so an earlier file in the same
+    // process may have left the same words up: at least one is enough.
+    expect((await screen.findAllByText(/that change was not saved/i)).length).toBeGreaterThan(0)
   })
 
   test("a refused write shows the server's reason", async () => {

@@ -333,6 +333,16 @@ describe('the Tables (play.md §8)', () => {
     expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury', 'Rumour'])
   })
 
+  test('boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables', () => {
+    expect(pinnedTables(false, 'bio')).toEqual([
+      'Core Mechanic',
+      'Bio-Chassis Damage Table',
+      'Bio-Chassis Overload Table',
+      'Critical Injury',
+    ])
+    expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury', 'Rumour'])
+  })
+
   test('Find: names holding the query, those starting with it first, at most six', () => {
     const names = ['Reactor Overload', 'Core Mechanic', 'Rumour', 'Rumour Table', 'Critical Damage']
     expect(findTables(names, 'rum')).toEqual(['Rumour', 'Rumour Table'])

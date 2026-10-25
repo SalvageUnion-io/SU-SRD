@@ -4,8 +4,9 @@
  * screen's title (the Game's name, or the pilot's), the role stamp
  * (the Mediator's screen says MEDIATOR, a solo one SOLO), the LIVE stamp
  * while play reaches the server, then the Situation switch (On foot /
- * Boarded / Downtime, the `situation` slot), and at the end the Discord
- * channel button and ⋯ (the `channel` and `menu` slots).
+ * Boarded / Downtime, the `situation` slot), and at the end the Stop Sign
+ * (in a Game), the Discord channel button and ⋯ (the `stop`, `channel` and
+ * `menu` slots).
  *
  * The bar is the screen's chapter band, in its
  * phase's colour (`tone`, `PHASE_TONE`: on foot the pilot's orange, Boarded
@@ -112,6 +113,8 @@ export type PlayBarProps = {
   readOnly?: PlayReadOnly | null
   /** The Situation switch: On foot / Boarded / Downtime (from `lg`; below it, pinned under the bar). */
   situation?: ReactNode
+  /** The Stop Sign's button (`StopSignButton`), in a Game. */
+  stop?: ReactNode
   /** The Discord channel button: where this screen's rolls post. */
   channel?: ReactNode
   /** The ⋯ menu. */
@@ -130,6 +133,7 @@ export function PlayBar({
   stamp,
   readOnly = null,
   situation,
+  stop,
   channel,
   menu,
   tone = 'play',
@@ -174,6 +178,7 @@ export function PlayBar({
       )}
       {situation && <div style={SLOT}>{situation}</div>}
       <span style={SPACER} />
+      {stop}
       {channel}
       {menu}
       <span className="su-play-bar__break" aria-hidden="true" />

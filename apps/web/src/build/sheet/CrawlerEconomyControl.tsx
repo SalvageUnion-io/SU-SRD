@@ -22,7 +22,7 @@ import type { UnitsStore } from '../../replica/units'
  * ADR-007 automation boundary: deterministic bookkeeping auto-applies — the
  * Upkeep draw + Upgrade-Pool credit, the Deterioration SP loss and its "chosen
  * at random" Bay damage, the upgrade's TL bump / pool spend / bay repairs, and
- * the Scrap exchange. The Deterioration 6-10 band (the PLAYER chooses a Bay)
+ * the Scrap exchanges (`ExoticTrade` too). The Deterioration 6-10 band (the PLAYER chooses a Bay)
  * only shows an advisory; the availability roll is informational — buying the
  * sourced wares stays a table call.
  *
@@ -37,7 +37,6 @@ import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
-import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
 import { capsLabel } from '../../components/atoms/capsLabel'
@@ -58,7 +57,6 @@ import {
 } from '../../components/index'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
-import type { DeteriorationEffect } from '../../lib/rules/crawlerEconomy'
 import {
   bayGate,
   contributeToUpgradePool,
@@ -77,12 +75,14 @@ import {
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_TXN } from '../../replica/provenance'
 import {
+  describeDeterioration,
   INITIAL_UPKEEP_STATE,
   initialTradeState,
   tradeReducer,
   tradeStep,
   upkeepReducer,
 } from './crawlerEconomyDialogState.model'
+import { ExoticTrade } from './ExoticTrade'
 import { freshEntity } from './freshEntity.model'
 
 const BODY = {
@@ -192,23 +192,6 @@ type DialogProps = {
 // ---------------------------------------------------------------------------
 // Pay Upkeep + failed-Upkeep Deterioration (p.218-219)
 // ---------------------------------------------------------------------------
-
-/**
- * The Deterioration readout: the rolled row of the Crawler Deterioration table
- * (p.219), verbatim, then what was applied — the SP left and the Bay the
- * random pick landed on — so the readout and the book cannot disagree.
- */
-function describeDeterioration(effect: DeteriorationEffect, bayName: string | null): string {
-  const table = SalvageUnionReference.RollTables.getByName('Crawler Deterioration')?.table
-  const row = resultForTable(table, effect.roll)
-  const applied = [
-    row.success ? plainTraitText(row.result.value) : '',
-    bayName === null ? '' : `${bayName} is Damaged.`,
-    effect.spLoss > 0 ? `SP now ${effect.nextSP}.` : '',
-    effect.spLoss > 0 && effect.nextSP === 0 ? 'At 0 SP, roll the Crawler Damage Table.' : '',
-  ]
-  return `Deterioration ${effect.roll}: ${applied.filter(Boolean).join(' ')}`
-}
 
 type RollFor = { rollFor: (tableName: string) => Promise<Roll> }
 
@@ -624,6 +607,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
               )}
             </div>
 
+            <ExoticTrade crawler={crawler} store={store} />
             <div>
               <Slab
                 label={buildSheetCopy('sourceWares')}

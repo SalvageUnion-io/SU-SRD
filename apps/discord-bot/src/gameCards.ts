@@ -17,7 +17,7 @@ import {
 } from 'salvageunion-reference'
 import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
-import { num, str, strArray } from './bodyRead'
+import { num, poolLabel, str, strArray } from './bodyRead'
 import type { CardField, ContainerData } from './container'
 import { entityCard } from './container'
 import type {
@@ -581,7 +581,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
     const entries = Object.entries(pool as Record<string, unknown>)
       .filter(([, v]) => typeof v === 'number' && v > 0)
       // Label first, as every chip reads: `**T1** 3`.
-      .map(([tier, v]) => `**${tier.replace(/^tl/i, 'T')}** ${String(v)}`)
+      .map(([tier, v]) => `**${poolLabel(tier)}** ${String(v)}`)
     const run = chipRun(entries)
     if (run !== null) fields.push({ name: 'Scrap Pool', value: run })
   }

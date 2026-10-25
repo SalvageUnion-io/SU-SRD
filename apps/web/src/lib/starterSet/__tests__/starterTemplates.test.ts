@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { QUICKSTART_MECHS, QUICKSTART_PILOTS } from 'game-domain/starterSet/quickstart'
 import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { starterPage, starterPages, starterPageTitle } from '../starterTemplates'
 
@@ -14,6 +15,12 @@ describe('starterPageTitle', () => {
     )
     expect(starterPageTitle('crawler', STARTER_CRAWLERS[0]?.id ?? '')).toBe(
       "Crawler #430 'Tenacity' · Starter Set Union Crawler · SalvageUnion.io"
+    )
+  })
+
+  test("names a Quickstart build as the Quickstart's", () => {
+    expect(starterPageTitle('mech', 'quickstart-mech-magpie')).toBe(
+      'Magpie · Quickstart Mech · SalvageUnion.io'
     )
   })
 
@@ -34,13 +41,20 @@ describe('starterPageTitle', () => {
 
 describe('starterPages', () => {
   test('lists every template once, at its own route', () => {
-    const ids = [...STARTER_PILOTS, ...STARTER_MECHS, ...STARTER_CRAWLERS].map((t) => t.id)
+    const ids = [
+      ...STARTER_PILOTS,
+      ...STARTER_MECHS,
+      ...STARTER_CRAWLERS,
+      ...QUICKSTART_PILOTS,
+      ...QUICKSTART_MECHS,
+    ].map((t) => t.id)
     const paths = starterPages().map((page) => page.path)
     expect(paths).toHaveLength(ids.length)
     expect(paths).toContain('/starter/pilot/starter-pilot-bonesaw')
-    expect(paths.every((path) => /^\/starter\/(pilot|mech|crawler)\/starter-/.test(path))).toBe(
-      true
-    )
+    expect(paths).toContain('/starter/pilot/quickstart-pilot-twitch')
+    expect(
+      paths.every((path) => /^\/starter\/(pilot|mech|crawler)\/(starter|quickstart)-/.test(path))
+    ).toBe(true)
   })
 
   test("describes a build as the Starter Set's, then in its own words", () => {
@@ -49,5 +63,11 @@ describe('starterPages', () => {
       'Bonesaw, a pre-generated Pilot from the Salvage Union Starter Set, Reclamation of the Wastes by Leyline Press. '
     )
     expect(page?.description.length).toBeGreaterThan(120)
+  })
+
+  test("describes a Quickstart build as the Quickstart's", () => {
+    expect(starterPage('pilot', 'quickstart-pilot-twitch')?.description).toStartWith(
+      'Twitch, a pre-generated Pilot from the Salvage Union Quickstart by Leyline Press. '
+    )
   })
 })

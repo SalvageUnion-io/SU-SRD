@@ -24,13 +24,17 @@ const NOT_RUNNING = { running: false, stepIndex: null, completedBy: [], upkeepSp
 const ANSWERS = {
   'seats:solo': null,
   'seats:forGame': [],
+  'scenes:current': { conditions: [], hours: 0 },
   'downtime:state': NOT_RUNNING,
+  // No area named to Area Salvage.
+  'salvageAreas:here': null,
   'games:members': [],
   'entities:listForGame': null,
   'account:me': null,
   // The channel button, the Crew, Tables and Feed panes: no
   // channel bound, no crew read yet, nothing on the Game's log.
   'channelBindings:current': null,
+  'safety:stopSign': null,
   'games:get': null,
   'changeLog:rolls': [],
   'changeLog:alerts': [],
@@ -117,6 +121,34 @@ describe('the Cockpit frame', () => {
       fireEvent.click(more)
     })
     expect(await screen.findByRole('menuitem', { name: /Game page/ })).toBeTruthy()
+  })
+
+  test('in a Game, the bar has Stop; up, the Stop Sign pauses the screen under the bar', async () => {
+    setQueryAnswers({
+      ...ANSWERS,
+      'safety:stopSign': {
+        stop: { shownAt: 1, mine: false },
+        mayLift: false,
+        mayManage: false,
+        postToChannel: false,
+      },
+    })
+    try {
+      await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
+      const stop = within(screen.getByRole('banner')).getByRole('button', {
+        name: 'Show the Stop Sign',
+      }) as HTMLButtonElement
+      expect(stop.disabled).toBe(true)
+      expect(screen.getByText('Stop Sign: the game is paused')).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Resume play' })).toBeNull()
+    } finally {
+      setQueryAnswers(ANSWERS)
+    }
+  })
+
+  test('solo there is no table, so no Stop', async () => {
+    await renderCockpit({ gameId: null, gameName: null })
+    expect(screen.queryByRole('button', { name: 'Show the Stop Sign' })).toBeNull()
   })
 
   test('a bound channel: the button names it, as it was when bound', async () => {

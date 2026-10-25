@@ -32,7 +32,7 @@
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
-import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
@@ -49,7 +49,7 @@ import {
   webhookRoutes,
 } from './adapter'
 import { oneShotRest } from './oneShotRest'
-import { handlePostRoll } from './relay'
+import { handlePostRoll, handlePostStop } from './relay'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -269,6 +269,9 @@ export default {
     // Discord-signed, so it is routed before signature verification.
     if (new URL(request.url).pathname === BOT_RELAY_POST_ROLL_PATH) {
       return handlePostRoll(request, env)
+    }
+    if (new URL(request.url).pathname === BOT_RELAY_POST_STOP_PATH) {
+      return handlePostStop(request, env)
     }
 
     // The RAW body, verified before it is parsed. Re-serialising a parsed body

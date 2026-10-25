@@ -28,12 +28,12 @@ function actionsOf(entity: RefMetaEntity): RefMetaAction[] {
 }
 
 /** A pattern's System or Module by its printed name. */
-function patternItem(schema: 'systems' | 'modules', name: string): RefMetaEntity | null {
+export function patternItem(schema: 'systems' | 'modules', name: string): RefMetaEntity | null {
   return SalvageUnionReference.getByNameIn(schema, name) ?? null
 }
 
 /** The names a pattern installs, in its order, for one schema. */
-function installed(pattern: TrayNpc['pattern'], key: 'systems' | 'modules'): string[] {
+export function installed(pattern: TrayNpc['pattern'], key: 'systems' | 'modules'): string[] {
   if (pattern === null || !(key in pattern)) return []
   const list = (pattern as Record<string, unknown>)[key]
   if (!Array.isArray(list)) return []
@@ -87,6 +87,8 @@ export function npcKind(npc: Pick<TrayNpc, 'refSchema'>): string {
       return 'Creature'
     case 'vehicles':
       return 'Vehicle'
+    case 'drones':
+      return 'Drone'
     case 'bio-titans':
       return 'Bio-Titan'
     case 'meld':

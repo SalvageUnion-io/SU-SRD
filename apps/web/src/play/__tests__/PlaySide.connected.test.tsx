@@ -99,6 +99,7 @@ function answers(over: Record<string, unknown> = {}) {
     'entities:listForGame': null,
     'seats:forGame': [],
     'channelBindings:current': BOUND,
+    'safety:stopSign': null,
     ...over,
   })
 }

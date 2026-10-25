@@ -146,6 +146,36 @@ function renderBoarded(
   return { calls, metas, writes, mech, pilot }
 }
 
+describe('under the Scene’s conditions', () => {
+  test('a clear Scene draws nothing over the Actions', () => {
+    renderBoarded()
+    expect(screen.queryByRole('list', { name: 'Scene conditions' })).toBeNull()
+  })
+
+  test('a Radiation Storm: its Mini says Heat ×2, and Push makes 4', () => {
+    // A Mule's Heat Capacity is 6: room for the storm's Push.
+    const mech = makeMech({ chassisRef: 'mule' })
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        store={store}
+        writes={[]}
+        scene={{ conditions: ['radiation-storm'], hours: 1 }}
+      />
+    )
+    const scene = within(screen.getByRole('list', { name: 'Scene conditions' }))
+    expect(scene.getByText('radiation storm')).toBeTruthy()
+    expect(scene.getByText('×2')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Push' }).getAttribute('title')).toBe(
+      '+4 Heat, then the Heat Check'
+    )
+  })
+})
+
 describe('the list', () => {
   test('Boarded: the mech’s and the pilot’s actions on hand, then the Reactor and Mount', () => {
     renderBoarded()
