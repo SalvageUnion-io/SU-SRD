@@ -162,7 +162,8 @@ export const GAME_ROOM_TABLE_STATE: readonly string[] = [
       )`,
   `create table ledger (
         id integer primary key check (id = 1),
-        body text not null
+        body text not null,
+        updated_at integer not null
       )`,
   `create table boundaries (
         id text primary key,
@@ -177,6 +178,7 @@ export const GAME_ROOM_TABLE_STATE: readonly string[] = [
         shown_by text,
         shown_at integer,
         post_to_channel integer not null default 0,
-        posted_at integer
+        posted_at integer,
+        updated_at integer not null
       )`,
 ]

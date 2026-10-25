@@ -112,13 +112,15 @@ const GAME_ACTS = {
 
   'ledger.get': (c: ActContext) => c.room.ledger.ledger(c.actor),
   'ledger.setFaction': (c: ActContext, a: { faction: Faction }) =>
-    c.room.ledger.setFaction(c.actor, a.faction),
+    c.room.ledger.setFaction(c.actor, a.faction, c.at),
   'ledger.removeFaction': (c: ActContext, a: { id: string }) =>
-    c.room.ledger.removeFaction(c.actor, a.id),
-  'ledger.setJob': (c: ActContext, a: { job: JobTerms }) => c.room.ledger.setJob(c.actor, a.job),
+    c.room.ledger.removeFaction(c.actor, a.id, c.at),
+  'ledger.setJob': (c: ActContext, a: { job: JobTerms }) =>
+    c.room.ledger.setJob(c.actor, a.job, c.at),
   'ledger.setJobState': (c: ActContext, a: { id: string; state: 'open' | 'dropped' }) =>
-    c.room.ledger.setJobState(c.actor, a.id, a.state),
-  'ledger.removeJob': (c: ActContext, a: { id: string }) => c.room.ledger.removeJob(c.actor, a.id),
+    c.room.ledger.setJobState(c.actor, a.id, a.state, c.at),
+  'ledger.removeJob': (c: ActContext, a: { id: string }) =>
+    c.room.ledger.removeJob(c.actor, a.id, c.at),
   'ledger.completeJob': (c: ActContext, a: { id: string }) =>
     c.room.ledger.completeJob(c.actor, a.id, c.at),
   'ledger.collectIncome': (c: ActContext) => c.room.ledger.collectIncome(c.actor, c.at),
@@ -130,9 +132,9 @@ const GAME_ACTS = {
     c.room.safety.removeBoundary(c.actor, a.boundaryId),
   'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
-  'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor),
+  'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor, c.at),
   'safety.setPostToChannel': (c: ActContext, a: { on: boolean }) =>
-    c.room.safety.setPostToChannel(c.actor, a.on),
+    c.room.safety.setPostToChannel(c.actor, a.on, c.at),
 
   unitsFor: (c: ActContext): UnitSheet[] => {
     const crawler = c.room.units.primaryCrawler()

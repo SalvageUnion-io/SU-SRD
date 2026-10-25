@@ -113,6 +113,13 @@ export class GameScene {
     })
   }
 
+  /** When the Scene, or the area, last changed; 0 for one never set. */
+  updatedAt(table: 'scene' | 'salvage_area'): number {
+    return Number(
+      this.store.rows(`select updated_at from ${table} where id = 1`)[0]?.updated_at ?? 0
+    )
+  }
+
   private current(): SceneRead | null {
     const row = this.store.rows('select conditions, hours from scene where id = 1')[0]
     if (row === undefined) return null

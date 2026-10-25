@@ -55,23 +55,23 @@ export class GameLedger {
   }
 
   /** Add a faction, or rewrite the one with its id. */
-  setFaction(actor: string, faction: Faction): void {
-    this.edit(actor, (ledger) => upsertFaction(ledger, faction))
+  setFaction(actor: string, faction: Faction, at: number): void {
+    this.edit(actor, at, (ledger) => upsertFaction(ledger, faction))
   }
 
   /** Remove a faction; its jobs stay, offered by nobody in particular. */
-  removeFaction(actor: string, id: string): void {
-    this.edit(actor, (ledger) => found(removeFaction(ledger, id), 'faction'))
+  removeFaction(actor: string, id: string, at: number): void {
+    this.edit(actor, at, (ledger) => found(removeFaction(ledger, id), 'faction'))
   }
 
   /** Add a job, open, or rewrite the terms of the one with its id, keeping its state. */
-  setJob(actor: string, job: JobTerms): void {
-    this.edit(actor, (ledger) => upsertJob(ledger, job))
+  setJob(actor: string, job: JobTerms, at: number): void {
+    this.edit(actor, at, (ledger) => upsertJob(ledger, job))
   }
 
   /** Drop a job, or open a dropped one again. A done job has paid and stays done. */
-  setJobState(actor: string, id: string, state: 'open' | 'dropped'): void {
-    this.edit(actor, (ledger) => {
+  setJobState(actor: string, id: string, state: 'open' | 'dropped', at: number): void {
+    this.edit(actor, at, (ledger) => {
       const next = setJobState(ledger, id, state)
       if (next === null && ledger.jobs.some((j) => j.id === id)) {
         throw new RoomRefusal('That job is done: it has paid')
@@ -81,8 +81,8 @@ export class GameLedger {
   }
 
   /** Remove a job, whatever its state. What a done job paid stays paid. */
-  removeJob(actor: string, id: string): void {
-    this.edit(actor, (ledger) => found(removeJob(ledger, id), 'job'))
+  removeJob(actor: string, id: string, at: number): void {
+    this.edit(actor, at, (ledger) => found(removeJob(ledger, id), 'job'))
   }
 
   /** Finish an open job and pay it into the crawler; null when it is no longer open, so it pays once. */
@@ -94,7 +94,7 @@ export class GameLedger {
       const done = completeJob(ledger, id)
       if (done === null) return null
       const paid = this.credit(author, done.job.pay, done.job.payTl, at)
-      this.write(done.ledger)
+      this.write(done.ledger, at)
       return paid
     })
   }
@@ -120,7 +120,7 @@ export class GameLedger {
       const scrap = dealCount(ledger)
       if (scrap === 0) throw new RoomRefusal('The crew has no deals to collect from')
       const paid = this.credit(author, scrap, null, at)
-      this.write({ ...ledger, incomeCollectedFor: thisDowntime })
+      this.write({ ...ledger, incomeCollectedFor: thisDowntime }, at)
       return paid
     })
   }
@@ -131,24 +131,30 @@ export class GameLedger {
     return readLedger(row === undefined ? undefined : fromJson(row.body))
   }
 
-  private edit(actor: string, change: (ledger: Ledger) => Ledger): void {
+  /** When the ledger last changed; 0 before its first write. */
+  updatedAt(): number {
+    return Number(this.store.rows('select updated_at from ledger where id = 1')[0]?.updated_at ?? 0)
+  }
+
+  private edit(actor: string, at: number, change: (ledger: Ledger) => Ledger): void {
     this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
-      this.write(change(this.read()))
+      this.write(change(this.read()), at)
     })
   }
 
   /** Replace the ledger, parsed: a name too long or a pay too high is refused. */
-  private write(next: Ledger): void {
+  private write(next: Ledger, at: number): void {
     const parsed = LedgerSchema.safeParse(next)
     if (!parsed.success) {
       const why = parsed.error.issues[0]?.message ?? ''
       throw new RoomRefusal(`That does not fit the ledger: ${why}`)
     }
     this.store.rows(
-      `insert into ledger (id, body) values (1, ?)
-       on conflict (id) do update set body = excluded.body`,
-      JSON.stringify(parsed.data)
+      `insert into ledger (id, body, updated_at) values (1, ?, ?)
+       on conflict (id) do update set body = excluded.body, updated_at = excluded.updated_at`,
+      JSON.stringify(parsed.data),
+      at
     )
   }
 

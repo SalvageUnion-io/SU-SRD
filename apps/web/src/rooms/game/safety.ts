@@ -27,7 +27,15 @@ import { bit } from './store'
 /** The least time between two Stop Sign posts to one Game's channel. */
 const POST_EVERY_MS = 60_000
 
-export type BoundaryRead = { id: string; kind: BoundaryKind; text: string; mayRemove: boolean }
+export type BoundaryRead = {
+  id: string
+  kind: BoundaryKind
+  text: string
+  /** Whether the reader added it: what lets them take it back, never who did. */
+  mine: boolean
+  mayRemove: boolean
+  addedAt: number
+}
 
 export type StopSignRead = {
   stop: { shownAt: number; mine: boolean } | null
@@ -38,6 +46,7 @@ export type StopSignRead = {
 }
 
 type StopRow = {
+  updatedAt: number
   shownBy: string | null
   shownAt: number | null
   postToChannel: boolean
@@ -59,7 +68,9 @@ export class GameSafety {
       id: String(row.id),
       kind: row.kind as BoundaryKind,
       text: String(row.text),
+      mine: row.added_by === actor,
       mayRemove: runner || row.added_by === actor,
+      addedAt: Number(row.added_at),
     }))
   }
 
@@ -129,13 +140,19 @@ export class GameSafety {
       if (row.shownAt !== null) return false
       const post =
         row.postToChannel && (row.postedAt === null || at - row.postedAt >= POST_EVERY_MS)
-      this.write({ ...row, shownBy: actor, shownAt: at, postedAt: post ? at : row.postedAt })
+      this.write({
+        ...row,
+        shownBy: actor,
+        shownAt: at,
+        postedAt: post ? at : row.postedAt,
+        updatedAt: at,
+      })
       return post
     })
   }
 
   /** Lift the Stop Sign and resume play: whoever showed it, or the table runner. */
-  liftStop(actor: string): void {
+  liftStop(actor: string, at: number): void {
     this.store.sql.transaction(() => {
       const member = this.store.requireMember(actor)
       const row = this.row()
@@ -143,15 +160,15 @@ export class GameSafety {
       if (row.shownBy !== actor && !this.store.isTableRunner(member)) {
         throw new RoomRefusal('Only whoever showed the Stop Sign, or the Mediator, can lift it')
       }
-      this.write({ ...row, shownBy: null, shownAt: null })
+      this.write({ ...row, shownBy: null, shownAt: null, updatedAt: at })
     })
   }
 
   /** The table runner's opt-in: whether showing the Stop Sign posts to the bound channel. */
-  setPostToChannel(actor: string, on: boolean): void {
+  setPostToChannel(actor: string, on: boolean, at: number): void {
     this.store.sql.transaction(() => {
       this.store.requireTableRunner(actor)
-      this.write({ ...this.row(), postToChannel: on })
+      this.write({ ...this.row(), postToChannel: on, updatedAt: at })
     })
   }
 
@@ -161,11 +178,18 @@ export class GameSafety {
     return row.postToChannel && row.shownAt !== null
   }
 
+  /** When the Stop Sign last changed; 0 before it was first touched. */
+  updatedAt(): number {
+    return this.row().updatedAt
+  }
+
   private row(): StopRow {
     const row = this.store.rows('select * from stop_sign where id = 1')[0]
-    if (row === undefined)
-      return { shownBy: null, shownAt: null, postToChannel: false, postedAt: null }
+    if (row === undefined) {
+      return { updatedAt: 0, shownBy: null, shownAt: null, postToChannel: false, postedAt: null }
+    }
     return {
+      updatedAt: Number(row.updated_at),
       shownBy: (row.shown_by as string | null) ?? null,
       shownAt: row.shown_at === null ? null : Number(row.shown_at),
       postToChannel: row.post_to_channel === 1,
@@ -175,14 +199,16 @@ export class GameSafety {
 
   private write(row: StopRow): void {
     this.store.rows(
-      `insert into stop_sign (id, shown_by, shown_at, post_to_channel, posted_at)
-       values (1, ?, ?, ?, ?)
+      `insert into stop_sign (id, shown_by, shown_at, post_to_channel, posted_at, updated_at)
+       values (1, ?, ?, ?, ?, ?)
        on conflict (id) do update set shown_by = excluded.shown_by, shown_at = excluded.shown_at,
-         post_to_channel = excluded.post_to_channel, posted_at = excluded.posted_at`,
+         post_to_channel = excluded.post_to_channel, posted_at = excluded.posted_at,
+         updated_at = excluded.updated_at`,
       row.shownBy,
       row.shownAt,
       bit(row.postToChannel),
-      row.postedAt
+      row.postedAt,
+      row.updatedAt
     )
   }
 }

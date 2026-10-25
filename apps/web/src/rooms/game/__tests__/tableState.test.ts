@@ -70,26 +70,28 @@ describe('the ledger', () => {
     const { room } = crewed()
     expect(room.ledger.ledger(STRANGER)).toBeNull()
     expect(room.ledger.ledger(PLAYER)).toEqual({ factions: [], jobs: [], incomeCollected: false })
-    room.ledger.setFaction(MEDIATOR, faction)
-    room.ledger.setJob(MEDIATOR, job)
+    room.ledger.setFaction(MEDIATOR, faction, AT)
+    room.ledger.setJob(MEDIATOR, job, AT)
     expect(room.ledger.ledger(PLAYER)).toMatchObject({
       factions: [faction],
       jobs: [{ ...job, state: 'open' }],
     })
-    expect(() => room.ledger.setFaction(PLAYER, faction)).toThrow()
-    expect(() => room.ledger.setJob(MEDIATOR, { ...job, pay: 100_000 })).toThrow('fit the ledger')
-    room.ledger.setJobState(MEDIATOR, 'j1', 'dropped')
-    room.ledger.setJobState(MEDIATOR, 'j1', 'open')
-    expect(() => room.ledger.setJobState(MEDIATOR, 'nope', 'open')).toThrow('not in the ledger')
-    room.ledger.removeFaction(MEDIATOR, 'f1')
-    expect(() => room.ledger.removeFaction(MEDIATOR, 'f1')).toThrow('not in the ledger')
-    room.ledger.removeJob(MEDIATOR, 'j1')
+    expect(() => room.ledger.setFaction(PLAYER, faction, AT)).toThrow()
+    expect(() => room.ledger.setJob(MEDIATOR, { ...job, pay: 100_000 }, AT)).toThrow(
+      'fit the ledger'
+    )
+    room.ledger.setJobState(MEDIATOR, 'j1', 'dropped', AT)
+    room.ledger.setJobState(MEDIATOR, 'j1', 'open', AT)
+    expect(() => room.ledger.setJobState(MEDIATOR, 'nope', 'open', AT)).toThrow('not in the ledger')
+    room.ledger.removeFaction(MEDIATOR, 'f1', AT)
+    expect(() => room.ledger.removeFaction(MEDIATOR, 'f1', AT)).toThrow('not in the ledger')
+    room.ledger.removeJob(MEDIATOR, 'j1', AT)
     expect(room.ledger.ledger(PLAYER)).toMatchObject({ factions: [], jobs: [] })
   })
 
   test('a finished job pays the crawler once, as an op no client could send', () => {
     const { room } = crewed()
-    room.ledger.setJob(MEDIATOR, job)
+    room.ledger.setJob(MEDIATOR, job, AT)
     expect(room.ledger.completeJob(MEDIATOR, 'j1', AT)).toEqual({
       scrap: 3,
       tl: 2,
@@ -98,7 +100,7 @@ describe('the ledger', () => {
     expect(scrapOf(room)).toMatchObject({ tl2: 3 })
     expect(room.ledger.completeJob(MEDIATOR, 'j1', AT)).toBeNull()
     expect(scrapOf(room)).toMatchObject({ tl2: 3 })
-    expect(() => room.ledger.setJobState(MEDIATOR, 'j1', 'open')).toThrow('it has paid')
+    expect(() => room.ledger.setJobState(MEDIATOR, 'j1', 'open', AT)).toThrow('it has paid')
     expect(room.units.history(MEDIATOR, 'c1').at(-1)).toMatchObject({ source: 'ledger' })
     expect(() =>
       room.units.submit(MEDIATOR, [op('c1', { scrapPool: { tl1: 99 } }, { source: 'ledger' })])
@@ -107,15 +109,15 @@ describe('the ledger', () => {
 
   test('a Game with no crawler has nowhere to pay', () => {
     const { room } = table()
-    room.ledger.setJob(MEDIATOR, { ...job, pay: 0 })
+    room.ledger.setJob(MEDIATOR, { ...job, pay: 0 }, AT)
     expect(() => room.ledger.completeJob(MEDIATOR, 'j1', AT)).toThrow('no crawler')
     expect(room.ledger.ledger(PLAYER)?.jobs[0]?.state).toBe('open')
   })
 
   test('deal income is collected once per Downtime, in the Upkeep step, at the crawler’s Tech Level', () => {
     const { room } = crewed()
-    room.ledger.setFaction(MEDIATOR, faction)
-    room.ledger.setFaction(MEDIATOR, { ...faction, id: 'f2', deal: false })
+    room.ledger.setFaction(MEDIATOR, faction, AT)
+    room.ledger.setFaction(MEDIATOR, { ...faction, id: 'f2', deal: false }, AT)
     expect(() => room.ledger.collectIncome(MEDIATOR, AT)).toThrow('not running')
     room.play.beginDowntime(MEDIATOR, AT)
     if (!isUpkeepStep(0)) {
@@ -133,7 +135,7 @@ describe('the ledger', () => {
     expect(scrapOf(room)).toMatchObject({ tl1: 1 })
 
     room.play.endDowntime(MEDIATOR)
-    room.ledger.removeFaction(MEDIATOR, 'f1')
+    room.ledger.removeFaction(MEDIATOR, 'f1', AT)
     room.play.beginDowntime(MEDIATOR, AT + 1)
     room.play.setDowntimeStep(MEDIATOR, upkeep ?? 0)
     expect(room.ledger.ledger(PLAYER)?.incomeCollected).toBe(false)
@@ -147,8 +149,22 @@ describe('Safety Protocols', () => {
     const mine = room.safety.addBoundary(PLAYER, 'outOfBounds', '  spiders   in   mechs ', AT)
     room.safety.addBoundary(ORGANIZER, 'offCamera', 'Torture', AT + 1)
     expect(room.safety.boundaries(PLAYER)).toEqual([
-      { id: mine, kind: 'outOfBounds', text: 'spiders in mechs', mayRemove: true },
-      { id: expect.any(String), kind: 'offCamera', text: 'Torture', mayRemove: false },
+      {
+        id: mine,
+        kind: 'outOfBounds',
+        text: 'spiders in mechs',
+        mine: true,
+        mayRemove: true,
+        addedAt: AT,
+      },
+      {
+        id: expect.any(String),
+        kind: 'offCamera',
+        text: 'Torture',
+        mine: false,
+        mayRemove: false,
+        addedAt: AT + 1,
+      },
     ])
     expect(room.safety.boundaries(MEDIATOR).every((b) => b.mayRemove)).toBe(true)
     expect(room.safety.boundaries(STRANGER)).toEqual([])
@@ -184,24 +200,24 @@ describe('Safety Protocols', () => {
       mayLift: false,
     })
     expect(JSON.stringify(room.safety.stopSign(ORGANIZER))).not.toContain(PLAYER)
-    expect(() => room.safety.liftStop(ORGANIZER)).toThrow('Only whoever showed')
-    room.safety.liftStop(MEDIATOR)
+    expect(() => room.safety.liftStop(ORGANIZER, AT)).toThrow('Only whoever showed')
+    room.safety.liftStop(MEDIATOR, AT)
     expect(room.safety.stopSign(PLAYER)?.stop).toBeNull()
-    room.safety.liftStop(PLAYER)
+    room.safety.liftStop(PLAYER, AT)
   })
 
   test('with the opt-in, showing it posts at most once a minute, while it is still up', () => {
     const { room } = table()
-    expect(() => room.safety.setPostToChannel(PLAYER, true)).toThrow()
-    room.safety.setPostToChannel(MEDIATOR, true)
+    expect(() => room.safety.setPostToChannel(PLAYER, true, AT)).toThrow()
+    room.safety.setPostToChannel(MEDIATOR, true, AT)
     expect(room.safety.showStop(PLAYER, AT)).toBe(true)
     expect(room.safety.stillPosting()).toBe(true)
-    room.safety.liftStop(PLAYER)
+    room.safety.liftStop(PLAYER, AT)
     expect(room.safety.stillPosting()).toBe(false)
     expect(room.safety.showStop(PLAYER, AT + 30_000)).toBe(false)
-    room.safety.liftStop(PLAYER)
+    room.safety.liftStop(PLAYER, AT)
     expect(room.safety.showStop(PLAYER, AT + 60_000)).toBe(true)
-    room.safety.setPostToChannel(MEDIATOR, false)
+    room.safety.setPostToChannel(MEDIATOR, false, AT)
     expect(room.safety.stillPosting()).toBe(false)
   })
 })
