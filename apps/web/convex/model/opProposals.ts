@@ -24,6 +24,10 @@ import { literalUnion } from './validators'
  *    writes a sheet on the player's behalf.
  *  - **Newer supersedes older, per field**, so a player never faces two
  *    contradictory pending values for one field.
+ *
+ * Proposals made before ops (`changeLog` rows in `proposed` state) are not
+ * read here and the cutover does not copy them: by the owner's choice they
+ * drop at the 4.5 cutover, and their rows stay in Convex untouched.
  */
 
 type Target = Doc<'pilots'> | Doc<'mechs'>
