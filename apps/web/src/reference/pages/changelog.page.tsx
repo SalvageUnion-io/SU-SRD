@@ -7,7 +7,6 @@
  * fetch — only the rendered entries ship.
  */
 
-import type { PageModule, PageResult } from '../../../ssg/types'
 import { InlineRef } from '../../components/index'
 import { space } from '../../design/tokens'
 import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
@@ -17,6 +16,7 @@ import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { Changelog } from '../Changelog'
 import { DocPage } from '../DocPage'
+import type { PageModule, PageResult } from '../types'
 
 const TITLE = pageTitle('Changelog')
 const DESCRIPTION = `Changes to the salvageunion.io reference site and its app over time.`

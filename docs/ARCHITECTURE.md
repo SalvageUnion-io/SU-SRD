@@ -21,9 +21,9 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 5. **Styling** · ADR-046 <a id="stylesheets"></a>
    Tokens in `apps/web/src/styles/theme.css`, mirrored as style objects by `apps/web/src/design/tokens.ts`; classes in one stylesheet, also for styles repeated per page; `no-tailwind` bars Tailwind. Rules: `.claude/rules/styling.md`.
    One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes; app stylesheets stay unlayered, so they win.
-6. **Static pages (SSG)** <a id="ssg"></a>
-   In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
-   No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
+6. **Static pages (Astro)** <a id="ssg"></a>
+   Astro 7 (ADR-065) with our React islands ([DESIGN.md](../apps/web/astro/DESIGN.md)); `apps/web/astro/pages/` lists every page and endpoint, each a shell over a `.tsx` module.
+   Pages link one stylesheet of their own (`astro/layouts/Page.astro`); no auth, router or Zustand.
 7. **Dataset API** · ADR-014, ADR-040, ADR-043, ADR-056 · [spec](architecture/dataset-api.md) <a id="dataset-api"></a>
    The dataset's public interface: static files at `/api/v1/` from the committed data, additive only, a break is `/api/v2/`; never an npm package, no release stream.
    `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
@@ -136,7 +136,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
     Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 and ADR-064.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
-    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050, ADR-065.
+    Registered routes, `renderToStaticMarkup`, React islands; Amended by ADR-050; superseded as a build by ADR-065.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.

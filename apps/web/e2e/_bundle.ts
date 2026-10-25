@@ -26,7 +26,7 @@ export type JsTotals = {
  * uncompressed, against `dist/assets/` file sizes. `encodedBodySize` is the
  * fallback for a response that reports neither.
  *
- * Keep the `/assets/` prefix in step with `build.assetsDir` in vite.config.ts,
+ * Keep the `/assets/` prefix in step with `build.assets` in astro.config.ts,
  * and the `name-HASH.js` separator in step with Vite's chunk naming: if either
  * drifts, this matches NOTHING, every budget sums 0 bytes and every assertion
  * passes vacuously. The reference spec's zero-chunk test guards that.

@@ -10,7 +10,7 @@
  * does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
- * `ssg/DESIGN.md`), and what it server-renders is its own listing
+ * `astro/DESIGN.md`), and what it server-renders is its own listing
  * (`SchemaViewerListing`) from build-time data, rail inert. The island loads
  * its data before its first render, so that commit draws the same listing
  * over the server's: the cards paint once, at first paint, rather than as
@@ -20,7 +20,6 @@
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { getAssetUrl } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import type { ListingBand } from '../../../components/islands/ListingFrame'
 import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
 import { chapterForSchema, listingBandFillFor } from '../../../lib/chapters'
@@ -35,6 +34,7 @@ import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
+import type { PageModule, PageResult, RouteContext } from '../../types'
 
 type Params = { schemaId: string }
 type Props = { schema: EnhancedSchemaMetadata; data: RefEntity[] }

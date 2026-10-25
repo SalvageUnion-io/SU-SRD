@@ -93,4 +93,3 @@ rules/*
 
 # Astro (ADR-065 spike): its generated types and its build
 apps/web/.astro/
-apps/web/dist-astro/

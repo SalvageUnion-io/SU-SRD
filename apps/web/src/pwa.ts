@@ -4,7 +4,7 @@
  * salvageunion.io installs as one app, from one manifest
  * (`public/site.webmanifest`: id, scope and start URL `/`), and one worker at
  * `/sw.js` serves all of it: the reference's pages and the builder under
- * `/build/`. `vite.config.ts` hands `WORKBOX_OPTIONS` to `VitePWA`; they live
+ * `/build/`. `astro.config.ts` hands `WORKBOX_OPTIONS` to `VitePWA`; they live
  * here so `__tests__/pwa.test.ts` can assert the real values.
  *
  * ## What it precaches: both halves, so either opens offline
@@ -39,7 +39,7 @@
  *
  * ## Updates: wait while the builder is open, take over otherwise
  *
- * `registerType: 'prompt'` in `vite.config.ts`: the plugin then leaves
+ * `registerType: 'prompt'` in `astro.config.ts`: the plugin then leaves
  * `skipWaiting` and `clientsClaim` off, and `public/sw-lifecycle.js` decides
  * at install time. A builder tab is a long session, and activating drops every
  * precache entry the new build does not list, the chunks it is still reading
@@ -69,7 +69,7 @@ export const SITE_MANIFEST = '/site.webmanifest'
 
 /**
  * The one service worker: where it is served and what it controls, the whole
- * origin. `vite.config.ts` builds it here, so the app's
+ * origin. `astro.config.ts` builds it here, so the app's
  * `virtual:pwa-register` registers it here, and the reference pages'
  * `registerSiteWorker` (`lib/sw/siteWorker.ts`) does the same.
  */
@@ -156,7 +156,7 @@ export const RUNTIME_CACHING = [
   },
 ]
 
-/** What `vite.config.ts` hands `VitePWA({ workbox })`. */
+/** What `astro.config.ts` hands `VitePWA({ workbox })`. */
 export const WORKBOX_OPTIONS = {
   mode: 'production',
   sourcemap: false,

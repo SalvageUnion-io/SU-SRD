@@ -5,7 +5,6 @@
  * load, so a pattern shared a minute ago is here without a rebuild.
  */
 
-import type { PageModule, PageResult } from '../../../ssg/types'
 import { HomebrewIsland } from '../../components/islands/HomebrewIsland'
 import { space } from '../../design/tokens'
 import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
@@ -14,6 +13,7 @@ import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
 import { DocPage } from '../DocPage'
+import type { PageModule, PageResult } from '../types'
 
 function page(): PageResult {
   const title = pageTitle(pagesCopy('homebrew'))

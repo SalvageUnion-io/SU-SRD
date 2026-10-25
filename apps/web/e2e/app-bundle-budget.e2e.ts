@@ -11,7 +11,7 @@ test.use({ account: 'anonymous' })
 /**
  * Bundle-size budget suite — the app's counterpart to
  * `reference-bundle-budget.e2e.ts`, and the regression guard for the
- * route-level code splitting turned on in `vite.config.ts`
+ * route-level code splitting turned on in `astro.config.ts`
  * (`TanStackRouterVite({ autoCodeSplitting: true })`).
  *
  * ## What this measures, and why it differs from the reference site's suite
@@ -53,7 +53,7 @@ test.use({ account: 'anonymous' })
  * ## What keeps the routes small
  *
  * A route file exports no page body, so `autoCodeSplitting` splits it and the
- * live-sheet tree stays out of the entry; `vite.config.ts` names the
+ * live-sheet tree stays out of the entry; `astro.config.ts` names the
  * `codeSplitting` groups (react, vendor, zod, reference, ui) of the initial
  * graph; and the reference package's trusted load path keeps Zod's entity
  * schemas and locales out of the app's client.

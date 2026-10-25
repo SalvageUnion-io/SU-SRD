@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import type { RouteContext } from '../../../ssg/types'
 import { llmsTxtEndpoint } from '../../reference/endpoints/llmsTxt'
+import type { RouteContext } from '../../reference/types'
 
 /** These cover the endpoint's content rules, not its exact bytes. */
 const render = () => llmsTxtEndpoint.body({} as RouteContext<Record<string, string>, unknown>)

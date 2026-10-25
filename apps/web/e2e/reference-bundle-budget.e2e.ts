@@ -102,8 +102,10 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // (`PatternListing` on the game-data surface): its lazy chunk's preload
     // list names more chunks, 42 bytes more in the island entry.
     // Measured 27,517 on Vite 8.3.5, which Astro 7 needs (ADR-065): its
-    // preload helper dedupes in-flight preloads, 323 bytes more.
-    expect(totals.bytes).toBeLessThan(27_600)
+    // preload helper dedupes in-flight preloads, 323 bytes more. Measured
+    // 27,697 built by Astro: its client build keeps the helper's `relList`
+    // check, 146 bytes more.
+    expect(totals.bytes).toBeLessThan(27_800)
   })
 
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
@@ -120,7 +122,7 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
 
     // The same ratchet as the leaf page: a chassis page's card is static HTML,
     // and nothing on it loads React or data until a reader reaches for it.
-    expect(totals.bytes).toBeLessThan(27_600)
+    expect(totals.bytes).toBeLessThan(27_800)
   })
 
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({

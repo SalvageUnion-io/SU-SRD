@@ -52,7 +52,7 @@ import { expect, test } from './fixtures'
  * Under `registerType: 'prompt'` a freshly installed worker does not claim the
  * page that installed it, so a visitor who arrives and immediately loses the
  * network gets nothing. Offline begins at the *second* navigation. That is the
- * deliberate trade documented in `vite.config.ts` — claiming the open page is
+ * deliberate trade documented in `astro.config.ts` — claiming the open page is
  * what deleted the precache it was still reading from — and these tests reload
  * once for exactly that reason rather than papering over it.
  */

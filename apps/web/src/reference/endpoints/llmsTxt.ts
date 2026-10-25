@@ -7,11 +7,11 @@
 
 import { PRODUCT } from 'game-domain/product'
 import { getEntitySlug } from 'salvageunion-reference'
-import type { EndpointModule } from '../../../ssg/types'
 import { apiSampleChassis } from '../../lib/apiSample'
 import { SITE_URL } from '../../lib/constants'
 import { schemaHref } from '../../lib/entityHref'
 import { getEntitySchemas } from '../../lib/gameData'
+import type { EndpointModule } from '../types'
 
 function body(): string {
   const entitySchemas = getEntitySchemas()
