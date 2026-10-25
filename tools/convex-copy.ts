@@ -306,12 +306,8 @@ export function summarize(t: Tables, r: CopyResult) {
   }
 }
 
-if (import.meta.main) {
-  const [dir, out] = process.argv.slice(2)
-  if (!dir || !out) {
-    console.error('usage: bun tools/convex-copy.ts <export-dir> <out-dir>')
-    process.exit(1)
-  }
+/** Reads the export in `dir` and writes one file per account and Game into `out`. */
+function copyExport(dir: string, out: string) {
   const tables = readExport(dir)
   const result = buildBundles(tables)
   for (const sub of ['accounts', 'games']) mkdirSync(join(out, sub), { recursive: true })
@@ -321,5 +317,18 @@ if (import.meta.main) {
     writeFileSync(join(out, 'games', `${g.gameId}.json`), JSON.stringify(g))
   writeFileSync(join(out, 'site.json'), JSON.stringify(result.site))
   writeFileSync(join(out, 'skipped.json'), JSON.stringify(result.skipped, null, 2))
-  console.log(JSON.stringify(summarize(tables, result), null, 2))
+  return summarize(tables, result)
 }
+
+/** The command line: `<export-dir> <out-dir>`, else the usage line and exit code 1. */
+export function main(args: string[]): number {
+  const [dir, out] = args
+  if (!dir || !out) {
+    console.error('usage: bun tools/convex-copy.ts <export-dir> <out-dir>')
+    return 1
+  }
+  console.log(JSON.stringify(copyExport(dir, out), null, 2))
+  return 0
+}
+
+if (import.meta.main) process.exit(main(process.argv.slice(2)))

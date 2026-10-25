@@ -1,6 +1,9 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, spyOn, test } from 'bun:test'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { Tables } from '../convex-copy'
-import { buildBundles, summarize } from '../convex-copy'
+import { buildBundles, main, summarize } from '../convex-copy'
 
 const row = (id: string, fields: Record<string, unknown>) => ({
   _id: id,
@@ -151,5 +154,123 @@ describe('buildBundles', () => {
       sourceUnits: 4,
       skipped: 2,
     })
+  })
+})
+
+describe('the tables around the units', () => {
+  const t: Tables = {
+    users: [row('u1', { displayName: 'Rook' })],
+    authAccounts: [row('a1', { userId: 'u1', provider: 'discord', providerAccountId: 'd1' })],
+    games: [row('g1', { name: 'Wasteland' })],
+    pilots: [
+      row('p1', { gameId: null, ownerId: 'u1', appId: 'pilot-a', body: {}, updatedAt: 1 }),
+      row('p2', { gameId: 'g1', ownerId: 'u1', appId: 'pilot-b', body: {}, updatedAt: 1 }),
+    ],
+    mechPatterns: [row('mp1', { ownerId: 'u9', appId: 'pat-x', body: {} })],
+    encounters: [
+      row('e1', { ownerId: 'u1', appId: 'enc-a', body: {} }),
+      row('e2', { ownerId: 'u9', appId: 'enc-b', body: {} }),
+    ],
+    encounterNpcs: [row('n1', { gameId: null, ownerId: null, appId: 'npc-x', body: {} })],
+    memberships: [row('m1', { gameId: 'g9', userId: 'u1' })],
+    softLinks: [
+      row('l1', {
+        type: 'pilot-mech',
+        gameId: 'g1',
+        from: { type: 'pilot', id: 'pilot-b' },
+        to: { type: 'mech', id: 'm' },
+        slot: 1,
+      }),
+      row('l2', {
+        type: 'pilot-mech',
+        from: { type: 'pilot', id: 'pilot-a' },
+        to: { type: 'mech', id: 'm' },
+      }),
+      row('l3', {
+        type: 'pilot-mech',
+        from: { type: 'pilot', id: 'x' },
+        to: { type: 'mech', id: 'y' },
+      }),
+    ],
+    seats: [row('s1', { ownerId: 'u1', pilotId: 'pilot-a', lastSeenAt: 9 })],
+    downtime: [row('d1', { gameId: 'g1', step: 2 })],
+    runningEncounters: [row('r1', { gameId: 'g1', body: { round: 3 } })],
+    channelBindings: [
+      row('b1', { gameId: 'g1', channelId: 'c1', boundBy: 'u1' }),
+      row('b2', { channelId: 'c2', boundBy: 'u1' }),
+    ],
+    homebrewReports: [row('hr1', { patternId: 'gone', reporterId: 'u1', reason: 'x', at: 1 })],
+    homebrewModeration: [
+      row('hm0', { patternId: 'mp1', hidden: false }),
+      row('hm1', { patternId: 'mp1', hidden: true, hiddenAt: 4, reportCount: 2 }),
+    ],
+    usageCounts: [row('uc1', { key: 'build', weekStart: 7, count: 3 })],
+    botGuilds: [row('bg1', { guildId: 'G', firstSeenAt: 1, lastSeenAt: 2 })],
+    metricsSnapshots: [row('ms1', { at: 5 })],
+    feedback: [row('f1', { text: 'hi' })],
+    photos: [
+      row('ph1', { storageId: 'st1', ownerId: 'u1' }),
+      row('ph2', { storageId: 'st2', ownerId: 'u9' }),
+    ],
+  }
+  const r = buildBundles(t)
+  const account = r.accounts[0]
+  const game = r.games[0]
+
+  test('skips patterns, encounters, NPCs and members with nowhere to go', () => {
+    expect(account?.encounters.map((e) => e.appId)).toEqual(['enc-a'])
+    expect(r.skipped.map((s) => s.id)).toEqual(['mp1', 'e2', 'n1', 'm1', 'l3'])
+  })
+
+  test('puts links, seats and bindings in the Game or on the shelf', () => {
+    expect(game?.links).toEqual([
+      {
+        type: 'pilot-mech',
+        from: { type: 'pilot', id: 'pilot-b' },
+        to: { type: 'mech', id: 'm' },
+        slot: 1,
+      },
+    ])
+    expect(account?.links.map((l) => l.from.id)).toEqual(['pilot-a'])
+    expect(account?.seats).toEqual([{ ownerId: 'u1', pilotId: 'pilot-a' }])
+    expect(game?.downtime).toEqual({ gameId: 'g1', step: 2 })
+    expect(game?.runningEncounter).toEqual({ round: 3 })
+    expect(game?.channelBindings.map((b) => [b.channelId, b.boundBy])).toEqual([['c1', 'd1']])
+    expect(account?.channelBindings.map((b) => b.channelId)).toEqual(['c2'])
+  })
+
+  test('copies the site tables', () => {
+    expect(r.site.homebrewReports).toEqual([])
+    expect(r.site.homebrewHidden).toEqual([{ patternAppId: 'pat-x', hiddenAt: 4, reportCount: 2 }])
+    expect(r.site.usageCounts).toEqual([{ key: 'build', weekStart: 7, count: 3 }])
+    expect(r.site.botGuilds).toEqual([{ guildId: 'G', firstSeenAt: 1, lastSeenAt: 2 }])
+    expect(r.site.metricsSnapshots).toEqual([{ at: 5 }])
+    expect(r.site.feedback).toEqual([{ text: 'hi' }])
+    expect(r.site.photos).toEqual([{ storageId: 'st1', owner: 'd1' }])
+  })
+})
+
+describe('copyExport', () => {
+  test('reads an unzipped export and writes a file per account and Game', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'convex-export-'))
+    for (const [name, docs] of Object.entries(tables)) {
+      mkdirSync(join(dir, name))
+      writeFileSync(
+        join(dir, name, 'documents.jsonl'),
+        `${docs.map((d) => JSON.stringify(d)).join('\n')}\n`
+      )
+    }
+    mkdirSync(join(dir, '_tables'))
+    const out = join(dir, 'out')
+    const log = spyOn(console, 'log').mockImplementation(() => {})
+    const error = spyOn(console, 'error').mockImplementation(() => {})
+    expect(main([dir])).toBe(1)
+    expect(main([dir, out])).toBe(0)
+    expect(JSON.parse(String(log.mock.calls[0]?.[0])).units).toBe(3)
+    log.mockRestore()
+    error.mockRestore()
+    expect(readdirSync(join(out, 'accounts')).sort()).toEqual(['d1.json', 'd2.json'])
+    expect(JSON.parse(readFileSync(join(out, 'games', 'g1.json'), 'utf8')).inviteCode).toBe('live')
+    expect(JSON.parse(readFileSync(join(out, 'skipped.json'), 'utf8'))).toHaveLength(2)
   })
 })
