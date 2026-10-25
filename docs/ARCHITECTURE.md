@@ -136,7 +136,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
     Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 and ADR-064.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
-    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
+    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050, ADR-065.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036, ADR-061.
@@ -167,7 +167,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     No SDK; browsers and Convex report via the Workers; browser stacks minified.
 50. **ADR-050 One app** · [full text](adr/050-one-app.md)
     `apps/web` is one app: the pre-rendered reference and the client app at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
-    Amends ADR-011, ADR-031, ADR-033 and ADR-048.
+    Amends ADR-011, ADR-031, ADR-033 and ADR-048; amended by ADR-065.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
     Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
     Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
@@ -199,3 +199,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 64. **ADR-064 Cloudflare rooms are the server of record** · [full text](adr/064-cloudflare-rooms.md)
     A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in. One cutover at 4.5.0.
     Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.
+65. **ADR-065 The reference on Astro 7** · [full text](adr/065-reference-on-astro.md)
+    Astro builds and serves the pages; `.tsx` pages behind thin `.astro` shells, our islands, static, no adapter.
+    Amends ADR-031 and ADR-050.

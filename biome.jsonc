@@ -120,6 +120,9 @@
       "!.claude",
       "!**/node_modules",
       "!**/dist",
+      // Astro's build and its generated types (ADR-065 spike).
+      "!**/dist-astro",
+      "!**/.astro",
       // `wrangler dev` writes its bundled Worker — plus the miniflare error
       // middleware it injects — into `.wrangler/tmp/`: generated JS nobody
       // wrote. Biome does NOT read `.gitignore` (there is no `vcs` block in
@@ -331,6 +334,16 @@
     }
   },
   "overrides": [
+    {
+      // Biome reads an `.astro` file's frontmatter but not its template, so
+      // what the template uses reads as unused there.
+      "includes": ["**/*.astro"],
+      "linter": {
+        "rules": {
+          "correctness": { "noUnusedImports": "off", "noUnusedVariables": "off" }
+        }
+      }
+    },
     {
       // Function-size ratchet for the app and its Convex backend. The cap is
       // the current largest body, so one more line there, or any longer
