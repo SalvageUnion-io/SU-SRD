@@ -48,6 +48,7 @@ import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
 import { HOMEBREW_PATTERNS_PATH } from '../src/lib/homebrew/endpoint'
 import { DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
+import { isRoomsPath, proxyRooms, proxyRoomsUpgrade, startRooms } from './devRooms'
 import type { BuildAssets } from './document'
 import type { EndpointRegistration, ResolvedEndpoint } from './endpoints'
 import type { ErasedRoute, RouteRegistration } from './render'
@@ -58,6 +59,9 @@ import type { ErasedRoute, RouteRegistration } from './render'
  * restarted in place. An explicit `PORT` wins.
  */
 const PORT = Number(process.env.PORT ?? portFor())
+
+/** `wrangler dev`, for the rooms (`devRooms.ts`). */
+const ROOMS_PORT = PORT + 1000
 
 // Absolute addresses follow the env they are served from
 // (`src/lib/constants.ts`): the dev server names itself, for both apps, since
@@ -313,6 +317,10 @@ async function main(): Promise<void> {
   server.on('request', (req: IncomingMessage, res: ServerResponse) => {
     // Names this checkout, so `bun run shot` can refuse another checkout's server.
     res.setHeader(CHECKOUT_HEADER, CHECKOUT_ROOT)
+    if (isRoomsPath(new URL(req.url ?? '/', 'http://localhost').pathname)) {
+      proxyRooms(ROOMS_PORT, req, res)
+      return
+    }
     vite.middlewares(req, res, () => {
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         res.statusCode = 405
@@ -322,6 +330,13 @@ async function main(): Promise<void> {
       }
       void serve(vite, req, res)
     })
+  })
+
+  // Vite's HMR socket takes only its own upgrades; a room's socket goes on.
+  server.on('upgrade', (req, socket, head) => {
+    if (isRoomsPath(new URL(req.url ?? '/', 'http://localhost').pathname)) {
+      proxyRoomsUpgrade(ROOMS_PORT, req, socket, head)
+    }
   })
 
   server.on('error', (error: NodeJS.ErrnoException) => {
@@ -335,6 +350,7 @@ async function main(): Promise<void> {
     throw error
   })
 
+  startRooms(ROOMS_PORT)
   server.listen(PORT, () => {
     // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
     console.log(`[dev] srd on http://localhost:${PORT}, the app on /build/`)

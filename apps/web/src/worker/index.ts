@@ -17,6 +17,8 @@
  *     (`errorReports.ts`).
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have falls through to the rules below.
+ *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
+ *     version, or a 503 (`./rooms.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -49,6 +51,7 @@ import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
+import { ROOMS_HEALTH_PATH } from '../rooms/routes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import type { CronEnv } from './crons'
@@ -61,6 +64,9 @@ import {
   handleErrorReport,
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
+import { serveRoomsHealth } from './rooms'
+
+export { AccountRoom, GameRoom } from './rooms'
 
 export type Env = AppEnv &
   CronEnv & {
@@ -137,6 +143,11 @@ export default {
     if (isAppPath(url.pathname)) {
       const res = await serveApp(request, env)
       if (res !== null) return res
+    }
+
+    // R. The rooms answer for themselves.
+    if (url.pathname === ROOMS_HEALTH_PATH && request.method === 'GET') {
+      return serveRoomsHealth()
     }
 
     // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.

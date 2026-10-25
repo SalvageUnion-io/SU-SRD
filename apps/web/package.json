@@ -14,6 +14,7 @@
     "og:install-browser": "playwright install chromium --only-shell",
     "preview": "wrangler dev",
     "test": "bun test --parallel=4 --no-isolate",
+    "test:workerd": "vitest run",
     "e2e": "playwright test",
     "check:examples": "bun ssg/checkPageExamples.ts",
     "deploy": "wrangler deploy",
@@ -44,6 +45,7 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.4.6",
     "@happy-dom/global-registrator": "21.0.4",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "7.0.0",
@@ -54,6 +56,7 @@
     "gates": "workspace:*",
     "sharp": "catalog:",
     "vite": "8.2.4",
-    "vite-plugin-pwa": "1.3.0"
+    "vite-plugin-pwa": "1.3.0",
+    "vitest": "5.0.5"
   }
 }

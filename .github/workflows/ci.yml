@@ -160,6 +160,11 @@ jobs:
       - name: Tests with coverage floors
         run: bun run test:coverage
 
+      # The rooms' Durable Object wiring, inside workerd (apps/web/vitest.config.ts);
+      # their logic is covered above, under bun test.
+      - name: Room wiring in workerd
+        run: bun --filter web test:workerd
+
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.
   # The site's one build (`bun run build`: the reference pages, then the app into
