@@ -9,6 +9,7 @@ import { DurableObject, exports } from 'cloudflare:workers'
 import type { DurableObjectNamespace } from '@cloudflare/workers-types'
 import { applyOp } from 'game-domain/ops/applyOp'
 import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
+import type { UnitRow } from '../rooms/game/store'
 import type { LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
 import { migrate } from '../rooms/migrate'
@@ -48,8 +49,8 @@ abstract class Room extends DurableObject<RoomEnv> {
 
 /**
  * @public A player's shelf, named by their Discord id; loaded by workerd
- * (`wrangler.jsonc` `exports`). Its RPC is the handoff (`UnitHome`) and the
- * cutover's import; the Worker names the actor.
+ * (`wrangler.jsonc` `exports`). Its RPC is the player's units, the handoff
+ * (`UnitHome`) and the cutover's import; the Worker names the actor.
  */
 export class AccountRoom extends Room implements UnitHome {
   private readonly logic: AccountRoomLogic
@@ -57,6 +58,11 @@ export class AccountRoom extends Room implements UnitHome {
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
     this.logic = new AccountRoomLogic(this.sql, { applyOp })
+  }
+
+  /** The player's own units; anyone else is answered none. */
+  units(actor: string): UnitRow[] {
+    return this.logic.shelf.list(actor)
   }
 
   importAccount(bundle: unknown): { imported: boolean } {
