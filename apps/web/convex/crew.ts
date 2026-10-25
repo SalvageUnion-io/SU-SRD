@@ -1,17 +1,8 @@
 import { v } from 'convex/values'
 import type { MechDerived, PilotDerived, SheetVitals } from 'game-domain/botWire'
 import type { MechStatus, PilotStatus } from 'game-domain/rules/crewStatus'
-import {
-  mechMaxima,
-  mechNeedsAttention,
-  mechStatus,
-  pilotMaxima,
-  pilotNeedsAttention,
-  pilotStatus,
-} from 'game-domain/rules/crewStatus'
-import { MechSchema } from 'game-domain/schemas/mech'
-import type { Pilot } from 'game-domain/schemas/pilot'
-import { PilotSchema } from 'game-domain/schemas/pilot'
+import type { CrewUnit } from 'game-domain/rules/crewVitals'
+import { crewDeriver } from 'game-domain/rules/crewVitals'
 import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -43,9 +34,10 @@ import { mirrors } from './model/validators'
  * One answer for the whole table: the Crew tab's ▲ and red outlines read it,
  * so every client agrees on who needs looking at. Nothing derived is stored.
  * Convex loads the reference data the rules need itself
- * (`model/referenceData.ts`). The derivation is `crewDeriver` below, which
- * the Discord bot's `/su sheet` reads too (`sheetVitals`, `botClient.sheet`),
- * so the bot, the Game hub and Play agree on a crewmate's numbers.
+ * (`model/referenceData.ts`). The derivation is `crewDeriver`
+ * (`game-domain/rules/crewVitals`), which the rooms derive the bot's
+ * `/su sheet` with too, so the bot, the Game hub and Play agree on a
+ * crewmate's numbers.
  *
  * ## Why vitals are a separate, narrow query
  *
@@ -98,92 +90,25 @@ export const mechDerived = mirrors<MechDerived>()(
   })
 )
 
-/** The records a derivation reads: one container's pilots, crawlers, links and seats. */
-type CrewRecords = {
+/** A row as the derivation reads it: its link id (`linkIdOf`) and its body. */
+function crewUnit(row: Doc<'pilots'> | Doc<'mechs'> | Doc<'crawlers'>): CrewUnit {
+  return { id: linkIdOf(row), body: row.body }
+}
+
+/** `crewDeriver` over one container's rows, with the reference data it reads. */
+function deriverOver(records: {
   pilots: Doc<'pilots'>[]
   crawlers: Doc<'crawlers'>[]
   links: Doc<'softLinks'>[]
   seats: Doc<'seats'>[]
-}
-
-/**
- * The derivations over one container's records, with the maps they build.
- *
- * Bodies are parsed once: a mech's maxima read the abilities of the pilot
- * flying it, so every pilot is parsed up front and looked up by row.
- */
-function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
+}) {
   loadReferenceData()
-
-  const crawlerTech = new Map<string, { techLevel: string }>()
-  for (const c of crawlers) {
-    const id = linkIdOf(c)
-    const techLevel = (c.body as Record<string, unknown> | null)?.techLevel
-    if (id !== undefined && typeof techLevel === 'string') crawlerTech.set(id, { techLevel })
-  }
-  const crawlerOfPilot = new Map<string, string>()
-  const mechOfPilot = new Map<string, string>()
-  const pilotOfMech = new Map<string, string>()
-  for (const link of links) {
-    if (link.type === 'pilot-to-crawler') crawlerOfPilot.set(link.from.id, link.to.id)
-    if (link.type === 'mech-to-pilot') {
-      mechOfPilot.set(link.to.id, link.from.id)
-      pilotOfMech.set(link.from.id, link.to.id)
-    }
-  }
-  const seatOf = new Map(seats.map((s) => [s.pilotId, s]))
-  const boarderOf = new Map<string, string>()
-  for (const s of seats) if (s.mount.kind === 'boarded') boarderOf.set(s.mount.mechId, s.pilotId)
-
-  const parsedByRow = new Map<string, Pilot | null>()
-  const parsedPilots = new Map<string, Pilot>()
-  function parsePilot(row: Doc<'pilots'>): Pilot | null {
-    const known = parsedByRow.get(row._id)
-    if (known !== undefined) return known
-    const parsed = PilotSchema.safeParse(row.body)
-    const pilot = parsed.success ? parsed.data : null
-    parsedByRow.set(row._id, pilot)
-    return pilot
-  }
-  for (const row of pilots) {
-    const id = linkIdOf(row)
-    const pilot = parsePilot(row)
-    if (id !== undefined && pilot !== null) parsedPilots.set(id, pilot)
-  }
-
-  function derivePilot(row: Doc<'pilots'>): PilotDerived {
-    const id = linkIdOf(row) ?? null
-    const pilot = parsePilot(row)
-    const ejected = id === null ? false : seatOf.get(id)?.ejected === true
-    if (pilot === null) {
-      const status = { dead: false, injured: false, ejected }
-      return { maxHP: null, maxAP: null, status, attention: pilotNeedsAttention(status) }
-    }
-    const crawlerId = id === null ? undefined : crawlerOfPilot.get(id)
-    const crawler = crawlerId === undefined ? null : (crawlerTech.get(crawlerId) ?? null)
-    const { maxHP, maxAP } = pilotMaxima(pilot, crawler)
-    const status = pilotStatus(pilot, crawler, ejected)
-    return { maxHP, maxAP, status, attention: pilotNeedsAttention(status) }
-  }
-
-  function deriveMech(row: Doc<'mechs'>): MechDerived {
-    const parsed = MechSchema.safeParse(row.body)
-    if (!parsed.success) {
-      return { maxSP: null, maxEP: null, maxHeat: null, status: null, attention: false }
-    }
-    const mech = parsed.data
-    const id = linkIdOf(row) ?? null
-    // The pilot aboard it, else the pilot assigned to it, as Play
-    // reads its own mech: their abilities, and the effects their seat has on.
-    const pilotId = id === null ? undefined : (boarderOf.get(id) ?? pilotOfMech.get(id))
-    const piloting = pilotId === undefined ? undefined : parsedPilots.get(pilotId)
-    const switchedOn = pilotId === undefined ? [] : (seatOf.get(pilotId)?.activeEffects ?? [])
-    const { maxSP, maxEP, maxHeat } = mechMaxima(mech, piloting?.abilities, switchedOn)
-    const status = mechStatus(mech, maxHeat)
-    return { maxSP, maxEP, maxHeat, status, attention: mechNeedsAttention(status) }
-  }
-
-  return { seatOf, mechOfPilot, derivePilot, deriveMech }
+  return crewDeriver({
+    pilots: records.pilots.map(crewUnit),
+    crawlers: records.crawlers.map(crewUnit),
+    links: records.links,
+    seats: records.seats,
+  })
 }
 
 /** A sheet's row, tagged with the table it was read from. */
@@ -233,7 +158,7 @@ export async function sheetVitals(ctx: QueryCtx, sheet: SheetRow): Promise<Sheet
     gameId === null ? [] : seatsInGame(ctx, gameId),
   ])
 
-  const derive = crewDeriver({
+  const derive = deriverOver({
     pilots,
     crawlers,
     // A link is drawn inside one container, as the row is.
@@ -241,8 +166,8 @@ export async function sheetVitals(ctx: QueryCtx, sheet: SheetRow): Promise<Sheet
     seats,
   })
   return sheet.table === 'pilots'
-    ? { kind: 'pilot', ...derive.derivePilot(sheet.row) }
-    : { kind: 'mech', ...derive.deriveMech(sheet.row) }
+    ? { kind: 'pilot', ...derive.derivePilot(crewUnit(sheet.row)) }
+    : { kind: 'mech', ...derive.deriveMech(crewUnit(sheet.row)) }
 }
 
 /** One crewmate's row: who it is, whose it is, and what it reads at a glance. */
@@ -330,7 +255,7 @@ export const vitals = query({
       return typeof value === 'number' ? value : null
     }
 
-    const { seatOf, mechOfPilot, derivePilot, deriveMech } = crewDeriver({
+    const { seatOf, mechOfPilot, derivePilot, deriveMech } = deriverOver({
       pilots,
       crawlers,
       links,
@@ -363,7 +288,7 @@ export const vitals = query({
           mechId: boarded ?? (id === null ? null : (mechOfPilot.get(id) ?? null)),
           /** Their seat's last presence heartbeat (`seats.heartbeat`, `isPresent`), or null. */
           lastSeenAt: seat?.lastSeenAt ?? null,
-          ...derivePilot(p),
+          ...derivePilot(crewUnit(p)),
         }
       }),
       mechs: mechs.map((m) => {
@@ -379,7 +304,7 @@ export const vitals = query({
           currentSP: num(m.body, 'currentSP'),
           currentEP: num(m.body, 'currentEP'),
           currentHeat: num(m.body, 'currentHeat'),
-          ...deriveMech(m),
+          ...deriveMech(crewUnit(m)),
         }
       }),
     }
