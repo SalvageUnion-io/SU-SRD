@@ -46,9 +46,15 @@
 
   // SHARED: the shared database (D1), what crosses rooms: public sheets,
   // Homebrew, Games, memberships and invites (src/worker/shared/). Its tables
-  // are migrations/*.sql, applied by the deploy before the Worker ships. No
-  // `database_id`: wrangler provisions it by name on the first deploy.
-  "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared" }],
+  // are migrations/*.sql, applied by the deploy before the Worker ships. The
+  // ids are pinned because a Preview cannot provision a database by name.
+  "d1_databases": [
+    {
+      "binding": "SHARED",
+      "database_name": "su-shared",
+      "database_id": "10bc74c2-6953-42f3-875b-71dd62f54856"
+    }
+  ],
 
   // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
   // which names each schedule).
@@ -62,7 +68,13 @@
     "vars": {
       "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
     },
-    "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared-preview" }]
+    "d1_databases": [
+      {
+        "binding": "SHARED",
+        "database_name": "su-shared-preview",
+        "database_id": "732d672a-81b8-4c5e-acaa-bab54b2e874c"
+      }
+    ]
   },
 
   // The rooms (ADR-064, src/worker/rooms.ts), SQLite Durable Objects reached
