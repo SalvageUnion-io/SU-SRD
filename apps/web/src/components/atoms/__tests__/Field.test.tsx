@@ -124,6 +124,13 @@ describe("Field's edit state", () => {
     await waitFor(() => expect(saved).toEqual(['line one']))
   })
 
+  test('a multiline readout keeps its line breaks; a one-line one does not', () => {
+    const { rerender } = setup({ value: 'line one\nline two', multiline: true })
+    expect((control() as HTMLElement).style.whiteSpace).toBe('pre-line')
+    rerender(<Field label="Callsign" value="Roach-Boy" onSave={() => {}} />)
+    expect((control() as HTMLElement).style.whiteSpace).toBe('')
+  })
+
   test('the border is drawn once: the box at rest, the input while editing', () => {
     const { container } = setup()
     expect(container.querySelector('.su-field__box')).not.toBeNull()

@@ -20,6 +20,14 @@ export const ENCOUNTER_MAX_TABLES = 12
 export const ENCOUNTER_MAX_NOTES = 10_000
 /** How long an encounter's name may run. */
 export const ENCOUNTER_MAX_NAME = 80
+/** How long the briefing may run: one alert to the table, not a chapter. */
+export const ENCOUNTER_MAX_BRIEFING = 1_000
+/** The most groups one encounter splits its opposition into. */
+export const ENCOUNTER_MAX_GROUPS = 12
+/** How long a group's name may run. */
+export const ENCOUNTER_MAX_GROUP_NAME = 40
+/** The waves an encounter can field: the first, and two held back. */
+export const ENCOUNTER_MAX_WAVE = 3
 
 /**
  * One opponent as the encounter keeps it: the tray NPC it becomes, without
@@ -39,10 +47,31 @@ const EncounterOpponentSchema = EncounterNpcSchema.pick({
   .extend({
     /** The opponent's own id inside the encounter, so a row can be renamed or removed. */
     id: z.string(),
+    /** The group it fights in, one of the encounter's `groups`; absent, it fights alone. */
+    groupId: z.string().optional(),
   })
   .strict()
 
 export type EncounterOpponent = z.infer<typeof EncounterOpponentSchema>
+
+/**
+ * A group: opponents who meet the Pilots together, so roll one Reaction and
+ * check Morale as one when half of them fall (Core Book p.267-268). Its wave
+ * says when it arrives: 1 with the encounter, 2 or 3 held back until the
+ * Mediator brings it in.
+ */
+const EncounterGroupSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().trim().min(1).max(ENCOUNTER_MAX_GROUP_NAME),
+    wave: z.number().int().min(1).max(ENCOUNTER_MAX_WAVE),
+  })
+  .strict()
+
+export type EncounterGroup = z.infer<typeof EncounterGroupSchema>
+
+/** The briefing: what the Pilots see when it starts, for the Mediator to tell the table. */
+const BriefingSchema = z.string().max(ENCOUNTER_MAX_BRIEFING)
 
 /** The tables an encounter pins, by their names in the reference data (as Play pins them). */
 const TablesSchema = z.array(z.string().min(1)).max(ENCOUNTER_MAX_TABLES)
@@ -61,10 +90,26 @@ export const EncounterSchema = z
     opposition: z.array(EncounterOpponentSchema).max(ENCOUNTER_MAX_OPPOSITION),
     tables: TablesSchema,
     notes: NotesSchema,
+    /** Absent on encounters built before groups; read as none. */
+    groups: z.array(EncounterGroupSchema).max(ENCOUNTER_MAX_GROUPS).optional(),
+    /** Absent on encounters built before briefings; read as blank. */
+    briefing: BriefingSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })
   .strict()
+  .superRefine((encounter, ctx) => {
+    const groups = new Set((encounter.groups ?? []).map((g) => g.id))
+    encounter.opposition.forEach((opponent, i) => {
+      if (opponent.groupId !== undefined && !groups.has(opponent.groupId)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['opposition', i, 'groupId'],
+          message: "An opponent can only join one of the encounter's groups",
+        })
+      }
+    })
+  })
 
 export type Encounter = z.infer<typeof EncounterSchema>
 
@@ -80,6 +125,8 @@ export const RunningEncounterSchema = z
     name: NameSchema,
     tables: TablesSchema,
     notes: NotesSchema,
+    /** Copied when run; absent or blank, there is nothing to tell the table. */
+    briefing: BriefingSchema.optional(),
     startedAt: z.string().datetime(),
   })
   .strict()

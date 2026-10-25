@@ -19,6 +19,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, tes
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
+import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
@@ -40,6 +41,7 @@ function useMutation(ref: unknown) {
     sent.push({ name, args })
     if (name === 'mediator:runEncounter') return { added: 1 }
     if (name === 'scenes:passHour') return 3
+    if (name === 'ledger:collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
     return name === 'downtime:spendUpkeep' ? true : null
   }
   return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
@@ -62,6 +64,7 @@ const { useEntityStore } = await import('../../stores/entityStore')
 const { clearPlayRolls } = await import('../playRolls.model')
 const { usePrepStore } = await import('../../stores/prepStore')
 const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
+const { PLAY_TXN } = await import('../../stores/surfaceProvenance')
 
 withSignedInBackend()
 
@@ -119,6 +122,38 @@ const NPCS = [
   },
 ]
 
+const HAULER = {
+  _id: 'n-hauler',
+  body: {
+    name: 'Hauler',
+    refSchema: 'chassis',
+    refSlug: 'mule',
+    currentHp: 12,
+    maxHp: 12,
+    statKind: 'sp',
+    important: true,
+    currentEp: 4,
+    maxEp: 4,
+    currentHeat: 2,
+    heatCap: 6,
+  },
+}
+
+const HAULER_CRITICAL = {
+  ...HAULER,
+  body: {
+    ...HAULER.body,
+    currentHp: 0,
+    lastImportantRoll: {
+      table: 'critical-damage',
+      roll: 12,
+      label: 'Core Damage',
+      value: 'The chassis is damaged.',
+      rolledAt: new Date(0).toISOString(),
+    },
+  },
+}
+
 const SENT_PROPOSAL = {
   _id: 'p-1',
   ts: NOW - 60_000,
@@ -148,7 +183,9 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:npcs': NPCS,
     'mediator:patterns': [],
+    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
     'mediator:running': null,
+    'salvageAreas:here': null,
     'proposals:sent': [SENT_PROPOSAL],
     'proposals:alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
     'changeLog:rolls': [
@@ -161,6 +198,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       },
     ],
     'channelBindings:current': { channelId: 'c-1', boundAt: 1 },
+    'safety:stopSign': null,
     'account:me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,
   }
@@ -198,6 +236,21 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
           rollFor={async () => () => 14}
         />
       </ConnectionContext.Provider>
+    )
+  })
+}
+
+/** Put the crawler back as the fixture had it, after a test hauls salvage into it. */
+async function restoreCrawler() {
+  await act(async () => {
+    useEntityStore.getState().update(
+      'crawler',
+      tenacity.id,
+      {
+        cargoLots: tenacity.cargoLots ?? [],
+        scrapPool: tenacity.scrapPool,
+      },
+      PLAY_TXN
     )
   })
 }
@@ -379,6 +432,21 @@ describe('the table', () => {
     ])
   })
 
+  test('Setbacks fills Propose with the book’s 2 HP default for the pilot aimed at', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    const dock = region('Propose')
+    await click(dock.getByRole('button', { name: 'Setbacks' }))
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.getByRole('button', { name: '+2 Heat' }).hasAttribute('disabled')).toBe(true)
+    await click(dialog.getByRole('button', { name: '2 HP damage' }))
+    expect((dock.getByLabelText('Field') as HTMLSelectElement).value).toBe('currentHP')
+    expect((dock.getByLabelText('Reason (optional)') as HTMLInputElement).value).toBe(
+      'Setback: 2 HP damage'
+    )
+    expect((dock.getByLabelText('To') as HTMLInputElement).value).not.toBe('')
+  })
+
   test('the crawler is the Units column’s box, live for the Mediator', async () => {
     await renderCockpit()
     const crawler = within(screen.getByRole('region', { name: 'Crawler: Tenacity' }))
@@ -409,6 +477,87 @@ describe('the Opposition', () => {
     expect(names()).toEqual([])
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     expect(sent).toEqual([{ name: 'mediator:removeNpc', args: { npcId: 'n-raider' } }])
+  })
+
+  test('a downed Vehicle breaks down for its Scrap into the crawler, claimed once', async () => {
+    const tank = {
+      _id: 'n-tank',
+      body: {
+        name: 'Tank',
+        refSchema: 'vehicles',
+        refSlug: 'tank',
+        currentHp: 0,
+        maxHp: 6,
+        statKind: 'sp',
+      },
+    }
+    await renderCockpit({ 'mediator:npcs': [tank] })
+    const box = within(screen.getByRole('region', { name: 'Vehicle: Tank, down' }))
+    await click(box.getByRole('button', { name: 'Break it down: 4 Tech 3 Scrap to the crawler' }))
+    await waitFor(() =>
+      expect(useEntityStore.getState().get('crawler', tenacity.id)?.scrapPool?.tl3).toBe(4)
+    )
+    expect(sent).toEqual([
+      { name: 'mediator:updateNpc', args: { npcId: 'n-tank', patch: { salvaged: true } } },
+    ])
+    await restoreCrawler()
+  })
+
+  test('a downed Mech rolls Mech Salvage; what the band allows goes to the crawler’s hold', async () => {
+    const mule = {
+      _id: 'n-mule',
+      body: {
+        name: 'Mule',
+        refSchema: 'chassis',
+        refSlug: 'mule',
+        currentHp: 0,
+        maxHp: 12,
+        statKind: 'sp',
+      },
+    }
+    await renderCockpit({ 'mediator:npcs': [mule] })
+    const box = within(screen.getByRole('region', { name: /^Mech: Mule, down/ }))
+    await click(box.getByRole('button', { name: /Roll/ }))
+    await click(box.getByRole('button', { name: 'Mule · T1 · 7 Slots' }))
+    await click(box.getByRole('button', { name: 'Take to the crawler' }))
+    await waitFor(() =>
+      expect(
+        useEntityStore
+          .getState()
+          .get('crawler', tenacity.id)
+          ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
+      ).toBe(true)
+    )
+    expect(names()).toEqual(['mediator:updateNpc'])
+    await restoreCrawler()
+  })
+
+  test('a salvaged wreck says nothing is left to take', async () => {
+    const tank = {
+      _id: 'n-tank',
+      body: {
+        name: 'Tank',
+        refSchema: 'vehicles',
+        refSlug: 'tank',
+        currentHp: 0,
+        maxHp: 6,
+        statKind: 'sp',
+        salvaged: true,
+      },
+    }
+    await renderCockpit({ 'mediator:npcs': [tank] })
+    expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
+  })
+
+  test('Area sets the area being salvaged; its line names it and Clear clears it', async () => {
+    await renderCockpit({ 'salvageAreas:here': { name: 'Raider Camp', techLevel: 2, supply: 4 } })
+    expect(screen.getByText('Raider Camp · T2 · Supply 4')).toBeTruthy()
+    await click(named('Clear the area being salvaged'))
+    expect(sent).toEqual([{ name: 'salvageAreas:set', args: { gameId: GAME, area: null } }])
+    sent.length = 0
+    await click(named('Set the area being salvaged'))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Set' }))
+    expect(names()).toEqual(['salvageAreas:set'])
   })
 
   test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, private and off the log', async () => {
@@ -442,6 +591,47 @@ describe('the Opposition', () => {
     await waitFor(() =>
       expect(feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale'))).toBe(true)
     )
+  })
+
+  test('Mark important is the NPC’s ⋯ menu; a Bio-Titan keeps its own rules', async () => {
+    await renderCockpit()
+    await click(named('More for Strikebreaker'))
+    await click(screen.getByRole('menuitem', { name: 'Mark important' }))
+    expect(sent).toEqual([
+      { name: 'mediator:updateNpc', args: { npcId: 'n-strike', patch: { important: true } } },
+    ])
+    await click(named('More for Scylla'))
+    expect(screen.queryByRole('menuitem', { name: 'Mark important' })).toBeNull()
+  })
+
+  test('an important mech tracks EP and Heat, and its Heat Check lands on the NPC and the Feed', async () => {
+    await renderCockpit({ 'mediator:npcs': [...NPCS, HAULER] })
+    const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler' }))
+    expect(hauler.getByText('Mech · important')).toBeTruthy()
+    await click(hauler.getByRole('button', { name: 'Increase Heat' }))
+    expect(sent).toEqual([
+      { name: 'mediator:updateNpc', args: { npcId: 'n-hauler', patch: { currentHeat: 3 } } },
+    ])
+    sent.length = 0
+    await click(hauler.getByRole('button', { name: 'Heat Check for Hauler' }))
+    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
+    const patch = sent[0]?.args.patch as { lastImportantRoll?: { table: string } }
+    expect(patch.lastImportantRoll?.table).toBe('heat-check')
+    await waitFor(() =>
+      expect(feedLines().some((l) => l.startsWith('You · Hauler · Heat Check'))).toBe(true)
+    )
+  })
+
+  test('an important NPC at 0 rolls its Critical table, and the row reads on its box', async () => {
+    const raider = NPCS[2] as (typeof NPCS)[number]
+    const fallen = { ...raider, body: { ...raider.body, important: true } }
+    await renderCockpit({ 'mediator:npcs': [fallen, HAULER_CRITICAL] })
+    await click(named('Roll Critical Injury for Raider'))
+    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
+    const patch = sent[0]?.args.patch as { lastImportantRoll?: { table: string } }
+    expect(patch.lastImportantRoll?.table).toBe('critical-injury')
+    const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler, down' }))
+    expect(hauler.getByText('Critical Damage 12 · Core Damage')).toBeTruthy()
   })
 
   test('+ Add opens the Opposition picker over the reference', async () => {
@@ -501,6 +691,20 @@ describe('the Opposition', () => {
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
     await click(named('End Ambush'))
     expect(sent).toContainEqual({ name: 'mediator:endEncounter', args: { gameId: GAME } })
+  })
+
+  test('a briefing stays behind its flag, off in a production build', async () => {
+    await renderCockpit({
+      'mediator:running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: '',
+        briefing: 'Smoke rises from the crusher.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(screen.queryByText('Smoke rises from the crusher.')).toBeNull()
   })
 })
 
@@ -563,6 +767,69 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP, true))
     expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull()
     expect(screen.getByText('Paid')).toBeTruthy()
+  })
+
+  /** A ledger with two signed deals, collected this Downtime or not. */
+  const dealsLedger = (incomeCollected: boolean): QueryAnswers => ({
+    'ledger:get': {
+      factions: [
+        { id: 'f1', name: 'Stefanus', standing: 'friendly', deal: true },
+        { id: 'f2', name: 'Vornaya', standing: 'neutral', deal: true },
+        { id: 'f3', name: 'DronTek', standing: 'hostile', deal: false },
+      ],
+      jobs: [],
+      incomeCollected,
+    },
+  })
+
+  test('with no deal there is no Deal income line', async () => {
+    await renderCockpit(downtimeAt(UPKEEP_STEP))
+    expect(screen.queryByText('Deal income')).toBeNull()
+  })
+
+  test('Deal income is a Scrap per deal, collected in Upkeep & Upgrade on the server', async () => {
+    await renderCockpit({ ...downtimeAt(0), ...dealsLedger(false) })
+    expect(screen.getByText('2 Scrap')).toBeTruthy()
+    expect((named('Collect') as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  test('in Upkeep & Upgrade, Collect pays it and says what it came to', async () => {
+    await renderCockpit({ ...downtimeAt(UPKEEP_STEP), ...dealsLedger(false) })
+    await click(named('Collect'))
+    await waitFor(() =>
+      expect(screen.getByText('Collected 2 Tech 2 Scrap into Tenacity.')).toBeTruthy()
+    )
+    expect(names()).toEqual(['ledger:collectIncome'])
+  })
+
+  test('collected, it says so', async () => {
+    await renderCockpit({ ...downtimeAt(UPKEEP_STEP), ...dealsLedger(true) })
+    expect(screen.queryByRole('button', { name: 'Collect' })).toBeNull()
+    expect(screen.getByText('Collected')).toBeTruthy()
+  })
+
+  test('with a Nanite Processing Bay, Process Nanites runs in the Craft step', async () => {
+    const store = useEntityStore.getState()
+    const before = store.get('crawler', tenacity.id) ?? tenacity
+    await store.adopt('crawler', {
+      ...before,
+      crawlerBays: [{ bayRef: 'nanite-processing-bay' }],
+      scrapPool: { ...before.scrapPool, inertNanites: 2 },
+    })
+    try {
+      await renderCockpit(downtimeAt(0))
+      expect((named('Process') as HTMLButtonElement).disabled).toBe(true)
+      cleanup()
+      await renderCockpit(downtimeAt(downtimeStepNames().indexOf(CRAFT_STEP_NAME)))
+      await click(named('Process'))
+      await waitFor(() =>
+        expect(screen.getByText(/^Processed 2 Inert Meld Nanite piles/)).toBeTruthy()
+      )
+      expect(useEntityStore.getState().get('crawler', tenacity.id)?.scrapPool?.inertNanites).toBe(0)
+    } finally {
+      cleanup()
+      await useEntityStore.getState().adopt('crawler', before)
+    }
   })
 })
 

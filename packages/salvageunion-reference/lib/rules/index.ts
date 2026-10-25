@@ -84,9 +84,14 @@ export {
   unifiedMechConditions,
 } from './derivedStats'
 export {
+  bioOverloadOutcome,
   canActivateAction,
   canPush,
   clampHeat,
+  damageTableName,
+  isBioChassis,
+  overloadTableName,
+  overloadTableOf,
   PUSH_HEAT,
   performHeatCheck,
   performPush,
@@ -101,8 +106,21 @@ export {
   resolveSystemRef,
 } from './resolveRefs'
 export { statesMechanicalChange } from './rulesBearing'
-export type { AreaSalvageResult } from './salvage'
-export { performAreaSalvage } from './salvage'
+export type {
+  AreaSalvageResult,
+  MechSalvageBand,
+  MechSalvagePick,
+  MechSalvageResult,
+} from './salvage'
+export {
+  AREA_SALVAGE_TABLE,
+  areaSalvageResult,
+  MECH_SALVAGE_TABLE,
+  mechSalvageAllows,
+  mechSalvageResult,
+  mechSalvageScrap,
+  performAreaSalvage,
+} from './salvage'
 export { scrapCostFor, tierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
@@ -120,6 +138,7 @@ export {
 export type {
   HeatCheckEffect,
   MechSnapshot,
+  OverloadTable,
   PilotSnapshot,
   Roll,
   SoftWarning,

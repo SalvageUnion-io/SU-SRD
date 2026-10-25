@@ -11,7 +11,7 @@ export const buildStarterSetCopy = messages({
   signInToMakeA: 'Sign in to make a copy',
   makeACopyOf: 'Make a copy of {name}?',
   copiedToYourTrainingBay: 'Copied {name} to your Training Bay.',
-  starterSet: 'Starter Set {lowerCase}',
+  crewKind: '{crew} {lowerCase}',
   starterSet2: 'Starter Set',
   copyOneIntoYourTraining:
     'Copy one, or the whole crew, into your Training Bay or into one of your Games to play it.',
@@ -25,8 +25,14 @@ export const buildStarterSetCopy = messages({
   copyTheWholeCrew: 'Copy the whole crew?',
   copyTheWholeCrewBody:
     'This puts all six Pilots, their Mechs and Crawler #430 ‘Tenacity’ in {label}, each a build of your own, crewed and docked as the Starter Set has them.',
+  copyTheQuickstartCrewBody:
+    'This puts all six Pilots and their Mechs in {label}, each a build of your own, every Pilot in their Mech as the Quickstart has them.',
   theStarterSetStaysAs:
-    'The Starter Set stays as {publisher} published it. Don’t want a copy later? Delete it like any other build.',
+    'The {crew} stays as {publisher} published it. Don’t want a copy later? Delete it like any other build.',
+  quickstartCrew: 'Quickstart crew',
+  noCrawlerSheet: 'The Quickstart prints no sheet for Crawler #279.',
+  quickstartCrewIntro:
+    'The six premade Pilots and Mechs of the {book}, one for each Core Class, all of Crawler #279. Read-only reference: open any sheet to read it.',
   copyTheCrew: 'Copy the crew',
   theCrewCouldNotBe: 'The crew could not be copied. Try again.',
   copiedBuildsTo: 'Copied {builds} builds to {label}.',

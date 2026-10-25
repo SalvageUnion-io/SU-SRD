@@ -10,6 +10,7 @@ import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { action, internalQuery, query } from './_generated/server'
 import { displayNameOf } from './account'
+import { relayToBot } from './model/botRelay'
 import { bindingForGame, personalBinding } from './model/channelBindings'
 import { oldestByAppId } from './model/entities'
 import { entityNameOf } from './model/entityName'
@@ -167,50 +168,9 @@ export const postTarget = internalQuery({
   },
 })
 
-/** How long a post may take before it is reported as failed. */
-const RELAY_TIMEOUT_MS = 10_000
-
-/**
- * Ask the bot Worker to post one roll card. Every way it can go wrong comes
- * back as `{ ok: false, message }`, worded for the roller: an unset variable,
- * an unreachable Worker, a refusal from Discord.
- */
-async function relayPostRoll(request: PostRollRelayRequest): Promise<PostRollRelayResponse> {
-  const botUrl = process.env.BOT_URL?.replace(/\/+$/, '')
-  const secret = process.env.BOT_SECRET
-  if (!botUrl || !secret) {
-    // Loud on purpose: a deployment with channels bound and no relay is a
-    // configuration fault, and the Convex log is where an operator looks.
-    console.error('[channelBindings] BOT_URL and BOT_SECRET must both be set')
-    return {
-      ok: false,
-      status: null,
-      message: 'Posting to Discord is not configured on this deployment.',
-    }
-  }
-  try {
-    const response = await fetch(`${botUrl}${BOT_RELAY_POST_ROLL_PATH}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-      signal: AbortSignal.timeout(RELAY_TIMEOUT_MS),
-    })
-    const body = (await response.json().catch(() => null)) as PostRollRelayResponse | null
-    if (body !== null && typeof body === 'object' && 'ok' in body) {
-      if (body.ok && typeof body.messageId === 'string') return body
-      if (!body.ok && typeof body.message === 'string') return body
-    }
-    return {
-      ok: false,
-      status: response.status,
-      message:
-        response.status === 401 || response.status === 404
-          ? 'The Discord bot refused this deployment’s credentials.'
-          : 'The Discord bot returned an unexpected answer.',
-    }
-  } catch {
-    return { ok: false, status: null, message: 'The Discord bot could not be reached.' }
-  }
+/** Ask the bot Worker to post one roll card (`relayToBot`). */
+function relayPostRoll(request: PostRollRelayRequest): Promise<PostRollRelayResponse> {
+  return relayToBot(BOT_RELAY_POST_ROLL_PATH, request)
 }
 
 /**

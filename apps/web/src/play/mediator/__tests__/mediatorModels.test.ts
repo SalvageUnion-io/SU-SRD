@@ -19,6 +19,7 @@ import { mediatorSeats } from '../mediatorTable.model'
 import { newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { proposalLine } from '../proposalLine.model'
+import { setbackDraft } from '../setbacks.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
 describe('the seats, in one layer over the crew lines', () => {
@@ -191,6 +192,42 @@ describe('the Opposition tray', () => {
     expect(bare).toMatchObject({ name: 'Mule', pattern: null, statKind: 'sp' })
   })
 
+  test('an important mech reads its EP and Heat, frozen or from its chassis', () => {
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
+    if (mule === undefined) throw new Error('no Mule in the reference')
+    const body = newTrayNpc('chassis', mule, [], NOW)
+    // Not yet important: nothing more is tracked, but it could be.
+    const plain = readTrayNpc({ _id: 'n1', body })
+    expect(plain).toMatchObject({ important: false, reactor: null, lastImportantRoll: null })
+    expect(plain.track?.critical).toBe('critical-damage')
+
+    const marked = readTrayNpc({
+      _id: 'n1',
+      body: { ...body, important: true, currentEp: 2, currentHeat: 3 },
+    })
+    expect(marked.reactor).toEqual({
+      ep: 2,
+      maxEp: mule.energyPoints,
+      heat: 3,
+      heatCap: mule.heatCapacity,
+    })
+  })
+
+  test('a Bio-Titan is never important, whatever its row says', () => {
+    const npc = readTrayNpc({
+      _id: 'n1',
+      body: {
+        refSchema: 'bio-titans',
+        refSlug: 'typhon',
+        name: 'Typhon',
+        maxHp: 60,
+        statKind: 'sp',
+        important: true,
+      },
+    })
+    expect(npc).toMatchObject({ important: false, track: null, reactor: null })
+  })
+
   test('a saved pattern is copied onto the row and reads back with its loadout', () => {
     const mule = SalvageUnionReference.Chassis.getByName('Mule')
     if (mule === undefined) throw new Error('no Mule in the reference')
@@ -239,5 +276,43 @@ describe('the Opposition tray', () => {
       down: false,
       lastRoll: null,
     })
+  })
+})
+
+describe('a Setback in the Propose dock (Workshop Manual pp.253-254)', () => {
+  const targets = proposalTargets(TABLE_CREW)
+  const pilot = targets.find((t) => t.kind === 'pilot' && t.readings.currentHP?.current != null)
+  const mech = targets.find((t) => t.kind === 'mech' && t.readings.currentSP?.current != null)
+  if (pilot === undefined || mech === undefined) throw new Error('no pilot or mech in the fixture')
+
+  test('2 damage is 2 HP to a pilot and 2 SP to a mech, never under 0', () => {
+    const hp = pilot.readings.currentHP?.current ?? 0
+    expect(setbackDraft('damage', pilot)).toEqual({
+      field: 'currentHP',
+      to: Math.max(0, hp - 2),
+      reason: 'Setback: 2 HP damage',
+    })
+    const sp = mech.readings.currentSP?.current ?? 0
+    expect(setbackDraft('damage', mech)).toMatchObject({
+      field: 'currentSP',
+      to: Math.max(0, sp - 2),
+    })
+  })
+
+  test('+2 Heat is a mech’s alone, and stops at its Heat Cap', () => {
+    expect(setbackDraft('heat', pilot)).toBeNull()
+    const heat = mech.readings.currentHeat
+    const draft = setbackDraft('heat', mech)
+    if (heat?.current == null) expect(draft).toBeNull()
+    else
+      expect(draft).toEqual({
+        field: 'currentHeat',
+        to: Math.min(heat.max ?? Infinity, heat.current + 2),
+        reason: 'Tough Choice: +2 Heat',
+      })
+  })
+
+  test('with no target there is nothing to fill', () => {
+    expect(setbackDraft('damage', null)).toBeNull()
   })
 })

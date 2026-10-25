@@ -51,6 +51,13 @@ const SeatResolvingSchema = z.object({
   name: z.string(),
   activated: z.boolean(),
   roll: z.object({ roll: z.number(), band: z.enum(CORE_ROLL_BAND_NAMES) }).optional(),
+  /**
+   * An Area Salvage's roll, which reads its own table rather than the Core
+   * Mechanic (p.248), with the Tech Level of the area its Supply was spent on.
+   */
+  salvage: z
+    .object({ roll: z.number().int().min(1).max(20), areaTl: z.number().int().min(1).max(6) })
+    .optional(),
   applied: z.boolean(),
 })
 export type SeatResolving = z.infer<typeof SeatResolvingSchema>

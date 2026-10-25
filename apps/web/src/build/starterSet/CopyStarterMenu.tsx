@@ -22,7 +22,11 @@ import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
-import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import {
+  rosterOf,
+  STARTER_SET_PUBLISHER,
+  starterRoster,
+} from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 
@@ -46,7 +50,7 @@ function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStart
       title: buildStarterSetCopy('copyTo', { name, label: target.label }),
       body: [
         `This makes ${name} a build of your own in ${target.label}, to edit and play.`,
-        `The Starter Set's ${name} stays as ${STARTER_SET_PUBLISHER} published it. Don't want the copy later? Delete it like any other build.`,
+        `The ${(rosterOf(templateId) ?? starterRoster('starter-set')).name}'s ${name} stays as ${STARTER_SET_PUBLISHER} published it. Don't want the copy later? Delete it like any other build.`,
       ],
       confirmLabel: buildStarterSetCopy('makeACopy'),
       pendingLabel: buildStarterSetCopy('copying'),

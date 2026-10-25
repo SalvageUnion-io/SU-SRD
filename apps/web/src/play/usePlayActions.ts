@@ -31,6 +31,7 @@ import { reportingRoll } from './playRolls.model'
 import type { Play } from './situation.model'
 import type { ResolveModel } from './useActionsDeck'
 import { useActionsDeck } from './useActionsDeck'
+import { useSalvageArea } from './useSalvageArea'
 
 /** What a test injects: the store the writes go to, and the dice. */
 export type PlayActionsDeps = {
@@ -138,6 +139,10 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     )
 
   const heatScale = sceneHeatScale(play.scene.conditions)
+
+  // The area an Area Salvage spends Supply from: the Game's, or the solo table's.
+  const salvageArea = useSalvageArea(target)
+
   const deck = useActionsDeck({
     mech: situation === 'onFoot' ? null : mech,
     pilot,
@@ -149,6 +154,7 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     store,
     rollFor: deckRoll,
     heatScale,
+    salvageArea,
   })
 
   return {

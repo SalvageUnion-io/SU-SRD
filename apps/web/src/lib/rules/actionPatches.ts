@@ -20,8 +20,14 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { CoreRollBand, HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
+import type {
+  CoreRollBand,
+  HeatCheckEffect,
+  OverloadTable,
+  Roll,
+} from 'salvageunion-reference/rules'
 import {
+  AREA_SALVAGE_TABLE,
   canActivateAction,
   canPush,
   clampHeat,
@@ -29,8 +35,11 @@ import {
   describePushOutcome,
   mechMaxHeat,
   mechMaxSP,
+  overloadTableName,
+  overloadTableOf,
   performHeatCheck,
   performPush,
+  pilotMaxHP,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
@@ -73,6 +82,7 @@ export function pushPatch(args: {
   roll: Roll
   /** The Push's Heat where a Scene scales it (`pushHeatAt`); 2 by default. */
   gain?: number
+  table?: OverloadTable
 }): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
@@ -100,14 +110,17 @@ export function mechPush(
   patch: Partial<Mech>
   text: string
   meltdown: boolean
-  /** The Reactor Overload die, where the Heat Check overloaded. */
+  /** The overload die, where the Heat Check overloaded. */
   overloadRoll?: number
+  /** What the overload does to the Pilot (a Bio-Chassis's), for `pilotOverloadPatch`. */
+  effect: HeatCheckEffect
 } | null {
   const chassis = resolveChassisRef(mech.chassisRef)
   const heatCap = mechMaxHeat(mech, chassis)
   const heat = resolveGauge(mech.currentHeat, heatCap)
   const gain = pushHeatAt(heatScale)
   if (!canPush(heat, heatCap, gain)) return null
+  const table = overloadTableOf(chassis)
   const { patch, effect, nextHeat, meltdown } = pushPatch({
     heat,
     heatCap,
@@ -116,18 +129,46 @@ export function mechPush(
     // to SP 0 — one hit from destroyed — without it ever having taken damage.
     currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
     roll,
+    table,
   })
   const { overloadRoll } = effect.result
   return {
     patch,
-    text: describePushOutcome(nextHeat, effect, gain),
+    text: describePushOutcome(nextHeat, effect, gain, table),
     meltdown,
+    effect,
     ...(overloadRoll === undefined ? {} : { overloadRoll }),
   }
 }
 
+/**
+ * What a Bio-Chassis overload does to its Pilot (We Were Here First p.79): a
+ * Bio-Overload's HP damage equal to the Heat, or a Pilot Overload's Minor or
+ * Major Injury. Null when the overload leaves the Pilot alone, as every
+ * Reactor Overload row does.
+ */
+export function pilotOverloadPatch(pilot: Pilot, effect: HeatCheckEffect): Partial<Pilot> | null {
+  const patch: Partial<Pilot> = {}
+  if (effect.pilotDamage !== undefined) {
+    const hp = resolvePoolStart(pilot.currentHP, pilotMaxHP(pilot))
+    patch.currentHP = Math.max(0, hp - effect.pilotDamage)
+  }
+  if (effect.pilotInjury !== undefined) {
+    patch.injuries = [
+      ...(pilot.injuries ?? []),
+      { severity: effect.pilotInjury, note: overloadTableName('bio') },
+    ]
+  }
+  return Object.keys(patch).length === 0 ? null : patch
+}
+
 /** A standalone Heat Check at current Heat (no +2). Meltdown is player-confirmed. */
-export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll: Roll }): {
+export function heatCheckOncePatch(args: {
+  heat: number
+  currentSP: number
+  roll: Roll
+  table?: OverloadTable
+}): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   meltdown: boolean
@@ -160,10 +201,13 @@ export function shutdownTogglePatch(shutdown: boolean | undefined): Partial<Mech
  * which prefixes the same tail with its `+2 Heat → N.` head) — only the head is
  * Play's own.
  */
-export function describeHeatCheck(effect: HeatCheckEffect): string {
+export function describeHeatCheck(
+  effect: HeatCheckEffect,
+  table: OverloadTable = 'reactor'
+): string {
   const r = effect.result
   const head = `Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
-  return `${head} — ${describeOverloadOutcome(r)}`
+  return `${head} — ${describeOverloadOutcome(r, table)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -291,15 +335,29 @@ function resolveAbilityBySlug(slug: string): RefAbility | null {
 }
 
 /**
+ * The Generic abilities Play's deck deals every pilot, stored or not: "All
+ * Pilots have the following Abilities" (Core Book p.248), so the record never
+ * holds them (`pilotSheet.model`'s Generic tree). Only the ones Play resolves
+ * end to end are dealt; the rest stay the sheet's.
+ */
+const INTRINSIC_ABILITIES = ['area-salvage'] as const
+
+/** Whether an action is an Area Salvage, which rolls its own table (p.248) and pays out Scrap. */
+export function isAreaSalvage(action: RefMetaAction): boolean {
+  return action.tableName === AREA_SALVAGE_TABLE
+}
+
+/**
  * The on-foot pilot's activatable actions, flat — every action of each selected
- * ability and each carried equipment item. Mirrors `buildMechActions` but on the
- * AP economy (pilots have no Heat/EP): `economy.epCost` carries the AP cost and
- * `currency` is 'AP'.
+ * ability, the intrinsic Generic ones, and each carried equipment item. Mirrors
+ * `buildMechActions` but on the AP economy (pilots have no Heat/EP):
+ * `economy.epCost` carries the AP cost and `currency` is 'AP'.
  */
 export function buildPilotActions(pilot: Pilot): PlayAction[] {
   const out: PlayAction[] = []
+  const owned = pilot.abilities ?? []
 
-  for (const slug of pilot.abilities ?? []) {
+  for (const slug of [...owned, ...INTRINSIC_ABILITIES.filter((s) => !owned.includes(s))]) {
     const ability = resolveAbilityBySlug(slug)
     if (!ability) continue
     deckActions(ability).forEach((action, i) => {
