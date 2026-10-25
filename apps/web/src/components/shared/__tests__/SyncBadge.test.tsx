@@ -28,7 +28,7 @@ describe('SyncBadge', () => {
 
   test('offline, it says it short and carries the full wording as its name', () => {
     const badge = badgeIn({ status: 'offline' })
-    expect(badge?.textContent).toBe('Offline · read-only')
+    expect(badge?.textContent).toBe('Offline')
     expect(badge?.getAttribute('aria-label')).toContain('read-only until the connection returns')
   })
 

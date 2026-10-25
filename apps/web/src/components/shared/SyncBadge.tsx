@@ -8,8 +8,9 @@ import { tokens } from '../index'
  * The sync badge (ADR-030 §1): the bar's one word on the connection, and the
  * only place the app words being offline (chrome K5, hard rule R20).
  *
- * Shown only while a session cannot write: `offline` (signed in, the server
- * unreachable) or `outdated` (this tab is updating to a new build). It is
+ * Shown only while a signed-in session is cut off: `offline` (the server
+ * unreachable; own units still edit, into the outbox, and Games are
+ * read-only) or `outdated` (this tab is updating to a new build). It is
  * never shown signed out, where there is nothing to be disconnected from and
  * the bar offers sign-in instead, nor while `syncing`, the sub-second
  * handshake every load passes through: a badge that flashes on every load
@@ -40,7 +41,7 @@ export function SyncBadge({ dot = false }: { dot?: boolean }) {
   if (status === 'signedOut' || status === 'syncing') return null
   if (status === 'live' && !outdated) return null
 
-  const short = outdated ? sharedCopy('readOnlyUpdating') : sharedCopy('offlineReadOnly')
+  const short = outdated ? sharedCopy('readOnlyUpdating') : sharedCopy('offline')
   const full = outdated ? short : sharedCopy('notConnectedYourGamesAre')
   if (dot) return <span role="status" aria-label={full} title={full} style={DOT} />
   return (
