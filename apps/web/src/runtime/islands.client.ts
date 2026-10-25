@@ -6,7 +6,7 @@
  * `hydrateRoot` where the placeholder says `data-hydrate`.
  *
  * `createRoot` by default because `useGameData`'s server snapshot is hardcoded
- * `false` (see `ssg/DESIGN.md`), so a hydrating card would render its fallback
+ * `false` (see `astro/DESIGN.md`), so a hydrating card would render its fallback
  * on the client's first pass while the server rendered the real thing: a
  * hydration mismatch. Client-only mounting has no mismatch class at all, because the server
  * markup is discarded rather than matched. React's first commit into the root

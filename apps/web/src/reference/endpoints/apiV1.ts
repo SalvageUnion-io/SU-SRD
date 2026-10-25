@@ -22,12 +22,12 @@
  */
 
 import { createHash } from 'node:crypto'
-import type { EndpointModule, StaticPath } from '../../../ssg/types'
 import { API_V1_PATH, API_VERSION } from '../../lib/apiV1Paths'
 import { SITE_URL } from '../../lib/constants'
 import { getEntitySchemas, getSchemaCatalog } from '../../lib/gameData'
 import { readReferenceFile } from '../../lib/referenceFiles'
 import { getItemStaticPaths } from '../../lib/staticPaths'
+import type { EndpointModule, StaticPath } from '../types'
 import { committedRow } from './itemJson'
 
 /** An absolute v1 URL for a path under the tree: `apiV1Url('chassis.json')`. */

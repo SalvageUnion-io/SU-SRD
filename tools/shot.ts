@@ -14,7 +14,7 @@
  * - A target starting with `/` is a path on the site. `app:/route` is an app
  *   route (under its `/build` base, so `app:/starter` is `/build/starter`).
  *   One dev server answers both: a running `bun run dev`, or else the dev server
- *   alone (`ssg/dev.ts`, no `convex dev`) booted signed out with no backend:
+ *   alone (`astro dev`, no `convex dev`) booted signed out with no backend:
  *   `VITE_CONVEX_URL` points at a closed local port, so the app's pages that
  *   need no account (the front door, the Starter Set, a sign-in prompt) render,
  *   and anything that waits on Convex shows its loading or offline state.
@@ -88,7 +88,7 @@ export { APP_BASE }
 /**
  * Where the signed-out boot's Convex client points: a closed port on this
  * machine, so it fails fast and nothing leaves the machine. Any URL will do
- * (`vite.config.ts` refuses only a missing one); it beats a `.convex.cloud`
+ * (`astro.config.ts` refuses only a missing one); it beats a `.convex.cloud`
  * name, which would be looked up and might be someone's deployment.
  */
 export const NO_BACKEND = 'http://127.0.0.1:9'
@@ -97,7 +97,8 @@ const DEV: Server = {
   name: 'dev',
   port: portFor(),
   // The dev server itself, not `bun run dev`, which starts a Convex backend.
-  cmd: ['bun', 'ssg/dev.ts'],
+  // `--ignore-lock`: in the foreground, where Astro would background itself for an agent.
+  cmd: ['bun', '--bun', 'astro', 'dev', '--ignore-lock'],
   cwd: join(REPO, 'apps/web'),
   // Over any `apps/web/.env.local` a `bun run dev` run wrote: Vite lets the
   // environment win.

@@ -1,47 +1,27 @@
 /**
  * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-rule-sets.ts`.
  *
- * `apps/web/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
- * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
- * else, and `ssg/**`, `src/reference/pages/**`, `src/reference/layouts/BaseLayout.tsx` and
- * `src/runtime/Island.tsx` must stay stylesheet-free.
- *
- * ## The rule was enforced by nothing, in either direction
- *
- * `apps/web/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
- * graph **breaks the build**. It does not. Measured under this repo's Bun: a
- * `.css` import in an SSR module resolves and returns an object, exit 0 —
- * including a package import, and including a file with an unresolvable
- * `@import`. There was never a build failure to rely on.
- *
- * `ssg/build.ts` installs a `ssg-css-stub` plugin that resolves `.css` to an
- * empty module during the SSR pass. That plugin is not what removed the
- * failure; it made an already-silent behaviour deterministic, and its own
- * comment says so.
- *
- * So the actual risk is narrow and real: a `.css` import added to a **page or
- * SSR-only module** never reaches Vite, because the client bundle is fed only
- * from `styles.entry.ts`. Its authored rules — hand-written selectors,
- * keyframes, `@layer` blocks — simply never ship. The build is green, typecheck
- * is green, and nothing anywhere reports it.
- *
- * The `styling` rule set does not cover this either: its `dead-app-css`
- * rule looks for class selectors that are *unreferenced*, so a stylesheet whose
- * classes ARE referenced looks healthy while never being served.
+ * The reference site's pages link one stylesheet of their own,
+ * `src/styles/global.css`, imported by the one document shell
+ * (`astro/layouts/Page.astro`), beside the base stylesheet both apps share.
+ * Astro links every stylesheet a page's module graph imports, so a
+ * component-side `import './x.css'` anywhere on that graph rides into the
+ * pages that reach it: that is how the reference site once bundled, and its
+ * service worker precached, the dashboard's 20 KB of rules no page can use.
+ * Nothing else reports it: the build and typecheck stay green, and the
+ * `styling` rule set's `dead-app-css` looks only for *unreferenced* classes.
  *
  * ## What this asserts
  *
  * 1. Exactly one module a static page reaches may import a stylesheet, and
- *    it is `src/runtime/styles.entry.ts`. "Reaches" is the relative-import
- *    graph from the reference site's own trees (`ssg/`, `src/reference/pages/`, `src/reference/endpoints/`,
+ *    it is `astro/layouts/Page.astro`. "Reaches" is the relative-import
+ *    graph from the reference site's own trees (`astro/` but its build tools
+ *    and the app's shell page, `src/reference/pages/`, `src/reference/endpoints/`,
  *    `src/reference/layouts/`, `src/runtime/`), so a component a page renders is held
- *    to it too. A component-side `import './x.css'` on that graph rides into
- *    every page's bundle: that is how the reference site bundled, and its service worker
- *    precached, the dashboard's 20 KB of rules no page can use.
+ *    to it too.
  * 2. A module only the builder reaches (its routes and the components they
  *    alone render) imports its own stylesheet: Vite code-splits it with the
  *    route, and `stylingOwnership` owns it.
- *
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -51,17 +31,22 @@ import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
 /** The one module allowed to import a stylesheet, repo-relative. */
-export const SRD_CSS_ENTRY = 'apps/web/src/runtime/styles.entry.ts'
+export const SRD_CSS_ENTRY = 'apps/web/astro/layouts/Page.astro'
 
 /** The reference site's own trees: every file in them is a root of the static-page graph. */
 const SRD_ROOTS = [
-  'ssg',
+  'astro/layouts',
+  'astro/lib',
+  'astro/pages',
   'src/reference/pages',
   'src/reference/endpoints',
   'src/reference/layouts',
   'src/runtime',
 ].map((d) => `apps/web/${d}`)
-const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
+const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts', '.astro']
+
+/** The app's shell page: it imports the app (`src/main.tsx`), which the builder owns. */
+const APP_SHELL = 'apps/web/astro/pages/build/'
 
 /** `import './x.css'`, `import 'pkg/y.css'`, and the `await import()` form. */
 const CSS_IMPORT =
@@ -89,7 +74,11 @@ function resolveRelative(root: string, from: string, spec: string): string | nul
 
 /** Every non-test module a static page reaches, repo-relative. */
 function srdReach(root: string): string[] {
-  const seen = new Set(listFiles(root, SRD_ROOTS, EXTENSIONS).filter((rel) => !isTest(rel)))
+  const seen = new Set(
+    listFiles(root, SRD_ROOTS, EXTENSIONS).filter(
+      (rel) => !isTest(rel) && !rel.startsWith(APP_SHELL)
+    )
+  )
   const queue = [...seen]
   for (let rel = queue.pop(); rel !== undefined; rel = queue.pop()) {
     for (const m of readFileSync(join(root, rel), 'utf8').matchAll(RELATIVE_IMPORT)) {
@@ -113,9 +102,9 @@ const RULES: Rule[] = [
     rule: 'apps/web hard rule 1 — every stylesheet a static page reaches is imported from the one client entry',
     fix:
       `Move the import into ${SRD_CSS_ENTRY}, or keep the module off the static-page graph. ` +
-      'This does NOT break the build — that is the problem: the SSR pass stubs `.css` to an ' +
-      'empty module and the client bundle is fed only from the entry, so an import anywhere ' +
-      'else means its rules never ship. If the entry itself imports nothing, the site ships unstyled.',
+      'This does NOT break the build: Astro links the stylesheet on every page that reaches the ' +
+      'import, so its rules ride into pages that never use them. If the entry itself imports ' +
+      'nothing, the site ships unstyled.',
   },
 ]
 

@@ -6,7 +6,7 @@
  * colour (ruleset, "The book's colour map").
  *
  * One source for three surfaces: the home page's index, the nav drawer
- * (frozen into `src/generated/navCatalog.ts` by `ssg/genNavCatalog.ts`) and
+ * (frozen into `src/generated/navCatalog.ts` by `astro/build/genNavCatalog.ts`) and
  * the chapter band a listing or entity page wears. The breadcrumb trail skips
  * the chapter: it runs SRD // listing // entry ("SRD // Chassis // Gopher"),
  * since the chapters are the home page's own groupings.

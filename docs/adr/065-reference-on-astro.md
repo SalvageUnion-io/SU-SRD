@@ -1,7 +1,7 @@
 # ADR-065: The reference on Astro 7
 
 Decided for 4.5.0: Jrvs chose Astro for the reference in the clean-sheet plan
-(2026-10-25, #1798), and the spike of #1793 found nothing against it. It takes
+(2026-10-25, #1798), and the spike of #1793 found nothing against it. It took
 effect with #1794.
 Amends [ADR-031](../ARCHITECTURE.md) (the in-house SSG) and
 [ADR-050](050-one-app.md) §2 (one Vite pass, now Astro's).
@@ -74,17 +74,30 @@ that build, with every other page.
 7. **Bun runs Astro.** Astro 7 refuses Node below 22.23.4; scripts run it as
    `bun --bun astro`, as everything else here runs under Bun.
 
-## Open for #1794
+## How #1794 did it
 
-- **The base stylesheet.** Astro merged `base.css` and `global.css` into one
-  page stylesheet; the app shell must keep sharing `base` from one URL
-  (ADR-050), so it stays its own file.
-- **The app shell** as an Astro page at `build/index.html`, its chunks in the
-  same `assets/`, and the service worker (`vite-plugin-pwa`) generated over the
-  finished site.
-- **The sitemaps** as endpoints, and the build's refusals (UUID links, raw
-  markup, a page with no script) as an integration's `astro:build:done`.
-- **The whole-site build time** against today's 20.5 s warm.
+- **One build, both apps.** `apps/web/astro.config.ts` replaces
+  `vite.config.ts` and the old build; `bun run build` writes `dist/`, about
+  21 s for the whole site against 20.5 s warm. Every URL the old build wrote
+  is there, and the sitemaps, `_redirects` and `llms.txt` are byte-identical.
+- **No renderer integration.** `@vitejs/plugin-react-swc` transforms the TSX;
+  `@astrojs/react` would fold the shared vendor chunk into its own client.
+- **The base stylesheet** stays its own file at one URL for both apps
+  (ADR-050), emitted by `virtual:base-stylesheet`; the page modules look up
+  `src/assets/` files through `BuiltAssets`, now filled by `?url` imports
+  (`astro/lib/assets.ts`).
+- **The app shell** is an Astro page, `astro/pages/build/index.astro`, its
+  chunks in the same `assets/`; in dev a middleware serves it for every app
+  navigation, ahead of Astro's trailing-slash rule.
+- **After the pages** (`astro/build/site.ts`, `astro:build:done`): the
+  refusals (raw markup, UUID links, a CSP-blocked inline script, a home page
+  with no script), the sitemaps, the app's public pages, then the service
+  worker over the finished site.
+- **The stylesheet rule stays,** restated: Astro links any stylesheet a page's
+  graph imports, so one shell imports the pages' own and the `srd-css` gate
+  holds every other module on that graph to none.
+- **Tests** render the shells' modules without a build
+  (`astro/lib/__tests__/pages.ts`) and run the endpoint routes' own `GET`s.
 
 ## Consequences
 

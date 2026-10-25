@@ -19,7 +19,6 @@
   // beyond the formatter.
   "include": [
     "src/**/*",
-    "ssg/**/*",
     "astro/**/*",
     "scripts/**/*",
     "test/**/*",

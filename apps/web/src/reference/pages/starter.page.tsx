@@ -23,7 +23,6 @@
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
-import type { PageModule, PageResult } from '../../../ssg/types'
 import type { ContentsRow, StartHereStep } from '../../components/index'
 import { ChapterBand, ContentsChapter, StartHere } from '../../components/index'
 import { appPath } from '../../lib/appBase'
@@ -32,6 +31,7 @@ import { PARAM_SOURCE } from '../../lib/listingParams'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
+import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
 /** The dataset's name for the box, as its citations spell it. */

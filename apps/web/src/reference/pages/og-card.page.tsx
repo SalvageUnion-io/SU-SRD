@@ -12,7 +12,7 @@
  * ## Why this page is `shell: 'bare'`
  *
  * It owns its whole `<html>` document. It is not a reader-facing page: it has no canonical URL, no Open Graph block, no
- * nav, no footer and no `<main>`; `ssg/__tests__/render.test.tsx` asserts that.
+ * nav, no footer and no `<main>`; `astro/lib/__tests__/document.test.tsx` asserts that.
  * It is still a full island page though — the
  * built stylesheet and the islands entry are injected before `</head>`, which is
  * what gives the card the real src/components styles and Barlow faces.
@@ -21,15 +21,15 @@
  *
  * This page must not import the `@fontsource` faces or `global.css` itself: an
  * SSR-reachable `.css` import is a build hazard
- * (`ssg/DESIGN.md`, hard rule 1). `src/runtime/styles.entry.ts` already imports
+ * (`astro/DESIGN.md`, hard rule 1). `astro/layouts/Page.astro` already imports
  * exactly that set, and its emitted stylesheet is linked into every page, so
  * this page gets the same bytes through the sanctioned seam.
  */
 
-import type { PageModule, PageResult } from '../../../ssg/types'
 import { OG_HEIGHT, OG_WIDTH } from '../../lib/ogCard'
 import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
+import type { PageModule, PageResult } from '../types'
 
 /**
  * The frame is exactly the card: 1200 × 630, at the page's top-left, so the

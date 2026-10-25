@@ -34,7 +34,7 @@ const hasBody = (entity: object) =>
   )
 
 /**
- * One entity per schema: every schema's page body draws through the island. The whole corpus is rendered by `ssg/build.ts`
+ * One entity per schema: every schema's page body draws through the island. The whole corpus is rendered by the build
  * (`build-web`), so this sweep does not draw every entity a second time. The
  * entity sampled is the first with a body, so the body assertion has teeth.
  */

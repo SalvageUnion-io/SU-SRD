@@ -1,7 +1,7 @@
 # web — salvageunion.io and its app
 
 One app ([ADR-050](../../docs/adr/050-one-app.md)): the SRD's pre-rendered pages
-(the in-house SSG in `ssg/`; its contract is [`ssg/DESIGN.md`](ssg/DESIGN.md),
+(built by Astro in `astro/`; its contract is [`astro/DESIGN.md`](astro/DESIGN.md),
 **read it first**) and the app at `/build`. One Worker
 (`src/worker/index.ts`) runs for a miss and first for `/build/*`. Areas in
 `src/`: `reference/`, `build/` (Training Bay), `play/` (The Cantina).
@@ -12,7 +12,7 @@ One app ([ADR-050](../../docs/adr/050-one-app.md)): the SRD's pre-rendered pages
   page's band colour and trail.
 - Entity, pattern and roll-table pages wear `EntityPageFrame`: `ChapterBand`,
   then the card at `presentation="page"`, with `foot: { printings }`.
-- `src/runtime/assets.entry.ts` is the only importer of `src/assets/`; pages
+- `astro/lib/assets.ts` is the only importer of `src/assets/`; pages
   address emitted files through `RouteContext.builtAssets`.
 
 ## Verification
