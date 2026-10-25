@@ -49,6 +49,7 @@ function env(): Env & { asked: string[] } {
         return new Response(SHELL, { headers: { 'content-type': 'text/html', etag: '"shell"' } })
       },
     },
+    CONVEX_URL: 'https://convex.example',
   } as Env & { asked: string[] }
 }
 

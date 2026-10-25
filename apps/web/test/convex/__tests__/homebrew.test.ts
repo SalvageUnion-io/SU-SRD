@@ -43,13 +43,10 @@ async function list(maker: User, patternId = PATTERN_ID) {
   await maker.as.mutation(api.homebrew.setShared, { patternId, shared: true })
 }
 
-/** Which of the test's patterns are on the SRD, as each one's page reads it. */
-async function shownIds(t: Ctx) {
-  const shown: string[] = []
-  for (const appId of [PATTERN_ID, 'pat-two']) {
-    if ((await t.query(api.homebrew.status, { appId })).listed) shown.push(appId)
-  }
-  return shown
+async function shownIds(t: Ctx, chassisRef?: string) {
+  return (await t.query(api.homebrew.patterns, chassisRef ? { chassisRef } : {})).map(
+    (row) => row.appId
+  )
 }
 
 let savedAdmins: string | undefined
@@ -63,7 +60,7 @@ afterEach(() => {
 })
 
 describe('what is homebrew', () => {
-  test('every pattern shared on the Reference, with no account', async () => {
+  test('every pattern shared on the Reference, newest share first, credited, with no account', async () => {
     const t = testConvex()
     const maker = await makeUser(t, 'Rosa')
     await savePattern(maker)
@@ -71,7 +68,12 @@ describe('what is homebrew', () => {
     await list(maker)
     await list(maker, 'pat-two')
 
-    expect(await shownIds(t)).toEqual([PATTERN_ID, 'pat-two'])
+    const rows = await t.query(api.homebrew.patterns, {})
+    expect(rows.map((r) => [r.appId, r.madeBy])).toEqual([
+      ['pat-two', 'Rosa'],
+      [PATTERN_ID, 'Rosa'],
+    ])
+    expect(await shownIds(t, 'scrapper')).toEqual([PATTERN_ID])
     expect(await t.query(api.homebrew.status, { appId: PATTERN_ID })).toMatchObject({
       listed: true,
       hidden: false,

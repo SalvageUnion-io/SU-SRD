@@ -7,8 +7,8 @@ import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { patternByAddress } from './model/addresses'
 import { callerIsAdmin, isAdmin, requireAdmin } from './model/admin'
-import { mutation } from './model/entities'
-import { deletePatternReports, moderationOf } from './model/homebrew'
+import { mutation, parseBody } from './model/entities'
+import { deletePatternReports, hiddenPatternIds, moderationOf } from './model/homebrew'
 import { NotAuthorized, requireUser } from './model/permissions'
 
 /**
@@ -18,21 +18,86 @@ import { NotAuthorized, requireUser } from './model/permissions'
  * - **Two opt-ins.** A pattern is homebrew when its maker shares it with
  *   "Anyone with the link" (ADR-032) and then also with everyone on the
  *   Reference (`setShared`). Withdrawing the link takes it off at once.
- * - **Read with no account.** The SRD's listing is the Worker's, from the
- *   shared database (`src/worker/shared/homebrew.ts`).
+ * - **Read with no account.** `patterns` is unauthenticated: the SRD's
+ *   Worker reads it over Convex's HTTP API (`worker/homebrew.ts`), and it
+ *   serves only what anyone with the link could already read.
  * - **Reports and takedown.** A signed-in reader may report a pattern
  *   (`report`); a site admin (`model/admin.ts`) reads the reports
  *   (`moderation`) and hides one (`setHidden`), which sharing it again does
  *   not undo.
  */
 
+/** The most patterns one read returns, newest share first. */
+export const HOMEBREW_LIMIT = 500
+
 /** A report's reason, at most this long once trimmed. */
 export const REPORT_REASON_MAX = 500
+
+/** One homebrew pattern as the SRD draws it. */
+const homebrewPattern = v.object({
+  appId: v.string(),
+  body: v.any(),
+  madeBy: v.string(),
+  sharedAt: v.union(v.number(), v.null()),
+})
+type HomebrewPattern = Infer<typeof homebrewPattern>
+
+/** The body, parsed as its table parses it, or null when no page could draw it. */
+function readableBody(row: Doc<'mechPatterns'>): unknown {
+  try {
+    return parseBody('mechPatterns', row.body)
+  } catch {
+    // Left off the SRD rather than drawn broken; its maker still has it.
+    return null
+  }
+}
+
+/** A body's chassis ref, the SRD's way to put it under its chassis. */
+function chassisRefOf(body: unknown): unknown {
+  return (body as { chassisRef?: unknown } | null)?.chassisRef
+}
 
 /** Shared by link and on the Reference: homebrew, unless an admin hid it. */
 function isHomebrew(row: Doc<'mechPatterns'>): boolean {
   return row.publicRead === true && row.homebrew === true
 }
+
+/**
+ * Every homebrew pattern, newest share first, or one chassis's: shared by
+ * link and on the Reference, not hidden, and drawable.
+ *
+ * **Unauthenticated by design.** It serves only what anyone with the link
+ * could already read, and names only the maker its pages already credit.
+ */
+export const patterns = query({
+  args: { chassisRef: v.optional(v.string()) },
+  returns: v.array(homebrewPattern),
+  handler: async (ctx, args): Promise<HomebrewPattern[]> => {
+    const [rows, hidden] = await Promise.all([
+      ctx.db
+        .query('mechPatterns')
+        .withIndex('by_homebrew', (q) => q.eq('homebrew', true))
+        .order('desc')
+        .take(HOMEBREW_LIMIT),
+      hiddenPatternIds(ctx),
+    ])
+    const shown: HomebrewPattern[] = []
+    for (const row of rows) {
+      if (!isHomebrew(row) || hidden.has(row._id)) continue
+      const body = readableBody(row)
+      if (body === null) continue
+      if (args.chassisRef !== undefined && chassisRefOf(body) !== args.chassisRef) continue
+      const maker = await ctx.db.get(row.ownerId)
+      shown.push({
+        appId: row.appId,
+        body,
+        madeBy: displayNameOf(maker, 'a player'),
+        sharedAt: row.sharedAt ?? null,
+      })
+    }
+    return shown
+  },
+})
 
 /** Where one pattern stands as homebrew, as its page reads it. */
 const homebrewStatus = v.object({

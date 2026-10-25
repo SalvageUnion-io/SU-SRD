@@ -73,3 +73,10 @@ create table invites (
   game_id text not null unique,
   created_at integer not null
 );
+
+-- Whether the rooms' copy has filled these tables (`filled`): until it has,
+-- the Worker keeps reading Convex, so no read goes dark before the cutover.
+create table shared_meta (
+  key text primary key,
+  value text not null
+);

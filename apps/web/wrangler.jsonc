@@ -35,16 +35,27 @@
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
   //   secret. Without it POST /__convex-logs answers 503.
 
+  // CONVEX_URL: the Convex deployment a link preview reads what a stranger
+  // may see from until SHARED is filled: the URL the app is built against,
+  // `PRODUCTION_CONVEX_URL` in deploy-cloudflare.yml.
+  "vars": {
+    "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
+  },
+
   // SHARED: the shared database (D1), what crosses rooms: public sheets,
   // Homebrew, Games, memberships and invites (src/worker/shared/). Its tables
   // are migrations/*.sql, applied by the deploy before the Worker ships. No
   // `database_id`: wrangler provisions it by name on the first deploy.
   "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared" }],
 
-  // A Worker Preview (deploy-preview.yml) inherits none of the bindings above:
-  // its own shared database, so a Preview never reads or writes production's.
+  // A Worker Preview (deploy-preview.yml) inherits none of the vars and
+  // bindings above: the staging deployment the app is built against, and its
+  // own shared database, so a Preview never reads or writes production's.
   // Its error endpoints run without the rate limits, which the Worker allows.
   "previews": {
+    "vars": {
+      "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
+    },
     "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared-preview" }]
   },
 

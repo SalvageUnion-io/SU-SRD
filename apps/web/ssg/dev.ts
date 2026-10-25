@@ -258,12 +258,11 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
     // request 404s like any other unknown URL.
   }
 
-  // Homebrew is the Worker's (`src/worker/homebrew.ts`), read from its shared
-  // database, which this server has none of: it answers unavailable, and the
-  // pages draw the book's patterns alone.
+  // Homebrew is the Worker's in production (`src/worker/homebrew.ts`); here
+  // the same handler reads the local Convex the app talks to.
   if (pathname === HOMEBREW_PATTERNS_PATH) {
     const { serveHomebrew } = await import('../src/worker/homebrew')
-    const answer = await serveHomebrew(url, {})
+    const answer = await serveHomebrew(url, { CONVEX_URL: process.env.VITE_CONVEX_URL })
     res.statusCode = answer.status
     res.setHeader('Content-Type', answer.headers.get('content-type') ?? 'application/json')
     res.setHeader('Cache-Control', 'no-store')
