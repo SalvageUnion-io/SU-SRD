@@ -15,6 +15,7 @@ export const COLLAPSED_DOCS: Record<string, number> = {
   'apps/web/ssg/DESIGN.md': 5_400,
   'docs/ARCHITECTURE.md': 21_200,
   'docs/README.md': 2_600,
+  'docs/architecture/dataset-api.md': 2_400,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/architecture/play.md': 10_500,
   'docs/design-system/chrome.md': 3_250,
