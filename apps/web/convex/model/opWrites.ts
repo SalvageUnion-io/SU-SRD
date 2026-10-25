@@ -100,24 +100,38 @@ export async function opOnUnit(
 }
 
 /**
- * `applyUnitOp` for an op an outbox sends after a reconnect (ADR-063): one the
- * server refuses is kept as `declined`, with why, and answered so rather than
- * thrown, so the device drops it and the rest of its outbox still goes.
+ * `applyUnitOp` for an op an outbox sends after a reconnect (ADR-063 decision
+ * 9): one the server refuses is answered so rather than thrown, so the device
+ * drops it and the rest of its outbox still goes. Only a refusal on a unit the
+ * caller may write (a stale field, a body that no longer parses) is kept as a
+ * `declined` op, in that unit's history; a refusal of the writer is not
+ * recorded anywhere, so nobody can write into another's history.
  */
 export async function replayUnitOp(
   ctx: MutationCtx,
   userId: Id<'users'>,
   args: UnitOpArgs
 ): Promise<Applied | null | { declined: string }> {
+  // Only the player's own pilot, mech or NPC waits offline.
+  if (args.unit === 'crawler') return { declined: 'A crawler change needs the connection' }
+  if (args.op.source === PROPOSAL_SOURCE) return { declined: 'That change is not a proposal' }
+  let row: UnitRow | null
   try {
-    return await applyUnitOp(ctx, userId, args)
+    row = await unitRow(ctx, userId, args)
+  } catch (err) {
+    return { declined: refusalOf(err) }
+  }
+  if (row === null) return null
+  try {
+    return await applyToRow(ctx, userId, args.unit, row, args.op)
   } catch (err) {
     const reason = refusalOf(err)
-    if ((await opOnUnit(ctx, args.op.id, args.op.unitId)) === null) {
+    const unitId = logIdOf(row)
+    if ((await opOnUnit(ctx, args.op.id, unitId)) === null) {
       await ctx.db.insert('ops', {
-        gameId: args.gameId,
+        gameId: row.gameId,
         unitKind: args.unit,
-        unitId: args.op.unitId,
+        unitId,
         opId: args.op.id,
         seq: null,
         baseSeq: args.op.baseSeq,

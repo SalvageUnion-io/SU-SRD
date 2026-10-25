@@ -77,7 +77,7 @@ describe('ops.replay', () => {
     ).toMatchObject({ fresh: false })
   })
 
-  test('declines an op on a sheet that is not yours', async () => {
+  test('declines an op on a sheet that is not yours, and records nothing', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
     await addPilot(player, 'p1', gameId)
@@ -89,6 +89,7 @@ describe('ops.replay', () => {
 
     expect(answer).toHaveProperty('declined')
     expect((await pilotOnServer(t, 'p1'))?.body).toMatchObject({ callsign: 'p1' })
-    expect((await opRow(t, 'op-d'))?.state).toBe('declined')
+    // Not in the player's history: a refusal of the writer is recorded nowhere.
+    expect(await opRow(t, 'op-d')).toBeNull()
   })
 })
