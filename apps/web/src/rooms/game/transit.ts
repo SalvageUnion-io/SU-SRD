@@ -298,6 +298,7 @@ export class GameTransit {
       for (const link of bundle.links) this.store.putLink(link as LinkShape, at)
       for (const seat of bundle.seats) this.importSeat(seat, at)
       this.importDowntime(bundle, at)
+      this.importTableState(bundle, at)
       for (const npc of bundle.opposition) {
         this.store.rows(
           'insert into tray (id, body, added_at, updated_at) values (?, ?, ?, ?)',
@@ -360,7 +361,75 @@ export class GameTransit {
     if (links !== bundle.links.length) out.push(`links: ${links} ≠ ${bundle.links.length}`)
     const tray = this.store.rows('select count(*) as n from tray')[0]?.n
     if (tray !== bundle.opposition.length) out.push(`tray: ${tray} ≠ ${bundle.opposition.length}`)
+    const boundaries = this.store.rows('select count(*) as n from boundaries')[0]?.n
+    if (boundaries !== bundle.boundaries.length) {
+      out.push(`boundaries: ${boundaries} ≠ ${bundle.boundaries.length}`)
+    }
+    for (const [table, want] of [
+      ['scene', bundle.scene],
+      ['salvage_area', bundle.salvageArea],
+      ['ledger', bundle.ledger],
+      ['stop_sign', bundle.stopSign],
+    ] as const) {
+      const has = this.store.rows(`select 1 from ${table}`).length > 0
+      if (has !== (want !== null)) out.push(`${table}: ${has ? 'not in the bundle' : 'missing'}`)
+    }
     return out
+  }
+
+  /**
+   * What the table plays under (4.3's Scene, salvage area, ledger and Safety
+   * Protocols), copied as Convex held it: the room's own writes check a
+   * Mediator, and an import has none to check.
+   */
+  private importTableState(bundle: GameBundle, at: number): void {
+    const { scene, salvageArea, ledger, stopSign } = bundle
+    if (scene !== null) {
+      this.store.rows(
+        'insert into scene (id, conditions, hours, updated_at) values (1, ?, ?, ?)',
+        JSON.stringify(scene.conditions),
+        scene.hours,
+        scene.updatedAt
+      )
+    }
+    if (salvageArea !== null) {
+      this.store.rows(
+        `insert into salvage_area (id, name, tech_level, supply, updated_at)
+         values (1, ?, ?, ?, ?)`,
+        salvageArea.name,
+        salvageArea.techLevel,
+        salvageArea.supply,
+        salvageArea.updatedAt
+      )
+    }
+    if (ledger !== null) {
+      this.store.rows(
+        'insert into ledger (id, body, updated_at) values (1, ?, ?)',
+        JSON.stringify(ledger),
+        at
+      )
+    }
+    for (const b of bundle.boundaries) {
+      this.store.rows(
+        'insert into boundaries (id, kind, text, added_by, added_at) values (?, ?, ?, ?, ?)',
+        b.id,
+        b.kind,
+        b.text,
+        b.addedBy,
+        b.addedAt
+      )
+    }
+    if (stopSign !== null) {
+      this.store.rows(
+        `insert into stop_sign (id, shown_by, shown_at, post_to_channel, posted_at, updated_at)
+         values (1, ?, ?, ?, ?, ?)`,
+        stopSign.shownBy,
+        stopSign.shownAt,
+        stopSign.postToChannel ? 1 : 0,
+        stopSign.postedAt,
+        at
+      )
+    }
   }
 
   private importSeat(seat: Record<string, unknown>, at: number): void {

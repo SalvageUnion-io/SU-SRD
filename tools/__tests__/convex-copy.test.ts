@@ -195,6 +195,19 @@ describe('the tables around the units', () => {
     seats: [row('s1', { ownerId: 'u1', pilotId: 'pilot-a', lastSeenAt: 9 })],
     downtime: [row('d1', { gameId: 'g1', step: 2 })],
     runningEncounters: [row('r1', { gameId: 'g1', body: { round: 3 } })],
+    scenes: [row('sc1', { gameId: 'g1', conditions: ['freezing'], hours: 2, updatedAt: 3 })],
+    salvageAreas: [
+      row('sa1', { gameId: 'g1', name: 'Camp', techLevel: 2, supply: 3, updatedAt: 4 }),
+      row('sa2', { ownerId: 'u1', name: 'Wreck', techLevel: 1, supply: 1, updatedAt: 5 }),
+    ],
+    ledgers: [row('lg1', { gameId: 'g1', body: { factions: [], jobs: [] } })],
+    boundaries: [
+      row('bd1', { gameId: 'g1', kind: 'offCamera', text: 'Spiders', addedBy: 'u1', addedAt: 6 }),
+      row('bd2', { gameId: 'g1', kind: 'offCamera', text: 'Rats', addedBy: 'u9', addedAt: 6 }),
+    ],
+    safety: [
+      row('sf1', { gameId: 'g1', stop: { shownBy: 'u1', shownAt: 7 }, postToChannel: true }),
+    ],
     channelBindings: [
       row('b1', { gameId: 'g1', channelId: 'c1', boundBy: 'u1' }),
       row('b2', { channelId: 'c2', boundBy: 'u1' }),
@@ -219,7 +232,7 @@ describe('the tables around the units', () => {
 
   test('skips patterns, encounters, NPCs and members with nowhere to go', () => {
     expect(account?.encounters.map((e) => e.appId)).toEqual(['enc-a'])
-    expect(r.skipped.map((s) => s.id)).toEqual(['mp1', 'e2', 'n1', 'm1', 'l3'])
+    expect(r.skipped.map((s) => s.id)).toEqual(['mp1', 'e2', 'n1', 'm1', 'l3', 'bd2'])
   })
 
   test('puts links, seats and bindings in the Game or on the shelf', () => {
@@ -237,6 +250,22 @@ describe('the tables around the units', () => {
     expect(game?.runningEncounter).toEqual({ round: 3 })
     expect(game?.channelBindings.map((b) => [b.channelId, b.boundBy])).toEqual([['c1', 'd1']])
     expect(account?.channelBindings.map((b) => b.channelId)).toEqual(['c2'])
+  })
+
+  test('carries the Scene, salvage areas, ledger and Safety Protocols', () => {
+    expect(game?.scene).toEqual({ conditions: ['freezing'], hours: 2, updatedAt: 3 })
+    expect(game?.salvageArea).toMatchObject({ name: 'Camp', supply: 3 })
+    expect(account?.salvageArea).toMatchObject({ name: 'Wreck', supply: 1 })
+    expect(game?.ledger).toEqual({ factions: [], jobs: [] })
+    expect(game?.boundaries).toEqual([
+      { id: 'bd1', kind: 'offCamera', text: 'Spiders', addedBy: 'd1', addedAt: 6 },
+    ])
+    expect(game?.stopSign).toEqual({
+      shownBy: 'd1',
+      shownAt: 7,
+      postToChannel: true,
+      postedAt: null,
+    })
   })
 
   test('copies the site tables', () => {
