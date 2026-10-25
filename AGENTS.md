@@ -51,7 +51,7 @@ bun run build                      # reference generation + the app
 
 ## Merging
 
-`main` requires status checks; no merge queue. Squash-merge only (`gh pr merge <pr> --squash`; cloud: [cloud sessions](docs/ARCHITECTURE.md#cloud)); the squash body is the PR body. Each PR bumps the root `package.json` version (CI-enforced); merging releases it.
+`main` requires status checks; no merge queue. Squash-merge only (`gh pr merge <pr> --squash`; cloud: [cloud sessions](docs/ARCHITECTURE.md#cloud)); the squash body is the PR body. Each PR into `main` bumps the root `package.json` version (CI-enforced); merging releases it. PRs into a feature branch do not: the check skips them.
 
 Merge your own PR when all checks (`Claude review` too) are green, unless the owner will review it or you left a finding unfixed.
 

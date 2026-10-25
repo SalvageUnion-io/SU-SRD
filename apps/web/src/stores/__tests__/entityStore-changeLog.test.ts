@@ -1,59 +1,47 @@
 /**
- * Change Log (provenance) tests — ADR-022.
+ * Ops, the store's one write to a unit (ADR-063).
  *
- * Verifies the write-through chokepoint: every entityStore.update sends
- * append-only, ordered Change Log entries (one per changed field), tagged with
- * provenance, to the server of record — the only copy of the log — and a batch
- * the server refuses is reported once rather than failing the edit.
+ * Every entityStore.update and transfer sends ops, each naming only the fields
+ * it moved, tagged with provenance, made against the copy this tab holds; the
+ * server applies them and keeps them as the unit's history
+ * (`test/convex/__tests__/changeLogForEntity.test.ts` reads it back).
  *
- * The Convex client is a recorder (`appendChangeLog` batches are kept, every
- * other commit answers as `upsertByAppId` and `transfer` do), so the in-memory
- * store runs signed in with its server commits observed.
+ * The Convex client is a recorder (`ops.apply` and `ops.transfer` are kept,
+ * every other commit answers as `upsertByAppId` does), so the in-memory store
+ * runs signed in with its server commits observed.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
+import type { OpInput } from 'game-domain/ops/applyOp'
 import { installConvexMocks } from '../../components/__tests__/convexMock'
 
-type Logged = {
-  gameId: string | null
-  entityType: string
-  entityId: string
-  ts: number
-  kind: string
-  field: string
-  before: unknown
-  after: unknown
-  source: string
-}
+type Sent = { unit: string; gameId: string | null; op: OpInput }
 
-const appended: Logged[] = []
-const captured: { error: unknown; options: unknown }[] = []
-/** Set to make the server refuse the next Change Log batch. */
-let refuseAppend = false
-
-// Spread before anything is mocked: every other export stays real.
-const realObservability = { ...(await import('../../lib/observability')) }
+const sent: Sent[] = []
+let seq = 0
 
 const convexMocks = await installConvexMocks({
   convexClient: {
-    mutation: async (ref: unknown, args: { entries?: Logged[] }) => {
-      if (getFunctionName(ref as FunctionReference<'mutation'>) === 'changeLog:appendChangeLog') {
-        if (refuseAppend) throw new Error('[CONVEX M(changeLog:appendChangeLog)] Server Error')
-        appended.push(...(args.entries ?? []))
-        return null
+    mutation: async (ref: unknown, args: { ops?: Sent[] } & Partial<Sent>) => {
+      const name = getFunctionName(ref as FunctionReference<'mutation'>)
+      if (name === 'ops:apply') {
+        sent.push(args as Sent)
+        return { headSeq: ++seq, updatedAt: seq }
       }
-      return { updatedAt: 1, versions: [] }
+      if (name === 'ops:transfer') {
+        sent.push(...(args.ops ?? []))
+        return {
+          applied: (args.ops ?? []).map((o) => ({
+            unitId: o.op.unitId,
+            headSeq: ++seq,
+            updatedAt: seq,
+          })),
+        }
+      }
+      return { updatedAt: 1 }
     },
-  },
-  also: {
-    '../../lib/observability': () => ({
-      ...realObservability,
-      captureException: (error: unknown, _context: unknown, options: unknown) => {
-        captured.push({ error, options })
-      },
-    }),
   },
 })
 
@@ -84,9 +72,8 @@ const basePilotInput = {
 }
 
 beforeEach(() => {
-  appended.length = 0
-  captured.length = 0
-  refuseAppend = false
+  sent.length = 0
+  seq = 0
   resetStores()
 })
 
@@ -94,55 +81,63 @@ async function seedPilot() {
   return useEntityStore.getState().create('pilot', basePilotInput)
 }
 
-const forEntity = (id: string) => appended.filter((e) => e.entityId === id)
+const opsFor = (id: string) => sent.filter((s) => s.op.unitId === id)
+/** The fields an op writes, the bookkeeping stamp aside. */
+const fields = (s: Sent | undefined) =>
+  Object.keys(s?.op.patch ?? {}).filter((f) => f !== 'updatedAt')
 
-describe('Change Log — write-through chokepoint', () => {
-  test('a single-field update sends exactly one entry, correctly shaped', async () => {
+describe('ops — the write-through chokepoint', () => {
+  test('an update sends one op naming only what moved, tagged and made against the copy held', async () => {
     const pilot = await seedPilot()
     await useEntityStore
       .getState()
-      .update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_MANUAL)
+      .update(
+        'pilot',
+        pilot.id,
+        { callsign: 'Wraith', motto: basePilotInput.motto },
+        LIVE_SHEET_MANUAL
+      )
 
-    const entries = forEntity(pilot.id)
-    expect(entries).toHaveLength(1)
-    const entry = entries[0]
-    if (!entry) throw new Error('expected exactly one Change Log entry')
-    expect(entry.entityType).toBe('pilot')
-    expect(entry.entityId).toBe(pilot.id)
-    expect(entry.field).toBe('callsign')
-    expect(entry.before).toBe('Ghost')
-    expect(entry.after).toBe('Wraith')
-    // The tag comes from the surface constant, never from a default — `meta` is
-    // a required argument precisely so an untagged write cannot compile.
-    expect(entry.kind).toBe('manual')
-    expect(entry.source).toBe('live-sheet')
-    // A shelf build files against no Game.
-    expect(entry.gameId).toBeNull()
-    expect(typeof entry.ts).toBe('number')
+    const [only, ...rest] = opsFor(pilot.id)
+    expect(rest).toEqual([])
+    expect(only?.unit).toBe('pilot')
+    // A shelf build is in no Game.
+    expect(only?.gameId).toBeNull()
+    expect(fields(only)).toEqual(['callsign'])
+    expect(only?.op.patch.callsign).toBe('Wraith')
+    // A create is its unit's snapshot at seq 0.
+    expect(only?.op.baseSeq).toBe(0)
+    // The tag comes from the surface constant, never from a default.
+    expect(only?.op).toMatchObject({ kind: 'manual', source: 'live-sheet' })
   })
 
-  test('transfer() logs every updated entity — the chokepoint hole (ADR-022)', async () => {
-    // transfer() commits cross-entity writes in one server mutation, bypassing
-    // update(). Before this was wired it emitted nothing, so cargo stow/load
-    // and scrap hand-offs mutated entities with no provenance at all.
+  test('each op is made against the seq the last one answered', async () => {
     const pilot = await seedPilot()
-    await useEntityStore.getState().transfer(
-      {
-        updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Wraith' } }],
-      },
-      LIVE_SHEET_MANUAL
-    )
+    const store = useEntityStore.getState()
+    await store.update('pilot', pilot.id, { callsign: 'A' }, LIVE_SHEET_MANUAL)
+    await store.update('pilot', pilot.id, { callsign: 'B' }, LIVE_SHEET_OVERRIDE)
+    await store.update('pilot', pilot.id, { callsign: 'C' }, PLAY_TXN)
 
-    const entries = forEntity(pilot.id)
-    expect(entries).toHaveLength(1)
-    const entry = entries[0]
-    if (!entry) throw new Error('expected a Change Log entry from transfer()')
-    expect(entry.field).toBe('callsign')
-    expect(entry.before).toBe('Ghost')
-    expect(entry.after).toBe('Wraith')
+    const ops = opsFor(pilot.id).map((s) => s.op)
+    expect(ops.map((o) => o.patch.callsign)).toEqual(['A', 'B', 'C'])
+    expect(ops.map((o) => o.baseSeq)).toEqual([0, 1, 2])
+    expect(ops.map((o) => o.kind)).toEqual(['manual', 'override', 'transaction'])
+    expect(new Set(ops.map((o) => o.id)).size).toBe(3)
   })
 
-  test('transfer() carries its provenance tag through to the entry', async () => {
+  test('a cleared field travels as unset', async () => {
+    const pilot = await seedPilot()
+    await useEntityStore
+      .getState()
+      .update('pilot', pilot.id, { maxHpOverride: 9 }, LIVE_SHEET_OVERRIDE)
+    await useEntityStore
+      .getState()
+      .update('pilot', pilot.id, { maxHpOverride: undefined }, LIVE_SHEET_OVERRIDE)
+
+    expect(opsFor(pilot.id)[1]?.op.unset).toEqual(['maxHpOverride'])
+  })
+
+  test('transfer() sends an op per updated unit, with its provenance', async () => {
     const pilot = await seedPilot()
     await useEntityStore
       .getState()
@@ -151,107 +146,16 @@ describe('Change Log — write-through chokepoint', () => {
         { kind: 'transaction', source: 'play' }
       )
 
-    const entry = forEntity(pilot.id)[0]
-    if (!entry) throw new Error('expected a Change Log entry from transfer()')
-    expect(entry.kind).toBe('transaction')
-    expect(entry.source).toBe('play')
+    const [op] = opsFor(pilot.id)
+    expect(fields(op)).toEqual(['callsign'])
+    expect(op?.op).toMatchObject({ kind: 'transaction', source: 'play' })
   })
 
-  test('transfer() emits nothing for a patch that changes no field', async () => {
-    const pilot = await seedPilot()
-    await useEntityStore.getState().transfer(
-      {
-        updates: [{ type: 'pilot', id: pilot.id, patch: { callsign: 'Ghost' } }],
-      },
-      LIVE_SHEET_MANUAL
-    )
-    expect(forEntity(pilot.id)).toHaveLength(0)
-  })
-
-  test("kind 'transaction' is reachable — it was defined but emitted nowhere", async () => {
-    const pilot = await seedPilot()
-    await useEntityStore.getState().update('pilot', pilot.id, { callsign: 'Wraith' }, PLAY_TXN)
-
-    const entry = forEntity(pilot.id)[0]
-    if (!entry) throw new Error('expected a Change Log entry')
-    expect(entry.kind).toBe('transaction')
-    expect(entry.source).toBe('play')
-  })
-
-  test('a multi-field update sends one entry per changed field', async () => {
+  test('an update that changes nothing sends nothing', async () => {
     const pilot = await seedPilot()
     await useEntityStore
       .getState()
-      .update('pilot', pilot.id, { callsign: 'Wraith', motto: 'Rise again.' }, LIVE_SHEET_MANUAL)
-
-    const entries = forEntity(pilot.id)
-    expect(entries).toHaveLength(2)
-    const fields = entries.map((e) => e.field).sort()
-    expect(fields).toEqual(['callsign', 'motto'])
-  })
-
-  test('a no-op field (value unchanged) produces no entry', async () => {
-    const pilot = await seedPilot()
-    // callsign is already 'Ghost'; motto changes.
-    await useEntityStore
-      .getState()
-      .update('pilot', pilot.id, { callsign: 'Ghost', motto: 'A new creed.' }, LIVE_SHEET_MANUAL)
-
-    const entries = forEntity(pilot.id)
-    expect(entries).toHaveLength(1)
-    expect(entries[0]?.field).toBe('motto')
-  })
-
-  test('meta tags the entry kind + source (override / live-sheet)', async () => {
-    const pilot = await seedPilot()
-    await useEntityStore
-      .getState()
-      .update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_OVERRIDE)
-
-    const entry = forEntity(pilot.id)[0]
-    if (!entry) throw new Error('expected a Change Log entry')
-    expect(entry.kind).toBe('override')
-    expect(entry.source).toBe('live-sheet')
-  })
-
-  test('successive updates are sent in order, each before chaining from the prior after', async () => {
-    const pilot = await seedPilot()
-    const store = useEntityStore.getState()
-    await store.update('pilot', pilot.id, { callsign: 'A' }, LIVE_SHEET_MANUAL)
-    await store.update('pilot', pilot.id, { callsign: 'B' }, LIVE_SHEET_MANUAL)
-    await store.update('pilot', pilot.id, { callsign: 'C' }, LIVE_SHEET_MANUAL)
-
-    const entries = forEntity(pilot.id)
-    expect(entries.map((e) => e.after)).toEqual(['A', 'B', 'C'])
-    expect(entries.map((e) => e.before)).toEqual(['Ghost', 'A', 'B'])
-  })
-
-  test('each entry names the entity it is about', async () => {
-    const a = await seedPilot()
-    const b = await useEntityStore
-      .getState()
-      .create('pilot', { ...basePilotInput, name: 'Rex', callsign: 'Hammer' })
-    await useEntityStore.getState().update('pilot', a.id, { callsign: 'A-new' }, LIVE_SHEET_MANUAL)
-    await useEntityStore.getState().update('pilot', b.id, { callsign: 'B-new' }, LIVE_SHEET_MANUAL)
-
-    expect(forEntity(a.id).map((e) => e.after)).toEqual(['A-new'])
-    expect(forEntity(b.id).map((e) => e.after)).toEqual(['B-new'])
-  })
-})
-
-describe('Change Log — a refused batch', () => {
-  test('does not fail the edit, and is reported once under one fingerprint', async () => {
-    const pilot = await seedPilot()
-    refuseAppend = true
-
-    await useEntityStore
-      .getState()
-      .update('pilot', pilot.id, { callsign: 'Wraith' }, LIVE_SHEET_MANUAL)
-    // The append is not awaited by the store; let its rejection settle.
-    await Promise.resolve()
-
-    expect(useEntityStore.getState().get('pilot', pilot.id)?.callsign).toBe('Wraith')
-    expect(captured).toHaveLength(1)
-    expect(captured[0]?.options).toEqual({ fingerprint: ['convex', 'changeLog:appendChangeLog'] })
+      .update('pilot', pilot.id, { callsign: 'Ghost' }, LIVE_SHEET_MANUAL)
+    expect(opsFor(pilot.id)).toHaveLength(0)
   })
 })

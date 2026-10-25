@@ -6,6 +6,7 @@ import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { homebrewTables } from './model/homebrewTables'
+import { opTables } from './model/opTables'
 import { playTables } from './model/playTables'
 import { prepTables } from './model/prepTables'
 import { signalTables } from './model/signalTables'
@@ -189,6 +190,13 @@ function containerTable() {
       publicRead: v.optional(v.boolean()),
       body: v.any(),
       updatedAt: v.number(),
+      /**
+       * The `seq` of the last op folded into `body` (ADR-063); absent on a row
+       * no op has written, whose body is its snapshot at seq 0.
+       */
+      headSeq: v.optional(v.number()),
+      /** The `seq` of the op that last wrote each body field, for `applyOp`'s conflict check. */
+      fieldSeqs: v.optional(v.record(v.string(), v.number())),
     })
       .index('by_game', ['gameId'])
       // `ownerId` alone is a prefix of this, so it also serves every "all of
@@ -555,6 +563,7 @@ export default defineSchema({
     // reading a log that grows all campaign (`source` is 'mediator-proposal').
     .index('by_game_source_ts', ['gameId', 'source', 'ts']),
 
+  ...opTables,
   ...playTables,
   ...prepTables,
 

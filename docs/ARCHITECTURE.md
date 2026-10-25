@@ -37,13 +37,13 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
 11. **Convex, the server of record** · moving to rooms (ADR-064) <a id="convex"></a>
-    `apps/web/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
+    `apps/web/convex/`: opaque bodies (`v.any()`); an entity is [in a Game or on a Shelf](architecture/glossary.md). A unit's body changes only by an op (`ops.apply`, `ops.transfer`; ADR-063), parsed by `applyOp`.
     Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **Device copy** · moving to rooms (ADR-064) <a id="device-copy"></a>
     One IndexedDB record, `stores/deviceCopy.ts`: the last `listMine` + `listWiring` answers, read back only on an offline boot with a session on the device, read-only (ADR-058).
     Signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
 13. **Zustand stores** · moving to rooms (ADR-064) <a id="stores"></a>
-    `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
+    `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` diffs into an op at its `headSeq` and awaits `commitOp`; a refused op changes nothing.
     No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
 14. **Sharing** · moving to rooms (ADR-064) <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
@@ -63,7 +63,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
     Any new transaction goes in Play.
 20. **Change Log** <a id="change-log"></a>
-    Every write appends a `transaction` / `override` / `manual` row to Convex `changeLog` at `entityStore.update`.
+    A unit's history is its applied ops (`transaction` / `override` / `manual`, ADR-063); `changeLog` keeps Game rows and moves.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
 21. **Combat loop** <a id="combat"></a>
     A shared living sheet: no combat RPCs, turns or undo; the math is the reference package's `lib/rules/`, patches are the app's.
