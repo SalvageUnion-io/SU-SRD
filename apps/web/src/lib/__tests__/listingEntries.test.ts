@@ -13,7 +13,7 @@ describe('listingEntries', () => {
 
   test('the roll tables list their top-level tables, not the ones an entry prints', () => {
     const names = listingEntries('roll-tables', rollTables()).map((table) => table.name)
-    expect(names).toHaveLength(50)
+    expect(names).toHaveLength(64)
     expect(names).toContain('Core Mechanic')
     expect(names).not.toContain('Mechapult') // a System's own roll
     expect(names).not.toContain('Trading Bay') // a crawler bay's

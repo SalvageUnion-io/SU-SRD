@@ -5,6 +5,9 @@
  * when the server no longer has it. Encounters are personal and shelf-only,
  * so absence means deleted, the shelf rule; `forget`, never `delete`.
  *
+ * Each applied answer is saved to the device copy (ADR-058), so an offline
+ * reload still has the night's prep.
+ *
  * Mounted by `ShelfSync`, under its registration (`rowArrival.ts`).
  */
 
@@ -15,6 +18,7 @@ import { api } from '../../../convex/_generated/api'
 import type { ServedRow } from '../../lib/links/linkSync'
 import { planRowSync } from '../../lib/links/linkSync'
 import { captureException } from '../../lib/observability'
+import { saveCopy } from '../../stores/deviceCopy'
 import { usePrepStore } from '../../stores/prepStore'
 import { noteVersion, serverVersions } from '../../stores/serverVersions'
 
@@ -50,7 +54,10 @@ export function EncounterSync() {
           if (!ids.has(local.id)) await store.forget(local.id)
         }
       } finally {
-        if (!superseded) store.markArrived()
+        if (!superseded) {
+          store.markArrived()
+          void saveCopy({ encounters: served })
+        }
       }
     })()
     return () => {

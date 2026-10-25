@@ -97,6 +97,13 @@ export const RESTORE_STEP_NAME = 'Restore your Mech & Pilot'
 /** The Crawler Downtime step a pilot trains in (p.228). */
 export const TRAIN_STEP_NAME = 'Train your Pilot'
 
+/**
+ * The Crawler Downtime step crafting belongs to (p.228), where a Nanite
+ * Processing Bay processes Inert Meld Nanites (False Flag p.66): after Trade,
+ * so what the table means to sell is sold first.
+ */
+export const CRAFT_STEP_NAME = 'Craft Mech Chassis, Systems, and Modules'
+
 /** The Crawler Downtime guide's steps, in order; empty when the guide is missing. */
 export function downtimeGuideSteps() {
   return SalvageUnionReference.Guides.find((g) => g.guideType === 'downtime')?.steps ?? []

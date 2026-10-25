@@ -31,7 +31,13 @@
  * to the player via the card status badge — this module never auto-picks.
  */
 
-import type { HeatCheckEffect, PushResult, ReactorOverloadOutcome, Roll } from './types'
+import type {
+  HeatCheckEffect,
+  OverloadTable,
+  PushResult,
+  ReactorOverloadOutcome,
+  Roll,
+} from './types'
 
 /**
  * Clamps a heat value into [0, cap]. Heat can never exceed Heat Cap (rule 1).
@@ -58,10 +64,11 @@ export const PUSH_HEAT = 2
 /**
  * Whether the Mech may Push: not when the Heat gained would take it over its
  * Heat Cap (Core Book p.234 — a Mech with a Heat Capacity of 10 on 9 Heat
- * cannot Push).
+ * cannot Push). `gain` is the Push's Heat where a Scene scales it
+ * (`pushHeatAt`, sceneConditions.ts).
  */
-export function canPush(currentHeat: number, heatCap: number): boolean {
-  return canActivateAction(currentHeat, PUSH_HEAT, heatCap)
+export function canPush(currentHeat: number, heatCap: number, gain: number = PUSH_HEAT): boolean {
+  return canActivateAction(currentHeat, gain, heatCap)
 }
 
 /**
@@ -82,6 +89,52 @@ export function reactorOverloadOutcome(roll: number): ReactorOverloadOutcome {
   return 'overdrive'
 }
 
+/**
+ * Maps a Bio-Chassis Overload Table d20 roll to its outcome band (We Were Here
+ * First p.79), the table a Bio-Chassis fails a Heat Check on.
+ *   1     → death-throes
+ *   2-3   → system-destroyed
+ *   4-5   → severe-pilot-overload
+ *   6-8   → module-destroyed
+ *   9-10  → pilot-overload
+ *   11-19 → bio-overload
+ *   20    → overdrive
+ */
+export function bioOverloadOutcome(roll: number): ReactorOverloadOutcome {
+  if (roll <= 1) return 'death-throes'
+  if (roll <= 3) return 'system-destroyed'
+  if (roll <= 5) return 'severe-pilot-overload'
+  if (roll <= 8) return 'module-destroyed'
+  if (roll <= 10) return 'pilot-overload'
+  if (roll <= 19) return 'bio-overload'
+  return 'overdrive'
+}
+
+/**
+ * Whether a chassis is a Bio-Chassis: the Bio tier, `'B'` (We Were Here First
+ * pp.66-73). A Bio-Chassis rolls its own Damage and Overload tables.
+ */
+export function isBioChassis(chassis: { techLevel?: unknown } | null | undefined): boolean {
+  return chassis?.techLevel === 'B'
+}
+
+/** The overload table for a chassis: a Bio-Chassis's own, else the reactor's. */
+export function overloadTableOf(
+  chassis: { techLevel?: unknown } | null | undefined
+): OverloadTable {
+  return isBioChassis(chassis) ? 'bio' : 'reactor'
+}
+
+/** The roll table an overload rolls on, by its name in the reference data. */
+export function overloadTableName(table: OverloadTable): string {
+  return table === 'bio' ? 'Bio-Chassis Overload Table' : 'Reactor Overload'
+}
+
+/** The roll table a mech at 0 SP rolls on (Core Book p.240; WWHF p.78). */
+export function damageTableName(table: OverloadTable): string {
+  return table === 'bio' ? 'Bio-Chassis Damage Table' : 'Critical Damage'
+}
+
 type HeatCheckInput = {
   /** Current Heat at the moment of the check (already clamped to cap). */
   heat: number
@@ -91,6 +144,8 @@ type HeatCheckInput = {
   roll: Roll
   /** Injectable clock for the recorded timestamp (defaults to () => new Date()). */
   now?: () => Date
+  /** The table an overload rolls on (default the reactor's). */
+  table?: OverloadTable
 }
 
 /**
@@ -101,7 +156,13 @@ type HeatCheckInput = {
  * shutdown/vulnerable are applied for the 11-19 band; destroyed for roll 1. The
  * 2-5 / 6-10 bands set `requiresPlayerChoice` and leave SP/flags untouched.
  */
-export function performHeatCheck({ heat, currentSP, roll, now }: HeatCheckInput): HeatCheckEffect {
+export function performHeatCheck({
+  heat,
+  currentSP,
+  roll,
+  now,
+  table = 'reactor',
+}: HeatCheckInput): HeatCheckEffect {
   const clock = now ?? (() => new Date())
   const heatCheckRoll = roll(20)
   // A natural 20 is ALWAYS a success, even when current Heat >= 20 (Heat Cap can
@@ -126,11 +187,21 @@ export function performHeatCheck({ heat, currentSP, roll, now }: HeatCheckInput)
   }
 
   const overloadRoll = roll(20)
-  const outcome = reactorOverloadOutcome(overloadRoll)
+  const outcome =
+    table === 'bio' ? bioOverloadOutcome(overloadRoll) : reactorOverloadOutcome(overloadRoll)
 
   const overheat = outcome === 'overheat'
-  const destroyed = outcome === 'meltdown'
+  // A Bio-Overload: the Pilot is out for a Turn, the Bio-Chassis cannot act
+  // and is Vulnerable; the Heat burns the Pilot, not the chassis (WWHF p.79).
+  const bioOverload = outcome === 'bio-overload'
+  const destroyed = outcome === 'meltdown' || outcome === 'death-throes'
   const requiresPlayerChoice = outcome === 'system-destroyed' || outcome === 'module-destroyed'
+  const pilotInjury =
+    outcome === 'severe-pilot-overload'
+      ? 'major'
+      : outcome === 'pilot-overload'
+        ? 'minor'
+        : undefined
 
   // 11-19: SP damage equal to current Heat, clamped to 0.
   const nextSP = overheat ? Math.max(0, currentSP - heat) : currentSP
@@ -145,10 +216,12 @@ export function performHeatCheck({ heat, currentSP, roll, now }: HeatCheckInput)
       rolledAt: clock().toISOString(),
     },
     nextSP,
-    shutdown: overheat,
-    vulnerable: overheat,
+    shutdown: overheat || bioOverload,
+    vulnerable: overheat || bioOverload,
     destroyed,
     requiresPlayerChoice,
+    ...(bioOverload && heat > 0 ? { pilotDamage: heat } : {}),
+    ...(pilotInjury === undefined ? {} : { pilotInjury }),
   }
 }
 
@@ -161,16 +234,34 @@ type PushInput = {
   currentSP: number
   /** Injectable d20 roller. */
   roll: Roll
+  /** The Heat the Push adds; 2 unless a Scene scales it (`pushHeatAt`). */
+  gain?: number
   /** Injectable clock. */
   now?: () => Date
+  /** The table an overload rolls on (default the reactor's). */
+  table?: OverloadTable
 }
 
 /**
  * Performs a Push (rule 3): +2 Heat (clamped to cap), then an immediate Heat
  * Check at the new heat. Returns both the new heat and the check effect.
  */
-export function performPush({ heat, heatCap, currentSP, roll, now }: PushInput): PushResult {
-  const nextHeat = clampHeat(heat + PUSH_HEAT, heatCap)
-  const effect = performHeatCheck({ heat: nextHeat, currentSP, roll, now })
+export function performPush({
+  heat,
+  heatCap,
+  currentSP,
+  roll,
+  gain = PUSH_HEAT,
+  now,
+  table,
+}: PushInput): PushResult {
+  const nextHeat = clampHeat(heat + gain, heatCap)
+  const effect = performHeatCheck({
+    heat: nextHeat,
+    currentSP,
+    roll,
+    ...(now === undefined ? {} : { now }),
+    ...(table === undefined ? {} : { table }),
+  })
   return { nextHeat, effect }
 }

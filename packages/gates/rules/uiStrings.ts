@@ -51,9 +51,15 @@ const DEFINE_MODULE = /(?:^|\/)messages\/define$/
 /** A module of the catalogue, imported from anywhere. */
 const CATALOGUE_MODULE = /(?:^|\/)messages\/(?!define$)[\w/-]+$/
 
-/** A test, a declaration, or a machine-written file: not shipped copy. */
+/**
+ * A test, a declaration, a machine-written file, or the feature flags (each
+ * flag's line says what it hides, for whoever reads the code; never drawn,
+ * ADR-060): not shipped copy.
+ */
 const isSkipped = (f: string) =>
-  /(?:^|\/)(?:__tests__|_generated|generated)\//.test(f) || /\.(?:test|d)\.tsx?$/.test(f)
+  /(?:^|\/)(?:__tests__|_generated|generated)\//.test(f) ||
+  /\.(?:test|d)\.tsx?$/.test(f) ||
+  /(?:^|\/)src\/lib\/flags\.ts$/.test(f)
 
 /** The words an attribute carrying copy is named for, alone or as a suffix (`aria-label`, `confirmLabel`). */
 const COPY_WORDS = [

@@ -5,7 +5,15 @@
 
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isDown, rollMorale, trackOf } from '../opposition'
+import {
+  importantTrackOf,
+  isDown,
+  isImportantRoll,
+  npcHeatCheck,
+  rollMorale,
+  rollNpcCritical,
+  trackOf,
+} from '../opposition'
 
 const NOW = '2026-10-09T12:00:00.000Z'
 
@@ -45,5 +53,87 @@ describe('rollMorale', () => {
       rolledAt: NOW,
     })
     expect(rollMorale(() => 20, NOW)?.label).toBe('Fight to the Death')
+  })
+})
+
+/** A die that rolls these faces in turn. */
+const faces =
+  (...rolls: number[]) =>
+  () =>
+    rolls.shift() ?? 1
+
+describe('importantTrackOf (Workshop Manual p.255)', () => {
+  test('a mech tracks its chassis EP and Heat, and rolls Critical Damage at 0', () => {
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
+    if (mule === undefined) throw new Error('no Mule in the reference')
+    expect(importantTrackOf('chassis', mule, 'sp')).toEqual({
+      reactor: { maxEp: mule.energyPoints, heatCap: mule.heatCapacity },
+      critical: 'critical-damage',
+    })
+  })
+
+  test('an HP NPC has no reactor and rolls Critical Injury', () => {
+    const npc = SalvageUnionReference.NPCs.all()[0]
+    if (npc === undefined) throw new Error('no NPCs in the reference')
+    expect(importantTrackOf('npcs', npc, 'hp')).toEqual({
+      reactor: null,
+      critical: 'critical-injury',
+    })
+  })
+
+  test('Bio-Titans and Meld keep their own rules at 0', () => {
+    expect(importantTrackOf('bio-titans', null, 'sp')).toBeNull()
+    expect(importantTrackOf('meld', null, 'hp')).toBeNull()
+  })
+})
+
+describe('rollNpcCritical', () => {
+  test("quotes the book's row, and changes nothing below 20", () => {
+    const rolled = rollNpcCritical('critical-damage', () => 12, NOW)
+    expect(rolled?.result).toMatchObject({
+      table: 'critical-damage',
+      roll: 12,
+      label: 'Core Damage',
+    })
+    expect(rolled?.nextHp).toBeNull()
+    expect(isImportantRoll(rolled?.result)).toBe(true)
+  })
+
+  test('a 20 is a Miraculous Survival at 1', () => {
+    const rolled = rollNpcCritical('critical-injury', () => 20, NOW)
+    expect(rolled?.result.label).toBe('Miraculous Survival')
+    expect(rolled?.nextHp).toBe(1)
+  })
+})
+
+describe('npcHeatCheck (Core Book p.234)', () => {
+  test('a roll over its Heat passes and changes nothing', () => {
+    expect(npcHeatCheck(4, 10, faces(9), NOW)).toEqual({
+      roll: 9,
+      heat: 4,
+      overload: null,
+      nextSp: 10,
+    })
+  })
+
+  test('an overheat reads the Reactor Overload row and takes its Heat in SP', () => {
+    const checked = npcHeatCheck(6, 10, faces(3, 15), NOW)
+    expect(checked?.roll).toBe(3)
+    expect(checked?.overload?.roll).toBe(15)
+    expect(checked?.overload?.value).toBeTruthy()
+    expect(checked?.nextSp).toBe(4)
+  })
+
+  test('a meltdown changes no number: the Mediator narrates it', () => {
+    const checked = npcHeatCheck(6, 10, faces(3, 1), NOW)
+    expect(checked?.overload?.label).toBe('Reactor Overload')
+    expect(checked?.nextSp).toBe(10)
+  })
+})
+
+describe('isImportantRoll', () => {
+  test('a Morale roll is not one', () => {
+    expect(isImportantRoll({ table: 'morale', roll: 4, value: 'x', rolledAt: NOW })).toBe(false)
+    expect(isImportantRoll(null)).toBe(false)
   })
 })

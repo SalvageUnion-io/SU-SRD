@@ -8,11 +8,17 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { makeScrapLot } from 'game-domain/schemas/cargoLot'
+import { areaSalvageResult } from 'salvageunion-reference/rules'
+import type { WreckPart } from '../downtimeEconomy'
 import {
-  areaSalvageOutcome,
+  areaSalvageToMech,
+  areaSalvageToPilot,
   craftOutcome,
   crawlerTechLevelOf,
   scrapMechOutcome,
+  wreckSalvageOutcome,
+  wreckScrapOutcome,
 } from '../downtimeEconomy'
 
 const crawler = (over: Record<string, unknown> = {}) => ({
@@ -72,24 +78,87 @@ describe('crafting (F3)', () => {
 })
 
 describe('area salvage (F2)', () => {
-  test('scrap found is deposited at the area Tech Level', () => {
-    const { result, patch } = areaSalvageOutcome(crawler(), { areaTl: 2, roll: () => 11 })
-    if (!patch) throw new Error('expected a patch')
-    expect(result.scrapQty).toBeGreaterThan(0)
-    // deposited into the area's TL bucket, on top of what was there
-    expect(patch.scrapPool?.tl2).toBe(10 + result.scrapQty)
+  const found = (d20: number, areaTl = 2) => areaSalvageResult({ areaTl, d20 })
+
+  test("a mech's Scrap lands in its Cargo Slots at the area Tech Level", () => {
+    const { carried, leftBehind, patch } = areaSalvageToMech({ cargoLots: [] }, 6, found(11))
+    expect(carried).toBe(3)
+    expect(leftBehind).toBe(0)
+    expect(patch?.cargoLots).toHaveLength(1)
+    expect(patch?.cargoLots?.[0]).toMatchObject({ cat: 'SCRAP', tl: 2, qty: 3, units: 3 })
+  })
+
+  test("it stacks on the hold's Scrap of the same Tech Level", () => {
+    const held = makeScrapLot(2, 2)
+    const { patch } = areaSalvageToMech({ cargoLots: [held] }, 6, found(8))
+    expect(patch?.cargoLots).toEqual([{ ...held, qty: 4, units: 4 }])
+  })
+
+  test('what has no Slot stays in the area', () => {
+    const full = makeScrapLot(1, 5)
+    const { carried, leftBehind } = areaSalvageToMech({ cargoLots: [full] }, 6, found(15))
+    expect(carried).toBe(1)
+    expect(leftBehind).toBe(2)
+  })
+
+  test('on foot it takes three Inventory Slots a Scrap, so a full pilot carries none', () => {
+    const pilot = { equipment: [], genericInventory: [] }
+    const two = areaSalvageToPilot(pilot, 6, found(11))
+    expect(two.carried).toBe(2)
+    expect(two.leftBehind).toBe(1)
+    expect(two.patch?.genericInventory?.[0]).toMatchObject({
+      name: 'Tech 2 Scrap',
+      slotCost: 3,
+      qty: 2,
+    })
+    const none = areaSalvageToPilot(pilot, 2, found(11))
+    expect(none.patch).toBeNull()
+    expect(none.leftBehind).toBe(3)
   })
 
   test('a nothing result makes NO write — a no-op would log a change that changed nothing', () => {
-    const { result, patch } = areaSalvageOutcome(crawler(), { areaTl: 2, roll: () => 1 })
-    expect(result.scrapQty).toBe(0)
-    expect(patch).toBeNull()
+    expect(areaSalvageToMech({ cargoLots: [] }, 6, found(1)).patch).toBeNull()
   })
 
-  test('a jackpot yields an item choice, not scrap — so also no pool write', () => {
-    const { result, patch } = areaSalvageOutcome(crawler(), { areaTl: 2, roll: () => 20 })
+  test('a jackpot yields an item choice, not scrap — so also no cargo write', () => {
+    const result = found(20)
     expect(result.requiresPlayerChoice).toBe(true)
-    expect(patch).toBeNull()
+    expect(areaSalvageToMech({ cargoLots: [] }, 6, result).patch).toBeNull()
+  })
+})
+
+describe('mech salvage of a wreck (F2)', () => {
+  const parts: WreckPart[] = [
+    { key: 'c', kind: 'chassis', name: 'Mule', techLevel: 1, salvageValue: 7 },
+    { key: 's', kind: 'system', name: 'Red Laser', techLevel: 1, salvageValue: 3 },
+    { key: 'm', kind: 'module', name: 'Targeting Module', techLevel: 2, salvageValue: 2 },
+  ]
+
+  test('a 2–5 pays half the Chassis Salvage Value in Scrap of its Tech Level', () => {
+    const { patch, taken } = wreckSalvageOutcome(crawler(), parts, 'nuts', [])
+    expect(patch?.scrapPool?.tl1).toBe(13)
+    expect(taken).toEqual(['3 Tech 1 Scrap'])
+  })
+
+  test('a pick lands in the hold, Damaged, at its Salvage Value in Slots', () => {
+    const { patch, taken } = wreckSalvageOutcome(crawler(), parts, 'meat', ['c'])
+    expect(taken).toEqual(['Mule'])
+    expect(patch?.cargoLots?.[0]).toMatchObject({ name: 'Mule (Damaged)', units: 7, tl: 1 })
+  })
+
+  test('picks the band does not allow write nothing', () => {
+    expect(wreckSalvageOutcome(crawler(), parts, 'bits', ['c']).patch).toBeNull()
+    expect(wreckSalvageOutcome(crawler(), parts, 'meat', ['c', 's']).patch).toBeNull()
+    expect(wreckSalvageOutcome(crawler(), parts, 'ashes', ['s']).patch).toBeNull()
+  })
+
+  test('a 20 takes the Chassis, a System and a Module', () => {
+    const { patch } = wreckSalvageOutcome(crawler(), parts, 'lions', ['c', 's', 'm'])
+    expect(patch?.cargoLots).toHaveLength(3)
+  })
+
+  test('a downed Vehicle scraps for its Salvage Value at its Tech Level', () => {
+    expect(wreckScrapOutcome(crawler(), { techLevel: 2, salvageValue: 4 })?.scrapPool?.tl2).toBe(14)
   })
 })
 

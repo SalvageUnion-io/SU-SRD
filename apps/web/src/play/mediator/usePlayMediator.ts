@@ -7,9 +7,11 @@
  * `games.members` join order), the primary crawler (`entities.listForGame`;
  * the Mediator's store holds it, so its box is live), the Game's Downtime
  * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`), the saved
- * patterns the picker may field, the proposals sent, the alerts and the
- * Game's rolls — and makes the writes the Mediator holds: the Opposition,
- * proposals (ADR-030 §4) and alerts. It
+ * patterns the picker may field, the proposals sent, the alerts, the
+ * Game's rolls, its Scene's conditions (`useScene`) and the area being
+ * salvaged — and makes the writes the Mediator holds: the Opposition, a
+ * downed wreck's salvage into the crawler, the area, proposals (ADR-030 §4),
+ * alerts and the Scene's conditions. It
  * writes nothing a player owns; a player's sheet is reached only by proposal.
  *
  * A Morale roll is kept on the NPC (`lastMediatorRoll`) and goes on Play's
@@ -19,20 +21,34 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
+import type { FunctionReturnType } from 'convex/server'
+import { dealCount } from 'game-domain/games/ledger'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
 import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
+import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { dieForTable, toast } from '../../components/index'
+import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { rollMorale } from '../../lib/rules/opposition'
+import type { ImportantRoll } from '../../lib/rules/opposition'
+import {
+  criticalTable,
+  npcHeatCheck,
+  REACTOR_OVERLOAD,
+  rollMorale,
+  rollNpcCritical,
+} from '../../lib/rules/opposition'
+import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
+import { mediatorCopy } from '../../messages/play-mediator'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePrepStore } from '../../stores/prepStore'
+import { PLAY_TXN } from '../../stores/surfaceProvenance'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -40,6 +56,10 @@ import type { PlayDowntime } from '../situation.model'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
 import { usePlayDowntime } from '../usePlayDowntime'
 import { usePresenceClock } from '../usePresenceClock'
+import type { SalvageAreaView } from '../useSalvageArea'
+import { useSalvageArea } from '../useSalvageArea'
+import type { SceneState } from '../useScene'
+import { useScene } from '../useScene'
 import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
@@ -47,6 +67,9 @@ import type { SavedPattern, TrayNpc } from './opposition.model'
 import { newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { SentProposal } from './proposalLine.model'
+
+/** A wreck's salvage that hauls nothing: it is settled, and nothing is written. */
+export const NOTHING = (): null => null
 
 /** How many alerts and rolls the Feed reads. */
 const FEED_ALERTS = 20
@@ -63,10 +86,23 @@ export type PlayMediator = {
   crawler: { crawler: Crawler; held: boolean } | null
   /** The Game's Downtime, as its Mediator runs it. */
   downtime: PlayDowntime
+  /** The Scene's conditions, and the Mediator's writes to them (`scenes.ts`). */
+  scene: MediatorScene
+  /** What the crew's faction deals pay this Downtime (`ledger.collectIncome`). */
+  income: DealIncome
   /** The tray, hidden from players; null while it loads. */
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
   tray: TrayWrites
+  /**
+   * Settle a downed wreck's salvage: claim it (`salvaged`, once), then write
+   * `haul`'s patch of the crawler as it stands. `NOTHING` settles a wreck
+   * that yields nothing; any other haul is refused with no crawler the
+   * Mediator holds.
+   */
+  salvageWreck: (npc: TrayNpc, haul: (crawler: Crawler) => Partial<Crawler> | null) => Promise<void>
+  /** The area the crew is salvaging, which the Mediator names (Core Book p.245). */
+  area: SalvageAreaView
   /** The Mediator's prep (ADR-059): their encounters, and the one this Game is running. */
   prep: MediatorPrep
   /** Newest first; null while the first answer is on its way. */
@@ -83,6 +119,24 @@ export type PlayMediator = {
   now: number
   canWrite: boolean
   readOnly: PlayReadOnly | null
+}
+
+/** The Scene's conditions as the Mediator sets them and passes the hours. */
+type MediatorScene = SceneState & {
+  /** Put the Scene under exactly these. */
+  set: (conditions: readonly SceneConditionId[]) => Promise<void>
+  /** Count an hour passed; resolves to the hour it now is. */
+  passHour: () => Promise<number>
+}
+
+/** The Game's deal income: a Scrap per deal, collected once per Downtime at Upkeep. */
+type DealIncome = {
+  /** The factions the crew has a deal with; 0 while the ledger loads. */
+  deals: number
+  /** This Downtime's is collected. */
+  collected: boolean
+  /** Collect it into the crawler: what it paid, or null when it already was. */
+  collect: () => Promise<FunctionReturnType<typeof api.ledger.collectIncome>>
 }
 
 /** The Mediator's encounters, and the one the Game is running (ADR-059). */
@@ -142,6 +196,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
+  const sceneState = useScene(gameId)
+  const area = useSalvageArea(mediatorTarget(gameId))
+  const ledger = useQuery(api.ledger.get, { gameId: id })
+  const collectIncome = useMutation(api.ledger.collectIncome)
 
   const addNpc = useMutation(api.mediator.addNpc)
   const updateNpc = useMutation(api.mediator.updateNpc)
@@ -150,6 +208,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const endEncounter = useMutation(api.mediator.endEncounter)
   const proposeMutation = useMutation(api.proposals.propose)
   const broadcastMutation = useMutation(api.proposals.broadcast)
+  const setConditions = useMutation(api.scenes.setConditions)
+  const passHour = useMutation(api.scenes.passHour)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 
@@ -200,23 +260,167 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         outcome: result.label ?? result.value,
       })
     },
+    setImportant: (npc, important) =>
+      updateNpc({
+        npcId: npcId(npc),
+        patch:
+          important && npc.track?.reactor && npc.reactor === null
+            ? {
+                important,
+                maxEp: npc.track.reactor.maxEp,
+                heatCap: npc.track.reactor.heatCap,
+                currentEp: npc.track.reactor.maxEp,
+                currentHeat: 0,
+              }
+            : { important },
+      }),
+    setReactor: (npc, patch) => updateNpc({ npcId: npcId(npc), patch }),
+    critical: async (npc) => {
+      if (npc.track === null) return
+      const tableName = criticalTable(npc.track.critical)?.name
+      if (tableName === undefined) throw new Error('The Critical table could not be read')
+      const rolled = rollNpcCritical(
+        npc.track.critical,
+        await dieForTable(tableName),
+        new Date().toISOString()
+      )
+      if (rolled === null) throw new Error('The Critical table could not be read')
+      await updateNpc({
+        npcId: npcId(npc),
+        patch: {
+          lastImportantRoll: rolled.result,
+          ...(rolled.nextHp === null ? {} : { currentHp: rolled.nextHp }),
+        },
+      })
+      recordPlayRoll({
+        tableName,
+        rolls: [rolled.result.roll],
+        label: `${npc.name} · ${tableName}`,
+        outcome: rolled.result.label ?? rolled.result.value,
+      })
+    },
+    heatCheck: async (npc) => {
+      if (npc.reactor === null) return
+      const overloadTable = SalvageUnionReference.RollTables.getBySlug(REACTOR_OVERLOAD)?.name
+      if (overloadTable === undefined) throw new Error('The overload table could not be read')
+      // The check's own d20 is plain; the overload roll is the table's.
+      const roll = await rollForTable(overloadTable, { plainD20s: 1 })
+      const now = new Date().toISOString()
+      const checked = npcHeatCheck(npc.reactor.heat, npc.currentHp, roll, now)
+      if (checked === null) throw new Error('The overload table could not be read')
+      const { overload } = checked
+      const result: ImportantRoll = {
+        table: 'heat-check',
+        roll: checked.roll,
+        label: overload?.label ?? mediatorCopy('passed'),
+        value:
+          overload === null
+            ? mediatorCopy('heatCheckPassed', { roll: checked.roll, heat: checked.heat })
+            : mediatorCopy('heatCheckOverload', {
+                roll: checked.roll,
+                heat: checked.heat,
+                table: overloadTable,
+                overload: overload.roll,
+                value: overload.value,
+              }),
+        rolledAt: now,
+      }
+      await updateNpc({
+        npcId: npcId(npc),
+        patch: {
+          lastImportantRoll: result,
+          ...(checked.nextSp === npc.currentHp ? {} : { currentHp: checked.nextSp }),
+        },
+      })
+      const heatCheck = mediatorCopy('heatCheck')
+      recordPlayRoll({
+        tableName: heatCheck,
+        rolls: overload === null ? [checked.roll] : [checked.roll, overload.roll],
+        label: `${npc.name} · ${heatCheck}`,
+        outcome: result.label ?? result.value,
+      })
+    },
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
+    field: async (lines) => {
+      // One at a time, each name counted against the ones before it, so four
+      // Contour Hussars come out numbered.
+      const taken = (tray ?? []).map((n) => n.name)
+      let added = 0
+      for (const line of lines) {
+        if (line.draw === null) continue
+        const { schema, entity, pattern } = line.draw
+        let count = line.count
+        if (count === 'd20') {
+          count = rollD20()
+          recordPlayRoll({
+            tableName: 'd20',
+            rolls: [count],
+            label: line.text,
+            outcome: `${count}`,
+          })
+        }
+        for (let i = 0; i < count; i++) {
+          const body = newTrayNpc(
+            schema,
+            entity,
+            taken,
+            new Date().toISOString(),
+            pattern ? { pattern } : {}
+          )
+          await addNpc({ gameId: id, body })
+          taken.push(body.name)
+          added += 1
+        }
+      }
+      return added
+    },
   }
+
+  const crawler =
+    listing == null ? null : primaryCrawler(listing, (crawlerId) => store.get('crawler', crawlerId))
 
   return {
     gameId,
     gameName,
     seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], now),
     crew: crew ?? null,
-    crawler:
-      listing == null
-        ? null
-        : primaryCrawler(listing, (crawlerId) => store.get('crawler', crawlerId)),
+    crawler,
     downtime,
+    scene: {
+      ...sceneState,
+      set: said(async (conditions: readonly SceneConditionId[]) => {
+        await setConditions({ gameId: id, conditions: [...conditions] })
+      }),
+      passHour: async () => {
+        try {
+          return await passHour({ gameId: id })
+        } catch (err) {
+          onFailure(err)
+          throw err
+        }
+      },
+    },
+    income: {
+      deals: ledger ? dealCount(ledger) : 0,
+      collected: ledger?.incomeCollected ?? false,
+      collect: () => collectIncome({ gameId: id }),
+    },
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,
+    salvageWreck: said(async (npc: TrayNpc, haul: (c: Crawler) => Partial<Crawler> | null) => {
+      const held = crawler?.held ? crawler.crawler : null
+      const patch = held === null ? null : haul(store.get('crawler', held.id) ?? held)
+      if (held === null && haul !== NOTHING) throw new Error('There is no crawler to haul it to')
+      // Claimed first, as a Downtime step is: a second press never pays twice.
+      // A wreck that yields nothing is settled too: what was left is destroyed.
+      await updateNpc({ npcId: npcId(npc), patch: { salvaged: true } })
+      if (held !== null && patch !== null) {
+        runWrite(() => store.update('crawler', held.id, patch, PLAY_TXN))
+      }
+    }),
+    area,
     prep: {
       encounters,
       running: running == null ? null : readRunning(running),

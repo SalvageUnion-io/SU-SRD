@@ -25,7 +25,8 @@
 }
 
 /* A one-line field is its Size's height (`--size-*`): Full by default, Compact
- * (`Input size="compact"`) beside a sheet's Compact buttons. A textarea keeps
+ * (`Input size="compact"`, a `Select`'s `su-text-input--compact`) beside a
+ * sheet's Compact buttons. A textarea keeps
  * its rows. */
 input.su-text-input,
 select.su-text-input {
@@ -33,7 +34,8 @@ select.su-text-input {
   padding-block: 0;
 }
 
-input.su-text-input--compact {
+input.su-text-input--compact,
+select.su-text-input--compact {
   font-size: var(--text-xs);
   height: var(--size-compact);
   line-height: calc(1 / 0.75);
@@ -44,7 +46,8 @@ input.su-text-input--compact {
    it types at 16px: iOS zooms the page into any focused control under 16px
    (`atoms/inputs.tsx`). */
 @media (pointer: coarse) {
-  input.su-text-input--compact {
+  input.su-text-input--compact,
+  select.su-text-input--compact {
     font-size: var(--text-base);
     line-height: 1.5;
   }

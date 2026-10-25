@@ -21,12 +21,16 @@ import {
   buildPilotActions,
   coreMechanicRowText,
   economyForActivation,
+  economyUnderScene,
   hasCurrencyChoice,
   hasVariableHot,
   heatCheckOncePatch,
   hotHeatFor,
+  isAreaSalvage,
   isDestructiveOutcome,
+  mechPush,
   pilotActivationPatch,
+  pilotOverloadPatch,
   pushPatch,
   shutdownTogglePatch,
   VENT_PATCH,
@@ -98,6 +102,35 @@ describe('reactor patches', () => {
     expect(shutdownTogglePatch(false)).toEqual({ shutdown: true })
     expect(shutdownTogglePatch(true)).toEqual({ shutdown: false })
     expect(shutdownTogglePatch(undefined)).toEqual({ shutdown: true })
+  })
+})
+
+describe('under a Scene’s conditions (Workshop Manual p.306, False Flag p.9)', () => {
+  // A Mule's Heat Capacity is 6.
+  const mule = (currentHeat: number) =>
+    mechFixture({ id: 'm-scene', name: 'Rig', chassisRef: 'mule', currentHeat })
+
+  test('a Push in a Radiation Storm adds 4 Heat, and says so', () => {
+    const pushed = mechPush(mule(1), seqRoll([20]), 2)
+    expect(pushed?.patch.currentHeat).toBe(5)
+    expect(pushed?.text.startsWith('+4 Heat → 5.')).toBe(true)
+  })
+
+  test('Freezing halves it: a Push adds 1', () => {
+    expect(mechPush(mule(3), seqRoll([20]), 0.5)?.patch.currentHeat).toBe(4)
+  })
+
+  test('no Push where the scaled Heat would pass the Heat Cap', () => {
+    const hot = mule(4)
+    expect(mechPush(hot, seqRoll([20]))).not.toBeNull()
+    expect(mechPush(hot, seqRoll([20]), 2)).toBeNull()
+  })
+
+  test('Hot Heat scales, rounded down; EP and uses do not', () => {
+    const base = { epCost: 2, heat: 3, maxUses: 1 }
+    expect(economyUnderScene(base, 2)).toEqual({ epCost: 2, heat: 6, maxUses: 1 })
+    expect(economyUnderScene(base, 0.5)).toEqual({ epCost: 2, heat: 1, maxUses: 1 })
+    expect(economyUnderScene(base, 1)).toBe(base)
   })
 })
 
@@ -210,9 +243,9 @@ describe('buildPilotActions', () => {
       equipment: [kitSlug, 'not-an-item', gunSlug],
       equipmentConditions: { [gunSlug]: 'damaged' },
     })
-    const deck = buildPilotActions(pilot)
+    const deck = buildPilotActions(pilot).filter((pa) => pa.kind === 'equipment')
     // The unknown slug is skipped, not a crash.
-    expect(deck.every((pa) => pa.kind === 'equipment' && pa.stamp === 'EQP')).toBe(true)
+    expect(deck.every((pa) => pa.stamp === 'EQP')).toBe(true)
     expect(deck.every((pa) => pa.currency === 'AP')).toBe(true)
     const kitActions = deck.filter((pa) => pa.slug === kitSlug)
     const gunActions = deck.filter((pa) => pa.slug === gunSlug)
@@ -224,9 +257,16 @@ describe('buildPilotActions', () => {
     expect(deck.every((pa) => pa.key.startsWith('equipment:'))).toBe(true)
   })
 
-  test('empty for a pilot with no abilities or equipment', () => {
+  test('a pilot with no abilities or equipment still has Area Salvage (p.248)', () => {
     const pilot = pilotFixture({ id: 'p2', name: 'Ghost' })
-    expect(buildPilotActions(pilot)).toEqual([])
+    const deck = buildPilotActions(pilot)
+    expect(deck.map((pa) => pa.name)).toEqual(['Area Salvage'])
+    expect(deck[0] && isAreaSalvage(deck[0].action)).toBe(true)
+  })
+
+  test('a stored Area Salvage is dealt once, not twice', () => {
+    const pilot = pilotFixture({ id: 'p4', name: 'Rook', abilities: ['area-salvage'] })
+    expect(buildPilotActions(pilot).filter((pa) => pa.name === 'Area Salvage')).toHaveLength(1)
   })
 })
 
@@ -370,5 +410,33 @@ describe('activationHeatGate', () => {
       activationHeatGate({ currency: 'EP', onFoot: false, heat: 0, currentHeat: 12, heatCap: 10 })
         .ok
     ).toBe(true)
+  })
+})
+
+describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', () => {
+  const fleshripper = mechFixture({ id: 'bio', chassisRef: 'fleshripper', currentHeat: 4 })
+
+  test("a Push's Bio-Overload shuts the chassis down and leaves its SP", () => {
+    const pushed = mechPush(fleshripper, seqRoll([2, 12]))
+    expect(pushed?.effect.result.outcome).toBe('bio-overload')
+    expect(pushed?.patch).toMatchObject({ currentHeat: 6, shutdown: true, vulnerable: true })
+    // The Fleshripper's 50 SP, untouched: the Heat is the Pilot's.
+    expect(pushed?.patch.currentSP).toBe(50)
+    expect(pushed?.text).toContain('Bio-Chassis Overload Table 12: BIO-OVERLOAD')
+  })
+
+  test("the Heat burns the Pilot, and a Pilot Overload is the Pilot's Injury", () => {
+    const pilot = pilotFixture({ id: 'p', currentHP: 10 })
+    const burnt = mechPush(fleshripper, seqRoll([2, 12]))
+    expect(burnt && pilotOverloadPatch(pilot, burnt.effect)).toEqual({ currentHP: 4 })
+    const hurt = mechPush(fleshripper, seqRoll([2, 4]))
+    expect(hurt && pilotOverloadPatch(pilot, hurt.effect)).toEqual({
+      injuries: [{ severity: 'major', note: 'Bio-Chassis Overload Table' }],
+    })
+  })
+
+  test("a mech's Reactor Overload leaves the Pilot alone", () => {
+    const { effect } = heatCheckOncePatch({ heat: 6, currentSP: 10, roll: seqRoll([3, 15]) })
+    expect(pilotOverloadPatch(pilotFixture({ id: 'p' }), effect)).toBeNull()
   })
 })

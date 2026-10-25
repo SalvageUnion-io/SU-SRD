@@ -14,6 +14,7 @@
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { closeRangeOnly, sceneHeatScale } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -30,6 +31,7 @@ import { reportingRoll } from './playRolls.model'
 import type { Play } from './situation.model'
 import type { ResolveModel } from './useActionsDeck'
 import { useActionsDeck } from './useActionsDeck'
+import { useSalvageArea } from './useSalvageArea'
 
 /** What a test injects: the store the writes go to, and the dice. */
 export type PlayActionsDeps = {
@@ -65,6 +67,10 @@ export type PlayActions = {
    * The dice a roll here reads, recorded under `label`. `outcome`, read once
    * the dice are, says what the roll came to ("Heat Check passed", a rumour).
    */
+  /** What the Scene's conditions multiply Heat gained by (`sceneHeatScale`). */
+  heatScale: number
+  /** The Scene's conditions limit sight and targeting to Close Range (Low Visibility). */
+  closeOnly: boolean
   rollFor: (
     tableName: string,
     label: string,
@@ -132,6 +138,11 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
       meta(resolvingName.current ?? tableName)
     )
 
+  const heatScale = sceneHeatScale(play.scene.conditions)
+
+  // The area an Area Salvage spends Supply from: the Game's, or the solo table's.
+  const salvageArea = useSalvageArea(target)
+
   const deck = useActionsDeck({
     mech: situation === 'onFoot' ? null : mech,
     pilot,
@@ -142,6 +153,8 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
       next === null ? play.seat.clearResolving() : play.seat.setResolving(next),
     store,
     rollFor: deckRoll,
+    heatScale,
+    salvageArea,
   })
 
   return {
@@ -159,6 +172,8 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     resolve: deck.resolve,
     resolvingKey: resolving?.ref ?? null,
     open: deck.open,
+    heatScale,
+    closeOnly: closeRangeOnly(play.scene.conditions),
     rollFor,
     store,
   }

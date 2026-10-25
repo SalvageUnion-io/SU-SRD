@@ -105,6 +105,12 @@ type RosterColumnProps = {
   count?: SlabCount
   /** No rows: the dashed empty state, carrying the create CTA. */
   empty: boolean
+  /**
+   * The column's own landmark name, for a page with two rosters (`/starter`'s
+   * two crews): it names the region instead of the heading, so no two regions
+   * share a name and no two headings an id.
+   */
+  label?: string
   children?: ReactNode
 }
 
@@ -117,15 +123,16 @@ export function RosterColumn({
   headExtra,
   count,
   empty,
+  label,
   children,
 }: RosterColumnProps) {
-  const headingId = `${kind}s-heading`
+  const headingId = label === undefined ? `${kind}s-heading` : undefined
   return (
     // The column heading is the ink section stamp, its controls at the end of
     // the leader rule (they wrap under the stamp on a narrow column).
     <SlabSection
       as="h2"
-      id={headingId}
+      {...(headingId ? { id: headingId } : { 'aria-label': label })}
       title={title}
       {...(count ? { count } : {})}
       className={active ? undefined : 'su-roster-column--inactive'}

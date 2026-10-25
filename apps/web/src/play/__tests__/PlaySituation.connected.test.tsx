@@ -78,6 +78,8 @@ function answer(name: string, args: Record<string, unknown>): unknown {
       return server.solo
     case 'seats:forGame':
       return server.gameSeats
+    case 'scenes:current':
+      return { conditions: [], hours: 0 }
     case 'downtime:state': {
       if (args.gameId !== null) {
         return {
@@ -115,6 +117,9 @@ function answer(name: string, args: Record<string, unknown>): unknown {
       return []
     // The Play bar's channel button: nothing bound.
     case 'channelBindings:current':
+      return null
+    // The Stop Sign: none shown.
+    case 'safety:stopSign':
       return null
     case 'account:me':
       return { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null }

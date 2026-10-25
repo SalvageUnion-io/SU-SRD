@@ -11,14 +11,22 @@
  *    patterns included;
  *  - **Tables to hand**: the roll tables it pins in Play, found with "Pin a
  *    table…", each opening to read and try (`PlayRollTable`), Unpin beside it;
- *  - **Notes**: the Mediator's own, never shown to players.
+ *  - **Notes**: the Mediator's own, never shown to players;
+ *  - **Briefing**: what the Pilots see, which Play offers to tell the table.
+ *
+ * Opponents can be put in groups, each arriving in a wave (`EncounterGroups`).
+ * Groups and the briefing are behind the `encounterSheet` flag (ADR-060).
  *
  * Every edit is one store write (server-first, ADR-034), run one after
  * another so two quick adds both land.
  */
 
-import type { Encounter, EncounterOpponent } from 'game-domain/schemas/encounter'
-import { ENCOUNTER_MAX_NOTES, ENCOUNTER_MAX_TABLES } from 'game-domain/schemas/encounter'
+import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
+import {
+  ENCOUNTER_MAX_BRIEFING,
+  ENCOUNTER_MAX_NOTES,
+  ENCOUNTER_MAX_TABLES,
+} from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -47,6 +55,7 @@ import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { reportWriteFailure } from '../../lib/runWrite'
@@ -59,7 +68,23 @@ import { findTables } from '../../play/tables.model'
 import { usePatternStore } from '../../stores/patternStore'
 import { usePrepStore } from '../../stores/prepStore'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
-import { hasRoomFor, opponentAsTray, opponentFrom, pinTable, unpinTable } from './encounter.model'
+import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
+import {
+  addGroup,
+  groupsOf,
+  hasRoomFor,
+  hasRoomForGroup,
+  moveMenu,
+  moveToGroup,
+  opponentAsTray,
+  opponentFrom,
+  oppositionBlocks,
+  pinTable,
+  removeGroup,
+  renameGroup,
+  setGroupWave,
+  unpinTable,
+} from './encounter.model'
 
 const LIST = {
   display: 'flex',
@@ -97,6 +122,10 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   const patterns = usePatternStore((s) => s.mechPatterns)
   const [picking, setPicking] = useState(false)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
+  // The group being named: `null` for a new one, absent when the dialog is shut.
+  const [naming, setNaming] = useState<EncounterGroup | null | undefined>(undefined)
+  const grouping = flagOn('encounterSheet')
+  const groups = groupsOf(encounter)
   // Writes go one after another, each from the store's latest copy, so two
   // quick adds do not both start from the same opposition and drop one.
   const queue = useRef<Promise<unknown>>(Promise.resolve())
@@ -128,19 +157,54 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
       opposition: current.opposition.filter((o) => o.id !== opponent.id),
     }))
 
-  const opponentMenu = (opponent: EncounterOpponent): HeaderMenuItem[][] =>
-    canWrite
-      ? [
-          [
-            {
-              id: 'rename',
-              label: 'Rename…',
-              onSelect: () => setRenaming(opponentAsTray(opponent)),
-            },
-            { id: 'remove', label: 'Remove', onSelect: () => remove(opponent) },
-          ],
-        ]
-      : []
+  const move = (opponent: EncounterOpponent, groupId: string | null) =>
+    void write((current) => ({
+      opposition: moveToGroup(current.opposition, opponent.id, groupId),
+    }))
+
+  const opponentMenu = (opponent: EncounterOpponent): HeaderMenuItem[][] => {
+    if (!canWrite) return []
+    const moves = grouping ? moveMenu(opponent, groups, (groupId) => move(opponent, groupId)) : []
+    return [
+      [
+        {
+          id: 'rename',
+          label: 'Rename…',
+          onSelect: () => setRenaming(opponentAsTray(opponent)),
+        },
+        { id: 'remove', label: 'Remove', onSelect: () => remove(opponent) },
+      ],
+      ...(moves.length > 0 ? [moves] : []),
+    ]
+  }
+
+  const opponentRow = (opponent: EncounterOpponent) => (
+    <UnitRow
+      kind="npc"
+      name={opponent.name}
+      readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
+      trailing={
+        canWrite ? (
+          <HeaderMenu
+            variant="overflow"
+            trigger={null}
+            label={buildPrepCopy('moreFor', { name: opponent.name })}
+            sections={opponentMenu(opponent)}
+          />
+        ) : undefined
+      }
+    />
+  )
+
+  const saveGroupName = async (name: string) => {
+    if (naming === undefined) return
+    const renamed = naming
+    await write((current) =>
+      renamed === null
+        ? { groups: addGroup(current, name, crypto.randomUUID()) }
+        : { groups: renameGroup(groupsOf(current), renamed.id, name) }
+    )
+  }
 
   const deleteEncounter = () =>
     confirm({
@@ -197,41 +261,49 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
             count={String(encounter.opposition.length)}
             actions={
               canWrite ? (
-                <Button
-                  size="mini"
-                  disabled={!hasRoomFor(encounter)}
-                  aria-label={buildPrepCopy('addOppositionFromTheReference')}
-                  onClick={() => setPicking(true)}
-                >
-                  {buildPrepCopy('add')}
-                </Button>
+                <>
+                  {grouping && (
+                    <Button
+                      size="mini"
+                      disabled={!hasRoomForGroup(encounter)}
+                      aria-label={buildPrepCopy('addAGroup')}
+                      onClick={() => setNaming(null)}
+                    >
+                      {buildPrepCopy('addGroup')}
+                    </Button>
+                  )}
+                  <Button
+                    size="mini"
+                    disabled={!hasRoomFor(encounter)}
+                    aria-label={buildPrepCopy('addOppositionFromTheReference')}
+                    onClick={() => setPicking(true)}
+                  >
+                    {buildPrepCopy('add')}
+                  </Button>
+                </>
               ) : undefined
             }
           >
-            {encounter.opposition.length === 0 ? (
+            {grouping && groups.length > 0 ? (
+              <GroupedOpposition
+                blocks={oppositionBlocks(encounter)}
+                row={opponentRow}
+                canWrite={canWrite}
+                writes={{
+                  rename: (group) => setNaming(group),
+                  setWave: (group, wave) =>
+                    void write((current) => ({
+                      groups: setGroupWave(groupsOf(current), group.id, wave),
+                    })),
+                  remove: (group) => void write((current) => removeGroup(current, group.id)),
+                }}
+              />
+            ) : encounter.opposition.length === 0 ? (
               <EmptyState variant="inline" body={buildPrepCopy('noOpposition')} />
             ) : (
               <ul style={LIST} aria-label={buildPrepCopy('opposition')}>
                 {encounter.opposition.map((opponent) => (
-                  <li key={opponent.id}>
-                    <UnitRow
-                      kind="npc"
-                      name={opponent.name}
-                      readings={[
-                        { label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp },
-                      ]}
-                      trailing={
-                        canWrite ? (
-                          <HeaderMenu
-                            variant="overflow"
-                            trigger={null}
-                            label={buildPrepCopy('moreFor', { name: opponent.name })}
-                            sections={opponentMenu(opponent)}
-                          />
-                        ) : undefined
-                      }
-                    />
-                  </li>
+                  <li key={opponent.id}>{opponentRow(opponent)}</li>
                 ))}
               </ul>
             )}
@@ -245,27 +317,51 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
             }
           />
         </Stack>
-        <SlabSection
-          as="h2"
-          id="encounter-notes"
-          title={buildPrepCopy('notes')}
-          actions={<Stat label={buildPrepCopy('onlyYou')} size="compact" />}
-        >
-          <Field
-            label={buildPrepCopy('yourNotes')}
-            value={encounter.notes}
-            multiline
-            fill
-            placeholder={buildPrepCopy('notesPlaceholder')}
-            onSave={
-              canWrite
-                ? async (next) => {
-                    await write(() => ({ notes: next.slice(0, ENCOUNTER_MAX_NOTES) }))
-                  }
-                : undefined
-            }
-          />
-        </SlabSection>
+        <Stack gap={24}>
+          <SlabSection
+            as="h2"
+            id="encounter-notes"
+            title={buildPrepCopy('notes')}
+            actions={<Stat label={buildPrepCopy('onlyYou')} size="compact" />}
+          >
+            <Field
+              label={buildPrepCopy('yourNotes')}
+              value={encounter.notes}
+              multiline
+              fill
+              placeholder={buildPrepCopy('notesPlaceholder')}
+              onSave={
+                canWrite
+                  ? async (next) => {
+                      await write(() => ({ notes: next.slice(0, ENCOUNTER_MAX_NOTES) }))
+                    }
+                  : undefined
+              }
+            />
+          </SlabSection>
+          {grouping && (
+            <SlabSection
+              as="h2"
+              id="encounter-briefing"
+              title={buildPrepCopy('briefing')}
+              actions={<Stat label={buildPrepCopy('playersSeeThis')} size="compact" />}
+            >
+              <Field
+                label={buildPrepCopy('whatThePilotsSee')}
+                value={encounter.briefing ?? ''}
+                multiline
+                placeholder={buildPrepCopy('briefingPlaceholder')}
+                onSave={
+                  canWrite
+                    ? async (next) => {
+                        await write(() => ({ briefing: next.slice(0, ENCOUNTER_MAX_BRIEFING) }))
+                      }
+                    : undefined
+                }
+              />
+            </SlabSection>
+          )}
+        </Stack>
       </Grid>
       <SheetPickerModal
         open={picking}
@@ -304,6 +400,13 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
               opposition: current.opposition.map((o) => (o.id === npc.id ? { ...o, name } : o)),
             })),
         }}
+      />
+      <GroupNameDialog
+        key={naming === undefined ? 'shut' : (naming?.id ?? 'new')}
+        open={naming !== undefined}
+        group={naming ?? null}
+        onClose={() => setNaming(undefined)}
+        onSave={saveGroupName}
       />
       {dialog}
     </PageShell>

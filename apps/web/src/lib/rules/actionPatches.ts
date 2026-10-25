@@ -13,14 +13,21 @@
  * patch — it stays an explicit player call at the UI layer.
  */
 
+import { pushHeatAt, scaleHeat } from 'game-domain/rules/sceneConditions'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { CoreRollBand, HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
+import type {
+  CoreRollBand,
+  HeatCheckEffect,
+  OverloadTable,
+  Roll,
+} from 'salvageunion-reference/rules'
 import {
+  AREA_SALVAGE_TABLE,
   canActivateAction,
   canPush,
   clampHeat,
@@ -28,8 +35,11 @@ import {
   describePushOutcome,
   mechMaxHeat,
   mechMaxSP,
+  overloadTableName,
+  overloadTableOf,
   performHeatCheck,
   performPush,
+  pilotMaxHP,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
@@ -65,7 +75,15 @@ function autoApplyPatch(patch: Partial<Mech>): { patch: Partial<Mech>; meltdown:
  * held back (`meltdown: true`) for the caller's player-confirm (ADR-007).
  * Destroyed System/Module bands are likewise left for the player to mark.
  */
-export function pushPatch(args: { heat: number; heatCap: number; currentSP: number; roll: Roll }): {
+export function pushPatch(args: {
+  heat: number
+  heatCap: number
+  currentSP: number
+  roll: Roll
+  /** The Push's Heat where a Scene scales it (`pushHeatAt`); 2 by default. */
+  gain?: number
+  table?: OverloadTable
+}): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   nextHeat: number
@@ -80,41 +98,77 @@ export function pushPatch(args: { heat: number; heatCap: number; currentSP: numb
  * A Push on `mech` as it stands (the caller reads it fresh from the store): the
  * patch, what it came to and whether it melted down, or null where +2 Heat
  * would pass the Heat Cap (Core Book p.234). The resolve's Push
- * (`useActionsDeck`) and `PlayReactorRow`'s both run it.
+ * (`useActionsDeck`) and `PlayReactorRow`'s both run it. Under a Scene's
+ * conditions the Push's Heat is scaled (`heatScale`: 4 in a Radiation Storm,
+ * 1 Freezing; `pushHeatAt`).
  */
 export function mechPush(
   mech: Mech,
-  roll: Roll
+  roll: Roll,
+  heatScale = 1
 ): {
   patch: Partial<Mech>
   text: string
   meltdown: boolean
-  /** The Reactor Overload die, where the Heat Check overloaded. */
+  /** The overload die, where the Heat Check overloaded. */
   overloadRoll?: number
+  /** What the overload does to the Pilot (a Bio-Chassis's), for `pilotOverloadPatch`. */
+  effect: HeatCheckEffect
 } | null {
   const chassis = resolveChassisRef(mech.chassisRef)
   const heatCap = mechMaxHeat(mech, chassis)
   const heat = resolveGauge(mech.currentHeat, heatCap)
-  if (!canPush(heat, heatCap)) return null
+  const gain = pushHeatAt(heatScale)
+  if (!canPush(heat, heatCap, gain)) return null
+  const table = overloadTableOf(chassis)
   const { patch, effect, nextHeat, meltdown } = pushPatch({
     heat,
     heatCap,
+    gain,
     // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
     // to SP 0 — one hit from destroyed — without it ever having taken damage.
     currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
     roll,
+    table,
   })
   const { overloadRoll } = effect.result
   return {
     patch,
-    text: describePushOutcome(nextHeat, effect),
+    text: describePushOutcome(nextHeat, effect, gain, table),
     meltdown,
+    effect,
     ...(overloadRoll === undefined ? {} : { overloadRoll }),
   }
 }
 
+/**
+ * What a Bio-Chassis overload does to its Pilot (We Were Here First p.79): a
+ * Bio-Overload's HP damage equal to the Heat, or a Pilot Overload's Minor or
+ * Major Injury. Null when the overload leaves the Pilot alone, as every
+ * Reactor Overload row does.
+ */
+export function pilotOverloadPatch(pilot: Pilot, effect: HeatCheckEffect): Partial<Pilot> | null {
+  const patch: Partial<Pilot> = {}
+  if (effect.pilotDamage !== undefined) {
+    const hp = resolvePoolStart(pilot.currentHP, pilotMaxHP(pilot))
+    patch.currentHP = Math.max(0, hp - effect.pilotDamage)
+  }
+  if (effect.pilotInjury !== undefined) {
+    patch.injuries = [
+      ...(pilot.injuries ?? []),
+      { severity: effect.pilotInjury, note: overloadTableName('bio') },
+    ]
+  }
+  return Object.keys(patch).length === 0 ? null : patch
+}
+
 /** A standalone Heat Check at current Heat (no +2). Meltdown is player-confirmed. */
-export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll: Roll }): {
+export function heatCheckOncePatch(args: {
+  heat: number
+  currentSP: number
+  roll: Roll
+  table?: OverloadTable
+}): {
   patch: Partial<Mech>
   effect: HeatCheckEffect
   meltdown: boolean
@@ -147,10 +201,13 @@ export function shutdownTogglePatch(shutdown: boolean | undefined): Partial<Mech
  * which prefixes the same tail with its `+2 Heat → N.` head) — only the head is
  * Play's own.
  */
-export function describeHeatCheck(effect: HeatCheckEffect): string {
+export function describeHeatCheck(
+  effect: HeatCheckEffect,
+  table: OverloadTable = 'reactor'
+): string {
   const r = effect.result
   const head = `Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
-  return `${head} — ${describeOverloadOutcome(r)}`
+  return `${head} — ${describeOverloadOutcome(r, table)}`
 }
 
 // ---------------------------------------------------------------------------
@@ -278,15 +335,29 @@ function resolveAbilityBySlug(slug: string): RefAbility | null {
 }
 
 /**
+ * The Generic abilities Play's deck deals every pilot, stored or not: "All
+ * Pilots have the following Abilities" (Core Book p.248), so the record never
+ * holds them (`pilotSheet.model`'s Generic tree). Only the ones Play resolves
+ * end to end are dealt; the rest stay the sheet's.
+ */
+const INTRINSIC_ABILITIES = ['area-salvage'] as const
+
+/** Whether an action is an Area Salvage, which rolls its own table (p.248) and pays out Scrap. */
+export function isAreaSalvage(action: RefMetaAction): boolean {
+  return action.tableName === AREA_SALVAGE_TABLE
+}
+
+/**
  * The on-foot pilot's activatable actions, flat — every action of each selected
- * ability and each carried equipment item. Mirrors `buildMechActions` but on the
- * AP economy (pilots have no Heat/EP): `economy.epCost` carries the AP cost and
- * `currency` is 'AP'.
+ * ability, the intrinsic Generic ones, and each carried equipment item. Mirrors
+ * `buildMechActions` but on the AP economy (pilots have no Heat/EP):
+ * `economy.epCost` carries the AP cost and `currency` is 'AP'.
  */
 export function buildPilotActions(pilot: Pilot): PlayAction[] {
   const out: PlayAction[] = []
+  const owned = pilot.abilities ?? []
 
-  for (const slug of pilot.abilities ?? []) {
+  for (const slug of [...owned, ...INTRINSIC_ABILITIES.filter((s) => !owned.includes(s))]) {
     const ability = resolveAbilityBySlug(slug)
     if (!ability) continue
     deckActions(ability).forEach((action, i) => {
@@ -407,6 +478,11 @@ export function economyForActivation(
 ): MechItemEconomy {
   if (!hasVariableHot(action)) return base
   return { ...base, heat: hotHeatFor(action, hotX) }
+}
+
+/** The economy with its Hot Heat scaled by a Scene's conditions (`sceneHeatScale`), rounded down. */
+export function economyUnderScene(base: MechItemEconomy, heatScale: number): MechItemEconomy {
+  return heatScale === 1 ? base : { ...base, heat: scaleHeat(base.heat, heatScale) }
 }
 
 /** Whether one activation's Hot Heat applies, and whether it fits under the Heat Cap. */

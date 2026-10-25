@@ -21,6 +21,7 @@ import type { Play } from './situation.model'
 import { situationOf, soloMechOptions } from './situation.model'
 import { useGameBoardSources } from './useBoardSources'
 import { usePlayDowntime } from './usePlayDowntime'
+import { useScene } from './useScene'
 import { useSeatAt } from './useSeat'
 
 export function usePlaySituation(target: PlayTarget): Play {
@@ -30,6 +31,7 @@ export function usePlaySituation(target: PlayTarget): Play {
   const pilot = store.get('pilot', target.pilotId)
   const seat = useSeatAt({ gameId: target.gameId as Id<'games'> | null, pilotId: target.pilotId })
   const downtime = usePlayDowntime(target)
+  const scene = useScene(target.gameId)
   const sources = useGameBoardSources(target.gameId as Id<'games'> | null)
 
   const mount = seat.seat.mount
@@ -73,6 +75,7 @@ export function usePlaySituation(target: PlayTarget): Play {
     },
     seat,
     downtime,
+    scene,
     canWrite,
     readOnly: playReadOnly(connection),
   }
