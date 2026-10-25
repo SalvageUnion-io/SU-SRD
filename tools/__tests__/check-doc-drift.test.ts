@@ -10,7 +10,6 @@ import { dirname, join } from 'node:path'
 import {
   checkAreaCitations,
   checkBacktickedPathsExist,
-  checkDecisions,
   checkDocSizes,
   checkFixHints,
   checkMarkdownLinks,
@@ -24,6 +23,7 @@ import {
   sentenceBounds,
   splitMarkdownBlocks,
 } from '../check-doc-drift'
+import { checkDecisions } from '../docDecisions'
 
 const fixtureRoots: string[] = []
 
@@ -704,6 +704,32 @@ describe('checkDecisions', () => {
     })
     expect(checkDecisions(failing, 3).failures).toEqual([
       'docs/ARCHITECTURE.md lists ADR-002 as an entry and as retired. Keep one.',
+    ])
+  })
+
+  it('passes an ADR folded into the one Area whose headline names it', () => {
+    const areas = '## Areas\n\n1. **Data** · ADR-002, ADR-003 <a id="data"></a>\n   The rule.\n\n'
+    const root = fixture({
+      'docs/ARCHITECTURE.md': `# Architecture\n\n${areas}## Decisions\n\n${entry(1, 'Accepted.')}`,
+    })
+    expect(checkDecisions(root, 3).failures).toEqual([])
+  })
+
+  it('fails an ADR folded twice, or folded and kept as an entry', () => {
+    const areas = [
+      '## Areas',
+      '',
+      '1. **Data** · ADR-001, ADR-002 <a id="data"></a>',
+      '2. **Pages (ADR-003)** <a id="pages"></a>',
+      '3. **Rules** · ADR-002 <a id="rules"></a>',
+      '',
+    ].join('\n')
+    const root = fixture({
+      'docs/ARCHITECTURE.md': `${areas}\n## Decisions\n\n${entry(1, 'Accepted.')}${entry(3, 'Accepted.')}`,
+    })
+    expect(checkDecisions(root, 3).failures).toEqual([
+      'docs/ARCHITECTURE.md lists ADR-001 as an entry and as folded. Keep one.',
+      "docs/ARCHITECTURE.md folds ADR-002 into 2 Areas (lines 3, 5). A rule lives once: name it on one Area's headline.",
     ])
   })
 

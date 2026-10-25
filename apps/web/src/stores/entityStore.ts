@@ -37,6 +37,8 @@ import {
   endsMatchType,
   sameLink,
 } from 'game-domain/links/linkRules'
+import type { OpInput } from 'game-domain/ops/applyOp'
+import { diffBodies } from 'game-domain/ops/applyOp'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
@@ -49,17 +51,17 @@ import { LinkRefused } from '../lib/links/linkRefused'
 import { captureException } from '../lib/observability'
 import {
   commitEntityWrite,
+  commitOp,
   commitSoftLink,
   commitTransfer,
   requireWritableBackend,
   StaleWriteRefused,
 } from './entityBackend'
 import type { ChangeMeta } from './entityChangeLog'
-import { emitChangeLog } from './entityChangeLog'
 import type { RecordKind } from './records'
 import { parseServed, prepareCreate, prepareUpdate, RECORD_KINDS, upsertById } from './records'
 import { untilRowsArrive } from './rowArrival'
-import { noteVersion } from './serverVersions'
+import { knownSeq, noteSeq, noteVersion } from './serverVersions'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
 // Re-exported: every surface imports the provenance tag type from the store.
@@ -206,62 +208,65 @@ function storeKeyFor(type: EntityType): StoreKey {
 }
 
 /**
- * Commit one record to the server of record, and throw if it refuses.
+ * Create one record on the server of record, and throw if it refuses.
  *
  * It is **awaited before anything local is written**, so a refused write leaves
  * no trace on the device: the server, not the local store, is the source of
- * truth.
- *
- * Each type still dispatches differently, and each difference is a rule rather
- * than an implementation detail: a crawler sends its *patch* so a write from a
- * stale copy merges rather than undoing a field it did not touch (ADR-030 §5;
- * only the table runner writes a Game's crawler since ADR-038 §5), a pilot
- * or mech sends its whole body, and
- * a soft link is addressed by its endpoints because the server has no id for it.
- *
- * A pilot or mech body is refused when the server's row has moved past the
- * copy it was made from (`entities.upsertByAppId`). The refusal carries the
- * server's row, which is adopted here before the write fails — so the sheet
- * shows what the other device saved, and the player re-applies their change on
- * top of it rather than over it.
+ * truth. A soft link is addressed by its endpoints, because the server has no
+ * id for it. Every later change to a unit is an op (`opOf`, `commitOp`).
  */
-async function commitWrite(
+async function commitCreate(
   type: EntityType,
-  record: { id: string; gameId?: string | null },
-  patch?: object
+  record: { id: string; gameId?: string | null }
 ): Promise<void> {
   if (type === 'softLink') {
     await commitSoftLink('upsert', record as unknown as SoftLink)
     return
   }
+  await commitEntityWrite(type, {
+    kind: 'upsert',
+    appId: record.id,
+    gameId: record.gameId ?? null,
+    body: record,
+  })
+}
 
-  const gameId = record.gameId ?? null
-  if (type === 'crawler') {
-    await commitEntityWrite('crawler', {
-      kind: patch === undefined ? 'upsert' : 'patch',
-      appId: record.id,
-      gameId,
-      body: record,
-      patch: patch ?? {},
-    } as Parameters<typeof commitEntityWrite>[1])
-    return
+/**
+ * The op that takes a unit from the copy held to `updated` (ADR-063): only the
+ * fields that moved, made against the copy's `headSeq`, tagged with the
+ * surface's provenance. `move` is a crawler's new container, which
+ * `moveCrawler` writes rather than the op.
+ */
+function opOf(
+  type: EntityType,
+  id: string,
+  before: object,
+  updated: object,
+  patch: object,
+  meta: ChangeMeta
+): { op: OpInput; move?: string | null } {
+  const { patch: changed, unset } = diffBodies(
+    before as Record<string, unknown>,
+    updated as Record<string, unknown>
+  )
+  const op: OpInput = {
+    id: crypto.randomUUID(),
+    unitId: id,
+    baseSeq: knownSeq(id),
+    at: Date.now(),
+    kind: meta.kind,
+    source: meta.source,
+    patch: changed,
+    ...(unset.length === 0 ? {} : { unset }),
   }
-
-  try {
-    await commitEntityWrite(type, {
-      kind: 'upsert',
-      appId: record.id,
-      gameId,
-      body: record,
-    })
-  } catch (err) {
-    throw await refusalOf(err, () => ({ type, id: record.id }))
-  }
+  if (type !== 'crawler' || !('gameId' in patch)) return { op }
+  delete changed.gameId
+  return { op, move: (patch as { gameId?: string | null }).gameId ?? null }
 }
 
 /**
  * What a refused commit throws. A stale-write refusal carries the server's
- * pilot or mech row, which is adopted first, so the sheet shows what the other
+ * row, which is adopted first, so the sheet shows what the other
  * device saved and the player re-applies their change on top of it rather than
  * over it; `rowOf` names the refused record from the body's id. Any other
  * refusal is thrown as it came.
@@ -277,6 +282,7 @@ async function refusalOf(
     if (row !== undefined) {
       await useEntityStore.getState().adopt(row.type, stale.body as never)
       noteVersion(row.id, stale.updatedAt)
+      noteSeq(row.id, stale.headSeq)
     }
   } catch (adoptErr) {
     // The refusal still stands and is still shown; only the refresh failed,
@@ -454,11 +460,11 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
 
     // Build the record, commit it, and only then hold it. With Convex as the
     // source of truth, a record the server refused does not exist, so it must
-    // not appear here either. `commitWrite` throws on refusal and this deliberately does
+    // not appear here either. `commitCreate` throws on refusal and this deliberately does
     // not catch — the caller's write failed, and every caller already handles
     // that path for `WritesBlockedOffline`.
     const record = prepareCreate(kindOf(type), withContainer(type, input))
-    await commitWrite(type, record)
+    await commitCreate(type, record)
 
     set((state) => ({
       [key]: [record, ...(state[key] as EntityForType<T>[])],
@@ -505,7 +511,16 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // Same order as `create`: merge and validate, commit, then hold. A
     // refused edit leaves the local record exactly as it was.
     const updated = prepareUpdate(kindOf(type), before, id, patch)
-    await commitWrite(type, updated, patch)
+    if (type === 'softLink') {
+      await commitSoftLink('upsert', updated as unknown as SoftLink)
+    } else if (before !== null) {
+      const { op, move } = opOf(type, id, before, updated, patch, meta)
+      try {
+        await commitOp(type, (updated as ContainerFields).gameId ?? null, op, move)
+      } catch (err) {
+        throw await refusalOf(err, () => ({ type, id }))
+      }
+    }
 
     set((state) => ({
       [key]: (state[key] as EntityForType<T>[]).map((e) => (e.id === id ? updated : e)),
@@ -522,8 +537,6 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
         })
       }
     }
-    // Provenance (ADR-022): one entry per changed field, at this one chokepoint.
-    emitChangeLog(type, id, patch, before, updated, meta)
     return updated
   },
 
@@ -540,11 +553,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // nothing at all.
     requireWritableBackend()
 
-    // Capture before-images BEFORE the write, exactly as update() does, so the
-    // Change Log can diff them in step 4. Without this, cross-entity moves
-    // (cargo stow/load, scrap hand-offs) would mutate entities with no
-    // provenance at all — a hole in ADR-022's "every mutation is logged" chokepoint
-    // guarantee, since transfer() bypasses update().
+    // Before-images: each op is the difference between one and its result.
     const withBefore = updates.map((u) => ({ ...u, before: get().get(u.type, u.id) }))
 
     // Step 1 — validate everything BEFORE changing anything. prepareUpdate
@@ -564,7 +573,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     }))
 
     // Step 2 — commit the whole transfer to the server BEFORE changing anything,
-    // as ONE mutation (`entities.transfer`). A transfer moves value BETWEEN
+    // as ONE mutation (`ops.transfer`). A transfer moves value BETWEEN
     // entities, so a half-applied one is not a stale record but a wrong
     // balance: a stow that lands on the mech and is refused on the crawler
     // loses the lot, a load duplicates it. The mutation is one transaction, so
@@ -574,9 +583,10 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     try {
       await commitTransfer(
         prepared.map((pu) => ({
-          type: pu.type,
-          record: pu.record as { id: string; gameId?: string | null },
-          patch: pu.patch,
+          unit: pu.type,
+          gameId: (pu.record as ContainerFields).gameId ?? null,
+          // `prepareUpdate` refused a record this tab does not hold.
+          ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
         })),
         deletes.map((d) =>
           d.type === 'softLink'
@@ -585,9 +595,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
         )
       )
     } catch (err) {
-      throw await refusalOf(err, (bodyId) =>
-        prepared.find((pu) => pu.type !== 'crawler' && pu.id === bodyId)
-      )
+      throw await refusalOf(err, (bodyId) => prepared.find((pu) => pu.id === bodyId))
     }
 
     // Step 3 — apply it in one set(), mirroring update()/delete(): deleting an
@@ -617,20 +625,6 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
       }
       return next as Partial<EntityState>
     })
-
-    // Step 4 — provenance (ADR-022), as update() emits it. One entry per
-    // changed field per updated entity. Deletes are not logged: the per-entity
-    // log goes with the entity.
-    for (const pu of prepared) {
-      emitChangeLog(
-        pu.type,
-        pu.id,
-        pu.patch,
-        pu.before,
-        pu.record as EntityForType<typeof pu.type>,
-        meta
-      )
-    }
   },
 
   async updateCrawlerBay(crawlerId, bayRef, patch, index, meta) {

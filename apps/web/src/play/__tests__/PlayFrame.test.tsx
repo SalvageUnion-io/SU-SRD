@@ -1,6 +1,6 @@
 /**
  * Play's brand-colour bands wear the speckle (ruleset §3.5.1; hard rule R10): the frame sets the
- * texture once, on, for every entity form on the canvas and in the phone form,
+ * texture once, on, for every entity form in every pane at every width,
  * while the rest of the surface (links, the Page opener) carries through.
  *
  * Uses toBeTruthy() not toBeInTheDocument() (jest-dom's matchers are not on
@@ -25,23 +25,35 @@ function SurfaceProbe({ id }: { id: string }) {
   )
 }
 
-const frame = (phone = <SurfaceProbe id="phone" />) => (
+const PANES = [
+  { value: 'centre', label: 'Centre', column: 'centre', node: <SurfaceProbe id="centre" /> },
+  { value: 'start', label: 'Start', column: 'start', node: <SurfaceProbe id="start" /> },
+  { value: 'end', label: 'End', column: 'end', node: <SurfaceProbe id="end" /> },
+] as const
+
+const frame = (wide = true) => (
   <PlayFrame
+    wide={wide}
     bar={<SurfaceProbe id="bar" />}
-    start={<SurfaceProbe id="start" />}
-    centre={<SurfaceProbe id="centre" />}
-    end={<SurfaceProbe id="end" />}
+    pinned={<SurfaceProbe id="pinned" />}
+    panes={PANES}
+    tab="centre"
+    onTab={() => undefined}
     foot={null}
     labels={['Units', 'Actions', 'Side']}
-    phone={phone}
   />
 )
 
 describe('PlayFrame — Play sets its texture once, speckled (R10)', () => {
-  test('every column reads a speckled surface', () => {
-    const { getByTestId } = render(frame())
+  test('every pane reads a speckled surface, wide or narrow', () => {
+    const wide = render(frame())
     for (const id of ['bar', 'start', 'centre', 'end']) {
-      expect(getByTestId(id).dataset.texture).toBe('true')
+      expect(wide.getByTestId(id).dataset.texture).toBe('true')
+    }
+    wide.unmount()
+    const narrow = render(frame(false))
+    for (const id of ['bar', 'pinned', 'start', 'centre', 'end']) {
+      expect(narrow.getByTestId(id).dataset.texture).toBe('true')
     }
   })
 
@@ -52,5 +64,31 @@ describe('PlayFrame — Play sets its texture once, speckled (R10)', () => {
     )
     expect(getByTestId('centre').dataset.texture).toBe('true')
     expect(getByTestId('centre').textContent).toBe('/systems/x/')
+  })
+})
+
+describe('PlayFrame — one layout, its panes regions from `lg` and tabs below it', () => {
+  test('wide: start and centre are their columns, the end column one region; no tabs', () => {
+    const { getByRole, queryByRole, queryByTestId } = render(frame())
+    expect(getByRole('region', { name: 'Units' }).textContent).toContain('no-href')
+    expect(getByRole('region', { name: 'Actions' })).toBeTruthy()
+    expect(getByRole('region', { name: 'Side' })).toBeTruthy()
+    expect(queryByRole('tablist')).toBeNull()
+    expect(queryByTestId('pinned')).toBeNull()
+    // In the columns' reading order, whatever the tabs' order.
+    const order = [...document.querySelectorAll('.su-play-pane')].map((p) => p.id.split('-').at(-1))
+    expect(order).toEqual(['start', 'centre', 'end'])
+  })
+
+  test('narrow: the panes are the tabs’ panels, the open one shown, the rest mounted, hidden', () => {
+    const { getByRole, getAllByRole } = render(frame(false))
+    const tabs = getAllByRole('tab')
+    expect(tabs.map((t) => t.textContent)).toEqual(['Centre', 'Start', 'End'])
+    const panels = getAllByRole('tabpanel', { hidden: true })
+    expect(panels).toHaveLength(3)
+    const open = panels.filter((p) => !p.hidden)
+    expect(open.map((p) => p.getAttribute('aria-labelledby'))).toEqual([tabs[0]?.id ?? ''])
+    expect(tabs[0]?.getAttribute('aria-controls')).toBe(open[0]?.id ?? '')
+    expect(getByRole('tab', { name: 'Centre' }).getAttribute('aria-selected')).toBe('true')
   })
 })

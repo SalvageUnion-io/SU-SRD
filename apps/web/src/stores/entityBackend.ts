@@ -1,5 +1,7 @@
 import type { FunctionArgs } from 'convex/server'
 import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import type { OpInput } from 'game-domain/ops/applyOp'
+import { isEmptyOp } from 'game-domain/ops/applyOp'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { api } from '../../convex/_generated/api'
@@ -12,7 +14,7 @@ import {
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
-import { knownVersion, noteVersion } from './serverVersions'
+import { knownVersion, noteSeq, noteVersion } from './serverVersions'
 
 /**
  * Where entity writes actually go (ADR-030 §1).
@@ -195,25 +197,8 @@ export class StaleWriteRefused extends Error {
 }
 
 /**
- * The `patchCrawlerByAppId` args for a crawler field patch.
- *
- * A key patched to `undefined` is a CLEAR — the ↺ revert of a pinned Max SP is
- * `{ maxSpOverride: undefined }` — but the Convex client drops undefined object
- * fields when it serialises the args, so on the wire that patch was `{}` and
- * the server kept the pin. Each cleared key is named in `unset` instead.
- */
-export function crawlerPatchArgs(
-  appId: string,
-  patch: unknown
-): { appId: string; patch: unknown; unset?: string[] } {
-  const unset = Object.entries((patch ?? {}) as Record<string, unknown>)
-    .filter(([, value]) => value === undefined)
-    .map(([key]) => key)
-  return { appId, patch, ...(unset.length > 0 ? { unset } : {}) }
-}
-
-/**
- * Write one entity to the server of record, and **fail if it does not land**.
+ * Create or delete one entity on the server of record, and **fail if it does
+ * not land**. A change to one is an op (`commitOp`).
  *
  * Convex is the server of record (ADR-034), and the stores cannot legitimately
  * be ahead of it: a write the server refused **did not happen**, so the store
@@ -226,7 +211,6 @@ export async function commitEntityWrite(
   type: EntityRef['type'] | 'softLink',
   op:
     | { kind: 'upsert'; appId: string; gameId: string | null; body: unknown }
-    | { kind: 'patch'; appId: string; gameId: string | null; body: unknown; patch: unknown }
     | { kind: 'delete'; appId: string; gameId: string | null }
 ): Promise<void> {
   if (selectBackend() !== 'remote') return
@@ -240,28 +224,6 @@ export async function commitEntityWrite(
   if (type === 'crawler') {
     if (op.kind === 'delete') {
       await convexClient.mutation(api.entities.removeCrawlerByAppId, { appId: op.appId })
-      return
-    }
-    if (op.kind === 'patch') {
-      // A container change is its own mutation: it writes the row's `gameId`,
-      // the body's and `ownerId` together, and only the table runner may make
-      // it (ADR-037). The field patch below never carries one — the server
-      // strips it, so a move rides only `moveCrawler`.
-      const { gameId, ...fields } = (op.patch ?? {}) as Record<string, unknown>
-      if (op.patch !== null && typeof op.patch === 'object' && 'gameId' in op.patch) {
-        await convexClient.mutation(api.entities.moveCrawler, {
-          appId: op.appId,
-          gameId: (gameId ?? null) as Id<'games'> | null,
-        })
-      }
-      if (Object.keys(fields).length === 0) return
-      // Still a field-level patch rather than a whole-body replace, so a write
-      // from a stale copy never undoes a field it did not touch. Only the table
-      // runner writes a Game's crawler now (ADR-038 §5); the merge stays.
-      await convexClient.mutation(
-        api.entities.patchCrawlerByAppId,
-        crawlerPatchArgs(op.appId, fields)
-      )
       return
     }
     await convexClient.mutation(api.entities.createCrawler, {
@@ -281,10 +243,7 @@ export async function commitEntityWrite(
     })
     return
   }
-  // The version this browser last saw goes with the body, and the server
-  // refuses the write if its row has moved on — a whole-body write from a stale
-  // copy would undo another device's edit (`staleWrite.ts`). The answer is the
-  // row's new version, which is what the next write is made against.
+  // A create; `null` would say this browser holds no version of the row.
   const { updatedAt } = await convexClient.mutation(api.entities.upsertByAppId, {
     table,
     appId: op.appId,
@@ -293,6 +252,41 @@ export async function commitEntityWrite(
     expectedUpdatedAt: knownVersion(op.appId) ?? null,
   })
   noteVersion(op.appId, updatedAt)
+  noteSeq(op.appId, 0)
+}
+
+/** A unit kind: what an op changes. */
+type UnitKind = EntityRef['type']
+
+/**
+ * Send one op to the server of record (`ops.apply`, ADR-063), and **fail if it
+ * does not land**; the store awaits this before it holds the change. A
+ * crawler's container is `moveCrawler`'s to write, so a crawler op that moves
+ * one moves it first. The answer's `headSeq` is what the unit's next op is
+ * made against.
+ */
+export async function commitOp(
+  unit: UnitKind,
+  gameId: string | null,
+  op: OpInput,
+  move?: string | null
+): Promise<void> {
+  if (selectBackend() !== 'remote') return
+  if (unit === 'crawler' && move !== undefined) {
+    await convexClient.mutation(api.entities.moveCrawler, {
+      appId: op.unitId,
+      gameId: move as Id<'games'> | null,
+    })
+  }
+  if (isEmptyOp(op)) return
+  const applied = await convexClient.mutation(api.ops.apply, {
+    unit,
+    gameId: gameId as Id<'games'> | null,
+    op,
+  })
+  if (applied === null) return
+  noteVersion(op.unitId, applied.updatedAt)
+  noteSeq(op.unitId, applied.headSeq)
 }
 
 /**
@@ -425,11 +419,12 @@ export async function commitSoftLink(
   }
 }
 
-/** One record a transfer writes: the validated record, and the patch that made it. */
+/** One op a transfer applies; a crawler's may move it first (`move`, its container). */
 export type TransferWrite = {
-  type: EntityRef['type']
-  record: { id: string; gameId?: string | null }
-  patch: object
+  unit: UnitKind
+  gameId: string | null
+  op: OpInput
+  move?: string | null
 }
 
 /**
@@ -440,38 +435,20 @@ export type TransferRemoval =
   | { type: EntityRef['type']; id: string }
   | { type: 'softLink'; link: SoftLink | null }
 
-type TransferArgs = FunctionArgs<typeof api.entities.transfer>
+type TransferArgs = FunctionArgs<typeof api.ops.transfer>
 
-/**
- * The `entities.transfer` args for a transfer: each record in the shape its
- * own mutation takes — a pilot or mech whole body with the version it was
- * made against, a crawler field patch (and its move, when the patch carries
- * `gameId`), a link by its endpoints.
- */
+/** The `ops.transfer` args: each op as `ops.apply` takes it, each link by its endpoints. */
 export function transferArgs(
   writes: readonly TransferWrite[],
   removals: readonly TransferRemoval[]
 ): TransferArgs {
   return {
-    updates: writes.map(({ type, record, patch }) => {
-      if (type === 'crawler') {
-        const move =
-          'gameId' in patch
-            ? {
-                gameId: ((patch as { gameId?: string | null }).gameId ??
-                  null) as Id<'games'> | null,
-              }
-            : {}
-        return { table: 'crawlers' as const, ...crawlerPatchArgs(record.id, patch), ...move }
-      }
-      return {
-        table: TABLE_OF_KIND[type],
-        appId: record.id,
-        gameId: (record.gameId ?? null) as Id<'games'> | null,
-        body: record,
-        expectedUpdatedAt: knownVersion(record.id) ?? null,
-      }
-    }),
+    ops: writes.map(({ unit, gameId, op, move }) => ({
+      unit,
+      gameId: gameId as Id<'games'> | null,
+      op,
+      ...(move === undefined ? {} : { move: move as Id<'games'> | null }),
+    })),
     deletes: removals.flatMap((removal): TransferArgs['deletes'] => {
       if (removal.type !== 'softLink') {
         return [{ table: TABLE_OF_KIND[removal.type], appId: removal.id }]
@@ -496,21 +473,20 @@ export function transferArgs(
  * Commit a cross-entity transfer (`entityStore.transfer`) as ONE mutation,
  * and fail if it does not land.
  *
- * `entities.transfer` is a single Convex transaction, so the server holds
- * either every record of a stow, a load or a scrap hand-off, or none of them:
- * a refusal on any record — a crawler only the table runner may write, a
- * stale pilot or mech body — leaves every row as it was.
+ * `ops.transfer` is a single Convex transaction, so the server holds either
+ * every op and delete of a stow, a load or a scrap hand-off, or none of them:
+ * a refusal on any record leaves every row as it was.
  */
 export async function commitTransfer(
   writes: readonly TransferWrite[],
   removals: readonly TransferRemoval[]
 ): Promise<void> {
   if (selectBackend() !== 'remote') return
-  const { versions } = await convexClient.mutation(
-    api.entities.transfer,
-    transferArgs(writes, removals)
-  )
-  for (const { appId, updatedAt } of versions) noteVersion(appId, updatedAt)
+  const { applied } = await convexClient.mutation(api.ops.transfer, transferArgs(writes, removals))
+  for (const { unitId, updatedAt, headSeq } of applied) {
+    noteVersion(unitId, updatedAt)
+    noteSeq(unitId, headSeq)
+  }
 }
 
 /**

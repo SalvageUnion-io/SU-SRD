@@ -51,10 +51,11 @@ const DEFINE_MODULE = /(?:^|\/)messages\/define$/
 /** A module of the catalogue, imported from anywhere. */
 const CATALOGUE_MODULE = /(?:^|\/)messages\/(?!define$)[\w/-]+$/
 
-/** A test, a declaration, a machine-written file, or the rooms (server code, its strings SQL): not shipped copy. */
+/** A test, a declaration, a machine-written file, or server code whose strings are SQL (the shared database's module, the rooms): not shipped copy. */
 const isSkipped = (f: string) =>
   /(?:^|\/)(?:__tests__|_generated|generated)\//.test(f) ||
   /\.(?:test|d)\.tsx?$/.test(f) ||
+  f.startsWith('apps/web/src/worker/shared/') ||
   f.startsWith('apps/web/src/rooms/')
 
 /** The words an attribute carrying copy is named for, alone or as a suffix (`aria-label`, `confirmLabel`). */
