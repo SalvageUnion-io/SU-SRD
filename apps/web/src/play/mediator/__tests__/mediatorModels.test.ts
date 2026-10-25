@@ -22,8 +22,7 @@ import { proposalLine } from '../proposalLine.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
 describe('the seats, in one layer over the crew lines', () => {
-  const NOW = 0
-  const seats = mediatorSeats(TABLE_CREW, TABLE_SEATS, TABLE_MEMBERS, NOW)
+  const seats = mediatorSeats(TABLE_CREW, TABLE_SEATS, TABLE_MEMBERS, null)
 
   test('one per claimed pilot, in join order — never re-sorted by the numbers', () => {
     // Hotdog is unassigned: an open seat on the Game page, not a seat here.
@@ -53,14 +52,14 @@ describe('the seats, in one layer over the crew lines', () => {
         p.name === 'Judge' ? { ...p, status: { dead: false, injured: true, ejected: true } } : p
       ),
     }
-    const judge = mediatorSeats(crew, TABLE_SEATS, TABLE_MEMBERS, NOW).find(
+    const judge = mediatorSeats(crew, TABLE_SEATS, TABLE_MEMBERS, null).find(
       (c) => c.name === 'Judge'
     )
     expect(judge?.problem).toBe('Injured +1')
   })
 
   test('nothing to show before the crew arrives', () => {
-    expect(mediatorSeats(null, [], [], NOW)).toEqual([])
+    expect(mediatorSeats(null, [], [], null)).toEqual([])
   })
 })
 
