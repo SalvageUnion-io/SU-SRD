@@ -208,3 +208,56 @@ describe('the transport', () => {
     expect((result as { message: string }).message).toContain('credentials')
   })
 })
+
+describe('a client with the site gateway', () => {
+  /** A fetch that records each `/bot/<op>` and answers `{ ok: true, games: [] }`. */
+  function convex() {
+    const asked: string[] = []
+    const realFetch = globalThis.fetch
+    globalThis.fetch = (async (url: string) => {
+      asked.push(new URL(url).pathname)
+      return Response.json({ ok: true, games: [] })
+    }) as unknown as typeof fetch
+    return { asked, restore: () => (globalThis.fetch = realFetch) }
+  }
+
+  const CONFIG = { siteUrl: 'https://x.convex.site', botSecret: 'shh' }
+
+  test('takes the gateway’s answer and never asks Convex', async () => {
+    const net = convex()
+    try {
+      const gateway = { answer: async () => ({ ok: false, reason: 'unlinked', message: 'nope' }) }
+      const result = await createSiteClient({ ...CONFIG, gateway }).games('d1')
+      expect(result).toEqual({ kind: 'denied', reason: 'unlinked', message: 'nope' })
+      expect(net.asked).toEqual([])
+    } finally {
+      net.restore()
+    }
+  })
+
+  test('asks Convex where the gateway answers null or fails', async () => {
+    const net = convex()
+    try {
+      const declines = { answer: async () => null }
+      const fails = {
+        answer: async () => {
+          throw new Error('su-srd is deploying')
+        },
+      }
+      expect((await createSiteClient({ ...CONFIG, gateway: declines }).games('d1')).kind).toBe('ok')
+      expect((await createSiteClient({ ...CONFIG, gateway: fails }).games('d1')).kind).toBe('ok')
+      expect(net.asked).toEqual(['/bot/games', '/bot/games'])
+    } finally {
+      net.restore()
+    }
+  })
+
+  test('answers from the gateway alone when Convex is not configured', async () => {
+    const gateway = { answer: async () => ({ ok: true, games: [] }) }
+    const result: unknown = await createSiteClient({ gateway }).games('d1')
+    expect(result).toEqual({
+      kind: 'ok',
+      value: { ok: true, games: [] },
+    })
+  })
+})

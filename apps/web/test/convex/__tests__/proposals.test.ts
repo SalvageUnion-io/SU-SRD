@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 import { MechSchema } from 'game-domain/schemas/mech'
-import { api } from '../../../convex/_generated/api'
+import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { makeUser, mechBody } from '../fixtures'
+import { makeUser, mechBody, opRow } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -52,7 +52,7 @@ describe('the Mediator proposes; the player writes', () => {
     const t = testConvex()
     const { gm, mechId } = await seedTable(t)
 
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
@@ -67,25 +67,23 @@ describe('the Mediator proposes; the player writes', () => {
   test('applying it does, and only the owner may', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 6,
     })
 
-    const [pending] = await player.as.query(api.proposals.pending, { gameId })
+    const [pending] = await player.as.query(api.ops.pending, { gameId })
     expect(pending).toBeDefined()
 
     // The Mediator cannot apply on the player's behalf — that would be the
     // direct write this whole mechanism exists to avoid.
-    await expect(
-      gm.as.mutation(api.proposals.apply, { proposalId: pending?._id as Id<'changeLog'> })
-    ).rejects.toThrow(/only the owner/i)
+    await expect(gm.as.mutation(api.ops.accept, { opId: String(pending?._id) })).rejects.toThrow(
+      /only the owner/i
+    )
 
-    await player.as.mutation(api.proposals.apply, {
-      proposalId: pending?._id as Id<'changeLog'>,
-    })
+    await player.as.mutation(api.ops.accept, { opId: String(pending?._id) })
     const mech = await t.run(async (ctx) => await ctx.db.get(mechId as Id<'mechs'>))
     expect((mech?.body as { currentSP: number } | undefined)?.currentSP).toBe(6)
   })
@@ -93,19 +91,19 @@ describe('the Mediator proposes; the player writes', () => {
   test('applying a proposal against a field the sheet has no room for is refused', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       // A plausible miscasing. It is not a Mech field.
       field: 'currentSp',
       after: 6,
     })
-    const [pending] = await player.as.query(api.proposals.pending, { gameId })
+    const [pending] = await player.as.query(api.ops.pending, { gameId })
 
     // Before the body was parsed on apply, this wrote a key nothing reads: the
     // player pressed Apply, the number did not move, and nothing said why.
     await expect(
-      player.as.mutation(api.proposals.apply, { proposalId: pending?._id as Id<'changeLog'> })
+      player.as.mutation(api.ops.accept, { opId: String(pending?._id) })
     ).rejects.toMatchObject({
       name: 'ConvexError',
       message: expect.stringMatching(/does not fit this sheet/i),
@@ -119,7 +117,7 @@ describe('the Mediator proposes; the player writes', () => {
     const t = testConvex()
     const { player, mechId } = await seedTable(t)
     await expect(
-      player.as.mutation(api.proposals.propose, {
+      player.as.mutation(api.ops.propose, {
         entityId: mechId,
         entityType: 'mech',
         field: 'currentSP',
@@ -137,7 +135,7 @@ describe('the Mediator proposes; the player writes', () => {
 
     // Nobody would ever see it, so it would sit pending forever.
     await expect(
-      gm.as.mutation(api.proposals.propose, {
+      gm.as.mutation(api.ops.propose, {
         entityId: orphan,
         entityType: 'mech',
         field: 'currentSP',
@@ -152,41 +150,39 @@ describe('supersession, not expiry', () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
 
-    const first = await gm.as.mutation(api.proposals.propose, {
+    const first = await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 6,
     })
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 4,
     })
 
-    const pending = await player.as.query(api.proposals.pending, { gameId })
+    const pending = await player.as.query(api.ops.pending, { gameId })
     // One pending, not two: a player is never asked to choose between
     // contradictory values for the same field.
     expect(pending).toHaveLength(1)
     expect(pending[0]?.after).toBe(4)
 
-    const old = await t.run(async (ctx) => await ctx.db.get(first))
-    expect(old?.state).toBe('superseded')
-    expect(old?.supersededBy).toBeDefined()
+    expect((await opRow(t, first))?.state).toBe('superseded')
   })
 
   test('a proposal on a DIFFERENT field is left alone', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
 
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 6,
     })
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentHeat',
@@ -194,13 +190,13 @@ describe('supersession, not expiry', () => {
     })
 
     // Supersession is per FIELD. Damage and heat are separate facts.
-    expect(await player.as.query(api.proposals.pending, { gameId })).toHaveLength(2)
+    expect(await player.as.query(api.ops.pending, { gameId })).toHaveLength(2)
   })
 
   test('nothing expires — an unanswered proposal stays pending', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    const id = await gm.as.mutation(api.proposals.propose, {
+    const id = await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
@@ -209,11 +205,12 @@ describe('supersession, not expiry', () => {
 
     // Backdate it well past any plausible timeout. A timer here would silently
     // drop damage the player was meant to take.
+    const op = await opRow(t, id)
     await t.run(async (ctx) => {
-      await ctx.db.patch(id, { ts: Date.now() - 1000 * 60 * 60 * 24 * 30 })
+      if (op) await ctx.db.patch(op._id, { at: Date.now() - 1000 * 60 * 60 * 24 * 30 })
     })
 
-    expect(await player.as.query(api.proposals.pending, { gameId })).toHaveLength(1)
+    expect(await player.as.query(api.ops.pending, { gameId })).toHaveLength(1)
   })
 })
 
@@ -221,21 +218,21 @@ describe('declining', () => {
   test('records rather than deletes, and leaves the entity alone', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    const id = await gm.as.mutation(api.proposals.propose, {
+    const id = await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 6,
     })
 
-    await player.as.mutation(api.proposals.decline, { proposalId: id })
+    await player.as.mutation(api.ops.decline, { opId: id })
 
-    const row = await t.run(async (ctx) => await ctx.db.get(id))
+    const row = await opRow(t, id)
     // The log is append-only; a declined proposal is history, not a gap.
     expect(row?.state).toBe('declined')
     const mech = await t.run(async (ctx) => await ctx.db.get(mechId as Id<'mechs'>))
     expect((mech?.body as { currentSP: number } | undefined)?.currentSP).toBe(10)
-    expect(await player.as.query(api.proposals.pending, { gameId })).toHaveLength(0)
+    expect(await player.as.query(api.ops.pending, { gameId })).toHaveLength(0)
   })
 })
 
@@ -247,7 +244,7 @@ describe('pending is scoped to the asker', () => {
     const code = await gm.as.mutation(api.invites.link, { gameId })
     await bystander.as.mutation(api.invites.redeem, { code })
 
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
@@ -255,18 +252,18 @@ describe('pending is scoped to the asker', () => {
     })
 
     // Showing it would leak an edit in flight against a crewmate.
-    expect(await bystander.as.query(api.proposals.pending, { gameId })).toHaveLength(0)
+    expect(await bystander.as.query(api.ops.pending, { gameId })).toHaveLength(0)
   })
   test('a Game deleted under an open page reads empty, not as an error', async () => {
     // The page's subscription re-runs before it hears the Game is gone; the
-    // Workers Issue this was ("Not a member of this Game", proposals:pending)
+    // Workers Issue this was ("Not a member of this Game", ops:pending)
     // reported that race as a defect.
     const t = testConvex()
     const { gm, player, gameId } = await seedTable(t)
     await gm.as.mutation(api.games.destroy, { gameId })
 
-    expect(await player.as.query(api.proposals.pending, { gameId })).toEqual([])
-    expect(await gm.as.query(api.proposals.sent, { gameId })).toEqual([])
+    expect(await player.as.query(api.ops.pending, { gameId })).toEqual([])
+    expect(await gm.as.query(api.ops.sent, { gameId })).toEqual([])
   })
 })
 
@@ -274,30 +271,30 @@ describe('alerts share the proposal bus', () => {
   test('the Mediator broadcasts and every member reads', async () => {
     const t = testConvex()
     const { gm, player, gameId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'Sandstorm inbound' })
+    await gm.as.mutation(api.changeLog.broadcast, { gameId, message: 'Sandstorm inbound' })
 
-    const seen = await player.as.query(api.proposals.alerts, { gameId })
+    const seen = await player.as.query(api.changeLog.alerts, { gameId })
     expect(seen[0]?.message).toBe('Sandstorm inbound')
   })
 
   test('newest first, capped at the limit, and nothing but alerts', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'first' })
+    await gm.as.mutation(api.changeLog.broadcast, { gameId, message: 'first' })
     // A proposal is a change-log row in the same Game — it must not surface here.
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 6,
     })
-    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'second' })
-    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'third' })
+    await gm.as.mutation(api.changeLog.broadcast, { gameId, message: 'second' })
+    await gm.as.mutation(api.changeLog.broadcast, { gameId, message: 'third' })
 
-    const all = await player.as.query(api.proposals.alerts, { gameId })
+    const all = await player.as.query(api.changeLog.alerts, { gameId })
     expect(all.map((a) => a.message)).toEqual(['third', 'second', 'first'])
 
-    const two = await player.as.query(api.proposals.alerts, { gameId, limit: 2 })
+    const two = await player.as.query(api.changeLog.alerts, { gameId, limit: 2 })
     expect(two.map((a) => a.message)).toEqual(['third', 'second'])
   })
 
@@ -305,16 +302,56 @@ describe('alerts share the proposal bus', () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
     await expect(
-      player.as.mutation(api.proposals.broadcast, { gameId, message: 'free scrap' })
+      player.as.mutation(api.changeLog.broadcast, { gameId, message: 'free scrap' })
     ).rejects.toThrow(/mediator/i)
   })
 
   test('an alert does not appear as a pending proposal', async () => {
     const t = testConvex()
     const { gm, player, gameId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'Sandstorm' })
+    await gm.as.mutation(api.changeLog.broadcast, { gameId, message: 'Sandstorm' })
 
-    // Same table, different shape — an alert has no entity to answer for.
-    expect(await player.as.query(api.proposals.pending, { gameId })).toHaveLength(0)
+    // An alert is a feed row, not an op: there is no unit to answer for.
+    expect(await player.as.query(api.ops.pending, { gameId })).toHaveLength(0)
+  })
+})
+
+describe('a proposal written to the Change Log before proposals were ops', () => {
+  test('is copied into ops once, then answers like any other', async () => {
+    const t = testConvex()
+    const { gm, player, gameId, mechId } = await seedTable(t)
+    const legacy = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('changeLog', {
+          gameId,
+          entityType: 'mech',
+          entityId: mechId,
+          ts: 1,
+          kind: 'transaction',
+          field: 'currentHeat',
+          before: null,
+          after: 3,
+          source: 'mediator-proposal',
+          actorId: gm.userId,
+          state: 'proposed',
+          reason: 'Overheat',
+        })
+    )
+    expect(await player.as.query(api.ops.pending, { gameId })).toEqual([])
+
+    const first = await t.mutation(internal.ops.copyLegacyProposals, { cursor: null })
+    expect(first).toMatchObject({ copied: 1, done: true })
+    expect((await t.mutation(internal.ops.copyLegacyProposals, { cursor: null })).copied).toBe(0)
+
+    const [pending] = await player.as.query(api.ops.pending, { gameId })
+    expect(pending).toMatchObject({
+      _id: legacy,
+      field: 'currentHeat',
+      after: 3,
+      reason: 'Overheat',
+    })
+    await player.as.mutation(api.ops.accept, { opId: legacy })
+    const mech = await t.run(async (ctx) => await ctx.db.get(mechId as Id<'mechs'>))
+    expect((mech?.body as { currentHeat?: number } | undefined)?.currentHeat).toBe(3)
   })
 })

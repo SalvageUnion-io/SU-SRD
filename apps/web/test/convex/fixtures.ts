@@ -204,3 +204,14 @@ export function crawlerOp(args: {
 }) {
   return unitOp('crawler', args)
 }
+
+/** The stored op an op id names (`ops.propose` answers one), or null. */
+export async function opRow(t: Ctx, opId: string) {
+  return await t.run(
+    async (ctx) =>
+      await ctx.db
+        .query('ops')
+        .withIndex('by_op_id', (q) => q.eq('opId', opId))
+        .first()
+  )
+}

@@ -86,7 +86,7 @@ function answer(name: string, args: Record<string, unknown>): unknown {
           startedAt: null,
           completedBy: [],
           upkeepSpent: false,
-          claimed: [],
+          doneSteps: [],
         }
       }
       const downtime = server.solo?.downtime ?? null
@@ -97,7 +97,7 @@ function answer(name: string, args: Record<string, unknown>): unknown {
             startedAt: null,
             completedBy: [],
             upkeepSpent: false,
-            claimed: [],
+            doneSteps: [],
           }
         : {
             running: true,
@@ -105,10 +105,7 @@ function answer(name: string, args: Record<string, unknown>): unknown {
             startedAt: downtime.startedAt,
             completedBy: [],
             upkeepSpent: downtime.upkeepSpent,
-            claimed: (downtime.doneSteps ?? []).map((stepIndex) => ({
-              pilotId: args.pilotId,
-              stepIndex,
-            })),
+            doneSteps: downtime.doneSteps ?? [],
           }
     }
     case 'games:members':
@@ -181,17 +178,20 @@ function apply(name: string, args: Record<string, unknown>): unknown {
       if (!solo) server.gameDowntime = null
       else if (server.solo !== null) server.solo = { ...server.solo, downtime: null }
       break
-    case 'downtime:claimStep': {
+    // A Downtime step's op (`downtimeStepOpId`): a solo seat keeps which it took.
+    case 'ops:apply': {
+      const stepIndex = Number(
+        String((args.op as { id: string }).id)
+          .split(':')
+          .at(-1)
+      )
       const downtime = server.solo?.downtime
-      if (server.solo === null || downtime == null) return false
+      if (server.solo === null || downtime == null) return { headSeq: 1, updatedAt: 1, fresh: true }
       const done = downtime.doneSteps ?? []
-      if (done.includes(Number(args.stepIndex))) return false
-      server.solo = {
-        ...server.solo,
-        downtime: { ...downtime, doneSteps: [...done, Number(args.stepIndex)] },
-      }
+      if (done.includes(stepIndex)) return { headSeq: 1, updatedAt: 1, fresh: false }
+      server.solo = { ...server.solo, downtime: { ...downtime, doneSteps: [...done, stepIndex] } }
       changed()
-      return true
+      return { headSeq: 2, updatedAt: 2, fresh: true }
     }
     default:
       return undefined
@@ -536,7 +536,7 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     expect(writes('downtime:spendUpkeep')).toHaveLength(1)
   })
 
-  test('solo: the done steps come from the seat, and a step is claimed once', async () => {
+  test('solo: a step is one op with a stable id, taken once', async () => {
     await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
     await act(async () => {
       play()?.downtime.begin()
@@ -545,17 +545,17 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     let first: boolean | undefined
     let second: boolean | undefined
     await act(async () => {
-      first = await play()?.downtime.markStepDone?.(4)
+      first = await play()?.downtime.markStepDone?.(4, {})
     })
     await act(async () => {
-      second = await play()?.downtime.markStepDone?.(4)
+      second = await play()?.downtime.markStepDone?.(4, {})
     })
     expect([first, second]).toEqual([true, false])
     expect(play()?.downtime.doneSteps).toEqual([4])
-    expect(writes('downtime:claimStep')[0]?.args).toEqual({
+    expect(writes('ops:apply')[0]?.args).toMatchObject({
+      unit: 'pilot',
       gameId: null,
-      pilotId: 'ps-bonesaw',
-      stepIndex: 4,
+      op: { id: 'downtime:1:ps-bonesaw:4', unitId: 'ps-bonesaw', patch: {} },
     })
   })
 
@@ -571,15 +571,15 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     expect(writes('downtime:markStepDone')[0]?.args).toEqual({ gameId: GAME_ID, done: true })
   })
 
-  test('in a Game: a step is claimed for this pilot on the Game (`claimStep`)', async () => {
+  test('in a Game: a step is an op on this pilot, with what it applies', async () => {
     await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID })
     await act(async () => {
-      await play()?.downtime.markStepDone?.(2)
+      await play()?.downtime.markStepDone?.(2, { currentTP: 3 })
     })
-    expect(writes('downtime:claimStep')[0]?.args).toEqual({
+    expect(writes('ops:apply')[0]?.args).toMatchObject({
+      unit: 'pilot',
       gameId: GAME_ID,
-      pilotId: 'pg-rook',
-      stepIndex: 2,
+      op: { id: 'downtime:0:pg-rook:2', unitId: 'pg-rook', patch: { currentTP: 3 } },
     })
   })
 
