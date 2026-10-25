@@ -41,6 +41,17 @@ export type TrayWrites = {
   add: (schema: EncounterRefSchema, entity: RefEntity, draw?: TrayDraw) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
+  /** Mark it important or not (Workshop Manual p.255). */
+  setImportant: (npc: TrayNpc, important: boolean) => Promise<unknown>
+  /** An important mech's EP or Heat. */
+  setReactor: (
+    npc: TrayNpc,
+    patch: { currentEp?: number; currentHeat?: number }
+  ) => Promise<unknown>
+  /** An important NPC's Critical roll at 0. */
+  critical: (npc: TrayNpc) => Promise<unknown>
+  /** An important mech's Heat Check. */
+  heatCheck: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
   rename: (npc: TrayNpc, name: string) => Promise<unknown>
   /** Field an encounter row's roster (p.270): every line it names, how many it says. */

@@ -106,6 +106,10 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
               onHp={(next) => fail(tray.setHp(npc, next))}
               onRename={() => setRenaming(npc)}
               onRemove={() => setRemoving(npc)}
+              onImportant={(important) => fail(tray.setImportant(npc, important))}
+              onReactor={(patch) => fail(tray.setReactor(npc, patch))}
+              onCritical={() => fail(tray.critical(npc))}
+              onHeatCheck={() => fail(tray.heatCheck(npc))}
             />
           ))}
         </ul>

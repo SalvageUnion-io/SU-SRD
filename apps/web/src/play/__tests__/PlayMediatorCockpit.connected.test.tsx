@@ -120,6 +120,38 @@ const NPCS = [
   },
 ]
 
+const HAULER = {
+  _id: 'n-hauler',
+  body: {
+    name: 'Hauler',
+    refSchema: 'chassis',
+    refSlug: 'mule',
+    currentHp: 12,
+    maxHp: 12,
+    statKind: 'sp',
+    important: true,
+    currentEp: 4,
+    maxEp: 4,
+    currentHeat: 2,
+    heatCap: 6,
+  },
+}
+
+const HAULER_CRITICAL = {
+  ...HAULER,
+  body: {
+    ...HAULER.body,
+    currentHp: 0,
+    lastImportantRoll: {
+      table: 'critical-damage',
+      roll: 12,
+      label: 'Core Damage',
+      value: 'The chassis is damaged.',
+      rolledAt: new Date(0).toISOString(),
+    },
+  },
+}
+
 const SENT_PROPOSAL = {
   _id: 'p-1',
   ts: NOW - 60_000,
@@ -308,6 +340,21 @@ describe('the table', () => {
     ])
   })
 
+  test('Setbacks fills Propose with the book’s 2 HP default for the pilot aimed at', async () => {
+    await renderCockpit()
+    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    const dock = region('Propose')
+    await click(dock.getByRole('button', { name: 'Setbacks' }))
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.getByRole('button', { name: '+2 Heat' }).hasAttribute('disabled')).toBe(true)
+    await click(dialog.getByRole('button', { name: '2 HP damage' }))
+    expect((dock.getByLabelText('Field') as HTMLSelectElement).value).toBe('currentHP')
+    expect((dock.getByLabelText('Reason (optional)') as HTMLInputElement).value).toBe(
+      'Setback: 2 HP damage'
+    )
+    expect((dock.getByLabelText('To') as HTMLInputElement).value).not.toBe('')
+  })
+
   test('the crawler is the Units column’s box, live for the Mediator', async () => {
     await renderCockpit()
     const crawler = within(screen.getByRole('region', { name: 'Crawler: Tenacity' }))
@@ -371,6 +418,47 @@ describe('the Opposition', () => {
     await waitFor(() =>
       expect(feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale'))).toBe(true)
     )
+  })
+
+  test('Mark important is the NPC’s ⋯ menu; a Bio-Titan keeps its own rules', async () => {
+    await renderCockpit()
+    await click(named('More for Strikebreaker'))
+    await click(screen.getByRole('menuitem', { name: 'Mark important' }))
+    expect(sent).toEqual([
+      { name: 'mediator:updateNpc', args: { npcId: 'n-strike', patch: { important: true } } },
+    ])
+    await click(named('More for Scylla'))
+    expect(screen.queryByRole('menuitem', { name: 'Mark important' })).toBeNull()
+  })
+
+  test('an important mech tracks EP and Heat, and its Heat Check lands on the NPC and the Feed', async () => {
+    await renderCockpit({ 'mediator:npcs': [...NPCS, HAULER] })
+    const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler' }))
+    expect(hauler.getByText('Mech · important')).toBeTruthy()
+    await click(hauler.getByRole('button', { name: 'Increase Heat' }))
+    expect(sent).toEqual([
+      { name: 'mediator:updateNpc', args: { npcId: 'n-hauler', patch: { currentHeat: 3 } } },
+    ])
+    sent.length = 0
+    await click(hauler.getByRole('button', { name: 'Heat Check for Hauler' }))
+    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
+    const patch = sent[0]?.args.patch as { lastImportantRoll?: { table: string } }
+    expect(patch.lastImportantRoll?.table).toBe('heat-check')
+    await waitFor(() =>
+      expect(feedLines().some((l) => l.startsWith('You · Hauler · Heat Check'))).toBe(true)
+    )
+  })
+
+  test('an important NPC at 0 rolls its Critical table, and the row reads on its box', async () => {
+    const raider = NPCS[2] as (typeof NPCS)[number]
+    const fallen = { ...raider, body: { ...raider.body, important: true } }
+    await renderCockpit({ 'mediator:npcs': [fallen, HAULER_CRITICAL] })
+    await click(named('Roll Critical Injury for Raider'))
+    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
+    const patch = sent[0]?.args.patch as { lastImportantRoll?: { table: string } }
+    expect(patch.lastImportantRoll?.table).toBe('critical-injury')
+    const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler, down' }))
+    expect(hauler.getByText('Critical Damage 12 · Core Damage')).toBeTruthy()
   })
 
   test('+ Add opens the Opposition picker over the reference', async () => {
