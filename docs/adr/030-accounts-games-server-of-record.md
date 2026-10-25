@@ -7,7 +7,9 @@ Shelf has a seat too, seats carry presence, and a Game can bind a Discord
 channel (`channelBindings`). Amended by [ADR-052](052-build-assets-play-games.md):
 Build's Hangar lists what a player owns; a Game's page and joining are Play's.
 Amended by [ADR-055](055-crew-assets-assign.md): in a Game a pilot or mech is
-**assigned** to a member, never claimed (§2, §4–6).
+**assigned** to a member, never claimed (§2, §4–6). Amended by
+[ADR-063](063-typed-ops-are-the-write.md): a proposal is an op in `proposed`
+state (§4).
 
 ## 1. Identity and the storage modes
 
