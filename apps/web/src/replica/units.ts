@@ -36,7 +36,7 @@ import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
 import { captureException } from '../lib/observability'
 import type { Applied } from './outbox'
-import { sendLink, sendOp, sendRow, sendTransfer } from './outbox'
+import { queues, sendLink, sendOp, sendRow, sendTransfer } from './outbox'
 import type { ChangeMeta } from './provenance'
 import type { RecordKind } from './records'
 import { prepareCreate, prepareUpdate, RECORD_KINDS } from './records'
@@ -313,7 +313,8 @@ export const units: UnitsApi = {
     meta: ChangeMeta
   ) {
     const before = units.get(type, id)
-    requireWritable()
+    // Offline, an edit to the player's own sheet waits in the outbox (ADR-063).
+    if (before === null || !queues(type, patch)) requireWritable()
 
     // Merge and validate, send, then hold: a refused edit leaves the held
     // record exactly as it was.

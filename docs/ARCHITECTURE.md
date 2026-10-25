@@ -35,13 +35,13 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and the sync status** <a id="data-flow"></a>
     Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
-    One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held, writes blocked), plus `outdated`.
+    One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held; own pilot, mech and NPC edits wait in the outbox, the rest is blocked), plus `outdated`.
 11. **Convex, the server of record** · moving to rooms (ADR-064) <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`); an entity is [in a Game or on a Shelf](architecture/glossary.md). A unit's body changes only by an op (`ops.apply`, `ops.transfer`; ADR-063), parsed by `applyOp`.
     Every client write goes through `src/replica/outbox.ts`; each replica table has a `RECORD_KINDS` entry.
 12. **Device copy** <a id="device-copy"></a>
-    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, read-only (ADR-058).
-    Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
+    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, and beside them the outbox: one op per own unit made offline, replayed by `ops.replay` once `live` (ADR-063 decision 9).
+    Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell, the copy and the outbox.
 13. **The replica** <a id="stores"></a>
     `src/replica/` is the one holder of server rows, filled by the feed (`ConvexFeed` until the room sockets) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the server's answer; a refused op changes nothing.
     No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, `convex/react`. `src/stores/` is UI state only.
@@ -134,7 +134,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amended by ADR-030 and ADR-034: the log is account data on Convex; by ADR-063: the log is the op log.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 and ADR-064.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058, ADR-063 (§1, §4) and ADR-064.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050, ADR-065.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -180,8 +180,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
-    Built: offline, the player's own sheets come back from the device, read-only; Convex stays of record.
-    Amends ADR-030 §1 and ADR-034.
+    Built: offline, the player's own sheets come back from the device; Convex stays of record.
+    Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
     Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing to tell the table; encounters in the device copy.
     Amends ADR-052 §1.
@@ -194,8 +194,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.
     Amends ADR-048, ADR-050 and ADR-052 §4–5.
 63. **ADR-063 Typed ops are the write** · [full text](adr/063-typed-ops-are-the-write.md)
-    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`.
-    Amends ADR-008, ADR-022 and ADR-030 §4.
+    A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`. Offline, ops on your own units wait in an outbox.
+    Amends ADR-008, ADR-022 and ADR-030 §1, §4; replaces ADR-058.
 64. **ADR-064 Cloudflare rooms are the server of record** · [full text](adr/064-cloudflare-rooms.md)
     A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in. One cutover at 4.5.0.
     Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.

@@ -173,15 +173,15 @@ export function Sheet({
   // The container move's confirm. Owned here, not by the control, because the
   // control lives in the ⋯ menu, which unmounts on the press that answers it.
   const { confirm, dialog: confirmDialog } = useConfirm()
-  const { canWrite, status } = useSync()
+  const { canWrite, canEditOwn = canWrite, status } = useSync()
   // Read | Edit (`sheetMode.model.ts`): the route's choice, or always writable when
   // nothing provides one (a test).
   const sheetMode = useSheetMode()
   const editing = sheetMode === null || sheetMode.editing
 
-  // Signed in and offline: the server of record refuses writes (ADR-030 §1), so
-  // every edit affordance on this sheet is a lie. Withdraw them rather than
-  // letting each one throw `WritesBlockedOffline` on click.
+  // Signed in and offline: a pilot or mech edit waits in the outbox (ADR-063),
+  // but a crawler is the crew's and the server refuses it (ADR-030 §1), so its
+  // edit affordances are withdrawn rather than each throwing on click.
   //
   // `syncing` is excluded on purpose. It is the sub-second initial handshake,
   // and folding it in here would make every signed-in load flash a read-only
@@ -190,7 +190,7 @@ export function Sheet({
   //
   // This is orthogonal to ADR-021's surface taxonomy: it withdraws Free Edit for
   // a connectivity reason, and imposes no lifecycle enforcement on what remains.
-  const writesBlocked = !canWrite && status !== 'syncing'
+  const writesBlocked = !(kind === 'crawler' ? canWrite : canEditOwn) && status !== 'syncing'
   // Read is the printed sheet: every edit affordance withdrawn, exactly as on
   // a sheet the viewer cannot write, until Edit is pressed.
   const readOnly = readOnlyProp || writesBlocked || !editing

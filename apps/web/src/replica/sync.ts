@@ -141,3 +141,11 @@ export function requireWritable(): void {
 export function writable(): boolean {
   return current === 'live' && !outdated
 }
+
+/**
+ * Whether an op on the player's own pilot, mech or NPC waits in the outbox
+ * now (`outbox.ts`): `offline`, on a build the backend still takes.
+ */
+export function mayQueue(): boolean {
+  return current === 'offline' && !outdated
+}
