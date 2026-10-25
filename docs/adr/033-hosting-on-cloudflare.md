@@ -1,7 +1,7 @@
 # ADR-033: Hosting on Cloudflare
 
 Current Workers, buckets and zones: [Cloudflare](../ARCHITECTURE.md#cloudflare).
-The one app's single `su-srd` Worker: [ADR-050](050-one-app.md).
+The one app's single `su-srd` Worker: [ADR-050](../architecture/one-app.md).
 
 ## Decision
 
