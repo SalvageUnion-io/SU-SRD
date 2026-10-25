@@ -129,7 +129,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
    Automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
 8. **ADR-008 Sequential client-side mutations**
-   No atomic transaction or rollback; affordability is checked before an action runs.
+   No atomic transaction or rollback; affordability is checked before an action runs. Amended by ADR-063.
 9. **ADR-009 Item condition model**
    Intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
 10. **ADR-010 Choices in the shared display**
@@ -145,7 +145,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Wins over any earlier ADR; the live matrix is [surfaces](#surfaces). Amended by ADR-051.
 22. **ADR-022 Change Log and stat overrides**
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
-    Amended by ADR-030 and ADR-034: the log is account data on Convex.
+    Amended by ADR-030, ADR-034 (Convex), ADR-063 (op log).
 26. **ADR-026 Entity card design rules** · [full text](adr/026-entity-card-design-rules.md)
     `ReferenceEntityCard` is the only entity card and Page; app UI layers onto it. Stats have no pips; a modified stat wears a heavier ink frame.
 28. **ADR-028 A partner renders in place**
@@ -155,7 +155,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055 and ADR-058.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051, ADR-052, ADR-055, ADR-058 and ADR-063.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -193,7 +193,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
 47. **ADR-047 One salvageunion.io edge Worker**
-    Not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
+    Not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`.
     Supersedes ADR-043 decision 1; amends ADR-033; its `api.` host superseded by ADR-056.
 48. **ADR-048 The app at salvageunion.io/build**
     `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050, ADR-062.
@@ -230,8 +230,11 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
     Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
-    Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides. Built-in homebrew (credited Mech Monday patterns in the data) lists with them.
+    Built: link-shared patterns their makers opt in, at `/homebrew/` and behind a chassis page's "Show Homebrew", via the Worker; readers report, an admin hides. Built-in homebrew lists with them.
     Amends ADR-032; narrows ADR-021 and ADR-030 on homebrew.
 62. **ADR-062 Play at /play, one URL grammar** · [full text](adr/062-play-at-play.md)
-    Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app (`appPath`/`routeInApp`); sheets `/build/<kind>s/:id`; every old address 301s once.
+    Built: Reference `/`, Training Bay `/build/`, Play `/play/` from one app; sheets `/build/<kind>s/:id`; every old address 301s once.
     Amends ADR-048, ADR-050 and ADR-052 §4–5.
+63. **ADR-063 Typed ops are the write** · [full text](adr/063-typed-ops-are-the-write.md)
+    Units change only by ops (pure `applyOp`); a body is a snapshot.
+    Amends ADR-008, ADR-022 and ADR-030 §4.
