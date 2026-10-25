@@ -3,13 +3,8 @@ import { exports } from 'cloudflare:workers'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { bunSql } from '../../rooms/__tests__/bunSql'
-import {
-  AccountRoom,
-  GameRoom,
-  serveAccountSocket,
-  serveGameSocket,
-  serveRoomsHealth,
-} from '../rooms'
+import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from '../roomRoutes'
+import { AccountRoom, GameRoom } from '../rooms'
 
 /**
  * The rooms' Worker side under `bun test`, against a stand-in Durable Object
@@ -193,6 +188,32 @@ describe('a Game room’s socket', () => {
       expect.objectContaining({ type: 'declined', opIds: ['op-2'] }),
     ])
     expect(received(org)).toEqual([expect.objectContaining({ type: 'declined', opIds: [] })])
+  })
+
+  const act = (id: string, name: string, args?: unknown) =>
+    JSON.stringify({ type: 'act', id, name, args })
+
+  test('an act is answered to its sender, and every socket hears the Game change', () => {
+    const { room, org, player } = seated()
+    const boundary = { kind: 'offCamera', text: 'Spiders' }
+    room.webSocketMessage(player as never, act('a-1', 'safety.addBoundary', boundary))
+    expect(received(player).map((m) => m.type)).toEqual(['snapshot', 'answered'])
+    expect(received(player).at(-1)).toMatchObject({ type: 'answered', id: 'a-1' })
+    expect(received(org)).toMatchObject([
+      { type: 'snapshot', records: { boundaries: [{ body: { text: 'Spiders', mine: false } }] } },
+    ])
+  })
+
+  test('an act the room refuses, or will not take from a socket, is refused by id', () => {
+    const { room, player } = seated()
+    room.webSocketMessage(player as never, act('a-2', 'scenes.passHour'))
+    room.webSocketMessage(player as never, act('a-3', 'removeUnit', { unitId: 'p1' }))
+    room.webSocketMessage(player as never, act('a-4', 'salvageAreas.spend', { pilot: 'p1' }))
+    expect(received(player)).toEqual([
+      expect.objectContaining({ type: 'refused', id: 'a-2' }),
+      { type: 'refused', id: 'a-3', reason: 'Not an act this room takes' },
+      { type: 'refused', id: 'a-4', reason: 'Not what that act takes' },
+    ])
   })
 })
 
