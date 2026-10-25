@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * MechSheet — unresolved chassis tests (poster regions)
  *
@@ -12,7 +13,6 @@ import { render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
 const fakeMech: Mech = {
@@ -31,7 +31,7 @@ const fakeMech: Mech = {
   updatedAt: FIXTURE_NOW,
 }
 
-function makeStubStore(mech: Mech): typeof useEntityStore {
+function makeStubStore(mech: Mech): UnitsStore {
   return makeEntityStoreMock({
     mechs: [mech],
     hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },

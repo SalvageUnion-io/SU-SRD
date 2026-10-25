@@ -52,7 +52,7 @@ export type CopyableBody = Record<string, unknown>
  * Fields the copy must not inherit.
  *
  * `id`/`createdAt`/`updatedAt` are minted on create
- * (stores/records.ts (prepareCreate / parseServed)), so
+ * (replica/records.ts (prepareCreate)), so
  * carrying them through would either be overwritten or — worse for `id` —
  * produce a second record claiming to be the original, which is the exact
  * duplicate-`appId` condition that took a play session down.

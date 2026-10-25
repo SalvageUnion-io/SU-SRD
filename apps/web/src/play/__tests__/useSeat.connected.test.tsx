@@ -20,7 +20,7 @@ import {
   setQueryAnswers,
 } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 
 type Sent = { name: string; args: Record<string, unknown> }
 type Updater = (store: LocalStore, args: Record<string, unknown>) => void
@@ -55,10 +55,10 @@ function useMutationMock(ref: unknown) {
 const convexMocks = await installConvexMocks({ convexReact: { useMutation: useMutationMock } })
 
 const { useSeatAt } = await import('../useSeat')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 const { ToasterMount } = await import('../../components/index')
 
 const GAME_ID = 'g-seat'
@@ -78,8 +78,8 @@ function seatRow(pilotId: string, extra: Record<string, unknown> = {}) {
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   await store.adopt('pilot', rook)
   await store.adopt('mech', mechFixture({ id: 'seat-own', name: 'Thresher', gameId: GAME_ID }))
   await store.adopt('mech', mechFixture({ id: 'seat-spare', name: 'Spare', gameId: GAME_ID }))
@@ -93,7 +93,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('mech', 'seat-own')
   await store.forget('mech', 'seat-spare')
   await store.forget('pilot', 'seat-rook')
@@ -107,12 +107,11 @@ beforeEach(() => {
   refusedBy.clear()
 })
 
-function connection(mode: ConnectionMode) {
+function connection(status: SyncStatus) {
   return {
-    mode,
-    canWrite: mode === 'connected' || mode === 'solo',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live' || status === 'signedOut',
+    outdated: false,
   }
 }
 
@@ -123,13 +122,13 @@ function Probe() {
   return null
 }
 
-async function renderProbe(mode: ConnectionMode = 'connected') {
+async function renderProbe(status: SyncStatus = 'live') {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <Probe />
         <ToasterMount />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   if (handle === null) throw new Error('the probe did not render')
@@ -237,7 +236,7 @@ describe('useSeat writes', () => {
 
   test('offline, a write is refused here and never queued', async () => {
     setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
-    const seat = await renderProbe('disconnected')
+    const seat = await renderProbe('offline')
     await act(async () => {
       seat.board('seat-own')
     })
@@ -290,7 +289,7 @@ describe('assign and board', () => {
 
   test('offline, neither is sent', async () => {
     setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
-    const seat = await renderProbe('disconnected')
+    const seat = await renderProbe('offline')
     await act(async () => {
       seat.assignAndBoard(spare)
     })

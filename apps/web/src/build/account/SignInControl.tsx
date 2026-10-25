@@ -1,7 +1,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { Button, cn } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { buildAccountCopy } from '../../messages/build-account'
+import { useSync } from '../../replica/syncContext'
 import { useSignOut } from './useSignOut'
 
 /**
@@ -46,9 +46,9 @@ export function SignInControl({
 }: SignInControlProps) {
   const { signIn } = useAuthActions()
   const signOut = useSignOut()
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  if (mode === 'connected') {
+  if (status === 'live') {
     return (
       <Button
         variant="ghost"
@@ -63,7 +63,7 @@ export function SignInControl({
 
   // Disconnected means signed in but unreachable — offering "sign in" there
   // would be nonsense, and the NOT CONNECTED banner already explains the state.
-  if (mode === 'disconnected') return null
+  if (status === 'offline') return null
 
   return (
     <Button

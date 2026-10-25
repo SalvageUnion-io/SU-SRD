@@ -27,15 +27,15 @@ import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
-import type { EntityState } from '../../stores/entityStore'
+import type { UnitsState } from '../../replica/units'
 import '../../styles/build/wizard.css'
 
 type CrawlerTypeEditModalProps = {
   open: boolean
   onClose: () => void
   crawler: Crawler
-  /** Live write surface (EntityState) for the multi-write. */
-  storeState: EntityState
+  /** Live write surface (UnitsState) for the multi-write. */
+  storeState: UnitsState
 }
 
 export function CrawlerTypeEditModal({

@@ -4,9 +4,9 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 import { HUB_BODY } from './hubStyles.model'
 
 /**
@@ -36,7 +36,7 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
   const pending = useQuery(api.proposals.pending, { gameId })
   const apply = useMutation(api.proposals.apply)
   const decline = useMutation(api.proposals.decline)
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
     failure: 'Your answer did not land. Try again.',
     toastId: 'proposal-answer',

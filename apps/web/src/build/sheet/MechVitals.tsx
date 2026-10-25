@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * MechVitals — the mech sheet's vitals, its opening's right column
  * (`SheetHero`'s `vitals`): SP, EP and Heat as `SheetVitalGauge`s named from
@@ -11,7 +12,6 @@ import type { CSSProperties } from 'react'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import { Conditions, Eyebrow, heatDangerFrom, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import type { MechSheetModel } from './mechSheet.model'
 import type { useMechSheetActions } from './mechSheetActions.model'
@@ -29,7 +29,7 @@ type MechVitalsProps = {
   model: MechSheetModel
   actions: ReturnType<typeof useMechSheetActions>
   readOnly: boolean
-  store: typeof useEntityStore
+  store: UnitsStore
 }
 
 export function MechVitals({ mech, model, actions, readOnly, store }: MechVitalsProps) {

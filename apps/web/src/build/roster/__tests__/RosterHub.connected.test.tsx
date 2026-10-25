@@ -48,12 +48,12 @@ const convexMocks = await installConvexMocks({
 })
 
 const { Roster } = await import('../Roster')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { usePatternStore } = await import('../../../stores/patternStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
+const { useUnits } = await import('../../../replica/units')
+const { usePatterns } = await import('../../../replica/collections')
+const { resetSync, setSyncStatus } = await import('../../../replica/sync')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
 
 const GAMES = [
   { _id: 'g1', name: 'Union Crawler #430', mediator: false, organizer: false, tableRunner: false },
@@ -115,15 +115,15 @@ beforeAll(hydrateStores)
 beforeEach(async () => {
   serverWrites.length = 0
   resetStores()
-  // The server's first answer is in, as `ShelfSync` marks it.
-  useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
-  usePatternStore.getState().markArrived()
+  // The server's first answer is in, as `ConvexFeed` marks it.
+  useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
+  usePatterns.getState().markArrived()
   // In the Training Bay: a pilot and a crawler, adopted as the server sends them.
-  setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
-  await useEntityStore
+  setSyncStatus('live')
+  await useUnits
     .getState()
     .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: null }))
-  await useEntityStore
+  await useUnits
     .getState()
     .adopt('crawler', crawlerFixture({ id: 'c-shelf', name: 'Old Hulk', gameId: null }))
   setQueryAnswers(answers())
@@ -131,7 +131,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 afterAll(() => {
@@ -142,9 +142,9 @@ afterAll(() => {
 async function renderHub(): Promise<void> {
   await act(async () => {
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <Roster />
-      </ConnectionProvider>
+      </SyncProvider>
     )
   })
 }
@@ -178,7 +178,7 @@ describe('Training Bay: everything you own', () => {
   })
 
   test('a unit in a Game stays under Everything, its Game a relation chip that opens it in Play', async () => {
-    await useEntityStore
+    await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-game', name: 'Roach-Boy', gameId: 'g1' }))
     await renderHub()
@@ -200,7 +200,7 @@ describe('Training Bay: everything you own', () => {
   })
 
   test('one Game’s entry shows that Game’s units alone', async () => {
-    await useEntityStore
+    await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-game', name: 'Roach-Boy', gameId: 'g1' }))
     await renderHub()
@@ -215,7 +215,7 @@ describe('Training Bay: everything you own', () => {
 
   test('under Not in a Game, a Training Bay whose units are all in Games says so', async () => {
     // The Training Bay's one pilot moves into a Game: every pilot is now in one.
-    await useEntityStore
+    await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
     await renderHub()
@@ -239,7 +239,7 @@ describe('Training Bay: everything you own', () => {
   })
 
   test('a crawler in a Game you mediate says so', async () => {
-    await useEntityStore
+    await useUnits
       .getState()
       .adopt('crawler', crawlerFixture({ id: 'c-g2', name: 'Long Hauler', gameId: 'g2' }))
     await renderHub()
@@ -250,7 +250,7 @@ describe('Training Bay: everything you own', () => {
   })
 
   test('a pattern says who can see it and how often it has been built', async () => {
-    await usePatternStore.getState().adopt({
+    await usePatterns.getState().adopt({
       id: 'pat-tow-rig',
       schemaVersion: 1,
       name: 'Tow Rig',
@@ -294,11 +294,11 @@ describe('Move to a Game…', () => {
   test('moves the same pilot into a Game, with no confirm — and it stays in the Training Bay', async () => {
     await renderHub()
     await moveMira('Union Crawler #430')
-    await settle(() => useEntityStore.getState().get('pilot', 'p-shelf')?.gameId === 'g1')
+    await settle(() => useUnits.getState().get('pilot', 'p-shelf')?.gameId === 'g1')
 
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(1)
+    expect(useUnits.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
+    expect(useUnits.getState().list('pilot')).toHaveLength(1)
     expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
       gameId: 'g1',
       op: { unitId: 'p-shelf', patch: { gameId: 'g1' } },
@@ -310,20 +310,20 @@ describe('Move to a Game…', () => {
   })
 
   test('and back out, behind a confirm', async () => {
-    await useEntityStore
+    await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
     await renderHub()
     await moveMira('Not in a Game')
 
     const dialog = screen.getByRole('alertdialog')
-    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
+    expect(useUnits.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
     await act(async () => {
       fireEvent.click(within(dialog).getAllByRole('button').at(-1) as HTMLElement)
     })
-    await settle(() => useEntityStore.getState().get('pilot', 'p-shelf')?.gameId === null)
+    await settle(() => useUnits.getState().get('pilot', 'p-shelf')?.gameId === null)
 
-    expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBeNull()
+    expect(useUnits.getState().get('pilot', 'p-shelf')?.gameId).toBeNull()
   })
 })
 

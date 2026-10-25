@@ -13,9 +13,9 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildEntityExport, buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
@@ -138,7 +138,7 @@ describe('parseImportBundle', () => {
 
 describe('buildExportBundle', () => {
   test('round-trip: build then parse yields valid bundle', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     await entityStore.create('pilot', basePilotInput)
@@ -157,7 +157,7 @@ describe('buildExportBundle', () => {
   })
 
   test('includes softLinks and containers in a full backup', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', {
@@ -191,7 +191,7 @@ describe('buildExportBundle', () => {
 
 describe('buildEntityExport', () => {
   test('exports only the target pilot and its attached softLinks', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const pilotA = await entityStore.create('pilot', { ...basePilotInput, name: 'Pilot A' })
@@ -228,7 +228,7 @@ describe('buildEntityExport', () => {
   })
 
   test('returns empty entities array when id not found', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
     const bundle = await buildEntityExport('pilot', 'nonexistent-id', entityStore)
     expect(bundle.entities.pilots).toHaveLength(0)
   })
@@ -241,7 +241,7 @@ describe('buildEntityExport', () => {
 describe('mergeImport — round-trip', () => {
   test('importing into empty store creates all entities with fresh ids', async () => {
     // Build source store with one pilot, one mech, one link.
-    const sourceEntityStore = useEntityStore.getState()
+    const sourceEntityStore = useUnits.getState()
 
     await sourceEntityStore.hydrate('pilot')
     const pilot = await sourceEntityStore.create('pilot', {
@@ -268,7 +268,7 @@ describe('mergeImport — round-trip', () => {
     // ---- empty every store to simulate a fresh target account ----
     resetStores()
 
-    const targetEntityStore = useEntityStore.getState()
+    const targetEntityStore = useUnits.getState()
 
     const summary = await mergeImport(bundle, targetEntityStore)
 
@@ -278,7 +278,7 @@ describe('mergeImport — round-trip', () => {
     expect(summary.skippedDuplicates).toBe(0)
 
     // Verify against the store's state after the import.
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
 
     const importedPilots = verifyEntityStore.list('pilot')
     const importedMechs = verifyEntityStore.list('mech')
@@ -306,7 +306,7 @@ describe('mergeImport — round-trip', () => {
   })
 
   test('id-remap integrity: no dangling softLink refs after import', async () => {
-    const sourceEntityStore = useEntityStore.getState()
+    const sourceEntityStore = useUnits.getState()
 
     await sourceEntityStore.hydrate('pilot')
     const p1 = await sourceEntityStore.create('pilot', { ...basePilotInput, name: 'P1' })
@@ -332,7 +332,7 @@ describe('mergeImport — round-trip', () => {
 
     resetStores()
 
-    const targetEntityStore = useEntityStore.getState()
+    const targetEntityStore = useUnits.getState()
 
     const summary = await mergeImport(bundle, targetEntityStore)
 
@@ -340,7 +340,7 @@ describe('mergeImport — round-trip', () => {
     expect(summary.created.softLinks).toBe(1)
 
     // Verify all imported link ids are valid
-    const verifyStore = useEntityStore.getState()
+    const verifyStore = useUnits.getState()
 
     const pilots = verifyStore.list('pilot')
     const mechs = verifyStore.list('mech')
@@ -358,7 +358,7 @@ describe('mergeImport — round-trip', () => {
   })
 
   test('does not overwrite existing entities — skips duplicates', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const existingPilot = await entityStore.create('pilot', {
@@ -388,24 +388,24 @@ describe('mergeImport — round-trip', () => {
     expect(summary.skippedDuplicates).toBe(1)
 
     // Only one pilot should exist.
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(1)
+    expect(useUnits.getState().list('pilot')).toHaveLength(1)
   })
 
   test('a unit deleted from the account comes back when its backup is imported', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', { ...basePilotInput, name: 'Backed Up' })
     const bundle = await buildExportBundle(entityStore)
 
     await entityStore.delete('pilot', pilot.id)
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+    expect(useUnits.getState().list('pilot')).toHaveLength(0)
 
-    const summary = await mergeImport(bundle, useEntityStore.getState())
+    const summary = await mergeImport(bundle, useUnits.getState())
 
     expect(summary.skippedDuplicates).toBe(0)
     expect(summary.created.pilots).toBe(1)
-    const back = useEntityStore.getState().list('pilot')
+    const back = useUnits.getState().list('pilot')
     expect(back).toHaveLength(1)
     expect(back[0]?.name).toBe('Backed Up')
     // A copy: fresh id, never the deleted unit's own.
@@ -419,7 +419,7 @@ describe('mergeImport — round-trip', () => {
 
 describe('mergeImport — remappedLinks counter', () => {
   test('increments remappedLinks when a link endpoint id is remapped', async () => {
-    const sourceEntityStore = useEntityStore.getState()
+    const sourceEntityStore = useUnits.getState()
 
     await sourceEntityStore.hydrate('pilot')
     const pilot = await sourceEntityStore.create('pilot', basePilotInput)
@@ -438,7 +438,7 @@ describe('mergeImport — remappedLinks counter', () => {
 
     resetStores()
 
-    const targetEntityStore = useEntityStore.getState()
+    const targetEntityStore = useUnits.getState()
 
     const summary = await mergeImport(bundle, targetEntityStore)
 

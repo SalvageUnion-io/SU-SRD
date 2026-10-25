@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Pilot conditions tests
  *
@@ -23,8 +24,7 @@ import {
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -41,7 +41,7 @@ const basePilot = pilotFixture({
   currentAP: 4,
 })
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   return makeEntityStoreMock({
     pilots: [pilot],
     hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },

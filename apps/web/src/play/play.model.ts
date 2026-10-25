@@ -16,12 +16,12 @@ import { pilotRailItems, rowStats } from '../build/sheet/railStats.model'
 import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
 import { foregroundOn } from '../design/contrast'
-import type { ConnectionMode } from '../lib/connection/connectionMode'
-import type { EntityState } from '../stores/entityStore'
+import type { SyncStatus } from '../replica/sync'
+import type { UnitsState } from '../replica/units'
 import type { Situation } from './situation.model'
 
 /** The store surface Play writes through: injectable, so a test can assert the patches. */
-export type PlayStore = Pick<EntityState, 'get' | 'update' | 'transfer'>
+export type PlayStore = Pick<UnitsState, 'get' | 'update' | 'transfer'>
 
 /**
  * Who the Play screen is for, as the gate (`PlayGate`) settles it: the pilot,
@@ -86,15 +86,15 @@ export const PHASE_TONE = {
  * screen reaches its table live and a solo one shares nothing; offline,
  * nothing does (the Saved indicator beside it says the screen is read-only).
  */
-export function connectionLine(mode: ConnectionMode, solo: boolean): string {
-  switch (mode) {
-    case 'connected':
+export function connectionLine(status: SyncStatus, solo: boolean): string {
+  switch (status) {
+    case 'live':
       return solo ? 'Solo · nothing is shared' : 'Connected · changes reach the table live'
-    case 'connecting':
+    case 'syncing':
       return 'Connecting…'
-    case 'disconnected':
+    case 'offline':
       return 'Disconnected · waiting to reconnect'
-    case 'solo':
+    case 'signedOut':
       return 'Signed out'
   }
 }
@@ -107,7 +107,7 @@ export function connectionLine(mode: ConnectionMode, solo: boolean): string {
 export type PlayReadOnly = { stamp: string; says: string }
 
 export function playReadOnly(connection: {
-  mode: ConnectionMode
+  status: SyncStatus
   canWrite: boolean
   outdated?: boolean
 }): PlayReadOnly | null {
@@ -118,17 +118,17 @@ export function playReadOnly(connection: {
       says: 'Read-only: this tab is updating to the new build. Reload to keep playing.',
     }
   }
-  switch (connection.mode) {
-    case 'disconnected':
+  switch (connection.status) {
+    case 'offline':
       return {
         stamp: 'Read-only · disconnected',
         says: 'Read-only: disconnected. Play comes back when the connection does.',
       }
-    case 'connecting':
+    case 'syncing':
       return { stamp: 'Read-only · connecting', says: 'Read-only while the connection settles.' }
-    case 'solo':
+    case 'signedOut':
       return { stamp: 'Read-only · signed out', says: 'Read-only: sign in to play.' }
-    case 'connected':
+    case 'live':
       return { stamp: 'Read-only', says: 'Read-only: the server is not taking changes right now.' }
   }
 }

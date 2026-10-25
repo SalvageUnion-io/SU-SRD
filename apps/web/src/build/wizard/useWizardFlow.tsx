@@ -26,8 +26,8 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
-import { useEntityStore } from '../../stores/entityStore'
-import type { CreateInput } from '../../stores/types'
+import type { CreateInput } from '../../replica/types'
+import { useUnits } from '../../replica/units'
 import { OffRulesEscape } from './OffRulesEscape'
 
 /**
@@ -157,7 +157,7 @@ export function useWizardFlow<
         return null
       }
 
-      return useEntityStore
+      return useUnits
         .getState()
         .create(entityType, gameId === undefined ? rawInput : inGame(rawInput, gameId))
     },

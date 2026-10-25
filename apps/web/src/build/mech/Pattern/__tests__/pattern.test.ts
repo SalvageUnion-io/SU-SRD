@@ -16,12 +16,12 @@ import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
 import { must } from '../../../../components/__tests__/must'
 import { mechFromPattern } from '../../../../lib/patterns/patterns'
-import type { MonotonicClock } from '../../../../stores/__tests__/monotonicClock'
-import { installMonotonicClock } from '../../../../stores/__tests__/monotonicClock'
-import { resetStores } from '../../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../../stores/entityStore'
-import { usePatternStore } from '../../../../stores/patternStore'
+import type { MonotonicClock } from '../../../../replica/__tests__/monotonicClock'
+import { installMonotonicClock } from '../../../../replica/__tests__/monotonicClock'
+import { resetStores } from '../../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
+import { usePatterns } from '../../../../replica/collections'
+import { useUnits } from '../../../../replica/units'
 
 // Saving a pattern needs an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
@@ -45,7 +45,7 @@ afterAll(() => {
 
 beforeEach(async () => {
   resetStores()
-  await usePatternStore.getState().hydrate()
+  await usePatterns.getState().hydrate()
 })
 
 afterEach(() => {
@@ -167,7 +167,7 @@ describe('MechPatternSchema — invalid input', () => {
 
 describe('patternStore — create + get round-trip', () => {
   test('create returns a pattern with a generated id and createdAt', async () => {
-    const created = await usePatternStore.getState().create(validPatternBase)
+    const created = await usePatterns.getState().create(validPatternBase)
 
     expect(typeof created.id).toBe('string')
     expect(created.id.length).toBeGreaterThan(0)
@@ -179,8 +179,8 @@ describe('patternStore — create + get round-trip', () => {
   })
 
   test('get retrieves the created pattern by id', async () => {
-    const created = await usePatternStore.getState().create(validPatternBase)
-    const fetched = usePatternStore.getState().get(created.id)
+    const created = await usePatterns.getState().create(validPatternBase)
+    const fetched = usePatterns.getState().get(created.id)
 
     expect(fetched).not.toBeNull()
     expect(must(fetched).id).toBe(created.id)
@@ -189,47 +189,45 @@ describe('patternStore — create + get round-trip', () => {
   })
 
   test('get returns null for a non-existent id', async () => {
-    const result = usePatternStore.getState().get('does-not-exist')
+    const result = usePatterns.getState().get('does-not-exist')
     expect(result).toBeNull()
   })
 })
 
 describe('patternStore — list', () => {
   test('list returns all patterns, newest first', async () => {
-    const p1 = await usePatternStore.getState().create({ ...validPatternBase, name: 'Alpha' })
-    const p2 = await usePatternStore.getState().create({ ...validPatternBase, name: 'Beta' })
+    const p1 = await usePatterns.getState().create({ ...validPatternBase, name: 'Alpha' })
+    const p2 = await usePatterns.getState().create({ ...validPatternBase, name: 'Beta' })
 
-    const all = usePatternStore.getState().list()
+    const all = usePatterns.getState().list()
     expect(all.length).toBe(2)
     expect(must(all[0]).id).toBe(p2.id) // newest first
     expect(must(all[1]).id).toBe(p1.id)
   })
 
   test('list returns empty array when no patterns exist', async () => {
-    const all = usePatternStore.getState().list()
+    const all = usePatterns.getState().list()
     expect(all).toEqual([])
   })
 })
 
 describe('patternStore — delete', () => {
   test('delete removes the pattern; subsequent get returns null', async () => {
-    const created = await usePatternStore.getState().create(validPatternBase)
-    await usePatternStore.getState().delete(created.id)
-    const fetched = usePatternStore.getState().get(created.id)
+    const created = await usePatterns.getState().create(validPatternBase)
+    await usePatterns.getState().delete(created.id)
+    const fetched = usePatterns.getState().get(created.id)
     expect(fetched).toBeNull()
   })
 
   test('delete is a silent no-op for an unknown id', async () => {
     // Should not throw
-    await usePatternStore.getState().delete('does-not-exist')
+    await usePatterns.getState().delete('does-not-exist')
   })
 })
 
 describe('patternStore — Zod rejection', () => {
   test('create rejects a pattern with an empty name', async () => {
-    await expect(
-      usePatternStore.getState().create({ ...validPatternBase, name: '' })
-    ).rejects.toThrow()
+    await expect(usePatterns.getState().create({ ...validPatternBase, name: '' })).rejects.toThrow()
   })
 })
 
@@ -239,7 +237,7 @@ describe('patternStore — Zod rejection', () => {
 
 describe('instantiate from pattern — fresh mech with pattern fields', () => {
   test('mech created from pattern has a new id and fresh timestamps', async () => {
-    const pattern = await usePatternStore.getState().create({
+    const pattern = await usePatterns.getState().create({
       schemaVersion: 1,
       name: 'Heavy Hauler',
       chassisRef: 'mule',
@@ -258,7 +256,7 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
     })
 
     // Instantiate through the same builder InstantiateFromPattern uses
-    const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
+    const mech = await useUnits.getState().create('mech', mechFromPattern(pattern))
 
     // Fresh identity — not the same id as the pattern
     expect(mech.id).not.toBe(pattern.id)
@@ -277,7 +275,7 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
     expect(mech.sourcePattern).toBe(pattern.id)
 
     // Pattern itself is unmodified
-    const refetched = usePatternStore.getState().get(pattern.id)
+    const refetched = usePatterns.getState().get(pattern.id)
     expect(refetched).not.toBeNull()
     expect(must(refetched).id).toBe(pattern.id)
   })

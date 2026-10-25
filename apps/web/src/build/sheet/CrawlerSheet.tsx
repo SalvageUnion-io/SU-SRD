@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
  * poster layout.
@@ -79,8 +80,8 @@ import {
 } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
@@ -114,10 +115,10 @@ type CrawlerSheetProps = {
   /** The docked mech's sheet: the Hold's load target and the Mech Bay's Mini open it. */
   mechHref?: string
   /**
-   * Injectable store — defaults to useEntityStore.
+   * Injectable store — defaults to useUnits.
    * Pass a stub in tests to avoid Zustand side effects.
    */
-  store?: typeof useEntityStore
+  store?: UnitsStore
   /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
@@ -160,7 +161,7 @@ export function CrawlerSheet({
   crawler,
   mech = null,
   mechHref,
-  store = useEntityStore,
+  store = useUnits,
   readOnly = false,
   liveCondition = false,
   economy,

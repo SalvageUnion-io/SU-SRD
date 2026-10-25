@@ -15,9 +15,9 @@ import {
   TitledBox,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 
 /**
  * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
@@ -207,11 +207,11 @@ function SignedOutInvite({ token }: { token: string }) {
 }
 
 export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
   const body = () => {
-    if (mode === 'connected') return <ConnectedInvite token={token} joinOnArrival={joinOnArrival} />
-    if (mode === 'disconnected') {
+    if (status === 'live') return <ConnectedInvite token={token} joinOnArrival={joinOnArrival} />
+    if (status === 'offline') {
       return (
         // What being offline means here (chrome K5): an unlabelled note.
         <Callout role="note">

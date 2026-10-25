@@ -53,17 +53,15 @@ const convexMocks = await installConvexMocks({
 
 const { GameRoster } = await import('../GameRoster')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-
-const SIGNED_IN = { signedIn: true, online: true, authSettled: true }
+const { useUnits } = await import('../../../replica/units')
+const { setSyncStatus } = await import('../../../replica/sync')
 
 beforeAll(hydrateStores)
 
 afterAll(async () => {
   // Leave the shared stores as this file found them: empty.
   for (const id of ['a-mine', 'a-crawler', 'a-shelf', 'a-away']) {
-    await useEntityStore.getState().forget(id === 'a-crawler' ? 'crawler' : 'pilot', id)
+    await useUnits.getState().forget(id === 'a-crawler' ? 'crawler' : 'pilot', id)
   }
 })
 
@@ -402,7 +400,7 @@ describe('make a copy', () => {
 
 /** The names of the pilots this browser holds, to see whether a copy landed. */
 const localPilotNames = () =>
-  useEntityStore
+  useUnits
     .getState()
     .list('pilot')
     .map((p) => p.name)
@@ -559,14 +557,14 @@ describe('every verb that changes who has a build asks first', () => {
 })
 
 describe('remove from game', () => {
-  /** This browser holds the copy a move is made on — `ShelfSync` brings it in. */
+  /** This browser holds the copy a move is made on — the feed brings it in. */
   async function holdLocally(): Promise<void> {
-    setEntityBackendAuthState(SIGNED_IN)
-    await useEntityStore
+    setSyncStatus('live')
+    await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
   }
-  const gameIdOf = (id: string) => useEntityStore.getState().get('pilot', id)?.gameId
+  const gameIdOf = (id: string) => useUnits.getState().get('pilot', id)?.gameId
 
   test('is offered on your own pilot once its copy is here, and on nobody else’s', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
@@ -608,8 +606,8 @@ describe('remove from game', () => {
   })
 
   test('a crawler comes out at the table runner’s hand only', async () => {
-    setEntityBackendAuthState(SIGNED_IN)
-    await useEntityStore
+    setSyncStatus('live')
+    await useUnits
       .getState()
       .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))
 

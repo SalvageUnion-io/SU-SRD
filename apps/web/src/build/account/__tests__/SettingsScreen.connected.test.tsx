@@ -55,7 +55,7 @@ const convexMocks = await installConvexMocks({
 })
 
 const { SettingsScreen } = await import('../SettingsScreen')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
 function withQueries(answers: QueryAnswers): void {
   setQueryAnswers(answers)
@@ -85,9 +85,9 @@ afterEach(() => {
 
 const wrap = () =>
   render(
-    <ConnectionProvider>
+    <SyncProvider>
       <SettingsScreen />
-    </ConnectionProvider>
+    </SyncProvider>
   )
 
 const ME = { displayName: 'Beefcake', avatarUrl: null, discordId: 'd1' }

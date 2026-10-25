@@ -20,11 +20,11 @@ const convexMocks = await installConvexMocks({
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
+const { useUnits } = await import('../../../replica/units')
 const { STARTER_PILOTS } = await import('game-domain/starterSet/starterSet')
 const { StarterSheetView } = await import('../StarterSheetView')
 const { StarterSetRoster } = await import('../StarterSetRoster')
@@ -34,10 +34,9 @@ withSignedInBackend()
 afterAll(() => convexMocks.restore())
 
 const CONNECTED = {
-  mode: 'connected' as const,
+  status: 'live' as const,
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 beforeEach(async () => {
@@ -52,9 +51,9 @@ beforeEach(async () => {
 
 function renderBonesaw() {
   render(
-    <ConnectionContext.Provider value={CONNECTED}>
+    <SyncContext.Provider value={CONNECTED}>
       <StarterSheetView kind="pilot" id="starter-pilot-bonesaw" />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
@@ -69,14 +68,14 @@ describe('Make a copy', () => {
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('Make a copy of Bonesaw?')
     expect(dialog.textContent).toContain('stays as Leyline Press published it')
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+    expect(useUnits.getState().list('pilot')).toHaveLength(0)
 
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
     })
-    await waitFor(() => expect(useEntityStore.getState().list('pilot')).toHaveLength(1))
+    await waitFor(() => expect(useUnits.getState().list('pilot')).toHaveLength(1))
 
-    const [copy] = useEntityStore.getState().list('pilot')
+    const [copy] = useUnits.getState().list('pilot')
     expect(copy?.name).toBe('Bonesaw')
     expect(copy?.gameId).toBeNull()
     expect(copy?.seedRef).toBe('starter-pilot-bonesaw')
@@ -89,9 +88,9 @@ describe('Make a copy', () => {
 describe('Copy to… on the Starter Set page', () => {
   function renderPage() {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <StarterSetRoster headingLevel="h1" />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   }
 
@@ -132,7 +131,7 @@ describe('Copy to… on the Starter Set page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
     })
-    await waitFor(() => expect(useEntityStore.getState().list('pilot')).toHaveLength(1))
-    expect(useEntityStore.getState().list('pilot')[0]?.gameId).toBe('g1')
+    await waitFor(() => expect(useUnits.getState().list('pilot')).toHaveLength(1))
+    expect(useUnits.getState().list('pilot')[0]?.gameId).toBe('g1')
   })
 })

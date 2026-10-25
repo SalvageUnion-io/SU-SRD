@@ -21,15 +21,15 @@ const convexMocks = await installConvexMocks({
 })
 
 const { GamesDrawerList, GamesMenu } = await import('../GamesMenu')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const GAMES = [
   { _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true },
   { _id: 'g2', name: 'The Long Haul', mediator: false, organizer: false },
 ]
 
-const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 async function openGames(): Promise<HTMLElement> {
   await act(async () => {
@@ -47,7 +47,7 @@ afterEach(() => {
   setOnline(true)
   convexMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 afterAll(convexMocks.restore)

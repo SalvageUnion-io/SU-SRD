@@ -13,9 +13,9 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { FIXTURE_NOW, pilotFixture } from '../../../components/__tests__/fixtures'
 import type { ExportBundle } from '../../../lib/schemas/exportBundle'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import { ExportAllButton } from '../ExportAllButton'
 import { ExportEntityButton } from '../ExportEntityButton'
 import { ImportButton } from '../ImportButton'
@@ -63,7 +63,7 @@ async function downloaded(index = 0): Promise<ExportBundle> {
 
 describe('ExportAllButton', () => {
   test('downloads everything in the store as one dated backup', async () => {
-    await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Rook' }))
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1', name: 'Rook' }))
     render(<ExportAllButton />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
@@ -103,7 +103,7 @@ describe('ExportAllButton', () => {
 
 describe('ExportEntityButton', () => {
   test('exports only the one entity, under a filename safe for any OS', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     await store.adopt('pilot', pilotFixture({ id: 'p1', name: 'Rook "The Kid" O’Hara' }))
     await store.adopt('pilot', pilotFixture({ id: 'p2', name: 'Someone else' }))
     render(<ExportEntityButton type="pilot" id="p1" name='Rook "The Kid" O’Hara' />)
@@ -144,7 +144,7 @@ describe('ImportButton', () => {
     await waitFor(() => expect(screen.getByText(/Imported: 1 pilot\(s\)/)).toBeTruthy())
     // A copy earns a new id (see apps/web/src/routes/CLAUDE.md), so match on the name.
     expect(
-      useEntityStore
+      useUnits
         .getState()
         .list('pilot')
         .map((p) => p.name)
@@ -158,6 +158,6 @@ describe('ImportButton', () => {
 
     await waitFor(() => expect(screen.getByText(/not valid JSON/i)).toBeTruthy())
     expect(screen.queryByText(/Imported:/)).toBeNull()
-    expect(useEntityStore.getState().list('pilot')).toEqual([])
+    expect(useUnits.getState().list('pilot')).toEqual([])
   })
 })

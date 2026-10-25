@@ -14,7 +14,7 @@
 import { afterAll, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`. The signed-out
 // branch mounts `SignInControl`, whose auth hook needs the auth module.
@@ -22,15 +22,15 @@ const convexMocks = await installConvexMocks({ authReact: true })
 setQueryAnswers({})
 afterAll(() => convexMocks.restore())
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { ShareStatusDialog } = await import('../ShareStatusDialog')
 
-function renderDialog(state?: ConnectionState): ReturnType<typeof render> {
+function renderDialog(state?: SyncState): ReturnType<typeof render> {
   const dialog = (
     <ShareStatusDialog kind="pilot" id="pilot-1" name="Mara Vex" open onOpenChange={() => {}} />
   )
   return render(
-    state ? <ConnectionContext.Provider value={state}>{dialog}</ConnectionContext.Provider> : dialog
+    state ? <SyncContext.Provider value={state}>{dialog}</SyncContext.Provider> : dialog
   )
 }
 
@@ -58,7 +58,7 @@ describe('ShareStatusDialog — snapshots are gone', () => {
 
 describe('ShareStatusDialog — Solo', () => {
   test('says sharing needs an account, rather than offering a control that cannot work', async () => {
-    // No provider at all is Solo (`SOLO_STATE`), the anonymous visitor.
+    // No provider at all is Solo (`SIGNED_OUT`), the anonymous visitor.
     await act(async () => {
       renderDialog()
     })
@@ -72,10 +72,9 @@ describe('ShareStatusDialog — signed in but not connected', () => {
   test('says sharing needs a live connection', async () => {
     await act(async () => {
       renderDialog({
-        mode: 'disconnected',
+        status: 'offline',
         canWrite: false,
-        showDisconnectedWarning: true,
-        settling: false,
+        outdated: false,
       })
     })
     expect(screen.getByText(/need a live connection/i)).toBeTruthy()

@@ -17,9 +17,9 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../../components/__tests__/must'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import { PilotWizard } from '../PilotWizard'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -36,7 +36,7 @@ withSignedInBackend()
 beforeEach(async () => {
   sessionStorage.clear()
   resetStores()
-  await useEntityStore.getState().hydrate('pilot')
+  await useUnits.getState().hydrate('pilot')
 })
 
 afterEach(async () => {
@@ -171,7 +171,7 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     })
 
     await waitFor(() => {
-      const pilots = useEntityStore.getState().list('pilot')
+      const pilots = useUnits.getState().list('pilot')
       expect(pilots.length).toBe(1)
       const p = must(pilots[0])
       expect(p.name).toBe('Mira Voss')

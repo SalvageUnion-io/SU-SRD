@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * useEntityChoices — controlled-selection adapter between an entity's persisted
  * per-item choice map and the UI library's ReferenceEntityCard `selections` /
@@ -30,9 +31,9 @@
 
 import { useCallback } from 'react'
 import { runWrite } from '../../lib/runWrite'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { EntityForType, EntityType } from '../../stores/types'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { EntityForType, EntityType } from '../../replica/types'
+import { useUnits } from '../../replica/units'
 import type { ChoiceSelections } from '../index'
 
 /**
@@ -77,8 +78,8 @@ export function useEntityChoices<T extends EntityType>(
    * so read-only/snapshot rendering does not depend on the live store.
    */
   seed: ChoiceSelections | undefined,
-  /** Injectable store — defaults to useEntityStore. Pass a stub in tests. */
-  store: typeof useEntityStore = useEntityStore
+  /** Injectable store — defaults to useUnits. Pass a stub in tests. */
+  store: UnitsStore = useUnits
 ): UseEntityChoicesResult {
   const storeState = store()
 

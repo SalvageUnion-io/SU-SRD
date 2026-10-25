@@ -48,7 +48,6 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/src/build/npc/CrewBoard.tsx': 625,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 658,
   'apps/web/src/lib/rules/creation.ts': 722,
-  'apps/web/src/stores/entityStore.ts': 706,
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 601,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 613,

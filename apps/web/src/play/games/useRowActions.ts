@@ -23,8 +23,8 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import type { Confirm } from '../../components/shared/useConfirm'
 import type { GameMember, RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { useEntityStore } from '../../stores/entityStore'
-import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
+import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 
 /** The table a pilot or mech row's ownership mutations address. */
 function ownableTable(row: RosterRow): OwnableTable {
@@ -32,7 +32,7 @@ function ownableTable(row: RosterRow): OwnableTable {
 }
 
 export type RowActions = {
-  /** Assign an unassigned character to yourself; `ShelfSync` brings it into this browser. */
+  /** Assign an unassigned character to yourself; `ConvexFeed` brings it into this browser. */
   assignSelf: (row: RosterRow) => void
   /**
    * The table runner's: assign a character to `member`, whoever holds it now.
@@ -60,7 +60,7 @@ export function useRowActions(confirm: Confirm): RowActions {
 
   /** Drop this browser's cached copy once the server no longer lets us hold it. */
   async function forgetLocal(row: RosterRow): Promise<void> {
-    if (row.localId !== null) await useEntityStore.getState().forget(row.kind, row.localId)
+    if (row.localId !== null) await useUnits.getState().forget(row.kind, row.localId)
   }
 
   return {
@@ -69,7 +69,7 @@ export function useRowActions(confirm: Confirm): RowActions {
         ...ROW_ACTION_COPY.assignSelf(row.name),
         onConfirm: async () => {
           // Nothing to pull down by hand: it is yours now, so it is in
-          // `listMine`, and `ShelfSync` caches it from there — the row's View
+          // `listMine`, and `ConvexFeed` caches it from there — the row's View
           // opens it editable as soon as it lands.
           await assign({ table: ownableTable(row), entityId: row.serverId })
         },
@@ -129,9 +129,7 @@ export function useRowActions(confirm: Confirm): RowActions {
           // arrived — so reaching it is a defect, and the confirm reports it.
           if (row.localId === null)
             throw new Error('Move to your Training Bay offered with no local copy')
-          await useEntityStore
-            .getState()
-            .update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)
+          await useUnits.getState().update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)
         },
       }),
 
@@ -141,7 +139,7 @@ export function useRowActions(confirm: Confirm): RowActions {
         onConfirm: async () => {
           // Server first, addressed by server id: the row may never have been
           // in this browser, and a template pre-gen has no appId for
-          // `commitEntityWrite` to address it by.
+          // `sendRow` to address it by.
           await removeEntity({ table: ownableTable(row), entityId: row.serverId })
           // Then drop the cached copy, exactly as release and scrap do.
           // `forget`, not `delete`: the server row is already gone, so a second

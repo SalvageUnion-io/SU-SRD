@@ -36,7 +36,7 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import { useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { useSync } from '../../replica/syncContext'
 import { CrewSheetBanner } from './CrewSheetBanner'
 import type { EntityLookup } from './composition.model'
 import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore.model'
@@ -50,7 +50,7 @@ import { useLocatedSheet } from './useLocatedSheet'
 type SheetViewProps = { kind: SheetKind; id: string }
 
 export function SheetView({ kind, id }: SheetViewProps) {
-  const { mode } = useConnection()
+  const { status: sync } = useSync()
   const { status, held, gameId, listing, members, me, sheetMode, crew } = useLocatedSheet(kind, id)
 
   // The Game whose crawler this sheet's cargo reaches: the server's answer once
@@ -60,7 +60,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   const tableId = gameId ?? (heldIn?.kind === 'game' ? (heldIn.gameId as Id<'games'>) : null)
   const table = useQuery(
     api.games.get,
-    mode === 'connected' && tableId !== null ? { gameId: tableId } : 'skip'
+    sync === 'live' && tableId !== null ? { gameId: tableId } : 'skip'
   )
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
 

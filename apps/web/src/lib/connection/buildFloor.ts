@@ -14,7 +14,7 @@ import { reloadOntoNewBuild, serverBootsAnotherBuild } from '../sw/register'
  * it may call a function that no longer exists, or send a shape that is now
  * refused. So:
  *
- * 1. **Writes stop at once.** `ConnectionProvider` reports `outdated`, so
+ * 1. **Writes stop at once.** `SyncProvider` reports `outdated`, so
  *    `canWrite` is false and the store refuses with the `outdated` reason.
  * 2. **The tab reloads once the Worker serves another build.** The Convex push
  *    lands a minute or two before the Worker deploy, so reloading the moment
@@ -83,10 +83,10 @@ const FLOOR_REQUEST = { floor: { query: api.build.floor, args: {} } }
 
 /**
  * Whether this tab is below the backend's build floor, and, while it is, works
- * toward a reload. `ConnectionProvider` is the one caller.
+ * toward a reload. `SyncProvider` is the one caller.
  *
  * `useQueries` rather than `useQuery` because it hands back a failed query as
- * an `Error` instead of throwing it: this runs in `ConnectionProvider`, at the
+ * an `Error` instead of throwing it: this runs in `SyncProvider`, at the
  * root, where a throw would blank the whole app. A floor it cannot read
  * refuses nothing.
  */

@@ -13,14 +13,14 @@
 import '../../styles/play/play.css'
 import { PRODUCT } from 'game-domain/product'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 import { PlayRefusal } from '../PlayRefusal'
 import { GameHub } from './GameHub'
 
 export function GamePage({ gameId }: { gameId: string }) {
-  const { mode } = useConnection()
-  if (mode === 'solo') {
+  const { status } = useSync()
+  if (status === 'signedOut') {
     return (
       <PlayRefusal
         title={playGamesCopy('signInToOpenThis')}
@@ -29,8 +29,8 @@ export function GamePage({ gameId }: { gameId: string }) {
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label={playGamesCopy('yourSession')} />
-  if (mode === 'disconnected') {
+  if (status === 'syncing') return <RoutePending label={playGamesCopy('yourSession')} />
+  if (status === 'offline') {
     return (
       <PlayRefusal
         title={playGamesCopy('thisGameOpensOnceYou')}

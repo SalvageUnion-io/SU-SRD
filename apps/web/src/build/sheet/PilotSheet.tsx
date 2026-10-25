@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
  * sheet, region-for-region).
@@ -73,8 +74,8 @@ import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { resolveClass } from '../../lib/classRef'
 import { classArt } from '../../lib/photos/defaultArt'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 import { ChipListEditor } from './ChipListEditor'
 import { CONDITION_DRAFT } from './chipWell.model'
 import { PartnerCard } from './PartnerCard'
@@ -148,10 +149,10 @@ const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
 type PilotSheetProps = {
   pilot: Pilot
   /**
-   * Injectable store — defaults to useEntityStore.
+   * Injectable store — defaults to useUnits.
    * Pass a stub in tests to avoid Zustand side effects.
    */
-  store?: typeof useEntityStore
+  store?: UnitsStore
   /** When true, every edit affordance is suppressed (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
@@ -170,7 +171,7 @@ type PilotSheetProps = {
 
 export function PilotSheet({
   pilot,
-  store = useEntityStore,
+  store = useUnits,
   readOnly = false,
   crawlerReadOnly = false,
   linkedUnits,
@@ -227,7 +228,7 @@ export function PilotSheet({
                       readOnly
                         ? undefined
                         : (photo) =>
-                            useEntityStore
+                            useUnits
                               .getState()
                               .update('pilot', pilot.id, { photo }, LIVE_SHEET_MANUAL)
                     }

@@ -72,10 +72,10 @@ const convexMocks = await installConvexMocks({
 
 const { GameHub } = await import('../GameHub')
 const { PlayGate } = await import('../../../play/PlayGate')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { useUnits } = await import('../../../replica/units')
+const { resetSync } = await import('../../../replica/sync')
 const { CHAPTER_BAND_COLOR } = await import('../../../components/index')
 
 /** A colour as the DOM reads it back off an inline style. */
@@ -430,8 +430,8 @@ describe('Play from the Game page', () => {
 
   beforeAll(async () => {
     // Filling the cache only: `adopt` is not a user write, so it needs no account.
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-    const store = useEntityStore.getState()
+    resetSync()
+    const store = useUnits.getState()
     for (const [id, name] of HELD) {
       await store.adopt('pilot', pilotFixture({ id, name, gameId: 'g1' }))
     }
@@ -439,7 +439,7 @@ describe('Play from the Game page', () => {
 
   afterAll(async () => {
     // Leave the shared store as this file found it.
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     for (const [id] of HELD) await store.forget('pilot', id)
   })
 
@@ -458,16 +458,15 @@ describe('Play from the Game page', () => {
   /** The body of `/play/<id>`, signed in and connected. */
   async function openGate(id: string): Promise<void> {
     const connected = {
-      mode: 'connected' as const,
+      status: 'live' as const,
       canWrite: true,
-      showDisconnectedWarning: false,
-      settling: false,
+      outdated: false,
     }
     await act(async () => {
       render(
-        <ConnectionContext.Provider value={connected}>
+        <SyncContext.Provider value={connected}>
           <PlayGate id={id} />
-        </ConnectionContext.Provider>
+        </SyncContext.Provider>
       )
     })
   }

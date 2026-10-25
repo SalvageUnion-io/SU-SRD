@@ -29,7 +29,7 @@ import { linesFromBreakdown, trackForTree } from '../../components/index'
 import { resolveClass } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
-import type { EntityState } from '../../stores/entityStore'
+import type { UnitsState } from '../../replica/units'
 import type { ClassLike } from '../pilot/abilityTrees.model'
 import { treesFor } from '../pilot/abilityTrees.model'
 import { useSoftLinks } from '../wiring/useSoftLinks'
@@ -101,7 +101,7 @@ function groupAbilityTrees(entries: readonly AbilityEntry[]): AbilityTreeGroup[]
 
 type PilotSheetModelOptions = {
   pilot: Pilot
-  storeState: EntityState
+  storeState: UnitsState
   /** Which picker is open — the ability-tree scope is only computed for one. */
   picker: 'abilities' | 'equipment' | null
 }

@@ -10,7 +10,7 @@
 
 import { afterEach, describe, expect, test } from 'bun:test'
 import { toast } from '../../components/index'
-import { WritesBlockedOffline } from '../../stores/entityBackend'
+import { WritesBlockedOffline } from '../../replica/sync'
 import { reportWriteFailure, runWrite } from '../runWrite'
 
 const realError = console.error

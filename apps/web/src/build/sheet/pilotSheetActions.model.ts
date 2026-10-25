@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * usePilotSheetActions — every write the pilot Live Sheet can make, in one
  * place.
@@ -38,8 +39,8 @@ import { pilotActivationPatch } from '../../lib/rules/actionPatches'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { runWrite } from '../../lib/runWrite'
-import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
+import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { UsedTraitKey } from './PilotIdentity'
@@ -48,8 +49,8 @@ import type { SheetPatch } from './sheetViewProps.model'
 type PilotSheetActionsOptions = {
   pilot: Pilot
   /** Injectable store hook — forwarded to `useSoftWarnings`. */
-  store: typeof useEntityStore
-  storeState: EntityState
+  store: UnitsStore
+  storeState: UnitsState
   /**
    * The pilot's effective crawler Tech Level (`resolveEffectiveCrawlerLevel`),
    * so a Spend AP on an unset pool starts from the same max the sheet shows.

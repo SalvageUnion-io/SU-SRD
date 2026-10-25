@@ -18,10 +18,10 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { useUnits } from '../../../replica/units'
 import { useMech, usePilot, usePilots } from '../index'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -70,8 +70,8 @@ afterEach(() => {
 
 describe('usePilots', () => {
   test('returns pilots from in-memory state', async () => {
-    await useEntityStore.getState().hydrate('pilot')
-    await useEntityStore.getState().create('pilot', basePilotInput)
+    await useUnits.getState().hydrate('pilot')
+    await useUnits.getState().create('pilot', basePilotInput)
 
     function PilotList() {
       const pilots = usePilots()
@@ -93,13 +93,13 @@ describe('usePilots', () => {
 
   test('auto-triggers lazy hydration for an unhydrated type', async () => {
     // A row the server sent, held while pilots are still unhydrated.
-    await useEntityStore.getState().adopt('pilot', {
+    await useUnits.getState().adopt('pilot', {
       ...basePilotInput,
       id: crypto.randomUUID(),
       createdAt: FIXTURE_NOW,
       updatedAt: FIXTURE_NOW,
     })
-    expect(useEntityStore.getState().hydrated.pilots).toBe(false)
+    expect(useUnits.getState().hydrated.pilots).toBe(false)
 
     function PilotList() {
       const pilots = usePilots()
@@ -114,14 +114,14 @@ describe('usePilots', () => {
     await waitFor(() => {
       expect(screen.getByText('Zara Heln')).toBeTruthy()
     })
-    expect(useEntityStore.getState().hydrated.pilots).toBe(true)
+    expect(useUnits.getState().hydrated.pilots).toBe(true)
   })
 })
 
 describe('usePilot / useMech (by id)', () => {
   test('returns the entity by id', async () => {
-    await useEntityStore.getState().hydrate('pilot')
-    const pilot = await useEntityStore.getState().create('pilot', basePilotInput)
+    await useUnits.getState().hydrate('pilot')
+    const pilot = await useUnits.getState().create('pilot', basePilotInput)
 
     function PilotName() {
       const p = usePilot(pilot.id)
@@ -136,7 +136,7 @@ describe('usePilot / useMech (by id)', () => {
   })
 
   test('returns null for unknown and undefined ids', async () => {
-    useEntityStore.setState((s) => ({
+    useUnits.setState((s) => ({
       ...s,
       hydrated: { ...s.hydrated, pilots: true },
     }))
@@ -161,11 +161,9 @@ describe('usePilot / useMech (by id)', () => {
   })
 
   test('an unrelated write does not re-render a by-id subscriber', async () => {
-    await useEntityStore.getState().hydrate('mech')
-    const a = await useEntityStore.getState().create('mech', baseMechInput)
-    const b = await useEntityStore
-      .getState()
-      .create('mech', { ...baseMechInput, name: 'Rust Bucket' })
+    await useUnits.getState().hydrate('mech')
+    const a = await useUnits.getState().create('mech', baseMechInput)
+    const b = await useUnits.getState().create('mech', { ...baseMechInput, name: 'Rust Bucket' })
 
     const renderSpy = mock(() => {})
     function MechB() {
@@ -182,7 +180,7 @@ describe('usePilot / useMech (by id)', () => {
     // Update mech A — update() maps the array and reuses untouched elements,
     // so mech B's reference (the selected value) is unchanged.
     await act(async () => {
-      await useEntityStore.getState().update('mech', a.id, { name: 'Renamed' }, LIVE_SHEET_MANUAL)
+      await useUnits.getState().update('mech', a.id, { name: 'Renamed' }, LIVE_SHEET_MANUAL)
     })
 
     expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)

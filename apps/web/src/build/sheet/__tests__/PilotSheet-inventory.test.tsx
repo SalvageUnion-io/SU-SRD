@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * PilotSheet — Inventory slab
  *
@@ -19,8 +20,7 @@ import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { slabChip } from '../../../components/__tests__/slabChip'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
@@ -46,7 +46,7 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   })
 }
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   const updateMock = updateSpy ?? mock(async () => pilot)
   return makeEntityStoreMock({
     pilots: [pilot],
@@ -326,9 +326,7 @@ describe('PilotSheet — a partner-granting slug renders as its partner', () => 
         },
       ],
     })
-    render(
-      <PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as typeof useEntityStore} />
-    )
+    render(<PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as UnitsStore} />)
     await expandCards()
 
     // Ordinary gear is untouched by the partner work.
@@ -358,9 +356,7 @@ describe('PilotSheet — a partner-granting slug renders as its partner', () => 
         },
       ],
     })
-    render(
-      <PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as typeof useEntityStore} />
-    )
+    render(<PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as UnitsStore} />)
     await expandCards()
 
     // The old PilotEquipmentLoadout rendered 'Add System' / 'Add Module'

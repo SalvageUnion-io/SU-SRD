@@ -38,7 +38,6 @@ import {
   tokens,
 } from '../../components/index'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { npcActionSlug } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
@@ -58,6 +57,7 @@ import {
   toggleNpcTrait,
 } from '../../lib/wizard/npcFormState'
 import { npcCopy } from '../../messages/build-npc'
+import { useSync } from '../../replica/syncContext'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
@@ -101,7 +101,7 @@ type AnyNpcDesignerProps = {
 }
 
 export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerProps) {
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
   const { form, setForm, formDirty, draftKey } = useWizardDraft<NpcFormState>('npc', {
     baseline: EMPTY_NPC_FORM,
   })

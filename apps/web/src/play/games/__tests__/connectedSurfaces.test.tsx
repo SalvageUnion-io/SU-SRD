@@ -31,9 +31,9 @@ const convexMocks = await installConvexMocks({
 })
 
 const { ProposalInbox } = await import('../ProposalInbox')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
-const wrap = (ui: React.ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: React.ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 beforeEach(() => {
   mutations.length = 0

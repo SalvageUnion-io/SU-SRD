@@ -138,7 +138,7 @@ export type Play = {
   seat: SeatHandle
   /** Downtime: the step, upkeep, and its writes. */
   downtime: PlayDowntime
-  /** Writes may go now (`useConnection().canWrite`): offer controls only then. */
+  /** Writes may go now (`useSync().canWrite`): offer controls only then. */
   canWrite: boolean
   /**
    * Why Play is read-only (Disconnected, Outdated, …), in words, or null while
