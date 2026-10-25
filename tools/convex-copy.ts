@@ -81,6 +81,7 @@ export function buildBundles(t: Tables): CopyResult {
       links: [],
       seats: [],
       channelBindings: [],
+      salvageArea: null,
     })
   }
 
@@ -100,6 +101,11 @@ export function buildBundles(t: Tables): CopyResult {
       runningEncounter: null,
       channelBindings: [],
       crewPatterns: [],
+      scene: null,
+      salvageArea: null,
+      ledger: null,
+      boundaries: [],
+      stopSign: null,
     })
   }
 
@@ -236,6 +242,56 @@ export function buildBundles(t: Tables): CopyResult {
   for (const r of rows('runningEncounters')) {
     const game = games.get(String(r.gameId))
     if (game) game.runningEncounter = (r.body ?? {}) as Record<string, unknown>
+  }
+  for (const sc of rows('scenes')) {
+    const game = games.get(String(sc.gameId))
+    if (game) {
+      game.scene = {
+        conditions: Array.isArray(sc.conditions) ? sc.conditions.map(String) : [],
+        hours: num(sc.hours),
+        updatedAt: num(sc.updatedAt, sc._creationTime),
+      }
+    }
+  }
+  for (const a of rows('salvageAreas')) {
+    const area = {
+      name: String(a.name),
+      techLevel: num(a.techLevel),
+      supply: num(a.supply),
+      updatedAt: num(a.updatedAt, a._creationTime),
+    }
+    const game = typeof a.gameId === 'string' ? games.get(a.gameId) : undefined
+    const owner = typeof a.ownerId === 'string' ? accounts.get(a.ownerId) : undefined
+    if (game) game.salvageArea = area
+    else if (owner) owner.salvageArea = area
+  }
+  for (const l of rows('ledgers')) {
+    const game = games.get(String(l.gameId))
+    if (game) game.ledger = (l.body ?? {}) as Record<string, unknown>
+  }
+  for (const b of rows('boundaries')) {
+    const game = games.get(String(b.gameId))
+    const addedBy = who(b.addedBy)
+    if (game && addedBy) {
+      game.boundaries.push({
+        id: b._id,
+        kind: String(b.kind),
+        text: String(b.text),
+        addedBy,
+        addedAt: num(b.addedAt, b._creationTime),
+      })
+    } else skipped.push({ table: 'boundaries', id: b._id, reason: 'no Game or no Discord account' })
+  }
+  for (const f of rows('safety')) {
+    const game = games.get(String(f.gameId))
+    if (!game) continue
+    const stop = f.stop as { shownBy?: unknown; shownAt?: unknown } | null | undefined
+    game.stopSign = {
+      shownBy: stop ? who(stop.shownBy) : null,
+      shownAt: stop && typeof stop.shownAt === 'number' ? stop.shownAt : null,
+      postToChannel: f.postToChannel === true,
+      postedAt: typeof f.postedAt === 'number' ? f.postedAt : null,
+    }
   }
   for (const b of rows('channelBindings')) {
     const game = typeof b.gameId === 'string' ? games.get(b.gameId) : undefined

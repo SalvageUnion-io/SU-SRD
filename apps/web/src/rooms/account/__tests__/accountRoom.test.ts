@@ -47,6 +47,7 @@ function bundle(over: Partial<AccountBundle> = {}): AccountBundle {
       { pilotId: 'p1', mount: { kind: 'boarded', mechId: 'm1' }, range: 'Far', activeEffects: [] },
     ],
     channelBindings: [],
+    salvageArea: null,
     ...over,
   }
 }
