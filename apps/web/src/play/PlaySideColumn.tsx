@@ -21,8 +21,11 @@
  * Mediator's too (`PlayMediatorSide`), over the same `useSideFeed`.
  */
 
+import type { OverloadTable } from 'salvageunion-reference/rules'
+import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
 import { SlabSection } from '../components/index'
 import { playCopy } from '../messages/play'
+import type { RosterLine } from './mediator/encounterRoster.model'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'
@@ -54,16 +57,27 @@ export function PlayTablesSection({
   downtime,
   solo,
   prepared,
-}: SideSectionProps & { downtime: boolean; solo: boolean; prepared?: readonly string[] }) {
+  mechTables,
+  onField,
+}: SideSectionProps & {
+  downtime: boolean
+  solo: boolean
+  prepared?: readonly string[]
+  mechTables?: OverloadTable
+  /** The Mediator's: field a rolled encounter row on the Opposition. */
+  onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
+}) {
   return (
     <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
       <PlayTables
         downtime={downtime}
+        mechTables={mechTables}
         solo={solo}
         post={side.post}
         onPostChange={side.setPost}
         binding={side.binding}
         prepared={prepared}
+        onField={onField}
       />
     </SlabSection>
   )
@@ -95,6 +109,11 @@ export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { 
         side={side}
         idPrefix="play"
         downtime={play.situation === 'downtime'}
+        mechTables={
+          play.boardedMech
+            ? overloadTableOf(resolveChassisRef(play.boardedMech.chassisRef))
+            : 'reactor'
+        }
         solo={target.gameId === null}
       />
       <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />

@@ -14,7 +14,8 @@
  * what to write — stay in the dialogs and `lib/rules/crawlerEconomy.ts`.
  */
 
-import type { TradingRollResult } from '../../lib/rules/crawlerEconomy'
+import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
+import type { DeteriorationEffect, TradingRollResult } from '../../lib/rules/crawlerEconomy'
 import { exchangeStep } from '../../lib/rules/crawlerEconomy'
 
 // ---------------------------------------------------------------------------
@@ -101,4 +102,21 @@ export function tradeReducer(state: TradeState, action: TradeAction): TradeState
     case 'rolled':
       return { ...state, availability: action.result }
   }
+}
+
+/**
+ * The Deterioration readout: the rolled row of the Crawler Deterioration table
+ * (p.219), verbatim, then what was applied — the SP left and the Bay the
+ * random pick landed on — so the readout and the book cannot disagree.
+ */
+export function describeDeterioration(effect: DeteriorationEffect, bayName: string | null): string {
+  const table = SalvageUnionReference.RollTables.getByName('Crawler Deterioration')?.table
+  const row = resultForTable(table, effect.roll)
+  const applied = [
+    row.success ? plainTraitText(row.result.value) : '',
+    bayName === null ? '' : `${bayName} is Damaged.`,
+    effect.spLoss > 0 ? `SP now ${effect.nextSP}.` : '',
+    effect.spLoss > 0 && effect.nextSP === 0 ? 'At 0 SP, roll the Crawler Damage Table.' : '',
+  ]
+  return `Deterioration ${effect.roll}: ${applied.filter(Boolean).join(' ')}`
 }

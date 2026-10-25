@@ -9,6 +9,7 @@ import { homebrewTables } from './model/homebrewTables'
 import { opTables } from './model/opTables'
 import { playTables } from './model/playTables'
 import { prepTables } from './model/prepTables'
+import { safetyTables } from './model/safetyTables'
 import { signalTables } from './model/signalTables'
 import { literalUnion } from './model/validators'
 
@@ -64,7 +65,8 @@ import { literalUnion } from './model/validators'
  * bindings) and their validators are `model/playTables.ts`, spread in below.
  * The Mediator's prep (encounters, and the one a Game runs) is
  * `model/prepTables.ts`, and Homebrew's moderation is
- * `model/homebrewTables.ts`, both spread in after it.
+ * `model/homebrewTables.ts`, both spread in after it. A Game's Safety
+ * Protocols (boundaries, the Stop Sign) are `model/safetyTables.ts`.
  *
  * The function modules take their arguments and declare their `returns`
  * against these same validators, never a hand-copied union.
@@ -553,6 +555,7 @@ export default defineSchema({
   ...opTables,
   ...playTables,
   ...prepTables,
+  ...safetyTables,
 
   ...homebrewTables,
   ...signalTables,

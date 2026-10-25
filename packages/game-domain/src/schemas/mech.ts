@@ -14,6 +14,9 @@ import { photoFields } from './photo'
  * - overheat: roll 11-19 — shutdown + Vulnerable + SP damage = current Heat
  * - overdrive: roll 20 — Reactor Overdrive: a free additional action this
  *   turn, or a free Push within 10 minutes (nothing to apply)
+ * A Bio-Chassis rolls the Bio-Chassis Overload Table instead (We Were Here
+ * First p.79), which adds death-throes (1), severe-pilot-overload (4-5),
+ * pilot-overload (9-10) and bio-overload (11-19).
  *
  * The 20 was stored as `'safe'` before it took the book's name, so a mech
  * saved with that `lastHeatCheck` still reads, as `'overdrive'`.
@@ -21,7 +24,17 @@ import { photoFields } from './photo'
 
 const ReactorOverloadOutcomeSchema = z.preprocess(
   (value) => (value === 'safe' ? 'overdrive' : value),
-  z.enum(['meltdown', 'system-destroyed', 'module-destroyed', 'overheat', 'overdrive'])
+  z.enum([
+    'meltdown',
+    'system-destroyed',
+    'module-destroyed',
+    'overheat',
+    'overdrive',
+    'death-throes',
+    'severe-pilot-overload',
+    'pilot-overload',
+    'bio-overload',
+  ])
 )
 
 // The outcome of `HeatCheckResultSchema` below, the shape of `lastHeatCheck`

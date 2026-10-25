@@ -6,8 +6,10 @@
  *
  *  - **Bar** — the MEDIATOR stamp, LIVE "3 of 4 here" (the seats' presence,
  *    `useGamePresence`), the Scene / Downtime switch (`PlayGameStateSwitch`; below
- *    `lg` pinned under the bar), the channel button
- *    (`channelBindings.current`), Tell the table and ⋯.
+ *    `lg` pinned under the bar), the
+ *    Stop (the Stop Sign, `StopSign.tsx`, its banner under the bar while
+ *    it is up), the channel button (`channelBindings.current`), Tell the
+ *    table and ⋯.
  *  - **Table** (start) — a seat per player, then the crawler
  *    (`PlayMediatorTable`).
  *  - **Opposition** (centre) — the Opposition and the chosen NPC's actions in
@@ -48,8 +50,10 @@ import { PlayFrame } from './PlayFrame'
 import { PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
+import { StopSignBanner, StopSignButton } from './StopSign'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayWide } from './usePlayWide'
+import { useStopSign } from './useStopSign'
 
 /** The foot's reminder: what the players can see of the Opposition. */
 const OPPOSITION_NOTE = 'Players see the Opposition only through what you post'
@@ -74,6 +78,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const toRef = useRef<HTMLInputElement | null>(null)
   const { here, of } = hereOf(mediator.seats)
   const running = mediator.downtime.downtime.running
+  const sign = useStopSign(gameId)
 
   useEffect(() => {
     if (!focusTo || (!wide && tab !== 'propose')) return
@@ -114,30 +119,34 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       wide={wide}
       labels={['The table', running ? 'Downtime' : 'Opposition', 'Tables, Feed and Propose']}
       bar={
-        <PlayBar
-          title={gameName}
-          backHref={gamePath(gameId)}
-          backLabel={playCopy('game')}
-          stamp="Mediator"
-          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
-          live={status === 'live'}
-          here={mediator.crew === null ? null : here}
-          of={mediator.crew === null ? null : of}
-          readOnly={mediator.readOnly}
-          situation={
-            wide ? (
-              <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} />
-            ) : undefined
-          }
-          channel={
-            <PlayChannelButton
-              owner={{ kind: 'game', gameName }}
-              binding={binding}
-              compact={!wide}
-            />
-          }
-          menu={<PlayMediatorBarActions mediator={mediator} />}
-        />
+        <>
+          <PlayBar
+            title={gameName}
+            backHref={gamePath(gameId)}
+            backLabel={playCopy('game')}
+            stamp="Mediator"
+            tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+            live={status === 'live'}
+            here={mediator.crew === null ? null : here}
+            of={mediator.crew === null ? null : of}
+            readOnly={mediator.readOnly}
+            situation={
+              wide ? (
+                <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} />
+              ) : undefined
+            }
+            channel={
+              <PlayChannelButton
+                owner={{ kind: 'game', gameName }}
+                binding={binding}
+                compact={!wide}
+              />
+            }
+            stop={<StopSignButton sign={sign} compact={!wide} />}
+            menu={<PlayMediatorBarActions mediator={mediator} />}
+          />
+          <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
+        </>
       }
       pinned={
         <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />

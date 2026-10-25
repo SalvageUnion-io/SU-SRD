@@ -23,11 +23,23 @@ export const ENCOUNTER_REF_SCHEMAS = [
   'bio-titans',
   'vehicles',
   'meld',
+  'drones',
 ] as const
 const EncounterRefSchemaSchema = z.enum(ENCOUNTER_REF_SCHEMAS)
 
-/** The three Mediator tables the tray can roll (Workshop Manual p.268). */
-const MediatorTableIdSchema = z.enum(['reaction', 'morale', 'retreat'])
+/**
+ * The Mediator tables the tray can roll: Reaction, Morale and Retreat
+ * (Workshop Manual p.268), and for an important NPC (p.255) its Critical
+ * Damage or Critical Injury at 0 and a mech's Heat Check.
+ */
+const MediatorTableIdSchema = z.enum([
+  'reaction',
+  'morale',
+  'retreat',
+  'critical-damage',
+  'critical-injury',
+  'heat-check',
+])
 
 /**
  * Recorded result of a Mediator table roll (Reaction / Morale / Retreat).
@@ -92,8 +104,27 @@ export const EncounterNpcSchema = z
     /** Freeform condition ticks the table has established (add/remove). */
     conditions: z.array(z.string()),
 
+    /**
+     * Set once a downed wreck is salvaged or scrapped (Core Book pp.246, 248):
+     * what was left of it is destroyed, so it cannot be salvaged twice.
+     */
+    salvaged: z.boolean().optional(),
+
     /** Last Mediator table roll recorded against this NPC. */
     lastMediatorRoll: MediatorRollResultSchema.optional(),
+
+    /**
+     * An important NPC (Workshop Manual p.254-255): the Mediator tracks more
+     * of it. A mech also tracks EP and Heat, frozen from its chassis when it
+     * was marked, and any of them may roll its Critical table at 0.
+     */
+    important: z.boolean().optional(),
+    currentEp: z.number().int().min(0).optional(),
+    maxEp: z.number().int().min(0).optional(),
+    currentHeat: z.number().int().min(0).optional(),
+    heatCap: z.number().int().min(0).optional(),
+    /** Its last Critical roll or Heat Check, kept apart from its Morale. */
+    lastImportantRoll: MediatorRollResultSchema.optional(),
 
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),

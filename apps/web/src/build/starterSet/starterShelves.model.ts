@@ -1,6 +1,8 @@
 /**
- * The Starter Set's thirteen builds as the models `StarterCard` draws, in the
- * three columns the front door and the Starter Set page both lay them out in:
+ * A book crew's builds as the models `StarterCard` draws (the Starter Set's
+ * thirteen, the Quickstart's twelve), in the columns the front door and the
+ * Starter Set page both lay them out in (a crew with no crawler has an empty
+ * crawler column):
  * the build's own picture where the set has one (each pilot's portrait, the
  * Tenacity), else the art of what it is made from (a mech's chassis), and its
  * class or chassis cells. No lead (EDL E11): a pilot's motto
@@ -10,7 +12,6 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { Photo } from 'game-domain/schemas/photo'
 import { photoUrl } from 'game-domain/schemas/photo'
-import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
@@ -18,6 +19,8 @@ import type { EntityFormModel, TagItem } from '../../components/index'
 import { relation } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
+import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
+import { starterRoster } from '../../lib/starterSet/starterTemplates'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
@@ -91,13 +94,14 @@ function findClass(ref: string) {
   )
 }
 
-/** The Starter Set's three columns, built from the static seed. */
-export function starterShelves(): StarterShelf[] {
+/** A crew's columns, built from the static seed: the Starter Set's by default. */
+export function starterShelves(rosterId: StarterRosterId = 'starter-set'): StarterShelf[] {
+  const roster = starterRoster(rosterId)
   return [
     {
       kind: 'pilot',
       title: 'Pilots',
-      builds: STARTER_PILOTS.map((p) => ({
+      builds: roster.pilots.map((p) => ({
         id: p.id,
         name: p.name,
         model: unitRowModel({
@@ -112,7 +116,7 @@ export function starterShelves(): StarterShelf[] {
     {
       kind: 'mech',
       title: 'Mechs',
-      builds: STARTER_MECHS.map((m) => ({
+      builds: roster.mechs.map((m) => ({
         id: m.id,
         name: m.name,
         model: unitRowModel({
@@ -126,8 +130,8 @@ export function starterShelves(): StarterShelf[] {
     },
     {
       kind: 'crawler',
-      title: STARTER_CRAWLERS.length === 1 ? 'Crawler' : 'Crawlers',
-      builds: STARTER_CRAWLERS.map((c) => ({
+      title: roster.crawlers.length === 1 ? 'Crawler' : 'Crawlers',
+      builds: roster.crawlers.map((c) => ({
         id: c.id,
         name: c.name,
         model: unitRowModel({

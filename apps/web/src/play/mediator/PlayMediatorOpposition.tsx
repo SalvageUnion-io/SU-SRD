@@ -1,7 +1,9 @@
 /**
  * PlayMediatorOpposition — the Mediator's centre column in a Scene (play.md
- * §10): "Opposition", a Slab with Run an encounter and + Add, the encounter
- * running (`RUNNING | its name`, End; ADR-059), then each NPC,
+ * §10): the Scene's conditions (`PlayMediatorScene`), then "Opposition", a Slab with Run an encounter and + Add, the encounter
+ * running (`RUNNING | its name`, End; ADR-059), the area the crew is
+ * salvaging (`AREA | its name, Tech Level and Supply`, set through
+ * `SalvageAreaDialog`, Core Book p.245), then each NPC,
  * mech, squad or Bio-Titan on the tray as a unit box (`PlayNpcBox`, level 1),
  * then the chosen one's actions (`PlayNpcActions`).
  *
@@ -17,8 +19,10 @@ import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
 import type { rollForTable } from '../../components/index'
 import { Button, EmptyState, Slab, Stat, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { SalvageAreaDialog } from '../SalvageAreaDialog'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayNpc } from './opposition.model'
+import { PlayMediatorScene } from './PlayMediatorScene'
 import { PlayNpcActions } from './PlayNpcActions'
 import { PlayNpcBox } from './PlayNpcBox'
 import { RunEncounterDialog } from './RunEncounterDialog'
@@ -45,12 +49,15 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
   const [running, setRunning] = useState(false)
   const [removing, setRemoving] = useState<TrayNpc | null>(null)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
+  const [settingArea, setSettingArea] = useState(false)
+  const { area } = mediator
   const chosen =
     npcs?.find((n) => n.id === chosenId) ?? npcs?.find((n) => !n.down) ?? npcs?.[0] ?? null
   const fail = (write: Promise<unknown>) => void write.catch(onFailure)
 
   return (
     <>
+      <PlayMediatorScene mediator={mediator} rollFor={rollFor} />
       <Slab
         as="h2"
         label={mediatorCopy('opposition')}
@@ -63,6 +70,15 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
               onClick={() => setRunning(true)}
             >
               {mediatorCopy('runAnEncounter')}
+            </Button>
+            <Button
+              variant="default"
+              size="mini"
+              disabled={!canWrite}
+              aria-label={mediatorCopy('setArea')}
+              onClick={() => setSettingArea(true)}
+            >
+              {mediatorCopy('area')}
             </Button>
             <Button
               variant="default"
@@ -90,6 +106,28 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
           </Button>
         </div>
       )}
+      {area.area !== null && (
+        <div style={RUNNING} role="status">
+          <Stat
+            label={mediatorCopy('area')}
+            value={mediatorCopy('areaValue', {
+              name: area.area.name === '' ? '' : `${area.area.name} · `,
+              tl: area.area.techLevel,
+              supply: area.area.supply,
+            })}
+            size="compact"
+          />
+          <Button
+            variant="ghost"
+            size="mini"
+            disabled={!canWrite}
+            aria-label={mediatorCopy('clearAreaLabel')}
+            onClick={() => area.set(null)}
+          >
+            {mediatorCopy('clearArea')}
+          </Button>
+        </div>
+      )}
       {npcs === null ? (
         <EmptyState variant="inline" body={mediatorCopy('theTrayIsOnIts')} />
       ) : npcs.length === 0 ? (
@@ -106,6 +144,13 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
               onHp={(next) => fail(tray.setHp(npc, next))}
               onRename={() => setRenaming(npc)}
               onRemove={() => setRemoving(npc)}
+              onSalvage={mediator.salvageWreck}
+              hasCrawler={mediator.crawler?.held === true}
+              rollFor={rollFor}
+              onImportant={(important) => fail(tray.setImportant(npc, important))}
+              onReactor={(patch) => fail(tray.setReactor(npc, patch))}
+              onCritical={() => fail(tray.critical(npc))}
+              onHeatCheck={() => fail(tray.heatCheck(npc))}
             />
           ))}
         </ul>
@@ -144,6 +189,13 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             throw err
           }
         }}
+      />
+      <SalvageAreaDialog
+        key={settingArea ? 'open' : 'closed'}
+        open={settingArea}
+        area={area.area}
+        onClose={() => setSettingArea(false)}
+        onSave={area.set}
       />
       <OppositionDialogs
         removing={removing}

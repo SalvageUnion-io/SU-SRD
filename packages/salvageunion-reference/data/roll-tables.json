@@ -4141,5 +4141,814 @@
       "type": "standard"
     },
     "page": 287
+  },
+  {
+    "id": "c8b246b8-f720-43dd-b0bc-31cf58011c4f",
+    "source": "False Flag",
+    "name": "Freezing",
+    "table": {
+      "1": {
+        "value": "The Mech’s core freezes. Its Chassis is damaged."
+      },
+      "20": {
+        "value": "The Mech is unscathed by the cold."
+      },
+      "11-19": {
+        "value": "The Mech takes 1 SP damage from cold erosion."
+      },
+      "6-10": {
+        "value": "The Mech’s electronics freeze over and a random Module is damaged."
+      },
+      "2-5": {
+        "value": "The Mech’s parts begin to seize in the cold. A random System is damaged."
+      },
+      "type": "standard"
+    },
+    "page": 9,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "For each hour a Mech spends in a Freezing area without protection, roll the die to determine the effect."
+      }
+    ]
+  },
+  {
+    "id": "92a31be5-1a08-4572-8602-8396856abeed",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Arid Steppes Encounters",
+    "page": 270,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Home of Evantis, rocky and hot, folk outside of Haven scrape a living with bugs and sand."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "A heavy Evantis corpo lance on a scouting mission. 1 × Evantis Pattern Colossus, 1 × Escort Pattern Aegis, 1 × Evantis Pattern Atlas, 1 × Sentinel Pattern Mirrorball.",
+        "roster": [
+          "1 × Evantis Pattern Colossus",
+          "1 × Escort Pattern Aegis",
+          "1 × Evantis Pattern Atlas",
+          "1 × Sentinel Pattern Mirrorball"
+        ]
+      },
+      "16-19": {
+        "value": "A band of traders passing through the area. 3 × Hauler Pattern Mule, 2 × Opus Pattern Gopher.",
+        "roster": [
+          "3 × Hauler Pattern Mule",
+          "2 × Opus Pattern Gopher"
+        ]
+      },
+      "11-15": {
+        "value": "The earth tremors as an Artl horde burrows up from the depths. d20 × Wasteland Artl.",
+        "roster": [
+          "d20 × Wasteland Artl"
+        ]
+      },
+      "6-10": {
+        "value": "A local H&V corpo lance on patrol. 1 × Rifleman Pattern Brawler, 1 × Longsaddle Pattern Gopher, 1 × Sentinel Pattern Mirrorball, 1 × Evantis Pattern Mule.",
+        "roster": [
+          "1 × Rifleman Pattern Brawler",
+          "1 × Longsaddle Pattern Gopher",
+          "1 × Sentinel Pattern Mirrorball",
+          "1 × Evantis Pattern Mule"
+        ]
+      },
+      "2-5": {
+        "value": "Raiders feigning distress and then ambushing unsuspecting folk. 4 × Mauler Pattern Hussar.",
+        "roster": [
+          "4 × Mauler Pattern Hussar"
+        ]
+      },
+      "1": {
+        "value": "Scylla prepares an ambush from above. 1 × Scylla Bio-Titan.",
+        "roster": [
+          "1 × Scylla Bio-Titan"
+        ]
+      }
+    }
+  },
+  {
+    "id": "a44c136d-7a36-44ec-81cf-4015edcb6fdc",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Northern Wastes Encounters",
+    "page": 270,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Rugged, cold steppe lands, home of Drontek bordering the Nanite Sea."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "A Stefanus Corpo hit squad infiltrating into the wastes. 1 × Stefanus Pattern Mantis, 1 × Sakura Pattern Solo, 1 × Needler Pattern Photon, 1 × Sakura Pattern Eidolon.",
+        "roster": [
+          "1 × Stefanus Pattern Mantis",
+          "1 × Sakura Pattern Solo",
+          "1 × Needler Pattern Photon",
+          "1 × Sakura Pattern Eidolon"
+        ]
+      },
+      "16-19": {
+        "value": "A heavily armed Drontek Drone Squad on a combat patrol. 2 × Heavy Combat Drone, 4 × Combat Drone, 2 × Pest Drone.",
+        "roster": [
+          "2 × Heavy Combat Drone",
+          "4 × Combat Drone",
+          "2 × Pest Drone"
+        ]
+      },
+      "11-15": {
+        "value": "A band of wasteland nomads with animals and trade wagons passing through. 4 × Waster Mob, 1 × Wasteland Herd, 1 × Hauler Pattern Mule.",
+        "roster": [
+          "4 × Waster Mob",
+          "1 × Wasteland Herd",
+          "1 × Hauler Pattern Mule"
+        ]
+      },
+      "6-10": {
+        "value": "A Drontek Corpo surveillance and salvaging crew. 2 × Surveyor Pattern Sestra, 1 × Longsaddle Pattern Gopher, 1 × Scrounger Pattern Sestra.",
+        "roster": [
+          "2 × Surveyor Pattern Sestra",
+          "1 × Longsaddle Pattern Gopher",
+          "1 × Scrounger Pattern Sestra"
+        ]
+      },
+      "2-5": {
+        "value": "Raiders launch a fast and furious onslaught. 4 × Buzzard Pattern Mazona.",
+        "roster": [
+          "4 × Buzzard Pattern Mazona"
+        ]
+      },
+      "1": {
+        "value": "Meld Splitters spill into the area. 3 × Meld Splitter.",
+        "roster": [
+          "3 × Meld Splitter"
+        ]
+      }
+    }
+  },
+  {
+    "id": "e09cc880-2b91-47d0-99ec-aed779204041",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Forgotten Tundra Encounters",
+    "page": 271,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Rolling, freezing tundra where the Nanite Sea lies, home to the Stefanus Corporation."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "A heavy corpo lance on a patrol and looking for trouble. 3 × Ascension Pattern NeuraPhage, 1 × Escort Pattern Aegis.",
+        "roster": [
+          "3 × Ascension Pattern NeuraPhage",
+          "1 × Escort Pattern Aegis"
+        ]
+      },
+      "16-19": {
+        "value": "A corpo mercenary band scours the tundra. 1 × Rifleman Pattern Brawler, 2 × Contour Pattern Hussar, 1 × Stefanus Pattern Mantis.",
+        "roster": [
+          "1 × Rifleman Pattern Brawler",
+          "2 × Contour Pattern Hussar",
+          "1 × Stefanus Pattern Mantis"
+        ]
+      },
+      "11-15": {
+        "value": "A lone smuggler on a hot run. 1 × Smuggler Pattern Solo.",
+        "roster": [
+          "1 × Smuggler Pattern Solo"
+        ]
+      },
+      "6-10": {
+        "value": "A swarm of Meld emerges from the Nanite Sea. 4 × Meld Nanoid, 1 × Meld Splitter.",
+        "roster": [
+          "4 × Meld Nanoid",
+          "1 × Meld Splitter"
+        ]
+      },
+      "2-5": {
+        "value": "Locals who got bored of welding frozen rivets and turned their skills to raiding. 1 × Butcher Pattern Thresher, 3 × Leaky Pattern Scrapper.",
+        "roster": [
+          "1 × Butcher Pattern Thresher",
+          "3 × Leaky Pattern Scrapper"
+        ]
+      },
+      "1": {
+        "value": "A Meld Behemoth rises from the depths. 1 × Meld Behemoth.",
+        "roster": [
+          "1 × Meld Behemoth"
+        ]
+      }
+    }
+  },
+  {
+    "id": "fe221bbe-b503-47cf-81cc-c434849bdee7",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Oceanic Rim Encounters",
+    "page": 271,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A sweltering hot, blasted land, surrounded by water. Everything here wants to kill you."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "Execs with more money than sense in the midst of a high speed race between islands. 4 × X-Zero Pattern Shaitan.",
+        "roster": [
+          "4 × X-Zero Pattern Shaitan"
+        ]
+      },
+      "16-19": {
+        "value": "A heavy Contour air patrol on a bug hunt. 4 × Contour Pattern Drop Bear.",
+        "roster": [
+          "4 × Contour Pattern Drop Bear"
+        ]
+      },
+      "11-15": {
+        "value": "A light Contour patrol keeping the peace. 4 × Contour Pattern Hussar.",
+        "roster": [
+          "4 × Contour Pattern Hussar"
+        ]
+      },
+      "6-10": {
+        "value": "Irradiated Scorpions have ambushed a band of wasters being led by a lone Mech. 6 × Irradiated Scorpion, 1 × Waster Mob, 1 × Leaky Pattern Scrapper.",
+        "roster": [
+          "6 × Irradiated Scorpion",
+          "1 × Waster Mob",
+          "1 × Leaky Pattern Scrapper"
+        ]
+      },
+      "2-5": {
+        "value": "A fleet on a salvage run docks for repairs. 3 × Aegean Pattern Kraken, 1 × Saboteur Pattern Kraken.",
+        "roster": [
+          "3 × Aegean Pattern Kraken",
+          "1 × Saboteur Pattern Kraken"
+        ]
+      },
+      "1": {
+        "value": "An electrified tidal wave signals the start of the onslaught of Electrophorus. 1 × Electrophorus Bio-Titan.",
+        "roster": [
+          "1 × Electrophorus Bio-Titan"
+        ]
+      }
+    }
+  },
+  {
+    "id": "bb6ce1fc-6880-4a05-b8bd-0aaa7f26846f",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Ferrous Range Encounters",
+    "page": 272,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A great mountain range endlessly stripped of minerals to feed the great maws of the corpo."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "Thatcher Steel strikebreakers en route to support some scabs. 1 × Gladiator Pattern Brawler, 1 × Opus Pattern Gopher, 1 × Sentinel Pattern Mirrorball, 1 × Chumba Pattern Drop Bear.",
+        "roster": [
+          "1 × Gladiator Pattern Brawler",
+          "1 × Opus Pattern Gopher",
+          "1 × Sentinel Pattern Mirrorball",
+          "1 × Chumba Pattern Drop Bear"
+        ]
+      },
+      "16-19": {
+        "value": "A prospecting band on a surveillance and salvage run. 1 × Sifter Pattern Terra, 1 × Thatcher Pattern Jackhammer, 1 × Crusher Pattern Mule, 1 × Reclaimer Pattern Mirrorball.",
+        "roster": [
+          "1 × Sifter Pattern Terra",
+          "1 × Thatcher Pattern Jackhammer",
+          "1 × Crusher Pattern Mule",
+          "1 × Reclaimer Pattern Mirrorball"
+        ]
+      },
+      "11-15": {
+        "value": "A convoy of miners with an escort traverses through the mountainous landscape. 3 × Thatcher Pattern Jackhammer, 1 × Hauler Pattern Mule, 1 × Fissure Pattern Vorpal, 1 × Piggyback Pattern Hussar.",
+        "roster": [
+          "3 × Thatcher Pattern Jackhammer",
+          "1 × Hauler Pattern Mule",
+          "1 × Fissure Pattern Vorpal",
+          "1 × Piggyback Pattern Hussar"
+        ]
+      },
+      "6-10": {
+        "value": "An engineering convoy en-route to a disaster. 1 × Ironmonger Pattern Magpie, 1 × AMS Pattern Spectrum, 1 × Junker Pattern Mirrorball, 1 × Rigger Pattern Scrapper.",
+        "roster": [
+          "1 × Ironmonger Pattern Magpie",
+          "1 × AMS Pattern Spectrum",
+          "1 × Junker Pattern Mirrorball",
+          "1 × Rigger Pattern Scrapper"
+        ]
+      },
+      "2-5": {
+        "value": "A pair of mole bears hunting human prey. 2 × Molebear, 4 × Wastelander.",
+        "roster": [
+          "2 × Molebear",
+          "4 × Wastelander"
+        ]
+      },
+      "1": {
+        "value": "Tremors, terror, and thrashing as Typhon emerges from the bowels of the earth. 1 × Typhon Bio-Titan.",
+        "roster": [
+          "1 × Typhon Bio-Titan"
+        ]
+      }
+    }
+  },
+  {
+    "id": "ba1204e6-63ae-4f44-b289-324f9a1eee49",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Central Wastes Encounters",
+    "page": 272,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "A vast expanse of wasteland that is the current home of Sakura, and the former location of the TDA prior to Impact Day."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "A lone elite corpo assassin on a wetwork job. 1 × Sakura Pattern Eidolon.",
+        "roster": [
+          "1 × Sakura Pattern Eidolon"
+        ]
+      },
+      "16-19": {
+        "value": "A corpo exec with a heavy escort heading to important adult business. 1 × VIP Pattern Consul, 1 × Escort Pattern Aegis, 1 × Gladiator Pattern Brawler, 1 × Sellsword Pattern Colossus.",
+        "roster": [
+          "1 × VIP Pattern Consul",
+          "1 × Escort Pattern Aegis",
+          "1 × Gladiator Pattern Brawler",
+          "1 × Sellsword Pattern Colossus"
+        ]
+      },
+      "11-15": {
+        "value": "A light corpo patrol optimised for search and rescue and riot control. 1 × Sakura Pattern Scrapper, 1 × Opus Pattern Gopher, 1 × Contour Pattern Hussar, 1 × Rifleman Pattern Brawler.",
+        "roster": [
+          "1 × Sakura Pattern Scrapper",
+          "1 × Opus Pattern Gopher",
+          "1 × Contour Pattern Hussar",
+          "1 × Rifleman Pattern Brawler"
+        ]
+      },
+      "6-10": {
+        "value": "An advanced salvage team scours the wasteland for scrap. 1 × Scuttler Pattern Carrier, 1 × Cackler Pattern Jackhammer, 1 × Maggie Pattern Magpie, 1 × Scavenger Pattern Drop Bear, 1 × Crusher Pattern Mule.",
+        "roster": [
+          "1 × Scuttler Pattern Carrier",
+          "1 × Cackler Pattern Jackhammer",
+          "1 × Maggie Pattern Magpie",
+          "1 × Scavenger Pattern Drop Bear",
+          "1 × Crusher Pattern Mule"
+        ]
+      },
+      "2-5": {
+        "value": "Raiders from the Legion on a strike run. 3 × Legion Pattern Gopher, 1 × Piggyback Pattern Hussar.",
+        "roster": [
+          "3 × Legion Pattern Gopher",
+          "1 × Piggyback Pattern Hussar"
+        ]
+      },
+      "1": {
+        "value": "A radiation storm picks up as flesh centipedes emerge from their burrows to feast. 4 × Chimeripede, 1 × Radiation Storm.",
+        "roster": [
+          "4 × Chimeripede",
+          "1 × Radiation Storm"
+        ]
+      }
+    }
+  },
+  {
+    "id": "301d9d08-917b-4f9d-8499-89f554e5a70f",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Verdant Crescent Encounters",
+    "page": 273,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "One of the few remaining fertile regions in the wastes, and the high tech home of Aeon and their subsidiary, Herrsch."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "A vast Iron Wyrm emerges from the fertile surroundings for maintenance. 1 × MAD Pattern Iron Wyrm.",
+        "roster": [
+          "1 × MAD Pattern Iron Wyrm"
+        ]
+      },
+      "16-19": {
+        "value": "An elite Aeon lance called in to do some serious damage. 4 × Breacher Pattern Neura-Phage.",
+        "roster": [
+          "4 × Breacher Pattern Neura-Phage"
+        ]
+      },
+      "11-15": {
+        "value": "A combined Herrsch and Aeon patrol. 1 × Aeon Pattern Aegis, 1 × Ironmonger Pattern Magpie, 1 × Steamroller Pattern Forge, 1 × Longsaddle Pattern Gopher.",
+        "roster": [
+          "1 × Aeon Pattern Aegis",
+          "1 × Ironmonger Pattern Magpie",
+          "1 × Steamroller Pattern Forge",
+          "1 × Longsaddle Pattern Gopher"
+        ]
+      },
+      "6-10": {
+        "value": "Agri wasters heading to a harvest zone. 3 × Shepherd Pattern Threshers, 1 × Sakura Pattern Scrapper, 1 × Hauler Pattern Mule, 1 × Evantis Pattern Atlas.",
+        "roster": [
+          "3 × Shepherd Pattern Threshers",
+          "1 × Sakura Pattern Scrapper",
+          "1 × Hauler Pattern Mule",
+          "1 × Evantis Pattern Atlas"
+        ]
+      },
+      "2-5": {
+        "value": "Agri-workers turned into raiders launch a savage attack. 3 × Butcher Pattern Threshers, 1 × Rigger Pattern Scrapper, 1 × Crusher Pattern Mule.",
+        "roster": [
+          "3 × Butcher Pattern Threshers",
+          "1 × Rigger Pattern Scrapper",
+          "1 × Crusher Pattern Mule"
+        ]
+      },
+      "1": {
+        "value": "A great cocoon nestled within the verdant plains bursts open to reveal the Bio-Titan Chrysalis. 1 × Chrysalis Bio-Titan.",
+        "roster": [
+          "1 × Chrysalis Bio-Titan"
+        ]
+      }
+    }
+  },
+  {
+    "id": "d7046c71-9d28-4190-bed5-62ee6056b0e7",
+    "source": "Salvage Union Workshop Manual",
+    "name": "The Great Cape Encounters",
+    "page": 273,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The archipelago home of Osiris and Kombutech, where the algae that feeds much of the wastes is grown."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "The Tyrant rises from the depths once more to claim another city. 1 × Tyrant Bio-Titan.",
+        "roster": [
+          "1 × Tyrant Bio-Titan"
+        ]
+      },
+      "16-19": {
+        "value": "An air and sea corpo patrol designated to protect the algae fields. 2 × Aegean Pattern Kraken, 2 × Contour Pattern Drop Bear.",
+        "roster": [
+          "2 × Aegean Pattern Kraken",
+          "2 × Contour Pattern Drop Bear"
+        ]
+      },
+      "11-15": {
+        "value": "Heavy Mechs defending repair workers maintaining the breach. 1 × Osiris Pattern Forge, 1 × Stefanus Pattern Magpie, 2 × Escort Pattern Aegis.",
+        "roster": [
+          "1 × Osiris Pattern Forge",
+          "1 × Stefanus Pattern Magpie",
+          "2 × Escort Pattern Aegis"
+        ]
+      },
+      "6-10": {
+        "value": "An impromptu gladiatorial free for all as the mob and their handler watches on. 4 × Ironmask Pattern Brawler, 1 × Waster Mob, 1 × Sellsword Pattern Colossus.",
+        "roster": [
+          "4 × Ironmask Pattern Brawler",
+          "1 × Waster Mob",
+          "1 × Sellsword Pattern Colossus"
+        ]
+      },
+      "2-5": {
+        "value": "Raiders emerge from the deep blue to extract scrap. 1 × Blackbeard Pattern Kraken, 2 × Raider Band.",
+        "roster": [
+          "1 × Blackbeard Pattern Kraken",
+          "2 × Raider Band"
+        ]
+      },
+      "1": {
+        "value": "A heavy corpo lance scours the area. 1 × Osiris Pattern Forge, 1 × Escort Pattern Aegis, 1 × Sellsword Pattern Colossus, 1 × Contour Pattern Drop Bear.",
+        "roster": [
+          "1 × Osiris Pattern Forge",
+          "1 × Escort Pattern Aegis",
+          "1 × Sellsword Pattern Colossus",
+          "1 × Contour Pattern Drop Bear"
+        ]
+      }
+    }
+  },
+  {
+    "id": "46c49cbf-371e-4dfe-bb77-9a35ce7aa6b4",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Frozen Gulf Encounters",
+    "page": 274,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "The freezing home of the Opus Institute where ancient secrets lie buried in the ice."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "Remains of a long lost salvager crew navigating their way home. 1 × Deployer Pattern Terra, 1 × Rigger Pattern Scrapper, 1 × Thatcher Pattern Jackhammer, 1 × Reclaimer Pattern Mirrorball.",
+        "roster": [
+          "1 × Deployer Pattern Terra",
+          "1 × Rigger Pattern Scrapper",
+          "1 × Thatcher Pattern Jackhammer",
+          "1 × Reclaimer Pattern Mirrorball"
+        ]
+      },
+      "16-19": {
+        "value": "A sudden ice storm forms and blasts the area in hail as predators emerge to hunt. 4 × Wasteland Bear, 1 × Ice Storm.",
+        "roster": [
+          "4 × Wasteland Bear",
+          "1 × Ice Storm"
+        ]
+      },
+      "11-15": {
+        "value": "A research lance in search of new discoveries. 1 × AMS Pattern Spectrum, 1 × Opus Pattern Gopher, 1 × Fissure Pattern Vorpal, 1 × Kombu Pattern Terra.",
+        "roster": [
+          "1 × AMS Pattern Spectrum",
+          "1 × Opus Pattern Gopher",
+          "1 × Fissure Pattern Vorpal",
+          "1 × Kombu Pattern Terra"
+        ]
+      },
+      "6-10": {
+        "value": "Wastelanders emerge from their nearby settlement with a giant Mech in tow. 1 × Giant Dad Pattern Aegis, 3 × Leaky Pattern Scrappers.",
+        "roster": [
+          "1 × Giant Dad Pattern Aegis",
+          "3 × Leaky Pattern Scrappers"
+        ]
+      },
+      "2-5": {
+        "value": "A surveyor and mining crew with a light defence, cracking through the thawing deposits. 2 × Thatcher Pattern Jackhammer, 1 × Surveyor Pattern Sestra, 1 × Chumba Pattern Drop Bear.",
+        "roster": [
+          "2 × Thatcher Pattern Jackhammer",
+          "1 × Surveyor Pattern Sestra",
+          "1 × Chumba Pattern Drop Bear"
+        ]
+      },
+      "1": {
+        "value": "A bizarre Opus Institute experiment emerges from the scions of reality. 1 × Phantom Bio-Titan.",
+        "roster": [
+          "1 × Phantom Bio-Titan"
+        ]
+      }
+    }
+  },
+  {
+    "id": "430fc4a1-5cc2-40c0-bef4-7cf6217d368e",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Arco Encounters",
+    "page": 274,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Some of the many things that can be found in the arcos dotting the wasted landscape."
+      }
+    ],
+    "table": {
+      "type": "encounter",
+      "20": {
+        "value": "A heavy corpo response team is dispatched. 1 × Elite Blade Squad, 2 × Machine Gun Squad, 1 × Contour Pattern Hussar.",
+        "roster": [
+          "1 × Elite Blade Squad",
+          "2 × Machine Gun Squad",
+          "1 × Contour Pattern Hussar"
+        ]
+      },
+      "16-19": {
+        "value": "Troopers with Drone support patrol the streets. 1 × Rifle Squad, 1 × Drone Squadron.",
+        "roster": [
+          "1 × Rifle Squad",
+          "1 × Drone Squadron"
+        ]
+      },
+      "11-15": {
+        "value": "Traders with vital goods passing through a checkpoint. 1 × Stefanus Pattern Mazona, 3 × Hauler Pattern Mule, 1 × Infiltrator Pattern Solo.",
+        "roster": [
+          "1 × Stefanus Pattern Mazona",
+          "3 × Hauler Pattern Mule",
+          "1 × Infiltrator Pattern Solo"
+        ]
+      },
+      "6-10": {
+        "value": "Food riot being broken up by riot control forces. 1 × Osiris Pattern Forge, 3 × Defacer Drone, 1 × Sakura Pattern Scrapper, 4 × Waster Mob.",
+        "roster": [
+          "1 × Osiris Pattern Forge",
+          "3 × Defacer Drone",
+          "1 × Sakura Pattern Scrapper",
+          "4 × Waster Mob"
+        ]
+      },
+      "2-5": {
+        "value": "Garbage disposal crew hard at work. 1 × Hauler Pattern Mule, 3 × Sakura Pattern Scrapper.",
+        "roster": [
+          "1 × Hauler Pattern Mule",
+          "3 × Sakura Pattern Scrapper"
+        ]
+      },
+      "1": {
+        "value": "An seemingly innocuous delivery drone is covertly gathering intel. 1 × Stefanus Pattern Mazona.",
+        "roster": [
+          "1 × Stefanus Pattern Mazona"
+        ]
+      }
+    }
+  },
+  {
+    "id": "2228a16b-59a9-48df-9334-7dffcd2cf433",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Wasteland Encounter Table",
+    "page": 306,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Each time the Pilots travel from one point to another you can roll on the Random Encounter Table to find out what it discovers on the way."
+      }
+    ],
+    "table": {
+      "1": {
+        "value": "The Evantis Corpo Retrieval team finds the Pilots. They will suspect salvagers are likely after the same prize as them and use force with extreme prejudice to neutralise the Pilots as a threat to their mission. The Pilots, however, can find some means to convince them otherwise."
+      },
+      "20": {
+        "value": "The Pilots come upon a wrecked ‘Hauler Pattern’ Mule. It has been torn apart by heavy laser fire, is in Damaged Condition and can be salvaged. Its Cargo Bay however is empty, likely looted by the Raiders. The pilot is deceased in the cockpit."
+      },
+      "type": "standard",
+      "11-19": {
+        "value": "The wasteland is quiet for now, and the Pilots are safe."
+      },
+      "6-10": {
+        "value": "A radiation storm begins to pick up in the area. See ‘Radiation Storms’ p. 305."
+      },
+      "2-5": {
+        "value": "A band of raiders led by ‘Tex’ launches an attack against the Pilots. See Raiders - Tex & Crew p. 314 for their statistics. They are searching for scrap. They will use hit and run tactics, but will Retreat p.268 in the face of determined opposition."
+      }
+    }
+  },
+  {
+    "id": "f06e88bc-3963-44fa-aa50-51746844e325",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Region Name",
+    "page": 262,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Think of the core feature of the region that makes it stand out."
+      },
+      {
+        "type": "paragraph",
+        "value": "The name of the region can help you in making that decision."
+      }
+    ],
+    "table": {
+      "type": "flat",
+      "1": {
+        "value": "The Badlands"
+      },
+      "2": {
+        "value": "Shady Dunes"
+      },
+      "3": {
+        "value": "The Frozen Wastes"
+      },
+      "4": {
+        "value": "Evergreen Hills"
+      },
+      "5": {
+        "value": "Hurricane Point"
+      },
+      "6": {
+        "value": "The Bone Mill"
+      },
+      "7": {
+        "value": "The Divide"
+      },
+      "8": {
+        "value": "The Endless Wastes"
+      },
+      "9": {
+        "value": "Neon Paradise"
+      },
+      "10": {
+        "value": "Death Gulch"
+      },
+      "11": {
+        "value": "The Dust Bowl"
+      },
+      "12": {
+        "value": "The Wetlands"
+      },
+      "13": {
+        "value": "The Penultimate Forest"
+      },
+      "14": {
+        "value": "The Jagged Scar"
+      },
+      "15": {
+        "value": "The Cinder Barrens"
+      },
+      "16": {
+        "value": "Ferrous Strip"
+      },
+      "17": {
+        "value": "The Silos"
+      },
+      "18": {
+        "value": "Laketown"
+      },
+      "19": {
+        "value": "Shimmering Plains"
+      },
+      "20": {
+        "value": "The Wastes of Wrath"
+      }
+    }
+  },
+  {
+    "id": "32e33cc4-4778-4488-8392-d170f4e32da3",
+    "source": "Salvage Union Workshop Manual",
+    "name": "Area Name",
+    "page": 262,
+    "content": [
+      {
+        "type": "paragraph",
+        "value": "Around 5 areas will create a solid region to explore though you can adjust this number as you desire."
+      }
+    ],
+    "table": {
+      "type": "flat",
+      "1": {
+        "value": "Paradise Falls"
+      },
+      "2": {
+        "value": "Solitude"
+      },
+      "3": {
+        "value": "Weld City"
+      },
+      "4": {
+        "value": "Haven"
+      },
+      "5": {
+        "value": "Black Sands"
+      },
+      "6": {
+        "value": "The Ur Pit"
+      },
+      "7": {
+        "value": "Cavity"
+      },
+      "8": {
+        "value": "Bone Canyon"
+      },
+      "9": {
+        "value": "The Yard"
+      },
+      "10": {
+        "value": "Salvagers Ridge"
+      },
+      "11": {
+        "value": "Snake River"
+      },
+      "12": {
+        "value": "The Bronze Redoubt"
+      },
+      "13": {
+        "value": "Crater Ville"
+      },
+      "14": {
+        "value": "Green Pastures"
+      },
+      "15": {
+        "value": "Deadlands"
+      },
+      "16": {
+        "value": "Salt Wastes"
+      },
+      "17": {
+        "value": "Warped Vale"
+      },
+      "18": {
+        "value": "The Flesh Factory"
+      },
+      "19": {
+        "value": "Evantis Black Site"
+      },
+      "20": {
+        "value": "The Facility"
+      }
+    }
   }
 ]

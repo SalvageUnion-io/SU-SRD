@@ -30,7 +30,7 @@ export function trayNpcsFor(
   now: string
 ): TrayNpcBody[] {
   const names = [...taken]
-  return opposition.map(({ id: _id, ...opponent }) => {
+  return opposition.map(({ id: _id, groupId: _group, ...opponent }) => {
     const name = instanceName(opponent.name, names)
     names.push(name)
     return {
@@ -45,13 +45,15 @@ export function trayNpcsFor(
   })
 }
 
-/** What the Game keeps of the encounter it is running: its name, tables and notes. */
+/** What the Game keeps of the encounter it is running: its name, tables, notes and briefing. */
 export function runningFrom(encounter: Encounter, now: string): RunningEncounter {
+  const briefing = encounter.briefing?.trim() ?? ''
   return {
     encounterId: encounter.id,
     name: encounter.name,
     tables: [...encounter.tables],
     notes: encounter.notes,
+    ...(briefing === '' ? {} : { briefing }),
     startedAt: now,
   }
 }

@@ -133,6 +133,7 @@ function playFor({
     startDowntime: () => {},
     endDowntime: () => {},
     seat: seat.handle,
+    scene: { conditions: [], hours: 0 },
     downtime: {
       downtime: {
         running: situation === 'downtime',

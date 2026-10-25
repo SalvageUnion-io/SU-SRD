@@ -32,3 +32,16 @@ export function strArray(body: EntityBody, key: BodyKey): string[] {
   const value = body[key]
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
 }
+
+/** The scrap pool's expansion buckets, by name. */
+const POOL_LABEL: Record<string, string> = {
+  bio: 'Bio-Salvage',
+  chimerium: 'Chimerium',
+  inertNanites: 'Inert Nanites',
+  activeNanites: 'Active Nanites',
+}
+
+/** A scrap-pool bucket's chip label: `T1`…`T6`, or the expansion resource's name. */
+export function poolLabel(bucket: string): string {
+  return POOL_LABEL[bucket] ?? bucket.replace(/^tl/i, 'T')
+}

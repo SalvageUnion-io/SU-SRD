@@ -1346,6 +1346,234 @@
         }
       }
     },
+    "ledger:collectIncome": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:completeJob": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "id": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:get": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:removeFaction": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "id": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:removeJob": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "id": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:setFaction": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "faction": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "name": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "standing": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "hostile"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "neutral"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "friendly"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "deal": {
+                "fieldType": {
+                  "type": "boolean"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:setJob": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "job": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "name": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "factionId": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "pay": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "payTl": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    "ledger:setJobState": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "id": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "state": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "open"
+              },
+              {
+                "type": "literal",
+                "value": "dropped"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
     "mediator:addNpc": {
       "type": "object",
       "value": {
@@ -1496,6 +1724,49 @@
                 "optional": true
               },
               "lastMediatorRoll": {
+                "fieldType": {
+                  "type": "any"
+                },
+                "optional": true
+              },
+              "salvaged": {
+                "fieldType": {
+                  "type": "literal",
+                  "value": true
+                },
+                "optional": true
+              },
+              "important": {
+                "fieldType": {
+                  "type": "boolean"
+                },
+                "optional": true
+              },
+              "maxEp": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "heatCap": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "currentEp": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "currentHeat": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": true
+              },
+              "lastImportantRoll": {
                 "fieldType": {
                   "type": "any"
                 },
@@ -2458,6 +2729,289 @@
         }
       }
     },
+    "safety:addBoundary": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "kind": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "outOfBounds"
+              },
+              {
+                "type": "literal",
+                "value": "offCamera"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "text": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:boundaries": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:liftStop": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:removeBoundary": {
+      "type": "object",
+      "value": {
+        "boundaryId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "boundaries"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:setPostToChannel": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "on": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:showStop": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "safety:stopSign": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "salvageAreas:here": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "salvageAreas:set": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "area": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "object",
+                "value": {
+                  "name": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "techLevel": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "supply": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        }
+      }
+    },
+    "salvageAreas:spend": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "scenes:current": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "scenes:passHour": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "scenes:setConditions": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "conditions": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "radiation-storm"
+                },
+                {
+                  "type": "literal",
+                  "value": "irradiated"
+                },
+                {
+                  "type": "literal",
+                  "value": "freezing"
+                },
+                {
+                  "type": "literal",
+                  "value": "low-visibility"
+                },
+                {
+                  "type": "literal",
+                  "value": "difficult-terrain"
+                },
+                {
+                  "type": "literal",
+                  "value": "anomalous-zone"
+                }
+              ]
+            }
+          },
+          "optional": false
+        }
+      }
+    },
     "seats:board": {
       "type": "object",
       "value": {
@@ -2711,6 +3265,26 @@
                             "value": "cascade"
                           }
                         ]
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": true
+              },
+              "salvage": {
+                "fieldType": {
+                  "type": "object",
+                  "value": {
+                    "roll": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "areaTl": {
+                      "fieldType": {
+                        "type": "number"
                       },
                       "optional": false
                     }

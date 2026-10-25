@@ -6,25 +6,39 @@
  *
  * Its band carries what it is (NPC, Mech, Bio-Titan, …), **Actions**, which
  * lists its actions under the Opposition (pressed while they are the ones
- * listed), and ⋯: the full reference card, Rename and Delete. At 0 it is
- * down: dashed, struck, and never removed for you (ADR-007); Delete is offered
- * as a chip on its band, before ⋯, behind a confirm.
+ * listed), and ⋯: the full reference card, Mark important, Rename and Delete.
+ * At 0 it is down: dashed, struck, and never removed for you (ADR-007); Delete
+ * is offered as a chip on its band, before ⋯, behind a confirm. A downed Mech
+ * or Vehicle offers its wreck's salvage under its vital (`PlayWreckSalvage`),
+ * into the crawler.
+ *
+ * An important NPC (Workshop Manual p.255) says so on its kind chip. A mech
+ * adds its EP and Heat (Heat's redline as danger) and a Heat Check; at 0 any
+ * of them offers its Critical roll, Critical Damage or Critical Injury, whose
+ * row reads under the Morale line.
  */
 
 import type { CSSProperties } from 'react'
+import type { rollForTable } from '../../components/index'
 import {
   Button,
   HeaderMenu,
+  heatDangerFrom,
   Stat,
   TitledBox,
   Toggle,
   tokens,
   useDetailModal,
 } from '../../components/index'
+import type { ImportantTable } from '../../lib/rules/opposition'
+import { criticalTable } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
+import { PlayWreckSalvage } from './PlayWreckSalvage'
+import type { PlayMediator } from './usePlayMediator'
+import { wreckOf } from './wreck.model'
 
 const LINE = {
   color: tokens.color.ink,
@@ -36,6 +50,11 @@ const LINE = {
 const MUTED = { ...LINE, color: tokens.color.ink75 } satisfies CSSProperties
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies CSSProperties
+
+/** What a table an important NPC rolls is called: the book's, or Heat Check. */
+function tableName(table: ImportantTable): string {
+  return table === 'heat-check' ? mediatorCopy('heatCheck') : (criticalTable(table)?.name ?? '')
+}
 
 const CONTROLS = {
   alignItems: 'center',
@@ -52,6 +71,15 @@ type PlayNpcBoxProps = {
   onHp: (next: number) => void
   onRename: () => void
   onRemove: () => void
+  /** Settle its wreck's salvage once it is down. */
+  onSalvage: PlayMediator['salvageWreck']
+  /** Whether the Mediator holds a crawler a wreck's haul can go to. */
+  hasCrawler: boolean
+  rollFor?: typeof rollForTable
+  onImportant: (important: boolean) => void
+  onReactor: (patch: { currentEp?: number; currentHeat?: number }) => void
+  onCritical: () => void
+  onHeatCheck: () => void
 }
 
 export function PlayNpcBox({
@@ -62,9 +90,20 @@ export function PlayNpcBox({
   onHp,
   onRename,
   onRemove,
+  onSalvage,
+  hasCrawler,
+  rollFor,
+  onImportant,
+  onReactor,
+  onCritical,
+  onHeatCheck,
 }: PlayNpcBoxProps) {
   const detail = useDetailModal(npc.entity ?? undefined, { pattern: npc.pattern ?? undefined })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
+  const wreck = npc.down ? wreckOf(npc) : null
+  const { reactor, track } = npc
+  const critical = npc.important && npc.down && track !== null ? track.critical : null
+  const lastImportant = npc.lastImportantRoll
   return (
     <li className="su-play-npc" data-chosen={chosen || undefined}>
       <TitledBox
@@ -76,7 +115,13 @@ export function PlayNpcBox({
         reference={npc.down}
         chips={
           <Stat
-            label={npc.down ? mediatorCopy('down', { npcKind: npcKind(npc) }) : npcKind(npc)}
+            label={[
+              npcKind(npc),
+              npc.important ? mediatorCopy('important') : null,
+              npc.down ? mediatorCopy('down') : null,
+            ]
+              .filter((part) => part !== null)
+              .join(' · ')}
             size="compact"
           />
         }
@@ -116,6 +161,15 @@ export function PlayNpcBox({
                           onSelect: () => detail.control.onClick?.(),
                         },
                       ]),
+                  ...(track === null
+                    ? []
+                    : [
+                        {
+                          id: 'important',
+                          label: mediatorCopy(npc.important ? 'notImportant' : 'markImportant'),
+                          onSelect: canWrite ? () => onImportant(!npc.important) : undefined,
+                        },
+                      ]),
                   {
                     id: 'rename',
                     label: mediatorCopy('rename2'),
@@ -142,7 +196,74 @@ export function PlayNpcBox({
             onChange={canWrite ? onHp : undefined}
           />
         ) : null}
+        {reactor !== null ? (
+          <>
+            <PlayVital
+              label={mediatorCopy('ep')}
+              value={reactor.ep}
+              max={reactor.maxEp}
+              tone="adversary"
+              onChange={canWrite ? (v) => onReactor({ currentEp: v }) : undefined}
+            />
+            <PlayVital
+              label={mediatorCopy('heat')}
+              value={reactor.heat}
+              max={reactor.heatCap}
+              tone="adversary"
+              danger={reactor.heatCap > 0 ? heatDangerFrom(reactor.heatCap) : undefined}
+              onChange={canWrite ? (v) => onReactor({ currentHeat: v }) : undefined}
+            />
+          </>
+        ) : null}
         {npc.down ? <p style={MUTED}>{mediatorCopy('at0Down')}</p> : null}
+        {wreck !== null ? (
+          <PlayWreckSalvage
+            npc={npc}
+            wreck={wreck}
+            canWrite={canWrite}
+            hasCrawler={hasCrawler}
+            onSettle={onSalvage}
+            rollFor={rollFor}
+          />
+        ) : null}
+        {critical !== null || (reactor !== null && !npc.down) ? (
+          <span style={CONTROLS}>
+            {critical !== null ? (
+              <Button
+                size="mini"
+                disabled={!canWrite}
+                aria-label={mediatorCopy('rollTableFor', {
+                  table: tableName(critical),
+                  name: npc.name,
+                })}
+                onClick={onCritical}
+              >
+                {mediatorCopy('rollTable', { table: tableName(critical) })}
+              </Button>
+            ) : (
+              <Button
+                size="mini"
+                disabled={!canWrite}
+                aria-label={mediatorCopy('heatCheckFor', { name: npc.name })}
+                onClick={onHeatCheck}
+              >
+                {mediatorCopy('heatCheck')}
+              </Button>
+            )}
+          </span>
+        ) : null}
+        {lastImportant !== null ? (
+          <p role="status" aria-live="polite" style={LINE}>
+            <span style={STRONG}>
+              {mediatorCopy('importantRoll', {
+                table: tableName(lastImportant.table),
+                roll: lastImportant.roll,
+                value: lastImportant.label ? ` · ${lastImportant.label}` : '',
+              })}
+            </span>
+            {` — ${lastImportant.value}`}
+          </p>
+        ) : null}
         <p role="status" aria-live="polite" style={npc.lastRoll ? LINE : MUTED}>
           {npc.lastRoll ? (
             <>
