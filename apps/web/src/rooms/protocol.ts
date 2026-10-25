@@ -150,7 +150,7 @@ export type ServerMessage = z.infer<typeof ServerMessageSchema>
 /** Client to room. */
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ops'), ops: z.array(OpInputSchema).min(1) }),
-  /** `name` is one of the room's acts (`salvageArea.spend`, `scene.passHour`, …). */
+  /** `name` is one of the room's acts named as its Convex function is (`salvageAreas.spend`, `scenes.passHour`, …). */
   z.object({ type: z.literal('act'), id: z.string(), name: z.string(), args: z.unknown() }),
 ])
 /** @public */
