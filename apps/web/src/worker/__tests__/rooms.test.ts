@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { exports } from 'cloudflare:workers'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { bunSql } from '../../rooms/__tests__/bunSql'
-import { GameRoom, serveGameSocket, serveRoomsHealth } from '../rooms'
+import { AccountRoom, GameRoom, serveGameSocket, serveRoomsHealth } from '../rooms'
 
 /**
  * The rooms' Worker side under `bun test`, against a stand-in Durable Object
@@ -28,10 +28,11 @@ function sock(...tags: string[]): Sock {
   return s
 }
 
-/** A Game room over bun:sqlite, holding `sockets` as its hibernated ones. */
-function gameRoom(sockets: Sock[]) {
+/** A stand-in Durable Object state over bun:sqlite, holding `sockets` as its hibernated ones. */
+function roomState(sockets: Sock[], name?: string) {
   const sql = bunSql()
-  const ctx = {
+  return {
+    id: { name },
     storage: {
       sql: { exec: (q: string, ...b: never[]) => ({ toArray: () => sql.exec(q, ...b) }) },
       transactionSync: <T>(fn: () => T) => sql.transaction(fn),
@@ -40,8 +41,20 @@ function gameRoom(sockets: Sock[]) {
     getWebSockets: () => sockets,
     getTags: (ws: Sock) => ws.tags,
   }
-  return new GameRoom(ctx as never, {} as never)
 }
+
+function gameRoom(sockets: Sock[]) {
+  return new GameRoom(roomState(sockets) as never, {} as never)
+}
+
+describe('an account room', () => {
+  test('is its player’s from the start, so a Game can hand them a unit before they open it', () => {
+    const room = new AccountRoom(roomState([], 'd-rook') as never, {} as never)
+    expect(() => room.fileTray('disband-tray:g1', [{ id: 'n1', name: 'Raider' }], 1)).not.toThrow()
+    expect(room.unitsFor('d-rook')).toEqual([])
+    expect(() => room.importAccount({ discordId: 'd-wren' })).toThrow()
+  })
+})
 
 describe('a Game room’s presence', () => {
   test('a closing socket leaves, and everyone left hears who is here', () => {
