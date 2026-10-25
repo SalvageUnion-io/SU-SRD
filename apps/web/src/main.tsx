@@ -13,8 +13,8 @@ import {
 import { preloadScriptFont } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
+import { setSyncStatus } from './replica/sync'
 import { routeTree } from './routeTree.gen'
-import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
@@ -51,11 +51,11 @@ initBrowserObservability()
 // route the router resolves. See `installChunkRecovery` in lib/browserObservability.ts.
 installChunkRecovery()
 
-// Until `ConnectionProvider` reports, nobody knows yet whether there is a
-// session, so the stores treat the account's rows as on their way: a route
-// opened at boot waits for them (stores/rowArrival.ts) rather than rendering
-// an empty roster that fills a moment later.
-setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettled: false })
+// Until `SyncProvider` reports, nobody knows yet whether there is a session,
+// so the account's rows are on their way: a route opened at boot waits for
+// them (`replica.untilArrived`) rather than rendering an empty roster that
+// fills a moment later.
+setSyncStatus('syncing')
 
 // The front door's quote face, asked for now so it is in hand before the quote
 // paints rather than swapped in under it (lib/scriptFont.ts).

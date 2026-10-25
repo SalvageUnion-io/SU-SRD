@@ -21,7 +21,7 @@ import {
   setQueryAnswers,
 } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 
 // Module scope, before the imports below: `mock.module` only affects imports
@@ -38,10 +38,10 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayGate } = await import('../PlayGate')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 
 const GAME_ID = 'g-play'
 const GAME = { _id: GAME_ID, name: 'Tenacity', mediator: false, organizer: false }
@@ -49,8 +49,8 @@ const GAME = { _id: GAME_ID, name: 'Tenacity', mediator: false, organizer: false
 beforeAll(async () => {
   await hydrateStores()
   // Filling the cache only: `adopt` is not a user write, so it needs no account.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   await store.adopt('pilot', pilotFixture({ id: 'play-rook', name: 'Rook', gameId: GAME_ID }))
   await store.adopt('pilot', pilotFixture({ id: 'play-wren', name: 'Wren', gameId: null }))
   await store.adopt('mech', mechFixture({ id: 'play-mech', name: 'Thresher', gameId: GAME_ID }))
@@ -66,7 +66,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // Leave the shared stores as this file found them.
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('softLink', 'play-link')
   await store.forget('mech', 'play-mech')
   await store.forget('mech', 'play-spare')
@@ -75,27 +75,26 @@ afterAll(async () => {
   convexMocks.restore()
 })
 
-function connection(mode: ConnectionMode) {
+function connection(status: SyncStatus) {
   return {
-    mode,
-    canWrite: mode === 'connected' || mode === 'solo',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live' || status === 'signedOut',
+    outdated: false,
   }
 }
 
-function gate(id: string, mode: ConnectionMode): ReactNode {
+function gate(id: string, status: SyncStatus): ReactNode {
   return (
-    <ConnectionContext.Provider value={connection(mode)}>
+    <SyncContext.Provider value={connection(status)}>
       <PlayGate id={id} />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
-async function renderGate(id: string, mode: ConnectionMode = 'connected') {
+async function renderGate(id: string, status: SyncStatus = 'live') {
   let result: ReturnType<typeof render> | undefined
   await act(async () => {
-    result = render(gate(id, mode))
+    result = render(gate(id, status))
   })
   if (result === undefined) throw new Error('render did not run')
   return result
@@ -112,7 +111,7 @@ function opened(): PlayTarget | null {
 describe('refusals', () => {
   test('an anonymous session is asked to sign in, and asks Convex nothing', async () => {
     setQueryAnswers({})
-    await renderGate('play-rook', 'solo')
+    await renderGate('play-rook', 'signedOut')
     expect(heading('Sign in to play')).toBeTruthy()
     expect(queryCalls()).toHaveLength(0)
     expect(opened()).toBeNull()
@@ -134,7 +133,7 @@ describe('refusals', () => {
 
   test('the session still settling waits', async () => {
     setQueryAnswers({})
-    await renderGate('play-rook', 'connecting')
+    await renderGate('play-rook', 'syncing')
     expect(screen.getByText('Loading your session…')).toBeTruthy()
   })
 })
@@ -173,7 +172,7 @@ describe('Play opens', () => {
 
   test('read-only while Disconnected, even before the Game has answered', async () => {
     setQueryAnswers({ 'games:get': undefined })
-    await renderGate('play-rook', 'disconnected')
+    await renderGate('play-rook', 'offline')
     expect(opened()).toEqual({
       pilotId: 'play-rook',
       gameId: GAME_ID,

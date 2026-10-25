@@ -2,7 +2,6 @@ import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/
 import { PRODUCT } from 'game-domain/product'
 import { useLayoutEffect } from 'react'
 import { AccountHintSync } from '../build/account/AccountHintSync'
-import { AccountReconciler } from '../build/account/AccountReconciler'
 import {
   HeaderActions,
   HeaderDrawerAccount,
@@ -23,6 +22,7 @@ import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
+import { ReplicaSync } from '../replica/ReplicaSync'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 import '../styles/app.css'
 
@@ -104,7 +104,7 @@ function RootComponent() {
             gate because it is a fact about the SESSION and the BROWSER, not
             about any route — and it must stay mounted across the sign-in flip,
             which is exactly when its work runs. */}
-        <AccountReconciler />
+        <ReplicaSync />
         {/* Who is signed in, left for the SRD's bar to show. */}
         <AccountHintSync />
         {/* A test seam, compiled out of production builds — see its header. */}

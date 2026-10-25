@@ -33,16 +33,16 @@ afterEach(() => {
   console.warn = realConsoleWarn
 })
 
-describe('savedWorkCopy says what an error does to the work, per backend', () => {
+describe('savedWorkCopy says what an error does to the work, per sync status', () => {
   test('a signed-in player is told their account holds it', () => {
-    expect(savedWorkCopy('remote')).toMatch(/saved to your account/i)
+    expect(savedWorkCopy('live')).toMatch(/saved to your account/i)
   })
 
   test('offline or still connecting names the account without assuming one', () => {
-    // `blocked` covers `connecting`, before sign-in has resolved, so an
+    // `syncing` comes before sign-in has resolved, so an
     // anonymous visitor can land here too — "your account" would be a guess.
-    expect(savedWorkCopy('blocked')).toMatch(/saved to an account/i)
-    expect(savedWorkCopy('blocked')).not.toMatch(/your account/i)
+    expect(savedWorkCopy('syncing')).toMatch(/saved to an account/i)
+    expect(savedWorkCopy('syncing')).not.toMatch(/your account/i)
   })
 
   test('an anonymous visitor is told the truth: there is nothing a reload could lose', () => {
@@ -52,9 +52,9 @@ describe('savedWorkCopy says what an error does to the work, per backend', () =>
     expect(savedWorkCopy('signedOut')).not.toMatch(/stored locally/i)
   })
 
-  test('no backend ever claims the work is stored in this browser', () => {
+  test('no status ever claims the work is stored in this browser', () => {
     // No player's work lives only on the device, so no panel may say it does.
-    for (const backend of ['remote', 'blocked', 'signedOut', null] as const) {
+    for (const backend of ['live', 'offline', 'syncing', 'signedOut', null] as const) {
       expect(savedWorkCopy(backend)).not.toMatch(/in this browser/i)
     }
   })

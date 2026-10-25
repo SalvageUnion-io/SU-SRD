@@ -27,12 +27,12 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, toast } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { rollMorale } from '../../lib/rules/opposition'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
-import { useEntityStore } from '../../stores/entityStore'
-import { usePrepStore } from '../../stores/prepStore'
+import { useEncounters } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -124,10 +124,10 @@ function primaryCrawler(
 
 export function usePlayMediator(gameId: string, gameName: string): PlayMediator {
   const id = gameId as Id<'games'>
-  const connection = useConnection()
+  const connection = useSync()
   const { canWrite } = connection
   const now = usePresenceClock()
-  const store = useEntityStore()
+  const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
   const members = useQuery(api.games.members, { gameId: id })
@@ -136,7 +136,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const listing = useQuery(api.entities.listForGame, { gameId: id })
   const npcs = useQuery(api.mediator.npcs, { gameId: id })
   const running = useQuery(api.mediator.running, { gameId: id })
-  const encounters = usePrepStore((s) => s.encounters)
+  const encounters = useEncounters((s) => s.encounters)
   const patterns = useQuery(api.mediator.patterns, { gameId: id })
   const sent = useQuery(api.ops.sent, { gameId: id, limit: sentLimit })
   const alerts = useQuery(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })

@@ -1,3 +1,4 @@
+import type { UnitsState } from '../../../replica/units'
 /**
  * Crawler crew, the paths `CrewBoard.test.tsx` leaves open:
  * choosing which crawler to crew, the name the form insists on, assigning an
@@ -13,8 +14,8 @@ import { ConvexError } from 'convex/values'
 import { useState } from 'react'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
 /** How the stub server answers a link write this test. */
 let linkWrite: 'ok' | 'defect' | 'refused' = 'ok'
@@ -33,17 +34,16 @@ const convexMocks = await installConvexMocks({
 afterAll(() => convexMocks.restore())
 
 const { ToasterMount, toast } = await import('../../../components/index')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { CrewBoard } = await import('../CrewBoard')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 const TENACITY = crawlerFixture({
@@ -89,10 +89,10 @@ async function renderBoard(crawlerId?: string, initialSlot?: string) {
   const log: Selection[] = []
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <ToasterMount />
         <Board crawlerId={crawlerId} initialSlot={initialSlot} log={log} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   return log
@@ -104,8 +104,8 @@ async function click(el: HTMLElement) {
   })
 }
 
-function seed(state: Partial<ReturnType<typeof useEntityStore.getState>>) {
-  useEntityStore.setState({
+function seed(state: Partial<UnitsState>) {
+  useUnits.setState({
     crawlers: [TENACITY],
     npcs: [],
     softLinks: [],
@@ -175,7 +175,7 @@ describe('designing a slot', () => {
   test('a nameless NPC is not saved', async () => {
     await renderBoard('c1', 'med-bay')
     await click(screen.getByRole('button', { name: 'Save and assign to Med Bay' }))
-    expect(useEntityStore.getState().npcs).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
     expect(screen.getByText('Give the NPC a name.')).toBeTruthy()
   })
 
@@ -195,7 +195,7 @@ describe('designing a slot', () => {
     const log = await renderBoard('c1', 'med-bay')
     await click(screen.getByRole('button', { name: 'Keep the book’s line' }))
     expect(log).toEqual([{ crawler: 'c1', slot: undefined }])
-    expect(useEntityStore.getState().npcs).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
   })
 
   test('a saved NPC whose assignment fails is said to be saved, not assigned', async () => {
@@ -210,8 +210,8 @@ describe('designing a slot', () => {
         'Doc Ambrose is saved, but not assigned: That NPC could not be assigned to the Med Bay. Try again.'
       )
     ).toBeTruthy()
-    expect(useEntityStore.getState().npcs).toHaveLength(1)
-    expect(useEntityStore.getState().softLinks).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(1)
+    expect(useUnits.getState().softLinks).toHaveLength(0)
   })
 })
 
@@ -223,8 +223,8 @@ describe('assigning an NPC already here', () => {
     const log = await renderBoard('c1', 'med-bay')
     const list = screen.getByRole('list', { name: 'NPCs that can crew the Med Bay' })
     await click(within(list).getByRole('button', { name: 'Assign Mags to Med Bay' }))
-    await waitFor(() => expect(useEntityStore.getState().softLinks).toHaveLength(1))
-    expect(useEntityStore.getState().softLinks[0]).toMatchObject({
+    await waitFor(() => expect(useUnits.getState().softLinks).toHaveLength(1))
+    expect(useUnits.getState().softLinks[0]).toMatchObject({
       from: { type: 'npc', id: 'n-mags' },
       to: { type: 'crawler', id: 'c1' },
       slot: { kind: 'bay', bayRef: 'med-bay' },
@@ -239,7 +239,7 @@ describe('assigning an NPC already here', () => {
     await renderBoard('c1', 'med-bay')
     await click(screen.getByRole('button', { name: 'Assign Mags to Med Bay' }))
     expect(await screen.findByText('That NPC is crewing elsewhere.')).toBeTruthy()
-    expect(useEntityStore.getState().softLinks).toHaveLength(0)
+    expect(useUnits.getState().softLinks).toHaveLength(0)
   })
 })
 

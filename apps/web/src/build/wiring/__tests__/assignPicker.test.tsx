@@ -29,15 +29,15 @@ import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactElement } from 'react'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
 import { LinkRefused } from '../../../lib/links/linkRefused'
+import type { SyncState } from '../../../replica/syncContext'
+import { SIGNED_OUT, SyncContext } from '../../../replica/syncContext'
 import type { AssignPickerStore } from '../AssignPicker'
 import { AssignPicker } from '../AssignPicker'
 
 beforeAll(hydrateStores)
 
-const CONNECTED: ConnectionState = { ...SOLO_STATE, mode: 'connected' }
+const CONNECTED: SyncState = { ...SIGNED_OUT, status: 'live' }
 const GAME: Container = { kind: 'game', gameId: 'g1' }
 
 function pilot(id: string, name: string, gameId: string | null = null): Pilot {
@@ -115,8 +115,8 @@ const crawlers = [
   crawler('c-shelf', 'Shelf Crawler', null),
 ]
 
-function inMode(state: ConnectionState, ui: ReactElement) {
-  return render(<ConnectionContext.Provider value={state}>{ui}</ConnectionContext.Provider>)
+function inMode(state: SyncState, ui: ReactElement) {
+  return render(<SyncContext.Provider value={state}>{ui}</SyncContext.Provider>)
 }
 
 function open(name: RegExp) {
@@ -163,7 +163,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
 
   test('signed out there is one pile, so nothing is filtered', () => {
     inMode(
-      SOLO_STATE,
+      SIGNED_OUT,
       <AssignPicker
         subject={{ type: 'pilot', id: 'p1' }}
         container={GAME}
@@ -388,7 +388,7 @@ describe('AssignPicker — the link points the way the schema says', () => {
   test('confirm stays off until a candidate is picked', async () => {
     const store = makeStore({ crawlers: [crawler('c1', 'Iron Tortoise')] })
     inMode(
-      SOLO_STATE,
+      SIGNED_OUT,
       <AssignPicker
         subject={{ type: 'pilot', id: 'p1' }}
         container={SHELF}
@@ -409,7 +409,7 @@ describe('AssignPicker — the link points the way the schema says', () => {
   test('cancel closes without writing', async () => {
     const store = makeStore({ crawlers: [crawler('c1', 'Iron Tortoise')] })
     inMode(
-      SOLO_STATE,
+      SIGNED_OUT,
       <AssignPicker
         subject={{ type: 'pilot', id: 'p1' }}
         container={SHELF}

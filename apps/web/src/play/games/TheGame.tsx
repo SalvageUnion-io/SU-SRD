@@ -34,10 +34,10 @@ import {
   Stat,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -82,7 +82,7 @@ export function TheGame({
   const members = useQuery(api.games.members, { gameId })
   const vitals = useQuery(api.crew.vitals, { gameId })
   const setMediator = useMutation(api.games.setMediator)
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
   const [chosen, setChosen] = useState<string>('')
 

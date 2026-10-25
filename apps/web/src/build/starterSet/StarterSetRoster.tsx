@@ -14,9 +14,6 @@
  * `?copy=crew` offers that copy on arrival: the SRD's Starter Set landing
  * links here with it.
  *
- * On its own page the Quickstart's crew follows, laid out the same way under
- * its own Slab, whose control copies that crew (`?copy=quickstart`).
- *
  * Rendered on its own page (`/starter`) and under the sign-in panel on a
  * signed-out Roster.
  */
@@ -24,17 +21,10 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ChapterBand, Slab, Text, tokens } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
-import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
-import {
-  QUICKSTART_BOOK,
-  STARTER_SET_ADVENTURE,
-  STARTER_SET_PUBLISHER,
-  starterRoster,
-} from '../../lib/starterSet/starterTemplates'
+import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { CopyCrew } from './CopyCrew'
@@ -64,8 +54,10 @@ type StarterSetRosterProps = {
 }
 
 export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRosterProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
+  const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
   const { confirm, dialog } = useConfirm()
+  const shelves = starterShelves()
   useCopyCrewOnArrival(copy, confirm)
 
   return (
@@ -83,83 +75,49 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
           <Text variant="body">
             The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
             Read-only reference: open any sheet to read it.{' '}
-            {mode === 'connected'
+            {status === 'live'
               ? buildStarterSetCopy('copyOneIntoYourTraining')
               : buildStarterSetCopy('signInToCopyOne')}
           </Text>
         </div>
-        <CrewColumns roster="starter-set" confirm={confirm} />
-      </section>
-      {headingLevel === 'h1' && (
-        <section aria-label={buildStarterSetCopy('quickstartCrew')}>
-          <div style={SUB_HEADER}>
-            <Slab
-              as="h2"
-              label={buildStarterSetCopy('quickstartCrew')}
-              actions={<CopyCrew confirm={confirm} roster="quickstart" />}
-              flush
-            />
-            <Text variant="body">
-              {buildStarterSetCopy('quickstartCrewIntro', { book: QUICKSTART_BOOK })}{' '}
-              {mode === 'connected'
-                ? buildStarterSetCopy('copyOneIntoYourTraining')
-                : buildStarterSetCopy('signInToCopyOne')}
-            </Text>
-          </div>
-          <CrewColumns roster="quickstart" confirm={confirm} />
-        </section>
-      )}
-      {dialog}
-    </>
-  )
-}
 
-/** One crew's columns, a card per build; signed in, each card's last chip copies it. */
-function CrewColumns({ roster, confirm }: { roster: StarterRosterId; confirm: Confirm }) {
-  const { mode } = useConnection()
-  const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
-  const shelves = starterShelves(roster)
-  return (
-    <>
-      <SegmentSwitch active={activeSegment} onChange={setActiveSegment} />
-      <RosterGrid>
-        {shelves.map(({ kind, title, builds }) => (
-          <RosterColumn
-            key={kind}
-            kind={kind}
-            title={title}
-            active={activeSegment === kind}
-            label={buildStarterSetCopy('crewKind', {
-              crew: starterRoster(roster).name,
-              lowerCase: title.toLowerCase(),
-            })}
-            emptyMessage={buildStarterSetCopy('noCrawlerSheet')}
-            empty={builds.length === 0}
-          >
-            <RosterList>
-              {builds.map((build) => (
-                <li key={build.id} style={ROW}>
-                  {/* Signed in, "Copy to…" is the Compact's last chip (C8, hard rule R6). */}
-                  <StarterCard
-                    kind={kind}
-                    build={build}
-                    controls={
-                      mode === 'connected' ? (
-                        <CopyStarterMenu
-                          kind={kind}
-                          templateId={build.id}
-                          name={build.name}
-                          confirm={confirm}
-                        />
-                      ) : undefined
-                    }
-                  />
-                </li>
-              ))}
-            </RosterList>
-          </RosterColumn>
-        ))}
-      </RosterGrid>
+        <SegmentSwitch active={activeSegment} onChange={setActiveSegment} />
+        <RosterGrid>
+          {shelves.map(({ kind, title, builds }) => (
+            <RosterColumn
+              key={kind}
+              kind={kind}
+              title={title}
+              active={activeSegment === kind}
+              emptyMessage=""
+              empty={false}
+            >
+              <RosterList>
+                {builds.map((build) => (
+                  <li key={build.id} style={ROW}>
+                    {/* Signed in, "Copy to…" is the Compact's last chip (C8, hard rule R6). */}
+                    <StarterCard
+                      kind={kind}
+                      build={build}
+                      controls={
+                        status === 'live' ? (
+                          <CopyStarterMenu
+                            kind={kind}
+                            templateId={build.id}
+                            name={build.name}
+                            confirm={confirm}
+                          />
+                        ) : undefined
+                      }
+                    />
+                  </li>
+                ))}
+              </RosterList>
+            </RosterColumn>
+          ))}
+        </RosterGrid>
+        {dialog}
+      </section>
     </>
   )
 }

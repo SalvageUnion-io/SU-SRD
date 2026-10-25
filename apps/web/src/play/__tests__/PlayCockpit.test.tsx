@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 import { narrowViewport } from './narrowViewport'
 
 // Module scope, before the imports below — see `convexMock.ts`. The frame
@@ -43,38 +43,37 @@ const ANSWERS = {
 }
 setQueryAnswers(ANSWERS)
 
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
-const { useEntityStore } = await import('../../stores/entityStore')
+const { resetSync } = await import('../../replica/sync')
+const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { PlayCockpit } = await import('../PlayCockpit')
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'cockpit-wren', name: 'Wren' }))
+  resetSync()
+  await useUnits.getState().adopt('pilot', pilotFixture({ id: 'cockpit-wren', name: 'Wren' }))
 })
 
 afterAll(async () => {
-  await useEntityStore.getState().forget('pilot', 'cockpit-wren')
+  await useUnits.getState().forget('pilot', 'cockpit-wren')
   convexMocks.restore()
 })
 
 async function renderCockpit(
   target: { gameId: string | null; gameName: string | null },
-  mode: ConnectionMode = 'connected'
+  status: SyncStatus = 'live'
 ) {
   const state = {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={state}>
+      <SyncContext.Provider value={state}>
         <PlayCockpit target={{ pilotId: 'cockpit-wren', mediator: false, ...target }} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -192,7 +191,7 @@ describe('the Cockpit frame', () => {
   })
 
   test('offline, Play is read-only and says so: the bar’s stamp and the foot', async () => {
-    await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'disconnected')
+    await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'offline')
     expect(screen.queryByText(/● Live/)).toBeNull()
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('status').textContent).toBe('Read-only · disconnected')

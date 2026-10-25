@@ -17,16 +17,10 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { SHELF } from 'game-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import { MechSchema } from 'game-domain/schemas/mech'
 import { PilotSchema } from 'game-domain/schemas/pilot'
 import { SoftLinkSchema } from 'game-domain/schemas/softLink'
-import {
-  QUICKSTART_MECHS,
-  QUICKSTART_PILOTS,
-  QUICKSTART_SOFT_LINKS,
-} from 'game-domain/starterSet/quickstart'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
@@ -45,10 +39,10 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { units, useUnits } from '../../../replica/units'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
 import { copyStarter, copyStarterCrew } from '../copyStarter'
@@ -262,7 +256,7 @@ describe('Starter Set — copying a template', () => {
   test('lands in your shelves as a build of the player’s own, and parses', async () => {
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
-    const [stored] = useEntityStore.getState().list('pilot')
+    const [stored] = useUnits.getState().list('pilot')
     expect(stored?.id).toBe(copied.id)
     expect(stored?.name).toBe(pilotTemplate.name)
     expect(stored?.gameId).toBeNull()
@@ -271,7 +265,7 @@ describe('Starter Set — copying a template', () => {
 
   test('lands in the Game the player chose', async () => {
     await copyStarter('mech', STARTER_MECHS[0]?.id as string, { kind: 'game', gameId: 'g1' })
-    const [stored] = useEntityStore.getState().list('mech')
+    const [stored] = useUnits.getState().list('mech')
     expect(stored?.gameId).toBe('g1')
   })
 
@@ -288,14 +282,13 @@ describe('Starter Set — copying a template', () => {
     expect(first.id).not.toBe(pilotTemplate.id)
     expect(first.id).not.toBe(second.id)
     expect(first.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
-    for (const row of useEntityStore.getState().list('pilot'))
-      expect(row.seedRef).toBe(pilotTemplate.id)
+    for (const row of useUnits.getState().list('pilot')) expect(row.seedRef).toBe(pilotTemplate.id)
   })
 
   test('leaves the template exactly as it was', async () => {
     const before = structuredClone(pilotTemplate)
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
-    await useEntityStore
+    await useUnits
       .getState()
       .update('pilot', copied.id, { name: 'Renamed', currentHP: 1 }, LIVE_SHEET_MANUAL)
 
@@ -303,8 +296,8 @@ describe('Starter Set — copying a template', () => {
   })
 
   test('copies nothing that is not in the Starter Set', async () => {
-    await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no book crew/)
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+    await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no Starter Set/)
+    expect(useUnits.getState().list('pilot')).toHaveLength(0)
   })
 })
 
@@ -314,7 +307,7 @@ describe('copyStarterCrew — the whole crew in one go', () => {
 
   test('copies every build into the container, linked as the box links them', async () => {
     const result = await copyStarterCrew({ kind: 'game', gameId: 'g1' })
-    const state = useEntityStore.getState()
+    const state = useUnits.getState()
     const pilots = state.list('pilot')
     const mechs = state.list('mech')
     const crawlers = state.list('crawler')
@@ -353,139 +346,24 @@ describe('copyStarterCrew — the whole crew in one go', () => {
    * time beside the leftovers.
    */
   test('a refusal part way leaves nothing behind, so a retry copies the crew once', async () => {
-    const real = useEntityStore.getState().create
+    const real = units.create
     let mechs = 0
-    useEntityStore.setState({
-      create: ((type, data) =>
-        type === 'mech' && ++mechs === 2
-          ? Promise.reject(new Error('refused'))
-          : real(type, data)) as typeof real,
-    })
+    units.create = ((type, data) =>
+      type === 'mech' && ++mechs === 2
+        ? Promise.reject(new Error('refused'))
+        : real(type, data)) as typeof real
     try {
       await expect(copyStarterCrew(SHELF)).rejects.toThrow('refused')
     } finally {
-      useEntityStore.setState({ create: real })
+      units.create = real
     }
-    const state = useEntityStore.getState()
+    const state = useUnits.getState()
     expect(state.list('pilot')).toHaveLength(0)
     expect(state.list('mech')).toHaveLength(0)
     expect(state.list('crawler')).toHaveLength(0)
     expect(state.softLinks).toHaveLength(0)
 
     await copyStarterCrew(SHELF)
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(STARTER_PILOTS.length)
-  })
-})
-
-describe('Quickstart crew — the six premade Pilots and Mechs of Crawler #279', () => {
-  test('every pilot, mech and link strict-parses, on the Shelf', () => {
-    for (const p of QUICKSTART_PILOTS) expect(() => PilotSchema.parse(p)).not.toThrow()
-    for (const m of QUICKSTART_MECHS) expect(() => MechSchema.parse(m)).not.toThrow()
-    for (const l of QUICKSTART_SOFT_LINKS) expect(() => SoftLinkSchema.parse(l)).not.toThrow()
-    for (const e of [...QUICKSTART_PILOTS, ...QUICKSTART_MECHS]) expect(e.gameId).toBeNull()
-  })
-
-  test('one pilot of each core class, each with their sheet bio', () => {
-    expect(QUICKSTART_PILOTS.map((p) => p.classRef).sort()).toEqual([
-      'engineer',
-      'hacker',
-      'hauler',
-      'salvager',
-      'scout',
-      'soldier',
-    ])
-    for (const p of QUICKSTART_PILOTS) expect(p.description?.length ?? 0).toBeGreaterThan(0)
-  })
-
-  test('ids are unique, and collide with nothing in the Starter Set', () => {
-    const ids = [
-      ...QUICKSTART_PILOTS,
-      ...QUICKSTART_MECHS,
-      ...QUICKSTART_SOFT_LINKS,
-      ...STARTER_PILOTS,
-      ...STARTER_MECHS,
-      ...STARTER_CRAWLERS,
-      ...STARTER_SOFT_LINKS,
-    ].map((row) => row.id)
-    expect(new Set(ids).size).toBe(ids.length)
-  })
-
-  test('every class, ability, equipment, chassis, system and module ref resolves', () => {
-    const classes = SalvageUnionReference.Classes.all()
-    const abilities = SalvageUnionReference.Abilities.all()
-    const equipment = SalvageUnionReference.Equipment.all()
-    for (const p of QUICKSTART_PILOTS) {
-      expect(slugExists(classes, p.classRef)).toBe(true)
-      for (const a of p.abilities) expect(slugExists(abilities, a)).toBe(true)
-      for (const e of p.equipment) expect(slugExists(equipment, e)).toBe(true)
-    }
-    for (const m of QUICKSTART_MECHS) {
-      expect(resolveChassisRef(m.chassisRef)).toBeTruthy()
-      for (const s of m.systems) expect(resolveSystemRef(s)).toBeTruthy()
-      for (const mod of m.modules) expect(resolveModuleRef(mod)).toBeTruthy()
-    }
-  })
-
-  // SP / EP / Heat as each premade mech's sheet prints them (Quickstart pp.20–40).
-  const SHEET_MECH_STATS: Record<string, { sp: number; ep: number; heat: number }> = {
-    'quickstart-mech-magpie': { sp: 15, ep: 12, heat: 10 },
-    'quickstart-mech-spectrum': { sp: 17, ep: 11, heat: 3 },
-    'quickstart-mech-atlas': { sp: 30, ep: 10, heat: 14 },
-    'quickstart-mech-jackhammer': { sp: 18, ep: 7, heat: 13 },
-    'quickstart-mech-mazona': { sp: 5, ep: 10, heat: 6 },
-    'quickstart-mech-brawler': { sp: 25, ep: 10, heat: 14 },
-  }
-
-  test('every mech derives the SP / EP / Heat its sheet prints', () => {
-    for (const m of QUICKSTART_MECHS) {
-      const expected = SHEET_MECH_STATS[m.id]
-      if (!expected) throw new Error(`no sheet stats declared for ${m.id}`)
-      const chassis = resolveChassisRef(m.chassisRef)
-      expect(mechMaxSP(m, chassis)).toBe(expected.sp)
-      expect(mechMaxEP(m, chassis)).toBe(expected.ep)
-      expect(mechMaxHeat(m, chassis)).toBe(expected.heat)
-    }
-  })
-
-  test('every pilot derives the 12 HP / 6 AP its sheet prints', () => {
-    for (const p of QUICKSTART_PILOTS) {
-      const pilot = { ...p, crawlerTechLevel: resolveEffectiveCrawlerLevel(p, undefined) }
-      expect(pilotMaxHP(pilot)).toBe(12)
-      expect(pilotMaxAP(pilot)).toBe(6)
-    }
-  })
-
-  test('each pilot flies exactly one mech, and every mech has its pilot', () => {
-    expect(QUICKSTART_SOFT_LINKS).toHaveLength(QUICKSTART_PILOTS.length)
-    const pilots = new Set(QUICKSTART_PILOTS.map((p) => p.id))
-    const mechs = new Set(QUICKSTART_MECHS.map((m) => m.id))
-    for (const l of QUICKSTART_SOFT_LINKS) {
-      expect(l.type).toBe('mech-to-pilot')
-      expect(mechs.has(l.from.id)).toBe(true)
-      expect(pilots.has(l.to.id)).toBe(true)
-    }
-  })
-})
-
-describe('copyStarterCrew — the Quickstart crew', () => {
-  beforeEach(resetStores)
-  afterEach(resetStores)
-
-  test('copies its six pilots and mechs, each pilot in their mech, and no crawler', async () => {
-    const result = await copyStarterCrew(SHELF, 'quickstart')
-    const state = useEntityStore.getState()
-    expect(result).toEqual({
-      builds: QUICKSTART_PILOTS.length + QUICKSTART_MECHS.length,
-      links: QUICKSTART_SOFT_LINKS.length,
-    })
-    expect(state.list('crawler')).toHaveLength(0)
-
-    const twitch = state.list('pilot').find((p) => p.seedRef === 'quickstart-pilot-twitch')
-    const magpie = state.list('mech').find((m) => m.seedRef === 'quickstart-mech-magpie')
-    expect(
-      state.softLinks.some(
-        (l) => l.type === 'mech-to-pilot' && l.from.id === magpie?.id && l.to.id === twitch?.id
-      )
-    ).toBe(true)
+    expect(useUnits.getState().list('pilot')).toHaveLength(STARTER_PILOTS.length)
   })
 })

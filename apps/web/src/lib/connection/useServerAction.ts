@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, useTransition } from 'react'
 import { toast } from '../../components/index'
-import { StaleWriteRefused, WritesBlockedOffline } from '../../stores/entityBackend'
+import { StaleWriteRefused, WritesBlockedOffline } from '../../replica/sync'
 import { LinkRefused } from '../links/linkRefused'
 import { captureException } from '../observability'
 import { serverMessage } from './serverError'

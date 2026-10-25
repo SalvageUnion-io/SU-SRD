@@ -1,14 +1,13 @@
 /**
- * What `ShelfSync` and `WiringSync` do to this browser's cache, as pure plans:
+ * What the replica's feed (`ConvexFeed`) does to this browser's rows, as pure plans:
  * which served rows to adopt (`planRowSync`), and which links and Game
  * crawlers to adopt or forget (ADR-037).
  *
  * `entities.listWiring` is the server's answer to "every assignment you can
  * see, and every crawler at your tables". These functions turn one answer plus
  * the local store into the writes that make the store reflect it — the same
- * "server wins" reconcile `ShelfSync` does for owned rows. They live here, as
- * functions, so the tests assert the rule itself rather than a copy of it
- * (the reason `stores/pruneRules.ts` exists too).
+ * "server wins" reconcile `ConvexFeed` does for owned rows. They live here, as
+ * functions, so the tests assert the rule itself rather than a copy of it.
  *
  * ## Absence means deleted only where the server spoke
  *

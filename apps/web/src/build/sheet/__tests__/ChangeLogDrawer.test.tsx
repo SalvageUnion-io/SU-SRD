@@ -2,7 +2,7 @@
  * ChangeLogDrawer tests (ADR-022) — the per-entity Change Log shown behind the
  * sheet's overflow menu. The entries are the server's (`changeLog.forEntity`),
  * answered here by the name-keyed `useQuery` double; connected means a real
- * `ConnectionProvider` over the mocked Convex client. Plus the menu → drawer
+ * `SyncProvider` over the mocked Convex client. Plus the menu → drawer
  * wiring on the Sheet.
  */
 
@@ -21,10 +21,10 @@ const convexMocks = await installConvexMocks({
 
 const { ChangeLogDrawer } = await import('../ChangeLogDrawer')
 const { Sheet } = await import('../Sheet')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
+const { useUnits } = await import('../../../replica/units')
 
 afterAll(() => {
   convexMocks.restore()
@@ -33,7 +33,7 @@ afterAll(() => {
 // Building needs an account (ADR-034 as amended), so the Sheet's pilot is made signed in.
 withSignedInBackend()
 
-const connected = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const connected = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 const row = (over: Record<string, unknown>) => ({
   _id: 'r1',
@@ -153,7 +153,7 @@ describe('ChangeLogDrawer', () => {
 
 describe('Sheet — Change Log menu wiring', () => {
   test('the overflow menu opens the Change Log drawer', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     const pilot = await store.create('pilot', basePilotInput)
 
     render(<Sheet kind="pilot" id={pilot.id} />)

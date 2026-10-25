@@ -28,9 +28,9 @@ import { fakeSeat } from './seatFixture'
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks()
 
-const { useEntityStore } = await import('../../stores/entityStore')
+const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { PlayUnitsColumn } = await import('../PlayUnitsColumn')
 
 const PILOT = 'units-bonesaw'
@@ -44,7 +44,7 @@ const pilot = pilotFixture({ id: PILOT, name: 'Bonesaw', currentHP: 7, currentAP
 
 beforeAll(async () => {
   await hydrateStores()
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.adopt('pilot', pilot)
   await store.adopt(
     'mech',
@@ -78,7 +78,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('softLink', 'units-l1')
   await store.forget('softLink', 'units-l2')
   await store.forget('crawler', CRAWLER)
@@ -113,7 +113,7 @@ function playFor({
   const boarded = situation === 'boarded'
   const seat = fakeSeat(boarded ? { mount: { kind: 'boarded', mechId: MECH } } : {})
   const boards: string[] = []
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   const play: Play = {
     target: {
       pilotId: pilotRecord.id,
@@ -159,18 +159,17 @@ function playFor({
 }
 
 const CONNECTED = {
-  mode: 'connected',
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 } as const
 
 async function renderColumn(play: Play) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <PlayUnitsColumn target={play.target} play={play} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }

@@ -12,7 +12,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { buildExportCopy } from '../../messages/build-export'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 
 /** The 44px touch target. */
 const BUTTON = { minHeight: tokens.size.full } satisfies CSSProperties
@@ -27,7 +27,7 @@ type ExportEntityButtonProps = {
 export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) {
   const exportOne = useServerAction(
     async () => {
-      const bundle = await buildEntityExport(type, id, useEntityStore.getState())
+      const bundle = await buildEntityExport(type, id, useUnits.getState())
       // Sanitise the name for use as a filename.
       const safeName = name
         .toLowerCase()

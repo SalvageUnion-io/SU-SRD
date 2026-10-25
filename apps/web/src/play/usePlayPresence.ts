@@ -11,13 +11,13 @@ import { PRESENCE_HEARTBEAT_MS } from 'game-domain/schemas/seat'
 import { useEffect } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
+import { useSync } from '../replica/syncContext'
 import type { PlayTarget } from './play.model'
 
 export function usePlayPresence(target: Pick<PlayTarget, 'gameId' | 'pilotId'>): void {
-  const { mode, canWrite } = useConnection()
+  const { status, canWrite } = useSync()
   const heartbeat = useMutation(api.seats.heartbeat)
-  const live = mode === 'connected' && canWrite
+  const live = status === 'live' && canWrite
   const { gameId, pilotId } = target
 
   useEffect(() => {

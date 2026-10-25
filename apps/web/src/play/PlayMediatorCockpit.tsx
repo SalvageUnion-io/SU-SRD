@@ -30,8 +30,8 @@ import { gamePath } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
-import { useConnection } from '../lib/connection/connectionContext'
 import { playCopy } from '../messages/play'
+import { useSync } from '../replica/syncContext'
 import { hereOf } from './mediator/mediatorTable.model'
 import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
 import { PlayMediatorBarActions } from './mediator/PlayMediatorBarActions'
@@ -62,7 +62,7 @@ type PlayMediatorCockpitProps = {
 }
 
 export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorCockpitProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const mediator = usePlayMediator(gameId, gameName)
   const binding = usePlayChannelBinding({ gameId })
   const side = usePlayMediatorSide(mediator, binding)
@@ -120,7 +120,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
           backLabel={playCopy('game')}
           stamp="Mediator"
           tone={PHASE_TONE[running ? 'downtime' : 'scene']}
-          live={mode === 'connected'}
+          live={status === 'live'}
           here={mediator.crew === null ? null : here}
           of={mediator.crew === null ? null : of}
           readOnly={mediator.readOnly}

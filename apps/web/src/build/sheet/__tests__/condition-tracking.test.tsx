@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Condition tracking tests
  *
@@ -20,8 +21,7 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
 
@@ -31,7 +31,7 @@ beforeAll(hydrateStores)
 // Stub factories
 // ---------------------------------------------------------------------------
 
-function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   return makeEntityStoreMock({
     mechs: [mech],
     hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
@@ -44,10 +44,7 @@ function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typ
   })
 }
 
-function makePilotStubStore(
-  pilot: Pilot,
-  updateSpy?: ReturnType<typeof mock>
-): typeof useEntityStore {
+function makePilotStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   return makeEntityStoreMock({
     pilots: [pilot],
     hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },

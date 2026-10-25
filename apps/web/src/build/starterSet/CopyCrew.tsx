@@ -6,8 +6,7 @@
  *
  * The destinations are the crawler's (`moveDestinations`): the Training Bay,
  * or a Game the player runs, since only a table's runner may bring a crawler
- * to it (ADR-037). Pilots and mechs may go wherever the crawler may. A crew
- * with no crawler (the Quickstart's) goes wherever a pilot may.
+ * to it (ADR-037). Pilots and mechs may go wherever the crawler may.
  *
  * Signed out, the same place signs in first and comes back with `?copy=crew`,
  * which the page answers by offering the Training Bay copy at once
@@ -21,24 +20,19 @@ import { SHELF } from 'game-domain/container'
 import { api } from '../../../convex/_generated/api'
 import { HeaderMenu } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
-import { starterRoster } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 import { serializeContainer } from '../entityContainer/containerKey.model'
-import { confirmCopyCrew, copyCrewSearch } from './useCopyCrewOnArrival'
+import { COPY_CREW_SEARCH, confirmCopyCrew } from './useCopyCrewOnArrival'
 
-/** Where signing in from this control comes back to: the page, offering this crew's copy. */
-const copyCrewReturn = (roster: StarterRosterId) => `/starter?copy=${copyCrewSearch(roster)}`
+/** Where signing in from this control comes back to. */
+const COPY_CREW_RETURN = `/starter?copy=${COPY_CREW_SEARCH}`
 
-type CopyCrewProps = { confirm: Confirm; roster?: StarterRosterId }
-
-function ConnectedCopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
+function ConnectedCopyCrew({ confirm }: { confirm: Confirm }) {
   const games = useQuery(api.games.listMine)
-  const kind = starterRoster(roster).crawlers.length > 0 ? 'crawler' : 'pilot'
-  const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
+  const destinations = moveDestinations({ kind: 'crawler', current: SHELF, games: games ?? [] })
   return (
     <HeaderMenu
       variant="button"
@@ -49,24 +43,24 @@ function ConnectedCopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
         destinations.map((d) => ({
           id: serializeContainer(d.container),
           label: d.label,
-          onSelect: () => confirmCopyCrew(confirm, d, roster),
+          onSelect: () => confirmCopyCrew(confirm, d),
         })),
       ]}
     />
   )
 }
 
-export function CopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
-  const { mode } = useConnection()
-  if (mode === 'solo') {
+export function CopyCrew({ confirm }: { confirm: Confirm }) {
+  const { status } = useSync()
+  if (status === 'signedOut') {
     return (
       <SignInControl
         label={buildStarterSetCopy('signInToCopyTheCrew')}
-        redirectTo={copyCrewReturn(roster)}
+        redirectTo={COPY_CREW_RETURN}
         size="compact"
       />
     )
   }
-  if (mode !== 'connected') return null
-  return <ConnectedCopyCrew confirm={confirm} roster={roster} />
+  if (status !== 'live') return null
+  return <ConnectedCopyCrew confirm={confirm} />
 }

@@ -6,7 +6,7 @@ import { PRESENCE_HEARTBEAT_MS } from 'game-domain/schemas/seat'
 import { createElement, useSyncExternalStore } from 'react'
 import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 import type { Play } from '../situation.model'
 
 /**
@@ -265,17 +265,17 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayCockpit } = await import('../PlayCockpit')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 
 const LINKS = ['ps-l1', 'pg-l1']
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   // Solo: Bonesaw on the shelf, assigned Buzzard, and Old Faithful in the hangar.
   await store.adopt('pilot', pilotFixture({ id: 'ps-bonesaw', name: 'Bonesaw' }))
   await store.adopt('mech', mechFixture({ id: 'ps-faithful', name: 'Old Faithful' }))
@@ -291,7 +291,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   for (const id of LINKS) await store.forget('softLink', id)
   for (const id of ['ps-faithful', 'ps-buzzard', 'pg-atlas']) await store.forget('mech', id)
   for (const id of ['ps-bonesaw', 'pg-rook']) await store.forget('pilot', id)
@@ -308,22 +308,21 @@ beforeEach(() => {
   for (const column of Object.keys(seen)) seen[column] = []
 })
 
-function connection(mode: ConnectionMode) {
+function connection(status: SyncStatus) {
   return {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
 }
 
 async function renderPlay(
   target: { pilotId: string; gameId: string | null; mediator?: boolean },
-  mode: ConnectionMode = 'connected'
+  status: SyncStatus = 'live'
 ) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <PlayCockpit
           target={{
             gameName: target.gameId === null ? null : 'The Rust Belt Run',
@@ -331,7 +330,7 @@ async function renderPlay(
             ...target,
           }}
         />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -490,7 +489,7 @@ describe('one Play for the whole Cockpit', () => {
   })
 
   test('offline, every Situation option is off', async () => {
-    await renderPlay({ pilotId: 'ps-bonesaw', gameId: null }, 'disconnected')
+    await renderPlay({ pilotId: 'ps-bonesaw', gameId: null }, 'offline')
     for (const option of situationGroup().getAllByRole('button')) {
       expect(option.hasAttribute('disabled')).toBe(true)
     }
@@ -515,7 +514,7 @@ describe('presence', () => {
   })
 
   test('offline, it sends nothing', async () => {
-    await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID }, 'disconnected')
+    await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID }, 'offline')
     expect(writes('seats:heartbeat')).toHaveLength(0)
   })
 })

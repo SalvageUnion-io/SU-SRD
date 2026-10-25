@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * MechSheet — system/module entity cards on the LiveSheet body.
  *
@@ -21,9 +22,8 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import { WritesBlockedOffline } from '../../../stores/entityBackend'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { WritesBlockedOffline } from '../../../replica/sync'
 import { MechSheet } from '../MechSheet'
 
 // A real, choice-free system. ".50 Cal Machine Gun" is TL1 and renders with a
@@ -56,7 +56,7 @@ function makeMech(overrides: Partial<Mech>): Mech {
   }
 }
 
-function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   const updateMock = updateSpy ?? mock(async () => mech)
   return makeEntityStoreMock({
     mechs: [mech],

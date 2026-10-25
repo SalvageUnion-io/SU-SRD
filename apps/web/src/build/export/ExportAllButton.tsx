@@ -3,7 +3,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { buildExportCopy } from '../../messages/build-export'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 
 /**
  * "Export all" and its failure line. On an ink band (Shelves, the Roster)
@@ -13,7 +13,7 @@ import { useEntityStore } from '../../stores/entityStore'
 export function ExportAllButton() {
   const exportAll = useServerAction(
     async () => {
-      const bundle = await buildExportBundle(useEntityStore.getState())
+      const bundle = await buildExportBundle(useUnits.getState())
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`salvageunion-backup-${date}.json`, bundle)
     },

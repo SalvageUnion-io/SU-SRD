@@ -26,11 +26,10 @@ import { useMutation, useQuery } from 'convex/react'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
-import { noteSeq, noteVersion } from '../stores/serverVersions'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 import type { PlayScreen } from './play.model'
 import type { DowntimeView, PlayDowntime } from './situation.model'
 
@@ -44,7 +43,7 @@ const NOT_RUNNING: DowntimeView = {
 }
 
 export function usePlayDowntime(target: PlayScreen): PlayDowntime {
-  const signedIn = isSignedIn(useConnection().mode)
+  const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
   const gameId = target.gameId as Id<'games'> | null
   const { pilotId } = target
@@ -106,10 +105,8 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                   patch,
                 },
               })
-              if (applied === null) return false
-              noteVersion(pilotId, applied.updatedAt)
-              noteSeq(pilotId, applied.headSeq)
-              return applied.fresh
+              // The pilot's new row reaches the replica through its feed.
+              return applied !== null && applied.fresh
             }),
     spendUpkeep: () => guarded.ask(() => spendUpkeep(place)),
   }

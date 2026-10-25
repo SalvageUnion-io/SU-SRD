@@ -1,11 +1,9 @@
 import type { EntityKind, EntityTable } from 'game-domain/entityKinds'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import type { EncounterNpcCreateInput } from '../../stores/encounterStore'
-import { useEncounterStore } from '../../stores/encounterStore'
-import type { MechPatternCreateInput } from '../../stores/patternStore'
-import { usePatternStore } from '../../stores/patternStore'
-import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
+import type { EncounterNpcCreateInput, MechPatternCreateInput } from '../../replica/collections'
+import { usePatterns, useTray } from '../../replica/collections'
+import type { CreateInput, EntityForType, EntityType } from '../../replica/types'
 import type { ExportBundle } from '../schemas/exportBundle'
 
 /**
@@ -100,8 +98,8 @@ export async function mergeImport(
   // pilots/mechs/crawlers below: a write that bypasses the store never
   // reaches the server of record, and leaves this tab's in-memory lists
   // showing the pre-import rows until a reload.
-  patternStore: MergePatternStore = usePatternStore.getState(),
-  encounterNpcStore: MergeEncounterNpcStore = useEncounterStore.getState()
+  patternStore: MergePatternStore = usePatterns.getState(),
+  encounterNpcStore: MergeEncounterNpcStore = useTray.getState()
 ): Promise<MergeSummary> {
   // The duplicate check below runs against the account's rows, so they have
   // to have arrived first.

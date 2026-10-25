@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * useMechSheetModel — everything the mech Live Sheet COMPUTES, in one place.
  *
@@ -28,7 +29,6 @@ import {
 import type { ProvenanceLine } from '../../components/index'
 import { linesFromBreakdown } from '../../components/index'
 import { useCargo } from '../../lib/cargo/useCargo'
-import type { useEntityStore } from '../../stores/entityStore'
 
 /** One chassis stat as the strip prints it: the numeral and its full name. */
 type ChassisStat = { key: string; label: string; value: string; group: StatGroup }
@@ -53,7 +53,7 @@ type MechSheetModelOptions = {
   mech: Mech
   /** Injectable narrow chassis for tests; omitted resolves from `chassisRef`. */
   chassisOverride?: ChassisLike | null
-  store: typeof useEntityStore
+  store: UnitsStore
   readOnly: boolean
   crawler: Crawler | null
   /** The viewer may not write `crawler` (ADR-038 §5); see `useCargo`. */

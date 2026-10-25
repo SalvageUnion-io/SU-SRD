@@ -35,9 +35,9 @@ import {
   tokens,
 } from '../../components/index'
 import { useGo } from '../../components/shared/useGo'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildGamesCopy } from '../../messages/build-games'
+import { useSync } from '../../replica/syncContext'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 
@@ -185,7 +185,7 @@ function ConnectedNewGameControl() {
 
 /** "+ New Game" and its dialog; nothing at all outside Connected mode. */
 export function NewGameControl() {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedNewGameControl />
 }

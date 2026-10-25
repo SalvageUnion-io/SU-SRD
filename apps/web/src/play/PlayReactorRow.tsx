@@ -48,7 +48,7 @@ import {
 } from '../lib/rules/actionPatches'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
 import { NeedChip } from './PlayActionRow'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import type { PlayStore } from './play.model'

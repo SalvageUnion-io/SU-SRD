@@ -14,8 +14,8 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import type { ChangeMeta, EntityType } from '../../stores/entityStore'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
+import { PLAY_TXN } from '../../replica/provenance'
+import type { ChangeMeta, EntityType } from '../../replica/units'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from '../PlayUnits'
 
 type Update = { type: EntityType; id: string; patch: Record<string, unknown>; meta?: ChangeMeta }

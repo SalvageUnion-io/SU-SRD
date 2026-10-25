@@ -18,7 +18,7 @@ const convexMocks = await installConvexMocks({
 afterAll(() => convexMocks.restore())
 
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { StarterSheetView } = await import('../StarterSheetView')
 
 beforeAll(hydrateStores)
@@ -26,9 +26,9 @@ beforeAll(hydrateStores)
 describe('a Starter Set sheet', () => {
   test('is the template’s own sheet, read-only, with "Make a copy" in its band’s corner', () => {
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <StarterSheetView kind="pilot" id="starter-pilot-bonesaw" />
-      </ConnectionProvider>
+      </SyncProvider>
     )
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw (Pilot)' })).toBeTruthy()

@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * PartnerCard — a statted Drone / Companion rendered as the reference entity it
  * already is, decorated with its instance state.
@@ -55,8 +56,8 @@ import {
 } from '../../lib/rules/partnerStats'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 import { MechItemMini } from './MechItemMini'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
@@ -94,7 +95,7 @@ type PartnerCardProps = {
    * Hold's Stow and Load close, the partner's own hold stays open.
    */
   crawlerReadOnly?: boolean
-  store?: typeof useEntityStore
+  store?: UnitsStore
 }
 
 export function PartnerCard({
@@ -105,7 +106,7 @@ export function PartnerCard({
   fielded = 1,
   readOnly = false,
   crawlerReadOnly = false,
-  store = useEntityStore,
+  store = useUnits,
 }: PartnerCardProps) {
   const { partner, hostKind, host } = found
   const storeState = store()

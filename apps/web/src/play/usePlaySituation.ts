@@ -12,8 +12,8 @@
  */
 
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { useEntityStore } from '../stores/entityStore'
+import { useSync } from '../replica/syncContext'
+import { useUnits } from '../replica/units'
 import { boardMenu } from './boardMenu.model'
 import type { PlayTarget } from './play.model'
 import { playReadOnly } from './play.model'
@@ -25,9 +25,9 @@ import { useScene } from './useScene'
 import { useSeatAt } from './useSeat'
 
 export function usePlaySituation(target: PlayTarget): Play {
-  const connection = useConnection()
+  const connection = useSync()
   const { canWrite } = connection
-  const store = useEntityStore()
+  const store = useUnits()
   const pilot = store.get('pilot', target.pilotId)
   const seat = useSeatAt({ gameId: target.gameId as Id<'games'> | null, pilotId: target.pilotId })
   const downtime = usePlayDowntime(target)

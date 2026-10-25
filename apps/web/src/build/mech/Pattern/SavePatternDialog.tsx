@@ -36,7 +36,7 @@ import {
   patternHref,
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
-import { usePatternStore } from '../../../stores/patternStore'
+import { usePatterns } from '../../../replica/collections'
 
 /** What a pattern is cut from: a mech's name, chassis and loadout. */
 export type PatternSource = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules'>
@@ -114,7 +114,7 @@ function SavePatternBody({
   const [invalid, setInvalid] = useState<string | null>(null)
   const save = useServerAction(
     (patternName: string) =>
-      usePatternStore
+      usePatterns
         .getState()
         .create(patternFromMech(source, { name: patternName, notes: description })),
     { failure: 'The pattern could not be saved. Try again.' }

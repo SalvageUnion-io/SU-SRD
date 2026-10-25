@@ -2,7 +2,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import type { ChangeMeta } from '../../stores/entityStore'
+import type { ChangeMeta } from '../../replica/units'
 import type { PlayStore } from '../play.model'
 
 /** One `store.update` Play sent. */

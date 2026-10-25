@@ -18,7 +18,7 @@ import type { PostRollResult } from 'game-domain/games/discord'
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
 import { crewAt } from './crewFixture'
@@ -57,7 +57,7 @@ function SideColumn({ target, play }: { target: PlayTarget; play: Play }) {
     </>
   )
 }
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { recordPlayRoll, recordPlayChange, clearPlayRolls, reportingRoll } = await import(
   '../playRolls.model'
 )
@@ -120,9 +120,9 @@ function playFor(target: PlayTarget, canWrite: boolean): Play {
 
 async function renderSide(
   { gameId = GAME, mediator = false }: { gameId?: string | null; mediator?: boolean } = {},
-  mode: ConnectionMode = 'connected'
+  status: SyncStatus = 'live'
 ) {
-  const canWrite = mode === 'connected'
+  const canWrite = status === 'live'
   const target: PlayTarget = {
     pilotId: 'bonesaw',
     gameId,
@@ -130,16 +130,15 @@ async function renderSide(
     mediator,
   }
   const tree = () => (
-    <ConnectionContext.Provider
+    <SyncContext.Provider
       value={{
-        mode,
+        status,
         canWrite,
-        showDisconnectedWarning: mode === 'disconnected',
-        settling: false,
+        outdated: false,
       }}
     >
       <SideColumn target={target} play={playFor(target, canWrite)} />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
   let view: ReturnType<typeof render> | null = null
   await act(async () => {
@@ -473,7 +472,7 @@ describe('the Tables (play.md §8)', () => {
 describe('read-only (play.md §7)', () => {
   test('offline: Accept is withdrawn and a roll says it was not posted', async () => {
     answers()
-    await renderSide({}, 'disconnected')
+    await renderSide({}, 'offline')
     expect(
       (
         feed().getByRole('button', {
