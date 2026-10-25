@@ -63,6 +63,7 @@ const { useEntityStore } = await import('../../stores/entityStore')
 const { clearPlayRolls } = await import('../playRolls.model')
 const { usePrepStore } = await import('../../stores/prepStore')
 const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
+const { PLAY_TXN } = await import('../../stores/surfaceProvenance')
 
 withSignedInBackend()
 
@@ -237,6 +238,21 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
   })
 }
 
+/** Put the crawler back as the fixture had it, after a test hauls salvage into it. */
+async function restoreCrawler() {
+  await act(async () => {
+    useEntityStore.getState().update(
+      'crawler',
+      tenacity.id,
+      {
+        cargoLots: tenacity.cargoLots ?? [],
+        scrapPool: tenacity.scrapPool,
+      },
+      PLAY_TXN
+    )
+  })
+}
+
 async function click(el: HTMLElement) {
   await act(async () => {
     fireEvent.click(el)
@@ -386,6 +402,87 @@ describe('the Opposition', () => {
     expect(names()).toEqual([])
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     expect(sent).toEqual([{ name: 'mediator:removeNpc', args: { npcId: 'n-raider' } }])
+  })
+
+  test('a downed Vehicle breaks down for its Scrap into the crawler, claimed once', async () => {
+    const tank = {
+      _id: 'n-tank',
+      body: {
+        name: 'Tank',
+        refSchema: 'vehicles',
+        refSlug: 'tank',
+        currentHp: 0,
+        maxHp: 6,
+        statKind: 'sp',
+      },
+    }
+    await renderCockpit({ 'mediator:npcs': [tank] })
+    const box = within(screen.getByRole('region', { name: 'Vehicle: Tank, down' }))
+    await click(box.getByRole('button', { name: 'Break it down: 4 Tech 3 Scrap to the crawler' }))
+    await waitFor(() =>
+      expect(useEntityStore.getState().get('crawler', tenacity.id)?.scrapPool?.tl3).toBe(4)
+    )
+    expect(sent).toEqual([
+      { name: 'mediator:updateNpc', args: { npcId: 'n-tank', patch: { salvaged: true } } },
+    ])
+    await restoreCrawler()
+  })
+
+  test('a downed Mech rolls Mech Salvage; what the band allows goes to the crawler’s hold', async () => {
+    const mule = {
+      _id: 'n-mule',
+      body: {
+        name: 'Mule',
+        refSchema: 'chassis',
+        refSlug: 'mule',
+        currentHp: 0,
+        maxHp: 12,
+        statKind: 'sp',
+      },
+    }
+    await renderCockpit({ 'mediator:npcs': [mule] })
+    const box = within(screen.getByRole('region', { name: /^Mech: Mule, down/ }))
+    await click(box.getByRole('button', { name: /Roll/ }))
+    await click(box.getByRole('button', { name: 'Mule · T1 · 7 Slots' }))
+    await click(box.getByRole('button', { name: 'Take to the crawler' }))
+    await waitFor(() =>
+      expect(
+        useEntityStore
+          .getState()
+          .get('crawler', tenacity.id)
+          ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
+      ).toBe(true)
+    )
+    expect(names()).toEqual(['mediator:updateNpc'])
+    await restoreCrawler()
+  })
+
+  test('a salvaged wreck says nothing is left to take', async () => {
+    const tank = {
+      _id: 'n-tank',
+      body: {
+        name: 'Tank',
+        refSchema: 'vehicles',
+        refSlug: 'tank',
+        currentHp: 0,
+        maxHp: 6,
+        statKind: 'sp',
+        salvaged: true,
+      },
+    }
+    await renderCockpit({ 'mediator:npcs': [tank] })
+    expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
+  })
+
+  test('Area sets the area being salvaged; its line names it and Clear clears it', async () => {
+    await renderCockpit({ 'salvageAreas:here': { name: 'Raider Camp', techLevel: 2, supply: 4 } })
+    expect(screen.getByText('Raider Camp · T2 · Supply 4')).toBeTruthy()
+    await click(named('Clear the area being salvaged'))
+    expect(sent).toEqual([{ name: 'salvageAreas:set', args: { gameId: GAME, area: null } }])
+    sent.length = 0
+    await click(named('Set the area being salvaged'))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Set' }))
+    expect(names()).toEqual(['salvageAreas:set'])
   })
 
   test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, private and off the log', async () => {
