@@ -60,6 +60,7 @@
       "project": [
         "src/**/*.{ts,tsx}",
         "ssg/**/*.{ts,tsx}",
+        "astro/**/*.{ts,tsx,astro}",
         "convex/**/*.ts",
         "test/**/*.ts",
         "e2e/**/*.ts"
@@ -67,12 +68,6 @@
       // Off: vite.config.ts loads the app's own TSX through Vite's module
       // runner, which knip's loader cannot parse; its entries are listed above.
       "vite": false,
-      // Imported only by CSS (`src/styles/base.css`), which knip does not read.
-      "ignoreDependencies": [
-        "@fontsource/barlow",
-        "@fontsource/barlow-semi-condensed",
-        "@fontsource/caveat"
-      ],
       // The router plugin's default is `src/routeTree.gen.ts`; the app's is a level down.
       "tanstack-router": {
         "entry": ["src/routeTree.gen.ts"]

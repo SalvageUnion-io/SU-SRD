@@ -1,0 +1,6 @@
+---
+import { aboutPage as module } from '../../src/reference/pages/about.page'
+import Page from '../layouts/Page.astro'
+import { renderReference } from '../lib/reference'
+---
+<Page doc={renderReference(module, {}, undefined)} />
