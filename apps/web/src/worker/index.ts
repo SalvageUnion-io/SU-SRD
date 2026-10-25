@@ -15,6 +15,8 @@
  *   - `error-intake`: `POST /__errors` → a browser error report, and `POST /__convex-logs` →
  *     Convex's log stream, both logged for Workers Issues
  *     (`errorReports.ts`).
+ *   - `auth`: `/auth/*` → sign-in, sign-out and the session's token
+ *     (`./auth/`).
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have falls through to the rules below.
  *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
@@ -51,11 +53,15 @@
 
 import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
+import { AUTH_PREFIX } from '../lib/auth/paths'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
 import { gameOfSocketPath, ROOMS_HEALTH_PATH } from '../rooms/routes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
+import { handleAuth } from './auth/index'
+import type { D1Like } from './auth/store'
+import { d1Sql } from './auth/store'
 import type { CronEnv } from './crons'
 import { runCron } from './crons'
 import type { RateLimiter } from './errorReports'
@@ -80,6 +86,15 @@ export type Env = AppEnv &
      * with `wrangler secret put`; unset, the stream endpoint answers 503.
      */
     CONVEX_LOG_STREAM_SECRET?: string
+    /** The shared D1 database; sign-in keeps accounts and sessions there (`./auth/store.ts`). */
+    SHARED: D1Like
+    /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
+    DISCORD_CLIENT_ID?: string
+    DISCORD_CLIENT_SECRET?: string
+    /** The private JWK the session's Convex token is signed with (`scripts/authKeys.ts`). */
+    AUTH_SIGNING_KEY?: string
+    /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
+    TEST_AUTH?: string
   }
 
 /**
@@ -140,6 +155,21 @@ export default {
       url.pathname === RETIRED_CONVEX_LOG_STREAM_PATH
     ) {
       return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
+    }
+
+    // A. Sign-in.
+    if (url.pathname.startsWith(AUTH_PREFIX)) {
+      const res = await handleAuth(request, {
+        sql: d1Sql(env.SHARED),
+        convexUrl: env.CONVEX_URL ?? '',
+        discord:
+          env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET
+            ? { clientId: env.DISCORD_CLIENT_ID, clientSecret: env.DISCORD_CLIENT_SECRET }
+            : undefined,
+        signingKey: env.AUTH_SIGNING_KEY,
+        testAuth: env.TEST_AUTH === 'true',
+      })
+      if (res !== null) return res
     }
 
     // B. The app, under its base and Play's root.

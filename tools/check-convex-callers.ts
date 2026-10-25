@@ -29,8 +29,7 @@
  * from the dashboard, deleted once it has run.
  *
  * Neither check covers `httpAction`s, which are reachable through the router in
- * `http.ts` rather than through `api`, nor `auth.ts`, whose exports are
- * produced by `convexAuth()` and called by the auth library by name.
+ * `http.ts` rather than through `api`.
  *
  * Known limit: a public function is recognised by its builder's NAME —
  * `query(`, `mutation(` or `action(` directly after `export const x =`. One
@@ -72,7 +71,7 @@ const callerDirs = (root: string) => [join(root, 'apps/web/src')]
 const internalCallerDirs = (root: string) => [...callerDirs(root), convexDir(root)]
 
 /** Modules whose exports are not ordinary builder calls. See the header. */
-const SKIPPED_MODULES = new Set(['auth', 'http', 'schema', 'auth.config'])
+const SKIPPED_MODULES = new Set(['http', 'schema', 'auth.config'])
 
 /** Files Convex does not register as function modules: the data model and provider config. */
 const NOT_MODULES = new Set(['schema', 'auth.config'])

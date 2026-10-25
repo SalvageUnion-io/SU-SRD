@@ -7,18 +7,12 @@
  * convex-test checks each answer against its `returns` on every call, so the
  * rest of this suite exercises the validators; this file only stops a new
  * query landing without one.
- *
- * `auth:isAuthenticated` is the one exception: `@convex-dev/auth` defines it,
- * not this app.
  */
 
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
 
 const CONVEX_DIR = join(import.meta.dir, '../../../convex')
-
-/** Library-defined queries this app cannot give a `returns`. */
-const NOT_OURS = new Set(['auth:isAuthenticated'])
 
 type Registered = { isPublic?: boolean; isQuery?: boolean; exportReturns?: () => string }
 
@@ -44,9 +38,7 @@ describe('public query returns', () => {
     const queries = await publicQueries()
     // Trips only if the walk found next to nothing (there are 33 today).
     expect(queries.length).toBeGreaterThan(25)
-    const missing = queries
-      .filter((q) => q.returns === null && !NOT_OURS.has(q.name))
-      .map((q) => q.name)
+    const missing = queries.filter((q) => q.returns === null).map((q) => q.name)
     expect(missing).toEqual([])
   })
 })

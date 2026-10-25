@@ -29,10 +29,8 @@ name: Deploy preview (Cloudflare)
 # `teardown` name the Environment, and `ship` only after every build is green.
 #
 # ONE STAGING BACKEND. Every Preview's app talks to perfect-donkey-72, and each
-# run pushes its PR's Convex functions and schema there and points its
-# SITE_URL (the sign-in callback) at its own Preview: the last PR shipped wins
-# both, so two labelled PRs with different schemas, or a sign-in on an older
-# one, collide.
+# run pushes its PR's Convex functions and schema there: the last PR shipped
+# wins, so two labelled PRs with different schemas collide.
 #
 # THE BUILD HOLDS NO SECRET. It is deploy-cloudflare.yml's build
 # (.github/actions/build-site); the push is its push
@@ -143,8 +141,8 @@ jobs:
             exit 1
           fi
 
-      # Previews are public. With TEST_AUTH on, anyone could sign up a
-      # password account against it (convex/auth.ts); production never has it.
+      # Previews are public. With TEST_AUTH on, the staging backend would link
+      # test accounts (convex/accountLink.ts); production never has it.
       - name: Refuse a staging backend with the test sign-in on
         working-directory: apps/web
         env:
@@ -204,15 +202,6 @@ jobs:
             exit 1
           fi
           echo "url=${url%/}" >> "$GITHUB_OUTPUT"
-
-      # Every run: the OAuth callback redirects to SITE_URL, which must be the
-      # Preview's address, base included. Not a secret.
-      - name: Point the staging backend's SITE_URL at this Preview
-        working-directory: apps/web
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
-          PREVIEW_URL: ${{ steps.preview.outputs.url }}
-        run: bunx convex env set SITE_URL "$PREVIEW_URL/build"
 
       - name: Summary
         env:

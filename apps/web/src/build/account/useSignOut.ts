@@ -1,6 +1,6 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useCallback } from 'react'
 import { clearAccountHint } from '../../lib/accountHint'
+import { signOut } from '../../lib/auth/session'
 import { captureException } from '../../lib/observability'
 import { localStore } from '../../lib/safeLocalStorage'
 
@@ -15,7 +15,6 @@ import { localStore } from '../../lib/safeLocalStorage'
  * Resolves once the session is over, or the attempt failed and was reported.
  */
 export function useSignOut(): () => Promise<void> {
-  const { signOut } = useAuthActions()
   return useCallback(async () => {
     clearAccountHint(localStore())
     try {
@@ -25,5 +24,5 @@ export function useSignOut(): () => Promise<void> {
       // worth a dialog.
       captureException(err)
     }
-  }, [signOut])
+  }, [])
 }

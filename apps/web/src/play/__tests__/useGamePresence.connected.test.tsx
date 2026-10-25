@@ -11,7 +11,7 @@ import { installConvexMocks } from '../../components/__tests__/convexMock'
 import type { SyncStatus } from '../../replica/sync'
 
 const convexMocks = await installConvexMocks({
-  also: { '@convex-dev/auth/react': () => ({ useAuthToken: () => 'tok' }) },
+  also: { '../../lib/auth/session': () => ({ useSessionToken: () => 'tok' }) },
 })
 
 const { useGamePresence } = await import('../useGamePresence')

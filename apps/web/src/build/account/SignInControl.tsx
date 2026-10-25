@@ -1,5 +1,5 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { Button, cn } from '../../components/index'
+import { signIn } from '../../lib/auth/session'
 import { buildAccountCopy } from '../../messages/build-account'
 import { useSync } from '../../replica/syncContext'
 import { useSignOut } from './useSignOut'
@@ -21,11 +21,9 @@ type SignInControlProps = {
   /** Sits in the Union bar: outlined in the bar's foreground, never a second rust CTA. */
   inBar?: boolean
   /**
-   * Where Discord's round trip lands, as a route in the app: Convex Auth
-   * appends a relative `redirectTo` to its `SITE_URL`, the app's base. An
-   * invite link passes its own route, so signing in from it comes back to it
-   * and joins; a Play route lands under the base, and the Worker 301s it to
-   * `/play` (`retiredTarget`). Unset, the deployment's site URL.
+   * Where Discord's round trip lands, as a route in the app. An invite link
+   * passes its own route, so signing in from it comes back to it and joins.
+   * Unset, the app's front door.
    */
   redirectTo?: string
   /** The button's words. Defaults to "Sign in with Discord". */
@@ -44,7 +42,6 @@ export function SignInControl({
   size = 'compact',
   className,
 }: SignInControlProps) {
-  const { signIn } = useAuthActions()
   const signOut = useSignOut()
   const { status } = useSync()
 
@@ -70,9 +67,7 @@ export function SignInControl({
       variant={inBar ? 'ghost' : 'primary'}
       size={size}
       className={cn(inBar && BAR_BUTTON, className)}
-      onClick={() =>
-        void (redirectTo === undefined ? signIn('discord') : signIn('discord', { redirectTo }))
-      }
+      onClick={() => signIn(redirectTo)}
     >
       {label}
     </Button>

@@ -1,5 +1,5 @@
 {
-  "floor": 1792927586,
+  "floor": 1792931576,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -46,46 +46,7 @@
         }
       }
     },
-    "auth:isAuthenticated": {
-      "type": "object",
-      "value": {}
-    },
-    "auth:signIn": {
-      "type": "object",
-      "value": {
-        "provider": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": true
-        },
-        "params": {
-          "fieldType": {
-            "type": "any"
-          },
-          "optional": true
-        },
-        "verifier": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": true
-        },
-        "refreshToken": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": true
-        },
-        "calledBy": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": true
-        }
-      }
-    },
-    "auth:signOut": {
+    "accountLink:link": {
       "type": "object",
       "value": {}
     },
