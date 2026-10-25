@@ -97,11 +97,14 @@ Sign-in runs on the su-srd Worker (`apps/web/src/worker/auth/`): Discord OAuth,
 accounts and sessions in D1 (`SHARED`: `su-shared`; Previews `su-shared-preview`), and
 a ten-minute ES256 token Convex accepts as a custom JWT provider
 (`convex/auth.config.ts`). Three Worker secrets and one Convex variable, from
-`apps/web` (a Preview's secrets with `wrangler preview secret put`):
+`apps/web`. Previews take theirs from the Preview base config (`wrangler
+preview base-config secret put`) and staging's `AUTH_JWKS` (`--deployment
+perfect-donkey-72`): a Preview's own secrets (`wrangler preview secret put`)
+are replaced by its next ship, so they last only until the next push.
 
 ```bash
-bunx wrangler secret put DISCORD_CLIENT_ID       # the Discord application's
-bunx wrangler secret put DISCORD_CLIENT_SECRET   # OAuth client, on stdin
+bunx wrangler secret put DISCORD_CLIENT_ID       # op://SUSRD/discord-bot-oauth,
+bunx wrangler secret put DISCORD_CLIENT_SECRET   # the OAuth client, on stdin
 umask 077; bun scripts/authKeys.ts key.json > jwks.txt   # a fresh pair
 bunx wrangler secret put AUTH_SIGNING_KEY < key.json
 bunx convex env set --prod AUTH_JWKS "$(cat jwks.txt)"
