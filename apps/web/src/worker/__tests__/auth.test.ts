@@ -412,6 +412,35 @@ describe('what goes wrong', () => {
     }
   })
 
+  it("logs Discord's reason when it refuses the code", async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => undefined)
+    ;(
+      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
+    ).mockImplementation(async () =>
+      Response.json(
+        { error: 'invalid_client', error_description: 'Invalid client secret' },
+        { status: 401 }
+      )
+    )
+    try {
+      const d = deps()
+      const start = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}`), d)
+      const state = new URL(start.headers.get('location') ?? '').searchParams.get('state')
+      const back = await answer(
+        new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${state}`, {
+          headers: { cookie: cookieOf(start) },
+        }),
+        d
+      )
+      expect(back.headers.get('location')).toBe('/build/')
+      expect(errors.mock.calls[0]?.[0]).toBe(
+        'Discord sign-in failed: invalid_client Invalid client secret'
+      )
+    } finally {
+      errors.mockRestore()
+    }
+  })
+
   it('the test seam wants an email and a password', async () => {
     const res = await answer(post(AUTH_PATHS.testSignIn, { email: '', password: 'x' }), deps())
     expect(res.status).toBe(400)

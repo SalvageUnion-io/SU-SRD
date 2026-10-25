@@ -16,7 +16,7 @@
  * Admin stays `ADMIN_DISCORD_IDS` on Convex, read through the linked account.
  */
 
-import { Discord, generateCodeVerifier, generateState } from 'arctic'
+import { Discord, generateCodeVerifier, generateState, OAuth2RequestError } from 'arctic'
 import { getFunctionName, makeFunctionReference } from 'convex/server'
 import { APP_BASE } from 'game-domain/appAddress'
 import {
@@ -209,7 +209,11 @@ async function callback(request: Request, url: URL, deps: AuthDeps): Promise<Res
     return redirect(to, [clear, session])
   } catch (err) {
     // Workers Issues groups it; the player lands signed out where they were.
-    console.error('Discord sign-in failed', err)
+    // Discord's refusal is named (`invalid_client` is a wrong secret), not
+    // just its stack.
+    const reason =
+      err instanceof OAuth2RequestError ? `: ${err.code} ${err.description ?? ''}`.trimEnd() : ''
+    console.error(`Discord sign-in failed${reason}`, err)
     return redirect(to, [clear])
   }
 }
