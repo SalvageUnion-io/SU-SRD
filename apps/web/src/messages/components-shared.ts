@@ -11,6 +11,7 @@ export const sharedCopy = messages({
   removing: 'Removing…',
   remove: 'Remove',
   referenceData: 'reference data',
+  offlineReadOnly: 'Offline · read-only',
   notConnectedYourGamesAre: 'Not connected — your Games are read-only until the connection returns',
   offlineChangeDeclined: 'A change made offline was not saved: {reason}',
   somethingWentWrong: 'Something went wrong',
@@ -29,9 +30,7 @@ export const sharedCopy = messages({
   view2: 'View {name}',
   unassign: 'Unassign',
   unassign2: 'Unassign {name}',
-  readOnlySignInTo: 'Read-only — sign in to edit',
   readOnlyUpdating: 'Read-only — updating',
-  readOnly: 'Read Only',
   viewInTheReference: 'View in the Reference',
   viewInTheReference2: 'View {entityName} in the Reference',
 })

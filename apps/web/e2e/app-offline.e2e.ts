@@ -22,7 +22,7 @@ import { expect, test } from './fixtures'
  * them offline. So offline promises three things, and this spec pins them:
  *
  *  - **Mid-session**, a signed-in player's open sheet stays on screen under
- *    the NOT CONNECTED banner, and still edits. No worker is involved.
+ *    the bar's sync badge, and still edits. No worker is involved.
  *  - **After a reload**, the shell boots from the worker's precache and the
  *    player's own sheets come back from the device copy, with the edits still
  *    waiting folded over them.
@@ -207,13 +207,13 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
 
     await context.setOffline(true)
 
-    await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+    await expect(page.getByRole('status', { name: /Not connected/ })).toBeVisible()
     await expect(page.getByText('Offline Keeper').first()).toBeVisible()
     await expect(page.getByRole('group', { name: /read or edit this/i })).toBeVisible()
 
     await context.setOffline(false)
 
-    await expect(page.getByText('Not connected — your Games are read-only')).toHaveCount(0)
+    await expect(page.getByRole('status', { name: /Not connected/ })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Edit', exact: true })).toBeVisible()
   })
 
@@ -250,14 +250,14 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
       let hp = 0
       let ep = 0
       try {
-        await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+        await expect(page.getByRole('status', { name: /Not connected/ })).toBeVisible()
         hp = (await stepDown(page, 'Kept On This Device', 'HP')) - 1
         ep = (await stepDown(page, 'Outbox Mule', 'EP')) - 1
 
         await page.reload()
         await waitForReady(page)
         await expect(page).toHaveTitle(/SalvageUnion\.io/)
-        await expect(page.getByText('Not connected — your Games are read-only')).toBeVisible()
+        await expect(page.getByRole('status', { name: /Not connected/ })).toBeVisible()
         await expectVital(page, 'Outbox Mule', 'EP', ep)
         await expectVital(page, 'Kept On This Device', 'HP', hp)
 
@@ -272,7 +272,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
 
       await page.reload()
       await waitForReady(page)
-      await expect(page.getByText('Not connected — your Games are read-only')).toHaveCount(0)
+      await expect(page.getByRole('status', { name: /Not connected/ })).toHaveCount(0)
       // Sent: the outbox empties once the server has answered every op…
       await expect.poll(() => outboxLength(page), { timeout: 20_000 }).toBe(0)
       // …so what the sheets show now is the server's.

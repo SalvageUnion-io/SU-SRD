@@ -749,17 +749,17 @@ describe('chrome rule set', () => {
     expect(none['one-toaster']).toHaveLength(1)
   })
 
-  test('offline-copy: the offline wording outside NotConnectedBanner is found (R20)', () => {
+  test('offline-copy: the offline wording outside SyncBadge is found (R20)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
-        'apps/web/src/components/shared/NotConnectedBanner.tsx':
+        'apps/web/src/components/shared/SyncBadge.tsx':
           "const M = 'Not connected — your Games are read-only until the connection returns'\n",
         'apps/web/src/components/shared/Lozenge.tsx': "const L = 'Read-only — not connected'\n",
         'apps/web/src/stores/backend.ts':
           "// prose may say not connected\nconst C = 'Your Games are read-only until the connection returns'\n",
         'apps/web/src/stores/fine.ts':
-          "const F = 'Read-only for now'\nimport { NotConnectedBanner } from 'x'\n",
+          "const F = 'Read-only for now'\nimport { SyncBadge } from 'x'\n",
       })
     )
     expect(found['offline-copy']?.map((f) => `${f.file}:${f.line}`)).toEqual([

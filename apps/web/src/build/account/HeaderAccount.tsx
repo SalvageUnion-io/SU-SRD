@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+import { SyncBadge } from '../../components/shared/SyncBadge'
 import { unionHere } from '../../lib/barLinks'
 import { useSync } from '../../replica/syncContext'
 import { GamesDrawerList, GamesMenu } from '../entityContainer/GamesMenu'
@@ -27,22 +29,39 @@ import { SignInControl } from './SignInControl'
  * goes into the drawer.
  */
 
+/** The avatar, the sync badge's dot pinned to its corner. */
+const AVATAR = { display: 'inline-flex', position: 'relative' } satisfies CSSProperties
+
 /** Play's desktop nav: the Games menu (renders nothing unless Connected), current on the hub and a Game's routes. */
 export function HeaderGames({ pathname = '' }: { pathname?: string }) {
   return <GamesMenu active={unionHere(pathname).nav === 'games'} />
 }
 
-/** Desktop, at the bar's end: the account menu (or sign-in). */
+/** Desktop, at the bar's end: the sync badge and the account menu (or sign-in). */
 export function HeaderActions() {
   const { status } = useSync()
 
-  if (status === 'live' || status === 'offline') return <AppAccountMenu />
+  if (status === 'live' || status === 'offline') {
+    return (
+      <>
+        <SyncBadge />
+        <AppAccountMenu />
+      </>
+    )
+  }
   return <SignInControl inBar />
 }
 
-/** Mobile header row: the avatar-only account menu. Nothing when signed out. */
+/** Mobile header row: the avatar-only account menu, the sync badge a dot on it. Nothing when signed out. */
 export function HeaderMobileActions() {
-  return <AppAccountMenu compact />
+  const { status } = useSync()
+  if (status !== 'live' && status !== 'offline') return null
+  return (
+    <span style={AVATAR}>
+      <AppAccountMenu compact />
+      <SyncBadge dot />
+    </span>
+  )
 }
 
 /**

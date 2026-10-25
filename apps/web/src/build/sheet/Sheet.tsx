@@ -27,7 +27,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Button, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -143,7 +142,7 @@ type SheetProps = {
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
 
-/** The bar's trailing cluster: Share (or the offline lozenge) and ⋯. */
+/** The bar's trailing cluster: Share (while this sheet can write) and ⋯. */
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -286,8 +285,8 @@ export function Sheet({
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
   // export, not less. Only Share goes — switching the public sheet on or off is
-  // a write to a server this session cannot reach — and the lozenge takes its
-  // place so the gap says what happened.
+  // a write to a server this session cannot reach — and the bar's sync badge
+  // says why.
   //
   // Share opens a dialog OVER this sheet rather than navigating to a share
   // screen. That screen's whole left half was a preview of the sheet you were
@@ -296,9 +295,7 @@ export function Sheet({
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
     <div style={ACTIONS}>
-      {writesBlocked ? (
-        <WritesBlockedNotice />
-      ) : (
+      {!writesBlocked && (
         <Button
           aria-label={buildSheetCopy('shareThis', { kind })}
           onClick={() => setShareOpen(true)}

@@ -132,9 +132,7 @@ describe('read-only, said in one place (play.md §7)', () => {
   })
 
   test('disconnected and outdated each say so', () => {
-    expect(playReadOnly({ status: 'offline', canWrite: false })?.stamp).toBe(
-      'Read-only · disconnected'
-    )
+    expect(playReadOnly({ status: 'offline', canWrite: false })?.stamp).toBe('Offline · read-only')
     expect(playReadOnly({ status: 'live', canWrite: false, outdated: true })?.stamp).toBe(
       'Read-only · outdated'
     )
