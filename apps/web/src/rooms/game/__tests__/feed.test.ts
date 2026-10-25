@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ServerMessageSchema } from '../../protocol'
-import { appliedMessages, batchAnswer, gameSnapshot, readOpsBatch } from '../feed'
+import { appliedMessages, batchAnswer, gameSnapshot, readClientMessage } from '../feed'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -113,7 +113,7 @@ describe('what the sender of a batch hears', () => {
 })
 
 describe('what a Game room reads from a socket', () => {
-  test('an ops batch, and nothing else, as a batch', () => {
+  test('an ops batch or an act, and nothing else', () => {
     const ops = [
       {
         id: 'op-1',
@@ -125,9 +125,10 @@ describe('what a Game room reads from a socket', () => {
         patch: {},
       },
     ]
-    expect(readOpsBatch(JSON.stringify({ type: 'ops', ops }))).toEqual(ops)
-    const act = { type: 'act', id: 'a-1', name: 'scene.passHour', args: {} }
-    expect(readOpsBatch(JSON.stringify(act))).toBeNull()
-    expect(readOpsBatch('not json')).toBeNull()
+    expect(readClientMessage(JSON.stringify({ type: 'ops', ops }))).toEqual({ type: 'ops', ops })
+    const act = { type: 'act' as const, id: 'a-1', name: 'scenes.passHour' }
+    expect(readClientMessage(JSON.stringify(act))).toEqual(act)
+    expect(readClientMessage('not json')).toBeNull()
+    expect(readClientMessage(JSON.stringify({ type: 'ops', ops: [] }))).toBeNull()
   })
 })

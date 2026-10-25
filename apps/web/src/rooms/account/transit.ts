@@ -8,6 +8,7 @@ import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../hando
 import { RoomRefusal } from '../refusal'
 import type { AccountShelf } from './shelf'
 import { SHELF_RECORDS } from './shelf'
+import type { AccountSoloArea } from './soloArea'
 
 /**
  * Units crossing a Shelf's walls: both halves of the two-room handoff
@@ -21,7 +22,10 @@ import { SHELF_RECORDS } from './shelf'
 const MOVED_OFF = 'That move was called off'
 
 export class AccountTransit {
-  constructor(private readonly shelf: AccountShelf) {}
+  constructor(
+    private readonly shelf: AccountShelf,
+    private readonly soloArea: AccountSoloArea
+  ) {}
 
   private get store() {
     return this.shelf.store
@@ -294,6 +298,7 @@ export class AccountTransit {
           )
         }
       }
+      if (bundle.salvageArea !== null) this.soloArea.import(bundle.salvageArea)
       this.store.rows('insert into imports (source, imported_at) values (?, ?)', source, at)
       return { imported: true }
     })
@@ -324,6 +329,11 @@ export class AccountTransit {
       const n = this.store.rows('select count(*) as n from records where tbl = ?', table)[0]?.n
       if (n !== bundle[table].length) out.push(`${table}: ${n} ≠ ${bundle[table].length}`)
     }
+    const area = bundle.salvageArea
+    const want =
+      area === null ? null : { name: area.name, techLevel: area.techLevel, supply: area.supply }
+    if (stable(this.soloArea.here(bundle.discordId)) !== stable(want))
+      out.push('salvageArea: differs')
     return out
   }
 

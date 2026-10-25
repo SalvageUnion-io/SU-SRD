@@ -24,12 +24,16 @@ import {
   batchAnswer,
   gameSnapshot,
   readClientMessage,
-  readOpsBatch,
   refusedBatch,
   UNREADABLE,
 } from '../rooms/game/feed'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
-import { actAnswer, socketAct } from '../rooms/game/socketActs'
+import {
+  ACCOUNT_SOCKET_ACTS,
+  actAnswer,
+  GAME_SOCKET_ACTS,
+  socketAct,
+} from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
 import type { HomeAddress, LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
@@ -185,10 +189,20 @@ export class AccountRoom extends Room implements UnitHome {
     } as ResponseInit)
   }
 
-  /** The player's `ops` batch: applied all or none, answered on its socket, heard by all of theirs. */
+  /**
+   * The player's `ops` batch (applied all or none) or `act` (their solo
+   * area's), answered on its socket, heard by all of theirs.
+   */
   override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
     const [member] = this.ctx.getTags(ws)
-    const batch = member === undefined ? null : readOpsBatch(message)
+    const said = member === undefined ? null : readClientMessage(message)
+    if (member !== undefined && said?.type === 'act') {
+      const act = socketAct(said, ACCOUNT_SOCKET_ACTS)
+      const answer = 'refusal' in act ? { ok: false as const, ...act } : this.soloAct(member, act)
+      ws.send(JSON.stringify(actAnswer(said.id, answer)))
+      return
+    }
+    const batch = said?.type === 'ops' ? said.ops : null
     if (member === undefined || batch === null) {
       ws.send(JSON.stringify(UNREADABLE))
       return
@@ -207,6 +221,25 @@ export class AccountRoom extends Room implements UnitHome {
       sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null))
     }
     ws.send(JSON.stringify(batchAnswer(opIds, result)))
+  }
+
+  /** One act on the player's solo area; every socket of theirs then hears their Shelf. */
+  private soloAct(
+    member: string,
+    act: Exclude<ReturnType<typeof socketAct<typeof ACCOUNT_SOCKET_ACTS>>, { refusal: string }>
+  ): GameActAnswer<unknown> {
+    const at = Date.now()
+    try {
+      const value =
+        act.name === 'salvageAreas.set'
+          ? this.logic.soloArea.set(member, act.args.area, at)
+          : this.logic.soloArea.spend(member, act.args.pilotId, at)
+      this.broadcastSnapshots()
+      return { ok: true, value }
+    } catch (error) {
+      if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
+      throw error
+    }
   }
 
   private broadcastSnapshots(): void {
@@ -406,11 +439,11 @@ export class GameRoom extends Room implements UnitHome {
     const [member] = this.ctx.getTags(ws)
     const said = member === undefined ? null : readClientMessage(message)
     if (member !== undefined && said?.type === 'act') {
-      const act = socketAct(said)
+      const act = socketAct(said, GAME_SOCKET_ACTS)
       const answer =
         'refusal' in act
           ? { ok: false as const, refusal: act.refusal }
-          : this.act(member, act.name, act.args)
+          : this.act(member, act.name, act.args as never)
       ws.send(JSON.stringify(actAnswer(said.id, answer)))
       return
     }
