@@ -51,7 +51,7 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 
 ## Chrome
 
-- **R20 A notice has one job** (K5) — toast for an act, `Banner` for a condition, `Message` for a consequence; one `Toaster` per document; one offline wording (`NotConnectedBanner`); Copied is the control's own swap (`useCopied`); no roll-tier colour outside the bot.
+- **R20 A notice has one job** (K5) — toast for an act, `Banner` for a condition, `Message` for a consequence; one `Toaster` per document; one offline wording (`SyncBadge`, in the bar); Copied is the control's own swap (`useCopied`); no roll-tier colour outside the bot.
 - **R22 One loading voice** (K6) — `Pending`, `Skeleton` or `RoutePending`, "Loading <thing>…" spelled by `loadingCopy` alone; a loading mark is the only `@keyframes`.
 - **R24 Three dialog widths** (K7) — `ModalShell` narrow, default or page (28, 48, 72rem), no per-dialog `max-width`. One pick dialog (§6.6): `PickDialog`, narrow, its Compacts in select mode in one radio group, Cancel and the act in `DialogActions`; `RadioCardGroup` only there and in the wizards' steps.
 - **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again", never "Retry"; `role="alert"` only in `Message`, `RecoveryPanel` and `Banner`. There is no search page: `/search` 301s home.

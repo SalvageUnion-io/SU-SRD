@@ -223,10 +223,11 @@ export class AccountTransit {
       for (const npc of npcs) {
         if (typeof npc.id !== 'string') throw new Error('A tray NPC carries its id')
         this.store.rows(
-          `insert into records (tbl, app_id, body, extra) values ('npcTray', ?, ?, '{}')
+          `insert into records (tbl, app_id, body, extra, updated_at) values ('npcTray', ?, ?, '{}', ?)
            on conflict(tbl, app_id) do nothing`,
           npc.id,
-          JSON.stringify(npc)
+          JSON.stringify(npc),
+          at
         )
       }
       this.putLease(
@@ -277,17 +278,19 @@ export class AccountTransit {
         })
         for (const op of unit.ops) this.store.putOp(importedOp(op))
       }
-      for (const link of bundle.links) this.store.putLink(link as LinkShape)
+      for (const link of bundle.links) this.store.putLink(link as LinkShape, at)
       for (const seat of bundle.seats) this.importSeat(seat, at)
       for (const table of SHELF_RECORDS) {
         for (const record of bundle[table]) {
           this.store.rows(
-            `insert into records (tbl, app_id, body, extra) values (?, ?, ?, ?)
-             on conflict(tbl, app_id) do update set body = excluded.body, extra = excluded.extra`,
+            `insert into records (tbl, app_id, body, extra, updated_at) values (?, ?, ?, ?, ?)
+             on conflict(tbl, app_id) do update set body = excluded.body, extra = excluded.extra,
+               updated_at = excluded.updated_at`,
             table,
             record.appId,
             JSON.stringify({ ...record.body, id: record.appId }),
-            JSON.stringify(record.extra)
+            JSON.stringify(record.extra),
+            at
           )
         }
       }

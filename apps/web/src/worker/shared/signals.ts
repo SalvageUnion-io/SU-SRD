@@ -46,7 +46,7 @@ export type MetricsRead = {
 
 /** One account's totals, as its room counts them. */
 export type AccountTotals = {
-  accountId: string
+  discordId: string
   pilots: number
   mechs: number
   crawlers: number
@@ -90,14 +90,14 @@ export async function touchGuild(db: SharedDb, guildId: string, at = Date.now())
 export async function putAccountTotals(db: SharedDb, totals: AccountTotals, now = Date.now()) {
   await db
     .prepare(
-      `insert into account_totals (account_id, pilots, mechs, crawlers, npcs, patterns, updated_at)
+      `insert into account_totals (discord_id, pilots, mechs, crawlers, npcs, patterns, updated_at)
        values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-       on conflict (account_id) do update set
+       on conflict (discord_id) do update set
          pilots = excluded.pilots, mechs = excluded.mechs, crawlers = excluded.crawlers,
          npcs = excluded.npcs, patterns = excluded.patterns, updated_at = excluded.updated_at`
     )
     .bind(
-      totals.accountId,
+      totals.discordId,
       totals.pilots,
       totals.mechs,
       totals.crawlers,
@@ -109,8 +109,8 @@ export async function putAccountTotals(db: SharedDb, totals: AccountTotals, now 
 }
 
 /** An account is gone: it counts no more. */
-export async function dropAccountTotals(db: SharedDb, accountId: string) {
-  await db.prepare('delete from account_totals where account_id = ?1').bind(accountId).run()
+export async function dropAccountTotals(db: SharedDb, discordId: string) {
+  await db.prepare('delete from account_totals where discord_id = ?1').bind(discordId).run()
 }
 
 /** Sum today's totals into a snapshot taken at `now`. */

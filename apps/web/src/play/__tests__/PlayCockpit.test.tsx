@@ -149,23 +149,20 @@ describe('the Cockpit frame', () => {
     ).toEqual(['Crew', 'Tables', 'Feed'])
   })
 
-  test('the foot says play is saved and who it reaches; no tabs from `lg`', async () => {
+  test('the foot says who play reaches; no tabs from `lg`', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const foot = within(screen.getByRole('contentinfo'))
-    expect(foot.getByRole('status').textContent).toBe('● Saved')
     expect(foot.getByText('Solo · nothing is shared')).toBeTruthy()
     expect(screen.queryByRole('tablist')).toBeNull()
     expect(screen.queryByRole('tabpanel')).toBeNull()
   })
 
-  test('offline, Play is read-only and says so: the bar’s stamp and the foot', async () => {
+  test('offline, Play is read-only and says so once, in the bar’s stamp', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'offline')
     expect(screen.queryByText(/● Live/)).toBeNull()
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('status').textContent).toBe('Read-only · disconnected')
-    expect(within(screen.getByRole('contentinfo')).getByRole('status').textContent).toBe(
-      '○ Offline · read-only'
-    )
+    expect(bar.getByRole('status').textContent).toBe('Offline · read-only')
+    expect(within(screen.getByRole('contentinfo')).queryByRole('status')).toBeNull()
   })
 
   test('solo has no Crew section: Tables and Feed only', async () => {

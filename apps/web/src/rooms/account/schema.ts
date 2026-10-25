@@ -88,3 +88,13 @@ export const ACCOUNT_ROOM_TABLES: readonly string[] = [
         imported_at integer not null
       )`,
 ]
+
+/** Step 2 of `ACCOUNT_ROOM`: the links' `created_at`, as the Game room's (`GameStore.putLink`). */
+export const ACCOUNT_ROOM_STAMPS: readonly string[] = [
+  'alter table links add column created_at integer not null default 0',
+]
+
+/** Step 3 of `ACCOUNT_ROOM`: when each record last changed, which the socket's records carry. */
+export const ACCOUNT_ROOM_RECORD_STAMPS: readonly string[] = [
+  'alter table records add column updated_at integer not null default 0',
+]

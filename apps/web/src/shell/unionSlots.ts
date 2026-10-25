@@ -5,7 +5,7 @@
  */
 
 /** The bar's slots, by the `data-union-slot` value the app finds them by. */
-export const UNION_SLOTS = ['banner', 'games', 'search', 'actions', 'mobile'] as const
+export const UNION_SLOTS = ['games', 'search', 'actions', 'mobile'] as const
 
 export type UnionSlot = (typeof UNION_SLOTS)[number]
 
