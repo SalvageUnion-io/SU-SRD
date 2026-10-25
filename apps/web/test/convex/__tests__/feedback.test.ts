@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { api, internal } from '../../../convex/_generated/api'
 import {
   FEEDBACK_DAILY_LIMIT,
   FEEDBACK_REFUSAL,
   issueFor,
   pagePath,
   quoteNote,
-} from '../../../convex/feedback'
+} from 'game-domain/feedback'
+import { api, internal } from '../../../convex/_generated/api'
 import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 

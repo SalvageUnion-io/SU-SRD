@@ -34,7 +34,11 @@ const PARSERS = {
 } as const
 
 /** A body parsed with its kind's schema, carrying `id`; or a defect thrown. */
-function parseUnitBody(kind: EntityKind, id: string, body: unknown): Record<string, unknown> {
+export function parseUnitBody(
+  kind: EntityKind,
+  id: string,
+  body: unknown
+): Record<string, unknown> {
   const result = PARSERS[kind].safeParse({ ...(body as Record<string, unknown>), id })
   if (!result.success) {
     throw new Error(`Invalid ${kind} payload: ${result.error.issues[0]?.message ?? 'unknown'}`)

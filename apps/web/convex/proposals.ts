@@ -4,14 +4,13 @@ import type { OwnableTable } from 'game-domain/entityKinds'
 import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
-import { MechSchema } from 'game-domain/schemas/mech'
-import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { loadLogged, logIdOf, mutation } from './model/entities'
 import { entityNameOf } from './model/entityName'
+import { applyToRow } from './model/opWrites'
 import {
   mediatorOrNull,
   membershipOrNull,
@@ -339,24 +338,24 @@ export const apply = mutation({
     const { doc } = await requireProposalTarget(ctx, proposal.entityType, proposal.entityId)
     if (doc.ownerId !== userId) throw new NotAuthorized('Only the owner can apply this')
 
-    /**
-     * Parse before persisting, like every other write against an entity body.
-     *
-     * This is the one place where skipping the parse does real damage rather
-     * than merely risking it: the field name comes from a proposal row, so a
-     * typo'd or stale key would be written as a **new** key on the body instead
-     * of changing anything. Parsing rejects that at the source.
-     */
-    const parser = proposal.entityType === 'mech' ? MechSchema : PilotSchema
-    const merged = { ...(doc.body as Record<string, unknown>), [proposal.field]: proposal.after }
-    const result = parser.safeParse(merged)
-    if (!result.success) {
-      throw new ConvexError(
-        `That proposal does not fit this sheet: ${result.error.issues[0]?.message ?? 'unknown'}`
-      )
+    // The player's op (ADR-063), its id the proposal's, so the drawer shows
+    // the change once. `applyOp` parses the result, which matters here more
+    // than anywhere: the field name comes from a proposal row, so a stale key
+    // would otherwise land as a new key on the body instead of changing anything.
+    try {
+      await applyToRow(ctx, userId, proposal.entityType === 'mech' ? 'mech' : 'pilot', doc, {
+        id: args.proposalId,
+        unitId: proposal.entityId,
+        baseSeq: null,
+        at: Date.now(),
+        kind: proposal.kind,
+        source: proposal.source,
+        patch: { [proposal.field]: proposal.after },
+      })
+    } catch (err) {
+      if (err instanceof ConvexError) throw err
+      throw new ConvexError(`That proposal does not fit this sheet: ${(err as Error).message}`)
     }
-
-    await ctx.db.patch(doc._id, { body: result.data, updatedAt: Date.now() })
     await ctx.db.patch(args.proposalId, { state: 'applied' })
   },
 })

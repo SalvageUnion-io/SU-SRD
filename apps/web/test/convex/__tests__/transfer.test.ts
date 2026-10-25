@@ -12,11 +12,12 @@ import {
   mechBody,
   ref,
   seedTable,
+  unitOp,
 } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * `entities.transfer` — a cross-entity value move as ONE mutation.
+ * `ops.transfer` — a cross-entity value move as ONE mutation.
  *
  * A stow or a load writes a mech and a crawler. In a Game only the table runner
  * writes the crawler (ADR-038 §5), so a player's stow is refused on the crawler
@@ -48,7 +49,7 @@ async function seedHold(holder: 'organizer' | 'player') {
   const { gameId } = table
   await addCrawler(table.organizer, 'c1', gameId)
   const user = table[holder]
-  const { updatedAt } = await user.as.mutation(api.entities.upsertByAppId, {
+  await user.as.mutation(api.entities.upsertByAppId, {
     table: 'mechs',
     appId: 'm1',
     gameId,
@@ -57,52 +58,50 @@ async function seedHold(holder: 'organizer' | 'player') {
   })
   /** The stow, mech first: the order a split refusal would lose the lot in. */
   const stow = {
-    updates: [
-      {
-        table: 'mechs' as const,
-        appId: 'm1',
-        gameId,
-        body: { ...mechBody({ id: 'm1', gameId }), cargoLots: [] },
-        expectedUpdatedAt: updatedAt,
-      },
-      { table: 'crawlers' as const, appId: 'c1', patch: { cargoLots: [CRATE] } },
+    ops: [
+      unitOp('mech', { appId: 'm1', gameId, patch: { cargoLots: [] }, baseSeq: 0 }),
+      unitOp('crawler', { appId: 'c1', gameId, patch: { cargoLots: [CRATE] } }),
     ],
     deletes: [],
   }
-  return { t, ...table, user, stow, updatedAt }
+  return { t, ...table, user, stow }
 }
 
-describe('entities.transfer', () => {
+describe('ops.transfer', () => {
   test("a player's stow refused on the crawler leaves the mech as it was", async () => {
     const { t, user, stow } = await seedHold('player')
 
-    await expect(user.as.mutation(api.entities.transfer, stow)).rejects.toThrow()
+    await expect(user.as.mutation(api.ops.transfer, stow)).rejects.toThrow()
 
     expect(await holds(t)).toEqual({ mech: ['Crate'], bay: [] })
   })
 
   test('the table runner stows the same lot, and both rows move', async () => {
-    const { t, user, stow, updatedAt } = await seedHold('organizer')
+    const { t, user, stow } = await seedHold('organizer')
 
-    const { versions } = await user.as.mutation(api.entities.transfer, stow)
+    const { applied } = await user.as.mutation(api.ops.transfer, stow)
 
     expect(await holds(t)).toEqual({ mech: [], bay: ['Crate'] })
-    // The mech's new version, for the client's next write against it.
-    expect(versions).toHaveLength(1)
-    expect(versions[0]?.appId).toBe('m1')
-    expect(versions[0]?.updatedAt).toBeGreaterThanOrEqual(updatedAt)
+    // Each unit's new seq, for the client's next op against it.
+    expect(applied.map((a) => [a.unitId, a.headSeq])).toEqual([
+      ['m1', 1],
+      ['c1', 1],
+    ])
   })
 
-  test('a stale mech body refuses the whole transfer, the crawler half included', async () => {
-    const { t, user, stow, updatedAt } = await seedHold('organizer')
-    const [mechWrite, crawlerPatch] = stow.updates
+  test('a conflicting mech op refuses the whole transfer, the crawler half included', async () => {
+    const { t, user, stow } = await seedHold('organizer')
+    const [mechOp, crawlerOp] = stow.ops
+    if (mechOp === undefined || crawlerOp === undefined) throw new Error('no stow')
+    // Another device wrote the mech's cargo since this copy was made.
+    await user.as.mutation(
+      api.ops.apply,
+      unitOp('mech', { appId: 'm1', patch: { cargoLots: [CRATE] } })
+    )
 
     await expect(
-      user.as.mutation(api.entities.transfer, {
-        // Crawler first this time, so it would have landed before the refusal.
-        updates: [crawlerPatch, { ...mechWrite, expectedUpdatedAt: updatedAt - 1 }],
-        deletes: [],
-      } as typeof stow)
+      // Crawler first this time, so it would have landed before the refusal.
+      user.as.mutation(api.ops.transfer, { ops: [crawlerOp, mechOp], deletes: [] })
     ).rejects.toThrow(STALE_WRITE_REFUSAL)
 
     expect(await holds(t)).toEqual({ mech: ['Crate'], bay: [] })
@@ -116,8 +115,8 @@ describe('entities.transfer', () => {
     await addMech(organizer, 'm1', gameId)
     await link(organizer, ref.mech('m1'), ref.pilot('p1'), 'mech-to-pilot')
 
-    await organizer.as.mutation(api.entities.transfer, {
-      updates: [{ table: 'crawlers', appId: 'c1', patch: { scrapPool: { tl1: 3 } } }],
+    await organizer.as.mutation(api.ops.transfer, {
+      ops: [unitOp('crawler', { appId: 'c1', patch: { scrapPool: { tl1: 3 } } })],
       deletes: [{ table: 'mechs', appId: 'm1' }],
     })
 
@@ -126,21 +125,13 @@ describe('entities.transfer', () => {
     expect((await allLinks(t)).filter((l) => l.from === 'm1' || l.to === 'm1')).toEqual([])
   })
 
-  test("a refused delete rolls back the transfer's updates", async () => {
+  test("a refused delete rolls back the transfer's ops", async () => {
     const { t, organizer, player, gameId } = await seedHold('player')
     await addMech(organizer, 'm2', gameId)
 
     await expect(
-      player.as.mutation(api.entities.transfer, {
-        updates: [
-          {
-            table: 'mechs',
-            appId: 'm1',
-            gameId,
-            body: { ...mechBody({ id: 'm1', gameId }), cargoLots: [] },
-            expectedUpdatedAt: null,
-          },
-        ],
+      player.as.mutation(api.ops.transfer, {
+        ops: [unitOp('mech', { appId: 'm1', gameId, patch: { cargoLots: [] } })],
         // The Organizer's mech: not the player's to scrap.
         deletes: [{ table: 'mechs', appId: 'm2' }],
       })

@@ -12,14 +12,14 @@ import type { Finding, Placed } from './_findings'
 import { place } from './_findings'
 import { editSheet, openPeekFromSearch, waitForReady } from './_helpers'
 import { holdPending } from './_pendingRules'
-import { CANVAS, MID, PHONE } from './_play'
+import { MID } from './_play'
 
 /**
  * Walking a route list for a layout gate (hard rule R0): `designRoutes`
  * (`_designTable.ts`) signed in on the one seeded account
  * (`gates/lib/seedAccount.ts`), or the signed-out reference corpus
  * (`corpusRoutes`). Each route opens at each of its widths, in the state it
- * names (Edit, a Peek open, each of Play's phone tabs and table mode), at rest, and each view
+ * names (Edit, a Peek open, each of Play's tabs on a phone and table mode), at rest, and each view
  * goes to the gate's scan. The gate's findings are then held against its
  * baseline (`againstBaseline`, `_designTable.ts`), the debt it has recorded, by
  * route family and rule.
@@ -27,9 +27,9 @@ import { CANVAS, MID, PHONE } from './_play'
 
 /**
  * A width a walk holds a route at: one of its own (`DesignWidth`); `mid`, a
- * mid-size window (`_play.ts`'s `MID`, 1024 × 700) under Play's design size,
- * which no family is held at but a gate may walk on top (the type floor over
- * Play, R12); or a window this many px wide (900 tall), a width a gate reads
+ * mid-size window (`_play.ts`'s `MID`, 1024 × 700) on the `lg` rung, Play's
+ * three columns at their narrowest, which no family is held at but a gate may
+ * walk on top (the type floor over Play, R12); or a window this many px wide (900 tall), a width a gate reads
  * beside R0's two (a mid desktop, a narrow band, a wide phone).
  */
 export type DesignWalkWidth = DesignWidth | 'mid' | number
@@ -84,12 +84,11 @@ async function open(page: Page, route: DesignRoute, path: string): Promise<void>
   if (route.peek) await openPeekFromSearch(page, route.peek)
 }
 
-/** The viewport a route is held at: Play's `page` is its canvas at the design size. */
-function viewportFor(route: DesignRoute, width: DesignWalkWidth) {
+/** The viewport a route is held at. */
+function viewportFor(width: DesignWalkWidth) {
   if (typeof width === 'number') return { width, height: 900 }
   if (width === 'mid') return MID
-  if (DESIGN_FAMILIES[route.family] !== 'play') return DESIGN_VIEWPORTS[width]
-  return width === 'page' ? CANVAS : PHONE
+  return DESIGN_VIEWPORTS[width]
 }
 
 /** Where the walk is: a route's family and path at a width, and the state it is in. */
@@ -104,8 +103,8 @@ function whereOf(route: DesignRoute, width: DesignWalkWidth): string {
 /**
  * Open every view of `routes` (all of `designRoutes` by default) and hand each,
  * at rest, to `visit`: each route at each of its widths (or at `widths`, when
- * given, in their place), and wherever Play draws its phone form each tab in
- * turn. A `:key` path is the seed's, so a walk over one needs `seed`.
+ * given, in their place), and wherever Play draws its tabs (below `lg`) each
+ * tab in turn. A `:key` path is the seed's, so a walk over one needs `seed`.
  */
 export async function visitDesignViews(
   page: Page,
@@ -120,26 +119,25 @@ export async function visitDesignViews(
     const path = resolveSeedPath(route.path, seed ?? {})
     if (!path) throw new Error(`the seed made no ${route.path}`)
     for (const width of widths ?? route.widths) {
-      const { width: w, height } = viewportFor(route, width)
+      const { width: w, height } = viewportFor(width)
       await page.setViewportSize({ width: w, height })
       await open(page, route, path)
       const where = whereOf(route, width)
       const view: DesignView = { family: route.family, path: route.path, width, where }
-      const tabs = page.locator('.su-play-root--phone [role="tab"]')
+      const tabs = page.locator('.su-play-root [role="tab"]')
       const play = DESIGN_FAMILIES[route.family] === 'play'
       if (play && width === 'phone') {
-        await expect(tabs.first(), `${where}: Play draws its phone form`).toBeVisible()
+        await expect(tabs.first(), `${where}: Play draws its tabs`).toBeVisible()
       }
-      const phonePlay = play && (await page.locator('.su-play-root--phone').count()) > 0
-      if (phonePlay) {
-        await expect(tabs.first(), `${where}: the phone form shows its tabs`).toBeVisible()
+      const tabbedPlay = play && (await tabs.count()) > 0
+      if (tabbedPlay) {
         for (const name of await tabs.allTextContents()) {
           await tabs.filter({ hasText: name }).first().click()
           await settle(page)
           await visit({ ...view, where: `${where}, ${name.trim()} tab` })
         }
         // The player's table mode, then back to the tabs for the next route.
-        const table = page.locator('.su-play-root--phone').getByRole('button', {
+        const table = page.locator('.su-play-root').getByRole('button', {
           name: 'Table mode',
         })
         if ((await table.count()) > 0) {

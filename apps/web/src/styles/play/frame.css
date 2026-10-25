@@ -1,0 +1,156 @@
+/*
+ * frame.css — Play's one layout (`PlayFrame`, play.md §2, ADR-063), phone
+ * first: one pane at a time under the pinned row with the tabs along the
+ * foot, and from `lg` the same panes as three columns, start | centre | end.
+ *
+ * `.su-play-root` is the container every rule here asks (`play`), and the
+ * scope every Play surface inherits: the default ink text and font. Colour
+ * encodes ONTOLOGY (mech green / pilot orange / crawler pink), never identity
+ * (ADR-038 §8). There is NO private token layer: every surface references the
+ * canonical `--color-*` tokens directly.
+ *
+ * Only what a style object cannot say lives here (ADR-046): the arrangement
+ * changes with the container, so all of it is here.
+ */
+
+.su-play-root {
+  background: var(--color-wk-bg);
+  color: var(--color-ink);
+  container: play / inline-size;
+  font-family: var(--font-body);
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/*
+ * Phone first: the bar, the pinned row, the open pane (the only scroller),
+ * the tabs at the foot. Every pane shares the one area; only the open one is
+ * drawn (`hidden` on the rest).
+ */
+.su-play-frame {
+  display: grid;
+  grid-template-areas: 'bar' 'pinned' 'pane' 'tabs';
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: 100%;
+  width: 100%;
+}
+
+.su-play-frame__bar {
+  grid-area: bar;
+  min-width: 0;
+}
+
+.su-play-frame__pinned {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-30);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  grid-area: pinned;
+  min-width: 0;
+  padding: var(--space-6) var(--space-8);
+}
+
+/* A pane: what it lists, as a column lists it, level-1 boxes on an even gap. */
+.su-play-pane {
+  background: var(--color-paper);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  grid-area: pane;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-8);
+}
+
+.su-play-pane[hidden],
+.su-play-frame__tabs[hidden] {
+  display: none;
+}
+
+/* Below `lg` the end column is no box: its panes are the grid's. */
+.su-play-frame__end {
+  display: contents;
+}
+
+/* The tab row at the foot (`PlayFrame`'s style objects draw the tabs). */
+.su-play-frame__tabs {
+  grid-area: tabs;
+  min-width: 0;
+}
+
+/*
+ * From `lg`: the bar across the top, bled to the edges out of the frame's
+ * padding, three columns, the foot along the bottom. Each column is a paper
+ * panel on the page ground, framed in the 1px ink-40 hairline a sheet's
+ * opening panels wear (ruleset §4.3, R49), its own scroll. The side columns
+ * keep their width; the centre takes the rest.
+ */
+@container play (width >= 64rem) {
+  .su-play-frame {
+    gap: var(--space-12);
+    grid-template-areas: 'bar bar bar' 'start centre end' 'foot foot foot';
+    grid-template-columns: 280px minmax(0, 1fr) 300px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .su-play-frame__bar {
+    margin: calc(-1 * var(--space-8)) calc(-1 * var(--space-12)) 0;
+  }
+
+  .su-play-frame__foot {
+    grid-area: foot;
+    margin: 0 calc(-1 * var(--space-12)) calc(-1 * var(--space-8));
+    min-width: 0;
+  }
+
+  .su-play-frame > .su-play-pane,
+  .su-play-frame__end {
+    border: var(--bw-hairline) solid var(--color-ink-40);
+    border-radius: var(--radius-card);
+    padding: var(--space-12);
+  }
+
+  .su-play-pane[data-column='start'] {
+    grid-area: start;
+  }
+
+  .su-play-pane[data-column='centre'] {
+    grid-area: centre;
+  }
+
+  /* The end column stacks its panes in one scroller. */
+  .su-play-frame__end {
+    background: var(--color-paper);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    grid-area: end;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  .su-play-frame__end > .su-play-pane {
+    background: none;
+    flex-shrink: 0;
+    gap: var(--space-16);
+    overflow: visible;
+    padding: 0;
+  }
+
+  /* A docked pane sits at its column's foot (the Mediator's Propose). */
+  .su-play-frame__end > .su-play-pane[data-dock] {
+    margin-top: auto;
+  }
+}
+
+@container play (width >= 80rem) {
+  .su-play-frame {
+    grid-template-columns: 300px minmax(0, 1fr) 320px;
+  }
+}

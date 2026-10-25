@@ -1,0 +1,208 @@
+import type { ObjectType } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
+import type { EntityKind } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import type { OpInput } from 'game-domain/ops/applyOp'
+import { applyOp, diffBodies, isEmptyOp, unitOf } from 'game-domain/ops/applyOp'
+import type { Doc, Id } from '../_generated/dataModel'
+import type { MutationCtx } from '../_generated/server'
+import { assertMayEditCrawler, crawlerByAppId, moveCrawlerRow } from './crawlerWrites'
+import type { OwnedTable } from './entities'
+import { logIdOf, parseBody } from './entities'
+import { opInput, unitKind } from './opTables'
+import type { OWNABLE_WRITE } from './ownableWrites'
+import {
+  afterOwnableMove,
+  assertMayAddToContainer,
+  assertMayWrite,
+  createOwnable,
+  writeTarget,
+} from './ownableWrites'
+import { staleWriteError } from './staleWrite'
+
+/**
+ * The one write to a unit's body (ADR-063): find the unit, check who may write
+ * it, run `applyOp`, and store the op beside the new snapshot. Every body
+ * write reaches here, the client's ops and a whole body sent to
+ * `upsertByAppId` alike, so the op log is the history.
+ */
+
+/** One op against one unit (`ops.apply`). `gameId` names where the author holds it. */
+export const UNIT_OP = {
+  unit: unitKind,
+  gameId: v.union(v.id('games'), v.null()),
+  op: opInput,
+}
+
+type UnitOpArgs = ObjectType<typeof UNIT_OP>
+
+/** What the author's copy needs back: the snapshot's seq and the row's version. */
+export type Applied = { headSeq: number; updatedAt: number }
+
+type UnitRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | Doc<'crawlers'>
+
+/** The row an op lands on, or null when the unit is gone; refuses a writer who may not write it. */
+async function unitRow(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: UnitOpArgs
+): Promise<UnitRow | null> {
+  if (args.unit === 'crawler') {
+    const row = await crawlerByAppId(ctx, args.op.unitId)
+    if (row !== null) await assertMayEditCrawler(ctx, row)
+    return row
+  }
+  const table = TABLE_OF_KIND[args.unit] as OwnedTable
+  const row = await writeTarget(ctx, userId, { table, appId: args.op.unitId, gameId: args.gameId })
+  if (row === null) throw new ConvexError('That entity no longer exists')
+  assertMayWrite(row, userId)
+  return row
+}
+
+/**
+ * Apply one op, or answer what an earlier send of it already did.
+ *
+ * A crawler that has been scrapped takes nothing, as before (`null`). A
+ * crawler's op never moves it: `moveCrawler` writes its container, so its
+ * `gameId` is dropped here. A pilot, mech or NPC op that changes `gameId`
+ * moves the row, answering to the rule a create into that container does.
+ */
+export async function applyUnitOp(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: UnitOpArgs
+): Promise<Applied | null> {
+  const row = await unitRow(ctx, userId, args)
+  return row === null ? null : applyToRow(ctx, userId, args.unit, row, args.op)
+}
+
+/** `applyUnitOp` on a row already found and checked. */
+export async function applyToRow(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  kind: EntityKind,
+  row: UnitRow,
+  input: OpInput
+): Promise<Applied> {
+  const seen = await ctx.db
+    .query('ops')
+    .withIndex('by_op_id', (q) => q.eq('opId', input.id))
+    .first()
+  if (seen !== null) return { headSeq: row.headSeq ?? 0, updatedAt: row.updatedAt }
+
+  const op = kind === 'crawler' ? withoutContainer(input) : input
+  if (isEmptyOp(op)) return { headSeq: row.headSeq ?? 0, updatedAt: row.updatedAt }
+
+  const unit = unitOf(
+    kind,
+    { ...(row.body as Record<string, unknown>), gameId: row.gameId },
+    row.headSeq ?? 0,
+    row.fieldSeqs ?? {}
+  )
+  const result = applyOp(unit, op)
+  if (!result.ok) {
+    if (result.reason === 'conflict') throw staleWriteError(row)
+    throw new Error(`Invalid ${TABLE_OF_KIND[kind]} payload: ${result.message}`)
+  }
+
+  const gameId = (result.unit.body.gameId ?? null) as Id<'games'> | null
+  const moved = kind !== 'crawler' && gameId !== row.gameId
+  if (moved) await assertMayAddToContainer(ctx, gameId, userId)
+
+  const updatedAt = Date.now()
+  await ctx.db.patch(row._id, {
+    ...(moved ? { gameId } : {}),
+    body: result.unit.body,
+    headSeq: result.seq,
+    fieldSeqs: result.unit.fieldSeqs,
+    updatedAt,
+  })
+  await ctx.db.insert('ops', {
+    gameId,
+    unitKind: kind,
+    unitId: logIdOf(row),
+    opId: op.id,
+    seq: result.seq,
+    baseSeq: op.baseSeq,
+    author: userId,
+    at: op.at,
+    kind: op.kind,
+    source: op.source,
+    state: 'applied',
+    patch: op.patch,
+    ...(op.unset === undefined ? {} : { unset: op.unset }),
+    before: result.before,
+  })
+  if (moved) {
+    const table = TABLE_OF_KIND[kind] as OwnedTable
+    await afterOwnableMove(ctx, table, row._id as Id<OwnedTable>, row.gameId)
+  }
+  return { headSeq: result.seq, updatedAt }
+}
+
+/** A crawler op without its container: only `moveCrawler` moves a crawler. */
+function withoutContainer(op: OpInput): OpInput {
+  const { gameId: _container, ...patch } = op.patch as Record<string, unknown>
+  const unset = op.unset?.filter((field) => field !== 'gameId')
+  return { ...op, patch, ...(unset === undefined ? {} : { unset }) }
+}
+
+/** An op the server authors for a write that still arrives as a body or a patch. */
+function serverOp(unitId: string, patch: Record<string, unknown>, unset: string[]): OpInput {
+  return {
+    id: crypto.randomUUID(),
+    unitId,
+    baseSeq: null,
+    at: Date.now(),
+    kind: 'manual',
+    source: 'sheet',
+    patch,
+    ...(unset.length === 0 ? {} : { unset }),
+  }
+}
+
+/**
+ * `upsertByAppId`: a whole body. A row the writer does not have yet is
+ * created; any other is changed by the op that takes its body to this one.
+ * The body is refused when the row has moved past the copy it was made from
+ * (`expectedUpdatedAt`), as a whole body would undo what reached it since.
+ */
+export async function writeOwnable(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: ObjectType<typeof OWNABLE_WRITE>
+): Promise<{ updatedAt: number }> {
+  const existing = await writeTarget(ctx, userId, args)
+  if (existing === null) return createOwnable(ctx, userId, args)
+
+  assertMayWrite(existing, userId)
+  // After the ownership check, so the refusal hands the row only to its owner.
+  if (args.expectedUpdatedAt !== null && existing.updatedAt > args.expectedUpdatedAt) {
+    throw staleWriteError(existing)
+  }
+  const body = parseBody(args.table, args.body) as Record<string, unknown>
+  const { patch, unset } = diffBodies(
+    { ...(existing.body as Record<string, unknown>), gameId: existing.gameId },
+    { ...body, gameId: args.gameId }
+  )
+  const op = serverOp(logIdOf(existing), patch, unset)
+  const { updatedAt } = await applyToRow(ctx, userId, kindOfTable(args.table), existing, op)
+  return { updatedAt }
+}
+
+/** A transfer's crawler patch may move it first (`moveCrawler`), in the same mutation. */
+export async function moveThenApply(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: UnitOpArgs & { move?: Id<'games'> | null }
+): Promise<Applied | null> {
+  if (args.unit === 'crawler' && args.move !== undefined) {
+    await moveCrawlerRow(ctx, userId, args.op.unitId, args.move)
+  }
+  const { move: _move, ...unitOp } = args
+  return applyUnitOp(ctx, userId, unitOp)
+}
+
+function kindOfTable(table: OwnedTable): Exclude<EntityKind, 'crawler'> {
+  return table === 'pilots' ? 'pilot' : table === 'mechs' ? 'mech' : 'npc'
+}
