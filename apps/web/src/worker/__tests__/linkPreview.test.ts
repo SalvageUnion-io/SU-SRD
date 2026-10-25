@@ -7,6 +7,10 @@ import type { Env } from '../index'
 import worker from '../index'
 import type { ImageCache } from '../linkPreview'
 import { ogImage, previewRouteOf, versionOf } from '../linkPreview'
+import { testDb } from '../shared/__tests__/d1'
+import type { SharedDb } from '../shared/db'
+import { putGame, putInvite } from '../shared/games'
+import { dropPublicSheet, putPublicSheet } from '../shared/publicSheets'
 import { applyMeta } from '../shellMeta'
 
 /**
@@ -19,10 +23,11 @@ import { applyMeta } from '../shellMeta'
 /** The real shell, so a test fails if it loses its markers. */
 const SHELL = renderShell()
 
-const CONVEX_URL = 'https://convex.example'
-
-/** What the fake Convex answers, by function path then by a key of its args. */
-type Answers = Record<string, Record<string, unknown>>
+/** What the shared database holds: previews by `kind/appId`, invites by code. */
+type Answers = {
+  previews: Record<string, Record<string, unknown> | null>
+  invites: Record<string, { gameName: string; mediatedBy: string | null }>
+}
 
 const PATTERN = {
   kind: 'pattern',
@@ -31,7 +36,7 @@ const PATTERN = {
   gameName: null,
 }
 
-/** A Component Embed as Convex answers it, with a `<` a player could type. */
+/** A Component Embed as its row holds it, with a `<` a player could type. */
 const EMBED = JSON.stringify({
   component: { type: 17, components: [{ type: 10, content: '## Tow <Rig>' }] },
 })
@@ -49,31 +54,40 @@ const INVITE = {
 }
 
 const ANSWERS: Answers = {
-  'publicSheet:preview': {
-    // Asked with the app's address, a pattern's answer carries its Discord card.
+  previews: {
+    // A pattern's row carries its Discord card.
     'pattern/pat-1': { ...PATTERN, componentEmbed: EMBED },
     'pilot/p-1': PILOT,
-    // p-2 exists but is private: Convex answers it with null, as for a missing one.
+    // p-2 exists but is private: it has no row, as a missing one has none.
     'pilot/p-2': null,
   },
-  'publicSheet:invitePreview': { K7QR2XA: INVITE },
+  invites: { K7QR2XA: INVITE },
+}
+
+/** A shared database holding `answers`, written as the rooms write it. */
+function shared(answers: Answers = ANSWERS): SharedDb {
+  const db = testDb()
+  for (const [key, preview] of Object.entries(answers.previews)) {
+    if (preview === null) continue
+    const [kind, appId] = key.split('/') as ['pattern', string]
+    void putPublicSheet(db, { kind, appId, ownerId: 'u-1', page: {}, preview: preview as never })
+  }
+  for (const [code, invite] of Object.entries(answers.invites)) {
+    void putGame(db, { gameId: `g-${code}`, name: invite.gameName, mediatedBy: invite.mediatedBy })
+    void putInvite(db, `g-${code}`, code)
+  }
+  return db
 }
 
 /** Every request the fake network saw. */
 let seen: { url: string; body: unknown }[] = []
 
-function fakeFetch(answers: Answers = ANSWERS, png = true) {
+function fakeFetch(png = true) {
   seen = []
   return async (input: Request | string, init?: RequestInit): Promise<Response> => {
     const url = typeof input === 'string' ? input : input.url
     const body = init?.body ? JSON.parse(String(init.body)) : undefined
     seen.push({ url, body })
-    if (url.startsWith(CONVEX_URL)) {
-      const { path, args } = body as { path: string; args: Record<string, string> }
-      const key = args.code ?? `${args.kind}/${args.appId}`
-      const value = answers[path]?.[key] ?? null
-      return Response.json({ status: 'success', value })
-    }
     if (url.includes('/browser-rendering/screenshot')) {
       return png
         ? new Response(new Uint8Array([137, 80, 78, 71]), {
@@ -97,7 +111,7 @@ function env(over: Partial<Env> = {}): Env {
         return new Response(SHELL, { headers: { 'content-type': 'text/html' } })
       },
     },
-    CONVEX_URL,
+    SHARED: shared(),
     CF_ACCOUNT_ID: 'acct',
     BROWSER_RENDERING_TOKEN: 'token',
     ...over,
@@ -156,14 +170,6 @@ describe('a Discordbot fetch of a shared pattern', () => {
 describe("a shared pattern's Discord card", () => {
   it('carries its Component Embed, as a book pattern page does, script-escaped', async () => {
     const html = await unfurl('/p/pattern/pat-1')
-    const asked = seen.find(
-      (r) => (r.body as { path?: string } | undefined)?.path === 'publicSheet:preview'
-    )
-    expect((asked?.body as { args: unknown } | undefined)?.args).toEqual({
-      kind: 'pattern',
-      appId: 'pat-1',
-      appUrl: 'https://salvageunion.io/build',
-    })
     const block = html.slice(html.indexOf(META_START), html.indexOf(META_END))
     expect(block).toContain('<script id="discord:component-embed" type="application/json">')
     expect(block).toContain('## Tow \\u003cRig>')
@@ -175,11 +181,11 @@ describe("a shared pattern's Discord card", () => {
   })
 
   it('a private pattern, or a sheet, carries none', async () => {
-    globalThis.fetch = fakeFetch({
-      ...ANSWERS,
-      'publicSheet:preview': { 'pattern/pat-1': null },
-    }) as typeof fetch
-    const res = await worker.fetch(discordbot('/p/pattern/pat-1'), env())
+    globalThis.fetch = fakeFetch() as typeof fetch
+    const res = await worker.fetch(
+      discordbot('/p/pattern/pat-1'),
+      env({ SHARED: shared({ ...ANSWERS, previews: { 'pattern/pat-1': null } }) })
+    )
     expect(await res.text()).not.toContain('discord:component-embed')
     expect(await unfurl('/p/pilot/p-1')).not.toContain('discord:component-embed')
   })
@@ -287,13 +293,48 @@ describe('without a renderer', () => {
   })
 })
 
-describe('when Convex does not answer', () => {
+describe('when the shared database does not answer', () => {
   it('keeps the sitewide defaults rather than breaking the page', async () => {
-    globalThis.fetch = (async () =>
-      new Response('down', { status: 503 })) as unknown as typeof fetch
-    const res = await worker.fetch(discordbot('/p/pilot/p-1'), env())
-    expect(res.status).toBe(200)
-    expect(meta(await res.text(), 'og:title')).toBe('Training Bay · SalvageUnion.io')
+    const down: SharedDb = {
+      prepare() {
+        throw new Error('D1 is down')
+      },
+      batch: async () => [],
+    }
+    for (const e of [env({ SHARED: down }), env({ SHARED: undefined })]) {
+      const res = await worker.fetch(discordbot('/p/pilot/p-1'), e)
+      expect(res.status).toBe(200)
+      expect(meta(await res.text(), 'og:title')).toBe('Training Bay · SalvageUnion.io')
+    }
+  })
+})
+
+describe('a short address', () => {
+  it('reads the row its app id begins, as a full one does', async () => {
+    const db = testDb()
+    const appId = '0a1b2c3d-4e5f-4a6b-8c9d-0e1f2a3b4c5d'
+    await putPublicSheet(db, {
+      kind: 'pilot',
+      appId,
+      ownerId: 'u-1',
+      page: {},
+      preview: PILOT as never,
+    })
+    for (const path of [`/p/pilot/rosa-vance-0a1b2c3d4e5f`, `/p/pilot/${appId}`]) {
+      const html = await unfurl(path, env({ SHARED: db }))
+      expect(meta(html, 'og:title')).toBe('Bonesaw')
+    }
+    expect(meta(await unfurl('/p/pilot/rosa-ffffffffffff', env({ SHARED: db })), 'og:title')).toBe(
+      'Private'
+    )
+  })
+})
+
+describe('unsharing', () => {
+  it('unfurls the Private card at once', async () => {
+    const db = shared()
+    await dropPublicSheet(db, 'pilot', 'p-1')
+    expect(meta(await unfurl('/p/pilot/p-1', env({ SHARED: db })), 'og:title')).toBe('Private')
   })
 })
 
@@ -371,14 +412,14 @@ describe('the picture route', () => {
     })
     const edited = {
       ...ANSWERS,
-      'publicSheet:preview': {
+      previews: {
         'pattern/pat-1': { ...PATTERN, body: { ...PATTERN.body, name: 'Tow Rig II' } },
       },
     }
-    await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
+    await ogImage(imageRequest('/og/pattern/pat-1.png'), env({ SHARED: shared(edited) }), {
       base: '/build',
       cache,
-      fetch: fakeFetch(edited),
+      fetch: fakeFetch(),
     })
     expect(cache.keys).toHaveLength(2)
   })
@@ -390,12 +431,16 @@ describe('the picture route', () => {
       cache,
       fetch: fakeFetch(),
     })
-    const madePrivate = { ...ANSWERS, 'publicSheet:preview': { 'pattern/pat-1': null } }
-    const res = await ogImage(imageRequest('/og/pattern/pat-1.png'), env(), {
-      base: '/build',
-      cache,
-      fetch: fakeFetch(madePrivate),
-    })
+    const madePrivate = { ...ANSWERS, previews: { 'pattern/pat-1': null } }
+    const res = await ogImage(
+      imageRequest('/og/pattern/pat-1.png'),
+      env({ SHARED: shared(madePrivate) }),
+      {
+        base: '/build',
+        cache,
+        fetch: fakeFetch(),
+      }
+    )
     expect(res.status).toBe(200)
     const shot = seen.find((r) => r.url.includes('/browser-rendering/screenshot'))
     expect(shot?.body).toMatchObject({ url: 'https://salvageunion.io/build/og/private' })
@@ -452,7 +497,7 @@ describe('the picture route', () => {
     const failed = await ogImage(imageRequest('/og/pilot/p-1.png'), env(), {
       base: '/build',
       cache,
-      fetch: fakeFetch(ANSWERS, false),
+      fetch: fakeFetch(false),
     })
     expect(failed.status).toBe(404)
     expect(failed.headers.get('cache-control')).toBe('no-store')

@@ -20,9 +20,9 @@ already make is in scope; new authoring surfaces still are not.
    HOMEBREW stamp and opens the pattern's own page in the app.
 3. **How the SRD reads it.** The SRD is static and its CSP allows only its own
    origin, so the Worker serves `GET /homebrew/patterns.json` (one chassis
-   with `?chassis=`) from `homebrew.patterns` over Convex's HTTP API, cached
-   for a minute. `homebrew.patterns` is unauthenticated and serves only
-   patterns whose maker opted in, which the link already serves.
+   with `?chassis=`) from the shared database (`src/worker/shared/homebrew.ts`),
+   cached for a minute. It is unauthenticated and serves only patterns whose
+   maker opted in, which the link already serves.
 4. **Report and takedown.** On a homebrew pattern's page a signed-in reader
    reports it with a reason, once each (`homebrewReports`). A site admin
    (`model/admin.ts`, by Discord id in `ADMIN_DISCORD_IDS`) reads the queue at
@@ -42,7 +42,7 @@ already make is in scope; new authoring surfaces still are not.
 - New per-person storage: a report's reason and its reporter. Account
   deletion removes a player's reports; deleting a pattern removes its reports
   and takedown; the account export includes a player's reports.
-- `homebrew.patterns` reads at most 500 patterns, newest share first;
+- The listing reads at most 500 patterns, newest share first;
   pagination comes when homebrew outgrows that.
 - Patterns already shared by link before 4.1 stay off the SRD until their
   makers opt in.

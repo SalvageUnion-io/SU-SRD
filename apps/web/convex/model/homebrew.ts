@@ -19,15 +19,6 @@ export async function moderationOf(
     .first()
 }
 
-/** The ids of every hidden pattern: the few a site admin took down. */
-export async function hiddenPatternIds(ctx: AnyCtx): Promise<Set<Id<'mechPatterns'>>> {
-  const rows = await ctx.db
-    .query('homebrewModeration')
-    .withIndex('by_hidden', (q) => q.eq('hidden', true))
-    .collect()
-  return new Set(rows.map((row) => row.patternId))
-}
-
 /** Delete a pattern's reports, and its moderation row with them when `all`. */
 export async function deletePatternReports(
   ctx: MutationCtx,

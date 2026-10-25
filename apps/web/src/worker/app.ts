@@ -230,7 +230,7 @@ async function sharedShell(
 ): Promise<Response> {
   const shell = await shellOf(url, env, base)
   if (!shell.ok) return shell
-  const meta = await metaFor(route, url, env, fetch, base)
+  const meta = await metaFor(route, url, env, base)
   const res = meta === null ? shell : await rewritten(shell, (html) => applyMeta(html, meta))
   // A missing or private sheet answers like a page: search must not list it.
   return meta?.canonical === undefined ? noindexed(res) : res

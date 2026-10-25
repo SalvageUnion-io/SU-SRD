@@ -131,7 +131,7 @@ export default {
       if (res !== null) return res
     }
 
-    // H. Homebrew for the SRD's pages, from Convex.
+    // H. Homebrew for the SRD's pages, from the shared database.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {
       return serveHomebrew(url, env)
     }

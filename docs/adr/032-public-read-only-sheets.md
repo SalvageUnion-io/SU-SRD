@@ -46,5 +46,5 @@ can see it" control: Only me, My Game's crew, Anyone with the link.
   one answers `x-robots-tag: noindex` (`worker/app.ts`); the sitemap never
   lists `/p/`.
 - Links unfurl: for a bot's request the Worker swaps the shell's
-  `app:meta` block for `publicSheet.preview` and renders its `OgCard`
+  `app:meta` block for the sheet's preview row in the shared database and renders its `OgCard`
   (`apps/web/src/worker/linkPreview.ts`); a private sheet unfurls as the Private card.
