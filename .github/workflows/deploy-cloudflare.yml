@@ -409,6 +409,14 @@ jobs:
           name: web-dist
           path: apps/web/dist
 
+      # The shared database before the Worker that reads it: create it on the
+      # first run, then every migration it has not had (tools/d1-migrate.ts).
+      - name: Migrate the shared database
+        if: matrix.app == 'web'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun tools/d1-migrate.ts su-shared
+
       - name: Deploy
         working-directory: apps/${{ matrix.app }}
         env:
