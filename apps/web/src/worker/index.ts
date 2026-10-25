@@ -51,6 +51,8 @@ import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
+import type { CronEnv } from './crons'
+import { runCron } from './crons'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -60,15 +62,16 @@ import {
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
 
-export type Env = AppEnv & {
-  /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
-  ERROR_REPORT_LIMIT?: RateLimiter
-  /**
-   * The Convex log stream's webhook secret, from the Convex dashboard. Set
-   * with `wrangler secret put`; unset, the stream endpoint answers 503.
-   */
-  CONVEX_LOG_STREAM_SECRET?: string
-}
+export type Env = AppEnv &
+  CronEnv & {
+    /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
+    ERROR_REPORT_LIMIT?: RateLimiter
+    /**
+     * The Convex log stream's webhook secret, from the Convex dashboard. Set
+     * with `wrangler secret put`; unset, the stream endpoint answers 503.
+     */
+    CONVEX_LOG_STREAM_SECRET?: string
+  }
 
 /**
  * Where the Convex log stream posted before the app was one: the webhook the
@@ -111,6 +114,11 @@ function isChunk(pathname: string): boolean {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
+  /** A Cron Trigger (`./crons.ts`). */
+  async scheduled(controller: { cron: string; scheduledTime: number }, env: Env): Promise<void> {
+    await runCron(controller.cron, env, controller.scheduledTime)
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
 
