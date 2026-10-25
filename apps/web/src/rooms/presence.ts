@@ -4,6 +4,8 @@
  * (the Play landing) hears presence without counting as here.
  */
 
+import type { ServerMessage } from './protocol'
+
 /** The second Sec-WebSocket-Protocol entry carries the caller's credential. */
 export const ROOM_PROTOCOL = 'su-room'
 
@@ -12,7 +14,7 @@ export const SEAT_TAG = 'seat'
 export const WATCH_TAG = 'watch'
 
 /** What the room sends every socket whenever who is here changes. */
-export type PresenceMessage = { type: 'presence'; here: string[] }
+export type PresenceMessage = Extract<ServerMessage, { type: 'presence' }>
 
 /** The member ids here, once each and sorted, from each open socket's tags. */
 export function presentMembers(sockets: readonly (readonly string[])[]): string[] {
