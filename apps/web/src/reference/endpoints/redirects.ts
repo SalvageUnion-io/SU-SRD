@@ -23,13 +23,13 @@
  */
 
 import { formerSlugsIn } from 'salvageunion-reference'
-import type { EndpointModule } from '../../../ssg/types'
 import { apiV1ItemPath } from '../../lib/apiV1Paths'
 import { itemHref } from '../../lib/entityHref'
 import { getEntitySchemas, getReferenceEntityData } from '../../lib/gameData'
 import { ogImagePath } from '../../lib/ogCard'
 import { srdPatternHref } from '../../lib/patternHref'
 import { FIXED_MOVES, legacyItemHref } from '../../lib/redirects'
+import type { EndpointModule } from '../types'
 import { itemJsonPath } from './itemJson'
 
 /** Each `from → to` pair, in output order. */

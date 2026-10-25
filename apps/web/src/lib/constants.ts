@@ -6,7 +6,7 @@ import { originOf } from './site'
  * Where this build is served, and every absolute link to a page of it:
  * production's origin (`site.ts`), or a Worker Preview's, which
  * `deploy-preview.yml` passes as `VITE_SITE_ORIGIN` (the dev server sets its
- * own, `ssg/dev.ts`). Canonicals, `og:` tags, the
+ * own, `astro.config.ts`). Canonicals, `og:` tags, the
  * Discord Component Embed, structured data, the sitemap and llms.txt all follow
  * it, so a Preview names only itself. A Preview answers `noindex`, so its
  * canonicals are never indexed.

@@ -10,7 +10,6 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
-import type { PageModule, PageResult } from '../../../ssg/types'
 import { Button, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import type { DiscordCommand } from '../../generated/discordCommands'
@@ -34,6 +33,7 @@ import { pagesCopy } from '../../messages/reference-pages'
 import { DiscordReply } from '../DiscordReply'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
+import type { PageModule, PageResult } from '../types'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.
