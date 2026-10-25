@@ -12,10 +12,13 @@
  *  - **Tables to hand**: the roll tables it pins in Play, found with "Pin a
  *    table…", each opening to read and try (`PlayRollTable`), Unpin beside it;
  *  - **Notes**: the Mediator's own, never shown to players;
- *  - **Briefing**: what the Pilots see, which Play offers to tell the table.
+ *  - **Briefing**: what the Pilots see, which Play offers to tell the table;
+ *  - **Spoils**: what the opposition could leave behind (`EncounterThreat`).
  *
  * Opponents can be put in groups, each arriving in a wave (`EncounterGroups`).
- * Groups and the briefing are behind the `encounterSheet` flag (ADR-060).
+ * Under the opposition, a threat read against a crew the Mediator picks.
+ * Groups, the briefing, the threat read and the spoils are behind the
+ * `encounterSheet` flag (ADR-060).
  *
  * Every edit is one store write (server-first, ADR-034), run one after
  * another so two quick adds both land.
@@ -69,6 +72,7 @@ import { usePatternStore } from '../../stores/patternStore'
 import { usePrepStore } from '../../stores/prepStore'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
+import { EncounterSpoils, ThreatReadLine } from './EncounterThreat'
 import {
   addGroup,
   groupsOf,
@@ -284,29 +288,34 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
               ) : undefined
             }
           >
-            {grouping && groups.length > 0 ? (
-              <GroupedOpposition
-                blocks={oppositionBlocks(encounter)}
-                row={opponentRow}
-                canWrite={canWrite}
-                writes={{
-                  rename: (group) => setNaming(group),
-                  setWave: (group, wave) =>
-                    void write((current) => ({
-                      groups: setGroupWave(groupsOf(current), group.id, wave),
-                    })),
-                  remove: (group) => void write((current) => removeGroup(current, group.id)),
-                }}
-              />
-            ) : encounter.opposition.length === 0 ? (
-              <EmptyState variant="inline" body={buildPrepCopy('noOpposition')} />
-            ) : (
-              <ul style={LIST} aria-label={buildPrepCopy('opposition')}>
-                {encounter.opposition.map((opponent) => (
-                  <li key={opponent.id}>{opponentRow(opponent)}</li>
-                ))}
-              </ul>
-            )}
+            <Stack gap={16}>
+              {grouping && groups.length > 0 ? (
+                <GroupedOpposition
+                  blocks={oppositionBlocks(encounter)}
+                  row={opponentRow}
+                  canWrite={canWrite}
+                  writes={{
+                    rename: (group) => setNaming(group),
+                    setWave: (group, wave) =>
+                      void write((current) => ({
+                        groups: setGroupWave(groupsOf(current), group.id, wave),
+                      })),
+                    remove: (group) => void write((current) => removeGroup(current, group.id)),
+                  }}
+                />
+              ) : encounter.opposition.length === 0 ? (
+                <EmptyState variant="inline" body={buildPrepCopy('noOpposition')} />
+              ) : (
+                <ul style={LIST} aria-label={buildPrepCopy('opposition')}>
+                  {encounter.opposition.map((opponent) => (
+                    <li key={opponent.id}>{opponentRow(opponent)}</li>
+                  ))}
+                </ul>
+              )}
+              {grouping && encounter.opposition.length > 0 && (
+                <ThreatReadLine encounter={encounter} />
+              )}
+            </Stack>
           </SlabSection>
           <EncounterTables
             tables={encounter.tables}
@@ -361,6 +370,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
               />
             </SlabSection>
           )}
+          {grouping && <EncounterSpoils encounter={encounter} />}
         </Stack>
       </Grid>
       <SheetPickerModal
