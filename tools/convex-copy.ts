@@ -201,7 +201,8 @@ export function buildBundles(t: Tables): CopyResult {
   }
   for (const g of rows('games')) {
     const crawler = str(g.primaryCrawlerId)
-    if (crawler) games.get(g._id)!.primaryCrawler = appIdOf.get(crawler) ?? null
+    const game = games.get(g._id)
+    if (crawler && game) game.primaryCrawler = appIdOf.get(crawler) ?? null
   }
 
   const ownerOfAppId = new Map<string, AccountBundle>()
