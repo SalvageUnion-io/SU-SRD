@@ -6,9 +6,9 @@
  * Run by `.github/workflows/deploy-cloudflare.yml` (`su-shared`) and
  * `deploy-preview.yml` (`su-shared-preview`), from `apps/web`:
  *
- *   1. creates the database when the account has none of that name, so the
- *      first deploy needs no hand step and the Worker's binding finds it by
- *      name (`wrangler.jsonc` carries no `database_id`);
+ *   1. creates the database when the account has none of that name (a new
+ *      one's id then goes into `wrangler.jsonc`, which pins both, because a
+ *      Preview cannot provision a database by name);
  *   2. applies every migration it has not had, through a one-binding config
  *      naming it, because `wrangler d1 migrations apply` only takes a
  *      database from a config's top-level `d1_databases`, and a Preview's
