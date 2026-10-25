@@ -130,9 +130,7 @@ describe('NewEntityScreen — signed out, deep-linked', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
     })
-    expect(convexMocks.signIns).toEqual([
-      ['discord', { redirectTo: '/mechs/new?mode=guided&chassis=mule' }],
-    ])
+    expect(convexMocks.signIns).toEqual([['/mechs/new?mode=guided&chassis=mule']])
   })
 })
 

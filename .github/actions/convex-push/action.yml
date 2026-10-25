@@ -9,9 +9,6 @@ description: Push the app's Convex functions once the deploy key is confirmed to
 # CANONICAL_CONVEX_URL, so it is used as a guard: if the key names a
 # deployment other than the one the site was compiled against, the command
 # fails, `convex deploy` stops before pushing, and nothing ships.
-#
-# The backend's SITE_URL is the caller's step: production's is a constant,
-# a Preview's is the URL wrangler reports once it ships.
 inputs:
   deploy-key:
     description: The Convex deploy key (CONVEX_DEPLOY_KEY)

@@ -1,15 +1,16 @@
 ---
 name: convex-ops
-description: Use when setting up or checking the app's Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "salvageunion.io is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting (the log stream into Workers Issues).
+description: Use when setting up or checking the app's Convex deployment, when Discord sign-in fails or answers 503, when the bot replies "salvageunion.io is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating the sign-in key or DISCORD_CLIENT_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting (the log stream into Workers Issues).
 allowed-tools: Bash, Read
 ---
 
 # Convex operations
 
-Every failure on this path is **silent, and misattributes**. A missing
-`SITE_URL` reports a 500 that looks like a server fault; a `.convex.cloud` where
-`.convex.site` belongs reports "deployment unreachable", which points at the
-network rather than at the typo. The commands are trivial; the traps are not.
+Every failure on this path is **silent, and misattributes**. A sign-in key
+whose public half Convex does not hold signs the player in on the Worker and
+leaves every Convex call signed out; a `.convex.cloud` where `.convex.site`
+belongs reports "deployment unreachable", which points at the network rather
+than at the typo. The commands are trivial; the traps are not.
 
 The deployments: [Convex deployments](../../../docs/ARCHITECTURE.md#deployments);
 the variables: [Convex environment](../../../docs/ARCHITECTURE.md#convex-env).
@@ -31,8 +32,8 @@ report.
 pushes `convex/` on every save and writes `CONVEX_DEPLOYMENT`,
 `VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/web/.env.local`. It
 signs in through the test seam, not Discord: the `dev` script sets
-`VITE_TEST_AUTH=true`, and the deployment needs `TEST_AUTH`. Production
-has neither. It refuses to start on a cloud `CONVEX_DEPLOYMENT`
+`VITE_TEST_AUTH=true`, which the dev server's sign-in (`astro/build/devAuth.ts`) reads
+too, and the deployment needs `TEST_AUTH`. Production has neither. It refuses to start on a cloud `CONVEX_DEPLOYMENT`
 (`scripts/assert-local-convex.ts`): `.worktreeinclude` copies `.env.local` into
 every worktree, so a cloud dev deployment is one backend that every worktree's
 pushes overwrite. One-time setup, from `apps/web`:
@@ -44,8 +45,10 @@ pushes overwrite. One-time setup, from `apps/web`:
 bunx convex dev --configure existing --team alex-jarvis --project susrd \
   --dev-deployment local --once
 
-# Then, with `bun run dev` running, in a second terminal:
-bunx @convex-dev/auth --web-server-url http://localhost:4321/build   # SITE_URL + JWT keys
+# Then, with `bun run dev` running, in a second terminal: the dev server
+# prints the AUTH_JWKS command on its first start (its key is
+# apps/web/.wrangler/dev-auth-key.json).
+bunx convex env set AUTH_JWKS "$(bun scripts/authKeys.ts .wrangler/dev-auth-key.json)"
 bunx convex env set TEST_AUTH true
 ```
 
@@ -76,34 +79,38 @@ In a browser: `await __appTestSignIn('agent@example.com', 'agent-dev-pass-1', 's
 
 ## Secrets never touch argv or stdout
 
-- **Pipe a secret in on stdin; never pass it as an argument.** A PEM begins
-  `-----BEGIN`, which the CLI parses as flags; and Node's `execFileSync` embeds
+- **Pipe a secret in on stdin; never pass it as an argument.** Node's `execFileSync` embeds
   the whole command line in its error message, so a failure prints the secret
   even with output suppressed.
 - **Check presence by length, never by exit code.** `bunx convex env get`
   exits 0 for a variable that does not exist and prints in the clear:
 
   ```bash
-  bunx convex env get AUTH_DISCORD_SECRET | tr -d '[:space:]' | wc -c
+  bunx convex env get BOT_SECRET | tr -d '[:space:]' | wc -c
   ```
 
   A plausible length means present; `0` means absent.
 
-## 1. Set the sign-in variables
+## 1. Set up sign-in
+
+Sign-in runs on the su-srd Worker (`apps/web/src/worker/auth/`): Discord OAuth,
+accounts and sessions in D1 (`SHARED`: `su-shared`; Previews `su-shared-preview`), and
+a ten-minute ES256 token Convex accepts as a custom JWT provider
+(`convex/auth.config.ts`). Three Worker secrets and one Convex variable, from
+`apps/web` (a Preview's secrets with `wrangler preview secret put`):
 
 ```bash
-bunx convex env set --prod AUTH_DISCORD_ID <client-id>
-bunx convex env set --prod SITE_URL        https://salvageunion.io/build
+bunx wrangler secret put DISCORD_CLIENT_ID       # the Discord application's
+bunx wrangler secret put DISCORD_CLIENT_SECRET   # OAuth client, on stdin
+umask 077; bun scripts/authKeys.ts key.json > jwks.txt   # a fresh pair
+bunx wrangler secret put AUTH_SIGNING_KEY < key.json
+bunx convex env set --prod AUTH_JWKS "$(cat jwks.txt)"
+rm key.json jwks.txt
 ```
 
-`AUTH_DISCORD_SECRET` and the `JWT_PRIVATE_KEY` / `JWKS` pair go in on stdin,
-as in the rotation sections below. `SITE_URL` is the **frontend** address,
-base included (`https://salvageunion.io/build`, ADR-048), not
-`VITE_CONVEX_SITE_URL` and not the `.convex.site` host; every production
-deploy of the web app sets it (`deploy-cloudflare.yml`), so set it by hand only on a
-new deployment. Without the JWT pair, sign-in
-fails only after Discord redirects back, which the probe in step 3 never
-reaches, so check both by length.
+The Discord application lists `<origin>/auth/callback` as a redirect for
+every origin that signs in (production, and `pr-<n>-su-srd.<subdomain>.workers.dev`
+for a Preview). Without the Discord pair `/auth/sign-in` answers 503.
 
 ## 2. Wire the Discord bot
 
@@ -135,47 +142,29 @@ so Convex holds no Discord token. A post that fails says why in Play's Feed.
 ## 3. Verify sign-in without signing in
 
 ```bash
-curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/discord | grep -i location
-curl -s -D - -o /dev/null https://<deployment>.convex.site/api/auth/callback/bogusprovider
+curl -s -D - -o /dev/null https://salvageunion.io/auth/sign-in | grep -iE '^(HTTP|location)'
+curl -s -o /dev/null -w '%{http_code}\n' https://salvageunion.io/auth/token
 ```
 
-| Discord callback                       | Means                                                      |
-| -------------------------------------- | ---------------------------------------------------------- |
-| **302** → your `SITE_URL`              | Correctly configured.                                      |
-| **500** `Missing environment variable` | `SITE_URL` unset.                                          |
-| **404**                                | Auth routes not mounted: check `convex/http.ts` deployed.  |
+A **302** to `discord.com/oauth2/authorize` with this origin's
+`/auth/callback` means the Discord pair is set; **503** means it is not. The
+token endpoint answers **401** signed out. Only a real sign-in proves the
+`AUTH_JWKS` half: after it, `account:me` must answer the player, not `null`.
 
-The bogus-provider control must return **500**. Without it, a router that
-answers everything looks identical to one correctly configured for Discord.
+## Rotating the sign-in key
 
-## Rotating `JWT_PRIVATE_KEY` / `JWKS`
+The key signs only ten-minute tokens, so rotating it signs nobody out of the
+Worker: set the new `AUTH_SIGNING_KEY` and the new `AUTH_JWKS` (step 1) back
+to back, and Convex refuses tokens for at most ten minutes in between.
 
-Rotating the pair **signs every user out**; old sessions were signed by the key
-you replaced. Generate both together: `bunx @convex-dev/auth`, with the
-deployment's flag, generates a matching RS256 pair and writes both (it asks
-before overwriting). A pair made elsewhere goes in on stdin, both halves:
-
-```bash
-printf '%s' "$PEM" | bunx convex env set JWT_PRIVATE_KEY --deployment-name <name>
-printf '%s' "$JWKS" | bunx convex env set JWKS --deployment-name <name>
-```
-
-Verify against the public endpoint, which needs no secret: the modulus `n` must
-change. Unchanged means the write did not land and the old key is still live,
-which looks identical to success from the CLI.
-
-```bash
-curl -s https://<deployment>.convex.site/.well-known/jwks.json
-```
-
-## Rotating `AUTH_DISCORD_SECRET`
+## Rotating `DISCORD_CLIENT_SECRET`
 
 Resetting it in the Discord portal invalidates the old value **immediately**, so
-sign-in is broken until Convex is updated. Have the command ready, then reset,
-copy, and run it back to back:
+sign-in is broken until the Worker is updated. Have the command ready, then
+reset, copy, and run it back to back:
 
 ```bash
-pbpaste | tr -d '\n' | bunx convex env set AUTH_DISCORD_SECRET --deployment-name <name>
+pbpaste | tr -d '\n' | bunx wrangler secret put DISCORD_CLIENT_SECRET
 ```
 
 Guard on **length 32** before writing: if the copy silently failed, refusing
@@ -231,6 +220,5 @@ a deployment, so taking Convex out of the path is an outage, not a toggle.
 ## Report
 
 State which deployment you touched, which variables you set (**names only,
-never values**), and the literal status each probe returned, including the
-bogus-provider control. "Sign-in works" without the probe output is not a
+never values**), and the literal status each probe returned. "Sign-in works" without the probe output is not a
 verification.

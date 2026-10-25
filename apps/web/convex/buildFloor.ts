@@ -22,4 +22,4 @@
  * Never lower it. A value lower than one already deployed would let back in
  * tabs that this backend refuses.
  */
-export const BUILD_FLOOR = 1792927586
+export const BUILD_FLOOR = 1792931576

@@ -227,8 +227,7 @@ describe('the session', () => {
   })
 
   test('booted offline with a session, the device’s copy is the answer', async () => {
-    const sub = btoa(JSON.stringify({ sub: 'u1|s1' }))
-    localStorage.setItem('__convexAuthJWT_test', `h.${sub}.s`)
+    localStorage.setItem('su:session', 'u1')
     const kept = {
       table: 'pilot' as const,
       id: 'p1',

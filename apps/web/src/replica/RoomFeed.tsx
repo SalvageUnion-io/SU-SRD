@@ -4,15 +4,14 @@
  * own scope (`roomSocket.ts`). Mounted by `ReplicaSync` in `ConvexFeed`'s
  * place while live, when the build turns it on (`VITE_ROOM_FEED`).
  *
- * Until the Worker signs players in, a socket carries the Convex
- * session token, as the presence socket does (`worker/roomAuth.ts`), and the
- * player's Games are Convex's `games.listMine`.
+ * A socket carries the Worker's session token, as the presence socket does
+ * (`worker/roomAuth.ts`), and the player's Games are Convex's `games.listMine`.
  */
 
-import { useAuthToken } from '@convex-dev/auth/react'
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../convex/_generated/api'
+import { useSessionToken } from '../lib/auth/session'
 import { accountSocketPath, gameSocketPath } from '../rooms/routes'
 import { gameScope, serve, setRoomScopes, TABLES } from './replica'
 import { openRoom } from './roomSocket'
@@ -26,7 +25,7 @@ function GameFeed({ gameId, token }: { gameId: string; token: string }) {
 }
 
 export function RoomFeed() {
-  const token = useAuthToken()
+  const token = useSessionToken()
   const games = useQuery(api.games.listMine, {})
   useEffect(() => {
     setRoomScopes(true)

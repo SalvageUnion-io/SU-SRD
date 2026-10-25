@@ -10,6 +10,7 @@
  * kept and a reload offline starts empty.
  */
 
+import { storedSessionAccount } from '../lib/auth/storedSession'
 import { localStore } from '../lib/safeLocalStorage'
 import type { Change, Scope, Table } from './replica'
 import { onChanges, restore } from './replica'
@@ -109,37 +110,14 @@ export function setReplicaStorage(next: ReplicaStorage | null): void {
   storage = next ?? indexedDbStorage
 }
 
-/** `@convex-dev/auth`'s session token key, before its per-deployment suffix. */
-const SESSION_TOKEN_KEY = '__convexAuthJWT'
-
 /**
- * The account whose session is on this device: the session token's subject,
- * `<userId>|<sessionId>`, read without verifying it (the server verifies; this
- * only names whose rows to read). `null` when there is no session.
+ * The account whose session is on this device (`lib/auth/storedSession.ts`):
+ * it names whose rows to read, never a credential. `null` when there is none.
  */
 export function sessionAccount(
-  store: Pick<Storage, 'length' | 'key' | 'getItem'> | null = localStore()
+  store: Pick<Storage, 'getItem'> | null = localStore()
 ): string | null {
-  if (store === null) return null
-  for (let i = 0; i < store.length; i += 1) {
-    const key = store.key(i)
-    if (key === null || !key.startsWith(SESSION_TOKEN_KEY)) continue
-    const subject = tokenSubject(store.getItem(key))
-    if (subject !== null) return subject.split('|')[0] || null
-  }
-  return null
-}
-
-function tokenSubject(token: string | null): string | null {
-  const payload = token?.split('.')[1]
-  if (!payload) return null
-  try {
-    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-    const sub = (JSON.parse(json) as { sub?: unknown }).sub
-    return typeof sub === 'string' ? sub : null
-  } catch {
-    return null
-  }
+  return storedSessionAccount(store)
 }
 
 /**

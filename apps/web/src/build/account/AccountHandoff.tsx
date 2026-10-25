@@ -1,10 +1,9 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useNavigate } from '@tanstack/react-router'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { Text } from '../../components/index'
 import { returnTo } from '../../lib/account/returnTo'
-import { captureException } from '../../lib/observability'
+import { signIn } from '../../lib/auth/session'
 import { buildAccountCopy } from '../../messages/build-account'
 import { useSync } from '../../replica/syncContext'
 import { useSignOut } from './useSignOut'
@@ -33,7 +32,6 @@ function Handoff({ children }: { children: string }) {
 
 export function SignInHandoff() {
   const { status } = useSync()
-  const { signIn } = useAuthActions()
   const navigate = useNavigate()
   const started = useRef(false)
 
@@ -41,16 +39,12 @@ export function SignInHandoff() {
     if (status === 'syncing' || started.current) return
     started.current = true
     if (status === 'signedOut') {
-      // Discord's page replaces this one; a failure to start is reported and
-      // leaves the player on the Training Bay's own sign-in.
-      signIn('discord').catch((err: unknown) => {
-        captureException(err)
-        void navigate({ to: '/', replace: true })
-      })
+      // Discord's page replaces this one, by way of the Worker.
+      signIn()
     } else {
       void navigate({ to: '/', replace: true })
     }
-  }, [status, signIn, navigate])
+  }, [status, navigate])
 
   return <Handoff>{buildAccountCopy('signingInWithDiscord')}</Handoff>
 }

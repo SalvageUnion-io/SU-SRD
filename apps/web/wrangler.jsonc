@@ -34,6 +34,12 @@
   //   without them it unfurls as text.
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
   //   secret. Without it POST /__convex-logs answers 503.
+  // - DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET, the Discord application's
+  //   OAuth client (its redirect: <origin>/auth/callback), and
+  //   AUTH_SIGNING_KEY, the private half of `bun scripts/authKeys.ts`, whose
+  //   public half is the Convex deployment's AUTH_JWKS. Without them
+  //   /auth/sign-in answers 503 and nobody signs in (src/worker/auth/).
+  //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
   // - GITHUB_FEEDBACK_TOKEN, a GitHub token that may open issues on SU-SRD.
   //   Without it feedback waits in the shared database and is never filed.
 
@@ -46,8 +52,9 @@
 
   // SHARED: the shared database (D1), what crosses rooms: public sheets,
   // Homebrew, Games, memberships and invites (src/worker/shared/). Its tables
-  // are migrations/*.sql, applied by the deploy before the Worker ships. The
-  // ids are pinned because a Preview cannot provision a database by name.
+  // are migrations/*.sql, applied by the deploy before the Worker ships;
+  // sign-in's accounts and sessions make theirs on first use
+  // (src/worker/auth/store.ts). The ids are pinned because a Preview cannot provision a database by name.
   "d1_databases": [
     {
       "binding": "SHARED",

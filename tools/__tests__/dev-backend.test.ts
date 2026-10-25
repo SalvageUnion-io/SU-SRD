@@ -10,7 +10,6 @@ import type { Browser } from '@playwright/test'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { RunResult, Sys } from '../dev-backend'
 import {
-  authKeys,
   backendPins,
   backendPorts,
   backendUrl,
@@ -69,12 +68,6 @@ test("backendPorts clear convex dev --local's 3210 and follow the checkout's off
   const worktree = backendPorts(tree({ '.git': 'gitdir: x' }))
   expect(worktree.api).toBeGreaterThan(3311)
   expect(worktree.site).toBe(worktree.api + 1)
-})
-
-test('authKeys makes a PKCS#8 key and its JWKS', async () => {
-  const { privateKey, jwks } = await authKeys()
-  expect(privateKey).toStartWith('-----BEGIN PRIVATE KEY-----')
-  expect(JSON.parse(jwks).keys[0]).toMatchObject({ kty: 'RSA', use: 'sig', alg: 'RS256' })
 })
 
 /** What the stand-in machine was asked to do, and how it answers. */
@@ -261,11 +254,8 @@ describe('main', () => {
     const state = join(s.root, STATE_DIR)
     const runs = world.calls.filter((c) => c.startsWith('run bunx convex'))
     expect(runs.map((c) => c.split(' --env-file')[0])).toEqual([
-      'run bunx convex env get JWKS',
-      expect.stringContaining('env set JWT_PRIVATE_KEY --from-file'),
-      expect.stringContaining('env set JWKS --from-file'),
+      expect.stringContaining('run bunx convex env set AUTH_JWKS data:'),
       'run bunx convex env set TEST_AUTH true',
-      `run bunx convex env set SITE_URL ${s.dev}/build`,
       'run bunx convex deploy -y',
     ])
     // Every convex call names its own env file and blanks CONVEX_DEPLOYMENT.
@@ -273,8 +263,8 @@ describe('main', () => {
     expect(readFileSync(join(state, 'convex.env'), 'utf8')).toContain(
       'CONVEX_SELF_HOSTED_ADMIN_KEY=admin-key-1'
     )
-    // The keypair's files never outlive the call that read them.
-    expect(existsSync(join(state, 'jwt.key'))).toBe(false)
+    // The sign-in's key is made once, in the state directory.
+    const key = readFileSync(join(state, 'auth-key.json'), 'utf8')
     expect(world.calls).toContain(`spawn bun ${s.api}`)
     expect(world.calls).toContain(`seed ${s.dev} ${SEED_ACCOUNT.email}`)
     expect(JSON.parse(readFileSync(join(state, 'seed.json'), 'utf8'))).toEqual({
@@ -285,7 +275,7 @@ describe('main', () => {
     expect(world.logs.at(-1)).toContain('ready:')
     expect(world.calls.slice(-2)).toEqual(['stop bun', 'stop convex-local-backend'])
 
-    // A restart keeps the secret and the seed, and an existing keypair.
+    // A restart keeps the secret, the seed and the sign-in's key.
     const secret = readFileSync(join(state, 'instance-secret'), 'utf8')
     const again = fakeSys({
       comesUp: world.comesUp,
@@ -293,7 +283,7 @@ describe('main', () => {
         cmd.includes('keygen') ? ok('admin-key-1') : cmd.includes('get') ? ok('{"keys":[]}') : ok(),
     })
     expect(await main([], again.sys, s)).toBe(0)
-    expect(again.world.calls.some((c) => c.includes('JWT_PRIVATE_KEY'))).toBe(false)
+    expect(readFileSync(join(state, 'auth-key.json'), 'utf8')).toBe(key)
     expect(again.world.calls.some((c) => c.startsWith('seed'))).toBe(false)
     expect(readFileSync(join(state, 'instance-secret'), 'utf8')).toBe(secret)
 

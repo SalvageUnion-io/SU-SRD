@@ -104,7 +104,9 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // Measured 27,517 on Vite 8.3.5, which Astro 7 needs (ADR-065): its
     // preload helper dedupes in-flight preloads, 323 bytes more. Measured
     // 27,697 built by Astro: its client build keeps the helper's `relList`
-    // check, 146 bytes more.
+    // check, 146 bytes more. Measured 27,570 once sign-in moved to the
+    // Worker: the bar's hint reads one key instead of scanning for Convex
+    // Auth's.
     expect(totals.bytes).toBeLessThan(27_800)
   })
 
