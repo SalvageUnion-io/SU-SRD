@@ -56,9 +56,9 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
-18. **Surfaces and enforcement (ADR-021)** <a id="surfaces"></a>
-    Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`).
-    Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
+18. **Surfaces and enforcement** · ADR-007, ADR-009, ADR-021 · [spec](architecture/surfaces.md) <a id="surfaces"></a>
+    Enforcement follows the surface's mode: Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`). Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
+    The app automates bookkeeping (Heat, EP / AP, uses, SP damage) but never changes a condition or destroys without the player; conditions cycle intact → damaged → destroyed by `StatusBadge`.
 19. **Live-Sheet transactions** <a id="live-sheet"></a>
     A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
     Any new transaction goes in Play.
@@ -127,15 +127,8 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry and a change to its Area; once built, it folds into that Area.
 Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-047.
 
-7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
-   Automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
 8. **ADR-008 Sequential client-side mutations**
    No atomic transaction or rollback; affordability is checked before an action runs.
-9. **ADR-009 Item condition model**
-   Intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
-21. **ADR-021 App surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
-    Governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
-    Wins over any earlier ADR; the live matrix is [surfaces](#surfaces). Amended by ADR-051.
 22. **ADR-022 Change Log and stat overrides**
     Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex.
