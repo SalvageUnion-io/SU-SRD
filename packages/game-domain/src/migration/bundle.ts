@@ -62,6 +62,14 @@ const BundleLinkSchema = z.object({
   slot: z.unknown().optional(),
 })
 
+/** The area a table is salvaging (Core Book p.245): a Game's, or one player's solo table's. */
+const BundleSalvageAreaSchema = z.object({
+  name: z.string(),
+  techLevel: z.number().int(),
+  supply: z.number().int(),
+  updatedAt: z.number(),
+})
+
 export const AccountBundleSchema = z.object({
   discordId: z.string(),
   name: z.string().nullable(),
@@ -73,6 +81,8 @@ export const AccountBundleSchema = z.object({
   links: z.array(BundleLinkSchema),
   seats: z.array(z.record(z.string(), z.unknown())),
   channelBindings: z.array(z.record(z.string(), z.unknown())),
+  /** The player's solo salvage area, if they set one. */
+  salvageArea: BundleSalvageAreaSchema.nullable().default(null),
 })
 export type AccountBundle = z.infer<typeof AccountBundleSchema>
 
@@ -100,6 +110,36 @@ export const GameBundleSchema = z.object({
   channelBindings: z.array(z.record(z.string(), z.unknown())),
   /** Patterns shared with this Game's crew (ADR-032 §7), by app id. */
   crewPatterns: z.array(z.string()),
+  /** The Scene's conditions and the hours passed under them; null is a clear Scene. */
+  scene: z
+    .object({ conditions: z.array(z.string()), hours: z.number().int(), updatedAt: z.number() })
+    .nullable()
+    .default(null),
+  salvageArea: BundleSalvageAreaSchema.nullable().default(null),
+  /** The factions and jobs, one `LedgerSchema` body (`game-domain/schemas/ledger`). */
+  ledger: Body.nullable().default(null),
+  /** The Safety Protocols' lists (Core Book pp.12-13); `addedBy` is a Discord id, never shown. */
+  boundaries: z
+    .array(
+      z.object({
+        id: z.string(),
+        kind: z.string(),
+        text: z.string(),
+        addedBy: z.string(),
+        addedAt: z.number(),
+      })
+    )
+    .default([]),
+  /** The Stop Sign: who showed it (a Discord id) while it is up, and its Discord opt-in. */
+  stopSign: z
+    .object({
+      shownBy: z.string().nullable(),
+      shownAt: z.number().nullable(),
+      postToChannel: z.boolean(),
+      postedAt: z.number().nullable(),
+    })
+    .nullable()
+    .default(null),
 })
 export type GameBundle = z.infer<typeof GameBundleSchema>
 

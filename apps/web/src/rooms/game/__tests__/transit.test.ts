@@ -251,6 +251,11 @@ function bundle(over: Partial<GameBundle> = {}): GameBundle {
     runningEncounter: null,
     channelBindings: [],
     crewPatterns: [],
+    scene: null,
+    salvageArea: null,
+    ledger: null,
+    boundaries: [],
+    stopSign: null,
     ...over,
   }
 }
@@ -273,6 +278,36 @@ describe('the cutover import', () => {
     const runId = room.play.downtime(PLAYER)?.runId ?? ''
     const step = op('p1', { currentHP: 9 }, { id: `downtime:${runId}:p1:1` })
     expect(room.units.submit(PLAYER, [step])).toEqual({ ok: true, applied: [] })
+  })
+
+  test('carries the Scene, the salvage area, the ledger and the Safety Protocols over', () => {
+    const { room } = emptyRoom('convex-game-1')
+    const state = bundle({
+      scene: { conditions: ['freezing'], hours: 2, updatedAt: AT - 3 },
+      salvageArea: { name: 'Camp', techLevel: 2, supply: 3, updatedAt: AT - 2 },
+      ledger: { factions: [], jobs: [], incomeCollected: false },
+      boundaries: [
+        { id: 'b1', kind: 'offCamera', text: 'Spiders', addedBy: PLAYER, addedAt: AT - 1 },
+      ],
+      stopSign: { shownBy: PLAYER, shownAt: AT - 1, postToChannel: true, postedAt: null },
+    })
+    room.transit.importGame(state, AT)
+    expect(room.transit.diffImport(state)).toEqual([])
+    expect(room.scene.scene(PLAYER)).toMatchObject({ conditions: ['freezing'], hours: 2 })
+    expect(room.scene.salvageArea(PLAYER)).toMatchObject({ name: 'Camp', supply: 3 })
+    expect(room.ledger.ledger(PLAYER)).not.toBeNull()
+    expect(room.safety.boundaries(PLAYER)).toMatchObject([{ text: 'Spiders', mine: true }])
+    expect(room.safety.stopSign(PLAYER)).toMatchObject({
+      stop: { shownAt: AT - 1, mine: true },
+      postToChannel: true,
+    })
+    expect(room.transit.diffImport(bundle())).toEqual([
+      'boundaries: 1 ≠ 0',
+      'scene: not in the bundle',
+      'salvage_area: not in the bundle',
+      'ledger: not in the bundle',
+      'stop_sign: not in the bundle',
+    ])
   })
 
   test('the diff names what differs, and another Game’s room refuses the import', () => {
