@@ -20,7 +20,7 @@ import { HUB_BODY } from './hubStyles.model'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)
-  const sent = useQuery(api.proposals.sent, { gameId, limit })
+  const sent = useQuery(api.ops.sent, { gameId, limit })
   return (
     <SlabSection
       as="h2"

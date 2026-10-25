@@ -4,6 +4,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { OpInput } from 'game-domain/ops/applyOp'
 import { applyOp, diffBodies, isEmptyOp, unitOf } from 'game-domain/ops/applyOp'
+import { isDowntimeStepOp } from 'game-domain/ops/downtimeStep'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx } from '../_generated/server'
 import { assertMayEditCrawler, crawlerByAppId, moveCrawlerRow } from './crawlerWrites'
@@ -36,8 +37,11 @@ export const UNIT_OP = {
 
 type UnitOpArgs = ObjectType<typeof UNIT_OP>
 
-/** What the author's copy needs back: the snapshot's seq and the row's version. */
-export type Applied = { headSeq: number; updatedAt: number }
+/**
+ * What the author's copy needs back: the snapshot's seq and the row's version,
+ * and whether this send applied the op (false when an earlier one had).
+ */
+export type Applied = { headSeq: number; updatedAt: number; fresh: boolean }
 
 type UnitRow = Doc<'pilots'> | Doc<'mechs'> | Doc<'npcs'> | Doc<'crawlers'>
 
@@ -76,22 +80,27 @@ export async function applyUnitOp(
   return row === null ? null : applyToRow(ctx, userId, args.unit, row, args.op)
 }
 
-/** `applyUnitOp` on a row already found and checked. */
+/**
+ * `applyUnitOp` on a row already found and checked. `proposal` is the
+ * proposed op row being accepted, which becomes the applied op.
+ */
 export async function applyToRow(
   ctx: MutationCtx,
   userId: Id<'users'>,
   kind: EntityKind,
   row: UnitRow,
-  input: OpInput
+  input: OpInput,
+  proposal?: Id<'ops'>
 ): Promise<Applied> {
+  const unchanged = { headSeq: row.headSeq ?? 0, updatedAt: row.updatedAt, fresh: false }
   const seen = await ctx.db
     .query('ops')
     .withIndex('by_op_id', (q) => q.eq('opId', input.id))
     .first()
-  if (seen !== null) return { headSeq: row.headSeq ?? 0, updatedAt: row.updatedAt }
+  if (seen !== null && seen._id !== proposal) return unchanged
 
   const op = kind === 'crawler' ? withoutContainer(input) : input
-  if (isEmptyOp(op)) return { headSeq: row.headSeq ?? 0, updatedAt: row.updatedAt }
+  if (isEmptyOp(op) && !isDowntimeStepOp(op.id)) return unchanged
 
   const unit = unitOf(
     kind,
@@ -117,27 +126,28 @@ export async function applyToRow(
     fieldSeqs: result.unit.fieldSeqs,
     updatedAt,
   })
-  await ctx.db.insert('ops', {
-    gameId,
-    unitKind: kind,
-    unitId: logIdOf(row),
-    opId: op.id,
-    seq: result.seq,
-    baseSeq: op.baseSeq,
-    author: userId,
-    at: op.at,
-    kind: op.kind,
-    source: op.source,
-    state: 'applied',
-    patch: op.patch,
-    ...(op.unset === undefined ? {} : { unset: op.unset }),
-    before: result.before,
-  })
+  const applied = { seq: result.seq, at: op.at, state: 'applied' as const, before: result.before }
+  if (proposal !== undefined) await ctx.db.patch(proposal, applied)
+  else {
+    await ctx.db.insert('ops', {
+      ...applied,
+      gameId,
+      unitKind: kind,
+      unitId: logIdOf(row),
+      opId: op.id,
+      baseSeq: op.baseSeq,
+      author: userId,
+      kind: op.kind,
+      source: op.source,
+      patch: op.patch,
+      ...(op.unset === undefined ? {} : { unset: op.unset }),
+    })
+  }
   if (moved) {
     const table = TABLE_OF_KIND[kind] as OwnedTable
     await afterOwnableMove(ctx, table, row._id as Id<OwnedTable>, row.gameId)
   }
-  return { headSeq: result.seq, updatedAt }
+  return { headSeq: result.seq, updatedAt, fresh: true }
 }
 
 /** A crawler op without its container: only `moveCrawler` moves a crawler. */

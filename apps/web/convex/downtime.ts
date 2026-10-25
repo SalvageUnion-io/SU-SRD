@@ -1,4 +1,5 @@
 import { ConvexError, v } from 'convex/values'
+import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { downtimeGuideSteps, isUpkeepStep, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
@@ -6,7 +7,6 @@ import { query } from './_generated/server'
 import { displayNameOf } from './account'
 import { mutation } from './model/entities'
 import { membershipOrNull, requireMediator, requireMember, requireUser } from './model/permissions'
-import { downtimeClaim } from './model/playTables'
 import { loadReferenceData } from './model/referenceData'
 import { readSeat, writeSeat } from './model/seats'
 import { bumpCount } from './model/usage'
@@ -26,7 +26,7 @@ import { shelfRowOf, writablePilot } from './seats'
  * (`downtimeAt` resolves the place to its store); only who may act differs. In
  * a Game the Mediator begins, moves and ends it and pays Upkeep; solo, the
  * pilot's owner does (`writablePilot` with no Game). Either way whoever may
- * write a pilot claims its steps.
+ * write a pilot takes its steps.
  *
  * ## Upkeep is spent once, not six times
  *
@@ -51,13 +51,14 @@ import { shelfRowOf, writablePilot } from './seats'
  *
  * ## A step applies once per pilot
  *
- * What a step applies (Train's +1 TP, Restore) is claimed per pilot before it
- * is applied (`claimStep`): a Game's row keeps `claimed`, a solo seat its
- * `doneSteps`, read and written here as the same claims. `completedBy` cannot
- * do it: it is per member, it clears on every move, and a player may untick
- * it. Claims clear only when a Downtime ends or a fresh one begins, never on a
- * step change or Undo, so Undo, the Mediator's Back and a reload never let a
- * step apply twice.
+ * What a step applies (Train's +1 TP, Restore) is one op on the pilot with a
+ * stable id (`downtimeStepOpId`: the Downtime's start, the pilot, the step;
+ * ADR-063 §6), sent through `ops.apply`, so a second send is a no-op. Skip
+ * sends the same op with nothing in it. `state` reads which steps a pilot has
+ * taken back off those ids. `completedBy` cannot do it: it is per member, it
+ * clears on every move, and a player may untick it. A new Downtime has a new
+ * start, so its steps apply afresh; Undo, the Mediator's Back and a reload
+ * never let one apply twice.
  */
 
 /**
@@ -71,14 +72,11 @@ function clampStep(stepIndex: number): number {
   return Math.max(0, Math.min(Math.trunc(stepIndex), steps.length - 1))
 }
 
-type Claim = { pilotId: string; stepIndex: number }
-
 /** A running Downtime, at either place. */
 type Running = {
   stepIndex: number
   startedAt: number | null
   upkeepSpent: boolean
-  claimed: Claim[]
   /** The Game's members done with the step; always empty solo. */
   completedBy: Id<'users'>[]
 }
@@ -107,20 +105,18 @@ function gameRunning(row: Doc<'downtime'> | null): Running | null {
     stepIndex: row.stepIndex,
     startedAt: row.startedAt,
     upkeepSpent: row.upkeepSpent,
-    claimed: row.claimed ?? [],
     completedBy: row.completedBy,
   }
 }
 
-/** A solo seat's Downtime, its `doneSteps` read as the pilot's claims. */
-function soloRunning(seat: Doc<'seats'> | null, pilotId: string): Running | null {
+/** A solo seat's Downtime. */
+function soloRunning(seat: Doc<'seats'> | null): Running | null {
   const downtime = seat?.downtime
   if (downtime === undefined) return null
   return {
     stepIndex: downtime.stepIndex,
     startedAt: downtime.startedAt,
     upkeepSpent: downtime.upkeepSpent,
-    claimed: (downtime.doneSteps ?? []).map((stepIndex) => ({ pilotId, stepIndex })),
     completedBy: [],
   }
 }
@@ -128,7 +124,7 @@ function soloRunning(seat: Doc<'seats'> | null, pilotId: string): Running | null
 /** Where a Downtime is: a Game's (`gameId`), or a solo pilot's (`gameId` null and `pilotId`). */
 const PLACE_ARGS = {
   gameId: v.union(v.id('games'), v.null()),
-  /** The solo pilot; a Game's Downtime needs none. */
+  /** The solo pilot; in a Game, the pilot whose `doneSteps` `state` reads. */
   pilotId: v.optional(v.string()),
 }
 
@@ -155,7 +151,7 @@ async function downtimeAt(
     const pilotId = pilotOf(place)
     const { place: seat } = await writablePilot(ctx, null, pilotId)
     return {
-      running: soloRunning(await readSeat(ctx, seat, pilotId), pilotId),
+      running: soloRunning(await readSeat(ctx, seat, pilotId)),
       write: async (next) => {
         await writeSeat(ctx, seat, pilotId, () => ({
           downtime:
@@ -165,7 +161,6 @@ async function downtimeAt(
                   stepIndex: next.stepIndex,
                   startedAt: next.startedAt ?? Date.now(),
                   upkeepSpent: next.upkeepSpent,
-                  doneSteps: next.claimed.map((c) => c.stepIndex),
                 },
         }))
       },
@@ -177,8 +172,7 @@ async function downtimeAt(
   return {
     running: gameRunning(row),
     write: async (next) => {
-      const fields =
-        next === null ? { stepIndex: null, startedAt: null, completedBy: [], claimed: [] } : next
+      const fields = next === null ? { stepIndex: null, startedAt: null, completedBy: [] } : next
       if (row !== null) await ctx.db.patch(row._id, fields)
       else await ctx.db.insert('downtime', { gameId, upkeepSpent: false, ...fields })
     },
@@ -206,9 +200,29 @@ const DOWNTIME_STATE = v.object({
   startedAt: v.union(v.number(), v.null()),
   completedBy: v.array(v.object({ userId: v.id('users'), displayName: v.string() })),
   upkeepSpent: v.boolean(),
-  /** Each step a pilot has claimed this Downtime (`claimStep`). */
-  claimed: v.array(downtimeClaim),
+  /** The steps `pilotId` has taken this Downtime (their step ops); empty with no pilot. */
+  doneSteps: v.array(v.number()),
 })
+
+/** The steps a pilot has taken in the Downtime begun at `startedAt`: its step ops that landed. */
+async function doneStepsOf(
+  ctx: QueryCtx,
+  startedAt: number | null,
+  pilotId: string | undefined
+): Promise<number[]> {
+  if (pilotId === undefined) return []
+  loadReferenceData()
+  const done: number[] = []
+  for (let step = 0; step < downtimeGuideSteps().length; step++) {
+    const opId = downtimeStepOpId(startedAt ?? 0, pilotId, step)
+    const op = await ctx.db
+      .query('ops')
+      .withIndex('by_op_id', (q) => q.eq('opId', opId))
+      .first()
+    if (op !== null) done.push(step)
+  }
+  return done
+}
 
 /**
  * The Downtime at a place: a Game's for its members, with who has finished the
@@ -224,7 +238,7 @@ export const state = query({
       const pilotId = pilotOf(args)
       const userId = await requireUser(ctx)
       if ((await shelfRowOf(ctx, userId, 'pilots', pilotId)) === null) return null
-      running = soloRunning(await readSeat(ctx, { ownerId: userId }, pilotId), pilotId)
+      running = soloRunning(await readSeat(ctx, { ownerId: userId }, pilotId))
     } else {
       if ((await membershipOrNull(ctx, args.gameId)) === null) return null
       running = gameRunning(await gameRow(ctx, args.gameId))
@@ -236,7 +250,7 @@ export const state = query({
         startedAt: null,
         completedBy: [],
         upkeepSpent: false,
-        claimed: [],
+        doneSteps: [],
       }
     }
 
@@ -251,13 +265,13 @@ export const state = query({
       startedAt: running.startedAt,
       completedBy,
       upkeepSpent: running.upkeepSpent,
-      claimed: running.claimed,
+      doneSteps: await doneStepsOf(ctx, running.startedAt, args.pilotId),
     }
   },
 })
 
 /**
- * Begin a Downtime, at the first step with upkeep unpaid and nothing claimed.
+ * Begin a Downtime, at the first step with upkeep unpaid.
  *
  * Already running, it is a no-op rather than a restart: a second tab or a
  * second press must not clear `upkeepSpent` mid-Downtime and so charge the
@@ -272,7 +286,6 @@ export const begin = mutation({
       stepIndex: 0,
       startedAt: Date.now(),
       upkeepSpent: false,
-      claimed: [],
       completedBy: [],
     })
     await bumpCount(ctx, args.gameId === null ? 'downtime:solo' : 'downtime:game')
@@ -306,7 +319,7 @@ export const setStep = mutation({
   },
 })
 
-/** End the Downtime, clearing its claims. Not running is not an error. */
+/** End the Downtime. Not running is not an error. */
 export const end = mutation({
   args: PLACE_ARGS,
   handler: async (ctx, args): Promise<void> => {
@@ -335,32 +348,6 @@ export const markStepDone = mutation({
     await ctx.db.patch(row._id, {
       completedBy: args.done ? [...without, membership.userId] : without,
     })
-  },
-})
-
-/**
- * Claim the current step for one pilot before applying it (or as it is
- * skipped). Whoever may write the pilot claims it (`writablePilot`), and only
- * the step the Downtime is on.
- *
- * Returns false when the pilot already claimed this step this Downtime, so
- * the caller applies nothing a second time; only ending a Downtime (`end`)
- * or beginning a fresh one (`begin`) clears a claim (see the module header).
- */
-export const claimStep = mutation({
-  args: { gameId: v.union(v.id('games'), v.null()), pilotId: v.string(), stepIndex: v.number() },
-  handler: async (ctx, args): Promise<boolean> => {
-    const { running, write } = await runningAt(ctx, args, 'pilot')
-    if (args.stepIndex !== running.stepIndex) {
-      throw new ConvexError('That is not the step Downtime is on')
-    }
-    const mine = (c: Claim) => c.pilotId === args.pilotId && c.stepIndex === args.stepIndex
-    if (running.claimed.some(mine)) return false
-    await write({
-      ...running,
-      claimed: [...running.claimed, { pilotId: args.pilotId, stepIndex: args.stepIndex }],
-    })
-    return true
   },
 })
 

@@ -41,9 +41,6 @@ export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 /** `SoloDowntime` (game-domain/schemas/seat). Exported for the solo seat reads. */
 export const soloDowntime = zodToConvex(SeatSchema.shape.downtime.unwrap())
 
-/** One pilot's claim on one Downtime step (`downtime.claimStep`). */
-export const downtimeClaim = v.object({ pilotId: v.string(), stepIndex: v.number() })
-
 export const playTables = {
   /** The Discord channel Play's rolls post to (`/su bind`): a Game's, or with no `gameId` one person's solo play (`model/channelBindings.ts`). */
   channelBindings: defineTable({
@@ -82,14 +79,10 @@ export const playTables = {
     /** Set once per Downtime so crawler upkeep is spent once, not per member. */
     upkeepSpent: v.boolean(),
     /**
-     * Each step a pilot has applied or skipped this Downtime
-     * (`downtime.claimStep`), so a step's Apply runs once per pilot: Undo,
-     * the Mediator's Back and a reload never offer it again. Per pilot, not
-     * per member (a member may run two). Cleared when a Downtime ends or a
-     * fresh one begins, never by a step change or Undo;
-     * absent on a row written before it existed, which reads as none.
+     * Unread and no longer written: a step is an op with a stable id
+     * (ADR-063 §6). Kept so older rows still validate.
      */
-    claimed: v.optional(v.array(downtimeClaim)),
+    claimed: v.optional(v.array(v.object({ pilotId: v.string(), stepIndex: v.number() }))),
   }).index('by_game', ['gameId']),
 
   /**

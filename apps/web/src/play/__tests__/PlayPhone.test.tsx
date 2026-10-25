@@ -38,8 +38,8 @@ setQueryAnswers({
   'channelBindings:current': null,
   'games:get': null,
   'changeLog:rolls': [],
-  'proposals:alerts': [],
-  'proposals:pending': [],
+  'changeLog:alerts': [],
+  'ops:pending': [],
   'crew:vitals': null,
 })
 
