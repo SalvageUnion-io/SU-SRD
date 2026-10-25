@@ -16,6 +16,7 @@ import { pilotRailItems, rowStats } from '../build/sheet/railStats.model'
 import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
 import { foregroundOn } from '../design/contrast'
+import { sharedCopy } from '../messages/components-shared'
 import type { SyncStatus } from '../replica/sync'
 import type { UnitsState } from '../replica/units'
 import type { Situation } from './situation.model'
@@ -82,21 +83,13 @@ export const PHASE_TONE = {
 } as const satisfies Record<PlayPhase, ChapterTone>
 
 /**
- * The foot's connection line: connected, a Game's
- * screen reaches its table live and a solo one shares nothing; offline,
- * nothing does (the Saved indicator beside it says the screen is read-only).
+ * The foot's connection line: connected, a Game's screen reaches its table
+ * live and a solo one shares nothing. Otherwise none: the Play bar's
+ * read-only stamp (`playReadOnly`) says why.
  */
-export function connectionLine(status: SyncStatus, solo: boolean): string {
-  switch (status) {
-    case 'live':
-      return solo ? 'Solo · nothing is shared' : 'Connected · changes reach the table live'
-    case 'syncing':
-      return 'Connecting…'
-    case 'offline':
-      return 'Disconnected · waiting to reconnect'
-    case 'signedOut':
-      return 'Signed out'
-  }
+export function connectionLine(status: SyncStatus, solo: boolean): string | null {
+  if (status !== 'live') return null
+  return solo ? 'Solo · nothing is shared' : 'Connected · changes reach the table live'
 }
 
 /**
@@ -119,11 +112,9 @@ export function playReadOnly(connection: {
     }
   }
   switch (connection.status) {
+    // The sync badge's words (`SyncBadge`): offline is one wording (chrome K5).
     case 'offline':
-      return {
-        stamp: 'Read-only · disconnected',
-        says: 'Read-only: disconnected. Play comes back when the connection does.',
-      }
+      return { stamp: sharedCopy('offlineReadOnly'), says: sharedCopy('notConnectedYourGamesAre') }
     case 'syncing':
       return { stamp: 'Read-only · connecting', says: 'Read-only while the connection settles.' }
     case 'signedOut':

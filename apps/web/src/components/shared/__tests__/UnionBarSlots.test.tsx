@@ -104,16 +104,8 @@ describe('UnionBarSlots', () => {
     expect(mode()).toBe('build')
   })
 
-  test('fills only the banner while the route draws no bar', () => {
-    render(
-      <UnionBarSlots
-        pathname="/play/x"
-        barHidden
-        banner={button('Offline')}
-        search={button('Search')}
-      />
-    )
-    expect(document.querySelector(slotSelector('banner'))?.textContent).toBe('Offline')
+  test('fills nothing while the route draws no bar', () => {
+    render(<UnionBarSlots pathname="/play/x" barHidden search={button('Search')} />)
     expect(screen.queryByRole('button', { name: 'Search' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Open menu' })).toBeNull()
   })

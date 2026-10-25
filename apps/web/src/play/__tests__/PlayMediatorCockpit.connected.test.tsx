@@ -584,7 +584,7 @@ describe('every Mediator capability is reachable here', () => {
 
   test('offline, every control is withdrawn and the bar says why', async () => {
     await renderCockpit({}, false)
-    expect(within(screen.getByRole('banner')).getByText('Read-only · disconnected')).toBeTruthy()
+    expect(within(screen.getByRole('banner')).getByText('Offline · read-only')).toBeTruthy()
     expect((named('Add opposition from the reference') as HTMLButtonElement).disabled).toBe(true)
     expect(
       (

@@ -37,7 +37,6 @@ import {
   TitledBox,
   tokens,
 } from '../../components/index'
-import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { npcActionSlug } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
@@ -233,7 +232,6 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             {step === 'identity' && <IdentityStep form={form} onChange={update} />}
             {step === 'review' && <div>{preview}</div>}
 
-            {writesBlocked && <WritesBlockedNotice />}
             {submitError && <FieldError>{submitError}</FieldError>}
           </section>
 

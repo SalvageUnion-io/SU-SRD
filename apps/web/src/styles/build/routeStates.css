@@ -5,8 +5,7 @@
  *
  * - components/shared/RouteFallbacks.tsx — `.su-not-found-panel`: the 404 card's
  *   padding opens up from `sm`.
- * - RouteErrors.tsx and WritesBlockedNotice.tsx have no stateful half: they are
- *   style objects only.
+ * - RouteErrors.tsx has no stateful half: it is style objects only.
  */
 
 .su-not-found-panel {

@@ -1,9 +1,6 @@
 /**
- * PlayFoot — the Cockpit's foot: whether play is being saved
- * (`SavedIndicator`, which says Saved, Connecting… or Offline ·
- * read-only from the one connection source) and the connection line, who
- * play is reaching (`connectionLine`) beside it, on the left,
- * then the screen's own `note` at the end (the Mediator's: players see the
+ * PlayFoot — the Cockpit's foot: the connection line, who play is reaching
+ * (`connectionLine`), on the left, then the screen's own `note` at the end (the Mediator's: players see the
  * Opposition only through what is posted).
  */
 
@@ -12,7 +9,6 @@ import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { tokens } from '../components/index'
 import { useSync } from '../replica/syncContext'
 import { connectionLine, phaseBand } from './play.model'
-import { SavedIndicator } from './SavedIndicator'
 
 /**
  * The foot matches the bar (ruleset §3.11: a page ends in the colour it leads
@@ -47,11 +43,10 @@ export function PlayFoot({
   /** The phase's band, the bar's (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
 }) {
-  const { status } = useSync()
+  const line = connectionLine(useSync().status, solo)
   return (
     <footer className="su-play-band" style={{ ...FOOT, ...phaseBand(tone).style }}>
-      <SavedIndicator />
-      <span style={LINE}>{connectionLine(status, solo)}</span>
+      {line && <span style={LINE}>{line}</span>}
       {note && (
         <>
           <span style={SPACER} />
