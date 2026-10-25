@@ -94,6 +94,35 @@ describe('the Game room over RPC', () => {
   })
 })
 
+describe('the table’s state', () => {
+  it('keeps its Scene, area, ledger and Safety Protocols in the room’s own SQLite', async () => {
+    const room = await game('g-table')
+    await room.act(ORGANIZER, 'setMediator', { userId: ORGANIZER, mediator: true })
+    await room.act(ORGANIZER, 'scenes.setConditions', { conditions: ['freezing'] })
+    expect(await room.act(ORGANIZER, 'scenes.passHour', undefined as never)).toEqual({
+      ok: true,
+      value: 1,
+    })
+    await room.act(ORGANIZER, 'salvageAreas.set', {
+      area: { name: 'Camp', techLevel: 2, supply: 3 },
+    })
+    expect(await room.act(PLAYER, 'salvageAreas.spend', { pilotId: 'p1' })).toEqual({
+      ok: true,
+      value: { techLevel: 2, supply: 2 },
+    })
+    const faction = { id: 'f1', name: 'Union', standing: 'friendly' as const, deal: true }
+    await room.act(ORGANIZER, 'ledger.setFaction', { faction })
+    expect(await room.act(PLAYER, 'ledger.get', undefined as never)).toMatchObject({
+      value: { factions: [faction] },
+    })
+    await room.act(PLAYER, 'safety.addBoundary', { kind: 'offCamera', text: 'Spiders' })
+    await room.act(PLAYER, 'safety.showStop', undefined as never)
+    expect(await room.act(ORGANIZER, 'safety.stopSign', undefined as never)).toMatchObject({
+      value: { stop: { mine: false }, mayLift: true },
+    })
+  })
+})
+
 describe('ending a Game', () => {
   it('lands each unit on its holder’s shelf, and leaves the room empty', async () => {
     const room = await game('g-end')

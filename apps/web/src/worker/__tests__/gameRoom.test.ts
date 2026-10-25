@@ -41,15 +41,17 @@ const made = new Map<string, GameRoom>()
 
 function room(gameId: string) {
   const store = storage()
+  const waiting: Promise<unknown>[] = []
   const ctx = {
     id: { name: gameId },
     storage: store,
     blockConcurrencyWhile: async (fn: () => Promise<void>) => fn(),
     getWebSockets: () => [],
+    waitUntil: (promise: Promise<unknown>) => void waiting.push(promise),
   }
   const game = new GameRoom(ctx as never, {} as never)
   made.set(gameId, game)
-  return { game, store }
+  return { game, store, waiting }
 }
 
 /** Shelves the Game room hands units to, recording what each was given. */
@@ -178,6 +180,47 @@ describe('the Game room Durable Object', () => {
     const { game: fresh } = room('g-import')
     expect(() => fresh.importGame({})).toThrow()
     expect(fresh.diffImport({ gameId: 'g-import' } as never)).toEqual(['g-import: not imported'])
+  })
+
+  test('a Stop Sign on a table that opted in is posted after the act', async () => {
+    const made = await seeded('g-stop')
+    const { game, waiting } = made
+    game.act(PLAYER, 'safety.showStop', undefined as never)
+    expect(waiting).toHaveLength(0)
+    game.act(PLAYER, 'safety.liftStop', undefined as never)
+    game.act(ORGANIZER, 'safety.setPostToChannel', { on: true })
+    expect(game.act(PLAYER, 'safety.showStop', undefined as never)).toEqual({
+      ok: true,
+      value: true,
+    })
+    expect(waiting).toHaveLength(1)
+    // No relay configured: the post is skipped, and the game stays paused.
+    await Promise.all(waiting)
+    expect(game.act(PLAYER, 'safety.stopSign', undefined as never)).toMatchObject({
+      value: { stop: { mine: true } },
+    })
+    game.act(PLAYER, 'safety.liftStop', undefined as never)
+    game.act(ORGANIZER, 'safety.setPostToChannel', { on: false })
+    expect(game.act(PLAYER, 'safety.showStop', undefined as never)).toEqual({
+      ok: true,
+      value: false,
+    })
+  })
+
+  test('a lease the alarm cannot settle is logged and tried again; a socket needs the Worker’s headers', async () => {
+    const { game, store } = await seeded('g-lost')
+    game.offer({
+      leaseId: 'L-lost',
+      unitId: 'p1',
+      actor: PLAYER,
+      to: { kind: 'game', gameId: 'g-nowhere' },
+      at: Date.now() - 120_000,
+    })
+    store.state.alarm = null
+    await game.alarm()
+    expect(store.state.alarm).not.toBeNull()
+    const plain = await game.fetch(new Request('https://room/'))
+    expect(plain.status).toBe(400)
   })
 
   test('a room reached without a name is a defect', () => {

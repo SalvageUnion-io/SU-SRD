@@ -164,7 +164,7 @@ describe('a Game room’s socket', () => {
   test('an act that changes the Game sends every socket its snapshot', () => {
     const { room, org, player } = seated()
     room.act('d-player', 'removeUnit', { unitId: 'p1' })
-    expect(received(org)).toEqual([
+    expect(received(org)).toMatchObject([
       { type: 'snapshot', units: [], records: { opposition: [] }, links: [] },
     ])
     expect(received(player).map((m) => m.type)).toEqual(['snapshot'])

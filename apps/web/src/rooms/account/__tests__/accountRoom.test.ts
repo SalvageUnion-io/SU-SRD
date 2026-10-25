@@ -137,6 +137,42 @@ describe('the Shelf is its player’s', () => {
   })
 })
 
+describe('what the Shelf refuses', () => {
+  test('a crew slot, a mismatched link, a second kind under one id, and a move off to nowhere', () => {
+    const { room } = shelf()
+    expect(() =>
+      room.shelf.drawLink(PLAYER, {
+        type: 'npc-to-crawler',
+        from: { type: 'npc', id: 'n1' },
+        to: { type: 'crawler', id: 'c1' },
+        slot: { kind: 'crew' } as never,
+      })
+    ).toThrow('Crew is assigned in a Game')
+    expect(() =>
+      room.shelf.drawLink(PLAYER, {
+        type: 'mech-to-pilot',
+        from: { type: 'pilot', id: 'p1' },
+        to: { type: 'mech', id: 'm1' },
+      })
+    ).toThrow('cannot join')
+    expect(() =>
+      room.shelf.create(PLAYER, { id: 'p1', kind: 'mech', body: bodies.mech('p1'), at: AT })
+    ).toThrow('already a pilot')
+    room.shelf.create(PLAYER, { id: 'p1', kind: 'pilot', body: bodies.pilot('p1'), at: AT })
+    expect(() =>
+      room.transit.offer({
+        leaseId: 'L-home',
+        unitId: 'p1',
+        actor: PLAYER,
+        to: { kind: 'account', userId: STRANGER } as never,
+        at: AT,
+      })
+    ).toThrow('into a Game')
+    expect(room.transit.refuseLease('L-new', AT)).toBe('refused')
+    expect(room.transit.refuseLease('L-new', AT)).toBe('refused')
+  })
+})
+
 describe('moving between the Shelf and a Game', () => {
   test('the mech goes first and keeps the solo seat boarded; the pilot follows and sits aboard', async () => {
     const { room, sql } = shelf()
