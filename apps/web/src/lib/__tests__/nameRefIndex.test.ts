@@ -20,6 +20,7 @@ const UNLINKED: Record<string, string> = {
   'Anomaly Table': 'printed in an adventure; the SRD has no such table',
   'A.I. Personality Trait Table': "the book's other name for the A.I. Personality Table",
   'Climb Trait': 'the book misprints the Climbing Trait',
+  'Random Encounter Table': "the Atychos module's name for its own Wasteland Encounter Table",
 }
 
 /** The rules text of a record: its paragraphs, descriptions and table results. */

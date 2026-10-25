@@ -30,6 +30,7 @@ export const OPPOSITION_SCHEMAS: ReadonlyArray<{ schema: EncounterRefSchema; lab
   { schema: 'squads', label: 'Squads' },
   { schema: 'creatures', label: 'Creatures' },
   { schema: 'vehicles', label: 'Vehicles' },
+  { schema: 'drones', label: 'Drones' },
   { schema: 'bio-titans', label: 'Bio-Titans' },
   { schema: 'meld', label: 'Meld' },
 ]
