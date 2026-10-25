@@ -425,8 +425,16 @@
 }
 
 /* The NPC designer's wizard (WizShell, hard rule R16), a built NPC's sheet
-   and an encounter's (`LiveSheet`, R11): the Denizens navy. */
-.su-sheet--npc,
+   and an encounter's (`LiveSheet`, R11): the Denizens navy. Each its own
+   rule, as `contrast.test.ts` reads them. */
+.su-sheet--npc {
+  --tone-default: var(--color-denizen-band);
+  --tone-deep: var(--color-denizen-band);
+  --ground: oklch(from var(--tone) 0.955 0.02 h);
+  --tone-band: var(--tone);
+  --on-tone-band: var(--color-paper);
+}
+
 .su-sheet--encounter {
   --tone-default: var(--color-denizen-band);
   --tone-deep: var(--color-denizen-band);
