@@ -149,10 +149,13 @@ function isHere(pilot: { ownerId: string | null }, here: ReadonlySet<string> | n
   return pilot.ownerId !== null && here?.has(pilot.ownerId) === true
 }
 
-/** How many seats in the Game are here now, the viewer's own included: the LIVE stamp's "N here". */
+/**
+ * How many players with a seat in the Game are here now, the viewer included:
+ * the LIVE stamp's "N here". A player with two pilots counts once.
+ */
 export function hereCount(
   pilots: readonly { ownerId: string | null }[] | undefined,
   here: ReadonlySet<string> | null
 ): number {
-  return (pilots ?? []).filter((p) => isHere(p, here)).length
+  return new Set((pilots ?? []).filter((p) => isHere(p, here)).map((p) => p.ownerId)).size
 }

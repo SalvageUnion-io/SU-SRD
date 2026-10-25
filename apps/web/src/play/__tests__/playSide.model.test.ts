@@ -114,8 +114,10 @@ describe('the Crew (play.md §7)', () => {
     expect(crewSeatLines(null, [], 'bonesaw', CREW_HERE)).toEqual([])
   })
 
-  test('"N here" counts every seat whose player has the Game open, the viewer’s own included', () => {
-    expect(hereCount(crewAt().pilots, CREW_HERE)).toBe(3)
+  test('"N here" counts every player at a seat who has the Game open, the viewer included, once each', () => {
+    const pilots = crewAt().pilots
+    expect(hereCount(pilots, CREW_HERE)).toBe(3)
+    expect(hereCount([...pilots, { ownerId: [...CREW_HERE][0] ?? 'missing' }], CREW_HERE)).toBe(3)
     expect(hereCount(undefined, CREW_HERE)).toBe(0)
     expect(hereCount(crewAt().pilots, null)).toBe(0)
     expect(liveLabel(3)).toBe('● Live · 3 here')
