@@ -133,8 +133,15 @@ const RETRY_MS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000]
 /** A batch sent and not yet answered, keyed by its first op's id; a null refusal is its ack. */
 type Batch = { ops: readonly OpInput[]; settle: (refusal: Error | null) => void }
 
-/** A room this tab holds open, to send its ops. */
-type Room = { submit(ops: readonly OpInput[]): Promise<void> }
+/** An act sent and not yet answered: its value when `answered`, or why not. */
+type Pending = { resolve: (value: unknown) => void; reject: (refusal: Error) => void }
+
+/** A room this tab holds open, to send its ops and its acts. */
+type Room = {
+  submit(ops: readonly OpInput[]): Promise<void>
+  /** One named write the room decides (`salvageArea.spend`, …): its value, or a `RoomDeclined`. */
+  act(name: string, args: unknown): Promise<unknown>
+}
 
 /**
  * The open Game rooms, by Game id. The account room is not one yet: it
@@ -148,7 +155,7 @@ export function roomOf(gameId: string | null): Room | null {
   return gameId === null ? null : (open.get(gameId) ?? null)
 }
 
-/** A batch the room declined: its reason is the refusal the player is shown. */
+/** A batch or act the room declined: its reason is the refusal the player is shown. */
 export class RoomDeclined extends Error {}
 
 /**
@@ -158,7 +165,10 @@ export class RoomDeclined extends Error {}
  * room `roomOf(gameId)` sends ops through: a batch waits for its `ack` or
  * `declined`, and one in flight when the socket drops goes again when it reopens
  * (an op id is idempotent, so a batch the room had already applied is safe
- * to send again). Answers its close.
+ * to send again). An act waits for its `answered` or `refused`; one in flight
+ * when the socket drops fails as an offline write does and is never sent
+ * again, since an act (spending a Supply) is not safe to repeat. Answers its
+ * close.
  */
 export function openRoom(
   path: string,
@@ -169,6 +179,11 @@ export function openRoom(
   const url = new URL(path, window.location.href)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
   const waiting = new Map<string, Batch>()
+  const acting = new Map<string, Pending>()
+  const dropActs = () => {
+    for (const pending of acting.values()) pending.reject(new WritesBlockedOffline())
+    acting.clear()
+  }
   let socket: WebSocket | null = null
   let retry: ReturnType<typeof setTimeout> | undefined
   let attempt = 0
@@ -196,14 +211,23 @@ export function openRoom(
       } catch {
         data = undefined
       }
-      const reply = data as { type?: unknown; opIds?: string[]; reason?: string } | undefined
+      const reply = data as
+        | { type?: unknown; opIds?: string[]; id?: string; value?: unknown; reason?: string }
+        | undefined
       if (reply?.type === 'ack') answer(reply.opIds ?? [], null)
       else if (reply?.type === 'declined')
         answer(reply.opIds ?? [], new RoomDeclined(reply.reason ?? ''))
-      else foldRoomMessage(scope, data)
+      else if (reply?.type === 'answered' || reply?.type === 'refused') {
+        const pending = acting.get(reply.id ?? '')
+        if (pending === undefined) return
+        acting.delete(reply.id as string)
+        if (reply.type === 'answered') pending.resolve(reply.value)
+        else pending.reject(new RoomDeclined(reply.reason ?? ''))
+      } else foldRoomMessage(scope, data)
     }
     socket.onclose = () => {
       if (gameId !== null && open.get(gameId) === room) open.delete(gameId)
+      dropActs()
       if (closed) return
       retry = setTimeout(connect, RETRY_MS[Math.min(attempt++, RETRY_MS.length - 1)])
     }
@@ -219,6 +243,13 @@ export function openRoom(
         })
         send(ops)
       }),
+    act: (name, args) =>
+      new Promise((resolve, reject) => {
+        if (socket?.readyState !== WebSocket.OPEN) return reject(new WritesBlockedOffline())
+        const id = crypto.randomUUID()
+        acting.set(id, { resolve, reject })
+        socket.send(JSON.stringify({ type: 'act', id, name, args }))
+      }),
   }
   connect()
   return () => {
@@ -230,5 +261,6 @@ export function openRoom(
     // rather than hang, and an outbox op stays queued for the next send.
     for (const batch of waiting.values()) batch.settle(new WritesBlockedOffline())
     waiting.clear()
+    dropActs()
   }
 }
