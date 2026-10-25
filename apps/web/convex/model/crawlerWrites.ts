@@ -1,5 +1,3 @@
-import type { ObjectType } from 'convex/values'
-import { v } from 'convex/values'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx } from '../_generated/server'
 import {
@@ -9,24 +7,16 @@ import {
   parseBody,
   pruneLinksAcrossContainers,
   pruneLinksOfRow,
-  unsetCrawlerFields,
 } from './entities'
 import { NotAuthorized, requireTableRunner, requireUser } from './permissions'
 
 /**
- * The crawler writes behind `entities.ts`: the field-level patch, the scrap and
- * the move between a Game and a shelf (ADR-030 §5, ADR-038 §5). The public
- * mutations live in `entities.ts`; this module is their helpers, so `transfer`
- * runs the same writes as `patchCrawlerByAppId`, `moveCrawler` and
- * `removeCrawlerByAppId`.
+ * The crawler writes behind `entities.ts`: who may write one, the scrap and
+ * the move between a Game and a shelf (ADR-030 §5, ADR-038 §5). A change to
+ * its body is an op (`opWrites.ts`). The public mutations live in
+ * `entities.ts`; this module is their helpers, so `transfer` runs the same
+ * writes as `moveCrawler` and `removeCrawlerByAppId`.
  */
-
-/** A crawler field patch, addressed by app id (`patchCrawlerByAppId`). */
-export const CRAWLER_PATCH = {
-  appId: v.string(),
-  patch: v.any(),
-  unset: v.optional(v.array(v.string())),
-}
 
 /**
  * Who may write a crawler's body — it depends on which container holds it.
@@ -42,7 +32,7 @@ export const CRAWLER_PATCH = {
  * container-dependent rule written twice is a rule that will eventually be
  * written two different ways.
  */
-async function assertMayEditCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
+export async function assertMayEditCrawler(ctx: MutationCtx, doc: Doc<'crawlers'>): Promise<void> {
   if (doc.gameId !== null) {
     await requireTableRunner(ctx, doc.gameId)
     return
@@ -73,32 +63,11 @@ export async function assertMayScrapCrawler(ctx: MutationCtx, doc: Doc<'crawlers
 }
 
 /** `oldestByAppId` for a crawler, warning on a duplicate. */
-async function crawlerByAppId(ctx: MutationCtx, appId: string): Promise<Doc<'crawlers'> | null> {
-  return (await oldestByAppId(ctx, 'crawlers', appId, { warn: true })) as Doc<'crawlers'> | null
-}
-
-/** `patchCrawlerByAppId`'s write, shared with `transfer`. */
-export async function patchCrawler(
+export async function crawlerByAppId(
   ctx: MutationCtx,
-  args: ObjectType<typeof CRAWLER_PATCH>
-): Promise<void> {
-  const existing = await crawlerByAppId(ctx, args.appId)
-  if (existing === null) return
-
-  await assertMayEditCrawler(ctx, existing)
-
-  // A field patch never moves a crawler. Its container is the row's column
-  // and the body's `gameId` together, and only `moveCrawler` writes them — a
-  // body-only `gameId` here would leave a "moved" crawler put on the server
-  // while every client read it somewhere else. The same goes for `unset`: clearing `gameId` would split the body from the column.
-  const { gameId: _container, ...fields } = (args.patch ?? {}) as Record<string, unknown>
-  const merged = unsetCrawlerFields(
-    { ...(existing.body as Record<string, unknown>), ...fields },
-    (args.unset ?? []).filter((key) => key !== 'gameId')
-  )
-  const body = parseBody('crawlers', merged)
-
-  await ctx.db.patch(existing._id, { body, updatedAt: Date.now() })
+  appId: string
+): Promise<Doc<'crawlers'> | null> {
+  return (await oldestByAppId(ctx, 'crawlers', appId, { warn: true })) as Doc<'crawlers'> | null
 }
 
 /** `removeCrawlerByAppId`'s delete, shared with `transfer`. */

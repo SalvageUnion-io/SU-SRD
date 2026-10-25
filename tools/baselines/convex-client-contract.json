@@ -1,5 +1,5 @@
 {
-  "floor": 1792925782,
+  "floor": 1792927257,
   "functions": {
     "account:deleteAccount": {
       "type": "object",
@@ -626,32 +626,6 @@
         }
       }
     },
-    "entities:patchCrawlerByAppId": {
-      "type": "object",
-      "value": {
-        "appId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "patch": {
-          "fieldType": {
-            "type": "any"
-          },
-          "optional": false
-        },
-        "unset": {
-          "fieldType": {
-            "type": "array",
-            "value": {
-              "type": "string"
-            }
-          },
-          "optional": true
-        }
-      }
-    },
     "entities:remove": {
       "type": "object",
       "value": {
@@ -888,361 +862,6 @@
             ]
           },
           "optional": true
-        }
-      }
-    },
-    "entities:transfer": {
-      "type": "object",
-      "value": {
-        "updates": {
-          "fieldType": {
-            "type": "array",
-            "value": {
-              "type": "union",
-              "value": [
-                {
-                  "type": "object",
-                  "value": {
-                    "table": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "literal",
-                            "value": "pilots"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "mechs"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "npcs"
-                          }
-                        ]
-                      },
-                      "optional": false
-                    },
-                    "appId": {
-                      "fieldType": {
-                        "type": "string"
-                      },
-                      "optional": false
-                    },
-                    "gameId": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "id",
-                            "tableName": "games"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "optional": false
-                    },
-                    "body": {
-                      "fieldType": {
-                        "type": "any"
-                      },
-                      "optional": false
-                    },
-                    "expectedUpdatedAt": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "optional": false
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "value": {
-                    "table": {
-                      "fieldType": {
-                        "type": "literal",
-                        "value": "crawlers"
-                      },
-                      "optional": false
-                    },
-                    "appId": {
-                      "fieldType": {
-                        "type": "string"
-                      },
-                      "optional": false
-                    },
-                    "patch": {
-                      "fieldType": {
-                        "type": "any"
-                      },
-                      "optional": false
-                    },
-                    "unset": {
-                      "fieldType": {
-                        "type": "array",
-                        "value": {
-                          "type": "string"
-                        }
-                      },
-                      "optional": true
-                    },
-                    "gameId": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "id",
-                            "tableName": "games"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "optional": true
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "optional": false
-        },
-        "deletes": {
-          "fieldType": {
-            "type": "array",
-            "value": {
-              "type": "union",
-              "value": [
-                {
-                  "type": "object",
-                  "value": {
-                    "table": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "literal",
-                            "value": "pilots"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "mechs"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "npcs"
-                          }
-                        ]
-                      },
-                      "optional": false
-                    },
-                    "appId": {
-                      "fieldType": {
-                        "type": "string"
-                      },
-                      "optional": false
-                    },
-                    "gameId": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "id",
-                            "tableName": "games"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "optional": true
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "value": {
-                    "table": {
-                      "fieldType": {
-                        "type": "literal",
-                        "value": "crawlers"
-                      },
-                      "optional": false
-                    },
-                    "appId": {
-                      "fieldType": {
-                        "type": "string"
-                      },
-                      "optional": false
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "value": {
-                    "table": {
-                      "fieldType": {
-                        "type": "literal",
-                        "value": "softLinks"
-                      },
-                      "optional": false
-                    },
-                    "from": {
-                      "fieldType": {
-                        "type": "object",
-                        "value": {
-                          "type": {
-                            "fieldType": {
-                              "type": "union",
-                              "value": [
-                                {
-                                  "type": "literal",
-                                  "value": "pilot"
-                                },
-                                {
-                                  "type": "literal",
-                                  "value": "mech"
-                                },
-                                {
-                                  "type": "literal",
-                                  "value": "crawler"
-                                },
-                                {
-                                  "type": "literal",
-                                  "value": "npc"
-                                }
-                              ]
-                            },
-                            "optional": false
-                          },
-                          "id": {
-                            "fieldType": {
-                              "type": "string"
-                            },
-                            "optional": false
-                          }
-                        }
-                      },
-                      "optional": false
-                    },
-                    "to": {
-                      "fieldType": {
-                        "type": "object",
-                        "value": {
-                          "type": {
-                            "fieldType": {
-                              "type": "union",
-                              "value": [
-                                {
-                                  "type": "literal",
-                                  "value": "pilot"
-                                },
-                                {
-                                  "type": "literal",
-                                  "value": "mech"
-                                },
-                                {
-                                  "type": "literal",
-                                  "value": "crawler"
-                                },
-                                {
-                                  "type": "literal",
-                                  "value": "npc"
-                                }
-                              ]
-                            },
-                            "optional": false
-                          },
-                          "id": {
-                            "fieldType": {
-                              "type": "string"
-                            },
-                            "optional": false
-                          }
-                        }
-                      },
-                      "optional": false
-                    },
-                    "type": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "literal",
-                            "value": "mech-to-pilot"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "pilot-to-crawler"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "mech-to-crawler"
-                          },
-                          {
-                            "type": "literal",
-                            "value": "npc-to-crawler"
-                          }
-                        ]
-                      },
-                      "optional": false
-                    },
-                    "slot": {
-                      "fieldType": {
-                        "type": "union",
-                        "value": [
-                          {
-                            "type": "object",
-                            "value": {
-                              "kind": {
-                                "fieldType": {
-                                  "type": "literal",
-                                  "value": "bay"
-                                },
-                                "optional": false
-                              },
-                              "bayRef": {
-                                "fieldType": {
-                                  "type": "string"
-                                },
-                                "optional": false
-                              }
-                            }
-                          },
-                          {
-                            "type": "object",
-                            "value": {
-                              "kind": {
-                                "fieldType": {
-                                  "type": "literal",
-                                  "value": "type"
-                                },
-                                "optional": false
-                              }
-                            }
-                          }
-                        ]
-                      },
-                      "optional": true
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "optional": false
         }
       }
     },
@@ -1891,6 +1510,507 @@
     "metrics:refresh": {
       "type": "object",
       "value": {}
+    },
+    "ops:apply": {
+      "type": "object",
+      "value": {
+        "unit": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              },
+              {
+                "type": "literal",
+                "value": "crawler"
+              },
+              {
+                "type": "literal",
+                "value": "npc"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "op": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "id": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "unitId": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "baseSeq": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "at": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "kind": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "transaction"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "override"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "manual"
+                    }
+                  ]
+                },
+                "optional": false
+              },
+              "source": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "patch": {
+                "fieldType": {
+                  "type": "any"
+                },
+                "optional": false
+              },
+              "unset": {
+                "fieldType": {
+                  "type": "array",
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "optional": true
+              }
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    "ops:transfer": {
+      "type": "object",
+      "value": {
+        "ops": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "object",
+              "value": {
+                "unit": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "pilot"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "mech"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "crawler"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "npc"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "gameId": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "id",
+                        "tableName": "games"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "optional": false
+                },
+                "op": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "id": {
+                        "fieldType": {
+                          "type": "string"
+                        },
+                        "optional": false
+                      },
+                      "unitId": {
+                        "fieldType": {
+                          "type": "string"
+                        },
+                        "optional": false
+                      },
+                      "baseSeq": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "at": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "kind": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "transaction"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "override"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "manual"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "source": {
+                        "fieldType": {
+                          "type": "string"
+                        },
+                        "optional": false
+                      },
+                      "patch": {
+                        "fieldType": {
+                          "type": "any"
+                        },
+                        "optional": false
+                      },
+                      "unset": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "optional": true
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "move": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "id",
+                        "tableName": "games"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "optional": true
+                }
+              }
+            }
+          },
+          "optional": false
+        },
+        "deletes": {
+          "fieldType": {
+            "type": "array",
+            "value": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "pilots"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "mechs"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "npcs"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "appId": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "gameId": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "id",
+                            "tableName": "games"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": true
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "crawlers"
+                      },
+                      "optional": false
+                    },
+                    "appId": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "table": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "softLinks"
+                      },
+                      "optional": false
+                    },
+                    "from": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "type": {
+                            "fieldType": {
+                              "type": "union",
+                              "value": [
+                                {
+                                  "type": "literal",
+                                  "value": "pilot"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "mech"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "crawler"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "npc"
+                                }
+                              ]
+                            },
+                            "optional": false
+                          },
+                          "id": {
+                            "fieldType": {
+                              "type": "string"
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": false
+                    },
+                    "to": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "type": {
+                            "fieldType": {
+                              "type": "union",
+                              "value": [
+                                {
+                                  "type": "literal",
+                                  "value": "pilot"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "mech"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "crawler"
+                                },
+                                {
+                                  "type": "literal",
+                                  "value": "npc"
+                                }
+                              ]
+                            },
+                            "optional": false
+                          },
+                          "id": {
+                            "fieldType": {
+                              "type": "string"
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": false
+                    },
+                    "type": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "mech-to-pilot"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "pilot-to-crawler"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "mech-to-crawler"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "npc-to-crawler"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "slot": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": {
+                              "kind": {
+                                "fieldType": {
+                                  "type": "literal",
+                                  "value": "bay"
+                                },
+                                "optional": false
+                              },
+                              "bayRef": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "value": {
+                              "kind": {
+                                "fieldType": {
+                                  "type": "literal",
+                                  "value": "type"
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "optional": true
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "optional": false
+        }
+      }
     },
     "ownership:assign": {
       "type": "object",

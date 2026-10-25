@@ -1,9 +1,9 @@
 /**
  * Cap-override integration (P2.2 / ADR-022): a Live-Sheet stat gauge with a
  * hand-pinned maximum shows an "overridden from N" indicator + a one-click
- * revert, and reverting clears the max*Modifier delta while logging an
- * `override` Change Log entry. Exercises the real in-memory store, signed in,
- * with the Convex client a recorder of the Change Log batches the store sends.
+ * revert, and reverting clears the pin with an `override` op (ADR-063).
+ * Exercises the real in-memory store, signed in, with the Convex client a
+ * recorder of the ops the store sends.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
@@ -16,12 +16,15 @@ const logged: { kind: string; field: string }[] = []
 
 const convexMocks = await installConvexMocks({
   convexClient: {
-    mutation: async (ref: unknown, args: { entries?: { kind: string; field: string }[] }) => {
-      if (getFunctionName(ref as FunctionReference<'mutation'>) === 'changeLog:appendChangeLog') {
-        logged.push(...(args.entries ?? []))
-        return null
+    mutation: async (
+      ref: unknown,
+      args: { op?: { kind: string; patch: object; unset?: string[] } }
+    ) => {
+      if (getFunctionName(ref as FunctionReference<'mutation'>) === 'ops:apply' && args.op) {
+        const { kind, patch, unset = [] } = args.op
+        for (const field of [...Object.keys(patch), ...unset]) logged.push({ kind, field })
       }
-      return { updatedAt: 1 }
+      return { updatedAt: 1, headSeq: 1 }
     },
   },
 })
@@ -79,7 +82,7 @@ describe('Live Sheet — cap override (P2.2)', () => {
       expect(fresh?.maxHpOverride).toBeUndefined()
     })
 
-    // …and the revert is recorded as an `override` Change Log entry.
+    // …and the revert is an `override` op.
     expect(logged.some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
   })
 
