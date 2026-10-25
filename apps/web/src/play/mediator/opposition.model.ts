@@ -53,6 +53,8 @@ export type TrayNpc = {
   statKind: 'hp' | 'sp'
   /** At 0 HP or SP: shown as down, never removed for you (ADR-007). */
   down: boolean
+  /** Its wreck has been salvaged or scrapped: nothing is left to take. */
+  salvaged: boolean
   lastRoll: MoraleRoll | null
   /** What marking it important adds; null when it cannot be (a Bio-Titan, Meld). */
   track: ImportantTrack | null
@@ -106,6 +108,7 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     maxHp,
     statKind,
     down: isDown(currentHp, maxHp),
+    salvaged: body.salvaged === true,
     lastRoll: roll && typeof roll.roll === 'number' ? roll : null,
     track,
     important,

@@ -24,6 +24,8 @@ const ANSWERS = {
   'seats:solo': null,
   'seats:forGame': [],
   'downtime:state': NOT_RUNNING,
+  // No area named to Area Salvage.
+  'salvageAreas:here': null,
   'games:members': [],
   'entities:listForGame': null,
   'account:me': null,

@@ -8,7 +8,8 @@
  * the Mediator's store holds it, so its box is live), the Game's Downtime
  * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`), the saved
  * patterns the picker may field, the proposals sent, the alerts and the
- * Game's rolls — and makes the writes the Mediator holds: the Opposition,
+ * Game's rolls, the area being salvaged — and makes the writes the Mediator
+ * holds: the Opposition, a downed wreck's salvage into the crawler, the area,
  * proposals (ADR-030 §4) and alerts. It
  * writes nothing a player owns; a player's sheet is reached only by proposal.
  *
@@ -40,10 +41,12 @@ import {
   rollMorale,
   rollNpcCritical,
 } from '../../lib/rules/opposition'
+import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useEntityStore } from '../../stores/entityStore'
 import { usePrepStore } from '../../stores/prepStore'
+import { PLAY_TXN } from '../../stores/surfaceProvenance'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -51,6 +54,8 @@ import type { PlayDowntime } from '../situation.model'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
 import { usePlayDowntime } from '../usePlayDowntime'
 import { usePresenceClock } from '../usePresenceClock'
+import type { SalvageAreaView } from '../useSalvageArea'
+import { useSalvageArea } from '../useSalvageArea'
 import type { MediatorSeat } from './mediatorTable.model'
 import { mediatorSeats } from './mediatorTable.model'
 import type { TrayWrites } from './OppositionPicker'
@@ -58,6 +63,9 @@ import type { SavedPattern, TrayNpc } from './opposition.model'
 import { newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { SentProposal } from './proposalLine.model'
+
+/** A wreck's salvage that hauls nothing: it is settled, and nothing is written. */
+export const NOTHING = (): null => null
 
 /** How many alerts and rolls the Feed reads. */
 const FEED_ALERTS = 20
@@ -80,6 +88,15 @@ export type PlayMediator = {
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
   tray: TrayWrites
+  /**
+   * Settle a downed wreck's salvage: claim it (`salvaged`, once), then write
+   * `haul`'s patch of the crawler as it stands. `NOTHING` settles a wreck
+   * that yields nothing; any other haul is refused with no crawler the
+   * Mediator holds.
+   */
+  salvageWreck: (npc: TrayNpc, haul: (crawler: Crawler) => Partial<Crawler> | null) => Promise<void>
+  /** The area the crew is salvaging, which the Mediator names (Core Book p.245). */
+  area: SalvageAreaView
   /** The Mediator's prep (ADR-059): their encounters, and the one this Game is running. */
   prep: MediatorPrep
   /** Newest first; null while the first answer is on its way. */
@@ -165,6 +182,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
+  const area = useSalvageArea(mediatorTarget(gameId))
   const ledger = useQuery(api.ledger.get, { gameId: id })
   const collectIncome = useMutation(api.ledger.collectIncome)
 
@@ -342,15 +360,15 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     },
   }
 
+  const crawler =
+    listing == null ? null : primaryCrawler(listing, (crawlerId) => store.get('crawler', crawlerId))
+
   return {
     gameId,
     gameName,
     seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], now),
     crew: crew ?? null,
-    crawler:
-      listing == null
-        ? null
-        : primaryCrawler(listing, (crawlerId) => store.get('crawler', crawlerId)),
+    crawler,
     downtime,
     income: {
       deals: ledger ? dealCount(ledger) : 0,
@@ -360,6 +378,18 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     tray: trayWrites,
+    salvageWreck: said(async (npc: TrayNpc, haul: (c: Crawler) => Partial<Crawler> | null) => {
+      const held = crawler?.held ? crawler.crawler : null
+      const patch = held === null ? null : haul(store.get('crawler', held.id) ?? held)
+      if (held === null && haul !== NOTHING) throw new Error('There is no crawler to haul it to')
+      // Claimed first, as a Downtime step is: a second press never pays twice.
+      // A wreck that yields nothing is settled too: what was left is destroyed.
+      await updateNpc({ npcId: npcId(npc), patch: { salvaged: true } })
+      if (held !== null && patch !== null) {
+        runWrite(() => store.update('crawler', held.id, patch, PLAY_TXN))
+      }
+    }),
+    area,
     prep: {
       encounters,
       running: running == null ? null : readRunning(running),

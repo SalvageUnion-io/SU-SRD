@@ -26,6 +26,7 @@ import type {
   Roll,
 } from 'salvageunion-reference/rules'
 import {
+  AREA_SALVAGE_TABLE,
   canActivateAction,
   canPush,
   clampHeat,
@@ -326,15 +327,29 @@ function resolveAbilityBySlug(slug: string): RefAbility | null {
 }
 
 /**
+ * The Generic abilities Play's deck deals every pilot, stored or not: "All
+ * Pilots have the following Abilities" (Core Book p.248), so the record never
+ * holds them (`pilotSheet.model`'s Generic tree). Only the ones Play resolves
+ * end to end are dealt; the rest stay the sheet's.
+ */
+const INTRINSIC_ABILITIES = ['area-salvage'] as const
+
+/** Whether an action is an Area Salvage, which rolls its own table (p.248) and pays out Scrap. */
+export function isAreaSalvage(action: RefMetaAction): boolean {
+  return action.tableName === AREA_SALVAGE_TABLE
+}
+
+/**
  * The on-foot pilot's activatable actions, flat — every action of each selected
- * ability and each carried equipment item. Mirrors `buildMechActions` but on the
- * AP economy (pilots have no Heat/EP): `economy.epCost` carries the AP cost and
- * `currency` is 'AP'.
+ * ability, the intrinsic Generic ones, and each carried equipment item. Mirrors
+ * `buildMechActions` but on the AP economy (pilots have no Heat/EP):
+ * `economy.epCost` carries the AP cost and `currency` is 'AP'.
  */
 export function buildPilotActions(pilot: Pilot): PlayAction[] {
   const out: PlayAction[] = []
+  const owned = pilot.abilities ?? []
 
-  for (const slug of pilot.abilities ?? []) {
+  for (const slug of [...owned, ...INTRINSIC_ABILITIES.filter((s) => !owned.includes(s))]) {
     const ability = resolveAbilityBySlug(slug)
     if (!ability) continue
     deckActions(ability).forEach((action, i) => {

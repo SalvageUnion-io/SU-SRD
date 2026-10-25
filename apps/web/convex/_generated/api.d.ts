@@ -60,6 +60,7 @@ import type * as photos from "../photos.js";
 import type * as proposals from "../proposals.js";
 import type * as publicSheet from "../publicSheet.js";
 import type * as safety from "../safety.js";
+import type * as salvageAreas from "../salvageAreas.js";
 import type * as seats from "../seats.js";
 import type * as shelf from "../shelf.js";
 import type * as templates from "../templates.js";
@@ -123,6 +124,7 @@ declare const fullApi: ApiFromModules<{
   proposals: typeof proposals;
   publicSheet: typeof publicSheet;
   safety: typeof safety;
+  salvageAreas: typeof salvageAreas;
   seats: typeof seats;
   shelf: typeof shelf;
   templates: typeof templates;

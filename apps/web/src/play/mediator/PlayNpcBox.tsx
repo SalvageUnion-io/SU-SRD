@@ -8,7 +8,9 @@
  * lists its actions under the Opposition (pressed while they are the ones
  * listed), and ⋯: the full reference card, Mark important, Rename and Delete.
  * At 0 it is down: dashed, struck, and never removed for you (ADR-007); Delete
- * is offered as a chip on its band, before ⋯, behind a confirm.
+ * is offered as a chip on its band, before ⋯, behind a confirm. A downed Mech
+ * or Vehicle offers its wreck's salvage under its vital (`PlayWreckSalvage`),
+ * into the crawler.
  *
  * An important NPC (Workshop Manual p.255) says so on its kind chip. A mech
  * adds its EP and Heat (Heat's redline as danger) and a Heat Check; at 0 any
@@ -17,6 +19,7 @@
  */
 
 import type { CSSProperties } from 'react'
+import type { rollForTable } from '../../components/index'
 import {
   Button,
   HeaderMenu,
@@ -33,6 +36,9 @@ import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
+import { PlayWreckSalvage } from './PlayWreckSalvage'
+import type { PlayMediator } from './usePlayMediator'
+import { wreckOf } from './wreck.model'
 
 const LINE = {
   color: tokens.color.ink,
@@ -65,6 +71,11 @@ type PlayNpcBoxProps = {
   onHp: (next: number) => void
   onRename: () => void
   onRemove: () => void
+  /** Settle its wreck's salvage once it is down. */
+  onSalvage: PlayMediator['salvageWreck']
+  /** Whether the Mediator holds a crawler a wreck's haul can go to. */
+  hasCrawler: boolean
+  rollFor?: typeof rollForTable
   onImportant: (important: boolean) => void
   onReactor: (patch: { currentEp?: number; currentHeat?: number }) => void
   onCritical: () => void
@@ -79,6 +90,9 @@ export function PlayNpcBox({
   onHp,
   onRename,
   onRemove,
+  onSalvage,
+  hasCrawler,
+  rollFor,
   onImportant,
   onReactor,
   onCritical,
@@ -86,6 +100,7 @@ export function PlayNpcBox({
 }: PlayNpcBoxProps) {
   const detail = useDetailModal(npc.entity ?? undefined, { pattern: npc.pattern ?? undefined })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
+  const wreck = npc.down ? wreckOf(npc) : null
   const { reactor, track } = npc
   const critical = npc.important && npc.down && track !== null ? track.critical : null
   const lastImportant = npc.lastImportantRoll
@@ -201,6 +216,16 @@ export function PlayNpcBox({
           </>
         ) : null}
         {npc.down ? <p style={MUTED}>{mediatorCopy('at0Down')}</p> : null}
+        {wreck !== null ? (
+          <PlayWreckSalvage
+            npc={npc}
+            wreck={wreck}
+            canWrite={canWrite}
+            hasCrawler={hasCrawler}
+            onSettle={onSalvage}
+            rollFor={rollFor}
+          />
+        ) : null}
         {critical !== null || (reactor !== null && !npc.down) ? (
           <span style={CONTROLS}>
             {critical !== null ? (

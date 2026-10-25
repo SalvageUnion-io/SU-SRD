@@ -25,6 +25,7 @@ import {
   hasVariableHot,
   heatCheckOncePatch,
   hotHeatFor,
+  isAreaSalvage,
   isDestructiveOutcome,
   mechPush,
   pilotActivationPatch,
@@ -212,9 +213,9 @@ describe('buildPilotActions', () => {
       equipment: [kitSlug, 'not-an-item', gunSlug],
       equipmentConditions: { [gunSlug]: 'damaged' },
     })
-    const deck = buildPilotActions(pilot)
+    const deck = buildPilotActions(pilot).filter((pa) => pa.kind === 'equipment')
     // The unknown slug is skipped, not a crash.
-    expect(deck.every((pa) => pa.kind === 'equipment' && pa.stamp === 'EQP')).toBe(true)
+    expect(deck.every((pa) => pa.stamp === 'EQP')).toBe(true)
     expect(deck.every((pa) => pa.currency === 'AP')).toBe(true)
     const kitActions = deck.filter((pa) => pa.slug === kitSlug)
     const gunActions = deck.filter((pa) => pa.slug === gunSlug)
@@ -226,9 +227,16 @@ describe('buildPilotActions', () => {
     expect(deck.every((pa) => pa.key.startsWith('equipment:'))).toBe(true)
   })
 
-  test('empty for a pilot with no abilities or equipment', () => {
+  test('a pilot with no abilities or equipment still has Area Salvage (p.248)', () => {
     const pilot = pilotFixture({ id: 'p2', name: 'Ghost' })
-    expect(buildPilotActions(pilot)).toEqual([])
+    const deck = buildPilotActions(pilot)
+    expect(deck.map((pa) => pa.name)).toEqual(['Area Salvage'])
+    expect(deck[0] && isAreaSalvage(deck[0].action)).toBe(true)
+  })
+
+  test('a stored Area Salvage is dealt once, not twice', () => {
+    const pilot = pilotFixture({ id: 'p4', name: 'Rook', abilities: ['area-salvage'] })
+    expect(buildPilotActions(pilot).filter((pa) => pa.name === 'Area Salvage')).toHaveLength(1)
   })
 })
 
