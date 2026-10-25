@@ -51,7 +51,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
     `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
-    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `BOT_SECRET`, `BOT_URL` (Play's posts).
+    Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): Convex holds `AUTH_JWKS`, its key's public half; bot: `BOT_SECRET`, `BOT_URL` (Play's posts).
     `TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
@@ -91,7 +91,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
     A PR into `main` or a `su-io-*` release branch labelled `preview` gets a su-srd Preview `pr-<n>` (the app on staging Convex) per push, linked in a comment, deleted on close.
-    The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
+    The label is the approval (no Environment reviewer); staging's schema follows the last PR shipped; Previews share the D1 `su-shared-preview`.
 30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.

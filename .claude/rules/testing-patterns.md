@@ -32,7 +32,7 @@ afterAll(() => {
 ```
 
 - A partial mock breaks transitive importers: mock every export they reach
-  (`@convex-dev/auth/react` needs `convex/react`'s `ConvexProviderWithAuth`).
+  (`AppConvexProvider` needs `convex/react`'s `ConvexProviderWithAuth`).
 - A module that reads `process.env` at import (`config.ts`) leaks a test's env
   var to every later file: mock the module, not the variable.
 

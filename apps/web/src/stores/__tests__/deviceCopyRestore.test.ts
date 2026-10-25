@@ -7,6 +7,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { SESSION_KEY } from '../../lib/auth/storedSession'
 import type { DeviceCopy, MineAnswer } from '../deviceCopy'
 import {
   beginRestore,
@@ -19,10 +20,6 @@ import { resetDeviceCopyRestore, restoreDeviceCopy } from '../deviceCopyRestore'
 import { setEntityBackendAuthState } from '../entityBackend'
 import { useEntityStore } from '../entityStore'
 import { resetStores } from './resetStores'
-
-const KEY = '__convexAuthJWT_httpslocalhost3210'
-const part = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '')
-const TOKEN = `${part({ alg: 'RS256' })}.${part({ sub: 'user123|s' })}.sig`
 
 const pilot = pilotFixture({ id: 'p-offline', name: 'Kept On This Device' })
 
@@ -50,7 +47,7 @@ beforeEach(() => {
   resetStores()
   resetDeviceCopy()
   resetDeviceCopyRestore()
-  localStorage.setItem(KEY, TOKEN)
+  localStorage.setItem(SESSION_KEY, 'user123')
   // Booted offline with a session on the device.
   setEntityBackendAuthState({
     signedIn: false,

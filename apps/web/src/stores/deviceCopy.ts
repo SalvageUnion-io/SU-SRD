@@ -14,8 +14,7 @@
  * ## Whose copy
  *
  * One copy, the account's whose session is on the device. The account is read
- * from the session token `@convex-dev/auth` keeps in `localStorage`
- * (`sessionAccount`), the same token the handshake would send, and the copy is
+ * from the device's stored session (`sessionAccount`), and the copy is
  * stamped with it; a copy stamped for another account is never read. Signing
  * out drops it (`sessionRows.ts`), on whichever tab saw the session end.
  *
@@ -28,6 +27,7 @@
 
 import type { FunctionReturnType } from 'convex/server'
 import type { api } from '../../convex/_generated/api'
+import { storedSessionAccount } from '../lib/auth/storedSession'
 import { localStore } from '../lib/safeLocalStorage'
 
 /** `entities.listMine`'s answer, as `ShelfSync` applies it. */
@@ -110,38 +110,15 @@ export function setCopyStorage(next: CopyStorage | null): void {
   storage = next ?? indexedDbStorage
 }
 
-/** `@convex-dev/auth`'s session token key, before its per-deployment suffix. */
-const SESSION_TOKEN_KEY = '__convexAuthJWT'
-
 /**
- * The account whose session is on this device: the session token's subject,
- * `<userId>|<sessionId>`, read without verifying it (the server verifies; this
- * only names whose copy to read). `null` when there is no session or no
- * readable token.
+ * The account whose session is on this device, as the session's last answer
+ * left it (`lib/auth/storedSession.ts`): it only names whose copy to read; the
+ * server checks the session. `null` when there is none.
  */
 export function sessionAccount(
-  store: Pick<Storage, 'length' | 'key' | 'getItem'> | null = localStore()
+  store: Pick<Storage, 'getItem'> | null = localStore()
 ): string | null {
-  if (store === null) return null
-  for (let i = 0; i < store.length; i += 1) {
-    const key = store.key(i)
-    if (key === null || !key.startsWith(SESSION_TOKEN_KEY)) continue
-    const subject = tokenSubject(store.getItem(key))
-    if (subject !== null) return subject.split('|')[0] || null
-  }
-  return null
-}
-
-function tokenSubject(token: string | null): string | null {
-  const payload = token?.split('.')[1]
-  if (!payload) return null
-  try {
-    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-    const sub = (JSON.parse(json) as { sub?: unknown }).sub
-    return typeof sub === 'string' ? sub : null
-  } catch {
-    return null
-  }
+  return storedSessionAccount(store)
 }
 
 /**

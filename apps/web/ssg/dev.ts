@@ -46,6 +46,7 @@ import { fileURLToPath } from 'node:url'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
+import { AUTH_PREFIX } from '../src/lib/auth/paths'
 import { HOMEBREW_PATTERNS_PATH } from '../src/lib/homebrew/endpoint'
 import { DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
 import type { BuildAssets } from './document'
@@ -243,6 +244,22 @@ function send(req: IncomingMessage, res: ServerResponse, response: DevResponse):
   res.end(response.body)
 }
 
+/** A Node request as a Fetch one, on the address the browser used. */
+async function toRequest(req: IncomingMessage, url: URL): Promise<Request> {
+  const headers = new Headers()
+  for (const [key, value] of Object.entries(req.headers))
+    if (typeof value === 'string') headers.set(key, value)
+  const origin = `http://${req.headers.host ?? 'localhost'}`
+  const chunks: Buffer[] = []
+  if (req.method !== 'GET' && req.method !== 'HEAD')
+    for await (const chunk of req) chunks.push(chunk as Buffer)
+  return new Request(new URL(`${url.pathname}${url.search}`, origin), {
+    method: req.method,
+    headers,
+    body: chunks.length > 0 ? Buffer.concat(chunks) : undefined,
+  })
+}
+
 async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerResponse) {
   const started = Date.now()
   const url = new URL(req.url ?? '/', 'http://localhost')
@@ -256,6 +273,26 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
   } catch {
     // Undecodable: serve the raw path so route matching simply misses and the
     // request 404s like any other unknown URL.
+  }
+
+  // Sign-in is the Worker's in production (`src/worker/auth/`); here the same
+  // handler, on a local database (`devAuth.ts`).
+  if (pathname.startsWith(AUTH_PREFIX)) {
+    const [{ handleAuth }, { devAuthDeps }] = await Promise.all([
+      import('../src/worker/auth/index'),
+      import('./devAuth'),
+    ])
+    const answer = await handleAuth(await toRequest(req, url), await devAuthDeps())
+    if (answer !== null) {
+      res.statusCode = answer.status
+      answer.headers.forEach((value, key) => {
+        if (key !== 'set-cookie') res.setHeader(key, value)
+      })
+      const cookies = answer.headers.getSetCookie()
+      if (cookies.length > 0) res.setHeader('set-cookie', cookies)
+      res.end(Buffer.from(await answer.arrayBuffer()))
+      return
+    }
   }
 
   // Homebrew is the Worker's in production (`src/worker/homebrew.ts`); here
@@ -314,7 +351,9 @@ async function main(): Promise<void> {
     // Names this checkout, so `bun run shot` can refuse another checkout's server.
     res.setHeader(CHECKOUT_HEADER, CHECKOUT_ROOT)
     vite.middlewares(req, res, () => {
-      if (req.method !== 'GET' && req.method !== 'HEAD') {
+      // Sign-in's POSTs are the one write the dev server answers.
+      const auth = (req.url ?? '').startsWith(AUTH_PREFIX)
+      if (req.method !== 'GET' && req.method !== 'HEAD' && !auth) {
         res.statusCode = 405
         res.setHeader('Allow', 'GET, HEAD')
         res.end()

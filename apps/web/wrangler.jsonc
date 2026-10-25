@@ -34,6 +34,12 @@
   //   without them it unfurls as text.
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
   //   secret. Without it POST /__convex-logs answers 503.
+  // - DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET, the Discord application's
+  //   OAuth client (its redirect: <origin>/auth/callback), and
+  //   AUTH_SIGNING_KEY, the private half of `bun scripts/authKeys.ts`, whose
+  //   public half is the Convex deployment's AUTH_JWKS. Without them
+  //   /auth/sign-in answers 503 and nobody signs in (src/worker/auth/).
+  //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from: the URL the app is built against, `PRODUCTION_CONVEX_URL`
@@ -42,13 +48,20 @@
     "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
   },
 
-  // A Worker Preview (deploy-preview.yml) inherits none of the vars above:
-  // the staging deployment the app is built against.
+  // SHARED: the shared database (D1). Sign-in keeps accounts and sessions
+  // there (src/worker/auth/store.ts makes its tables on first use). No
+  // `database_id`: wrangler provisions it by name on the first deploy.
+  "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared" }],
+
+  // A Worker Preview (deploy-preview.yml) inherits none of the vars and
+  // bindings above: the staging deployment the app is built against, and its
+  // own shared database, so a Preview never reads or writes production's.
   // Its error endpoints run without the rate limits, which the Worker allows.
   "previews": {
     "vars": {
       "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
-    }
+    },
+    "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared-preview" }]
   },
 
   // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors) per

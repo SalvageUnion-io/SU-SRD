@@ -11,11 +11,10 @@ import schema from '../../convex/schema'
  * `Bun.Glob` scan of `convex/` instead: every module there is loadable by the
  * tests, with nothing to keep in step by hand.
  *
- * `auth.ts` and `http.ts` are left out of `testConvex()`: they pull in the
- * Discord provider and the deployment's auth env vars, and identity is supplied
- * directly via `withIdentity`, which is what `getAuthUserId` reads anyway.
- * `testConvexWithHttp()` adds them for the one test that drives sign-in through
- * the deployed HTTP routes. The other three hold no query, mutation or action:
+ * `http.ts` is left out of `testConvex()`: identity is supplied directly via
+ * `withIdentity`, which is what `getAuthUserId` reads anyway.
+ * `testConvexWithHttp()` adds it for the tests that drive the deployed HTTP
+ * routes. The other three hold no query, mutation or action:
  * `schema.ts` is passed to `convexTest` directly, `auth.config.ts` is
  * deployment config, and `botHttp.ts` exports only an `httpAction` that
  * `http.ts` routes.
@@ -27,7 +26,7 @@ import schema from '../../convex/schema'
  * `src/` degrades to an implicit any.
  */
 const CONVEX_DIR = join(import.meta.dir, '../../convex')
-const NOT_LOADED = new Set(['auth.ts', 'http.ts', 'schema.ts', 'auth.config.ts', 'botHttp.ts'])
+const NOT_LOADED = new Set(['http.ts', 'schema.ts', 'auth.config.ts', 'botHttp.ts'])
 
 // convex-test locates the modules root by finding a "_generated" path in the
 // map, so the scan takes `_generated/*.js` too, though no test imports them.
@@ -42,14 +41,9 @@ export function testConvex() {
 }
 
 /**
- * `testConvex()` plus the deployed `auth.ts` and `http.ts`, so `t.fetch`
- * reaches the real router and `auth:store` resolves. For the Discord sign-in
- * test; everything else should use `testConvex()`.
+ * `testConvex()` plus the deployed `http.ts`, so `t.fetch` reaches the real
+ * router; everything that does not need it should use `testConvex()`.
  */
 export function testConvexWithHttp() {
-  return convexTest(schema, {
-    ...modules,
-    './auth.ts': () => import('../../convex/auth'),
-    './http.ts': () => import('../../convex/http'),
-  })
+  return convexTest(schema, { ...modules, './http.ts': () => import('../../convex/http') })
 }

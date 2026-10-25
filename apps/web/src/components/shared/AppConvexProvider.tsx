@@ -1,13 +1,14 @@
-import { ConvexAuthProvider } from '@convex-dev/auth/react'
+import { ConvexProviderWithAuth } from 'convex/react'
 import type { ReactNode } from 'react'
+import { useWorkerAuth } from '../../lib/auth/session'
 import { ConnectionProvider } from '../../lib/connection/ConnectionProvider'
 import { convexClient } from '../../lib/connection/convexClient'
 
-/** Mounts the Convex client and its auth provider, with the connection mode under them. */
+/** Mounts the Convex client on the Worker's session, with the connection mode under it. */
 export function AppConvexProvider({ children }: { children: ReactNode }) {
   return (
-    <ConvexAuthProvider client={convexClient}>
+    <ConvexProviderWithAuth client={convexClient} useAuth={useWorkerAuth}>
       <ConnectionProvider>{children}</ConnectionProvider>
-    </ConvexAuthProvider>
+    </ConvexProviderWithAuth>
   )
 }

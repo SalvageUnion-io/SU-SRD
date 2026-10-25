@@ -4,6 +4,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { SESSION_KEY } from '../../lib/auth/storedSession'
 import type { CopyStorage, DeviceCopy, MineAnswer, WiringAnswer } from '../deviceCopy'
 import {
   dropCopy,
@@ -13,14 +14,6 @@ import {
   sessionAccount,
   setCopyStorage,
 } from '../deviceCopy'
-
-/** A session token for `sub`, as `@convex-dev/auth` keeps it (unsigned here). */
-function token(sub: string): string {
-  const part = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '')
-  return `${part({ alg: 'RS256' })}.${part({ sub })}.signature`
-}
-
-const KEY = '__convexAuthJWT_httpslocalhost3210'
 
 /** An in-memory stand-in for IndexedDB. */
 function memoryStorage(): CopyStorage & { held: () => DeviceCopy | null } {
@@ -64,8 +57,8 @@ afterEach(() => {
 })
 
 describe('sessionAccount', () => {
-  test("reads the account from the session token's subject", () => {
-    localStorage.setItem(KEY, token('user123|session456'))
+  test('reads the account from the stored session', () => {
+    localStorage.setItem(SESSION_KEY, 'user123')
     expect(sessionAccount()).toBe('user123')
   })
 
@@ -73,15 +66,15 @@ describe('sessionAccount', () => {
     expect(sessionAccount()).toBeNull()
   })
 
-  test('an unreadable token is no account', () => {
-    localStorage.setItem(KEY, 'not-a-jwt')
+  test('an emptied session is no account', () => {
+    localStorage.setItem(SESSION_KEY, '')
     expect(sessionAccount()).toBeNull()
   })
 })
 
 describe('the copy', () => {
   test('keeps both halves, stamped with the account', async () => {
-    localStorage.setItem(KEY, token('user123|s'))
+    localStorage.setItem(SESSION_KEY, 'user123')
     await saveCopy({ mine: MINE })
     await saveCopy({ wiring: WIRING })
     const copy = await readCopy()
@@ -96,21 +89,21 @@ describe('the copy', () => {
   })
 
   test("is never read for another account's session", async () => {
-    localStorage.setItem(KEY, token('user123|s'))
+    localStorage.setItem(SESSION_KEY, 'user123')
     await saveCopy({ mine: MINE })
-    localStorage.setItem(KEY, token('someoneElse|s'))
+    localStorage.setItem(SESSION_KEY, 'someoneElse')
     expect(await readCopy()).toBeNull()
   })
 
   test('is gone once dropped', async () => {
-    localStorage.setItem(KEY, token('user123|s'))
+    localStorage.setItem(SESSION_KEY, 'user123')
     await saveCopy({ mine: MINE })
     await dropCopy()
     expect(await readCopy()).toBeNull()
   })
 
   test('a storage that refuses costs only the copy', async () => {
-    localStorage.setItem(KEY, token('user123|s'))
+    localStorage.setItem(SESSION_KEY, 'user123')
     setCopyStorage({
       read: () => Promise.reject(new Error('blocked')),
       write: () => Promise.reject(new Error('blocked')),

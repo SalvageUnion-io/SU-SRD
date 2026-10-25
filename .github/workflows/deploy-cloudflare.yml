@@ -105,10 +105,6 @@ env:
   # deploy key resolves to before it pushes, so a moved deployment fails the
   # run before anything ships instead of shipping a client aimed elsewhere.
   PRODUCTION_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
-  # Where the app is served (ADR-048): `SITE` in apps/web/src/lib/site.ts, with
-  # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
-  # holds them equal). `push-convex` sets it on the production backend.
-  APP_URL: https://salvageunion.io/build
 
 jobs:
   # ===========================================================================
@@ -312,9 +308,7 @@ jobs:
   #
   # The action's `--cmd` guard runs BEFORE the push: if production has moved
   # to a deployment other than the one `build-web` compiled against, `convex
-  # deploy` stops before pushing, and nothing ships. It then sets the
-  # backend's SITE_URL — a constant here, so setting it before the site leg
-  # ships changes nothing a signed-in player sees.
+  # deploy` stops before pushing, and nothing ships.
   push-convex:
     needs: [plan, build-web]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'web') }}
@@ -336,16 +330,6 @@ jobs:
         with:
           deploy-key: ${{ secrets.CONVEX_DEPLOY_KEY }}
           expected-url: ${{ env.PRODUCTION_CONVEX_URL }}
-
-      # Convex Auth sends a signed-in player back to SITE_URL, which must be
-      # where the app is served, base included (`/build`, ADR-048). Set on
-      # every deploy, not by hand, so the repo says where it points;
-      # idempotent. Not a secret.
-      - name: Point the backend's SITE_URL at the app
-        working-directory: apps/web
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: bunx convex env set SITE_URL "$APP_URL"
 
   # ===========================================================================
   # The deploy — one leg per surface in the deploy set, in parallel, after

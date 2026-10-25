@@ -49,7 +49,7 @@ export type ConnectionInputs = {
   /** Whether the browser believes it has a network connection. */
   online: boolean
   /**
-   * Whether a session token is on the device (`sessionAccount`). Offline the
+   * Whether a session is stored on the device (`sessionAccount`). Offline the
    * handshake can never settle, so this is what tells an offline boot that
    * was signed in from one that was not.
    */

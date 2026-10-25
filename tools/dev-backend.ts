@@ -18,13 +18,15 @@
  *   sandbox); when GitHub is unreachable, the newest binary already cached
  *   runs instead, with a warning.
  * - State lives in `.dev-backend/` at the checkout root (gitignored): the
- *   database, file storage, the instance secret and `seed.json`. A restart
+ *   database, file storage, the instance secret, the sign-in's key and
+ *   accounts (`auth-key.json`, `auth.sqlite`) and `seed.json`. A restart
  *   keeps it; `--fresh` wipes it first.
  * - The backend listens on 3310/3311 plus this checkout's port offset
  *   (`packages/gates/lib/ports.ts`), clear of `convex dev --local`'s 3210;
  *   the dev server on the checkout's own port (4321 in the primary checkout).
- * - Every start sets the deployment's auth env (the JWT keypair once;
- *   `TEST_AUTH`, `SITE_URL` each time) and pushes `apps/web/convex/`, through
+ * - Every start sets the deployment's auth env (`AUTH_JWKS`, the public half
+ *   of the dev server's sign-in key, made once in the state directory, and
+ *   `TEST_AUTH`) and pushes `apps/web/convex/`, through
  *   an env file of its own, so an `apps/web/.env.local` naming another
  *   deployment is never read. It does not watch: rerun to push a backend edit.
  *   The dev server (`ssg/dev.ts`) reloads the site's code as usual.
@@ -53,10 +55,14 @@ import { FORCE_ONLINE, headlessShell, launchBrowser } from 'gates/lib/chromium'
 import type { Seed } from 'gates/lib/seedAccount'
 import type { SeamAccount } from 'gates/lib/testSignIn'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, isPrimaryCheckout, portFor, portOffset } from 'gates/ports'
+import { jwksDataUri, keyIn } from '../apps/web/scripts/authKeys'
 import { appRoot, seed } from './gallery'
 
 /** Where the backend keeps its state, under the checkout root. */
 export const STATE_DIR = '.dev-backend'
+
+/** The sign-in's private key (`apps/web/scripts/authKeys.ts`), in the state directory. */
+const AUTH_KEY_FILE = 'auth-key.json'
 
 /** The account the seed makes and `bun run shot --signed-in` signs in as. Local only. */
 export const SEED_ACCOUNT: SeamAccount = {
@@ -294,39 +300,12 @@ async function convex(sys: Sys, root: string, envFile: string, args: readonly st
   return result.stdout
 }
 
-/** A fresh RS256 keypair as Convex Auth wants it: a PKCS#8 PEM and a JWKS. */
-export async function authKeys(): Promise<{ privateKey: string; jwks: string }> {
-  const { generateKeyPairSync } = await import('node:crypto')
-  const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
-  const jwk = publicKey.export({ format: 'jwk' })
-  return {
-    privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
-    jwks: JSON.stringify({ keys: [{ ...jwk, use: 'sig', alg: 'RS256' }] }),
-  }
-}
-
-/** Sets the deployment env sign-in needs. The keypair only when it has none. */
-async function provision(sys: Sys, root: string, envFile: string, state: string, devPort: number) {
-  const jwks = await convex(sys, root, envFile, ['env', 'get', 'JWKS'])
-  if (!jwks.trim()) {
-    // Through files, never argv: a PEM begins `-----`, which the CLI reads as flags.
-    const keys = await authKeys()
-    const keyFile = join(state, 'jwt.key')
-    const jwksFile = join(state, 'jwks.json')
-    writeFileSync(keyFile, keys.privateKey, { mode: 0o600 })
-    writeFileSync(jwksFile, keys.jwks)
-    try {
-      await convex(sys, root, envFile, ['env', 'set', 'JWT_PRIVATE_KEY', '--from-file', keyFile])
-      await convex(sys, root, envFile, ['env', 'set', 'JWKS', '--from-file', jwksFile])
-    } finally {
-      rmSync(keyFile, { force: true })
-      rmSync(jwksFile, { force: true })
-    }
-  }
-  // `convex/auth.ts` includes the password provider only on the exact 'true'.
+/** Sets the deployment env sign-in needs: the dev server's key's public half, and the test seam. */
+async function provision(sys: Sys, root: string, envFile: string, state: string) {
+  const jwks = jwksDataUri(await keyIn(join(state, AUTH_KEY_FILE)))
+  await convex(sys, root, envFile, ['env', 'set', 'AUTH_JWKS', jwks])
+  // `convex/accountLink.ts` links a test account only on the exact 'true'.
   await convex(sys, root, envFile, ['env', 'set', 'TEST_AUTH', 'true'])
-  // The frontend's address with the app's base (ADR-048); missing, sign-in 500s.
-  await convex(sys, root, envFile, ['env', 'set', 'SITE_URL', `http://localhost:${devPort}/build`])
 }
 
 /**
@@ -466,7 +445,7 @@ export async function main(
       `CONVEX_SELF_HOSTED_URL=${backendUrl_}\nCONVEX_SELF_HOSTED_ADMIN_KEY=${adminKey}\n`,
       { mode: 0o600 }
     )
-    await provision(sys, root, envFile, state, devPort)
+    await provision(sys, root, envFile, state)
     sys.log('[dev-backend] pushing apps/web/convex…')
     await convex(sys, root, envFile, ['deploy', '-y'])
 
@@ -475,6 +454,9 @@ export async function main(
         PORT: String(devPort),
         VITE_CONVEX_URL: backendUrl_,
         VITE_TEST_AUTH: 'true',
+        TEST_AUTH: 'true',
+        AUTH_SIGNING_KEY: await keyIn(join(state, AUTH_KEY_FILE)),
+        AUTH_DB: join(state, 'auth.sqlite'),
       })
     )
     // The first request renders a page server-side through a cold Vite.

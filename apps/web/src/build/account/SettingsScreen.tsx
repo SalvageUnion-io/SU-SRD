@@ -22,6 +22,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
 import { SignInControl } from './SignInControl'
+import { useSignOut } from './useSignOut'
 
 /**
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
@@ -93,6 +94,7 @@ function SignedInAccount() {
   // which holds the failure on itself (ruleset §3.1: destruction behind
   // `ConfirmDialog`).
   const eraseFailure = useRef('')
+  const signOut = useSignOut()
 
   if (me === undefined) return <Pending label={buildAccountCopy('yourAccount')} />
   if (me === null)
@@ -167,6 +169,8 @@ function SignedInAccount() {
               eraseFailure.current = result.error
               throw new Error('The account was not deleted')
             }
+            // The session outlives the Convex account; it ends with it.
+            await signOut()
           }}
           describeError={() => eraseFailure.current}
         />

@@ -9,8 +9,7 @@
  */
 
 import type * as account from "../account.js";
-import type * as auth from "../auth.js";
-import type * as authHealth from "../authHealth.js";
+import type * as accountLink from "../accountLink.js";
 import type * as botClient from "../botClient.js";
 import type * as botHttp from "../botHttp.js";
 import type * as build from "../build.js";
@@ -68,8 +67,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   account: typeof account;
-  auth: typeof auth;
-  authHealth: typeof authHealth;
+  accountLink: typeof accountLink;
   botClient: typeof botClient;
   botHttp: typeof botHttp;
   build: typeof build;

@@ -21,20 +21,17 @@ import type { QueryAnswers } from '../../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 let authed = true
-const signIn = mock(async (_provider: string) => undefined)
+const signIn = mock((_route?: string) => undefined)
 const signOut = mock(async () => undefined)
 
-// Module scope, before the imports below — see `convexMock.ts`. The auth
+// Module scope, before the imports below — see `convexMock.ts`. The session
 // module is mocked through `also` rather than `authReact` so the two actions
-// are spies this file can read.
+// are spies this file can read. `also` resolves from `convexMock.ts`.
 const convexMocks = await installConvexMocks({
   router: true,
   convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
-    '@convex-dev/auth/react': () => ({
-      useAuthActions: () => ({ signIn, signOut }),
-      ConvexAuthProvider: ({ children }: { children: ReactNode }) => children,
-    }),
+    '../../lib/auth/session': () => ({ signIn, signOut }),
   },
 })
 
@@ -222,7 +219,7 @@ describe('signed out', () => {
     expect(screen.queryByRole('button', { name: /account menu/i })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Games' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
-    expect(signIn).toHaveBeenCalledWith('discord')
+    expect(signIn).toHaveBeenCalledTimes(1)
   })
 
   test('mobile: the header row stays empty and the drawer offers sign-in', () => {

@@ -73,7 +73,7 @@ export function mockUseQuery(ref: unknown, args?: unknown): unknown {
 /**
  * The full `convex/react` module body these tests replace. Every export the
  * transitive importers reach is present, not just the hooks under test —
- * `@convex-dev/auth/react` fails at import on a missing `ConvexProviderWithAuth`.
+ * `AppConvexProvider` fails at import on a missing `ConvexProviderWithAuth`.
  *
  * Pass `overrides` for the per-file bits (a mutation spy, an unauthenticated
  * `useConvexAuth`, …).
@@ -116,8 +116,8 @@ export type InstallOptions = {
    */
   convexClient?: Record<string, unknown>
   /**
-   * Stub `@convex-dev/auth/react` too. Needed by anything that mounts
-   * `SignInControl`, whose real provider wants a live Convex client.
+   * Stub the app's session (`lib/auth/session`) too. Needed by anything that
+   * mounts `SignInControl`, whose real `signIn` leaves the page.
    */
   authReact?: boolean
   /**
@@ -138,7 +138,7 @@ export type ConvexMockHandle = {
   restore: () => void
   /** Every `useNavigate()(opts)` the render made. Only fills with `router: true`. */
   navigations: unknown[]
-  /** Every `signIn(provider, params?)` call, as its argument list. Only fills with `authReact: true`. */
+  /** Every `signIn(route?)` call, as its argument list. Only fills with `authReact: true`. */
   signIns: unknown[][]
 }
 
@@ -167,7 +167,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
   // --- capture, before anything is mocked (rule 1) ---
   const realConvexClient = { ...(await import('../../lib/connection/convexClient')) }
   const realConvexReact = { ...(await import('convex/react')) }
-  const realAuthReact = options.authReact ? { ...(await import('@convex-dev/auth/react')) } : null
+  const realAuthReact = options.authReact ? { ...(await import('../../lib/auth/session')) } : null
   const realRouter = options.router ? { ...(await import('@tanstack/react-router')) } : null
   const realExtras = new Map<string, Record<string, unknown>>()
   for (const specifier of Object.keys(options.also ?? {})) {
@@ -181,14 +181,12 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
   mock.module('convex/react', () => convexReactMock(options.convexReact ?? {}))
 
   if (realAuthReact !== null) {
-    mock.module('@convex-dev/auth/react', () => ({
-      useAuthActions: () => ({
-        signIn: async (...args: unknown[]) => {
-          signIns.push(args)
-        },
-        signOut: async () => undefined,
-      }),
-      ConvexAuthProvider: ({ children }: { children: ReactNode }) => children,
+    mock.module('../../lib/auth/session', () => ({
+      ...realAuthReact,
+      signIn: (...args: unknown[]) => {
+        signIns.push(args)
+      },
+      signOut: async () => undefined,
     }))
   }
 
@@ -213,7 +211,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
     restore() {
       mock.module('../../lib/connection/convexClient', () => realConvexClient)
       mock.module('convex/react', () => realConvexReact)
-      if (realAuthReact !== null) mock.module('@convex-dev/auth/react', () => realAuthReact)
+      if (realAuthReact !== null) mock.module('../../lib/auth/session', () => realAuthReact)
       if (realRouter !== null) mock.module('@tanstack/react-router', () => realRouter)
       for (const [specifier, real] of realExtras) mock.module(specifier, () => real)
     },
