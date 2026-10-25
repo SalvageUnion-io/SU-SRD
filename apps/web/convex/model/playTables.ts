@@ -2,14 +2,13 @@ import { defineTable } from 'convex/server'
 import type { GenericId } from 'convex/values'
 import { v } from 'convex/values'
 import { zodToConvex } from 'convex-helpers/server/zod4'
-import { SCENE_CONDITION_IDS } from 'game-domain/schemas/scene'
 import type { Seat } from 'game-domain/schemas/seat'
 import { SeatSchema } from 'game-domain/schemas/seat'
-import { literalUnion, mirrors } from './validators'
+import { mirrors } from './validators'
 
 /**
  * Play's tables (ADR-051), spread into `schema.ts`: the Discord channel
- * bindings, the Game's Downtime and ledger, the area being salvaged and the pilot's seat, with the seat's
+ * bindings, the Game's Downtime and the pilot's seat, with the seat's
  * validators the function modules take their arguments against. Split out of
  * `schema.ts` to hold it under its file-size budget; the rules in that file's
  * header hold here too.
@@ -41,12 +40,6 @@ export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 
 /** `SoloDowntime` (game-domain/schemas/seat). Exported for the solo seat reads. */
 export const soloDowntime = zodToConvex(SeatSchema.shape.downtime.unwrap())
-
-/** `SCENE_CONDITION_IDS` (salvageunion-reference/rules): what a Scene can be under. */
-export const sceneCondition = literalUnion(SCENE_CONDITION_IDS)
-
-/** One pilot's claim on one Downtime step (`downtime.claimStep`). */
-export const downtimeClaim = v.object({ pilotId: v.string(), stepIndex: v.number() })
 
 export const playTables = {
   /** The Discord channel Play's rolls post to (`/su bind`): a Game's, or with no `gameId` one person's solo play (`model/channelBindings.ts`). */
@@ -86,60 +79,10 @@ export const playTables = {
     /** Set once per Downtime so crawler upkeep is spent once, not per member. */
     upkeepSpent: v.boolean(),
     /**
-     * Each step a pilot has applied or skipped this Downtime
-     * (`downtime.claimStep`), so a step's Apply runs once per pilot: Undo,
-     * the Mediator's Back and a reload never offer it again. Per pilot, not
-     * per member (a member may run two). Cleared when a Downtime ends or a
-     * fresh one begins, never by a step change or Undo;
-     * absent on a row written before it existed, which reads as none.
+     * Unread and no longer written: a step is an op with a stable id
+     * (ADR-063 §6). Kept so older rows still validate.
      */
-    claimed: v.optional(v.array(downtimeClaim)),
-  }).index('by_game', ['gameId']),
-
-  /**
-   * The environmental conditions a Game's Scene is under (`scenes.ts`): a
-   * Radiation Storm, Freezing, Low Visibility and the rest
-   * (`salvageunion-reference/rules` sceneConditions). One row per Game, written
-   * by its Mediator and read by every member, since every seat's Heat and range
-   * follow it. `hours` counts the hours passed under them, back to 0 when the
-   * last one lifts. No row is a clear Scene.
-   */
-  scenes: defineTable({
-    gameId: v.id('games'),
-    conditions: v.array(sceneCondition),
-    hours: v.number(),
-    updatedAt: v.number(),
-  }).index('by_game', ['gameId']),
-
-  /**
-   * The area a table is salvaging (Core Book p.245, `game-domain/schemas/
-   * salvageArea`): a Game's (`gameId`), set by its Mediator, or one player's
-   * solo table (`ownerId`). At most one row per place. Every member reads a
-   * Game's, since they roll against it; each Area Salvage roll spends 1
-   * Supply here (`salvageAreas.spend`), so two players never roll the same
-   * last Supply.
-   */
-  salvageAreas: defineTable({
-    gameId: v.optional(v.id('games')),
-    ownerId: v.optional(v.id('users')),
-    name: v.string(),
-    techLevel: v.number(),
-    supply: v.number(),
-    updatedAt: v.number(),
-  })
-    .index('by_game', ['gameId'])
-    .index('by_owner', ['ownerId']),
-
-  /**
-   * A Game's ledger (`game-domain/schemas/ledger`): its factions, their
-   * standing and deals, and its jobs and their pay. One row per Game at most,
-   * written by its Mediator (`ledger.ts`) and read by every member. The body
-   * is `v.any()`, parsed at the edge (`LedgerSchema`). Part of the Game's
-   * apparatus, so it goes with the Game (`GAME_APPARATUS_TABLES`).
-   */
-  ledgers: defineTable({
-    gameId: v.id('games'),
-    body: v.any(),
+    claimed: v.optional(v.array(v.object({ pilotId: v.string(), stepIndex: v.number() }))),
   }).index('by_game', ['gameId']),
 
   /**

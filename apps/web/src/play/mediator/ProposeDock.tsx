@@ -10,7 +10,7 @@
  *
  * Targets are claimed pilots and mechs; a mech is labelled by its pilot
  * ("Pickle's Spectrum"). The value is a whole number from 0 to the field's
- * derived maximum, clamped here; `proposals.apply` still parses it on the
+ * derived maximum, clamped here; `ops.accept` still parses it on the
  * server. Tapping a seat card picks its pilot and moves focus to To.
  *
  * **Setbacks**, beside "The player decides.", opens Setbacks & Tough Choices (`SetbacksDialog`):

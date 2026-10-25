@@ -87,17 +87,20 @@ export type PlayDowntime = {
   markDone: ((done: boolean) => void) | null
   /**
    * The steps this pilot has done this Downtime (applied or skipped), as the
-   * server records them (the solo seat, or the Game's `claimed`), so a reload,
+   * server records them (their step ops), so a reload,
    * an Undo or the Mediator's Back never offers one again. Null on the
    * Mediator's own screen, which plays no pilot.
    */
   doneSteps: readonly number[] | null
   /**
-   * Claim a step for this pilot before applying it. True when this call
-   * claimed it; false when it was already done (apply nothing then) or the
-   * write was refused. Null on the Mediator's own screen.
+   * Take a step for this pilot: its one op, carrying what it applies to the
+   * pilot (empty to skip). True when this call took it; false when it was
+   * already done (apply nothing more then) or the write was refused. Null on
+   * the Mediator's own screen.
    */
-  markStepDone: ((stepIndex: number) => Promise<boolean>) | null
+  markStepDone:
+    | ((stepIndex: number, pilotPatch: Record<string, unknown>) => Promise<boolean>)
+    | null
   /**
    * Record the crawler's upkeep as paid for this Downtime. True when this call
    * paid it; deduct the Scrap only then.

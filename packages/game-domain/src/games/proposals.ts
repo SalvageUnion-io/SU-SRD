@@ -2,7 +2,7 @@
  * Proposals, as both ends of propose-and-confirm read them (ADR-030 §4,
  * docs/architecture/play.md §15).
  *
- * Shared by the server (`convex/proposals.ts` reads the reason cap) and the
+ * Shared by the server (`convex/model/opProposals.ts` reads the reason cap) and the
  * Mediator's surfaces (the propose dock, the Proposals tab, the Game page's
  * "Proposals you sent"), so the field names, their labels and the state words
  * are one list. Pure: no React, no Convex.
@@ -18,7 +18,7 @@ export const PROPOSAL_REASON_MAX = 140
  * The live-play fields a Mediator may propose a change to, per target kind.
  *
  * **These are Zod field names and the casing is load-bearing**: `currentHp`
- * names nothing on `PilotSchema`, and `proposals.apply` parses the merged body
+ * names nothing on `PilotSchema`, and `ops.accept` parses the merged body
  * and refuses a field the schema has no room for.
  */
 export const PROPOSAL_FIELDS = {
@@ -71,7 +71,7 @@ type TargetReading = { current: number | null; max: number | null }
 
 /** Something a proposal can be aimed at: a claimed pilot or mech. */
 export type ProposalTarget = {
-  /** The Convex row id `proposals.propose` addresses it by. */
+  /** The Convex row id `ops.propose` addresses it by. */
   id: string
   kind: ProposalTargetKind
   /** "Pickle", or a mech by its pilot: "Pickle's Spectrum". */

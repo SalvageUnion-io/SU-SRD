@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, setSystemTime, test } from 'bun:test'
+import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { downtimeGuideSteps, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import { PRESENCE_WRITE_MIN_MS } from 'game-domain/schemas/seat'
 import { api } from '../../../convex/_generated/api'
@@ -13,6 +14,7 @@ import {
   pilotBody,
   seatRows,
   seedTable,
+  unitOp,
 } from '../fixtures'
 import { testConvex } from '../harness'
 
@@ -231,7 +233,7 @@ describe('solo Downtime', () => {
       startedAt: null,
       completedBy: [],
       upkeepSpent: false,
-      claimed: [],
+      doneSteps: [],
     })
 
     await player.as.mutation(api.downtime.begin, P)
@@ -292,49 +294,50 @@ describe('solo Downtime', () => {
     expect(await player.as.mutation(api.downtime.spendUpkeep, P)).toBe(true)
   })
 
-  test('a step is marked done once: a second Apply after a reload is refused', async () => {
+  test('a step is taken once: a second Apply after a reload applies nothing', async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
     const train = downtimeGuideSteps().findIndex((step) => step.name === 'Train your Pilot')
     await player.as.mutation(api.downtime.begin, P)
-    expect((await player.as.query(api.downtime.state, P))?.claimed).toEqual([])
+    const startedAt = (await player.as.query(api.downtime.state, P))?.startedAt ?? 0
+    const take = (at = startedAt) =>
+      player.as.mutation(
+        api.ops.apply,
+        unitOp('pilot', { appId: 'p1', id: downtimeStepOpId(at, 'p1', train), patch: {} })
+      )
+    expect((await player.as.query(api.downtime.state, P))?.doneSteps).toEqual([])
     await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: train })
 
-    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(true)
-    // The reload: a fresh read of the seat still has it, and the claim is refused.
-    expect((await player.as.query(api.downtime.state, P))?.claimed).toEqual([
-      { pilotId: 'p1', stepIndex: train },
-    ])
-    expect((await soloSeat(player))?.downtime).toMatchObject({ doneSteps: [train] })
-    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(false)
+    expect((await take())?.fresh).toBe(true)
+    // The reload: a fresh read still has it, and a second send applies nothing.
+    expect((await player.as.query(api.downtime.state, P))?.doneSteps).toEqual([train])
+    expect((await take())?.fresh).toBe(false)
 
     // Moving the steps keeps it; a second Begin while running is no reset.
     await player.as.mutation(api.downtime.advance, P)
-    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: train })
     await player.as.mutation(api.downtime.begin, P)
-    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(false)
+    expect((await player.as.query(api.downtime.state, P))?.doneSteps).toEqual([train])
 
-    // Only a fresh Downtime clears it.
+    // A fresh Downtime takes it afresh.
     await player.as.mutation(api.downtime.end, P)
+    await new Promise((resolve) => setTimeout(resolve, 2))
     await player.as.mutation(api.downtime.begin, P)
-    expect((await player.as.query(api.downtime.state, P))?.claimed).toEqual([])
-    await player.as.mutation(api.downtime.setStep, { ...P, stepIndex: train })
-    expect(await player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: train })).toBe(true)
+    const next = (await player.as.query(api.downtime.state, P))?.startedAt ?? 0
+    expect((await player.as.query(api.downtime.state, P))?.doneSteps).toEqual([])
+    expect((await take(next))?.fresh).toBe(true)
   })
 
-  test('only the current step is marked done, and only by the owner', async () => {
+  test('only the owner takes a step', async () => {
     const t = testConvex()
     const player = await soloPlayer(t)
     await player.as.mutation(api.downtime.begin, P)
-    for (const stepIndex of [-1, 1, 1.5, downtimeGuideSteps().length]) {
-      await expect(player.as.mutation(api.downtime.claimStep, { ...P, stepIndex })).rejects.toThrow(
-        /not the step/
-      )
-    }
     const stranger = await makeUser(t, 'Stranger')
     await expect(
-      stranger.as.mutation(api.downtime.claimStep, { ...P, stepIndex: 0 })
-    ).rejects.toThrow(/another player's entity/i)
+      stranger.as.mutation(
+        api.ops.apply,
+        unitOp('pilot', { appId: 'p1', id: downtimeStepOpId(0, 'p1', 0), patch: {} })
+      )
+    ).rejects.toThrow()
   })
 
   test('steps and upkeep need a running Downtime', async () => {
@@ -344,7 +347,6 @@ describe('solo Downtime', () => {
       () => player.as.mutation(api.downtime.advance, P),
       () => player.as.mutation(api.downtime.setStep, { ...P, stepIndex: 1 }),
       () => player.as.mutation(api.downtime.spendUpkeep, P),
-      () => player.as.mutation(api.downtime.claimStep, { ...P, stepIndex: 0 }),
     ]) {
       await expect(write()).rejects.toThrow(/not running/i)
     }

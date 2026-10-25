@@ -90,8 +90,8 @@ function answers(over: Record<string, unknown> = {}) {
         source: 'play',
       },
     ],
-    'proposals:alerts': [],
-    'proposals:pending': [PROPOSAL],
+    'changeLog:alerts': [],
+    'ops:pending': [PROPOSAL],
     'crew:vitals': crewAt(NOW),
     'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
     'entities:listForGame': null,
@@ -297,9 +297,7 @@ describe('the Feed (play.md §8)', () => {
     await act(async () => {
       feed().getByRole('button', { name: 'Accept: Mediator proposes Bonesaw HP → 5' }).click()
     })
-    await waitFor(() =>
-      expect(mutations).toEqual([{ name: 'proposals:apply', args: { proposalId: 'p-1' } }])
-    )
+    await waitFor(() => expect(mutations).toEqual([{ name: 'ops:accept', args: { opId: 'p-1' } }]))
     await waitFor(() => expect(feed().getByText('You · Applied · Bonesaw HP → 5')).toBeTruthy())
   })
 
