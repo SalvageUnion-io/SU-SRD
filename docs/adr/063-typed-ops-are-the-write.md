@@ -68,8 +68,9 @@ offline queue would each be one more mechanism.
 7. **What is not an op.** Rolls and the Mediator's alerts ("Tell the table")
    are a Game's feed, not changes to a unit. Container moves and assignment
    (`gameId`, `ownerId`, links) are server state about where a unit is
-   (ADR-030 §2, ADR-037) and keep their own mutations, each also logged as
-   an op on the unit it moves so its history reads whole.
+   (ADR-030 §2, ADR-037) and keep their own mutations and log rows, which the
+   drawer reads beside the unit's ops. A body field that only bookkeeps (the
+   `updatedAt` stamp) never conflicts.
 8. **ADR-007 maps directly.** A destructive change is only ever an op its
    player authors; automation authors none.
 
