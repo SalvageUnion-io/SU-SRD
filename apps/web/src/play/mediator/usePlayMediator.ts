@@ -49,6 +49,7 @@ import { useEncounters } from '../../replica/collections'
 import { PLAY_TXN } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
+import { useTableAct, useTableRead } from '../../replica/useTable'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -200,8 +201,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const downtime = usePlayDowntime(mediatorTarget(gameId))
   const sceneState = useScene(gameId)
   const area = useSalvageArea(mediatorTarget(gameId))
-  const ledger = useQuery(api.ledger.get, { gameId: id })
-  const collectIncome = useMutation(api.ledger.collectIncome)
+  const ledger = useTableRead(api.ledger.get, { gameId: id })
+  const collectIncome = useTableAct(api.ledger.collectIncome, gameId)
 
   const addNpc = useMutation(api.mediator.addNpc)
   const updateNpc = useMutation(api.mediator.updateNpc)
@@ -210,8 +211,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const endEncounter = useMutation(api.mediator.endEncounter)
   const proposeMutation = useMutation(api.ops.propose)
   const broadcastMutation = useMutation(api.changeLog.broadcast)
-  const setConditions = useMutation(api.scenes.setConditions)
-  const passHour = useMutation(api.scenes.passHour)
+  const setConditions = useTableAct(api.scenes.setConditions, gameId)
+  const passHour = useTableAct(api.scenes.passHour, gameId)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 

@@ -15,6 +15,7 @@ import { useSessionToken } from '../lib/auth/session'
 import { accountSocketPath, gameSocketPath } from '../rooms/routes'
 import { gameScope, serve, setRoomScopes, TABLES } from './replica'
 import { openRoom } from './roomSocket'
+import { forgetTableState } from './tableState'
 
 function GameFeed({ gameId, token }: { gameId: string; token: string }) {
   useEffect(
@@ -42,7 +43,9 @@ export function RoomFeed() {
     if (games === undefined) return
     const now = games.map((g) => g._id as string)
     for (const gameId of was.current) {
-      if (!now.includes(gameId)) serve(gameScope(gameId), TABLES, [])
+      if (now.includes(gameId)) continue
+      serve(gameScope(gameId), TABLES, [])
+      forgetTableState(gameScope(gameId))
     }
     was.current = now
   }, [games])

@@ -11,13 +11,13 @@
  * server's own words.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
+import { useTableAct, useTableRead } from '../replica/useTable'
 import type { PlayScreen } from './play.model'
 
 export type SalvageAreaView = {
@@ -34,9 +34,9 @@ export function useSalvageArea(screen: PlayScreen): SalvageAreaView {
   const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
   const gameId = screen.gameId as Id<'games'> | null
-  const here = useQuery(api.salvageAreas.here, signedIn ? { gameId } : 'skip')
-  const setArea = useMutation(api.salvageAreas.set)
-  const spendSupply = useMutation(api.salvageAreas.spend)
+  const here = useTableRead(api.salvageAreas.here, signedIn ? { gameId } : 'skip')
+  const setArea = useTableAct(api.salvageAreas.set, gameId)
+  const spendSupply = useTableAct(api.salvageAreas.spend, gameId)
 
   return {
     area: here ?? null,

@@ -9,6 +9,8 @@
  *    newer than the one held (`serve`).
  *  - `gone` and `recordGone` take the room's claim off one row.
  *  - `links` serves the room's whole link set.
+ *  - The Scene, salvage area, ledger, boundaries and Stop Sign records go to
+ *    `tableState.ts` instead.
  *
  * Framework-free: `RoomFeed` mounts the sockets (`openRoom`).
  */
@@ -22,6 +24,7 @@ import { ServerMessageSchema } from '../rooms/protocol'
 import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
 import { WritesBlockedOffline } from './sync'
+import { dropTableState, isStateTable, putTableState, serveTableState } from './tableState'
 
 /** Whether this build's replica is fed by the rooms (`RoomFeed`). */
 export const ROOM_FEED = import.meta.env.VITE_ROOM_FEED === '1'
@@ -30,7 +33,8 @@ const UNIT_TABLES = ['pilot', 'mech', 'crawler', 'npc'] as const satisfies reado
 
 /**
  * The replica's table for each record table a room keeps. A Game's
- * Opposition has none yet: the Mediator's screen reads it from Convex.
+ * Opposition has none yet: the Mediator's screen reads it from Convex. What
+ * the table plays under is held apart, per room (`tableState.ts`).
  */
 const RECORD_TABLE: Record<RecordTable, Table | null> = {
   patterns: 'mechPattern',
@@ -98,6 +102,7 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
           ...records.flatMap((r) => r.rows.map((record) => servedRecord(r.table, record))),
         ]
       )
+      serveTableState(scope, message.records)
       return
     }
     case 'applied':
@@ -108,12 +113,14 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
       return
     case 'record': {
       const table = RECORD_TABLE[message.table]
-      if (table !== null) serve(scope, [], [servedRecord(table, message.record)])
+      if (isStateTable(message.table)) putTableState(scope, message.table, message.record)
+      else if (table !== null) serve(scope, [], [servedRecord(table, message.record)])
       return
     }
     case 'recordGone': {
       const table = RECORD_TABLE[message.table]
-      if (table !== null) release(scope, table, message.appId)
+      if (isStateTable(message.table)) dropTableState(scope, message.table, message.appId)
+      else if (table !== null) release(scope, table, message.appId)
       return
     }
     case 'links':

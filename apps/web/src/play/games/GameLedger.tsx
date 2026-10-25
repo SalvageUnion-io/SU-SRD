@@ -13,7 +13,6 @@
  * its ⋯ drops, reopens or removes it. Each list's `AdderBox` adds a row.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import { factionOf } from 'game-domain/games/ledger'
 import type { Faction, FactionStanding, Job } from 'game-domain/schemas/ledger'
 import { LEDGER_MAX_NAME, LEDGER_MAX_PAY } from 'game-domain/schemas/ledger'
@@ -41,6 +40,7 @@ import { failureMessage, useServerAction } from '../../lib/connection/useServerA
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
 import { useSync } from '../../replica/syncContext'
+import { useTableAct, useTableRead } from '../../replica/useTable'
 import { HUB_BODY } from './hubStyles.model'
 
 const { space } = tokens
@@ -110,15 +110,15 @@ function byState(jobs: readonly Job[]): Job[] {
 }
 
 export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator: boolean }) {
-  const ledger = useQuery(api.ledger.get, { gameId })
+  const ledger = useTableRead(api.ledger.get, { gameId })
   const { canWrite } = useSync()
   const failure = playGamesCopy('theLedgerCouldNotBe')
-  const setFaction = useServerAction(useMutation(api.ledger.setFaction), { failure })
-  const removeFaction = useServerAction(useMutation(api.ledger.removeFaction), { failure })
-  const setJob = useServerAction(useMutation(api.ledger.setJob), { failure })
-  const setJobState = useServerAction(useMutation(api.ledger.setJobState), { failure })
-  const removeJob = useServerAction(useMutation(api.ledger.removeJob), { failure })
-  const completeJob = useMutation(api.ledger.completeJob)
+  const setFaction = useServerAction(useTableAct(api.ledger.setFaction, gameId), { failure })
+  const removeFaction = useServerAction(useTableAct(api.ledger.removeFaction, gameId), { failure })
+  const setJob = useServerAction(useTableAct(api.ledger.setJob, gameId), { failure })
+  const setJobState = useServerAction(useTableAct(api.ledger.setJobState, gameId), { failure })
+  const removeJob = useServerAction(useTableAct(api.ledger.removeJob, gameId), { failure })
+  const completeJob = useTableAct(api.ledger.completeJob, gameId)
 
   const [removingFaction, setRemovingFaction] = useState<Faction | null>(null)
   const [removingJob, setRemovingJob] = useState<Job | null>(null)
