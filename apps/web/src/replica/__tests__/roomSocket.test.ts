@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../components/__tests__/fixtures'
 import { gameScope, getView, hold, setRoomScopes } from '../replica'
 import { foldRoomMessage, openRoom, RoomDeclined, roomOf } from '../roomSocket'
+import { WritesBlockedOffline } from '../sync'
 import { resetStores } from './resetStores'
 
 const unit = (kind: 'pilot' | 'crawler', body: { id: string }, gameId: string | null, seq = 1) => ({
@@ -240,6 +241,14 @@ describe('openRoom', () => {
 
     close()
     expect(roomOf('g1')).toBeNull()
+  })
+
+  test('closing the room fails a batch still waiting, never leaving it hanging', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    ;(FakeSocket.all[0] as FakeSocket).opens()
+    const sent = roomOf('g1')?.submit([op('o1')])
+    close()
+    await expect(sent).rejects.toBeInstanceOf(WritesBlockedOffline)
   })
 
   test('a batch in flight when the socket drops goes again when it reopens', async () => {

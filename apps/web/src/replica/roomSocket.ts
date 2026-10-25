@@ -21,6 +21,7 @@ import type { RecordTable, RoomUnit, ServerMessage } from '../rooms/protocol'
 import { ServerMessageSchema } from '../rooms/protocol'
 import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
+import { WritesBlockedOffline } from './sync'
 
 /** Whether this build's replica is fed by the rooms (`RoomFeed`). */
 export const ROOM_FEED = import.meta.env.VITE_ROOM_FEED === '1'
@@ -124,8 +125,8 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
 /** Waits before reopening a dropped socket: doubling, at most 30 s. */
 const RETRY_MS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000]
 
-/** A batch sent and not yet answered, keyed by its first op's id. */
-type Batch = { ops: readonly OpInput[]; settle: (refusal: string | null) => void }
+/** A batch sent and not yet answered, keyed by its first op's id; a null refusal is its ack. */
+type Batch = { ops: readonly OpInput[]; settle: (refusal: Error | null) => void }
 
 /** A room this tab holds open, to send its ops. */
 type Room = { submit(ops: readonly OpInput[]): Promise<void> }
@@ -167,7 +168,7 @@ export function openRoom(
   const send = (ops: readonly OpInput[]) => {
     if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ops', ops }))
   }
-  const answer = (opIds: readonly string[], refusal: string | null) => {
+  const answer = (opIds: readonly string[], refusal: Error | null) => {
     const batch = waiting.get(opIds[0] ?? '')
     if (batch === undefined) return
     waiting.delete(opIds[0] as string)
@@ -189,7 +190,8 @@ export function openRoom(
       }
       const reply = data as { type?: unknown; opIds?: string[]; reason?: string } | undefined
       if (reply?.type === 'ack') answer(reply.opIds ?? [], null)
-      else if (reply?.type === 'declined') answer(reply.opIds ?? [], reply.reason ?? '')
+      else if (reply?.type === 'declined')
+        answer(reply.opIds ?? [], new RoomDeclined(reply.reason ?? ''))
       else foldRoomMessage(scope, data)
     }
     socket.onclose = () => {
@@ -205,7 +207,7 @@ export function openRoom(
         if (first === undefined) return resolve()
         waiting.set(first.id, {
           ops,
-          settle: (refusal) => (refusal === null ? resolve() : reject(new RoomDeclined(refusal))),
+          settle: (refusal) => (refusal === null ? resolve() : reject(refusal)),
         })
         send(ops)
       }),
@@ -216,5 +218,9 @@ export function openRoom(
     clearTimeout(retry)
     if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
     socket?.close(1000)
+    // Nothing will answer these now: the edit fails as one made offline does,
+    // rather than hang, and an outbox op stays queued for the next send.
+    for (const batch of waiting.values()) batch.settle(new WritesBlockedOffline())
+    waiting.clear()
   }
 }
