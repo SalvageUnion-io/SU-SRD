@@ -94,9 +94,31 @@ describe('answerBot', () => {
     ])
   })
 
+  it('binds and unbinds a channel, naming the Game by id or by name', async () => {
+    const db = await filled()
+    const bind = { discordId: 'd-rosa', channelId: 'c-1', channelName: 'salvage-run' }
+    expect(await answerBot(db, 'bindChannel', { ...bind, game: 'reclamation' })).toMatchObject({
+      ok: true,
+      binding: { channelId: 'c-1', gameId: 'g-1', gameName: 'Reclamation' },
+    })
+    expect(await answerBot(db, 'bindChannel', { ...bind, game: 'g-1' })).toMatchObject({ ok: true })
+    expect(await answerBot(db, 'bindChannel', { ...bind, game: 'Nowhere' })).toMatchObject({
+      reason: 'not-found',
+    })
+    expect(
+      await answerBot(db, 'unbindChannel', { discordId: 'd-rosa', channelId: 'c-1' })
+    ).toMatchObject({
+      ok: true,
+      unbound: { channelId: 'c-1' },
+    })
+    expect(await answerBot(db, 'bindChannel', { ...bind, discordId: 'd-nobody' })).toMatchObject({
+      reason: 'unlinked',
+    })
+  })
+
   it('leaves the rooms’ ops to Convex', async () => {
     const db = await filled()
-    for (const op of ['sheet', 'mine', 'bindChannel', 'unbindChannel'] as const) {
+    for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()
     }
   })
