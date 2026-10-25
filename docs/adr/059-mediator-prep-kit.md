@@ -18,7 +18,10 @@ and account deletion deletes it.
 
 `/build/encounters/$id` edits one: name, opposition (+ Add, Rename, Remove),
 tables to hand (pin from the core tables; the site has no custom ones) and
-notes. The shelf has + New encounter, Make a copy and Delete.
+notes. The shelf has + New encounter, Make a copy and Delete. The page is a
+Live Sheet like a built NPC's (hard rule R11): the Denizens band, Read | Edit
+and Delete under "⋯" in its corner. Read leaves empty sections out; a new
+encounter opens in Edit.
 
 ### 3. Run from a Game's Play
 

@@ -36,6 +36,7 @@ const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { usePrepStore } = await import('../../../stores/prepStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
 const { EncounterPage } = await import('../EncounterPage')
+const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
 withSignedInBackend()
 
@@ -72,6 +73,7 @@ const connection: ConnectionState = {
 }
 
 beforeEach(() => {
+  useSheetModeStore.setState({ editing: true })
   toast.dismiss()
   resetStores()
   usePrepStore.setState({ encounters: [AMBUSH], hydrated: true } as never)

@@ -58,7 +58,14 @@ function writeCrew(crew: Crew): void {
 }
 
 /** The threat read (Core Book p.255), under the opposition. */
-export function ThreatReadLine({ encounter }: { encounter: Encounter }) {
+export function ThreatReadLine({
+  encounter,
+  editing,
+}: {
+  encounter: Encounter
+  /** Edit: the crew steps. Read prints it, as every sheet's Read does (R11). */
+  editing: boolean
+}) {
   const [crew, setCrew] = useState(readCrew)
   const step = (next: Partial<Crew>) => {
     const value = { ...crew, ...next }
@@ -74,7 +81,7 @@ export function ThreatReadLine({ encounter }: { encounter: Encounter }) {
             size="compact"
             label={buildPrepCopy('crew')}
             value={crew.size}
-            mode="edit"
+            mode={editing ? 'edit' : 'read'}
             min={1}
             ceiling={CREW_SIZE_MAX}
             stepperLabel={buildPrepCopy('crewSize')}
@@ -84,7 +91,7 @@ export function ThreatReadLine({ encounter }: { encounter: Encounter }) {
             size="compact"
             label={buildPrepCopy('crewTech')}
             value={crew.techLevel}
-            mode="edit"
+            mode={editing ? 'edit' : 'read'}
             min={1}
             ceiling={TECH_LEVEL_MAX}
             stepperLabel={buildPrepCopy('crewTechLevel')}
@@ -125,8 +132,16 @@ export function ThreatReadLine({ encounter }: { encounter: Encounter }) {
 }
 
 /** The spoils (Core Book p.246, 269): what each opponent could leave behind. */
-export function EncounterSpoils({ encounter }: { encounter: Encounter }) {
+export function EncounterSpoils({
+  encounter,
+  editing,
+}: {
+  encounter: Encounter
+  /** Read leaves the section out when there is nothing to salvage (R11). */
+  editing: boolean
+}) {
   const spoils = spoilsOf(encounter)
+  if (!editing && spoils.length === 0) return null
   return (
     <SlabSection
       as="h2"
