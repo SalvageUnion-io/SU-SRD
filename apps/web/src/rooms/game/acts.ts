@@ -1,5 +1,9 @@
 import type { EntityKind } from 'game-domain/entityKinds'
+import type { JobTerms } from 'game-domain/games/ledger'
+import type { BoundaryKind } from 'game-domain/games/safety'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import type { Faction } from 'game-domain/schemas/ledger'
+import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { GameRoomLogic } from './gameRoomLogic'
@@ -94,6 +98,41 @@ const GAME_ACTS = {
   runEncounter: (c: ActContext, a: { encounter: unknown; clear: boolean }) =>
     c.room.opposition.runEncounter(c.actor, a.encounter, a.clear, c.at),
   endEncounter: (c: ActContext) => c.room.opposition.endEncounter(c.actor),
+
+  // The table's state from 4.3, under the Convex function names a client's act carries.
+  'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),
+  'scenes.setConditions': (c: ActContext, a: { conditions: string[] }) =>
+    c.room.scene.setConditions(c.actor, a.conditions, c.at),
+  'scenes.passHour': (c: ActContext) => c.room.scene.passHour(c.actor, c.at),
+  'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
+  'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
+    c.room.scene.setSalvageArea(c.actor, a.area, c.at),
+  'salvageAreas.spend': (c: ActContext, a: { pilotId: string }) =>
+    c.room.scene.spendSupply(c.actor, a.pilotId, c.at),
+
+  'ledger.get': (c: ActContext) => c.room.ledger.ledger(c.actor),
+  'ledger.setFaction': (c: ActContext, a: { faction: Faction }) =>
+    c.room.ledger.setFaction(c.actor, a.faction),
+  'ledger.removeFaction': (c: ActContext, a: { id: string }) =>
+    c.room.ledger.removeFaction(c.actor, a.id),
+  'ledger.setJob': (c: ActContext, a: { job: JobTerms }) => c.room.ledger.setJob(c.actor, a.job),
+  'ledger.setJobState': (c: ActContext, a: { id: string; state: 'open' | 'dropped' }) =>
+    c.room.ledger.setJobState(c.actor, a.id, a.state),
+  'ledger.removeJob': (c: ActContext, a: { id: string }) => c.room.ledger.removeJob(c.actor, a.id),
+  'ledger.completeJob': (c: ActContext, a: { id: string }) =>
+    c.room.ledger.completeJob(c.actor, a.id, c.at),
+  'ledger.collectIncome': (c: ActContext) => c.room.ledger.collectIncome(c.actor, c.at),
+
+  'safety.boundaries': (c: ActContext) => c.room.safety.boundaries(c.actor),
+  'safety.addBoundary': (c: ActContext, a: { kind: BoundaryKind; text: string }) =>
+    c.room.safety.addBoundary(c.actor, a.kind, a.text, c.at),
+  'safety.removeBoundary': (c: ActContext, a: { boundaryId: string }) =>
+    c.room.safety.removeBoundary(c.actor, a.boundaryId),
+  'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
+  'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
+  'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor),
+  'safety.setPostToChannel': (c: ActContext, a: { on: boolean }) =>
+    c.room.safety.setPostToChannel(c.actor, a.on),
 
   unitsFor: (c: ActContext): UnitSheet[] => {
     const crawler = c.room.units.primaryCrawler()

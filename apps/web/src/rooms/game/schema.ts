@@ -20,7 +20,8 @@
  * - `leases`: handoffs in and out, so each is accepted once and refused for good.
  * - `imports`: the cutover copies already taken in, so a rerun takes nothing twice.
  *
- * Presence and the roll feed are their own step's, in their own tables.
+ * Presence and the roll feed are their own step's, in their own tables; the
+ * Scene, salvage area, ledger and Safety Protocols are step 3's.
  */
 /** Step 1 of `GAME_ROOM` (`../schemas.ts`). */
 export const GAME_ROOM_TABLES: readonly string[] = [
@@ -134,4 +135,48 @@ export const GAME_ROOM_TABLES: readonly string[] = [
 export const GAME_ROOM_STAMPS: readonly string[] = [
   'alter table links add column created_at integer not null default 0',
   'alter table tray add column updated_at integer not null default 0',
+]
+
+/**
+ * Step 3 of `GAME_ROOM`: what the table plays under, beside its units.
+ *
+ * - `scene`: the Scene's conditions and the hours passed under them.
+ * - `salvage_area`: the area the table is salvaging, at most one.
+ * - `ledger`: the Game's factions and jobs, one `LedgerSchema` body.
+ * - `boundaries` and `stop_sign`: the Safety Protocols. Who added a boundary
+ *   or showed the Stop Sign is kept so they can take it back, and never shown.
+ */
+export const GAME_ROOM_TABLE_STATE: readonly string[] = [
+  `create table scene (
+        id integer primary key check (id = 1),
+        conditions text not null,
+        hours integer not null,
+        updated_at integer not null
+      )`,
+  `create table salvage_area (
+        id integer primary key check (id = 1),
+        name text not null,
+        tech_level integer not null,
+        supply integer not null,
+        updated_at integer not null
+      )`,
+  `create table ledger (
+        id integer primary key check (id = 1),
+        body text not null
+      )`,
+  `create table boundaries (
+        id text primary key,
+        kind text not null,
+        text text not null,
+        added_by text not null,
+        added_at integer not null
+      )`,
+  'create index boundaries_added on boundaries (added_at)',
+  `create table stop_sign (
+        id integer primary key check (id = 1),
+        shown_by text,
+        shown_at integer,
+        post_to_channel integer not null default 0,
+        posted_at integer
+      )`,
 ]

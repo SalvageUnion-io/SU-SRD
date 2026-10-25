@@ -34,6 +34,9 @@
   //   without them it unfurls as text.
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
   //   secret. Without it POST /__convex-logs answers 503.
+  // - BOT_URL and BOT_SECRET, the bot Worker's origin and the secret its
+  //   relay checks. With both, a Stop Sign shown on a table that opted in
+  //   posts to the Game's bound channel (src/worker/shared/stopSign.ts).
   // - DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET, the Discord application's
   //   OAuth client (its redirect: <origin>/auth/callback), and
   //   AUTH_SIGNING_KEY, the private half of `bun scripts/authKeys.ts`, whose
