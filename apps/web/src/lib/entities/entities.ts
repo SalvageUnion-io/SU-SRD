@@ -1,8 +1,9 @@
+import type { UnitsState } from '../../replica/units'
 /**
  * Query hooks over entityStore.
  *
  * Centralizes the reactive read layer: components subscribe through these
- * typed hooks instead of ad-hoc `useEntityStore((s) => …)` selectors. Each
+ * typed hooks instead of ad-hoc `useUnits((s) => …)` selectors. Each
  * hook mirrors the store's lazy auto-hydration semantics — reading a type
  * that has never been hydrated fires `hydrate(type)` exactly like
  * `entityStore.list()` does — so hook consumers never see stale-empty data
@@ -16,7 +17,7 @@
  *     untouched elements. No `useShallow` needed for either shape.
  *
  * Imperative reads inside event handlers should keep using
- * `useEntityStore.getState()` (legitimate — no subscription needed).
+ * `useUnits.getState()` (legitimate — no subscription needed).
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -24,12 +25,12 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import type { EntityType } from '../../stores/entityStore'
-import { useEntityStore } from '../../stores/entityStore'
-import type { EntityForType } from '../../stores/types'
+import type { EntityForType } from '../../replica/types'
+import type { EntityType } from '../../replica/units'
+import { useUnits } from '../../replica/units'
 
 /** Full entityStore state+actions shape (what selectors receive). */
-type EntityStoreState = ReturnType<typeof useEntityStore.getState>
+type EntityStoreState = UnitsState
 
 type ListKey = 'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'softLinks'
 
@@ -66,7 +67,7 @@ function selectEntityById<T extends EntityType>(
 // ---------------------------------------------------------------------------
 
 function ensureHydrated(type: EntityType): void {
-  const state = useEntityStore.getState()
+  const state = useUnits.getState()
   if (!state.hydrated[listKeyFor(type)]) {
     // Fire-and-forget — idempotent; callers needing a synchronous result
     // should await hydrate() in a route loader first (existing pattern).
@@ -81,7 +82,7 @@ function ensureHydrated(type: EntityType): void {
 /** Reactive list of all records of `type`. Auto-triggers lazy hydration. */
 function useEntityList<T extends EntityType>(type: T): EntityForType<T>[] {
   ensureHydrated(type)
-  return useEntityStore((s) => selectEntityList(s, type))
+  return useUnits((s) => selectEntityList(s, type))
 }
 
 /**
@@ -90,7 +91,7 @@ function useEntityList<T extends EntityType>(type: T): EntityForType<T>[] {
  */
 function useEntity<T extends EntityType>(type: T, id: string | undefined): EntityForType<T> | null {
   ensureHydrated(type)
-  return useEntityStore((s) => selectEntityById(s, type, id))
+  return useUnits((s) => selectEntityById(s, type, id))
 }
 
 // ---------------------------------------------------------------------------

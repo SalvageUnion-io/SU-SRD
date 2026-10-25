@@ -27,7 +27,7 @@ import type { Container } from 'game-domain/container'
 import { moveTo } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { STARTER_SOFT_LINKS } from 'game-domain/starterSet/starterSet'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 import { starterTemplate, starterTemplates } from './starterTemplates'
 
 /**
@@ -52,7 +52,7 @@ export async function copyStarter(
     ...body
   } = structuredClone(template) as Record<string, unknown> & { id: string }
 
-  return await useEntityStore
+  return await useUnits
     .getState()
     .create(kind, { ...body, seedRef: templateId, ...moveTo(to) } as never)
 }
@@ -77,7 +77,7 @@ export type CrewCopy = { builds: number; links: number }
  */
 export async function copyStarterCrew(to: Container): Promise<CrewCopy> {
   const copies = new Map<string, { kind: SheetKind; id: string }>()
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   try {
     for (const kind of CREW_ORDER) {
       for (const template of starterTemplates(kind)) {
@@ -107,7 +107,7 @@ export async function copyStarterCrew(to: Container): Promise<CrewCopy> {
 
 /** Delete what a refused crew copy made, newest first; a delete that fails too is left for the player. */
 async function undoCopies(made: { kind: SheetKind; id: string }[]): Promise<void> {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   for (const { kind, id } of made.reverse()) {
     await store.delete(kind, id).catch(() => undefined)
   }

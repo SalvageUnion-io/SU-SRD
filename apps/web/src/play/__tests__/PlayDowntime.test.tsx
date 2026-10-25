@@ -27,8 +27,8 @@ const convexMocks = await installConvexMocks()
 setQueryAnswers({ 'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null } })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 const { Harness } = await import('./playActionsHarness')
 const { onPlayRoll } = await import('../playRolls.model')
 
@@ -36,14 +36,14 @@ const LINK = 'dt-link'
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  await useEntityStore
+  resetSync()
+  await useUnits
     .getState()
     .adopt('softLink', softLinkFixture('pilot-to-crawler', 'dt-p', 'dt-c', LINK))
 })
 
 afterAll(async () => {
-  await useEntityStore.getState().forget('softLink', LINK)
+  await useUnits.getState().forget('softLink', LINK)
   convexMocks.restore()
 })
 

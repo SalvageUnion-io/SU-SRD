@@ -1,6 +1,6 @@
-import { WritesBlockedOffline } from '../../stores/entityBackend'
+import { WritesBlockedOffline } from '../../replica/sync'
+import { useSync } from '../../replica/syncContext'
 import { askWrite, reportWriteFailure, runWrite } from '../runWrite'
-import { useConnection } from './connectionContext'
 
 /**
  * A hook's own Convex writes (Play's seat and Downtime), refused here while
@@ -18,14 +18,14 @@ export type GuardedWrite = {
 }
 
 export function useGuardedWrite(): GuardedWrite {
-  const { mode, canWrite, outdated } = useConnection()
+  const { status, canWrite, outdated } = useSync()
 
   /** True, having said why, when no write may go now. */
   function blocked(): boolean {
     if (canWrite) return false
     reportWriteFailure(
       new WritesBlockedOffline(
-        outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
+        outdated ? 'outdated' : status === 'syncing' ? 'settling' : 'offline'
       )
     )
     return true

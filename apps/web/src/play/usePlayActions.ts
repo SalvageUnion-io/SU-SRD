@@ -21,7 +21,7 @@ import { useRef, useState } from 'react'
 import { resolveSheetComposition } from '../build/sheet/composition.model'
 import { rollForTable } from '../components/index'
 import { buildMechActions, buildPilotActions } from '../lib/rules/actionPatches'
-import { useEntityStore } from '../stores/entityStore'
+import { useUnits } from '../replica/units'
 import type { PlayStore } from './play.model'
 import type { ListEntry, TypeFilter } from './playActions.model'
 import { buildActionList, filterEntries, splitOnHand } from './playActions.model'
@@ -74,7 +74,7 @@ export type PlayActions = {
 }
 
 export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActions {
-  const liveStore = useEntityStore()
+  const liveStore = useUnits()
   const store: PlayStore = deps.store ?? liveStore
   const baseRoll = deps.rollFor ?? rollForTable
   const { target, situation } = play

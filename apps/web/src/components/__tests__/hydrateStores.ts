@@ -12,17 +12,17 @@
  * read the real ones.
  */
 
-import { useEntityStore } from '../../stores/entityStore'
-import { usePatternStore } from '../../stores/patternStore'
+import { usePatterns } from '../../replica/collections'
+import { useUnits } from '../../replica/units'
 
 export async function hydrateStores(): Promise<void> {
-  const entities = useEntityStore.getState()
+  const entities = useUnits.getState()
   await Promise.all([
     entities.hydrate('pilot'),
     entities.hydrate('mech'),
     entities.hydrate('crawler'),
     entities.hydrate('npc'),
     entities.hydrate('softLink'),
-    usePatternStore.getState().hydrate(),
+    usePatterns.getState().hydrate(),
   ])
 }

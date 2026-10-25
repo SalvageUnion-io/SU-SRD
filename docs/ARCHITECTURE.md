@@ -33,18 +33,18 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
-10. **Data flow and connection modes** <a id="data-flow"></a>
+10. **Data flow and the sync status** <a id="data-flow"></a>
     Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
-    `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
+    One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held, writes blocked), plus `outdated`.
 11. **Convex, the server of record** · moving to rooms (ADR-064) <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`); an entity is [in a Game or on a Shelf](architecture/glossary.md). A unit's body changes only by an op (`ops.apply`, `ops.transfer`; ADR-063), parsed by `applyOp`.
-    Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
-12. **Device copy** · moving to rooms (ADR-064) <a id="device-copy"></a>
-    One IndexedDB record, `stores/deviceCopy.ts`: the last `listMine` + `listWiring` answers, read back only on an offline boot with a session on the device, read-only (ADR-058).
-    Signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
-13. **Zustand stores** · moving to rooms (ADR-064) <a id="stores"></a>
-    `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` diffs into an op at its `headSeq` and awaits `commitOp`; a refused op changes nothing.
-    No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
+    Every client write goes through `src/replica/outbox.ts`; each replica table has a `RECORD_KINDS` entry.
+12. **Device copy** <a id="device-copy"></a>
+    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, read-only (ADR-058).
+    Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell and the copy.
+13. **The replica** <a id="stores"></a>
+    `src/replica/` is the one holder of server rows, filled by the feed (`ConvexFeed` until the room sockets) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the server's answer; a refused op changes nothing.
+    No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, `convex/react`. `src/stores/` is UI state only.
 14. **Sharing** · moving to rooms (ADR-064) <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
 15. **Convex deployments** · moving to rooms (ADR-064) <a id="deployments"></a>

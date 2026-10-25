@@ -7,8 +7,8 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
+import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../../replica/syncContext'
 
 /** `homebrew.status` for a pattern that is not homebrew. */
 const NOT_LISTED = { listed: false, hidden: false, reported: false, mine: false, admin: false }
@@ -29,21 +29,20 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { ConnectionContext } = await import('../../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../../stores/entityStore')
-const { usePatternStore } = await import('../../../../stores/patternStore')
+const { SyncContext } = await import('../../../../replica/syncContext')
+const { useUnits } = await import('../../../../replica/units')
+const { usePatterns } = await import('../../../../replica/collections')
 const { PublicSheetView } = await import('../../../sheet/PublicSheetView')
 const { usePageCredit } = await import('../../../../stores/pageCredit')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
-const SIGNED_OUT: ConnectionState = { ...CONNECTED, mode: 'solo', canWrite: false }
+const SIGNED_OUT: SyncState = { ...CONNECTED, status: 'signedOut', canWrite: false }
 
 const body = {
   id: 'pat-tow-rig',
@@ -78,20 +77,20 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-function renderAs(connection: ConnectionState) {
+function renderAs(connection: SyncState) {
   return render(
-    <ConnectionContext.Provider value={connection}>
+    <SyncContext.Provider value={connection}>
       <PublicSheetView kind="pattern" appId="pat-tow-rig" />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
 beforeEach(() => {
-  useEntityStore.setState({
+  useUnits.setState({
     mechs: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+  usePatterns.setState({ mechPatterns: [], hydrated: true })
   convexMocks.navigations.length = 0
   visibilityWrites.length = 0
 })
@@ -174,7 +173,7 @@ describe('signed in', () => {
     })
     await settle(() => convexMocks.navigations.length > 0)
 
-    const [mech] = useEntityStore.getState().mechs
+    const [mech] = useUnits.getState().mechs
     expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
     expect(convexMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
   })
@@ -189,9 +188,9 @@ describe('signed in', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Make a copy' }))
     })
-    await settle(() => usePatternStore.getState().mechPatterns.length > 0)
+    await settle(() => usePatterns.getState().mechPatterns.length > 0)
 
-    const [copy] = usePatternStore.getState().mechPatterns
+    const [copy] = usePatterns.getState().mechPatterns
     expect(copy?.name).toBe('Tow Rig')
     expect(copy?.id).not.toBe('pat-tow-rig')
   })

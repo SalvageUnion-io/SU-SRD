@@ -20,7 +20,7 @@
 import { resolveLinkType } from 'game-domain/links/linkRules'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 import { serverMessage } from '../connection/serverError'
 import { LinkRefused } from './linkRefused'
 
@@ -33,7 +33,7 @@ export type LinkWriter = {
 export async function assignLink(
   from: EntityRef,
   to: EntityRef,
-  store: LinkWriter = useEntityStore.getState()
+  store: LinkWriter = useUnits.getState()
 ): Promise<SoftLink> {
   const type = resolveLinkType(from.type, to.type)
   return await drawLink(store, {
@@ -52,7 +52,7 @@ export async function assignCrew(
   npcId: string,
   crawlerId: string,
   slot: CrewSlot,
-  store: LinkWriter = useEntityStore.getState()
+  store: LinkWriter = useUnits.getState()
 ): Promise<SoftLink> {
   return await drawLink(store, {
     from: { type: 'npc', id: npcId },

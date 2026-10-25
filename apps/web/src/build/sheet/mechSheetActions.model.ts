@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * useMechSheetActions — every write the mech Live Sheet can make, in one place.
  *
@@ -27,8 +28,8 @@ import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
 import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
-import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
+import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { SheetPatch } from './sheetViewProps.model'
@@ -38,8 +39,8 @@ export type ItemKind = 'system' | 'module'
 type MechSheetActionsOptions = {
   mech: Mech
   /** Injectable store hook — forwarded to `useSoftWarnings`. */
-  store: typeof useEntityStore
-  storeState: EntityState
+  store: UnitsStore
+  storeState: UnitsState
   /** The linked home crawler, or null — the repair scrap-pool deduction target. */
   crawler: Crawler | null
 }

@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerTypeCard — the crawler type's prose, its special ability and its
  * crew, for the identity panel to lay out (split from CrawlerSheetItems.tsx).
@@ -13,8 +14,7 @@ import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { LinkedCrewMini } from '../npc/LinkedCrewMini'
 import { CrewLeadMini } from './CrewLeadMini'
 
@@ -35,7 +35,7 @@ type CrawlerTypeCardProps = {
   typeNpc: CrawlerNpcState | undefined
   /** Persisted Keepsake/Motto selections for the type NPC (from the crawler prop). */
   seedSelections: ChoiceSelections | undefined
-  store: typeof useEntityStore
+  store: UnitsStore
   readOnly: boolean
   /**
    * The type's special ability, one `li` a contentful Mini. Rendered INSIDE

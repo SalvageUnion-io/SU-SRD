@@ -21,7 +21,7 @@ import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { buildMechActions, hasCurrencyChoice, VENT_PATCH } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
+import { PLAY_TXN } from '../../replica/provenance'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'

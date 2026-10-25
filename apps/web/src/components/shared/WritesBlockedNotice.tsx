@@ -1,5 +1,5 @@
-import { useConnection } from '../../lib/connection/connectionContext'
 import { sharedCopy } from '../../messages/components-shared'
+import { useSync } from '../../replica/syncContext'
 import { Badge } from '../atoms/Badge'
 
 /**
@@ -16,19 +16,19 @@ import { Badge } from '../atoms/Badge'
  *
  * ## Deliberately silent while the session is settling
  *
- * `settling` is the sub-second initial auth handshake. Writes are refused then
- * too (see `writesAllowed`), but flashing a read-only lozenge on every single
+ * `syncing` is the sub-second initial auth handshake. Writes are refused then
+ * too (see `requireWritable`), but flashing a read-only lozenge on every single
  * load would train people to ignore it — and by the time they read it, it is
  * gone. A write attempted in that window is refused with its own toast instead,
  * which is the honest place to spend the interruption.
  */
 export function WritesBlockedNotice() {
-  const { canWrite, settling, mode, outdated } = useConnection()
-  if (canWrite || settling) return null
+  const { canWrite, status, outdated } = useSync()
+  if (canWrite || status === 'syncing') return null
 
   return (
     <Badge surface="outline" className="su-page-action" role="status" aria-live="polite">
-      {mode === 'solo'
+      {status === 'signedOut'
         ? sharedCopy('readOnlySignInTo')
         : outdated
           ? sharedCopy('readOnlyUpdating')

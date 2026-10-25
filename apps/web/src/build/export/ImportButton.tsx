@@ -19,7 +19,7 @@ import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { buildExportCopy } from '../../messages/build-export'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 
 /** The line an import leaves behind: what came in, and what was skipped. */
 function summaryText(summary: MergeSummary): string {
@@ -50,8 +50,7 @@ export function ImportButton({ onResult }: ImportButtonProps = {}) {
   const [summary, setSummary] = useState<MergeSummary | null>(null)
 
   const importFile = useServerAction(
-    async (file: File) =>
-      mergeImport(parseImportBundle(await file.text()), useEntityStore.getState()),
+    async (file: File) => mergeImport(parseImportBundle(await file.text()), useUnits.getState()),
     {
       failure: 'That backup could not be imported. Try again.',
       // A file that is not a backup is the player's to fix, and its reason is

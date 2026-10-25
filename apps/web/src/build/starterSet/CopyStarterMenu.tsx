@@ -19,11 +19,11 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import { HeaderMenu, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 
 type CopyStarterMenuProps = {
@@ -77,7 +77,7 @@ function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStart
 }
 
 export function CopyStarterMenu(props: CopyStarterMenuProps) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedCopyStarterMenu {...props} />
 }

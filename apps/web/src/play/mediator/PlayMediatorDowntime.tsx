@@ -36,7 +36,7 @@ import {
 } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 import { DowntimeStepNav } from '../DowntimeStepNav'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
@@ -60,7 +60,7 @@ export function PlayMediatorDowntime({
   mediator,
   rollFor: baseRoll = rollForTable,
 }: PlayMediatorDowntimeProps) {
-  const store = useEntityStore()
+  const store = useUnits()
   const { downtime, seats, canWrite, crawler } = mediator
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [upkeepNote, setUpkeepNote] = useState<string | null>(null)

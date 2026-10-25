@@ -10,7 +10,7 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { payUpkeep, upkeepShortfall } from '../lib/rules/crawlerEconomy'
 import { runWrite } from '../lib/runWrite'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
 import type { PlayStore } from './play.model'
 import { crawlerTl } from './playDowntime.model'
 

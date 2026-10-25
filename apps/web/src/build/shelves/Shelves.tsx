@@ -57,7 +57,6 @@ import {
 } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
 import {
@@ -95,9 +94,9 @@ import {
   shelfFilters,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
-import { useEncounterStore } from '../../stores/encounterStore'
-import { useEntityStore } from '../../stores/entityStore'
-import { usePatternStore } from '../../stores/patternStore'
+import { usePatterns, useTray } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
@@ -142,8 +141,8 @@ function ConnectedShelves() {
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
 export function Shelves() {
-  const { mode } = useConnection()
-  if (mode === 'connected') return <ConnectedShelves />
+  const { status } = useSync()
+  if (status === 'live') return <ConnectedShelves />
   return <ShelvesPage games={undefined} sharing={undefined} sharedByLink={undefined} />
 }
 
@@ -152,7 +151,7 @@ export function Shelves() {
 // ---------------------------------------------------------------------------
 
 function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
-  const { mode, canWrite } = useConnection()
+  const { status, canWrite } = useSync()
   const { confirm, dialog } = useConfirm()
   const go = useGo()
   const [filter, setFilter] = useState<ShelfFilter>('everything')
@@ -163,22 +162,22 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // Menu items have no line of their own, so a failed export is a toast.
   const exportOne = useServerAction(
     async (type: EntityKind, id: string, name: string) => {
-      const bundle = await buildEntityExport(type, id, useEntityStore.getState())
+      const bundle = await buildEntityExport(type, id, useUnits.getState())
       downloadJson(exportFileName(type, name), bundle)
     },
     { failure: 'That export did not download. Try again.', toastId: 'shelf-export' }
   )
 
   const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
-  const hydratedPatterns = useHydrateOnMount(() => usePatternStore.getState().hydrate())
-  const hydratedTray = useHydrateOnMount(() => useEncounterStore.getState().hydrate())
+  const hydratedPatterns = useHydrateOnMount(() => usePatterns.getState().hydrate())
+  const hydratedTray = useHydrateOnMount(() => useTray.getState().hydrate())
   const allPilots = usePilots()
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
   const allNpcs = useNpcs()
   const softLinks = useSoftLinkList()
-  const patterns = usePatternStore((s) => s.mechPatterns)
-  const trayNpcs = useEncounterStore((s) => s.encounterNpcs)
+  const patterns = usePatterns((s) => s.mechPatterns)
+  const trayNpcs = useTray((s) => s.encounterNpcs)
 
   // Names for the chips, from the WHOLE pile, so a link names its other end
   // whichever way the toggle is set.
@@ -238,7 +237,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           label: 'Move to a Game…',
           // Moves need the server's list of Games.
           onSelect:
-            canWrite && mode === 'connected'
+            canWrite && status === 'live'
               ? () => setMoving({ type, id: unit.id, entity: unit })
               : undefined,
         },
@@ -249,7 +248,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             confirm({
               ...ROW_ACTION_COPY.copyOnShelf(unit.name),
               onConfirm: async () => {
-                const created = await useEntityStore
+                const created = await useUnits
                   .getState()
                   .create(type, copyForShelf(copyBody, unit.name) as never)
                 toast.success(`Made ${created.name}.`)
@@ -282,7 +281,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               ...(inGame
                 ? ROW_ACTION_COPY.deleteFromGame(unit.name)
                 : ROW_ACTION_COPY.deleteBuild(unit.name)),
-              onConfirm: () => useEntityStore.getState().delete(type, unit.id),
+              onConfirm: () => useUnits.getState().delete(type, unit.id),
             })
           ),
         },
@@ -300,7 +299,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           onSelect: writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(npc.name),
-              onConfirm: () => useEncounterStore.getState().delete(npc.id),
+              onConfirm: () => useTray.getState().delete(npc.id),
             })
           ),
         },
@@ -319,7 +318,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             confirm({
               ...ROW_ACTION_COPY.copyOnShelf(pattern.name),
               onConfirm: async () => {
-                const created = await usePatternStore
+                const created = await usePatterns
                   .getState()
                   .create({ ...patternCopy(pattern), name: copyName(pattern.name) })
                 toast.success(`Made ${created.name}.`)
@@ -344,7 +343,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           onSelect: writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(pattern.name),
-              onConfirm: () => usePatternStore.getState().delete(pattern.id),
+              onConfirm: () => usePatterns.getState().delete(pattern.id),
             })
           ),
         },

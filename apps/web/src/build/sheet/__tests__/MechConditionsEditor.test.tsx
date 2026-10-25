@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * MechConditionsEditor — unified conditions vocabulary.
  *
@@ -13,7 +14,6 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { MechConditionsEditor } from '../MechConditionsEditor'
 
 function makeMech(overrides: Partial<Mech>): Mech {
@@ -34,7 +34,7 @@ function makeMech(overrides: Partial<Mech>): Mech {
 
 type CapturedUpdate = { patch: Partial<Mech> }
 
-function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
+function makeStore(mech: Mech, captured: CapturedUpdate[]): UnitsStore {
   return makeEntityStoreMock({
     mechs: [mech],
     hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },

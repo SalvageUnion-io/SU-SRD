@@ -13,8 +13,8 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -23,18 +23,17 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { NpcSheetView } = await import('../NpcSheetView')
 
 withSignedInBackend()
 
-function connection(mode: ConnectionState['mode']): ConnectionState {
+function connection(status: SyncState['status']): SyncState {
   return {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: false,
-    settling: false,
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
 }
 
@@ -75,25 +74,25 @@ async function openMenu() {
   })
 }
 
-async function renderView(id: string, mode: ConnectionState['mode'] = 'connected') {
+async function renderView(id: string, status: SyncState['status'] = 'live') {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <NpcSheetView id={id} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
 
 beforeEach(async () => {
   convexMocks.navigations.length = 0
-  useEntityStore.setState({
+  useUnits.setState({
     npcs: [],
     crawlers: [TENACITY],
     softLinks: [softLinkFixture('npc-to-crawler', 'n-mine', 'c1')],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  await useEntityStore.getState().adopt('npc', MINE)
+  await useUnits.getState().adopt('npc', MINE)
   setQueryAnswers({
     'games:listMine': [],
     'account:me': { displayName: 'alxjrvs' },
@@ -113,7 +112,7 @@ describe('yours', () => {
   })
 
   test('held but offline, it is still yours to read', async () => {
-    await renderView('n-mine', 'disconnected')
+    await renderView('n-mine', 'offline')
     expect(madeBy('you')).toBeTruthy()
   })
 
@@ -128,7 +127,7 @@ describe('yours', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
     })
     await waitFor(() => expect(convexMocks.navigations).toEqual([{ to: '/' }]))
-    expect(useEntityStore.getState().npcs).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
   })
 })
 
@@ -213,13 +212,13 @@ describe('neither', () => {
   })
 
   test('offline and not held: loading it needs a connection', async () => {
-    await renderView('n-missing', 'disconnected')
+    await renderView('n-missing', 'offline')
     expect(screen.getByText('NPC unavailable offline')).toBeTruthy()
     expect(screen.getByText(/loading it needs a connection/)).toBeTruthy()
   })
 
   test('still connecting: a skeleton', async () => {
-    await renderView('n-missing', 'connecting')
+    await renderView('n-missing', 'syncing')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 })

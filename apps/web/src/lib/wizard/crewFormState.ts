@@ -11,7 +11,7 @@
  */
 
 import type { Npc } from 'game-domain/schemas/npc'
-import type { CreateInput } from '../../stores/types'
+import type { CreateInput } from '../../replica/types'
 import type { CrewSlotView, NpcView } from '../npcs/npcModel'
 
 /** The typed values, keyed by choice name ("Name", "Keepsake", …). */
