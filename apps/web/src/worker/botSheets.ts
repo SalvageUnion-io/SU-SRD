@@ -56,7 +56,7 @@ export async function mine(
 ): Promise<BotFailure | BotSuccess<MineResult>> {
   const account = await accountByDiscordId(db, discordId)
   if (account === null) return botDenial('unlinked')
-  const games = await gamesOf(db, account.account_id)
+  const games = await gamesOf(db, discordId)
   const lists = await Promise.all([
     rooms.account(discordId).unitsFor(discordId),
     ...games.map((game) => rooms.game(game.gameId).unitsFor(discordId)),
@@ -73,7 +73,6 @@ async function reachable(
   db: SharedDb,
   rooms: BotRooms,
   discordId: string,
-  accountId: string,
   kind: SheetKind,
   unitId: string
 ) {
@@ -82,7 +81,7 @@ async function reachable(
     return { unit: own, ownerName: null as string | null, mine: true }
   }
   // A player is in a handful of Games at most; a room answers a stranger null.
-  for (const game of await gamesOf(db, accountId)) {
+  for (const game of await gamesOf(db, discordId)) {
     const unit = await rooms.game(game.gameId).unit(discordId, unitId)
     if (unit !== null && unit.kind === kind) return { unit, ownerName: unit.ownerName, mine: false }
   }
@@ -103,10 +102,7 @@ export async function sheet(
     appId: string
     body: EntityBody
   } | null
-  const found =
-    account === null
-      ? null
-      : await reachable(db, rooms, args.discordId, account.account_id, kind, entityId)
+  const found = account === null ? null : await reachable(db, rooms, args.discordId, kind, entityId)
   if (found !== null) {
     return {
       ok: true,

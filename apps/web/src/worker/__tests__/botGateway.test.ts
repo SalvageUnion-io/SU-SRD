@@ -20,7 +20,7 @@ async function filled() {
   await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
   await putMembership(db, {
     gameId: 'g-1',
-    accountId: 'acct-rosa',
+    discordId: 'd-rosa',
     mediator: true,
     organizer: true,
   })

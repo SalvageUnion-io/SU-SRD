@@ -73,16 +73,16 @@ export async function bindingForGame(
 /** The channel an account's solo play is bound to; null when none. */
 export async function soloBinding(
   db: SharedDb,
-  accountId: string
+  discordId: string
 ): Promise<ChannelBindingSummary | null> {
-  const row = await bindingWhere(db, 'b.game_id is null and b.bound_by = ?1', accountId)
+  const row = await bindingWhere(db, 'b.game_id is null and b.bound_by = ?1', discordId)
   return row === null ? null : summaryOf(row)
 }
 
-/** Whether `accountId` may unbind (or take over) this binding. */
-async function mayManage(db: SharedDb, accountId: string, held: BindingColumns) {
-  if (held.game_id === null) return held.bound_by === accountId
-  const member = await membershipOf(db, held.game_id, accountId)
+/** Whether `discordId` may unbind (or take over) this binding. */
+async function mayManage(db: SharedDb, discordId: string, held: BindingColumns) {
+  if (held.game_id === null) return held.bound_by === discordId
+  const member = await membershipOf(db, held.game_id, discordId)
   return member !== null && mayBindChannel(member)
 }
 
@@ -93,14 +93,14 @@ async function mayManage(db: SharedDb, accountId: string, held: BindingColumns) 
  */
 export async function bindChannel(
   db: SharedDb,
-  accountId: string,
+  discordId: string,
   args: { channelId: string; gameId: string | null; channelName?: string | null },
   now = Date.now()
 ): Promise<BotFailure | BotSuccess<BindChannelResult>> {
   const { channelId, gameId } = args
   const channelName = channelNameOf(args.channelName)
   if (gameId !== null) {
-    const member = await membershipOf(db, gameId, accountId)
+    const member = await membershipOf(db, gameId, discordId)
     if (member === null) return { ok: false, reason: 'not-found', message: GAME_NOT_FOUND }
     if (!mayBindChannel(member)) {
       return {
@@ -115,7 +115,7 @@ export async function bindChannel(
   const sameTarget =
     held !== null &&
     (gameId === null
-      ? held.game_id === null && held.bound_by === accountId
+      ? held.game_id === null && held.bound_by === discordId
       : held.game_id === gameId)
   if (held !== null && sameTarget) {
     if (channelName !== null && held.channel_name !== channelName) {
@@ -130,7 +130,7 @@ export async function bindChannel(
       previousChannelId: null,
     }
   }
-  if (held !== null && !(await mayManage(db, accountId, held))) {
+  if (held !== null && !(await mayManage(db, discordId, held))) {
     return {
       ok: false,
       reason: 'forbidden',
@@ -142,12 +142,12 @@ export async function bindChannel(
   }
 
   const previous =
-    gameId === null ? await soloBinding(db, accountId) : await bindingForGame(db, gameId)
+    gameId === null ? await soloBinding(db, discordId) : await bindingForGame(db, gameId)
   const releasePrevious =
     gameId === null
       ? db
           .prepare('delete from channel_bindings where game_id is null and bound_by = ?1')
-          .bind(accountId)
+          .bind(discordId)
       : db.prepare('delete from channel_bindings where game_id = ?1').bind(gameId)
   await db.batch([
     db.prepare('delete from channel_bindings where channel_id = ?1').bind(channelId),
@@ -157,7 +157,7 @@ export async function bindChannel(
         `insert into channel_bindings (channel_id, game_id, bound_by, channel_name, bound_at)
          values (?1, ?2, ?3, ?4, ?5)`
       )
-      .bind(channelId, gameId, accountId, channelName, now),
+      .bind(channelId, gameId, discordId, channelName, now),
   ])
   const bound = await bindingWhere(db, 'b.channel_id = ?1', channelId)
   if (bound === null) throw new Error('channel binding vanished on insert')
@@ -172,12 +172,12 @@ export async function bindChannel(
 /** Unbind whatever `channelId` holds. Nothing bound is no failure: the reply says so. */
 export async function unbindChannel(
   db: SharedDb,
-  accountId: string,
+  discordId: string,
   channelId: string
 ): Promise<BotFailure | BotSuccess<UnbindChannelResult>> {
   const held = await bindingWhere(db, 'b.channel_id = ?1', channelId)
   if (held === null) return { ok: true, unbound: null }
-  if (!(await mayManage(db, accountId, held))) {
+  if (!(await mayManage(db, discordId, held))) {
     return {
       ok: false,
       reason: 'forbidden',
