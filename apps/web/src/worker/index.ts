@@ -19,6 +19,8 @@
  *     does not have falls through to the rules below.
  *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
  *     version, or a 503 (`./rooms.ts`).
+ *   - `game-socket`: `/__rooms/games/:id/socket` → a member's socket to the
+ *     Game's room (`./rooms.ts`, who may: `./roomAuth.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -51,7 +53,7 @@ import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
-import { ROOMS_HEALTH_PATH } from '../rooms/routes'
+import { gameOfSocketPath, ROOMS_HEALTH_PATH } from '../rooms/routes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import type { CronEnv } from './crons'
@@ -64,7 +66,7 @@ import {
   handleErrorReport,
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
-import { serveRoomsHealth } from './rooms'
+import { serveGameSocket, serveRoomsHealth } from './rooms'
 
 export { BotGateway } from './botGateway'
 export { AccountRoom, GameRoom } from './rooms'
@@ -150,6 +152,8 @@ export default {
     if (url.pathname === ROOMS_HEALTH_PATH && request.method === 'GET') {
       return serveRoomsHealth()
     }
+    const gameId = gameOfSocketPath(url.pathname)
+    if (gameId !== null) return serveGameSocket(request, gameId, env)
 
     // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {

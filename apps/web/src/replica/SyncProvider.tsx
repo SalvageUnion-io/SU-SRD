@@ -8,7 +8,10 @@
 import { useConvexAuth } from 'convex/react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { toast } from '../components/containers/Toaster'
 import { useBuildFloor } from '../lib/connection/buildFloor'
+import { sharedCopy } from '../messages/components-shared'
+import { flushOutbox } from './outbox'
 import { sessionAccount } from './persist'
 import { setSyncStatus, syncStatusOf } from './sync'
 import type { SyncState } from './syncContext'
@@ -51,8 +54,21 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   useEffect(() => setSyncStatus(status, outdated), [status, outdated])
 
   const state = useMemo<SyncState>(
-    () => ({ status, canWrite: status === 'live' && !outdated, outdated }),
+    () => ({
+      status,
+      canWrite: status === 'live' && !outdated,
+      canEditOwn: (status === 'live' || status === 'offline') && !outdated,
+      outdated,
+    }),
     [status, outdated]
   )
+
+  // Back live: what waited in the outbox goes up, and a refused edit says so.
+  useEffect(() => {
+    if (status !== 'live' || outdated) return
+    void flushOutbox().then((declined) => {
+      for (const reason of declined) toast.error(sharedCopy('offlineChangeDeclined', { reason }))
+    })
+  }, [status, outdated])
   return <SyncContext.Provider value={state}>{children}</SyncContext.Provider>
 }

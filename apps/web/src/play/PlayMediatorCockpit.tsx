@@ -5,7 +5,7 @@
  * `PlayMediatorGate`'s question, asked before this renders.
  *
  *  - **Bar** — the MEDIATOR stamp, LIVE "3 of 4 here" (the seats' presence,
- *    `lastSeenAt`), the Scene / Downtime switch (`PlayGameStateSwitch`; below
+ *    `useGamePresence`), the Scene / Downtime switch (`PlayGameStateSwitch`; below
  *    `lg` pinned under the bar), the channel button
  *    (`channelBindings.current`), Tell the table and ⋯.
  *  - **Table** (start) — a seat per player, then the crawler

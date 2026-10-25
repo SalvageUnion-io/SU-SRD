@@ -189,6 +189,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
         signOut: async () => undefined,
       }),
       ConvexAuthProvider: ({ children }: { children: ReactNode }) => children,
+      useAuthToken: () => null,
     }))
   }
 

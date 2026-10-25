@@ -20,16 +20,17 @@ the bot becomes a first-class authenticated client.
 
 **Convex is the server of record.** A signed-in client reads through reactive
 subscriptions (the live table is the point) and writes to Convex; nothing is
-kept on the device but a read-only copy of the player's own rows
-([device copy](../ARCHITECTURE.md#device-copy), ADR-058).
+kept on the device but a copy of the player's own rows and the edits they
+made to them offline ([device copy](../ARCHITECTURE.md#device-copy), ADR-063).
 Signed out, nothing persists (ADR-034). The four modes (Solo, Connected,
 Disconnected, Outdated) are
 [`.claude/rules/app-data-access.md`](../../.claude/rules/app-data-access.md);
 every surface must be legible in all of them.
 
-Offline writes are **blocked, not queued**: an outbox brings back the conflict
-resolution a server of record avoids. Revisit only with evidence from a real
-session.
+Offline, Game-wide writes are **blocked, not queued**. An edit to the
+player's own pilot, mech or NPC waits in an outbox and the server decides it
+on reconnect, declining what no longer fits (ADR-063 decision 9): a unit has
+one writer (ADR-055), so there is nothing to merge.
 
 ## 2. Containers: Games and Shelves
 

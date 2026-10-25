@@ -1,7 +1,6 @@
-import { afterEach, describe, expect, setSystemTime, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { downtimeGuideSteps, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
-import { PRESENCE_WRITE_MIN_MS } from 'game-domain/schemas/seat'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx, User } from '../fixtures'
@@ -60,7 +59,6 @@ describe('reading a solo seat', () => {
       resolving: null,
       ejected: false,
       downtime: null,
-      lastSeenAt: null,
       updatedAt: null,
     })
     expect(await seatRows(t)).toHaveLength(0)
@@ -170,7 +168,6 @@ describe('solo refusals', () => {
       () => stranger.as.mutation(api.seats.eject, SOLO),
       () => stranger.as.mutation(api.seats.setResolving, { ...SOLO, resolving: crush }),
       () => stranger.as.mutation(api.seats.clearResolving, SOLO),
-      () => stranger.as.mutation(api.seats.heartbeat, SOLO),
       () => stranger.as.mutation(api.downtime.begin, { gameId: null, pilotId: 'p1' }),
       () => stranger.as.mutation(api.downtime.end, { gameId: null, pilotId: 'p1' }),
     ]
@@ -443,17 +440,6 @@ describe('moving into a Game hands the solo seat over', () => {
     expect((await seatRows(t))[0]?.resolving).toBeUndefined()
   })
 
-  test('presence follows the pilot into the Game', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await playingSolo(t)
-    setSystemTime(new Date(40_000))
-    await player.as.mutation(api.seats.heartbeat, SOLO)
-    await moveOwnable(player, 'pilots', 'p1', gameId)
-    setSystemTime()
-    expect(await organizer.as.query(api.seats.presence, { gameId })).toEqual([40_000])
-    expect(await seatRows(t)).toHaveLength(1)
-  })
-
   test('a pilot with no solo seat sits down as any other', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
@@ -492,102 +478,5 @@ describe('solo cleanup', () => {
     await player.as.mutation(api.account.deleteAccount, {})
 
     expect((await seatRows(t)).map((r) => r.pilotId)).toEqual(['p-other'])
-  })
-})
-
-describe('presence heartbeat', () => {
-  afterEach(() => {
-    setSystemTime()
-  })
-
-  /** A Game where the player's `p1` has sat down. */
-  async function seated(t: Ctx) {
-    const table = await seedTable(t)
-    await addPilot(table.player, 'p1', table.gameId)
-    return table
-  }
-
-  test('stamps lastSeenAt for the crew to read, without moving updatedAt', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seated(t)
-    setSystemTime(new Date(10_000))
-    await player.as.mutation(api.seats.setRange, { gameId, pilotId: 'p1', range: 'Far' })
-
-    setSystemTime(new Date(50_000))
-    await player.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-
-    const seats = await organizer.as.query(api.seats.forGame, { gameId })
-    expect(seats.find((s) => s.pilotId === 'p1')).toMatchObject({
-      lastSeenAt: 50_000,
-      updatedAt: 10_000,
-    })
-    const vitals = await organizer.as.query(api.crew.vitals, { gameId })
-    expect(vitals.pilots.find((p) => p.linkId === 'p1')?.lastSeenAt).toBe(50_000)
-  })
-
-  test('presence: each beating seat’s last beat, for members only', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seated(t)
-    // Seated but never beaten: nothing to count.
-    await player.as.mutation(api.seats.setRange, { gameId, pilotId: 'p1', range: 'Far' })
-    expect(await organizer.as.query(api.seats.presence, { gameId })).toEqual([])
-
-    setSystemTime(new Date(70_000))
-    await player.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-    expect(await organizer.as.query(api.seats.presence, { gameId })).toEqual([70_000])
-
-    const stranger = await makeUser(t, 'Stranger')
-    expect(await stranger.as.query(api.seats.presence, { gameId })).toEqual([])
-  })
-
-  test('a beat inside the write interval writes nothing', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seated(t)
-    const beat = () => player.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-
-    setSystemTime(new Date(100_000))
-    await beat()
-    setSystemTime(new Date(100_000 + PRESENCE_WRITE_MIN_MS - 1))
-    await beat()
-    expect((await seatRows(t))[0]?.lastSeenAt).toBe(100_000)
-
-    setSystemTime(new Date(100_000 + PRESENCE_WRITE_MIN_MS))
-    await beat()
-    expect((await seatRows(t))[0]?.lastSeenAt).toBe(100_000 + PRESENCE_WRITE_MIN_MS)
-  })
-
-  test('the first beat creates the default seat', async () => {
-    const t = testConvex()
-    const { player, gameId } = await seated(t)
-    await player.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-    const rows = await seatRows(t)
-    expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({ mount: { kind: 'foot' }, range: 'Close', activeEffects: [] })
-  })
-
-  test('a pilot gone from the Game takes its seat, and so its presence, along', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId } = await seated(t)
-    await player.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-    await player.as.mutation(api.entities.removeByAppId, { table: 'pilots', appId: 'p1' })
-    expect(await organizer.as.query(api.seats.presence, { gameId })).toEqual([])
-  })
-
-  test('only whoever may write the seat beats for it, the Mediator not', async () => {
-    const t = testConvex()
-    const { organizer, gameId } = await seated(t)
-    await organizer.as.mutation(api.games.setMediator, {
-      gameId,
-      userId: organizer.userId,
-      mediator: true,
-    })
-    await expect(
-      organizer.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-    ).rejects.toThrow(/another player's entity/i)
-    const stranger = await makeUser(t, 'Stranger')
-    await expect(
-      stranger.as.mutation(api.seats.heartbeat, { gameId, pilotId: 'p1' })
-    ).rejects.toThrow(/not a member/i)
-    expect(await seatRows(t)).toHaveLength(0)
   })
 })

@@ -93,3 +93,19 @@ describe('the Game room over RPC', () => {
     expect(back.ok && back.value.ok).toBe(true)
   })
 })
+
+describe('ending a Game', () => {
+  it('lands each unit on its holder’s shelf, and leaves the room empty', async () => {
+    const room = await game('g-end')
+    expect(await room.disband(ORGANIZER)).toEqual({ ok: true, value: null })
+    const shelf = (
+      workerExports as unknown as {
+        AccountRoom: {
+          getByName(name: string): { unitsFor(actor: string): Promise<{ id: string }[]> }
+        }
+      }
+    ).AccountRoom.getByName(PLAYER)
+    expect((await shelf.unitsFor(PLAYER)).map((u) => u.id)).toEqual(['p1'])
+    expect(await room.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
+  })
+})
