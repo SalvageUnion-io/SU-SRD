@@ -88,3 +88,8 @@ export const ACCOUNT_ROOM_TABLES: readonly string[] = [
         imported_at integer not null
       )`,
 ]
+
+/** Step 2 of `ACCOUNT_ROOM`: the links' `created_at`, as the Game room's (`GameStore.putLink`). */
+export const ACCOUNT_ROOM_STAMPS: readonly string[] = [
+  'alter table links add column created_at integer not null default 0',
+]

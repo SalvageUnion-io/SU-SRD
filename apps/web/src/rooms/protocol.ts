@@ -46,7 +46,6 @@ export const RoomOpSchema = z.object({
   before: Body.nullable(),
   reason: z.string().optional(),
 })
-/** @public */
 export type RoomOp = z.infer<typeof RoomOpSchema>
 
 /**
@@ -78,7 +77,6 @@ export const RoomUnitSchema = z.object({
   fieldSeqs: z.record(z.string(), z.number().int()),
   updatedAt: z.number(),
 })
-/** @public */
 export type RoomUnit = z.infer<typeof RoomUnitSchema>
 
 /** The op-less bodies a room holds, each addressed by the id in its body. @public */
@@ -122,7 +120,7 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
 ])
 export type ServerMessage = z.infer<typeof ServerMessageSchema>
 
-/** Client to room. @public */
+/** Client to room. */
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ops'), ops: z.array(OpInputSchema).min(1) }),
 ])

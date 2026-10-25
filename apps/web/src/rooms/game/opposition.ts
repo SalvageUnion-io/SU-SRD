@@ -42,6 +42,21 @@ export class GameOpposition {
       .map((row) => fromJson<Record<string, unknown>>(row.body))
   }
 
+  /** The tray as the socket's `opposition` records, for the Mediator only. */
+  trayRecords(
+    actor: string
+  ): { appId: string; body: Record<string, unknown>; updatedAt: number }[] {
+    const member = this.store.member(actor)
+    if (member === null || !member.mediator) return []
+    return this.store
+      .rows('select id, body, updated_at from tray order by added_at, id')
+      .map((row) => ({
+        appId: String(row.id),
+        body: fromJson<Record<string, unknown>>(row.body),
+        updatedAt: Number(row.updated_at),
+      }))
+  }
+
   /** Put an NPC on the tray. Its id is its address: kept when it has one, minted when not. */
   addNpc(actor: string, body: unknown, at: number): string {
     return this.store.sql.transaction(() => {
@@ -84,8 +99,9 @@ export class GameOpposition {
       }
       if (typeof body.updatedAt === 'string') next.updatedAt = new Date(at).toISOString()
       this.store.rows(
-        'update tray set body = ? where id = ?',
+        'update tray set body = ?, updated_at = ? where id = ?',
         JSON.stringify(TrayBodySchema.parse(next)),
+        at,
         npcId
       )
     })
@@ -137,9 +153,10 @@ export class GameOpposition {
   private insert(body: Record<string, unknown>, at: number): string {
     const id = typeof body.id === 'string' && body.id.length > 0 ? body.id : this.newId()
     this.store.rows(
-      'insert into tray (id, body, added_at) values (?, ?, ?)',
+      'insert into tray (id, body, added_at, updated_at) values (?, ?, ?, ?)',
       id,
       JSON.stringify({ ...body, id }),
+      at,
       at
     )
     return id
