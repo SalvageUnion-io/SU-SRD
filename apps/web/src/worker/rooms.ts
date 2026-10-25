@@ -10,6 +10,7 @@ import type { DurableObjectNamespace, WebSocket as RoomSocket } from '@cloudflar
 import type { SheetVitals } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
 import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
+import { shelfSnapshot } from '../rooms/account/feed'
 import type {
   GameActAnswer,
   GameActArgs,
@@ -127,10 +128,13 @@ export class AccountRoom extends Room implements UnitHome {
   /** A disbanded Game's Opposition, filed in its Organizer's NPC tray once per lease. */
   fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
     this.logic.transit.fileTray(leaseId, npcs, at)
+    this.broadcastSnapshots()
   }
 
   importAccount(bundle: unknown): { imported: boolean } {
-    return this.logic.transit.importAccount(bundle, Date.now())
+    const answer = this.logic.transit.importAccount(bundle, Date.now())
+    this.broadcastSnapshots()
+    return answer
   }
 
   offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
@@ -141,10 +145,12 @@ export class AccountRoom extends Room implements UnitHome {
 
   accept(parcel: UnitParcel, actor: string, at: number): void {
     this.logic.transit.accept(parcel, actor, at)
+    this.broadcastSnapshots()
   }
 
   release(leaseId: string): void {
     this.logic.transit.release(leaseId)
+    this.broadcastSnapshots()
   }
 
   cancel(leaseId: string): void {
@@ -157,6 +163,51 @@ export class AccountRoom extends Room implements UnitHome {
 
   override alarm(): Promise<void> {
     return settleStaleOffers(this, this.logic.transit, this.ctx.storage)
+  }
+
+  /** The player's socket, which the Worker let through: their Shelf, then its changes. */
+  override async fetch(request: Request): Promise<Response> {
+    const member = request.headers.get(MEMBER_HEADER)
+    if (member === null || request.headers.get('upgrade') !== 'websocket') {
+      return new Response(null, { status: 400 })
+    }
+    if (member !== this.logic.shelf.owner()) return new Response(null, { status: 403 })
+    const pair = new WebSocketPair()
+    this.ctx.acceptWebSocket(pair[1], [member])
+    pair[1].send(JSON.stringify(shelfSnapshot(this.logic, member)))
+    return new Response(null, {
+      status: 101,
+      headers: { 'sec-websocket-protocol': ROOM_PROTOCOL },
+      webSocket: pair[0],
+    } as ResponseInit)
+  }
+
+  /** The player's `ops` batch: applied all or none, answered on its socket, heard by all of theirs. */
+  override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
+    const [member] = this.ctx.getTags(ws)
+    const batch = member === undefined ? null : readOpsBatch(message)
+    if (member === undefined || batch === null) {
+      ws.send(JSON.stringify(UNREADABLE))
+      return
+    }
+    const opIds = batch.map((op) => op.id)
+    let result: ReturnType<AccountRoomLogic['shelf']['submit']>
+    try {
+      result = this.logic.shelf.submit(member, batch)
+    } catch (error) {
+      if (!(error instanceof RoomRefusal)) throw error
+      ws.send(JSON.stringify(refusedBatch(opIds, error.message)))
+      return
+    }
+    if (result.ok) {
+      const ids = result.applied.map((op) => op.id)
+      sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null))
+    }
+    ws.send(JSON.stringify(batchAnswer(opIds, result)))
+  }
+
+  private broadcastSnapshots(): void {
+    snapshotEach(this.ctx, (member) => shelfSnapshot(this.logic, member))
   }
 }
 
@@ -228,7 +279,7 @@ export class GameRoom extends Room implements UnitHome {
       if (name !== 'submit') this.broadcastSnapshots()
       else if (result.ok) {
         const ids = result.applied.map((op) => op.id)
-        this.broadcast(appliedMessages(this.logic, ids, this.gameId))
+        this.broadcast(appliedMessages(this.logic.store, ids, this.gameId))
       }
     }
     return answer
@@ -361,25 +412,12 @@ export class GameRoom extends Room implements UnitHome {
     this.broadcastPresence(ws)
   }
 
-  /** Each open socket's own snapshot, after an act that may have changed several things. */
   private broadcastSnapshots(): void {
-    const byMember = new Map<string, string>()
-    for (const ws of this.ctx.getWebSockets()) {
-      const [member] = this.ctx.getTags(ws)
-      if (member === undefined) continue
-      let text = byMember.get(member)
-      if (text === undefined) {
-        text = JSON.stringify(gameSnapshot(this.logic, member, this.gameId))
-        byMember.set(member, text)
-      }
-      sendQuietly(ws, text)
-    }
+    snapshotEach(this.ctx, (member) => gameSnapshot(this.logic, member, this.gameId))
   }
 
-  /** The same messages to every open socket. */
   private broadcast(messages: readonly ServerMessage[]): void {
-    const texts = messages.map((message) => JSON.stringify(message))
-    for (const ws of this.ctx.getWebSockets()) for (const text of texts) sendQuietly(ws, text)
+    sendEach(this.ctx, messages)
   }
 
   /** Who is here, to every open socket but `gone` (the one closing). */
@@ -412,6 +450,28 @@ const READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'unitsFor',
   'unit',
 ])
+
+/** Each open socket's own snapshot, after a change that may touch several things. */
+function snapshotEach(ctx: RoomState, snapshotOf: (member: string) => ServerMessage): void {
+  const byMember = new Map<string, string>()
+  for (const ws of ctx.getWebSockets()) {
+    const [member] = ctx.getTags(ws)
+    if (member === undefined) continue
+    let text = byMember.get(member)
+    if (text === undefined) {
+      text = JSON.stringify(snapshotOf(member))
+      byMember.set(member, text)
+    }
+    sendQuietly(ws as RoomSocket, text)
+  }
+}
+
+/** The same messages to every open socket. */
+function sendEach(ctx: RoomState, messages: readonly ServerMessage[]): void {
+  const texts = messages.map((message) => JSON.stringify(message))
+  for (const ws of ctx.getWebSockets())
+    for (const text of texts) sendQuietly(ws as RoomSocket, text)
+}
 
 function sendQuietly(ws: RoomSocket, text: string): void {
   try {

@@ -70,6 +70,21 @@ describe('rooms', () => {
     expect(watcher.heard.at(-1)).toEqual([])
   })
 
+  it('opens its player’s account socket on their Shelf, and no one else’s', async () => {
+    const room = exports.AccountRoom.getByName('d-rook')
+    const open = (member: string) =>
+      room.fetch('https://room/', { headers: { upgrade: 'websocket', 'x-su-member': member } })
+    expect((await open('d-wren')).status).toBe(403)
+    const ws = (await open('d-rook')).webSocket
+    if (ws === null) throw new Error('no socket')
+    const heard: unknown[] = []
+    ws.addEventListener('message', (e) => heard.push(JSON.parse(String(e.data))))
+    ws.accept()
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(heard).toEqual([{ type: 'snapshot', units: [], records: expect.any(Object), links: [] }])
+    ws.close(1000)
+  })
+
   it('refuses a socket with no member token', async () => {
     const res = await exports.default.fetch('https://salvageunion.io/__rooms/games/g/socket', {
       headers: { upgrade: 'websocket' },
