@@ -8,7 +8,7 @@
 
 import { useAuthToken } from '@convex-dev/auth/react'
 import { useCallback, useSyncExternalStore } from 'react'
-import { useConnection } from '../lib/connection/connectionContext'
+import { useSync } from '../replica/syncContext'
 import type { PresenceMessage } from '../rooms/presence'
 import { ROOM_PROTOCOL } from '../rooms/presence'
 import { gameSocketPath } from '../rooms/routes'
@@ -58,11 +58,11 @@ function openChannel(key: string, url: string, token: string): Channel {
 }
 
 export function useGamePresence(gameId: string | null, role: 'seat' | 'watch'): Here {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const token = useAuthToken()
   const seat = role === 'seat' ? '1' : '0'
   const key =
-    mode === 'connected' && gameId !== null && token !== null ? `${gameId}:${seat}:${token}` : null
+    status === 'live' && gameId !== null && token !== null ? `${gameId}:${seat}:${token}` : null
 
   const subscribe = useCallback(
     (listener: () => void) => {

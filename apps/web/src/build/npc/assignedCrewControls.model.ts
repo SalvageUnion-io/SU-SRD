@@ -7,7 +7,7 @@
 import type { ReferenceEntityControl } from '../../components/index'
 import { toast } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 
 /**
  * Take the link off a crew slot. No confirm: it is reversible bookkeeping, and
@@ -15,7 +15,7 @@ import { useEntityStore } from '../../stores/entityStore'
  */
 export function unassignCrew(linkId: string, slotName: string, onDone: () => void): void {
   runWrite(
-    () => useEntityStore.getState().delete('softLink', linkId),
+    () => useUnits.getState().delete('softLink', linkId),
     () => {
       toast.success(`${slotName} is back to the book’s crew line.`)
       onDone()

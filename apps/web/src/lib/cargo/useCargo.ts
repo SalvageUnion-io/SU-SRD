@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * useCargo — store-backed wrapper around the pure `cargoTransfer` reducer.
  * Owns persistence only: state is derived from the passed
@@ -14,9 +15,9 @@ import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { mechMaxCargo } from 'salvageunion-reference/rules'
-import type { ChangeMeta } from '../../stores/entityStore'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { ChangeMeta } from '../../replica/units'
+import { useUnits } from '../../replica/units'
 import { failureMessage } from '../connection/useServerAction'
 import type {
   CargoBoundaryState,
@@ -38,7 +39,7 @@ type UseCargoOptions = {
   /** The crawler side (null/undefined when no crawler is linked). */
   crawler?: Crawler | null
   /** Injectable store hook for testing; the real Zustand store otherwise. */
-  store?: typeof useEntityStore
+  store?: UnitsStore
   /** When true every transfer refuses — read-only sheet contexts. */
   readOnly?: boolean
   /**
@@ -118,7 +119,7 @@ export function useCargo({
   pilotAbilities,
   mech,
   crawler,
-  store = useEntityStore,
+  store = useUnits,
   readOnly = false,
   crawlerReadOnly = false,
   meta = LIVE_SHEET_MANUAL,

@@ -4,7 +4,7 @@
  *
  * The `store` parameter is injectable for testing (dep-injection pattern,
  * no global mock.module() needed). In production, omit `store` and the hook
- * subscribes to `useEntityStore` so components re-render on SoftLink changes.
+ * subscribes to `useUnits` so components re-render on SoftLink changes.
  *
  * `assign` goes through `assignLink` (ADR-037): the link type comes from the
  * two ends, and drawing it replaces whatever it conflicts with — a pilot's old
@@ -19,7 +19,7 @@ import type { EntityRef } from 'game-domain/schemas/entity'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useSoftLinkList } from '../../lib/entities'
 import { assignLink } from '../../lib/links/assignLink'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 
 /** The entity types that can be endpoints in a SoftLink (excludes 'softLink' itself). */
 type AssignTarget = EntityRef
@@ -38,7 +38,7 @@ type SoftLinkActions = {
 
 /** Minimal store surface needed — extracted for dep-injection in tests. */
 export type SoftLinkStore = {
-  softLinks: SoftLink[]
+  softLinks: readonly SoftLink[]
   create: (type: 'softLink', input: Omit<SoftLink, 'id' | 'createdAt'>) => Promise<SoftLink>
   delete: (type: 'softLink', id: string) => Promise<void>
 }
@@ -52,7 +52,7 @@ type UseSoftLinksOptions = {
 
 /**
  * useSoftLinks hook — subscribe-to-Zustand path (production).
- * When `store` is injected (tests), the hook still calls useEntityStore but
+ * When `store` is injected (tests), the hook still calls useUnits but
  * ignores its links in favour of the injected snapshot.
  */
 export function useSoftLinks({
@@ -63,7 +63,7 @@ export function useSoftLinks({
   // Always call the hook (Rules of Hooks). In test-with-injection path the
   // subscription result is unused; we use the injected snapshot instead.
   const subscribedLinks = useSoftLinkList()
-  const allLinks: SoftLink[] = store ? store.softLinks : subscribedLinks
+  const allLinks: readonly SoftLink[] = store ? store.softLinks : subscribedLinks
 
   const outgoing = allLinks.filter(
     (link) => link.from.type === entityType && link.from.id === entityId
@@ -71,12 +71,12 @@ export function useSoftLinks({
   const incoming = allLinks.filter((link) => link.to.type === entityType && link.to.id === entityId)
 
   async function assign(target: AssignTarget): Promise<SoftLink> {
-    const s: SoftLinkStore = store ?? useEntityStore.getState()
+    const s: SoftLinkStore = store ?? useUnits.getState()
     return assignLink({ type: entityType, id: entityId }, target, s)
   }
 
   async function unassign(linkId: string): Promise<void> {
-    const s: SoftLinkStore = store ?? useEntityStore.getState()
+    const s: SoftLinkStore = store ?? useUnits.getState()
     return s.delete('softLink', linkId)
   }
 

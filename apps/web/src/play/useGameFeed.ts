@@ -21,9 +21,9 @@ import type { SeatResolving } from 'game-domain/schemas/seat'
 import { coreRollBandLabel } from 'salvageunion-reference/rules'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { gauge, pool } from '../lib/units/crewPair'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
@@ -100,10 +100,10 @@ const LOG_ROLLS = 30
 const LOG_ALERTS = 10
 
 export function useGameFeed(pilot: Pilot | null): GameFeed {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const container = pilot === null ? null : containerOf(pilot)
   const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
-  const signedIn = isSignedIn(mode)
+  const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null
 
   const rolls = useQuery(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')

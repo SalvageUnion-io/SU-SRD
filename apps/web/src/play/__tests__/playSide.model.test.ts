@@ -128,27 +128,27 @@ describe('the Crew (play.md §7)', () => {
 
 describe('read-only, said in one place (play.md §7)', () => {
   test('writes may go: nothing to say', () => {
-    expect(playReadOnly({ mode: 'connected', canWrite: true })).toBeNull()
+    expect(playReadOnly({ status: 'live', canWrite: true })).toBeNull()
   })
 
   test('disconnected and outdated each say so', () => {
-    expect(playReadOnly({ mode: 'disconnected', canWrite: false })?.stamp).toBe(
+    expect(playReadOnly({ status: 'offline', canWrite: false })?.stamp).toBe(
       'Read-only · disconnected'
     )
-    expect(playReadOnly({ mode: 'connected', canWrite: false, outdated: true })?.stamp).toBe(
+    expect(playReadOnly({ status: 'live', canWrite: false, outdated: true })?.stamp).toBe(
       'Read-only · outdated'
     )
-    expect(playReadOnly({ mode: 'connecting', canWrite: false })?.says).toBe(
+    expect(playReadOnly({ status: 'syncing', canWrite: false })?.says).toBe(
       'Read-only while the connection settles.'
     )
   })
 
   test('signed out, or a server not taking changes, each say so', () => {
-    expect(playReadOnly({ mode: 'solo', canWrite: false })).toEqual({
+    expect(playReadOnly({ status: 'signedOut', canWrite: false })).toEqual({
       stamp: 'Read-only · signed out',
       says: 'Read-only: sign in to play.',
     })
-    expect(playReadOnly({ mode: 'connected', canWrite: false })).toEqual({
+    expect(playReadOnly({ status: 'live', canWrite: false })).toEqual({
       stamp: 'Read-only',
       says: 'Read-only: the server is not taking changes right now.',
     })

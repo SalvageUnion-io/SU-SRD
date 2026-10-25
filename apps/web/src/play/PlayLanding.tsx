@@ -57,13 +57,13 @@ import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
+import { useSync } from '../replica/syncContext'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { hereCount } from './crew.model'
@@ -121,8 +121,8 @@ const JOIN_FIELD = {
 const JOIN_INPUT = { height: 'var(--size-compact)', width: '100%' } satisfies CSSProperties
 
 export function PlayLanding() {
-  const { mode } = useConnection()
-  if (mode === 'solo') {
+  const { status } = useSync()
+  if (status === 'signedOut') {
     return (
       <PlayRefusal
         title={playCopy('signInToPlay')}
@@ -131,8 +131,8 @@ export function PlayLanding() {
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
-  if (mode === 'connected') return <ConnectedPlayLanding />
+  if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
+  if (status === 'live') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} channels={undefined} />
 }
 

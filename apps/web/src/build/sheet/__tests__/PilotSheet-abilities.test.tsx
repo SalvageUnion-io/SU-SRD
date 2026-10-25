@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * PilotSheet — ability live-play affordances (Slice D)
  *
@@ -21,8 +22,7 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { EntitySurfaceProvider } from '../../../components/index'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
@@ -69,7 +69,7 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   }
 }
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   const updateMock = updateSpy ?? mock(async () => pilot)
   return makeEntityStoreMock({
     pilots: [pilot],

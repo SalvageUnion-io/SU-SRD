@@ -15,7 +15,7 @@ import type { ComponentProps, ReactNode } from 'react'
  * and a record in a container the account cannot reach says so instead of
  * reading as "in your shelves".
  *
- * Signed in here means a real `ConnectionProvider` over a mocked Convex client,
+ * Signed in here means a real `SyncProvider` over a mocked Convex client,
  * whose `mutation` records the server commit a move makes.
  */
 
@@ -53,10 +53,10 @@ const convexMocks = await installConvexMocks({
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
 const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { useUnits } = await import('../../../replica/units')
+const { resetSync, setSyncStatus } = await import('../../../replica/sync')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
 
 afterAll(() => {
   convexMocks.restore()
@@ -67,21 +67,21 @@ const GAMES = [
   { _id: 'g2', name: 'The Long Haul' },
 ]
 
-const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 beforeEach(() => {
   authed = true
   failWrites = false
   serverWrites.length = 0
   resetStores()
-  // The server's first answer is in, as `ShelfSync` marks it.
-  useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
+  // The server's first answer is in, as `ConvexFeed` marks it.
+  useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   setQueryAnswers({ 'games:listMine': GAMES })
 })
 
 afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 type MoveProps = Omit<ComponentProps<typeof MoveToContainerControl>, 'confirm'>
@@ -101,21 +101,19 @@ function MoveHarness(props: MoveProps) {
 async function heldPilot(gameId: string | null) {
   const pilot = pilotFixture({ id: 'p1', name: 'Mira Cole', gameId })
   // Held the way a signed-in player's roster is: adopted as the server sent it.
-  // `ConnectionProvider` pushes this same signed-in state on mount; pushing it
+  // `SyncProvider` pushes this same signed-in state on mount; pushing it
   // first lets the move commit.
-  setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
-  await useEntityStore.getState().adopt('pilot', pilot)
+  setSyncStatus('live')
+  await useUnits.getState().adopt('pilot', pilot)
   return pilot
 }
 
-const gameIdOf = () => useEntityStore.getState().list('pilot')[0]?.gameId
+const gameIdOf = () => useUnits.getState().list('pilot')[0]?.gameId
 
 /** Thresher, a mech on the shelf, flying Mira Cole (who must be held first). */
 async function pairedWithShelfMech() {
-  await useEntityStore
-    .getState()
-    .adopt('mech', mechFixture({ id: 'm1', name: 'Thresher', gameId: null }))
-  await useEntityStore.getState().adopt('softLink', {
+  await useUnits.getState().adopt('mech', mechFixture({ id: 'm1', name: 'Thresher', gameId: null }))
+  await useUnits.getState().adopt('softLink', {
     id: 'link-pairing',
     type: 'mech-to-pilot',
     from: { type: 'mech', id: 'm1' },
@@ -126,10 +124,10 @@ async function pairedWithShelfMech() {
 
 /** Big Sal, a crawler on the shelf, crewed by Mira Cole (who must be held first). */
 async function crewingShelfCrawler() {
-  await useEntityStore
+  await useUnits
     .getState()
     .adopt('crawler', crawlerFixture({ id: 'c1', name: 'Big Sal', gameId: null }))
-  await useEntityStore.getState().adopt('softLink', {
+  await useUnits.getState().adopt('softLink', {
     id: 'link-crew',
     type: 'pilot-to-crawler',
     from: { type: 'pilot', id: 'p1' },
@@ -138,7 +136,7 @@ async function crewingShelfCrawler() {
   })
 }
 
-const linkIds = () => useEntityStore.getState().softLinks.map((l) => l.id)
+const linkIds = () => useUnits.getState().softLinks.map((l) => l.id)
 
 describe('MoveToContainerControl', () => {
   test('renders nothing for somebody who is not signed in', () => {
@@ -163,7 +161,7 @@ describe('MoveToContainerControl', () => {
     await waitFor(() => expect(changed).toBe(1))
     // Into a Game from the Shelf, with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    const pilots = useEntityStore.getState().list('pilot')
+    const pilots = useUnits.getState().list('pilot')
     // One entity, moved — never a copy. A copy would leave two of the same
     // character with no way to tell which one the table can see.
     expect(pilots.map((p) => [p.id, p.gameId])).toEqual([['p1', 'g1']])
@@ -182,8 +180,8 @@ describe('MoveToContainerControl', () => {
       ],
     })
     const crawler = crawlerFixture({ id: 'c1', gameId: null })
-    setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
-    await useEntityStore.getState().adopt('crawler', crawler)
+    setSyncStatus('live')
+    await useUnits.getState().adopt('crawler', crawler)
     let changed = 0
     wrap(
       <MoveHarness
@@ -450,7 +448,7 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     // Into a Game with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(
-      useEntityStore
+      useUnits
         .getState()
         .list('pilot')
         .map((p) => p.id)

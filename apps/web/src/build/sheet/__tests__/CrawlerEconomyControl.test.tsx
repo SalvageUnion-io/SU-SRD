@@ -23,8 +23,8 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { ChangeMeta } from '../../../stores/entityStore'
-import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_TXN } from '../../../replica/provenance'
+import type { ChangeMeta } from '../../../replica/units'
 import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 
 // ---------------------------------------------------------------------------

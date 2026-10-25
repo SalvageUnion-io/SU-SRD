@@ -38,11 +38,11 @@ import { useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Button, HeaderMenu, tokens } from '../components/index'
-import { useConnection } from '../lib/connection/connectionContext'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { useEntityStore } from '../stores/entityStore'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
+import { useSync } from '../replica/syncContext'
+import { useUnits } from '../replica/units'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
@@ -86,14 +86,12 @@ type PlayCockpitProps = {
 }
 
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const play = usePlaySituation(target)
   const binding = usePlayChannelBinding(target)
   const crew = useQuery(
     api.crew.vitals,
-    target.gameId !== null && mode === 'connected'
-      ? { gameId: target.gameId as Id<'games'> }
-      : 'skip'
+    target.gameId !== null && status === 'live' ? { gameId: target.gameId as Id<'games'> } : 'skip'
   )
   const here = useGamePresence(target.gameId, 'seat')
   const wide = usePlayWide()
@@ -116,7 +114,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const writeVital = (kind: 'pilot' | 'mech', field: string, next: number) => {
     const id = kind === 'pilot' ? pilotId : mechId
     if (id === null) return
-    runWrite(() => useEntityStore.getState().update(kind, id, { [field]: next }, PLAY_TXN))
+    runWrite(() => useUnits.getState().update(kind, id, { [field]: next }, PLAY_TXN))
   }
   const nodes: Record<PlayerPane, ReactNode> = {
     act: <PlayActionsColumn target={target} play={play} {...actions} />,
@@ -136,7 +134,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
           tone={PHASE_TONE[play.situation]}
           backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
           backLabel={solo ? playCopy('play') : playCopy('game')}
-          live={mode === 'connected' && !solo}
+          live={status === 'live' && !solo}
           here={crew === undefined || here === null ? null : hereCount(crew.pilots, here)}
           readOnly={play.readOnly}
           situation={wide ? <PlaySituationSwitch play={play} /> : undefined}

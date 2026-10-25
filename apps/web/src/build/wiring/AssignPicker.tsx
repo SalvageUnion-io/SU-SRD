@@ -16,7 +16,7 @@
  * 'connected'` — signed out there is one pile, and every entity is in it.
  *
  * The local store holds your own pilots and mechs plus every crawler in your
- * Games (`WiringSync`), which is exactly what you may assign: a link is written
+ * Games (`ConvexFeed`), which is exactly what you may assign: a link is written
  * by the owner of its `from` end, and crewmates' pilots and mechs are not
  * yours to wire.
  *
@@ -49,7 +49,6 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button, PickDialog } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
 import { assignLink } from '../../lib/links/assignLink'
@@ -58,8 +57,9 @@ import { readReference } from '../../lib/readReference'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { wiringCopy } from '../../messages/build-wiring'
-import { WritesBlockedOffline } from '../../stores/entityBackend'
-import { useEntityStore } from '../../stores/entityStore'
+import { WritesBlockedOffline } from '../../replica/sync'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']
@@ -251,7 +251,7 @@ export function AssignPicker({
   const [selectedId, setSelectedId] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { mode } = useConnection()
+  const { status } = useSync()
 
   // Always call the hooks (Rules of Hooks); prefer the injected lists.
   const livePilots = usePilots()
@@ -264,7 +264,7 @@ export function AssignPicker({
   }
 
   // Signed out, there is one pile and no container to scope to.
-  const scope = mode === 'connected' ? container : null
+  const scope = status === 'live' ? container : null
   const excluded = new Set(exclude)
   /** Everything of this kind where the subject lives, and what is left to offer. */
   const offer = <T extends ContainerFields & { id: string }>(
@@ -301,7 +301,7 @@ export function AssignPicker({
     setPending(true)
     setError(null)
     try {
-      await assignLink(from, to, store ?? useEntityStore.getState())
+      await assignLink(from, to, store ?? useUnits.getState())
       setOpen(false)
       onAssigned?.()
     } catch (err) {

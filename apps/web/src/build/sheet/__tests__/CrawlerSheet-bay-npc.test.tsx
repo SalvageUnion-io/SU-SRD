@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * CrawlerSheet — per-bay crew lead (CrewLeadMini) tests.
  *
@@ -29,8 +30,7 @@ import { patchModelRows } from '../../../../test/patchModel'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 /** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
@@ -120,7 +120,7 @@ type Spies = {
   updateCrawlerBay: ReturnType<typeof mock>
 }
 
-function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEntityStore {
+function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): UnitsStore {
   const update = spies?.update ?? mock(async () => crawler)
   const updateCrawlerBay = spies?.updateCrawlerBay ?? mock(async () => crawler)
   return makeEntityStoreMock({

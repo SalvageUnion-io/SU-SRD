@@ -23,9 +23,9 @@ import { postsByDefault } from 'game-domain/games/discord'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
 import { failureMessage } from '../lib/connection/useServerAction'
-import { commitChangeLog } from '../stores/entityBackend'
+import { sendChangeLog } from '../replica/outbox'
+import { useSync } from '../replica/syncContext'
 import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
 import type { PlayRoll } from './playRolls.model'
@@ -38,10 +38,10 @@ export type PlayPostState = { kind: 'posting' } | PostRollResult
 export function usePlayChannelBinding(
   target: Pick<PlayTarget, 'gameId'>
 ): PlayBinding | null | undefined {
-  const { mode } = useConnection()
+  const { status } = useSync()
   return useQuery(
     api.channelBindings.current,
-    mode !== 'connected'
+    status !== 'live'
       ? 'skip'
       : target.gameId === null
         ? {}
@@ -84,7 +84,7 @@ export function usePlayRollDispatch({
   binding,
   log = true,
 }: DispatchArgs): PlayRollDispatch {
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
   const postRoll = useAction(api.channelBindings.postRoll)
   const [posts, setPosts] = useState<ReadonlyMap<string, PlayPostState>>(() => new Map())
 
@@ -143,7 +143,7 @@ export function usePlayRollDispatch({
           log: toLog,
         } = latest.current
         if (t.gameId !== null && writable && toLog) {
-          void commitChangeLog([
+          void sendChangeLog([
             rollLogEntry(
               t.gameId,
               {

@@ -31,7 +31,7 @@ import { patchModelRows } from '../../../../test/patchModel'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 // ---------------------------------------------------------------------------

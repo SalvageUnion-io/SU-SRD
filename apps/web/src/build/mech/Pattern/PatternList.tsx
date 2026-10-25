@@ -5,7 +5,7 @@
  * credited: ruleset §3.9) linking to its page, its "Build With This" the
  * Compact's last chip (C8, hard rule R6), also where its chassis is missing.
  *
- * Data fetching: subscribes to usePatternStore — patterns get
+ * Data fetching: subscribes to usePatterns — patterns get
  * the same lazy hydration as every other collection.
  *
  * onInstantiated is forwarded from the route so navigation can happen at the
@@ -24,10 +24,10 @@ import {
   tokens,
 } from '../../../components/index'
 import { UnitRow } from '../../../components/shared/UnitRow'
-import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
-import { usePatternStore } from '../../../stores/patternStore'
+import { usePatterns } from '../../../replica/collections'
+import { useSync } from '../../../replica/syncContext'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {
@@ -52,14 +52,14 @@ type PatternListProps = {
 
 export function PatternList({ onInstantiated }: PatternListProps) {
   // Subscribing keeps the list live — saves from this tab, and those
-  // `ShelfSync` adopts from elsewhere, appear without a refetch. list()
+  // `ConvexFeed` adopts from elsewhere, appear without a refetch. list()
   // lazily hydrates.
-  const { mode } = useConnection()
-  const me = useQuery(api.account.me, mode === 'connected' ? {} : 'skip')
+  const { status } = useSync()
+  const me = useQuery(api.account.me, status === 'live' ? {} : 'skip')
   const madeBy = me?.displayName ?? 'you'
-  const patterns = usePatternStore((s) => s.mechPatterns)
-  const isLoading = !usePatternStore((s) => s.hydrated)
-  usePatternStore.getState().list()
+  const patterns = usePatterns((s) => s.mechPatterns)
+  const isLoading = !usePatterns((s) => s.hydrated)
+  usePatterns.getState().list()
 
   function handleInstantiated(mechId: string) {
     onInstantiated(mechId)

@@ -23,7 +23,7 @@
 import { useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
 
 /** One roll as Play records it. */
 export type PlayRoll = {

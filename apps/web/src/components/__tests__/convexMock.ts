@@ -81,7 +81,7 @@ export function mockUseQuery(ref: unknown, args?: unknown): unknown {
 function convexReactMock(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     useQuery: mockUseQuery,
-    // `ConnectionProvider`'s build-floor subscription (`buildFloor.ts`): every
+    // `SyncProvider`'s build-floor subscription (`buildFloor.ts`): every
     // query still loading, which refuses nothing.
     useQueries: (queries: Record<string, unknown>) =>
       Object.fromEntries(Object.keys(queries).map((key) => [key, undefined])),
@@ -127,8 +127,8 @@ export type InstallOptions = {
   router?: boolean
   /**
    * Anything else this file needs mocked. **Specifiers resolve relative to
-   * THIS file**, not the caller — `'../../stores/entityStore'`, not
-   * `'../../../stores/entityStore'`.
+   * THIS file**, not the caller — `'../../replica/units'`, not
+   * `'../../../replica/units'`.
    */
   also?: ExtraMocks
 }

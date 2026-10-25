@@ -4,9 +4,9 @@ import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { Text } from '../../components/index'
 import { returnTo } from '../../lib/account/returnTo'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { captureException } from '../../lib/observability'
 import { buildAccountCopy } from '../../messages/build-account'
+import { useSync } from '../../replica/syncContext'
 import { useSignOut } from './useSignOut'
 
 /**
@@ -32,15 +32,15 @@ function Handoff({ children }: { children: string }) {
 }
 
 export function SignInHandoff() {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const { signIn } = useAuthActions()
   const navigate = useNavigate()
   const started = useRef(false)
 
   useEffect(() => {
-    if (mode === 'connecting' || started.current) return
+    if (status === 'syncing' || started.current) return
     started.current = true
-    if (mode === 'solo') {
+    if (status === 'signedOut') {
       // Discord's page replaces this one; a failure to start is reported and
       // leaves the player on the Training Bay's own sign-in.
       signIn('discord').catch((err: unknown) => {
@@ -50,25 +50,25 @@ export function SignInHandoff() {
     } else {
       void navigate({ to: '/', replace: true })
     }
-  }, [mode, signIn, navigate])
+  }, [status, signIn, navigate])
 
   return <Handoff>{buildAccountCopy('signingInWithDiscord')}</Handoff>
 }
 
 export function SignOutHandoff({ to }: { to?: string }) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const signOut = useSignOut()
   const started = useRef(false)
 
   useEffect(() => {
     // Wait for the session to load: signing out before it has would leave the
     // server's session behind.
-    if (mode === 'connecting' || started.current) return
+    if (status === 'syncing' || started.current) return
     started.current = true
     void signOut().then(() => {
       window.location.replace(returnTo(to, window.location.href))
     })
-  }, [mode, signOut, to])
+  }, [status, signOut, to])
 
   return <Handoff>{buildAccountCopy('signingOut')}</Handoff>
 }

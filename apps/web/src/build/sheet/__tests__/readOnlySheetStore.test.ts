@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { makeReadOnlySheetStore, sheetDataFromListing } from '../readOnlySheetStore.model'
 
 /**

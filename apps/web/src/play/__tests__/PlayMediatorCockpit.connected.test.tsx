@@ -56,12 +56,12 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayMediatorCockpit } = await import('../PlayMediatorCockpit')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
+const { useUnits } = await import('../../replica/units')
 const { clearPlayRolls } = await import('../playRolls.model')
-const { usePrepStore } = await import('../../stores/prepStore')
-const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
+const { useEncounters } = await import('../../replica/collections')
+const { withSignedInBackend } = await import('../../replica/__tests__/signedInBackend')
 
 withSignedInBackend()
 
@@ -87,7 +87,7 @@ const tenacity = crawlerFixture({
 
 beforeAll(async () => {
   await hydrateStores()
-  await useEntityStore.getState().adopt('crawler', tenacity)
+  await useUnits.getState().adopt('crawler', tenacity)
 })
 
 const NPCS = [
@@ -183,12 +183,11 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
   setQueryAnswers(answers(over))
   await act(async () => {
     render(
-      <ConnectionContext.Provider
+      <SyncContext.Provider
         value={{
-          mode: canWrite ? 'connected' : 'disconnected',
+          status: canWrite ? 'live' : 'offline',
           canWrite,
-          showDisconnectedWarning: !canWrite,
-          settling: false,
+          outdated: false,
         }}
       >
         <PlayMediatorCockpit
@@ -196,7 +195,7 @@ async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
           gameName="The Rust Belt Run"
           rollFor={async () => () => 14}
         />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -309,9 +308,7 @@ describe('the table', () => {
     await renderCockpit()
     const crawler = within(screen.getByRole('region', { name: 'Crawler: Tenacity' }))
     await click(crawler.getByRole('button', { name: 'Decrease SP' }))
-    await waitFor(() =>
-      expect(useEntityStore.getState().get('crawler', tenacity.id)?.currentSP).toBe(17)
-    )
+    await waitFor(() => expect(useUnits.getState().get('crawler', tenacity.id)?.currentSP).toBe(17))
     expect(crawler.getByRole('button', { name: 'Open Tenacity’s sheet' })).toBeTruthy()
   })
 })
@@ -377,7 +374,7 @@ describe('the Opposition', () => {
   })
 
   test('Run an encounter copies one of yours in, clearing the tray only when asked', async () => {
-    usePrepStore.setState({
+    useEncounters.setState({
       encounters: [
         {
           id: 'enc-1',
@@ -401,7 +398,7 @@ describe('the Opposition', () => {
       name: 'mediator:runEncounter',
       args: { gameId: GAME, encounterId: 'enc-1', clear: true },
     })
-    act(() => usePrepStore.setState({ encounters: [] }))
+    act(() => useEncounters.setState({ encounters: [] }))
   })
 
   test('with nothing prepped, Run an encounter points to the Training Bay', async () => {
@@ -482,7 +479,7 @@ describe('Downtime', () => {
     await click(named('Pay'))
     await waitFor(() => expect(screen.getByText(/^Paid the Upkeep/)).toBeTruthy())
     expect(names()).toEqual(['downtime:spendUpkeep'])
-    expect(useEntityStore.getState().get('crawler', tenacity.id)?.scrapPool?.tl2).toBe(2)
+    expect(useUnits.getState().get('crawler', tenacity.id)?.scrapPool?.tl2).toBe(2)
   })
 
   test('paid, it says so', async () => {

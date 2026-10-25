@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Live Sheet soft warnings (ADR-021) — the wired-in behaviour of
  * `useSoftWarnings` + `SoftWarningDialog`.
@@ -22,7 +23,6 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
 
@@ -55,7 +55,7 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   }
 }
 
-function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): typeof useEntityStore {
+function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): UnitsStore {
   let current = pilot
   return makeEntityStoreMock({
     pilots: [pilot],
@@ -102,7 +102,7 @@ function makeMech(overrides: Partial<Mech> = {}): Mech {
   } as Mech
 }
 
-function makeMechStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
+function makeMechStore(mech: Mech, captured: CapturedUpdate[]): UnitsStore {
   let current = mech
   return makeEntityStoreMock({
     mechs: [mech],

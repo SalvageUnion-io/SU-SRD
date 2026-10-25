@@ -22,7 +22,7 @@ import {
   setQueryAnswers,
 } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 import { crewPilot } from './crewRows'
 
 // Who each Game's room says is here (`useGamePresence`): nobody, unless a test says.
@@ -32,10 +32,10 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayLanding } = await import('../PlayLanding')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 
 const SUMMARY = { templateOrigin: undefined, organizer: false, tableRunner: false }
 const TENACITY = {
@@ -75,8 +75,8 @@ const QUIET = {
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   await store.adopt('pilot', pilotFixture({ id: 'land-rook', name: 'Rook', gameId: 'land-g1' }))
   await store.adopt('pilot', pilotFixture({ id: 'land-wren', name: 'Wren', gameId: null }))
   await store.adopt('pilot', pilotFixture({ id: 'land-kes', name: 'Kestrel', gameId: null }))
@@ -91,7 +91,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('softLink', 'land-link')
   await store.forget('mech', 'land-mech')
   await store.forget('pilot', 'land-rook')
@@ -100,18 +100,17 @@ afterAll(async () => {
   convexMocks.restore()
 })
 
-async function renderAs(mode: ConnectionMode) {
+async function renderAs(status: SyncStatus) {
   const state = {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={state}>
+      <SyncContext.Provider value={state}>
         <PlayLanding />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -126,7 +125,7 @@ const card = (name: string) => {
 describe('the Play landing', () => {
   test('signed out, asks you to sign in and asks Convex nothing', async () => {
     setQueryAnswers({})
-    await renderAs('solo')
+    await renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Sign in with Discord' }).getAttribute('href')).toBe(
       '/sign-in'
@@ -140,7 +139,7 @@ describe('the Play landing', () => {
       'downtime:state': IN_DOWNTIME,
       ...QUIET,
     })
-    await renderAs('connected')
+    await renderAs('live')
     const tenacity = card('Tenacity')
     // The whole Compact opens the Game's page in Play.
     expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
@@ -176,7 +175,7 @@ describe('the Play landing', () => {
       'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
       ...QUIET,
     })
-    await renderAs('connected')
+    await renderAs('live')
     const elsewhere = card('Elsewhere')
     expect(elsewhere.queryByText('Downtime')).toBeNull()
     expect(elsewhere.queryByText('Scene')).toBeNull()
@@ -188,7 +187,7 @@ describe('the Play landing', () => {
 
   test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
     setQueryAnswers({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
-    await renderAs('connected')
+    await renderAs('live')
     const solo = section('Play solo')
     expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
       '/play/pilots/land-wren'
@@ -220,7 +219,7 @@ describe('the Play landing', () => {
       assigned.push(String(to))
     })
     try {
-      await renderAs('connected')
+      await renderAs('live')
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: '+ New Game' }))
       })
@@ -274,7 +273,7 @@ describe('the Play landing', () => {
         ],
       },
     })
-    await renderAs('connected')
+    await renderAs('live')
     expect(card('Tenacity').getByText('#salvage-run')).toBeTruthy()
     expect(card('Wastes').queryByText(/^#/)).toBeNull()
     expect(screen.queryByRole('region', { name: 'Discord' })).toBeNull()
@@ -352,7 +351,7 @@ describe('the Play landing', () => {
         ],
       },
     })
-    await renderAs('connected')
+    await renderAs('live')
     const tenacity = screen.getByRole('heading', { name: 'Tenacity (Game)' }).closest('li')
     const minis = [...(tenacity?.querySelectorAll('[data-entity-linked] > *') ?? [])].map(
       (mini) => mini.textContent ?? ''
@@ -393,7 +392,7 @@ describe('the Play landing', () => {
     })
     presence.here = new Set(['u-mags', 'u-rook', 'u-mediator'])
     try {
-      await renderAs('connected')
+      await renderAs('live')
       expect(card('Tenacity').getByText('2 here')).toBeTruthy()
     } finally {
       presence.here = null
@@ -402,7 +401,7 @@ describe('the Play landing', () => {
 
   test('offline, the shelf still lists, and Your Games wait for the connection', async () => {
     setQueryAnswers({})
-    await renderAs('disconnected')
+    await renderAs('offline')
     expect(section('Play solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
     expect(
       section('Your Games').getByText('Your Games list once the connection returns.')

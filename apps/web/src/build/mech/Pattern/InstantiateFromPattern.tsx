@@ -24,7 +24,7 @@ import { Button, ConfirmDialog } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
-import { useEntityStore } from '../../../stores/entityStore'
+import { useUnits } from '../../../replica/units'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -35,7 +35,7 @@ type InstantiateFromPatternProps = {
 export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPatternProps) {
   const [confirming, setConfirming] = useState(false)
   const build = useServerAction(
-    () => useEntityStore.getState().create('mech', mechFromPattern(pattern)),
+    () => useUnits.getState().create('mech', mechFromPattern(pattern)),
     {
       failure: 'The mech could not be built from this pattern. Try again.',
       toastId: `build-from-pattern-${pattern.id}`,

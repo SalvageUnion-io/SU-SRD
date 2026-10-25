@@ -28,8 +28,8 @@ import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { Badge, tokens } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { entityContainerCopy } from '../../messages/build-entity-container'
+import { useSync } from '../../replica/syncContext'
 import type { ContainerChoice } from './ContainerPicker'
 import { ContainerPicker } from './ContainerPicker'
 
@@ -77,8 +77,8 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
 
 /** `active`: the page is Play's hub or a Game's (`unionHere`), so the menu is where you are. */
 export function GamesMenu({ active = false }: { active?: boolean }) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedGamesMenu active={active} />
 }
 
@@ -114,7 +114,7 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
 
 /** The Games list for the mobile nav drawer; `onPick` closes the drawer. */
 export function GamesDrawerList({ onPick }: { onPick: () => void }) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedGamesDrawerList onPick={onPick} />
 }

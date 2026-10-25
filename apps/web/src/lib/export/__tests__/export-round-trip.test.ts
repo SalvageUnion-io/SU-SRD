@@ -26,12 +26,11 @@
  */
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEncounterStore } from '../../../stores/encounterStore'
-import { useEntityStore } from '../../../stores/entityStore'
-import { usePatternStore } from '../../../stores/patternStore'
-import { CONTAINER_MOVE } from '../../../stores/surfaceProvenance'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { usePatterns, useTray } from '../../../replica/collections'
+import { CONTAINER_MOVE } from '../../../replica/provenance'
+import { useUnits } from '../../../replica/units'
 import type { ExportBundle } from '../../schemas/exportBundle'
 import { buildExportBundle } from '../buildExportBundle'
 import { mergeImport } from '../mergeImport'
@@ -55,7 +54,7 @@ async function roundTrip(bundle: ExportBundle): Promise<ExportBundle> {
   const json = JSON.stringify(bundle)
   // A fresh account: every store empty.
   resetStores()
-  const summary = await mergeImport(parseImportBundle(json), useEntityStore.getState())
+  const summary = await mergeImport(parseImportBundle(json), useUnits.getState())
   void summary
   return parseImportBundle(json) // re-parse for shape assertions below
 }
@@ -246,7 +245,7 @@ const richEncounterNpcInput = {
 
 describe('export round-trip — field fidelity', () => {
   test('pilot: every optional/nested field survives buildExportBundle → JSON → parseImportBundle → mergeImport', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const created = await entityStore.create('pilot', { ...richPilotInput, gameId: 'game-alpha' })
@@ -254,7 +253,7 @@ describe('export round-trip — field fidelity', () => {
     const bundle = await buildExportBundle(entityStore)
     const parsed = await roundTrip(bundle)
 
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
 
     const importedPilot = verifyEntityStore.list('pilot')[0]
     expect(importedPilot).toBeDefined()
@@ -273,7 +272,7 @@ describe('export round-trip — field fidelity', () => {
   })
 
   test('mech: bulk SCRAP + unit cargo lots, condition maps, heat/damage results all survive', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('mech')
     const created = await entityStore.create('mech', richMechInput)
@@ -281,7 +280,7 @@ describe('export round-trip — field fidelity', () => {
     const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
     const importedMech = verifyEntityStore.list('mech')[0]
     expect(importedMech).toBeDefined()
     if (!importedMech) throw new Error('expected imported mech')
@@ -290,7 +289,7 @@ describe('export round-trip — field fidelity', () => {
   })
 
   test('crawler: crawlerBays/typeNpc/scrapPool/bayChoices all survive', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('crawler')
     const created = await entityStore.create('crawler', richCrawlerInput)
@@ -298,7 +297,7 @@ describe('export round-trip — field fidelity', () => {
     const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
     const importedCrawler = verifyEntityStore.list('crawler')[0]
     expect(importedCrawler).toBeDefined()
     if (!importedCrawler) throw new Error('expected imported crawler')
@@ -307,14 +306,14 @@ describe('export round-trip — field fidelity', () => {
   })
 
   test('mechPattern: bulk SCRAP cargo lot survives', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
-    const created = await usePatternStore.getState().create(richPatternInput)
+    const created = await usePatterns.getState().create(richPatternInput)
 
     const bundle = await buildExportBundle(entityStore)
     await roundTrip(bundle)
 
-    const imported = usePatternStore.getState().list()[0]
+    const imported = usePatterns.getState().list()[0]
     expect(imported).toBeDefined()
     if (!imported) throw new Error('expected imported record')
 
@@ -322,9 +321,9 @@ describe('export round-trip — field fidelity', () => {
   })
 
   test('encounterNpc: conditions + lastMediatorRoll survive, container resets to the Shelf', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
-    const created = await useEncounterStore
+    const created = await useTray
       .getState()
       .create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
 
@@ -332,7 +331,7 @@ describe('export round-trip — field fidelity', () => {
     expect(bundle.encounterNpcs).toHaveLength(1)
     const parsed = await roundTrip(bundle)
 
-    const imported = useEncounterStore.getState().list()[0]
+    const imported = useTray.getState().list()[0]
     expect(imported).toBeDefined()
     if (!imported) throw new Error('expected imported record')
 
@@ -361,7 +360,7 @@ describe('export round-trip — field fidelity', () => {
 
 describe('mergeImport — duplicate skip branches', () => {
   test('re-importing a full backup into its own store creates nothing and skips every entity kind', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', richPilotInput)
@@ -382,13 +381,13 @@ describe('mergeImport — duplicate skip branches', () => {
       type: 'pilot-to-crawler',
     })
 
-    await usePatternStore.getState().create(richPatternInput)
-    await useEncounterStore.getState().create(richEncounterNpcInput)
+    await usePatterns.getState().create(richPatternInput)
+    await useTray.getState().create(richEncounterNpcInput)
 
     const bundle = await buildExportBundle(entityStore)
 
     // Import back into the SAME store — every incoming id already exists.
-    const summary = await mergeImport(bundle, useEntityStore.getState())
+    const summary = await mergeImport(bundle, useUnits.getState())
 
     expect(summary.created).toEqual({
       pilots: 0,
@@ -404,18 +403,18 @@ describe('mergeImport — duplicate skip branches', () => {
     expect(summary.skippedDuplicates).toBe(7)
 
     // Nothing was duplicated in the stores either.
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
 
     expect(verifyEntityStore.list('pilot')).toHaveLength(1)
     expect(verifyEntityStore.list('mech')).toHaveLength(1)
     expect(verifyEntityStore.list('crawler')).toHaveLength(1)
     expect(verifyEntityStore.list('softLink')).toHaveLength(2)
-    expect(usePatternStore.getState().list()).toHaveLength(1)
-    expect(useEncounterStore.getState().list()).toHaveLength(1)
+    expect(usePatterns.getState().list()).toHaveLength(1)
+    expect(useTray.getState().list()).toHaveLength(1)
   })
 
   test('a NEW soft link between already-present endpoints resolves to the existing ids (idMap identity on the skip path)', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', richPilotInput)
@@ -451,7 +450,7 @@ describe('mergeImport — duplicate skip branches', () => {
       ],
     }
 
-    const summary = await mergeImport(bundle, useEntityStore.getState())
+    const summary = await mergeImport(bundle, useUnits.getState())
 
     // Pilot, mech and crawler skipped; both new links created against the
     // pre-existing ids, so nothing was remapped.
@@ -459,7 +458,7 @@ describe('mergeImport — duplicate skip branches', () => {
     expect(summary.created.softLinks).toBe(2)
     expect(summary.remappedLinks).toBe(0)
 
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
     const links = verifyEntityStore.list('softLink')
     expect(links).toHaveLength(2)
 
@@ -495,7 +494,7 @@ describe('mergeImport — duplicate skip branches', () => {
  */
 describe('identity: what keeps an id and what earns a new one', () => {
   test('moving between containers keeps the id — a game is a viewport, not a copy', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', { ...richPilotInput, gameId: null })
 
@@ -512,7 +511,7 @@ describe('identity: what keeps an id and what earns a new one', () => {
   })
 
   test('importing a bundle into a different store mints new ids for everything', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
     await entityStore.hydrate('pilot')
     await entityStore.hydrate('mech')
     const pilot = await entityStore.create('pilot', richPilotInput)
@@ -553,7 +552,7 @@ describe('identity: what keeps an id and what earns a new one', () => {
   })
 
   test('an imported row does not inherit Starter Set provenance', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
     await entityStore.hydrate('pilot')
     await entityStore.create('pilot', { ...richPilotInput, seedRef: 'starter-pilot-bonesaw' })
 
@@ -578,7 +577,7 @@ describe('identity: what keeps an id and what earns a new one', () => {
 
 describe('export round-trip — cross-entity full backup', () => {
   test('pilot + mech + crawler + softLinks + container all round-trip consistently', async () => {
-    const entityStore = useEntityStore.getState()
+    const entityStore = useUnits.getState()
 
     await entityStore.hydrate('pilot')
     const pilot = await entityStore.create('pilot', { ...richPilotInput, gameId: 'game-alpha' })
@@ -604,8 +603,8 @@ describe('export round-trip — cross-entity full backup', () => {
       type: 'pilot-to-crawler',
     })
 
-    await usePatternStore.getState().create(richPatternInput)
-    await useEncounterStore.getState().create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
+    await usePatterns.getState().create(richPatternInput)
+    await useTray.getState().create({ ...richEncounterNpcInput, gameId: 'game-alpha' })
 
     const bundle = await buildExportBundle(entityStore)
     expect(bundle.entities.pilots).toHaveLength(1)
@@ -617,14 +616,14 @@ describe('export round-trip — cross-entity full backup', () => {
 
     await roundTrip(bundle)
 
-    const verifyEntityStore = useEntityStore.getState()
+    const verifyEntityStore = useUnits.getState()
 
     const importedPilot = verifyEntityStore.list('pilot')[0]
     const importedMech = verifyEntityStore.list('mech')[0]
     const importedCrawler = verifyEntityStore.list('crawler')[0]
     const importedLinks = verifyEntityStore.list('softLink')
-    const importedPatterns = usePatternStore.getState().list()
-    const importedEncounterNpcs = useEncounterStore.getState().list()
+    const importedPatterns = usePatterns.getState().list()
+    const importedEncounterNpcs = useTray.getState().list()
     if (!importedPilot || !importedMech || !importedCrawler) {
       throw new Error('expected imported pilot, mech and crawler')
     }

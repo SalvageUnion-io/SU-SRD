@@ -9,7 +9,7 @@
  * `routes/__tests__/routeExports.test.ts`).
  */
 import { PRODUCT } from 'game-domain/product'
-import { useEntityStore } from '../stores/entityStore'
+import { useUnits } from '../replica/units'
 import { areaTitle } from './pageTitle'
 
 /**
@@ -18,7 +18,7 @@ import { areaTitle } from './pageTitle'
  * kinds' stores via SoftLinks.
  */
 export async function loadSheet(): Promise<void> {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await Promise.all([
     store.hydrate('pilot'),
     store.hydrate('mech'),

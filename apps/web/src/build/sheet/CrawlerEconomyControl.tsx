@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerEconomyControl — the crawler-economy actions behind the hero's UPKEEP
  * / UPGRADE / TRADE spec lozenges (Core Book p.218-223): Pay Upkeep (with the
@@ -74,8 +75,7 @@ import {
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_TXN } from '../../replica/provenance'
 import {
   INITIAL_UPKEEP_STATE,
   initialTradeState,
@@ -149,8 +149,8 @@ const TRADING_BAY = 'trading-bay'
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler
-  /** Injectable store — defaults to useEntityStore. */
-  store: typeof useEntityStore
+  /** Injectable store — defaults to useUnits. */
+  store: UnitsStore
   /** The open dialog; null renders nothing. */
   open: CrawlerEconomyDialog | null
   onClose: () => void
@@ -185,7 +185,7 @@ export function CrawlerEconomyControl({
 
 type DialogProps = {
   crawler: Crawler
-  store: typeof useEntityStore
+  store: UnitsStore
   onClose: () => void
 }
 

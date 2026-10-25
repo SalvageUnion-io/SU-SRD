@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Crawler type card + special NPC tests (the type card
  * lives in the hero's CrawlerIdentityPanel now, not a body slab).
@@ -22,8 +23,7 @@ import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 /** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
@@ -93,7 +93,7 @@ async function patchCrawlers(): Promise<() => void> {
 // Store stub
 // ---------------------------------------------------------------------------
 
-function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): UnitsStore {
   const updateMock = update ?? mock(async () => crawler)
   return makeEntityStoreMock({
     crawlers: [crawler],
@@ -128,7 +128,7 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
 // ---------------------------------------------------------------------------
 
 /** Render the identity panel the way CrawlerLiveSheet does (store + storeState). */
-function renderIdentity(crawler: Crawler, store: typeof useEntityStore) {
+function renderIdentity(crawler: Crawler, store: UnitsStore) {
   return render(
     <CrawlerIdentityPanel
       crawler={crawler}

@@ -3,8 +3,8 @@ import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { AccountMenu as SharedAccountMenu } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { DOC_PAGES } from '../../lib/docPages'
+import { useSync } from '../../replica/syncContext'
 import { FeedbackDialog } from './FeedbackDialog'
 import { useSignOut } from './useSignOut'
 
@@ -54,7 +54,7 @@ function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
 }
 
 export function AppAccountMenu({ compact }: AppAccountMenuProps) {
-  const { mode } = useConnection()
-  if (mode !== 'connected' && mode !== 'disconnected') return null
+  const { status } = useSync()
+  if (status !== 'live' && status !== 'offline') return null
   return <SignedInAccountMenu compact={compact} />
 }

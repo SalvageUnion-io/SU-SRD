@@ -18,9 +18,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import { CrawlerWizard } from '../CrawlerWizard'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -37,7 +37,7 @@ withSignedInBackend()
 beforeEach(async () => {
   sessionStorage.clear()
   resetStores()
-  await useEntityStore.getState().hydrate('crawler')
+  await useUnits.getState().hydrate('crawler')
 })
 
 afterEach(async () => {
@@ -327,7 +327,7 @@ describe('CrawlerWizard — create mode', () => {
     })
 
     await waitFor(() => {
-      const crawlers = useEntityStore.getState().list('crawler')
+      const crawlers = useUnits.getState().list('crawler')
       expect(crawlers.length).toBe(1)
       const c = must(crawlers[0])
       expect(c.name).toBe('Bay Wagon')
@@ -383,7 +383,7 @@ describe('CrawlerWizard — create mode', () => {
     // Name left empty — Next stays disabled, Review/Create is unreachable.
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Name your Crawler to continue/i)).toBeTruthy()
-    expect(useEntityStore.getState().list('crawler').length).toBe(0)
+    expect(useUnits.getState().list('crawler').length).toBe(0)
   })
 
   it('cancel calls onCancel', async () => {

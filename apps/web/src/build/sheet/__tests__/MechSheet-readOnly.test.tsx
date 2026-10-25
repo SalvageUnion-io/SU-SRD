@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * MechSheet — readOnly prop tests (poster regions)
  *
@@ -15,7 +16,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
 const fakeChassis = {
@@ -58,7 +58,7 @@ const fakeCrawler = {
   updatedAt: FIXTURE_NOW,
 } as Crawler
 
-function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
+function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): UnitsStore {
   const updateMock = updateSpy ?? mock(async () => mech)
   return makeEntityStoreMock({
     mechs: [mech],

@@ -33,7 +33,7 @@ import {
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
-import { useEntityStore } from '../../../stores/entityStore'
+import { useUnits } from '../../../replica/units'
 import { Sheet } from '../Sheet'
 
 // Each, not All: the afterEach below un-hydrates the live store.
@@ -43,7 +43,7 @@ afterEach(() => {
   cleanup()
   // Reset the live store so the Unassign test (which seeds softLinks into the
   // real store to derive the link id) never leaks into other tests.
-  useEntityStore.setState({
+  useUnits.setState({
     pilots: [],
     mechs: [],
     crawlers: [],
@@ -237,7 +237,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
     // (composition only exposes resolved entities), so seed the real store —
     // composition + PublishButton still read the injected snapshots. Every
     // type is marked hydrated so no read starts a load that lands after act().
-    useEntityStore.setState({
+    useUnits.setState({
       softLinks: [mechToPilot],
       hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
     })

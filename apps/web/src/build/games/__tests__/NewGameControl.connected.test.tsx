@@ -35,8 +35,8 @@ const convexMocks = await installConvexMocks({
 })
 
 const { NewGameControl } = await import('../NewGameControl')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const TEMPLATES = [
   { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
@@ -62,7 +62,7 @@ beforeEach(() => {
 
 afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 afterAll(() => {
@@ -73,9 +73,9 @@ afterAll(() => {
 async function renderOpen(): Promise<void> {
   await act(async () => {
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <NewGameControl />
-      </ConnectionProvider>
+      </SyncProvider>
     )
   })
   fireEvent.click(screen.getByRole('button', { name: '+ New Game' }))
@@ -93,9 +93,9 @@ describe('who gets it', () => {
     let container: HTMLElement | undefined
     await act(async () => {
       container = render(
-        <ConnectionProvider>
+        <SyncProvider>
           <NewGameControl />
-        </ConnectionProvider>
+        </SyncProvider>
       ).container
     })
     expect(container?.textContent).toBe('')

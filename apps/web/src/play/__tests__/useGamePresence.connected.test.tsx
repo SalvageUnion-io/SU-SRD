@@ -8,14 +8,14 @@ import { act, render } from '@testing-library/react'
  */
 
 import { installConvexMocks } from '../../components/__tests__/convexMock'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import type { SyncStatus } from '../../replica/sync'
 
 const convexMocks = await installConvexMocks({
   also: { '@convex-dev/auth/react': () => ({ useAuthToken: () => 'tok' }) },
 })
 
 const { useGamePresence } = await import('../useGamePresence')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 
 class FakeSocket {
   static opened: FakeSocket[] = []
@@ -68,26 +68,26 @@ function Probe({
   return null
 }
 
-function connection(mode: ConnectionMode) {
-  return { mode, canWrite: true, showDisconnectedWarning: false, settling: false }
+function connection(status: SyncStatus) {
+  return { status, canWrite: true, outdated: false }
 }
 
 function mount(
-  mode: ConnectionMode,
+  status: SyncStatus,
   probes: { name: string; gameId: string | null; role: 'seat' | 'watch' }[]
 ) {
   return render(
-    <ConnectionContext.Provider value={connection(mode)}>
+    <SyncContext.Provider value={connection(status)}>
       {probes.map((p) => (
         <Probe key={p.name} {...p} />
       ))}
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
 describe('useGamePresence', () => {
   test('callers of one Game and role share a socket, and hear who is here', () => {
-    const view = mount('connected', [
+    const view = mount('live', [
       { name: 'a', gameId: 'g1', role: 'seat' },
       { name: 'b', gameId: 'g1', role: 'seat' },
     ])
@@ -104,13 +104,13 @@ describe('useGamePresence', () => {
   })
 
   test('a watcher opens its own socket that does not count it', () => {
-    const view = mount('connected', [{ name: 'w', gameId: 'g2', role: 'watch' }])
+    const view = mount('live', [{ name: 'w', gameId: 'g2', role: 'watch' }])
     expect(FakeSocket.opened[0]?.url).toMatch(/\?seat=0$/)
     view.unmount()
   })
 
   test('a drop forgets who was here and reopens after a wait', () => {
-    const view = mount('connected', [{ name: 'd', gameId: 'g3', role: 'seat' }])
+    const view = mount('live', [{ name: 'd', gameId: 'g3', role: 'seat' }])
     const first = FakeSocket.opened[0]
     act(() => first?.onopen?.())
     first?.say(['u1'])
@@ -129,8 +129,8 @@ describe('useGamePresence', () => {
   })
 
   test('opens nothing offline or outside a Game', () => {
-    const view = mount('disconnected', [{ name: 'o', gameId: 'g4', role: 'seat' }])
-    const solo = mount('connected', [{ name: 's', gameId: null, role: 'seat' }])
+    const view = mount('offline', [{ name: 'o', gameId: 'g4', role: 'seat' }])
+    const solo = mount('live', [{ name: 's', gameId: null, role: 'seat' }])
     expect(FakeSocket.opened).toHaveLength(0)
     expect(seen.o).toBeNull()
     expect(seen.s).toBeNull()

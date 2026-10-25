@@ -4,7 +4,7 @@ import { createElement } from 'react'
 
 /**
  * Who may open a Game's page (`/play/games/$gameId`, ADR-052 §5), in each
- * storage mode: signed out, sign in; connecting, a beat; offline, a line and
+ * storage status: signed out, sign in; connecting, a beat; offline, a line and
  * the way to the Training Bay; connected, the page itself (`GameHub`, stubbed: its
  * own file pins what it shows).
  *
@@ -24,43 +24,42 @@ const convexMocks = await installConvexMocks({
 })
 
 const { GamePage } = await import('../GamePage')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 
 afterAll(convexMocks.restore)
 
-type Mode = 'solo' | 'connecting' | 'connected' | 'disconnected'
+type Mode = 'signedOut' | 'syncing' | 'live' | 'offline'
 
-function renderAs(mode: Mode) {
+function renderAs(status: Mode) {
   const state = {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
   return render(
-    <ConnectionContext.Provider value={state}>
+    <SyncContext.Provider value={state}>
       <GamePage gameId="g1" />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
 describe('GamePage', () => {
   test('signed out, it asks for a sign-in, under Play’s band', () => {
     setQueryAnswers({})
-    renderAs('solo')
+    renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to open this Game' })).toBeTruthy()
     expect(screen.queryByText(/The page of/)).toBeNull()
   })
 
   test('connecting, it waits for the session', () => {
     setQueryAnswers({})
-    renderAs('connecting')
+    renderAs('syncing')
     expect(screen.getByText(/your session/)).toBeTruthy()
   })
 
   test('offline, it says so and points at the Training Bay', () => {
     setQueryAnswers({})
-    renderAs('disconnected')
+    renderAs('offline')
     expect(
       screen.getByRole('heading', { name: 'This Game opens once you are back online' })
     ).toBeTruthy()
@@ -71,7 +70,7 @@ describe('GamePage', () => {
 
   test('connected, it is the Game’s page', () => {
     setQueryAnswers({})
-    renderAs('connected')
+    renderAs('live')
     expect(screen.getByText('The page of g1')).toBeTruthy()
   })
 })

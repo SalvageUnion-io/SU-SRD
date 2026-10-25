@@ -15,7 +15,7 @@ before touching data.**
 ## Data
 
 - **Zod schemas in `game-domain/schemas/*` are the source of truth**; every
-  create, update and adopted server row parses strictly (`src/stores/records.ts`).
+  create, update and adopted server row parses strictly (`src/replica/records.ts`).
 - An entity lives in exactly one container, a **Game** or the owner's
   **Shelf**: one nullable `gameId`, resolved through `game-domain/container`.
   Filter with `containerOf` + `sameContainer`, only when `mode === 'connected'`.

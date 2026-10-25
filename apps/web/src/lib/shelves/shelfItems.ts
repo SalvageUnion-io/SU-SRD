@@ -90,7 +90,7 @@ export function shownUnder(filter: ShelfFilter, entity: ContainerFields): boolea
 /**
  * Whether a cached crawler is one you keep. A crawler in your Training Bay is; one in
  * a Game is the crew's, and this browser caches the crawler of every Game you
- * are in (`WiringSync`), so it is yours to keep only where you run the table.
+ * are in (`ConvexFeed`), so it is yours to keep only where you run the table.
  * With no Game list to ask (offline, or still loading), it is shown rather
  * than hidden: hiding a build is the one mistake a Training Bay must not make.
  */

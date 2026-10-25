@@ -14,9 +14,9 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen, waitFor } from '@testing-library/react'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import { Sheet } from '../Sheet'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -42,9 +42,7 @@ beforeEach(() => {
 
 describe('Frozen surface — overrides render as plain values (P5.2)', () => {
   test('a read-only sheet shows the capped max with no override/revert affordance', async () => {
-    const pilot = await useEntityStore
-      .getState()
-      .create('pilot', { ...basePilotInput, maxHpModifier: 2 })
+    const pilot = await useUnits.getState().create('pilot', { ...basePilotInput, maxHpModifier: 2 })
 
     render(<Sheet kind="pilot" id={pilot.id} readOnly />)
 

@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerSheetItems — the crawler sheet's bay cards (the crawler type's card
  * is `CrawlerTypeCard`).
@@ -29,8 +30,7 @@ import { BAY_REPAIR_COST } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { LinkedCrewMini } from '../npc/LinkedCrewMini'
 import { CrewLeadMini } from './CrewLeadMini'
 import { LinkedUnitLink } from './LinkedUnitLink'
@@ -101,7 +101,7 @@ type CrawlerBayCardProps = {
    * depend on the live store.
    */
   seedSelections: ChoiceSelections | undefined
-  store: typeof useEntityStore
+  store: UnitsStore
   readOnly: boolean
   /** Read on a sheet its owner tracks: the bay's condition still steps. */
   liveCondition?: boolean
