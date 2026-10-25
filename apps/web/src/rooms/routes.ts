@@ -17,7 +17,7 @@ export function gameOfSocketPath(pathname: string): string | null {
   return id === undefined ? null : decodeURIComponent(id)
 }
 
-/** @public The signed-in player's account room socket (`protocol.ts`); its route comes with the Worker's sign-in. */
+/** The signed-in player's account room socket (`protocol.ts`): whoever the session cookie signs in. */
 export function accountSocketPath(): string {
   return `${ROOMS_PATH}/account/socket`
 }
