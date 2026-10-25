@@ -6,8 +6,8 @@
  * landing) only hears. null until the room answers, offline or signed out.
  */
 
-import { useAuthToken } from '@convex-dev/auth/react'
 import { useCallback, useSyncExternalStore } from 'react'
+import { useSessionToken } from '../lib/auth/session'
 import { useSync } from '../replica/syncContext'
 import type { PresenceMessage } from '../rooms/presence'
 import { ROOM_PROTOCOL } from '../rooms/presence'
@@ -59,7 +59,7 @@ function openChannel(key: string, url: string, token: string): Channel {
 
 export function useGamePresence(gameId: string | null, role: 'seat' | 'watch'): Here {
   const { status } = useSync()
-  const token = useAuthToken()
+  const token = useSessionToken()
   const seat = role === 'seat' ? '1' : '0'
   const key =
     status === 'live' && gameId !== null && token !== null ? `${gameId}:${seat}:${token}` : null

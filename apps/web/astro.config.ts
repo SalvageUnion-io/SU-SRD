@@ -20,6 +20,7 @@ import {
   homebrewInDev,
   requireConvexUrl,
 } from './astro/build/appPlugins'
+import { authInDev } from './astro/build/devAuth'
 import { roomsInDev } from './astro/build/devRooms'
 import { referenceStamp } from './astro/build/referenceStamp'
 import { site } from './astro/build/site'
@@ -110,6 +111,8 @@ export default defineConfig({
       requireConvexUrl(),
       baseStylesheetModule(),
       homebrewInDev(),
+      // The Worker's sign-in, on a local database (`astro/build/devAuth.ts`).
+      authInDev(),
       // `wrangler dev`, for the rooms (`astro/build/devRooms.ts`).
       roomsInDev(PORT + 1000),
       appShellInDev(),

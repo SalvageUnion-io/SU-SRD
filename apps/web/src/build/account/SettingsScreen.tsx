@@ -17,11 +17,13 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { deleteAccount } from '../../lib/auth/session'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from './SignInControl'
+import { useSignOut } from './useSignOut'
 
 /**
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
@@ -83,7 +85,7 @@ function SignedInAccount() {
   const save = useServerAction(useMutation(api.account.updateProfile), {
     failure: 'Your display name could not be saved. Try again.',
   })
-  const erase = useServerAction(useMutation(api.account.deleteAccount), {
+  const erase = useServerAction(deleteAccount, {
     failure: 'Your account could not be deleted. Try again.',
   })
 
@@ -93,6 +95,7 @@ function SignedInAccount() {
   // which holds the failure on itself (ruleset §3.1: destruction behind
   // `ConfirmDialog`).
   const eraseFailure = useRef('')
+  const signOut = useSignOut()
 
   if (me === undefined) return <Pending label={buildAccountCopy('yourAccount')} />
   if (me === null)
@@ -162,11 +165,14 @@ function SignedInAccount() {
           confirmLabel={buildAccountCopy('permanentlyDelete')}
           pendingLabel={buildAccountCopy('deleting')}
           onConfirm={async () => {
-            const result = await erase.run({})
+            const result = await erase.run()
             if (!result.ok) {
               eraseFailure.current = result.error
               throw new Error('The account was not deleted')
             }
+            // The Worker ended every session with the account; this clears the
+            // device's hint as any sign-out does.
+            await signOut()
           }}
           describeError={() => eraseFailure.current}
         />

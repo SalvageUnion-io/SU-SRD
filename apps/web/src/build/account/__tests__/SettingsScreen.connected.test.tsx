@@ -37,17 +37,22 @@ let deletions = 0
 function useMutationMock(ref: unknown) {
   const name = getFunctionName(ref as FunctionReference<'mutation'>)
   return async () => {
-    if (name === 'account:deleteAccount') deletions++
     if (name in failures) throw failures[name]
     return null
   }
+}
+
+/** The Worker's deletion (`lib/auth/session`), which runs `account:deleteAccount`. */
+async function deleteAccount() {
+  deletions++
+  if ('account:deleteAccount' in failures) throw failures['account:deleteAccount']
 }
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
 // `authReact` because the profile mounts `SignInControl`.
 const convexMocks = await installConvexMocks({
-  authReact: true,
+  authReact: { deleteAccount },
   convexReact: {
     useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
     useMutation: useMutationMock,

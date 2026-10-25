@@ -7,6 +7,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { SESSION_KEY } from '../../lib/auth/storedSession'
 import type { KeptRow, ReplicaStorage } from '../persist'
 import {
   dropFromDevice,
@@ -137,25 +138,16 @@ describe('dropFromDevice', () => {
 })
 
 describe('sessionAccount', () => {
-  const token = (sub: unknown) =>
-    `h.${btoa(JSON.stringify({ sub })).replace(/\+/g, '-').replace(/\//g, '_')}.s`
-  const store = (entries: Record<string, string>) => {
-    const keys = Object.keys(entries)
-    return {
-      length: keys.length,
-      key: (i: number) => keys[i] ?? null,
-      getItem: (k: string) => entries[k] ?? null,
-    }
-  }
-
-  test("is the session token's user", () => {
-    expect(sessionAccount(store({ __convexAuthJWT_x: token('u1|s1') }))).toBe('u1')
+  const store = (entries: Record<string, string>) => ({
+    getItem: (k: string) => entries[k] ?? null,
   })
 
-  test('is null with no session, a token it cannot read, or no storage', () => {
-    expect(sessionAccount(store({ other: token('u1|s1') }))).toBeNull()
-    expect(sessionAccount(store({ __convexAuthJWT_x: 'not-a-token' }))).toBeNull()
-    expect(sessionAccount(store({ __convexAuthJWT_x: token(42) }))).toBeNull()
+  test("is the device's stored session", () => {
+    expect(sessionAccount(store({ [SESSION_KEY]: 'u1' }))).toBe('u1')
+  })
+
+  test('is null with no session or no storage', () => {
+    expect(sessionAccount(store({ other: 'u1' }))).toBeNull()
     expect(sessionAccount(null)).toBeNull()
   })
 })
