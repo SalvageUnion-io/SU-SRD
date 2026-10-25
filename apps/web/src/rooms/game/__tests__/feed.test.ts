@@ -52,7 +52,7 @@ describe('what a Game room tells a socket', () => {
     const { room } = wired()
     const sent = op('p1', { motto: 'Keep moving' })
     room.units.submit(PLAYER, [sent])
-    const [applied, ...rest] = appliedMessages(room, [sent.id, 'op-unknown'], 'g1')
+    const [applied, ...rest] = appliedMessages(room.store, [sent.id, 'op-unknown'], 'g1')
     expect(rest).toEqual([])
     expect(ServerMessageSchema.parse(applied)).toMatchObject({
       type: 'applied',

@@ -2,7 +2,7 @@ import type { OpInput } from '../ops'
 import type { RoomOp, RoomUnit, ServerMessage } from '../protocol'
 import { ClientMessageSchema } from '../protocol'
 import type { GameRoomLogic } from './gameRoomLogic'
-import type { StoredOp, UnitRow } from './store'
+import type { GameStore, StoredOp, UnitRow } from './store'
 import type { SubmitResult } from './units'
 
 /**
@@ -19,29 +19,37 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
     type: 'snapshot',
     units: room.store.units().map((unit) => roomUnit(unit, gameId)),
     records: { opposition: room.opposition.trayRecords(actor) },
-    links: room.store.stampedLinks().map(({ key, createdAt, ...link }) => ({
-      ...link,
-      id: key,
-      createdAt: new Date(createdAt).toISOString(),
-    })),
+    links: roomLinks(room.store),
   }
 }
 
-/** One `applied` per op in `opIds` that is applied, with its unit at its new head. */
+/**
+ * One `applied` per op in `opIds` that is applied, with its unit at its new
+ * head; `gameId` is null on a Shelf. The account room's feed shares it.
+ */
 export function appliedMessages(
-  room: GameRoomLogic,
+  store: GameStore,
   opIds: readonly string[],
-  gameId: string
+  gameId: string | null
 ): ServerMessage[] {
   return opIds.flatMap((id) => {
-    const op = room.store.op(id)
-    const unit = op === null ? null : room.store.unit(op.unitId)
+    const op = store.op(id)
+    const unit = op === null ? null : store.unit(op.unitId)
     if (op === null || unit === null || op.state !== 'applied') return []
     return [{ type: 'applied', op: roomOp(op), unit: roomUnit(unit, gameId) }]
   })
 }
 
-function roomUnit(unit: UnitRow, gameId: string): RoomUnit {
+/** Every link in `store` with its stable key as `id`, as the protocol carries them. */
+export function roomLinks(store: GameStore) {
+  return store.stampedLinks().map(({ key, createdAt, ...link }) => ({
+    ...link,
+    id: key,
+    createdAt: new Date(createdAt).toISOString(),
+  }))
+}
+
+export function roomUnit(unit: UnitRow, gameId: string | null): RoomUnit {
   return {
     kind: unit.kind as RoomUnit['kind'],
     appId: unit.id,

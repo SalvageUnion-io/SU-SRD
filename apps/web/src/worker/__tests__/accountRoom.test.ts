@@ -34,6 +34,7 @@ function shelf() {
       },
     },
     blockConcurrencyWhile: async (fn: () => Promise<void>) => fn(),
+    getWebSockets: () => [],
   }
   const room = new AccountRoom(ctx as never, {} as never)
   room.importAccount({
