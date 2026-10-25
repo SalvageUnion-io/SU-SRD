@@ -5,7 +5,8 @@ import { SHELF_RECORDS } from './shelf'
 
 /**
  * What an account room tells its player's sockets (`../protocol.ts`): the
- * whole Shelf on connect and after a unit or record arrives or leaves, else
+ * whole Shelf (with the solo table's salvage area, as a Game's `salvageArea`
+ * record) on connect and after a unit or record arrives or leaves, else
  * one `applied` per op (`appliedMessages`, shared with the Game room). Anyone
  * but the room's player is told nothing.
  */
@@ -24,10 +25,15 @@ export function shelfSnapshot(room: AccountRoomLogic, actor: string): ServerMess
         })),
     ])
   )
+  const area = room.soloArea.here(actor)
+  const salvageArea =
+    area === null
+      ? []
+      : [{ appId: 'salvageArea', body: { ...area }, updatedAt: room.soloArea.updatedAt() }]
   return {
     type: 'snapshot',
     units: shelf.list(actor).map((unit) => roomUnit(unit, null)),
-    records,
+    records: { ...records, salvageArea },
     links: roomLinks(shelf.store),
   }
 }
