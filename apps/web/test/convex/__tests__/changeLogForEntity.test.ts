@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { addMech, addPilot, makeUser, seedTable, unitOp } from '../fixtures'
+import { addMech, addPilot, makeUser, opRow, seedTable, unitOp } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -48,19 +48,19 @@ describe('changeLog.forEntity', () => {
     await player.as.mutation(api.ops.apply, rename(gameId))
     // The Mediator's client addresses the mech by its row id; the row names it
     // by the app id its sheet's log is read by.
-    const pending = await organizer.as.mutation(api.proposals.propose, {
+    const pending = await organizer.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 4,
     })
-    const declined = await organizer.as.mutation(api.proposals.propose, {
+    const declined = await organizer.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentHeat',
       after: 2,
     })
-    await player.as.mutation(api.proposals.decline, { proposalId: declined })
+    await player.as.mutation(api.ops.decline, { opId: declined })
     // A row written before proposals and ownership used the app id.
     await t.run(async (ctx) => {
       await ctx.db.insert('changeLog', {
@@ -88,8 +88,8 @@ describe('changeLog.forEntity', () => {
       ['name', 'applied'],
       ['ownerId', 'applied'],
     ])
-    const proposal = await t.run(async (ctx) => await ctx.db.get(pending))
-    expect(proposal?.entityId).toBe('m-app')
+    const proposal = await opRow(t, pending)
+    expect(proposal?.unitId).toBe('m-app')
     expect(proposal?.before).toBeNull()
   })
 
@@ -97,13 +97,13 @@ describe('changeLog.forEntity', () => {
     const t = testConvex()
     const { organizer, player, gameId, mechId } = await seedMech(t)
     await player.as.mutation(api.ops.apply, rename(gameId))
-    const proposalId = await organizer.as.mutation(api.proposals.propose, {
+    const opId = await organizer.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentHeat',
       after: 2,
     })
-    await player.as.mutation(api.proposals.apply, { proposalId })
+    await player.as.mutation(api.ops.accept, { opId })
 
     const log = await player.as.query(api.changeLog.forEntity, {
       entityType: 'mech',
@@ -189,65 +189,5 @@ describe('changeLog.forEntity', () => {
       entityId: 'm-app',
     })
     expect(log.map((r) => r.field)).toContain('ownerId')
-  })
-})
-
-describe('a proposal written before it carried the app id', () => {
-  test('is still pending for its owner, and still applies', async () => {
-    const t = testConvex()
-    const { organizer, player, gameId, mechId } = await seedMech(t)
-    const proposalId = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('changeLog', {
-          gameId,
-          entityType: 'mech',
-          entityId: mechId,
-          ts: 1,
-          kind: 'transaction',
-          field: 'currentHeat',
-          before: null,
-          after: 3,
-          source: 'mediator-proposal',
-          actorId: organizer.userId,
-          state: 'proposed',
-        })
-    )
-
-    expect((await player.as.query(api.proposals.pending, { gameId })).map((p) => p._id)).toEqual([
-      proposalId,
-    ])
-    await player.as.mutation(api.proposals.apply, { proposalId })
-    const mech = await t.run(async (ctx) => await ctx.db.get(mechId))
-    expect((mech?.body as { currentHeat?: number } | undefined)?.currentHeat).toBe(3)
-  })
-
-  test('is superseded by a newer proposal against the same field', async () => {
-    const t = testConvex()
-    const { organizer, gameId, mechId } = await seedMech(t)
-    const old = await t.run(
-      async (ctx) =>
-        await ctx.db.insert('changeLog', {
-          gameId,
-          entityType: 'mech',
-          entityId: mechId,
-          ts: 1,
-          kind: 'transaction',
-          field: 'currentHeat',
-          before: null,
-          after: 3,
-          source: 'mediator-proposal',
-          actorId: organizer.userId,
-          state: 'proposed',
-        })
-    )
-
-    await organizer.as.mutation(api.proposals.propose, {
-      entityId: mechId,
-      entityType: 'mech',
-      field: 'currentHeat',
-      after: 5,
-    })
-
-    expect((await t.run(async (ctx) => await ctx.db.get(old)))?.state).toBe('superseded')
   })
 })

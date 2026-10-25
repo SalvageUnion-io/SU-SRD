@@ -101,7 +101,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     ],
     'entities:listForGame': LISTING,
     'crew:vitals': undefined,
-    'proposals:pending': [],
+    'ops:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
     'shelf:patternSharing': [],

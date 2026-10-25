@@ -5,7 +5,7 @@
  * target, field, the value asked for, the
  * reason, when, and the state in words.
  *
- * Presentational: `proposals.sent` is read with a `limit` the caller raises by
+ * Presentational: `ops.sent` is read with a `limit` the caller raises by
  * twenty when **Show more** is pressed.
  */
 
