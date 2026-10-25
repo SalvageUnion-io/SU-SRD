@@ -116,7 +116,7 @@ describe('answerBot', () => {
     })
   })
 
-  it('leaves the rooms’ ops to Convex', async () => {
+  it('leaves the rooms’ ops to Convex without the rooms', async () => {
     const db = await filled()
     for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()

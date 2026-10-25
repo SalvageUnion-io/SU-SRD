@@ -6,12 +6,12 @@
  * resolved against that user's account and memberships.
  *
  * It answers from the shared database once the cutover has filled it, with
- * the same wire bodies `/bot/*` sends (`game-domain/botWire`). Until then, and
- * for the ops whose data lives in the rooms (`sheet`, `mine`), it answers
- * null and the bot asks Convex as before.
+ * the same wire bodies `/bot/*` sends (`game-domain/botWire`); `sheet` and
+ * `mine` read the rooms (`./botSheets.ts`). Until then it answers null and
+ * the bot asks Convex as before.
  */
 
-import { WorkerEntrypoint } from 'cloudflare:workers'
+import { exports, WorkerEntrypoint } from 'cloudflare:workers'
 import { botDenial } from 'game-domain/botDenials'
 import type {
   BindChannelArgs,
@@ -27,7 +27,10 @@ import type {
   MeResult,
   UnbindChannelResult,
 } from 'game-domain/botWire'
+import type { SheetTable } from 'game-domain/entityKinds'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
+import type { BotRooms } from './botSheets'
+import { mine, sheet } from './botSheets'
 import { accountByDiscordId } from './shared/accounts'
 import {
   bindChannel,
@@ -138,7 +141,8 @@ async function unbind(
 export async function answerBot(
   db: SharedDb | undefined,
   op: BotOpName,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  rooms?: BotRooms
 ): Promise<BotAnswer | null> {
   if (!db || !(await isFilled(db))) return null
   switch (op) {
@@ -154,14 +158,31 @@ export async function answerBot(
       return bind(db, args as BindChannelArgs)
     case 'unbindChannel':
       return unbind(db, args as { discordId: string; channelId: string })
-    default:
-      return null
+    case 'mine':
+      return rooms ? mine(db, rooms, String(args.discordId)) : null
+    case 'sheet':
+      return rooms
+        ? sheet(db, rooms, args as { discordId: string; table: SheetTable; entityId: string })
+        : null
+  }
+}
+
+/** The rooms, as this Worker exports them (`wrangler.jsonc` `exports`). */
+function workerRooms(): BotRooms {
+  const named = exports as unknown as Record<
+    'AccountRoom' | 'GameRoom',
+    { getByName(name: string): unknown }
+  >
+  return {
+    account: (discordId) =>
+      named.AccountRoom.getByName(discordId) as ReturnType<BotRooms['account']>,
+    game: (gameId) => named.GameRoom.getByName(gameId) as ReturnType<BotRooms['game']>,
   }
 }
 
 /** @public Loaded by workerd: the bot's binding names it as its `entrypoint`. */
 export class BotGateway extends WorkerEntrypoint<GatewayEnv> {
   answer(op: BotOpName, args: Record<string, unknown>): Promise<BotAnswer | null> {
-    return answerBot(this.env.SHARED, op, args)
+    return answerBot(this.env.SHARED, op, args, workerRooms())
   }
 }

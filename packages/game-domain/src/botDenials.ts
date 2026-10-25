@@ -13,6 +13,9 @@ const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   forbidden: 'You cannot do that here.',
 }
 
+/** `/su sheet`'s one answer for absent and not-yours alike: either reply would otherwise disclose. */
+export const SHEET_NOT_FOUND = 'That sheet could not be found, or it is not yours to read.'
+
 /** A refusal for `reason`, in its own words unless `message` says otherwise. */
 export function botDenial(reason: BotDenialReason, message?: string): BotFailure {
   return { ok: false, reason, message: message ?? DENIAL_MESSAGE[reason] }

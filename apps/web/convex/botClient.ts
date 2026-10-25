@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { botDenial as fail } from 'game-domain/botDenials'
+import { botDenial as fail, SHEET_NOT_FOUND } from 'game-domain/botDenials'
 import type {
   BindChannelResult,
   BotFailure,
@@ -147,9 +147,6 @@ export const mine = internalQuery({
     }
   },
 })
-
-/** One answer for absent and not-yours alike: either reply would otherwise disclose. */
-const SHEET_NOT_FOUND = 'That sheet could not be found, or it is not yours to read.'
 
 /**
  * One sheet, read-only: the caller's own, a crewmate's, or anybody's public one.
