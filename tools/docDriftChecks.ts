@@ -30,8 +30,8 @@ const DOC_DRIFT_CHECKS = {
     fix: 'cite an Area as ARCHITECTURE.md#<its anchor>; end a new Area\'s headline with <a id="slug"></a>',
   },
   decisions: {
-    asks: 'every ADR is entry N under `## Decisions` in docs/ARCHITECTURE.md (`N. **ADR-NNN Title**`) or named on its one `Retired …:` line, once; an entry that amends, supersedes or reverses another is named in that one; a kept full text is `docs/adr/NNN-slug.md`, opening on `# ADR-NNN: Title`, no front-matter, linked from entry N',
-    fix: "keep entry N of ## Decisions as ADR-N, link its docs/adr/NNN-slug.md full text (no front-matter; the status lives in the entry) from its headline, and name the amending ADR in the amended one's entry",
+    asks: 'every ADR is, once, entry N under `## Decisions` in docs/ARCHITECTURE.md (`N. **ADR-NNN Title**`), folded into the one Area whose headline names it (`N. **Area** · ADR-NNN <a id>`), or named on the `Retired …:` line; an entry that amends, supersedes or reverses another is named in that one; a kept full text is `docs/adr/NNN-slug.md`, opening on `# ADR-NNN: Title`, no front-matter, linked from entry N',
+    fix: "fold a built ADR into the Area that holds its rule (its number on that Area's headline, its detail in the Area's docs/architecture/ spec), or keep entry N of ## Decisions as ADR-N, link its docs/adr/NNN-slug.md full text (no front-matter; the status lives in the entry) from its headline, and name the amending ADR in the amended one's entry",
   },
   shape: {
     asks: 'a terse doc (`TERSE_DOCS`) is numbered entries: a bold headline, then at most two lines',
