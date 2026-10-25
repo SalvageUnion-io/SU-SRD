@@ -23,11 +23,13 @@ import {
   appliedMessages,
   batchAnswer,
   gameSnapshot,
+  readClientMessage,
   readOpsBatch,
   refusedBatch,
   UNREADABLE,
 } from '../rooms/game/feed'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
+import { actAnswer, socketAct } from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
 import type { HomeAddress, LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
@@ -41,10 +43,6 @@ import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { unitVitals } from '../rooms/vitals'
-import type { Identity } from './auth/index'
-import { identityOf } from './auth/index'
-import type { D1Like } from './auth/store'
-import { roomMember } from './roomAuth'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign } from './shared/stopSign'
 
@@ -54,8 +52,8 @@ type RoomHealth = { schema: number }
 declare const WebSocketPair: typeof import('@cloudflare/workers-types').WebSocketPair
 
 /** Set by the Worker, never by a client: `serveGameSocket` overwrites them. */
-const MEMBER_HEADER = 'x-su-member'
-const SEAT_HEADER = 'x-su-seat'
+export const MEMBER_HEADER = 'x-su-member'
+export const SEAT_HEADER = 'x-su-seat'
 
 /** workerd's `DurableObjectState` and `Env`, however the program types `cloudflare:workers`. */
 type RoomState = ConstructorParameters<typeof DurableObject>[0]
@@ -400,10 +398,23 @@ export class GameRoom extends Room implements UnitHome {
     } as ResponseInit)
   }
 
-  /** A member's `ops` batch: applied all or none, answered on its socket, heard by all. */
+  /**
+   * A member's `ops` batch (applied all or none) or `act` (run as theirs),
+   * answered on its socket; every socket hears what changed.
+   */
   override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
     const [member] = this.ctx.getTags(ws)
-    const batch = member === undefined ? null : readOpsBatch(message)
+    const said = member === undefined ? null : readClientMessage(message)
+    if (member !== undefined && said?.type === 'act') {
+      const act = socketAct(said)
+      const answer =
+        'refusal' in act
+          ? { ok: false as const, refusal: act.refusal }
+          : this.act(member, act.name, act.args)
+      ws.send(JSON.stringify(actAnswer(said.id, answer)))
+      return
+    }
+    const batch = said?.type === 'ops' ? said.ops : null
     if (member === undefined || batch === null) {
       ws.send(JSON.stringify(UNREADABLE))
       return
@@ -500,7 +511,7 @@ function sendQuietly(ws: RoomSocket, text: string): void {
 }
 
 /** The room namespaces, as `wrangler.jsonc` declares them. */
-function rooms() {
+export function rooms() {
   return exports as unknown as {
     AccountRoom: DurableObjectNamespace<AccountRoom>
     GameRoom: DurableObjectNamespace<GameRoom>
@@ -541,53 +552,4 @@ function homeOf(address: HomeAddress): UnitHome {
 /** A player's account room, by Discord id. */
 function accountHome(userId: string): AccountHome {
   return rooms().AccountRoom.getByName(userId) as unknown as AccountHome
-}
-
-export async function serveRoomsHealth(): Promise<Response> {
-  const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' }
-  try {
-    const [account, game] = await Promise.all([
-      rooms().AccountRoom.getByName('health').health(),
-      rooms().GameRoom.getByName('health').health(),
-    ])
-    return new Response(JSON.stringify({ account, game }), { headers })
-  } catch (error) {
-    console.error('rooms health failed', error)
-    return new Response(JSON.stringify({ error: 'rooms_unavailable' }), { status: 503, headers })
-  }
-}
-
-/** A member's socket to their Game's room (`?seat=1`: they count as here); anyone else a 403. */
-export async function serveGameSocket(
-  request: Request,
-  gameId: string,
-  env: { CONVEX_URL?: string }
-): Promise<Response> {
-  if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
-  const member = await roomMember(request, env, gameId)
-  if (member === null) return new Response(null, { status: 403 })
-  const headers = new Headers(request.headers)
-  headers.set(MEMBER_HEADER, member)
-  headers.set(SEAT_HEADER, new URL(request.url).searchParams.get('seat') === '1' ? '1' : '0')
-  const room = rooms().GameRoom.getByName(gameId)
-  // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
-  const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
-  return forward(new Request(request, { headers }))
-}
-
-/** The signed-in player's socket to their own account room; signed out, a 403. */
-export async function serveAccountSocket(
-  request: Request,
-  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
-  identify: (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null> = identityOf
-): Promise<Response> {
-  if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
-  const who = await identify(request, env)
-  if (who === null) return new Response(null, { status: 403 })
-  const headers = new Headers(request.headers)
-  headers.set(MEMBER_HEADER, who.discordId)
-  const room = rooms().AccountRoom.getByName(who.discordId)
-  // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
-  const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
-  return forward(new Request(request, { headers }))
 }
