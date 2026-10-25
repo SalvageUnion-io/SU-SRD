@@ -34,6 +34,8 @@
   //   without them it unfurls as text.
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
   //   secret. Without it POST /__convex-logs answers 503.
+  // - GITHUB_FEEDBACK_TOKEN, a GitHub token that may open issues on SU-SRD.
+  //   Without it feedback waits in the shared database and is never filed.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from until SHARED is filled: the URL the app is built against,
@@ -47,6 +49,10 @@
   // are migrations/*.sql, applied by the deploy before the Worker ships. No
   // `database_id`: wrangler provisions it by name on the first deploy.
   "d1_databases": [{ "binding": "SHARED", "database_name": "su-shared" }],
+
+  // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
+  // which names each schedule).
+  "triggers": { "crons": ["13 5 * * *", "23 * * * *"] },
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars and
   // bindings above: the staging deployment the app is built against, and its
