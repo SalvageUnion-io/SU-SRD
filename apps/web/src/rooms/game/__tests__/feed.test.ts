@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { ServerMessageSchema } from '../../protocol'
-import { appliedMessages, gameSnapshot } from '../feed'
+import { appliedMessages, gameSnapshot, readOpsBatch } from '../feed'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -59,5 +59,25 @@ describe('what a Game room tells a socket', () => {
       op: { id: sent.id, seq: 1, state: 'applied' },
       unit: { appId: 'p1', headSeq: 1, body: { motto: 'Keep moving' } },
     })
+  })
+})
+
+describe('what a Game room reads from a socket', () => {
+  test('an ops batch, and nothing else, as a batch', () => {
+    const ops = [
+      {
+        id: 'op-1',
+        unitId: 'u',
+        baseSeq: 0,
+        at: AT,
+        kind: 'manual' as const,
+        source: 's',
+        patch: {},
+      },
+    ]
+    expect(readOpsBatch(JSON.stringify({ type: 'ops', ops }))).toEqual(ops)
+    const act = { type: 'act', id: 'a-1', name: 'scene.passHour', args: {} }
+    expect(readOpsBatch(JSON.stringify(act))).toBeNull()
+    expect(readOpsBatch('not json')).toBeNull()
   })
 })
