@@ -51,6 +51,7 @@ import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
+import { ROOMS_HEALTH_PATH } from '../rooms/routes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import type { RateLimiter } from './errorReports'
@@ -61,7 +62,7 @@ import {
   handleErrorReport,
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
-import { ROOMS_HEALTH_PATH, serveRoomsHealth } from './rooms'
+import { serveRoomsHealth } from './rooms'
 
 export { AccountRoom, GameRoom } from './rooms'
 
