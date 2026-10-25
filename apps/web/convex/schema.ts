@@ -102,11 +102,11 @@ export const crewSlot = zodToConvex(CrewSlotSchema)
 /**
  * What a Change Log row is about: one of the player entities, or the Game.
  *
- * `'game'` names no sheet: a table-wide alert (`proposals.broadcast`), a
+ * `'game'` names no sheet: a table-wide alert (`changeLog.broadcast`), a
  * Discord roll the bot logged and a Play roll
  * (`appendChangeLog`, from `playRolls.model.ts`) are log rows about the Game
  * itself rather than about anybody's sheet. Everything that reads a row's target must therefore handle a
- * row that names no entity table — see `ownableTableFor` in `proposals.ts`.
+ * row that names no entity table.
  *
  * Exported so `changeLog.appendChangeLog` validates its entries against this
  * union rather than a hand-copied one, as `entityRefType` is above.
@@ -506,15 +506,10 @@ export default defineSchema({
     .index('by_refs_claimed', ['refs', 'claimedAt']),
 
   /**
-   * The Change Log (ADR-022), promoted from a local-only audit trail to the
-   * synchronized spine of the whole feature.
-   *
-   * It is simultaneously the audit trail, the sync log, and the alert bus: a
-   * Mediator's proposal is simply an entry in `proposed` state that the player
-   * commits by applying it. `supersededBy` implements ADR-030 §4 — a newer proposal
-   * against the same (entityId, field) retires the older one, so a player never
-   * faces two contradictory pending changes to one value. Nothing expires and
-   * nothing is ever force-applied.
+   * The Change Log (ADR-022): a Game's feed (rolls, the Mediator's alerts)
+   * and the rows logged about where a unit is (ownership). A unit's own
+   * history is its ops (ADR-063), proposals included; the rows logged here
+   * before ops (`proposed`, `supersededBy`, `reason`) stay readable.
    */
   changeLog: defineTable({
     gameId: v.union(v.id('games'), v.null()),
@@ -547,21 +542,13 @@ export default defineSchema({
      */
     reason: v.optional(v.string()),
   })
-    // `entityId` alone is a prefix of this. The rest is for `proposals.propose`,
-    // which supersedes live proposals against one field without collecting an
-    // entity's entire history to find them.
-    .index('by_entity_state_field', ['entityId', 'state', 'field'])
     // `changeLog.forEntity`: one entity's applied or proposed rows, newest
     // first, read `MAX_ENTITY_ROWS` at a time rather than collected — every
     // write appends a row, so the entity's whole history grows without limit.
     .index('by_entity_state_ts', ['entityId', 'state', 'ts'])
-    // `gameId` alone is a prefix of this. `ts` last so `proposals.alerts` can
+    // `gameId` alone is a prefix of this. `ts` last so `changeLog.alerts` can
     // read the newest N alerts in order instead of the whole log.
-    .index('by_game_field', ['gameId', 'field', 'ts'])
-    .index('by_game_state', ['gameId', 'state'])
-    // `proposals.sent`: one surface's rows in one Game, newest first, without
-    // reading a log that grows all campaign (`source` is 'mediator-proposal').
-    .index('by_game_source_ts', ['gameId', 'source', 'ts']),
+    .index('by_game_field', ['gameId', 'field', 'ts']),
 
   ...opTables,
   ...playTables,

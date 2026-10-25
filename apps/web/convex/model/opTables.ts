@@ -39,7 +39,7 @@ export const opTables = {
     unitId: v.string(),
     /** The author's op id; one id is applied once. */
     opId: v.string(),
-    /** The unit's sequence number; null while proposed or declined. */
+    /** The unit's sequence number; null until applied. */
     seq: v.union(v.number(), v.null()),
     baseSeq: v.union(v.number(), v.null()),
     author: v.id('users'),
@@ -55,5 +55,8 @@ export const opTables = {
   })
     .index('by_op_id', ['opId'])
     // `changeLog.forEntity`: one unit's ops in one state, newest first, a page at a time.
-    .index('by_unit_state_at', ['unitId', 'state', 'at']),
+    .index('by_unit_state_at', ['unitId', 'state', 'at'])
+    // A Game's proposals: those awaiting an answer, and every one a Mediator sent.
+    .index('by_game_state_at', ['gameId', 'state', 'at'])
+    .index('by_game_source_at', ['gameId', 'source', 'at']),
 }

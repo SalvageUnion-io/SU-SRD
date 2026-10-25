@@ -8,7 +8,7 @@ import type { FunctionReturnType } from 'convex/server'
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { api } from '../../../convex/_generated/api'
 
-export type SentProposal = FunctionReturnType<typeof api.proposals.sent>[number]
+export type SentProposal = FunctionReturnType<typeof api.ops.sent>[number]
 
 /** "Judge · HP → 4 · "Ejection burn"". */
 export function proposalLine(p: SentProposal): string {

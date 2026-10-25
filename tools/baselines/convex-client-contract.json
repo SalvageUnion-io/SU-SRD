@@ -93,6 +93,24 @@
       "type": "object",
       "value": {}
     },
+    "changeLog:alerts": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "limit": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
+        }
+      }
+    },
     "changeLog:appendChangeLog": {
       "type": "object",
       "value": {
@@ -207,6 +225,24 @@
                 }
               }
             }
+          },
+          "optional": false
+        }
+      }
+    },
+    "changeLog:broadcast": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "message": {
+          "fieldType": {
+            "type": "string"
           },
           "optional": false
         }
@@ -389,38 +425,6 @@
             "type": "string"
           },
           "optional": true
-        }
-      }
-    },
-    "downtime:claimStep": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "id",
-                "tableName": "games"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "pilotId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "stepIndex": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": false
         }
       }
     },
@@ -1550,6 +1554,17 @@
       "type": "object",
       "value": {}
     },
+    "ops:accept": {
+      "type": "object",
+      "value": {
+        "opId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "ops:apply": {
       "type": "object",
       "value": {
@@ -1672,6 +1687,92 @@
             }
           },
           "optional": false
+        }
+      }
+    },
+    "ops:decline": {
+      "type": "object",
+      "value": {
+        "opId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ops:pending": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "ops:propose": {
+      "type": "object",
+      "value": {
+        "entityId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "entityType": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "literal",
+                "value": "pilot"
+              },
+              {
+                "type": "literal",
+                "value": "mech"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "field": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "after": {
+          "fieldType": {
+            "type": "any"
+          },
+          "optional": false
+        },
+        "reason": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    },
+    "ops:sent": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "limit": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": true
         }
       }
     },
@@ -2127,141 +2228,6 @@
     "photos:generateUploadUrl": {
       "type": "object",
       "value": {}
-    },
-    "proposals:alerts": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        },
-        "limit": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": true
-        }
-      }
-    },
-    "proposals:apply": {
-      "type": "object",
-      "value": {
-        "proposalId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "changeLog"
-          },
-          "optional": false
-        }
-      }
-    },
-    "proposals:broadcast": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        },
-        "message": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        }
-      }
-    },
-    "proposals:decline": {
-      "type": "object",
-      "value": {
-        "proposalId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "changeLog"
-          },
-          "optional": false
-        }
-      }
-    },
-    "proposals:pending": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        }
-      }
-    },
-    "proposals:propose": {
-      "type": "object",
-      "value": {
-        "entityId": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "entityType": {
-          "fieldType": {
-            "type": "union",
-            "value": [
-              {
-                "type": "literal",
-                "value": "pilot"
-              },
-              {
-                "type": "literal",
-                "value": "mech"
-              }
-            ]
-          },
-          "optional": false
-        },
-        "field": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "after": {
-          "fieldType": {
-            "type": "any"
-          },
-          "optional": false
-        },
-        "reason": {
-          "fieldType": {
-            "type": "string"
-          },
-          "optional": true
-        }
-      }
-    },
-    "proposals:sent": {
-      "type": "object",
-      "value": {
-        "gameId": {
-          "fieldType": {
-            "type": "id",
-            "tableName": "games"
-          },
-          "optional": false
-        },
-        "limit": {
-          "fieldType": {
-            "type": "number"
-          },
-          "optional": true
-        }
-      }
     },
     "publicSheet:get": {
       "type": "object",

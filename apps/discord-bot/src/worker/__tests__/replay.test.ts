@@ -105,7 +105,9 @@ function envFor(keys: KeyPairHex): Env {
     DISCORD_PUBLIC_KEY: keys.publicKeyHex,
     DISCORD_APPLICATION_ID: APPLICATION_ID,
     DISCORD_TOKEN: 'test-token',
-    // Unconfigured: every app call degrades to `unavailable` with no request.
+    // Unconfigured, and a site gateway that leaves every op: every app call
+    // degrades to `unavailable` with no request.
+    SITE: { answer: async () => null } as unknown as Env['SITE'],
     BACKEND_SITE_URL: '',
     BOT_SECRET: '',
   }

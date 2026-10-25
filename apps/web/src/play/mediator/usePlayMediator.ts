@@ -140,8 +140,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const running = useQuery(api.mediator.running, { gameId: id })
   const encounters = usePrepStore((s) => s.encounters)
   const patterns = useQuery(api.mediator.patterns, { gameId: id })
-  const sent = useQuery(api.proposals.sent, { gameId: id, limit: sentLimit })
-  const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
+  const sent = useQuery(api.ops.sent, { gameId: id, limit: sentLimit })
+  const alerts = useQuery(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
 
@@ -150,8 +150,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const removeNpc = useMutation(api.mediator.removeNpc)
   const runEncounter = useMutation(api.mediator.runEncounter)
   const endEncounter = useMutation(api.mediator.endEncounter)
-  const proposeMutation = useMutation(api.proposals.propose)
-  const broadcastMutation = useMutation(api.proposals.broadcast)
+  const proposeMutation = useMutation(api.ops.propose)
+  const broadcastMutation = useMutation(api.changeLog.broadcast)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 

@@ -32,7 +32,7 @@ describe('mediatorSeats', () => {
     expect(seat('Bonesaw').rowId).toBe('row-bonesaw')
   })
 
-  test('presence comes from the seat’s heartbeat: Wren is away', () => {
+  test('presence comes from the Game room: Wren is away', () => {
     expect(seats.map((s) => s.present)).toEqual([true, true, true, false])
   })
 

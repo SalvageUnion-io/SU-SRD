@@ -1,6 +1,7 @@
 import { evictDurableObject, runInDurableObject } from 'cloudflare:test'
 import { exports as workerExports } from 'cloudflare:workers'
 import { describe, expect, it } from 'vitest'
+import { ACCOUNT_ROOM, GAME_ROOM } from '../src/rooms/schemas'
 import type { AccountRoom, GameRoom } from '../src/worker/rooms'
 
 /** Typed here, not by `worker-configuration.d.ts`, whose main module drags in the app. */
@@ -12,8 +13,10 @@ const exports = workerExports as unknown as {
 
 describe('rooms', () => {
   it('each kind opens, migrated, over RPC', async () => {
-    expect(await exports.AccountRoom.getByName('a').health()).toEqual({ schema: 0 })
-    expect(await exports.GameRoom.getByName('g').health()).toEqual({ schema: 0 })
+    expect(await exports.AccountRoom.getByName('a').health()).toEqual({
+      schema: ACCOUNT_ROOM.length,
+    })
+    expect(await exports.GameRoom.getByName('g').health()).toEqual({ schema: GAME_ROOM.length })
   })
 
   it('migrates its own storage and keeps it across eviction', async () => {
@@ -35,7 +38,10 @@ describe('rooms', () => {
   it('answers the health route through the Worker', async () => {
     const res = await exports.default.fetch('https://salvageunion.io/__rooms/health')
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ account: { schema: 0 }, game: { schema: 0 } })
+    expect(await res.json()).toEqual({
+      account: { schema: ACCOUNT_ROOM.length },
+      game: { schema: GAME_ROOM.length },
+    })
   })
 
   it('tells every socket who is here, and who has gone', async () => {

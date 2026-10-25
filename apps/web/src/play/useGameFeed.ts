@@ -37,11 +37,11 @@ export type RollLine = {
   source: string
 }
 
-/** One Mediator alert (`proposals.alerts`). */
+/** One Mediator alert (`changeLog.alerts`). */
 export type AlertLine = { _id: string; message: string; ts: number }
 
-/** A proposal awaiting this player's answer (`proposals.pending`). */
-export type PendingProposal = FunctionReturnType<typeof api.proposals.pending>[number]
+/** A proposal awaiting this player's answer (`ops.pending`). */
+export type PendingProposal = FunctionReturnType<typeof api.ops.pending>[number]
 
 /** The crew as the server derives it (`crew.vitals`). */
 export type CrewVitals = FunctionReturnType<typeof api.crew.vitals>
@@ -107,8 +107,8 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   const inGame = signedIn && gameId !== null
 
   const rolls = useQuery(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
-  const alerts = useQuery(api.proposals.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
-  const pending = useQuery(api.proposals.pending, inGame ? { gameId } : 'skip')
+  const alerts = useQuery(api.changeLog.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
+  const pending = useQuery(api.ops.pending, inGame ? { gameId } : 'skip')
   const crew = useQuery(api.crew.vitals, inGame ? { gameId } : 'skip')
 
   return {

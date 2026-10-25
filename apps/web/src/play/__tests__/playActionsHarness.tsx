@@ -36,7 +36,7 @@ type HarnessProps = {
     stepIndex: number
     members?: Member[]
     done?: Member[]
-    /** The steps the server already records claimed for this pilot (as after a reload). */
+    /** The steps the server already records taken for this pilot (as after a reload). */
     doneSteps?: number[]
   }
   spendUpkeep?: () => Promise<boolean>
@@ -152,8 +152,9 @@ export function useHarnessPlay({
             setDone((d) => (isDone ? [...d, self] : d.filter((m) => m.userId !== ME)))
           },
       doneSteps,
-      markStepDone: async (i) => {
-        record('downtime.markStepDone', i)
+      // The step's op, with what it applies to the pilot (`patch`).
+      markStepDone: async (i, patch) => {
+        record('downtime.markStepDone', { stepIndex: i, patch })
         if (doneSteps.includes(i)) return false
         setDoneSteps((d) => [...d, i])
         return true

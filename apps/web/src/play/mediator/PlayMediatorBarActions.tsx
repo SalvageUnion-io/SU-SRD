@@ -3,7 +3,7 @@
  * channel button: **Tell the table** and ⋯.
  *
  *  - **Tell the table** opens its form (`TellTheTable`)
- *    in a dialog: one word to every player at once (`proposals.broadcast`),
+ *    in a dialog: one word to every player at once (`changeLog.broadcast`),
  *    which lands on each of their Feeds, with the last five sent under it.
  *  - **⋯**: the Game's own page, and the reference (the SRD Explorer,
  *    `SrdExplorer`) in an overlay over Play.

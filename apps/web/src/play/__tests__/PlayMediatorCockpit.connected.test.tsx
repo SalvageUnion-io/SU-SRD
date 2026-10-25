@@ -148,8 +148,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'mediator:npcs': NPCS,
     'mediator:patterns': [],
     'mediator:running': null,
-    'proposals:sent': [SENT_PROPOSAL],
-    'proposals:alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
+    'ops:sent': [SENT_PROPOSAL],
+    'changeLog:alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
     'changeLog:rolls': [
       {
         _id: 'r-1',
@@ -255,7 +255,7 @@ describe('the bar', () => {
     })
     await click(dialog.getByRole('button', { name: 'Send' }))
     expect(sent).toEqual([
-      { name: 'proposals:broadcast', args: { gameId: GAME, message: 'Two squads east' } },
+      { name: 'changeLog:broadcast', args: { gameId: GAME, message: 'Two squads east' } },
     ])
   })
 })
@@ -299,7 +299,7 @@ describe('the table', () => {
     await click(dock.getByRole('button', { name: 'Propose' }))
     expect(sent).toEqual([
       {
-        name: 'proposals:propose',
+        name: 'ops:propose',
         args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 6 },
       },
     ])
