@@ -16,8 +16,8 @@ import { mock } from 'bun:test'
 
 mock.module('../src/lib/connection/convexClient', () => ({
   convexClient: {
-    // `upsertByAppId` answers with the row's version, `transfer` with each
-    // record's; nothing else reads its answer.
-    mutation: async () => ({ updatedAt: 1, versions: [] }),
+    // `upsertByAppId` and `ops.apply` answer with the row's version (and
+    // seq), `ops.transfer` with each unit's; nothing else reads its answer.
+    mutation: async () => ({ updatedAt: 1, headSeq: 1, applied: [] }),
   },
 }))
