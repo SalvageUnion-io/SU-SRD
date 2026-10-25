@@ -100,6 +100,53 @@ export async function opOnUnit(
 }
 
 /**
+ * `applyUnitOp` for an op an outbox sends after a reconnect (ADR-063): one the
+ * server refuses is kept as `declined`, with why, and answered so rather than
+ * thrown, so the device drops it and the rest of its outbox still goes.
+ */
+export async function replayUnitOp(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  args: UnitOpArgs
+): Promise<Applied | null | { declined: string }> {
+  try {
+    return await applyUnitOp(ctx, userId, args)
+  } catch (err) {
+    const reason = refusalOf(err)
+    if ((await opOnUnit(ctx, args.op.id, args.op.unitId)) === null) {
+      await ctx.db.insert('ops', {
+        gameId: args.gameId,
+        unitKind: args.unit,
+        unitId: args.op.unitId,
+        opId: args.op.id,
+        seq: null,
+        baseSeq: args.op.baseSeq,
+        author: userId,
+        at: args.op.at,
+        kind: args.op.kind,
+        source: args.op.source,
+        state: 'declined',
+        patch: args.op.patch,
+        ...(args.op.unset === undefined ? {} : { unset: args.op.unset }),
+        before: null,
+        reason,
+      })
+    }
+    return { declined: reason }
+  }
+}
+
+/** A refusal's words: a stale write's `ConvexError` carries the row beside them. */
+function refusalOf(err: unknown): string {
+  if (err instanceof ConvexError) {
+    const data: unknown = err.data
+    if (typeof data === 'string') return data
+    if (typeof data === 'object' && data !== null && 'message' in data) return String(data.message)
+  }
+  return err instanceof Error ? err.message : String(err)
+}
+
+/**
  * `applyUnitOp` on a row already found and checked. `proposal` is the
  * proposed op row being accepted, which becomes the applied op.
  */

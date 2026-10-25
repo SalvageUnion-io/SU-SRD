@@ -9,7 +9,10 @@ so the move to Cloudflare rooms (#1781) copies data instead of redesigning it.
 - **Amends** [ADR-022](../ARCHITECTURE.md#decisions): the Change Log is the
   op log, not a record written beside the write.
 - **Amends** [ADR-030](030-accounts-games-server-of-record.md) §4: a proposal
-  is an op in `proposed` state on the target's unit.
+  is an op in `proposed` state on the target's unit; and §1: offline, an op
+  on the player's own unit is queued, not blocked (decision 9).
+- **Replaces** [ADR-058](058-device-copy.md)'s read-only device copy: the
+  copy stays, and the player edits it offline (decision 9).
 
 ## Context
 
@@ -37,7 +40,7 @@ offline queue would each be one more mechanism.
    | `at`      | When it was authored. |
    | `kind`    | ADR-022's `transaction`, `override` or `manual`. |
    | `source`  | The surface it came from (`surfaceProvenance.ts`). |
-   | `state`   | `applied`, `proposed` or `declined`. |
+   | `state`   | `applied`, `proposed`, `declined` or `superseded`. |
    | `patch`   | Top-level body fields and their new values. |
    | `before`  | The values those fields held, written when the op is applied. |
    | `reason`  | Optional, the Mediator's words on a proposal. |
@@ -73,12 +76,24 @@ offline queue would each be one more mechanism.
    `updatedAt` stamp) never conflicts.
 8. **ADR-007 maps directly.** A destructive change is only ever an op its
    player authors; automation authors none.
+9. **Offline, ops wait in an outbox** (Jrvs 2026-10-25: play your own units
+   offline; Game-wide acts stay online). Disconnected, an op on the player's
+   own pilot, mech or NPC is kept on the device beside the device copy,
+   stamped with the account, and shown at once; an offline reload folds it
+   over the copy. On reconnect the outbox goes up in
+   the order made (`ops.replay`): each op runs through decision 3 against its
+   `baseSeq`, and one no longer legal is kept `declined` with why, and the
+   sheet says so. A crawler, a roll, a seat, a proposal, Downtime, a move or
+   a transfer still needs the connection. Single-writer units (ADR-055) are
+   why this needs no merge engine.
 
 ## Consequences
 
 - The Change Log drawer reads ops; history cannot drift from the body.
-- Undo is a new op carrying an op's `before`; an outbox of ops can replay
-  after a reconnect (#1780). Neither is built by this ADR.
+- Undo is a new op carrying an op's `before`; it is not built by this ADR.
+- `ops.replay` takes an outbox's ops on the server; the client's queue
+  follows the local replica (#1791), and `e2e/app-offline.e2e.ts` then pins
+  an offline edit surviving a reload and reaching the server.
 - The stale-whole-body refusal becomes a field conflict: a second device's
   edit to a different field no longer bounces.
 - On Cloudflare rooms (#1781) each room keeps its units' op log in SQLite and
