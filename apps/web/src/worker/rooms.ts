@@ -8,6 +8,7 @@
 import { DurableObject, exports } from 'cloudflare:workers'
 import type { DurableObjectNamespace } from '@cloudflare/workers-types'
 import { applyOp } from 'game-domain/ops/applyOp'
+import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
 import type {
   GameActAnswer,
   GameActArgs,
@@ -17,6 +18,7 @@ import type {
 } from '../rooms/game/acts'
 import { runAct } from '../rooms/game/acts'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
+import type { UnitRow } from '../rooms/game/store'
 import type { HomeAddress, LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
 import { settleLease } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
@@ -67,10 +69,56 @@ abstract class Room extends DurableObject<RoomEnv> {
   }
 }
 
-/** @public A player's shelf; loaded by workerd (`wrangler.jsonc` `exports`). */
-export class AccountRoom extends Room {
+/**
+ * @public A player's shelf, named by their Discord id; loaded by workerd
+ * (`wrangler.jsonc` `exports`). Its RPC is the player's units, the handoff
+ * (`UnitHome`) and the cutover's import; the Worker names the actor.
+ */
+export class AccountRoom extends Room implements UnitHome {
+  private readonly logic: AccountRoomLogic
+
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
+    this.logic = new AccountRoomLogic(this.sql, { applyOp })
+  }
+
+  /** The player's own units; anyone else is answered none. */
+  unitsFor(actor: string): UnitRow[] {
+    return this.logic.shelf.list(actor)
+  }
+
+  /** One of the player's units, or null. */
+  unit(actor: string, unitId: string): UnitRow | null {
+    return this.logic.shelf.list(actor).find((u) => u.id === unitId) ?? null
+  }
+
+  /** A disbanded Game's Opposition, filed in its Organizer's NPC tray once per lease. */
+  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
+    this.logic.transit.fileTray(leaseId, npcs, at)
+  }
+
+  importAccount(bundle: unknown): { imported: boolean } {
+    return this.logic.transit.importAccount(bundle, Date.now())
+  }
+
+  offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
+    return this.logic.transit.offer(args)
+  }
+
+  accept(parcel: UnitParcel, actor: string, at: number): void {
+    this.logic.transit.accept(parcel, actor, at)
+  }
+
+  release(leaseId: string): void {
+    this.logic.transit.release(leaseId)
+  }
+
+  cancel(leaseId: string): void {
+    this.logic.transit.cancel(leaseId)
+  }
+
+  refuseLease(leaseId: string, at: number): LeaseOutcome {
+    return this.logic.transit.refuseLease(leaseId, at)
   }
 }
 

@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * MechSheet — the mech variant BODY for the LiveSheet shell, in the
  * poster layout.
@@ -69,8 +70,8 @@ import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 import { MechChassisCard } from './MechChassisCard'
 import { MechHeroChassis } from './MechHeroChassis'
 import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from './MechIdentity'
@@ -145,10 +146,10 @@ type MechSheetProps = {
    */
   chassis?: ChassisLike | null
   /**
-   * Injectable store — defaults to useEntityStore.
+   * Injectable store — defaults to useUnits.
    * Pass a stub in tests to avoid Zustand side effects.
    */
-  store?: typeof useEntityStore
+  store?: UnitsStore
   /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
@@ -182,7 +183,7 @@ type MechSheetProps = {
 export function MechSheet({
   mech,
   chassis: chassisOverride,
-  store = useEntityStore,
+  store = useUnits,
   readOnly = false,
   crawler = null,
   crawlerReadOnly = false,
@@ -315,7 +316,7 @@ export function MechSheet({
                       readOnly
                         ? undefined
                         : (photo) =>
-                            useEntityStore
+                            useUnits
                               .getState()
                               .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
                     }

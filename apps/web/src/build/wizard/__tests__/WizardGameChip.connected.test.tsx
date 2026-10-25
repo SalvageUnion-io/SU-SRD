@@ -16,13 +16,13 @@ import {
 const convexMocks = await installConvexMocks({ router: true })
 
 const { WizardGameChip } = await import('../WizardGameChip')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
 const wrap = () =>
   render(
-    <ConnectionProvider>
+    <SyncProvider>
       <WizardGameChip gameId="g1" />
-    </ConnectionProvider>
+    </SyncProvider>
   )
 
 describe("a wizard's Game chip", () => {

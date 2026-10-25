@@ -10,7 +10,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { assertMayEditCrawler, crawlerByAppId, moveCrawlerRow } from './crawlerWrites'
 import type { OwnedTable } from './entities'
 import { logIdOf, parseBody } from './entities'
-import { opInput, unitKind } from './opTables'
+import { opInput, PROPOSAL_SOURCE, unitKind } from './opTables'
 import type { OWNABLE_WRITE } from './ownableWrites'
 import {
   afterOwnableMove,
@@ -76,6 +76,8 @@ export async function applyUnitOp(
   userId: Id<'users'>,
   args: UnitOpArgs
 ): Promise<Applied | null> {
+  // A proposal is the Mediator's (`ops.propose`); a player's own op may not pose as one.
+  if (args.op.source === PROPOSAL_SOURCE) throw new ConvexError('That change is not a proposal')
   const row = await unitRow(ctx, userId, args)
   return row === null ? null : applyToRow(ctx, userId, args.unit, row, args.op)
 }

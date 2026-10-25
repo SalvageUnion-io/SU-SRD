@@ -12,7 +12,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import type { CreateInput } from '../../stores/types'
+import type { CreateInput } from '../../replica/types'
 
 /** What `patternStore.create` takes: the id and timestamp are minted on create. */
 type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>

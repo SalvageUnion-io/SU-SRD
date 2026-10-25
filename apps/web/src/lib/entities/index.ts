@@ -2,8 +2,8 @@
  * lib/entities — the typed reactive read layer over the Zustand stores.
  *
  * Components subscribe through these hooks instead of ad-hoc
- * `useEntityStore((s) => …)` selectors; event handlers keep using
- * `useEntityStore.getState()` imperatively.
+ * `useUnits((s) => …)` selectors; event handlers keep using
+ * `useUnits.getState()` imperatively.
  */
 
 // `useEntity` is deliberately NOT re-exported: it is the generic these are

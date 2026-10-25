@@ -15,10 +15,10 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
+import { useSync } from '../../replica/syncContext'
 
 /**
  * The admin metrics page (ADR-057), at `/admin/metrics`: aggregate counts
@@ -170,8 +170,8 @@ function AdminMetrics() {
 }
 
 function MetricsBody() {
-  const { mode } = useConnection()
-  if (mode === 'connected') return <AdminMetrics />
+  const { status } = useSync()
+  if (status === 'live') return <AdminMetrics />
   return <EmptyState variant="quiet" body={buildAccountCopy('thereIsNothingHereFor')} />
 }
 

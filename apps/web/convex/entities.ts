@@ -95,7 +95,7 @@ import { crewSlot, entityRef, entityRefType, ownableTable, softLinkType } from '
  * ## What lives elsewhere
  *
  * This module is the ownable-entity API: the reads, and the server-first
- * writes the store awaits on every edit (`commitEntityWrite`). Two neighbours
+ * writes the store awaits on every edit (`sendRow`). Two neighbours
  * live in modules that say what they are:
  *
  *  - `shelf.ts` — the shelf-only collections, saved patterns and the NPC tray.
@@ -367,12 +367,12 @@ export const listMine = query({
     // noise — and `appId` rides along separately for the rows that carry one,
     // because that is what the client's server-first write addresses by.
     //
-    // `updatedAt` is the row's version. `ShelfSync` adopts a row only when it
+    // `updatedAt` is the row's version. `ConvexFeed` adopts a row only when it
     // is newer than the one it last saw, and a pilot or mech write sends it
     // back as the version the edit was made against (`upsertByAppId`). Keyed on
     // ids alone, a body edited on another device never came down, and the next
     // whole-body write from here reverted it. Patterns and the tray have no such
-    // column; `ShelfSync` reads their body's own stamp instead.
+    // column; `ConvexFeed` reads their body's own stamp instead.
     //
     // A template pre-gen (no `appId`) was seeded with the template's own body,
     // which says `gameId: null`, while the row sits in its Game. The column is
@@ -519,7 +519,7 @@ export const listWiring = query({
 /**
  * Delete an entity, addressed by its **server** id. Owner only.
  *
- * The twin of `removeByAppId`, which `commitEntityWrite` uses, and necessary
+ * The twin of `removeByAppId`, which `sendRow` uses, and necessary
  * because the Game roster cannot use that one: it is looking at rows this browser may never
  * have held, and at pre-gens seeded from a template that have no `appId` at all
  * (production holds a dozen). Addressing by `_id` is the only way to name those,

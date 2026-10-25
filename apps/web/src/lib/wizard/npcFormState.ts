@@ -10,7 +10,7 @@
 
 import type { Npc, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
 import type { RefNPC } from 'salvageunion-reference'
-import type { CreateInput } from '../../stores/types'
+import type { CreateInput } from '../../replica/types'
 import type { NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
 

@@ -44,7 +44,7 @@ describe('copyForShelf', () => {
   test('keeps no identity from the source', () => {
     const copy = copyForShelf(SOURCE, 'Pilot')
 
-    // stores/records.ts mints these on create. Carrying `id` through would produce a
+    // replica/records.ts mints these on create. Carrying `id` through would produce a
     // second row claiming to be the original — a duplicate appId by hand.
     expect(copy.id).toBeUndefined()
     expect(copy.createdAt).toBeUndefined()

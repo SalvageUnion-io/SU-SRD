@@ -1,13 +1,13 @@
 import type { CSSProperties } from 'react'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { sharedCopy } from '../../messages/components-shared'
+import { useSync } from '../../replica/syncContext'
 import { Banner, tokens } from '../index'
 
 /**
  * The NOT CONNECTED banner (ADR-030 §1).
  *
- * Shown only in `disconnected` — signed in, but the server of record is
- * unreachable. It is deliberately **never** shown in Solo: somebody who never
+ * Shown only `offline` — signed in, but the server of record is
+ * unreachable. It is deliberately **never** shown signed out: somebody who never
  * signed in has a perfectly working local app, and telling them they are
  * disconnected would be a lie about the only thing this banner exists to say.
  *
@@ -41,8 +41,8 @@ const NOT_CONNECTED = [
 ]
 
 export function NotConnectedBanner() {
-  const { showDisconnectedWarning } = useConnection()
-  if (!showDisconnectedWarning) return null
+  const { status } = useSync()
+  if (status !== 'offline') return null
 
   return (
     <div style={STRIP}>

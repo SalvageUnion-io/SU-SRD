@@ -17,7 +17,7 @@ import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } fro
  * Append client-originated Change Log rows (ADR-022 / ADR-034 P4b).
  *
  * This table is the Change Log: the store's `emitChangeLog`
- * (`src/stores/entityChangeLog.ts`) and Play's rolls arrive here, and
+ * (`src/replica/outbox.ts`) and Play's rolls arrive here, and
  * `ownership`, the Mediator's alerts (`broadcast`) and `botClient` write beside them. There is no
  * device copy; `forEntity` below is what the sheet's drawer reads.
  *

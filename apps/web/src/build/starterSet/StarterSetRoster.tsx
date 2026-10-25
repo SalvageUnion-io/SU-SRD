@@ -22,9 +22,9 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { CopyCrew } from './CopyCrew'
@@ -54,7 +54,7 @@ type StarterSetRosterProps = {
 }
 
 export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRosterProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
   const { confirm, dialog } = useConfirm()
   const shelves = starterShelves()
@@ -75,7 +75,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
           <Text variant="body">
             The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
             Read-only reference: open any sheet to read it.{' '}
-            {mode === 'connected'
+            {status === 'live'
               ? buildStarterSetCopy('copyOneIntoYourTraining')
               : buildStarterSetCopy('signInToCopyOne')}
           </Text>
@@ -100,7 +100,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
                       kind={kind}
                       build={build}
                       controls={
-                        mode === 'connected' ? (
+                        status === 'live' ? (
                           <CopyStarterMenu
                             kind={kind}
                             templateId={build.id}

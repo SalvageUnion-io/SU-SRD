@@ -94,10 +94,49 @@ describe('answerBot', () => {
     ])
   })
 
-  it('leaves the rooms’ ops to Convex', async () => {
+  it('binds and unbinds a channel, naming the Game by id or by name', async () => {
     const db = await filled()
-    for (const op of ['sheet', 'mine', 'bindChannel', 'unbindChannel'] as const) {
+    const bind = { discordId: 'd-rosa', channelId: 'c-1', channelName: 'salvage-run' }
+    expect(await answerBot(db, 'bindChannel', { ...bind, game: 'reclamation' })).toMatchObject({
+      ok: true,
+      binding: { channelId: 'c-1', gameId: 'g-1', gameName: 'Reclamation' },
+    })
+    expect(await answerBot(db, 'bindChannel', { ...bind, game: 'g-1' })).toMatchObject({ ok: true })
+    expect(await answerBot(db, 'bindChannel', { ...bind, game: 'Nowhere' })).toMatchObject({
+      reason: 'not-found',
+    })
+    expect(
+      await answerBot(db, 'unbindChannel', { discordId: 'd-rosa', channelId: 'c-1' })
+    ).toMatchObject({
+      ok: true,
+      unbound: { channelId: 'c-1' },
+    })
+    expect(await answerBot(db, 'bindChannel', { ...bind, discordId: 'd-nobody' })).toMatchObject({
+      reason: 'unlinked',
+    })
+  })
+
+  it('leaves the rooms’ ops to Convex without the rooms', async () => {
+    const db = await filled()
+    for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()
+    }
+  })
+
+  it('leaves the rooms’ ops to Convex when a room cannot answer', async () => {
+    const db = await filled()
+    const cannot = () => ({
+      unitsFor: async () => {
+        throw new TypeError('unitsFor is not a function')
+      },
+      unit: async () => {
+        throw new TypeError('unit is not a function')
+      },
+    })
+    const rooms = { account: cannot, game: cannot }
+    const args = { discordId: 'd-rosa', table: 'pilots', entityId: 'p-1' }
+    for (const op of ['sheet', 'mine'] as const) {
+      expect(await answerBot(db, op, args, rooms)).toBeNull()
     }
   })
 })

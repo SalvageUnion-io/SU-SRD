@@ -18,9 +18,9 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useSync } from '../../replica/syncContext'
 import { SignInToBuild } from '../account/SignInToBuild'
 import { BlankCreateDialog } from './BlankCreateDialog'
 import { CreateModeChooser } from './CreateModeChooser'
@@ -52,8 +52,8 @@ export function NewEntityScreen({
   returnTo,
   gameId,
 }: NewEntityScreenProps) {
-  const connection = useConnection()
-  if (connection.mode === 'solo') {
+  const connection = useSync()
+  if (connection.status === 'signedOut') {
     // Not a PageShell: the routes already wrap this screen in their `<main>`,
     // and the gate's band runs its full width. The NPC route draws none (its
     // designer is its own `<main>`), so its gate brings one: without it the

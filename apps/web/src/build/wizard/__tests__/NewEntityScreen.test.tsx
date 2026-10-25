@@ -20,32 +20,31 @@ import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { installConvexMocks } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
+import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`. The signed-out
 // panel mounts `SignInControl`, whose auth hook needs the auth module.
 const convexMocks = await installConvexMocks({ authReact: true })
 afterAll(() => convexMocks.restore())
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
+const { useUnits } = await import('../../../replica/units')
 const { NewEntityScreen } = await import('../NewEntityScreen')
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 function Connected({ children }: { children: ReactNode }) {
-  return <ConnectionContext.Provider value={CONNECTED}>{children}</ConnectionContext.Provider>
+  return <SyncContext.Provider value={CONNECTED}>{children}</SyncContext.Provider>
 }
 
 /** Every render here is signed in, unless a test renders Solo on purpose. */
@@ -73,7 +72,7 @@ describe('parseCreateMode', () => {
 })
 
 describe('NewEntityScreen — signed out', () => {
-  test('is the sign-in panel in every mode: building needs an account', () => {
+  test('is the sign-in panel in every status: building needs an account', () => {
     for (const mode of [undefined, 'guided', 'blank'] as const) {
       // Outside any provider the connection is Solo.
       rtlRender(
@@ -268,7 +267,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     fireEvent.click(submit)
     await waitFor(() => expect(created.length).toBe(1))
 
-    const pilot = useEntityStore.getState().get('pilot', created[0] as string)
+    const pilot = useUnits.getState().get('pilot', created[0] as string)
     expect(() => PilotSchema.parse(pilot)).not.toThrow()
     expect(pilot?.name).toBe('Juno Vale')
     expect(pilot?.callsign).toBe('Nomad')

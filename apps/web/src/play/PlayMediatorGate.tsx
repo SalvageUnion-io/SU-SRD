@@ -22,15 +22,15 @@ import { PRODUCT } from 'game-domain/product'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
-import { useConnection } from '../lib/connection/connectionContext'
 import { playCopy } from '../messages/play'
+import { useSync } from '../replica/syncContext'
 import { PlayMediatorCockpit } from './PlayMediatorCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
 export function PlayMediatorGate({ gameId }: { gameId: string }) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   // Checked before any Convex hook: signed out, there is no Game to read.
-  if (mode === 'solo') {
+  if (status === 'signedOut') {
     return (
       <PlayRefusal
         title={playCopy('signInToRunYour')}
@@ -39,7 +39,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
+  if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
   return <SignedInPlayMediatorGate gameId={gameId} />
 }
 

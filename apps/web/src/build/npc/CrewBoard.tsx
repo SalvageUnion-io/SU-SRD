@@ -51,7 +51,6 @@ import {
 } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../lib/entities'
 import { assignCrew } from '../../lib/links/assignLink'
@@ -73,7 +72,8 @@ import {
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
 import { npcCopy } from '../../messages/build-npc'
-import { useEntityStore } from '../../stores/entityStore'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { npcStats } from '../roster/rowStats.model'
 import { rowAppId } from '../sheet/readOnlySheetStore.model'
 import { RollTableButton } from '../wizard/RollTableButton'
@@ -116,8 +116,8 @@ type CrewBoardProps = {
 
 export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBoardProps) {
   const hydrated = useHydrateEntities(['crawler', 'npc', 'softLink'])
-  const { mode, canWrite } = useConnection()
-  const connected = mode === 'connected'
+  const { status, canWrite } = useSync()
+  const connected = status === 'live'
   const crawlers = useCrawlers()
   const games = useQuery(api.games.listMine, connected ? {} : 'skip')
 
@@ -416,7 +416,7 @@ function SlotPanel({
   // The form's own complaint; a failed save is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
   const save = useServerAction(
-    () => useEntityStore.getState().create('npc', crewDraftToCreateInput(slot, draft, gameId)),
+    () => useUnits.getState().create('npc', crewDraftToCreateInput(slot, draft, gameId)),
     { failure: 'The NPC could not be saved. Try again.' }
   )
   // Said by the caller as a toast: a failed assignment after a save that

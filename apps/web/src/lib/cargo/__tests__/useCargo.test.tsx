@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Tests for the useCargo persistence wrapper: actions run the pure reducer
  * and write the changed sides back through the entity store (mech cargoLots;
@@ -13,7 +14,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { useCargo } from '../useCargo'
 
 // ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ type CapturedUpdate = {
   patch: Record<string, unknown>
 }
 
-function makeStore(captured: CapturedUpdate[]): typeof useEntityStore {
+function makeStore(captured: CapturedUpdate[]): UnitsStore {
   const update = mock(async (type: string, id: string, patch: Record<string, unknown>) => {
     captured.push({ type, id, patch })
     // The hook ignores update()'s resolved value; echo the patch back typed
@@ -346,7 +346,7 @@ describe('useCargo — dispatches reduce against a fresh read', () => {
           for (const u of ops.updates ?? []) await update(u.type, u.id, u.patch)
         }
       ),
-    }) as typeof useEntityStore
+    }) as UnitsStore
 
     const { result } = renderHook(() => useCargo({ mech, crawler: null, store }))
 
@@ -372,7 +372,7 @@ describe('useCargo — dispatches reduce against a fresh read', () => {
       transfer: mock(async () => {
         throw new Error('schema parse failed')
       }),
-    }) as typeof useEntityStore
+    }) as UnitsStore
 
     const { result } = renderHook(() => useCargo({ mech, crawler: null, store }))
 

@@ -8,11 +8,11 @@ import { PRODUCT } from 'game-domain/product'
 import { useEffect, useRef } from 'react'
 import { toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarterCrew } from '../../lib/starterSet/copyStarter'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 
 /** The search that asks the page to offer the crew copy on arrival. */
 export const COPY_CREW_SEARCH = 'crew'
@@ -44,11 +44,11 @@ export function confirmCopyCrew(confirm: Confirm, target: Destination) {
  * control signs in and comes back here.
  */
 export function useCopyCrewOnArrival(copy: string | undefined, confirm: Confirm) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const offered = useRef(false)
   useEffect(() => {
-    if (offered.current || copy !== COPY_CREW_SEARCH || mode !== 'connected') return
+    if (offered.current || copy !== COPY_CREW_SEARCH || status !== 'live') return
     offered.current = true
     confirmCopyCrew(confirm, { container: SHELF, label: PRODUCT.build })
-  }, [copy, mode, confirm])
+  }, [copy, status, confirm])
 }

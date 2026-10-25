@@ -24,8 +24,8 @@ import { failureMessage } from '../../lib/connection/useServerAction'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { buildShelvesCopy } from '../../messages/build-shelves'
-import { useEntityStore } from '../../stores/entityStore'
-import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
+import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
 
@@ -74,7 +74,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
     const { type, id, entity } = subject
     onClose()
     const move = async (to: Container) => {
-      await useEntityStore.getState().update(type, id, moveTo(to), CONTAINER_MOVE)
+      await useUnits.getState().update(type, id, moveTo(to), CONTAINER_MOVE)
       toast.success(buildShelvesCopy('movedTo', { name: entity.name, label }))
     }
     requestMove({

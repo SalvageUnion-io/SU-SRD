@@ -24,10 +24,10 @@ import {
   tokens,
   useCopied,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 
 type CopyInviteLinkProps = {
   gameId: Id<'games'>
@@ -87,8 +87,8 @@ function ConnectedCopyInviteLink({
 }
 
 export function CopyInviteLink(props: CopyInviteLinkProps) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedCopyInviteLink {...props} />
 }
 
@@ -124,7 +124,7 @@ function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
 
 /** "Reset link": a new invite URL, and the old one stops working. Connected only. */
 export function ResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedResetInviteLink gameId={gameId} />
 }

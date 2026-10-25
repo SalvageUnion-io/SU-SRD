@@ -220,7 +220,7 @@ test.describe('signed in: what a player keeps', { tag: '@pr' }, () => {
   /**
    * What is kept (ADR-058): the device copy. An offline reload boots the
    * precached shell, and the player's own sheets come back from the copy
-   * `ShelfSync` saved, read-only under the NOT CONNECTED banner; with the
+   * `ConvexFeed` saved, read-only under the NOT CONNECTED banner; with the
    * connection back the sheet is editable again.
    */
   test.describe(() => {

@@ -18,7 +18,7 @@ import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { openInSearcher, pickInSearcher } from '../../../components/__tests__/searcherPick'
 import { ToasterMount, toast } from '../../../components/index'
-import { WIZARD_TXN } from '../../../stores/surfaceProvenance'
+import { WIZARD_TXN } from '../../../replica/provenance'
 import { CrawlerTypeEditModal } from '../CrawlerTypeEditModal'
 
 const CRAWLER = crawlerFixture({

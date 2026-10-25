@@ -8,8 +8,8 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { npcFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -17,17 +17,16 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { NpcSheet } = await import('../NpcSheet')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 const KESSLER = npcFixture({
@@ -53,7 +52,7 @@ async function openMenu() {
 async function renderSheet(props: Partial<Parameters<typeof NpcSheet>[0]> = {}) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <NpcSheet
           npc={KESSLER}
           madeBy="alxjrvs"
@@ -61,18 +60,18 @@ async function renderSheet(props: Partial<Parameters<typeof NpcSheet>[0]> = {}) 
           confirm={() => undefined}
           {...props}
         />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
 
 beforeEach(async () => {
-  useEntityStore.setState({
+  useUnits.setState({
     npcs: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   // Into the cache the way a synced row arrives, so an edit has a record to merge onto.
-  await useEntityStore.getState().adopt('npc', KESSLER)
+  await useUnits.getState().adopt('npc', KESSLER)
   setQueryAnswers({ 'games:listMine': [] })
 })
 
@@ -166,6 +165,6 @@ describe('edits', () => {
       fireEvent.change(input, { target: { value: 'Hold the line.' } })
       fireEvent.keyDown(input, { key: 'Enter' })
     })
-    await waitFor(() => expect(useEntityStore.getState().npcs[0]?.motto).toBe('Hold the line.'))
+    await waitFor(() => expect(useUnits.getState().npcs[0]?.motto).toBe('Hold the line.'))
   })
 })

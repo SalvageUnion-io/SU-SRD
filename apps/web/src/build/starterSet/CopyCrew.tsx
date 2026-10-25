@@ -20,9 +20,9 @@ import { SHELF } from 'game-domain/container'
 import { api } from '../../../convex/_generated/api'
 import { HeaderMenu } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 import { COPY_CREW_SEARCH, confirmCopyCrew } from './useCopyCrewOnArrival'
@@ -51,8 +51,8 @@ function ConnectedCopyCrew({ confirm }: { confirm: Confirm }) {
 }
 
 export function CopyCrew({ confirm }: { confirm: Confirm }) {
-  const { mode } = useConnection()
-  if (mode === 'solo') {
+  const { status } = useSync()
+  if (status === 'signedOut') {
     return (
       <SignInControl
         label={buildStarterSetCopy('signInToCopyTheCrew')}
@@ -61,6 +61,6 @@ export function CopyCrew({ confirm }: { confirm: Confirm }) {
       />
     )
   }
-  if (mode !== 'connected') return null
+  if (status !== 'live') return null
   return <ConnectedCopyCrew confirm={confirm} />
 }

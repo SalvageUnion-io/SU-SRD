@@ -6,6 +6,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { displayNameOf } from '../account'
 import { loadLogged, logIdOf } from './entities'
 import { entityNameOf } from './entityName'
+import { PROPOSAL_SOURCE } from './opTables'
 import { applyToRow } from './opWrites'
 import { NotAuthorized, requireMediator, requireUser } from './permissions'
 import { literalUnion } from './validators'
@@ -160,7 +161,7 @@ export async function propose(
     author: membership.userId,
     at: Date.now(),
     kind: 'transaction',
-    source: 'mediator-proposal',
+    source: PROPOSAL_SOURCE,
     state: 'proposed',
     patch: { [args.field]: args.after },
     before: null,
@@ -202,7 +203,7 @@ export async function sent(
   const requested = Number.isFinite(limit) ? Math.floor(limit ?? 20) : 20
   const ops = await ctx.db
     .query('ops')
-    .withIndex('by_game_source_at', (q) => q.eq('gameId', gameId).eq('source', 'mediator-proposal'))
+    .withIndex('by_game_source_at', (q) => q.eq('gameId', gameId).eq('source', PROPOSAL_SOURCE))
     .order('desc')
     .take(Math.min(Math.max(requested, 1), MAX_SENT))
   const names = new Map<string, string>()
@@ -233,9 +234,10 @@ async function answerable(ctx: MutationCtx, opId: string, verb: string) {
   const op = await ctx.db
     .query('ops')
     .withIndex('by_op_id', (q) => q.eq('opId', opId))
+    .filter((q) => q.eq(q.field('source'), PROPOSAL_SOURCE))
     .first()
   const kind = op === null ? null : proposableKind(op)
-  if (op === null || kind === null || op.source !== 'mediator-proposal') return null
+  if (op === null || kind === null) return null
   if (op.state !== 'proposed') return { op, kind, doc: null, userId }
   const { doc } = await requireTarget(ctx, kind, op.unitId)
   if (doc.ownerId !== userId) throw new NotAuthorized(`Only the owner can ${verb} this`)
@@ -294,7 +296,7 @@ export async function copyLegacyProposals(
   const page = await ctx.db
     .query('changeLog')
     .filter((q) =>
-      q.and(q.eq(q.field('state'), 'proposed'), q.eq(q.field('source'), 'mediator-proposal'))
+      q.and(q.eq(q.field('state'), 'proposed'), q.eq(q.field('source'), PROPOSAL_SOURCE))
     )
     .paginate({ cursor, numItems: 100 })
   let copied = 0

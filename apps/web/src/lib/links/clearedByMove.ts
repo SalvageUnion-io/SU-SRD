@@ -4,7 +4,7 @@
  *
  * A move prunes every link whose other end would sit in a different container
  * (`linksBrokenByMove` in `linkRules.ts`). The store does that after the move
- * commits (`pruneLinksAfterMove` in `stores/entityStore.ts`); a confirm has to
+ * commits (`update` in `replica/units.ts`); a confirm has to
  * say it before. Both go through {@link linksClearedByMove}, over the same held
  * entities and links, so a dialog can never name a different set from the one
  * the store then drops.

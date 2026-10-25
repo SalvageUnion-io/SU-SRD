@@ -8,8 +8,8 @@
  */
 
 import { useEffect, useState } from 'react'
-import type { EntityType } from '../../stores/entityStore'
-import { useEntityStore } from '../../stores/entityStore'
+import type { EntityType } from '../../replica/units'
+import { useUnits } from '../../replica/units'
 
 /**
  * "No error yet" sentinel. A plain `null`/`undefined` can't be used: a hydrator
@@ -58,7 +58,7 @@ export function useHydrateOnMount(hydrate: () => Promise<unknown>): boolean {
 
 export function useHydrateEntities(types: readonly EntityType[]): boolean {
   return useHydrateOnMount(() => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     return Promise.all(types.map((type) => store.hydrate(type)))
   })
 }

@@ -12,22 +12,22 @@ import type { HeaderMenuItem } from '../../components/index'
 import { Button, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
 import { encounterChips, encounterReading } from '../../lib/shelves/shelfItems'
 import { buildPrepCopy } from '../../messages/build-prep'
-import { usePrepStore } from '../../stores/prepStore'
+import { useEncounters } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
 import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.model'
 import { Shelf } from './Shelf'
 import { ShelfItem } from './ShelfItem'
 
 export function EncounterShelf({ confirm }: { confirm: Confirm }) {
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
   const go = useGo()
-  const hydrated = useHydrateOnMount(() => usePrepStore.getState().hydrate())
-  const encounters = usePrepStore((s) => s.encounters)
+  const hydrated = useHydrateOnMount(() => useEncounters.getState().hydrate())
+  const encounters = useEncounters((s) => s.encounters)
 
   /** Write verbs exist only where a write could land. */
   const writable = (run: () => void): (() => void) | undefined => (canWrite ? run : undefined)
@@ -43,7 +43,7 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
             confirm({
               ...ROW_ACTION_COPY.copyOnShelf(encounter.name),
               onConfirm: async () => {
-                const created = await usePrepStore.getState().create(encounterCopy(encounter))
+                const created = await useEncounters.getState().create(encounterCopy(encounter))
                 toast.success(`Made ${created.name}.`)
               },
             })
@@ -58,7 +58,7 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
           onSelect: writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(encounter.name),
-              onConfirm: () => usePrepStore.getState().delete(encounter.id),
+              onConfirm: () => useEncounters.getState().delete(encounter.id),
             })
           ),
         },
@@ -67,7 +67,7 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
   }
 
   async function newEncounter() {
-    const created = await usePrepStore.getState().create(blankEncounter())
+    const created = await useEncounters.getState().create(blankEncounter())
     go(encounterHref(created.id))
   }
 

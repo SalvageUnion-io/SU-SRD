@@ -4,7 +4,7 @@
  * and nothing mutates the store.
  */
 
-import type { EntityForType, EntityType } from '../../stores/types'
+import type { EntityForType, EntityType } from '../../replica/types'
 
 /**
  * The freshest record for a control action: rapid actions (or another tab's

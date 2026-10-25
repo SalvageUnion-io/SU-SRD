@@ -1,0 +1,7 @@
+---
+import { patternPage as module } from '../../../../../src/reference/pages/[schemaId]/[itemId]/pattern/[patternId].page'
+import Page from '../../../../layouts/Page.astro'
+import { pagePaths, renderReference } from '../../../../lib/reference'
+export const getStaticPaths = () => pagePaths(module)
+---
+<Page doc={renderReference(module, Astro.params, Astro.props.page)} />

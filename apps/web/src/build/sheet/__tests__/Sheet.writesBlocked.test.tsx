@@ -18,8 +18,8 @@ import {
   makeEntityLookupMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { ConnectionContext } from '../../../lib/connection/connectionContext'
+import type { SyncState } from '../../../replica/syncContext'
+import { SyncContext } from '../../../replica/syncContext'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -41,45 +41,41 @@ const fakePilot: Pilot = {
   updatedAt: FIXTURE_NOW,
 }
 
-function renderSheetIn(state: ConnectionState) {
+function renderSheetIn(state: SyncState) {
   return render(
-    <ConnectionContext.Provider value={state}>
+    <SyncContext.Provider value={state}>
       <Sheet
         kind="pilot"
         id="pilot-1"
         entityStore={makeEntityLookupMock([fakePilot])}
         softLinkStore={makeSoftLinkStoreMock([])}
       />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
-const DISCONNECTED: ConnectionState = {
-  mode: 'disconnected',
+const DISCONNECTED: SyncState = {
+  status: 'offline',
   canWrite: false,
-  showDisconnectedWarning: true,
-  settling: false,
+  outdated: false,
 }
 
-const SOLO: ConnectionState = {
-  mode: 'solo',
+const SOLO: SyncState = {
+  status: 'signedOut',
   canWrite: false,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
-const CONNECTING: ConnectionState = {
-  mode: 'connecting',
+const CONNECTING: SyncState = {
+  status: 'syncing',
   canWrite: false,
-  showDisconnectedWarning: false,
-  settling: true,
+  outdated: false,
 }
 
 describe('Sheet — writes blocked by connectivity', () => {

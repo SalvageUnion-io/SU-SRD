@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Destroyed-undo toast tests.
  *
@@ -14,7 +15,6 @@ import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { ToasterMount, toast } from '../../../components/index'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
 // A mounting Toaster replays every toast still active, including ones other
@@ -61,7 +61,7 @@ const fakeChassis = {
 
 type CapturedUpdate = { id: string; patch: Partial<Mech> }
 
-function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
+function makeStore(mech: Mech, captured: CapturedUpdate[]): UnitsStore {
   let current = mech
   const updateMock = mock(async (_type: string, id: string, patch: Partial<Mech>) => {
     captured.push({ id, patch })

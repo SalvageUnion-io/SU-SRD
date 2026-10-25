@@ -11,9 +11,9 @@ import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import { MechSchema } from 'game-domain/schemas/mech'
 import { PilotSchema } from 'game-domain/schemas/pilot'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { useUnits } from '../../../replica/units'
 import { createBlank } from '../blankCreate'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -27,7 +27,7 @@ describe('createBlank — where it lands', () => {
     const pilot = await createBlank('pilot', { name: 'Kestrel', callsign: 'K' }, { gameId: 'g1' })
     const mech = await createBlank('mech', { name: 'Buzzard' }, { gameId: 'g1' })
     const crawler = await createBlank('crawler', { name: 'Iron Mother' }, { gameId: 'g1' })
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     expect(store.get('pilot', pilot)?.gameId).toBe('g1')
     expect(store.get('mech', mech)?.gameId).toBe('g1')
     expect(store.get('crawler', crawler)?.gameId).toBe('g1')
@@ -38,7 +38,7 @@ describe('createBlank — pilot', () => {
   test('without a class pick: persists a schema-valid pilot with empty classRef', async () => {
     const id = await createBlank('pilot', { name: 'Rook Halden', callsign: 'Static' })
 
-    const pilot = useEntityStore.getState().get('pilot', id)
+    const pilot = useUnits.getState().get('pilot', id)
     expect(pilot).toBeTruthy()
     expect(() => PilotSchema.parse(pilot)).not.toThrow()
     expect(pilot?.name).toBe('Rook Halden')
@@ -59,7 +59,7 @@ describe('createBlank — pilot', () => {
       classRef: anyClass.id,
     })
 
-    const pilot = useEntityStore.getState().get('pilot', id)
+    const pilot = useUnits.getState().get('pilot', id)
     expect(() => PilotSchema.parse(pilot)).not.toThrow()
     expect(pilot?.classRef).toBe(anyClass.id)
   })
@@ -69,7 +69,7 @@ describe('createBlank — mech', () => {
   test('without a chassis pick: persists a schema-valid mech with empty chassisRef', async () => {
     const id = await createBlank('mech', { name: 'Unnamed Hulk' })
 
-    const mech = useEntityStore.getState().get('mech', id)
+    const mech = useUnits.getState().get('mech', id)
     expect(mech).toBeTruthy()
     expect(() => MechSchema.parse(mech)).not.toThrow()
     expect(mech?.name).toBe('Unnamed Hulk')
@@ -85,7 +85,7 @@ describe('createBlank — mech', () => {
   test('with a chassis pick (any TL, no scrap cost): seeds full SP/EP from the chassis', async () => {
     const id = await createBlank('mech', { name: 'Dust Mule', chassisRef: 'mule' })
 
-    const mech = useEntityStore.getState().get('mech', id)
+    const mech = useUnits.getState().get('mech', id)
     expect(() => MechSchema.parse(mech)).not.toThrow()
     expect(mech?.chassisRef).toBe('mule')
 
@@ -100,7 +100,7 @@ describe('createBlank — crawler', () => {
   test('defaults to Tech Level 1 with bare stats and the seeded SRD bay set', async () => {
     const id = await createBlank('crawler', { name: 'The Long Haul' })
 
-    const crawler = useEntityStore.getState().get('crawler', id)
+    const crawler = useUnits.getState().get('crawler', id)
     expect(crawler).toBeTruthy()
     expect(() => CrawlerSchema.parse(crawler)).not.toThrow()
     expect(crawler?.name).toBe('The Long Haul')
@@ -119,7 +119,7 @@ describe('createBlank — crawler', () => {
   test('honours a Tech Level pick 1–6 and derives that level’s stats', async () => {
     const id = await createBlank('crawler', { name: 'Towertown', techLevel: 3 })
 
-    const crawler = useEntityStore.getState().get('crawler', id)
+    const crawler = useUnits.getState().get('crawler', id)
     expect(() => CrawlerSchema.parse(crawler)).not.toThrow()
     expect(crawler?.techLevel).toBe('tech-3')
     // TL3 Town Crawler = 30 SP per crawler-tech-levels.json.

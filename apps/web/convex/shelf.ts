@@ -280,7 +280,7 @@ export const removeEncounterNpc = mutation({
 })
 
 /**
- * The caller's encounters (ADR-059), for `EncounterSync` to bring down. Bodies
+ * The caller's encounters (ADR-059), for `ConvexFeed` to bring down. Bodies
  * only, as `entities.listMine` serves patterns: each is addressed by the id
  * inside it, and versioned by its own `updatedAt`.
  */

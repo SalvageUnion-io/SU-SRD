@@ -39,10 +39,10 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { units, useUnits } from '../../../replica/units'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../../crawlerRefs'
 import { seedDefaultCrawlerBays } from '../../wizard/crawlerFormState'
 import { copyStarter, copyStarterCrew } from '../copyStarter'
@@ -256,7 +256,7 @@ describe('Starter Set — copying a template', () => {
   test('lands in your shelves as a build of the player’s own, and parses', async () => {
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
 
-    const [stored] = useEntityStore.getState().list('pilot')
+    const [stored] = useUnits.getState().list('pilot')
     expect(stored?.id).toBe(copied.id)
     expect(stored?.name).toBe(pilotTemplate.name)
     expect(stored?.gameId).toBeNull()
@@ -265,7 +265,7 @@ describe('Starter Set — copying a template', () => {
 
   test('lands in the Game the player chose', async () => {
     await copyStarter('mech', STARTER_MECHS[0]?.id as string, { kind: 'game', gameId: 'g1' })
-    const [stored] = useEntityStore.getState().list('mech')
+    const [stored] = useUnits.getState().list('mech')
     expect(stored?.gameId).toBe('g1')
   })
 
@@ -282,14 +282,13 @@ describe('Starter Set — copying a template', () => {
     expect(first.id).not.toBe(pilotTemplate.id)
     expect(first.id).not.toBe(second.id)
     expect(first.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i)
-    for (const row of useEntityStore.getState().list('pilot'))
-      expect(row.seedRef).toBe(pilotTemplate.id)
+    for (const row of useUnits.getState().list('pilot')) expect(row.seedRef).toBe(pilotTemplate.id)
   })
 
   test('leaves the template exactly as it was', async () => {
     const before = structuredClone(pilotTemplate)
     const copied = await copyStarter('pilot', pilotTemplate.id, SHELF)
-    await useEntityStore
+    await useUnits
       .getState()
       .update('pilot', copied.id, { name: 'Renamed', currentHP: 1 }, LIVE_SHEET_MANUAL)
 
@@ -298,7 +297,7 @@ describe('Starter Set — copying a template', () => {
 
   test('copies nothing that is not in the Starter Set', async () => {
     await expect(copyStarter('pilot', 'not-a-template', SHELF)).rejects.toThrow(/no Starter Set/)
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(0)
+    expect(useUnits.getState().list('pilot')).toHaveLength(0)
   })
 })
 
@@ -308,7 +307,7 @@ describe('copyStarterCrew — the whole crew in one go', () => {
 
   test('copies every build into the container, linked as the box links them', async () => {
     const result = await copyStarterCrew({ kind: 'game', gameId: 'g1' })
-    const state = useEntityStore.getState()
+    const state = useUnits.getState()
     const pilots = state.list('pilot')
     const mechs = state.list('mech')
     const crawlers = state.list('crawler')
@@ -347,26 +346,24 @@ describe('copyStarterCrew — the whole crew in one go', () => {
    * time beside the leftovers.
    */
   test('a refusal part way leaves nothing behind, so a retry copies the crew once', async () => {
-    const real = useEntityStore.getState().create
+    const real = units.create
     let mechs = 0
-    useEntityStore.setState({
-      create: ((type, data) =>
-        type === 'mech' && ++mechs === 2
-          ? Promise.reject(new Error('refused'))
-          : real(type, data)) as typeof real,
-    })
+    units.create = ((type, data) =>
+      type === 'mech' && ++mechs === 2
+        ? Promise.reject(new Error('refused'))
+        : real(type, data)) as typeof real
     try {
       await expect(copyStarterCrew(SHELF)).rejects.toThrow('refused')
     } finally {
-      useEntityStore.setState({ create: real })
+      units.create = real
     }
-    const state = useEntityStore.getState()
+    const state = useUnits.getState()
     expect(state.list('pilot')).toHaveLength(0)
     expect(state.list('mech')).toHaveLength(0)
     expect(state.list('crawler')).toHaveLength(0)
     expect(state.softLinks).toHaveLength(0)
 
     await copyStarterCrew(SHELF)
-    expect(useEntityStore.getState().list('pilot')).toHaveLength(STARTER_PILOTS.length)
+    expect(useUnits.getState().list('pilot')).toHaveLength(STARTER_PILOTS.length)
   })
 })

@@ -6,14 +6,18 @@
  * resolved against that user's account and memberships.
  *
  * It answers from the shared database once the cutover has filled it, with
- * the same wire bodies `/bot/*` sends (`game-domain/botWire`). Until then, and
- * for the ops whose data lives in the rooms (`sheet`, `mine`, `bindChannel`,
- * `unbindChannel`), it answers null and the bot asks Convex as before.
+ * the same wire bodies `/bot/*` sends (`game-domain/botWire`); `sheet` and
+ * `mine` read the rooms (`./botSheets.ts`). Until then, or when a room
+ * cannot answer, it answers null and the bot asks Convex as before. A sheet
+ * from the rooms carries no `vitals` yet, so the bot shows current values
+ * without their maxima.
  */
 
-import { WorkerEntrypoint } from 'cloudflare:workers'
+import { exports, WorkerEntrypoint } from 'cloudflare:workers'
 import { botDenial } from 'game-domain/botDenials'
 import type {
+  BindChannelArgs,
+  BindChannelResult,
   BotFailure,
   BotFeedbackArgs,
   BotFeedbackResult,
@@ -23,13 +27,23 @@ import type {
   BotUsageResult,
   GamesResult,
   MeResult,
+  UnbindChannelResult,
 } from 'game-domain/botWire'
+import type { SheetTable } from 'game-domain/entityKinds'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
+import type { BotRooms } from './botSheets'
+import { mine, sheet } from './botSheets'
 import { accountByDiscordId } from './shared/accounts'
+import {
+  bindChannel,
+  CHANNEL_NOT_FOUND,
+  GAME_NOT_FOUND,
+  unbindChannel,
+} from './shared/channelBindings'
 import type { SharedDb } from './shared/db'
 import { isFilled } from './shared/db'
 import { acceptFeedback } from './shared/feedback'
-import { gamesOf } from './shared/games'
+import { gamesOf, membershipOf } from './shared/games'
 import { bumpUsage, touchGuild } from './shared/signals'
 
 type GatewayEnv = { SHARED?: SharedDb }
@@ -81,13 +95,56 @@ async function feedback(db: SharedDb, args: BotFeedbackArgs): Promise<BotFeedbac
 }
 
 /**
+ * The Game a `/su bind` option names among the account's own: the id the
+ * autocomplete sends, or a name typed by hand (any case); null for neither.
+ */
+async function callerGame(db: SharedDb, accountId: string, raw: string): Promise<string | null> {
+  const text = raw.trim()
+  if ((await membershipOf(db, text, accountId)) !== null) return text
+  const named = (await gamesOf(db, accountId)).find(
+    (game) => game.name.trim().toLowerCase() === text.toLowerCase()
+  )
+  return named?.gameId ?? null
+}
+
+async function bind(
+  db: SharedDb,
+  args: BindChannelArgs
+): Promise<BotFailure | BotSuccess<BindChannelResult>> {
+  const account = await accountByDiscordId(db, args.discordId)
+  if (account === null) return botDenial('unlinked')
+  const channelId = args.channelId.trim()
+  if (channelId.length === 0) return botDenial('not-found', CHANNEL_NOT_FOUND)
+  let gameId: string | null = null
+  if (args.game !== undefined && args.game.trim().length > 0) {
+    gameId = await callerGame(db, account.account_id, args.game)
+    if (gameId === null) return botDenial('not-found', GAME_NOT_FOUND)
+  }
+  return bindChannel(db, account.account_id, {
+    channelId,
+    gameId,
+    channelName: args.channelName ?? null,
+  })
+}
+
+async function unbind(
+  db: SharedDb,
+  args: { discordId: string; channelId: string }
+): Promise<BotFailure | BotSuccess<UnbindChannelResult>> {
+  const account = await accountByDiscordId(db, args.discordId)
+  if (account === null) return botDenial('unlinked')
+  return unbindChannel(db, account.account_id, args.channelId.trim())
+}
+
+/**
  * One op's answer as `/bot/<op>` would send it, or null for "ask Convex":
  * the database is not filled yet, or the op's data is not here.
  */
 export async function answerBot(
   db: SharedDb | undefined,
   op: BotOpName,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  rooms?: BotRooms
 ): Promise<BotAnswer | null> {
   if (!db || !(await isFilled(db))) return null
   switch (op) {
@@ -99,14 +156,49 @@ export async function answerBot(
       return usage(db, args as BotUsageArgs)
     case 'feedback':
       return feedback(db, args as BotFeedbackArgs)
-    default:
-      return null
+    case 'bindChannel':
+      return bind(db, args as BindChannelArgs)
+    case 'unbindChannel':
+      return unbind(db, args as { discordId: string; channelId: string })
+    case 'mine':
+      return rooms ? fromRooms(() => mine(db, rooms, String(args.discordId))) : null
+    case 'sheet':
+      return rooms
+        ? fromRooms(() =>
+            sheet(db, rooms, args as { discordId: string; table: SheetTable; entityId: string })
+          )
+        : null
+  }
+}
+
+/**
+ * A room read, or null when a room cannot answer it (a room from before it
+ * held units, or one that throws), so the bot falls back rather than failing.
+ */
+async function fromRooms(read: () => Promise<BotAnswer>): Promise<BotAnswer | null> {
+  try {
+    return await read()
+  } catch {
+    return null
+  }
+}
+
+/** The rooms, as this Worker exports them (`wrangler.jsonc` `exports`). */
+function workerRooms(): BotRooms {
+  const named = exports as unknown as Record<
+    'AccountRoom' | 'GameRoom',
+    { getByName(name: string): unknown }
+  >
+  return {
+    account: (discordId) =>
+      named.AccountRoom.getByName(discordId) as ReturnType<BotRooms['account']>,
+    game: (gameId) => named.GameRoom.getByName(gameId) as ReturnType<BotRooms['game']>,
   }
 }
 
 /** @public Loaded by workerd: the bot's binding names it as its `entrypoint`. */
 export class BotGateway extends WorkerEntrypoint<GatewayEnv> {
   answer(op: BotOpName, args: Record<string, unknown>): Promise<BotAnswer | null> {
-    return answerBot(this.env.SHARED, op, args)
+    return answerBot(this.env.SHARED, op, args, workerRooms())
   }
 }

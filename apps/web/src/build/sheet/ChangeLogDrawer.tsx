@@ -27,8 +27,8 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { useSync } from '../../replica/syncContext'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -131,10 +131,10 @@ export function ChangeLogDrawer({
   open,
   onOpenChange,
 }: ChangeLogDrawerProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   // Whether the entries MOUNT: they read Convex, so they render only on a live
   // connection — as the Share dialog's live panel does.
-  const live = mode === 'connected'
+  const live = status === 'live'
 
   return (
     <ModalShell

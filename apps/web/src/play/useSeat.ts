@@ -30,9 +30,9 @@ import { useMutation, useQuery } from 'convex/react'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 
 /** What Play reads off a seat. */
 export type SeatView = {
@@ -127,7 +127,7 @@ export type SeatAddress = {
  * on whichever answer holds it (`forGame` or `solo`).
  */
 export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
-  const signedIn = isSignedIn(useConnection().mode)
+  const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
   const soloSeat = gameId === null
 

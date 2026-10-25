@@ -28,8 +28,8 @@ const convexMocks = await installConvexMocks({
 })
 
 const { CopyInviteLink, ResetInviteLink } = await import('../CopyInviteLink')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const copied: string[] = []
 
@@ -41,7 +41,7 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
   convexMocks.restore()
 })
 
@@ -49,14 +49,14 @@ async function renderButton(): Promise<HTMLElement> {
   let container: HTMLElement | undefined
   await act(async () => {
     container = render(
-      <ConnectionProvider>
+      <SyncProvider>
         <CopyInviteLink
           gameId={'g1' as never}
           clipboardWriter={async (text) => {
             copied.push(await text)
           }}
         />
-      </ConnectionProvider>
+      </SyncProvider>
     ).container
   })
   if (container === undefined) throw new Error('nothing rendered')
@@ -85,9 +85,9 @@ describe('Reset link', () => {
   async function openConfirm(): Promise<void> {
     await act(async () => {
       render(
-        <ConnectionProvider>
+        <SyncProvider>
           <ResetInviteLink gameId={'g1' as never} />
-        </ConnectionProvider>
+        </SyncProvider>
       )
     })
     await act(async () => {

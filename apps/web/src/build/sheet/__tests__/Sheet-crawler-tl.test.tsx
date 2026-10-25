@@ -12,9 +12,9 @@ const convexMocks = await installConvexMocks({
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
 
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
+const { useUnits } = await import('../../../replica/units')
 const { Sheet } = await import('../Sheet')
 
 afterAll(() => {
@@ -43,7 +43,7 @@ function bandOf(): HTMLElement {
 
 describe('Crawler sheet — TL in the head', () => {
   test('Read: the band carries TL, the identity body does not', async () => {
-    const crawler = await useEntityStore.getState().create('crawler', crawlerInput)
+    const crawler = await useUnits.getState().create('crawler', crawlerInput)
     await act(async () => {
       render(<Sheet kind="crawler" id={crawler.id} readOnly />)
     })
@@ -55,7 +55,7 @@ describe('Crawler sheet — TL in the head', () => {
   })
 
   test('Edit: the TL chip steps the stored rung', async () => {
-    const crawler = await useEntityStore.getState().create('crawler', crawlerInput)
+    const crawler = await useUnits.getState().create('crawler', crawlerInput)
     await act(async () => {
       render(<Sheet kind="crawler" id={crawler.id} />)
     })
@@ -65,7 +65,7 @@ describe('Crawler sheet — TL in the head', () => {
       fireEvent.click(within(bandOf()).getByRole('button', { name: 'Increase Tech Level' }))
     })
     await waitFor(() =>
-      expect(useEntityStore.getState().get('crawler', crawler.id)?.techLevel).toBe('tech-3')
+      expect(useUnits.getState().get('crawler', crawler.id)?.techLevel).toBe('tech-3')
     )
   })
 })
