@@ -131,13 +131,16 @@ type Batch = { ops: readonly OpInput[]; settle: (refusal: Error | null) => void 
 /** A room this tab holds open, to send its ops. */
 type Room = { submit(ops: readonly OpInput[]): Promise<void> }
 
-/** The open rooms, by Game id; the account room under `ACCOUNT`. */
+/**
+ * The open Game rooms, by Game id. The account room is not one yet: it
+ * takes ops only once its socket signs in at the Worker, so a Shelf unit
+ * still writes through Convex.
+ */
 const open = new Map<string, Room>()
-const ACCOUNT = '' as const
 
 /** The room a unit in `gameId` (null: on the Shelf) is written through, while its socket is open. */
 export function roomOf(gameId: string | null): Room | null {
-  return open.get(gameId ?? ACCOUNT) ?? null
+  return gameId === null ? null : (open.get(gameId) ?? null)
 }
 
 /** A batch the room declined: its reason is the refusal the player is shown. */
@@ -178,7 +181,7 @@ export function openRoom(
     socket = new WebSocket(url.href, [ROOM_PROTOCOL, token])
     socket.onopen = () => {
       attempt = 0
-      open.set(gameId ?? ACCOUNT, room)
+      if (gameId !== null) open.set(gameId, room)
       for (const batch of waiting.values()) send(batch.ops)
     }
     socket.onmessage = (event) => {
@@ -195,7 +198,7 @@ export function openRoom(
       else foldRoomMessage(scope, data)
     }
     socket.onclose = () => {
-      if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
+      if (gameId !== null && open.get(gameId) === room) open.delete(gameId)
       if (closed) return
       retry = setTimeout(connect, RETRY_MS[Math.min(attempt++, RETRY_MS.length - 1)])
     }
@@ -216,7 +219,7 @@ export function openRoom(
   return () => {
     closed = true
     clearTimeout(retry)
-    if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
+    if (gameId !== null && open.get(gameId) === room) open.delete(gameId)
     socket?.close(1000)
     // Nothing will answer these now: the edit fails as one made offline does,
     // rather than hang, and an outbox op stays queued for the next send.

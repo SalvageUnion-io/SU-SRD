@@ -216,6 +216,9 @@ describe('openRoom', () => {
     expect(socket.protocols).toEqual(['su-room', 'tok'])
     socket.says(snapshot([unit('pilot', pilotFixture({ id: 'p1' }), null)]))
     expect(ids(getView().pilots)).toEqual(['p1'])
+    socket.opens()
+    // It takes no ops yet: a Shelf unit still writes through Convex.
+    expect(roomOf(null)).toBeNull()
     close()
     socket.onclose?.()
     expect(socket.closedWith).toBe(1000)
