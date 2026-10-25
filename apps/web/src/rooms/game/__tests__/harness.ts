@@ -18,7 +18,7 @@ import { GameRoomLogic } from '../gameRoomLogic'
  * and invalid for a patch that sets `invalid`. The room's job is what it does
  * with the answer, which is what these suites test.
  */
-export const stubApplyOp: ApplyOp = (unit, op) => {
+const stubApplyOp: ApplyOp = (unit, op) => {
   if ('invalid' in op.patch) return { ok: false, reason: 'invalid', message: 'not a sheet field' }
   const fields = [...Object.keys(op.patch), ...(op.unset ?? [])]
   const base = op.baseSeq ?? unit.headSeq

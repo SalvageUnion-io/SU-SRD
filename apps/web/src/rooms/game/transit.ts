@@ -417,7 +417,7 @@ export class GameTransit {
 }
 
 /** A bundle op as the room keeps it: a superseded proposal is a declined one that names its successor. */
-export function importedOp(op: BundleOp): StoredOp {
+function importedOp(op: BundleOp): StoredOp {
   const { state, author, ...rest } = op
   return {
     ...rest,
@@ -428,7 +428,7 @@ export function importedOp(op: BundleOp): StoredOp {
 }
 
 /** JSON with sorted keys, so two bodies compare by content. */
-export function stable(value: unknown): string {
+function stable(value: unknown): string {
   return JSON.stringify(value, (_key, v) =>
     v !== null && typeof v === 'object' && !Array.isArray(v)
       ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
