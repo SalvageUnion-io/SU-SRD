@@ -18,6 +18,7 @@ import {
 import { resetDeviceCopyRestore, restoreDeviceCopy } from '../deviceCopyRestore'
 import { setEntityBackendAuthState } from '../entityBackend'
 import { useEntityStore } from '../entityStore'
+import { usePrepStore } from '../prepStore'
 import { resetStores } from './resetStores'
 
 const KEY = '__convexAuthJWT_httpslocalhost3210'
@@ -77,6 +78,32 @@ describe('restoreDeviceCopy', () => {
     expect(state.pilots.map((p) => p.name)).toEqual(['Kept On This Device'])
     expect(state.hydrated.pilots).toBe(true)
     expect(restorePending()).toBe(false)
+  })
+
+  test("the Mediator's encounters come back too", async () => {
+    const at = '2026-10-24T00:00:00.000Z'
+    const ambush = {
+      id: 'enc-offline',
+      schemaVersion: 1,
+      name: 'Ambush at the Scrap Yard',
+      opposition: [],
+      tables: [],
+      notes: '',
+      createdAt: at,
+      updatedAt: at,
+    }
+    holding({ ...copy(), encounters: [{ updatedAt: 5, body: ambush }] } as unknown as DeviceCopy)
+    await restoreDeviceCopy()
+    expect(usePrepStore.getState().encounters.map((e) => e.name)).toEqual([
+      'Ambush at the Scrap Yard',
+    ])
+    expect(usePrepStore.getState().hydrated).toBe(true)
+  })
+
+  test('a copy saved before encounters were kept restores without them', async () => {
+    holding(copy())
+    await restoreDeviceCopy()
+    expect(usePrepStore.getState().encounters).toEqual([])
   })
 
   test('a store waits for a pending restore, then reads its rows', async () => {

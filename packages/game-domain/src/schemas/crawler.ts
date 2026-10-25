@@ -9,6 +9,11 @@ import { ChoiceSelectionsSchema } from './pilot'
  * economy — 6 numbers"). Salvage deposits in; upkeep/craft/repair/trade
  * withdraw. SCRAP cargo lots crossing the crawler boundary deposit/withdraw
  * the matching bucket. Absent buckets read as 0.
+ *
+ * Beside the six Tech buckets sit the expansion resources, which are not
+ * Scrap of any Tech Level (`lib/rules/exoticSalvage.ts` holds their rules):
+ * Bio-Salvage (We Were Here First! p.61), Chimerium (WWHF p.9-10), and Inert
+ * and Active Meld Nanites (Core Book p.288, False Flag p.66).
  */
 const ScrapPoolSchema = z
   .object({
@@ -18,6 +23,10 @@ const ScrapPoolSchema = z
     tl4: z.number().int().min(0).optional(),
     tl5: z.number().int().min(0).optional(),
     tl6: z.number().int().min(0).optional(),
+    bio: z.number().int().min(0).optional(),
+    chimerium: z.number().int().min(0).optional(),
+    inertNanites: z.number().int().min(0).optional(),
+    activeNanites: z.number().int().min(0).optional(),
   })
   .strict()
 export type ScrapPool = z.infer<typeof ScrapPoolSchema>
@@ -141,7 +150,7 @@ export const CrawlerSchema = z
     // Shared party economy + cargo.
     // Absent reads as the documented default.
     // ---------------------------------------------------------------------------
-    /** Shared scrap pool bucketed by TL 1–6. Absent = all buckets 0. */
+    /** Shared scrap pool bucketed by TL 1–6, plus the expansion resources. Absent = all buckets 0. */
     scrapPool: ScrapPoolSchema.optional(),
     /**
      * Upgrade Pool progress: paid Upkeep accumulates here plus

@@ -116,6 +116,9 @@ function answer(name: string, args: Record<string, unknown>): unknown {
     // The Play bar's channel button: nothing bound.
     case 'channelBindings:current':
       return null
+    // The Stop Sign: none shown.
+    case 'safety:stopSign':
+      return null
     case 'account:me':
       return { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null }
     case 'entities:listForGame':

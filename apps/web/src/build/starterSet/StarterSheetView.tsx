@@ -1,10 +1,11 @@
 /**
- * StarterSheetView — one Starter Set build's sheet: the real `<Sheet>`, read
+ * StarterSheetView — one book crew's build's sheet (the Starter Set's or the
+ * Quickstart's): the real `<Sheet>`, read
  * only, over the templates themselves. Its band offers "Make a copy" in its
  * top-right corner, and says nothing else: the page is plainly the
  * Starter Set's, and a sheet with no edit controls is plainly read-only.
  *
- * The store is `makeReadOnlySheetStore` over the whole Starter Set, so the
+ * The store is `makeReadOnlySheetStore` over every book crew, so the
  * sheet resolves the build's mech, pilot and crawler from the same crew and its
  * rail links stay inside `/starter`. Every write that store is asked for throws,
  * and `readOnly` withdraws every edit affordance before one could be asked for:
@@ -14,27 +15,21 @@
 
 import { isSheetKind } from 'game-domain/entityKinds'
 import type { EntityRef } from 'game-domain/schemas/entity'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-  STARTER_SOFT_LINKS,
-} from 'game-domain/starterSet/starterSet'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { starterTemplate } from '../../lib/starterSet/starterTemplates'
+import { STARTER_ROSTERS, starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
 import { MakeACopy } from './MakeACopy'
 
-/** One store for every Starter Set sheet: the templates never change. */
+/** One store for every book crew's sheet: the templates never change, and their ids never collide. */
 const STARTER_STORE = makeReadOnlySheetStore({
-  pilots: [...STARTER_PILOTS],
-  mechs: [...STARTER_MECHS],
-  crawlers: [...STARTER_CRAWLERS],
+  pilots: STARTER_ROSTERS.flatMap((r) => r.pilots),
+  mechs: STARTER_ROSTERS.flatMap((r) => r.mechs),
+  crawlers: STARTER_ROSTERS.flatMap((r) => r.crawlers),
   npcs: [],
-  softLinks: [...STARTER_SOFT_LINKS],
+  softLinks: STARTER_ROSTERS.flatMap((r) => r.softLinks),
 })
 
 const starterHref = (kind: EntityRef['type'], id: string) => `/starter/${kind}/${id}`

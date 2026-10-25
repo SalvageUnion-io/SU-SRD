@@ -36,6 +36,7 @@ setQueryAnswers({
   'games:members': [],
   'entities:listForGame': null,
   'channelBindings:current': null,
+  'safety:stopSign': null,
   'games:get': null,
   'changeLog:rolls': [],
   'proposals:alerts': [],

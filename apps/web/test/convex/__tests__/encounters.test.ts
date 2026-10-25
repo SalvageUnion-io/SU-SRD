@@ -87,6 +87,22 @@ describe('encounters on a shelf', () => {
     expect(rows).toHaveLength(0)
   })
 
+  test('groups, waves and a briefing are kept; a group no one can join is refused', async () => {
+    const t = testConvex()
+    const mine = await makeUser(t, 'Mediator')
+    const grouped: Encounter = {
+      ...ambush(),
+      opposition: ambush().opposition.map((o) => ({ ...o, groupId: 'band' })),
+      groups: [{ id: 'band', name: 'Raider Band', wave: 2 }],
+      briefing: 'Smoke rises from the crusher.',
+    }
+    await mine.as.mutation(api.shelf.upsertEncounter, { body: grouped })
+    expect(await mine.as.query(api.shelf.encounters, {})).toEqual([{ body: grouped }])
+    await expect(
+      mine.as.mutation(api.shelf.upsertEncounter, { body: { ...grouped, groups: [] } })
+    ).rejects.toThrow(/invalid encounters payload/i)
+  })
+
   test('remove deletes only the caller’s own', async () => {
     const t = testConvex()
     const mine = await makeUser(t, 'Mediator')
@@ -128,6 +144,28 @@ describe('running an encounter in a Game', () => {
     })
     // A copy: the shelf encounter is as it was.
     expect(await mediator.as.query(api.shelf.encounters, {})).toEqual([{ body: ambush() }])
+  })
+
+  test('its briefing runs with it, and its groups stay on the shelf', async () => {
+    const t = testConvex()
+    const { mediator, gameId } = await seedMediatedGame(t)
+    await mediator.as.mutation(api.shelf.upsertEncounter, {
+      body: {
+        ...ambush(),
+        opposition: ambush().opposition.map((o) => ({ ...o, groupId: 'band' })),
+        groups: [{ id: 'band', name: 'Raider Band', wave: 1 }],
+        briefing: 'Smoke rises from the crusher.',
+      },
+    })
+    await mediator.as.mutation(api.mediator.runEncounter, {
+      gameId,
+      encounterId: 'enc-1',
+      clear: false,
+    })
+    const running = await mediator.as.query(api.mediator.running, { gameId })
+    expect(running).toMatchObject({ briefing: 'Smoke rises from the crusher.' })
+    const tray = await mediator.as.query(api.mediator.npcs, { gameId })
+    expect(tray.every((row) => !('groupId' in (row.body as object)))).toBe(true)
   })
 
   test('clear empties the tray first, and a second run replaces the running one', async () => {
