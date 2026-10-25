@@ -1,0 +1,15 @@
+# Entity card
+
+The Card and Page of a reference entity ([display](../ARCHITECTURE.md#display): ADR-010, ADR-026, ADR-028). Lists, prose and Peeks go through `apps/web/src/components/entity/` (the [entity display language](../design-system/entity-display-language.md)); these rules govern the Card and Page, and the card's and `Stat`'s tests hold them.
+
+1. **§1 One renderer** — `ReferenceEntityCard` (`components/referenceEntity/card/`) is the only renderer of a reference entity's Card and Page, with no compat shim: size is `size`, damage is `damaged`, stat overrides are `StatItem[]`.
+2. **§2 Layer UI on top** — Selection halos, controls, status cycles, steppers, choice pickers and the tech-level stepper are layered onto the card, never a substitute for it.
+3. **§3 Choices by data shape** — A `choice` content-block marker (`ContentBlock.choiceId`) places a choice inline in the body; change the data shape before special-casing the renderer. `ChoiceGroups` is uncontrolled on reference pages and controlled and persisted in the app; `readOnly` renders static text.
+    - Freeform choices (`source.kind: 'text'`, or no `source`) are inputs inline in the body: editable, a text field; read-only, the value as prose, or nothing when empty.
+    - Multiple-choice choices (`source.kind` `table` / `options` / `catalog` / `systemVariant`, or `cardinality.max` above one or `{ scalesWith }`) render inline in the body in both modes.
+    - Read-only choices render solid, every option at full strength. Dim-until-chosen is editable-only: the chosen option un-dims and gains a "Chosen" stampseal. Options are always `button[aria-pressed]`.
+4. **§4 The stat atom, no pips** — A `Stat` is the label-first `[label | value]` chip; `size` picks its rung. Editable stats grow a `+/-` stepper pair. A value/max tracker is the chip's `value /max` (a fill bar is `VitalGauge`); pips live only in `VitalGauge`.
+5. **§5 Modified stats** — A stat or trait cell a choice touched or tech-level scaling changed wears `Stat`'s `modified` state: a heavier solid ink frame (border plus a 1px ink ring), never rust (reserved for actions) and never a dash (edit state and homebrew). The value itself updates. Statblocks and `Stat` cells only, not `VitalGauge`.
+6. **§6 Effective tech level** — Granted, TL-scalable pilot equipment (Custom Sniper Rifle) resolves an effective tech level, `max(baseTL, scalingParent.techLevel ?? baseTL)`, which drives its Modification-choice cap (`cardinality.max.scalesWith: techLevel`) and any `perTechLevel` value (`resolveDataValueForTechLevel`), shown with the §5 frame. The card takes `scalingParent` (the crawler level in the app).
+7. **§7 Granted-only equipment is TL1** — Equipment that exists solely to be granted by an ability, with no standalone tech level, is authored at TL1 (the ability's tier is not its TL). Equipment with a standalone tech level keeps it.
+8. **§8 Partners render in place** — A partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.

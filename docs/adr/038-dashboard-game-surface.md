@@ -1,7 +1,7 @@
 # ADR-038: The Dashboard Is a Game Surface with Shared Play State
 
 Partly superseded by [ADR-051](051-play-mode.md): Play
-([play.md](../architecture/play.md)) is [ADR-021](021-cantina-surface-taxonomy.md)'s
+([play.md](../architecture/play.md)) is [ADR-021](../architecture/surfaces.md)'s
 Guided Play surface, replacing the Dashboard and the Mediator Dashboard (now
 Play's Mediator screen, `/play/game/$gameId`). ADR-051 supersedes §1
 (Game-only), §3 (the Major and Minor slots), §4 (the tabbed display), §5's
