@@ -1,5 +1,6 @@
 /**
- * The Cockpit's right column (`PlaySideColumn`, play.md §7–§9) against
+ * The Cockpit's end column (`PlayCrewSection`, `PlayerTablesAndFeed` over one
+ * `usePlaySide`, as `PlayCockpit` stacks them; play.md §7–§9) against
  * answered queries: the Crew's presence and attention lines and the sheet
  * they open, the Feed's order and Accept, the Tables' pinned rolls, and every
  * roll's Discord post (`channelBindings.postRoll`, mocked), its failure shown
@@ -43,7 +44,19 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { PlaySideColumn } = await import('../PlaySideColumn')
+const { PlayCrewSection, PlayerTablesAndFeed } = await import('../PlaySideColumn')
+const { usePlaySide } = await import('../usePlaySide')
+
+/** The end column as the Cockpit stacks it: the Crew, then the Tables and Feed. */
+function SideColumn({ target, play }: { target: PlayTarget; play: Play }) {
+  const side = usePlaySide({ target, play })
+  return (
+    <>
+      <PlayCrewSection target={target} play={play} side={side} />
+      <PlayerTablesAndFeed target={target} play={play} side={side} />
+    </>
+  )
+}
 const { ConnectionContext } = await import('../../lib/connection/connectionContext')
 const { recordPlayRoll, recordPlayChange, clearPlayRolls, reportingRoll } = await import(
   '../playRolls.model'
@@ -124,7 +137,7 @@ async function renderSide(
         settling: false,
       }}
     >
-      <PlaySideColumn target={target} play={playFor(target, canWrite)} />
+      <SideColumn target={target} play={playFor(target, canWrite)} />
     </ConnectionContext.Provider>
   )
   let view: ReturnType<typeof render> | null = null

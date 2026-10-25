@@ -6,9 +6,8 @@
  * posted). Nothing awaits the Mediator's answer, so no proposal is on its
  * Feed.
  *
- * Called once per screen: by `PlayMediatorSide` on the canvas, by
- * `PlayMediatorPhone` on a phone. Only one form is ever mounted, so the
- * dispatch runs exactly once whichever tab is open.
+ * Called once per screen, by `PlayMediatorCockpit`, so the dispatch runs
+ * exactly once whichever pane is open.
  */
 
 import type { PlayBinding } from '../channels.model'

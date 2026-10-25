@@ -15,7 +15,7 @@ export const slotSelector = (slot: UnionSlot): string => `[data-union-slot="${sl
 /**
  * Set on `<html>` while the page draws no Union bar: a Cockpit (a pilot's,
  * `/play/pilots/<id>`, or a Game's Mediator's, `/play/games/<id>/mediate`),
- * which draws its own (the Play bar, ADR-045 §6), and a link preview's render
+ * which draws its own (the Play bar, ADR-051 §2), and a link preview's render
  * surface (`/og/…`). The Play landing (`/play/`), a Game's page
  * (`/play/games/*`, the Manage context, ADR-052 §7) and an invite keep the
  * bar: its Play tab is how you got there. The Worker sets it on the shell it

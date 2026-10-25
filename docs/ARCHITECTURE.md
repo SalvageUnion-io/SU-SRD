@@ -119,7 +119,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 ## Decisions
 
 ADRs are never renumbered: entry N is ADR-N. A new decision lands as an entry and a change to its Area; once built, it folds into that Area.
-Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-047.
+Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039, ADR-045, ADR-047.
 
 7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
    Automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
@@ -163,8 +163,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     One-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
     Amends ADR-030; amended by ADR-044. Code: `packages/game-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
-    Built; ADR-051 keeps its seat and 1280×800 canvas, replacing Game-only and the slots. As built: [play.md](architecture/play.md).
-    Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051.
+    Built; ADR-051 keeps its seat, replacing Game-only, the slots and the 1280×800 canvas. As built: [play.md](architecture/play.md).
+    Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-051.
 41. **ADR-041 The deployed commit is the release**
     No app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
 42. **ADR-042 Mid-tab updates**
@@ -173,9 +173,6 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
-45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
-    Built: under its 1280×800 canvas Play renders a phone form; same seat and enforcement.
-    Amends ADR-038; ADR-051 replaces decisions 3–5.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
 48. **ADR-048 The app at salvageunion.io/build**
@@ -186,8 +183,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     `apps/web` is one app: the pre-rendered reference and the client app at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
-    Supersedes ADR-038 §1 and its layout; amends ADR-030, ADR-045; amended by ADR-052. As built: [play.md](architecture/play.md).
+    Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
+    Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.

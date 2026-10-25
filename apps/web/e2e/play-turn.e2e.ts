@@ -3,12 +3,12 @@ import { escapeRegExp, pageOverflow } from './_helpers'
 import {
   axeViolations,
   board,
-  CANVAS,
   expectNoPageScroll,
   openPlay,
   PHONE,
   pilotPlayPath,
   situation,
+  WIDE,
 } from './_play'
 import { findSearchWidths } from './_searchWidth'
 import { setUpTable } from './_table'
@@ -16,9 +16,10 @@ import { expect, test } from './fixtures'
 
 /**
  * A boarded turn in Play (play.md §3, §5, §8): Board from the Situation switch, Use an action from the flattened
- * list, Activate, Roll and Apply in its row, and the roll on the Feed. Once on
- * the 1280 × 800 canvas and once on a 390 × 844 phone, where the list is the
- * Act tab and the Feed is on Tables. The page never scrolls on the way.
+ * list, Activate, Roll and Apply in its row, and the roll on the Feed. Once in
+ * a 1440 × 900 window, on the three columns, and once on a 390 × 844 phone,
+ * where the list is the Act tab and the Feed is on Tables. The page never
+ * scrolls on the way, at 1440, 1024 and 390, and axe finds nothing there.
  *
  * ## The table
  *
@@ -88,11 +89,11 @@ async function expectOnFeed(page: Page, action: string): Promise<void> {
   })
 }
 
-test('a boarded turn on the canvas: board, use, roll, apply', { tag: '@pr' }, async ({ page }) => {
+test('a boarded turn on the columns: board, use, roll, apply', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(8 * 60_000)
   await setUpTable(page)
   const play = await pilotPlayPath(page, 'Bonesaw')
-  await page.setViewportSize({ width: CANVAS.width, height: CANVAS.height })
+  await page.setViewportSize({ width: WIDE.width, height: WIDE.height })
   await openPlay(page, play, { dice: true })
 
   // On foot: the Situation says so, the screen fits, and axe finds nothing.
@@ -142,7 +143,7 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', { tag: '@
   await expectOnFeed(page, action)
   expect(await findSearchWidths(page), 'Tables tab searches narrower than their line').toEqual([])
 
-  // The phone form fits the screen: only the open panel scrolls.
+  // The tabs fit the screen: only the open pane scrolls.
   const { down, across } = await pageOverflow(page)
   expect(Math.max(down, across), 'the phone page scrolls (px)').toBeLessThanOrEqual(0)
 })

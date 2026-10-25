@@ -7,8 +7,9 @@ Play's Mediator screen, `/play/game/$gameId`). ADR-051 supersedes §1
 (Game-only), §3 (the Major and Minor slots), §4 (the tabbed display), §5's
 layout sentence and §6's route, and amends §2 (solo seats, solo Downtime,
 presence). §2's seat, §3's boarding menu, §4's server-derived crew numbers and
-status, §5's crawler and boarding rules, §6 to §8 and §9's fixed scaled canvas
-stand. The phone form is [ADR-045](045-dashboard-phone-form.md).
+status, §5's crawler and boarding rules and §6 to §8 stand. §9's fixed scaled
+canvas, and the phone form under it (ADR-045, retired), gave way in 4.5.0 to
+Play's one layout, phone first (ADR-051 §2, §10).
 
 ### 1. The Dashboard is Game-only and needs a Mediator
 
@@ -98,11 +99,10 @@ border, no inset). Hue encodes ontology, never identity; state is a treatment
 
 ### 9. A fixed 1280×800 canvas, scaled to fit
 
-One `transform: scale(min(vw/1280, vh/800))`; the canvas then widens or
-lengthens in its own units to fill the other axis, so it never letterboxes
-and its bar and foot run edge to edge like every page's. "One screen, never
-scrolls" is a landscape-desktop contract; below the floor the host gets the
-phone form ([ADR-045](045-dashboard-phone-form.md)).
+Superseded by ADR-051 §2 and §10 (4.5.0): one layout that fills the window,
+phone first. As decided: one `transform: scale(min(vw/1280, vh/800))`, the
+canvas widened or lengthened to fill the other axis; "one screen, never
+scrolls" a landscape-desktop contract, a phone form below the floor.
 
 ## Consequences
 
