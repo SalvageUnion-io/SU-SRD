@@ -18,7 +18,10 @@ import { gameScope, serve, setRoomScopes, TABLES } from './replica'
 import { openRoom } from './roomSocket'
 
 function GameFeed({ gameId, token }: { gameId: string; token: string }) {
-  useEffect(() => openRoom(gameSocketPath(gameId), gameScope(gameId), token), [gameId, token])
+  useEffect(
+    () => openRoom(gameSocketPath(gameId), gameScope(gameId), token, gameId),
+    [gameId, token]
+  )
   return null
 }
 
