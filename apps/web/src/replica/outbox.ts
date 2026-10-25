@@ -23,6 +23,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
 import { keepOutbox, readOutbox } from './persist'
+import { RoomDeclined, roomOf } from './roomSocket'
 import { mayQueue, writable } from './sync'
 
 /** What the server answered for a unit it wrote: its new version and `headSeq`. */
@@ -104,6 +105,14 @@ export async function sendOp(
 ): Promise<Applied | undefined> {
   if (!writable()) {
     if (queues(unit, op.patch) && !isEmptyOp(op)) await queue({ unit, gameId, op })
+    return
+  }
+  // Fed by the rooms (`RoomFeed`), an op on a unit in an open room goes there; its
+  // new headSeq comes back as the room's `applied`. A move is a handoff
+  // between rooms, still Convex's until the cutover.
+  const room = move === undefined ? roomOf(gameId) : null
+  if (room !== null) {
+    if (!isEmptyOp(op)) await room.submit([op])
     return
   }
   if (unit === 'crawler' && move !== undefined) {
@@ -190,12 +199,20 @@ export function flushOutbox(): Promise<string[]> {
     try {
       while (ops.length > 0 && writable()) {
         const { unit, gameId, op } = ops[0] as Waiting
-        const answer = await convexClient.mutation(api.ops.replay, {
-          unit,
-          gameId: gameId as Id<'games'> | null,
-          op,
-        })
-        if (answer !== null && 'declined' in answer) declined.push(answer.declined)
+        const room = roomOf(gameId)
+        if (room !== null) {
+          await room.submit([op]).catch((err: unknown) => {
+            if (!(err instanceof RoomDeclined)) throw err
+            declined.push(err.message)
+          })
+        } else {
+          const answer = await convexClient.mutation(api.ops.replay, {
+            unit,
+            gameId: gameId as Id<'games'> | null,
+            op,
+          })
+          if (answer !== null && 'declined' in answer) declined.push(answer.declined)
+        }
         ops.shift()
         await keepOutbox(ops)
       }
