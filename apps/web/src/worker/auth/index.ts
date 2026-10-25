@@ -262,8 +262,12 @@ function json(body: unknown, status: number, cookies: string[] = []): Response {
   return new Response(JSON.stringify(body), { status, headers })
 }
 
-/** Who a Worker route's caller is. */
-export type Identity = { accountId: string; discordId: string | null; admin: boolean }
+/**
+ * Who a Worker route's caller is. `discordId` is never null: the rooms key
+ * people by it, so a test account (no Discord) answers a stable stand-in,
+ * `test:` and the SHA-256 of its email, which no Discord id can equal.
+ */
+export type Identity = { accountId: string; discordId: string; admin: boolean }
 
 /**
  * @public For the rooms and the shared reads' signed-in routes.
@@ -280,9 +284,14 @@ export async function identityOf(
   if (!raw) return null
   const session = await readSession(await authStore(d1Sql(env.SHARED)), raw, now)
   if (session === null) return null
-  const { accountId, discordId } = session.account
+  const { accountId, discordId, testEmail } = session.account
   const admins = (env.ADMIN_DISCORD_IDS ?? '').split(',').map((id) => id.trim())
-  return { accountId, discordId, admin: discordId !== null && admins.includes(discordId) }
+  if (discordId !== null) return { accountId, discordId, admin: admins.includes(discordId) }
+  return {
+    accountId,
+    discordId: `${TEST_SUBJECT}${await sha256Hex(testEmail ?? accountId)}`,
+    admin: false,
+  }
 }
 
 async function token(request: Request, url: URL, deps: AuthDeps): Promise<Response> {

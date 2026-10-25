@@ -256,6 +256,21 @@ describe('identityOf', () => {
     expect(admin?.admin).toBe(true)
     expect(await identityOf(new Request(`${ORIGIN}/x`), { SHARED })).toBeNull()
   })
+
+  it('gives a test account a stable stand-in Discord id, never an admin', async () => {
+    const SHARED = d1(new Database(':memory:'))
+    const d = deps({ sql: d1Sql(SHARED) })
+    const cookie = await signedUp(d)
+    const request = new Request(`${ORIGIN}/x`, { headers: { cookie } })
+    const env = { SHARED, ADMIN_DISCORD_IDS: 'test:' }
+    const identity = await identityOf(request, env)
+    expect(identity).toEqual({
+      accountId: 'user1',
+      discordId: expect.stringMatching(/^test:[0-9a-f]{64}$/),
+      admin: false,
+    })
+    expect((await identityOf(request, env))?.discordId).toBe(identity?.discordId)
+  })
 })
 
 describe("Discord's round trip", () => {
