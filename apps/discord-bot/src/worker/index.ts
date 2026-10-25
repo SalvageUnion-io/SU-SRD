@@ -37,6 +37,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
 import { setSiteClient, site } from '../commands/siteReply'
+import type { SiteGateway } from '../play/client'
 import { createSiteClient } from '../play/client'
 import { reportError } from '../reportError'
 import {
@@ -297,6 +298,7 @@ export default {
       createSiteClient({
         siteUrl: env.BACKEND_SITE_URL,
         botSecret: env.BOT_SECRET,
+        gateway: env.SITE as unknown as SiteGateway,
       })
     )
 
