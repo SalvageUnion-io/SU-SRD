@@ -1,6 +1,7 @@
 /**
- * The Cockpit's frame (Play, Direction A): the Play bar, the three columns as
- * named regions with Slab headings, and the foot, on the fixed canvas. Who
+ * The Cockpit's frame (Play, Direction A): the Play bar, then from `lg` the
+ * three columns as named regions with Slab headings and the foot, and below
+ * it the same panes as tabs under the pinned row (play.md §11). Who
  * may open it is `PlayGate`'s, tested in `PlayGate.connected.test.tsx`; the
  * columns' content arrives with their own issues.
  *
@@ -13,7 +14,7 @@ import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import type { ConnectionMode } from '../../lib/connection/connectionMode'
-import { phoneViewport } from './phoneViewport'
+import { narrowViewport } from './narrowViewport'
 
 // Module scope, before the imports below — see `convexMock.ts`. The frame
 // reads the seat and the Downtime (`usePlaySituation`): an empty seat, with
@@ -27,7 +28,7 @@ const ANSWERS = {
   'games:members': [],
   'entities:listForGame': null,
   'account:me': null,
-  // The channel button, the Crew, Tables and Feed (`PlaySideColumn`): no
+  // The channel button, the Crew, Tables and Feed panes: no
   // channel bound, no crew read yet, nothing on the Game's log.
   'channelBindings:current': null,
   'games:get': null,
@@ -149,12 +150,13 @@ describe('the Cockpit frame', () => {
     ).toEqual(['Crew', 'Tables', 'Feed'])
   })
 
-  test('the foot says play is saved and who it reaches; on the fixed canvas', async () => {
+  test('the foot says play is saved and who it reaches; no tabs from `lg`', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const foot = within(screen.getByRole('contentinfo'))
     expect(foot.getByRole('status').textContent).toBe('● Saved')
     expect(foot.getByText('Solo · nothing is shared')).toBeTruthy()
-    expect(document.querySelector('.su-play-canvas')).not.toBeNull()
+    expect(screen.queryByRole('tablist')).toBeNull()
+    expect(screen.queryByRole('tabpanel')).toBeNull()
   })
 
   test('offline, Play is read-only and says so: the bar’s stamp and the foot', async () => {
@@ -174,13 +176,14 @@ describe('the Cockpit frame', () => {
   })
 })
 
-describe('below the canvas’s floor: the phone form (play.md §11)', () => {
-  test('a 390×844 phone gets the tabs, not the canvas; the bar on top, the switch pinned', async () => {
-    const restore = phoneViewport()
+describe('below `lg`: the same panes as tabs (play.md §11)', () => {
+  test('a 390px phone gets the tabs, not the columns; the bar on top, the switch pinned', async () => {
+    const restore = narrowViewport()
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
-      expect(document.querySelector('.su-play-canvas')).toBeNull()
-      expect(document.querySelector('.su-play-root--phone .su-play-phone')).not.toBeNull()
+      expect(screen.queryByRole('region', { name: 'Units' })).toBeNull()
+      // No foot: the tabs take the screen's foot.
+      expect(screen.queryByRole('contentinfo')).toBeNull()
       const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
       expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
       const bar = within(screen.getByRole('banner'))
@@ -189,9 +192,6 @@ describe('below the canvas’s floor: the phone form (play.md §11)', () => {
       expect(bar.getByRole('link', { name: 'Back to Game' }).textContent).toBe('Back to Game')
       expect(bar.queryByRole('group', { name: 'Situation' })).toBeNull()
       expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
-      // The page never scrolls: the host fits the screen and hides overflow.
-      const host = document.querySelector('.su-play-root--phone') as HTMLElement
-      expect(host.style.overflow).toBe('hidden')
     } finally {
       restore()
     }

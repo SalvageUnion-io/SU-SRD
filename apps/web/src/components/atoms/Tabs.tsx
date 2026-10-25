@@ -20,7 +20,7 @@ import { capsLabel } from './capsLabel'
  * Controlled only: the caller owns which tab is open, so it decides whether
  * that is component state, a URL or anything else. Compose it as
  * `Tabs` › `TabList` › `Tab`…, then one `TabPanel` per tab. A panel renders
- * only while its tab is open, unless it is `keepMounted`.
+ * only while its tab is open.
  *
  * Styling follows the per-property split (ADR-046): static geometry and type as style
  * objects, every colour (each of which changes on hover, focus or selection)
@@ -91,19 +91,31 @@ export function Tab({
   value,
   children,
   style,
+  id,
+  controls,
 }: {
   value: string
   children: ReactNode
   /**
-   * Geometry over the default (Play's phone tabs fill a quarter of
+   * Geometry over the default (Play's narrow tabs fill a quarter of
    * the row each). Never a colour: those change on hover and selection, so
    * they stay in `.su-tab`.
    */
   style?: CSSProperties
+  /**
+   * For a panel the caller draws itself rather than as a `TabPanel` (Play's
+   * panes, which are columns again on a wide screen): the tab's id, which the
+   * panel names as its `aria-labelledby`, and the panel's id it controls.
+   */
+  id?: string
+  controls?: string
 }) {
   return (
     <BaseTabs.Tab
       value={value}
+      // Only when given: an undefined would override Base UI's own.
+      {...(id === undefined ? {} : { id })}
+      {...(controls === undefined ? {} : { 'aria-controls': controls })}
       className={cn('su-tab su-focus-ring', TAB_CAPS)}
       style={{ ...TAB, ...style }}
     >
@@ -116,20 +128,13 @@ export function TabPanel({
   value,
   children,
   style,
-  keepMounted = false,
 }: {
   value: string
   children: ReactNode
   style?: CSSProperties
-  /**
-   * Keep the panel mounted, `hidden`, while its tab is closed, so what it
-   * holds (a half-typed Find, an open filter, a dialog's state) survives a
-   * switch: Play's phone tabs (ADR-051 §10).
-   */
-  keepMounted?: boolean
 }) {
   return (
-    <BaseTabs.Panel value={value} style={style} keepMounted={keepMounted}>
+    <BaseTabs.Panel value={value} style={style}>
       {children}
     </BaseTabs.Panel>
   )

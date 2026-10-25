@@ -250,7 +250,12 @@ const convexMocks = await installConvexMocks({
   also: {
     '../../play/PlayUnitsColumn': () => ({ PlayUnitsColumn: probe('units') }),
     '../../play/PlayActionsColumn': () => ({ PlayActionsColumn: probe('actions') }),
-    '../../play/PlaySideColumn': () => ({ PlaySideColumn: probe('side') }),
+    '../../play/PlaySideColumn': () => ({
+      PlayCrewSection: probe('crew'),
+      PlayerTablesAndFeed: probe('side'),
+    }),
+    // The side's reads are `PlaySide.connected.test.tsx`'s.
+    '../../play/usePlaySide': () => ({ usePlaySide: () => ({}) }),
   },
 })
 

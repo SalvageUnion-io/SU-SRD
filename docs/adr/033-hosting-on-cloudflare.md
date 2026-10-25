@@ -14,6 +14,8 @@ one place for path filters and the gates in front of every deploy.
 
 **5. Convex stays, and nothing here may foreclose moving it.** The
 Worker↔Convex boundary stays plain HTTP with a bearer token.
+Superseded by [ADR-064](064-cloudflare-rooms.md): Durable Object rooms
+replace Convex in 4.5.0.
 
 **6. Everything runs on the existing `alxjrvs@gmail.com` account**, shared with
 RANDSUM's Workers (`randsum-rdn`, `randsum-site`) on one Workers Paid plan and

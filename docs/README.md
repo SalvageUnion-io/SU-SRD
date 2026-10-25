@@ -7,7 +7,7 @@ Intent → doc. Area links and "ADR-N" resolve in [ARCHITECTURE.md](ARCHITECTURE
 3. **Styling** — ADR-046; the working rules: [`.claude/rules/styling.md`](../.claude/rules/styling.md).
 4. **Data flow or persistence** — [data flow](ARCHITECTURE.md#data-flow) to [stores](ARCHITECTURE.md#stores); ADR-030, ADR-034.
 5. **Where a rule is enforced, combat** — [surfaces](ARCHITECTURE.md#surfaces) to [combat](ARCHITECTURE.md#combat); ADR-021, ADR-007.
-6. **Play mode** — [play.md](architecture/play.md), its state and rules driver §14; ADR-051, ADR-038, ADR-045.
+6. **Play mode** — [play.md](architecture/play.md), its state and rules driver §14; ADR-051, ADR-038.
 7. **A Game's page** — Play's: [play.md](architecture/play.md) §16; ADR-030, ADR-052.
 8. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
 9. **Sharing** — ADR-032, ADR-036.

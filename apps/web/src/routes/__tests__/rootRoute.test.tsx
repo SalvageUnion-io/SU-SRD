@@ -2,7 +2,7 @@
  * The root route's chrome, mounted under a real router signed out, in a body
  * that carries the shell's Union bar and skip link (`shell/unionBar.ts`): the
  * skip link's target, the bar's slots filled on every page but a Play screen
- * (which draws its own, ADR-045 §6) and hidden there, the footer, the default
+ * (which draws its own, ADR-051 §2) and hidden there, the footer, the default
  * tab title, and the bare `/og/*` picture surface with none of it.
  *
  * The root's own options are reused on a fresh root route, so the app's
