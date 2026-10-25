@@ -449,3 +449,45 @@ describe('the Worker', () => {
     )
   })
 })
+
+describe('deleting the account', () => {
+  it('deletes it on Convex as the session, then ends every session it has', async () => {
+    const d = deps()
+    const cookie = await signedUp(d)
+    const elsewhere = await answer(post(AUTH_PATHS.testSignIn, { ...ACCOUNT, flow: 'signIn' }), d)
+    const res = await answer(post(AUTH_PATHS.deleteAccount, undefined, { cookie }), d)
+    expect(res.status).toBe(204)
+    expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
+    const call = calls.at(-1)
+    expect(JSON.parse(String(call?.body))).toMatchObject({ path: 'account:deleteAccount' })
+    expect(claimsOf(call?.authorization?.replace('Bearer ', '') ?? '')).toMatchObject({
+      iss: SESSION_ISSUER,
+      sub: expect.stringMatching(/^user1\|/),
+    })
+    for (const c of [cookie, cookieOf(elsewhere)]) {
+      const after = new Request(`${ORIGIN}${AUTH_PATHS.token}`, { headers: { cookie: c } })
+      expect((await answer(after, d)).status).toBe(401)
+    }
+  })
+
+  it("keeps the account and its sessions when Convex refuses, with Convex's reason", async () => {
+    const d = deps()
+    const cookie = await signedUp(d)
+    ;(
+      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
+    ).mockImplementation(async () =>
+      Response.json({ status: 'error', errorMessage: 'refused', errorData: 'You organise a Game.' })
+    )
+    const res = await answer(post(AUTH_PATHS.deleteAccount, undefined, { cookie }), d)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ errorMessage: 'refused', errorData: 'You organise a Game.' })
+    const after = new Request(`${ORIGIN}${AUTH_PATHS.token}`, { headers: { cookie } })
+    expect((await answer(after, d)).status).toBe(200)
+  })
+
+  it('is a 401 signed out, and refused from another origin', async () => {
+    expect((await answer(post(AUTH_PATHS.deleteAccount), deps())).status).toBe(401)
+    const foreign = post(AUTH_PATHS.deleteAccount, undefined, { origin: 'https://evil.example' })
+    expect((await answer(foreign, deps())).status).toBe(403)
+  })
+})

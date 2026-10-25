@@ -7,6 +7,7 @@
 
 import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { ConvexError } from 'convex/values'
 import { localStore } from '../../safeLocalStorage'
 import { AUTH_PATHS } from '../paths'
 import { SESSION_KEY } from '../storedSession'
@@ -14,9 +15,8 @@ import { SESSION_KEY } from '../storedSession'
 // A copy of its own: the session is the page's, and another file in the run
 // may have started the shared one already.
 const FRESH = '../session.ts?fresh'
-const { signIn, signOut, testSignIn, useSessionToken, useWorkerAuth } = (await import(
-  FRESH
-)) as typeof import('../session')
+const { deleteAccount, signIn, signOut, testSignIn, useSessionToken, useWorkerAuth } =
+  (await import(FRESH)) as typeof import('../session')
 
 const tokenExpiring = (exp: number) => `h.${btoa(JSON.stringify({ exp })).replace(/=+$/, '')}.s`
 
@@ -130,6 +130,24 @@ describe('signOut', () => {
     expect(calls.at(-1)).toMatchObject({ url: AUTH_PATHS.signOut, init: { method: 'POST' } })
     expect(result.current).toMatchObject({ isLoading: false, isAuthenticated: false })
     expect(renderHook(() => useSessionToken()).result.current).toBeNull()
+    expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
+  })
+})
+
+describe('deleteAccount', () => {
+  test("throws Convex's refusal as a ConvexError, and a failure as an Error", async () => {
+    answers = [json({ errorMessage: 'refused', errorData: 'You organise a Game.' }, 409)]
+    const refused = await deleteAccount().catch((err: unknown) => err)
+    expect(refused).toBeInstanceOf(ConvexError)
+    expect((refused as ConvexError<string>).data).toBe('You organise a Game.')
+    answers = [new Response('down', { status: 502 })]
+    await expect(deleteAccount()).rejects.toThrow('account deletion answered 502')
+  })
+
+  test('signs the page out once the Worker has deleted it', async () => {
+    answers = [new Response(null, { status: 204 })]
+    await deleteAccount()
+    expect(calls.at(-1)).toMatchObject({ url: AUTH_PATHS.deleteAccount, init: { method: 'POST' } })
     expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
   })
 })

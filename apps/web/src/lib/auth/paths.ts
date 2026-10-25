@@ -10,6 +10,8 @@ export const AUTH_PATHS = {
   signOut: '/auth/sign-out',
   /** `POST {email, password, flow}`: the test seam, only where `TEST_AUTH` is set. */
   testSignIn: '/auth/test-sign-in',
+  /** `POST`: deletes the account on Convex, then its sign-in and every session. */
+  deleteAccount: '/auth/delete-account',
 } as const
 
 export const AUTH_PREFIX = '/auth/'

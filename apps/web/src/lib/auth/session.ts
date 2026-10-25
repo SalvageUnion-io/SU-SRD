@@ -10,6 +10,7 @@
  * browser is back online.
  */
 
+import { ConvexError } from 'convex/values'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { appPath } from '../appBase'
 import { localStore } from '../safeLocalStorage'
@@ -128,6 +129,24 @@ export function signIn(route = '/'): void {
 export async function signOut(): Promise<void> {
   const res = await fetch(AUTH_PATHS.signOut, { method: 'POST', credentials: 'same-origin' })
   if (!res.ok) throw new Error(`sign-out answered ${res.status}`)
+  settle(null)
+}
+
+/**
+ * Deletes the account through the Worker, which ends every session with it.
+ * A refusal throws Convex's own error, so `useServerAction` says its words.
+ */
+export async function deleteAccount(): Promise<void> {
+  const res = await fetch(AUTH_PATHS.deleteAccount, { method: 'POST', credentials: 'same-origin' })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as {
+      errorMessage?: string
+      errorData?: unknown
+    }
+    if (body.errorData !== undefined && body.errorData !== null)
+      throw new ConvexError(body.errorData as string)
+    throw new Error(`account deletion answered ${res.status}: ${body.errorMessage ?? ''}`)
+  }
   settle(null)
 }
 

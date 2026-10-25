@@ -35,6 +35,7 @@ import {
   authStore,
   closeSession,
   d1Sql,
+  forgetAccount,
   openSession,
   readSession,
   SESSION_MS,
@@ -60,6 +61,7 @@ const OAUTH_COOKIE = 'su_oauth'
 const TOKEN_TTL_S = 10 * 60
 const OAUTH_TTL_S = 10 * 60
 const LINK = getFunctionName(makeFunctionReference<'mutation'>('accountLink:link'))
+const DELETE_ACCOUNT = getFunctionName(makeFunctionReference<'mutation'>('account:deleteAccount'))
 
 /** The answer for an `/auth/*` request, or `null` for a path that is not one. */
 export async function handleAuth(request: Request, deps: AuthDeps): Promise<Response | null> {
@@ -75,6 +77,10 @@ export async function handleAuth(request: Request, deps: AuthDeps): Promise<Resp
     case AUTH_PATHS.signOut:
       return request.method === 'POST'
         ? guarded(request, url, () => signOut(request, url, deps))
+        : null
+    case AUTH_PATHS.deleteAccount:
+      return request.method === 'POST'
+        ? guarded(request, url, () => deleteAccount(request, url, deps))
         : null
     case AUTH_PATHS.testSignIn:
       if (!deps.testAuth || request.method !== 'POST') return null
@@ -299,6 +305,55 @@ export async function identityOf(
   }
 }
 
+/** The session token's claims for Convex: its subject is `<userId>|<sessionId>`. */
+async function sessionToken(deps: AuthDeps, userId: string, sessionId: string, now: number) {
+  return signToken(
+    await key(deps),
+    { iss: SESSION_ISSUER, aud: TOKEN_AUDIENCE, sub: `${userId}|${sessionId}` },
+    TOKEN_TTL_S,
+    now
+  )
+}
+
+/**
+ * Deletes the account: Convex's `account.deleteAccount` as the session's
+ * user, then, only once it has, the account's sign-in and all its sessions
+ * here, so no cookie on any device outlives it. A refusal answers 409 with
+ * Convex's own error, for the app to say.
+ */
+async function deleteAccount(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
+  const raw = readCookie(request, SESSION_COOKIE)
+  if (!raw || !deps.signingKey) return json({ errorMessage: 'Not signed in' }, 401)
+  const sql = await authStore(deps.sql)
+  const now = (deps.now ?? Date.now)()
+  const session = await readSession(sql, raw, now)
+  if (session === null) return json({ errorMessage: 'Not signed in' }, 401)
+  const { accountId } = session.account
+  const res = await fetch(`${deps.convexUrl}/api/mutation`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${await sessionToken(deps, accountId, session.sessionId, now)}`,
+    },
+    body: JSON.stringify({ path: DELETE_ACCOUNT, args: {}, format: 'json' }),
+  }).catch(() => null)
+  const body = ((await res?.json().catch(() => null)) ?? {}) as {
+    status?: string
+    errorMessage?: string
+    errorData?: unknown
+  }
+  if (body.status !== 'success')
+    return json(
+      { errorMessage: body.errorMessage ?? 'unreachable', errorData: body.errorData },
+      409
+    )
+  await forgetAccount(sql, accountId)
+  return new Response(null, {
+    status: 204,
+    headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
+  })
+}
+
 async function token(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
   const signedOut = () =>
@@ -309,12 +364,7 @@ async function token(request: Request, url: URL, deps: AuthDeps): Promise<Respon
   const session = await readSession(sql, raw, now)
   if (session === null) return signedOut()
   const userId = session.account.accountId
-  const signed = await signToken(
-    await key(deps),
-    { iss: SESSION_ISSUER, aud: TOKEN_AUDIENCE, sub: `${userId}|${session.sessionId}` },
-    TOKEN_TTL_S,
-    now
-  )
+  const signed = await sessionToken(deps, userId, session.sessionId, now)
   const answer: TokenAnswer = { token: signed, account: userId }
   return json(
     answer,

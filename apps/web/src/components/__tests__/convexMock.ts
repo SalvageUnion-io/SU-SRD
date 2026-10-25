@@ -117,9 +117,10 @@ export type InstallOptions = {
   convexClient?: Record<string, unknown>
   /**
    * Stub the app's session (`lib/auth/session`) too. Needed by anything that
-   * mounts `SignInControl`, whose real `signIn` leaves the page.
+   * mounts `SignInControl`, whose real `signIn` leaves the page. An object
+   * replaces those of its functions it names.
    */
-  authReact?: boolean
+  authReact?: boolean | Record<string, unknown>
   /**
    * Stub `@tanstack/react-router` with a plain `<a>` `Link` and a recording
    * `useNavigate`. Read what it recorded off the handle's `navigations`.
@@ -187,6 +188,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
         signIns.push(args)
       },
       signOut: async () => undefined,
+      ...(typeof options.authReact === 'object' ? options.authReact : {}),
     }))
   }
 

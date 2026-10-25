@@ -209,3 +209,9 @@ export async function readSession(
 export async function closeSession(sql: AuthSql, token: string): Promise<void> {
   await sql.run('delete from sessions where id = ?', await sha256Hex(token))
 }
+
+/** The account's sign-in and every session it has, gone: its Convex account was deleted. */
+export async function forgetAccount(sql: AuthSql, accountId: string): Promise<void> {
+  await sql.run('delete from sessions where account_id = ?', accountId)
+  await sql.run('delete from accounts where account_id = ?', accountId)
+}

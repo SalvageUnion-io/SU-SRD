@@ -17,6 +17,7 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { deleteAccount } from '../../lib/auth/session'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
@@ -84,7 +85,7 @@ function SignedInAccount() {
   const save = useServerAction(useMutation(api.account.updateProfile), {
     failure: 'Your display name could not be saved. Try again.',
   })
-  const erase = useServerAction(useMutation(api.account.deleteAccount), {
+  const erase = useServerAction(deleteAccount, {
     failure: 'Your account could not be deleted. Try again.',
   })
 
@@ -164,12 +165,13 @@ function SignedInAccount() {
           confirmLabel={buildAccountCopy('permanentlyDelete')}
           pendingLabel={buildAccountCopy('deleting')}
           onConfirm={async () => {
-            const result = await erase.run({})
+            const result = await erase.run()
             if (!result.ok) {
               eraseFailure.current = result.error
               throw new Error('The account was not deleted')
             }
-            // The session outlives the Convex account; it ends with it.
+            // The Worker ended every session with the account; this clears the
+            // device's hint as any sign-out does.
             await signOut()
           }}
           describeError={() => eraseFailure.current}
