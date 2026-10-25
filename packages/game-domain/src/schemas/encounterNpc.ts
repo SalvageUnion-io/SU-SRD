@@ -23,6 +23,7 @@ export const ENCOUNTER_REF_SCHEMAS = [
   'bio-titans',
   'vehicles',
   'meld',
+  'drones',
 ] as const
 const EncounterRefSchemaSchema = z.enum(ENCOUNTER_REF_SCHEMAS)
 

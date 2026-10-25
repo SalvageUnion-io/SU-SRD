@@ -156,6 +156,11 @@ export const playCopy = messages({
   rollATable: 'Roll a table…',
   rollATable2: 'Roll a table',
   tablesFound: 'Tables found',
+  rolledRoster: 'The rolled opposition',
+  addToTheOpposition: 'Add to the Opposition',
+  addingToTheOpposition: 'Adding…',
+  addedToTheOpposition: '{added} added to the Opposition.',
+  notAnNpc: 'not an NPC: run it yourself',
   pinnedTables: 'Pinned tables',
   thisEncountersTables: "This encounter's tables",
   noChannelIsBoundYet:

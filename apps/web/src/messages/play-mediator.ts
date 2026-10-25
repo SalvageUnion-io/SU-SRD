@@ -154,4 +154,12 @@ export const mediatorCopy = messages({
   send: 'Send',
   nothingSentYet: 'Nothing sent yet.',
   sentToTheTable: 'Sent to the table',
+  dealIncome: 'Deal income',
+  dealScrap: '{deals} Scrap',
+  collect: 'Collect',
+  collected: 'Collected',
+  incomeIsCollectedInThe: 'Deal income is collected in the {upkeepStepName} step',
+  collectedInto: 'Collected {scrap} Tech {tl} Scrap into {crawler}.',
+  incomeAlreadyCollected: 'Deal income is already collected this Downtime.',
+  theCrawler: 'the crawler',
 })

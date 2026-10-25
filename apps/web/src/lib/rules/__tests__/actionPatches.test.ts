@@ -26,7 +26,9 @@ import {
   heatCheckOncePatch,
   hotHeatFor,
   isDestructiveOutcome,
+  mechPush,
   pilotActivationPatch,
+  pilotOverloadPatch,
   pushPatch,
   shutdownTogglePatch,
   VENT_PATCH,
@@ -370,5 +372,33 @@ describe('activationHeatGate', () => {
       activationHeatGate({ currency: 'EP', onFoot: false, heat: 0, currentHeat: 12, heatCap: 10 })
         .ok
     ).toBe(true)
+  })
+})
+
+describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', () => {
+  const fleshripper = mechFixture({ id: 'bio', chassisRef: 'fleshripper', currentHeat: 4 })
+
+  test("a Push's Bio-Overload shuts the chassis down and leaves its SP", () => {
+    const pushed = mechPush(fleshripper, seqRoll([2, 12]))
+    expect(pushed?.effect.result.outcome).toBe('bio-overload')
+    expect(pushed?.patch).toMatchObject({ currentHeat: 6, shutdown: true, vulnerable: true })
+    // The Fleshripper's 50 SP, untouched: the Heat is the Pilot's.
+    expect(pushed?.patch.currentSP).toBe(50)
+    expect(pushed?.text).toContain('Bio-Chassis Overload Table 12: BIO-OVERLOAD')
+  })
+
+  test("the Heat burns the Pilot, and a Pilot Overload is the Pilot's Injury", () => {
+    const pilot = pilotFixture({ id: 'p', currentHP: 10 })
+    const burnt = mechPush(fleshripper, seqRoll([2, 12]))
+    expect(burnt && pilotOverloadPatch(pilot, burnt.effect)).toEqual({ currentHP: 4 })
+    const hurt = mechPush(fleshripper, seqRoll([2, 4]))
+    expect(hurt && pilotOverloadPatch(pilot, hurt.effect)).toEqual({
+      injuries: [{ severity: 'major', note: 'Bio-Chassis Overload Table' }],
+    })
+  })
+
+  test("a mech's Reactor Overload leaves the Pilot alone", () => {
+    const { effect } = heatCheckOncePatch({ heat: 6, currentSP: 10, roll: seqRoll([3, 15]) })
+    expect(pilotOverloadPatch(pilotFixture({ id: 'p' }), effect)).toBeNull()
   })
 })
