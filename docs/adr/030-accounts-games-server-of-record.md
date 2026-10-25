@@ -9,7 +9,9 @@ Build's Hangar lists what a player owns; a Game's page and joining are Play's.
 Amended by [ADR-055](055-crew-assets-assign.md): in a Game a pilot or mech is
 **assigned** to a member, never claimed (§2, §4–6). Amended by
 [ADR-063](063-typed-ops-are-the-write.md): a proposal is an op in `proposed`
-state (§4).
+state (§4). Superseded in part by
+[ADR-064](064-cloudflare-rooms.md): Cloudflare rooms, not Convex, are the
+server of record from 4.5.0 (§1).
 
 ## 1. Identity and the storage modes
 
