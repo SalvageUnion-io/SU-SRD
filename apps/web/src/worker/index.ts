@@ -20,11 +20,11 @@
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have falls through to the rules below.
  *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
- *     version, or a 503 (`./rooms.ts`).
+ *     version, or a 503 (`./roomRoutes.ts`).
  *   - `game-socket`: `/__rooms/games/:id/socket` → a member's socket to the
- *     Game's room (`./rooms.ts`, who may: `./roomAuth.ts`).
+ *     Game's room (`./roomRoutes.ts`, who may: `./roomAuth.ts`).
  *   - `account-socket`: `/__rooms/account/socket` → the signed-in player's
- *     socket to their own account room (`./rooms.ts`).
+ *     socket to their own account room (`./roomRoutes.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -74,7 +74,7 @@ import {
   handleErrorReport,
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
-import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from './rooms'
+import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from './roomRoutes'
 
 export { BotGateway } from './botGateway'
 export { AccountRoom, GameRoom } from './rooms'

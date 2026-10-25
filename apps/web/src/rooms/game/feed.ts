@@ -1,5 +1,5 @@
 import type { OpInput } from '../ops'
-import type { RoomOp, RoomUnit, ServerMessage } from '../protocol'
+import type { ClientMessage, RoomOp, RoomUnit, ServerMessage } from '../protocol'
 import { ClientMessageSchema } from '../protocol'
 import type { GameRoomLogic } from './gameRoomLogic'
 import type { GameStore, StoredOp, UnitRow } from './store'
@@ -89,15 +89,21 @@ function roomOp({ supersededBy: _, ...op }: StoredOp): RoomOp {
   return op
 }
 
-/** A client's `ops` batch, or null when the message is not one. */
-export function readOpsBatch(message: string | ArrayBuffer): OpInput[] | null {
+/** What a client said (`ops` or `act`), or null when it is not a message a room reads. */
+export function readClientMessage(message: string | ArrayBuffer): ClientMessage | null {
   try {
     const text = typeof message === 'string' ? message : new TextDecoder().decode(message)
     const parsed = ClientMessageSchema.safeParse(JSON.parse(text))
-    return parsed.success && parsed.data.type === 'ops' ? parsed.data.ops : null
+    return parsed.success ? parsed.data : null
   } catch {
     return null
   }
+}
+
+/** A client's `ops` batch, or null when the message is not one. */
+export function readOpsBatch(message: string | ArrayBuffer): OpInput[] | null {
+  const said = readClientMessage(message)
+  return said?.type === 'ops' ? said.ops : null
 }
 
 /** What the sender hears when its message is not a batch. */
