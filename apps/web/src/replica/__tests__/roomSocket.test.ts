@@ -4,10 +4,10 @@
  * rows, and a row leaves only when no room still holds it.
  */
 
-import { beforeEach, describe, expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../components/__tests__/fixtures'
 import { gameScope, getView, hold, setRoomScopes } from '../replica'
-import { foldRoomMessage, openRoom } from '../roomSocket'
+import { foldRoomMessage, openRoom, RoomDeclined, roomOf } from '../roomSocket'
 import { resetStores } from './resetStores'
 
 const unit = (kind: 'pilot' | 'crawler', body: { id: string }, gameId: string | null, seq = 1) => ({
@@ -159,42 +159,103 @@ describe('a row this tab wrote, fed by the rooms', () => {
 
 describe('openRoom', () => {
   class FakeSocket {
+    static readonly OPEN = 1
     static all: FakeSocket[] = []
+    readyState = 0
     onopen: (() => void) | null = null
     onmessage: ((event: { data: string }) => void) | null = null
     onclose: (() => void) | null = null
     closedWith: number | null = null
+    sent: unknown[] = []
     constructor(
       readonly url: string,
       readonly protocols: string[]
     ) {
       FakeSocket.all.push(this)
     }
+    send(text: string) {
+      this.sent.push(JSON.parse(text))
+    }
     close(code: number) {
       this.closedWith = code
     }
+    opens() {
+      this.readyState = FakeSocket.OPEN
+      this.onopen?.()
+    }
+    says(message: object) {
+      this.onmessage?.({ data: JSON.stringify(message) })
+    }
   }
 
-  test('opens with the token, folds what the room says, and closes for good', () => {
-    const real = globalThis.WebSocket
+  const real = globalThis.WebSocket
+  beforeEach(() => {
     globalThis.WebSocket = FakeSocket as never
     FakeSocket.all = []
     window.location.href = 'http://localhost/build/'
-    try {
-      const close = openRoom('/__rooms/account/socket', 'account', 'tok')
-      const socket = FakeSocket.all[0] as FakeSocket
-      expect(socket.url).toBe('ws://localhost/__rooms/account/socket')
-      expect(socket.protocols).toEqual(['su-room', 'tok'])
-      socket.onmessage?.({
-        data: JSON.stringify(snapshot([unit('pilot', pilotFixture({ id: 'p1' }), null)])),
-      })
-      expect(ids(getView().pilots)).toEqual(['p1'])
-      close()
-      socket.onclose?.()
-      expect(socket.closedWith).toBe(1000)
-      expect(FakeSocket.all).toHaveLength(1)
-    } finally {
-      globalThis.WebSocket = real
-    }
+  })
+  afterEach(() => {
+    globalThis.WebSocket = real
+  })
+
+  const op = (id: string) => ({
+    id,
+    unitId: 'c1',
+    baseSeq: 1,
+    at: 1,
+    kind: 'manual' as const,
+    source: 'sheet',
+    patch: { name: 'X' },
+  })
+
+  test('opens with the token, folds what the room says, and closes for good', () => {
+    const close = openRoom('/__rooms/account/socket', 'account', 'tok')
+    const socket = FakeSocket.all[0] as FakeSocket
+    expect(socket.url).toBe('ws://localhost/__rooms/account/socket')
+    expect(socket.protocols).toEqual(['su-room', 'tok'])
+    socket.says(snapshot([unit('pilot', pilotFixture({ id: 'p1' }), null)]))
+    expect(ids(getView().pilots)).toEqual(['p1'])
+    close()
+    socket.onclose?.()
+    expect(socket.closedWith).toBe(1000)
+    expect(FakeSocket.all).toHaveLength(1)
+  })
+
+  test('while open, it is the Game’s room: a batch waits for its ack or declined', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const socket = FakeSocket.all[0] as FakeSocket
+    expect(roomOf('g1')).toBeNull()
+    socket.opens()
+    const room = roomOf('g1')
+    expect(room).not.toBeNull()
+
+    const acked = room?.submit([op('o1')])
+    expect(socket.sent).toEqual([{ type: 'ops', ops: [op('o1')] }])
+    socket.says({ type: 'ack', opIds: ['o1'] })
+    await acked
+
+    const refused = room?.submit([op('o2')])
+    socket.says({ type: 'declined', opIds: ['o2'], reason: 'Not yours' })
+    await expect(refused).rejects.toThrow(new RoomDeclined('Not yours'))
+
+    close()
+    expect(roomOf('g1')).toBeNull()
+  })
+
+  test('a batch in flight when the socket drops goes again when it reopens', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const first = FakeSocket.all[0] as FakeSocket
+    first.opens()
+    const sent = roomOf('g1')?.submit([op('o1')])
+    first.onclose?.()
+    expect(roomOf('g1')).toBeNull()
+
+    await new Promise((resolve) => setTimeout(resolve, 1_050))
+    const second = FakeSocket.all[1] as FakeSocket
+    second.opens()
+    expect(second.sent).toEqual([{ type: 'ops', ops: [op('o1')] }])
+    second.says({ type: 'ack', opIds: ['o1'] })
+    await sent
+    close()
   })
 })

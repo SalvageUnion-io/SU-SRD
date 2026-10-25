@@ -13,6 +13,7 @@
  * Framework-free: `RoomFeed` mounts the sockets (`openRoom`).
  */
 
+import type { OpInput } from 'game-domain/ops/applyOp'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { captureException } from '../lib/observability'
 import { ROOM_PROTOCOL } from '../rooms/presence'
@@ -112,7 +113,7 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
     case 'links':
       serve(scope, ['softLink'], message.links.map(servedLink))
       return
-    // Answers to ops this feed does not send yet, and who is here (`useGamePresence`).
+    // A batch's answer is its socket's (`openRoom`); who is here, `useGamePresence`'s.
     case 'ack':
     case 'declined':
     case 'presence':
@@ -123,22 +124,61 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
 /** Waits before reopening a dropped socket: doubling, at most 30 s. */
 const RETRY_MS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000]
 
+/** A batch sent and not yet answered, keyed by its first op's id. */
+type Batch = { ops: readonly OpInput[]; settle: (refusal: string | null) => void }
+
+/** A room this tab holds open, to send its ops. */
+type Room = { submit(ops: readonly OpInput[]): Promise<void> }
+
+/** The open rooms, by Game id; the account room under `ACCOUNT`. */
+const open = new Map<string, Room>()
+const ACCOUNT = '' as const
+
+/** The room a unit in `gameId` (null: on the Shelf) is written through, while its socket is open. */
+export function roomOf(gameId: string | null): Room | null {
+  return open.get(gameId ?? ACCOUNT) ?? null
+}
+
+/** A batch the room declined: its reason is the refusal the player is shown. */
+export class RoomDeclined extends Error {}
+
 /**
  * Keep a socket open on the room at `path`, folding what it says into
  * `scope`, and reopen it after a drop: each reopening starts with a
- * snapshot, so nothing missed while away is lost. Answers its close.
+ * snapshot, so nothing missed while away is lost. While open, it is the
+ * room `roomOf(gameId)` sends ops through: a batch waits for its `ack` or
+ * `declined`, and one in flight when the socket drops goes again when it reopens
+ * (an op id is idempotent, so a batch the room had already applied is safe
+ * to send again). Answers its close.
  */
-export function openRoom(path: string, scope: Scope, token: string): () => void {
+export function openRoom(
+  path: string,
+  scope: Scope,
+  token: string,
+  gameId: string | null = null
+): () => void {
   const url = new URL(path, window.location.href)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
+  const waiting = new Map<string, Batch>()
   let socket: WebSocket | null = null
   let retry: ReturnType<typeof setTimeout> | undefined
   let attempt = 0
   let closed = false
+  const send = (ops: readonly OpInput[]) => {
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ops', ops }))
+  }
+  const answer = (opIds: readonly string[], refusal: string | null) => {
+    const batch = waiting.get(opIds[0] ?? '')
+    if (batch === undefined) return
+    waiting.delete(opIds[0] as string)
+    batch.settle(refusal)
+  }
   const connect = () => {
     socket = new WebSocket(url.href, [ROOM_PROTOCOL, token])
     socket.onopen = () => {
       attempt = 0
+      open.set(gameId ?? ACCOUNT, room)
+      for (const batch of waiting.values()) send(batch.ops)
     }
     socket.onmessage = (event) => {
       let data: unknown
@@ -147,17 +187,34 @@ export function openRoom(path: string, scope: Scope, token: string): () => void 
       } catch {
         data = undefined
       }
-      foldRoomMessage(scope, data)
+      const reply = data as { type?: unknown; opIds?: string[]; reason?: string } | undefined
+      if (reply?.type === 'ack') answer(reply.opIds ?? [], null)
+      else if (reply?.type === 'declined') answer(reply.opIds ?? [], reply.reason ?? '')
+      else foldRoomMessage(scope, data)
     }
     socket.onclose = () => {
+      if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
       if (closed) return
       retry = setTimeout(connect, RETRY_MS[Math.min(attempt++, RETRY_MS.length - 1)])
     }
+  }
+  const room: Room = {
+    submit: (ops) =>
+      new Promise((resolve, reject) => {
+        const first = ops[0]
+        if (first === undefined) return resolve()
+        waiting.set(first.id, {
+          ops,
+          settle: (refusal) => (refusal === null ? resolve() : reject(new RoomDeclined(refusal))),
+        })
+        send(ops)
+      }),
   }
   connect()
   return () => {
     closed = true
     clearTimeout(retry)
+    if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
     socket?.close(1000)
   }
 }
