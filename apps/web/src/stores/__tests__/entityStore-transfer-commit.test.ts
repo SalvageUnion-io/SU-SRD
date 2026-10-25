@@ -1,6 +1,6 @@
 /**
  * `transfer()` commits the whole transfer — its updates AND its deletes — to the
- * server as ONE mutation (`entities.transfer`), before anything local is
+ * server as ONE mutation (`ops.transfer`), before anything local is
  * written.
  *
  * A delete that skipped the server deleted the record locally and left it
@@ -82,7 +82,13 @@ describe('transfer() commits once', () => {
     )
 
     expect(transfers).toHaveLength(1)
-    expect(transfers[0]?.writes.map((w) => w.record.id)).toEqual([keeper.id])
+    expect(transfers[0]?.writes.map((w) => w.op.unitId)).toEqual([keeper.id])
+    // The op names only what moved, made against the copy this tab holds.
+    expect(transfers[0]?.writes[0]?.op).toMatchObject({
+      patch: { name: 'Keeper Renamed' },
+      kind: LIVE_SHEET_MANUAL.kind,
+      source: LIVE_SHEET_MANUAL.source,
+    })
     expect(transfers[0]?.removals).toEqual([{ type: 'mech', id: doomed.id }])
     expect(useEntityStore.getState().get('mech', doomed.id)).toBeNull()
   })
@@ -108,16 +114,19 @@ describe('transfer() commits once', () => {
 })
 
 describe('transferArgs', () => {
-  test('each record takes the shape its own mutation takes', () => {
+  test('each op as ops.apply takes it, each link by its endpoints', () => {
+    const op = {
+      id: 'op-1',
+      unitId: 'c1',
+      baseSeq: 3,
+      at: 1,
+      kind: 'manual' as const,
+      source: 'test',
+      patch: {},
+      unset: ['maxSpOverride'],
+    }
     const args = realBackend.transferArgs(
-      [
-        { type: 'mech', record: { id: 'm1', gameId: null }, patch: { cargoLots: [] } },
-        {
-          type: 'crawler',
-          record: { id: 'c1', gameId: null },
-          patch: { maxSpOverride: undefined },
-        },
-      ],
+      [{ unit: 'crawler', gameId: null, op, move: null }],
       [
         { type: 'pilot', id: 'p1' },
         {
@@ -135,14 +144,7 @@ describe('transferArgs', () => {
       ]
     )
 
-    expect(args.updates[0]).toMatchObject({ table: 'mechs', appId: 'm1', gameId: null })
-    // A cleared crawler field travels as `unset`; no `gameId` means no move.
-    expect(args.updates[1]).toEqual({
-      table: 'crawlers',
-      appId: 'c1',
-      patch: { maxSpOverride: undefined },
-      unset: ['maxSpOverride'],
-    })
+    expect(args.ops).toEqual([{ unit: 'crawler', gameId: null, op, move: null }])
     expect(args.deletes).toEqual([
       { table: 'pilots', appId: 'p1' },
       {
@@ -152,13 +154,5 @@ describe('transferArgs', () => {
         type: 'mech-to-pilot',
       },
     ])
-  })
-
-  test('a crawler patch that changes container carries the move', () => {
-    const args = realBackend.transferArgs(
-      [{ type: 'crawler', record: { id: 'c1', gameId: null }, patch: { gameId: null } }],
-      []
-    )
-    expect(args.updates[0]).toMatchObject({ table: 'crawlers', appId: 'c1', gameId: null })
   })
 })

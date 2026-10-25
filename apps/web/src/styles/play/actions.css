@@ -51,26 +51,27 @@
 }
 
 /* On a phone the search takes the column's whole width (a search field is
-   full width on a phone), on its own line
-   under the filter. */
-.su-play-root--phone .su-play-act-head > div:last-child,
-.su-play-root--phone .su-play-act-tools {
-  width: 100%;
-}
+   full width on a phone), on its own line under the filter; the type filter
+   is full width too, its options sharing the line. */
+@container play not (width >= 64rem) {
+  .su-play-act-head > div:last-child,
+  .su-play-act-tools {
+    width: 100%;
+  }
 
-.su-play-root--phone .su-play-act-find {
-  flex-basis: 100%;
-  max-width: none;
-}
+  .su-play-act-find {
+    flex-basis: 100%;
+    max-width: none;
+  }
 
-/* On a phone the type filter is full width too, its options sharing the line. */
-.su-play-root--phone .su-play-act-tools .su-seg {
-  display: flex;
-  width: 100%;
-}
+  .su-play-act-tools .su-seg {
+    display: flex;
+    width: 100%;
+  }
 
-.su-play-root--phone .su-play-act-tools .su-seg__option {
-  flex: 1 1 auto;
+  .su-play-act-tools .su-seg__option {
+    flex: 1 1 auto;
+  }
 }
 
 .su-play-act__need,

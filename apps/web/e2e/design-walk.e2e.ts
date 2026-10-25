@@ -26,8 +26,8 @@ import { expect, test } from './fixtures'
 /**
  * Every layout gate over every context (hard rule R0), in one walk: the
  * account is seeded once (`gates/lib/seedAccount.ts`), each of `designRoutes`
- * (`_designTable.ts`) opens once at page and phone widths, Play's phone form
- * tab by tab, and each view is handed to every gate's scan in `designGates` (a
+ * (`_designTable.ts`) opens once at page and phone widths, Play's phone tabs
+ * one by one, and each view is handed to every gate's scan in `designGates` (a
  * gate that reads only some families says which; `E2E_DESIGN_GATES` holds a run
  * to some gates, `selectGates`). A gate's own scanner is its `_x.ts`.
  *
@@ -161,13 +161,12 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R12 on the whole page (Play's phone tabs scanned whole):
+       * Hard rule R12 on the whole page (Play's tabs on a phone scanned whole):
        * - `sibling`: no line whose controls differ in height (§4.7).
        * - `type-floor`: no text drawn under 11px (§4.6, `_typeFloor.ts`), its
        *   computed size times every scale above it. Play is swept again in a
-       *   mid-size window (`MID`, 1024 × 700), under its canvas's design size,
-       *   where a canvas scaled to fit would draw its 11px text at 8.8px: there
-       *   the phone form is up (ADR-045 decision 1), and every tab is scanned.
+       *   mid-size window (`MID`, 1024 × 700), on the `lg` rung, where its
+       *   three columns are at their narrowest.
        * - `tab-size` (pending, `_pendingRules.ts`): a Button beside Tabs is the
        *   Tabs' Size.
        * Then, under a coarse pointer (a touch phone), every menu item a seeded
@@ -243,7 +242,7 @@ function designGates(page: Page): Gate[] {
       /**
        * Hard rule R10, "A surface sets its texture once" (`_texture.ts`), on
        * the Cockpits and Manage; no other context is held to it at runtime.
-       * The overlays are opened on the canvas only (`page` width): a phone
+       * The overlays are opened wide only (`page` width): a phone
        * opens a Peek by a long press, and its tabs are the walk's.
        */
       gate: 'texture',

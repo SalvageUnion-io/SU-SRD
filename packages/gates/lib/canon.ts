@@ -42,7 +42,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§1': ['§1.1', '§1.2', '§1.3', '§1.9', 'actionPatches.test.ts', 'ConfirmDialog.test.tsx'],
   '§1.1': ['tokens/rust-allowlist', 'Sheet.writesBlocked.test.tsx'],
   '§1.2': ['R11', 'R32'],
-  '§1.3': ['R35', 'R10', 'PlayFrame.test.tsx', 'playCanvas.test.tsx'],
+  '§1.3': ['R35', 'R10', 'PlayFrame.test.tsx'],
   '§1.4': ['R6', 'PlayActionsColumn.test.tsx'],
   '§1.5': ['R6', 'E8'],
   '§1.6': ['R33'],

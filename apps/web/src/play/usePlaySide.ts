@@ -3,11 +3,10 @@
  * Game's feed and seats, the bound channel, the screen's one Post toggle, the
  * roll dispatch and the Feed's lines.
  *
- * Called once per screen: by `PlaySideColumn` on the canvas, by
- * `PlayCockpitPhone` on a phone, which puts the sections on its own tabs.
- * Only one form is ever mounted, so the dispatch (`usePlayRollDispatch`),
- * which writes every roll recorded in Play to the Game's log and, per the
- * toggle, to Discord, runs exactly once whichever tab is open.
+ * Called once per screen, by `PlayCockpit`, which hands it to the Crew and
+ * Tables panes, so the dispatch (`usePlayRollDispatch`), which writes every
+ * roll recorded in Play to the Game's log and, per the toggle, to Discord,
+ * runs exactly once whichever pane is open.
  *
  * The Tables and Feed half is `useSideFeed`, which the Mediator's side
  * (`usePlayMediatorSide`) calls too.
