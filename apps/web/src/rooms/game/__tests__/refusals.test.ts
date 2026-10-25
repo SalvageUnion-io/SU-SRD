@@ -36,6 +36,13 @@ describe('what the room refuses', () => {
     ).toThrow('Only a Pilot or a Mech')
   })
 
+  test('a player takes a free sheet for themselves, and only that', () => {
+    const { room } = crewed()
+    room.units.create(MEDIATOR, { id: 'p3', kind: 'pilot', body: bodies.pilot('p3'), at: AT })
+    expect(() => room.units.assign(PLAYER, 'p3', AT)).toThrow('A crewmate already holds that')
+    expect(() => room.units.assign(PLAYER, 'p1', AT, MEDIATOR)).toThrow('Only the Mediator')
+  })
+
   test('a proposal that no longer fits the sheet is refused when applied', () => {
     const { room } = crewed()
     room.proposals.propose(MEDIATOR, {
