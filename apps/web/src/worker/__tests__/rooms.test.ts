@@ -120,6 +120,27 @@ describe('an account room', () => {
       expect.objectContaining({ type: 'declined', opIds: [] }),
     ])
   })
+
+  test('its player’s solo area acts are answered, and their Shelf carries the area', () => {
+    const rook = sock('d-rook')
+    const room = shelf(rook)
+    const act = (id: string, name: string, args?: unknown) =>
+      room.webSocketMessage(rook as never, JSON.stringify({ type: 'act', id, name, args }))
+    act('a-1', 'salvageAreas.set', { area: { name: 'Yard', techLevel: 3, supply: 1 } })
+    act('a-2', 'salvageAreas.spend', { pilotId: 'p1' })
+    act('a-3', 'salvageAreas.spend', { pilotId: 'p1' })
+    act('a-4', 'scenes.passHour')
+    const heard = received(rook)
+    expect(heard.filter((m) => m.type !== 'snapshot')).toEqual([
+      { type: 'answered', id: 'a-1' },
+      { type: 'answered', id: 'a-2', value: { techLevel: 3, supply: 0 } },
+      { type: 'refused', id: 'a-3', reason: 'This area is picked clean' },
+      { type: 'refused', id: 'a-4', reason: 'Not an act this room takes' },
+    ])
+    expect(heard.filter((m) => m.type === 'snapshot').at(-1)).toMatchObject({
+      records: { salvageArea: [{ appId: 'salvageArea', body: { name: 'Yard', supply: 0 } }] },
+    })
+  })
 })
 
 describe('a Game room’s socket', () => {

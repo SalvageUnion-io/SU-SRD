@@ -10,6 +10,7 @@
  * - `records`: the op-less bodies, by table: saved patterns, encounters and
  *   the NPC tray.
  * - `leases` and `imports`: as the Game room's, for handoffs and the cutover.
+ * - `salvage_area`: the area the player's solo table is salvaging, at most one.
  */
 /** Step 1 of `ACCOUNT_ROOM` (`../schemas.ts`). */
 export const ACCOUNT_ROOM_TABLES: readonly string[] = [
@@ -97,4 +98,15 @@ export const ACCOUNT_ROOM_STAMPS: readonly string[] = [
 /** Step 3 of `ACCOUNT_ROOM`: when each record last changed, which the socket's records carry. */
 export const ACCOUNT_ROOM_RECORD_STAMPS: readonly string[] = [
   'alter table records add column updated_at integer not null default 0',
+]
+
+/** Step 4 of `ACCOUNT_ROOM`: the solo table's salvage area, at most one, as the Game room's. */
+export const ACCOUNT_ROOM_SOLO_AREA: readonly string[] = [
+  `create table salvage_area (
+        id integer primary key check (id = 1),
+        name text not null,
+        tech_level integer not null,
+        supply integer not null,
+        updated_at integer not null
+      )`,
 ]

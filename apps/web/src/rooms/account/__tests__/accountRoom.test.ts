@@ -270,3 +270,41 @@ describe('the cutover import', () => {
     expect(() => room.transit.importAccount({ discordId: PLAYER }, AT)).toThrow()
   })
 })
+
+describe('the solo table’s salvage area', () => {
+  const yard = { name: 'Scrapyard', techLevel: 2, supply: 2 }
+
+  test('its player sets it and spends its Supply one roll at a time', () => {
+    const { room } = shelf()
+    room.soloArea.set(PLAYER, { ...yard, name: '  Scrapyard ' }, AT)
+    expect(room.soloArea.here(PLAYER)).toEqual(yard)
+    expect(room.soloArea.here(STRANGER)).toBeNull()
+    expect(room.soloArea.spend(PLAYER, 'p1', AT)).toEqual({ techLevel: 2, supply: 1 })
+    expect(room.soloArea.spend(PLAYER, 'p1', AT)).toEqual({ techLevel: 2, supply: 0 })
+    expect(() => room.soloArea.spend(PLAYER, 'p1', AT)).toThrow('This area is picked clean')
+    room.soloArea.set(PLAYER, null, AT)
+    expect(room.soloArea.here(PLAYER)).toBeNull()
+    expect(() => room.soloArea.spend(PLAYER, 'p1', AT)).toThrow('There is no area to salvage here')
+  })
+
+  test('refuses anyone else, a mech’s roll, and an area out of range', () => {
+    const { room } = shelf()
+    expect(() => room.soloArea.set(STRANGER, yard, AT)).toThrow()
+    expect(() => room.soloArea.set(PLAYER, { ...yard, techLevel: 9 }, AT)).toThrow('Tech Level')
+    room.soloArea.set(PLAYER, yard, AT)
+    expect(() => room.soloArea.spend(PLAYER, 'm1', AT)).toThrow('That is not a Pilot')
+    expect(() => room.soloArea.spend(STRANGER, 'p1', AT)).toThrow()
+  })
+
+  test('comes over in the cutover import, as Convex kept it', () => {
+    const sql = bunSql()
+    migrate(sql, ACCOUNT_ROOM)
+    const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp })
+    const area = { ...yard, updatedAt: 5 }
+    room.transit.importAccount(bundle({ salvageArea: area }), AT)
+    expect(room.soloArea.here(PLAYER)).toEqual(yard)
+    expect(room.soloArea.updatedAt()).toBe(5)
+    expect(room.transit.diffImport(bundle({ salvageArea: area }))).toEqual([])
+    expect(room.transit.diffImport(bundle())).toEqual(['salvageArea: differs'])
+  })
+})

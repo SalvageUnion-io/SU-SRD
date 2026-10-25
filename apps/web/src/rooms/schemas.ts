@@ -1,5 +1,6 @@
 import {
   ACCOUNT_ROOM_RECORD_STAMPS,
+  ACCOUNT_ROOM_SOLO_AREA,
   ACCOUNT_ROOM_STAMPS,
   ACCOUNT_ROOM_TABLES,
 } from './account/schema'
@@ -11,6 +12,7 @@ export const ACCOUNT_ROOM: Migrations = [
   ACCOUNT_ROOM_TABLES,
   ACCOUNT_ROOM_STAMPS,
   ACCOUNT_ROOM_RECORD_STAMPS,
+  ACCOUNT_ROOM_SOLO_AREA,
 ]
 
 /** A Game and its live table (ADR-064 §2). Append a step; never edit a shipped one. */

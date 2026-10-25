@@ -1,4 +1,3 @@
-import type { OpInput } from '../ops'
 import type { ClientMessage, RoomOp, RoomUnit, ServerMessage } from '../protocol'
 import { ClientMessageSchema } from '../protocol'
 import type { GameRoomLogic } from './gameRoomLogic'
@@ -98,12 +97,6 @@ export function readClientMessage(message: string | ArrayBuffer): ClientMessage 
   } catch {
     return null
   }
-}
-
-/** A client's `ops` batch, or null when the message is not one. */
-export function readOpsBatch(message: string | ArrayBuffer): OpInput[] | null {
-  const said = readClientMessage(message)
-  return said?.type === 'ops' ? said.ops : null
 }
 
 /** What the sender hears when its message is not a batch. */
