@@ -429,6 +429,20 @@ describe('the Opposition', () => {
     await click(named('End Ambush'))
     expect(sent).toContainEqual({ name: 'mediator:endEncounter', args: { gameId: GAME } })
   })
+
+  test('a briefing stays behind its flag, off in a production build', async () => {
+    await renderCockpit({
+      'mediator:running': {
+        encounterId: 'enc-1',
+        name: 'Ambush',
+        tables: [],
+        notes: '',
+        briefing: 'Smoke rises from the crusher.',
+        startedAt: '2026-10-22T00:00:00.000Z',
+      },
+    })
+    expect(screen.queryByText('Smoke rises from the crusher.')).toBeNull()
+  })
 })
 
 describe('Downtime', () => {

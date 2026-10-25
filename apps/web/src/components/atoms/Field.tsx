@@ -179,6 +179,9 @@ const READOUT = {
 
 const READOUT_EMPTY = { ...READOUT, fontWeight: weight.normal } satisfies CSSProperties
 
+/** A multiline value keeps the lines it was written in, as the read state does. */
+const READOUT_PROSE = { ...READOUT, whiteSpace: 'pre-line' } satisfies CSSProperties
+
 const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
 
 const NO_RESIZE = { resize: 'none' } satisfies CSSProperties
@@ -429,7 +432,7 @@ function FieldEditor({
             !hasValue && 'su-field__readout--empty',
             INPUT_FOCUS
           )}
-          style={hasValue ? READOUT : READOUT_EMPTY}
+          style={hasValue ? (multiline ? READOUT_PROSE : READOUT) : READOUT_EMPTY}
         >
           {hasValue ? value : placeholder}
         </span>
