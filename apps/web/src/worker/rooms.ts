@@ -68,6 +68,11 @@ export class AccountRoom extends Room implements UnitHome {
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
     this.logic = new AccountRoomLogic(this.sql, { applyOp })
+    // The room is named by its player, so it is theirs before they first open
+    // it: a Game that ends can hand them their units (after the migration above).
+    void ctx.blockConcurrencyWhile(async () => {
+      if (ctx.id.name !== undefined) this.logic.shelf.claim(ctx.id.name, Date.now())
+    })
   }
 
   /** The player's own units; anyone else is answered none. */
