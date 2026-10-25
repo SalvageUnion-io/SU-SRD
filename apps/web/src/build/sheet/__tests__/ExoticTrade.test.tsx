@@ -9,8 +9,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { ChangeMeta } from '../../../stores/entityStore'
-import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
+import type { ChangeMeta } from '../../../replica/provenance'
+import { LIVE_SHEET_TXN } from '../../../replica/provenance'
 import { ExoticTrade } from '../ExoticTrade'
 
 function setup(scrapPool: Crawler['scrapPool']) {

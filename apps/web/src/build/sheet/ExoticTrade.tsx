@@ -12,8 +12,8 @@ import { Button, Eyebrow, Select, Slab, Stat, tokens } from '../../components/in
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
 import { EXOTIC_RESOURCES, exoticBucket, tradeExotic } from '../../lib/rules/exoticSalvage'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_TXN } from '../../replica/provenance'
+import type { UnitsStore } from '../../replica/units'
 import { EXOTIC_NAME } from './exoticNames.model'
 import { freshEntity } from './freshEntity.model'
 
@@ -51,13 +51,7 @@ const ACTION_ROW = {
  * Scrap of its trade Tech Level, Tech 1 or Tech 6 (Core Book p.275, p.288; We
  * Were Here First! p.9; False Flag p.66). Shown only while the pool holds any.
  */
-export function ExoticTrade({
-  crawler,
-  store,
-}: {
-  crawler: Crawler
-  store: typeof useEntityStore
-}) {
+export function ExoticTrade({ crawler, store }: { crawler: Crawler; store: UnitsStore }) {
   const storeState = store()
   const pool = crawler.scrapPool ?? {}
   const held = EXOTIC_RESOURCES.filter((r) => exoticBucket(pool, r.key) > 0)

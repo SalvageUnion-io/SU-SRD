@@ -12,7 +12,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import { exoticBucket, naniteProcessingGate, processNanites } from '../lib/rules/exoticSalvage'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
 import type { PlayStore } from './play.model'
 
 /** What the crawler's bay can do this Downtime, and how many piles wait. */

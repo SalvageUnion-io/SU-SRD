@@ -7,9 +7,9 @@
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playSafetyCopy } from '../messages/play-safety'
+import { useSync } from '../replica/syncContext'
 
 export type StopSign = {
   /** True while the game is paused. */
@@ -30,10 +30,10 @@ export type StopSign = {
 
 /** The Game's Stop Sign, or null solo, signed out or while it loads. */
 export function useStopSign(gameId: string | null): StopSign | null {
-  const { mode, canWrite } = useConnection()
+  const { status, canWrite } = useSync()
   const read = useQuery(
     api.safety.stopSign,
-    gameId !== null && mode === 'connected' ? { gameId: gameId as Id<'games'> } : 'skip'
+    gameId !== null && status === 'live' ? { gameId: gameId as Id<'games'> } : 'skip'
   )
   const showStop = useServerAction(useMutation(api.safety.showStop), {
     failure: playSafetyCopy('couldNotShow'),

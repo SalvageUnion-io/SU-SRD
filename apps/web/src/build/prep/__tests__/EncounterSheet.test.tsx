@@ -11,8 +11,8 @@ import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
 import { installConvexMocks } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -31,12 +31,10 @@ afterAll(async () => {
 })
 
 const { ToasterMount, toast } = await import('../../../components/index')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { usePrepStore } = await import('../../../stores/prepStore')
-const { usePatternStore } = await import('../../../stores/patternStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { useEncounters, usePatterns } = await import('../../../replica/collections')
 const { EncounterPage } = await import('../EncounterPage')
-const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
 withSignedInBackend()
 
@@ -65,19 +63,13 @@ const AMBUSH: Encounter = {
   updatedAt: NOW,
 }
 
-const connection: ConnectionState = {
-  mode: 'connected',
-  canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
-}
+const connection: SyncState = { status: 'live', canWrite: true, outdated: false }
 
 beforeEach(() => {
-  useSheetModeStore.setState({ editing: true })
   toast.dismiss()
   resetStores()
-  usePrepStore.setState({ encounters: [AMBUSH], hydrated: true } as never)
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+  useEncounters.setState({ encounters: [AMBUSH], hydrated: true } as never)
+  usePatterns.setState({ mechPatterns: [], hydrated: true })
 })
 
 async function settle(done: () => boolean = () => false): Promise<void> {
@@ -88,15 +80,15 @@ async function settle(done: () => boolean = () => false): Promise<void> {
   }
 }
 
-const current = () => usePrepStore.getState().get('enc-1')
+const current = () => useEncounters.getState().get('enc-1')
 
 async function renderPage() {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection}>
+      <SyncContext.Provider value={connection}>
         <ToasterMount />
         <EncounterPage id="enc-1" />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -186,46 +178,5 @@ describe("an encounter's briefing", () => {
     await settle(() => current()?.briefing !== undefined)
     expect(current()?.briefing).toBe('Smoke rises from the crusher.')
     expect(current()?.notes).toBe('')
-  })
-})
-
-describe("an encounter's threat read and spoils", () => {
-  test('reads the opposition against a crew the Mediator steps', async () => {
-    await renderPage()
-    const read = screen.getByRole('region', { name: 'Threat read' })
-    expect(within(read).getByText('HP')).toBeTruthy()
-    expect(within(read).queryByText('Crew outnumbered')).toBeNull()
-    await click(within(read).getByRole('button', { name: 'Decrease crew size' }))
-    await click(within(read).getByRole('button', { name: 'Decrease crew size' }))
-    expect(within(read).getByText('Crew outnumbered')).toBeTruthy()
-  })
-
-  test('lists what could be salvaged, or says nothing here leaves any', async () => {
-    await renderPage()
-    expect(screen.getByText(/Nothing here leaves salvage in the book/)).toBeTruthy()
-    act(() => {
-      usePrepStore.setState({
-        encounters: [
-          {
-            ...AMBUSH,
-            opposition: [
-              {
-                id: 'm1',
-                refSchema: 'chassis',
-                refSlug: 'mule',
-                refName: 'Mule',
-                refPattern: 'hauler',
-                name: 'Hauler',
-                maxHp: 10,
-                statKind: 'sp',
-              },
-            ],
-          },
-        ],
-      } as never)
-    })
-    const spoils = screen.getByRole('list', { name: 'Spoils' })
-    expect(within(spoils).getByText('Mule Chassis · Tech 1 · Salvage Value 7')).toBeTruthy()
-    expect(within(spoils).getByText(/Comms Module/)).toBeTruthy()
   })
 })

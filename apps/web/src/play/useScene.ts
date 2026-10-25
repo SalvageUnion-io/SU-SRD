@@ -9,8 +9,8 @@ import { useQuery } from 'convex/react'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 
 export type SceneState = {
   /** In catalogue order, each once. */
@@ -22,7 +22,7 @@ export type SceneState = {
 export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }
 
 export function useScene(gameId: string | null): SceneState {
-  const signedIn = isSignedIn(useConnection().mode)
+  const signedIn = isSignedIn(useSync().status)
   const scene = useQuery(
     api.scenes.current,
     signedIn && gameId !== null ? { gameId: gameId as Id<'games'> } : 'skip'

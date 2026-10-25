@@ -26,9 +26,9 @@
 import type { Container } from 'game-domain/container'
 import { moveTo } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
-import { STARTER_SOFT_LINKS } from 'game-domain/starterSet/starterSet'
 import { useUnits } from '../../replica/units'
-import { starterTemplate, starterTemplates } from './starterTemplates'
+import type { StarterRosterId } from './starterTemplates'
+import { starterRoster, starterTemplate, starterTemplates } from './starterTemplates'
 
 /**
  * Copy one template into `to`, as a build the player owns. Resolves to what was
@@ -41,7 +41,7 @@ export async function copyStarter(
   to: Container
 ): Promise<{ id: string; name: string }> {
   const template = starterTemplate(kind, templateId)
-  if (template === null) throw new Error(`There is no Starter Set ${kind} "${templateId}".`)
+  if (template === null) throw new Error(`There is no book crew ${kind} "${templateId}".`)
 
   // A deep copy, so nothing the new build does can reach back into the
   // template it came from.
@@ -61,11 +61,12 @@ export async function copyStarter(
 export type CrewCopy = { builds: number; links: number }
 
 /**
- * Copy the whole crew into `to` in one go: every Starter Set build, then the
- * links the box draws between them (each pilot flies their mech, and pilots
- * and mechs crew the Tenacity), redrawn between the copies.
+ * Copy a whole crew into `to` in one go: every build of `roster`, then the
+ * links its book draws between them (each pilot flies their mech; in the
+ * Starter Set, pilots and mechs crew the Tenacity too), redrawn between the
+ * copies.
  *
- * The crawler goes first, so a destination that refuses it (a Game the player
+ * A crawler goes first, so a destination that refuses it (a Game the player
  * does not run) refuses before anything else is made. Links go last, through
  * the assignment model like any other link: both ends are in `to`, so none
  * straddles two containers.
@@ -75,19 +76,22 @@ export type CrewCopy = { builds: number; links: number }
  * passed on, so a retry starts from an empty slate rather than doubling the
  * crew.
  */
-export async function copyStarterCrew(to: Container): Promise<CrewCopy> {
+export async function copyStarterCrew(
+  to: Container,
+  roster: StarterRosterId = 'starter-set'
+): Promise<CrewCopy> {
   const copies = new Map<string, { kind: SheetKind; id: string }>()
   const store = useUnits.getState()
   try {
     for (const kind of CREW_ORDER) {
-      for (const template of starterTemplates(kind)) {
+      for (const template of starterTemplates(kind, roster)) {
         const copy = await copyStarter(kind, template.id, to)
         copies.set(template.id, { kind, id: copy.id })
       }
     }
 
     let links = 0
-    for (const link of STARTER_SOFT_LINKS) {
+    for (const link of starterRoster(roster).softLinks) {
       const from = copies.get(link.from.id)
       const toCopy = copies.get(link.to.id)
       if (from === undefined || toCopy === undefined) continue

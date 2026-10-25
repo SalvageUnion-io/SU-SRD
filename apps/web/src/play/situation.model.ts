@@ -14,6 +14,7 @@ import type { SeatMount } from 'game-domain/schemas/seat'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { BoardOption } from './boardMenu.model'
 import type { PlayReadOnly, PlayTarget } from './play.model'
+import type { SceneState } from './useScene'
 import type { SeatHandle } from './useSeat'
 
 /** What the pilot is doing, as the Situation switch shows it. */
@@ -141,6 +142,8 @@ export type Play = {
   seat: SeatHandle
   /** Downtime: the step, upkeep, and its writes. */
   downtime: PlayDowntime
+  /** The Game's Scene conditions (`useScene`); clear solo. */
+  scene: SceneState
   /** Writes may go now (`useSync().canWrite`): offer controls only then. */
   canWrite: boolean
   /**

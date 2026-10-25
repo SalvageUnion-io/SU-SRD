@@ -29,9 +29,9 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playSafetyCopy } from '../../messages/play-safety'
+import { useSync } from '../../replica/syncContext'
 import { StopSignButton } from '../StopSign'
 import type { StopSign } from '../useStopSign'
 import { HUB_BODY } from './hubStyles.model'
@@ -166,7 +166,7 @@ export function GameSafety({ gameId, sign }: { gameId: Id<'games'>; sign: StopSi
     failure: playSafetyCopy('couldNotChange'),
     toastId: 'stop-sign-post',
   })
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
 
   return (
     <SlabSection

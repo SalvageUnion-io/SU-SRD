@@ -24,6 +24,8 @@
  * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
+ * In a Game, Stop shows the Stop Sign, and while it is up a banner under the
+ * bar says the game is paused (`StopSign.tsx`).
  * The channel button shows where rolls post, or Connect (`PlayChannelButton`,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
  * §5–§6); solo, "‹ Play" goes back to the Play hub and ⋯ is inert.
@@ -58,6 +60,7 @@ import type { PlayTarget } from './play.model'
 import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes } from './playPanes.model'
+import { StopSignBanner, StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
 import type { PlayActionsDeps } from './usePlayActions'
@@ -66,6 +69,7 @@ import { usePlaySide } from './usePlaySide'
 import { usePlaySituation } from './usePlaySituation'
 import { usePlayUnits } from './usePlayUnits'
 import { usePlayWide } from './usePlayWide'
+import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
 
@@ -93,6 +97,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     api.crew.vitals,
     target.gameId !== null && status === 'live' ? { gameId: target.gameId as Id<'games'> } : 'skip'
   )
+  const sign = useStopSign(target.gameId)
   const here = useGamePresence(target.gameId, 'seat')
   const wide = usePlayWide()
   const [tab, setTab] = useState<PlayerPane>('act')
@@ -128,25 +133,29 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
       wide={wide}
       labels={['Units', 'Actions', 'Crew, Tables and Feed']}
       bar={
-        <PlayBar
-          title={playTitle(target, play.pilot?.name ?? 'Pilot')}
-          stamp={playStamp(target)}
-          tone={PHASE_TONE[play.situation]}
-          backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
-          backLabel={solo ? playCopy('play') : playCopy('game')}
-          live={status === 'live' && !solo}
-          here={crew === undefined || here === null ? null : hereCount(crew.pilots, here)}
-          readOnly={play.readOnly}
-          situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
-          channel={
-            <PlayChannelButton
-              owner={solo ? { kind: 'solo' } : { kind: 'game', gameName: target.gameName }}
-              binding={binding}
-              compact={!wide}
-            />
-          }
-          menu={<CockpitMenu target={target} />}
-        />
+        <>
+          <PlayBar
+            title={playTitle(target, play.pilot?.name ?? 'Pilot')}
+            stamp={playStamp(target)}
+            tone={PHASE_TONE[play.situation]}
+            backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
+            backLabel={solo ? playCopy('play') : playCopy('game')}
+            live={status === 'live' && !solo}
+            here={crew === undefined || here === null ? null : hereCount(crew.pilots, here)}
+            readOnly={play.readOnly}
+            situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
+            channel={
+              <PlayChannelButton
+                owner={solo ? { kind: 'solo' } : { kind: 'game', gameName: target.gameName }}
+                binding={binding}
+                compact={!wide}
+              />
+            }
+            stop={<StopSignButton sign={sign} compact={!wide} />}
+            menu={<CockpitMenu target={target} />}
+          />
+          <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
+        </>
       }
       pinned={
         <>

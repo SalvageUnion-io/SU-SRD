@@ -15,9 +15,9 @@ import { useMutation, useQuery } from 'convex/react'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
 import type { PlayScreen } from './play.model'
 
 export type SalvageAreaView = {
@@ -31,7 +31,7 @@ export type SalvageAreaView = {
 }
 
 export function useSalvageArea(screen: PlayScreen): SalvageAreaView {
-  const signedIn = isSignedIn(useConnection().mode)
+  const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
   const gameId = screen.gameId as Id<'games'> | null
   const here = useQuery(api.salvageAreas.here, signedIn ? { gameId } : 'skip')

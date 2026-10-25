@@ -37,10 +37,10 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage, useServerAction } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
 import { HUB_BODY } from './hubStyles.model'
 
 const { space } = tokens
@@ -111,7 +111,7 @@ function byState(jobs: readonly Job[]): Job[] {
 
 export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator: boolean }) {
   const ledger = useQuery(api.ledger.get, { gameId })
-  const { canWrite } = useConnection()
+  const { canWrite } = useSync()
   const failure = playGamesCopy('theLedgerCouldNotBe')
   const setFaction = useServerAction(useMutation(api.ledger.setFaction), { failure })
   const removeFaction = useServerAction(useMutation(api.ledger.removeFaction), { failure })
