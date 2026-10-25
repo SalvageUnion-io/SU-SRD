@@ -18,6 +18,14 @@ import type {
   UnitSheet,
 } from '../rooms/game/acts'
 import { runAct } from '../rooms/game/acts'
+import {
+  appliedMessages,
+  batchAnswer,
+  gameSnapshot,
+  readOpsBatch,
+  refusedBatch,
+  UNREADABLE,
+} from '../rooms/game/feed'
 import { GameRoomLogic } from '../rooms/game/gameRoomLogic'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
@@ -27,6 +35,7 @@ import type { Migrations } from '../rooms/migrate'
 import { migrate } from '../rooms/migrate'
 import type { PresenceMessage } from '../rooms/presence'
 import { presentMembers, ROOM_PROTOCOL, SEAT_TAG, WATCH_TAG } from '../rooms/presence'
+import type { ServerMessage } from '../rooms/protocol'
 import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
@@ -200,13 +209,29 @@ export class GameRoom extends Room implements UnitHome {
     return name
   }
 
-  /** One member's act, by name (`GAME_ACTS`); a refusal comes back as an answer. */
+  /**
+   * One member's act, by name (`GAME_ACTS`); a refusal comes back as an
+   * answer. Every open socket then hears what changed.
+   */
   act<N extends GameActName>(
     actor: string,
     name: N,
     args: GameActArgs<N>
   ): GameActAnswer<GameActResult<N>> {
-    return runAct({ room: this.logic, actor, gameId: this.gameId, at: Date.now() }, name, args)
+    const answer = runAct(
+      { room: this.logic, actor, gameId: this.gameId, at: Date.now() },
+      name,
+      args
+    )
+    if (answer.ok && !READ_ACTS.has(name)) {
+      const result = answer.value as GameActResult<'submit'>
+      if (name !== 'submit') this.broadcastSnapshots()
+      else if (result.ok) {
+        const ids = result.applied.map((op) => op.id)
+        this.broadcast(appliedMessages(this.logic, ids, this.gameId))
+      }
+    }
+    return answer
   }
 
   /** The actor's own units and the primary crawler, for the bot's sheets. */
@@ -233,10 +258,12 @@ export class GameRoom extends Room implements UnitHome {
 
   accept(parcel: UnitParcel, actor: string, at: number): void {
     this.logic.transit.accept(parcel, actor, at)
+    this.broadcastSnapshots()
   }
 
   release(leaseId: string): void {
     this.logic.transit.release(leaseId)
+    this.broadcastSnapshots()
   }
 
   cancel(leaseId: string): void {
@@ -300,12 +327,30 @@ export class GameRoom extends Room implements UnitHome {
     const role = request.headers.get(SEAT_HEADER) === '1' ? SEAT_TAG : WATCH_TAG
     const pair = new WebSocketPair()
     this.ctx.acceptWebSocket(pair[1], [member, role])
+    pair[1].send(JSON.stringify(gameSnapshot(this.logic, member, this.gameId)))
     this.broadcastPresence()
     return new Response(null, {
       status: 101,
       headers: { 'sec-websocket-protocol': ROOM_PROTOCOL },
       webSocket: pair[0],
     } as ResponseInit)
+  }
+
+  /** A member's `ops` batch: applied all or none, answered on its socket, heard by all. */
+  override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
+    const [member] = this.ctx.getTags(ws)
+    const batch = member === undefined ? null : readOpsBatch(message)
+    if (member === undefined || batch === null) {
+      ws.send(JSON.stringify(UNREADABLE))
+      return
+    }
+    const opIds = batch.map((op) => op.id)
+    const answer = this.act(member, 'submit', { ops: batch })
+    ws.send(
+      JSON.stringify(
+        answer.ok ? batchAnswer(opIds, answer.value) : refusedBatch(opIds, answer.refusal)
+      )
+    )
   }
 
   override webSocketClose(ws: RoomSocket): void {
@@ -316,6 +361,27 @@ export class GameRoom extends Room implements UnitHome {
     this.broadcastPresence(ws)
   }
 
+  /** Each open socket's own snapshot, after an act that may have changed several things. */
+  private broadcastSnapshots(): void {
+    const byMember = new Map<string, string>()
+    for (const ws of this.ctx.getWebSockets()) {
+      const [member] = this.ctx.getTags(ws)
+      if (member === undefined) continue
+      let text = byMember.get(member)
+      if (text === undefined) {
+        text = JSON.stringify(gameSnapshot(this.logic, member, this.gameId))
+        byMember.set(member, text)
+      }
+      sendQuietly(ws, text)
+    }
+  }
+
+  /** The same messages to every open socket. */
+  private broadcast(messages: readonly ServerMessage[]): void {
+    const texts = messages.map((message) => JSON.stringify(message))
+    for (const ws of this.ctx.getWebSockets()) for (const text of texts) sendQuietly(ws, text)
+  }
+
   /** Who is here, to every open socket but `gone` (the one closing). */
   private broadcastPresence(gone?: RoomSocket): void {
     const open = this.ctx.getWebSockets().filter((ws) => ws !== gone)
@@ -324,13 +390,34 @@ export class GameRoom extends Room implements UnitHome {
       here: presentMembers(open.map((ws) => this.ctx.getTags(ws))),
     }
     const text = JSON.stringify(message)
-    for (const ws of open) {
-      try {
-        ws.send(text)
-      } catch {
-        // Closing as we sent; its own close handler sends the next answer.
-      }
-    }
+    for (const ws of open) sendQuietly(ws, text)
+  }
+}
+
+/** The acts that change nothing a socket carries. */
+const READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
+  'read',
+  'members',
+  'invitePreview',
+  'inviteCode',
+  'units',
+  'links',
+  'history',
+  'pendingProposals',
+  'sentProposals',
+  'seats',
+  'downtime',
+  'tray',
+  'runningEncounter',
+  'unitsFor',
+  'unit',
+])
+
+function sendQuietly(ws: RoomSocket, text: string): void {
+  try {
+    ws.send(text)
+  } catch {
+    // Closing as we sent; its own close handler answers the rest.
   }
 }
 

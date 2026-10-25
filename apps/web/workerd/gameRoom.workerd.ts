@@ -109,3 +109,34 @@ describe('ending a Game', () => {
     expect(await room.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
   })
 })
+
+describe('the Game room’s socket', () => {
+  it('opens on a snapshot, and answers an ops batch with applied and ack', async () => {
+    const room = (await game('g-socket')) as unknown as GameRoomStub & {
+      fetch(url: string, init: RequestInit): Promise<Response>
+    }
+    const res = await room.fetch('https://room/', {
+      headers: { upgrade: 'websocket', 'x-su-member': PLAYER, 'x-su-seat': '0' },
+    })
+    const ws = res.webSocket
+    if (ws === null) throw new Error('no socket')
+    const heard: { type: string; [key: string]: unknown }[] = []
+    ws.addEventListener('message', (e) => heard.push(JSON.parse(String(e.data))))
+    ws.accept()
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
+    await settle()
+    expect(heard[0]).toMatchObject({
+      type: 'snapshot',
+      units: [{ appId: 'p1', gameId: 'g-socket' }],
+    })
+
+    const op = motto('Up')
+    ws.send(JSON.stringify({ type: 'ops', ops: [op] }))
+    await settle()
+    expect(heard.slice(-2)).toMatchObject([
+      { type: 'applied', unit: { appId: 'p1', headSeq: 1 } },
+      { type: 'ack', opIds: [op.id] },
+    ])
+    ws.close(1000)
+  })
+})

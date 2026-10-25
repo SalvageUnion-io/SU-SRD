@@ -45,6 +45,7 @@ function room(gameId: string) {
     id: { name: gameId },
     storage: store,
     blockConcurrencyWhile: async (fn: () => Promise<void>) => fn(),
+    getWebSockets: () => [],
   }
   const game = new GameRoom(ctx as never, {} as never)
   made.set(gameId, game)

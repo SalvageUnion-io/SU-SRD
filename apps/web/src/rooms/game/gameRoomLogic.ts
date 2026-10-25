@@ -14,6 +14,7 @@ import { GameUnits } from './units'
  * of the Convex module it replaces.
  */
 export class GameRoomLogic {
+  readonly store: GameStore
   readonly roster: GameRoster
   readonly units: GameUnits
   readonly proposals: GameProposals
@@ -26,6 +27,7 @@ export class GameRoomLogic {
     deps: { applyOp: ApplyOp; newId?: () => string; mintCode?: () => string }
   ) {
     const store = new GameStore(sql)
+    this.store = store
     const newId = deps.newId ?? (() => crypto.randomUUID())
     this.units = new GameUnits(store, deps.applyOp, newId)
     this.proposals = new GameProposals(store, this.units)

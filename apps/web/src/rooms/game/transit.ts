@@ -295,14 +295,15 @@ export class GameTransit {
         })
         for (const op of unit.ops) this.store.putOp(importedOp(op))
       }
-      for (const link of bundle.links) this.store.putLink(link as LinkShape)
+      for (const link of bundle.links) this.store.putLink(link as LinkShape, at)
       for (const seat of bundle.seats) this.importSeat(seat, at)
       this.importDowntime(bundle, at)
       for (const npc of bundle.opposition) {
         this.store.rows(
-          'insert into tray (id, body, added_at) values (?, ?, ?)',
+          'insert into tray (id, body, added_at, updated_at) values (?, ?, ?, ?)',
           npc.appId,
           JSON.stringify({ ...npc.body, id: npc.appId }),
+          at,
           at
         )
       }

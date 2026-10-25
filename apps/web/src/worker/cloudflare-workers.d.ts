@@ -27,6 +27,7 @@ declare module 'cloudflare:workers' {
       wasClean: boolean
     ): void | Promise<void>
     webSocketError?(ws: WebSocket, error: unknown): void | Promise<void>
+    webSocketMessage?(ws: WebSocket, message: string | ArrayBuffer): void | Promise<void>
   }
 
   export abstract class WorkerEntrypoint<Env = unknown> implements Rpc.WorkerEntrypointBranded {
