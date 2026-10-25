@@ -67,11 +67,13 @@
       // Off: vite.config.ts loads the app's own TSX through Vite's module
       // runner, which knip's loader cannot parse; its entries are listed above.
       "vite": false,
-      // Imported only by CSS (`src/styles/base.css`), which knip does not read.
+      // Imported only by CSS (`src/styles/base.css`), which knip does not read;
+      // `cloudflare` is workerd's built-in `cloudflare:workers`, no package.
       "ignoreDependencies": [
         "@fontsource/barlow",
         "@fontsource/barlow-semi-condensed",
-        "@fontsource/caveat"
+        "@fontsource/caveat",
+        "cloudflare"
       ],
       // The router plugin's default is `src/routeTree.gen.ts`; the app's is a level down.
       "tanstack-router": {

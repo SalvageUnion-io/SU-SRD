@@ -17,6 +17,8 @@
  *     (`errorReports.ts`).
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have falls through to the rules below.
+ *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
+ *     version, or a 503 (`./rooms.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -59,6 +61,9 @@ import {
   handleErrorReport,
 } from './errorReports'
 import { serveHomebrew } from './homebrew'
+import { ROOMS_HEALTH_PATH, serveRoomsHealth } from './rooms'
+
+export { AccountRoom, GameRoom } from './rooms'
 
 export type Env = AppEnv & {
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
@@ -129,6 +134,11 @@ export default {
     if (isAppPath(url.pathname)) {
       const res = await serveApp(request, env)
       if (res !== null) return res
+    }
+
+    // R. The rooms answer for themselves.
+    if (url.pathname === ROOMS_HEALTH_PATH && request.method === 'GET') {
+      return serveRoomsHealth()
     }
 
     // H. Homebrew for the SRD's pages, from Convex.
