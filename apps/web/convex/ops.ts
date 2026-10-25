@@ -1,15 +1,19 @@
 import { v } from 'convex/values'
+import { query } from './_generated/server'
 import { removeCrawlerRow } from './model/crawlerWrites'
-import { mutation } from './model/entities'
+import { internalMutation, mutation } from './model/entities'
 import { LINK, unwireSoftLink } from './model/linkWrites'
+import * as proposals from './model/opProposals'
+import { PROPOSE, proposalRow, sentRow } from './model/opProposals'
 import type { Applied } from './model/opWrites'
 import { applyUnitOp, moveThenApply, UNIT_OP } from './model/opWrites'
 import { OWNABLE_REMOVE, removeOwnable } from './model/ownableWrites'
-import { requireUser } from './model/permissions'
+import { mediatorOrNull, membershipOrNull, requireUser } from './model/permissions'
 
 /**
  * Ops, the write (ADR-063). The store sends every change to a unit's body
- * here; `model/opWrites.ts` applies it.
+ * here; `model/opWrites.ts` applies it. A Mediator's proposal is an op too,
+ * waiting on its owner (`model/opProposals.ts`).
  */
 
 /**
@@ -62,4 +66,57 @@ export const transfer = mutation({
     }
     return { applied }
   },
+})
+
+/** Propose one field of a player's pilot or mech; answers the proposal's op id. */
+export const propose = mutation({
+  args: PROPOSE,
+  handler: async (ctx, args): Promise<string> => proposals.propose(ctx, args),
+})
+
+/** Proposals awaiting the caller's answer in a Game, newest first. */
+export const pending = query({
+  args: { gameId: v.id('games') },
+  returns: v.array(v.object(proposalRow)),
+  handler: async (ctx, args) => {
+    const membership = await membershipOrNull(ctx, args.gameId)
+    return membership === null ? [] : proposals.pending(ctx, args.gameId, membership.userId)
+  },
+})
+
+/** Every Mediator proposal in a Game, newest first, a page at a time; Mediators only. */
+export const sent = query({
+  args: { gameId: v.id('games'), limit: v.optional(v.number()) },
+  returns: v.array(v.object(sentRow)),
+  handler: async (ctx, args) => {
+    const membership = await mediatorOrNull(ctx, args.gameId)
+    return membership === null
+      ? []
+      : proposals.sent(ctx, args.gameId, membership.userId, args.limit)
+  },
+})
+
+/** Accept a proposal on your own unit: you apply it. */
+export const accept = mutation({
+  args: { opId: v.string() },
+  handler: async (ctx, args): Promise<void> => proposals.accept(ctx, args.opId),
+})
+
+/** Decline a proposal on your own unit. */
+export const decline = mutation({
+  args: { opId: v.string() },
+  handler: async (ctx, args): Promise<void> => proposals.decline(ctx, args.opId),
+})
+
+/**
+ * One-off, run by hand after the deploy that made proposals ops: copies the
+ * proposals still awaiting an answer from the Change Log into ops, a page at a
+ * time (`npx convex run ops:copyLegacyProposals '{"cursor":null}'`, then again
+ * with the answered `cursor` until `done`). Safe to run twice. Delete it
+ * once it has run.
+ * @operator
+ */
+export const copyLegacyProposals = internalMutation({
+  args: { cursor: v.union(v.string(), v.null()) },
+  handler: async (ctx, args) => proposals.copyLegacyProposals(ctx, args.cursor),
 })

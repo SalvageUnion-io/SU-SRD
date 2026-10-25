@@ -22,9 +22,9 @@ bun run deploy-commands:global     # production; a bot deploy runs it too. Crede
 
 ## The Game client (`src/play/`)
 
-It calls Convex's `/bot/*` routes with a bearer authenticating the **bot**,
-never the actor: each call carries a Discord id the server resolves to an
-account and membership ([bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client)).
+It asks the site's `BotGateway` (binding `SITE`) first, then Convex's
+`/bot/*` with a bearer authenticating the **bot**, never the actor: each
+call carries a Discord id the server resolves to an account and membership ([bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client)).
 
 - Wire types come from `game-domain/botWire` (`import type`); never copy one.
 - **It degrades:** without `BACKEND_SITE_URL` and `BOT_SECRET`,

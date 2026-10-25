@@ -167,7 +167,7 @@ describe('appendChangeLog authorization', () => {
 
     // The point of the rule is the feed, so assert on the feed and not only on
     // the throw: nothing reached the surface a player actually reads.
-    const alerts = await gm.as.query(api.proposals.alerts, { gameId })
+    const alerts = await gm.as.query(api.changeLog.alerts, { gameId })
     expect(alerts).toHaveLength(0)
   })
 
@@ -186,7 +186,7 @@ describe('appendChangeLog authorization', () => {
       })
     ).rejects.toThrow(/Alerts are written by the Mediator/)
 
-    const alerts = await player.as.query(api.proposals.alerts, { gameId })
+    const alerts = await player.as.query(api.changeLog.alerts, { gameId })
     expect(alerts).toHaveLength(0)
   })
 })

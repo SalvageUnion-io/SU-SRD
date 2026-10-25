@@ -31,6 +31,9 @@
     "miniflare": {
       "undici": "7.30.1"
     },
+    "@cloudflare/vitest-plugin": {
+      "zod": "4.6.6"
+    },
     "salvageunion-reference": "workspace:*",
     "sharp": ">=0.35.5"
   },
@@ -61,7 +64,7 @@
     "brand:discord": "bun --filter web brand:discord",
     "rules:extract": "bun tools/extract-rules.ts",
     "rules:find": "bun tools/rules-find.ts",
-    "typecheck": "ref-generate && tsc -b . apps/web apps/discord-bot apps/su-assets",
+    "typecheck": "ref-generate && tsc -b . apps/web apps/web/workerd apps/discord-bot apps/su-assets",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "test": "ref-generate && bun --filter \"*\" test",

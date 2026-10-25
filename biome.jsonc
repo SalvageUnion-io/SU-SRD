@@ -328,7 +328,9 @@
       }
     },
     "domains": {
-      "react": "recommended"
+      "react": "recommended",
+      // Off, as before apps/web's Vitest (the rooms' workerd suite) switched it on by detection.
+      "test": "none"
     }
   },
   "overrides": [

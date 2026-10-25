@@ -42,7 +42,7 @@ describe('a proposal may say why', () => {
   test('the reason is trimmed, stored, and shown to the player', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
@@ -50,25 +50,25 @@ describe('a proposal may say why', () => {
       reason: '  Rifle Squad volley  ',
     })
 
-    const [pending] = await player.as.query(api.proposals.pending, { gameId })
+    const [pending] = await player.as.query(api.ops.pending, { gameId })
     expect(pending?.reason).toBe('Rifle Squad volley')
   })
 
   test('a blank reason is no reason, and a long one is refused rather than cut', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 4,
       reason: '   ',
     })
-    const [pending] = await player.as.query(api.proposals.pending, { gameId })
+    const [pending] = await player.as.query(api.ops.pending, { gameId })
     expect(pending?.reason).toBeNull()
 
     await expect(
-      gm.as.mutation(api.proposals.propose, {
+      gm.as.mutation(api.ops.propose, {
         entityId: mechId,
         entityType: 'mech',
         field: 'currentSP',
@@ -83,14 +83,14 @@ describe('sent: what the Mediator has asked, in every state', () => {
   test('newest first, with the target named, the state, and no before', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    const first = await gm.as.mutation(api.proposals.propose, {
+    const first = await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
       after: 8,
     })
-    await player.as.mutation(api.proposals.apply, { proposalId: first })
-    await gm.as.mutation(api.proposals.propose, {
+    await player.as.mutation(api.ops.accept, { opId: first })
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentHeat',
@@ -98,7 +98,7 @@ describe('sent: what the Mediator has asked, in every state', () => {
       reason: 'Overcharge',
     })
 
-    const rows = await gm.as.query(api.proposals.sent, { gameId })
+    const rows = await gm.as.query(api.ops.sent, { gameId })
     expect(rows.map((r) => [r.field, r.state])).toEqual([
       ['currentHeat', 'proposed'],
       ['currentSP', 'applied'],
@@ -112,21 +112,21 @@ describe('sent: what the Mediator has asked, in every state', () => {
     const t = testConvex()
     const { gm, gameId, mechId } = await seedTable(t)
     for (const after of [6, 4]) {
-      await gm.as.mutation(api.proposals.propose, {
+      await gm.as.mutation(api.ops.propose, {
         entityId: mechId,
         entityType: 'mech',
         field: 'currentSP',
         after,
       })
     }
-    const rows = await gm.as.query(api.proposals.sent, { gameId })
+    const rows = await gm.as.query(api.ops.sent, { gameId })
     expect(rows.map((r) => r.state)).toEqual(['proposed', 'superseded'])
   })
 
   test('a Mediator handed the table inherits what is pending, with its sender named', async () => {
     const t = testConvex()
     const { gm, player, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.propose, {
+    await gm.as.mutation(api.ops.propose, {
       entityId: mechId,
       entityType: 'mech',
       field: 'currentSP',
@@ -136,30 +136,30 @@ describe('sent: what the Mediator has asked, in every state', () => {
     await gm.as.mutation(api.games.setMediator, { gameId, userId: player.userId, mediator: true })
     await gm.as.mutation(api.games.setMediator, { gameId, userId: gm.userId, mediator: false })
 
-    const [row] = await player.as.query(api.proposals.sent, { gameId })
+    const [row] = await player.as.query(api.ops.sent, { gameId })
     expect(row).toMatchObject({ state: 'proposed', mine: false, actorName: 'Mediator' })
   })
 
   test('the limit caps the read, and alerts are not proposals', async () => {
     const t = testConvex()
     const { gm, gameId, mechId } = await seedTable(t)
-    await gm.as.mutation(api.proposals.broadcast, { gameId, message: 'Contact front' })
+    await gm.as.mutation(api.changeLog.broadcast, { gameId, message: 'Contact front' })
     for (const field of ['currentSP', 'currentHeat']) {
-      await gm.as.mutation(api.proposals.propose, {
+      await gm.as.mutation(api.ops.propose, {
         entityId: mechId,
         entityType: 'mech',
         field,
         after: 1,
       })
     }
-    expect(await gm.as.query(api.proposals.sent, { gameId, limit: 1 })).toHaveLength(1)
-    expect(await gm.as.query(api.proposals.sent, { gameId })).toHaveLength(2)
+    expect(await gm.as.query(api.ops.sent, { gameId, limit: 1 })).toHaveLength(1)
+    expect(await gm.as.query(api.ops.sent, { gameId })).toHaveLength(2)
   })
 
   test('a player cannot read it', async () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t)
-    expect(await player.as.query(api.proposals.sent, { gameId })).toEqual([])
+    expect(await player.as.query(api.ops.sent, { gameId })).toEqual([])
   })
 })
 

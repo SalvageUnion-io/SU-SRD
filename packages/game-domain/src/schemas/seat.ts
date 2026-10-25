@@ -57,12 +57,10 @@ export type SeatResolving = z.infer<typeof SeatResolvingSchema>
 
 /**
  * A solo seat's Downtime, absent while none is running: the step it is on,
- * when it began, whether its crawler upkeep is paid, and which steps are done.
- * Upkeep is paid once per Downtime: only a fresh Downtime clears the flag,
- * never a step change. `doneSteps` holds the index of each step marked done
- * (applied or skipped, `downtime.claimStep`), so a step applies once
- * however often the screen reloads; absent on a Downtime begun before it
- * existed, which reads as none done.
+ * when it began, and whether its crawler upkeep is paid. Upkeep is paid once
+ * per Downtime: only a fresh Downtime clears the flag, never a step change.
+ * Which steps are done is read off their step ops (ADR-063 §6); `doneSteps`
+ * is no longer written, kept so seats written before still parse.
  */
 const SoloDowntimeSchema = z.object({
   stepIndex: z.number().int().min(0),
