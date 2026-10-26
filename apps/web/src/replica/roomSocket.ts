@@ -9,8 +9,8 @@
  *    newer than the one held (`serve`).
  *  - `gone` and `recordGone` take the room's claim off one row.
  *  - `links` serves the room's whole link set.
- *  - The Scene, salvage area, ledger, boundaries and Stop Sign records go to
- *    `tableState.ts` instead.
+ *  - The Scene, salvage area, ledger, boundaries, Stop Sign, Opposition and
+ *    running-encounter records go to `tableState.ts` instead.
  *
  * Framework-free: `RoomFeed` mounts the sockets (`openRoom`).
  */
@@ -32,15 +32,16 @@ export const ROOM_FEED = import.meta.env.VITE_ROOM_FEED === '1'
 const UNIT_TABLES = ['pilot', 'mech', 'crawler', 'npc'] as const satisfies readonly Table[]
 
 /**
- * The replica's table for each record table a room keeps. A Game's
- * Opposition has none yet: the Mediator's screen reads it from Convex. What
- * the table plays under is held apart, per room (`tableState.ts`).
+ * The replica's table for each record table a room keeps. What the table
+ * plays under, and a Game's Opposition and running encounter, are held
+ * apart, per room (`tableState.ts`).
  */
 const RECORD_TABLE: Record<RecordTable, Table | null> = {
   patterns: 'mechPattern',
   encounters: 'encounter',
   npcTray: 'encounterNpc',
   opposition: null,
+  mediator: null,
   scene: null,
   salvageArea: null,
   ledger: null,

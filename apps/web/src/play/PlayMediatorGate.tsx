@@ -24,6 +24,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
 import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 import { PlayMediatorCockpit } from './PlayMediatorCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
@@ -47,7 +48,7 @@ function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
   const id = gameId as Id<'games'>
   const game = useQuery(api.games.get, { gameId: id })
   // Asked only of a member: a stranger's `games.get` is already `null`.
-  const mediates = useQuery(api.mediator.amMediator, game ? { gameId: id } : 'skip')
+  const mediates = useTableRead(api.mediator.amMediator, game ? { gameId: id } : 'skip')
 
   if (game === undefined || (game !== null && mediates === undefined)) {
     return <RoutePending label={playCopy('theGame')} />

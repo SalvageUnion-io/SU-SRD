@@ -6,7 +6,8 @@
  * It reads the table live — the seats (`crew.vitals`, `seats.forGame`, in
  * `games.members` join order), the primary crawler (`entities.listForGame`;
  * the Mediator's store holds it, so its box is live), the Game's Downtime
- * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`), the saved
+ * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`, through
+ * `useTableRead`, so the Game room serves it once it feeds the replica), the saved
  * patterns the picker may field, the proposals sent, the alerts, the
  * Game's rolls, its Scene's conditions (`useScene`) and the area being
  * salvaged — and makes the writes the Mediator holds: the Opposition, a
@@ -48,8 +49,9 @@ import {
 import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { mediatorCopy } from '../../messages/play-mediator'
-import { useEncounters } from '../../replica/collections'
+import { useEncounters, usePatterns } from '../../replica/collections'
 import { PLAY_TXN } from '../../replica/provenance'
+import { ROOM_FEED } from '../../replica/roomSocket'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { useTableAct, useTableRead } from '../../replica/useTable'
@@ -196,10 +198,16 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const crew = useQuery(api.crew.vitals, { gameId: id })
   const seats = useQuery(api.seats.forGame, { gameId: id })
   const listing = useQuery(api.entities.listForGame, { gameId: id })
-  const npcs = useQuery(api.mediator.npcs, { gameId: id })
-  const running = useQuery(api.mediator.running, { gameId: id })
+  const npcs = useTableRead(api.mediator.npcs, { gameId: id })
+  const running = useTableRead(api.mediator.running, { gameId: id })
   const encounters = useEncounters((s) => s.encounters)
-  const patterns = useQuery(api.mediator.patterns, { gameId: id })
+  // On the rooms, the Mediator's own patterns, from their replica; a crewmate's
+  // shared pattern has no room read yet.
+  const ownPatterns = usePatterns((s) => s.mechPatterns)
+  const crewPatterns = useQuery(api.mediator.patterns, ROOM_FEED ? 'skip' : { gameId: id })
+  const patterns = ROOM_FEED
+    ? ownPatterns.map((p) => ({ appId: p.id, body: p, madeBy: mediatorCopy('you') }))
+    : crewPatterns
   const sent = useQuery(api.ops.sent, { gameId: id, limit: sentLimit })
   const alerts = useQuery(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
@@ -209,13 +217,13 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const ledger = useTableRead(api.ledger.get, { gameId: id })
   const collectIncome = useTableAct(api.ledger.collectIncome, gameId)
 
-  const addNpc = useMutation(api.mediator.addNpc)
-  const updateNpc = useMutation(api.mediator.updateNpc)
-  const removeNpc = useMutation(api.mediator.removeNpc)
-  const runEncounter = useMutation(api.mediator.runEncounter)
-  const endEncounter = useMutation(api.mediator.endEncounter)
-  const bringInWave = useMutation(api.mediator.bringInWave)
-  const recordGroupRoll = useMutation(api.mediator.recordGroupRoll)
+  const addNpc = useTableAct(api.mediator.addNpc, gameId)
+  const updateNpc = useTableAct(api.mediator.updateNpc, gameId)
+  const removeNpc = useTableAct(api.mediator.removeNpc, gameId)
+  const runEncounter = useTableAct(api.mediator.runEncounter, gameId)
+  const endEncounter = useTableAct(api.mediator.endEncounter, gameId)
+  const bringInWave = useTableAct(api.mediator.bringInWave, gameId)
+  const recordGroupRoll = useTableAct(api.mediator.recordGroupRoll, gameId)
   const proposeMutation = useMutation(api.ops.propose)
   const broadcastMutation = useMutation(api.changeLog.broadcast)
   const setConditions = useTableAct(api.scenes.setConditions, gameId)
@@ -453,6 +461,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
           encounterId,
           clear,
           ...(flagOn('encounterSheet') ? { waves: true } : {}),
+          // A Game room cannot read the Mediator's shelf: their own copy rides along.
+          ...(ROOM_FEED ? { encounter: encounters.find((e) => e.id === encounterId) } : {}),
         }),
       bringIn: (wave) => bringInWave({ gameId: id, wave }),
       end: async () => {

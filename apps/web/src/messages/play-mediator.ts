@@ -9,6 +9,7 @@ export const mediatorCopy = messages({
   end: 'End',
   notes: 'Notes',
   onlyYou: 'Only you',
+  you: 'You',
   briefing: 'Briefing',
   briefingSent: 'Briefing sent to the table.',
   noEncountersYet: 'No encounters yet. Prep one in your',

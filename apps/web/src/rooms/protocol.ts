@@ -92,6 +92,9 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *  - `ledger`: `{ factions, jobs, incomeCollected }`.
  *  - `boundaries`: one record per boundary, `{ kind, text, mine, mayRemove }`.
  *  - `safety`: `{ stop: { shownAt, mine, mayLift } | null, mayManage, postToChannel }`.
+ *  - `opposition`: one record per tray NPC, its body; the Mediator's only.
+ *  - `mediator`: one record, `{ running }`, the encounter being run or null;
+ *    served to the Mediator only, so a reader without it does not mediate.
  * Who added a boundary or showed the Stop Sign never reaches a socket: each
  * reader gets `mine` and what it may do, so these records are per reader.
  */
@@ -100,6 +103,7 @@ export const RECORD_TABLES = [
   'encounters',
   'npcTray',
   'opposition',
+  'mediator',
   'scene',
   'salvageArea',
   'ledger',

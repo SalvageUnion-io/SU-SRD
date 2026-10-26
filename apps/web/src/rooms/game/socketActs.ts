@@ -18,8 +18,35 @@ const SALVAGE_AREA_SET = z.object({
 })
 const SALVAGE_AREA_SPEND = z.object({ pilotId: z.string() })
 
-/** A Game room's: its table's 4.3 state. */
+/** A tray NPC's fight patch (`opposition.ts`'s `TrayPatch`); what each field may hold is the act's to refuse. */
+const TRAY_PATCH = z.object({
+  currentHp: z.number().optional(),
+  conditions: z.array(z.string()).optional(),
+  name: z.string().optional(),
+  lastMediatorRoll: z.unknown().optional(),
+  salvaged: z.literal(true).optional(),
+  important: z.boolean().optional(),
+  maxEp: z.number().optional(),
+  heatCap: z.number().optional(),
+  currentEp: z.number().optional(),
+  currentHeat: z.number().optional(),
+  lastImportantRoll: z.unknown().optional(),
+})
+
+/** A Game room's: its table's 4.3 state, and the Mediator's tray and running encounter. */
 export const GAME_SOCKET_ACTS = {
+  'mediator.addNpc': z.object({ body: z.unknown() }),
+  'mediator.removeNpc': z.object({ npcId: z.string() }),
+  'mediator.updateNpc': z.object({ npcId: z.string(), patch: TRAY_PATCH }),
+  'mediator.recordGroupRoll': z.object({ groupId: z.string(), roll: z.unknown() }),
+  /** The Mediator's own encounter rides along: the room cannot read their shelf. */
+  'mediator.runEncounter': z.object({
+    encounter: z.unknown(),
+    clear: z.boolean(),
+    waves: z.boolean().optional(),
+  }),
+  'mediator.bringInWave': z.object({ wave: z.number().int() }),
+  'mediator.endEncounter': NONE,
   'scenes.setConditions': z.object({ conditions: z.array(z.string()) }),
   'scenes.passHour': NONE,
   'salvageAreas.set': SALVAGE_AREA_SET,

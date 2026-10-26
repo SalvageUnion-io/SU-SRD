@@ -89,15 +89,25 @@ const GAME_ACTS = {
   markStepDone: (c: ActContext, a: { done: boolean }) => c.room.play.markStepDone(c.actor, a.done),
   spendUpkeep: (c: ActContext) => c.room.play.spendUpkeep(c.actor),
 
-  tray: (c: ActContext) => c.room.opposition.tray(c.actor),
-  addNpc: (c: ActContext, a: { body: unknown }) => c.room.opposition.addNpc(c.actor, a.body, c.at),
-  removeNpc: (c: ActContext, a: { npcId: string }) => c.room.opposition.removeNpc(c.actor, a.npcId),
-  updateNpc: (c: ActContext, a: { npcId: string; patch: TrayPatch }) =>
+  // The Mediator's tray and running encounter, under the Convex function names a client's act carries.
+  'mediator.npcs': (c: ActContext) => c.room.opposition.tray(c.actor),
+  'mediator.amMediator': (c: ActContext) => c.room.opposition.mediates(c.actor),
+  'mediator.addNpc': (c: ActContext, a: { body: unknown }) =>
+    c.room.opposition.addNpc(c.actor, a.body, c.at),
+  'mediator.removeNpc': (c: ActContext, a: { npcId: string }) =>
+    c.room.opposition.removeNpc(c.actor, a.npcId),
+  'mediator.updateNpc': (c: ActContext, a: { npcId: string; patch: TrayPatch }) =>
     c.room.opposition.updateNpc(c.actor, a.npcId, a.patch, c.at),
-  runningEncounter: (c: ActContext) => c.room.opposition.running(c.actor),
-  runEncounter: (c: ActContext, a: { encounter: unknown; clear: boolean }) =>
-    c.room.opposition.runEncounter(c.actor, a.encounter, a.clear, c.at),
-  endEncounter: (c: ActContext) => c.room.opposition.endEncounter(c.actor),
+  'mediator.recordGroupRoll': (c: ActContext, a: { groupId: string; roll: unknown }) =>
+    c.room.opposition.recordGroupRoll(c.actor, a.groupId, a.roll, c.at),
+  'mediator.running': (c: ActContext) => c.room.opposition.running(c.actor),
+  'mediator.runEncounter': (
+    c: ActContext,
+    a: { encounter: unknown; clear: boolean; waves?: boolean }
+  ) => c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at),
+  'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
+    c.room.opposition.bringInWave(c.actor, a.wave, c.at),
+  'mediator.endEncounter': (c: ActContext) => c.room.opposition.endEncounter(c.actor),
 
   // The table's state from 4.3, under the Convex function names a client's act carries.
   'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),

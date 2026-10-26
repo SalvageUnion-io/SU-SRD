@@ -156,7 +156,7 @@ describe('the Game room Durable Object', () => {
   test('ending a Game hands everything to a Training Bay and wipes the room', async () => {
     const { game } = await seeded('g-end')
     game.act(ORGANIZER, 'setMediator', { userId: ORGANIZER, mediator: true })
-    game.act(ORGANIZER, 'addNpc', { body: { name: 'Raider' } })
+    game.act(ORGANIZER, 'mediator.addNpc', { body: { name: 'Raider' } })
     expect(await game.disband(PLAYER)).toEqual({
       ok: false,
       refusal: 'Only the Organiser can do that',

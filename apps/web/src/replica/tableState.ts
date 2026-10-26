@@ -1,7 +1,8 @@
 /**
  * What a table plays under, as its room serves it (`rooms/protocol.ts`): the
  * Scene, the area being salvaged, the ledger, the boundaries and the Stop
- * Sign. Each record is per reader (who showed the Stop Sign never leaves the
+ * Sign; and, for its Mediator only, the Opposition tray and the encounter
+ * being run. Each record is per reader (who showed the Stop Sign never leaves the
  * room) and only means anything live, so it is held in memory per room scope
  * rather than in the replica's tables: a reload starts from the room's next
  * snapshot, and offline a screen shows none of it, as it did on Convex.
@@ -13,7 +14,15 @@
 import type { RecordTable } from '../rooms/protocol'
 import type { Scope } from './replica'
 
-const STATE_TABLES = ['scene', 'salvageArea', 'ledger', 'boundaries', 'safety'] as const
+const STATE_TABLES = [
+  'scene',
+  'salvageArea',
+  'ledger',
+  'boundaries',
+  'safety',
+  'opposition',
+  'mediator',
+] as const
 export type StateTable = (typeof STATE_TABLES)[number]
 
 type Body = Record<string, unknown>
@@ -68,7 +77,8 @@ export function forgetTableState(scope?: Scope): void {
 /**
  * The table as its Convex query answered: undefined before the scope's
  * snapshot, then the one record or null; boundaries, every one with its id
- * as `_id`. Stable between changes, for `useSyncExternalStore`.
+ * as `_id`; the Opposition, `{ _id, body }` per NPC as `mediator.npcs`
+ * answered. Stable between changes, for `useSyncExternalStore`.
  */
 export function readTableState(scope: Scope, table: StateTable): unknown {
   const key = `${scope}\u0000${table}`
@@ -79,7 +89,9 @@ export function readTableState(scope: Scope, table: StateTable): unknown {
       ? undefined
       : table === 'boundaries'
         ? [...rows].map(([id, body]) => ({ ...body, _id: id }))
-        : ([...rows.values()][0] ?? null)
+        : table === 'opposition'
+          ? [...rows].map(([id, body]) => ({ _id: id, body }))
+          : ([...rows.values()][0] ?? null)
   answers.set(key, answer)
   return answer
 }

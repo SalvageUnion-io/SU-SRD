@@ -17,7 +17,11 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
   return {
     type: 'snapshot',
     units: room.store.units().map((unit) => roomUnit(unit, gameId)),
-    records: { opposition: room.opposition.trayRecords(actor), ...tableRecords(room, actor) },
+    records: {
+      opposition: room.opposition.trayRecords(actor),
+      mediator: room.opposition.mediatorRecords(actor),
+      ...tableRecords(room, actor),
+    },
     links: roomLinks(room.store),
   }
 }

@@ -27,6 +27,13 @@ const ROOM_ACTS = [
   'safety.showStop',
   'safety.liftStop',
   'safety.setPostToChannel',
+  'mediator.addNpc',
+  'mediator.removeNpc',
+  'mediator.updateNpc',
+  'mediator.recordGroupRoll',
+  'mediator.runEncounter',
+  'mediator.bringInWave',
+  'mediator.endEncounter',
 ] as const satisfies readonly GameActName[]
 
 function sources(dir: string): string[] {

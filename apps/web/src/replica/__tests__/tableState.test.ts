@@ -75,3 +75,18 @@ describe('a Game room’s table state', () => {
     expect(readTableState(G2, 'scene')).toBeUndefined()
   })
 })
+
+describe('a Game room’s Opposition, for its Mediator', () => {
+  test('the tray reads as `mediator.npcs` answered; the one mediator record is the running encounter', () => {
+    const npc = { appId: 'n1', body: { id: 'n1', name: 'Raider' }, updatedAt: 1 }
+    const mediator = { appId: 'mediator', body: { running: null }, updatedAt: 0 }
+    foldRoomMessage(G1, snapshot({ opposition: [npc], mediator: [mediator] }))
+    expect(readTableState(G1, 'opposition')).toEqual([
+      { _id: 'n1', body: { id: 'n1', name: 'Raider' } },
+    ])
+    expect(readTableState(G1, 'mediator')).toEqual({ running: null })
+    foldRoomMessage(G2, snapshot({}))
+    expect(readTableState(G2, 'opposition')).toEqual([])
+    expect(readTableState(G2, 'mediator')).toBeNull()
+  })
+})
