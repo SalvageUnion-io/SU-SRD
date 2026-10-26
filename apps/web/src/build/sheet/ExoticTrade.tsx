@@ -6,45 +6,24 @@
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { Button, Eyebrow, Select, Slab, Stat, tokens } from '../../components/index'
+import { Button, Eyebrow, Select, Slab, Stat } from '../../components/index'
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
 import { EXOTIC_RESOURCES, exoticBucket, tradeExotic } from '../../lib/rules/exoticSalvage'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_TXN } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
+import {
+  ACTION_ROW,
+  PICKER,
+  PICKER_LABEL,
+  PICKERS,
+  QTY,
+  TEXT_AFTER,
+  TEXT_TIGHT,
+} from './economyStyles.model'
 import { EXOTIC_NAME } from './exoticNames.model'
 import { freshEntity } from './freshEntity.model'
-
-const TEXT = {
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 1.25 / 0.875,
-  color: tokens.color.ink,
-} satisfies CSSProperties
-const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
-const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
-const PICKERS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'flex-end',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-const PICKER_LABEL = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-} satisfies CSSProperties
-const PICKER = { padding: `${tokens.space[6]} ${tokens.space[8]}` } satisfies CSSProperties
-const QTY = { display: 'inline-flex', paddingBottom: tokens.space[4] } satisfies CSSProperties
-const ACTION_ROW = {
-  marginTop: tokens.space[8],
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 /**
  * Trade Bio-Salvage, Chimerium or Meld Nanites for Scrap: each piece is one
