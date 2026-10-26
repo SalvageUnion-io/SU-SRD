@@ -11,8 +11,6 @@
  * Until the answers arrive, the menu knows only the assigned mech.
  */
 
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { useGamesQuery, useViewerId } from '../replica/roomCalls'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
@@ -25,10 +23,10 @@ export function useGameBoardSources(gameId: string | null): BoardSources {
   const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null ? { gameId } : 'skip'
 
-  const viewerId = useViewerId(inGame !== 'skip')
+  const viewerId = useViewerId()
   const listing = useGamesQuery(
-    api.entities.listForGame,
-    inGame === 'skip' ? 'skip' : { gameId: inGame.gameId as Id<'games'> }
+    'entities.listForGame',
+    inGame === 'skip' ? 'skip' : { gameId: inGame.gameId }
   )
   const seats = useTableRead('seats.forGame', inGame)
 

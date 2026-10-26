@@ -89,6 +89,17 @@ async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   return value
 }
 
+/** A Game's pilot, mech or NPC as `entities.listForGame` lists it: `_id` is its app id. */
+type ListedUnit = {
+  _id: string
+  appId: string
+  ownerId: string | null
+  body: Record<string, unknown>
+}
+
+/** A Game's crawler as listed: communal, so no holder. */
+type ListedCrawler = { _id: string; appId: string; body: Record<string, unknown> }
+
 type BindingView = { channelId: string; channelName: string | null; boundAt: number }
 
 async function bindingWhere(
@@ -281,7 +292,12 @@ const CALLS = {
   'entities.listForGame': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const room = deps.game(a.gameId)
     const read = await act(room, who.discordId, 'read', undefined as never)
-    const lists = { pilots: [], mechs: [], crawlers: [], npcs: [] } as Record<string, object[]>
+    const lists = {
+      pilots: [] as ListedUnit[],
+      mechs: [] as ListedUnit[],
+      crawlers: [] as ListedCrawler[],
+      npcs: [] as ListedUnit[],
+    }
     if (read === null) return { ...lists, softLinks: [], primaryCrawlerId: null }
     const [units, links] = await Promise.all([
       act(room, who.discordId, 'units', undefined as never),
@@ -289,7 +305,8 @@ const CALLS = {
     ])
     for (const u of units) {
       const row = { _id: u.id, appId: u.id, body: u.body }
-      lists[`${u.kind}s`]?.push(u.kind === 'crawler' ? row : { ...row, ownerId: u.ownerId })
+      if (u.kind === 'crawler') lists.crawlers.push(row)
+      else lists[`${u.kind}s`].push({ ...row, ownerId: u.ownerId })
     }
     const softLinks = links.map((link) => ({
       _id: `${link.type}:${link.from.id}:${link.to.id}`,
@@ -432,7 +449,15 @@ const CALLS = {
   Call | ((who: Caller | null, args: never, deps: CallDeps) => Promise<unknown>)
 >
 
-type GameCallName = keyof typeof CALLS
+/** Every call by name, as a client names it (`../../replica/roomCalls.ts`). */
+export type GameCallName = keyof typeof CALLS
+
+/** What a call takes, as its page sends it; none for a call that takes none. */
+export type GameCallArgs<N extends GameCallName> =
+  Parameters<(typeof CALLS)[N]> extends [unknown, infer A, ...unknown[]] ? A : Record<string, never>
+
+/** What a call answers. */
+export type GameCallResult<N extends GameCallName> = Awaited<ReturnType<(typeof CALLS)[N]>>
 
 /** The calls a signed-out visitor may make: an invite's preview, the template list. */
 const SIGNED_OUT: ReadonlySet<string> = new Set(['invites.preview', 'templates.list'])

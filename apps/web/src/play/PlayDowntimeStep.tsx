@@ -77,7 +77,7 @@ export function PlayDowntimeStep({
 }: PlayDowntimeStepProps) {
   const { downtime } = play
   const inGame = play.target.gameId !== null
-  const viewer = useViewerId(inGame)
+  const viewer = useViewerId()
   const { pilot, mech, crawler, store } = actions
   const canPay = !downtime.locked
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())

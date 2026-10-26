@@ -27,7 +27,6 @@ import { publicPath } from 'game-domain/entityKinds'
 import { Copy } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import {
   Button,
   CopiedIcon,
@@ -118,7 +117,7 @@ function SheetShareSettings({
     gameId
   )
   const published = useSheetIsPublic(appId, gameId)
-  const games = useGamesQuery(api.games.listMine, gameId === null ? 'skip' : {})
+  const games = useGamesQuery('games.listMine', gameId === null ? 'skip' : {})
   const share = useServerAction(
     (next: Visibility) => setPublic({ kind, appId, isPublic: next === 'link' }),
     SHARE_FAILURE
@@ -167,7 +166,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
     gameId?: string
   }>('shelf.setPatternVisibility', null)
   const sharing = usePatternSharing()
-  const games = useGamesQuery(api.games.listMine, {})
+  const games = useGamesQuery('games.listMine', {})
   const [pickedGame, setPickedGame] = useState<string | null>(null)
   const share = useServerAction(
     (next: Visibility, nextGame: string | null) =>

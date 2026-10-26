@@ -12,16 +12,14 @@
  * ## Connected only
  *
  * A Game is shared state on the server of record, which a signed-out visitor
- * has no account on and a Disconnected session cannot write. The Convex hooks
+ * has no account on and a Disconnected session cannot write. The Games hooks
  * live in a child mounted only once the mode is Connected, so the signed-out
  * hub has no game UI at all.
  */
 
-import type { FunctionArgs } from 'convex/server'
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import {
   Button,
   Field,
@@ -36,10 +34,11 @@ import {
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildGamesCopy } from '../../messages/build-games'
-import { useGamesMutation, useGamesQuery } from '../../replica/roomCalls'
+import type { GameCallArgs } from '../../replica/roomCalls'
+import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
-type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
+type TemplateId = GameCallArgs<'templates.createGame'>['templateId']
 
 const BODY = {
   backgroundColor: tokens.color.paper,
@@ -76,9 +75,9 @@ type NewGameDialogProps = {
 function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
-  const templates = useGamesQuery(api.templates.list, open ? {} : 'skip')
-  const create = useGamesMutation(api.games.create)
-  const createFromTemplate = useGamesMutation(api.templates.createGame)
+  const templates = useGamesQuery('templates.list', open ? {} : 'skip')
+  const create = useGamesCall('games.create')
+  const createFromTemplate = useGamesCall('templates.createGame')
   const go = useGo()
 
   const [name, setName] = useState('')

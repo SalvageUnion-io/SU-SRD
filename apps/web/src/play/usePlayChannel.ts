@@ -20,11 +20,9 @@
 import type { PostRollResult } from 'game-domain/games/discord'
 import { postsByDefault } from 'game-domain/games/discord'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { failureMessage } from '../lib/connection/useServerAction'
 import { sendChangeLog } from '../replica/outbox'
-import { useGamesAction, useGamesQuery } from '../replica/roomCalls'
+import { useGamesCall, useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
@@ -40,12 +38,8 @@ export function usePlayChannelBinding(
 ): PlayBinding | null | undefined {
   const { status } = useSync()
   return useGamesQuery(
-    api.channelBindings.current,
-    status !== 'live'
-      ? 'skip'
-      : target.gameId === null
-        ? {}
-        : { gameId: target.gameId as Id<'games'> }
+    'channelBindings.current',
+    status !== 'live' ? 'skip' : target.gameId === null ? {} : { gameId: target.gameId }
   ) as PlayBinding | null | undefined
 }
 
@@ -85,7 +79,7 @@ export function usePlayRollDispatch({
   log = true,
 }: DispatchArgs): PlayRollDispatch {
   const { canWrite } = useSync()
-  const postRoll = useGamesAction(api.channelBindings.postRoll)
+  const postRoll = useGamesCall('channelBindings.postRoll')
   const [posts, setPosts] = useState<ReadonlyMap<string, PlayPostState>>(() => new Map())
 
   // The listener reads the latest of these, so it subscribes once.
@@ -113,7 +107,7 @@ export function usePlayRollDispatch({
       }
       settle(roll.id, { kind: 'posting' })
       action({
-        ...(t.gameId === null ? {} : { gameId: t.gameId as Id<'games'> }),
+        ...(t.gameId === null ? {} : { gameId: t.gameId }),
         // The Mediator's screen plays no pilot: the card names the account.
         ...(t.pilotId === null ? {} : { pilotId: t.pilotId }),
         roll: { tableName: roll.tableName || roll.label, rolls: roll.rolls },

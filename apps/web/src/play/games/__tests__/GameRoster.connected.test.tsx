@@ -448,7 +448,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Unassign')
     expect(mutations).toEqual([
-      { name: 'ownership:unassign', args: { table: 'pilots', entityId: 's-mine' } },
+      { name: 'ownership:unassign', args: { gameId: 'g1', entityId: 's-mine' } },
     ])
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
@@ -463,7 +463,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Delete')
     expect(mutations).toEqual([
-      { name: 'entities:removeCrawler', args: { crawlerId: 's-crawler' } },
+      { name: 'entities:removeCrawler', args: { gameId: 'g1', crawlerId: 's-crawler' } },
     ])
   })
 
@@ -476,7 +476,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Delete')
     expect(mutations).toEqual([
-      { name: 'entities:remove', args: { table: 'pilots', entityId: 's-mine' } },
+      { name: 'entities:remove', args: { gameId: 'g1', entityId: 's-mine' } },
     ])
   })
 
@@ -487,7 +487,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Assign to me')
     expect(mutations).toEqual([
-      { name: 'ownership:assign', args: { table: 'pilots', entityId: 's-free' } },
+      { name: 'ownership:assign', args: { gameId: 'g1', entityId: 's-free' } },
     ])
   })
 
@@ -503,7 +503,7 @@ describe('every verb that changes who has a build asks first', () => {
     expect(mutations).toEqual([
       {
         name: 'ownership:assign',
-        args: { table: 'pilots', entityId: 's-mine', userId: 'u-med' },
+        args: { gameId: 'g1', entityId: 's-mine', userId: 'u-med' },
       },
     ])
   })

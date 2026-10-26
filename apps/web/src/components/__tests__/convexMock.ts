@@ -23,7 +23,7 @@
 
 import { mock } from 'bun:test'
 import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
+import { getFunctionName, makeFunctionReference } from 'convex/server'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
 
@@ -100,6 +100,58 @@ function convexReactMock(overrides: Record<string, unknown> = {}): Record<string
   }
 }
 
+/** The Games calls that were Convex actions, which a file's `useAction` stands in for. */
+const GAMES_ACTIONS = new Set(['channelBindings.postRoll'])
+
+/** `games.listMine` as this double keys it: Convex's `games:listMine`. */
+const refOf = (name: string) => makeFunctionReference(name.replace('.', ':')) as never
+
+/**
+ * The Games hooks (`replica/roomCalls`) on this same double, so a fixture
+ * answers a Worker call by its name as it answered the Convex function: a
+ * read from `setQueryAnswers`, a write through the file's `useMutation` (or
+ * `useAction`), with its screen's scope under its own arguments, and a
+ * `roomCall` through the stub `convexClient.mutation`. `useViewerId` is
+ * `account:me`'s id where the file answers it, else the session's person.
+ */
+function roomCallsMock(
+  real: Record<string, unknown>,
+  convexReact: Record<string, unknown>
+): Record<string, unknown> {
+  type Write = (args: unknown) => Promise<unknown>
+  return {
+    ...real,
+    // Read at call time: a file may stub the client itself (`also`).
+    roomCall: async (name: string, args: unknown) => {
+      const { convexClient } = await import('../../lib/connection/convexClient')
+      return (convexClient.mutation as (ref: never, args: unknown) => Promise<unknown>)(
+        refOf(name),
+        args
+      )
+    },
+    useGamesQuery: (name: string, args: unknown) =>
+      (convexReact.useQuery as typeof mockUseQuery)(refOf(name), args),
+    useGamesCall: (name: string, scope: object = {}) => {
+      const hook = (GAMES_ACTIONS.has(name) ? convexReact.useAction : convexReact.useMutation) as (
+        ref: never
+      ) => Write
+      const write = hook(refOf(name))
+      return (args: object) => write({ ...scope, ...args })
+    },
+    useViewerId: () => {
+      const person = (real.useViewerId as () => string | null)()
+      const answerOf = convexReact.useQuery as typeof mockUseQuery
+      try {
+        const me = answerOf(refOf('account.me'), {}) as { _id?: string } | null | undefined
+        return me?._id ?? null
+      } catch {
+        // A file that answers no `account:me` reads the session's person.
+        return person
+      }
+    },
+  }
+}
+
 /** Extra modules to mock alongside Convex, keyed by specifier. */
 type ExtraMocks = Record<string, () => unknown>
 
@@ -168,6 +220,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
   // --- capture, before anything is mocked (rule 1) ---
   const realConvexClient = { ...(await import('../../lib/connection/convexClient')) }
   const realConvexReact = { ...(await import('convex/react')) }
+  const realRoomCalls = { ...(await import('../../replica/roomCalls')) }
   const realAuthReact = options.authReact ? { ...(await import('../../lib/auth/session')) } : null
   const realRouter = options.router ? { ...(await import('@tanstack/react-router')) } : null
   const realExtras = new Map<string, Record<string, unknown>>()
@@ -179,7 +232,9 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
   mock.module('../../lib/connection/convexClient', () => ({
     convexClient: { ...realConvexClient.convexClient, ...options.convexClient },
   }))
-  mock.module('convex/react', () => convexReactMock(options.convexReact ?? {}))
+  const convexReact = convexReactMock(options.convexReact ?? {})
+  mock.module('convex/react', () => convexReact)
+  mock.module('../../replica/roomCalls', () => roomCallsMock(realRoomCalls, convexReact))
 
   if (realAuthReact !== null) {
     mock.module('../../lib/auth/session', () => ({
@@ -213,6 +268,7 @@ export async function installConvexMocks(options: InstallOptions = {}): Promise<
     restore() {
       mock.module('../../lib/connection/convexClient', () => realConvexClient)
       mock.module('convex/react', () => realConvexReact)
+      mock.module('../../replica/roomCalls', () => realRoomCalls)
       if (realAuthReact !== null) mock.module('../../lib/auth/session', () => realAuthReact)
       if (realRouter !== null) mock.module('@tanstack/react-router', () => realRouter)
       for (const [specifier, real] of realExtras) mock.module(specifier, () => real)

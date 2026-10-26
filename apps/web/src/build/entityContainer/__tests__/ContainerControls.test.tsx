@@ -165,14 +165,15 @@ describe('MoveToContainerControl', () => {
     // One entity, moved — never a copy. A copy would leave two of the same
     // character with no way to tell which one the table can see.
     expect(pilots.map((p) => [p.id, p.gameId])).toEqual([['p1', 'g1']])
-    // The unit's op: the move is the field it writes (ADR-063).
-    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
+    // A move is a handoff between rooms (`entities.move`).
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'pilot',
+      appId: 'p1',
       gameId: 'g1',
-      op: { unitId: 'p1', patch: { gameId: 'g1' } },
     })
   })
 
-  test('a crawler moves through its own mutation, which files it in every place at once', async () => {
+  test('a crawler moves as any unit does, by a handoff between rooms', async () => {
     setQueryAnswers({
       'games:listMine': [
         { _id: 'g1', name: 'Run by me', tableRunner: true },
@@ -199,12 +200,11 @@ describe('MoveToContainerControl', () => {
     fireEvent.change(select, { target: { value: 'game:g1' } })
 
     await waitFor(() => expect(changed).toBe(1))
-    expect(serverWrites.find((w) => w.name === 'entities:moveCrawler')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'crawler',
       appId: 'c1',
       gameId: 'g1',
     })
-    // Never as an op: a "moved" crawler stays put that way.
-    expect(serverWrites.some((w) => w.name === 'ops:apply')).toBe(false)
   })
 
   test('a crawler in a Game somebody else runs offers nowhere to go', () => {
@@ -287,9 +287,10 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
     await waitFor(() => expect(changed).toBe(1))
     expect(gameIdOf()).toBe('g1')
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'pilot',
+      appId: 'p1',
       gameId: 'g1',
-      op: { unitId: 'p1', patch: { gameId: 'g1' } },
     })
   })
 })
@@ -345,9 +346,10 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
 
     await waitFor(() => expect(gameIdOf()).toBeNull())
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'pilot',
+      appId: 'p1',
       gameId: null,
-      op: { unitId: 'p1', patch: { gameId: null } },
     })
   })
 
@@ -453,9 +455,10 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
         .list('pilot')
         .map((p) => p.id)
     ).toEqual(['p1'])
-    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'pilot',
+      appId: 'p1',
       gameId: 'g2',
-      op: { unitId: 'p1', patch: { gameId: 'g2' } },
     })
   })
 
@@ -487,9 +490,10 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     await waitFor(() => expect(gameIdOf()).toBe('g2'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'pilot',
+      appId: 'p1',
       gameId: 'g2',
-      op: { unitId: 'p1', patch: { gameId: 'g2' } },
     })
   })
 

@@ -5,11 +5,10 @@
  * place while live, when the build turns it on (`VITE_ROOM_FEED`).
  *
  * A socket carries the Worker's session token, as the presence socket does
- * (`worker/roomAuth.ts`), and the player's Games are Convex's `games.listMine`.
+ * (`worker/roomAuth.ts`), and the player's Games are the Worker's `games.listMine`.
  */
 
 import { useEffect, useRef } from 'react'
-import { api } from '../../convex/_generated/api'
 import { useSessionToken } from '../lib/auth/session'
 import { accountSocketPath, gameSocketPath } from '../rooms/routes'
 import { gameScope, serve, setRoomScopes, TABLES } from './replica'
@@ -27,7 +26,7 @@ function GameFeed({ gameId, token }: { gameId: string; token: string }) {
 
 export function RoomFeed() {
   const token = useSessionToken()
-  const games = useGamesQuery(api.games.listMine, {})
+  const games = useGamesQuery('games.listMine', {})
   useEffect(() => {
     setRoomScopes(true)
     return () => setRoomScopes(false)
@@ -41,7 +40,7 @@ export function RoomFeed() {
   const was = useRef<readonly string[]>([])
   useEffect(() => {
     if (games === undefined) return
-    const now = games.map((g) => g._id as string)
+    const now = games.map((g) => g._id)
     for (const gameId of was.current) {
       if (now.includes(gameId)) continue
       serve(gameScope(gameId), TABLES, [])

@@ -297,9 +297,10 @@ describe('Move to a Game…', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(useUnits.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
     expect(useUnits.getState().list('pilot')).toHaveLength(1)
-    expect(serverWrites.find((w) => w.name === 'ops:apply')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+      kind: 'pilot',
+      appId: 'p-shelf',
       gameId: 'g1',
-      op: { unitId: 'p-shelf', patch: { gameId: 'g1' } },
     })
     // Still in the Training Bay, now named by its Game.
     const pilots = screen.getByRole('region', { name: 'Pilots' })

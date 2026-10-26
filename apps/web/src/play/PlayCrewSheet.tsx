@@ -12,8 +12,6 @@
  */
 
 import { useMemo } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import {
   makeReadOnlySheetStore,
   sheetDataFromListing,
@@ -46,7 +44,7 @@ export function PlayCrewSheet({ gameId, pilotId, name, onClose }: PlayCrewSheetP
 }
 
 function CrewSheetBody({ gameId, pilotId }: { gameId: string; pilotId: string }) {
-  const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   const store = useMemo(
     () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
     [listing]

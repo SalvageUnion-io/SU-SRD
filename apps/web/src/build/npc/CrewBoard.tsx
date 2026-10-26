@@ -29,8 +29,6 @@ import { NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import {
   Badge,
   Button,
@@ -118,7 +116,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
   const { status, canWrite } = useSync()
   const connected = status === 'live'
   const crawlers = useCrawlers()
-  const games = useGamesQuery(api.games.listMine, connected ? {} : 'skip')
+  const games = useGamesQuery('games.listMine', connected ? {} : 'skip')
 
   /** Whether the viewer may write this crawler: its owner on a shelf, the table runner in a Game. */
   const mayWrite = (c: Crawler) => {
@@ -196,9 +194,9 @@ function CrewSlots({
   const npcs = useNpcs()
   const links = useSoftLinkList()
   const where = containerOf(crawler)
-  const gameId = where.kind === 'game' ? (where.gameId as Id<'games'>) : null
-  const listing = useGamesQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useGamesQuery(api.games.members, gameId === null ? 'skip' : { gameId })
+  const gameId = where.kind === 'game' ? where.gameId : null
+  const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
+  const members = useGamesQuery('games.members', gameId === null ? 'skip' : { gameId })
 
   /** Other members' NPCs in this Game, read live and never cached (ADR-037). */
   const theirs = useMemo<Npc[]>(() => {

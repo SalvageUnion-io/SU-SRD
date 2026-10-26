@@ -77,10 +77,9 @@ type UnitKind = EntityRef['type']
 
 /**
  * Send one op to the server of record (`ops.apply`, ADR-063), and **fail if it
- * does not land**; the replica awaits this before it holds the change. A
- * crawler's container is `moveCrawler`'s to write, so a crawler op that moves
- * one moves it first. The answer's `headSeq` is what the unit's next op is
- * made against.
+ * does not land**; the replica awaits this before it holds the change. An
+ * op that moves its unit hands it to the new room first (`entities.move`).
+ * The answer's `headSeq` is what the unit's next op is made against.
  */
 export async function sendOp(
   unit: UnitKind,
@@ -95,7 +94,7 @@ export async function sendOp(
   // Fed by the rooms (`RoomFeed`), an op on a unit in an open room goes there; its
   // new headSeq comes back as the room's `applied`. A move is a handoff
   // between rooms (`entities.move`), then the rest of the op in its new one.
-  if (ROOM_FEED && move !== undefined) {
+  if (move !== undefined) {
     await roomCall('entities.move', { kind: unit, appId: op.unitId, gameId: move })
     noteRoomChange()
     if (isEmptyOp(op)) return
@@ -104,16 +103,10 @@ export async function sendOp(
     await target.submit([op])
     return
   }
-  const room = move === undefined ? roomOf(gameId) : null
+  const room = roomOf(gameId)
   if (room !== null) {
     if (!isEmptyOp(op)) await room.submit([op])
     return
-  }
-  if (unit === 'crawler' && move !== undefined) {
-    await convexClient.mutation(api.entities.moveCrawler, {
-      appId: op.unitId,
-      gameId: move as Id<'games'> | null,
-    })
   }
   if (isEmptyOp(op)) return
   const applied = await convexClient.mutation(api.ops.apply, {

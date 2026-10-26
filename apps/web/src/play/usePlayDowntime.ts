@@ -23,8 +23,6 @@
  */
 
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { PLAY_TXN } from '../replica/provenance'
 import { useGamesQuery } from '../replica/roomCalls'
@@ -54,10 +52,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const readable = signedIn && (gameId !== null || pilotId !== null)
 
   const state = useTableRead('downtime.state', readable ? { gameId, pilotId } : 'skip')
-  const members = useGamesQuery(
-    api.games.members,
-    signedIn && gameId !== null ? { gameId: gameId as Id<'games'> } : 'skip'
-  )
+  const members = useGamesQuery('games.members', signedIn && gameId !== null ? { gameId } : 'skip')
   const begin = useTableAct('downtime.begin', gameId)
   const advance = useTableAct('downtime.advance', gameId)
   const setStep = useTableAct('downtime.setStep', gameId)

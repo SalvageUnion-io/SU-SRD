@@ -30,17 +30,15 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { ConfirmDialog, Stack, Text } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesMutation } from '../../replica/roomCalls'
+import { useGamesCall } from '../../replica/roomCalls'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {
-  _id: Id<'games'>
+  _id: string
   name: string
   crawlerName: string | null
   pilotCount: number
@@ -80,7 +78,7 @@ function countPhrase(n: number, singular: string): string | null {
 }
 
 export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
-  const destroy = useGamesMutation(api.games.destroy)
+  const destroy = useGamesCall('games.destroy')
 
   async function handleConfirm() {
     if (game === null) return

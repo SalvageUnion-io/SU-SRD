@@ -34,8 +34,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -63,7 +61,7 @@ import { gauge, pool } from '../../lib/units/crewPair'
 import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesMutation, useGamesQuery, useViewerId } from '../../replica/roomCalls'
+import { useGamesCall, useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
@@ -102,12 +100,12 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const rowActions = useRowActions(confirm, gameId)
   const go = useGo()
 
-  const members = useGamesQuery(api.games.members, { gameId: gameId as Id<'games'> })
-  const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const members = useGamesQuery('games.members', { gameId: gameId })
+  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
   const vitals = useTableRead('crew.vitals', { gameId })
 
-  const makePrimary = useServerAction(useGamesMutation(api.games.setPrimaryCrawler), {
+  const makePrimary = useServerAction(useGamesCall('games.setPrimaryCrawler'), {
     failure: 'That crawler could not be made primary. Try again.',
   })
   const busy = makePrimary.pending
@@ -226,8 +224,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         onSelect: act(
           () =>
             void makePrimary.run({
-              gameId: gameId as Id<'games'>,
-              crawlerId: row.serverId as Id<'crawlers'>,
+              gameId: gameId,
+              crawlerId: row.serverId,
             })
         ),
       })

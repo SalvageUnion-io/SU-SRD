@@ -17,7 +17,6 @@
  */
 
 import { SHELF } from 'game-domain/container'
-import { api } from '../../../convex/_generated/api'
 import { HeaderMenu } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { moveDestinations } from '../../lib/games/gameRoster'
@@ -36,7 +35,7 @@ const copyCrewReturn = (roster: StarterRosterId) => `/starter?copy=${copyCrewSea
 type CopyCrewProps = { confirm: Confirm; roster?: StarterRosterId }
 
 function ConnectedCopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
-  const games = useGamesQuery(api.games.listMine)
+  const games = useGamesQuery('games.listMine', {})
   const kind = starterRoster(roster).crawlers.length > 0 ? 'crawler' : 'pilot'
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
   return (

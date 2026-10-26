@@ -33,8 +33,6 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, PickDialog } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -62,8 +60,8 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
   // The same three questions `GameRoster` asks, so Convex answers both from
   // one subscription each.
   const viewerId = useViewerId()
-  const members = useGamesQuery(api.games.members, { gameId: gameId as Id<'games'> })
-  const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const members = useGamesQuery('games.members', { gameId: gameId })
+  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   // What this browser holds decides what may be offered: see the header.
   useHydrateEntities(['pilot'])
   const localPilots = usePilots()

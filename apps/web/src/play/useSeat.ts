@@ -22,9 +22,8 @@
  */
 
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
-import { api } from '../../convex/_generated/api'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
-import { useGamesMutation } from '../replica/roomCalls'
+import { useGamesCall } from '../replica/roomCalls'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -94,7 +93,7 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
   )
 
   const board = useTableAct('seats.board', gameId)
-  const assign = useGamesMutation(api.ownership.assign, { gameId })
+  const assign = useGamesCall('ownership.assign', { gameId: gameId ?? undefined })
   const dismount = useTableAct('seats.dismount', gameId)
   const eject = useTableAct('seats.eject', gameId)
   const setRange = useTableAct('seats.setRange', gameId)
@@ -121,7 +120,7 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
     board: (mechId) => send((args) => board({ ...args, mechId })),
     assignAndBoard: ({ mechId, serverId }) =>
       send(async (args) => {
-        await assign({ table: 'mechs', entityId: serverId })
+        await assign({ entityId: serverId })
         await board({ ...args, mechId })
       }),
     dismount: () => send((args) => dismount(args)),

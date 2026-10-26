@@ -15,7 +15,6 @@
 
 import { SHELF } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
-import { api } from '../../../convex/_generated/api'
 import { HeaderMenu, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { moveDestinations } from '../../lib/games/gameRoster'
@@ -41,7 +40,7 @@ type CopyStarterMenuProps = {
 type Destination = ReturnType<typeof moveDestinations>[number]
 
 function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStarterMenuProps) {
-  const games = useGamesQuery(api.games.listMine)
+  const games = useGamesQuery('games.listMine', {})
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
 
   function copyTo(target: Destination) {

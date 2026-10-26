@@ -2,7 +2,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { SignInControl } from '../../build/account/SignInControl'
 import {
   Button,
@@ -16,7 +15,7 @@ import {
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesMutation, useGamesQuery } from '../../replica/roomCalls'
+import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 /**
@@ -127,8 +126,8 @@ type InviteProps = {
 }
 
 function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
-  const preview = useGamesQuery(api.invites.preview, { code: token })
-  const redeem = useGamesMutation(api.invites.redeem)
+  const preview = useGamesQuery('invites.preview', { code: token })
+  const redeem = useGamesCall('invites.redeem')
   const navigate = useNavigate()
 
   const join = useServerAction(() => redeem({ code: token }), {
@@ -181,7 +180,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
  * unauthenticated for exactly this.
  */
 function SignedOutInvite({ token }: { token: string }) {
-  const preview = useGamesQuery(api.invites.preview, { code: token })
+  const preview = useGamesQuery('invites.preview', { code: token })
 
   if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />

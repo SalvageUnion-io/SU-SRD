@@ -42,7 +42,6 @@ import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -134,7 +133,7 @@ type ServerFacts = {
 }
 
 function ConnectedShelves() {
-  const games = useGamesQuery(api.games.listMine, {})
+  const games = useGamesQuery('games.listMine', {})
   const sharing = usePatternSharing()
   const sharedByLink = useSharedByLink()
   return <ShelvesPage games={games} sharing={sharing} sharedByLink={sharedByLink} />

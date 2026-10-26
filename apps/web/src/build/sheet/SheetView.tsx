@@ -33,8 +33,6 @@
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { useMemo } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CrewSheetBanner } from './CrewSheetBanner'
@@ -60,9 +58,9 @@ export function SheetView({ kind, id }: SheetViewProps) {
   // it has one, the local copy's until then (a linked crawler shares its
   // container, ADR-037). Closed until the server says the viewer runs it.
   const heldIn = held === null ? null : containerOf(held)
-  const tableId = gameId ?? (heldIn?.kind === 'game' ? (heldIn.gameId as Id<'games'>) : null)
+  const tableId = gameId ?? (heldIn?.kind === 'game' ? heldIn.gameId : null)
   const table = useGamesQuery(
-    api.games.get,
+    'games.get',
     sync === 'live' && tableId !== null ? { gameId: tableId } : 'skip'
   )
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true

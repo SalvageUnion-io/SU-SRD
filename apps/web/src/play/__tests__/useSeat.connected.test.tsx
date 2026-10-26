@@ -208,7 +208,7 @@ describe('assign and board', () => {
       seat.assignAndBoard(spare)
     })
     expect(sent).toEqual([
-      { name: 'ownership.assign', args: { table: 'mechs', entityId: 'row-spare' } },
+      { name: 'ownership.assign', args: { gameId: GAME_ID, entityId: 'row-spare' } },
       { name: 'seats.board', args: { pilotId: 'seat-rook', mechId: 'seat-spare' } },
     ])
   })

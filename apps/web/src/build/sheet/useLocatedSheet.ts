@@ -32,7 +32,6 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect, useMemo } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { useMe } from '../../lib/account/accountApi'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
@@ -69,12 +68,12 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const held = useUnits((s) => s.get(kind, id))
 
   const online = sync === 'live'
-  const located = useGamesQuery(api.entities.locate, online ? { kind, id } : 'skip')
+  const located = useGamesQuery('entities.locate', online ? { kind, id } : 'skip')
   const gameId = located?.gameId ?? null
-  const listing = useGamesQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useGamesQuery(api.games.members, gameId === null ? 'skip' : { gameId })
+  const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
+  const members = useGamesQuery('games.members', gameId === null ? 'skip' : { gameId })
   const me = useMe(online)
-  const viewerId = useViewerId(online)
+  const viewerId = useViewerId()
 
   // Names the tab after the entity, and follows a rename. The route's `head`
   // can only say "Sheet": it runs once per navigation, and a loader may not

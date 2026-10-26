@@ -12,8 +12,6 @@
 
 import { Link2 } from 'lucide-react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import {
   Button,
   ConfirmDialog,
@@ -26,11 +24,11 @@ import {
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesMutation } from '../../replica/roomCalls'
+import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 type CopyInviteLinkProps = {
-  gameId: Id<'games'>
+  gameId: string
   /** Injectable clipboard writer for testing. Takes the URL as a promise. */
   clipboardWriter?: (text: Promise<string>) => Promise<void>
 }
@@ -54,7 +52,7 @@ function ConnectedCopyInviteLink({
   gameId,
   clipboardWriter = writeClipboardPromise,
 }: CopyInviteLinkProps) {
-  const link = useGamesMutation(api.invites.link)
+  const link = useGamesCall('invites.link')
   // Both calls start inside the press: the action runs synchronously up to its
   // first await, which is what keeps WebKit's gesture alive for the clipboard.
   const copyLink = useServerAction(
@@ -92,8 +90,8 @@ export function CopyInviteLink(props: CopyInviteLinkProps) {
   return <ConnectedCopyInviteLink {...props} />
 }
 
-function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
-  const reset = useGamesMutation(api.invites.reset)
+function ConnectedResetInviteLink({ gameId }: { gameId: string }) {
+  const reset = useGamesCall('invites.reset')
   const [confirming, setConfirming] = useState(false)
 
   async function run(): Promise<void> {
@@ -123,7 +121,7 @@ function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
 }
 
 /** "Reset link": a new invite URL, and the old one stops working. Connected only. */
-export function ResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
+export function ResetInviteLink({ gameId }: { gameId: string }) {
   const { status } = useSync()
   if (status !== 'live') return null
   return <ConnectedResetInviteLink gameId={gameId} />

@@ -16,20 +16,12 @@
  */
 
 import { moveTo, SHELF } from 'game-domain/container'
-import type { OwnableTable } from 'game-domain/entityKinds'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { Confirm } from '../../components/shared/useConfirm'
 import type { GameMember, RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { CONTAINER_MOVE } from '../../replica/provenance'
-import { useGamesMutation } from '../../replica/roomCalls'
+import { useGamesCall } from '../../replica/roomCalls'
 import { useUnits } from '../../replica/units'
-
-/** The table a pilot or mech row's ownership mutations address. */
-function ownableTable(row: RosterRow): OwnableTable {
-  return row.kind === 'pilot' ? 'pilots' : 'mechs'
-}
 
 export type RowActions = {
   /** Assign an unassigned character to yourself; `ConvexFeed` brings it into this browser. */
@@ -54,10 +46,10 @@ export type RowActions = {
 
 export function useRowActions(confirm: Confirm, gameId: string): RowActions {
   // The rooms need the Game a row is in, which Convex found from the row itself.
-  const assign = useGamesMutation(api.ownership.assign, { gameId })
-  const unassign = useGamesMutation(api.ownership.unassign, { gameId })
-  const scrapCrawler = useGamesMutation(api.entities.removeCrawler, { gameId })
-  const removeEntity = useGamesMutation(api.entities.remove, { gameId })
+  const assign = useGamesCall('ownership.assign', { gameId })
+  const unassign = useGamesCall('ownership.unassign', { gameId })
+  const scrapCrawler = useGamesCall('entities.removeCrawler', { gameId })
+  const removeEntity = useGamesCall('entities.remove', { gameId })
 
   /** Drop this browser's cached copy once the server no longer lets us hold it. */
   async function forgetLocal(row: RosterRow): Promise<void> {
@@ -72,7 +64,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
           // Nothing to pull down by hand: it is yours now, so it is in
           // `listMine`, and `ConvexFeed` caches it from there — the row's View
           // opens it editable as soon as it lands.
-          await assign({ table: ownableTable(row), entityId: row.serverId })
+          await assign({ entityId: row.serverId })
         },
       }),
 
@@ -90,9 +82,8 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
         ),
         onConfirm: async () => {
           await assign({
-            table: ownableTable(row),
             entityId: row.serverId,
-            userId: member.userId as Id<'users'>,
+            userId: member.userId,
           })
           // Handed to somebody else, it is no longer this browser's to edit.
           if (row.owner?.mine === true) await forgetLocal(row)
@@ -103,7 +94,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
       confirm({
         ...ROW_ACTION_COPY.unassign(row.name, row.kind, row.owner?.mine === true),
         onConfirm: async () => {
-          await unassign({ table: ownableTable(row), entityId: row.serverId })
+          await unassign({ entityId: row.serverId })
           // It belongs to the table now, not to this browser: keeping a local
           // copy would leave an editor whose writes the server refuses.
           await forgetLocal(row)
@@ -141,7 +132,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
           // Server first, addressed by server id: the row may never have been
           // in this browser, and a template pre-gen has no appId for
           // `sendRow` to address it by.
-          await removeEntity({ table: ownableTable(row), entityId: row.serverId })
+          await removeEntity({ entityId: row.serverId })
           // Then drop the cached copy, exactly as release and scrap do.
           // `forget`, not `delete`: the server row is already gone, so a second
           // server delete would be a no-op at best.
@@ -153,7 +144,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
       confirm({
         ...ROW_ACTION_COPY.scrap(row.name),
         onConfirm: async () => {
-          await scrapCrawler({ crawlerId: row.serverId as Id<'crawlers'> })
+          await scrapCrawler({ crawlerId: row.serverId })
           await forgetLocal(row)
         },
       }),

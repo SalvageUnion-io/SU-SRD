@@ -32,8 +32,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
 import { useGamesQuery } from '../replica/roomCalls'
@@ -77,8 +75,8 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   const pilot = pilotById ?? (flownBy === null ? null : storeState.get('pilot', flownBy))
 
   const container = pilot === null ? null : containerOf(pilot)
-  const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
-  const game = useGamesQuery(api.games.get, gameId === null ? 'skip' : { gameId })
+  const gameId = container?.kind === 'game' ? container.gameId : null
+  const game = useGamesQuery('games.get', gameId === null ? 'skip' : { gameId })
 
   useEffect(() => {
     if (flownBy !== null) {

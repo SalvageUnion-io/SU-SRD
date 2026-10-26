@@ -45,7 +45,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 662,
   'apps/web/convex/entities.ts': 761,
   'apps/web/convex/model/entities.ts': 807,
-  'apps/web/src/build/npc/CrewBoard.tsx': 620,
+  'apps/web/src/build/npc/CrewBoard.tsx': 618,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 642,
   'apps/web/src/lib/rules/creation.ts': 722,
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 601,

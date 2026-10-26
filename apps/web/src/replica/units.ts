@@ -53,7 +53,6 @@ import {
   TABLE_OF_NAME,
   untilArrived,
 } from './replica'
-import { ROOM_FEED } from './roomSocket'
 import { requireWritable } from './sync'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
@@ -199,7 +198,7 @@ function opOf(
     ...(unset.length === 0 ? {} : { unset }),
   }
   // Under the rooms every container change is a handoff between rooms (`sendOp`).
-  if (!('gameId' in patch) || (type !== 'crawler' && !ROOM_FEED)) return { op }
+  if (!('gameId' in patch)) return { op }
   delete changed.gameId
   return { op, move: (patch as { gameId?: string | null }).gameId ?? null }
 }

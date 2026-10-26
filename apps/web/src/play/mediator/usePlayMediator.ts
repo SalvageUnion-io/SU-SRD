@@ -29,7 +29,6 @@ import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
@@ -195,10 +194,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
-  const members = useGamesQuery(api.games.members, { gameId: id })
+  const members = useGamesQuery('games.members', { gameId: id })
   const crew = useTableRead('crew.vitals', { gameId })
   const seats = useTableRead('seats.forGame', { gameId })
-  const listing = useGamesQuery(api.entities.listForGame, { gameId: id })
+  const listing = useGamesQuery('entities.listForGame', { gameId: id })
   const npcs = useTableRead('mediator.npcs', { gameId })
   const running = useTableRead('mediator.running', { gameId })
   const encounters = useEncounters((s) => s.encounters)

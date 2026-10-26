@@ -59,7 +59,6 @@
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { api } from '../../../convex/_generated/api'
 import { Field, FieldError } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -101,7 +100,7 @@ function ConnectedMoveToContainerControl({
   onChanged,
   className,
 }: MoveToContainerControlProps) {
-  const games = useGamesQuery(api.games.listMine)
+  const games = useGamesQuery('games.listMine', {})
 
   const current = containerOf(entity)
   const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })

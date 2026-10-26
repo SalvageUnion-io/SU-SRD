@@ -18,8 +18,6 @@
 
 import { gamePath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
 import { useGamesQuery } from '../replica/roomCalls'
@@ -45,10 +43,9 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
 }
 
 function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
-  const id = gameId as Id<'games'>
-  const game = useGamesQuery(api.games.get, { gameId: id })
+  const game = useGamesQuery('games.get', { gameId })
   // Asked only of a member: a stranger's `games.get` is already `null`.
-  const mediates = useTableRead('mediator.amMediator', game ? { gameId: id } : 'skip')
+  const mediates = useTableRead('mediator.amMediator', game ? { gameId } : 'skip')
 
   if (game === undefined || (game !== null && mediates === undefined)) {
     return <RoutePending label={playCopy('theGame')} />
