@@ -12,9 +12,7 @@
  * route boundary.
  */
 
-import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
-import { api } from '../../../../convex/_generated/api'
 import {
   EmptyState,
   Entity,
@@ -24,6 +22,7 @@ import {
   tokens,
 } from '../../../components/index'
 import { UnitRow } from '../../../components/shared/UnitRow'
+import { useMe } from '../../../lib/account/accountApi'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
@@ -55,7 +54,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
   // `ConvexFeed` adopts from elsewhere, appear without a refetch. list()
   // lazily hydrates.
   const { status } = useSync()
-  const me = useQuery(api.account.me, status === 'live' ? {} : 'skip')
+  const me = useMe(status === 'live')
   const madeBy = me?.displayName ?? 'you'
   const patterns = usePatterns((s) => s.mechPatterns)
   const isLoading = !usePatterns((s) => s.hydrated)

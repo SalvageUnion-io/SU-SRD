@@ -24,3 +24,25 @@ export function gameOfSocketPath(pathname: string): string | null {
 export function accountSocketPath(): string {
   return `${ROOMS_PATH}/account/socket`
 }
+
+/**
+ * The signed-in player's account, answered by the Worker from their session
+ * (`worker/accountRoutes.ts`): who they are, their profile, their export and
+ * their feedback; an admin's metrics; and the build floor, for anyone.
+ */
+export const ACCOUNT_PATHS = {
+  /** `GET`: `{ _id, discordId, displayName, avatarUrl, email }`, or `null` signed out. */
+  me: `${ROOMS_PATH}/account/me`,
+  /** `POST { displayName?, avatarUrl? }`: the name and avatar overrides. */
+  profile: `${ROOMS_PATH}/account/profile`,
+  /** `GET`: everything the player owns, for download. */
+  export: `${ROOMS_PATH}/account/export`,
+  /** `POST { kind, text, page? }`: "Suggest or report". */
+  feedback: `${ROOMS_PATH}/account/feedback`,
+  /** `GET`: the usage metrics for an admin, `null` for anyone else. */
+  metrics: `${ROOMS_PATH}/admin/metrics`,
+  /** `POST`: take a fresh metrics snapshot now. Admins only. */
+  refreshMetrics: `${ROOMS_PATH}/admin/metrics/refresh`,
+  /** `GET`: the oldest client build this backend accepts. */
+  floor: `${ROOMS_PATH}/floor`,
+} as const

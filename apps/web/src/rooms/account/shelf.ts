@@ -23,6 +23,15 @@ const LEAVING = 'That is on its way somewhere else; try again in a moment'
 export const SHELF_RECORDS = ['patterns', 'encounters', 'npcTray'] as const
 export type ShelfRecord = (typeof SHELF_RECORDS)[number]
 
+/** The player's own overrides on their Discord name and avatar. */
+export type Profile = { displayName: string | null; avatarUrl: string | null }
+
+/** The Shelf's part of an account export: every body the player owns here. */
+export type ShelfExport = Record<
+  'pilots' | 'mechs' | 'npcs' | 'mechPatterns' | 'encounters',
+  Record<string, unknown>[]
+>
+
 export class AccountShelf {
   readonly store: GameStore
   readonly units: GameUnits
@@ -58,6 +67,73 @@ export class AccountShelf {
 
   requireOwner(actor: string): void {
     if (this.owner() !== actor) throw new RoomRefusal(NOT_YOURS)
+  }
+
+  // -------------------------------------------------------------- profile
+
+  /** The player's own name and avatar, each null where they set none (Discord's shows). */
+  profile(actor: string): Profile | null {
+    if (this.owner() !== actor) return null
+    const row = this.store.rows('select display_name, avatar_url from account where id = 1')[0]
+    return {
+      displayName: row?.display_name == null ? null : String(row.display_name),
+      avatarUrl: row?.avatar_url == null ? null : String(row.avatar_url),
+    }
+  }
+
+  /**
+   * Set or clear the name and avatar shown on every owner chip. Each is an
+   * override on the Discord profile: a blank one clears it, so Discord's
+   * shows again rather than nothing. A field left out is kept.
+   */
+  setProfile(actor: string, patch: { displayName?: string | null; avatarUrl?: string | null }) {
+    this.requireOwner(actor)
+    const now = this.profile(actor) as Profile
+    const blankIsNull = (value: string | null | undefined, was: string | null) => {
+      if (value === undefined) return was
+      const trimmed = value?.trim() ?? ''
+      return trimmed.length > 0 ? trimmed : null
+    }
+    this.store.rows(
+      'update account set display_name = ?, avatar_url = ? where id = 1',
+      blankIsNull(patch.displayName, now.displayName),
+      blankIsNull(patch.avatarUrl, now.avatarUrl)
+    )
+  }
+
+  /** How many of each the player keeps here: their row in the metrics' totals. */
+  totals(): Record<'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'patterns', number> {
+    const count = (kind: EntityKind) => this.store.units().filter((u) => u.kind === kind).length
+    const patterns = this.store.rows("select count(*) as n from records where tbl = 'patterns'")[0]
+    return {
+      pilots: count('pilot'),
+      mechs: count('mech'),
+      crawlers: count('crawler'),
+      npcs: count('npc'),
+      patterns: Number(patterns?.n ?? 0),
+    }
+  }
+
+  /**
+   * What the player owns here, for download (`account.exportMine`'s shape):
+   * their pilots, mechs and NPCs, saved patterns and encounters. A crawler is
+   * the table's, so it stays out, as on Convex.
+   */
+  exportFor(actor: string): ShelfExport | null {
+    if (this.owner() !== actor) return null
+    const bodiesOf = (kind: EntityKind) =>
+      this.store
+        .units()
+        .filter((u) => u.kind === kind && u.ownerId === actor)
+        .map((u) => u.body)
+    const recordsOf = (table: ShelfRecord) => this.records(actor, table).map((r) => r.body)
+    return {
+      pilots: bodiesOf('pilot'),
+      mechs: bodiesOf('mech'),
+      npcs: bodiesOf('npc'),
+      mechPatterns: recordsOf('patterns'),
+      encounters: recordsOf('encounters'),
+    }
   }
 
   /** A unit on this Shelf the actor may write, or a refusal. */

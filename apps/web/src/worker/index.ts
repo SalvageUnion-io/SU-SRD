@@ -27,6 +27,9 @@
  *     socket to their own account room (`./roomRoutes.ts`).
  *   - `game-call`: `POST /__rooms/call` → one Games call by its Convex
  *     name, as the signed-in player (`./gameCalls.ts`).
+ *   - `account`: `/__rooms/account/*`, `/__rooms/admin/*` and `/__rooms/floor`
+ *     → the player's profile, export and feedback, an admin's metrics, and
+ *     the build floor (`./accountRoutes.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -66,6 +69,7 @@ import {
   ROOMS_CALL_PATH,
   ROOMS_HEALTH_PATH,
 } from '../rooms/routes'
+import { isAccountPath, serveAccount } from './accountRoutes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import { handleAuth } from './auth/index'
@@ -114,6 +118,8 @@ export type Env = AppEnv &
     TEST_AUTH?: string
     /** The cutover runner's bearer secret ; unset, its door is a 404. */
     CUTOVER_SECRET?: string
+    /** The admins' Discord ids, comma-separated, as on Convex: the metrics page's (`./accountRoutes.ts`). */
+    ADMIN_DISCORD_IDS?: string
   }
 
 /**
@@ -209,6 +215,7 @@ export default {
     if (gameId !== null) return serveGameSocket(request, gameId, env)
     if (url.pathname === accountSocketPath()) return serveAccountSocket(request, env)
     if (url.pathname === ROOMS_CALL_PATH) return serveGameCall(request, env)
+    if (isAccountPath(url.pathname)) return serveAccount(request, env)
 
     // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {

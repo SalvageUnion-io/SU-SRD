@@ -50,6 +50,7 @@ import {
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { useMe } from '../../lib/account/accountApi'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -102,7 +103,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const rowActions = useRowActions(confirm)
   const go = useGo()
 
-  const me = useQuery(api.account.me, {})
+  const me = useMe()
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).

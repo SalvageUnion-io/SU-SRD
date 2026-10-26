@@ -1,7 +1,5 @@
-import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import {
   Button,
   ChapterBand,
@@ -17,6 +15,7 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { useAccountExport, useMe, useUpdateProfile } from '../../lib/account/accountApi'
 import { deleteAccount } from '../../lib/auth/session'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
@@ -80,9 +79,9 @@ function Section({ id, title, children }: SectionProps) {
 }
 
 function SignedInAccount() {
-  const me = useQuery(api.account.me, {})
-  const exported = useQuery(api.account.exportMine, {})
-  const save = useServerAction(useMutation(api.account.updateProfile), {
+  const me = useMe()
+  const exported = useAccountExport()
+  const save = useServerAction(useUpdateProfile(), {
     failure: 'Your display name could not be saved. Try again.',
   })
   const erase = useServerAction(deleteAccount, {

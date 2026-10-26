@@ -351,3 +351,36 @@ describe('the solo table’s seats and Downtime', () => {
     expect(room.solo.soloSeats(PLAYER)[0]?.downtime).toBeNull()
   })
 })
+
+describe('the player’s profile and export', () => {
+  test('a name and avatar override, cleared by a blank, kept when left out; nobody else’s', () => {
+    const { room } = shelf()
+    const { shelf: s } = room
+    expect(s.profile(PLAYER)).toEqual({ displayName: 'Player', avatarUrl: null })
+    s.setProfile(PLAYER, { displayName: '  Rosa  ', avatarUrl: 'https://cdn/a.png' })
+    expect(s.profile(PLAYER)).toEqual({ displayName: 'Rosa', avatarUrl: 'https://cdn/a.png' })
+    s.setProfile(PLAYER, { displayName: '   ' })
+    expect(s.profile(PLAYER)).toEqual({ displayName: null, avatarUrl: 'https://cdn/a.png' })
+    expect(s.profile(STRANGER)).toBeNull()
+    expect(() => s.setProfile(STRANGER, { displayName: 'Mine now' })).toThrow(
+      'That is not your Training Bay'
+    )
+  })
+
+  test('the export is what the player owns here, a crawler left out; the totals count it', () => {
+    const { room } = shelf()
+    room.shelf.create(PLAYER, {
+      id: 'c1',
+      kind: 'crawler',
+      body: bodies.crawler('c1'),
+      at: AT,
+    })
+    const mine = room.shelf.exportFor(PLAYER)
+    expect(mine?.pilots.map((b) => b.id)).toEqual(['p1'])
+    expect(mine?.mechs.map((b) => b.id)).toEqual(['m1'])
+    expect(mine?.npcs).toEqual([])
+    expect(mine?.mechPatterns).toEqual([{ name: 'Pattern', id: 'pat1' }])
+    expect(room.shelf.exportFor(STRANGER)).toBeNull()
+    expect(room.shelf.totals()).toEqual({ pilots: 1, mechs: 1, crawlers: 1, npcs: 0, patterns: 1 })
+  })
+})

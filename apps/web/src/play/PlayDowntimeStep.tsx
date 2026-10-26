@@ -29,11 +29,9 @@
  * a box of their own (play.md §12).
  */
 
-import { useQuery } from 'convex/react'
 import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
-import { api } from '../../convex/_generated/api'
 import { capsLabel } from '../components/atoms/capsLabel'
 import {
   Badge,
@@ -45,6 +43,7 @@ import {
   Stat,
   TitledBox,
 } from '../components/index'
+import { useMe } from '../lib/account/accountApi'
 import { rollD20 } from '../lib/dice'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
@@ -79,7 +78,7 @@ export function PlayDowntimeStep({
 }: PlayDowntimeStepProps) {
   const { downtime } = play
   const inGame = play.target.gameId !== null
-  const me = useQuery(api.account.me, inGame ? {} : 'skip')
+  const me = useMe(inGame)
   const viewer = useViewerId(me?._id ?? null)
   const { pilot, mech, crawler, store } = actions
   const canPay = !downtime.locked

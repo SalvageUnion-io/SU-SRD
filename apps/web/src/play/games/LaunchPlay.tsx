@@ -37,6 +37,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, PickDialog } from '../../components/index'
+import { useMe } from '../../lib/account/accountApi'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
@@ -61,7 +62,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
 
   // The same three questions `GameRoster` asks, so Convex answers both from
   // one subscription each.
-  const me = useQuery(api.account.me, {})
+  const me = useMe()
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   // What this browser holds decides what may be offered: see the header.

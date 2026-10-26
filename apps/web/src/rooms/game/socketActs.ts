@@ -1,4 +1,7 @@
+import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import { BOUNDARY_KINDS } from 'game-domain/games/safety'
+import { EntityRefSchema } from 'game-domain/schemas/entity'
+import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
 import type { ClientMessage, ServerMessage } from '../protocol'
 import type { GameActAnswer, GameActName } from './acts'
@@ -17,6 +20,27 @@ const SALVAGE_AREA_SET = z.object({
   area: z.object({ name: z.string(), techLevel: z.number(), supply: z.number() }).nullable(),
 })
 const SALVAGE_AREA_SPEND = z.object({ pilotId: z.string() })
+
+/** A unit made, or deleted, in the room it lives in; its body is the kind's schema's to check. */
+const CREATE_UNIT = z.object({ id: z.string(), kind: z.enum(ENTITY_KINDS), body: z.unknown() })
+const REMOVE_UNIT = z.object({ unitId: z.string() })
+/** A link by its type, its ends and its slot (`LinkShape`). */
+const LINK = z.object({
+  link: z.object({
+    type: SoftLinkSchema.shape.type,
+    from: EntityRefSchema,
+    to: EntityRefSchema,
+    slot: CrewSlotSchema.optional(),
+  }),
+})
+
+/** What either room takes for its units: making one, deleting one, and wiring them. */
+const UNIT_ACTS = {
+  createUnit: CREATE_UNIT,
+  removeUnit: REMOVE_UNIT,
+  drawLink: LINK,
+  removeLink: LINK,
+}
 
 /** A tray NPC's fight patch (`opposition.ts`'s `TrayPatch`); what each field may hold is the act's to refuse. */
 const TRAY_PATCH = z.object({
@@ -58,8 +82,9 @@ const DOWNTIME_ACTS = {
 /** A unit's Change Log, as the drawer reads it. */
 const FOR_ENTITY = z.object({ entityId: z.string() })
 
-/** A Game room's: its table's 4.3 state, the Mediator's tray and running encounter, its seats, Downtime, proposals and feed. */
+/** A Game room's: its units, its table's 4.3 state, the Mediator's tray and running encounter, its seats, Downtime, proposals and feed. */
 export const GAME_SOCKET_ACTS = {
+  ...UNIT_ACTS,
   'mediator.addNpc': z.object({ body: z.unknown() }),
   'mediator.removeNpc': z.object({ npcId: z.string() }),
   'mediator.updateNpc': z.object({ npcId: z.string(), patch: TRAY_PATCH }),
@@ -115,8 +140,9 @@ export const GAME_SOCKET_ACTS = {
   'changeLog.forEntity': FOR_ENTITY,
 } satisfies Partial<Record<GameActName, z.ZodType>>
 
-/** An account room's: its player's solo table, its seats, Downtime and salvage area. */
+/** An account room's: its player's units and solo table, its seats, Downtime and salvage area. */
 export const ACCOUNT_SOCKET_ACTS = {
+  ...UNIT_ACTS,
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   ...SEAT_ACTS,

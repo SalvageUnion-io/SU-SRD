@@ -48,6 +48,7 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { useMe } from '../../lib/account/accountApi'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playGamesCopy } from '../../messages/play-games'
 import { StopSignBanner } from '../StopSign'
@@ -107,7 +108,7 @@ function GameSections({ game }: { game: Game }) {
   // Probed rather than required: component tests render the page without a
   // RouterProvider, and `AppLink` degrades the same way.
   const router = useRouter({ warn: false })
-  const me = useQuery(api.account.me, {})
+  const me = useMe()
   const viewerId = me?._id ?? null
   const sign = useStopSign(gameId)
 

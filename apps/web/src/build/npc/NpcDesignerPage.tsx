@@ -17,9 +17,8 @@
  * the URL. Signed out, `NewEntityScreen` shows the sign-in panel instead.
  */
 
-import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
 import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
+import { useMe } from '../../lib/account/accountApi'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { npcCopy } from '../../messages/build-npc'
 import { isSignedIn } from '../../replica/sync'
@@ -55,7 +54,7 @@ export function NpcDesignerPage({
 }: NpcDesignerPageProps) {
   const { status } = useSync()
   const signedIn = isSignedIn(status)
-  const me = useQuery(api.account.me, signedIn ? {} : 'skip')
+  const me = useMe(signedIn)
   const madeBy = me?.displayName ?? 'you'
   const crawler = useUnits((s) => (crawlerId ? s.get('crawler', crawlerId) : null))
   const typeName = crawler?.type ? resolveCrawlerType(crawler.type)?.name : undefined

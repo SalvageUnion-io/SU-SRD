@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { exports } from 'cloudflare:workers'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
-import { pilotFixture } from '../../components/__tests__/fixtures'
+import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { bunSql } from '../../rooms/__tests__/bunSql'
 import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from '../roomRoutes'
 import { AccountRoom, GameRoom } from '../rooms'
@@ -141,6 +141,46 @@ describe('an account room', () => {
       records: { salvageArea: [{ appId: 'salvageArea', body: { name: 'Yard', supply: 0 } }] },
     })
   })
+
+  test('its player makes, wires and deletes units by act; a stranger is refused', () => {
+    const rook = sock('d-rook')
+    const wren = sock('d-wren')
+    const room = shelf(rook, wren)
+    const act = (who: Sock, id: string, name: string, args?: unknown) =>
+      room.webSocketMessage(who as never, JSON.stringify({ type: 'act', id, name, args }))
+    const body = mechFixture({ id: 'm1', chassisRef: 'mule' })
+    const link = {
+      type: 'mech-to-pilot',
+      from: { type: 'mech', id: 'm1' },
+      to: { type: 'pilot', id: 'p1' },
+    }
+    act(rook, 'a-1', 'createUnit', { id: 'm1', kind: 'mech', body })
+    act(rook, 'a-2', 'drawLink', { link })
+    expect(
+      room
+        .unitsFor('d-rook')
+        .map((u) => u.id)
+        .sort()
+    ).toEqual(['m1', 'p1'])
+    expect(
+      received(rook)
+        .filter((m) => m.type === 'snapshot')
+        .at(-1)
+    ).toMatchObject({
+      links: [expect.objectContaining({ type: 'mech-to-pilot' })],
+    })
+    act(wren, 'a-3', 'removeUnit', { unitId: 'm1' })
+    act(rook, 'a-4', 'removeUnit', { unitId: 'm1' })
+    expect(room.unitsFor('d-rook').map((u) => u.id)).toEqual(['p1'])
+    expect(received(rook).filter((m) => m.type !== 'snapshot')).toEqual([
+      { type: 'answered', id: 'a-1' },
+      { type: 'answered', id: 'a-2' },
+      { type: 'answered', id: 'a-4' },
+    ])
+    expect(received(wren).filter((m) => m.type !== 'snapshot')).toEqual([
+      { type: 'refused', id: 'a-3', reason: 'That is not your Training Bay' },
+    ])
+  })
 })
 
 describe('a Game room’s socket', () => {
@@ -241,7 +281,10 @@ describe('a Game room’s socket', () => {
   test('an act the room refuses, or will not take from a socket, is refused by id', () => {
     const { room, player } = seated()
     room.webSocketMessage(player as never, act('a-2', 'scenes.passHour'))
-    room.webSocketMessage(player as never, act('a-3', 'removeUnit', { unitId: 'p1' }))
+    room.webSocketMessage(
+      player as never,
+      act('a-3', 'setMediator', { userId: 'p1', mediator: true })
+    )
     room.webSocketMessage(player as never, act('a-4', 'salvageAreas.spend', { pilot: 'p1' }))
     expect(received(player)).toEqual([
       expect.objectContaining({ type: 'refused', id: 'a-2' }),

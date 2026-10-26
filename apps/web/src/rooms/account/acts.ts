@@ -15,9 +15,13 @@ function pilotOf(args: { pilotId?: string }): string {
 
 /**
  * Every act the player's socket may send their account room
- * (`ACCOUNT_SOCKET_ACTS`), under its Convex name: their solo table.
+ * (`ACCOUNT_SOCKET_ACTS`): their units and links, and, under its Convex name, their solo table.
  */
 export const ACCOUNT_ACTS: { [N in keyof Acts]: (c: Context, a: Args<N>) => unknown } = {
+  createUnit: (c, a) => c.room.shelf.create(c.actor, { ...a, at: c.at }),
+  removeUnit: (c, a) => c.room.shelf.remove(c.actor, a.unitId),
+  drawLink: (c, a) => c.room.shelf.drawLink(c.actor, a.link),
+  removeLink: (c, a) => c.room.shelf.removeLink(c.actor, a.link),
   'salvageAreas.set': (c, a) => c.room.soloArea.set(c.actor, a.area, c.at),
   'salvageAreas.spend': (c, a) => c.room.soloArea.spend(c.actor, a.pilotId, c.at),
   'seats.board': (c, a) => c.room.solo.board(c.actor, a.pilotId, a.mechId, c.at),

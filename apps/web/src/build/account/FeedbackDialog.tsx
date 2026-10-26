@@ -1,7 +1,5 @@
-import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import {
   ConfirmDialog,
   InlineRef,
@@ -12,6 +10,7 @@ import {
   toast,
   tokens,
 } from '../../components/index'
+import { useSubmitFeedback } from '../../lib/account/accountApi'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { buildAccountCopy } from '../../messages/build-account'
 
@@ -49,7 +48,7 @@ type FeedbackDialogProps = {
 }
 
 export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
-  const submit = useMutation(api.feedback.submit)
+  const submit = useSubmitFeedback()
   const [kind, setKind] = useState<Kind>('suggestion')
   const [text, setText] = useState('')
   const length = text.trim().length

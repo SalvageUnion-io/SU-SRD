@@ -1,8 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { AccountMenu as SharedAccountMenu } from '../../components/index'
+import { useMe } from '../../lib/account/accountApi'
 import { DOC_PAGES } from '../../lib/docPages'
 import { useSync } from '../../replica/syncContext'
 import { FeedbackDialog } from './FeedbackDialog'
@@ -11,14 +10,14 @@ import { useSignOut } from './useSignOut'
 /**
  * The app's account menu: the UI library's `AccountMenu`, the one the SRD's
  * bar shows too, over this session. The name and avatar come from
- * `api.account.me`; Settings routes in place, Sign out ends the session
+ * `useMe`; Settings routes in place, Sign out ends the session
  * here, and Suggest or report opens `FeedbackDialog`.
  *
  * ## When it renders
  *
  * Only for a signed-in session — Connected **or Disconnected**. Offline, the
  * player is still signed in, so the identity stays on screen and Sign out still
- * works (it clears the local session; it needs no server). `api.account.me`
+ * works (it clears the local session; it needs no server). `useMe`
  * has no answer on a cold start offline, so the trigger then reads "Account".
  *
  * Signed out it renders nothing; the sign-in button is the header's job
@@ -31,7 +30,7 @@ type AppAccountMenuProps = {
 }
 
 function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
-  const me = useQuery(api.account.me, {})
+  const me = useMe()
   const signOut = useSignOut()
   const navigate = useNavigate()
   const [feedback, setFeedback] = useState(false)

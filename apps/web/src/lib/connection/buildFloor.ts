@@ -1,7 +1,9 @@
 import { useQueries } from 'convex/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { BUILD_FLOOR } from '../../../convex/buildFloor'
+import { ROOM_FEED } from '../../replica/roomSocket'
+import { askFloor } from '../account/accountApi'
 import { reloadOntoNewBuild, serverBootsAnotherBuild } from '../sw/register'
 
 /**
@@ -81,18 +83,54 @@ export function reloadOnceServed(
 /** Module-level, so the subscription's request is the same object every render. */
 const FLOOR_REQUEST = { floor: { query: api.build.floor, args: {} } }
 
+/** How often a tab asks the Worker for the floor, besides whenever it is focused. */
+const FLOOR_POLL_MS = 5 * 60_000
+
+/**
+ * The backend's floor, Convex's way: `useQueries` rather than `useQuery`
+ * because it hands back a failed query as an `Error` instead of throwing it.
+ */
+function useConvexFloor(): number | undefined {
+  const result: unknown = useQueries(FLOOR_REQUEST).floor
+  return typeof result === 'number' ? result : undefined
+}
+
+/**
+ * The backend's floor, the rooms' way: the Worker serves it and ships with
+ * it, so a floor that rose is already the new build's, asked on focus and
+ * every `FLOOR_POLL_MS`. One it cannot reach answers nothing.
+ */
+function useWorkerFloor(): number | undefined {
+  const [floor, setFloor] = useState<number | undefined>(undefined)
+  useEffect(() => {
+    let live = true
+    const check = () =>
+      void askFloor().then((answer) => {
+        if (live && answer !== undefined) setFloor(answer)
+      })
+    check()
+    const timer = setInterval(check, FLOOR_POLL_MS)
+    window.addEventListener('focus', check)
+    return () => {
+      live = false
+      clearInterval(timer)
+      window.removeEventListener('focus', check)
+    }
+  }, [])
+  return floor
+}
+
+const useFloor = ROOM_FEED ? useWorkerFloor : useConvexFloor
+
 /**
  * Whether this tab is below the backend's build floor, and, while it is, works
  * toward a reload. `SyncProvider` is the one caller.
  *
- * `useQueries` rather than `useQuery` because it hands back a failed query as
- * an `Error` instead of throwing it: this runs in `SyncProvider`, at the
- * root, where a throw would blank the whole app. A floor it cannot read
- * refuses nothing.
+ * It runs in `SyncProvider`, at the root, where a throw would blank the whole
+ * app, so a floor it cannot read refuses nothing.
  */
 export function useBuildFloor(): boolean {
-  const result: unknown = useQueries(FLOOR_REQUEST).floor
-  const outdated = isOutdated(typeof result === 'number' ? result : undefined, BUILD_FLOOR)
+  const outdated = isOutdated(useFloor(), BUILD_FLOOR)
 
   useEffect(() => {
     if (!outdated) return

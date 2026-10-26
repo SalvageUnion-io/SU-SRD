@@ -177,3 +177,30 @@ export async function readMetrics(db: SharedDb): Promise<MetricsRead> {
     weeks,
   }
 }
+
+/**
+ * An account room's row in the totals: written after a change, and only when
+ * a count moved since the last write, so most changes write nothing.
+ */
+export class AccountTotalsWriter {
+  private written = ''
+
+  constructor(
+    private readonly db: SharedDb | undefined,
+    private readonly current: () => AccountTotals | null
+  ) {}
+
+  async write(now = Date.now()): Promise<void> {
+    const totals = this.current()
+    if (this.db === undefined || totals === null) return
+    const key = JSON.stringify(totals)
+    if (key === this.written) return
+    this.written = key
+    try {
+      await putAccountTotals(this.db, totals, now)
+    } catch (error) {
+      this.written = ''
+      console.error('writing account totals failed', totals.discordId, error)
+    }
+  }
+}

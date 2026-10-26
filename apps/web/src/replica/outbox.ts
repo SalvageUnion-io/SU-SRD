@@ -23,6 +23,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
 import { keepOutbox, readOutbox } from './persist'
+import { row } from './replica'
 import { ROOM_FEED, RoomDeclined, roomOf } from './roomSocket'
 import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
@@ -51,6 +52,15 @@ export async function sendRow(
   if (type === 'softLink') {
     // Links are addressed by their endpoints rather than by an id, so they take
     // a different call shape — see `sendLink`.
+    return
+  }
+
+  // Fed by the rooms, the unit's room makes it or deletes it; its next
+  // snapshot carries the change, as an op's `applied` does.
+  const room = roomOf(op.gameId)
+  if (room !== null) {
+    if (op.kind === 'delete') await room.act('removeUnit', { unitId: op.appId })
+    else await room.act('createUnit', { id: op.appId, kind: type, body: op.body })
     return
   }
 
@@ -376,11 +386,24 @@ export async function sendLink(kind: 'upsert' | 'delete', link: SoftLink | null)
     type: link.type,
     ...(link.slot === undefined ? {} : { slot: link.slot }),
   }
+  // Fed by the rooms, the room holding its from end wires it (a link never
+  // crosses containers); a unit with no copy here is on the Shelf.
+  const room = roomOf(gameOfUnit(link.from))
+  if (room !== null) {
+    await room.act(kind === 'upsert' ? 'drawLink' : 'removeLink', { link: args })
+    return
+  }
   if (kind === 'upsert') {
     await convexClient.mutation(api.entities.upsertSoftLink, args)
   } else {
     await convexClient.mutation(api.entities.removeSoftLink, args)
   }
+}
+
+/** The Game a unit is in, as the replica holds it; null on the Shelf, or not held here. */
+function gameOfUnit(ref: { type: EntityRef['type']; id: string }): string | null {
+  const held = row(ref.type, ref.id) as { gameId?: string | null } | null
+  return held?.gameId ?? null
 }
 
 /** One op a transfer applies; a crawler's may move it first (`move`, its container). */

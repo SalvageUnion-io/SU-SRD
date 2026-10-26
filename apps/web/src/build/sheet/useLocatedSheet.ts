@@ -34,6 +34,7 @@ import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { useMe } from '../../lib/account/accountApi'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
 import { useSync } from '../../replica/syncContext'
@@ -72,7 +73,7 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const gameId = located?.gameId ?? null
   const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
   const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
-  const me = useQuery(api.account.me, online ? {} : 'skip')
+  const me = useMe(online)
 
   // Names the tab after the entity, and follows a rename. The route's `head`
   // can only say "Sheet": it runs once per navigation, and a loader may not

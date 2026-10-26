@@ -13,6 +13,7 @@ import { isDowntimeStepOp } from 'game-domain/ops/downtimeStep'
 import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
 import { ACCOUNT_ACTS, ACCOUNT_READ_ACTS } from '../rooms/account/acts'
 import { shelfSnapshot } from '../rooms/account/feed'
+import type { AccountShelf, Profile, ShelfExport } from '../rooms/account/shelf'
 import type {
   GameActAnswer,
   GameActArgs,
@@ -40,7 +41,6 @@ import {
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
 import type { HomeAddress, LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
-import { settleLease } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
 import { migrate } from '../rooms/migrate'
 import type { PresenceMessage } from '../rooms/presence'
@@ -51,8 +51,10 @@ import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { loadCrewReference, unitVitals } from '../rooms/vitals'
+import { LEASE_SETTLE_MS, settleStaleOffers } from './leaseAlarm'
 import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
+import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign } from './shared/stopSign'
 
@@ -125,10 +127,15 @@ abstract class Room extends DurableObject<RoomEnv> {
 export class AccountRoom extends Room implements UnitHome {
   private readonly logic: AccountRoomLogic
   protected readonly publisher: RoomPublisher
+  private readonly totals: AccountTotalsWriter
 
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
     this.logic = new AccountRoomLogic(this.sql, { applyOp })
+    this.totals = new AccountTotalsWriter(sharedDb(env), () => {
+      const discordId = this.logic.shelf.owner()
+      return discordId === null ? null : { discordId, ...this.logic.shelf.totals() }
+    })
     const owner = ctx.id.name ?? null
     this.publisher = new RoomPublisher(sharedDb(env), `account:${owner}`, owner, () =>
       shelfPublished(this.logic.shelf.store)
@@ -138,6 +145,12 @@ export class AccountRoom extends Room implements UnitHome {
     void ctx.blockConcurrencyWhile(async () => {
       if (ctx.id.name !== undefined) this.logic.shelf.claim(ctx.id.name, Date.now())
     })
+  }
+
+  /** After a change: the shared rows follow, and the player's totals when they moved. */
+  protected override published(): void {
+    super.published()
+    void this.totals.write()
   }
 
   /** The player's own units; anyone else is answered none. */
@@ -197,7 +210,7 @@ export class AccountRoom extends Room implements UnitHome {
   }
 
   override alarm(): Promise<void> {
-    return settleStaleOffers(this, this.logic.transit, this.ctx.storage)
+    return settleStaleOffers(this, this.logic.transit, this.ctx.storage, homeOf)
   }
 
   /** The player's socket, which the Worker let through: their Shelf, then its changes. */
@@ -210,6 +223,8 @@ export class AccountRoom extends Room implements UnitHome {
     const pair = new WebSocketPair()
     this.ctx.acceptWebSocket(pair[1], [member])
     pair[1].send(JSON.stringify(shelfSnapshot(this.logic, member)))
+    // A player who has never changed a thing still counts as an account.
+    void this.totals.write()
     return new Response(null, {
       status: 101,
       headers: { 'sec-websocket-protocol': ROOM_PROTOCOL },
@@ -270,34 +285,25 @@ export class AccountRoom extends Room implements UnitHome {
     }
   }
 
+  /** The player's own name and avatar overrides; anyone else, null. */
+  profile(actor: string): Profile | null {
+    return this.logic.shelf.profile(actor)
+  }
+
+  /** Set the player's name or avatar override; their shared sheets follow. */
+  setProfile(actor: string, patch: Parameters<AccountShelf['setProfile']>[1]): void {
+    this.logic.shelf.setProfile(actor, patch)
+    this.published()
+  }
+
+  /** What the player owns on their Shelf, for their export; anyone else, null. */
+  exportFor(actor: string): ShelfExport | null {
+    return this.logic.shelf.exportFor(actor)
+  }
+
   private broadcastSnapshots(): void {
     snapshotEach(this.ctx, (member) => shelfSnapshot(this.logic, member))
     this.published()
-  }
-}
-
-/** How long an offer may wait on its target before the alarm settles it. */
-const LEASE_SETTLE_MS = 60_000
-
-/**
- * A room's alarm: settle every offer its target never answered, so no unit is
- * left leaving, and come back while any offer is still out.
- */
-async function settleStaleOffers(
-  home: UnitHome,
-  transit: { staleOffers(before: number): { leaseId: string; to: HomeAddress }[] },
-  storage: RoomState['storage']
-): Promise<void> {
-  const now = Date.now()
-  for (const { leaseId, to } of transit.staleOffers(now - LEASE_SETTLE_MS + 1)) {
-    try {
-      await settleLease(home, homeOf(to), leaseId, now)
-    } catch (error) {
-      console.error('settling a lease failed', leaseId, error)
-    }
-  }
-  if (transit.staleOffers(Number.MAX_SAFE_INTEGER).length > 0) {
-    await storage.setAlarm(now + LEASE_SETTLE_MS)
   }
 }
 
@@ -411,7 +417,7 @@ export class GameRoom extends Room implements UnitHome {
   }
 
   override alarm(): Promise<void> {
-    return settleStaleOffers(this, this.logic.transit, this.ctx.storage)
+    return settleStaleOffers(this, this.logic.transit, this.ctx.storage, homeOf)
   }
 
   /**
