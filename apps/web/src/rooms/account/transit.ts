@@ -5,6 +5,7 @@ import type { UnitRow } from '../game/store'
 import { bit, fromJson } from '../game/store'
 import { importedOp, stable } from '../game/transit'
 import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
+import { Leases, MOVED_OFF } from '../leases'
 import { RoomRefusal } from '../refusal'
 import type { AccountShelf } from './shelf'
 import { SHELF_RECORDS } from './shelf'
@@ -19,13 +20,15 @@ import type { AccountSoloArea } from './soloArea'
  * down in it.
  */
 
-const MOVED_OFF = 'That move was called off'
-
 export class AccountTransit {
+  private readonly leases: Leases
+
   constructor(
     private readonly shelf: AccountShelf,
     private readonly soloArea: AccountSoloArea
-  ) {}
+  ) {
+    this.leases = new Leases(shelf.store)
+  }
 
   private get store() {
     return this.shelf.store
@@ -49,60 +52,32 @@ export class AccountTransit {
         throw new RoomRefusal('A build moves from your Training Bay into a Game')
       const leaving = { ...writable, leaseId: args.leaseId }
       this.store.putUnit(leaving)
-      this.putLease(args.leaseId, writable.id, 'out', 'offered', args.to, args.at)
+      this.leases.put(args.leaseId, writable.id, 'out', 'offered', args.to, args.at)
       return this.parcelOf(leaving)
     })
   }
 
   /** The Game has it: drop it here. Releasing twice is a no-op. */
   release(leaseId: string): void {
-    this.store.sql.transaction(() => {
-      const lease = this.lease(leaseId)
-      if (lease === null || lease.state !== 'offered') return
-      const unit = this.store.unit(lease.unitId)
-      if (unit !== null && unit.leaseId === leaseId) this.shelf.drop(unit)
-      this.setLeaseState(leaseId, 'released')
-    })
+    this.leases.close(leaseId, (unit) => this.shelf.drop(unit))
   }
 
   /** The Game refused it: the unit stays, writable again. */
   cancel(leaseId: string): void {
-    this.store.sql.transaction(() => {
-      const lease = this.lease(leaseId)
-      if (lease === null || lease.state !== 'offered') return
-      const unit = this.store.unit(lease.unitId)
-      if (unit !== null && unit.leaseId === leaseId) this.store.putUnit({ ...unit, leaseId: null })
-      this.setLeaseState(leaseId, 'cancelled')
-    })
+    this.leases.close(leaseId)
   }
 
   /** Offers older than `before`, for the alarm that settles them (`settleLease`). */
   staleOffers(before: number): { leaseId: string; to: HomeAddress }[] {
-    return this.store
-      .rows(
-        "select lease_id, peer from leases where direction = 'out' and state = 'offered' and at < ?",
-        before
-      )
-      .map((row) => ({ leaseId: String(row.lease_id), to: fromJson<HomeAddress>(row.peer) }))
+    return this.leases.staleOffers(before)
   }
 
   private parcelOf(unit: UnitRow): UnitParcel {
-    return {
-      leaseId: unit.leaseId ?? '',
-      from: { kind: 'account', userId: unit.ownerId ?? '' },
-      unit: {
-        id: unit.id,
-        kind: unit.kind,
-        ownerId: unit.ownerId,
-        body: unit.body,
-        headSeq: unit.headSeq,
-        fieldSeqs: unit.fieldSeqs,
-        publicRead: unit.publicRead,
-      },
-      ops: this.store.opsOf(unit.id),
-      links: this.store.linksTouching(unit.id),
-      seat: unit.kind === 'pilot' ? this.seatOf(unit.id) : null,
-    }
+    return this.leases.parcelOf(
+      unit,
+      { kind: 'account', userId: unit.ownerId ?? '' },
+      unit.kind === 'pilot' ? this.seatOf(unit.id) : null
+    )
   }
 
   private seatOf(pilotId: string): ParcelSeat | null {
@@ -125,7 +100,7 @@ export class AccountTransit {
    */
   accept(parcel: UnitParcel, actor: string, at: number): void {
     this.store.sql.transaction(() => {
-      const lease = this.lease(parcel.leaseId)
+      const lease = this.leases.get(parcel.leaseId)
       if (lease?.state === 'accepted') return
       if (lease?.state === 'refused') throw new RoomRefusal(MOVED_OFF)
       this.shelf.requireOwner(actor)
@@ -143,24 +118,13 @@ export class AccountTransit {
           this.shelf.units.writeLink(link)
       }
       if (unit.kind === 'pilot' && parcel.seat !== null) this.putSeat(unit.id, parcel.seat, {}, at)
-      this.putLease(parcel.leaseId, unit.id, 'in', 'accepted', parcel.from, at)
+      this.leases.put(parcel.leaseId, unit.id, 'in', 'accepted', parcel.from, at)
     })
   }
 
   /** Refuse a lease from now on, unless it was already accepted (`settleLease`). */
   refuseLease(leaseId: string, at: number): LeaseOutcome {
-    return this.store.sql.transaction(() => {
-      const lease = this.lease(leaseId)
-      if (lease?.state === 'accepted') return 'accepted'
-      if (lease === null) {
-        this.store.rows(
-          "insert into leases (lease_id, unit_id, direction, state, peer, at) values (?, '', 'in', 'refused', 'null', ?)",
-          leaseId,
-          at
-        )
-      }
-      return 'refused'
-    })
+    return this.leases.refuse(leaseId, at)
   }
 
   /** A solo seat; what a parcel carries, plus the resolve and Downtime only an import brings. */
@@ -187,35 +151,6 @@ export class AccountTransit {
     )
   }
 
-  private lease(leaseId: string): { unitId: string; state: string } | null {
-    const row = this.store.rows('select unit_id, state from leases where lease_id = ?', leaseId)[0]
-    return row === undefined ? null : { unitId: String(row.unit_id), state: String(row.state) }
-  }
-
-  private setLeaseState(leaseId: string, state: string): void {
-    this.store.rows('update leases set state = ? where lease_id = ?', state, leaseId)
-  }
-
-  private putLease(
-    leaseId: string,
-    unitId: string,
-    direction: 'in' | 'out',
-    state: string,
-    peer: HomeAddress,
-    at: number
-  ): void {
-    this.store.rows(
-      `insert into leases (lease_id, unit_id, direction, state, peer, at) values (?, ?, ?, ?, ?, ?)
-       on conflict(lease_id) do update set state = excluded.state, at = excluded.at`,
-      leaseId,
-      unitId,
-      direction,
-      state,
-      JSON.stringify(peer),
-      at
-    )
-  }
-
   /**
    * File a disbanded Game's Opposition in this player's NPC tray. Idempotent
    * by lease: a retried disband files nothing twice. An NPC without an id is
@@ -223,7 +158,7 @@ export class AccountTransit {
    */
   fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): void {
     this.store.sql.transaction(() => {
-      if (this.lease(leaseId) !== null) return
+      if (this.leases.get(leaseId) !== null) return
       for (const npc of npcs) {
         if (typeof npc.id !== 'string') throw new Error('A tray NPC carries its id')
         this.store.rows(
@@ -234,7 +169,7 @@ export class AccountTransit {
           at
         )
       }
-      this.putLease(
+      this.leases.put(
         leaseId,
         '',
         'in',

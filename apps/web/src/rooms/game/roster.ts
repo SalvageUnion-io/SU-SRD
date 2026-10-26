@@ -1,4 +1,5 @@
 import type { UnitParcel } from '../handoff'
+import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
 import type { GameStore, Member } from './store'
 import { bit } from './store'
@@ -256,15 +257,7 @@ export class GameRoster {
         const parcel: UnitParcel = {
           leaseId: `disband:${game.gameId}:${unit.id}`,
           from: { kind: 'game', gameId: game.gameId },
-          unit: {
-            id: unit.id,
-            kind: unit.kind,
-            ownerId: to,
-            body: unit.body,
-            headSeq: unit.headSeq,
-            fieldSeqs: unit.fieldSeqs,
-            publicRead: unit.publicRead,
-          },
+          unit: { ...parcelUnit(unit), ownerId: to },
           ops: this.store.opsOf(unit.id),
           links: [],
           seat: null,

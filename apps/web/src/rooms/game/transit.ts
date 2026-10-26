@@ -3,6 +3,7 @@ import type { BundleOp, GameBundle } from 'game-domain/migration/bundle'
 import { GameBundleSchema } from 'game-domain/migration/bundle'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
+import { Leases, MOVED_OFF } from '../leases'
 import { RoomRefusal } from '../refusal'
 import type { GamePlay } from './play'
 import type { GameStore, StoredOp, UnitRow } from './store'
@@ -21,15 +22,18 @@ import type { GameUnits } from './units'
  * whose other end is not where the unit lands is dropped (ADR-037).
  */
 
-const MOVED_OFF = 'That move was called off'
 const ALREADY_HERE = 'That is already in this Game'
 
 export class GameTransit {
+  private readonly leases: Leases
+
   constructor(
     private readonly store: GameStore,
     private readonly units: GameUnits,
     private readonly play: GamePlay
-  ) {}
+  ) {
+    this.leases = new Leases(store)
+  }
 
   // ------------------------------------------------------------- outbound
 
@@ -59,7 +63,7 @@ export class GameTransit {
         throw new RoomRefusal('You can only move your own build to your own Training Bay')
       }
       this.store.putUnit({ ...unit, leaseId: args.leaseId })
-      this.putLease(args.leaseId, unit.id, 'out', 'offered', args.to, args.at)
+      this.leases.put(args.leaseId, unit.id, 'out', 'offered', args.to, args.at)
       return this.parcelOf({ ...unit, leaseId: args.leaseId }, game.gameId)
     })
   }
@@ -70,54 +74,22 @@ export class GameTransit {
    * the oldest left. Releasing twice is a no-op.
    */
   release(leaseId: string): void {
-    this.store.sql.transaction(() => {
-      const lease = this.lease(leaseId)
-      if (lease === null || lease.state !== 'offered') return
-      const unit = this.store.unit(lease.unitId)
-      if (unit !== null && unit.leaseId === leaseId) this.units.drop(unit)
-      this.store.rows("update leases set state = 'released' where lease_id = ?", leaseId)
-    })
+    this.leases.close(leaseId, (unit) => this.units.drop(unit))
   }
 
   /** The target refused it: the unit stays, writable again. */
   cancel(leaseId: string): void {
-    this.store.sql.transaction(() => {
-      const lease = this.lease(leaseId)
-      if (lease === null || lease.state !== 'offered') return
-      const unit = this.store.unit(lease.unitId)
-      if (unit !== null && unit.leaseId === leaseId) this.store.putUnit({ ...unit, leaseId: null })
-      this.store.rows("update leases set state = 'cancelled' where lease_id = ?", leaseId)
-    })
+    this.leases.close(leaseId)
   }
 
   /** Offers older than `before`, for the alarm that settles them (`settleLease`). */
   staleOffers(before: number): { leaseId: string; to: HomeAddress }[] {
-    return this.store
-      .rows(
-        "select lease_id, peer from leases where direction = 'out' and state = 'offered' and at < ?",
-        before
-      )
-      .map((row) => ({ leaseId: String(row.lease_id), to: fromJson<HomeAddress>(row.peer) }))
+    return this.leases.staleOffers(before)
   }
 
   private parcelOf(unit: UnitRow, gameId: string): UnitParcel {
-    return {
-      leaseId: unit.leaseId ?? '',
-      from: { kind: 'game', gameId },
-      unit: {
-        id: unit.id,
-        kind: unit.kind,
-        ownerId: unit.ownerId,
-        body: unit.body,
-        headSeq: unit.headSeq,
-        fieldSeqs: unit.fieldSeqs,
-        publicRead: unit.publicRead,
-      },
-      ops: this.store.opsOf(unit.id),
-      links: this.store.linksTouching(unit.id),
-      // A pilot's seat at this table stays here: it describes play here.
-      seat: null,
-    }
+    // A pilot's seat at this table stays here: it describes play here.
+    return this.leases.parcelOf(unit, { kind: 'game', gameId }, null)
   }
 
   // -------------------------------------------------------------- inbound
@@ -132,7 +104,7 @@ export class GameTransit {
    */
   accept(parcel: UnitParcel, actor: string, at: number): void {
     this.store.sql.transaction(() => {
-      const lease = this.lease(parcel.leaseId)
+      const lease = this.leases.get(parcel.leaseId)
       if (lease?.state === 'accepted') return
       if (lease?.state === 'refused') throw new RoomRefusal(MOVED_OFF)
       const { unit } = parcel
@@ -158,24 +130,13 @@ export class GameTransit {
       }
       if (unit.kind === 'pilot' && parcel.seat !== null) this.seatPilot(unit.id, parcel.seat, at)
       this.units.arrived(row)
-      this.putLease(parcel.leaseId, unit.id, 'in', 'accepted', parcel.from, at)
+      this.leases.put(parcel.leaseId, unit.id, 'in', 'accepted', parcel.from, at)
     })
   }
 
   /** Refuse a lease from now on, unless it was already accepted (`settleLease`). */
   refuseLease(leaseId: string, at: number): LeaseOutcome {
-    return this.store.sql.transaction(() => {
-      const lease = this.lease(leaseId)
-      if (lease?.state === 'accepted') return 'accepted'
-      if (lease === null) {
-        this.store.rows(
-          "insert into leases (lease_id, unit_id, direction, state, peer, at) values (?, '', 'in', 'refused', 'null', ?)",
-          leaseId,
-          at
-        )
-      }
-      return 'refused'
-    })
+    return this.leases.refuse(leaseId, at)
   }
 
   /** The seat a pilot brings: range, effects and ejection carry, the mount only to a free mech of theirs here. */
@@ -207,31 +168,6 @@ export class GameTransit {
       ejected: mount.kind === 'foot' && seat.ejected,
       updatedAt: at,
     })
-  }
-
-  private lease(leaseId: string): { unitId: string; state: string } | null {
-    const row = this.store.rows('select unit_id, state from leases where lease_id = ?', leaseId)[0]
-    return row === undefined ? null : { unitId: String(row.unit_id), state: String(row.state) }
-  }
-
-  private putLease(
-    leaseId: string,
-    unitId: string,
-    direction: 'in' | 'out',
-    state: string,
-    peer: HomeAddress,
-    at: number
-  ): void {
-    this.store.rows(
-      `insert into leases (lease_id, unit_id, direction, state, peer, at) values (?, ?, ?, ?, ?, ?)
-       on conflict(lease_id) do update set state = excluded.state, at = excluded.at`,
-      leaseId,
-      unitId,
-      direction,
-      state,
-      JSON.stringify(peer),
-      at
-    )
   }
 
   // ------------------------------------------------------------ the import
