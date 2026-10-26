@@ -219,7 +219,7 @@ describe('an encounter page', () => {
 
   test('Read prints the encounter: no edits, its empty sections left out', async () => {
     useSheetModeStore.setState({ editing: false })
-    usePrepStore.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
+    useEncounters.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
     await renderPage()
     expect(screen.getByRole('button', { name: 'Read', pressed: true })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Add opposition from the reference' })).toBeNull()
