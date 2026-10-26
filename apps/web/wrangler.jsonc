@@ -47,10 +47,6 @@
   //   Without it feedback waits in the shared database and is never filed.
   // - ADMIN_DISCORD_IDS, the site admins' Discord ids, comma-separated, as on
   //   Convex. Without it nobody can moderate Homebrew (src/worker/sharedRoutes.ts).
-  //
-  // PHOTOS, an R2 binding to the `su-photos` bucket (`su-photos-preview` in
-  // `previews`), holds entity photos (src/worker/photos.ts). It joins the
-  // bindings once the buckets exist; until then an upload answers 503.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from until SHARED is filled: the URL the app is built against,
@@ -71,6 +67,9 @@
       "database_id": "10bc74c2-6953-42f3-875b-71dd62f54856"
     }
   ],
+
+  // PHOTOS: entity photos (src/worker/photos.ts); `su-photos-preview` in `previews`.
+  "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "su-photos" }],
 
   // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
   // which names each schedule).
@@ -93,7 +92,8 @@
         "database_name": "su-shared-preview",
         "database_id": "732d672a-81b8-4c5e-acaa-bab54b2e874c"
       }
-    ]
+    ],
+    "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "su-photos-preview" }]
   },
 
   // The rooms (ADR-064, src/worker/rooms.ts), SQLite Durable Objects reached
