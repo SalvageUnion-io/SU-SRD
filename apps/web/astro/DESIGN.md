@@ -63,5 +63,5 @@ The WIKI link is not an island (`src/lib/wikiLink.ts`).
 ## Build (`bun run build`)
 
 1. **The nav catalog, then Astro** (`build/genNavCatalog.ts`, then `astro.config.ts`), both apps into one `assets/`: keep the shared `react` group, keep the app's groups off the reference site's modules (`build/appGraph.ts`), and never chunk `salvageunion-reference`.
-2. **Finish** (`build/site.ts`): sitemaps, the app's public pages, then the service worker.
+2. **Finish**: `@astrojs/sitemap`, then `build/site.ts`: public pages, service worker.
 3. **Refuse silent failures.** No script or stylesheet on the home page, raw markup, a CSP-blocked inline script or a UUID link fails the build.

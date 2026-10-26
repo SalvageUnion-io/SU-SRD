@@ -1,11 +1,9 @@
 /**
- * The site's sitemap files as XML: the urlsets (`sitemap-0.xml`, the
- * reference pages', from `astro/build/sitemap.ts`; `build/sitemap.xml`, the app's
- * public pages', from `worker/publicPages.ts`) and the index that lists them.
- *
- * The shape is fixed: no newlines, no indentation, no `<lastmod>` /
- * `<changefreq>` / `<priority>`, and four namespace declarations on `<urlset>`
- * that nothing uses but crawlers accept. Pure: the Worker bundles its callers.
+ * The app's public pages' urlset, `build/sitemap.xml` (`worker/publicPages.ts`),
+ * in the shape `@astrojs/sitemap` gives the reference pages' (`sitemap-0.xml`):
+ * no newlines, no indentation, no `<lastmod>` / `<changefreq>` / `<priority>`,
+ * and four namespace declarations on `<urlset>` that nothing uses but crawlers
+ * accept. Pure: the Worker bundles its callers.
  */
 
 import { escapeMarkup } from './documentHead'
@@ -24,16 +22,5 @@ export function urlsetXml(urls: readonly string[]): string {
     ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">',
     entries,
     '</urlset>',
-  ].join('')
-}
-
-/** A sitemap index of absolute urlset URLs, in the order given. */
-export function sitemapIndexXml(locs: readonly string[]): string {
-  const entries = locs.map((loc) => `<sitemap><loc>${escapeMarkup(loc)}</loc></sitemap>`).join('')
-  return [
-    XML_DECLARATION,
-    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    entries,
-    '</sitemapindex>',
   ].join('')
 }

@@ -2,8 +2,7 @@
  * site — the build's own steps around Astro's (ADR-065).
  *
  * After the pages are written (`bun run build` regenerates the nav catalog,
- * `./genNavCatalog`, before Astro starts): the sitemaps, the app's public
- * pages, the refusals that keep a broken build from looking like a finished one,
+ * `./genNavCatalog`, before Astro starts): the app's public pages, the refusals that keep a broken build from looking like a finished one,
  * and, last, the service worker over the finished site, since its precache
  * needs the home page.
  */
@@ -17,7 +16,6 @@ import { writePublicPages } from './appPlugins'
 import { blockedInlineScripts } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
-import { NOT_IN_SITEMAP, writeSitemap } from './sitemap'
 
 /** A built page's route without its trailing slash (`/` stays `/`). */
 const routeOf = (pathname: string): string => `/${pathname.replace(/^\/+|\/+$/g, '')}`
@@ -63,12 +61,6 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
           )
         }
         await assertNoUuidLinks(distDir)
-
-        const listed = await writeSitemap({
-          routes: routes.filter((route) => !NOT_IN_SITEMAP.has(route)),
-          distDir,
-        })
-        logger.info(`sitemap-index.xml + sitemap-0.xml (${listed} url(s))`)
 
         writePublicPages(distDir, process.env.VITE_SITE_ORIGIN)
 

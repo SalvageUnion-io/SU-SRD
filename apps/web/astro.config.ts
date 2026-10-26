@@ -24,6 +24,7 @@ import { authInDev } from './astro/build/devAuth'
 import { roomsInDev } from './astro/build/devRooms'
 import { referenceStamp } from './astro/build/referenceStamp'
 import { site } from './astro/build/site'
+import { siteSitemap } from './astro/build/sitemap'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { SITE_URL } from './src/lib/constants'
 import { SITE_WORKER, WORKBOX_OPTIONS } from './src/pwa'
@@ -102,7 +103,7 @@ export default defineConfig({
   server: { port: PORT, headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT } },
   // No renderer integration: the pages render React themselves
   // (`astro/lib/reference.tsx`), and the islands are ours (ADR-065).
-  integrations: [site({ pwa: pwaApi })],
+  integrations: [siteSitemap(), site({ pwa: pwaApi })],
   devToolbar: { enabled: false },
   vite: {
     // The app reads `VITE_` variables (`src/env.d.ts`); Astro's default is `PUBLIC_` alone.
