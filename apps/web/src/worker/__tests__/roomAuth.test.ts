@@ -29,6 +29,15 @@ describe('socketToken', () => {
 
 describe('roomMember', () => {
   const env = { CONVEX_URL: 'https://convex.example' }
+  const nobody = async () => null
+
+  test('the signed-in member comes first, without asking Convex', async () => {
+    const fetchImpl = async () => {
+      throw new Error('Convex was asked')
+    }
+    const signedIn = async (_req: Request, gameId: string) => (gameId === 'g1' ? 'd-1' : null)
+    expect(await roomMember(socket('su-room'), env, 'g1', signedIn, fetchImpl)).toBe('d-1')
+  })
 
   test("a member is the token's user", async () => {
     let asked: RequestInit | undefined
@@ -36,7 +45,9 @@ describe('roomMember', () => {
       asked = init
       return convex({ _id: 'g1' })()
     }
-    expect(await roomMember(socket(`su-room, ${TOKEN}`), env, 'g1', fetchImpl)).toBe('user1')
+    expect(await roomMember(socket(`su-room, ${TOKEN}`), env, 'g1', nobody, fetchImpl)).toBe(
+      'user1'
+    )
     expect(new Headers(asked?.headers).get('authorization')).toBe(`Bearer ${TOKEN}`)
     expect(JSON.parse(String(asked?.body))).toMatchObject({
       path: 'games:get',
@@ -46,9 +57,11 @@ describe('roomMember', () => {
 
   test('anyone else, or an unreachable Convex, is nobody', async () => {
     const req = socket(`su-room, ${TOKEN}`)
-    expect(await roomMember(req, env, 'g1', convex(null))).toBeNull()
-    expect(await roomMember(req, env, 'g1', convex({ _id: 'g1' }, false))).toBeNull()
-    expect(await roomMember(req, {}, 'g1', convex({ _id: 'g1' }))).toBeNull()
-    expect(await roomMember(socket('su-room, junk'), env, 'g1', convex({ _id: 'g1' }))).toBeNull()
+    expect(await roomMember(req, env, 'g1', nobody, convex(null))).toBeNull()
+    expect(await roomMember(req, env, 'g1', nobody, convex({ _id: 'g1' }, false))).toBeNull()
+    expect(await roomMember(req, {}, 'g1', nobody, convex({ _id: 'g1' }))).toBeNull()
+    expect(
+      await roomMember(socket('su-room, junk'), env, 'g1', nobody, convex({ _id: 'g1' }))
+    ).toBeNull()
   })
 })

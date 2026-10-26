@@ -11,6 +11,7 @@ import type { GameRoomLogic } from './gameRoomLogic'
 import type { LogEntry } from './log'
 import type { TrayPatch } from './opposition'
 import type { Profile } from './roster'
+import { seedTemplate } from './template'
 
 /** Who is acting, in which Game, and when: the Worker vouches for the first, the room supplies the rest. */
 type ActContext = { room: GameRoomLogic; actor: string; gameId: string; at: number }
@@ -33,6 +34,8 @@ export type UnitSheet = { id: string; kind: EntityKind; body: Record<string, unk
 const GAME_ACTS = {
   create: (c: ActContext, a: { name: string; templateOrigin?: string; profile: Profile }) =>
     c.room.roster.create(c.actor, { ...a, gameId: c.gameId, at: c.at }),
+  createFromTemplate: (c: ActContext, a: { templateId: string; name?: string; profile: Profile }) =>
+    seedTemplate(c.room, c.actor, { ...a, gameId: c.gameId, at: c.at }),
   read: (c: ActContext) => c.room.roster.read(c.actor),
   members: (c: ActContext) => c.room.roster.members(c.actor),
   setMediator: (c: ActContext, a: { userId: string; mediator: boolean }) =>

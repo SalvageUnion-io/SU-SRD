@@ -4,6 +4,9 @@ export const ROOMS_PATH = '/__rooms'
 /** `GET`: each room kind opens and migrates, or the answer is a 503. */
 export const ROOMS_HEALTH_PATH = `${ROOMS_PATH}/health`
 
+/** `POST`: one Games call by its Convex name (`../worker/gameCalls.ts`). */
+export const ROOMS_CALL_PATH = `${ROOMS_PATH}/call`
+
 /** A Game's socket: `?seat=1` counts its member as here, else they watch. */
 export function gameSocketPath(gameId: string): string {
   return `${ROOMS_PATH}/games/${encodeURIComponent(gameId)}/socket`

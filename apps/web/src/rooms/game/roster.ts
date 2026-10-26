@@ -26,6 +26,8 @@ export type GameRead = {
   mechCount: number
   /** The primary crawler's name, or null before one exists. */
   crawlerName: string | null
+  /** The primary crawler's id, or null before one exists. */
+  primaryCrawlerId: string | null
 }
 
 /** What a profile shows on a roster, as the member's account room last sent it. */
@@ -111,6 +113,7 @@ export class GameRoster {
       pilotCount: this.store.units('pilot').length,
       mechCount: this.store.units('mech').length,
       crawlerName: primary === null ? null : unitName(primary),
+      primaryCrawlerId: primary?.id ?? null,
     }
   }
 

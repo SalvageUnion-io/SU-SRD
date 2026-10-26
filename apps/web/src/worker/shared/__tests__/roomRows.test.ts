@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { Published, PublishedSheet } from '../../../rooms/publish'
+import { gameOfInvite, gamesOf, invitePreview } from '../games'
 import { homebrewPatterns } from '../homebrew'
 import { publicPage, publicPreview } from '../publicSheets'
 import { RoomPublisher } from '../roomRows'
@@ -78,6 +79,41 @@ describe('a room’s rows in the shared database', () => {
     expect(second).toBe(first)
     await second
     expect(await publicPage(db, 'pilot', 'p1')).toMatchObject({ body: { name: 'Last' } })
+  })
+
+  test('a Game room keeps its row, members and invite, and takes them with it when wiped', async () => {
+    const db = testDb()
+    const game = publisher(db, 'game:g1', null)
+    const roster = (members: string[], invite: string | null) => ({
+      gameId: 'g1',
+      game: {
+        name: 'Tenacity',
+        mediatedBy: 'Med',
+        members: members.map((discordId, i) => ({
+          discordId,
+          mediator: false,
+          organizer: i === 0,
+        })),
+        invite,
+      },
+    })
+    game.set({ roster: roster(['d-1', 'd-2'], 'CODE1') })
+    await game.it.changed()
+    expect(await gamesOf(db, 'd-2')).toEqual([
+      { gameId: 'g1', name: 'Tenacity', mediator: false, organizer: false },
+    ])
+    expect(await invitePreview(db, 'CODE1')).toEqual({ gameName: 'Tenacity', mediatedBy: 'Med' })
+
+    game.set({ roster: roster(['d-1'], 'CODE2') })
+    await game.it.changed()
+    expect(await gamesOf(db, 'd-2')).toEqual([])
+    expect(await gameOfInvite(db, 'CODE1')).toBeNull()
+    expect(await gameOfInvite(db, 'CODE2')).toBe('g1')
+
+    game.set({ roster: { gameId: 'g1', game: null } })
+    await game.it.changed()
+    expect(await gamesOf(db, 'd-1')).toEqual([])
+    expect(await gameOfInvite(db, 'CODE2')).toBeNull()
   })
 
   test('without a shared database it writes nothing and does not fail', async () => {

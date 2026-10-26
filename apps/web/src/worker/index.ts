@@ -25,6 +25,8 @@
  *     Game's room (`./roomRoutes.ts`, who may: `./roomAuth.ts`).
  *   - `account-socket`: `/__rooms/account/socket` → the signed-in player's
  *     socket to their own account room (`./roomRoutes.ts`).
+ *   - `game-call`: `POST /__rooms/call` → one Games call by its Convex
+ *     name, as the signed-in player (`./gameCalls.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -58,7 +60,12 @@ import { appPath } from '../lib/appBase'
 import { AUTH_PREFIX } from '../lib/auth/paths'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { currentPathFor, retiredSitePage } from '../lib/redirects'
-import { accountSocketPath, gameOfSocketPath, ROOMS_HEALTH_PATH } from '../rooms/routes'
+import {
+  accountSocketPath,
+  gameOfSocketPath,
+  ROOMS_CALL_PATH,
+  ROOMS_HEALTH_PATH,
+} from '../rooms/routes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import { handleAuth } from './auth/index'
@@ -74,6 +81,7 @@ import {
   handleConvexLogStream,
   handleErrorReport,
 } from './errorReports'
+import { serveGameCall } from './gameCalls'
 import { serveHomebrew } from './homebrew'
 import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from './roomRoutes'
 
@@ -200,6 +208,7 @@ export default {
     const gameId = gameOfSocketPath(url.pathname)
     if (gameId !== null) return serveGameSocket(request, gameId, env)
     if (url.pathname === accountSocketPath()) return serveAccountSocket(request, env)
+    if (url.pathname === ROOMS_CALL_PATH) return serveGameCall(request, env)
 
     // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {

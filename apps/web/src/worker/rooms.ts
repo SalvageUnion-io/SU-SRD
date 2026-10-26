@@ -319,7 +319,7 @@ export class GameRoom extends Room implements UnitHome {
     super(ctx, env, GAME_ROOM)
     this.logic = new GameRoomLogic(this.sql, { applyOp })
     this.publisher = new RoomPublisher(sharedDb(env), `game:${ctx.id.name}`, null, () =>
-      gamePublished(this.logic.store)
+      gamePublished(this.logic.store, this.gameId)
     )
     // Every snapshot carries the crew's vitals, which read the reference data.
     void ctx.blockConcurrencyWhile(loadCrewReference)

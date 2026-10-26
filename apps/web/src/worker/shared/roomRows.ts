@@ -1,5 +1,11 @@
-import type { Published, PublishedPattern, PublishedSheet } from '../../rooms/publish'
+import type {
+  Published,
+  PublishedPattern,
+  PublishedRoster,
+  PublishedSheet,
+} from '../../rooms/publish'
 import type { SharedDb, SharedStatement } from './db'
+import { flag } from './db'
 
 /** The shared database a Worker's or room's `env` binds as `SHARED`, if it does. */
 export function sharedDb(env: unknown): SharedDb | undefined {
@@ -18,7 +24,8 @@ export function sharedDb(env: unknown): SharedDb | undefined {
  *   publishes nothing, writes nothing.
  * - **Only its own.** A room deletes the public sheets it wrote (`room`) and
  *   no longer holds, so a unit that moved keeps the row its new room wrote;
- *   a maker's Homebrew listings are their account room's alone.
+ *   a maker's Homebrew listings are their account room's alone, and a
+ *   Game's row, members and invite its Game room's.
  *
  * The rows are `apps/web/migrations`'s; the readers are this folder's.
  */
@@ -70,11 +77,13 @@ export class RoomPublisher {
   private async write(rows: Published): Promise<void> {
     const db = this.db
     if (db === undefined) return
-    const none = rows.sheets.length === 0 && rows.homebrew.length === 0
+    const none = rows.sheets.length === 0 && rows.homebrew.length === 0 && !rows.roster?.game
     if (none && this.wroteNone) return
+    const now = Date.now()
     await db.batch([
-      ...sheetStatements(db, this.room, rows.sheets, Date.now()),
+      ...sheetStatements(db, this.room, rows.sheets, now),
       ...(this.maker === null ? [] : homebrewStatements(db, this.maker, rows.homebrew)),
+      ...(rows.roster === undefined ? [] : rosterStatements(db, rows.roster, now)),
     ])
     this.wroteNone = none
   }
@@ -148,5 +157,40 @@ function homebrewStatements(
          and app_id not in (select value from json_each(?2))`
       )
       .bind(maker, held),
+  ]
+}
+
+/** A Game's row, its members and its current invite, rewritten whole; all three gone with the Game. */
+function rosterStatements(db: SharedDb, roster: PublishedRoster, now: number): SharedStatement[] {
+  const { gameId, game } = roster
+  const clear = [
+    db.prepare('delete from invites where game_id = ?1').bind(gameId),
+    db.prepare('delete from memberships where game_id = ?1').bind(gameId),
+  ]
+  if (game === null) {
+    return [...clear, db.prepare('delete from games where game_id = ?1').bind(gameId)]
+  }
+  const member = db.prepare(
+    'insert into memberships (game_id, discord_id, mediator, organizer) values (?1, ?2, ?3, ?4)'
+  )
+  return [
+    db
+      .prepare(
+        `insert into games (game_id, name, mediated_by, updated_at) values (?1, ?2, ?3, ?4)
+         on conflict (game_id) do update set
+           name = excluded.name, mediated_by = excluded.mediated_by, updated_at = excluded.updated_at`
+      )
+      .bind(gameId, game.name, game.mediatedBy, now),
+    ...clear,
+    ...game.members.map((m) =>
+      member.bind(gameId, m.discordId, flag(m.mediator), flag(m.organizer))
+    ),
+    ...(game.invite === null
+      ? []
+      : [
+          db
+            .prepare('insert into invites (code, game_id, created_at) values (?1, ?2, ?3)')
+            .bind(game.invite, gameId, now),
+        ]),
   ]
 }

@@ -47,8 +47,27 @@ export type PublishedPattern = {
   sharedAt: number | null
 }
 
-/** Everything one room publishes. */
-export type Published = { sheets: PublishedSheet[]; homebrew: PublishedPattern[] }
+/**
+ * A Game room's place in the other rooms' lists (`../worker/shared/games.ts`):
+ * its name and Mediator, who is in it, and the invite code that opens it now;
+ * `game` is null once the room is wiped, so its rows go.
+ */
+export type PublishedRoster = {
+  gameId: string
+  game: {
+    name: string
+    mediatedBy: string | null
+    members: { discordId: string; mediator: boolean; organizer: boolean }[]
+    invite: string | null
+  } | null
+}
+
+/** Everything one room publishes; a Game room its roster too. */
+export type Published = {
+  sheets: PublishedSheet[]
+  homebrew: PublishedPattern[]
+  roster?: PublishedRoster
+}
 
 /** Whose room it is, a Game (by name) or a Shelf (by its player), and each person's display name. */
 type PublishContext = {
@@ -84,14 +103,38 @@ export function shelfPublished(store: GameStore): Published {
   })
 }
 
-/** What a Game room publishes: its shared units, named by its roster; nothing once it is wiped. */
-export function gamePublished(store: GameStore): Published {
+/** What a Game room publishes: its roster and shared units, named by it; nothing once it is wiped. */
+export function gamePublished(store: GameStore, gameId: string): Published {
   const game = store.game()
-  if (game === null) return { sheets: [], homebrew: [] }
-  return published(store, {
-    place: { kind: 'game', name: game.name },
-    nameOf: (discordId) => store.member(discordId)?.displayName ?? null,
-  })
+  if (game === null) return { sheets: [], homebrew: [], roster: { gameId, game: null } }
+  const members = store.members()
+  const mediator = members.find((m) => m.mediator)
+  // An ending Game opens to nobody new, so its code is not filed.
+  const invite =
+    game.disbandingAt === null
+      ? store.rows(
+          'select code from invites where revoked_at is null order by created_at desc, rowid desc limit 1'
+        )[0]
+      : undefined
+  return {
+    ...published(store, {
+      place: { kind: 'game', name: game.name },
+      nameOf: (discordId) => store.member(discordId)?.displayName ?? null,
+    }),
+    roster: {
+      gameId,
+      game: {
+        name: game.name,
+        mediatedBy: mediator === undefined ? null : (mediator.displayName ?? 'the Mediator'),
+        members: members.map((m) => ({
+          discordId: m.userId,
+          mediator: m.mediator,
+          organizer: m.organizer,
+        })),
+        invite: invite === undefined ? null : String(invite.code),
+      },
+    },
+  }
 }
 
 /** Every shared unit's row, and, on a Shelf, every shared pattern's and Homebrew listing. */

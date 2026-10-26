@@ -48,6 +48,28 @@ const motto = (motto: string, over: object = {}) => ({
 })
 
 describe('the Game room over RPC', () => {
+  it('starts a Game from a template in one transaction, and files its roster in the shared database', async () => {
+    const room = exports.GameRoom.getByName('g-template')
+    expect(
+      await room.act(ORGANIZER, 'createFromTemplate', {
+        templateId: 'starter-set',
+        profile: profile('Org'),
+      })
+    ).toEqual({ ok: true })
+    const read = await room.act(ORGANIZER, 'read', undefined as never)
+    expect(read).toMatchObject({
+      ok: true,
+      value: { pilotCount: 6, templateOrigin: 'starter-set' },
+    })
+    await room.republish()
+    const row = await SHARED.prepare(
+      'select organizer from memberships where game_id = ?1 and discord_id = ?2'
+    )
+      .bind('g-template', ORGANIZER)
+      .first<{ organizer: number }>()
+    expect(row).toEqual({ organizer: 1 })
+  })
+
   it('runs acts with the real applyOp, and answers a refusal', async () => {
     const room = await game('g-acts')
     const op = motto('Keep moving')

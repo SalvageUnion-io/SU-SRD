@@ -1,9 +1,10 @@
 /**
  * Who may open a Game's room: the one place the Worker decides it (ADR-064
- * §5). For now the caller's Convex session token, sent as the second
- * Sec-WebSocket-Protocol entry, must answer `games:get` for the Game, and the
- * member is the token's user. The Worker's own sign-in replaces the
- * token; the Game room's members replace the Convex call.
+ * §5). The session cookie's player, by Discord id, when the Game room counts
+ * them a member (`roomMemberOf`). Until Convex goes, a caller with no such
+ * cookie may still send their Convex session token as the second
+ * Sec-WebSocket-Protocol entry: it must answer `games:get` for the Game, and
+ * the member is the token's user.
  */
 
 import { ROOM_PROTOCOL } from '../rooms/presence'
@@ -30,12 +31,23 @@ function tokenUser(token: string): string | null {
   }
 }
 
-/** The member's user id when the request's token belongs to a member of `gameId`, else null. */
+/** The member's id when the request's cookie or token belongs to a member of `gameId`, else null. */
 export async function roomMember(
   request: Request,
   env: { CONVEX_URL?: string },
   gameId: string,
+  signedIn: (request: Request, gameId: string) => Promise<string | null> = async () => null,
   fetchImpl: Fetch = fetch
+): Promise<string | null> {
+  return (await signedIn(request, gameId)) ?? convexMember(request, env, gameId, fetchImpl)
+}
+
+/** The token's user when it belongs to a member of `gameId` on Convex, else null. */
+async function convexMember(
+  request: Request,
+  env: { CONVEX_URL?: string },
+  gameId: string,
+  fetchImpl: Fetch
 ): Promise<string | null> {
   const token = socketToken(request)
   const userId = token === null ? null : tokenUser(token)

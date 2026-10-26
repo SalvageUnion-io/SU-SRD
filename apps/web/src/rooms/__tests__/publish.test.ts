@@ -1,7 +1,16 @@
 import { describe, expect, test } from 'bun:test'
 import type { AccountBundle } from 'game-domain/migration/bundle'
 import { AccountRoomLogic } from '../account/accountRoomLogic'
-import { AT, bodies, PLAYER, STRANGER, stubApplyOp, table } from '../game/__tests__/harness'
+import {
+  AT,
+  bodies,
+  MEDIATOR,
+  ORGANIZER,
+  PLAYER,
+  STRANGER,
+  stubApplyOp,
+  table,
+} from '../game/__tests__/harness'
 import type { GameStore, UnitRow } from '../game/store'
 import { migrate } from '../migrate'
 import { gamePublished, shelfPublished } from '../publish'
@@ -44,7 +53,7 @@ describe('what a Game room publishes', () => {
     put(store, 'mech', 'm1', { publicRead: true })
     put(store, 'mech', 'm2')
     mechToPilot(store, 'm1', 'p1')
-    const { sheets, homebrew } = gamePublished(store)
+    const { sheets, homebrew } = gamePublished(store, 'g1')
     expect(homebrew).toEqual([])
     expect(sheets.map((s) => [s.kind, s.appId])).toEqual([
       ['mech', 'm1'],
@@ -76,7 +85,7 @@ describe('what a Game room publishes', () => {
     })
     put(store, 'mech', 'm1', { publicRead: true })
     mechToPilot(store, 'm1', 'p1')
-    const [mech] = gamePublished(store).sheets
+    const [mech] = gamePublished(store, 'g1').sheets
     expect(mech?.page).toMatchObject({ pilotAbilities: [], links: [], linked: [] })
     expect(mech?.page).toMatchObject({ withheld: [{ kind: 'pilot' }] })
     expect(JSON.stringify(mech)).not.toContain('secret')
@@ -85,10 +94,33 @@ describe('what a Game room publishes', () => {
   test('a unit on its way out is not this room’s to publish, and a wiped room publishes nothing', () => {
     const { room, sql } = table('g1')
     put(room.store, 'pilot', 'p1', { publicRead: true, leaseId: 'lease-1' })
-    expect(gamePublished(room.store).sheets).toEqual([])
+    expect(gamePublished(room.store, 'g1').sheets).toEqual([])
     sql.exec('delete from game')
     put(room.store, 'pilot', 'p2', { publicRead: true })
-    expect(gamePublished(room.store)).toEqual({ sheets: [], homebrew: [] })
+    expect(gamePublished(room.store, 'g1')).toEqual({
+      sheets: [],
+      homebrew: [],
+      roster: { gameId: 'g1', game: null },
+    })
+  })
+
+  test('its roster: name, Mediator, members and the invite that opens it now', () => {
+    const { room, code } = table('g1')
+    expect(gamePublished(room.store, 'g1').roster).toEqual({
+      gameId: 'g1',
+      game: {
+        name: 'Tenacity',
+        mediatedBy: 'Med',
+        members: [
+          { discordId: ORGANIZER, mediator: false, organizer: true },
+          { discordId: PLAYER, mediator: false, organizer: false },
+          { discordId: MEDIATOR, mediator: true, organizer: false },
+        ],
+        invite: code,
+      },
+    })
+    const { code: next } = room.roster.resetInvite(ORGANIZER, AT + 5)
+    expect(gamePublished(room.store, 'g1').roster?.game?.invite).toBe(next)
   })
 })
 

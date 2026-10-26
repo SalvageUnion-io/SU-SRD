@@ -282,7 +282,7 @@ describe('a Game room’s presence', () => {
 })
 
 describe('serveGameSocket', () => {
-  const env = { CONVEX_URL: 'https://convex.example' }
+  const env = { CONVEX_URL: 'https://convex.example', SHARED: {} as never }
   const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '')
   const TOKEN = `${b64({ alg: 'RS256' })}.${b64({ sub: 'user1|session9' })}.sig`
   const upgrade = (seat: string) =>
