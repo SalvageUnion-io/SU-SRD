@@ -54,6 +54,7 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   sentProposals: null,
   rolls: null,
   alerts: null,
+  crew: null,
 }
 
 type RoomLink = Extract<ServerMessage, { type: 'links' }>['links'][number]

@@ -201,6 +201,33 @@ type Act<N extends GameActName> = (typeof GAME_ACTS)[N]
 export type GameActArgs<N extends GameActName> = Parameters<Act<N>>[1]
 export type GameActResult<N extends GameActName> = ReturnType<Act<N>>
 
+/** The acts that change nothing a socket carries. */
+export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
+  'read',
+  'members',
+  'invitePreview',
+  'inviteCode',
+  'units',
+  'links',
+  'ops.pending',
+  'ops.sent',
+  'seats.forGame',
+  'downtime.state',
+  'changeLog.rolls',
+  'changeLog.alerts',
+  'changeLog.forEntity',
+  'mediator.npcs',
+  'mediator.amMediator',
+  'mediator.running',
+  'unitsFor',
+  'unit',
+  'scenes.current',
+  'salvageAreas.here',
+  'ledger.get',
+  'safety.boundaries',
+  'safety.stopSign',
+])
+
 /** A refusal the player reads, apart from a defect, which the Worker logs. */
 export type GameActAnswer<T> = { ok: true; value: T } | { ok: false; refusal: string }
 

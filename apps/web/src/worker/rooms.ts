@@ -20,10 +20,11 @@ import type {
   GameActResult,
   UnitSheet,
 } from '../rooms/game/acts'
-import { runAct } from '../rooms/game/acts'
+import { GAME_READ_ACTS, runAct } from '../rooms/game/acts'
 import {
   appliedMessages,
   batchAnswer,
+  crewRecord,
   gameSnapshot,
   readClientMessage,
   refusedBatch,
@@ -49,7 +50,7 @@ import { gamePublished, shelfPublished } from '../rooms/publish'
 import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
-import { unitVitals } from '../rooms/vitals'
+import { loadCrewReference, unitVitals } from '../rooms/vitals'
 import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
 import type { StopSignEnv } from './shared/stopSign'
@@ -320,6 +321,8 @@ export class GameRoom extends Room implements UnitHome {
     this.publisher = new RoomPublisher(sharedDb(env), `game:${ctx.id.name}`, null, () =>
       gamePublished(this.logic.store)
     )
+    // Every snapshot carries the crew's vitals, which read the reference data.
+    void ctx.blockConcurrencyWhile(loadCrewReference)
   }
 
   private get gameId(): string {
@@ -345,7 +348,7 @@ export class GameRoom extends Room implements UnitHome {
     if (name === 'safety.showStop' && answer.ok && answer.value === true) {
       this.ctx.waitUntil(this.postStop())
     }
-    if (answer.ok && !READ_ACTS.has(name)) {
+    if (answer.ok && !GAME_READ_ACTS.has(name)) {
       const result = answer.value as GameActResult<'submit'>
       if (name !== 'submit') this.broadcastSnapshots()
       else if (result.ok) {
@@ -353,7 +356,10 @@ export class GameRoom extends Room implements UnitHome {
         this.broadcast(appliedMessages(this.logic.store, ids, this.gameId))
         // A Downtime step is read back off its op (`downtime` record's `doneSteps`).
         if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
-        else this.published()
+        else {
+          this.broadcast([{ type: 'record', table: 'crew', record: crewRecord(this.logic) }])
+          this.published()
+        }
       }
     }
     return answer
@@ -526,33 +532,6 @@ export class GameRoom extends Room implements UnitHome {
     for (const ws of open) sendQuietly(ws, text)
   }
 }
-
-/** The acts that change nothing a socket carries. */
-const READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
-  'read',
-  'members',
-  'invitePreview',
-  'inviteCode',
-  'units',
-  'links',
-  'ops.pending',
-  'ops.sent',
-  'seats.forGame',
-  'downtime.state',
-  'changeLog.rolls',
-  'changeLog.alerts',
-  'changeLog.forEntity',
-  'mediator.npcs',
-  'mediator.amMediator',
-  'mediator.running',
-  'unitsFor',
-  'unit',
-  'scenes.current',
-  'salvageAreas.here',
-  'ledger.get',
-  'safety.boundaries',
-  'safety.stopSign',
-])
 
 /** The room namespaces, as `wrangler.jsonc` declares them. */
 export function rooms() {

@@ -1,5 +1,6 @@
 import type { ClientMessage, RoomOp, RoomUnit, ServerMessage } from '../protocol'
 import { ClientMessageSchema } from '../protocol'
+import { crewVitals } from '../vitals'
 import type { GameRoomLogic } from './gameRoomLogic'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { SubmitResult } from './units'
@@ -52,7 +53,7 @@ function tableRecords(room: GameRoomLogic, actor: string) {
 /**
  * The table in play, as each member reads it: the roster, every pilot's
  * seat, the Downtime, the proposals waiting on them (and, for a Mediator,
- * every one sent) and the newest rolls and alerts.
+ * every one sent), the newest rolls and alerts, and the crew's vitals.
  */
 function playRecords(room: GameRoomLogic, actor: string) {
   const by = <T extends object>(rows: T[], appId: (row: T) => string, at: (row: T) => number) =>
@@ -93,7 +94,17 @@ function playRecords(room: GameRoomLogic, actor: string) {
       (a) => a._id,
       (a) => a.ts
     ),
+    crew: [crewRecord(room)],
   }
+}
+
+/**
+ * Every crewmate's vitals, the same for every member: after an op it is sent
+ * on its own, since an op changes no other record. The reference data the
+ * derivation reads is the room's to load first (`loadCrewReference`).
+ */
+export function crewRecord(room: GameRoomLogic) {
+  return { appId: 'crew', body: { ...crewVitals(room.store) }, updatedAt: 0 }
 }
 
 /**

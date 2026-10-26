@@ -1,7 +1,8 @@
 /**
  * What a table plays under, read and written the same way whichever server
  * holds it: the Scene, the salvage area, the ledger, the boundaries and the
- * Stop Sign (4.3), and the Mediator's Opposition tray and running encounter.
+ * Stop Sign (4.3), the Mediator's Opposition tray and running encounter, and
+ * the table in play: the seats, the Downtime, the proposals and the feed.
  *
  * `useTableRead` stands in for Convex's `useQuery`, and `useTableAct` for its
  * `useMutation`, on those functions. A Game room serves each query's answer as
@@ -23,26 +24,88 @@ import { WritesBlockedOffline } from './sync'
 import type { StateTable } from './tableState'
 import { readTableState, subscribeTableState } from './tableState'
 
-/** The record table that answers each query a screen reads. */
-const ANSWERED_BY: Record<string, StateTable> = {
-  'scenes:current': 'scene',
-  'salvageAreas:here': 'salvageArea',
-  'ledger:get': 'ledger',
-  'safety:boundaries': 'boundaries',
-  'safety:stopSign': 'safety',
-  'mediator:npcs': 'opposition',
-  'mediator:running': 'mediator',
-  'mediator:amMediator': 'mediator',
+/** A query's args, as a screen passes them. */
+type Args = { gameId?: string | null; pilotId?: string; limit?: number }
+
+/**
+ * How a room answers a query a screen reads: the record table that holds it
+ * (by the query's args, where they choose), and what of that record the query
+ * answered, when not all of it. An answer keeps undefined (not yet served) as
+ * it is.
+ */
+type Answer = {
+  table: StateTable | ((args: Args) => StateTable)
+  answer?: (held: unknown, args: Args) => unknown
+}
+
+/** The newest `limit` of a feed, as Convex's `take(limit)` read it. */
+function newest(fallback: number) {
+  return (held: unknown, args: Args) => (held as unknown[]).slice(0, args.limit ?? fallback)
+}
+
+/** A solo pilot's seat, as `seats.solo` answered: null for one not on the Shelf. */
+function soloSeat(held: unknown, args: Args): SoloSeat | null {
+  return (held as SoloSeat[]).find((seat) => seat.pilotId === args.pilotId) ?? null
+}
+type SoloSeat = {
+  pilotId: string
+  downtime: {
+    stepIndex: number
+    startedAt: number
+    upkeepSpent: boolean
+    doneSteps: number[]
+  } | null
+}
+
+const NOT_RUNNING = {
+  running: false,
+  stepIndex: null,
+  startedAt: null,
+  completedBy: [],
+  upkeepSpent: false,
+  doneSteps: [],
 }
 
 /**
- * The queries a table's record answers only in part: the one `mediator`
- * record is the running encounter, and having it at all is mediating.
- * Each keeps undefined (not yet served) as it is.
+ * `downtime.state`: a Game's, with the steps `pilotId` took; or a solo
+ * pilot's, off its seat (null for one not on the Shelf).
  */
-const ANSWER_OF: Record<string, (held: unknown) => unknown> = {
-  'mediator:running': (held) => (held as { running?: unknown } | null)?.running ?? null,
-  'mediator:amMediator': (held) => held !== null,
+function downtimeState(held: unknown, args: Args): unknown {
+  if (args.gameId != null) {
+    const game = held as { doneSteps: Record<string, number[]> } | null
+    if (game === null) return null
+    return { ...game, doneSteps: game.doneSteps[args.pilotId ?? ''] ?? [] }
+  }
+  const seat = soloSeat(held, args)
+  if (seat === null) return null
+  return seat.downtime === null ? NOT_RUNNING : { ...seat.downtime, running: true, completedBy: [] }
+}
+
+/** Each query a screen reads, by its Convex name. */
+const ANSWERED_BY: Record<string, Answer> = {
+  'scenes:current': { table: 'scene' },
+  'salvageAreas:here': { table: 'salvageArea' },
+  'ledger:get': { table: 'ledger' },
+  'safety:boundaries': { table: 'boundaries' },
+  'safety:stopSign': { table: 'safety' },
+  // The one `mediator` record is the running encounter, and having it at all is mediating.
+  'mediator:npcs': { table: 'opposition' },
+  'mediator:running': {
+    table: 'mediator',
+    answer: (held) => (held as { running?: unknown } | null)?.running ?? null,
+  },
+  'mediator:amMediator': { table: 'mediator', answer: (held) => held !== null },
+  'seats:forGame': { table: 'seats' },
+  'seats:solo': { table: 'seats', answer: soloSeat },
+  'downtime:state': {
+    table: (args) => (args.gameId == null ? 'seats' : 'downtime'),
+    answer: downtimeState,
+  },
+  'ops:pending': { table: 'proposals' },
+  'ops:sent': { table: 'sentProposals', answer: newest(20) },
+  'changeLog:rolls': { table: 'rolls', answer: newest(30) },
+  'changeLog:alerts': { table: 'alerts', answer: newest(20) },
+  'crew:vitals': { table: 'crew' },
 }
 
 type Query = FunctionReference<'query'>
@@ -61,18 +124,27 @@ function scopeOf(gameId: string | null): Scope {
   return gameId === null ? 'account' : gameScope(gameId)
 }
 
+/** Each answer made from a held record, per args: stable between changes, for `useSyncExternalStore`. */
+const made = new WeakMap<object, Map<string, unknown>>()
+
+function answered(how: Answer, held: unknown, args: Args): unknown {
+  if (held === undefined || how.answer === undefined) return held
+  if (held === null || typeof held !== 'object') return how.answer(held, args)
+  const key = JSON.stringify(args)
+  const answers = made.get(held) ?? new Map<string, unknown>()
+  made.set(held, answers)
+  if (!answers.has(key)) answers.set(key, how.answer(held, args))
+  return answers.get(key)
+}
+
 const useRoomRead: Read = (query, args) => {
-  const name = getFunctionName(query)
-  const table = ANSWERED_BY[name]
-  const answer = ANSWER_OF[name]
-  const scope =
-    args === 'skip' || table === undefined
-      ? null
-      : scopeOf((args as { gameId?: string | null }).gameId ?? null)
+  const how = ANSWERED_BY[getFunctionName(query)]
+  const given = args === 'skip' || how === undefined ? null : (args as Args)
   return useSyncExternalStore(subscribeTableState, () => {
-    if (scope === null || table === undefined) return undefined
-    const held = readTableState(scope, table)
-    return held === undefined || answer === undefined ? held : answer(held)
+    if (given === null || how === undefined) return undefined
+    const table = typeof how.table === 'string' ? how.table : how.table(given)
+    const held = readTableState(scopeOf(given.gameId ?? null), table)
+    return answered(how, held, given)
   }) as never
 }
 

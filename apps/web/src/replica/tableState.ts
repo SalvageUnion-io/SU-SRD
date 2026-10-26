@@ -2,7 +2,7 @@
  * What a table plays under, as its room serves it (`rooms/protocol.ts`): the
  * Scene, the area being salvaged, the ledger, the boundaries and the Stop
  * Sign; the table in play: the roster, the seats, the Downtime, the
- * proposals and the rolls and alerts; and, for its Mediator only, the
+ * proposals, the rolls and alerts and the crew's vitals; and, for its Mediator only, the
  * Opposition tray and the encounter being run. Each record is per reader (who showed the Stop Sign never leaves the
  * room) and only means anything live, so it is held in memory per room scope
  * rather than in the replica's tables: a reload starts from the room's next
@@ -30,6 +30,7 @@ const STATE_TABLES = [
   'sentProposals',
   'rolls',
   'alerts',
+  'crew',
 ] as const
 export type StateTable = (typeof STATE_TABLES)[number]
 
@@ -41,6 +42,7 @@ const ONE_ROW: ReadonlySet<StateTable> = new Set([
   'safety',
   'downtime',
   'mediator',
+  'crew',
 ])
 
 type Body = Record<string, unknown>

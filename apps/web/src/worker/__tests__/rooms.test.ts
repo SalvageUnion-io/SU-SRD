@@ -188,16 +188,29 @@ describe('a Game room’s socket', () => {
     expect(player.sent).toHaveLength(1)
   })
 
-  test('an ops batch is acked to its sender and heard by all as applied', () => {
+  test('an ops batch is acked to its sender and heard by all as applied, with the crew’s vitals', () => {
     const { room, org, player } = seated()
     room.webSocketMessage(player as never, batch('op-1'))
-    expect(received(player).map((m) => m.type)).toEqual(['applied', 'ack'])
+    expect(received(player).map((m) => m.type)).toEqual(['applied', 'record', 'ack'])
     expect(received(org)).toEqual([
       expect.objectContaining({
         type: 'applied',
         unit: expect.objectContaining({ appId: 'p1', headSeq: 1 }),
       }),
+      expect.objectContaining({
+        type: 'record',
+        table: 'crew',
+        record: expect.objectContaining({
+          body: expect.objectContaining({ pilots: [expect.objectContaining({ _id: 'p1' })] }),
+        }),
+      }),
     ])
+  })
+
+  test('a Downtime step’s op sends the Game again, so its step reads as taken', () => {
+    const { room, org, player } = seated()
+    room.webSocketMessage(player as never, batch('downtime:run:p1:0'))
+    expect(received(org).map((m) => m.type)).toEqual(['applied', 'snapshot'])
   })
 
   test('a batch the room refuses, or a message it cannot read, is declined', () => {

@@ -93,6 +93,17 @@ describe('what a Game room tells a socket', () => {
         sentProposals: [],
         rolls: [],
         alerts: [{ body: { message: 'Incoming', actorId: MEDIATOR } }],
+        crew: [
+          {
+            appId: 'crew',
+            body: {
+              pilots: [
+                { _id: 'p1', ownerId: PLAYER, ownerName: 'Player', boarded: true, mechId: 'm1' },
+              ],
+              mechs: [{ _id: 'm1', ownerId: PLAYER }],
+            },
+          },
+        ],
       },
     })
     expect(gameSnapshot(room, MEDIATOR, 'g1')).toMatchObject({
