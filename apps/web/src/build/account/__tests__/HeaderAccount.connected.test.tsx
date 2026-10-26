@@ -19,6 +19,11 @@ import type { ReactNode } from 'react'
 
 import type { QueryAnswers } from '../../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 
 let authed = true
 const signIn = mock((_route?: string) => undefined)
@@ -32,6 +37,7 @@ const convexMocks = await installConvexMocks({
   convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
     '../../lib/auth/session': () => ({ signIn, signOut }),
+    '../../lib/account/accountApi': accountApiStub,
   },
 })
 
@@ -44,7 +50,13 @@ const { resetSync } = await import('../../../replica/sync')
 const ME = { _id: 'u1', displayName: 'Beefcake', avatarUrl: null, email: null }
 const GAMES = [{ _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true }]
 
-const QUERIES: QueryAnswers = { 'account:me': ME, 'games:listMine': GAMES }
+const QUERIES: QueryAnswers = { 'games:listMine': GAMES }
+
+/** The Games list from the server, and the player from the account route. */
+function serve(queries: QueryAnswers): void {
+  setQueryAnswers(queries)
+  accountAnswers.me = ME
+}
 
 /** Force the browser's online flag, which is what picks Connected vs Disconnected. */
 function setOnline(value: boolean): void {
@@ -69,13 +81,14 @@ afterEach(() => {
   convexMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
   resetSync()
+  resetAccountApi()
 })
 
 afterAll(convexMocks.restore)
 
 describe('signed in and connected', () => {
   test('the trigger is a menu button showing the display name and avatar initials', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const trigger = screen.getByRole('button', { name: 'Account menu for Beefcake' })
@@ -87,7 +100,7 @@ describe('signed in and connected', () => {
   })
 
   test('its menu holds Settings and Sign out, then About, Changelog and Suggest or report', async () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
@@ -99,7 +112,7 @@ describe('signed in and connected', () => {
   })
 
   test('Settings goes to /settings', async () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
@@ -111,7 +124,7 @@ describe('signed in and connected', () => {
   })
 
   test('Sign out signs out', async () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
@@ -122,7 +135,7 @@ describe('signed in and connected', () => {
   })
 
   test('the Games menu is a nav control, not part of the account slot', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     expect(screen.getByRole('button', { name: 'Account menu for Beefcake' })).toBeTruthy()
@@ -133,14 +146,14 @@ describe('signed in and connected', () => {
   })
 
   test('the nav Games control is a menu button', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderGames />)
 
     expect(screen.getByRole('button', { name: 'Games' }).getAttribute('aria-haspopup')).toBe('menu')
   })
 
   test('mobile: the header row shows the avatar alone, still naming the account', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderMobileActions />)
 
     const trigger = screen.getByRole('button', { name: 'Account menu for Beefcake' })
@@ -148,7 +161,7 @@ describe('signed in and connected', () => {
   })
 
   test('mobile: in Play the drawer lists the Games rather than offering sign-in', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderDrawerAccount close={() => {}} pathname="/play/" />)
 
     expect(screen.getByRole('navigation', { name: 'Games' })).toBeTruthy()
@@ -156,13 +169,13 @@ describe('signed in and connected', () => {
   })
 
   test('mobile: in Build the drawer has no Games, which left Build', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     const { container } = wrap(<HeaderDrawerAccount close={() => {}} pathname="/" />)
     expect(container.innerHTML).toBe('')
   })
 
   test('the nav Games control is current on the hub and a Game’s routes, nowhere else', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     const current = (pathname: string) => {
       const { unmount } = wrap(<HeaderGames pathname={pathname} />)
       const here = screen.getByRole('button', { name: 'Games' }).getAttribute('aria-current')
@@ -175,7 +188,8 @@ describe('signed in and connected', () => {
   })
 
   test('before the profile arrives it reads "Account" rather than guessing a name', () => {
-    setQueryAnswers({ ...QUERIES, 'account:me': undefined })
+    serve(QUERIES)
+    delete accountAnswers.me
     wrap(<HeaderActions />)
 
     const trigger = screen.getByRole('button', { name: 'Account menu' })
@@ -186,7 +200,7 @@ describe('signed in and connected', () => {
 describe('signed in but offline', () => {
   test('keeps the identity and a working Sign out, with no Games menu', async () => {
     setOnline(false)
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(
       <>
         <HeaderGames />
@@ -204,7 +218,7 @@ describe('signed in but offline', () => {
 
   test('the drawer has nothing to add', () => {
     setOnline(false)
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     const { container } = wrap(<HeaderDrawerAccount close={() => {}} />)
     expect(container.innerHTML).toBe('')
   })

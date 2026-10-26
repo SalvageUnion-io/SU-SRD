@@ -169,9 +169,22 @@ type Room = {
 const open = new Map<string, Room>()
 const ACCOUNT = ''
 
+/** A unit test's stand-in for each room it has not opened (`test/roomsStub.ts`); none in the app. */
+let standIn: ((gameId: string | null) => Room | null) | null = null
+
+/** Answer `roomOf` for every room not open with `rooms`: a unit test's seam, so its writes land. */
+export function standInRooms(rooms: ((gameId: string | null) => Room | null) | null): void {
+  standIn = rooms
+}
+
 /** The room a unit in `gameId` (null: on the Shelf) is written through, while its socket is open. */
 export function roomOf(gameId: string | null): Room | null {
   return open.get(gameId ?? ACCOUNT) ?? null
+}
+
+/** `roomOf`, or in a unit test the stand-in for a room it has not opened. */
+export function roomOrStandIn(gameId: string | null): Room | null {
+  return roomOf(gameId) ?? standIn?.(gameId) ?? null
 }
 
 /** A batch or act the room declined: its reason is the refusal the player is shown. */

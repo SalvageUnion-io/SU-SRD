@@ -6,6 +6,7 @@ preload = [
   "./test/testing-library.ts",
   "../../packages/salvageunion-reference/tools/testPreload.ts",
   "./test/convexClientStub.ts",
+  "./test/roomsStub.ts",
   "./test/cloudflareWorkers.ts",
 ]
 

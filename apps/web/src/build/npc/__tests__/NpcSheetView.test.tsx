@@ -13,6 +13,11 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
+import {
+  accountAnswers,
+  accountApiStub,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
@@ -20,6 +25,7 @@ import type { SyncState } from '../../../replica/syncContext'
 const convexMocks = await installConvexMocks({
   router: true,
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 afterAll(() => convexMocks.restore())
 
@@ -98,6 +104,8 @@ beforeEach(async () => {
     'account:me': { displayName: 'alxjrvs' },
     'entities:locate': { id: 'n-mine', gameId: null, mayEdit: true },
   })
+  resetAccountApi()
+  accountAnswers.me = { displayName: 'alxjrvs' }
 })
 
 describe('yours', () => {

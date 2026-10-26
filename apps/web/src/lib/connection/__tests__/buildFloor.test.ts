@@ -4,8 +4,17 @@
  * recorded `schedule` instead of timers — so the backoff and the no-reload-loop
  * property are asserted without sleeping.
  */
-import { describe, expect, it } from 'bun:test'
-import { FIRST_PROBE_MS, isOutdated, MAX_PROBE_MS, reloadOnceServed } from '../buildFloor'
+import { afterEach, describe, expect, it } from 'bun:test'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { ACCOUNT_PATHS } from '../../../rooms/routes'
+import {
+  FIRST_PROBE_MS,
+  isOutdated,
+  MAX_PROBE_MS,
+  reloadOnceServed,
+  useBuildFloor,
+} from '../buildFloor'
+import { BUILD_FLOOR } from '../buildFloorStamp'
 
 describe('isOutdated', () => {
   it('is true only when the floor is newer than the bundle', () => {
@@ -95,5 +104,42 @@ describe('reloadOnceServed', () => {
     await h.step()
     await h.step()
     expect(h.reloads).toBe(0)
+  })
+})
+
+describe('useBuildFloor', () => {
+  const realFetch = globalThis.fetch
+  afterEach(() => {
+    globalThis.fetch = realFetch
+  })
+
+  /** The Worker answers `floor` for the floor route, and nothing else. */
+  function serveFloor(floor: () => unknown): string[] {
+    const asked: string[] = []
+    globalThis.fetch = (async (path: string) => {
+      asked.push(path)
+      if (path !== ACCOUNT_PATHS.floor) return new Response(null, { status: 404 })
+      return new Response(JSON.stringify(floor()))
+    }) as typeof fetch
+    return asked
+  }
+
+  it('asks the Worker on mount and on focus; its own floor is not outdated', async () => {
+    const asked = serveFloor(() => BUILD_FLOOR)
+    const { result, unmount } = renderHook(() => useBuildFloor())
+    await waitFor(() => expect(asked).toEqual([ACCOUNT_PATHS.floor]))
+    expect(result.current).toBe(false)
+    await act(async () => {
+      window.dispatchEvent(new Event('focus'))
+    })
+    expect(asked).toEqual([ACCOUNT_PATHS.floor, ACCOUNT_PATHS.floor])
+    unmount()
+  })
+
+  it('a floor above this bundle’s stamp is outdated', async () => {
+    serveFloor(() => BUILD_FLOOR + 1)
+    const { result, unmount } = renderHook(() => useBuildFloor())
+    await waitFor(() => expect(result.current).toBe(true))
+    unmount()
   })
 })

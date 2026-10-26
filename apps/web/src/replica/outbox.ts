@@ -26,22 +26,23 @@ import { keepOutbox, readOutbox } from './persist'
 import { row } from './replica'
 import { roomCall } from './roomCalls'
 import { noteRoomChange } from './roomChanges'
-import { ROOM_FEED, RoomDeclined, roomOf } from './roomSocket'
+import { ROOM_FEED, RoomDeclined, roomOf, roomOrStandIn } from './roomSocket'
 import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
 /** What the server answered for a unit it wrote: its new version and `headSeq`. */
 export type Applied = { version: number; headSeq: number }
 
 /**
- * Create or delete one entity on the server of record, and **fail if it does
- * not land**. A change to one is an op (`sendOp`).
+ * Create or delete one entity in the room it lives in, and **fail if it does
+ * not land**: its Game's room, or the player's account room for the Shelf.
+ * A change to one is an op (`sendOp`).
  *
- * Convex is the server of record (ADR-034), and the replica cannot legitimately
- * be ahead of it: a write the server refused **did not happen**, so the store
+ * The room is the server of record, and the replica cannot legitimately be
+ * ahead of it: a write the room refused **did not happen**, so the store
  * awaits this before touching its rows and lets the refusal throw.
  *
- * Returns immediately unless the backend is `remote`; the store has already
- * refused any other write (`requireWritable`).
+ * Returns immediately off `live`; the store has already refused any other
+ * write (`requireWritable`).
  */
 export async function sendRow(
   type: EntityRef['type'] | 'softLink',
@@ -50,53 +51,25 @@ export async function sendRow(
     | { kind: 'delete'; appId: string; gameId: string | null }
 ): Promise<Applied | undefined> {
   if (!writable()) return
-
-  if (type === 'softLink') {
-    // Links are addressed by their endpoints rather than by an id, so they take
-    // a different call shape — see `sendLink`.
-    return
-  }
-
-  // Fed by the rooms, the unit's room makes it or deletes it; its next
-  // snapshot carries the change, as an op's `applied` does.
-  const room = roomOf(op.gameId)
-  if (room !== null) {
-    if (op.kind === 'delete') await room.act('removeUnit', { unitId: op.appId })
-    else await room.act('createUnit', { id: op.appId, kind: type, body: op.body })
-    return
-  }
-
-  if (type === 'crawler') {
-    if (op.kind === 'delete') {
-      await convexClient.mutation(api.entities.removeCrawlerByAppId, { appId: op.appId })
-      return
-    }
-    await convexClient.mutation(api.entities.createCrawler, {
-      gameId: op.gameId as Id<'games'> | null,
-      appId: op.appId,
-      body: op.body,
-    })
-    return
-  }
-
-  const table = TABLE_OF_KIND[type]
+  // Links are addressed by their endpoints rather than by an id, so they take
+  // a different call shape — see `sendLink`.
+  if (type === 'softLink') return
+  const room = roomFor(op.gameId)
   if (op.kind === 'delete') {
-    await convexClient.mutation(api.entities.removeByAppId, {
-      table,
-      appId: op.appId,
-      gameId: op.gameId === null ? null : (op.gameId as Id<'games'>),
-    })
+    await room.act('removeUnit', { unitId: op.appId })
     return
   }
-  // A create: no version of the row is held yet.
-  const { updatedAt } = await convexClient.mutation(api.entities.upsertByAppId, {
-    table,
-    appId: op.appId,
-    gameId: op.gameId === null ? null : (op.gameId as Id<'games'>),
-    body: op.body,
-    expectedUpdatedAt: null,
-  })
-  return { version: updatedAt, headSeq: 0 }
+  await room.act('createUnit', { id: op.appId, kind: type, body: op.body })
+  // A room makes a unit at seq 0, so the next op can be made against it
+  // before the snapshot arrives.
+  return { version: 0, headSeq: 0 }
+}
+
+/** The open room a unit in `gameId` is written through; none open, the write fails as offline. */
+function roomFor(gameId: string | null) {
+  const room = roomOrStandIn(gameId)
+  if (room === null) throw new WritesBlockedOffline()
+  return room
 }
 
 /** A unit kind: what an op changes. */
@@ -400,8 +373,8 @@ export async function sendEncounter(
 /**
  * Write one soft link, and fail if it does not land.
  *
- * Addressed by its endpoints because the server has no `appId` column for links
- * and needs none — `from.id`/`to.id` already are app ids. That also makes it
+ * Addressed by its endpoints because a room keys a link by its type, ends and
+ * slot, and needs no id — `from.id`/`to.id` already are app ids. That also makes it
  * naturally idempotent, so a repeated write is a no-op rather than a duplicate
  * wire.
  */
@@ -418,18 +391,10 @@ export async function sendLink(kind: 'upsert' | 'delete', link: SoftLink | null)
     type: link.type,
     ...(link.slot === undefined ? {} : { slot: link.slot }),
   }
-  // Fed by the rooms, the room holding its from end wires it (a link never
-  // crosses containers); a unit with no copy here is on the Shelf.
-  const room = roomOf(gameOfUnit(link.from))
-  if (room !== null) {
-    await room.act(kind === 'upsert' ? 'drawLink' : 'removeLink', { link: args })
-    return
-  }
-  if (kind === 'upsert') {
-    await convexClient.mutation(api.entities.upsertSoftLink, args)
-  } else {
-    await convexClient.mutation(api.entities.removeSoftLink, args)
-  }
+  // The room holding its from end wires it (a link never crosses
+  // containers); a unit with no copy here is on the Shelf.
+  const room = roomFor(gameOfUnit(link.from))
+  await room.act(kind === 'upsert' ? 'drawLink' : 'removeLink', { link: args })
 }
 
 /** The Game a unit is in, as the replica holds it; null on the Shelf, or not held here. */

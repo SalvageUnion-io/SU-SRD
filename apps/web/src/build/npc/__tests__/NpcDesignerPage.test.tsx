@@ -9,16 +9,20 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import {
-  installConvexMocks,
-  queryCalls,
-  setQueryAnswers,
-} from '../../../components/__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountReads,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
+const convexMocks = await installConvexMocks({
+  also: { '../../lib/account/accountApi': accountApiStub },
+})
 afterAll(() => convexMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -73,7 +77,9 @@ beforeEach(() => {
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  setQueryAnswers({ 'account:me': { displayName: 'alxjrvs' }, 'games:listMine': [] })
+  resetAccountApi()
+  setQueryAnswers({ 'games:listMine': [] })
+  accountAnswers.me = { displayName: 'alxjrvs' }
 })
 
 describe('Any NPC', () => {
@@ -96,7 +102,7 @@ describe('Any NPC', () => {
   test('signed out, nobody is asked who you are', async () => {
     setQueryAnswers({ 'games:listMine': [] })
     await renderPage({}, 'signedOut')
-    expect(queryCalls().some((c) => c.name === 'account:me')).toBe(false)
+    expect(accountReads.me).toBe(0)
     expect(screen.getAllByText('Made by you').length).toBeGreaterThan(0)
   })
 })

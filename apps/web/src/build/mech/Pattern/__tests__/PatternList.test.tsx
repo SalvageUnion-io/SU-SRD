@@ -7,12 +7,18 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import {
+  accountAnswers,
+  accountApiStub,
+  resetAccountApi,
+} from '../../../../lib/account/__tests__/accountApiStub'
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../../replica/syncContext'
 
 const convexMocks = await installConvexMocks({
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
   router: true,
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 afterAll(() => convexMocks.restore())
 
@@ -29,6 +35,7 @@ const CONNECTED: SyncState = {
 }
 
 beforeEach(() => {
+  resetAccountApi()
   usePatterns.setState({
     mechPatterns: [
       {
@@ -48,7 +55,8 @@ beforeEach(() => {
 
 describe('PatternList', () => {
   test('a pattern row is a dashed, Homebrew, credited reference card', () => {
-    setQueryAnswers({ 'account:me': { displayName: 'alxjrvs' } })
+    setQueryAnswers({})
+    accountAnswers.me = { displayName: 'alxjrvs' }
     const { container } = render(
       <SyncContext.Provider value={CONNECTED}>
         <PatternList onInstantiated={() => undefined} />

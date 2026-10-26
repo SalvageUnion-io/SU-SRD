@@ -1,32 +1,27 @@
 /**
- * The account's reads and writes, wherever this build keeps them: Convex's
- * `account.*`, `feedback.submit` and `metrics.*`, or, where the build turns
- * the rooms on (`VITE_ROOM_FEED`), the Worker's routes (`ACCOUNT_PATHS`,
- * `worker/accountRoutes.ts`). Each hook is picked once, when the module
- * loads, so a component calls the same hooks on every render.
+ * The account's reads and writes, on the Worker's routes (`ACCOUNT_PATHS`,
+ * `worker/accountRoutes.ts`): who is signed in, their profile and export,
+ * their feedback, an admin's metrics, and the build floor.
  *
- * A Worker read is fetched once per signed-in player and shared by every
- * component that asks; a write fetches again what it changed.
+ * A read is fetched once per signed-in player and shared by every component
+ * that asks; a write fetches again what it changed.
  */
 
-import { useMutation, useQuery } from 'convex/react'
-import type { FunctionArgs, FunctionReturnType } from 'convex/server'
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
-import { api } from '../../../convex/_generated/api'
-import { ROOM_FEED, RoomDeclined } from '../../replica/roomSocket'
+import { RoomDeclined } from '../../replica/roomSocket'
 import { ACCOUNT_PATHS } from '../../rooms/routes'
 import type { AccountExport, Me } from '../../worker/accountRoutes'
+import type { MetricsRead } from '../../worker/shared/signals'
 import { useMyPerson } from '../auth/session'
 
-type ConvexMe = FunctionReturnType<typeof api.account.me>
-type ConvexExport = FunctionReturnType<typeof api.account.exportMine>
-type ProfilePatch = FunctionArgs<typeof api.account.updateProfile>
-type FeedbackNote = FunctionArgs<typeof api.feedback.submit>
+/** Who is signed in, or null for nobody. */
+export type MeAnswer = Me | null
+/** The name and avatar overrides; a blank one clears it, one left out is kept. */
+type ProfilePatch = { displayName?: string | null; avatarUrl?: string | null }
+/** One "Suggest or report" note; `page` is the app path it was sent from. */
+type FeedbackNote = { kind: 'suggestion' | 'report'; text: string; page?: string }
 /** The admin metrics, or null for anyone else. */
-export type AdminMetrics = FunctionReturnType<typeof api.metrics.forAdmin>
-
-/** Who is signed in: `_id` is the Convex users id either way. */
-export type MeAnswer = (NonNullable<ConvexMe> & Partial<Pick<Me, 'discordId'>>) | null
+export type AdminMetrics = MetricsRead | null
 
 /** One Worker route's answer as JSON; a refusal throws a `RoomDeclined` with its words. */
 async function ask<T>(path: string, init?: { body: unknown }): Promise<T> {
@@ -73,7 +68,7 @@ function load(key: string, path: string): void {
         entry.value = value
         entry.loaded = true
       },
-      // Unreachable: the read stays loading, as a Convex query does offline.
+      // Unreachable: the read stays loading until it is asked again.
       () => undefined
     )
     .finally(() => {
@@ -113,49 +108,44 @@ function useWorkerRead<T>(path: string, enabled: boolean): T | undefined {
 
 // ── The hooks ─────────────────────────────────────────────────────────────
 
-/** Who is signed in (`account.me`); skipped while `enabled` is false. */
-export const useMe: (enabled?: boolean) => MeAnswer | undefined = ROOM_FEED
-  ? (enabled = true) => useWorkerRead<Me | null>(ACCOUNT_PATHS.me, enabled) as MeAnswer | undefined
-  : (enabled = true) => useQuery(api.account.me, enabled ? {} : 'skip')
+/** Who is signed in; skipped while `enabled` is false. */
+export function useMe(enabled = true): MeAnswer | undefined {
+  return useWorkerRead<MeAnswer>(ACCOUNT_PATHS.me, enabled)
+}
 
-/** Set the display name or avatar override (`account.updateProfile`). */
-export const useUpdateProfile: () => (patch: ProfilePatch) => Promise<unknown> = ROOM_FEED
-  ? () =>
-      useCallback(async (patch: ProfilePatch) => {
-        await ask(ACCOUNT_PATHS.profile, { body: patch })
-        reload(ACCOUNT_PATHS.me)
-      }, [])
-  : () => useMutation(api.account.updateProfile)
+/** Set the display name or avatar override. */
+export function useUpdateProfile(): (patch: ProfilePatch) => Promise<void> {
+  return useCallback(async (patch: ProfilePatch) => {
+    await ask(ACCOUNT_PATHS.profile, { body: patch })
+    reload(ACCOUNT_PATHS.me)
+  }, [])
+}
 
-/** Everything the player owns, for download (`account.exportMine`). */
-export const useAccountExport: () => ConvexExport | AccountExport | undefined = ROOM_FEED
-  ? () => useWorkerRead<AccountExport>(ACCOUNT_PATHS.export, true)
-  : () => useQuery(api.account.exportMine, {})
+/** Everything the player owns, for download. */
+export function useAccountExport(): AccountExport | undefined {
+  return useWorkerRead<AccountExport>(ACCOUNT_PATHS.export, true)
+}
 
-/** "Suggest or report" (`feedback.submit`). */
-export const useSubmitFeedback: () => (note: FeedbackNote) => Promise<null> = ROOM_FEED
-  ? () => useCallback((note: FeedbackNote) => ask<null>(ACCOUNT_PATHS.feedback, { body: note }), [])
-  : () => useMutation(api.feedback.submit)
+/** "Suggest or report". */
+export function useSubmitFeedback(): (note: FeedbackNote) => Promise<null> {
+  return useCallback((note: FeedbackNote) => ask<null>(ACCOUNT_PATHS.feedback, { body: note }), [])
+}
 
-/** The usage metrics for an admin, null for anyone else (`metrics.forAdmin`). */
-export const useAdminMetrics: () => AdminMetrics | undefined = ROOM_FEED
-  ? () => useWorkerRead<AdminMetrics>(ACCOUNT_PATHS.metrics, true)
-  : () => useQuery(api.metrics.forAdmin, {})
+/** The usage metrics for an admin, null for anyone else. */
+export function useAdminMetrics(): AdminMetrics | undefined {
+  return useWorkerRead<AdminMetrics>(ACCOUNT_PATHS.metrics, true)
+}
 
-/** Take a fresh metrics snapshot now (`metrics.refresh`). Admins only. */
-export const useRefreshMetrics: () => () => Promise<null> = ROOM_FEED
-  ? () =>
-      useCallback(async () => {
-        await ask(ACCOUNT_PATHS.refreshMetrics, { body: {} })
-        reload(ACCOUNT_PATHS.metrics)
-        return null
-      }, [])
-  : () => {
-      const refresh = useMutation(api.metrics.refresh)
-      return useCallback(() => refresh({}), [refresh])
-    }
+/** Take a fresh metrics snapshot now. Admins only. */
+export function useRefreshMetrics(): () => Promise<null> {
+  return useCallback(async () => {
+    await ask(ACCOUNT_PATHS.refreshMetrics, { body: {} })
+    reload(ACCOUNT_PATHS.metrics)
+    return null
+  }, [])
+}
 
-/** The backend's build floor, from the Worker (`build.floor`'s place); `undefined` until answered. */
+/** The backend's build floor, from the Worker; `undefined` when it could not be asked. */
 export function askFloor(): Promise<number | undefined> {
   return ask<number>(ACCOUNT_PATHS.floor).then(
     (floor) => (typeof floor === 'number' ? floor : undefined),

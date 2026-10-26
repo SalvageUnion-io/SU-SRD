@@ -6,21 +6,13 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
-const writes: unknown[] = []
-
 // Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (_ref: unknown, args: unknown) => {
-      writes.push(args)
-      return { updatedAt: 1 }
-    },
-  },
-})
+const convexMocks = await installConvexMocks()
 afterAll(() => convexMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -66,7 +58,7 @@ async function pick(name: string) {
 
 beforeEach(() => {
   created = []
-  writes.length = 0
+  acceptingRooms()
   useUnits.setState({
     npcs: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
@@ -211,6 +203,10 @@ describe('saving', () => {
     expect(npc?.description).toContain('seasoned soldier')
     expect(created).toEqual([npc?.id ?? ''])
     // Server first: the body went up before it landed here.
-    expect(writes).toContainEqual(expect.objectContaining({ table: 'npcs', appId: npc?.id }))
+    expect(roomActs).toContainEqual({
+      gameId: null,
+      name: 'createUnit',
+      args: expect.objectContaining({ id: npc?.id, kind: 'npc' }),
+    })
   })
 })

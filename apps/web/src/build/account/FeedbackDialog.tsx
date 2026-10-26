@@ -16,7 +16,7 @@ import { buildAccountCopy } from '../../messages/build-account'
 
 /**
  * "Suggest or report" (ADR-057): a player's note, filed as a labelled issue on
- * the public SU-SRD repository with no name on it (`convex/feedback.ts`). The
+ * the public SU-SRD repository with no name on it (`worker/shared/feedback.ts`). The
  * dialog says so above the box, before anybody types.
  *
  * It is the house confirm (`ConfirmDialog`) with the note as its body: one
