@@ -128,6 +128,7 @@ export const mediatorCopy = messages({
   groupDown: '{down} of {size} down',
   groupMembers: '{name}: its members',
   noGroupRoll: 'No group roll yet',
+  noMoraleRoll: 'No Morale roll yet',
   wave: 'Wave {wave}',
   waveHeld: '{groups} · held',
   bringIn: 'Bring in',
