@@ -17,22 +17,19 @@ import {
   Entity,
   EntityChoices,
   EntityRollMini,
-  embeddedPeekAddress,
   MiniGroup,
   tokens,
   useDetailModal,
   WhenDamaged,
 } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
-import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
+import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { BAY_REPAIR_COST } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
-import { unitRowModel } from '../../lib/units/unitModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
-import { LinkedCrewMini } from '../npc/LinkedCrewMini'
-import { CrewLeadMini } from './CrewLeadMini'
+import { CrawlerCrewLead } from './CrawlerCrewLead'
 import { LinkedUnitLink } from './LinkedUnitLink'
 import { SheetItemLine } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -190,8 +187,6 @@ export function CrawlerBayCard({
 
   const condition = entry.condition ?? 'intact'
   const damaged = condition === 'damaged'
-  const npc = bay.npc
-  const maxHP = npc?.hitPoints ?? 0
 
   function patchEntry(patch: Partial<CrawlerBayEntry>) {
     // Per-bay merge at the store level: updateCrawlerBay re-reads
@@ -208,66 +203,6 @@ export function CrawlerBayCard({
     patchEntry({ condition: damaged ? 'intact' : 'damaged' })
   }
 
-  // Keepsake/Motto persist through the bay NPC's SRD freeform choices — same
-  // bayChoices map as the bay's own choices, no extra schema field.
-  const keepsakeChoice = findNpcChoiceByName(npc, 'Keepsake')
-  const keepsake = keepsakeChoice ? (selections[keepsakeChoice.id]?.[0] ?? '') : ''
-  function setKeepsake(next: string) {
-    if (!keepsakeChoice) return
-    setSelections({
-      ...selections,
-      [keepsakeChoice.id]: next.trim().length > 0 ? [next] : [],
-    })
-  }
-  const mottoChoice = findNpcChoiceByName(npc, 'Motto')
-  const motto = mottoChoice ? (selections[mottoChoice.id]?.[0] ?? '') : ''
-  function setMotto(next: string) {
-    if (!mottoChoice) return
-    setSelections({
-      ...selections,
-      [mottoChoice.id]: next.trim().length > 0 ? [next] : [],
-    })
-  }
-
-  // While a built NPC is assigned, the inline crew is never written: read-only
-  // is what lets the unlink restore it byte for byte (Q2).
-  const inlineReadOnly = readOnly || assigned !== undefined
-  // The crew lead is a contentful Mini (N3): its head Peeks the bay's crew
-  // NPC, embedded as its bay card nests it (`nestedEntityGroups`); its body is
-  // what the sheet tracks about them, and in Edit their fields. A bay the
-  // book gives no crew NPC still has a crew lead.
-  const inlineCrew = (
-    <CrewLeadMini
-      {...(npc
-        ? {
-            entity: { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity,
-            peekAt: embeddedPeekAddress('crawler-bays', bay.id, 'npc'),
-          }
-        : { model: unitRowModel({ kind: 'npc', name: 'Crew' }) })}
-      instance={{ title: entry.npcName?.trim() || npc?.position || buildSheetCopy('crew2') }}
-      bayName={bay.name}
-      title={npc?.position}
-      name={entry.npcName ?? ''}
-      hp={entry.npcCurrentHP ?? maxHP}
-      maxHp={maxHP}
-      keepsake={keepsake}
-      motto={motto}
-      detail={entry.npcDescription ?? ''}
-      facts={entry.npcFacts ?? []}
-      // Handler absence IS the read-only encoding: readOnly branches once
-      // here instead of per-handler ternaries + a second readOnly prop.
-      {...(inlineReadOnly
-        ? {}
-        : {
-            onNameChange: (next: string) => patchEntry({ npcName: next }),
-            onHpChange: (next: number) => patchEntry({ npcCurrentHP: next }),
-            onKeepsakeChange: keepsakeChoice ? setKeepsake : undefined,
-            onMottoChange: mottoChoice ? setMotto : undefined,
-            onDetailChange: (next: string) => patchEntry({ npcDescription: next }),
-            onFactsChange: (next: string[]) => patchEntry({ npcFacts: next }),
-          })}
-    />
-  )
   const crew = (
     <>
       {dockedMech && (
@@ -276,11 +211,15 @@ export function CrawlerBayCard({
           <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} />
         </div>
       )}
-      {assigned ? (
-        <LinkedCrewMini slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
-      ) : (
-        inlineCrew
-      )}
+      <CrawlerCrewLead
+        npc={bay.npc}
+        slot={{ schemaName: 'crawler-bays', id: bay.id, name: bay.name }}
+        state={entry}
+        selections={selections}
+        setSelections={setSelections}
+        onPatch={readOnly ? undefined : patchEntry}
+        assigned={assigned}
+      />
     </>
   )
 

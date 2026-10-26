@@ -4,19 +4,17 @@ import type { UnitsStore } from '../../replica/units'
  * crew, for the identity panel to lay out (split from CrawlerSheetItems.tsx).
  */
 
-import type { Crawler } from 'game-domain/schemas/crawler'
+import type { CrawlerNpcState } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
-import type { RefMetaEntity } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
-import { Content, embeddedPeekAddress, MiniGrid, tokens } from '../../components/index'
+import { Content, MiniGrid, tokens } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
-import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
-import { LinkedCrewMini } from '../npc/LinkedCrewMini'
-import { CrewLeadMini } from './CrewLeadMini'
+import { CrawlerCrewLead } from './CrawlerCrewLead'
 
 const TYPE_STACK = {
   display: 'flex',
@@ -24,8 +22,6 @@ const TYPE_STACK = {
   flexDirection: 'column',
   gap: tokens.space[12],
 } satisfies CSSProperties
-
-type CrawlerNpcState = NonNullable<Crawler['typeNpc']>
 
 type CrawlerTypeCardProps = {
   crawlerId: string
@@ -49,12 +45,8 @@ type CrawlerTypeCardProps = {
 
 /**
  * CrawlerTypeCard — the chosen crawler type's description and special
- * action(s), with its special NPC as a contentful Mini (`CrewLeadMini`,
- * N3), as a bay's crew lead is: its head Peeks the type's NPC, its body holds
- * what the sheet tracks about them (in Edit, their fields). Mirrors
- * CrawlerBayCard: Keepsake/Motto persist through the NPC's
- * freeform choices into the crawler's bayChoices map keyed by the type ref;
- * structured name/HP/description/facts persist into the `typeNpc` field.
+ * action(s), with its special NPC as a bay's crew lead is (`CrawlerCrewLead`);
+ * its structured state persists into the `typeNpc` field.
  */
 export function CrawlerTypeCard({
   crawlerId,
@@ -78,9 +70,6 @@ export function CrawlerTypeCard({
   const type = resolveCrawlerType(typeRef)
   if (!type) return null
 
-  const npc = type.npc
-  const maxHP = npc?.hitPoints ?? 0
-
   function patchNpc(patch: Partial<CrawlerNpcState>) {
     const fresh = storeState.get('crawler', crawlerId)
     runWrite(() =>
@@ -95,60 +84,17 @@ export function CrawlerTypeCard({
     )
   }
 
-  const keepsakeChoice = findNpcChoiceByName(npc, 'Keepsake')
-  const keepsake = keepsakeChoice ? (selections[keepsakeChoice.id]?.[0] ?? '') : ''
-  function setKeepsake(next: string) {
-    if (!keepsakeChoice) return
-    setSelections({
-      ...selections,
-      [keepsakeChoice.id]: next.trim().length > 0 ? [next] : [],
-    })
-  }
-  const mottoChoice = findNpcChoiceByName(npc, 'Motto')
-  const motto = mottoChoice ? (selections[mottoChoice.id]?.[0] ?? '') : ''
-  function setMotto(next: string) {
-    if (!mottoChoice) return
-    setSelections({
-      ...selections,
-      [mottoChoice.id]: next.trim().length > 0 ? [next] : [],
-    })
-  }
-
-  const inlineReadOnly = readOnly || assigned !== undefined
-  const inlineCrew = npc ? (
-    <CrewLeadMini
-      entity={{ ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity}
-      peekAt={embeddedPeekAddress(type.schemaName, type.id, 'npc')}
-      instance={{ title: typeNpc?.npcName?.trim() || npc.position }}
-      bayName={type.name}
-      title={npc.position}
-      name={typeNpc?.npcName ?? ''}
-      hp={typeNpc?.npcCurrentHP ?? maxHP}
-      maxHp={maxHP}
-      keepsake={keepsake}
-      motto={motto}
-      detail={typeNpc?.npcDescription ?? ''}
-      facts={typeNpc?.npcFacts ?? []}
-      // Handler absence IS the read-only encoding: readOnly branches once
-      // here instead of per-handler ternaries + a second readOnly prop.
-      {...(inlineReadOnly
-        ? {}
-        : {
-            onNameChange: (next: string) => patchNpc({ npcName: next }),
-            onHpChange: (next: number) => patchNpc({ npcCurrentHP: next }),
-            onKeepsakeChange: keepsakeChoice ? setKeepsake : undefined,
-            onMottoChange: mottoChoice ? setMotto : undefined,
-            onDetailChange: (next: string) => patchNpc({ npcDescription: next }),
-            onFactsChange: (next: string[]) => patchNpc({ npcFacts: next }),
-          })}
+  const crew = type.npc ? (
+    <CrawlerCrewLead
+      npc={type.npc}
+      slot={type}
+      state={typeNpc}
+      selections={selections}
+      setSelections={setSelections}
+      onPatch={readOnly ? undefined : patchNpc}
+      assigned={assigned}
     />
   ) : undefined
-  const crew =
-    assigned && inlineCrew ? (
-      <LinkedCrewMini slotName={type.name} assignment={assigned} fallback={inlineCrew} />
-    ) : (
-      inlineCrew
-    )
 
   // NO card container: a full entity card here would be a frame around a frame
   // around a frame. Its INTERNALS are handed back instead, for the identity
