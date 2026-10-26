@@ -64,6 +64,7 @@ import { gauge, pool } from '../../lib/units/crewPair'
 import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
+import { useTableRead } from '../../replica/useTable'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -105,7 +106,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
-  const vitals = useQuery(api.crew.vitals, { gameId: gameId as Id<'games'> })
+  const vitals = useTableRead(api.crew.vitals, { gameId: gameId as Id<'games'> })
 
   const makePrimary = useServerAction(useMutation(api.games.setPrimaryCrawler), {
     failure: 'That crawler could not be made primary. Try again.',

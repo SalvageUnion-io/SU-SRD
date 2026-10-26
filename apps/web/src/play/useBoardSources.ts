@@ -16,6 +16,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 import type { BoardSources } from './boardMenu.model'
 
 /** One Game's board sources; with no Game, nothing is read. */
@@ -26,7 +27,7 @@ export function useGameBoardSources(gameId: Id<'games'> | null): BoardSources {
 
   const me = useQuery(api.account.me, inGame === 'skip' ? 'skip' : {})
   const listing = useQuery(api.entities.listForGame, inGame)
-  const seats = useQuery(api.seats.forGame, inGame)
+  const seats = useTableRead(api.seats.forGame, inGame)
 
   return { listing: listing ?? null, seats: seats ?? [], viewerId: me?._id ?? null }
 }

@@ -21,7 +21,7 @@
  * the roll's own Post says so.
  */
 
-import { useMutation, useQuery } from 'convex/react'
+import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { dealCount } from 'game-domain/games/ledger'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
@@ -195,8 +195,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
   const members = useQuery(api.games.members, { gameId: id })
-  const crew = useQuery(api.crew.vitals, { gameId: id })
-  const seats = useQuery(api.seats.forGame, { gameId: id })
+  const crew = useTableRead(api.crew.vitals, { gameId: id })
+  const seats = useTableRead(api.seats.forGame, { gameId: id })
   const listing = useQuery(api.entities.listForGame, { gameId: id })
   const npcs = useTableRead(api.mediator.npcs, { gameId: id })
   const running = useTableRead(api.mediator.running, { gameId: id })
@@ -208,9 +208,9 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const patterns = ROOM_FEED
     ? ownPatterns.map((p) => ({ appId: p.id, body: p, madeBy: mediatorCopy('you') }))
     : crewPatterns
-  const sent = useQuery(api.ops.sent, { gameId: id, limit: sentLimit })
-  const alerts = useQuery(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })
-  const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
+  const sent = useTableRead(api.ops.sent, { gameId: id, limit: sentLimit })
+  const alerts = useTableRead(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })
+  const rolls = useTableRead(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
   const sceneState = useScene(gameId)
   const area = useSalvageArea(mediatorTarget(gameId))
@@ -224,8 +224,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const endEncounter = useTableAct(api.mediator.endEncounter, gameId)
   const bringInWave = useTableAct(api.mediator.bringInWave, gameId)
   const recordGroupRoll = useTableAct(api.mediator.recordGroupRoll, gameId)
-  const proposeMutation = useMutation(api.ops.propose)
-  const broadcastMutation = useMutation(api.changeLog.broadcast)
+  const proposeMutation = useTableAct(api.ops.propose, gameId)
+  const broadcastMutation = useTableAct(api.changeLog.broadcast, gameId)
   const setConditions = useTableAct(api.scenes.setConditions, gameId)
   const passHour = useTableAct(api.scenes.passHour, gameId)
 

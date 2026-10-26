@@ -13,7 +13,6 @@
  * holds the Crew column's seat lines.
  */
 
-import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { containerOf } from 'game-domain/container'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -24,6 +23,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { gauge, pool } from '../lib/units/crewPair'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
@@ -106,10 +106,10 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null
 
-  const rolls = useQuery(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
-  const alerts = useQuery(api.changeLog.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
-  const pending = useQuery(api.ops.pending, inGame ? { gameId } : 'skip')
-  const crew = useQuery(api.crew.vitals, inGame ? { gameId } : 'skip')
+  const rolls = useTableRead(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
+  const alerts = useTableRead(api.changeLog.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
+  const pending = useTableRead(api.ops.pending, inGame ? { gameId } : 'skip')
+  const crew = useTableRead(api.crew.vitals, inGame ? { gameId } : 'skip')
 
   return {
     rolls: rolls ?? null,

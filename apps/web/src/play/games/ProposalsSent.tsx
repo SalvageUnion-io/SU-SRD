@@ -8,19 +8,19 @@
  * of what they asked, and the players' answers.
  */
 
-import { useQuery } from 'convex/react'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { SlabSection } from '../../components/index'
 import { playGamesCopy } from '../../messages/play-games'
+import { useTableRead } from '../../replica/useTable'
 import { ProposalsList } from '../mediator/ProposalsList'
 import { HUB_BODY } from './hubStyles.model'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)
-  const sent = useQuery(api.ops.sent, { gameId, limit })
+  const sent = useTableRead(api.ops.sent, { gameId, limit })
   return (
     <SlabSection
       as="h2"

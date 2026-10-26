@@ -38,6 +38,7 @@ import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
 import { useSync } from '../../replica/syncContext'
+import { useTableRead } from '../../replica/useTable'
 import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -80,7 +81,7 @@ export function TheGame({
 }) {
   const id = useId()
   const members = useQuery(api.games.members, { gameId })
-  const vitals = useQuery(api.crew.vitals, { gameId })
+  const vitals = useTableRead(api.crew.vitals, { gameId })
   const setMediator = useMutation(api.games.setMediator)
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)

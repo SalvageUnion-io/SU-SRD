@@ -28,6 +28,8 @@ import { postDefault, usePlayChannelBinding, usePlayRollDispatch } from './usePl
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {
+  /** The Game the Feed is of; null at the solo table. */
+  gameId: string | null
   binding: PlayBinding | null | undefined
   /** The screen's one Post toggle. */
   post: boolean
@@ -63,7 +65,7 @@ export function useSideFeed({
   const [openedAt] = useState(() => Date.now())
   const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
   const entries = playFeedEntries({ rolls, alerts, proposals, mine, rollerName })
-  return { binding, post, setPost, dispatch, entries }
+  return { gameId: target.gameId, binding, post, setPost, dispatch, entries }
 }
 
 export type PlaySide = SideFeed & {

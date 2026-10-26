@@ -9,7 +9,8 @@
  * as it happens. Each write is a mutation with an optimistic update on that query, so
  * a toggle lands on screen at once rather than after the round trip; if the
  * server refuses it, Convex drops the optimistic value and the refusal is
- * shown.
+ * shown. While the rooms feed the replica, the seat is its room's record and
+ * each write an act on that room, shown once the room answers.
  *
  * A pilot on the shelf has a solo seat (`seats.solo`, writes with `gameId`
  * null): `useSeatAt` reads it when `gameId` is null.
@@ -25,14 +26,17 @@
  * (ADR-030 §1).
  */
 
-import type { OptimisticLocalStore } from 'convex/browser'
-import { useMutation, useQuery } from 'convex/react'
+import type { OptimisticLocalStore, OptimisticUpdate } from 'convex/browser'
+import { useMutation } from 'convex/react'
+import type { FunctionArgs, FunctionReference } from 'convex/server'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { ROOM_FEED } from '../replica/roomSocket'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
+import { useTableAct, useTableRead } from '../replica/useTable'
 
 /** What Play reads off a seat. */
 export type SeatView = {
@@ -111,6 +115,21 @@ function remount(seat: SeatView, mount: SeatMount): Partial<SeatView> {
   return same ? { mount } : { mount, resolving: null }
 }
 
+/**
+ * A seat write: a Convex mutation with its optimistic `update`, or while the
+ * rooms feed the replica an act on the seat's room, which shows once the room
+ * answers.
+ */
+function useSeatAct<M extends FunctionReference<'mutation'>>(
+  mutation: M,
+  gameId: Id<'games'> | null,
+  update: OptimisticUpdate<FunctionArgs<M>>
+): (args: FunctionArgs<M>) => Promise<unknown> {
+  const convex = useMutation(mutation).withOptimisticUpdate(update)
+  const room = useTableAct(mutation, gameId)
+  return ROOM_FEED ? room : convex
+}
+
 /** Which seat `useSeatAt` reads and writes. */
 export type SeatAddress = {
   /**
@@ -131,42 +150,40 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
   const guarded = useGuardedWrite()
   const soloSeat = gameId === null
 
-  const seats = useQuery(api.seats.forGame, signedIn && gameId !== null ? { gameId } : 'skip')
-  const soloRow = useQuery(
+  const seats = useTableRead(api.seats.forGame, signedIn && gameId !== null ? { gameId } : 'skip')
+  const soloRow = useTableRead(
     api.seats.solo,
     signedIn && soloSeat && pilotId !== null ? { pilotId } : 'skip'
   )
 
-  const board = useMutation(api.seats.board).withOptimisticUpdate((store, args) => {
+  const board = useSeatAct(api.seats.board, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, (seat) =>
       remount(seat, { kind: 'boarded', mechId: args.mechId })
     )
   })
   const assign = useMutation(api.ownership.assign)
-  const dismount = useMutation(api.seats.dismount).withOptimisticUpdate((store, args) => {
+  const dismount = useSeatAct(api.seats.dismount, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   })
-  const eject = useMutation(api.seats.eject).withOptimisticUpdate((store, args) => {
+  const eject = useSeatAct(api.seats.eject, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   })
-  const setRange = useMutation(api.seats.setRange).withOptimisticUpdate((store, args) => {
+  const setRange = useSeatAct(api.seats.setRange, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, () => ({ range: args.range }))
   })
-  const toggleEffect = useMutation(api.seats.toggleEffect).withOptimisticUpdate((store, args) => {
+  const toggleEffect = useSeatAct(api.seats.toggleEffect, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, (seat) => ({
       activeEffects: seat.activeEffects.includes(args.ref)
         ? seat.activeEffects.filter((ref) => ref !== args.ref)
         : [...seat.activeEffects, args.ref],
     }))
   })
-  const setResolving = useMutation(api.seats.setResolving).withOptimisticUpdate((store, args) => {
+  const setResolving = useSeatAct(api.seats.setResolving, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: args.resolving }))
   })
-  const clearResolving = useMutation(api.seats.clearResolving).withOptimisticUpdate(
-    (store, args) => {
-      patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: null }))
-    }
-  )
+  const clearResolving = useSeatAct(api.seats.clearResolving, gameId, (store, args) => {
+    patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: null }))
+  })
 
   // `solo` answers null for a pilot no longer on the shelf: the default seat.
   const row = soloSeat

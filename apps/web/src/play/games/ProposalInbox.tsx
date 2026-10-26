@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from 'convex/react'
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -7,6 +6,7 @@ import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../component
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useSync } from '../../replica/syncContext'
+import { useTableAct, useTableRead } from '../../replica/useTable'
 import { HUB_BODY } from './hubStyles.model'
 
 /**
@@ -33,9 +33,9 @@ const REASON = { display: 'block', color: color.wkMuted } satisfies CSSPropertie
 const ACTIONS = { display: 'flex', gap: space[6] } satisfies CSSProperties
 
 export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
-  const pending = useQuery(api.ops.pending, { gameId })
-  const apply = useMutation(api.ops.accept)
-  const decline = useMutation(api.ops.decline)
+  const pending = useTableRead(api.ops.pending, { gameId })
+  const apply = useTableAct(api.ops.accept, gameId)
+  const decline = useTableAct(api.ops.decline, gameId)
   const { canWrite } = useSync()
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
     failure: 'Your answer did not land. Try again.',

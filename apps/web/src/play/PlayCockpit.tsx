@@ -32,7 +32,6 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
@@ -45,6 +44,7 @@ import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
+import { useTableRead } from '../replica/useTable'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
@@ -93,7 +93,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
   const binding = usePlayChannelBinding(target)
-  const crew = useQuery(
+  const crew = useTableRead(
     api.crew.vitals,
     target.gameId !== null && status === 'live' ? { gameId: target.gameId as Id<'games'> } : 'skip'
   )

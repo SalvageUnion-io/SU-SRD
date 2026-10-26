@@ -28,8 +28,10 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { PLAY_TXN } from '../replica/provenance'
-import { isSignedIn } from '../replica/sync'
+import { ROOM_FEED, roomOf } from '../replica/roomSocket'
+import { isSignedIn, WritesBlockedOffline } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
+import { useTableAct, useTableRead } from '../replica/useTable'
 import type { PlayScreen } from './play.model'
 import type { DowntimeView, PlayDowntime } from './situation.model'
 
@@ -51,18 +53,21 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const place = gameId === null ? { gameId, pilotId: pilotId ?? undefined } : { gameId }
   const readable = signedIn && (gameId !== null || pilotId !== null)
 
-  const state = useQuery(
+  const state = useTableRead(
     api.downtime.state,
     readable ? { ...place, pilotId: pilotId ?? undefined } : 'skip'
   )
   const members = useQuery(api.games.members, signedIn && gameId !== null ? { gameId } : 'skip')
-  const begin = useMutation(api.downtime.begin)
-  const advance = useMutation(api.downtime.advance)
-  const setStep = useMutation(api.downtime.setStep)
-  const end = useMutation(api.downtime.end)
-  const markStepDone = useMutation(api.downtime.markStepDone)
+  const begin = useTableAct(api.downtime.begin, gameId)
+  const advance = useTableAct(api.downtime.advance, gameId)
+  const setStep = useTableAct(api.downtime.setStep, gameId)
+  const end = useTableAct(api.downtime.end, gameId)
+  const markStepDone = useTableAct(api.downtime.markStepDone, gameId)
   const applyOp = useMutation(api.ops.apply)
-  const spendUpkeep = useMutation(api.downtime.spendUpkeep)
+  const spendUpkeep = useTableAct(api.downtime.spendUpkeep, gameId)
+  // A room names its run (`runId`); Convex named it by when it started.
+  const run =
+    (state as { runId?: string | null } | null | undefined)?.runId ?? state?.startedAt ?? 0
 
   // `state` answers null for a solo pilot no longer on the shelf: not running.
   const downtime: DowntimeView =
@@ -93,18 +98,22 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
         ? null
         : (stepIndex, patch) =>
             guarded.ask(async () => {
-              const applied = await applyOp({
-                unit: 'pilot',
-                gameId,
-                op: {
-                  id: downtimeStepOpId(state?.startedAt ?? 0, pilotId, stepIndex),
-                  unitId: pilotId,
-                  baseSeq: null,
-                  at: Date.now(),
-                  ...PLAY_TXN,
-                  patch,
-                },
-              })
+              const op = {
+                id: downtimeStepOpId(run, pilotId, stepIndex),
+                unitId: pilotId,
+                baseSeq: null,
+                at: Date.now(),
+                ...PLAY_TXN,
+                patch,
+              }
+              if (ROOM_FEED) {
+                const room = roomOf(gameId)
+                if (room === null) throw new WritesBlockedOffline()
+                await room.submit([op])
+                // A step already taken is acked again, and changes nothing.
+                return !(state?.doneSteps ?? []).includes(stepIndex)
+              }
+              const applied = await applyOp({ unit: 'pilot', gameId, op })
               // The pilot's new row reaches the replica through its feed.
               return applied !== null && applied.fresh
             }),

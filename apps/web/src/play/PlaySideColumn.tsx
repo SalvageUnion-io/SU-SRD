@@ -92,6 +92,7 @@ export function PlayFeedSection({
   return (
     <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')}>
       <PlayFeed
+        gameId={side.gameId}
         entries={side.entries}
         posts={side.dispatch.posts}
         postNow={side.dispatch.postNow}

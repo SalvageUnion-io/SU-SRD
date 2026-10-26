@@ -64,6 +64,7 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
 import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { hereCount } from './crew.model'
@@ -339,9 +340,9 @@ function PlayGameItem({
   channel: string | null
 }) {
   const gameId = game._id as Id<'games'>
-  const downtime = useQuery(api.downtime.state, { gameId }) ?? undefined
+  const downtime = useTableRead(api.downtime.state, { gameId }) ?? undefined
   const listing = useQuery(api.entities.listForGame, { gameId })
-  const vitals = useQuery(api.crew.vitals, { gameId })
+  const vitals = useTableRead(api.crew.vitals, { gameId })
   const presence = useGamePresence(gameId, 'watch')
   const here = hereCount(vitals?.pilots, presence)
   const chips = gameChips({ mediator: game.mediator, here, downtime, channel })

@@ -23,8 +23,8 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
 import { keepOutbox, readOutbox } from './persist'
-import { RoomDeclined, roomOf } from './roomSocket'
-import { mayQueue, writable } from './sync'
+import { ROOM_FEED, RoomDeclined, roomOf } from './roomSocket'
+import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
 /** What the server answered for a unit it wrote: its new version and `headSeq`. */
 export type Applied = { version: number; headSeq: number }
@@ -263,6 +263,7 @@ export async function sendChangeLog(
   if (entries.length === 0) return
 
   try {
+    if (ROOM_FEED) return await sendRoomChangeLog(entries)
     await convexClient.mutation(api.changeLog.appendChangeLog, {
       entries: entries.map((e) => ({
         ...e,
@@ -271,6 +272,29 @@ export async function sendChangeLog(
     })
   } catch (err) {
     captureException(err, undefined, { fingerprint: ['convex', 'changeLog:appendChangeLog'] })
+  }
+}
+
+/**
+ * On the rooms, a unit's history is its ops (`rooms/ops.ts`'s `entityLog`):
+ * only a Game's own rows (its rolls) are written, each to its Game's room.
+ */
+async function sendRoomChangeLog(entries: Parameters<typeof sendChangeLog>[0]): Promise<void> {
+  const byGame = new Map<string, typeof entries>()
+  for (const e of entries) {
+    if (e.gameId === null || e.entityType !== 'game') continue
+    byGame.set(e.gameId, [...(byGame.get(e.gameId) ?? []), e])
+  }
+  for (const [gameId, rows] of byGame) {
+    await roomOf(gameId)?.act('changeLog.appendChangeLog', {
+      entries: rows.map(({ entityType, field, after, source, ts }) => ({
+        entityType,
+        field,
+        after,
+        source,
+        ts,
+      })),
+    })
   }
 }
 
@@ -422,8 +446,33 @@ export async function sendTransfer(
   removals: readonly TransferRemoval[]
 ): Promise<ReadonlyMap<string, Applied>> {
   if (!writable()) return new Map()
+  if (ROOM_FEED) {
+    await sendRoomTransfer(writes, removals)
+    return new Map()
+  }
   const { applied } = await convexClient.mutation(api.ops.transfer, transferArgs(writes, removals))
   return new Map(
     applied.map(({ unitId, updatedAt, headSeq }) => [unitId, { version: updatedAt, headSeq }])
   )
+}
+
+/**
+ * On the rooms, a transfer is one batch to the room its units share, all or
+ * none as `ops.transfer` was; each unit's new head comes back as the room's
+ * `applied`. A room cannot hold half of one, so a transfer between units in
+ * two rooms, or one that moves or deletes a unit, is refused before anything
+ * is sent.
+ */
+async function sendRoomTransfer(
+  writes: readonly TransferWrite[],
+  removals: readonly TransferRemoval[]
+): Promise<void> {
+  const gameId = writes[0]?.gameId ?? null
+  const together = writes.every((w) => w.gameId === gameId && w.move === undefined)
+  if (!together || removals.length > 0) {
+    throw new RoomDeclined('Both sides of a transfer must be at the same table')
+  }
+  const room = roomOf(gameId)
+  if (room === null) throw new WritesBlockedOffline()
+  await room.submit(writes.map((w) => w.op).filter((op) => !isEmptyOp(op)))
 }

@@ -17,12 +17,12 @@
  * frame inside a frame.
  */
 
-import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../convex/_generated/api'
 import { Button, EmptyState, FeedLine, FeedList, Message, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
+import { useTableAct } from '../replica/useTable'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { recordPlayChange } from './playRolls.model'
@@ -42,6 +42,8 @@ const STATE = {
 } satisfies CSSProperties
 
 type PlayFeedProps = {
+  /** The Game a proposal is answered in; null at the solo table. */
+  gameId: string | null
   entries: readonly FeedEntry[]
   /** My rolls' Discord posts, by roll id (`usePlayRollDispatch`). */
   posts: ReadonlyMap<string, PlayPostState>
@@ -51,9 +53,9 @@ type PlayFeedProps = {
   canWrite: boolean
 }
 
-export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
-  const apply = useMutation(api.ops.accept)
-  const decline = useMutation(api.ops.decline)
+export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeedProps) {
+  const apply = useTableAct(api.ops.accept, gameId)
+  const decline = useTableAct(api.ops.decline, gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
     failure: 'Your answer did not land. Try again.',
     toastId: 'play-proposal-answer',

@@ -49,6 +49,7 @@ import { rollD20 } from '../lib/dice'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
+import { useViewerId } from '../replica/useTable'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import { crawlerTl, mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
@@ -79,6 +80,7 @@ export function PlayDowntimeStep({
   const { downtime } = play
   const inGame = play.target.gameId !== null
   const me = useQuery(api.account.me, inGame ? {} : 'skip')
+  const viewer = useViewerId(me?._id ?? null)
   const { pilot, mech, crawler, store } = actions
   const canPay = !downtime.locked
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())
@@ -100,7 +102,7 @@ export function PlayDowntimeStep({
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
   // In a Game, whether this member has said they are done (`completedBy`).
   const markedDone = inGame
-    ? me != null && downtime.downtime.completedBy.some((m) => m.userId === me._id)
+    ? viewer !== null && downtime.downtime.completedBy.some((m) => m.userId === viewer)
     : claimed
   const off = !play.canWrite
 

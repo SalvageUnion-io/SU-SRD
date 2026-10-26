@@ -34,6 +34,23 @@ const ROOM_ACTS = [
   'mediator.runEncounter',
   'mediator.bringInWave',
   'mediator.endEncounter',
+  'seats.board',
+  'seats.dismount',
+  'seats.eject',
+  'seats.setRange',
+  'seats.toggleEffect',
+  'seats.setResolving',
+  'seats.clearResolving',
+  'downtime.begin',
+  'downtime.advance',
+  'downtime.setStep',
+  'downtime.end',
+  'downtime.markStepDone',
+  'downtime.spendUpkeep',
+  'ops.propose',
+  'ops.accept',
+  'ops.decline',
+  'changeLog.broadcast',
 ] as const satisfies readonly GameActName[]
 
 function sources(dir: string): string[] {

@@ -9,12 +9,10 @@
  * This is read-only — the log is never mutated from the UI.
  */
 
-import { useQuery } from 'convex/react'
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
 import type { BadgeTone } from '../../components/index'
 import {
   Badge,
@@ -29,6 +27,7 @@ import {
 } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
+import { useEntityLog } from '../../replica/useEntityLog'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -84,7 +83,7 @@ function ChangeLogEntries({
   entityType,
   entityId,
 }: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId'>) {
-  const entries = useQuery(api.changeLog.forEntity, { entityType, entityId })
+  const entries = useEntityLog(entityType, entityId)
 
   if (entries === undefined) return <Pending />
   if (entries.length === 0) {
@@ -132,8 +131,9 @@ export function ChangeLogDrawer({
   onOpenChange,
 }: ChangeLogDrawerProps) {
   const { status } = useSync()
-  // Whether the entries MOUNT: they read Convex, so they render only on a live
-  // connection — as the Share dialog's live panel does.
+  // Whether the entries MOUNT: they read the server (Convex, or the unit's
+  // room), so they render only on a live connection, as the Share dialog's
+  // live panel does.
   const live = status === 'live'
 
   return (
