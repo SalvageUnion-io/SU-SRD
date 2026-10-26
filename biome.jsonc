@@ -411,6 +411,8 @@
         // This glob is the `main` of every wrangler config (the `workers`
         // check holds them to it).
         "apps/*/src/worker/index.ts",
+        // Astro reads a client directive's `export default` (`addClientDirective`).
+        "apps/web/src/runtime/directives/*.ts",
         "**/*.config.ts",
         // Ambient module declarations for asset imports (`declare module
         // '*.md?raw'`) must re-declare the bundler's own default export — the

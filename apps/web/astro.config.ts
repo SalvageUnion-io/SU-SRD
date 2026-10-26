@@ -5,9 +5,10 @@
  * (`astro dev`) serves both.
  */
 
+import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import react from '@astrojs/react'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
-import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'astro/config'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { Plugin } from 'vite'
@@ -16,6 +17,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { appGraph } from './astro/build/appGraph'
 import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
 import { workerInDev } from './astro/build/devWorker'
+import { islandDirectives } from './astro/build/islandDirectives'
 import { referenceStamp } from './astro/build/referenceStamp'
 import { site } from './astro/build/site'
 import { siteSitemap } from './astro/build/sitemap'
@@ -31,8 +33,16 @@ const PORT = Number(process.env.PORT ?? portFor())
 // (`src/lib/constants.ts`): the dev server names itself, for both apps.
 if (process.argv.includes('dev')) process.env.VITE_SITE_ORIGIN ||= `http://localhost:${PORT}`
 
-/** The island runtime every reference page loads: what `appGraph` keeps off the app's groups. */
-const graph = appGraph({ pageEntries: [join(HERE, 'src/runtime/islands.client.ts')] })
+/** The page script and the islands, which Astro loads: what `appGraph` keeps off the app's groups. */
+const ISLANDS = join(HERE, 'src/components/islands')
+const graph = appGraph({
+  pageEntries: [
+    join(HERE, 'src/runtime/islands.client.ts'),
+    ...readdirSync(ISLANDS)
+      .filter((file) => file.endsWith('Island.tsx'))
+      .map((file) => join(ISLANDS, file)),
+  ],
+})
 
 /** An app chunk group: never a module a reference page reaches (`astro/build/appGraph.ts`). */
 const notOnPages =
@@ -95,9 +105,8 @@ export default defineConfig({
   trailingSlash: 'always',
   build: { format: 'directory', inlineStylesheets: 'never', assets: 'assets' },
   server: { port: PORT, headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT } },
-  // No renderer integration: the pages render React themselves
-  // (`astro/lib/reference.tsx`), and the islands are ours (ADR-065).
-  integrations: [siteSitemap(), site({ pwa: pwaApi })],
+  // React renders the pages and hydrates their islands (`client:*`).
+  integrations: [react(), islandDirectives(), siteSitemap(), site({ pwa: pwaApi })],
   devToolbar: { enabled: false },
   vite: {
     // The app reads `VITE_` variables (`src/env.d.ts`); Astro's default is `PUBLIC_` alone.
@@ -107,11 +116,9 @@ export default defineConfig({
       // `wrangler dev`, for every path the Worker answers (`astro/build/devWorker.ts`).
       workerInDev(PORT + 1000),
       appShellInDev(),
-      // The router's code splitter runs before the JSX transform, or refuses to start.
+      // The router's code splitter runs before the JSX transform (the React
+      // integration's, which Astro appends after these), or refuses to start.
       ...clientOnly(TanStackRouterVite(ROUTER_PLUGIN_OPTIONS) as Plugin | Plugin[]),
-      // Every environment: in dev it turns Vite's own TS transform off and
-      // transforms the pages' TSX too.
-      react(),
       // The fonts and the UI library's stylesheet, shared by both apps.
       ...clientOnly(emitBaseStylesheet()),
       ...clientOnly(graph.plugin),

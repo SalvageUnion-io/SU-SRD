@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { getModel } from 'salvageunion-reference'
 import { APP_BASE } from '../../../src/lib/appBase'
 import { listingEntries } from '../../../src/lib/listingEntries'
-import { blockedInlineScripts } from '../../build/inlineScripts'
+import { executableInlineScripts } from '../../build/inlineScripts'
 import { NOT_IN_SITEMAP } from '../../build/sitemap'
 import { shells } from './pages'
 
@@ -52,7 +52,10 @@ describe('the page shells', () => {
     const first = resolved.find((r) => r.pattern === pattern)?.pages[0]
     const html = first?.render() ?? ''
     expect(html).toStartWith('<!doctype html>')
-    expect(blockedInlineScripts(html)).toEqual([])
+    // A page's only inline script is its speculation rules, which the build
+    // hashes into the CSP with Astro's island scripts (`inlineScripts.ts`).
+    const own = executableInlineScripts(html).filter((body) => !body.startsWith('{"prefetch"'))
+    expect(own).toEqual([])
   })
 
   it('server-renders a /<id>/ listing as links, without inlining its entities', () => {
@@ -63,12 +66,12 @@ describe('the page shells', () => {
       // What the listing lists: the roll tables only their top-level ones.
       const entities = listingEntries(schemaId, getModel(schemaId)?.all() ?? [])
       const html = listing.render()
-      const props = html.match(
-        /<script type="application\/json" data-island-props>(.*?)<\/script>/s
+      const viewer = Object.values(listing.document().islands).find(
+        (island) => island.name === 'SchemaViewerIsland'
       )
       // The island reads its entities from the ORM; inlined, they were up to 162 KB.
-      expect(props?.[1]).toBeString()
-      expect(props?.[1]?.length ?? 0).toBeLessThan(4096)
+      expect(viewer).toBeDefined()
+      expect(JSON.stringify(viewer?.props).length).toBeLessThan(4096)
       const links = html.match(new RegExp(`href="/${schemaId}/[^"]`, 'g')) ?? []
       expect(links.length).toBeGreaterThanOrEqual(entities.length)
     }

@@ -1,3 +1,4 @@
+import { clientSwap } from '../../runtime/clientSwap'
 import { KofiButton } from '../atoms/KofiButton'
 
 /**
@@ -12,3 +13,6 @@ import { KofiButton } from '../atoms/KofiButton'
 export function KofiIsland({ code }: { code: string }) {
   return <KofiButton code={code} />
 }
+
+/** The island as Astro hydrates it: `KofiIsland` swapped in over its stand-in (`clientSwap`). */
+export const KofiIslandClient = clientSwap('KofiIsland', KofiIsland)

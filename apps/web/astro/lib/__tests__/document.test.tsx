@@ -1,10 +1,9 @@
 /**
- * `renderDocument`: the seam where the build's two secrets (the base
- * stylesheet with its font preloads, the collected island props) meet a page
- * that knows neither.
+ * `renderDocument`: the seam where what only the build knows (the base
+ * stylesheet with its font preloads) meets a page that does not, and where
+ * the page's islands are collected for `Page.astro` to render.
  *
- * The head and body it returns are what `Page.astro` emits; their order is
- * wire format: `src/runtime/islands.client.ts` parses the props tag.
+ * The head and body it returns are what `Page.astro` emits.
  */
 
 import { describe, expect, it } from 'bun:test'
@@ -111,72 +110,79 @@ describe('document head', () => {
   })
 })
 
-describe('island props payload', () => {
-  it('emits one JSON script for the whole page, keyed by data-island-id', () => {
-    const html = renderBare(
+/** The islands a bare page collects. */
+function bareIslands(children: ReactNode) {
+  const module = {
+    pattern: '/bare/',
+    page: () => ({
+      meta: {},
+      shell: 'bare' as const,
+      children: (
+        <html lang="en">
+          <head>
+            <title>bare</title>
+          </head>
+          <body>{children}</body>
+        </html>
+      ),
+    }),
+  }
+  return renderParts(module, {}, undefined, ASSETS).islands
+}
+
+describe('collected islands', () => {
+  it('hands Page.astro every island by its marker id, with its props', () => {
+    const islands = bareIslands(
       <>
         <Island name="SearchIsland" client="idle" props={{ q: 'aegis' }} />
         <Island name="SchemaViewerIsland" client="visible" props={{ schemaId: 'chassis' }} />
       </>
     )
-
-    expect(html).toContain(
-      '<script type="application/json" data-island-props>' +
-        '{"i0":{"q":"aegis"},"i1":{"schemaId":"chassis"}}' +
-        '</script></body>'
-    )
-    // One tag per page, not one per island — the 17.3 MB lesson.
-    expect(html.split('data-island-props')).toHaveLength(2)
+    expect(islands.i0?.props).toEqual({ q: 'aegis' })
+    expect(islands.i1?.props).toEqual({ schemaId: 'chassis' })
+    // No props in the page's markup: Astro serializes them onto each island.
+    const html = renderBare(<Island name="SearchIsland" client="idle" props={{ q: 'aegis' }} />)
+    expect(html).toContain('<astro-island data-island="SearchIsland"></astro-island>')
+    expect(html).not.toContain('aegis')
   })
 
   it('collects the chrome islands BaseLayout renders, not only the page’s own', () => {
     // TopNavigation's chrome islands are part of every base-shell page, so they
     // take the first ids and the page's own island follows them.
-    const html = renderAbout()
-    expect(html).toContain(
-      'data-island="SearchIsland" data-client="interaction" data-island-id="i0"'
-    )
-    expect(html).toContain(
-      'data-island="AccountIsland" data-client="idle" data-island-id="i1" data-when="signed-in"'
-    )
-    expect(html).toContain(
-      'data-island="MobileSearchIsland" data-client="interaction" data-island-id="i2"'
-    )
-    expect(html).toContain(
-      'data-island="AccountAvatarIsland" data-client="idle" data-island-id="i3" data-when="signed-in"'
-    )
-    expect(html).toContain(
-      'data-island="MobileNavIsland" data-client="interaction" data-island-id="i4"'
-    )
-    // …and none of them carries props, so the page ships no props tag at all.
-    // MobileNavIsland taking zero props is what removed 17.3 MB from the build.
-    expect(html).not.toContain('data-island-props')
-  })
-
-  it('escapes `<` so a payload can never close its own script tag', () => {
-    const html = renderBare(
-      <Island name="SearchIsland" props={{ html: '</script><script>alert(1)</script>' }} />
-    )
-
-    const payload = /data-island-props>([\s\S]*?)<\/script>/.exec(html)?.[1] ?? ''
-    expect(payload).not.toContain('</script>')
-    expect(payload).toContain('\\u003c/script>')
-    // Still lossless: the browser's JSON parser reads \u003c back as `<`.
-    expect(JSON.parse(payload)).toEqual({ i0: { html: '</script><script>alert(1)</script>' } })
+    const module = { pattern: '/about/', page: () => ({ meta: {}, children: <p>body</p> }) }
+    const { islands } = renderParts(module, {}, undefined, ASSETS)
+    expect(Object.values(islands).map((island) => `${island.name}:${island.client}`)).toEqual([
+      'SearchIsland:interaction',
+      'AccountIsland:idle',
+      'MobileSearchIsland:interaction',
+      'AccountAvatarIsland:idle',
+      'MobileNavIsland:interaction',
+      'PeekIsland:interaction',
+    ])
+    // …and none of them carries props. MobileNavIsland taking zero props is
+    // what removed 17.3 MB from the build.
+    for (const island of Object.values(islands)) expect(island.props).toEqual({})
   })
 
   it('closes the collection window even when the page throws', () => {
     // The window is module-global. Leaking an open one would make the NEXT
-    // page's islands share this page's id counter and prop bag.
+    // page's islands share this page's id counter.
     const Boom = (): never => {
       throw new Error('page exploded')
     }
 
     expect(() => renderBare(<Boom />)).toThrow('page exploded')
 
-    expect(renderBare(<Island name="SearchIsland" props={{ q: 'after' }} />)).toContain(
-      '{"i0":{"q":"after"}}'
-    )
+    expect(bareIslands(<Island name="SearchIsland" props={{ q: 'after' }} />)).toEqual({
+      i0: {
+        name: 'SearchIsland',
+        client: 'load',
+        props: { q: 'after' },
+        hydrate: false,
+        trigger: undefined,
+        when: undefined,
+      },
+    })
   })
 })
 
@@ -340,6 +346,6 @@ describe("the 'bare' shell", () => {
     expect(html).not.toContain('og:title')
     // …but it is still a full member of the island + asset system.
     expect(html).toContain('<link rel="stylesheet" href="/assets/base-CAFEBABE.css">')
-    expect(html).toContain('{"i0":{"slug":"aegis"}}')
+    expect(html).toContain('<astro-island data-island="OgCardIsland">')
   })
 })

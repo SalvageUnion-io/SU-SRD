@@ -9,10 +9,14 @@
  * test that renders all of it a second time. It lives here so it can be
  * tested without running a build.
  *
- * Island props (`<script type="application/json">`) are data, not rendered
- * text: an island's entity travels raw and its client render draws the
- * Mentions, so script bodies are left out of the scan.
+ * Island props (an `<astro-island>`'s `props`) and script bodies are data, not
+ * rendered text: an island's entity travels raw and its client render draws
+ * the Mentions, and Astro's prop encoding nests arrays (`[1,[[0,…]]]`), so
+ * both are left out of the scan.
  */
+
+/** An `<astro-island …>` opening tag's `props="…"` (its value is HTML-escaped, so holds no `"`). */
+const ISLAND_PROPS = /(<astro-island\b[^>]*?)\sprops="[^"]*"/gi
 
 /** True when `<script` at `at` (in lower-cased html) opens a script tag, not `<scripts`. */
 function opensScript(lower: string, at: number): boolean {
@@ -51,7 +55,9 @@ function withoutScriptsOnce(html: string): string {
  * block cannot join into a new one (`<scr<script></script>ipt>`).
  */
 export function renderedBody(html: string): string {
-  let body = html.slice(Math.max(0, html.toLowerCase().indexOf('<body')))
+  let body = html
+    .slice(Math.max(0, html.toLowerCase().indexOf('<body')))
+    .replace(ISLAND_PROPS, '$1')
   for (let cut = withoutScriptsOnce(body); cut !== body; cut = withoutScriptsOnce(body)) {
     body = cut
   }

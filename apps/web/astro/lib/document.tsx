@@ -2,25 +2,24 @@
  * document — renders one page module into the head and body `Page.astro`
  * emits.
  *
- * `BaseLayout` owns every tag it can know statically; this module adds the
- * two things only the build knows: the base stylesheet with the faces it
- * preloads, and the single `data-island-props` JSON payload collected during
- * the render. The scripts are Astro's (`Page.astro`). It imports no build
+ * `BaseLayout` owns every tag it can know statically; this module adds what
+ * only the build knows: the base stylesheet with the faces it preloads. The
+ * islands collected during the render go back to `Page.astro`, which renders
+ * each at its marker, and the scripts are Astro's. It imports no build
  * asset, so a unit test renders a page by handing it its own.
  */
 
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SITE_URL } from '../../src/lib/constants'
-import { escapeJsonForScript } from '../../src/lib/escapeJsonForScript'
 import { BaseLayout } from '../../src/reference/layouts/BaseLayout'
 import type { BuiltAssets, PageModule } from '../../src/reference/types'
-import type { CollectedIslandProps } from '../../src/runtime/Island'
+import type { CollectedIslands } from '../../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../../src/runtime/Island'
 import type { AstroParams } from './routePath'
 import { fillPattern, withTrailingSlash } from './routePath'
 
 /** The pieces of one rendered document `Page.astro` stitches back together. */
-export type ReferenceDocument = { head: string; body: string }
+export type ReferenceDocument = { head: string; body: string; islands: CollectedIslands }
 
 /** The base stylesheet and the webfonts it preloads (`virtual:base-stylesheet`). */
 type BaseStylesheet = {
@@ -46,12 +45,6 @@ function headTags({ href, fonts, scriptFont }: BaseStylesheet, preloadScriptFont
   return `${preloads}<link rel="stylesheet" href="${href}">`
 }
 
-function islandPropsTag(props: CollectedIslandProps): string {
-  if (Object.keys(props).length === 0) return ''
-  const json = escapeJsonForScript(JSON.stringify(props))
-  return `<script type="application/json" data-island-props>${json}</script>`
-}
-
 export function renderDocument<Params extends Record<string, string>, Props>(
   module: PageModule<Params, Props>,
   astroParams: AstroParams,
@@ -69,7 +62,7 @@ export function renderDocument<Params extends Record<string, string>, Props>(
   })
   beginIslandCollection()
   let markup: string
-  let islandProps: CollectedIslandProps
+  let islands: CollectedIslands
   try {
     markup = renderToStaticMarkup(
       result.shell === 'bare' ? (
@@ -81,13 +74,14 @@ export function renderDocument<Params extends Record<string, string>, Props>(
       )
     )
   } finally {
-    islandProps = endIslandCollection()
+    islands = endIslandCollection()
   }
   const parts = DOCUMENT.exec(markup)
   if (!parts) throw new Error(`[build] ${pathname} did not render one <html> document`)
   const [, head = '', body = ''] = parts
   return {
     head: head + headTags(assets.stylesheet, Boolean(result.meta.preloadScriptFont)),
-    body: body + islandPropsTag(islandProps),
+    body,
+    islands,
   }
 }

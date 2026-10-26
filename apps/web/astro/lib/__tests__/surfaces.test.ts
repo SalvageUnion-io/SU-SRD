@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'bun:test'
 import { CHAPTER_BAND_COLOR } from '../../../src/components/index'
 import { DISCORD_COMMANDS } from '../../../src/generated/discordCommands'
-import { renderRoute as page, shells } from './pages'
+import { renderRoute as page, routeIslands, shells } from './pages'
 
 const h1s = (html: string) =>
   [...html.matchAll(/<h1\b[^>]*>(.*?)<\/h1>/gs)].map(([, inner]) =>
@@ -134,7 +134,10 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).toContain('<div class="su-rail">')
     expect(html.indexOf('su-rail')).toBeLessThan(html.indexOf('su-listing__group'))
     // The skeleton takes the same group from the island's props.
-    expect(html).toContain('"groups":[{"key":"all","count":')
+    const viewer = Object.values(routeIslands('/chassis')).find(
+      (island) => island.name === 'SchemaViewerIsland'
+    )
+    expect(JSON.stringify(viewer?.props)).toContain('"groups":[{"key":"all","count":')
   })
 
   it('trails Reference // Chassis, without the home page’s chapter', () => {

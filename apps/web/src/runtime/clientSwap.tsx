@@ -1,34 +1,34 @@
 /**
- * mountIsland — put one island into its placeholder in a single step, and keep
- * what the reader was doing in the server markup it replaces.
+ * clientSwap — an island that the browser draws for itself, over a server
+ * stand-in, in one step, keeping what the reader was doing in it.
  *
- * Two things went wrong when the mounter emptied the placeholder itself
- * (`replaceChildren()`) and then called `createRoot`:
+ * Astro hydrates every island (`client:*`, `@astrojs/react`). Most of ours
+ * cannot be hydrated as they are: `useGameData`'s server snapshot is `false`,
+ * so a card's first client render is not the one the server drew, and a
+ * listing's server markup is a stand-in (`SchemaViewerListing`), not the
+ * island. So the hydrated component is this wrapper. Server and hydration
+ * both render the stand-in Astro passes as `children` (its slot, which the
+ * client is handed back verbatim), so hydration has nothing to mismatch; the
+ * wrapper then waits for what the island's first render needs (`prepare`)
+ * and swaps the island in.
  *
- * - **A flash.** The placeholder sat empty from the clear until React's first
- *   commit. React already clears a root's container in that commit ("the first
- *   time you call `root.render`, React will clear all the existing HTML content
- *   inside the React root"), so the server markup now stays on screen until the
- *   island's own markup replaces it, in one step.
- * - **Lost input and focus.** A reader who had clicked into the server-rendered
- *   hero search and started typing before the island mounted lost the text, and
- *   focus fell to `<body>` (WCAG 2.4.3, 3.2.2). The form state is now read just
- *   before the swap and put back on the island's controls of the same `name`
- *   just after it.
+ * The swap keeps the reader's place: text typed into a named field of the
+ * stand-in is carried onto the island's field of the same `name`, with its
+ * caret and focus (WCAG 2.4.3, 3.2.2). Once the island's first commit is on
+ * the page it says so (`ISLAND_COMMIT`), so the `interaction` directive can
+ * play back a press that landed on the stand-in.
  */
 
-import type { ReactNode } from 'react'
-import { useEffect, useLayoutEffect, useState } from 'react'
-import type { Root } from 'react-dom/client'
-import { createRoot, hydrateRoot } from 'react-dom/client'
-import type { IslandComponent } from './islandRegistry'
+import type { ComponentType, ReactNode } from 'react'
+import { isValidElement, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { ISLAND_COMMIT } from './islandCommit'
 
 /** The text-entry `<input>` types whose value and caret are worth carrying. */
 const TEXT_TYPES = new Set(['text', 'search', 'url', 'tel', 'email', 'number'])
 
 type TextControl = HTMLInputElement | HTMLTextAreaElement
 
-/** The form state of a placeholder, keyed by each control's `name`. */
+/** The form state of a stand-in, keyed by each control's `name`. */
 export type CarriedFormState = {
   /** Values the reader changed (value differs from the markup's default). */
   values: Map<string, string>
@@ -114,9 +114,9 @@ export function restoreFormState(container: HTMLElement, state: CarriedFormState
 type CarryFormStateProps = { container: HTMLElement; children: ReactNode }
 
 /**
- * The island's outermost element. Its first render runs in the same task as
- * the root's first commit, so the capture reads the server markup as the
- * reader left it, the moment before React clears it.
+ * The island's first render. It reads the stand-in's form state in the same
+ * render (and so the same task) as the commit that replaces it, so nothing a
+ * reader types can land between the two.
  */
 function CarryFormState({ container, children }: CarryFormStateProps) {
   const [carried] = useState(() => captureFormState(container))
@@ -126,55 +126,67 @@ function CarryFormState({ container, children }: CarryFormStateProps) {
     // input back to its old value.
     queueMicrotask(() => restoreFormState(container, carried))
   }, [container, carried])
-  return children
-}
-
-/**
- * Calls `onCommit` once the island's first commit is on the page, and after
- * any layout-effect work queued in it (`CarryFormState`'s restore): the
- * moment a held gesture can be played back on controls that now listen.
- * Renders no element of its own, so it cannot change what a hydrating island
- * has to match.
- */
-function AfterFirstCommit({ onCommit, children }: { onCommit: () => void; children: ReactNode }) {
-  const [callback] = useState(() => onCommit)
+  // After the island's own effects too, so a played-back press or hover
+  // meets listeners the island attached in them (the Peek's).
   useEffect(() => {
-    const timer = setTimeout(callback, 0)
+    const timer = setTimeout(
+      () => container.dispatchEvent(new Event(ISLAND_COMMIT, { bubbles: true })),
+      0
+    )
     return () => clearTimeout(timer)
-  }, [callback])
+  }, [container])
   return children
 }
 
-export type MountOptions = {
-  /**
-   * Adopt the server markup instead of replacing it (`hydrateRoot`): for an
-   * island whose server markup is exactly its own first render from the same
-   * props, and which reads no game data (`<Island hydrate>`).
-   */
-  hydrate?: boolean
-  /** Runs once the first commit is on the page (`AfterFirstCommit`). */
-  onCommit?: () => void
+type SwapOptions<P> = {
+  /** What the island's first render needs, fetched before the swap (its schemas). */
+  prepare?: (props: P) => Promise<void>
 }
 
 /**
- * Mounts `Component` into `el`: replacing its server markup in one commit, or,
- * with `hydrate`, adopting it, so nothing on the page is drawn twice.
+ * The hydrated form of island `View`, named `name` on its element
+ * (`data-island`): the stand-in until the browser has what `View` needs, then
+ * `View` itself.
  */
-export function mountIsland(
-  el: HTMLElement,
-  Component: IslandComponent,
-  props: Record<string, unknown>,
-  { hydrate = false, onCommit }: MountOptions = {}
-): Root {
-  const island = onCommit ? (
-    <AfterFirstCommit onCommit={onCommit}>
-      <Component {...props} />
-    </AfterFirstCommit>
-  ) : (
-    <Component {...props} />
-  )
-  if (hydrate) return hydrateRoot(el, island)
-  const root = createRoot(el)
-  root.render(<CarryFormState container={el}>{island}</CarryFormState>)
-  return root
+export function clientSwap<P extends object>(
+  name: string,
+  View: ComponentType<P>,
+  { prepare }: SwapOptions<P> = {}
+) {
+  function Swapped({ children, ...props }: P & { children?: ReactNode }) {
+    const ref = useRef<HTMLDivElement>(null)
+    const [ready, setReady] = useState(false)
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: once, after hydration; the props are the server's
+    useEffect(() => {
+      let live = true
+      void Promise.resolve(prepare?.(props as P)).then(() => {
+        if (live) setReady(true)
+      })
+      return () => {
+        live = false
+      }
+    }, [])
+
+    // The same element before and after, so the swap keeps it and replaces
+    // only what is inside it.
+    const el = ref.current
+    if (ready && el) {
+      return (
+        <div ref={ref} data-island={name}>
+          <CarryFormState container={el}>
+            <View {...(props as P)} />
+          </CarryFormState>
+        </div>
+      )
+    }
+    // The stand-in is Astro's slot; an island with none draws nothing until the swap.
+    return (
+      <div ref={ref} data-island={name} data-standin="">
+        {isValidElement(children) ? children : null}
+      </div>
+    )
+  }
+  Swapped.displayName = name
+  return Swapped
 }

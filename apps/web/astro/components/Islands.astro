@@ -1,0 +1,49 @@
+---
+/**
+ * One island, rendered by Astro where the page's React tree marked it
+ * (`lib/islandParts.ts`), with the directive its `<Island>` asked for. An
+ * island that swaps in over a stand-in (`clientSwap`) gets it as its slot.
+ */
+import {
+  AccountAvatarIslandClient,
+  AccountIslandClient,
+} from '../../src/components/islands/AccountIsland'
+import { ColumnsTableIsland } from '../../src/components/islands/ColumnsTableIsland'
+import { DidYouMeanIslandClient } from '../../src/components/islands/DidYouMeanIsland'
+import { HomebrewIslandClient } from '../../src/components/islands/HomebrewIsland'
+import { KofiIslandClient } from '../../src/components/islands/KofiIsland'
+import { MobileNavIslandClient } from '../../src/components/islands/MobileNavIsland'
+import { MobileSearchIslandClient } from '../../src/components/islands/MobileSearchIsland'
+import { OgCardIsland } from '../../src/components/islands/OgCardIsland'
+import { PeekIslandClient } from '../../src/components/islands/PeekIsland'
+import { ReferenceEntityIslandClient } from '../../src/components/islands/ReferenceEntityIsland'
+import { RollTableIsland } from '../../src/components/islands/RollTableIsland'
+import { SchemaViewerIslandClient } from '../../src/components/islands/SchemaViewerIsland'
+import { SearchIslandClient } from '../../src/components/islands/SearchIsland'
+import type { InteractionOptions } from '../../src/runtime/directives/interaction'
+import type { IslandPart } from '../lib/islandParts'
+import { nowProps } from '../lib/islandParts'
+
+type Props = { island: IslandPart }
+const { name, client, props, trigger, standIn } = Astro.props.island
+// Each island's own props, as its `<Island>` passed them: typed at that call site.
+// biome-ignore lint/suspicious/noExplicitAny: the one widening between the collected props and each island's own type
+const p: any = props
+const wake: InteractionOptions = { name, props: nowProps(props), trigger }
+const idle = { timeout: 2000 }
+---
+{name === 'SearchIsland' && <SearchIslandClient client:interaction={wake} {...p}><Fragment set:html={standIn} /></SearchIslandClient>}
+{name === 'MobileSearchIsland' && <MobileSearchIslandClient client:interaction={wake} {...p}><Fragment set:html={standIn} /></MobileSearchIslandClient>}
+{name === 'MobileNavIsland' && <MobileNavIslandClient client:interaction={wake} {...p}><Fragment set:html={standIn} /></MobileNavIslandClient>}
+{name === 'SchemaViewerIsland' && <SchemaViewerIslandClient client:interaction={wake} {...p}><Fragment set:html={standIn} /></SchemaViewerIslandClient>}
+{name === 'PeekIsland' && <PeekIslandClient client:interaction={wake} {...p} />}
+{name === 'AccountIsland' && <AccountIslandClient client:signedIn {...p} />}
+{name === 'AccountAvatarIsland' && <AccountAvatarIslandClient client:signedIn {...p} />}
+{name === 'ReferenceEntityIsland' && <ReferenceEntityIslandClient client:visible {...p} />}
+{name === 'KofiIsland' && <KofiIslandClient client:visible {...p}><Fragment set:html={standIn} /></KofiIslandClient>}
+{name === 'DidYouMeanIsland' && <DidYouMeanIslandClient client:idle={idle} {...p} />}
+{name === 'HomebrewIsland' && client === 'visible' && <HomebrewIslandClient client:visible {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
+{name === 'HomebrewIsland' && client === 'load' && <HomebrewIslandClient client:load {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}
+{name === 'RollTableIsland' && <RollTableIsland client:idle={idle} {...p} />}
+{name === 'ColumnsTableIsland' && <ColumnsTableIsland client:idle={idle} {...p} />}
+{name === 'OgCardIsland' && <OgCardIsland client:only="react" {...p} />}

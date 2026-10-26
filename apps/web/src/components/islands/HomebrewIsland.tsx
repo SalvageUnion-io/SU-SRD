@@ -32,6 +32,7 @@ import {
 } from '../../lib/homebrew/homebrew'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { islandsCopy } from '../../messages/components-islands'
+import { clientSwap } from '../../runtime/clientSwap'
 import { Toggle } from '../atoms/Toggle'
 import { loadingCopy } from '../containers/loadingCopy'
 import { SlabSection } from '../containers/SlabSection'
@@ -252,3 +253,6 @@ export function HomebrewIsland({
     </IslandErrorBoundary>
   )
 }
+
+/** The island as Astro hydrates it: `HomebrewIsland` swapped in over its stand-in (`clientSwap`). */
+export const HomebrewIslandClient = clientSwap('HomebrewIsland', HomebrewIsland)

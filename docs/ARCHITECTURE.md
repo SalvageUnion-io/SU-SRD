@@ -22,7 +22,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    Tokens in `apps/web/src/styles/theme.css`, mirrored as style objects by `apps/web/src/design/tokens.ts`; classes in one stylesheet, also for styles repeated per page; `no-tailwind` bars Tailwind. Rules: `.claude/rules/styling.md`.
    One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes; app stylesheets stay unlayered, so they win.
 6. **One app, static pages (Astro)** · ADR-050, ADR-065 · [spec](architecture/one-app.md) <a id="ssg"></a>
-   One app, one build, Worker, head, install and checks; Astro 7 with our React islands ([DESIGN.md](../apps/web/astro/DESIGN.md)); `apps/web/astro/pages/` lists every page and endpoint, each a shell over a `.tsx` module.
+   One app, one build, Worker, head, install and checks; Astro 7, its islands React (`@astrojs/react`, [DESIGN.md](../apps/web/astro/DESIGN.md)); `apps/web/astro/pages/` lists every page and endpoint, each a shell over a `.tsx` module.
    Pages link one stylesheet of their own (`astro/layouts/Page.astro`); no auth, router or Zustand.
 7. **Dataset API** · ADR-014, ADR-040, ADR-043, ADR-056 · [spec](architecture/dataset-api.md) <a id="dataset-api"></a>
    The dataset's public interface: static files at `/api/v1/` from the committed data, additive only, a break is `/api/v2/`; never an npm package, no release stream.
@@ -76,7 +76,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Writes only channel bindings; the site unreachable: every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     One site name (`pageTitle`), one WebSite JSON-LD (`WEBSITE`), one sitemap; heads: `BaseLayout.tsx`; shared sheets: ADR-032; `/llms.txt` exact; SW: `src/pwa.ts`.
-    No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
+    No-JS fallback: `StaticEntityContent` and each island's stand-in, which the island swaps in over (`clientSwap`); an `<Island hydrate>` Astro renders and hydrates itself.
 25. **Accessibility** <a id="a11y"></a>
     Biome's a11y rules plus axe (WCAG 2.2 AA) specs over `PAGES`, the app signed in.
     Contrast is held by `apps/web/src/design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.

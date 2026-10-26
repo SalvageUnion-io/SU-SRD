@@ -1,3 +1,4 @@
+import { clientSwap } from '../../runtime/clientSwap'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
@@ -20,3 +21,6 @@ export function MobileNavIsland() {
     </IslandErrorBoundary>
   )
 }
+
+/** The island as Astro hydrates it: `MobileNavIsland` swapped in over its stand-in (`clientSwap`). */
+export const MobileNavIslandClient = clientSwap('MobileNavIsland', MobileNavIsland)

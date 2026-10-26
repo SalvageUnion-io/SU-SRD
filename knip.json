@@ -34,6 +34,8 @@
         "astro/pages/**/*.{astro,ts}",
         // Imported by `astro/layouts/Page.astro`'s `<script>`, which knip does not parse.
         "src/runtime/islands.client.ts",
+        // Astro's client directives, registered by path (`astro/build/islandDirectives.ts`).
+        "src/runtime/directives/*.ts",
         "src/routes/**/*.tsx",
         // The app's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
         "src/main.tsx",

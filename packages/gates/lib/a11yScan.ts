@@ -90,6 +90,9 @@ type InPage = {
     querySelector: (selector: string) => unknown
     querySelectorAll: (selector: string) => Iterable<{
       dataset: Record<string, string | undefined>
+      getAttribute: (name: string) => string | null
+      hasAttribute: (name: string) => boolean
+      querySelector: (selector: string) => unknown
       getClientRects: () => { length: number }
       getBoundingClientRect: () => { top: number; bottom: number; left: number; right: number }
     }>
@@ -114,13 +117,14 @@ function unsettled(): string {
   const { document, innerHeight, innerWidth } = globalThis as unknown as InPage
   if (document.readyState !== 'complete') return 'the document is still loading'
   const waiting: string[] = []
-  for (const el of document.querySelectorAll('[data-island]')) {
+  for (const el of document.querySelectorAll('astro-island')) {
+    const client = el.getAttribute('client')
     // Mounts only when a reader reaches for it: until then its server markup
     // is the page, and that is what a reader who has not touched it meets.
-    if (el.dataset.client === 'interaction') continue
+    if (client === 'interaction') continue
     // Never mounts on this load (the SRD's signed-in-only account menu).
     if (el.dataset.islandSkipped !== undefined) continue
-    if (el.dataset.client === 'visible') {
+    if (client === 'visible') {
       const box = el.getBoundingClientRect()
       const onScreen =
         el.getClientRects().length > 0 &&
@@ -130,9 +134,10 @@ function unsettled(): string {
         box.left <= innerWidth
       if (!onScreen) continue
     }
-    // React's createRoot() marks its container with a `__reactContainer$…` key.
-    if (!Object.keys(el).some((key) => key.startsWith('__reactContainer$')))
-      waiting.push(el.dataset.island ?? '?')
+    // Astro drops `ssr` once it has hydrated an island; one swapped in over a
+    // stand-in (`clientSwap`) has mounted once the stand-in is gone.
+    if (el.hasAttribute('ssr') || el.querySelector(':scope > [data-standin]') !== null)
+      waiting.push(el.getAttribute('component-export') ?? '?')
   }
   if (waiting.length > 0) return `unmounted island(s): ${waiting.join(', ')}`
   const skeleton = document.querySelector('[role="status"][aria-label="Loading"]')

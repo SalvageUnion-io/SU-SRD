@@ -31,13 +31,11 @@ Canonical URLs always carry a trailing slash.
 
 ## The island protocol
 
-1. **`createRoot`, unless `hydrate`.** `useGameData`'s server snapshot is `false`, so a game-data island cannot hydrate. `hydrate` is for an `ssr` island whose children are itself, from the same props, reading no game data: they render with `renderToString` and `hydrateRoot` adopts them.
-2. **`ssr` is an SEO / no-JS choice, default `false`.** Without `hydrate` the markup is replaced on mount, so it cannot mismatch.
-3. **`<Island>` emits one placeholder.** `<div data-island data-client data-island-id>`, plus `data-hydrate` / `data-trigger` / `data-when`; `when="signed-in"` mounts only under the account hint (`src/lib/accountState.ts`), else is marked `data-island-skipped`; `client` is `load | idle | visible | only | interaction`.
-4. **Props ship once per page.** One `<script type="application/json" data-island-props>`, keyed by `data-island-id`.
-5. **Scheduling.** `load`/`only` mount at once, `idle` on `requestIdleCallback` with a 2 s `timeout` (200ms `setTimeout` where it is missing), `visible` on first intersection. `interaction` waits for the reader's first reach (or, with `trigger`, one on a matching element) and replays what they did meanwhile (`src/runtime/interaction.ts`); `src/runtime/mountNow.ts` says when it cannot wait. React loads only with an island.
-6. **The registry uses static dynamic imports.** `src/runtime/islandRegistry.ts`, so Rollup code-splits each island.
-7. **Props designed out.** An island whose props would repeat on every page computes them in its own chunk: `MobileNavIsland` takes none; `SchemaViewerIsland` reads its preloaded schema.
+1. **Astro renders the islands.** `<Island>` leaves a `<template data-island data-island-id>` marker holding its stand-in; `layouts/Page.astro` renders the island there (`components/Islands.astro`, `@astrojs/react`), props serialized on it.
+2. **Swap, unless `hydrate`.** `useGameData`'s server snapshot is `false`, so a game-data island cannot hydrate: it hydrates its stand-in (`ssr`, else nothing) and swaps itself in, carrying typed text and focus (`src/runtime/clientSwap.tsx`). `hydrate` is for an island reading no game data: Astro server-renders it from its props.
+3. **Directives.** `load`, `idle` (2 s `timeout`), `visible` and `only` are Astro's. `interaction` (`client:interaction`) waits for the reader's first reach (or, with `trigger`, one on a matching element) and replays it (`src/runtime/interaction.ts`); `src/runtime/mountNow.ts` says when it cannot wait. `when="signed-in"` is `client:signedIn`: idle, under the account hint, else `data-island-skipped`. React loads only with an island.
+4. **Inline scripts are hashed.** Astro inlines its island runtime and directives; the build adds their hashes to the deployed CSP (`build/inlineScripts.ts`).
+5. **Props designed out.** An island whose props would repeat on every page computes them in its own chunk: `MobileNavIsland` takes none; `SchemaViewerIsland` reads its preloaded schema.
 
 ## Per-island table
 
@@ -64,4 +62,4 @@ The WIKI link is not an island (`src/lib/wikiLink.ts`).
 
 1. **The nav catalog, then Astro** (`build/genNavCatalog.ts`, then `astro.config.ts`), both apps into one `assets/`: keep the shared `react` group, keep the app's groups off the reference site's modules (`build/appGraph.ts`), and never chunk `salvageunion-reference`.
 2. **Finish**: `@astrojs/sitemap`, then `build/site.ts`: public pages, service worker.
-3. **Refuse silent failures.** No script or stylesheet on the home page, raw markup, a CSP-blocked inline script or a UUID link fails the build.
+3. **Refuse silent failures.** No script or stylesheet on the home page, raw markup, a stray inline script or a UUID link fails the build.

@@ -5,3 +5,11 @@ declare module 'virtual:base-stylesheet' {
   const base: { href: string; fonts: string[]; scriptFont?: string }
   export default base
 }
+
+declare namespace astroHTML.JSX {
+  /** Our island directives (`astro/build/islandDirectives.ts`). */
+  interface AstroClientDirectives {
+    'client:interaction'?: import('../src/runtime/directives/interaction').InteractionOptions
+    'client:signedIn'?: boolean
+  }
+}

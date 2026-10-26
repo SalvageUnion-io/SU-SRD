@@ -96,8 +96,8 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // entry, the chip lanes, the overflow, the bottom-right fill's runtime
     // and its watch, which fits off-screen heads in later turns). Something
     // loading React or game data at page load again lands far above it.
-    // Measured 27,098 with the Homebrew island registered (ADR-061): one hop
-    // away (`runtime/homebrewLoad.ts`), it costs the island entry 161 bytes.
+    // Measured 27,098 with the Homebrew island registered (ADR-061), 161
+    // bytes in the island entry.
     // Measured 27,212 once the island lists patterns as the book does
     // (`PatternListing` on the game-data surface): its lazy chunk's preload
     // list names more chunks, 42 bytes more in the island entry.

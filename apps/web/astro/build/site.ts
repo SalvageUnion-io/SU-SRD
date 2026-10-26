@@ -7,15 +7,18 @@
  * needs the home page.
  */
 
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { writePublicPages } from './appPlugins'
-import { blockedInlineScripts } from './inlineScripts'
+import { executableInlineScripts, scriptHash, withScriptHashes } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
+
+/** Astro's island runtime and its directives, with room to spare. */
+const MAX_INLINE_SCRIPTS = 12
 
 /** A built page's route without its trailing slash (`/` stays `/`). */
 const routeOf = (pathname: string): string => `/${pathname.replace(/^\/+|\/+$/g, '')}`
@@ -46,20 +49,24 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
         }
 
         const raw: string[] = []
-        const blocked: string[] = []
+        const inline = new Set<string>()
         for (const route of routes) {
           const html = await readFile(join(distDir, fileOf(route)), 'utf-8')
           const found = findRawMarkup(html)
           if (found !== undefined) raw.push(`${route}: ${found}`)
-          const scripts = blockedInlineScripts(html)
-          if (scripts.length > 0) blocked.push(`${route}: ${scripts[0]}`)
+          for (const script of executableInlineScripts(html)) inline.add(script)
         }
         assertNoRawMarkup(raw)
-        if (blocked.length > 0) {
+        // Astro's island runtime and directives: a handful, the same on every
+        // page. Many more means a page inlines a script of its own.
+        if (inline.size > MAX_INLINE_SCRIPTS) {
           throw new Error(
-            `[build] ${blocked.length} page(s) carry an inline script the CSP blocks:\n${blocked.slice(0, 5).join('\n')}`
+            `[build] ${inline.size} distinct inline scripts (at most ${MAX_INLINE_SCRIPTS}): load a page's own script by URL`
           )
         }
+        const headersFile = join(distDir, '_headers')
+        const headers = await readFile(headersFile, 'utf-8')
+        await writeFile(headersFile, withScriptHashes(headers, [...inline].map(scriptHash)))
         await assertNoUuidLinks(distDir)
 
         writePublicPages(distDir, process.env.VITE_SITE_ORIGIN)

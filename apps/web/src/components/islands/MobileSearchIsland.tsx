@@ -1,3 +1,4 @@
+import { clientSwap } from '../../runtime/clientSwap'
 import { MobileSearchDialog } from '../MobileSearchDialog'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
@@ -33,3 +34,6 @@ export function MobileSearchIsland() {
     </IslandErrorBoundary>
   )
 }
+
+/** The island as Astro hydrates it: `MobileSearchIsland` swapped in over its stand-in (`clientSwap`). */
+export const MobileSearchIslandClient = clientSwap('MobileSearchIsland', MobileSearchIsland)

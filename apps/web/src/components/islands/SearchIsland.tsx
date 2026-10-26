@@ -21,6 +21,7 @@ import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
+import { clientSwap } from '../../runtime/clientSwap'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { SearchListbox } from '../compositions/SearchListbox'
 import { HeroSearchForm } from '../HeroSearch'
@@ -193,8 +194,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       ref={inputRef}
       type="text"
       // The hero's field shares the server field's name (`HeroSearchStatic`),
-      // so the mounter carries what a reader typed there, with focus and
-      // caret, onto this one (`mountIsland`).
+      // so the swap carries what a reader typed there, with focus and
+      // caret, onto this one (`clientSwap`).
       name={hero ? 'q' : 'srd-search'}
       placeholder={hero ? HERO_SEARCH_PLACEHOLDER : islandsCopy('searchTheReference')}
       shortcut={shortcut}
@@ -274,3 +275,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     </IslandErrorBoundary>
   )
 }
+
+/** The island as Astro hydrates it: `SearchIsland` swapped in over its stand-in (`clientSwap`). */
+export const SearchIslandClient = clientSwap('SearchIsland', SearchIsland)
