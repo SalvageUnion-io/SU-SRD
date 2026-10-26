@@ -100,6 +100,8 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
 
     // --- Step 4: Callsign (Name + Callsign required) ---
     expect(getNextButton().disabled).toBe(true)
+    await fillCallsign('Mira Voss', '')
+    expect(getNextButton().disabled).toBe(true) // a name alone does not open it
     await fillCallsign('Mira Voss', 'Sparks')
     await clickNext()
 
