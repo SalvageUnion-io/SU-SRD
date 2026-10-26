@@ -27,12 +27,12 @@
  * rooms send them; each loses the mark when the room side lands.
  */
 
+import { ENTITY_KINDS } from 'game-domain/entityKinds'
+import { OP_STATES } from 'game-domain/ops/opState'
+import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
 import { z } from 'salvageunion-reference/zod'
 
 const Body = z.record(z.string(), z.unknown())
-
-/** @public */
-export const UNIT_KINDS = ['pilot', 'mech', 'crawler', 'npc'] as const
 
 /** One op as ADR-063 defines it, as the room stores it once applied. @public */
 export const RoomOpSchema = z.object({
@@ -42,9 +42,9 @@ export const RoomOpSchema = z.object({
   baseSeq: z.number().int().nullable(),
   author: z.string().nullable(),
   at: z.number(),
-  kind: z.enum(['transaction', 'override', 'manual']),
+  kind: z.enum(CHANGE_LOG_KINDS),
   source: z.string(),
-  state: z.enum(['applied', 'proposed', 'declined', 'superseded']),
+  state: z.enum(OP_STATES),
   patch: Body,
   unset: z.array(z.string()).optional(),
   before: Body.nullable(),
@@ -69,7 +69,7 @@ export const OpInputSchema = RoomOpSchema.pick({
 
 /** A pilot, mech, crawler or NPC as held: the bundle's `BundleUnit` without its op log. @public */
 export const RoomUnitSchema = z.object({
-  kind: z.enum(UNIT_KINDS),
+  kind: z.enum(ENTITY_KINDS),
   appId: z.string(),
   /** The Game it is in; null on the Shelf (ADR-030 §2). */
   gameId: z.string().nullable(),
@@ -159,7 +159,7 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
     links: z.array(RoomLinkSchema),
   }),
   z.object({ type: z.literal('applied'), op: RoomOpSchema, unit: RoomUnitSchema }),
-  z.object({ type: z.literal('gone'), kind: z.enum(UNIT_KINDS), appId: z.string() }),
+  z.object({ type: z.literal('gone'), kind: z.enum(ENTITY_KINDS), appId: z.string() }),
   z.object({ type: z.literal('record'), table: z.enum(RECORD_TABLES), record: RoomRecordSchema }),
   z.object({ type: z.literal('recordGone'), table: z.enum(RECORD_TABLES), appId: z.string() }),
   z.object({ type: z.literal('links'), links: z.array(RoomLinkSchema) }),

@@ -15,6 +15,7 @@
  * Framework-free: `RoomFeed` mounts the sockets (`openRoom`).
  */
 
+import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { OpInput } from 'game-domain/ops/applyOp'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { captureException } from '../lib/observability'
@@ -27,8 +28,6 @@ import { noteRoomChange } from './roomChanges'
 import { dropSharedByLink, holdSharedByLink, putSharedByLink } from './sharedByLink'
 import { WritesBlockedOffline } from './sync'
 import { dropTableState, isStateTable, putTableState, serveTableState } from './tableState'
-
-const UNIT_TABLES = ['pilot', 'mech', 'crawler', 'npc'] as const satisfies readonly Table[]
 
 /**
  * The replica's table for each record table a room keeps. What the table
@@ -104,7 +103,7 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
       })
       serve(
         scope,
-        [...UNIT_TABLES, 'softLink', ...records.map((r) => r.table)],
+        [...ENTITY_KINDS, 'softLink', ...records.map((r) => r.table)],
         [
           ...message.units.map(servedUnit),
           ...message.links.map(servedLink),

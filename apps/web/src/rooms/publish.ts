@@ -2,6 +2,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import type { LinkShape } from 'game-domain/links/linkRules'
 import type { GameStore, UnitRow } from './game/store'
 import { fromJson } from './game/store'
+import { unitName } from './game/units'
 
 /**
  * What a room publishes to the shared database (ADR-032, ADR-061): one row
@@ -93,15 +94,6 @@ const KIND_NAMES: Record<EntityKind, string> = {
   npc: 'NPC',
 }
 
-/** A pilot by callsign then name, anything else by name: `entityNameOf`'s rule. */
-function unitName(kind: EntityKind, body: Record<string, unknown>): string {
-  for (const field of kind === 'pilot' ? ['callsign', 'name'] : ['name']) {
-    const value = body[field]
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-  }
-  return KIND_NAMES[kind]
-}
-
 /** What an account room publishes: its player's shared units and patterns; nothing before it is claimed. */
 export function shelfPublished(store: GameStore): Published {
   const account = store.rows('select discord_id, display_name from account where id = 1')[0]
@@ -182,7 +174,7 @@ function sheetOf(
       linked.set(key, {
         kind: target.kind,
         id: target.id,
-        name: unitName(target.kind, target.body),
+        name: unitName(target) ?? KIND_NAMES[target.kind],
         body: target.body,
       })
     } else {

@@ -73,7 +73,7 @@ export type OpResult =
   | ({ ok: false } & OpRefusal)
 
 /** The schema each unit kind's body parses with. */
-const SCHEMAS = {
+export const UNIT_SCHEMAS = {
   pilot: PilotSchema,
   mech: MechSchema,
   crawler: CrawlerSchema,
@@ -109,7 +109,7 @@ export function applyOp(unit: Unit, op: OpInput): OpResult {
     return { ok: false, reason: 'invalid', message: 'An op cannot change a unit’s id' }
 
   // Only a field the schema defines can be unset, so an op cannot strip an arbitrary key.
-  const shape = (SCHEMAS[unit.kind] as { shape?: Record<string, unknown> }).shape
+  const shape = (UNIT_SCHEMAS[unit.kind] as { shape?: Record<string, unknown> }).shape
   const unknown = unset.find((field) => shape !== undefined && !Object.hasOwn(shape, field))
   if (unknown !== undefined) {
     return { ok: false, reason: 'invalid', message: `cannot unset unknown field "${unknown}"` }
@@ -130,7 +130,7 @@ export function applyOp(unit: Unit, op: OpInput): OpResult {
   const merged: Record<string, unknown> = { ...unit.body, ...op.patch }
   for (const field of unset) delete merged[field]
 
-  const parsed = SCHEMAS[unit.kind].safeParse(merged)
+  const parsed = UNIT_SCHEMAS[unit.kind].safeParse(merged)
   if (!parsed.success) {
     return { ok: false, reason: 'invalid', message: parsed.error.issues[0]?.message ?? 'unknown' }
   }

@@ -24,5 +24,5 @@
 /**
  * Provenance classes, in the order ADR-022 lists them.
  */
-const CHANGE_LOG_KINDS = ['transaction', 'override', 'manual'] as const
+export const CHANGE_LOG_KINDS = ['transaction', 'override', 'manual'] as const
 export type ChangeLogKind = (typeof CHANGE_LOG_KINDS)[number]

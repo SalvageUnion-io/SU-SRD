@@ -6,10 +6,7 @@ import {
   endsMatchType,
   isSlotted,
 } from 'game-domain/links/linkRules'
-import { CrawlerSchema } from 'game-domain/schemas/crawler'
-import { MechSchema } from 'game-domain/schemas/mech'
-import { NpcSchema } from 'game-domain/schemas/npc'
-import { PilotSchema } from 'game-domain/schemas/pilot'
+import { UNIT_SCHEMAS } from 'game-domain/ops/applyOp'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { GameStore, Member, StoredOp, UnitRow } from './store'
@@ -32,20 +29,13 @@ export const PROPOSAL_SOURCE = 'mediator-proposal'
 /** The source of a ledger pay-out into the crawler (`ledger.ts`). */
 export const LEDGER_SOURCE = 'ledger'
 
-const PARSERS = {
-  pilot: PilotSchema,
-  mech: MechSchema,
-  crawler: CrawlerSchema,
-  npc: NpcSchema,
-} as const
-
 /** A body parsed with its kind's schema, carrying `id`; or a defect thrown. */
 export function parseUnitBody(
   kind: EntityKind,
   id: string,
   body: unknown
 ): Record<string, unknown> {
-  const result = PARSERS[kind].safeParse({ ...(body as Record<string, unknown>), id })
+  const result = UNIT_SCHEMAS[kind].safeParse({ ...(body as Record<string, unknown>), id })
   if (!result.success) {
     throw new Error(`Invalid ${kind} payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
   }
