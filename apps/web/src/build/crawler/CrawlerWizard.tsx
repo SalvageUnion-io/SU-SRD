@@ -1,3 +1,4 @@
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
@@ -174,7 +175,7 @@ export function CrawlerWizard({
       const maxSP =
         f.techLevel !== null
           ? crawlerMaxSP({
-              techLevel: `tech-${f.techLevel}`,
+              techLevel: crawlerTechLevelSlug(f.techLevel),
               ...(f.type !== null ? { type: f.type } : {}),
             })
           : undefined

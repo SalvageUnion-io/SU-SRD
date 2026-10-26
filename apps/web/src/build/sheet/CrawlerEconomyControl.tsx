@@ -1,3 +1,4 @@
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerEconomyControl — the crawler-economy actions behind the hero's UPKEEP
@@ -346,7 +347,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     const freshQuote = crawlerUpgradeQuote(freshTl, fresh.upgradePool ?? 0)
     if (!freshQuote?.affordable) return
     const patch: Partial<Crawler> = {
-      techLevel: `tech-${freshQuote.toTl}`,
+      techLevel: crawlerTechLevelSlug(freshQuote.toTl),
       upgradePool: freshQuote.remainingPool,
     }
     const bays = fresh.crawlerBays ?? []

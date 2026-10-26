@@ -13,6 +13,7 @@
  * `linkedUnits`. Owns the economy-dialog state.
  */
 
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
@@ -75,7 +76,7 @@ export function CrawlerLiveSheet({
   const spParts = crawlerMaxSPParts(crawler)
   const maxSP = spParts.total
   const spLines = linesFromBreakdown(spParts, {
-    base: `Tech ${crawler.techLevel?.replace(/\D/g, '') || '?'} Crawler`,
+    base: `Tech ${parseCrawlerTechLevel(crawler.techLevel) ?? '?'} Crawler`,
     baseDetail: 'base',
     installed: 'Crawler type bonus',
   })
@@ -246,7 +247,7 @@ export function CrawlerLiveSheet({
             onChange={
               readOnly || tl === undefined
                 ? undefined
-                : (next) => patch({ techLevel: `tech-${next}` })
+                : (next) => patch({ techLevel: crawlerTechLevelSlug(next) })
             }
             min={SCRAP_TLS[0]}
             ceiling={SCRAP_TLS[SCRAP_TLS.length - 1]}

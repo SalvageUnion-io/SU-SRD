@@ -1,3 +1,4 @@
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../replica/units'
 /**
  * The Units column's unit boxes (play.md §4): the pilot,
@@ -50,7 +51,6 @@ import {
 } from '../components/index'
 import { resolveClassName } from '../lib/classRef'
 import { activatableEffects } from '../lib/rules/activatableEffects'
-import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
 import { playCopy } from '../messages/play'
@@ -385,7 +385,7 @@ export function PlayCrawlerUnit({
   store = useUnits,
 }: PlayCrawlerUnitProps) {
   const sp = hullGauge(crawler)
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = parseCrawlerTechLevel(crawler.techLevel)
   const chips = bayChips(crawler)
   const write = writer(store, 'crawler', crawler.id)
   // Solid while it is the Downtime's unit, whoever may write it; dashed for reference otherwise.

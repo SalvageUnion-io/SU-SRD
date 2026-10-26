@@ -22,12 +22,6 @@ import { addToScrapPool, carrierCargoUsage } from '../cargo/cargoTransfer'
 import type { PoolDraw } from './crawlerEconomy'
 import { pilotInventoryUsed } from './pilotInventory'
 
-/** The crawler's numeric Tech Level, or undefined when the slug is unparseable. */
-export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'>): number | undefined {
-  const digits = (crawler.techLevel ?? '').replace(/\D/g, '')
-  return digits ? Number(digits) : undefined
-}
-
 // ─── area salvage (F2) ───────────────────────────────────────────────────────
 
 /** Inventory Slots one Scrap takes on a pilot (Core Book p.20, p.249). */

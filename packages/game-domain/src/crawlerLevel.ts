@@ -24,6 +24,11 @@ import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { Crawler } from './schemas/crawler'
 import type { Pilot } from './schemas/pilot'
 
+/** A crawler's stored `techLevel` slug for a numeric Tech Level: 3 → "tech-3". */
+export function crawlerTechLevelSlug(techLevel: number): string {
+  return `tech-${techLevel}`
+}
+
 /**
  * Compute the effective Crawler Tech Level for a pilot.
  *

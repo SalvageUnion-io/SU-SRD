@@ -13,7 +13,6 @@ import type { WreckPart } from '../downtimeEconomy'
 import {
   areaSalvageToMech,
   areaSalvageToPilot,
-  crawlerTechLevelOf,
   depositScrapDeposits,
   wreckSalvageOutcome,
   wreckScrapOutcome,
@@ -24,15 +23,6 @@ const crawler = (over: Record<string, unknown> = {}) => ({
   scrapPool: { tl1: 10, tl2: 10, tl3: 10 },
   cargoLots: [],
   ...over,
-})
-
-describe('crawlerTechLevelOf', () => {
-  test('parses the slug', () => {
-    expect(crawlerTechLevelOf({ techLevel: 'tech-4' })).toBe(4)
-  })
-  test('returns undefined for an unparseable slug rather than guessing', () => {
-    expect(crawlerTechLevelOf({ techLevel: 'bio' })).toBeUndefined()
-  })
 })
 
 describe('area salvage (F2)', () => {

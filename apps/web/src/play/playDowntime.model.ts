@@ -24,12 +24,12 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import {
   mechMaxEP,
   mechMaxSP,
+  parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import { resolveModule, resolveSystem } from '../lib/rules/mechItems'
 import { resolveEquipment } from '../lib/rules/pilotInventory'
 import { playCopy } from '../messages/play'
@@ -97,7 +97,7 @@ function onlySteps(keys: readonly DowntimeStepKey[]): DowntimeSteps {
 
 /** The crawler's Tech Level for repairs, Tech 1 with none. */
 export function crawlerTl(crawler: Crawler | null): number {
-  return (crawler ? crawlerTechLevelOf(crawler) : undefined) ?? 1
+  return (crawler ? parseCrawlerTechLevel(crawler.techLevel) : undefined) ?? 1
 }
 
 /** The crawler's Med Bay this Downtime, none without a crawler. */
