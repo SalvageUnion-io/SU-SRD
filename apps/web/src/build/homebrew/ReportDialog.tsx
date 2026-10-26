@@ -5,11 +5,10 @@
  * (`homebrew.report`). The maker is not told who reported it.
  */
 
-import { useMutation } from 'convex/react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { ConfirmDialog, Field, Text, Textarea, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { useHomebrewReport } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 
 /** Mirrors `REPORT_REASON_MAX` in `convex/homebrew.ts`. */
@@ -23,7 +22,7 @@ type ReportDialogProps = {
 }
 
 export function ReportDialog({ appId, name, open, onOpenChange }: ReportDialogProps) {
-  const report = useMutation(api.homebrew.report)
+  const report = useHomebrewReport()
   const [reason, setReason] = useState('')
   const fieldId = `report-${appId}`
 

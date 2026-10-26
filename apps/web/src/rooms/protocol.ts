@@ -106,6 +106,8 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *    `sentProposals`: every Mediator's, for a Mediator (`ops.sent`).
  *  - `rolls` and `alerts`: the newest of each (`changeLog.rolls`, `.alerts`).
  *  - `crew`: every crewmate's vitals (`crew.vitals`), one record for all.
+ *  - `sharing`: an account room's, one record per saved pattern, by its id:
+ *    `{ visibility, gameId, gameName, builtCount, homebrew }`.
  */
 export const RECORD_TABLES = [
   'patterns',
@@ -126,6 +128,7 @@ export const RECORD_TABLES = [
   'rolls',
   'alerts',
   'crew',
+  'sharing',
 ] as const
 /** @public */
 export type RecordTable = (typeof RECORD_TABLES)[number]

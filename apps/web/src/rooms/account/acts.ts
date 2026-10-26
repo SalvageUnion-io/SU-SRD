@@ -1,9 +1,10 @@
 import type { z } from 'salvageunion-reference/zod'
-import type { ACCOUNT_SOCKET_ACTS } from '../game/socketActs'
+import type { ACCOUNT_SOCKET_ACTS, SHELF_ACTS } from '../game/socketActs'
 import { entityLog } from '../ops'
 import type { AccountRoomLogic } from './accountRoomLogic'
 
-type Acts = typeof ACCOUNT_SOCKET_ACTS
+/** The Shelf's own acts are answered apart (`worker/shelfActs.ts`), since one reads the shared database. */
+type Acts = Omit<typeof ACCOUNT_SOCKET_ACTS, keyof typeof SHELF_ACTS>
 type Args<N extends keyof Acts> = z.infer<Acts[N]>
 type Context = { room: AccountRoomLogic; actor: string; at: number }
 

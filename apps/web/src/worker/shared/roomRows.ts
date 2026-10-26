@@ -1,5 +1,6 @@
 import type {
   Published,
+  PublishedCrewPattern,
   PublishedPattern,
   PublishedRoster,
   PublishedSheet,
@@ -24,8 +25,8 @@ export function sharedDb(env: unknown): SharedDb | undefined {
  *   publishes nothing, writes nothing.
  * - **Only its own.** A room deletes the public sheets it wrote (`room`) and
  *   no longer holds, so a unit that moved keeps the row its new room wrote;
- *   a maker's Homebrew listings are their account room's alone, and a
- *   Game's row, members and invite its Game room's.
+ *   a maker's Homebrew listings and crew patterns are their account room's
+ *   alone, and a Game's row, members and invite its Game room's.
  *
  * The rows are `apps/web/migrations`'s; the readers are this folder's.
  */
@@ -77,12 +78,22 @@ export class RoomPublisher {
   private async write(rows: Published): Promise<void> {
     const db = this.db
     if (db === undefined) return
-    const none = rows.sheets.length === 0 && rows.homebrew.length === 0 && !rows.roster?.game
+    const crew = rows.crew ?? []
+    const none =
+      rows.sheets.length === 0 &&
+      rows.homebrew.length === 0 &&
+      crew.length === 0 &&
+      !rows.roster?.game
     if (none && this.wroteNone) return
     const now = Date.now()
     await db.batch([
       ...sheetStatements(db, this.room, rows.sheets, now),
-      ...(this.maker === null ? [] : homebrewStatements(db, this.maker, rows.homebrew)),
+      ...(this.maker === null
+        ? []
+        : [
+            ...homebrewStatements(db, this.maker, rows.homebrew),
+            ...crewStatements(db, this.maker, crew),
+          ]),
       ...(rows.roster === undefined ? [] : rosterStatements(db, rows.roster, now)),
     ])
     this.wroteNone = none
@@ -192,5 +203,39 @@ function rosterStatements(db: SharedDb, roster: PublishedRoster, now: number): S
             .prepare('insert into invites (code, game_id, created_at) values (?1, ?2, ?3)')
             .bind(game.invite, gameId, now),
         ]),
+  ]
+}
+
+/** Every pattern the maker shares with a crew written; every other they shared, deleted. */
+function crewStatements(
+  db: SharedDb,
+  maker: string,
+  rows: readonly PublishedCrewPattern[]
+): SharedStatement[] {
+  const upsert = db.prepare(
+    `insert into crew_patterns (app_id, owner_id, game_id, body, made_by, shared_at)
+     values (?1, ?2, ?3, ?4, ?5, ?6)
+     on conflict (app_id) do update set
+       owner_id = excluded.owner_id, game_id = excluded.game_id, body = excluded.body,
+       made_by = excluded.made_by, shared_at = excluded.shared_at`
+  )
+  const held = JSON.stringify(rows.map((row) => row.appId))
+  return [
+    ...rows.map((row) =>
+      upsert.bind(
+        row.appId,
+        row.ownerId,
+        row.gameId,
+        JSON.stringify(row.body),
+        row.madeBy,
+        row.sharedAt
+      )
+    ),
+    db
+      .prepare(
+        `delete from crew_patterns where owner_id = ?1
+         and app_id not in (select value from json_each(?2))`
+      )
+      .bind(maker, held),
   ]
 }

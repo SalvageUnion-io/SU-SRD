@@ -2,8 +2,9 @@
  * What a table plays under, as its room serves it (`rooms/protocol.ts`): the
  * Scene, the area being salvaged, the ledger, the boundaries and the Stop
  * Sign; the table in play: the roster, the seats, the Downtime, the
- * proposals, the rolls and alerts and the crew's vitals; and, for its Mediator only, the
- * Opposition tray and the encounter being run. Each record is per reader (who showed the Stop Sign never leaves the
+ * proposals, the rolls and alerts and the crew's vitals; for its Mediator only, the
+ * Opposition tray and the encounter being run; and, from the account room, who
+ * may read each saved pattern. Each record is per reader (who showed the Stop Sign never leaves the
  * room) and only means anything live, so it is held in memory per room scope
  * rather than in the replica's tables: a reload starts from the room's next
  * snapshot, and offline a screen shows none of it, as it did on Convex.
@@ -31,6 +32,7 @@ const STATE_TABLES = [
   'rolls',
   'alerts',
   'crew',
+  'sharing',
 ] as const
 export type StateTable = (typeof STATE_TABLES)[number]
 
@@ -98,7 +100,8 @@ export function forgetTableState(scope?: Scope): void {
  * The table as its Convex query answered: undefined before the scope's
  * snapshot, then the one record or null, or every record (a boundary with
  * its id as `_id`; the Opposition, `{ _id, body }` per NPC as
- * `mediator.npcs` answered). Stable between changes, for `useSyncExternalStore`.
+ * `mediator.npcs` answered; sharing, each pattern's with its id as `appId`).
+ * Stable between changes, for `useSyncExternalStore`.
  */
 export function readTableState(scope: Scope, table: StateTable): unknown {
   const key = `${scope}\u0000${table}`
@@ -114,7 +117,9 @@ export function readTableState(scope: Scope, table: StateTable): unknown {
               ? { ...body, _id: id }
               : table === 'opposition'
                 ? { _id: id, body }
-                : body
+                : table === 'sharing'
+                  ? { ...body, appId: id }
+                  : body
           )
   answers.set(key, answer)
   return answer

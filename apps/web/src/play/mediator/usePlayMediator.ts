@@ -35,6 +35,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { useWorkerRead } from '../../lib/connection/workerRead'
 import { flagOn } from '../../lib/flags'
 import type { ImportantRoll } from '../../lib/rules/opposition'
 import {
@@ -48,6 +49,7 @@ import {
 } from '../../lib/rules/opposition'
 import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
+import { sharedPaths } from '../../lib/sharing/paths'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useEncounters, usePatterns } from '../../replica/collections'
 import { PLAY_TXN } from '../../replica/provenance'
@@ -202,12 +204,18 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const npcs = useTableRead(api.mediator.npcs, { gameId: id })
   const running = useTableRead(api.mediator.running, { gameId: id })
   const encounters = useEncounters((s) => s.encounters)
-  // On the rooms, the Mediator's own patterns, from their replica; a crewmate's
-  // shared pattern has no room read yet.
+  // On the rooms, the Mediator's own patterns, from their replica, then those
+  // crewmates shared with this Game, from the shared database.
   const ownPatterns = usePatterns((s) => s.mechPatterns)
   const crewPatterns = useQuery(api.mediator.patterns, ROOM_FEED ? 'skip' : { gameId: id })
+  const gamePatterns = useWorkerRead<{ appId: string; body: unknown; madeBy: string }[]>(
+    ROOM_FEED ? sharedPaths.gamePatterns(gameId) : null
+  )
   const patterns = ROOM_FEED
-    ? ownPatterns.map((p) => ({ appId: p.id, body: p, madeBy: mediatorCopy('you') }))
+    ? [
+        ...ownPatterns.map((p) => ({ appId: p.id, body: p, madeBy: mediatorCopy('you') })),
+        ...(gamePatterns ?? []),
+      ]
     : crewPatterns
   const sent = useTableRead(api.ops.sent, { gameId: id, limit: sentLimit })
   const alerts = useTableRead(api.changeLog.alerts, { gameId: id, limit: FEED_ALERTS })

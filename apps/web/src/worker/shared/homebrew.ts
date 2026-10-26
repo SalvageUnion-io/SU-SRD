@@ -117,6 +117,14 @@ export async function homebrewStanding(
 /** Why a report was refused, in the words the reader sees. */
 export type ReportRefusal = 'not-listed' | 'own' | 'empty' | 'too-long'
 
+/** Each refusal as the reader reads it, as Convex's `homebrew.report` said it. */
+export const REPORT_REFUSALS: Record<ReportRefusal, string> = {
+  'not-listed': 'That pattern is not shared as homebrew',
+  own: 'You cannot report your own homebrew',
+  empty: 'Say what is wrong with it',
+  'too-long': `Keep the reason under ${REPORT_REASON_MAX} characters`,
+}
+
 /**
  * Report a listed pattern, with a reason. One report per reader: reporting
  * again replaces the reason. Never your own.

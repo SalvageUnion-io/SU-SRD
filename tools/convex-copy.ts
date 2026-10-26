@@ -178,8 +178,12 @@ export function buildBundles(t: Tables): CopyResult {
       skipped.push({ table: 'mechPatterns', id: p._id, reason: 'owner has no account' })
       continue
     }
-    owner.patterns.push(record(p, ['publicRead', 'sharedAt', 'builtCount', 'homebrew']))
-    if (typeof p.gameId === 'string') games.get(p.gameId)?.crewPatterns.push(String(p.appId))
+    const pattern = record(p, ['publicRead', 'sharedAt', 'builtCount', 'homebrew', 'gameId'])
+    const crew = typeof p.gameId === 'string' ? games.get(p.gameId) : undefined
+    // Shared with a crew: the account room publishes it for them (`crew_patterns`).
+    if (crew) pattern.extra = { ...pattern.extra, gameName: crew.name }
+    owner.patterns.push(pattern)
+    crew?.crewPatterns.push(String(p.appId))
   }
   for (const e of rows('encounters')) {
     const owner = accounts.get(String(e.ownerId))

@@ -1,13 +1,15 @@
 /**
- * Every write `useTableAct` sends is an act the Game room runs: a room takes
- * each under its Convex function's own name (`rooms/game/acts.ts`), so a
- * screen that starts writing a new one fails here, not at the table.
+ * Every write `useTableAct` sends is an act a room runs: a Game room takes
+ * each under its Convex function's own name (`rooms/game/acts.ts`), and an
+ * account room its Shelf's (`SHELF_ACTS`), so a screen that starts writing a
+ * new one fails here, not at the table.
  */
 
 import { describe, expect, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { GameActName } from '../../rooms/game/acts'
+import { SHELF_ACTS } from '../../rooms/game/socketActs'
 
 /** The room's acts a screen may send; `satisfies` holds each to a registered name. */
 const ROOM_ACTS = [
@@ -51,6 +53,7 @@ const ROOM_ACTS = [
   'ops.accept',
   'ops.decline',
   'changeLog.broadcast',
+  'publicSheet.setPublic',
 ] as const satisfies readonly GameActName[]
 
 function sources(dir: string): string[] {
@@ -62,7 +65,7 @@ function sources(dir: string): string[] {
 }
 
 describe('useTableAct', () => {
-  test('sends only acts the Game room runs', () => {
+  test('sends only acts a room runs', () => {
     const sent = new Set(
       sources(join(import.meta.dir, '../..')).flatMap((file) =>
         [...readFileSync(file, 'utf8').matchAll(/useTableAct\(\s*api\.(\w+)\.(\w+)/g)].map(
@@ -71,6 +74,7 @@ describe('useTableAct', () => {
       )
     )
     expect(sent.size).toBeGreaterThan(0)
-    expect([...sent].filter((name) => !(ROOM_ACTS as readonly string[]).includes(name))).toEqual([])
+    const runs = new Set<string>([...ROOM_ACTS, ...Object.keys(SHELF_ACTS)])
+    expect([...sent].filter((name) => !runs.has(name))).toEqual([])
   })
 })

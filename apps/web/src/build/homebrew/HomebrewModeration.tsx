@@ -6,14 +6,14 @@
  * refuses their writes either way.
  */
 
-import { useMutation } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { publicPath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
+import type { api } from '../../../convex/_generated/api'
 import { Button, Cluster, SlabSection, Stack, Text, toast, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { useHomebrewDismiss, useHomebrewSetHidden } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 
 type Queue = NonNullable<FunctionReturnType<typeof api.homebrew.moderation>>
@@ -40,8 +40,8 @@ const REASONS = {
 const NAME = { fontFamily: tokens.font.body, fontWeight: 600 } satisfies CSSProperties
 
 export function HomebrewModeration({ queue }: { queue: Queue }) {
-  const setHidden = useMutation(api.homebrew.setHidden)
-  const dismiss = useMutation(api.homebrew.dismissReports)
+  const setHidden = useHomebrewSetHidden()
+  const dismiss = useHomebrewDismiss()
   const act = useServerAction(
     async (verb: Verb, item: Moderated) => {
       if (verb === 'dismiss') await dismiss({ appId: item.appId })

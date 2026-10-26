@@ -45,6 +45,12 @@
   //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
   // - GITHUB_FEEDBACK_TOKEN, a GitHub token that may open issues on SU-SRD.
   //   Without it feedback waits in the shared database and is never filed.
+  // - ADMIN_DISCORD_IDS, the site admins' Discord ids, comma-separated, as on
+  //   Convex. Without it nobody can moderate Homebrew (src/worker/sharedRoutes.ts).
+  //
+  // PHOTOS, an R2 binding to the `su-photos` bucket (`su-photos-preview` in
+  // `previews`), holds entity photos (src/worker/photos.ts). It joins the
+  // bindings once the buckets exist; until then an upload answers 503.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from until SHARED is filled: the URL the app is built against,

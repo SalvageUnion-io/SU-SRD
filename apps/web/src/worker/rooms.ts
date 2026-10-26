@@ -57,6 +57,7 @@ import { RoomPublisher, sharedDb } from './shared/roomRows'
 import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign } from './shared/stopSign'
+import { isShelfAct, runShelfAct } from './shelfActs'
 
 type RoomHealth = { schema: number }
 
@@ -234,15 +235,25 @@ export class AccountRoom extends Room implements UnitHome {
 
   /**
    * The player's `ops` batch (applied all or none) or `act` (their solo
-   * area's), answered on its socket, heard by all of theirs.
+   * area's or their Shelf's, `./shelfActs.ts`), answered on its socket, heard
+   * by all of theirs.
    */
   override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
     const [member] = this.ctx.getTags(ws)
     const said = member === undefined ? null : readClientMessage(message)
     if (member !== undefined && said?.type === 'act') {
       const act = socketAct(said, ACCOUNT_SOCKET_ACTS)
-      const answer = 'refusal' in act ? { ok: false as const, ...act } : this.soloAct(member, act)
-      ws.send(JSON.stringify(actAnswer(said.id, answer)))
+      if (!('refusal' in act) && isShelfAct(act)) {
+        const id = said.id
+        const answered = (answer: GameActAnswer<unknown>) => {
+          if (answer.ok) this.broadcastSnapshots()
+          sendQuietly(ws, JSON.stringify(actAnswer(id, answer)))
+        }
+        runShelfAct(this.logic, sharedDb(this.env), member, act, answered, () => ws.close(1011))
+      } else {
+        const answer = 'refusal' in act ? { ok: false as const, ...act } : this.soloAct(member, act)
+        ws.send(JSON.stringify(actAnswer(said.id, answer)))
+      }
       return
     }
     const batch = said?.type === 'ops' ? said.ops : null
@@ -269,15 +280,16 @@ export class AccountRoom extends Room implements UnitHome {
     ws.send(JSON.stringify(batchAnswer(opIds, result)))
   }
 
-  /** One act on the player's solo table; every socket of theirs then hears their Shelf. */
+  /** One act on the player's solo table (not the Shelf's); every socket of theirs then hears their Shelf. */
   private soloAct(
     member: string,
     act: Exclude<ReturnType<typeof socketAct<typeof ACCOUNT_SOCKET_ACTS>>, { refusal: string }>
   ): GameActAnswer<unknown> {
-    const run = ACCOUNT_ACTS[act.name] as (c: unknown, a: unknown) => unknown
+    const name = act.name as keyof typeof ACCOUNT_ACTS
+    const run = ACCOUNT_ACTS[name] as (c: unknown, a: unknown) => unknown
     try {
       const value = run({ room: this.logic, actor: member, at: Date.now() }, act.args)
-      if (!ACCOUNT_READ_ACTS.has(act.name)) this.broadcastSnapshots()
+      if (!ACCOUNT_READ_ACTS.has(name)) this.broadcastSnapshots()
       return { ok: true, value }
     } catch (error) {
       if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }

@@ -177,6 +177,11 @@ const GAME_ACTS = {
   'safety.setPostToChannel': (c: ActContext, a: { on: boolean }) =>
     c.room.safety.setPostToChannel(c.actor, a.on, c.at),
 
+  'publicSheet.setPublic': (
+    c: ActContext,
+    a: { kind: EntityKind; appId: string; isPublic: boolean }
+  ) => c.room.units.setPublic(c.actor, a.kind, a.appId, a.isPublic),
+
   unitsFor: (c: ActContext): UnitSheet[] => {
     const crawler = c.room.units.primaryCrawler()
     return c.room.units

@@ -6,8 +6,10 @@ import { SHELF_RECORDS } from './shelf'
 /**
  * What an account room tells its player's sockets (`../protocol.ts`): the
  * whole Shelf (with the solo table: its salvage area, as a Game's
- * `salvageArea` record, and each Shelf pilot's solo seat) on connect and
- * after a unit, record or seat changes, else one `applied` per op (`appliedMessages`, shared with the Game room). Anyone
+ * `salvageArea` record, and each Shelf pilot's solo seat; and each pattern's
+ * sharing as a `sharing` record) on connect and after a unit, record or seat
+ * changes, else one `applied` per op (`appliedMessages`, shared with the Game
+ * room). Anyone
  * but the room's player is told nothing.
  */
 export function shelfSnapshot(room: AccountRoomLogic, actor: string): ServerMessage {
@@ -40,6 +42,11 @@ export function shelfSnapshot(room: AccountRoomLogic, actor: string): ServerMess
         appId: seat.pilotId,
         body: { ...seat },
         updatedAt: seat.updatedAt ?? 0,
+      })),
+      sharing: room.sharing.patternSharing(actor).map(({ appId, sharing }) => ({
+        appId,
+        body: { ...sharing },
+        updatedAt: 0,
       })),
     },
     links: roomLinks(shelf.store),

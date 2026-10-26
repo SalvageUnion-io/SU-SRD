@@ -24,6 +24,7 @@ import { ServerMessageSchema } from '../rooms/protocol'
 import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
 import { noteRoomChange } from './roomChanges'
+import { dropSharedByLink, holdSharedByLink, putSharedByLink } from './sharedByLink'
 import { WritesBlockedOffline } from './sync'
 import { dropTableState, isStateTable, putTableState, serveTableState } from './tableState'
 
@@ -56,6 +57,7 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   rolls: null,
   alerts: null,
   crew: null,
+  sharing: null,
 }
 
 type RoomLink = Extract<ServerMessage, { type: 'links' }>['links'][number]
@@ -113,13 +115,16 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
         ]
       )
       serveTableState(scope, message.records)
+      holdSharedByLink(scope, message.units)
       return
     }
     case 'applied':
       serve(scope, [], [servedUnit(message.unit)])
+      putSharedByLink(scope, message.unit)
       return
     case 'gone':
       release(scope, message.kind, message.appId)
+      dropSharedByLink(scope, message.appId)
       return
     case 'record': {
       const table = RECORD_TABLE[message.table]

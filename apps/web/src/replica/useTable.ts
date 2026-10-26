@@ -1,8 +1,9 @@
 /**
  * What a table plays under, read and written the same way whichever server
  * holds it: the Scene, the salvage area, the ledger, the boundaries and the
- * Stop Sign (4.3), the Mediator's Opposition tray and running encounter, and
- * the table in play: the seats, the Downtime, the proposals and the feed.
+ * Stop Sign (4.3), the Mediator's Opposition tray and running encounter,
+ * the table in play: the seats, the Downtime, the proposals and the feed; and
+ * who may read each of the player's saved patterns.
  *
  * `useTableRead` stands in for Convex's `useQuery`, and `useTableAct` for its
  * `useMutation`, on those functions. A Game room serves each query's answer as
@@ -106,6 +107,7 @@ const ANSWERED_BY: Record<string, Answer> = {
   'changeLog:rolls': { table: 'rolls', answer: newest(30) },
   'changeLog:alerts': { table: 'alerts', answer: newest(20) },
   'crew:vitals': { table: 'crew' },
+  'shelf:patternSharing': { table: 'sharing' },
 }
 
 type Query = FunctionReference<'query'>

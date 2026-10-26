@@ -62,11 +62,22 @@ export type PublishedRoster = {
   } | null
 }
 
-/** Everything one room publishes; a Game room its roster too. */
+/** One pattern its maker shared with one Game's crew (ADR-032 §7). */
+export type PublishedCrewPattern = {
+  appId: string
+  ownerId: string
+  gameId: string
+  body: unknown
+  madeBy: string
+  sharedAt: number | null
+}
+
+/** Everything one room publishes; a Game room its roster too, and only a Shelf has patterns to share with a crew. */
 export type Published = {
   sheets: PublishedSheet[]
   homebrew: PublishedPattern[]
   roster?: PublishedRoster
+  crew?: PublishedCrewPattern[]
 }
 
 /** Whose room it is, a Game (by name) or a Shelf (by its player), and each person's display name. */
@@ -145,11 +156,9 @@ function published(store: GameStore, context: PublishContext): Published {
     if (!unit.publicRead || unit.leaseId !== null) continue
     sheets.push(sheetOf(store, units, unit, context))
   }
-  const { patterns, homebrew } =
-    context.place.kind === 'shelf'
-      ? patternsOf(store, context.place.owner, context)
-      : { patterns: [], homebrew: [] }
-  return { sheets: [...sheets, ...patterns], homebrew }
+  if (context.place.kind !== 'shelf') return { sheets, homebrew: [] }
+  const { patterns, homebrew, crew } = patternsOf(store, context.place.owner, context)
+  return { sheets: [...sheets, ...patterns], homebrew, crew }
 }
 
 function sheetOf(
@@ -252,30 +261,36 @@ type PatternExtra = {
   sharedAt?: number
   builtCount?: number
   homebrew?: boolean
+  gameId?: string | null
 }
 
 /**
  * A Shelf's shared patterns: by link, a page and a preview; on the Reference
- * too, a Homebrew listing (held only while shared by link). A Game room
- * keeps no patterns.
+ * too, a Homebrew listing (held only while shared by link); with a Game, a
+ * row its crew reads. A Game room keeps no patterns.
  */
 function patternsOf(
   store: GameStore,
   ownerId: string,
   context: PublishContext
-): { patterns: PublishedSheet[]; homebrew: PublishedPattern[] } {
+): { patterns: PublishedSheet[]; homebrew: PublishedPattern[]; crew: PublishedCrewPattern[] } {
   const madeBy = context.nameOf(ownerId) ?? 'a player'
   const patterns: PublishedSheet[] = []
   const homebrew: PublishedPattern[] = []
+  const crew: PublishedCrewPattern[] = []
   const rows = store.rows(
     "select app_id, body, extra from records where tbl = 'patterns' order by app_id"
   )
   for (const row of rows) {
     const extra = fromJson<PatternExtra>(row.extra)
-    if (extra.publicRead !== true) continue
     const appId = String(row.app_id)
     const body = fromJson<Record<string, unknown>>(row.body)
     const sharedAt = extra.sharedAt ?? null
+    if (extra.publicRead !== true) {
+      const gameId = extra.gameId ?? null
+      if (gameId !== null) crew.push({ appId, ownerId, gameId, body, madeBy, sharedAt })
+      continue
+    }
     patterns.push({
       kind: 'pattern',
       appId,
@@ -303,5 +318,5 @@ function patternsOf(
       sharedAt,
     })
   }
-  return { patterns, homebrew }
+  return { patterns, homebrew, crew }
 }

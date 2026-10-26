@@ -18,15 +18,14 @@
  * address differs, so an old link or a renamed thing settles on its own.
  */
 
-import { useQuery } from 'convex/react'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { shareSegment } from 'game-domain/shareAddress'
 import { useEffect } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { usePublicPattern, usePublicSheet } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
@@ -70,7 +69,7 @@ function useCanonicalAddress(
 
 /** The half that talks to Convex, reached only with a known kind. */
 function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: SheetKind }) {
-  const result = useQuery(api.publicSheet.get, { kind, appId })
+  const result = usePublicSheet(kind, appId)
   useCanonicalAddress(appId, result, onAddress)
 
   // `undefined` is Convex's "still loading"; `null` is a real "no such public
@@ -83,7 +82,7 @@ function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: Sheet
 
 /** A saved pattern: readable by link, by its Game's crew, or by its maker. */
 function PublicPatternQuery({ appId, onAddress }: QueryProps) {
-  const result = useQuery(api.publicSheet.pattern, { appId })
+  const result = usePublicPattern(appId)
   useCanonicalAddress(appId, result, onAddress)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="pattern" />
@@ -96,7 +95,7 @@ function PublicPatternQuery({ appId, onAddress }: QueryProps) {
 
 /** A built NPC someone shared by link: its own page, read-only and credited to its maker. */
 function PublicNpcQuery({ appId, onAddress }: QueryProps) {
-  const result = useQuery(api.publicSheet.get, { kind: 'npc', appId })
+  const result = usePublicSheet('npc', appId)
   useCanonicalAddress(appId, result, onAddress)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="NPC" />

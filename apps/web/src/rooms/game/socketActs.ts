@@ -20,6 +20,11 @@ const SALVAGE_AREA_SET = z.object({
   area: z.object({ name: z.string(), techLevel: z.number(), supply: z.number() }).nullable(),
 })
 const SALVAGE_AREA_SPEND = z.object({ pilotId: z.string() })
+const SET_PUBLIC = z.object({
+  kind: z.enum(['pilot', 'mech', 'crawler', 'npc']),
+  appId: z.string(),
+  isPublic: z.boolean(),
+})
 
 /** A unit made, or deleted, in the room it lives in; its body is the kind's schema's to check. */
 const CREATE_UNIT = z.object({ id: z.string(), kind: z.enum(ENTITY_KINDS), body: z.unknown() })
@@ -138,11 +143,30 @@ export const GAME_SOCKET_ACTS = {
   }),
   'changeLog.broadcast': z.object({ message: z.string() }),
   'changeLog.forEntity': FOR_ENTITY,
+  'publicSheet.setPublic': SET_PUBLIC,
 } satisfies Partial<Record<GameActName, z.ZodType>>
 
-/** An account room's: its player's units and solo table, its seats, Downtime and salvage area. */
+/** An account room's Shelf: the records its player keeps there, and who may read what. */
+export const SHELF_ACTS = {
+  'shelf.upsertMechPattern': z.object({ body: ENTRY }),
+  'shelf.removeMechPattern': z.object({ patternId: z.string() }),
+  'shelf.upsertEncounterNpc': z.object({ body: ENTRY }),
+  'shelf.removeEncounterNpc': z.object({ npcId: z.string() }),
+  'shelf.upsertEncounter': z.object({ body: ENTRY }),
+  'shelf.removeEncounter': z.object({ encounterId: z.string() }),
+  'shelf.setPatternVisibility': z.object({
+    patternId: z.string(),
+    visibility: z.enum(['private', 'link', 'game']),
+    gameId: z.string().optional(),
+  }),
+  'homebrew.setShared': z.object({ patternId: z.string(), shared: z.boolean() }),
+  'publicSheet.setPublic': SET_PUBLIC,
+}
+
+/** An account room's: its player's units and solo table, its seats, Downtime and salvage area, and its Shelf's records. */
 export const ACCOUNT_SOCKET_ACTS = {
   ...UNIT_ACTS,
+  ...SHELF_ACTS,
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   ...SEAT_ACTS,

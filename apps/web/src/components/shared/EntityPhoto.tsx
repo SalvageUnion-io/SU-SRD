@@ -6,7 +6,7 @@
  *
  * With `onChange`, the frame carries Upload / Replace / Remove. Upload scales
  * and re-encodes the picked file (`lib/photos/uploadPhoto.ts`), stores it
- * through `convex/photos.ts`, and hands the resulting photo to `onChange`, which
+ * through `convex/photos.ts` (on the rooms, the Worker's R2 route), and hands the resulting photo to `onChange`, which
  * writes it like any other field. Remove hands `undefined`; the server deletes
  * the file once no entity holds it. Without `onChange` (Read, a crewmate's
  * view, the public sheet) it is the picture alone, and nothing at all when
@@ -22,7 +22,9 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
 import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
+import { PHOTOS_PATH, photoPath } from '../../lib/sharing/paths'
 import { sharedCopy } from '../../messages/components-shared'
+import { ROOM_FEED } from '../../replica/roomSocket'
 import { assetSrcSetFor, Button, EmptyState, tokens } from '../index'
 
 /** Default art from the artwork CDN, which serves `-440q80`/`-880q80` derivatives. */
@@ -89,12 +91,28 @@ const client = async () => (await import('../../lib/connection/convexClient')).c
  * stores' writes are) so a sheet renders without a Convex provider in reach, and
  * a test without a deployment URL.
  */
-const UPLOADER: PhotoUploader = {
+const CONVEX_UPLOADER: PhotoUploader = {
   generateUploadUrl: async () => (await client()).mutation(api.photos.generateUploadUrl, {}),
   claim: async ({ storageId }) =>
     (await client()).mutation(api.photos.claim, { storageId: storageId as Id<'_storage'> }),
   post: postPhoto,
 }
+
+/**
+ * The upload against the site Worker's R2 route (`worker/photos.ts`), which
+ * checks the file as it stores it: the claim is only the photo it names.
+ */
+const R2_UPLOADER: PhotoUploader = {
+  generateUploadUrl: async () => PHOTOS_PATH,
+  claim: async ({ storageId }) => ({
+    kind: 'upload',
+    storageId,
+    url: new URL(photoPath(storageId), window.location.origin).href,
+  }),
+  post: postPhoto,
+}
+
+const UPLOADER = ROOM_FEED ? R2_UPLOADER : CONVEX_UPLOADER
 
 /** A photo the player can fix says why; see `PhotoRefused`. */
 const PHOTO_PLAYER_ERRORS = [PhotoRefused]

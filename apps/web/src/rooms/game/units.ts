@@ -222,6 +222,33 @@ export class GameUnits {
     throw new RoomRefusal(unit.ownerId === null ? UNASSIGNED : NOT_YOURS)
   }
 
+  /**
+   * Share a unit by link, or stop (ADR-032): a crawler's table runner, else
+   * its holder. An unassigned unit cannot be shared but can always be
+   * withdrawn, so a link is never left up that nobody may take down. Sharing
+   * parses the body first, so a sheet its page cannot draw fails here.
+   */
+  setPublic(actor: string, kind: EntityKind, unitId: string, isPublic: boolean): boolean {
+    return this.store.sql.transaction(() => {
+      const unit = this.store.requireUnit(unitId)
+      if (unit.kind !== kind) throw new RoomRefusal('That entity no longer exists')
+      if (isPublic || unit.kind === 'crawler' || unit.ownerId !== null) {
+        this.assertMayWrite(actor, unit)
+      } else {
+        this.store.requireMember(actor)
+      }
+      if (isPublic) {
+        try {
+          parseUnitBody(kind, unitId, unit.body)
+        } catch {
+          throw new RoomRefusal(`This ${kind} cannot be shared publicly: it is not a whole ${kind}`)
+        }
+      }
+      this.store.putUnit({ ...unit, publicRead: isPublic })
+      return isPublic
+    })
+  }
+
   /** Every unit, for any member to read. Non-members read nothing (ADR-030 §5). */
   list(actor: string): UnitRow[] {
     if (this.store.member(actor) === null) return []

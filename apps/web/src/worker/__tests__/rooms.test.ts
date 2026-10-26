@@ -121,7 +121,7 @@ describe('an account room', () => {
     ])
   })
 
-  test('its player’s solo area acts are answered, and their Shelf carries the area', () => {
+  test('its player’s solo area acts are answered, and their Shelf carries the area', async () => {
     const rook = sock('d-rook')
     const room = shelf(rook)
     const act = (id: string, name: string, args?: unknown) =>
@@ -130,6 +130,8 @@ describe('an account room', () => {
     act('a-2', 'salvageAreas.spend', { pilotId: 'p1' })
     act('a-3', 'salvageAreas.spend', { pilotId: 'p1' })
     act('a-4', 'scenes.passHour')
+    // An account room's acts answer once their (possibly awaited) work is done.
+    await new Promise((resolve) => setTimeout(resolve, 0))
     const heard = received(rook)
     expect(heard.filter((m) => m.type !== 'snapshot')).toEqual([
       { type: 'answered', id: 'a-1' },

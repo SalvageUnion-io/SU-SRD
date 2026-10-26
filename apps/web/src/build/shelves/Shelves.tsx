@@ -37,7 +37,6 @@
  * NPCs are not yours to keep and do not belong here.
  */
 
-import { useQuery } from 'convex/react'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
@@ -74,6 +73,7 @@ import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { patternCopy, patternHref } from '../../lib/patterns/patterns'
+import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfFilter, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,
@@ -130,13 +130,13 @@ type ServerFacts = {
   /** Who can see each of your patterns; undefined likewise. */
   sharing: PatternSharing[] | undefined
   /** The ids of your sheets anyone with the link may read; undefined likewise. */
-  sharedByLink: string[] | undefined
+  sharedByLink: readonly string[] | undefined
 }
 
 function ConnectedShelves() {
   const games = useGamesQuery(api.games.listMine, {})
-  const sharing = useQuery(api.shelf.patternSharing, {})
-  const sharedByLink = useQuery(api.shelf.sharedByLink, {})
+  const sharing = usePatternSharing()
+  const sharedByLink = useSharedByLink()
   return <ShelvesPage games={games} sharing={sharing} sharedByLink={sharedByLink} />
 }
 

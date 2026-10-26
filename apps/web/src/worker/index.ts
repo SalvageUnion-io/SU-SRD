@@ -32,6 +32,11 @@
  *     the build floor (`./accountRoutes.ts`).
  *   - `homebrew`: `GET /homebrew/patterns.json` → the players' shared
  *     patterns for the SRD's pages (`./homebrew.ts`).
+ *   - `shared`: `/__shared/*` → public sheets, previews, Homebrew's standing
+ *     and moderation, and crew patterns, from the shared database
+ *     (`./sharedRoutes.ts`).
+ *   - `photos`: `/__photos` → an entity photo uploaded to or served from R2
+ *     (`./photos.ts`).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   - `api-root`: `/api/v1` or `/api/v1/` itself → a **301** to the tree's
  *     manifest, `/api/v1/index.json`: still JSON for a client, and the list of
@@ -87,7 +92,10 @@ import {
 } from './errorReports'
 import { serveGameCall } from './gameCalls'
 import { serveHomebrew } from './homebrew'
+import type { PhotoBucket } from './photos'
+import { isPhotosPath, servePhotos } from './photos'
 import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from './roomRoutes'
+import { isSharedPath, serveShared } from './sharedRoutes'
 
 export { BotGateway } from './botGateway'
 export { AccountRoom, GameRoom } from './rooms'
@@ -118,7 +126,9 @@ export type Env = AppEnv &
     TEST_AUTH?: string
     /** The cutover runner's bearer secret ; unset, its door is a 404. */
     CUTOVER_SECRET?: string
-    /** The admins' Discord ids, comma-separated, as on Convex: the metrics page's (`./accountRoutes.ts`). */
+    /** Entity photos (R2, `./photos.ts`); unset, an upload answers 503. */
+    PHOTOS?: PhotoBucket
+    /** The site admins' Discord ids, comma-separated (`./auth/index.ts` `identityOf`). */
     ADMIN_DISCORD_IDS?: string
   }
 
@@ -216,6 +226,10 @@ export default {
     if (url.pathname === accountSocketPath()) return serveAccountSocket(request, env)
     if (url.pathname === ROOMS_CALL_PATH) return serveGameCall(request, env)
     if (isAccountPath(url.pathname)) return serveAccount(request, env)
+
+    // S. What crosses rooms, and the photos.
+    if (isSharedPath(url.pathname)) return serveShared(request, env)
+    if (isPhotosPath(url.pathname)) return servePhotos(request, env)
 
     // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {
