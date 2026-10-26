@@ -16,7 +16,7 @@ import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
-import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt } from './mediatorFixture'
+import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 
 type Sent = { name: string; args: Record<string, unknown> }
 const sent: Sent[] = []
@@ -33,6 +33,7 @@ function useMutation(ref: unknown) {
 
 const convexMocks = await installConvexMocks({
   convexReact: { useMutation },
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
 
@@ -48,11 +49,11 @@ afterAll(async () => {
 })
 
 const { PlayMediatorCockpit } = await import('../PlayMediatorCockpit')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { clearPlayRolls } = await import('../playRolls.model')
-const { usePrepStore } = await import('../../stores/prepStore')
-const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
+const { useEncounters } = await import('../../replica/collections')
+const { withSignedInBackend } = await import('../../replica/__tests__/signedInBackend')
 
 withSignedInBackend()
 
@@ -66,7 +67,6 @@ afterEach(() => {
   sent.length = 0
 })
 
-const NOW = Date.now()
 const GAME = 'g-rust'
 const STAMP = '2026-10-26T00:00:00.000Z'
 const BAND = { id: 'band', name: 'Raider Band' }
@@ -134,7 +134,7 @@ const RUNNING = {
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
     'games:members': MEDIATOR_MEMBERS,
-    'crew:vitals': mediatorCrewAt(NOW),
+    'crew:vitals': mediatorCrewAt(),
     'seats:forGame': MEDIATOR_SEATS,
     'entities:listForGame': {
       pilots: [],
@@ -151,8 +151,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'ledger:get': { factions: [], jobs: [], incomeCollected: false },
     'mediator:running': RUNNING,
     'salvageAreas:here': null,
-    'proposals:sent': [],
-    'proposals:alerts': [],
+    'ops:sent': [],
+    'changeLog:alerts': [],
     'changeLog:rolls': [],
     'channelBindings:current': null,
     'safety:stopSign': null,
@@ -165,16 +165,9 @@ async function renderCockpit(over: QueryAnswers = {}) {
   setQueryAnswers(answers(over))
   await act(async () => {
     render(
-      <ConnectionContext.Provider
-        value={{
-          mode: 'connected',
-          canWrite: true,
-          showDisconnectedWarning: false,
-          settling: false,
-        }}
-      >
+      <SyncContext.Provider value={{ status: 'live', canWrite: true, outdated: false }}>
         <PlayMediatorCockpit gameId={GAME} gameName="The Rust Belt Run" />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -252,7 +245,7 @@ describe('waves', () => {
   })
 
   test('running an encounter asks for waves', async () => {
-    usePrepStore.setState({
+    useEncounters.setState({
       encounters: [
         {
           id: 'enc-1',
@@ -274,6 +267,6 @@ describe('waves', () => {
       name: 'mediator:runEncounter',
       args: { gameId: GAME, encounterId: 'enc-1', clear: false, waves: true },
     })
-    act(() => usePrepStore.setState({ encounters: [] }))
+    act(() => useEncounters.setState({ encounters: [] }))
   })
 })

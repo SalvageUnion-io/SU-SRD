@@ -34,13 +34,16 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { flagOn } from '../../lib/flags'
 import type { ImportantRoll } from '../../lib/rules/opposition'
 import {
   criticalTable,
+  groupTableName,
   npcHeatCheck,
   REACTOR_OVERLOAD,
   rollMorale,
   rollNpcCritical,
+  rollReaction,
 } from '../../lib/rules/opposition'
 import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
@@ -151,6 +154,8 @@ type MediatorPrep = {
   run: (encounterId: string, clear: boolean) => Promise<{ added: number }>
   /** Stop running it: its notes and tables leave Play; the Opposition stays. */
   end: () => Promise<void>
+  /** Bring a held-back wave onto the tray (ADR-059 §5). */
+  bringIn: (wave: number) => Promise<{ added: number }>
 }
 
 /** A running encounter as the server keeps it, or null when it does not read. */
@@ -209,6 +214,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const removeNpc = useMutation(api.mediator.removeNpc)
   const runEncounter = useMutation(api.mediator.runEncounter)
   const endEncounter = useMutation(api.mediator.endEncounter)
+  const bringInWave = useMutation(api.mediator.bringInWave)
+  const recordGroupRoll = useMutation(api.mediator.recordGroupRoll)
   const proposeMutation = useMutation(api.ops.propose)
   const broadcastMutation = useMutation(api.changeLog.broadcast)
   const setConditions = useTableAct(api.scenes.setConditions, gameId)
@@ -260,6 +267,19 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         tableName: 'Morale',
         rolls: [result.roll],
         label: `${npc.name} · Morale`,
+        outcome: result.label ?? result.value,
+      })
+    },
+    groupRoll: async (group, table) => {
+      const tableName = groupTableName(table)
+      const roll = table === 'reaction' ? rollReaction : rollMorale
+      const result = roll(await dieForTable(tableName), new Date().toISOString())
+      if (result === null) throw new Error(`The ${tableName} table could not be read`)
+      await recordGroupRoll({ gameId: id, groupId: group.id, roll: result })
+      recordPlayRoll({
+        tableName,
+        rolls: [result.roll],
+        label: `${group.name} · ${tableName}`,
         outcome: result.label ?? result.value,
       })
     },
@@ -427,7 +447,14 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     prep: {
       encounters,
       running: running == null ? null : readRunning(running),
-      run: (encounterId, clear) => runEncounter({ gameId: id, encounterId, clear }),
+      run: (encounterId, clear) =>
+        runEncounter({
+          gameId: id,
+          encounterId,
+          clear,
+          ...(flagOn('encounterSheet') ? { waves: true } : {}),
+        }),
+      bringIn: (wave) => bringInWave({ gameId: id, wave }),
       end: async () => {
         await endEncounter({ gameId: id })
       },
