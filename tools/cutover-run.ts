@@ -1,5 +1,5 @@
 /**
- * The 4.5.0 cutover's runner (#1790): posts every bundle that
+ * The 4.5.0 cutover's runner: posts every bundle that
  * `tools/convex-copy.ts` wrote to a deployment's cutover door
  * (`apps/web/src/worker/cutover.ts`), then writes the diff report. Only with
  * `--finish`, and only when every room matched its bundle, does it mark the
