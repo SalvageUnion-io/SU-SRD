@@ -117,7 +117,7 @@ export {
   mechSalvageResult,
   mechSalvageScrap,
 } from './salvage'
-export { scrapCostFor, tierUpgradeCost } from './scrap'
+export { tierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
   HeatCheckEffect,

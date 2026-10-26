@@ -44,11 +44,7 @@ export const EXOTIC_RESOURCES: readonly ExoticResource[] = [
   { key: 'activeNanites', tradeTl: 6 },
 ]
 
-/** Bio-Salvage one Chimerium counts as when crafting Bio-Tech (WWHF p.10). */
-const CHIMERIUM_BIO_VALUE = 10
-
-export const BIO_CRAFTING_BAY = 'bio-crafting-bay'
-export const NANITE_PROCESSING_BAY = 'nanite-processing-bay'
+const NANITE_PROCESSING_BAY = 'nanite-processing-bay'
 
 /** The die that finds an Active Meld Nanite in a pile (False Flag p.66). */
 const ACTIVE_ON = 20
@@ -124,49 +120,4 @@ export function processNanites(pool: ScrapPool, rollD20: () => number): NanitePr
   const found = rolls.filter((r) => r >= ACTIVE_ON).length
   const next = addToExotic(addToExotic(pool, 'inertNanites', -processed), 'activeNanites', found)
   return { processed, found, rolls, pool: next }
-}
-
-// ---------------------------------------------------------------------------
-// Paying for Bio-Tech and Nanite-Tech
-// ---------------------------------------------------------------------------
-
-/** What a Bio or Nanite craft spends, by resource. */
-export type ExoticSpend = Partial<Record<ExoticKey, number>>
-
-/** Bio-Salvage the pool can put toward Bio-Tech: its Bio-Salvage plus 10 a Chimerium. */
-export function bioAvailable(pool: ScrapPool): number {
-  return exoticBucket(pool, 'bio') + CHIMERIUM_BIO_VALUE * exoticBucket(pool, 'chimerium')
-}
-
-/**
- * Pay `cost` Bio-Salvage: Bio-Salvage first, then whole Chimerium for the
- * rest (a Chimerium is spent whole; the book makes no change for it). Null
- * when the pool is short.
- */
-export function drawBio(
-  pool: ScrapPool,
-  cost: number
-): { pool: ScrapPool; spent: ExoticSpend } | null {
-  if (bioAvailable(pool) < cost) return null
-  const bio = Math.min(exoticBucket(pool, 'bio'), cost)
-  const chimerium = Math.ceil((cost - bio) / CHIMERIUM_BIO_VALUE)
-  const spent: ExoticSpend = {}
-  if (bio > 0) spent.bio = bio
-  if (chimerium > 0) spent.chimerium = chimerium
-  return {
-    pool: addToExotic(addToExotic(pool, 'bio', -bio), 'chimerium', -chimerium),
-    spent,
-  }
-}
-
-/** Pay `cost` Active Meld Nanites. Null when the pool is short. */
-export function drawActiveNanites(
-  pool: ScrapPool,
-  cost: number
-): { pool: ScrapPool; spent: ExoticSpend } | null {
-  if (exoticBucket(pool, 'activeNanites') < cost) return null
-  return {
-    pool: addToExotic(pool, 'activeNanites', -cost),
-    spent: cost > 0 ? { activeNanites: cost } : {},
-  }
 }

@@ -1,7 +1,7 @@
 import { Dialog } from '@base-ui/react/dialog'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
+import { resolveProvenance, toEntityModel } from 'salvageunion-reference'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, layer, shadow, space } from '../../design/tokens'
 import { referenceEntityCopy } from '../../messages/components-reference-entity'
@@ -17,7 +17,6 @@ import { EntityPageStamps } from './card/EntityPageStamps'
 import { resolveCardTone } from './card/entityCardTone'
 import { resolveEntityPageMeta } from './card/entityPage'
 import { isLegalStartingPatternOf } from './card/legalStartingPattern'
-import { resolveFooterProvenance } from './card/provenance'
 import { textBand } from './referenceEntityHelpers'
 
 type EntityDetailDialogProps = {
@@ -122,7 +121,7 @@ export function EntityDetailPage({
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
   const bandColor = band.fill ?? CHAPTER_BAND_COLOR[band.tone]
-  const provenance = resolveFooterProvenance(entity, pattern)
+  const provenance = resolveProvenance(entity, pattern)
   // The app's "View in the Reference" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as RefEntity)
   const parent = pattern ? toEntityModel(entity, undefined, { pattern }).parent : undefined

@@ -14,8 +14,11 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { RefObjectPattern } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { formatProvenance, resolveAdditionalSources } from '../provenance'
+import {
+  formatProvenance,
+  resolveAdditionalSources,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const equipmentNamed = (name: string) => {

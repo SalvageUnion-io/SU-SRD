@@ -7,13 +7,9 @@
  * trivially testable and the ADR-006 pure-math boundary holds — `lib/rules/*`
  * owns the maths, this only assembles patches.
  *
- * This module is Play's seam onto the `crafting`, `salvage` and
- * `scrapMech` rules, not new rules: Area Salvage's haul into a mech's Cargo
- * Slots or a pilot's inventory, and a downed wreck's into the crawler.
- *
- * ADR-007 boundary: nothing here decides to destroy anything. `scrapMechPatch`
- * assembles the consequence of a scrap the player has already confirmed; the
- * confirmation itself stays an explicit call at the UI layer.
+ * This module is Play's seam onto the `salvage` rules, not new rules: Area
+ * Salvage's haul into a mech's Cargo Slots or a pilot's inventory, and a
+ * downed wreck's into the crawler.
  */
 
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
@@ -22,64 +18,14 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { AreaSalvageResult, MechSalvageBand } from 'salvageunion-reference/rules'
 import { mechSalvageAllows, mechSalvageScrap } from 'salvageunion-reference/rules'
-import { carrierCargoUsage } from '../cargo/cargoTransfer'
-import type { CraftableItem } from './crafting'
-import { craftBaysOf, craftedLot, craftQuote } from './crafting'
+import { addToScrapPool, carrierCargoUsage } from '../cargo/cargoTransfer'
+import type { PoolDraw } from './crawlerEconomy'
 import { pilotInventoryUsed } from './pilotInventory'
-import {
-  depositScrapDeposits,
-  handOffCargo,
-  mechScrapComponents,
-  scrapMechBreakdown,
-} from './scrapMech'
 
 /** The crawler's numeric Tech Level, or undefined when the slug is unparseable. */
 export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'>): number | undefined {
   const digits = (crawler.techLevel ?? '').replace(/\D/g, '')
   return digits ? Number(digits) : undefined
-}
-
-// ─── crafting (F3) ───────────────────────────────────────────────────────────
-
-export type CraftOutcome = {
-  quote: ReturnType<typeof craftQuote>
-  /** Null when the craft is not allowed — the caller shows the reason instead. */
-  patch: Partial<Crawler> | null
-  /**
-   * Why the craft is blocked, for the rule brief. Undefined when allowed.
-   * 'tech-level' covers a Bio or Nanite item with no bay to craft it in.
-   */
-  blocked?: 'tech-level' | 'scrap'
-}
-
-/**
- * Quote a craft and, when it is legal AND affordable, assemble the patch:
- * the pool after paying, plus the crafted item as a cargo lot.
- *
- * Guided Play enforces (ADR-021), so an ineligible or unaffordable craft
- * returns a null patch and a reason rather than a patch the caller must
- * remember not to apply.
- */
-export function craftOutcome(
-  crawler: Pick<Crawler, 'techLevel' | 'scrapPool' | 'cargoLots' | 'crawlerBays'>,
-  item: CraftableItem
-): CraftOutcome {
-  const crawlerTl = crawlerTechLevelOf(crawler) ?? 0
-  const quote = craftQuote(
-    item,
-    (crawler.scrapPool ?? {}) as ScrapPool,
-    crawlerTl,
-    craftBaysOf(crawler)
-  )
-  if (!quote.eligible) return { quote, patch: null, blocked: 'tech-level' }
-  if (!quote.affordable) return { quote, patch: null, blocked: 'scrap' }
-  return {
-    quote,
-    patch: {
-      scrapPool: quote.pool,
-      cargoLots: [...(crawler.cargoLots ?? []), craftedLot(item)],
-    },
-  }
 }
 
 // ─── area salvage (F2) ───────────────────────────────────────────────────────
@@ -244,58 +190,7 @@ export function wreckScrapOutcome(
   }
 }
 
-// ─── scrap mech (F4) ─────────────────────────────────────────────────────────
-
-export type ScrapMechOutcome = {
-  breakdown: ReturnType<typeof scrapMechBreakdown>
-  /** The crawler patch: its pool after the scrap, plus any cargo handed over. */
-  crawlerPatch: Partial<Crawler>
-  /** The mech patch marking it consumed. */
-  mechPatch: Partial<Mech>
-  /** True when the mech's hold moved to the crawler rather than being lost. */
-  cargoHandedOff: boolean
-}
-
-/**
- * Assemble the consequence of scrapping a mech into a crawler's pool.
- *
- * Cross-entity by nature — the scrap leaves the mech and enters the crawler —
- * so the caller commits both halves through `entityStore.transfer`, which is
- * all-or-nothing: a partial write here would duplicate or destroy player value.
- *
- * **A scrapped mech is not a destroyed one.** Deliberately breaking a mech down
- * hands its hold to the crawler; nothing in the hold was ever part of the mech,
- * so losing it would be silent data loss. A mech that was already DESTROYED has
- * lost its cargo with it (p.234/p.240), so the hand-off is skipped — the rule
- * `handOffCargo` states in its own header, and the distinction the caller must
- * make rather than the module.
- *
- * The mech is marked `destroyed` rather than deleted: deleting the record would
- * take its Change Log and its soft-links with it, and ADR-007 keeps destruction
- * visible rather than silently dropping data.
- */
-export function scrapMechOutcome(
-  mech: Parameters<typeof mechScrapComponents>[0] & Pick<Mech, 'id' | 'cargoLots' | 'destroyed'>,
-  crawler: Pick<Crawler, 'scrapPool' | 'cargoLots'>
-): ScrapMechOutcome {
-  const components = mechScrapComponents(mech)
-  const breakdown = scrapMechBreakdown(components)
-  const pooled = depositScrapDeposits((crawler.scrapPool ?? {}) as ScrapPool, breakdown.deposits)
-
-  if (mech.destroyed) {
-    return {
-      breakdown,
-      crawlerPatch: { scrapPool: pooled },
-      mechPatch: { destroyed: true },
-      cargoHandedOff: false,
-    }
-  }
-
-  const handed = handOffCargo(mech.cargoLots ?? [], crawler.cargoLots ?? [], pooled)
-  return {
-    breakdown,
-    crawlerPatch: { scrapPool: handed.pool, cargoLots: handed.crawlerLots },
-    mechPatch: { destroyed: true, cargoLots: [] },
-    cargoHandedOff: true,
-  }
+/** Add scrap deposits to the crawler's shared scrap pool. */
+export function depositScrapDeposits(pool: ScrapPool, deposits: PoolDraw[]): ScrapPool {
+  return deposits.reduce((next, d) => addToScrapPool(next, d.tl, d.count), pool)
 }
