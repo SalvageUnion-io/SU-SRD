@@ -16,7 +16,7 @@
  * Admin stays `ADMIN_DISCORD_IDS` on Convex, read through the linked account.
  */
 
-import { Discord, generateCodeVerifier, generateState } from 'arctic'
+import { Discord, generateCodeVerifier, generateState, OAuth2RequestError } from 'arctic'
 import { getFunctionName, makeFunctionReference } from 'convex/server'
 import { APP_BASE } from 'game-domain/appAddress'
 import {
@@ -209,7 +209,11 @@ async function callback(request: Request, url: URL, deps: AuthDeps): Promise<Res
     return redirect(to, [clear, session])
   } catch (err) {
     // Workers Issues groups it; the player lands signed out where they were.
-    console.error('Discord sign-in failed', err)
+    // Discord's refusal is named (`invalid_client` is a wrong secret), not
+    // just its stack.
+    const reason =
+      err instanceof OAuth2RequestError ? `: ${err.code} ${err.description ?? ''}`.trimEnd() : ''
+    console.error(`Discord sign-in failed${reason}`, err)
     return redirect(to, [clear])
   }
 }
@@ -261,9 +265,13 @@ async function linkToConvex(deps: AuthDeps, account: SignIn, now: number): Promi
     status?: string
     value?: unknown
     errorMessage?: string
+    code?: string
+    message?: string
   }
+  // A refused token answers `{ code, message }`, not a function's error.
+  const why = body.errorMessage ?? [res.status, body.code, body.message].filter(Boolean).join(' ')
   if (body.status !== 'success' || typeof body.value !== 'string')
-    throw new Error(`accountLink.link failed: ${body.errorMessage ?? res.status}`)
+    throw new Error(`accountLink.link failed: ${why}`)
   return body.value
 }
 
