@@ -8,14 +8,14 @@ import { createElement } from 'react'
  * the way to the Training Bay; connected, the page itself (`GameHub`, stubbed: its
  * own file pins what it shows).
  *
- * Queries are answered by name (`convexMock.ts`).
+ * Queries are answered by name (`serverMock.ts`).
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: {
-    // Relative to `convexMock.ts`, not this file.
+    // Relative to `serverMock.ts`, not this file.
     '../../play/games/GameHub': () => ({
       GameHub: ({ gameId }: { gameId: string }) =>
         createElement('p', null, `The page of ${gameId}`),
@@ -26,7 +26,7 @@ const convexMocks = await installConvexMocks({
 const { GamePage } = await import('../GamePage')
 const { SyncContext } = await import('../../../replica/syncContext')
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)
 
 type Mode = 'signedOut' | 'syncing' | 'live' | 'offline'
 

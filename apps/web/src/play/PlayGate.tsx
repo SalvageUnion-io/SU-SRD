@@ -45,7 +45,7 @@ const TO_PLAY = { href: '/play/', label: playCopy('play') }
 export function PlayGate({ id }: { id: string }) {
   const { status } = useSync()
 
-  // Checked before any Convex hook: signed out, there is nothing to read.
+  // Checked before any Games read: signed out, there is nothing to read.
   if (status === 'signedOut') {
     return (
       <PlayRefusal

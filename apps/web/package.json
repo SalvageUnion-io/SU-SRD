@@ -5,7 +5,7 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "ref-generate && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start 'bun --bun astro dev'",
+    "dev": "ref-generate && VITE_TEST_AUTH=true bun --bun astro dev",
     "typecheck": "tsc -b",
     "build": "bun astro/build/genNavCatalog.ts && bun --bun astro build",
     "og:generate": "bun run build && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@convex-dev/auth": "0.0.95",
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
     "@fontsource/caveat": "catalog:",
@@ -32,8 +31,6 @@
     "@tanstack/router-plugin": "1.168.34",
     "arctic": "3.7.0",
     "clsx": "2.1.1",
-    "convex": "catalog:",
-    "convex-helpers": "0.1.124",
     "game-domain": "workspace:*",
     "lucide-react": "catalog:",
     "qrcode": "1.5.4",
@@ -54,7 +51,6 @@
     "@types/qrcode": "1.5.6",
     "@vitejs/plugin-react-swc": "4.3.3",
     "astro": "7.4.2",
-    "convex-test": "0.0.56",
     "gates": "workspace:*",
     "sharp": "catalog:",
     "vite": "8.3.5",

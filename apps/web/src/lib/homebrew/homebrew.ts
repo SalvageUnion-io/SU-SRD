@@ -1,11 +1,10 @@
 /**
  * Homebrew on the SRD (ADR-061), as a page reads it: every pattern a player
  * shares with everyone on the Reference, served by the Worker at
- * `HOMEBREW_PATTERNS_PATH` (`./endpoint.ts`, `worker/homebrew.ts`, from
- * `convex/homebrew.ts`), parsed here into what a row draws.
+ * `HOMEBREW_PATTERNS_PATH` (`./endpoint.ts`, `worker/homebrew.ts`), parsed here into what a row draws.
  *
  * Pure but for `fetchHomebrewPatterns`. The SRD's pages are static and their
- * CSP allows only their own origin, so they never call Convex themselves.
+ * CSP allows only their own origin, so they never call a room themselves.
  */
 
 import { publicPath } from 'game-domain/entityKinds'

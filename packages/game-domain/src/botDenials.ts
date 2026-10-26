@@ -1,6 +1,6 @@
 /**
  * The words the bot shows for each refusal, spelled once for both servers
- * that answer it: Convex's `botClient` and the site Worker's `BotGateway`.
+ * that answer it: the site Worker's `BotGateway`.
  * Kept out of `botWire.ts`, which must import nothing but `entityKinds`.
  */
 

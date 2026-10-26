@@ -1,34 +1,18 @@
 /**
  * The outbox (ADR-063 decision 9), the client half: offline, an edit to the
  * player's own sheet is held and waits; a crawler edit or a move is still
- * refused; back live, what waits goes up as `ops.replay`, one op per unit,
- * and one the server declines is answered with why.
- *
- * The server half (`ops.replay` applying or keeping an op `declined`) is
- * `test/convex/__tests__/opReplay.test.ts`.
+ * refused; back live, what waits goes up to its room, one op per unit, and
+ * one the room declines is answered with why.
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { getFunctionName } from 'convex/server'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { acceptingRooms, roomAnswer, roomOps } from '../../../test/roomsStub'
 import { crawlerFixture, pilotFixture } from '../../components/__tests__/fixtures'
 
-type Sent = { name: string; args: { op: { unitId: string; patch: Record<string, unknown> } } }
+/** Each op the rooms took. */
+const sent = () => roomOps.flatMap(({ ops }) => ops)
 
-const sent: Sent[] = []
-let answer: unknown = { updatedAt: 5, headSeq: 2, fresh: true }
-
-const { installConvexMocks } = await import('../../components/__tests__/convexMock')
-const mocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (ref: unknown, args: Sent['args']) => {
-      if (answer instanceof Error) throw answer
-      sent.push({ name: getFunctionName(ref as never), args })
-      return answer
-    },
-  },
-})
-afterAll(() => mocks.restore())
-
+const { RoomDeclined } = await import('../roomSocket')
 const { flushOutbox, forgetOutbox } = await import('../outbox')
 const { resetSync, setSyncStatus, WritesBlockedOffline } = await import('../sync')
 const { useUnits } = await import('../units')
@@ -39,8 +23,7 @@ const TXN = { kind: 'manual', source: 'test' } as const
 beforeEach(async () => {
   resetStores()
   forgetOutbox()
-  sent.length = 0
-  answer = { updatedAt: 5, headSeq: 2, fresh: true }
+  acceptingRooms()
   const units = useUnits.getState()
   await units.adopt('pilot', pilotFixture({ id: 'p1', callsign: 'Before', name: 'Before' }))
   await units.adopt('crawler', crawlerFixture({ id: 'c1', name: 'Before' }))
@@ -50,6 +33,7 @@ beforeEach(async () => {
 afterEach(() => {
   resetSync()
   forgetOutbox()
+  acceptingRooms()
 })
 
 describe('offline', () => {
@@ -57,7 +41,7 @@ describe('offline', () => {
     await useUnits.getState().update('pilot', 'p1', { callsign: 'Offline' }, TXN)
 
     expect(useUnits.getState().get('pilot', 'p1')?.callsign).toBe('Offline')
-    expect(sent).toEqual([])
+    expect(sent()).toEqual([])
   })
 
   test('a crawler edit is still refused', async () => {
@@ -81,16 +65,18 @@ describe('back live', () => {
     setSyncStatus('live')
 
     expect(await flushOutbox()).toEqual([])
-    expect(sent.map((s) => [s.name, s.args.op.patch.callsign, s.args.op.patch.name])).toEqual([
-      ['ops:replay', 'Two', 'Renamed'],
+    expect(sent().map((op) => [op.unitId, op.patch.callsign, op.patch.name])).toEqual([
+      ['p1', 'Two', 'Renamed'],
     ])
     expect(await flushOutbox()).toEqual([])
-    expect(sent).toHaveLength(1)
+    expect(sent()).toHaveLength(1)
   })
 
   test('a declined op is answered with why', async () => {
     await useUnits.getState().update('pilot', 'p1', { callsign: 'Late' }, TXN)
-    answer = { declined: 'That sheet is no longer yours' }
+    roomAnswer.submit = async () => {
+      throw new RoomDeclined('That sheet is no longer yours')
+    }
     setSyncStatus('live')
 
     expect(await flushOutbox()).toEqual(['That sheet is no longer yours'])
@@ -99,11 +85,13 @@ describe('back live', () => {
   test('a send that fails keeps the op for next time', async () => {
     await useUnits.getState().update('pilot', 'p1', { callsign: 'Kept' }, TXN)
     setSyncStatus('live')
-    answer = new Error('Connection lost')
+    roomAnswer.submit = async () => {
+      throw new Error('Connection lost')
+    }
     expect(await flushOutbox()).toEqual([])
 
-    answer = { updatedAt: 5, headSeq: 2, fresh: true }
+    acceptingRooms()
     expect(await flushOutbox()).toEqual([])
-    expect(sent.map((s) => s.args.op.patch.callsign)).toEqual(['Kept'])
+    expect(sent().map((op) => op.patch.callsign)).toEqual(['Kept'])
   })
 })

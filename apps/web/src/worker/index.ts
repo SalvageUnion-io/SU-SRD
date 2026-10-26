@@ -12,21 +12,20 @@
  * `run_worker_first` sends `/build`, `/play` and below here before Static
  * Assets looks.
  *
- *   - `error-intake`: `POST /__errors` → a browser error report, and `POST /__convex-logs` →
- *     Convex's log stream, both logged for Workers Issues
- *     (`errorReports.ts`).
- *   - `auth`: `/auth/*` → sign-in, sign-out and the session's token
- *     (`./auth/`).
+ *   - `error-intake`: `POST /__errors` → a browser error report, logged for
+ *     Workers Issues (`errorReports.ts`).
+ *   - `auth`: `/auth/*` → sign-in, sign-out, who is signed in, and account
+ *     deletion (`./auth/`).
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have falls through to the rules below.
  *   - `rooms-health`: `GET /__rooms/health` → each room kind's schema
  *     version, or a 503 (`./roomRoutes.ts`).
  *   - `game-socket`: `/__rooms/games/:id/socket` → a member's socket to the
- *     Game's room (`./roomRoutes.ts`, who may: `./roomAuth.ts`).
+ *     Game's room (`./roomRoutes.ts`).
  *   - `account-socket`: `/__rooms/account/socket` → the signed-in player's
  *     socket to their own account room (`./roomRoutes.ts`).
- *   - `game-call`: `POST /__rooms/call` → one Games call by its Convex
- *     name, as the signed-in player (`./gameCalls.ts`).
+ *   - `game-call`: `POST /__rooms/call` → one Games call by its name, as the
+ *     signed-in player (`./gameCalls.ts`).
  *   - `account`: `/__rooms/account/*`, `/__rooms/admin/*` and `/__rooms/floor`
  *     → the player's profile, export and feedback, an admin's metrics, and
  *     the build floor (`./accountRoutes.ts`).
@@ -63,6 +62,7 @@
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
  */
 
+import type { BotRelay } from 'game-domain/botWire'
 import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
 import { AUTH_PREFIX } from '../lib/auth/paths'
@@ -84,31 +84,26 @@ import type { CronEnv } from './crons'
 import { runCron } from './crons'
 import { CUTOVER_PREFIX, handleCutover } from './cutover'
 import type { RateLimiter } from './errorReports'
-import {
-  CONVEX_LOG_STREAM_PATH,
-  ERROR_REPORT_PATH,
-  handleConvexLogStream,
-  handleErrorReport,
-} from './errorReports'
+import { ERROR_REPORT_PATH, handleErrorReport } from './errorReports'
 import { serveGameCall } from './gameCalls'
 import { serveHomebrew } from './homebrew'
 import type { PhotoBucket } from './photos'
 import { isPhotosPath, servePhotos } from './photos'
 import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from './roomRoutes'
+import { deleteRoomAccount } from './shared/accountDeletion'
+import type { SharedDb } from './shared/db'
 import { isSharedPath, serveShared } from './sharedRoutes'
 
 export { BotGateway } from './botGateway'
 export { AccountRoom, GameRoom } from './rooms'
 
+import type { GameRoomStub } from './rooms'
+import { rooms } from './rooms'
+
 export type Env = AppEnv &
   CronEnv & {
     /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
     ERROR_REPORT_LIMIT?: RateLimiter
-    /**
-     * The Convex log stream's webhook secret, from the Convex dashboard. Set
-     * with `wrangler secret put`; unset, the stream endpoint answers 503.
-     */
-    CONVEX_LOG_STREAM_SECRET?: string
     /** The shared D1 database; sign-in keeps accounts and sessions there (`./auth/store.ts`). */
     SHARED: D1Like
     /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
@@ -120,8 +115,6 @@ export type Env = AppEnv &
      * Unset, each origin is its own and Discord must list it.
      */
     AUTH_CALLBACK_ORIGIN?: string
-    /** The private JWK the session's Convex token is signed with (`scripts/authKeys.ts`). */
-    AUTH_SIGNING_KEY?: string
     /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
     TEST_AUTH?: string
     /** The cutover runner's bearer secret ; unset, its door is a 404. */
@@ -130,13 +123,9 @@ export type Env = AppEnv &
     PHOTOS?: PhotoBucket
     /** The site admins' Discord ids, comma-separated (`./auth/index.ts` `identityOf`). */
     ADMIN_DISCORD_IDS?: string
+    /** The bot's relay (`wrangler.jsonc`, not on a Preview): Stop Signs and rolls post through it. */
+    BOT?: BotRelay
   }
-
-/**
- * Where the Convex log stream posted before the app was one: the webhook the
- * Convex dashboard still names until it is pointed at `CONVEX_LOG_STREAM_PATH`.
- */
-const RETIRED_CONVEX_LOG_STREAM_PATH = appPath(CONVEX_LOG_STREAM_PATH)
 
 /** `/404`, not `/404.html`: the asset server's HTML handling redirects the latter. */
 const NOT_FOUND_PAGE = '/404'
@@ -181,28 +170,27 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
 
-    // E. Errors from elsewhere: the browser's, and Convex's log stream.
+    // E. The browser's errors.
     if (url.pathname === ERROR_REPORT_PATH) {
       return handleErrorReport(request, { app: 'web', limiter: env.ERROR_REPORT_LIMIT })
-    }
-    if (
-      url.pathname === CONVEX_LOG_STREAM_PATH ||
-      url.pathname === RETIRED_CONVEX_LOG_STREAM_PATH
-    ) {
-      return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
     // A. Sign-in.
     if (url.pathname.startsWith(AUTH_PREFIX)) {
       const res = await handleAuth(request, {
         sql: d1Sql(env.SHARED),
-        convexUrl: env.CONVEX_URL ?? '',
         discord:
           env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET
             ? { clientId: env.DISCORD_CLIENT_ID, clientSecret: env.DISCORD_CLIENT_SECRET }
             : undefined,
         callbackOrigin: env.AUTH_CALLBACK_ORIGIN,
-        signingKey: env.AUTH_SIGNING_KEY,
+        adminIds: env.ADMIN_DISCORD_IDS,
+        removeAccount: (who) =>
+          deleteRoomAccount(who, {
+            db: env.SHARED as unknown as SharedDb,
+            game: (gameId) => rooms().GameRoom.getByName(gameId) as unknown as GameRoomStub,
+            account: (discordId) => rooms().AccountRoom.getByName(discordId),
+          }),
         testAuth: env.TEST_AUTH === 'true',
       })
       if (res !== null) return res
@@ -231,7 +219,7 @@ export default {
     if (isSharedPath(url.pathname)) return serveShared(request, env)
     if (isPhotosPath(url.pathname)) return servePhotos(request, env)
 
-    // H. Homebrew for the SRD's pages, from Convex until the shared database is filled.
+    // H. Homebrew for the SRD's pages.
     if (url.pathname === HOMEBREW_PATTERNS_PATH && request.method === 'GET') {
       return serveHomebrew(url, env)
     }

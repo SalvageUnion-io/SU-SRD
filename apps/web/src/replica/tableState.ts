@@ -7,10 +7,10 @@
  * may read each saved pattern. Each record is per reader (who showed the Stop Sign never leaves the
  * room) and only means anything live, so it is held in memory per room scope
  * rather than in the replica's tables: a reload starts from the room's next
- * snapshot, and offline a screen shows none of it, as it did on Convex.
+ * snapshot, and offline a screen shows none of it.
  *
- * A room serves each as the Convex query of the same name answered it, so
- * `useTable.ts` reads it here in that query's place. Framework-free.
+ * A room serves each in the shape its read of the same name answers, so
+ * `useTable.ts` reads it here. Framework-free.
  */
 
 import type { RecordTable } from '../rooms/protocol'
@@ -97,7 +97,7 @@ export function forgetTableState(scope?: Scope): void {
 }
 
 /**
- * The table as its Convex query answered: undefined before the scope's
+ * The table as its read answers: undefined before the scope's
  * snapshot, then the one record or null, or every record (a boundary with
  * its id as `_id`; the Opposition, `{ _id, body }` per NPC as
  * `mediator.npcs` answered; sharing, each pattern's with its id as `appId`).

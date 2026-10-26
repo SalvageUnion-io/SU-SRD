@@ -2,32 +2,24 @@
  * Cap-override integration (P2.2 / ADR-022): a Live-Sheet stat gauge with a
  * hand-pinned maximum shows an "overridden from N" indicator + a one-click
  * revert, and reverting clears the pin with an `override` op (ADR-063).
- * Exercises the real in-memory store, signed in, with the Convex client a
- * recorder of the ops the store sends.
+ * Exercises the real in-memory store, signed in, with the stand-in rooms
+ * recording the ops the store sends.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { acceptingRooms, roomOps } from '../../../../test/roomsStub'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-const logged: { kind: string; field: string }[] = []
+const serverMocks = await installServerMocks()
 
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (
-      ref: unknown,
-      args: { op?: { kind: string; patch: object; unset?: string[] } }
-    ) => {
-      if (getFunctionName(ref as FunctionReference<'mutation'>) === 'ops:apply' && args.op) {
-        const { kind, patch, unset = [] } = args.op
-        for (const field of [...Object.keys(patch), ...unset]) logged.push({ kind, field })
-      }
-      return { updatedAt: 1, headSeq: 1 }
-    },
-  },
-})
+/** Every field the ops the rooms took changed, with its op's kind. */
+const logged = () =>
+  roomOps.flatMap(({ ops }) =>
+    ops.flatMap(({ kind, patch, unset = [] }) =>
+      [...Object.keys(patch), ...unset].map((field) => ({ kind, field }))
+    )
+  )
 
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
@@ -35,7 +27,7 @@ const { useUnits } = await import('../../../replica/units')
 const { Sheet } = await import('../Sheet')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -56,7 +48,7 @@ const basePilotInput = {
 }
 
 beforeEach(() => {
-  logged.length = 0
+  acceptingRooms()
   resetStores()
 })
 
@@ -83,7 +75,7 @@ describe('Live Sheet — cap override (P2.2)', () => {
     })
 
     // …and the revert is an `override` op.
-    expect(logged.some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
+    expect(logged().some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
   })
 
   test('a manual adjustment is NOT an override — it contributes to the derivation', async () => {

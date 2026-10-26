@@ -15,7 +15,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 
 const h = createElement
 
@@ -43,11 +43,10 @@ function wizardStub(name: string, preselect: (p: Props) => string) {
     )
 }
 
-// Module scope, before the route tree is imported — see `convexMock.ts`.
-// Specifiers in `also` resolve relative to `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+// Module scope, before the route tree is imported — see `serverMock.ts`.
+// Specifiers in `also` resolve relative to `serverMock.ts`.
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: false, isLoading: false }) },
   also: {
     '../../build/wizard/NewEntityScreen': () => ({
       NewEntityScreen: (p: Props) =>
@@ -114,7 +113,7 @@ const convexMocks = await installConvexMocks({
     }),
   },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { createMemoryHistory, createRouter, RouterProvider } = await import('@tanstack/react-router')
 const { routeTree } = await import('../../routeTree.gen')

@@ -8,7 +8,7 @@ import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
 /**
  * A Mediator's proposals (ADR-030 §4): an op in `proposed` state on a
  * player's pilot or mech (ADR-063 §5), applied or declined only by the
- * member it is assigned to. The rules are `convex/proposals.ts`'s.
+ * member it is assigned to.
  */
 
 /** A proposal as `ops.pending` and `ops.sent` serve it; `_id` is its op's id. */

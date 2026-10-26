@@ -125,16 +125,9 @@ check_header https://salvageunion.io/ content-security-policy "srd CSP reaches t
 check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
 check_header https://salvageunion.io/build/ content-security-policy "app CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/build/ strict-transport-security "app HSTS reaches the browser"
-# One CSP for the whole app (apps/web/public/_headers): without Convex in it,
-# sign-in would never complete.
-check_header https://salvageunion.io/build/ content-security-policy "app CSP admits Convex" "wss://*.convex.cloud"
-# The endpoints that bring the browser's and Convex's errors into Workers Issues
-# are routed (apps/web/src/worker/errorReports.ts): they take POST only.
+# The endpoint that brings the browser's errors into Workers Issues is routed
+# (apps/web/src/worker/errorReports.ts): it takes POST only.
 check https://salvageunion.io/__errors 405 "error report endpoint is routed"
-check https://salvageunion.io/__convex-logs 405 "Convex log stream endpoint is routed"
-# Where the Convex dashboard's webhook posted before the app was one, kept
-# until it is pointed at /__convex-logs.
-check https://salvageunion.io/build/__convex-logs 405 "retired Convex log stream endpoint is routed"
 # The app is a single-page app, so only su-srd's Worker keeps a missing
 # chunk under /build from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends

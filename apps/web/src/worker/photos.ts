@@ -1,6 +1,6 @@
 /**
  * Entity photos in R2 (`PHOTOS`): the `upload` kind of `PhotoSchema`
- * (`game-domain/schemas/photo`), as Convex file storage kept it before.
+ * (`game-domain/schemas/photo`).
  *
  *   - `POST /__photos` → a signed-in player's photo, its body the file. One
  *     the client prepared (`lib/photos/uploadPhoto.ts`) is a WebP or JPEG far
@@ -10,8 +10,7 @@
  *     reused, so a new photo is a new address.
  *
  * Nothing here writes an entity: the body change goes through the entity's
- * own write, as on Convex. Unlike Convex, nothing yet deletes a file no
- * entity holds.
+ * own write. Nothing yet deletes a file no entity holds.
  */
 
 import { PHOTOS_PATH } from '../lib/sharing/paths'

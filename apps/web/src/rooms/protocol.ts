@@ -97,7 +97,7 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *    served to the Mediator only, so a reader without it does not mediate.
  * Who added a boundary or showed the Stop Sign never reaches a socket: each
  * reader gets `mine` and what it may do, so these records are per reader.
- * @public And the table in play, each as its Convex query answered:
+ * @public And the table in play, each as its read answers:
  *  - `members`: one per member, by Discord id (`games.members`).
  *  - `seats`: one per pilot (`seats.forGame`; an account room's, each Shelf
  *    pilot's solo seat with its Downtime, `seats.solo`).
@@ -174,7 +174,7 @@ export type ServerMessage = z.infer<typeof ServerMessageSchema>
 /** Client to room. */
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ops'), ops: z.array(OpInputSchema).min(1) }),
-  /** `name` is one of the room's acts, named for its Convex function (`salvageAreas.spend`, `scenes.passHour`, …). */
+  /** `name` is one of the room's acts, named as the client calls it (`salvageAreas.spend`, `scenes.passHour`, …). */
   z.object({
     type: z.literal('act'),
     id: z.string(),

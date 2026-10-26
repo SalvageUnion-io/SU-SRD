@@ -22,7 +22,7 @@ import type { GameUnits } from './units'
 import { BatchRefused, LEDGER_SOURCE } from './units'
 
 /**
- * A Game's ledger, its factions and jobs, with `convex/ledger.ts`'s rules:
+ * A Game's ledger, its factions and jobs, with its rules:
  * every member reads it, only the Mediator writes it, and what it pays goes
  * into the primary crawler (ADR-038 §5).
  *

@@ -57,7 +57,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
   // arrives with their pilot chosen.
   const [picked, setPicked] = useState<string | null>(null)
 
-  // The same three questions `GameRoster` asks, so Convex answers both from
+  // The same three questions `GameRoster` asks, so the Worker answers both from
   // one subscription each.
   const viewerId = useViewerId()
   const members = useGamesQuery('games.members', { gameId: gameId })

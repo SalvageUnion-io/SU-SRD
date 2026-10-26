@@ -10,7 +10,7 @@ import { fromJson } from './store'
  * The Mediator's Opposition tray and the encounter the Game is running
  * (ADR-034 decision 2, ADR-059): the one part of a Game the crew cannot read,
  * so every read and write here is the Mediator's alone (ADR-030 §5). The
- * rules are `convex/mediator.ts`'s.
+ * rules are the Mediator's.
  */
 
 /**

@@ -69,9 +69,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   // Bun's JSONC loader, as tools/check-workers.ts reads it.
   const config = WRANGLER as {
     assets: { run_worker_first: unknown }
-    vars: { CONVEX_URL: string }
     previews: {
-      vars: Record<string, string>
       d1_databases: { binding: string; database_name: string }[]
     }
     d1_databases: { binding: string; database_name: string }[]
@@ -83,21 +81,6 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     expect(config.assets.run_worker_first).toEqual(RUN_WORKER_FIRST)
   })
 
-  it('reads link previews from the Convex deployment the app is built against', () => {
-    const built = workflow('deploy-cloudflare.yml').match(
-      /^\s*PRODUCTION_CONVEX_URL:\s*(\S+)\s*$/m
-    )?.[1]
-    expect(built).toBeString()
-    expect(config.vars.CONVEX_URL).toBe(built as string)
-  })
-
-  it('points a Worker Preview at the staging deployment its app is built against', () => {
-    const built = workflow('deploy-preview.yml').match(/^\s*STAGING_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
-    expect(built).toBeString()
-    // A Preview inherits none of the top-level vars.
-    expect(config.previews.vars).toEqual({ CONVEX_URL: built as string })
-  })
-
   it('migrates the shared database it reads before it ships, a Preview its own', () => {
     const name = (dbs: { binding: string; database_name: string }[]) =>
       dbs.find((db) => db.binding === 'SHARED')?.database_name
@@ -107,12 +90,12 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     expect(workflow('deploy-preview.yml')).toContain('bun tools/d1-migrate.ts su-shared-preview\n')
   })
 
-  it("sets one CSP for the whole app, Convex's origins included", () => {
+  it('sets one CSP for the whole app, connecting to its own origin', () => {
     const headers = readFileSync(join(import.meta.dir, '../../../public/_headers'), 'utf8')
     const csp = headers.match(/^\s*Content-Security-Policy:\s*(.*)$/gm) ?? []
     expect(csp).toHaveLength(1)
     expect(csp[0]).toContain("connect-src 'self'")
-    expect(csp[0]).toContain('wss://*.convex.cloud')
+    expect(csp[0]).not.toContain('convex')
   })
 })
 

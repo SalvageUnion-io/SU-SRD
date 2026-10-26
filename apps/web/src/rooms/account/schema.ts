@@ -1,6 +1,6 @@
 /**
  * An account room's tables: one Durable Object per player (named by their
- * Discord id) holds everything Convex kept on their Shelf.
+ * Discord id) holds everything on their Shelf.
  *
  * - `account`: the one row naming whose room this is.
  * - `units`, `ops`, `links`: the Shelf's pilots, mechs, crawlers and NPCs,

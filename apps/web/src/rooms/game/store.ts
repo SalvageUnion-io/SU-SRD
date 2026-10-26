@@ -138,7 +138,7 @@ export class GameStore {
     return member
   }
 
-  /** The Mediator, or the Organizer while nobody mediates (`isTableRunner` on Convex). */
+  /** The Mediator, or the Organizer while nobody mediates (`isTableRunner`). */
   isTableRunner(member: Member): boolean {
     return runsTable(member, hasMediator(this.members()))
   }

@@ -6,8 +6,8 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../../test/roomsStub'
-import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
 import { answerRoutes, withWorkerRoutes } from '../../../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../../../lib/sharing/paths'
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
@@ -17,14 +17,12 @@ import { forgetTableState, serveTableState } from '../../../../replica/tableStat
 /** `homebrew.status` for a pattern that is not homebrew. */
 const NOT_LISTED = { listed: false, hidden: false, reported: false, mine: false, admin: false }
 
-// Module scope, before the imports below — see `convexMock.ts`. Convex
+// Module scope, before the imports below — see `serverMock.ts`. Convex
 // answers only the Games list now; the router and sign-in are stand-ins.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-  authReact: true,
+const serverMocks = await installServerMocks({
   router: true,
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../../replica/syncContext')
 const { useUnits } = await import('../../../../replica/units')
@@ -92,7 +90,7 @@ beforeEach(() => {
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
   usePatterns.setState({ mechPatterns: [], hydrated: true })
-  convexMocks.navigations.length = 0
+  serverMocks.navigations.length = 0
   forgetTableState()
   acceptingRooms()
 })
@@ -155,11 +153,11 @@ describe('signed in', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^Build With This: a mech from / }))
     })
-    await settle(() => convexMocks.navigations.length > 0)
+    await settle(() => serverMocks.navigations.length > 0)
 
     const [mech] = useUnits.getState().mechs
     expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
-    expect(convexMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
+    expect(serverMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
   })
 
   test('Copy to my shelf saves it under a new id', async () => {
@@ -186,7 +184,7 @@ describe('signed in', () => {
 
   test('its maker changes who can see it from the Share dialog every player thing opens', async () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer({ mine: true, visibility: 'link' }) })
-    setQueryAnswers({ 'games:listMine': [] })
+    setQueryAnswers({ 'games.listMine': [] })
     serveTableState('account', {
       sharing: [
         {

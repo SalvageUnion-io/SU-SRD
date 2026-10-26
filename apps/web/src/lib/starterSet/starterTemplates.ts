@@ -8,7 +8,7 @@
  * Light on purpose. The `/starter` routes read it for their titles, and the
  * Worker reads it for the same pages' titles, descriptions, canonicals and
  * sitemap (`src/worker/publicPages.ts`), so it imports only the static
- * templates and the title format: never a store, the reference or Convex.
+ * templates and the title format: never a store, the reference or a room.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

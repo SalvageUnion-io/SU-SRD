@@ -14,8 +14,8 @@ import {
 
 /**
  * The crew's derived vitals (ADR-038 §4): each pilot's and mech's maxima and
- * status, from one container's records. Convex's `crew.vitals` and the rooms
- * both derive with this, so the bot, the Game hub and Play agree on a
+ * status, from one container's records. The rooms' `crew.vitals` derive
+ * with this, so the bot, the Game hub and Play agree on a
  * crewmate's numbers. The caller installs the reference data the rules read.
  */
 

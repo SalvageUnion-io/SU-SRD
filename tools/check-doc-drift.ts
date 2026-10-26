@@ -426,7 +426,7 @@ export function checkFixHints(root: string, hints: FixHint[] = REGISTRY_FIX_HINT
 /** Claims the repo has retired, each with what is true instead. */
 const RETIRED_CLAIMS: [RegExp, string][] = [
   [/local-first/i, 'The app is account-gated: persistence requires an account (ADR-034)'],
-  [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
+  [/no auth\/backend|do not introduce a backend/i, 'the Worker and its rooms serve (ADR-030)'],
   [
     /in-memory (?:backend|only)/i,
     'signed out, the app is read-only: see .claude/rules/app-data-access.md',
@@ -441,7 +441,7 @@ const RETIRED_CLAIMS: [RegExp, string][] = [
     'signed out, the app is read-only; building needs an account (ADR-034)',
   ],
   [/\bin[- ]memory (?:work|play)\b/i, 'signed out holds no work: it is read-only (#1117)'],
-  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every app build has a Convex deployment'],
+  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every app build talks to its Worker'],
   [/salvage-tolerant/i, 'cache reads are strict: an unreadable row is skipped and refilled'],
   [
     /`gh` (?:CLI )?is (?:usually )?absent|\(no `gh`/i,

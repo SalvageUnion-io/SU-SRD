@@ -7,11 +7,11 @@ import { act, render } from '@testing-library/react'
  * stand-in recording what the hook opens and closes.
  */
 
-import { installConvexMocks } from '../../components/__tests__/convexMock'
+import { installServerMocks } from '../../components/__tests__/serverMock'
 import type { SyncStatus } from '../../replica/sync'
 
-const convexMocks = await installConvexMocks({
-  also: { '../../lib/auth/session': () => ({ useSessionToken: () => 'tok' }) },
+const serverMocks = await installServerMocks({
+  authReact: { useMyPerson: () => 'u1' },
 })
 
 const { useGamePresence } = await import('../useGamePresence')
@@ -50,7 +50,7 @@ afterEach(() => {
 
 afterAll(() => {
   globalThis.WebSocket = realSocket
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 const seen: Record<string, ReadonlySet<string> | null> = {}
@@ -94,7 +94,7 @@ describe('useGamePresence', () => {
     expect(FakeSocket.opened).toHaveLength(1)
     const [socket] = FakeSocket.opened
     expect(socket?.url).toMatch(/^ws:.*\/__rooms\/games\/g1\/socket\?seat=1$/)
-    expect(socket?.protocols).toEqual(['su-room', 'tok'])
+    expect(socket?.protocols).toEqual(['su-room'])
     expect(seen.a).toBeNull()
     socket?.say(['u1', 'u2'])
     expect([...(seen.a ?? [])]).toEqual(['u1', 'u2'])

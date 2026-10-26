@@ -48,7 +48,7 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener)
 }
 
-/** Every unit shared by link in any open room: Convex's `shelf.sharedByLink`. */
+/** Every unit shared by link in any open room, as `shelf.sharedByLink` answers it. */
 export function useSharedByLinkRooms(): readonly string[] {
   return useSyncExternalStore(subscribe, () => shared)
 }

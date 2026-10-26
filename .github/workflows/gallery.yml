@@ -14,10 +14,10 @@ name: Screenshot gallery
 #   gh workflow run gallery.yml --ref main
 #
 # READ-ONLY on purpose: this runs the branch's code, so it holds no write token
-# and no secret. The app is built against a THROWAWAY self-hosted Convex backend
-# with the test sign-in (the same setup as e2e-nightly.yml's `e2e`), so
-# the gallery can sign a fresh account up and edit characters without touching
-# the staging or production backend. Publishing, which needs `pages: write`,
+# and no secret. The app is built with the test sign-in and served by its own
+# Worker, rooms and shared database local to the runner (the same setup as
+# e2e-nightly.yml's `e2e`), so the gallery can sign a fresh account up and
+# edit characters without touching a Preview or production. Publishing, which needs `pages: write`,
 # runs in the separate `workflow_run` workflow, from main's code.
 #
 # Not a required check: a red gallery never blocks a merge.
@@ -62,9 +62,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend and build the site against it
-        id: convex
-        uses: ./.github/actions/convex-backend
+      - name: Build the site with the test sign-in
+        uses: ./.github/actions/test-build
         with:
           test-auth: 'true'
 
@@ -76,13 +75,10 @@ jobs:
 
       # One server, as in production: the workspace's Worker (`bun run
       # preview`, wrangler on 4321) serves the reference pages and answers
-      # `/build` with the app, as CI's e2e does. Its link previews read
-      # the throwaway backend, not production's.
+      # `/build` with the app, as CI's e2e does.
       - name: Serve the app
-        env:
-          CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |
-          (cd apps/web && bun run preview --var "CONVEX_URL:$CONVEX_URL" > /tmp/web.log 2>&1 &)
+          (cd apps/web && bun run preview > /tmp/web.log 2>&1 &)
           for url in http://localhost:4321/ http://localhost:4321/build/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
             curl -sf -o /dev/null "$url" || {

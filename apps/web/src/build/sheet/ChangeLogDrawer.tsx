@@ -131,8 +131,7 @@ export function ChangeLogDrawer({
   onOpenChange,
 }: ChangeLogDrawerProps) {
   const { status } = useSync()
-  // Whether the entries MOUNT: they read the server (Convex, or the unit's
-  // room), so they render only on a live connection, as the Share dialog's
+  // Whether the entries MOUNT: they read the unit's room, so they render only on a live connection, as the Share dialog's
   // live panel does.
   const live = status === 'live'
 

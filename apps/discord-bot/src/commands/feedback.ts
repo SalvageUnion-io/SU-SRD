@@ -12,7 +12,7 @@ import { site } from './siteReply'
  * ephemeral: a note, and how it went, are the sender's business.
  */
 
-/** The bounds the app holds a note to (`convex/feedback.ts`), so Discord refuses early. */
+/** The bounds the app holds a note to (`worker/shared/feedback.ts`), so Discord refuses early. */
 const MIN_LENGTH = 10
 const MAX_LENGTH = 2000
 

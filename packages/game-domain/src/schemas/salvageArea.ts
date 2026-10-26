@@ -5,7 +5,7 @@ import { z } from 'salvageunion-reference/zod'
  * can be Area Salvaged, with the Tech Level of what is found there and its
  * Supply, how many rolls it has left. Each Area Salvage roll spends 1 Supply;
  * at 0 the area is picked clean. One per table: a Game's, set by its Mediator,
- * or a solo player's own (`salvageAreas` in `apps/web/convex`).
+ * or a solo player's own (`rooms/account/soloArea.ts`).
  */
 
 /** The Supply an area starts with unless the Mediator says otherwise (p.245). */

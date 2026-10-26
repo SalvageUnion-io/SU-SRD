@@ -9,7 +9,7 @@ import { SignInControl } from './SignInControl'
 /**
  * What the app puts in the masthead's app slots (`UnionBarSlots`' `games`,
  * `actions`, `mobileActions` and `drawerExtra`) — the account and the Games,
- * wired to Convex here so `src/components` stays persistence-agnostic.
+ * wired to the Worker here so `src/components` stays persistence-agnostic.
  *
  * There is no sub-header: Games sits in Play's nav (Games · Solo; Build's,
  * Training Bay · Patterns · Starter Set, has none), and the account is the menu at

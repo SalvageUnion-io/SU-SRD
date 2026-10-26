@@ -10,37 +10,37 @@
 
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 import { narrowViewport } from './narrowViewport'
 
-// Module scope, before the imports below — see `convexMock.ts`. The frame
+// Module scope, before the imports below — see `serverMock.ts`. The frame
 // reads the seat and the Downtime (`usePlaySituation`): an empty seat, with
 // no Downtime running. The Situation itself is `PlaySituation.connected.test.tsx`'s.
-const convexMocks = await installConvexMocks()
+const serverMocks = await installServerMocks()
 const NOT_RUNNING = { running: false, stepIndex: null, completedBy: [], upkeepSpent: false }
 const ANSWERS = {
-  'seats:solo': null,
-  'seats:forGame': [],
-  'scenes:current': { conditions: [], hours: 0 },
-  'downtime:state': NOT_RUNNING,
+  'seats.solo': null,
+  'seats.forGame': [],
+  'scenes.current': { conditions: [], hours: 0 },
+  'downtime.state': NOT_RUNNING,
   // No area named to Area Salvage.
-  'salvageAreas:here': null,
-  'games:members': [],
-  'entities:listForGame': null,
-  'account:me': null,
+  'salvageAreas.here': null,
+  'games.members': [],
+  'entities.listForGame': null,
+  'account.me': null,
   // The channel button, the Crew, Tables and Feed panes: no
   // channel bound, no crew read yet, nothing on the Game's log.
-  'channelBindings:current': null,
-  'safety:stopSign': null,
-  'games:get': null,
-  'changeLog:rolls': [],
-  'changeLog:alerts': [],
-  'ops:pending': [],
-  'crew:vitals': null,
+  'channelBindings.current': null,
+  'safety.stopSign': null,
+  'games.get': null,
+  'changeLog.rolls': [],
+  'changeLog.alerts': [],
+  'ops.pending': [],
+  'crew.vitals': null,
 }
 answerReads(ANSWERS)
 
@@ -58,7 +58,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await useUnits.getState().forget('pilot', 'cockpit-wren')
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 async function renderCockpit(
@@ -127,7 +127,7 @@ describe('the Cockpit frame', () => {
   test('in a Game, the bar has Stop; up, the Stop Sign pauses the screen under the bar', async () => {
     answerReads({
       ...ANSWERS,
-      'safety:stopSign': {
+      'safety.stopSign': {
         stop: { shownAt: 1, mine: false },
         mayLift: false,
         mayManage: false,
@@ -155,7 +155,7 @@ describe('the Cockpit frame', () => {
   test('a bound channel: the button names it, as it was when bound', async () => {
     answerReads({
       ...ANSWERS,
-      'channelBindings:current': { channelId: 'c-1', channelName: 'salvage-run', boundAt: 1 },
+      'channelBindings.current': { channelId: 'c-1', channelName: 'salvage-run', boundAt: 1 },
     })
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })

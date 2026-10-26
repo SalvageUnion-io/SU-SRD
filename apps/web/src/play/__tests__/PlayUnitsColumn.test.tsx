@@ -14,19 +14,19 @@ import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { downtimeGuideSteps, RESTORE_STEP_NAME } from 'game-domain/rules/downtime'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
 } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import type { BoardOption } from '../boardMenu.model'
 import type { Play, Situation } from '../situation.model'
 import { fakeSeat } from './seatFixture'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
 
 const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
@@ -85,7 +85,7 @@ afterAll(async () => {
   await store.forget('mech', SPARE)
   await store.forget('mech', MECH)
   await store.forget('pilot', PILOT)
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 const yours = (mechId: string, name: string): BoardOption => ({
@@ -327,7 +327,7 @@ describe('in a Game', () => {
   const rook = pilotFixture({ id: 'units-rook', name: 'Rook' })
 
   test('a player’s Game crawler comes from the listing, and is never theirs to write', async () => {
-    setQueryAnswers({ 'entities:listForGame': listing })
+    setQueryAnswers({ 'entities.listForGame': listing })
     await renderColumn(
       playFor({ situation: 'downtime', gameId: GAME, stepIndex: 0, pilotRecord: rook }).play
     )
@@ -339,7 +339,7 @@ describe('in a Game', () => {
   })
 
   test('for the Mediator, the crawler the store holds is live', async () => {
-    setQueryAnswers({ 'entities:listForGame': listing })
+    setQueryAnswers({ 'entities.listForGame': listing })
     await renderColumn(playFor({ situation: 'onFoot', gameId: GAME, mediator: true }).play)
     expect(
       within(box('Crawler: Tenacity')).getByRole('button', { name: 'Increase SP' })

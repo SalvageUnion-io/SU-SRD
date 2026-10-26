@@ -13,14 +13,14 @@
 
 import { afterAll, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`. The signed-out
+// Module scope, before the imports below — see `serverMock.ts`. The signed-out
 // branch mounts `SignInControl`, whose auth hook needs the auth module.
-const convexMocks = await installConvexMocks({ authReact: true })
+const serverMocks = await installServerMocks()
 setQueryAnswers({})
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { ShareStatusDialog } = await import('../ShareStatusDialog')

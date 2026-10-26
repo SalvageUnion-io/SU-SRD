@@ -33,9 +33,9 @@ concurrency:
 jobs:
   e2e:
     # The whole Playwright suite but the performance budget (ci.yml's `perf`
-    # measures it on a quiet runner), the app's specs SIGNED IN, against a
-    # THROWAWAY self-hosted Convex backend and a production bundle built
-    # against it. The PR tier (ci.yml's `build-web`) runs the specs that need
+    # measures it on a quiet runner), the app's specs SIGNED IN, on a
+    # production bundle served by its own Worker under `wrangler dev`, rooms
+    # and shared database local to the runner. The PR tier (ci.yml's `build-web`) runs the specs that need
     # no account; here they run again beside the ones that do.
     #
     # Why signed in: signed out, the app is read-only (#1113, #1117), so a spec
@@ -44,10 +44,10 @@ jobs:
     # fresh account through the `TestAuthBridge` seam; the specs about what a
     # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
-    # Why a throwaway backend: enabling `TEST_AUTH` on production would put
-    # a password auth provider on the live app. A container destroyed with the
-    # runner cannot do that and needs no credentials, which is why this job
-    # requests no secrets at all.
+    # Why a local Worker: enabling `TEST_AUTH` on production would put a
+    # password sign-in on the live app. One destroyed with the runner cannot
+    # do that and needs no credentials, which is why this job requests no
+    # secrets at all.
     #
     # `a11y-signed-in.e2e.ts` runs here too: the axe scan of the pages only an
     # account reaches (the Training Bay, the wizards, and every page the one
@@ -58,7 +58,7 @@ jobs:
     # (ci.yml's `build-web`) builds with the seam too and runs them on every
     # PR, so they gate merges (#1632).
     #
-    # One job, one backend, one build: the sign-in hand-off spec
+    # One job, one build: the sign-in hand-off spec
     # (`signin-save.e2e.ts`) and the specs that depend on its seam cannot
     # disagree about how the build was made.
     runs-on: ubuntu-latest
@@ -72,8 +72,8 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend and build the site against it
-        uses: ./.github/actions/convex-backend
+      - name: Build the site with the test sign-in
+        uses: ./.github/actions/test-build
         with:
           test-auth: 'true'
 
@@ -90,16 +90,6 @@ jobs:
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
         run: bunx playwright test --grep-invert perf-budget
-
-      - name: Backend logs on failure
-        if: failure()
-        run: cat "$RUNNER_TEMP/convex-backend.log" || true
-
-      # Ephemeral runners discard this anyway; a self-hosted one would fail the
-      # next run with the backend's ports already in use.
-      - name: Stop the backend
-        if: always()
-        run: pkill -f convex-local-backend || true
 
       - name: Upload Playwright report on failure
         if: failure()

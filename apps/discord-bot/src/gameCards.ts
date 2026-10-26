@@ -211,7 +211,7 @@ export function publicSheetUrl(
  * The live sheet for any entity — yours, a crewmate's, the crawler — or null
  * when there is no id to address.
  *
- * Addressed by the Convex row id, which every reader can open: the app's
+ * Addressed by the row id, which every reader can open: the app's
  * `entities.locate` resolves a row id for anyone allowed to see the row, opens
  * it editable for its owner and read-only for everyone else, and puts the
  * client id back in the address bar. An unassigned pre-gen has a row id too, so

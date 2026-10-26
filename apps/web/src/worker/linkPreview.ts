@@ -9,8 +9,8 @@
  * `/build/invite/:token` or `/join/:code` link 301s there first,
  * `../lib/redirects.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
- * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a
- * stranger may see (`publicSheet.preview`, `publicSheet.invitePreview`), turns
+ * rather than Static Assets' SPA fallback. `metaFor` asks the shared database
+ * what a stranger may see (`publicPreview`, `invitePreview`), turns
  * the answer into the card's words (`previewSummary.ts`, shared with the
  * render surface) and the shell's meta block is swapped for them.
  *
@@ -18,9 +18,9 @@
  *   **Private** card: no name, no stats, no maker. Private and missing are the
  *   same answer, as on the page.
  * - A pattern shared by link also carries its Discord Component Embed
- *   (`publicSheet.preview`'s `componentEmbed`): Discord draws it as the card a book
+ *   (the preview's `componentEmbed`): Discord draws it as the card a book
  *   pattern's page gets, marked homebrew.
- * - A dead invite, or a Convex that does not answer, keeps the sitewide
+ * - A dead invite, or a database that does not answer, keeps the sitewide
  *   defaults: an unfurl is never worth a broken page.
  *
  * ## The picture
@@ -63,15 +63,12 @@ import {
 } from '../lib/linkPreview/previewSummary'
 import { reportError } from './errorReports'
 import type { SharedDb } from './shared/db'
-import { isFilled } from './shared/db'
 import { invitePreview } from './shared/games'
 import { publicPreview } from './shared/publicSheets'
 import type { ShellMeta } from './shellMeta'
 
 export type PreviewEnv = {
-  /** The Convex deployment's client URL (`*.convex.cloud`): read until `SHARED` is filled. */
-  CONVEX_URL?: string
-  /** The shared database (`./shared/db.ts`), read once the cutover has filled it. */
+  /** The shared database (`./shared/db.ts`): what a stranger may see. */
   SHARED?: SharedDb
   /** The Cloudflare account Browser Rendering bills to. */
   CF_ACCOUNT_ID?: string
@@ -117,78 +114,21 @@ export function previewRouteOf(path: string): PreviewRoute | null {
 
 type Fetch = (input: Request | string, init?: RequestInit) => Promise<Response>
 
-/**
- * One public Convex query over its HTTP API. `undefined` means Convex did not
- * answer — distinct from a `null` answer, which means "not shared".
- */
-export async function convexQuery<T>(
-  env: PreviewEnv,
-  path: string,
-  args: Record<string, unknown>,
-  fetchImpl: Fetch
-): Promise<T | null | undefined> {
-  if (!env.CONVEX_URL) return undefined
-  try {
-    const res = await fetchImpl(`${env.CONVEX_URL}/api/query`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ path, args, format: 'json' }),
-    })
-    if (!res.ok) return undefined
-    const payload = (await res.json()) as { status?: string; value?: T | null }
-    return payload.status === 'success' ? (payload.value ?? null) : undefined
-  } catch (error) {
-    // The unfurl falls back to the sitewide defaults; the failure is reported
-    // so a Convex outage does not look like a quiet week of shares.
-    reportError(error, { where: 'linkPreview.convexQuery', path })
-    return undefined
-  }
-}
-
 /** The public answer behind a route: what the card and its version are made of. */
 type Resolved =
   | { kind: 'sheet'; route: PreviewRoute & { type: 'sheet' }; answer: PreviewAnswer | null }
   | { kind: 'invite'; route: PreviewRoute & { type: 'invite' }; answer: InvitePreviewAnswer | null }
 
-/**
- * The public answer behind a route. With `appUrl` (the app's address, as the
- * bot reached it) a pattern's answer carries its Discord card too; the
- * picture's version is read off the answer without it, so the two agree.
- */
-async function resolve(
-  route: PreviewRoute,
-  env: PreviewEnv,
-  fetchImpl: Fetch,
-  appUrl?: string
-): Promise<Resolved | undefined> {
-  if (env.SHARED && (await isFilled(env.SHARED))) return resolveShared(route, env.SHARED)
-  if (route.type === 'sheet') {
-    const answer = await convexQuery<PreviewAnswer>(
-      env,
-      'publicSheet:preview',
-      { kind: route.kind, appId: route.id, ...(appUrl ? { appUrl } : {}) },
-      fetchImpl
-    )
-    return answer === undefined ? undefined : { kind: 'sheet', route, answer }
-  }
-  const answer = await convexQuery<InvitePreviewAnswer>(
-    env,
-    'publicSheet:invitePreview',
-    { code: route.code },
-    fetchImpl
-  )
-  return answer === undefined ? undefined : { kind: 'invite', route, answer }
-}
-
 /** The public answer behind a route, from the shared database; `undefined` when it failed. */
-async function resolveShared(route: PreviewRoute, db: SharedDb): Promise<Resolved | undefined> {
+async function resolve(route: PreviewRoute, env: PreviewEnv): Promise<Resolved | undefined> {
+  if (!env.SHARED) return undefined
   try {
     if (route.type === 'sheet') {
-      return { kind: 'sheet', route, answer: await publicPreview(db, route.kind, route.id) }
+      return { kind: 'sheet', route, answer: await publicPreview(env.SHARED, route.kind, route.id) }
     }
-    return { kind: 'invite', route, answer: await invitePreview(db, route.code) }
+    return { kind: 'invite', route, answer: await invitePreview(env.SHARED, route.code) }
   } catch (error) {
-    reportError(error, { where: 'linkPreview.resolveShared', route: route.type })
+    reportError(error, { where: 'linkPreview.resolve', route: route.type })
     return undefined
   }
 }
@@ -247,10 +187,9 @@ export async function metaFor(
   route: PreviewRoute,
   url: URL,
   env: PreviewEnv,
-  fetchImpl: Fetch = fetch,
   base = APP_BASE
 ): Promise<ShellMeta | null> {
-  const resolved = await resolve(route, env, fetchImpl, `${url.origin}${base}`)
+  const resolved = await resolve(route, env)
   if (resolved === undefined) return null
   const card = cardOf(resolved, url.origin, base)
   if (card === null) return null
@@ -351,7 +290,7 @@ export async function ogImage(
   let surface = target.surface
   let version = String(OG_RENDER_VERSION)
   if (target.route !== null) {
-    const resolved = await resolve(target.route, env, fetchImpl)
+    const resolved = await resolve(target.route, env)
     if (resolved === undefined || (resolved.kind === 'invite' && resolved.answer === null)) {
       return NOT_FOUND()
     }

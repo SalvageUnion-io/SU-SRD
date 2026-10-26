@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { ConvexError } from 'convex/values'
+import { RoomDeclined } from '../../../replica/roomSocket'
 
 /**
  * `GameRoster` — a Game's crew on its page in Play, one list, connected.
@@ -23,31 +23,25 @@ import { ConvexError } from 'convex/values'
  * the confirm is pressed, Cancel leaves everything as it was, and a failure
  * keeps the dialog open with a reason.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  * This component asks for: account.me, games.members, entities.listForGame.
  * Mutations are recorded by name the same way.
  */
 
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
-/** Every mutation the surface ran, by `getFunctionName`, with its args. */
+/** Every Games call the surface made, by name, with its args. */
 const mutations: { name: string; args: unknown }[] = []
 /** Set to make the next mutation throw this. */
 let mutationError: unknown = null
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
-const convexMocks = await installConvexMocks({
-  // The store's commits: copies and moves are signed-in writes now.
-  // `upsertByAppId` answers with the row's new version.
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-  convexReact: {
-    useMutation: (ref: unknown) => async (args: unknown) => {
-      if (mutationError !== null) throw mutationError
-      mutations.push({ name: getFunctionName(ref as never), args })
-    },
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
+const serverMocks = await installServerMocks({
+  call: (name, args) => {
+    if (mutationError !== null) throw mutationError
+    mutations.push({ name, args })
   },
 })
 
@@ -124,11 +118,11 @@ async function renderAs(
   members: unknown = MEMBERS
 ): Promise<void> {
   setQueryAnswers({
-    'account:me': me,
-    'games:members': members,
-    'entities:listForGame': rows,
-    'crew:vitals': undefined,
-    'games:listMine': MY_GAMES,
+    'account.me': me,
+    'games.members': members,
+    'entities.listForGame': rows,
+    'crew.vitals': undefined,
+    'games.listMine': MY_GAMES,
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.
   await act(async () => {
@@ -330,7 +324,7 @@ describe('what the game will accept', () => {
     )
     await choose(await openMenu('Second Wind'), 'Make primary')
     expect(mutations).toEqual([
-      { name: 'games:setPrimaryCrawler', args: { gameId: 'g1', crawlerId: 's-crawler-2' } },
+      { name: 'games.setPrimaryCrawler', args: { gameId: 'g1', crawlerId: 's-crawler-2' } },
     ])
   })
 
@@ -448,7 +442,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Unassign')
     expect(mutations).toEqual([
-      { name: 'ownership:unassign', args: { gameId: 'g1', entityId: 's-mine' } },
+      { name: 'ownership.unassign', args: { gameId: 'g1', entityId: 's-mine' } },
     ])
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
@@ -463,7 +457,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Delete')
     expect(mutations).toEqual([
-      { name: 'entities:removeCrawler', args: { gameId: 'g1', crawlerId: 's-crawler' } },
+      { name: 'entities.removeCrawler', args: { gameId: 'g1', crawlerId: 's-crawler' } },
     ])
   })
 
@@ -476,7 +470,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Delete')
     expect(mutations).toEqual([
-      { name: 'entities:remove', args: { gameId: 'g1', entityId: 's-mine' } },
+      { name: 'entities.remove', args: { gameId: 'g1', entityId: 's-mine' } },
     ])
   })
 
@@ -487,7 +481,7 @@ describe('every verb that changes who has a build asks first', () => {
 
     await confirmWith('Assign to me')
     expect(mutations).toEqual([
-      { name: 'ownership:assign', args: { gameId: 'g1', entityId: 's-free' } },
+      { name: 'ownership.assign', args: { gameId: 'g1', entityId: 's-free' } },
     ])
   })
 
@@ -502,7 +496,7 @@ describe('every verb that changes who has a build asks first', () => {
     await confirmWith('Assign to you')
     expect(mutations).toEqual([
       {
-        name: 'ownership:assign',
+        name: 'ownership.assign',
         args: { gameId: 'g1', entityId: 's-mine', userId: 'u-med' },
       },
     ])
@@ -534,7 +528,7 @@ describe('every verb that changes who has a build asks first', () => {
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     await press('Roach-Boy', 'Unassign')
-    mutationError = new ConvexError('A build in your Training Bay is already yours')
+    mutationError = new RoomDeclined('A build in your Training Bay is already yours')
 
     await confirmWith('Unassign')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
@@ -636,4 +630,4 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)

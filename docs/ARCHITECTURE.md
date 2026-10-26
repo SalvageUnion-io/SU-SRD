@@ -7,7 +7,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → every app; `game-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → every app; `game-domain` → `apps/web` (app, Worker, rooms) / bot; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** · ADR-005, ADR-006, ADR-013 <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` is the one source of types, JSON Schema and validation: every schema imports `z` from `lib/zod.ts` (`jitless`, for the CSP), never `zod`; `Ref*` types and JSON Schema are gitignored, rebuilt on install, typecheck, build and test (`ref-generate`).
@@ -16,7 +16,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload `salvageunion-reference/tools/testPreload.ts` from each `bunfig.toml`, never `preload('all')` per file.
 4. **UI library** · ADR-011 <a id="ui-library"></a>
-   `apps/web/src/components/index.ts` barrel, TypeScript source with no build; data-source agnostic, behaviour injected through slot props. Only the areas and `shared/` wire stores or Convex; the library imports no area.
+   `apps/web/src/components/index.ts` barrel, TypeScript source with no build; data-source agnostic, behaviour injected through slot props. Only the areas and `shared/` wire stores or the Worker; the library imports no area.
    Unused exports: [knip](#dead-code).
 5. **Styling** · ADR-046 <a id="stylesheets"></a>
    Tokens in `apps/web/src/styles/theme.css`, mirrored as style objects by `apps/web/src/design/tokens.ts`; classes in one stylesheet, also for styles repeated per page; `no-tailwind` bars Tailwind. Rules: `.claude/rules/styling.md`.
@@ -31,31 +31,31 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
    Imports `game-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
 9. **game-domain** <a id="game-domain"></a>
-   Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, Convex and the bot; import by subpath.
-   Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
+   Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, the rooms and the bot; import by subpath.
+   Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars a rule in a product folder.
 10. **Data flow and the sync status** <a id="data-flow"></a>
     Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
     One status, `useSync()` (`src/replica/sync.ts`): `signedOut` (read-only), `syncing`, `live`, `offline` (what is held; own pilot, mech and NPC edits wait in the outbox, the rest is blocked), plus `outdated`.
-11. **Convex, the server of record** · moving to rooms (ADR-064) <a id="convex"></a>
-    `apps/web/convex/`: opaque bodies (`v.any()`); an entity is [in a Game or on a Shelf](architecture/glossary.md). A unit's body changes only by an op (`ops.apply`, `ops.transfer`; ADR-063), parsed by `applyOp`.
-    Every client write goes through `src/replica/outbox.ts`; each replica table has a `RECORD_KINDS` entry.
+11. **The rooms, the server of record** <a id="rooms"></a>
+    A SQLite Durable Object per account (`AccountRoom`, the Shelf) and per Game (`GameRoom`), wired in `src/worker/rooms.ts`, logic in `src/rooms/`; D1 `SHARED` for accounts and cross-room reads. An entity is [in a Game or on a Shelf](architecture/glossary.md); a unit's body changes only by an op (ADR-063), parsed by `applyOp`.
+    Every client write goes through `src/replica/outbox.ts`, as ops or an act on the unit's room; each replica table has a `RECORD_KINDS` entry.
 12. **Device copy** <a id="device-copy"></a>
-    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, and beside them the outbox: one op per own unit made offline, replayed by `ops.replay` once `live` (ADR-063 decision 9).
+    `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, and beside them the outbox: one op per own unit made offline, replayed to its room once `live` (ADR-063 decision 9).
     Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell, the copy and the outbox.
 13. **The replica** <a id="stores"></a>
-    `src/replica/` is the one holder of server rows, filled by the feed (`ConvexFeed` until the room sockets) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the server's answer; a refused op changes nothing.
-    No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, `convex/react`. `src/stores/` is UI state only.
-14. **Sharing** · moving to rooms (ADR-064) <a id="sharing"></a>
+    `src/replica/` is the one holder of server rows, filled by the room sockets (`RoomFeed`) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the room's answer; a refused op changes nothing.
+    No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, the Games calls (`src/replica/roomCalls.ts`). `src/stores/` is UI state only.
+14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
-15. **Convex deployments** · moving to rooms (ADR-064) <a id="deployments"></a>
-    Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
-    `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
-16. **Convex environment** · moving to rooms (ADR-064) <a id="convex-env"></a>
-    Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): Convex holds `AUTH_JWKS`, its key's public half; bot: `BOT_SECRET`, `BOT_URL` (Play's posts).
-    `TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
-17. **Convex conventions** · moving to rooms (ADR-064) <a id="convex-conventions"></a>
-    Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
-    Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
+15. **Deployments** <a id="deployments"></a>
+    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. The retired Convex project stays intact, untouched (the `convex-last` tag holds its code).
+    `bun run dev` runs the Worker beside the dev server with test auth; setup and rotations are the `site-ops` skill.
+16. **Worker environment** <a id="worker-env"></a>
+    Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`; the bot is reached by service binding (`BOT`), with no shared secret.
+    `TEST_AUTH` never in production; `wrangler secret list` prints names only.
+17. **Room conventions** <a id="room-conventions"></a>
+    A room reads and writes through `RoomSql`; an act is named (`src/rooms/game/acts.ts`, `src/rooms/account/acts.ts`) and the Games calls go through `/__rooms/call`.
+    A refusal the player reads is a `RoomRefusal` (`src/rooms/refusal.ts`), a `RoomDeclined` in the app; anything else a room throws is a defect, answered without its message.
 18. **Surfaces and enforcement** · ADR-007, ADR-009, ADR-021 · [spec](architecture/surfaces.md) <a id="surfaces"></a>
     Enforcement follows the surface's mode: Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`). Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
     The app automates bookkeeping (Heat, EP / AP, uses, SP damage) but never changes a condition or destroys without the player; conditions cycle intact → damaged → destroyed by `StatusBadge`.
@@ -71,9 +71,9 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 22. **Display system** · ADR-010, ADR-026, ADR-028, ADR-053 · [spec](architecture/entity-card.md) <a id="display"></a>
     Entity forms (Mention, Mini, Compact, index Compact, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; contentful forms and Page are `ReferenceEntityCard`, the only one, app UI layered on. `Box` is every other frame, never merged with it.
     App UI goes through `controls` and slot props, never schema props. Every design law in `docs/design-system/` names its gate (`CANON`, `bun run check canon`), or is cut.
-23. **Discord bot as a Game client** · moving to rooms (ADR-064) <a id="bot-game-client"></a>
-    Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.
-    Writes only channel bindings; Convex unreachable: every Game command answers `unavailable`. Each interaction logs its command.
+23. **Discord bot as a Game client** <a id="bot-game-client"></a>
+    Game commands ask the site Worker's `BotGateway` (`src/worker/botGateway.ts`) over the bot's `SITE` binding; the site posts Play's rolls through the bot's `Relay` (its `BOT` binding).
+    Writes only channel bindings; the site unreachable: every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     One site name (`pageTitle`), one WebSite JSON-LD (`WEBSITE`), one sitemap; heads: `BaseLayout.tsx`; shared sheets: ADR-032; `/llms.txt` exact; SW: `src/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
@@ -87,11 +87,11 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): no deletion or force-push, PR only, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned (zizmor); ruleset and Environments drift-checked nightly; no merge queue.
 28. **Deploy** <a id="deploy"></a>
-    `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
+    `deploy-cloudflare.yml` on `main` push: plan → build → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
-    A PR into `main` or a `su-io-*` release branch labelled `preview` gets a su-srd Preview `pr-<n>` (the app on staging Convex) per push, linked in a comment, deleted on close.
-    The label is the approval (no Environment reviewer); staging's schema follows the last PR shipped; Previews share the D1 `su-shared-preview`.
+    A PR into `main` or a `su-io-*` release branch labelled `preview` gets a su-srd Preview `pr-<n>` (its own rooms) per push, linked in a comment, deleted on close.
+    The label is the approval (no Environment reviewer); Previews share the D1 `su-shared-preview`.
 30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.
@@ -101,8 +101,8 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 32. **Dead code** <a id="dead-code"></a>
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
 33. **MCP servers** <a id="mcp"></a>
-    `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `convex` (local deployment), `context7`.
-    Only `context7` and `convex` are enabled; opt into the OAuth two in `.claude/settings.local.json`. `claude mcp list` proves one works.
+    `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `context7`.
+    Only `context7` is enabled; opt into the OAuth two in `.claude/settings.local.json`. `claude mcp list` proves one works.
 34. **Cloud sessions** <a id="cloud"></a>
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
@@ -110,10 +110,10 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Workers `su-srd` (`salvageunion.io`, `/build`), `su-discord-bot`; R2 `su-lp-assets` on `assets.salvageunion.io` (ADR-033).
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc`, `wrangler deployments list`.
 36. **Error tracking** · ADR-049 <a id="errors"></a>
-    Workers Issues, no SDK, browser stacks minified; browsers post to `/__errors`, Convex's log stream to `/__convex-logs`.
+    Workers Issues, no SDK, browser stacks minified; browsers post to `/__errors`.
     `tools/check-observability.ts` guards it.
-37. **Convex and GitHub identifiers** <a id="identifiers"></a>
-    Project `alex-jarvis:susrd`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both "unreachable").
+37. **Identifiers** <a id="identifiers"></a>
+    The retired Convex project is `alex-jarvis:susrd` (production `exuberant-porpoise-183`).
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
 38. **Contributions and provenance** · ADR-029 · [spec](architecture/contributions.md) <a id="contributions"></a>
     One source / op / target model in `salvageunion-reference/lib/rules/contributions.ts`; derivations return parts, so provenance shows wherever a value does.
@@ -157,7 +157,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 41. **ADR-041 The deployed commit is the release**
     No app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
 42. **ADR-042 Mid-tab updates**
-    `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
+    `apps/web/src/lib/connection/buildFloorStamp.ts` is raised by hand only for a change that breaks an open tab.
     Anything else is a soft update.
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.

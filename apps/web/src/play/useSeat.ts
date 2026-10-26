@@ -42,7 +42,7 @@ export type SeatHandle = {
   seat: SeatView
   board: (mechId: string) => void
   /**
-   * Assign an unassigned spare to the player (`ownership.assign`, by its Convex
+   * Assign an unassigned spare to the player (`ownership.assign`, by its
    * row id), then board it. The seat is written only once the assignment has
    * landed, so a refused one leaves it as it was. It draws no `mech-to-pilot` link (ADR-038 §5).
    * The caller confirms first.

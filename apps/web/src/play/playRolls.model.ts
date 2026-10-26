@@ -174,7 +174,7 @@ export type LoggedRoll = {
  * `entityType 'game'`, `field 'roll'`, Play's tag (`PLAY_TXN`), the shape
  * Discord rolls were logged in, so `changeLog.rolls` reads every roll back
  * whichever surface made it. Pure, for the round-trip test; generic so a
- * Convex `Id<'games'>` passes through as itself.
+ * Game id passes through as itself.
  */
 export function rollLogEntry<GameId extends string>(gameId: GameId, roll: LoggedRoll, ts: number) {
   return {

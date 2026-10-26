@@ -8,13 +8,11 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 
 import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import type { Confirm } from '../../../components/shared/useConfirm'
 import type { SyncState } from '../../../replica/syncContext'
 
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
+const serverMocks = await installServerMocks()
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
@@ -25,7 +23,7 @@ const { copyCrewSearch, useCopyCrewOnArrival } = await import('../useCopyCrewOnA
 
 withSignedInBackend()
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 beforeEach(async () => {
   resetStores()

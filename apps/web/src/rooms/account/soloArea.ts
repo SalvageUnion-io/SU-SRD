@@ -4,8 +4,8 @@ import { RoomRefusal } from '../refusal'
 import type { AccountShelf } from './shelf'
 
 /**
- * The area a player's solo table is salvaging (Core Book p.245), with
- * `convex/salvageAreas.ts`'s rules for a null `gameId`: the player sets it
+ * The area a player's solo table is salvaging (Core Book p.245), for a
+ * null `gameId`: the player sets it
  * themselves, and spends its Supply one roll at a time, as a Game room does
  * (`../game/scene.ts`).
  */

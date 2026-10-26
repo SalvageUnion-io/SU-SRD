@@ -32,28 +32,14 @@
   //   Rendering edit permission). With both, a shared thing's link preview
   //   carries its rendered card (apps/web/src/worker/linkPreview.ts);
   //   without them it unfurls as text.
-  // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
-  //   secret. Without it POST /__convex-logs answers 503.
-  // - BOT_URL and BOT_SECRET, the bot Worker's origin and the secret its
-  //   relay checks. With both, a Stop Sign shown on a table that opted in
-  //   posts to the Game's bound channel (src/worker/shared/stopSign.ts).
   // - DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET, the Discord application's
-  //   OAuth client (its redirect: <origin>/auth/callback), and
-  //   AUTH_SIGNING_KEY, the private half of `bun scripts/authKeys.ts`, whose
-  //   public half is the Convex deployment's AUTH_JWKS. Without them
+  //   OAuth client (its redirect: <origin>/auth/callback). Without them
   //   /auth/sign-in answers 503 and nobody signs in (src/worker/auth/).
   //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
   // - GITHUB_FEEDBACK_TOKEN, a GitHub token that may open issues on SU-SRD.
   //   Without it feedback waits in the shared database and is never filed.
-  // - ADMIN_DISCORD_IDS, the site admins' Discord ids, comma-separated, as on
-  //   Convex. Without it nobody can moderate Homebrew (src/worker/sharedRoutes.ts).
-
-  // CONVEX_URL: the Convex deployment a link preview reads what a stranger
-  // may see from until SHARED is filled: the URL the app is built against,
-  // `PRODUCTION_CONVEX_URL` in deploy-cloudflare.yml.
-  "vars": {
-    "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
-  },
+  // - ADMIN_DISCORD_IDS, the site admins' Discord ids, comma-separated.
+  //   Without it nobody can moderate Homebrew (src/worker/sharedRoutes.ts).
 
   // SHARED: the shared database (D1), what crosses rooms: public sheets,
   // Homebrew, Games, memberships and invites (src/worker/shared/). Its tables
@@ -71,21 +57,25 @@
   // PHOTOS: entity photos (src/worker/photos.ts); `su-photos-preview` in `previews`.
   "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "su-photos" }],
 
+  // BOT: the Discord bot's relay (`su-discord-bot`'s `Relay` entrypoint), which
+  // posts a Play roll or a Stop Sign to a bound channel
+  // (src/worker/shared/gameCalls.ts, stopSign.ts). Not on a Preview, so a
+  // Preview never posts to a real channel. The bot must ship its `Relay`
+  // before this binding deploys.
+  "services": [{ "binding": "BOT", "service": "su-discord-bot", "entrypoint": "Relay" }],
+
   // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
   // which names each schedule).
   "triggers": { "crons": ["13 5 * * *", "23 * * * *"] },
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars and
-  // bindings above: the staging deployment the app is built against, and its
-  // own shared database, so a Preview never reads or writes production's.
+  // bindings above: its own shared database and photos, so a Preview never
+  // reads or writes production's.
   // Its error endpoints run without the rate limits, which the Worker allows.
   // AUTH_CALLBACK_ORIGIN "https://salvageunion.io" joins its vars once
   // production serves this Worker's sign-in (the 4.5 cutover): every Preview
   // then signs in through production's one Discord redirect.
   "previews": {
-    "vars": {
-      "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
-    },
     "d1_databases": [
       {
         "binding": "SHARED",
@@ -135,7 +125,7 @@
     "run_worker_first": ["/build", "/build/*", "/play", "/play/*"]
   },
 
-  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
+  // Traces: a span per binding call and outbound fetch (D1, R2, Images,
   // Browser Rendering), in the dashboard next to the logs. Issues is the error
   // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
   // (`reportError`, `src/worker/errorReports.ts`) into issues, alerted on by the

@@ -14,4 +14,4 @@ A built NPC is the app's fourth entity, designed by anyone and able to crew a cr
    - **§4.3 Crew board** — The crawler type's slot and one per bay: design, assign, unassign.
 5. **§5 Phone and accessibility** — Below 48rem: a one-line step strip, sticky Back/Next, a Preview button, full-height slot modal.
    Repeated controls name their target; the open slot carries `aria-current`; a Roll is announced once, politely.
-6. **§6 Tests** — `e2e/npc-crew.e2e.ts` and `test/convex/__tests__/npcs.test.ts`.
+6. **§6 Tests** — `e2e/npc-crew.e2e.ts` and the Game room's crew links (`src/rooms/game/__tests__/units.test.ts`).

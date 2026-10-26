@@ -35,7 +35,7 @@ type CopyInviteLinkProps = {
 
 /**
  * WebKit (Safari and every iOS browser) allows a clipboard write only inside
- * the user's gesture, and the invite token arrives over the Convex socket after
+ * the user's gesture, and the invite token arrives over the room's socket after
  * it has expired. So the clipboard gets a promise inside the gesture
  * (`ClipboardItem` accepts one); engines without it fall back to `writeText`.
  */

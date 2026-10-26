@@ -3,8 +3,8 @@ import { containerFields } from './entity'
 
 /**
  * EncounterNpc — one tracked NPC instance on the GM encounter tray.
- * Persisted like every entity: the `encounterNpcs` Convex
- * table when signed in, nowhere when not;
+ * Persisted like every entity: the account room's
+ * records when signed in, nowhere when not;
  * container-scoped via the nullable `gameId` (ADR-030 §2).
  *
  * The record stores a SLUG reference into salvageunion-reference (data

@@ -4,7 +4,7 @@ import { reloadOntoNewBuild } from './register'
 /**
  * Soft update: a tab moves onto a compatible new build at its next page change.
  *
- * A deploy that leaves the build floor alone (`convex/buildFloor.ts`) breaks no
+ * A deploy that leaves the build floor alone (`lib/connection/buildFloorStamp.ts`) breaks no
  * open tab, so nothing should interrupt one: no read-only window, no reload
  * under the player's hands. Two signals still mean a new build is live:
  *

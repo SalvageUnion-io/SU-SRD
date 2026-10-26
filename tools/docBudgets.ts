@@ -34,12 +34,7 @@ export const COLLAPSED_DOCS: Record<string, number> = {
 
 /** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
 export const SESSION_PROFILES: Record<string, SessionProfile> = {
-  web: { dirs: ['apps/web'], reads: [], skip: ['apps/web/convex'] },
-  /** It reads the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
-  convex: {
-    dirs: ['apps/web/convex'],
-    reads: ['apps/web/CLAUDE.md', 'apps/web/convex/_generated/ai/guidelines.md'],
-  },
+  web: { dirs: ['apps/web'], reads: [] },
   bot: { dirs: ['apps/discord-bot'], reads: [] },
 }
 
@@ -49,7 +44,6 @@ export const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 export const SESSION_CEILINGS: Record<string, number> = {
-  web: 23_293,
-  convex: 26_780,
+  web: 22_420,
   bot: 11_463,
 }

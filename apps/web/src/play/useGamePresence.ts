@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useSyncExternalStore } from 'react'
-import { useSessionToken } from '../lib/auth/session'
+import { useMyPerson } from '../lib/auth/session'
 import { useSync } from '../replica/syncContext'
 import type { PresenceMessage } from '../rooms/presence'
 import { ROOM_PROTOCOL } from '../rooms/presence'
@@ -22,7 +22,7 @@ const channels = new Map<string, Channel>()
 /** Waits before reopening a dropped socket: doubling, at most 30 s. */
 const RETRY_MS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000]
 
-function openChannel(key: string, url: string, token: string): Channel {
+function openChannel(key: string, url: string): Channel {
   const channel: Channel = { here: null, listeners: new Set(), users: 0, close: () => undefined }
   const tell = (here: Here) => {
     channel.here = here
@@ -33,7 +33,7 @@ function openChannel(key: string, url: string, token: string): Channel {
   let attempt = 0
   let closed = false
   const connect = () => {
-    socket = new WebSocket(url, [ROOM_PROTOCOL, token])
+    socket = new WebSocket(url, [ROOM_PROTOCOL])
     socket.onopen = () => {
       attempt = 0
     }
@@ -59,17 +59,17 @@ function openChannel(key: string, url: string, token: string): Channel {
 
 export function useGamePresence(gameId: string | null, role: 'seat' | 'watch'): Here {
   const { status } = useSync()
-  const token = useSessionToken()
+  const person = useMyPerson()
   const seat = role === 'seat' ? '1' : '0'
   const key =
-    status === 'live' && gameId !== null && token !== null ? `${gameId}:${seat}:${token}` : null
+    status === 'live' && gameId !== null && person !== null ? `${gameId}:${seat}:${person}` : null
 
   const subscribe = useCallback(
     (listener: () => void) => {
-      if (key === null || gameId === null || token === null) return () => undefined
+      if (key === null || gameId === null) return () => undefined
       const url = new URL(`${gameSocketPath(gameId)}?seat=${seat}`, window.location.href)
       url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
-      const channel = channels.get(key) ?? openChannel(key, url.href, token)
+      const channel = channels.get(key) ?? openChannel(key, url.href)
       channels.set(key, channel)
       channel.users++
       channel.listeners.add(listener)
@@ -78,7 +78,7 @@ export function useGamePresence(gameId: string | null, role: 'seat' | 'watch'): 
         if (--channel.users === 0) channel.close()
       }
     },
-    [key, gameId, seat, token]
+    [key, gameId, seat]
   )
   return useSyncExternalStore(subscribe, () =>
     key === null ? null : (channels.get(key)?.here ?? null)

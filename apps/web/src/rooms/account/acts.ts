@@ -8,7 +8,7 @@ type Acts = Omit<typeof ACCOUNT_SOCKET_ACTS, keyof typeof SHELF_ACTS>
 type Args<N extends keyof Acts> = z.infer<Acts[N]>
 type Context = { room: AccountRoomLogic; actor: string; at: number }
 
-/** A solo Downtime names its Pilot, as `convex/downtime.ts` refuses one that does not. */
+/** A solo Downtime names its Pilot, and one that does not is refused. */
 function pilotOf(args: { pilotId?: string }): string {
   if (args.pilotId === undefined) throw new Error('A solo Downtime names its Pilot')
   return args.pilotId
@@ -16,7 +16,7 @@ function pilotOf(args: { pilotId?: string }): string {
 
 /**
  * Every act the player's socket may send their account room
- * (`ACCOUNT_SOCKET_ACTS`): their units and links, and, under its Convex name, their solo table.
+ * (`ACCOUNT_SOCKET_ACTS`): their units and links, and their solo table.
  */
 export const ACCOUNT_ACTS: { [N in keyof Acts]: (c: Context, a: Args<N>) => unknown } = {
   createUnit: (c, a) => c.room.shelf.create(c.actor, { ...a, at: c.at }),

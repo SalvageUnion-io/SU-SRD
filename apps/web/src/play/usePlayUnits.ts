@@ -11,14 +11,12 @@
  * carries is never live.
  */
 
-import { useQuery } from 'convex/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { readReference } from '../lib/readReference'
 import { parseFrozenEntity } from '../lib/schemas/frozenEntity'
+import { useGamesQuery } from '../replica/roomCalls'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
@@ -78,9 +76,9 @@ export function usePlayUnits(play: Play): PlayUnits {
   const store = useUnits()
   const { status } = useSync()
   const signedIn = isSignedIn(status)
-  const listing = useQuery(
-    api.entities.listForGame,
-    signedIn && target.gameId !== null ? { gameId: target.gameId as Id<'games'> } : 'skip'
+  const listing = useGamesQuery(
+    'entities.listForGame',
+    signedIn && target.gameId !== null ? { gameId: target.gameId } : 'skip'
   )
   const links: readonly ListedLink[] = [...store.softLinks, ...(listing?.softLinks ?? [])]
   const linked = (type: string, match: (l: ListedLink) => boolean) =>

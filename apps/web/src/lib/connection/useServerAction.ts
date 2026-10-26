@@ -4,28 +4,25 @@ import { RoomDeclined } from '../../replica/roomSocket'
 import { StaleWriteRefused, WritesBlockedOffline } from '../../replica/sync'
 import { LinkRefused } from '../links/linkRefused'
 import { captureException } from '../observability'
-import { serverMessage } from './serverError'
 
 /**
  * The one way a component runs a write it waits on, and the one rule for what
  * a failed write says.
  *
- * A Convex write can fail three ways, and they call for opposite handling:
+ * A write can fail two ways, and they call for opposite handling:
  *
- * - a **refusal** — a `ConvexError` the backend threw on purpose — carries
- *   words chosen for the player (`serverMessage`);
- * - a **blocked, stale or refused write** — `WritesBlockedOffline`,
- *   `StaleWriteRefused`, `LinkRefused`, thrown by the entity store before or
- *   after the round trip — carries words written for the player too, as does
- *   any error class a call site names in `playerErrors` (a photo the browser
- *   cannot read, a file that is not a backup);
- * - **anything else** is a defect. Its text is never fit to show: a redacted
- *   server error reads `[CONVEX M(fn)] … Server Error`, and a client bug's
- *   message is a developer's. So it gets the caller's own line, and a
+ * - a **refusal or a blocked, stale or refused write** (`RoomDeclined`, a
+ *   room's or the Worker's refusal; `WritesBlockedOffline`,
+ *   `StaleWriteRefused`, `LinkRefused`, thrown by the entity store) carries
+ *   words written for the player, as does any error class a call site names
+ *   in `playerErrors` (a photo the browser cannot read, a file that is not a
+ *   backup);
+ * - **anything else** is a defect. Its text is never fit to show: a client
+ *   bug's message is a developer's. So it gets the caller's own line, and a
  *   report, because catching it is exactly what kept it from reaching the
  *   window's `error` event.
  *
- * `err instanceof Error ? err.message : …` gets all three wrong at once, which
+ * `err instanceof Error ? err.message : …` gets both wrong at once, which
  * is why lint bans it (`packages/gates/biome/noRawErrorMessage.grit`).
  */
 
@@ -48,8 +45,6 @@ export function playerMessage(
   err: unknown,
   playerErrors: readonly PlayerError[] = []
 ): string | null {
-  const refusal = serverMessage(err)
-  if (refusal !== null) return refusal
   const said = [...STORE_PLAYER_ERRORS, ...playerErrors].some((kind) => err instanceof kind)
   return said && err instanceof Error ? err.message : null
 }

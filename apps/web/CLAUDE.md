@@ -20,14 +20,3 @@ One app ([ADR-050](../../docs/architecture/one-app.md)): the SRD's pre-rendered 
 No output snapshot: CI builds once and runs `bun --filter web check:examples`
 and the PR-tier e2e specs (`ci.yml`) on that `dist`; lower a
 `perf-budget.e2e.ts` budget when a page gets faster.
-
-## Convex
-
-`convex/` is the app's backend; tests in `test/` and `e2e/`; static pages
-never import them (Biome). Convex's AI block lives in `convex/CLAUDE.md`, so
-it loads only there (move it back if `convex ai-files install` re-adds it
-here); `bunx`, not `npx`. Vendored Convex skills and how they meet this repo: [AGENTS.md](AGENTS.md).
-
-**Refusals:** `NotAuthorized` (`model/permissions.ts`) when the caller may not
-act, `ConvexError` when the state refuses (gone, destroyed); a plain `Error` is
-a defect, redacted to "Server Error".

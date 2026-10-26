@@ -17,8 +17,8 @@ import type { ReactNode } from 'react'
  *   the mobile drawer; the mobile header row stays empty.
  */
 
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import type { QueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import {
   accountAnswers,
   accountApiStub,
@@ -29,12 +29,12 @@ let authed = true
 const signIn = mock((_route?: string) => undefined)
 const signOut = mock(async () => undefined)
 
-// Module scope, before the imports below — see `convexMock.ts`. The session
+// Module scope, before the imports below — see `serverMock.ts`. The session
 // module is mocked through `also` rather than `authReact` so the two actions
-// are spies this file can read. `also` resolves from `convexMock.ts`.
-const convexMocks = await installConvexMocks({
+// are spies this file can read. `also` resolves from `serverMock.ts`.
+const serverMocks = await installServerMocks({
   router: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
     '../../lib/auth/session': () => ({ signIn, signOut }),
     '../../lib/account/accountApi': accountApiStub,
@@ -50,7 +50,7 @@ const { resetSync } = await import('../../../replica/sync')
 const ME = { _id: 'u1', displayName: 'Beefcake', avatarUrl: null, email: null }
 const GAMES = [{ _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true }]
 
-const QUERIES: QueryAnswers = { 'games:listMine': GAMES }
+const QUERIES: QueryAnswers = { 'games.listMine': GAMES }
 
 /** The Games list from the server, and the player from the account route. */
 function serve(queries: QueryAnswers): void {
@@ -78,13 +78,13 @@ afterEach(() => {
   setOnline(true)
   signIn.mockClear()
   signOut.mockClear()
-  convexMocks.navigations.length = 0
+  serverMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
   resetSync()
   resetAccountApi()
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)
 
 describe('signed in and connected', () => {
   test('the trigger is a menu button showing the display name and avatar initials', () => {
@@ -119,7 +119,7 @@ describe('signed in and connected', () => {
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Settings' }))
     })
-    expect(convexMocks.navigations).toEqual([{ to: '/settings' }])
+    expect(serverMocks.navigations).toEqual([{ to: '/settings' }])
     expect(screen.queryByRole('menu')).toBeNull()
   })
 

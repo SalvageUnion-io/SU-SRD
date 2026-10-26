@@ -7,17 +7,17 @@ import { cleanup, render, screen } from '@testing-library/react'
  * (`fakeRooms.ts` serves it).
  *
  * The Convex hooks `SyncProvider` still uses are mocked through
- * `installConvexMocks()`, which owns the capture-and-restore that keeps a
+ * `installServerMocks()`, which owns the capture-and-restore that keeps a
  * process-global `mock.module` from leaking into every test file that runs
  * after this one.
  */
 
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
-const convexMocks = await installConvexMocks()
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
+const serverMocks = await installServerMocks()
 
 const { ProposalInbox } = await import('../ProposalInbox')
 const { SyncProvider } = await import('../../../replica/SyncProvider')
@@ -81,4 +81,4 @@ describe('ProposalInbox', () => {
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)

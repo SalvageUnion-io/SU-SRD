@@ -8,15 +8,15 @@ import { createElement } from 'react'
  * member who does not mediate, or a stranger, one line and the way to the
  * Game page; the Mediator, the screen under the Game's name.
  *
- * Queries are answered by name (`convexMock.ts`). The screen is stubbed.
+ * Queries are answered by name (`serverMock.ts`). The screen is stubbed.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: {
-    // Relative to `convexMock.ts`, not this file.
+    // Relative to `serverMock.ts`, not this file.
     '../../play/PlayMediatorCockpit': () => ({
       PlayMediatorCockpit: ({ gameName }: { gameName: string }) =>
         createElement('p', null, `Mediating ${gameName}`),
@@ -27,7 +27,7 @@ const convexMocks = await installConvexMocks({
 const { PlayMediatorGate } = await import('../PlayMediatorGate')
 const { SyncContext } = await import('../../replica/syncContext')
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)
 
 type Mode = 'signedOut' | 'syncing' | 'live' | 'offline'
 
@@ -54,13 +54,13 @@ describe('PlayMediatorGate', () => {
   })
 
   test('the Mediator gets the screen, under the Game’s name', () => {
-    answerReads({ 'games:get': GAME, 'mediator:amMediator': true })
+    answerReads({ 'games.get': GAME, 'mediator.amMediator': true })
     renderAs('live')
     expect(screen.getByText('Mediating Reclamation of the Wastes')).toBeTruthy()
   })
 
   test('a member who does not mediate is sent back to the Game', () => {
-    answerReads({ 'games:get': { ...GAME, mediator: false }, 'mediator:amMediator': false })
+    answerReads({ 'games.get': { ...GAME, mediator: false }, 'mediator.amMediator': false })
     renderAs('live')
     expect(screen.getByText("Only this Game's Mediator runs this screen")).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
@@ -69,13 +69,13 @@ describe('PlayMediatorGate', () => {
   })
 
   test('a stranger is told the same, and the Mediator check is never asked', () => {
-    answerReads({ 'games:get': null })
+    answerReads({ 'games.get': null })
     renderAs('live')
     expect(screen.getByText("Only this Game's Mediator runs this screen")).toBeTruthy()
   })
 
   test('waits while the Game has not answered', () => {
-    answerReads({ 'games:get': undefined })
+    answerReads({ 'games.get': undefined })
     renderAs('offline')
     expect(screen.getByText('Loading the Game…')).toBeTruthy()
   })

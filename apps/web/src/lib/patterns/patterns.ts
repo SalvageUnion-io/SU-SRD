@@ -4,7 +4,7 @@
  *
  * A pattern keeps the chassis and its loadout. Damage, Heat and cargo stay on
  * the mech; a mech built from a pattern starts fresh and records which pattern
- * it came from. Pure functions over the schemas — the stores and Convex
+ * it came from. Pure functions over the schemas — the stores and rooms
  * own the writes.
  */
 

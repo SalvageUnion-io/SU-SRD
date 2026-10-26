@@ -117,7 +117,7 @@ export class AccountShelf {
   /**
    * What the player owns here, for download (`account.exportMine`'s shape):
    * their pilots, mechs and NPCs, saved patterns and encounters. A crawler is
-   * the table's, so it stays out, as on Convex.
+   * the table's, so it stays out.
    */
   exportFor(actor: string): ShelfExport | null {
     if (this.owner() !== actor) return null
@@ -201,7 +201,7 @@ export class AccountShelf {
 
   /**
    * Delete a unit with its links and seat. Deleting a mech leaves its solo
-   * pilot on foot, as on Convex; moving one out does not (`./transit.ts`).
+   * pilot on foot; moving one out does not (`./transit.ts`).
    */
   remove(actor: string, unitId: string): void {
     this.store.sql.transaction(() => {

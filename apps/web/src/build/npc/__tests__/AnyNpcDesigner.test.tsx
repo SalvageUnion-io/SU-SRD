@@ -7,13 +7,13 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { useUnits } = await import('../../../replica/units')

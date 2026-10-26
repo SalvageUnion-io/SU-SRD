@@ -11,15 +11,14 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 
-// Module scope, before the imports below — see `convexMock.ts`. Signed out:
+// Module scope, before the imports below — see `serverMock.ts`. Signed out:
 // the app's first paint for a visitor.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: false, isLoading: false }) },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } =
   await import('@tanstack/react-router')

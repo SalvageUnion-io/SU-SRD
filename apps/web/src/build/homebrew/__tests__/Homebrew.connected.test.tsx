@@ -7,7 +7,7 @@
 
 import { afterAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import {
   answerRoutes,
   routeWrites,
@@ -15,10 +15,10 @@ import {
 } from '../../../lib/sharing/__tests__/workerRoutes'
 import { sharedPaths } from '../../../lib/sharing/paths'
 
-// Module scope, before the imports below — see `convexMock.ts`: the router
+// Module scope, before the imports below — see `serverMock.ts`: the router
 // and sign-in only; Homebrew is the Worker's.
-const convexMocks = await installConvexMocks({ authReact: true, router: true })
-afterAll(() => convexMocks.restore())
+const serverMocks = await installServerMocks({ router: true })
+afterAll(() => serverMocks.restore())
 
 const { HomebrewControls } = await import('../HomebrewControls')
 const { HomebrewModerationScreen } = await import('../HomebrewModerationScreen')

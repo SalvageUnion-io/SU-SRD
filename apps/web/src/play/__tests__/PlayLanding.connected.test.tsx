@@ -10,25 +10,25 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * Game with its mech or "No Mech". Nothing that builds.
  * Signed out, sign in.
  *
- * Queries are answered by name (`convexMock.ts`): `games.listMine` and
+ * Queries are answered by name (`serverMock.ts`): `games.listMine` and
  * `channelBindings.mine`, then `downtime.state`,
  * `entities.listForGame` and `crew.vitals` once per Game. Without a router,
  * so links are anchors.
  */
 
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import {
-  installConvexMocks,
+  installServerMocks,
   queryCalls,
   setQueryAnswers,
-} from '../../components/__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+} from '../../components/__tests__/serverMock'
 import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 import { crewPilot } from './crewRows'
 
 // Who each Game's room says is here (`useGamePresence`): nobody, unless a test says.
 const presence: { here: ReadonlySet<string> | null } = { here: null }
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
 })
 
@@ -63,15 +63,15 @@ const IN_DOWNTIME = { running: true, stepIndex: 2, completedBy: [], upkeepSpent:
 
 /** No channel bound anywhere, and no crew: what most tests need answered. */
 const QUIET = {
-  'channelBindings:mine': { personal: null, games: [] },
-  'entities:listForGame': {
+  'channelBindings.mine': { personal: null, games: [] },
+  'entities.listForGame': {
     pilots: [],
     mechs: [],
     crawlers: [],
     softLinks: [],
     primaryCrawlerId: null,
   },
-  'crew:vitals': { viewerId: 'u-me', pilots: [], mechs: [] },
+  'crew.vitals': { viewerId: 'u-me', pilots: [], mechs: [] },
 }
 
 beforeAll(async () => {
@@ -98,7 +98,7 @@ afterAll(async () => {
   await store.forget('pilot', 'land-rook')
   await store.forget('pilot', 'land-wren')
   await store.forget('pilot', 'land-kes')
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 async function renderAs(status: SyncStatus) {
@@ -136,8 +136,8 @@ describe('the Play landing', () => {
 
   test('Your Games: each a Compact opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
     answerReads({
-      'games:listMine': [TENACITY, WASTES],
-      'downtime:state': IN_DOWNTIME,
+      'games.listMine': [TENACITY, WASTES],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
     })
     await renderAs('live')
@@ -167,8 +167,8 @@ describe('the Play landing', () => {
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
     answerReads({
-      'games:listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
-      'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+      'games.listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
+      'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
       ...QUIET,
     })
     await renderAs('live')
@@ -182,7 +182,7 @@ describe('the Play landing', () => {
   })
 
   test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
-    answerReads({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
+    answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
     await renderAs('live')
     const solo = section('Play solo')
     expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
@@ -209,7 +209,7 @@ describe('the Play landing', () => {
   })
 
   test('the head offers + New Game and Join; Join opens the invite screen from a link or its token', async () => {
-    answerReads({ 'games:listMine': [], 'templates:list': [], ...QUIET })
+    answerReads({ 'games.listMine': [], 'templates.list': [], ...QUIET })
     const assigned: string[] = []
     const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
       assigned.push(String(to))
@@ -253,10 +253,10 @@ describe('the Play landing', () => {
 
   test('a Game’s channel is a chip on its card; there is no Discord section', async () => {
     answerReads({
-      'games:listMine': [TENACITY, WASTES],
-      'downtime:state': IN_DOWNTIME,
+      'games.listMine': [TENACITY, WASTES],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      'channelBindings:mine': {
+      'channelBindings.mine': {
         personal: null,
         games: [
           {
@@ -277,17 +277,17 @@ describe('the Play landing', () => {
 
   test('the crew are Minis with their chips: a boarded pilot is its mech, else the pilot', async () => {
     answerReads({
-      'games:listMine': [TENACITY],
-      'downtime:state': IN_DOWNTIME,
+      'games.listMine': [TENACITY],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      'entities:listForGame': {
+      'entities.listForGame': {
         pilots: [],
         mechs: [],
         crawlers: [{ _id: 'c1', appId: 'a-c1', body: { id: 'a-c1', name: 'Big Sal' } }],
         softLinks: [],
         primaryCrawlerId: 'c1',
       },
-      'crew:vitals': {
+      'crew.vitals': {
         viewerId: 'u-me',
         pilots: [
           {
@@ -373,10 +373,10 @@ describe('the Play landing', () => {
 
   test('Your Games: how many are here now, from the Game’s room', async () => {
     answerReads({
-      'games:listMine': [TENACITY],
-      'downtime:state': IN_DOWNTIME,
+      'games.listMine': [TENACITY],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      'crew:vitals': {
+      'crew.vitals': {
         viewerId: 'u-me',
         pilots: [
           crewPilot('p1', 'Mags', 'u-mags'),

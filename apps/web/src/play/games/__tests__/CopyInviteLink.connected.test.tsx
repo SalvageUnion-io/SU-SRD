@@ -10,20 +10,17 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * a signed-out viewer, who has no link to copy, sees nothing.
  */
 
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { pageOrigin } from '../../../lib/site'
 
 let authed = true
 const mutations: { name: string; args: unknown }[] = []
 
-const convexMocks = await installConvexMocks({
-  convexReact: {
-    useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-    useMutation: (ref: unknown) => async (args: unknown) => {
-      mutations.push({ name: getFunctionName(ref as never), args })
-      return 'TOKEN0123456789A'
-    },
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
+  call: (name, args) => {
+    mutations.push({ name, args })
+    return 'TOKEN0123456789A'
   },
 })
 
@@ -42,7 +39,7 @@ beforeEach(() => {
 
 afterAll(() => {
   resetSync()
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 async function renderButton(): Promise<HTMLElement> {
@@ -70,7 +67,7 @@ describe('Copy invite link', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
     })
 
-    expect(mutations).toEqual([{ name: 'invites:link', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'invites.link', args: { gameId: 'g1' } }])
     expect(copied).toEqual([`${pageOrigin()}/play/invite/TOKEN0123456789A`])
   })
 
@@ -112,6 +109,6 @@ describe('Reset link', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Reset link' }))
     })
 
-    expect(mutations).toEqual([{ name: 'invites:reset', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'invites.reset', args: { gameId: 'g1' } }])
   })
 })

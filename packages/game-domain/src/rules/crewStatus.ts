@@ -23,12 +23,10 @@ import { pilotingContext } from './pilotingContext'
  * The server serves these to the whole crew (`crew.vitals`, read by the Crew
  * list), and Play's own unit boxes read the same maxima (`unitStats.model.ts`),
  * so the ▲ on the Crew list, a crewmate's row and the player's own box agree.
- * `test/convex/__tests__/crewStatus.test.ts` holds the two sides to it on shared
- * fixtures.
  *
  * Pure. It reads the abilities, chassis, systems and modules schemas, so they
- * must be loaded first: `preload` in the browser, `loadReferenceData()`
- * (`convex/model/referenceData.ts`) on the server.
+ * must be loaded first: `preload`, in the browser and in the
+ * rooms (`rooms/vitals.ts`).
  */
 
 /**

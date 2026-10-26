@@ -23,8 +23,8 @@ import {
 } from 'bun:test'
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import type { PostRollResult } from 'game-domain/games/discord'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { acts, closeRooms, openRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
@@ -39,8 +39,8 @@ let postResult: () => Promise<PostRollResult> = async () => ({
 const postRoll = mock((_args: unknown) => postResult())
 const presence: { here: ReadonlySet<string> | null } = { here: CREW_HERE }
 
-const convexMocks = await installConvexMocks({
-  convexReact: { useAction: () => postRoll },
+const serverMocks = await installServerMocks({
+  call: (name, args) => (name === 'channelBindings.postRoll' ? postRoll(args) : undefined),
   // Who the Game's room says is here (`useGamePresence`); a test changes it and rerenders.
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
 })
@@ -82,8 +82,8 @@ const PROPOSAL = {
 /** The Games reads answered, and the Game room's records served, as these reads answer. */
 function answers(over: Record<string, unknown> = {}) {
   const all = {
-    'games:get': { name: 'Rust Belt Run', organizer: false },
-    'changeLog:rolls': [
+    'games.get': { name: 'Rust Belt Run', organizer: false },
+    'changeLog.rolls': [
       {
         _id: 'r-1',
         ts: NOW - 30_000,
@@ -92,14 +92,14 @@ function answers(over: Record<string, unknown> = {}) {
         source: 'play',
       },
     ],
-    'changeLog:alerts': [],
-    'ops:pending': [PROPOSAL],
-    'crew:vitals': crewAt(),
-    'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
-    'entities:listForGame': null,
-    'seats:forGame': [],
-    'channelBindings:current': BOUND,
-    'safety:stopSign': null,
+    'changeLog.alerts': [],
+    'ops.pending': [PROPOSAL],
+    'crew.vitals': crewAt(),
+    'account.me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
+    'entities.listForGame': null,
+    'seats.forGame': [],
+    'channelBindings.current': BOUND,
+    'safety.stopSign': null,
     ...over,
   }
   setQueryAnswers(all)
@@ -188,7 +188,7 @@ afterEach(() => {
   postResult = async () => ({ kind: 'posted', channelId: 'c-1', messageId: 'm-1' })
 })
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 describe('the Crew (play.md §7)', () => {
   test('one line per other seat: presence, mount, and the vital that needs looking at', async () => {
@@ -240,7 +240,7 @@ describe('the Crew (play.md §7)', () => {
         }
         return p
       })
-      answers({ 'crew:vitals': crew })
+      answers({ 'crew.vitals': crew })
       await rerender()
       expect(label('Rook')).toBe('Rook, here, Boarded · Mule, SP 26, fine. Open their sheet')
       expect(label('Mags')).toBe('Mags, here, Boarded · Atlas, Injured. Open their sheet')
@@ -415,7 +415,7 @@ describe('Discord (play.md §9)', () => {
   })
 
   test('nothing bound: the toggle is off and says rolls stay in Play; nothing is sent', async () => {
-    answers({ 'channelBindings:current': null })
+    answers({ 'channelBindings.current': null })
     await renderSide()
     const toggle = screen.getByRole('checkbox', { name: 'Post rolls to the Game’s channel' })
     expect((toggle as HTMLInputElement).disabled).toBe(true)

@@ -105,11 +105,8 @@ function envFor(keys: KeyPairHex): Env {
     DISCORD_PUBLIC_KEY: keys.publicKeyHex,
     DISCORD_APPLICATION_ID: APPLICATION_ID,
     DISCORD_TOKEN: 'test-token',
-    // Unconfigured, and a site gateway that leaves every op: every app call
-    // degrades to `unavailable` with no request.
+    // A site gateway that answers nothing: every app call degrades to `unavailable`.
     SITE: { answer: async () => null } as unknown as Env['SITE'],
-    BACKEND_SITE_URL: '',
-    BOT_SECRET: '',
   }
 }
 
@@ -321,29 +318,20 @@ describe('interaction dispatch', () => {
   test('a slash command is tallied with the app by name and server, never by who', async () => {
     const keys = await generateKeyPair()
     const { ctx, settled } = executionContext()
-    const posted: Array<{ url: string; body: unknown }> = []
-    const realFetch = globalThis.fetch
-    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
-      posted.push({ url: String(url), body: JSON.parse(String(init?.body ?? 'null')) })
-      return Response.json({ ok: true })
-    }) as typeof fetch
-    try {
-      const raw = {
-        ...interaction.command('roll', [{ name: 'table', value: 'core' }]),
-        guild_id: 'guild-1',
-      }
-      await worker.fetch(
-        await signedRequest(raw, keys),
-        { ...envFor(keys), BACKEND_SITE_URL: 'https://app.test', BOT_SECRET: 's' },
-        ctx
-      )
-      await settled()
-    } finally {
-      globalThis.fetch = realFetch
+    const asked: Array<{ op: string; args: unknown }> = []
+    const SITE = {
+      answer: async (op: string, args: unknown) => {
+        asked.push({ op, args })
+        return { ok: true }
+      },
+    } as unknown as Env['SITE']
+    const raw = {
+      ...interaction.command('roll', [{ name: 'table', value: 'core' }]),
+      guild_id: 'guild-1',
     }
-    expect(posted).toEqual([
-      { url: 'https://app.test/bot/usage', body: { name: 'su roll', guildId: 'guild-1' } },
-    ])
+    await worker.fetch(await signedRequest(raw, keys), { ...envFor(keys), SITE }, ctx)
+    await settled()
+    expect(asked).toEqual([{ op: 'usage', args: { name: 'su roll', guildId: 'guild-1' } }])
   })
 
   test('autocomplete answers with a choices payload, never a defer', async () => {

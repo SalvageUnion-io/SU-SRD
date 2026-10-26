@@ -1,30 +1,16 @@
 /**
- * Fed by the rooms (`RoomFeed`), an edit to a unit in a Game whose socket is
- * open goes to that room as an `ops` batch, not to Convex, and the room's
- * `declined` is the refusal; a unit on the Shelf, whose room is not open
- * yet, still goes to Convex.
+ * An edit to a unit in a Game whose socket is open goes to that room as an
+ * `ops` batch, and the room's `declined` is the refusal; a unit whose room is
+ * not open goes nowhere and fails as offline.
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { getFunctionName } from 'convex/server'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { acceptingRooms, roomAnswer, roomOps } from '../../../test/roomsStub'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-
-const convex: string[] = []
-
-const { installConvexMocks } = await import('../../components/__tests__/convexMock')
-const mocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (ref: unknown) => {
-      convex.push(getFunctionName(ref as never))
-      return { updatedAt: 5, headSeq: 2, fresh: true }
-    },
-  },
-})
-afterAll(() => mocks.restore())
 
 const { openRoom, RoomDeclined } = await import('../roomSocket')
 const { gameScope } = await import('../replica')
-const { resetSync, setSyncStatus } = await import('../sync')
+const { resetSync, setSyncStatus, WritesBlockedOffline } = await import('../sync')
 const { useUnits } = await import('../units')
 const { resetStores } = await import('./resetStores')
 
@@ -62,14 +48,14 @@ async function answer(reply: { type: 'ack' } | { type: 'declined'; reason: strin
 
 beforeEach(async () => {
   resetStores()
-  convex.length = 0
+  acceptingRooms()
   globalThis.WebSocket = FakeSocket as never
   window.location.href = 'http://localhost/build/'
   const units = useUnits.getState()
   await units.adopt('pilot', pilotFixture({ id: 'gp', name: 'Before', gameId: 'g1' }))
   await units.adopt('pilot', pilotFixture({ id: 'sp', name: 'Before', gameId: null }))
   setSyncStatus('live')
-  close = openRoom('/__rooms/games/g1/socket', gameScope('g1'), 'tok', 'g1')
+  close = openRoom('/__rooms/games/g1/socket', gameScope('g1'), 'g1')
   socket = FakeSocket.last as FakeSocket
   socket.readyState = FakeSocket.OPEN
   socket.onopen?.()
@@ -79,6 +65,7 @@ afterEach(() => {
   close()
   globalThis.WebSocket = real
   resetSync()
+  acceptingRooms()
 })
 
 describe('fed by the rooms', () => {
@@ -89,7 +76,7 @@ describe('fed by the rooms', () => {
 
     expect(socket.sent).toHaveLength(1)
     expect(socket.sent[0]?.ops[0]).toMatchObject({ unitId: 'gp', patch: { name: 'After' } })
-    expect(convex).toEqual([])
+    expect(roomOps).toEqual([])
     expect(useUnits.getState().get('pilot', 'gp')?.name).toBe('After')
   })
 
@@ -99,9 +86,12 @@ describe('fed by the rooms', () => {
     await expect(edit).rejects.toBeInstanceOf(RoomDeclined)
   })
 
-  test('a unit on the Shelf still goes to Convex while its room is not open', async () => {
-    await useUnits.getState().update('pilot', 'sp', { name: 'After' }, TXN)
+  test('a unit on the Shelf fails as offline while its room is not open', async () => {
+    roomAnswer.open = false
+    await expect(
+      useUnits.getState().update('pilot', 'sp', { name: 'After' }, TXN)
+    ).rejects.toBeInstanceOf(WritesBlockedOffline)
     expect(socket.sent).toEqual([])
-    expect(convex).toEqual(['ops:apply'])
+    expect(useUnits.getState().get('pilot', 'sp')?.name).toBe('Before')
   })
 })

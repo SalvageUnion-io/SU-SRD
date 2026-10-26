@@ -18,10 +18,10 @@
  *  - **offline** — a Game is shared state, and it cannot be read without a
  *    connection.
  *  - **loading** — mid-handshake, still locating, yours on its way into this
- *    browser (`ConvexFeed`), the listing on its way, or a Convex row id being
+ *    browser (`RoomFeed`), the listing on its way, or a row id being
  *    swapped for the canonical app id.
  *
- * A Convex row id is what the Discord bot's sheet links carry, and what links
+ * A row id is what the Discord bot's sheet links carry, and what links
  * already posted to the retired crew-view URL redirect with. Once located, it
  * is replaced by the canonical app id every other link uses.
  */

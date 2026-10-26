@@ -17,8 +17,8 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { buildMechActions, hasCurrencyChoice, VENT_PATCH } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { PLAY_TXN } from '../../replica/provenance'
@@ -26,8 +26,8 @@ import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
-const convexMocks = await installConvexMocks()
-setQueryAnswers({ 'account:me': null })
+const serverMocks = await installServerMocks()
+setQueryAnswers({ 'account.me': null })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { Harness } = await import('./playActionsHarness')
@@ -66,7 +66,7 @@ beforeAll(async () => {
   }
 })
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 /** The costed system's primary (EP-costed) action, and its cost. */
 function primary(): { name: string; epCost: number } {

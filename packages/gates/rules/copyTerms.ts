@@ -53,7 +53,6 @@ import { CATALOGUE_DIR as CATALOGUE } from './uiStrings'
 
 /** The source trees whose strings reach a reader. */
 const COPY_DIRS = [
-  'apps/web/convex',
   'apps/web/src',
   'apps/discord-bot/src',
   'packages/game-domain/src',

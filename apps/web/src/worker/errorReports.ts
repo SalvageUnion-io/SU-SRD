@@ -1,6 +1,6 @@
 /**
- * Error reporting for the Cloudflare Workers, and the two endpoints that bring
- * the browser's and Convex's errors into them.
+ * Error reporting for the Cloudflare Workers, and the endpoint that brings the
+ * browser's errors into them.
  *
  * ## Workers Issues is the error tracker
  *
@@ -14,17 +14,12 @@
  * There is no module-scope initialisation of anything (ADR-033 forbids I/O at
  * module scope), and nothing to wrap a default export in.
  *
- * ## The two errors Cloudflare cannot see by itself
+ * ## The error Cloudflare cannot see by itself
  *
- * - **The browser.** Cloudflare has no browser error tracking. The apps post
- *   their errors to their own Worker ({@link handleErrorReport}, at
- *   {@link ERROR_REPORT_PATH}), which logs each one as an `Error` so Issues
- *   groups it like a Worker's own. The stacks stay minified: Cloudflare maps
- *   only a Worker's own code.
- * - **Convex.** A Convex log stream (a webhook, configured in the Convex
- *   dashboard) posts the deployment's logs to the app Worker
- *   ({@link handleConvexLogStream}), which logs each failed function and each
- *   `console.error` as an `Error`.
+ * Cloudflare has no browser error tracking. The apps post their errors to
+ * their own Worker ({@link handleErrorReport}, at {@link ERROR_REPORT_PATH}),
+ * which logs each one as an `Error` so Issues groups it like a Worker's own.
+ * The stacks stay minified: Cloudflare maps only a Worker's own code.
  */
 
 /**
@@ -68,9 +63,6 @@ export type RateLimiter = {
  * `connect-src 'self'` already allows it.
  */
 export const ERROR_REPORT_PATH = '/__errors'
-
-/** Where the Convex log stream posts. */
-export const CONVEX_LOG_STREAM_PATH = '/__convex-logs'
 
 /**
  * The largest report body the endpoint reads. The browser truncates its
@@ -198,160 +190,4 @@ export async function handleErrorReport(
     userAgent: request.headers.get('user-agent') ?? undefined,
   })
   return noStore(204)
-}
-
-/** The slice of a Convex log stream event this reads. */
-type ConvexLogEvent = {
-  topic?: unknown
-  status?: unknown
-  error_message?: unknown
-  log_level?: unknown
-  message?: unknown
-  function?: unknown
-}
-
-function hexBytes(hex: string): Uint8Array<ArrayBuffer> | null {
-  if (hex.length % 2 !== 0 || !/^[0-9a-f]*$/i.test(hex)) return null
-  const bytes = new Uint8Array(hex.length / 2)
-  for (let i = 0; i < bytes.length; i++) bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16)
-  return bytes
-}
-
-/**
- * Whether `x-webhook-signature` is the HMAC-SHA256 of the raw body under the
- * stream's secret: lowercase hex, with or without a `sha256=` prefix.
- */
-export async function verifyConvexSignature(
-  body: Uint8Array<ArrayBuffer>,
-  signature: string | null,
-  secret: string
-): Promise<boolean> {
-  if (!signature) return false
-  const expected = hexBytes(signature.trim().replace(/^sha256=/, ''))
-  if (expected === null) return false
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['verify']
-  )
-  return crypto.subtle.verify('HMAC', key, expected, body)
-}
-
-/** A delivery's events: a JSON array, one JSON object, or JSON lines. */
-function eventsOf(text: string): ConvexLogEvent[] {
-  try {
-    const parsed: unknown = JSON.parse(text)
-    if (Array.isArray(parsed)) return parsed.filter(isRecord)
-    return isRecord(parsed) ? [parsed] : []
-  } catch {
-    // Not one JSON value: read it as JSON lines below.
-  }
-  const events: ConvexLogEvent[] = []
-  for (const line of text.split('\n')) {
-    if (line.trim().length === 0) continue
-    try {
-      const parsed: unknown = JSON.parse(line)
-      if (isRecord(parsed)) events.push(parsed)
-    } catch {
-      // One malformed line does not lose the rest of the delivery.
-    }
-  }
-  return events
-}
-
-function firstLine(text: string): string {
-  return text.split('\n', 1)[0] ?? text
-}
-
-/** `Uncaught ConvexError: <its data as JSON>`, the line Convex opens a thrown `ConvexError` with. */
-const CONVEX_ERROR_LINE = /^((?:Uncaught )?ConvexError: )(\{.*)$/
-
-/** A JSON object's top-level `"message"` string, read without parsing the object. */
-const MESSAGE_FIELD = /"message":"((?:[^"\\]|\\.)*)"/
-
-/**
- * A thrown `ConvexError`'s opening line, by its data's `message`.
- *
- * Convex writes the error's whole data as JSON on that line, and a refusal's
- * data can carry a sheet: the stale-write refusal hands back the row the server
- * holds (`model/staleWrite.ts`). Logged as written, every refusal's message was
- * unique, so Issues opened one issue per event, each holding a player's sheet.
- * By `message`, every event of one refusal is one issue and no sheet is logged.
- * A line with no readable `message` is kept as written.
- */
-function convexErrorLine(line: string): string {
-  const match = CONVEX_ERROR_LINE.exec(line)
-  if (match === null) return line
-  const [, prefix, json] = match
-  let message: unknown
-  try {
-    const data: unknown = JSON.parse(json ?? '')
-    message = isRecord(data) ? data.message : undefined
-  } catch {
-    // Not one whole JSON value (Convex can cut a long line short): read the field.
-    const field = MESSAGE_FIELD.exec(json ?? '')?.[1]
-    try {
-      message = field === undefined ? undefined : JSON.parse(`"${field}"`)
-    } catch {
-      message = undefined
-    }
-  }
-  return typeof message === 'string' && message.length > 0 ? `${prefix}${message}` : line
-}
-
-/** A Convex error text with its opening line read by {@link convexErrorLine}. */
-function compactConvexError(text: string): string {
-  const [head = text, ...rest] = text.split('\n')
-  return [convexErrorLine(head), ...rest].join('\n')
-}
-
-/** The error a Convex log event is logged as, or null when it is not a failure. */
-export function errorOfConvexEvent(
-  event: ConvexLogEvent
-): { error: Error; context: Record<string, unknown> } | null {
-  const fn = isRecord(event.function) ? event.function : {}
-  const context = {
-    source: 'convex',
-    function: optionalString(fn.path),
-    type: optionalString(fn.type),
-    requestId: optionalString(fn.request_id),
-  }
-  if (event.topic === 'function_execution' && event.status === 'failure') {
-    const text = compactConvexError(optionalString(event.error_message) ?? 'Convex function failed')
-    return { error: remoteError('ConvexFunctionError', firstLine(text), text), context }
-  }
-  if (event.topic === 'console' && event.log_level === 'ERROR') {
-    const text = optionalString(event.message) ?? 'console.error'
-    return { error: remoteError('ConvexConsoleError', firstLine(text), text), context }
-  }
-  return null
-}
-
-/**
- * Answer a Convex log stream delivery: verify it, log every failed function
- * and every `console.error` in it as an error, answer `200`.
- *
- * With no secret configured the endpoint answers `503`, which Issues records:
- * a stream pointed at a Worker that cannot verify it is a misconfiguration to
- * see, not to swallow.
- */
-export async function handleConvexLogStream(
-  request: Request,
-  secret: string | undefined
-): Promise<Response> {
-  if (request.method !== 'POST') return noStore(405, { allow: 'POST' })
-  if (!secret) return noStore(503)
-
-  const body = new Uint8Array(await request.arrayBuffer())
-  if (!(await verifyConvexSignature(body, request.headers.get('x-webhook-signature'), secret))) {
-    return noStore(401)
-  }
-
-  for (const event of eventsOf(new TextDecoder().decode(body))) {
-    const failure = errorOfConvexEvent(event)
-    if (failure) console.error(failure.error, failure.context)
-  }
-  return noStore(200)
 }

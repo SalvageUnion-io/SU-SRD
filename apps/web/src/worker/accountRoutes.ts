@@ -14,7 +14,7 @@
 
 import { FEEDBACK_REFUSAL, pagePath } from 'game-domain/feedback'
 import { z } from 'salvageunion-reference/zod'
-import { BUILD_FLOOR } from '../../convex/buildFloor'
+import { BUILD_FLOOR } from '../lib/connection/buildFloorStamp'
 import type { Profile, ShelfExport } from '../rooms/account/shelf'
 import { ACCOUNT_PATHS } from '../rooms/routes'
 import type { Identity } from './auth/index'

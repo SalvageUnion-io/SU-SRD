@@ -2,10 +2,10 @@
  * Proposals, as both ends of propose-and-confirm read them (ADR-030 §4,
  * docs/architecture/play.md §15).
  *
- * Shared by the server (`convex/model/opProposals.ts` reads the reason cap) and the
+ * Shared by the Game room (it reads the reason cap) and the
  * Mediator's surfaces (the propose dock, the Proposals tab, the Game page's
  * "Proposals you sent"), so the field names, their labels and the state words
- * are one list. Pure: no React, no Convex.
+ * are one list. Pure: no React, no rooms.
  */
 
 /** How many proposals one page of a sent list adds. */
@@ -71,7 +71,7 @@ type TargetReading = { current: number | null; max: number | null }
 
 /** Something a proposal can be aimed at: a claimed pilot or mech. */
 export type ProposalTarget = {
-  /** The Convex row id `ops.propose` addresses it by. */
+  /** The row id `ops.propose` addresses it by. */
   id: string
   kind: ProposalTargetKind
   /** "Pickle", or a mech by its pilot: "Pickle's Spectrum". */

@@ -3,7 +3,7 @@
  * `/mechs/new?game=<id>`, `/crawlers/new?game=<id>`. The new unit lands in that
  * Game, and finishing or cancelling returns to the Game's page in Play.
  *
- * The id is a Convex row id: letters and digits only. Anything else is dropped,
+ * The id is a row id: letters and digits only. Anything else is dropped,
  * so a hand-edited URL cannot aim a create or a navigation anywhere odd; the
  * server still refuses a Game the player is not in (`assertMayAddToContainer`).
  */

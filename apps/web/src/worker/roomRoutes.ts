@@ -6,7 +6,6 @@
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
 import type { D1Like } from './auth/store'
-import { roomMember } from './roomAuth'
 import type { GameRoomStub } from './rooms'
 import { MEMBER_HEADER, rooms, SEAT_HEADER } from './rooms'
 
@@ -24,27 +23,36 @@ export async function serveRoomsHealth(): Promise<Response> {
   }
 }
 
-/** The session cookie's player, by Discord id, when the Game room counts them a member. */
+/**
+ * Who may open a Game's room, the one place the Worker decides it (ADR-064
+ * §5): the session cookie's player, by Discord id, when the Game room counts
+ * them a member.
+ */
 async function signedInMember(
   request: Request,
   env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
-  gameId: string
+  gameId: string,
+  identify: Identify
 ): Promise<string | null> {
-  const who = await identityOf(request, env)
+  const who = await identify(request, env)
   if (who === null) return null
   const room = rooms().GameRoom.getByName(gameId) as unknown as GameRoomStub
   const read = await room.act(who.discordId, 'read', undefined as never)
   return read.ok && read.value !== null ? who.discordId : null
 }
 
+/** Who signs the request in: `identityOf`, or a test's stand-in. */
+type Identify = (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null>
+
 /** A member's socket to their Game's room (`?seat=1`: they count as here); anyone else a 403. */
 export async function serveGameSocket(
   request: Request,
   gameId: string,
-  env: { CONVEX_URL?: string; SHARED: D1Like; ADMIN_DISCORD_IDS?: string }
+  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
-  const member = await roomMember(request, env, gameId, (req, id) => signedInMember(req, env, id))
+  const member = await signedInMember(request, env, gameId, identify)
   if (member === null) return new Response(null, { status: 403 })
   const headers = new Headers(request.headers)
   headers.set(MEMBER_HEADER, member)
@@ -59,7 +67,7 @@ export async function serveGameSocket(
 export async function serveAccountSocket(
   request: Request,
   env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
-  identify: (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null> = identityOf
+  identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
   const who = await identify(request, env)

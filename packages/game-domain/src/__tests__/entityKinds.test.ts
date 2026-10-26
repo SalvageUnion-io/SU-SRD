@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-import { BOT_OP_NAMES, BOT_PATH_PREFIX } from '../botWire'
 import {
   cockpitPath,
   ENTITY_KINDS,
@@ -47,11 +46,5 @@ describe('app addresses', () => {
   test('an id is one path segment', () => {
     expect(sheetPath('pilot', 'a/b c')).toBe('/pilots/a%2Fb%20c')
     expect(cockpitPath('a/b')).toBe('/play/pilots/a%2Fb')
-  })
-})
-
-describe('the bot door', () => {
-  test('each op is a path under the prefix', () => {
-    expect(BOT_OP_NAMES.map((op) => `${BOT_PATH_PREFIX}${op}`)).toContain('/bot/sheet')
   })
 })

@@ -21,29 +21,19 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * (create / template), `ContainerControls` (the move rules), and
  * `Roster.test` (the signed-out hub, which has no game UI at all).
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  */
 
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import type { QueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
 
-const convexMocks = await installConvexMocks({
-  also: {
-    // Signed in, the store commits to Convex first; record what it sends.
-    '../../lib/connection/convexClient': () => ({
-      convexClient: {
-        mutation: async (ref: unknown, args: Record<string, unknown>) => {
-          serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
-          // `upsertByAppId` answers with the row's new version.
-          return { updatedAt: 1 }
-        },
-      },
-    }),
+// Signed in, a move is the Worker's `entities.move`; record what it sends.
+const serverMocks = await installServerMocks({
+  call: (name, args) => {
+    serverWrites.push({ name, args: args as Record<string, unknown> })
   },
 })
 
@@ -93,18 +83,18 @@ const LISTING = {
 
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
-    'games:listMine': GAMES,
-    'games:get': GAME_G1,
-    'account:me': { _id: 'u-me', displayName: 'Me' },
-    'games:members': [
+    'games.listMine': GAMES,
+    'games.get': GAME_G1,
+    'account.me': { _id: 'u-me', displayName: 'Me' },
+    'games.members': [
       { userId: 'u-me', displayName: 'Me', mediator: false, organizer: false },
       { userId: 'u-bly', displayName: 'Bly', mediator: false, organizer: false },
     ],
-    'entities:listForGame': LISTING,
-    'crew:vitals': undefined,
-    'ops:pending': [],
-    'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-    'mediator:amMediator': false,
+    'entities.listForGame': LISTING,
+    'crew.vitals': undefined,
+    'ops.pending': [],
+    'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    'mediator.amMediator': false,
     ...over,
   }
 }
@@ -136,7 +126,7 @@ afterEach(() => {
 
 afterAll(() => {
   resetStores()
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 async function renderHub(): Promise<void> {
@@ -297,7 +287,7 @@ describe('Move to a Game…', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(useUnits.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')
     expect(useUnits.getState().list('pilot')).toHaveLength(1)
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'pilot',
       appId: 'p-shelf',
       gameId: 'g1',

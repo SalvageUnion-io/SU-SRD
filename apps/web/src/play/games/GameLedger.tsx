@@ -1,7 +1,7 @@
 /**
  * GameLedger — **Factions** and **Jobs** on a Game's own page
  * (docs/architecture/play.md §16): who the crew deals with and the work they
- * have taken, from the Game's ledger (`convex/ledger.ts`).
+ * have taken, from the Game's ledger (`rooms/game/ledger.ts`).
  *
  * Every member reads both lists, header-only Minis one a line; only the
  * Mediator writes them. A faction's chips are its standing and, once signed,

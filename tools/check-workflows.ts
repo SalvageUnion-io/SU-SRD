@@ -27,11 +27,8 @@
  *                 exact version: it runs in jobs holding deploy credentials.
  *                 zizmor's `unpinned-uses` covers action SHAs only.
  *   deploy-order  in `deploy-cloudflare.yml` (read through the local composite
- *                 actions its jobs use), the Convex push needs the job
- *                 refusing a deploy with no CONVEX_DEPLOY_KEY (a step whose
- *                 script names the key and can `exit 1`) and every build
- *                 job, every deploy job needs every build job and the push,
- *                 the smoke job needs every deploy job, and the deploy record
+ *                 actions its jobs use), every deploy job needs every build
+ *                 job, the smoke job needs every deploy job, and the deploy record
  *                 needs the smoke job to have SUCCEEDED.
  *                 A build job uploads an artifact built from source; a pass
  *                 that downloads one and re-uploads it is not a build, and
@@ -438,36 +435,24 @@ export function checkPinning(ctx: WorkflowContext): CheckResult {
 
 const SMOKE_SCRIPT = 'tools/smoke-production.sh'
 
-/**
- * The step that fails a deploy with no CONVEX_DEPLOY_KEY, found by name; its
- * script must name the key and `exit 1`.
- */
-export const GUARD_STEP = 'Refuse to deploy without a Convex deploy key'
-
 /** A status-check function other than the implicit `success()`. */
 const EXPLICIT_STATUS = /\b(?:always|cancelled|failure)\(\)/
 
 /**
  * The deploy workflow's job graph keeps its orderings:
  *
- *   1. the job that pushes the Convex backend (`convex deploy`) needs the job
- *      carrying the `GUARD_STEP`, whose script names CONVEX_DEPLOY_KEY and can
- *      `exit 1` — without it, production ran a four-day-stale
- *      backend in 2026-08 with nothing red — and every build job (one that
- *      uploads an artifact and downloads none), so a failed build of ANY
- *      surface stops the push, rather than leaving a new backend under the old
- *      client until the next green run;
- *   2. every job that ships (`bun run deploy`) needs every build job and the
- *      push — all builds finish, and the backend is pushed, before any
- *      traffic moves;
- *   3. the job that runs the smoke list needs every job that ships;
- *   4. the job holding `contents: write` (the deploy record) needs the smoke
+ *   1. every job that ships (`bun run deploy`) needs every build job (one
+ *      that uploads an artifact and downloads none) — all builds finish
+ *      before any traffic moves, so a failed build of ANY surface stops every
+ *      surface shipping;
+ *   2. the job that runs the smoke list needs every job that ships;
+ *   3. the job holding `contents: write` (the deploy record) needs the smoke
  *      job and requires `needs.<smoke>.result == 'success'` — the record moves
  *      only once what shipped has answered;
- *   5. a job that downloads an artifact needs every job that uploads it — a
+ *   4. a job that downloads an artifact needs every job that uploads it — a
  *      deploy cannot race the post-build pass whose output it ships.
  *
- * And every job from the push onwards whose ancestors include a job with its
+ * And every job from the first deploy onwards whose ancestors include a job with its
  * own `if:` (other than the root gate) carries an explicit status function.
  * A bare `if:` is prefixed with `success()`, which at job level is false when
  * ANY ancestor was skipped — so a record behind a skipped per-surface job
@@ -493,8 +478,6 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const builders = jobsWhere((step) => uses(step, 'upload-artifact')).filter(
     (job) => !downloaders.has(job)
   )
-  const guards = jobsWhere((step) => step.name === GUARD_STEP)
-  const pushers = jobsWhere((step) => runs(step).includes('convex deploy'))
   const shippers = jobsWhere((step) => /\bbun run deploy\b/.test(runs(step)))
   const smokers = jobsWhere((step) => runs(step).includes(SMOKE_SCRIPT))
   const recorders = Object.keys(jobs)
@@ -507,16 +490,6 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const failures: string[] = []
   if (builders.length === 0)
     failures.push(`${DEPLOY} has no job that builds an artifact from source.`)
-  if (guards.length === 0) failures.push(`${DEPLOY} has no \`${GUARD_STEP}\` step.`)
-  for (const { step } of steps.filter(({ step }) => step.name === GUARD_STEP)) {
-    const script = runs(step)
-    if (!script.includes('CONVEX_DEPLOY_KEY') || !script.includes('exit 1'))
-      failures.push(
-        `${DEPLOY} \`${GUARD_STEP}\` no longer fails when CONVEX_DEPLOY_KEY is absent — an ` +
-          'absent key would ship a current client against a stale backend with nothing red.'
-      )
-  }
-  if (pushers.length === 0) failures.push(`${DEPLOY} has no job that runs \`convex deploy\`.`)
   if (shippers.length === 0) failures.push(`${DEPLOY} has no job that runs \`bun run deploy\`.`)
   if (smokers.length === 0) failures.push(`${DEPLOY} has no job that runs ${SMOKE_SCRIPT}.`)
   if (recorders.length === 0)
@@ -531,10 +504,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
       }
     }
   }
-  requireBefore(pushers, guards, 'the deploy-key guard must pass before the backend is pushed.')
-  requireBefore(pushers, builders, 'every build must finish before the backend is pushed.')
   requireBefore(shippers, builders, 'every build must finish before any surface ships.')
-  requireBefore(shippers, pushers, 'the backend must be pushed before any surface ships.')
   requireBefore(smokers, shippers, 'the smoke list must run after every deploy.')
   requireBefore(recorders, smokers, 'the deploy record must move only after the smoke list passed.')
 
@@ -552,7 +522,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
     const job = jobs[id]
     return isObject(job) && typeof job.if === 'string' ? job.if : ''
   }
-  const gated = [...new Set([...pushers, ...shippers, ...smokers, ...recorders])].sort()
+  const gated = [...new Set([...shippers, ...smokers, ...recorders])].sort()
   for (const job of gated) {
     const skippable = [...ancestorsOf(jobs, job)]
       .filter((a) => needsOf(jobs[a]).length > 0 && ifOf(a) !== '')
@@ -577,8 +547,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   }
   return {
     ok:
-      `${builders.length} build job(s), then ${pushers.join(', ') || 'no push'}, before ` +
-      `${shippers.length} deploy job(s), then ` +
+      `${builders.length} build job(s) before ${shippers.length} deploy job(s), then ` +
       `${smokers.join(', ')}, then ${recorders.join(', ')}`,
     failures,
   }

@@ -1,0 +1,51 @@
+name: Test build
+description: Build the site for a CI job that serves it locally, its shared database migrated, the test sign-in optional
+
+# The build a CI job serves with `wrangler dev` when it must not touch
+# production: ci.yml's `build-web` (the PR browser gate) and `perf`,
+# e2e-nightly.yml's `e2e` (the signed-in suite) and gallery.yml's `shoot`.
+# The build is the one `bun run build` (the reference pages, then the app
+# into `dist/build/`). The Worker's rooms and shared database are local to
+# the runner (`.wrangler/state/`), hold no data and need no credentials, so a
+# job using this requests no secrets.
+#
+# `test-auth: 'true'` builds the variant with the test sign-in seam: it sets
+# both halves the seam needs to line up, `TEST_AUTH` in the Worker's
+# `.dev.vars` and `VITE_TEST_AUTH` in the build. Left off, the build is the
+# signed-out production variant. `build-web` and the nightly `e2e` set it;
+# neither `dist` ever deploys (deploy-cloudflare.yml builds its own).
+inputs:
+  test-auth:
+    description: "'true' to open the Worker's test sign-in and build the app with its seam"
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    # `wrangler dev` (Playwright's CI server) reads `.dev.vars`; the Worker
+    # answers the test seam only on the exact 'true' (src/worker/auth/).
+    - name: Open the test sign-in
+      if: inputs.test-auth == 'true'
+      shell: bash
+      working-directory: apps/web
+      run: echo 'TEST_AUTH=true' > .dev.vars
+
+    # The local shared database `wrangler dev` serves, with every migration
+    # the deploy applies to production's (tools/d1-migrate.ts).
+    - name: Migrate the local shared database
+      shell: bash
+      working-directory: apps/web
+      env:
+        WRANGLER_SEND_METRICS: 'false'
+      run: bunx wrangler d1 migrations apply SHARED --local
+
+    # `build` does not typecheck: ci.yml's static-checks typechecks every
+    # workspace, and nothing here is a type gate. Playwright's CI webServer
+    # reuses an existing `apps/web/dist`, so this build is what the browser
+    # actually receives.
+    - name: Build the site
+      shell: bash
+      working-directory: apps/web
+      env:
+        VITE_TEST_AUTH: ${{ inputs.test-auth }}
+      run: bun run build

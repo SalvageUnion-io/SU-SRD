@@ -1,13 +1,13 @@
 /**
- * The client half of the Worker's session: the handshake `useWorkerAuth`
- * settles from `/auth/token`, the token cache, and the device's stored
+ * The client half of the Worker's session: the handshake `useSession`
+ * settles from `/auth/session`, who it names, and the device's stored
  * session. The module keeps one session per page, so the tests run in order
  * against it, each one starting from where the last left the page.
  */
 
 import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { ConvexError } from 'convex/values'
+import { RoomDeclined } from '../../../replica/roomSocket'
 import { localStore } from '../../safeLocalStorage'
 import { AUTH_PATHS } from '../paths'
 import { SESSION_KEY } from '../storedSession'
@@ -15,10 +15,9 @@ import { SESSION_KEY } from '../storedSession'
 // A copy of its own: the session is the page's, and another file in the run
 // may have started the shared one already.
 const FRESH = '../session.ts?fresh'
-const { deleteAccount, signIn, signOut, testSignIn, useMyPerson, useSessionToken, useWorkerAuth } =
-  (await import(FRESH)) as typeof import('../session')
-
-const tokenExpiring = (exp: number) => `h.${btoa(JSON.stringify({ exp })).replace(/=+$/, '')}.s`
+const { deleteAccount, signIn, signOut, testSignIn, useMyPerson, useSession } = (await import(
+  FRESH
+)) as typeof import('../session')
 
 type Answer = Response | Error
 let answers: Answer[] = []
@@ -48,13 +47,11 @@ afterAll(() => {
   localStore()?.removeItem(SESSION_KEY)
 })
 
-const later = Math.floor(Date.now() / 1000) + 600
-
-describe('useWorkerAuth', () => {
+describe('useSession', () => {
   test('stays loading while the Worker is unreachable, and asks again once online', async () => {
     localStore()?.setItem(SESSION_KEY, 'stale')
     answers = [new TypeError('offline')]
-    const { result } = renderHook(() => useWorkerAuth())
+    const { result } = renderHook(() => useSession())
     await waitFor(() => expect(calls).toHaveLength(1))
     expect(result.current).toMatchObject({ isLoading: true, isAuthenticated: false })
     expect(localStore()?.getItem(SESSION_KEY)).toBe('stale')
@@ -70,14 +67,13 @@ describe('useWorkerAuth', () => {
       otherwise = null
     }
     expect(result.current.isAuthenticated).toBe(false)
-    expect(calls[1]?.url).toBe(AUTH_PATHS.token)
+    expect(calls[1]?.url).toBe(AUTH_PATHS.session)
     expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
   })
 
-  test('the test seam signs in, and the token is served from cache until near expiry', async () => {
-    const token = tokenExpiring(later)
-    answers = [new Response(null, { status: 204 }), json({ token, account: 'user1', person: 'd1' })]
-    const { result } = renderHook(() => useWorkerAuth())
+  test('the test seam signs in, and the session names the player', async () => {
+    answers = [new Response(null, { status: 204 }), json({ account: 'user1', person: 'd1' })]
+    const { result } = renderHook(() => useSession())
     await act(() => testSignIn('a@example.com', 'password1', 'signUp'))
     const seam = calls.at(-2)
     expect(seam?.url).toBe(AUTH_PATHS.testSignIn)
@@ -88,40 +84,13 @@ describe('useWorkerAuth', () => {
     })
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
     expect(localStore()?.getItem(SESSION_KEY)).toBe('user1')
-    expect(renderHook(() => useSessionToken()).result.current).toBe(token)
     expect(renderHook(() => useMyPerson()).result.current).toBe('d1')
-
-    const before = calls.length
-    expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe(token)
-    expect(calls).toHaveLength(before)
-  })
-
-  test('a forced refresh asks again; a failed answer leaves the session as it was', async () => {
-    const { result } = renderHook(() => useWorkerAuth())
-    const fresh = tokenExpiring(later + 60)
-    answers = [json({ token: fresh, account: 'user1', person: 'd1' })]
-    expect(await result.current.fetchAccessToken({ forceRefreshToken: true })).toBe(fresh)
-
-    answers = [new Response('down', { status: 502 }), new TypeError('offline')]
-    expect(await result.current.fetchAccessToken({ forceRefreshToken: true })).toBeNull()
-    expect(await result.current.fetchAccessToken({ forceRefreshToken: true })).toBeNull()
-    expect(result.current.isAuthenticated).toBe(true)
-  })
-
-  test('a token without a readable expiry is never served from cache', async () => {
-    const { result } = renderHook(() => useWorkerAuth())
-    answers = [json({ token: 'not-a-jwt', account: 'user1', person: 'd1' })]
-    await result.current.fetchAccessToken({ forceRefreshToken: true })
-    answers = [json({ token: 'not.%%%.jwt', account: 'user1', person: 'd1' })]
-    expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe('not.%%%.jwt')
-    answers = [json({ token: 'again', account: 'user1', person: 'd1' })]
-    expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe('again')
   })
 })
 
 describe('signOut', () => {
   test('throws when the Worker refuses, and signs out when it answers', async () => {
-    const { result } = renderHook(() => useWorkerAuth())
+    const { result } = renderHook(() => useSession())
     answers = [new Response(null, { status: 500 })]
     await expect(signOut()).rejects.toThrow('sign-out answered 500')
     expect(result.current.isAuthenticated).toBe(true)
@@ -130,18 +99,17 @@ describe('signOut', () => {
     await act(() => signOut())
     expect(calls.at(-1)).toMatchObject({ url: AUTH_PATHS.signOut, init: { method: 'POST' } })
     expect(result.current).toMatchObject({ isLoading: false, isAuthenticated: false })
-    expect(renderHook(() => useSessionToken()).result.current).toBeNull()
     expect(renderHook(() => useMyPerson()).result.current).toBeNull()
     expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
   })
 })
 
 describe('deleteAccount', () => {
-  test("throws Convex's refusal as a ConvexError, and a failure as an Error", async () => {
-    answers = [json({ errorMessage: 'refused', errorData: 'You organise a Game.' }, 409)]
+  test("throws the rooms' refusal in its words, and a failure as an Error", async () => {
+    answers = [json({ errorMessage: 'unreachable' }, 409)]
     const refused = await deleteAccount().catch((err: unknown) => err)
-    expect(refused).toBeInstanceOf(ConvexError)
-    expect((refused as ConvexError<string>).data).toBe('You organise a Game.')
+    expect(refused).toBeInstanceOf(RoomDeclined)
+    expect((refused as RoomDeclined).message).toBe('unreachable')
     answers = [new Response('down', { status: 502 })]
     await expect(deleteAccount()).rejects.toThrow('account deletion answered 502')
   })

@@ -6,16 +6,14 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { npcFixture } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { useUnits } = await import('../../../replica/units')
@@ -72,7 +70,7 @@ beforeEach(async () => {
   })
   // Into the cache the way a synced row arrives, so an edit has a record to merge onto.
   await useUnits.getState().adopt('npc', KESSLER)
-  setQueryAnswers({ 'games:listMine': [] })
+  setQueryAnswers({ 'games.listMine': [] })
 })
 
 describe('the sheet', () => {
@@ -103,7 +101,7 @@ describe('the sheet', () => {
   })
 
   test('its owner shares it with the Share button every player thing carries', async () => {
-    setQueryAnswers({ 'games:listMine': [], 'publicSheet:get': null })
+    setQueryAnswers({ 'games.listMine': [], 'publicSheet.get': null })
     await renderSheet()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Share Sergeant Kessler' }))

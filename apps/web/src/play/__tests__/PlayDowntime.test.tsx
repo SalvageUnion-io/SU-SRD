@@ -12,19 +12,19 @@ import { downtimeStepNames } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
 } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
 
-const convexMocks = await installConvexMocks()
-setQueryAnswers({ 'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null } })
+const serverMocks = await installServerMocks()
+setQueryAnswers({ 'account.me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null } })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { useUnits } = await import('../../replica/units')
@@ -44,7 +44,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await useUnits.getState().forget('softLink', LINK)
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 function units() {

@@ -10,7 +10,7 @@
  * `--base` is the site's origin; every page's path is on it, the app's
  * under `/build` (`APP_BASE`). `gallery.yml` (dispatched by hand) runs it
  * against a branch's own build, served on localhost (the one `dist`, its
- * App built against a throwaway Convex backend with the test sign-in), and
+ * app built with the test sign-in, its Worker local to the runner), and
  * `gallery-pages.yml` publishes the result to GitHub Pages.
  *
  * - A link preview is rendered the way `apps/web/scripts/og-screenshots.ts`

@@ -15,21 +15,21 @@ import { createElement } from 'react'
  * with which `PlayTarget`. Its own test is `PlayCockpit.test.tsx`.
  */
 
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import {
-  installConvexMocks,
+  installServerMocks,
   queryCalls,
   setQueryAnswers,
-} from '../../components/__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+} from '../../components/__tests__/serverMock'
 import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts`.
-const convexMocks = await installConvexMocks({
+// that resolve after it runs. See `serverMock.ts`.
+const serverMocks = await installServerMocks({
   router: true,
   also: {
-    // Relative to `convexMock.ts`, not this file.
+    // Relative to `serverMock.ts`, not this file.
     '../../play/PlayCockpit': () => ({
       PlayCockpit: ({ target }: { target: PlayTarget }) =>
         createElement('p', null, `Cockpit for ${JSON.stringify(target)}`),
@@ -72,7 +72,7 @@ afterAll(async () => {
   await store.forget('mech', 'play-spare')
   await store.forget('pilot', 'play-rook')
   await store.forget('pilot', 'play-wren')
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 function connection(status: SyncStatus) {
@@ -118,7 +118,7 @@ describe('refusals', () => {
   })
 
   test('a viewer who is not a member is refused', async () => {
-    setQueryAnswers({ 'games:get': null })
+    setQueryAnswers({ 'games.get': null })
     await renderGate('play-rook')
     expect(heading(/not in this Pilot's Game/)).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
@@ -152,7 +152,7 @@ describe('Play opens', () => {
   })
 
   test('for a pilot in a Game, with or without a Mediator, under the Game’s name', async () => {
-    setQueryAnswers({ 'games:get': GAME })
+    setQueryAnswers({ 'games.get': GAME })
     await renderGate('play-rook')
     expect(opened()).toEqual({
       pilotId: 'play-rook',
@@ -161,17 +161,17 @@ describe('Play opens', () => {
       mediator: false,
     })
     // No roster is asked for: Play does not wait on a Mediator.
-    expect(queryCalls().map((c) => c.name)).toEqual(['games:get'])
+    expect(queryCalls().map((c) => c.name)).toEqual(['games.get'])
   })
 
   test('as the Game’s Mediator, which the target says', async () => {
-    setQueryAnswers({ 'games:get': { ...GAME, mediator: true } })
+    setQueryAnswers({ 'games.get': { ...GAME, mediator: true } })
     await renderGate('play-rook')
     expect(opened()?.mediator).toBe(true)
   })
 
   test('read-only while Disconnected, even before the Game has answered', async () => {
-    setQueryAnswers({ 'games:get': undefined })
+    setQueryAnswers({ 'games.get': undefined })
     await renderGate('play-rook', 'offline')
     expect(opened()).toEqual({
       pilotId: 'play-rook',
@@ -182,7 +182,7 @@ describe('Play opens', () => {
   })
 
   test('but waits for the Game while connected', async () => {
-    setQueryAnswers({ 'games:get': undefined })
+    setQueryAnswers({ 'games.get': undefined })
     await renderGate('play-rook')
     expect(screen.getByText('Loading the Game…')).toBeTruthy()
     expect(opened()).toBeNull()
@@ -191,20 +191,20 @@ describe('Play opens', () => {
 
 describe('old mech-keyed URLs', () => {
   test("redirect to the mech's pilot", async () => {
-    convexMocks.navigations.length = 0
-    setQueryAnswers({ 'games:get': GAME })
+    serverMocks.navigations.length = 0
+    setQueryAnswers({ 'games.get': GAME })
     await renderGate('play-mech')
-    expect(convexMocks.navigations).toEqual([
+    expect(serverMocks.navigations).toEqual([
       { to: '/play/pilots/$pilotId', params: { pilotId: 'play-rook' }, replace: true },
     ])
     expect(opened()?.pilotId).toBe('play-rook')
   })
 
   test('a mech with no pilot says so, and goes nowhere', async () => {
-    convexMocks.navigations.length = 0
+    serverMocks.navigations.length = 0
     setQueryAnswers({})
     await renderGate('play-spare')
     expect(heading('Spare has no Pilot')).toBeTruthy()
-    expect(convexMocks.navigations).toHaveLength(0)
+    expect(serverMocks.navigations).toHaveLength(0)
   })
 })

@@ -24,9 +24,8 @@
  * `__tests__/TestAuthBridge.test.tsx` asserts the default is off.
  *
  * It is also useless without its server half: the Worker answers the seam's
- * route only with `TEST_AUTH=true` (a test build's `.dev.vars`), and Convex
- * links a test account only with its own `TEST_AUTH` (`accountLink.ts`).
- * Every flag has to be wrong at once for this to be reachable.
+ * route only with `TEST_AUTH=true` (a test build's `.dev.vars`). Both flags
+ * have to be wrong at once for this to be reachable.
  */
 
 import { useEffect } from 'react'

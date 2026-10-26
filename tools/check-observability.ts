@@ -20,8 +20,7 @@
  *      setup injects the beacon at the edge, so nothing in the source names
  *      it, and a CSP without the two origins records nothing: from the site's
  *      creation until 3.0.0 the dashboard counted one page load in six weeks.
- *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` and
- *      `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`.
+ *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport`.
  *
  * Every TypeScript assertion reads PARSED source, never raw text, through
  * `Bun.Transpiler` (which drops comments). These files are heavily commented,
@@ -46,7 +45,7 @@ const HEADERS_PATH = 'apps/web/public/_headers'
 const WORKER_PATH = 'apps/web/src/worker/index.ts'
 
 /** The handlers the Worker must call. */
-const WORKER_HANDLERS = ['handleErrorReport', 'handleConvexLogStream']
+const WORKER_HANDLERS = ['handleErrorReport']
 
 const failures: string[] = []
 

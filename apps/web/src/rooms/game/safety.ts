@@ -10,7 +10,7 @@ import type { GameStore } from './store'
 import { bit } from './store'
 
 /**
- * A Game's Safety Protocols (Core Book pp.12-13), with `convex/safety.ts`'s
+ * A Game's Safety Protocols (Core Book pp.12-13),
  * rules.
  *
  * - **Boundaries:** the Out of Bounds and Off Camera lists, which every member

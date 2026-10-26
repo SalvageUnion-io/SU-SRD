@@ -127,7 +127,7 @@ export async function serveShared(
   }
 }
 
-/** Convex's `homebrew.status`: a takedown is told to its maker and admins only. */
+/** `homebrew.status`: a takedown is told to its maker and admins only. */
 async function standing(db: SharedDb, appId: string, who: Identity | null) {
   const admin = who?.admin === true
   const row = await homebrewStanding(db, appId, who?.discordId ?? null)

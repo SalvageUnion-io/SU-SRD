@@ -41,10 +41,7 @@
   # loaded from static.cloudflareinsights.com and posting page loads to
   # cloudflareinsights.com; drop either origin and the dashboard silently
   # records nothing.
-  #
-  # The Convex origins are the app's accounts client and live queries
-  # (ADR-030), under `/build`: one policy for the one app.
-  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
 
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name

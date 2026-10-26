@@ -116,12 +116,9 @@ export type UnitsApi = {
   delete: (type: EntityType, id: string) => Promise<void>
   /**
    * Moves value between units (scrap, cargo stow and load) as ONE batch of
-   * ops and deletes, all or none at both ends.
+   * ops, all or none at both ends.
    */
-  transfer: (
-    ops: { updates?: TransferUpdate[]; deletes?: { type: EntityType; id: string }[] },
-    meta: ChangeMeta
-  ) => Promise<void>
+  transfer: (ops: { updates?: TransferUpdate[] }, meta: ChangeMeta) => Promise<void>
 }
 
 type UnitNames = 'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'softLinks'
@@ -291,14 +288,13 @@ export const units: UnitsApi = {
     // Merge and validate, send, then hold: a refused edit leaves the held
     // record exactly as it was.
     const updated = prepareUpdate(kindOf(type), before, id, patch)
-    let applied: Applied | undefined
     if (type === 'softLink') {
       await sendLink('upsert', updated as unknown as SoftLink)
     } else if (before !== null) {
       const { op, move } = opOf(type, id, before, updated, patch, meta)
-      applied = await sendOp(type, (updated as ContainerFields).gameId ?? null, op, move)
+      await sendOp(type, (updated as ContainerFields).gameId ?? null, op, move)
     }
-    holdApplied(type, updated, applied)
+    holdApplied(type, updated, undefined)
 
     // A move takes along only the links whose other end is already where it
     // is going (ADR-037); the server pruned the rest in the same send.
@@ -318,8 +314,7 @@ export const units: UnitsApi = {
 
   async transfer(ops, meta) {
     const updates = ops.updates ?? []
-    const deletes = ops.deletes ?? []
-    if (updates.length === 0 && deletes.length === 0) return
+    if (updates.length === 0) return
 
     // Refused before anything is read: a transfer moves value BETWEEN units,
     // so a write that could not go up would fork the balance between two.
@@ -341,32 +336,19 @@ export const units: UnitsApi = {
       }
     })
 
-    // Send the whole transfer as ONE batch, all or none on the server: a stow
+    // Send the whole transfer as ONE batch, all or none in the room: a stow
     // that landed on the mech and was refused on the crawler would lose the
-    // lot. Links are read before they are dropped here, because the server
-    // addresses a link by its endpoints.
-    const applied = await sendTransfer(
+    // lot.
+    await sendTransfer(
       prepared.map((pu) => ({
         unit: pu.type,
         gameId: (pu.record as ContainerFields).gameId ?? null,
         ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
-      })),
-      deletes.map((d) =>
-        d.type === 'softLink'
-          ? { type: 'softLink' as const, link: units.get('softLink', d.id) }
-          : { type: d.type, id: d.id }
-      )
+      }))
     )
 
-    // Hold it as one change; deleting a unit takes its links with it.
-    holdAll(
-      prepared.map((pu) => ({
-        table: pu.type,
-        row: pu.record,
-        ...(applied.get(pu.id) ?? {}),
-      })),
-      deletes.map((d) => ({ table: d.type, id: d.id }))
-    )
+    // Hold it as one change.
+    holdAll(prepared.map((pu) => ({ table: pu.type, row: pu.record })))
   },
 
   async updateCrawlerBay(crawlerId, bayRef, patch, index, meta) {

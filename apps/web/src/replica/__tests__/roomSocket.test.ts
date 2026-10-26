@@ -6,7 +6,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../components/__tests__/fixtures'
-import { gameScope, getView, hold, setRoomScopes } from '../replica'
+import { gameScope, getView, hold } from '../replica'
 import { foldRoomMessage, openRoom, RoomDeclined, roomOf } from '../roomSocket'
 import { WritesBlockedOffline } from '../sync'
 import { resetStores } from './resetStores'
@@ -149,7 +149,6 @@ describe('deltas', () => {
 
 describe('a row this tab wrote, fed by the rooms', () => {
   test('joins its Game room’s scope, so that room’s next answer decides it', () => {
-    setRoomScopes(true)
     hold('pilot', pilotFixture({ id: 'p2', gameId: 'g1' }))
     foldRoomMessage('account', snapshot([]))
     expect(ids(getView().pilots)).toEqual(['p2'])
@@ -209,11 +208,11 @@ describe('openRoom', () => {
     patch: { name: 'X' },
   })
 
-  test('opens with the token, folds what the room says, and closes for good', () => {
-    const close = openRoom('/__rooms/account/socket', 'account', 'tok')
+  test('opens on the session cookie, folds what the room says, and closes for good', () => {
+    const close = openRoom('/__rooms/account/socket', 'account')
     const socket = FakeSocket.all[0] as FakeSocket
     expect(socket.url).toBe('ws://localhost/__rooms/account/socket')
-    expect(socket.protocols).toEqual(['su-room', 'tok'])
+    expect(socket.protocols).toEqual(['su-room'])
     socket.says(snapshot([unit('pilot', pilotFixture({ id: 'p1' }), null)]))
     expect(ids(getView().pilots)).toEqual(['p1'])
     socket.opens()
@@ -227,7 +226,7 @@ describe('openRoom', () => {
   })
 
   test('while open, it is the Game’s room: a batch waits for its ack or declined', async () => {
-    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
     const socket = FakeSocket.all[0] as FakeSocket
     expect(roomOf('g1')).toBeNull()
     socket.opens()
@@ -248,7 +247,7 @@ describe('openRoom', () => {
   })
 
   test('closing the room fails a batch still waiting, never leaving it hanging', async () => {
-    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
     ;(FakeSocket.all[0] as FakeSocket).opens()
     const sent = roomOf('g1')?.submit([op('o1')])
     close()
@@ -256,7 +255,7 @@ describe('openRoom', () => {
   })
 
   test('a batch in flight when the socket drops goes again when it reopens', async () => {
-    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
     const first = FakeSocket.all[0] as FakeSocket
     first.opens()
     const sent = roomOf('g1')?.submit([op('o1')])
@@ -273,7 +272,7 @@ describe('openRoom', () => {
   })
 
   test('an act waits for its answer: a value, or the room’s refusal', async () => {
-    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
     const socket = FakeSocket.all[0] as FakeSocket
     socket.opens()
     const room = roomOf('g1')
@@ -292,7 +291,7 @@ describe('openRoom', () => {
   })
 
   test('an act in flight when the socket drops fails, and is not sent again', async () => {
-    const close = openRoom('/__rooms/games/g1/socket', G1, 'tok', 'g1')
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
     const socket = FakeSocket.all[0] as FakeSocket
     socket.opens()
     const room = roomOf('g1')

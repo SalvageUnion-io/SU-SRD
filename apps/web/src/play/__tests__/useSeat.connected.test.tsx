@@ -1,7 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 
 /**
  * `useSeatAt` — the pilot's seat, read from its Game room's `seats` record and
@@ -12,10 +10,10 @@ import { getFunctionName } from 'convex/server'
  * (`ownership.assign`), so their order shows.
  */
 
-import { ConvexError } from 'convex/values'
-import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks } from '../../components/__tests__/serverMock'
 import { answerActs, closeRooms, openRooms, serve } from '../../replica/__tests__/fakeRooms'
+import { RoomDeclined } from '../../replica/roomSocket'
 import type { SyncStatus } from '../../replica/sync'
 
 type Sent = { name: string; args: Record<string, unknown> }
@@ -24,18 +22,15 @@ const sent: Sent[] = []
 /** Refusals by name: an act's room refuses it, a Games call throws. */
 const refusedBy = new Map<string, string>()
 
-function useMutationMock(ref: unknown) {
-  const name = getFunctionName(ref as FunctionReference<'mutation'>).replace(':', '.')
-  return async (args: Record<string, unknown>) => {
-    sent.push({ name, args })
-    const refusal = refusedBy.get(name)
-    if (refusal !== undefined) throw new ConvexError(refusal)
-  }
+function callMock(name: string, args: unknown): void {
+  sent.push({ name, args: args as Record<string, unknown> })
+  const refusal = refusedBy.get(name)
+  if (refusal !== undefined) throw new RoomDeclined(refusal)
 }
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts`.
-const convexMocks = await installConvexMocks({ convexReact: { useMutation: useMutationMock } })
+// that resolve after it runs. See `serverMock.ts`.
+const serverMocks = await installServerMocks({ call: callMock })
 
 const { useSeatAt } = await import('../useSeat')
 const { SyncContext } = await import('../../replica/syncContext')
@@ -81,7 +76,7 @@ afterAll(async () => {
   await store.forget('mech', 'seat-own')
   await store.forget('mech', 'seat-spare')
   await store.forget('pilot', 'seat-rook')
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 beforeEach(() => {

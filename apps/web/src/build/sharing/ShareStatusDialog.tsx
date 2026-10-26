@@ -23,7 +23,7 @@
  *
  * ## The settings only mount Connected
  *
- * `ShareSettings` calls Convex hooks unconditionally, so it must not MOUNT
+ * `ShareSettings` calls Games reads unconditionally, so it must not MOUNT
  * outside Connected — see its own header. Everywhere else the dialog says what
  * sharing needs instead of offering a control that cannot work: an anonymous
  * visitor is told it needs an account (with the sign-in control), and a

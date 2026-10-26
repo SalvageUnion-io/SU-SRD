@@ -28,9 +28,6 @@ import { dropSharedByLink, holdSharedByLink, putSharedByLink } from './sharedByL
 import { WritesBlockedOffline } from './sync'
 import { dropTableState, isStateTable, putTableState, serveTableState } from './tableState'
 
-/** Whether this build's replica is fed by the rooms (`RoomFeed`). */
-export const ROOM_FEED = import.meta.env.VITE_ROOM_FEED === '1'
-
 const UNIT_TABLES = ['pilot', 'mech', 'crawler', 'npc'] as const satisfies readonly Table[]
 
 /**
@@ -202,12 +199,7 @@ export class RoomDeclined extends Error {}
  * again, since an act (spending a Supply) is not safe to repeat. Answers its
  * close.
  */
-export function openRoom(
-  path: string,
-  scope: Scope,
-  token: string,
-  gameId: string | null = null
-): () => void {
+export function openRoom(path: string, scope: Scope, gameId: string | null = null): () => void {
   const url = new URL(path, window.location.href)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
   const waiting = new Map<string, Batch>()
@@ -230,7 +222,7 @@ export function openRoom(
     batch.settle(refusal)
   }
   const connect = () => {
-    socket = new WebSocket(url.href, [ROOM_PROTOCOL, token])
+    socket = new WebSocket(url.href, [ROOM_PROTOCOL])
     socket.onopen = () => {
       attempt = 0
       open.set(gameId ?? ACCOUNT, room)

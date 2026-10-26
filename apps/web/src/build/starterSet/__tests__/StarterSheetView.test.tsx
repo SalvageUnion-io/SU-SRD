@@ -7,15 +7,14 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-// The signed-out "Make a copy" is the sign-in button, whose provider wants a
-// live Convex client. Module scope, before the imports below.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+// The signed-out "Make a copy" is the sign-in button, whose real `signIn`
+// leaves the page. Module scope, before the imports below.
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: false, isLoading: false }) },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { SyncProvider } = await import('../../../replica/SyncProvider')

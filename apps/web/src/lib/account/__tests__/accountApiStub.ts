@@ -1,5 +1,5 @@
 /**
- * `accountApi` for a component test, through `installConvexMocks`' `also`
+ * `accountApi` for a component test, through `installServerMocks`' `also`
  * (`'../../lib/account/accountApi': accountApiStub`): each read answers what
  * `accountAnswers` holds, and each write is a spy that lands unless
  * `accountFailures` names it. Reset both in `afterEach` (`resetAccountApi`).

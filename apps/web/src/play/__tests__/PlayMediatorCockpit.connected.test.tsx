@@ -11,19 +11,17 @@
  * here, one test each.
  *
  * The Game room's records are served from what each read answers
- * (`fakeRooms.ts`), the Games reads by name (`convexMock.ts`); every act is
+ * (`fakeRooms.ts`), the Games reads by name (`serverMock.ts`); every act is
  * recorded by name, and so is every server commit the store makes (the Game's log
  * included), so a Mediator roll can be shown to stay off it.
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
-import type { QueryAnswers } from '../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
+import type { QueryAnswers } from '../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import {
   acts,
   answerActs,
@@ -36,7 +34,6 @@ import { narrowViewport } from './narrowViewport'
 
 /** Every act the Game's room was sent: its name and args. */
 const sent = () => acts.map(({ name, args }) => ({ name, args }))
-const commits: string[] = []
 const postRoll = mock(async (_args: unknown) => ({
   kind: 'posted',
   channelId: 'c-1',
@@ -51,15 +48,9 @@ function answerAct({ name }: { name: string }): unknown {
   return name === 'downtime.spendUpkeep' ? true : null
 }
 
-const convexMocks = await installConvexMocks({
-  convexReact: { useAction: () => postRoll },
+const serverMocks = await installServerMocks({
+  call: (name, args) => (name === 'channelBindings.postRoll' ? postRoll(args) : undefined),
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
-  convexClient: {
-    mutation: async (ref: unknown) => {
-      commits.push(getFunctionName(ref as FunctionReference<'mutation'>))
-      return { updatedAt: 1 }
-    },
-  },
 })
 
 const { PlayMediatorCockpit } = await import('../PlayMediatorCockpit')
@@ -73,7 +64,7 @@ const { PLAY_TXN } = await import('../../replica/provenance')
 
 withSignedInBackend()
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)
 beforeEach(() => {
   openRooms(GAME)
   answerActs(answerAct)
@@ -82,7 +73,6 @@ afterEach(() => {
   cleanup()
   closeRooms()
   clearPlayRolls()
-  commits.length = 0
   postRoll.mockClear()
 })
 
@@ -177,10 +167,10 @@ const SENT_PROPOSAL = {
 
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
-    'games:members': MEDIATOR_MEMBERS,
-    'crew:vitals': mediatorCrewAt(),
-    'seats:forGame': MEDIATOR_SEATS,
-    'entities:listForGame': {
+    'games.members': MEDIATOR_MEMBERS,
+    'crew.vitals': mediatorCrewAt(),
+    'seats.forGame': MEDIATOR_SEATS,
+    'entities.listForGame': {
       pilots: [],
       mechs: [],
       npcs: [],
@@ -188,17 +178,17 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       crawlers: [{ _id: 'c-ten', appId: 'med-tenacity', body: tenacity }],
       primaryCrawlerId: 'c-ten',
     },
-    'scenes:current': { conditions: [], hours: 0 },
-    'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-    'mediator:npcs': NPCS,
-    'mediator:amMediator': true,
-    'mediator:patterns': [],
-    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
-    'mediator:running': null,
-    'salvageAreas:here': null,
-    'ops:sent': [SENT_PROPOSAL],
-    'changeLog:alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
-    'changeLog:rolls': [
+    'scenes.current': { conditions: [], hours: 0 },
+    'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    'mediator.npcs': NPCS,
+    'mediator.amMediator': true,
+    'mediator.patterns': [],
+    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
+    'mediator.running': null,
+    'salvageAreas.here': null,
+    'ops.sent': [SENT_PROPOSAL],
+    'changeLog.alerts': [{ _id: 'a-1', message: 'Contact front', ts: NOW - 30_000 }],
+    'changeLog.rolls': [
       {
         _id: 'r-1',
         ts: NOW - 20_000,
@@ -207,16 +197,16 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
         source: 'play',
       },
     ],
-    'channelBindings:current': { channelId: 'c-1', boundAt: 1 },
-    'safety:stopSign': null,
-    'account:me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'channelBindings.current': { channelId: 'c-1', boundAt: 1 },
+    'safety.stopSign': null,
+    'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,
   }
 }
 
 function downtimeAt(stepIndex: number, upkeepSpent = false): QueryAnswers {
   return {
-    'downtime:state': {
+    'downtime.state': {
       running: true,
       stepIndex,
       completedBy: [
@@ -324,7 +314,7 @@ describe('the bar', () => {
 })
 
 describe('the Scene', () => {
-  const STORM = { 'scenes:current': { conditions: ['radiation-storm'], hours: 2 } }
+  const STORM = { 'scenes.current': { conditions: ['radiation-storm'], hours: 2 } }
 
   test('every condition is a toggle; pressing one puts the Scene under it', async () => {
     await renderCockpit()
@@ -381,7 +371,7 @@ describe('the Scene', () => {
   })
 
   test('Freezing rolls each exposed Mech’s table; cold erosion is proposed as SP', async () => {
-    await renderCockpit({ 'scenes:current': { conditions: ['freezing'], hours: 0 } })
+    await renderCockpit({ 'scenes.current': { conditions: ['freezing'], hours: 0 } })
     await click(named('An hour passes'))
     await click(
       within(screen.getByRole('alertdialog')).getByRole('button', { name: 'An hour passes' })
@@ -500,7 +490,7 @@ describe('the Opposition', () => {
         statKind: 'sp',
       },
     }
-    await renderCockpit({ 'mediator:npcs': [tank] })
+    await renderCockpit({ 'mediator.npcs': [tank] })
     const box = within(screen.getByRole('region', { name: 'Vehicle: Tank, down' }))
     await click(box.getByRole('button', { name: 'Break it down: 4 Tech 3 Scrap to the crawler' }))
     await waitFor(() =>
@@ -524,7 +514,7 @@ describe('the Opposition', () => {
         statKind: 'sp',
       },
     }
-    await renderCockpit({ 'mediator:npcs': [mule] })
+    await renderCockpit({ 'mediator.npcs': [mule] })
     const box = within(screen.getByRole('region', { name: /^Mech: Mule, down/ }))
     await click(box.getByRole('button', { name: /Roll/ }))
     await click(box.getByRole('button', { name: 'Mule · T1 · 7 Slots' }))
@@ -554,12 +544,12 @@ describe('the Opposition', () => {
         salvaged: true,
       },
     }
-    await renderCockpit({ 'mediator:npcs': [tank] })
+    await renderCockpit({ 'mediator.npcs': [tank] })
     expect(screen.getByText('Salvaged: nothing is left to take.')).toBeTruthy()
   })
 
   test('Area sets the area being salvaged; its line names it and Clear clears it', async () => {
-    await renderCockpit({ 'salvageAreas:here': { name: 'Raider Camp', techLevel: 2, supply: 4 } })
+    await renderCockpit({ 'salvageAreas.here': { name: 'Raider Camp', techLevel: 2, supply: 4 } })
     expect(screen.getByText('Raider Camp · T2 · Supply 4')).toBeTruthy()
     await click(named('Clear the area being salvaged'))
     expect(sent()).toEqual([{ name: 'salvageAreas.set', args: { area: null } }])
@@ -581,7 +571,7 @@ describe('the Opposition', () => {
       expect(feedLines().some((l) => /^You · Strikebreaker · .* · 14 · Success/.test(l))).toBe(true)
     )
     expect(postRoll).not.toHaveBeenCalled()
-    expect(commits).not.toContain('changeLog:appendChangeLog')
+    expect(sent().map((a) => a.name)).not.toContain('changeLog.appendChangeLog')
   })
 
   test('Actions on another NPC lists its actions instead', async () => {
@@ -614,7 +604,7 @@ describe('the Opposition', () => {
   })
 
   test('an important mech tracks EP and Heat, and its Heat Check lands on the NPC and the Feed', async () => {
-    await renderCockpit({ 'mediator:npcs': [...NPCS, HAULER] })
+    await renderCockpit({ 'mediator.npcs': [...NPCS, HAULER] })
     const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler' }))
     expect(hauler.getByText('Mech · important')).toBeTruthy()
     await click(hauler.getByRole('button', { name: 'Increase Heat' }))
@@ -634,7 +624,7 @@ describe('the Opposition', () => {
   test('an important NPC at 0 rolls its Critical table, and the row reads on its box', async () => {
     const raider = NPCS[2] as (typeof NPCS)[number]
     const fallen = { ...raider, body: { ...raider.body, important: true } }
-    await renderCockpit({ 'mediator:npcs': [fallen, HAULER_CRITICAL] })
+    await renderCockpit({ 'mediator.npcs': [fallen, HAULER_CRITICAL] })
     await click(named('Roll Critical Injury for Raider'))
     await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
     const patch = sent()[0]?.args.patch as { lastImportantRoll?: { table: string } }
@@ -688,7 +678,7 @@ describe('the Opposition', () => {
 
   test('a running encounter names itself, shows its notes, and End stops it', async () => {
     await renderCockpit({
-      'mediator:running': {
+      'mediator.running': {
         encounterId: 'enc-1',
         name: 'Ambush',
         tables: ['Morale'],
@@ -704,7 +694,7 @@ describe('the Opposition', () => {
 
   test('a briefing stays behind its flag, off in a production build', async () => {
     await renderCockpit({
-      'mediator:running': {
+      'mediator.running': {
         encounterId: 'enc-1',
         name: 'Ambush',
         tables: [],
@@ -780,7 +770,7 @@ describe('Downtime', () => {
 
   /** A ledger with two signed deals, collected this Downtime or not. */
   const dealsLedger = (incomeCollected: boolean): QueryAnswers => ({
-    'ledger:get': {
+    'ledger.get': {
       factions: [
         { id: 'f1', name: 'Stefanus', standing: 'friendly', deal: true },
         { id: 'f2', name: 'Vornaya', standing: 'neutral', deal: true },
@@ -876,7 +866,7 @@ describe('every Mediator capability is reachable here', () => {
 
   test('Crawler: no crawler says where to raise one', async () => {
     await renderCockpit({
-      'entities:listForGame': {
+      'entities.listForGame': {
         pilots: [],
         mechs: [],
         npcs: [],

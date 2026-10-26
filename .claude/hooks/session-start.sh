@@ -98,14 +98,6 @@ if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null | head -1)" ]
   rm -f "$LOG"
 fi
 
-# A cloud session has no Convex login, so `convex dev` (and with it
-# `bun run dev`) would stop at the sign-in prompt. Anonymous agent mode runs
-# a local deployment with no account, which `apps/web/scripts/assert-local-convex.ts`
-# already accepts. Cloud only: on a laptop it would bypass the configured project.
-if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
-  echo 'export CONVEX_AGENT_MODE=anonymous' >>"$CLAUDE_ENV_FILE"
-fi
-
 # The cloud environment's one secret is a 1Password service-account token
 # (docs/ops/cloud-environment.md item 12); `op` turns the repo's `op://SUSRD/…`
 # references into values. The setup script runs this hook as root, so the

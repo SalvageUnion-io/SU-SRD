@@ -7,17 +7,15 @@ import { z } from 'salvageunion-reference/zod'
  *
  * A photo REPLACES the entity's default art where it has one (a mech's
  * chassis, a pattern's chassis, a built NPC's template) and makes room for a
- * picture where it has none. Removing it removes the field; the server then
- * deletes the file once no entity still points at it (`convex/photos.ts`).
+ * picture where it has none. Removing it removes the field; the file stays
+ * in R2 (`worker/photos.ts`).
  *
  * Two kinds, because two things put a picture on an entity:
  *
- *   - `upload` — the player's own image, in Convex file storage. `url` is the
- *     storage URL the server handed back when the upload was claimed; it stays
- *     valid until the file is deleted, so every reader (the sheet, a crewmate's
- *     view, the public sheet) renders it without a query. The server checks it
- *     against `storageId` on every write, so a body cannot point an `<img>`
- *     anywhere else.
+ *   - `upload` — the player's own image, in R2. `url` is the
+ *     address the Worker handed back for the upload; a key is never reused, so every reader (the sheet, a crewmate's
+ *     view, the public sheet) renders it without a query. No room checks it
+ *     against `storageId` on a write yet.
  *   - `asset` — licensed artwork on the CDN, by object key. The Starter Set
  *     crew carry their portraits this way, and a copy keeps it.
  *
@@ -28,9 +26,9 @@ export const PhotoSchema = z.discriminatedUnion('kind', [
   z
     .object({
       kind: z.literal('upload'),
-      /** The Convex `_storage` id of the file. */
+      /** The file's key (a copied Convex `_storage` id on older photos). */
       storageId: z.string().min(1),
-      /** Its serving URL, as `ctx.storage.getUrl` returned it. */
+      /** Its serving URL, as the upload answered it. */
       url: z.string().url(),
     })
     .strict(),

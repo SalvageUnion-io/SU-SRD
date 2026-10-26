@@ -8,8 +8,8 @@ import { SeatTable } from '../seats'
 import type { AccountShelf } from './shelf'
 
 /**
- * The player's solo table: each Shelf pilot's seat and its own Downtime, with
- * `convex/seats.ts` and `downtime.ts`'s rules for a null `gameId`. Only the
+ * The player's solo table: each Shelf pilot's seat and its own Downtime, for a
+ * null `gameId`. Only the
  * player writes them, and a seat plays only what is on their Shelf.
  */
 

@@ -53,7 +53,7 @@
  * ## Solo renders nothing
  *
  * With no account there is only the Training Bay, so there is nowhere to move to,
- * and the Convex read would have no provider.
+ * and no Games to read.
  */
 
 import type { Container, ContainerFields } from 'game-domain/container'

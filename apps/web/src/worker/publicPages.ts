@@ -2,7 +2,7 @@
  * The public pages search may list: the front door, the Starter Set and each
  * of its builds. Every one is the same for every visitor and needs no account
  * (ADR-021: signed-out surfaces), and none is a player's own thing, so what
- * each says is known without asking Convex.
+ * each says is known without asking a room.
  *
  * So the build pre-renders them (`publicShells`, from `astro/build/appPlugins.ts`):
  * the Starter Set and each build get a copy of the shell whose `app:meta`

@@ -10,14 +10,12 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
 
 // Capture before mocking: a module namespace is a live view.
 const realFlags = { ...(await import('../../../lib/flags')) }
@@ -25,7 +23,7 @@ mock.module('../../../lib/flags', () => ({ ...realFlags, flagOn: () => true }))
 
 afterAll(async () => {
   mock.module('../../../lib/flags', () => realFlags)
-  convexMocks.restore()
+  serverMocks.restore()
   const { flagOn } = await import('../../../lib/flags')
   if (flagOn('encounterSheet')) throw new Error('flags were not restored')
 })

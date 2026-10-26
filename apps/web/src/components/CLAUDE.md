@@ -5,7 +5,7 @@ the public API and the only list of exports; its rules:
 [the UI library](../../../../docs/ARCHITECTURE.md#ui-library).
 
 - **Data-source agnostic:** atoms, containers, compositions, `entity/` and
-  `referenceEntity/` import no stores or Convex; consumers inject behaviour
+  `referenceEntity/` import no stores or Worker calls; consumers inject behaviour
   through generic slot props (`afterExtraContent`, `titleOverride`, …). Only
   the areas and `shared/` wire data.
 - **Never rely on an import running code:** bundlers drop a module whose

@@ -45,7 +45,7 @@ type Answer = {
   answer?: (held: unknown, args: Args) => unknown
 }
 
-/** The newest `limit` of a feed, as Convex's `take(limit)` read it. */
+/** The newest `limit` of a feed, newest first. */
 function newest(fallback: number) {
   return (held: unknown, args: Args) => (held as unknown[]).slice(0, args.limit ?? fallback)
 }

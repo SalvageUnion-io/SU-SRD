@@ -4,22 +4,21 @@ export const AUTH_PATHS = {
   signIn: '/auth/sign-in',
   /** `GET`: Discord's redirect back. */
   callback: '/auth/callback',
-  /** `GET`: the session's short-lived token for Convex, or a 401. */
-  token: '/auth/token',
+  /** `GET`: who is signed in (`SessionAnswer`), or a 401. */
+  session: '/auth/session',
   /** `POST`: ends the session. */
   signOut: '/auth/sign-out',
   /** `POST {email, password, flow}`: the test seam, only where `TEST_AUTH` is set. */
   testSignIn: '/auth/test-sign-in',
-  /** `POST`: deletes the account on Convex, then its sign-in and every session. */
+  /** `POST`: deletes everything the account holds, then its sign-in and every session. */
   deleteAccount: '/auth/delete-account',
 } as const
 
 export const AUTH_PREFIX = '/auth/'
 
-/** What `token` answers when signed in. */
-export type TokenAnswer = {
-  token: string
-  /** The Convex account id, the subject's first half. */
+/** What `session` answers when signed in. */
+export type SessionAnswer = {
+  /** The account's id (`accounts.account_id`). */
   account: string
   /** Who the rooms and the shared database name this player as: their Discord id (`identityOf`). */
   person: string

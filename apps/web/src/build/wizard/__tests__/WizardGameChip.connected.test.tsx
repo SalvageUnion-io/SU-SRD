@@ -4,16 +4,16 @@ import { render, screen } from '@testing-library/react'
 /**
  * A wizard started for a Game (`?game=<id>`, ADR-052 §3) names it on its
  * head: the relation chip `GAME | <name>` (C11), its value the way to the
- * Game's page in Play. Queries are answered by name (`convexMock.ts`).
+ * Game's page in Play. Queries are answered by name (`serverMock.ts`).
  */
 
 import {
-  installConvexMocks,
+  installServerMocks,
   queryCalls,
   setQueryAnswers,
-} from '../../../components/__tests__/convexMock'
+} from '../../../components/__tests__/serverMock'
 
-const convexMocks = await installConvexMocks({ router: true })
+const serverMocks = await installServerMocks({ router: true })
 
 const { WizardGameChip } = await import('../WizardGameChip')
 const { SyncProvider } = await import('../../../replica/SyncProvider')
@@ -27,22 +27,22 @@ const wrap = () =>
 
 describe("a wizard's Game chip", () => {
   test('reads GAME | the name, and links to the Game’s page in Play', () => {
-    setQueryAnswers({ 'games:get': { _id: 'g1', name: 'Rust Run' } })
+    setQueryAnswers({ 'games.get': { _id: 'g1', name: 'Rust Run' } })
     wrap()
     expect(screen.getByText('Game')).toBeTruthy()
     const link = screen.getByText('Rust Run').closest('a')
     expect(link?.getAttribute('href')).toMatch(/\/play\/games\/g1$/)
-    expect(queryCalls()).toEqual([{ name: 'games:get', args: { gameId: 'g1' } }])
+    expect(queryCalls()).toEqual([{ name: 'games.get', args: { gameId: 'g1' } }])
   })
 
   test('shows nothing while the Game loads, or for a Game the player cannot see', () => {
-    setQueryAnswers({ 'games:get': undefined })
+    setQueryAnswers({ 'games.get': undefined })
     const loading = wrap().container
     expect(loading.textContent).toBe('')
-    setQueryAnswers({ 'games:get': null })
+    setQueryAnswers({ 'games.get': null })
     const hidden = wrap().container
     expect(hidden.textContent).toBe('')
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)

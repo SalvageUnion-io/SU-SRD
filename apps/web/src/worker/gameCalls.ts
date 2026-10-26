@@ -1,15 +1,16 @@
 /**
- * `POST /__rooms/call`: one Games call by its Convex name, as the session
+ * `POST /__rooms/call`: one Games call by its name, as the session
  * cookie's player (`./shared/gameCalls.ts` has the calls and their rules).
  */
 
+import type { BotRelay } from 'game-domain/botWire'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
 import type { D1Like } from './auth/store'
 import type { GameRoomStub } from './rooms'
 import { rooms } from './rooms'
 import type { SharedDb } from './shared/db'
-import type { BotRelayEnv, CallDeps } from './shared/gameCalls'
+import type { CallDeps } from './shared/gameCalls'
 import { gameCall } from './shared/gameCalls'
 
 type AccountStub = ReturnType<CallDeps['account']>
@@ -17,7 +18,7 @@ type AccountStub = ReturnType<CallDeps['account']>
 /** `POST /__rooms/call`: one call, as the session cookie's player. */
 export async function serveGameCall(
   request: Request,
-  env: BotRelayEnv & { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  env: { BOT?: BotRelay; SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
   identify: (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null> = identityOf
 ): Promise<Response> {
   const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' }
@@ -29,9 +30,8 @@ export async function serveGameCall(
     db: env.SHARED as unknown as SharedDb,
     game: (gameId) => rooms().GameRoom.getByName(gameId) as unknown as GameRoomStub,
     account: (discordId) => rooms().AccountRoom.getByName(discordId) as unknown as AccountStub,
-    bot: env,
+    bot: env.BOT,
     newId: () => crypto.randomUUID(),
-    fetch,
   }
   try {
     const answer = await gameCall(said.name, said.args, who, deps)

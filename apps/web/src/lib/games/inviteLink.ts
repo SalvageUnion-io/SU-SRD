@@ -4,8 +4,8 @@ import { appUrl } from '../site'
 /**
  * Invite links: a Game is joined from a link, never a typed code.
  *
- * The link is `/play/invite/<token>` (`invitePath`), where the token is the invite's `code` column
- * (`convex/model/invites.ts`). It is built from the origin the page was served
+ * The link is `/play/invite/<token>` (`invitePath`), where the token is the invite's code
+ * (`rooms/game/roster.ts`). It is built from the origin the page was served
  * on, so a link copied from a preview deployment opens that deployment.
  */
 
@@ -13,7 +13,7 @@ import { appUrl } from '../site'
  * The token in what a player pasted to join (the Play hub's Join): a whole
  * invite link (`…/invite/<token>`, any origin, a trailing slash or query
  * ignored), or the token alone; a token is letters and digits
- * (`convex/model/invites.ts`). `null` when it is neither: the field says so
+ * (`rooms/game/roster.ts`). `null` when it is neither: the field says so
  * rather than opening a page that can only answer "dead link".
  */
 export function inviteTokenFrom(pasted: string): string | null {

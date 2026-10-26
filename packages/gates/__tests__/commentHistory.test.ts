@@ -138,7 +138,7 @@ describe('isCommentSource', () => {
     expect(isCommentSource('apps/web/src/styles/pages.css')).toBe(true)
     expect(isCommentSource('apps/web/public/sw-takeover.js')).toBe(true)
     expect(isCommentSource('tools/check.ts')).toBe(true)
-    expect(isCommentSource('apps/web/convex/_generated/api.d.ts')).toBe(false)
+    expect(isCommentSource('apps/web/src/_generated/api.d.ts')).toBe(false)
     expect(isCommentSource('apps/web/src/routeTree.gen.ts')).toBe(false)
     expect(isCommentSource('packages/x/lib/generated/registry.ts')).toBe(false)
     expect(isCommentSource('apps/web/src/routes/vite-env.d.ts')).toBe(false)

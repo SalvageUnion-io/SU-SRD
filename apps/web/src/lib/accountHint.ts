@@ -2,7 +2,7 @@
  * The account hint: who is signed in, as the Union bar shows them, left in the
  * browser by the app for the SRD to read.
  *
- * The SRD has no backend and opens no Convex connection, yet its bar shows the
+ * The SRD has no backend and opens no room connection, yet its bar shows the
  * same account menu as the app's. Both sites share one origin
  * (salvageunion.io, the app at `/build`, ADR-048), so they share
  * `localStorage`: the app writes the display name and avatar here whenever

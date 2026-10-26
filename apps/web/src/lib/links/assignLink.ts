@@ -20,8 +20,8 @@
 import { resolveLinkType } from 'game-domain/links/linkRules'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
+import { RoomDeclined } from '../../replica/roomSocket'
 import { useUnits } from '../../replica/units'
-import { serverMessage } from '../connection/serverError'
 import { LinkRefused } from './linkRefused'
 
 /** The write surface `assignLink` needs — the store, or a test double. */
@@ -69,11 +69,10 @@ async function drawLink(
   try {
     return await store.create('softLink', input)
   } catch (err) {
-    // A server refusal (a `ConvexError`) carries copy written for a player;
-    // anything else — offline, a defect — passes through untouched so the
-    // caller's own handling (`WritesBlockedOffline`, `runWrite`) still applies.
-    const message = serverMessage(err)
-    if (message !== null) throw new LinkRefused(message, { cause: err })
+    // A room's refusal carries copy written for a player; anything else —
+    // offline, a defect — passes through untouched so the caller's own
+    // handling (`WritesBlockedOffline`, `runWrite`) still applies.
+    if (err instanceof RoomDeclined) throw new LinkRefused(err.message, { cause: err })
     throw err
   }
 }

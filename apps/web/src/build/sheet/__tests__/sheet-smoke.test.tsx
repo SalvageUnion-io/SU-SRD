@@ -20,7 +20,7 @@ import type { UnitsStore } from '../../../replica/units'
  *
  * Conventions:
  *   - toBeTruthy() not toBeInTheDocument() (happy-dom workaround)
- *   - The only module mocks are Convex's (`installConvexMocks`): the signed-out
+ *   - The only module mocks are Convex's (`installServerMocks`): the signed-out
  *     Share dialog mounts `SignInControl`
  *   - afterEach cleanup()
  */
@@ -28,7 +28,6 @@ import type { UnitsStore } from '../../../replica/units'
 import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
@@ -42,10 +41,11 @@ import {
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-// Module scope, before the import below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({ authReact: true })
-afterAll(() => convexMocks.restore())
+// Module scope, before the import below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { Sheet } = await import('../Sheet')
 

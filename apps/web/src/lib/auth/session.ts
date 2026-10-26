@@ -1,8 +1,7 @@
 /**
  * The app's session, as the site Worker keeps it (`src/worker/auth/`): an
- * HttpOnly cookie this code never sees, and a ten-minute token from
- * `/auth/token` that the Convex client sends (`ConvexProviderWithAuth`,
- * `AppConvexProvider`).
+ * HttpOnly cookie this code never sees, and who it signs in, from
+ * `/auth/session`.
  *
  * The first answer settles the handshake. Offline it never comes: the state
  * stays loading, which `ConnectionProvider` reads with the device's stored
@@ -10,67 +9,48 @@
  * browser is back online.
  */
 
-import { ConvexError } from 'convex/values'
-import { useCallback, useMemo, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
+import { RoomDeclined } from '../../replica/roomSocket'
 import { appPath } from '../appBase'
 import { localStore } from '../safeLocalStorage'
-import type { TokenAnswer } from './paths'
+import type { SessionAnswer } from './paths'
 import { AUTH_PATHS } from './paths'
 import { writeStoredSession } from './storedSession'
 
 type AuthState = { isLoading: boolean; isAuthenticated: boolean }
 
 let state: AuthState = { isLoading: true, isAuthenticated: false }
-let cached: { token: string; expiresAt: number; person: string } | null = null
+let cached: SessionAnswer | null = null
 let started = false
 const listeners = new Set<() => void>()
 
-function settle(answer: TokenAnswer | null): void {
-  const before = cached?.token ?? null
-  cached = answer && {
-    token: answer.token,
-    expiresAt: expiryOf(answer.token),
-    person: answer.person,
-  }
+function settle(answer: SessionAnswer | null): void {
+  const before = cached?.person ?? null
+  cached = answer
   writeStoredSession(localStore(), answer?.account ?? null)
   const next = { isLoading: false, isAuthenticated: answer !== null }
   const same = next.isLoading === state.isLoading && next.isAuthenticated === state.isAuthenticated
-  if (same && before === (cached?.token ?? null)) return
+  if (same && before === (cached?.person ?? null)) return
   if (!same) state = next
   for (const listener of listeners) listener()
 }
 
-function expiryOf(token: string): number {
-  try {
-    const payload = token.split('.')[1] ?? ''
-    const { exp } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as {
-      exp?: number
-    }
-    return typeof exp === 'number' ? exp * 1000 : 0
-  } catch {
-    return 0
-  }
-}
-
 /** Asks the Worker; `undefined` when it could not be reached, so nothing is settled. */
-async function ask(): Promise<string | null | undefined> {
+async function ask(): Promise<void> {
   let res: Response
   try {
-    res = await fetch(AUTH_PATHS.token, { credentials: 'same-origin', cache: 'no-store' })
+    res = await fetch(AUTH_PATHS.session, { credentials: 'same-origin', cache: 'no-store' })
   } catch {
-    return undefined
+    return
   }
   if (!res.ok) {
     // Read to the end: a body left unread keeps the request open in the
     // browser, and the page never goes network-idle.
     await res.text().catch(() => '')
-    if (res.status !== 401) return undefined
-    settle(null)
-    return null
+    if (res.status === 401) settle(null)
+    return
   }
-  const answer = (await res.json()) as TokenAnswer
-  settle(answer)
-  return answer.token
+  settle((await res.json()) as SessionAnswer)
 }
 
 function start(): void {
@@ -88,38 +68,12 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener)
 }
 
-/** The `useAuth` `ConvexProviderWithAuth` takes. */
-export function useWorkerAuth() {
-  const { isLoading, isAuthenticated } = useSyncExternalStore(
+/** Whether the session is settled yet, and signed in. */
+export function useSession(): AuthState {
+  return useSyncExternalStore(
     subscribe,
     () => state,
     () => state
-  )
-  const fetchAccessToken = useCallback(
-    async ({ forceRefreshToken }: { forceRefreshToken: boolean }) => {
-      // A minute's margin, so a token never expires on its way to Convex.
-      if (!forceRefreshToken && cached && cached.expiresAt - 60_000 > Date.now())
-        return cached.token
-      return (await ask()) ?? null
-    },
-    []
-  )
-  return useMemo(
-    () => ({ isLoading, isAuthenticated, fetchAccessToken }),
-    [isLoading, isAuthenticated, fetchAccessToken]
-  )
-}
-
-/**
- * The session's current token, `null` until one is answered or once signed
- * out; a new one each time Convex has it refreshed. For a room's socket
- * (`useGamePresence`), which the Worker checks with Convex.
- */
-export function useSessionToken(): string | null {
-  return useSyncExternalStore(
-    subscribe,
-    () => cached?.token ?? null,
-    () => null
   )
 }
 
@@ -154,17 +108,13 @@ export async function signOut(): Promise<void> {
 
 /**
  * Deletes the account through the Worker, which ends every session with it.
- * A refusal throws Convex's own error, so `useServerAction` says its words.
+ * A refusal throws its words, so `useServerAction` says them.
  */
 export async function deleteAccount(): Promise<void> {
   const res = await fetch(AUTH_PATHS.deleteAccount, { method: 'POST', credentials: 'same-origin' })
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as {
-      errorMessage?: string
-      errorData?: unknown
-    }
-    if (body.errorData !== undefined && body.errorData !== null)
-      throw new ConvexError(body.errorData as string)
+    const body = (await res.json().catch(() => ({}))) as { errorMessage?: string }
+    if (res.status === 409 && body.errorMessage) throw new RoomDeclined(body.errorMessage)
     throw new Error(`account deletion answered ${res.status}: ${body.errorMessage ?? ''}`)
   }
   settle(null)

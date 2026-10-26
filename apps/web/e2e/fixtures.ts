@@ -25,10 +25,10 @@ import { waitForReady } from './_helpers'
  * (`packages/gates/lib/testSignIn.ts`, the one caller of the seam). Each test signs up a fresh account, because a
  * reused one would inherit the last run's roster and assert against it. Two
  * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
- * in the build, and `TEST_AUTH=true` on the deployment. `build-web`
+ * in the build, and `TEST_AUTH=true` on the Worker. `build-web`
  * in `.github/workflows/ci.yml` (every PR) and `e2e` in
- * `.github/workflows/e2e-nightly.yml` provide both against a throwaway
- * self-hosted Convex backend (`.github/actions/convex-backend`).
+ * `.github/workflows/e2e-nightly.yml` provide both against a local
+ * Worker (`.github/actions/test-build`).
  *
  * ## When the seam is absent
  *
@@ -40,10 +40,8 @@ import { waitForReady } from './_helpers'
  * instead.
  *
  * A local `bun run e2e` always has the seam: Playwright boots (or reuses)
- * `bun run dev`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
- * So it needs the one-time "Local backend" setup in `.claude/skills/convex-ops/SKILL.md`
- * (`TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
- * without it.
+ * `bun run dev`, which sets `VITE_TEST_AUTH` and runs the Worker with
+ * `TEST_AUTH`, so it needs no setup.
  *
  * ## Opting out
  *

@@ -21,8 +21,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { resolveSystem } from '../../lib/rules/mechItems'
 import type { Situation } from '../situation.model'
 import { mechStats } from '../unitStats.model'
@@ -33,27 +33,27 @@ import { stubStore } from './stubStore'
 type Screen = { situation: Situation; solo?: boolean; stepIndex?: number }
 let current: Screen = { situation: 'onFoot' }
 
-// Module scope, before the imports below — see `convexMock.ts`. The side's
+// Module scope, before the imports below — see `serverMock.ts`. The side's
 // reads (`usePlaySide`) and the Units' (`usePlayUnits`): nothing bound, no
 // crew read yet, nothing on the Game's log.
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: {
     '../../play/usePlaySituation': () => ({ usePlaySituation: () => useScreenPlay() }),
   },
 })
 setQueryAnswers({
-  'account:me': null,
-  'seats:forGame': [],
-  'games:members': [],
-  'entities:listForGame': null,
-  'channelBindings:current': null,
-  'safety:stopSign': null,
-  'games:get': null,
-  'changeLog:rolls': [],
-  'changeLog:alerts': [],
-  'ops:pending': [],
-  'crew:vitals': null,
-  'seats:solo': null,
+  'account.me': null,
+  'seats.forGame': [],
+  'games.members': [],
+  'entities.listForGame': null,
+  'channelBindings.current': null,
+  'safety.stopSign': null,
+  'games.get': null,
+  'changeLog.rolls': [],
+  'changeLog.alerts': [],
+  'ops.pending': [],
+  'crew.vitals': null,
+  'seats.solo': null,
 })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
@@ -79,7 +79,7 @@ beforeAll(async () => {
   }
 })
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 let restoreViewport = () => {}
 beforeEach(() => {

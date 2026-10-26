@@ -4,7 +4,7 @@
  * check-file-size — no source file grows past MAX_LINES (`bun run check file-size`).
  *
  * When the gate landed, 122 source files ran past 400 lines and 29 past 600:
- * `EntitySearcher.tsx` at 1,443, `convex/entities.ts` at 1,337,
+ * `EntitySearcher.tsx` at 1,443, the Convex backend's `entities.ts` at 1,337,
  * `ReferenceEntityCard.tsx` at 1,275 (its inner card about 936 lines with about
  * 72 props). Nothing stopped one more feature landing in the largest file, so
  * the largest files kept growing, and every workstream that touched them
@@ -43,8 +43,6 @@ const SCAN_FLOOR = 630
  */
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 662,
-  'apps/web/convex/entities.ts': 761,
-  'apps/web/convex/model/entities.ts': 807,
   'apps/web/src/build/npc/CrewBoard.tsx': 618,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 642,
   'apps/web/src/lib/rules/creation.ts': 722,
@@ -54,7 +52,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 840,
   'tools/check-rules-fidelity.ts': 1_014,
-  'tools/check-workflows.ts': 796,
+  'tools/check-workflows.ts': 765,
 }
 
 const SOURCE = /\.(tsx?|m?js)$/

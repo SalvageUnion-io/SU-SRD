@@ -7,13 +7,12 @@ snapshots, so the move is a data copy, not a redesign.
 - **Supersedes** [ADR-030](030-accounts-games-server-of-record.md) §1's
   sentence "Convex is the server of record" and
   [ADR-033](033-hosting-on-cloudflare.md) §5 ("Convex stays").
-- **Moving** while 4.5.0 is built: the Areas [convex](../ARCHITECTURE.md#convex),
+- **Moved** at 4.5.0: the Areas [rooms](../ARCHITECTURE.md#rooms),
   [device-copy](../ARCHITECTURE.md#device-copy), [stores](../ARCHITECTURE.md#stores),
   [sharing](../ARCHITECTURE.md#sharing), [deployments](../ARCHITECTURE.md#deployments),
-  [convex-env](../ARCHITECTURE.md#convex-env),
-  [convex-conventions](../ARCHITECTURE.md#convex-conventions) and
-  [bot-game-client](../ARCHITECTURE.md#bot-game-client). Each is rewritten
-  by the step that moves it; until the cutover they describe production.
+  [worker-env](../ARCHITECTURE.md#worker-env),
+  [room-conventions](../ARCHITECTURE.md#room-conventions) and
+  [bot-game-client](../ARCHITECTURE.md#bot-game-client).
 
 ## Context
 

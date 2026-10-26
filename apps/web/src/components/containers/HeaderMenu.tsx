@@ -35,7 +35,7 @@ import { SegmentedOption } from '../atoms/Segmented'
  *
  * Compacts are `sections` of plain `{ id, label, hint?, onSelect }` records, with a
  * rule drawn between sections. That keeps the menu ignorant of what a row DOES
- * — its callers hand in closures over the router and the Convex session — while
+ * — its callers hand in closures over the router and the session — while
  * the menu owns every pixel of the row, so the two menus in the masthead cannot
  * drift apart.
  *

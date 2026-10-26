@@ -16,7 +16,7 @@
  * 'connected'` — signed out there is one pile, and every entity is in it.
  *
  * The local store holds your own pilots and mechs plus every crawler in your
- * Games (`ConvexFeed`), which is exactly what you may assign: a link is written
+ * Games (`RoomFeed`), which is exactly what you may assign: a link is written
  * by the owner of its `from` end, and crewmates' pilots and mechs are not
  * yours to wire.
  *

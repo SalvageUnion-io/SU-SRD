@@ -1,6 +1,6 @@
 /**
  * Turn a picked image file into the `upload` photo an entity body stores
- * (`game-domain/schemas/photo`), through `convex/photos.ts`.
+ * (`game-domain/schemas/photo`), through the Worker (`worker/photos.ts`).
  *
  * The file is scaled and re-encoded here first. A phone photo is 4–12 MB and
  * 4000px wide; a sheet shows it at a few hundred pixels. Re-encoding also
@@ -32,7 +32,7 @@ export const MAX_PHOTO_EDGE = 1600
 /** Re-encoding quality for the lossy formats. */
 const QUALITY = 0.85
 
-/** The upload steps, injected so a test can stand in for Convex. */
+/** The upload steps, injected so a test can stand in for the Worker. */
 export type PhotoUploader = {
   generateUploadUrl: () => Promise<string>
   /** `null` when the server refused the file (and deleted it). */
@@ -90,7 +90,7 @@ export async function uploadPhoto(blob: Blob, uploader: PhotoUploader): Promise<
   return photo
 }
 
-/** The browser's POST of a photo to a Convex upload URL. */
+/** The browser's POST of a photo to the Worker's upload URL. */
 export function postPhoto(url: string, body: Blob): Promise<Response> {
   return fetch(url, { method: 'POST', headers: { 'Content-Type': body.type }, body })
 }

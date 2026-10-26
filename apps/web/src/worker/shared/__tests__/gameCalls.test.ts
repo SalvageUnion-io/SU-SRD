@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, relayUrl } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
 import { bunSql } from '../../../rooms/__tests__/bunSql'
 import type { GameActName } from '../../../rooms/game/acts'
@@ -65,9 +65,8 @@ function world(over: Partial<CallDeps> = {}) {
     db,
     game,
     account: () => ({ unit: async () => null }) as never,
-    bot: {},
+    bot: undefined,
     newId: () => `id-${++ids}`,
-    fetch: (() => Promise.reject(new Error('no network'))) as never,
     ...over,
   }
   const call = async (
@@ -333,11 +332,12 @@ describe("Discord's channels", () => {
     const sent: { url: string; body: Record<string, unknown> }[] = []
     let reply: () => Promise<Response> = async () => Response.json({ ok: true, messageId: 'm-1' })
     const w = world({
-      bot: { BOT_URL: 'https://bot.test/', BOT_SECRET: 's3cret' },
-      fetch: (async (url: string, init: RequestInit) => {
-        sent.push({ url, body: JSON.parse(init.body as string) })
-        return reply()
-      }) as never,
+      bot: {
+        fetch: (async (url: string, init: RequestInit) => {
+          sent.push({ url, body: JSON.parse(init.body as string) })
+          return reply()
+        }) as never,
+      },
     })
     const { gameId, listed } = await starterGame(w)
     const pilot = listed.pilots[0]
@@ -349,7 +349,7 @@ describe("Discord's channels", () => {
       ok: true,
       value: { kind: 'posted', channelId: 'c-game', messageId: 'm-1' },
     })
-    expect(sent[0]?.url).toBe(`https://bot.test${BOT_RELAY_POST_ROLL_PATH}`)
+    expect(sent[0]?.url).toBe(relayUrl(BOT_RELAY_POST_ROLL_PATH))
     expect(sent[0]?.body).toMatchObject({
       channelId: 'c-game',
       tableName: 'Core Mechanic',

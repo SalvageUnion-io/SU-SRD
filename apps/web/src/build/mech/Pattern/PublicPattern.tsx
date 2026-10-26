@@ -41,7 +41,7 @@ import {
 } from '../../../components/index'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
-import { serverMessage } from '../../../lib/connection/serverError'
+import { playerMessage } from '../../../lib/connection/useServerAction'
 import { itemHref } from '../../../lib/entityHref'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
@@ -148,7 +148,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
       toast.success(mechCopy('builtFromThePattern', { name: mech.name }))
       void navigate({ to: '/mechs/$id', params: { id: mech.id } })
     } catch (err) {
-      toast.error(serverMessage(err) ?? mechCopy('theMechCouldNotBe2'))
+      toast.error(playerMessage(err) ?? mechCopy('theMechCouldNotBe2'))
       setBusy(null)
     }
   }
@@ -159,7 +159,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
       await usePatterns.getState().create(patternCopy(pattern))
       toast.success(mechCopy('copiedToYourTrainingBay', { name: pattern.name }))
     } catch (err) {
-      toast.error(serverMessage(err) ?? mechCopy('thePatternCouldNotBe'))
+      toast.error(playerMessage(err) ?? mechCopy('thePatternCouldNotBe'))
     } finally {
       setBusy(null)
     }

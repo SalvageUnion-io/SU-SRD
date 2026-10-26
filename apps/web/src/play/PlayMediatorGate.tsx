@@ -28,7 +28,7 @@ import { PlayRefusal } from './PlayRefusal'
 
 export function PlayMediatorGate({ gameId }: { gameId: string }) {
   const { status } = useSync()
-  // Checked before any Convex hook: signed out, there is no Game to read.
+  // Checked before any Games read: signed out, there is no Game to read.
   if (status === 'signedOut') {
     return (
       <PlayRefusal

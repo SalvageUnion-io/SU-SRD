@@ -44,7 +44,7 @@ export function pagePath(raw: string | undefined): string | null {
 }
 
 /** Neutralise what GitHub would act on in a stranger's words: mentions and issue links. */
-export function quoteNote(text: string): string {
+function quoteNote(text: string): string {
   return text
     .replace(/@/g, '@​')
     .replace(/#(\d)/g, '#​$1')

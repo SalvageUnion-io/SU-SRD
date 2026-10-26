@@ -14,23 +14,21 @@ import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from '
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { holdSharedByLink } from '../../../replica/sharedByLink'
 import type { SyncState } from '../../../replica/syncContext'
 import { serveTableState } from '../../../replica/tableState'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { ToasterMount, toast } = await import('../../../components/index')
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -117,7 +115,7 @@ beforeEach(async () => {
 
   toast.dismiss()
   resetStores()
-  setQueryAnswers({ 'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }] })
+  setQueryAnswers({ 'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }] })
   // The account room's snapshot: nothing shared yet.
   serveTableState('account', { sharing: [] })
   holdSharedByLink('account', [])
@@ -254,7 +252,7 @@ describe('Crawlers', () => {
   })
 
   test('as the table runner, the Game’s crawler is yours to keep', async () => {
-    setQueryAnswers({ 'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }] })
+    setQueryAnswers({ 'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }] })
     await renderShelves()
     const crawlers = screen.getByRole('region', { name: 'Crawlers' })
     expect(within(crawlers).getByText('Table Crawler')).toBeTruthy()

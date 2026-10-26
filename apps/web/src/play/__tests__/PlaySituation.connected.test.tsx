@@ -1,10 +1,8 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 import { createElement } from 'react'
-import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks } from '../../components/__tests__/serverMock'
 import type { SentAct } from '../../replica/__tests__/fakeRooms'
 import {
   acts,
@@ -92,14 +90,14 @@ function changed(): void {
 /** The Games reads the Cockpit still makes. */
 function answer(name: string): unknown {
   switch (name) {
-    case 'games:members':
+    case 'games.members':
       return []
     // The Play bar's channel button: nothing bound.
-    case 'channelBindings:current':
+    case 'channelBindings.current':
       return null
-    case 'account:me':
+    case 'account.me':
       return { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null }
-    case 'entities:listForGame':
+    case 'entities.listForGame':
       return {
         pilots: [{ _id: 'r-rook', appId: 'pg-rook', ownerId: 'u-me', body: { name: 'Rook' } }],
         mechs: [
@@ -125,9 +123,9 @@ function answer(name: string): unknown {
   }
 }
 
-function useFakeQuery(ref: unknown, args?: unknown): unknown {
+function useFakeQuery(name: string, args?: unknown): unknown {
   if (args === 'skip') return undefined
-  return answer(getFunctionName(ref as FunctionReference<'query'>))
+  return answer(name)
 }
 
 /** The rooms' side of each act this test makes. */
@@ -200,9 +198,9 @@ function probe(column: string) {
 }
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. Specifiers resolve from `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexReact: { useQuery: useFakeQuery },
+// that resolve after it runs. Specifiers resolve from `serverMock.ts`.
+const serverMocks = await installServerMocks({
+  query: useFakeQuery,
   also: {
     '../../play/PlayUnitsColumn': () => ({ PlayUnitsColumn: probe('units') }),
     '../../play/PlayActionsColumn': () => ({ PlayActionsColumn: probe('actions') }),
@@ -246,7 +244,7 @@ afterAll(async () => {
   for (const id of LINKS) await store.forget('softLink', id)
   for (const id of ['ps-faithful', 'ps-buzzard', 'pg-atlas']) await store.forget('mech', id)
   for (const id of ['ps-bonesaw', 'pg-rook']) await store.forget('pilot', id)
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 beforeEach(() => {

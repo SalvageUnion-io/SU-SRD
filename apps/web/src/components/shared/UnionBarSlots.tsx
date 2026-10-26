@@ -24,7 +24,7 @@ import { SiteLink } from './AppLink'
  * The shell arrives already marked for the route it was served on.
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
- * Convex or Games; `routes/__root.tsx` fills them
+ * the Worker or Games; `routes/__root.tsx` fills them
  * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,

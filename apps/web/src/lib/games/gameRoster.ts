@@ -1,10 +1,10 @@
 /**
  * What a Game's roster shows, and what each row lets you do (ADR-030 §3–5).
  *
- * This module is deliberately pure — no React, no Convex, no router. Everything
+ * This module is deliberately pure — no React, no rooms, no router. Everything
  * on the Game surface that is a *rule* rather than a pixel lives here, for one
  * reason: these answers already exist on the server, in
- * `convex/model/permissions.ts` and `convex/entities.ts`, and a second copy
+ * the Game room (`rooms/game/roster.ts`, `units.ts`), and a second copy
  * written inline across a component's JSX would drift from them silently. Kept
  * here they can be tested side by side with the mutations they mirror, which is
  * exactly what `__tests__/gameRoster.test.ts` does. Who runs the table is not
@@ -94,7 +94,7 @@ type RowCapabilities = {
 
 export type RosterRow = {
   kind: RosterKind
-  /** The Convex row id — what every ownership mutation is addressed by. */
+  /** The row id — what every ownership write is addressed by. */
   serverId: string
   /** The id the owner's browser minted, when this row was ever in one. */
   appId: string | null

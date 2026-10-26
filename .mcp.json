@@ -8,18 +8,6 @@
       "type": "http",
       "url": "https://observability.mcp.cloudflare.com/mcp"
     },
-    "convex": {
-      "command": "bunx",
-      "args": [
-        "convex@1.45.0",
-        "mcp",
-        "start",
-        "--project-dir",
-        "apps/web",
-        "--disable-tools",
-        "envSet,envRemove,run"
-      ]
-    },
     "context7": {
       "type": "http",
       "url": "https://mcp.context7.com/mcp"

@@ -1,16 +1,14 @@
 /**
  * `BotGateway`: the Discord bot's way in, over a service binding
- * (`su-discord-bot`'s `SITE`), in place of Convex's bearer-guarded `/bot/*`.
- * A binding reaches only this entrypoint, so no secret is presented and none
+ * (`su-discord-bot`'s `SITE`). A binding reaches only this entrypoint, so no secret is presented and none
  * can leak; the bot still names the Discord user, and every answer is
  * resolved against that user's account and memberships.
  *
- * It answers from the shared database once the cutover has filled it, with
- * the same wire bodies `/bot/*` sends (`game-domain/botWire`); `sheet` and
- * `mine` read the rooms (`./botSheets.ts`). Until then, or when a room
- * cannot answer, it answers null and the bot asks Convex as before. A sheet
- * from the rooms carries no `vitals` yet, so the bot shows current values
- * without their maxima.
+ * It answers from the shared database, in the wire bodies of
+ * `game-domain/botWire`; `sheet` and `mine` read the rooms (`./botSheets.ts`).
+ * When a room cannot answer it answers null, which the bot says as
+ * unavailable. A sheet from the rooms carries no `vitals` yet, so the bot
+ * shows current values without their maxima.
  */
 
 import { exports, WorkerEntrypoint } from 'cloudflare:workers'
@@ -41,7 +39,6 @@ import {
   unbindChannel,
 } from './shared/channelBindings'
 import type { SharedDb } from './shared/db'
-import { isFilled } from './shared/db'
 import { acceptFeedback } from './shared/feedback'
 import { gamesOf, membershipOf } from './shared/games'
 import { bumpUsage, touchGuild } from './shared/signals'
@@ -136,17 +133,14 @@ async function unbind(
   return unbindChannel(db, args.discordId, args.channelId.trim())
 }
 
-/**
- * One op's answer as `/bot/<op>` would send it, or null for "ask Convex":
- * the database is not filled yet, or the op's data is not here.
- */
+/** One op's answer, or null when the site cannot answer it (no database, or a room that fails). */
 export async function answerBot(
   db: SharedDb | undefined,
   op: BotOpName,
   args: Record<string, unknown>,
   rooms?: BotRooms
 ): Promise<BotAnswer | null> {
-  if (!db || !(await isFilled(db))) return null
+  if (!db) return null
   switch (op) {
     case 'me':
       return me(db, String(args.discordId))
@@ -173,7 +167,7 @@ export async function answerBot(
 
 /**
  * A room read, or null when a room cannot answer it (a room from before it
- * held units, or one that throws), so the bot falls back rather than failing.
+ * held units, or one that throws), which the bot says as unavailable.
  */
 async function fromRooms(read: () => Promise<BotAnswer>): Promise<BotAnswer | null> {
   try {

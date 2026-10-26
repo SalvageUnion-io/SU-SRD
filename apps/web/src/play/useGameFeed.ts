@@ -4,7 +4,7 @@
  * player for the Feed, and the crew's vitals, maxima and status
  * (`crew.vitals`, derived on the server, ADR-038 §4) for Crew.
  *
- * Every read is a Convex subscription, so a crewmate's roll, or the resolve
+ * Every read is a live room read, so a crewmate's roll, or the resolve
  * they are part-way through ("Rook is resolving Crush", ADR-038 §2), arrives
  * here as it happens.
  *

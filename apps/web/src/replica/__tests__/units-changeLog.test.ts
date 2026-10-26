@@ -3,47 +3,22 @@
  *
  * Every entityStore.update and transfer sends ops, each naming only the fields
  * it moved, tagged with provenance, made against the copy this tab holds; the
- * server applies them and keeps them as the unit's history
- * (`test/convex/__tests__/changeLogForEntity.test.ts` reads it back).
- *
- * The Convex client is a recorder (`ops.apply` and `ops.transfer` are kept,
- * every other commit answers as `upsertByAppId` does), so the in-memory store
- * runs signed in with its server commits observed.
+ * room applies them and keeps them as the unit's history. The stand-in rooms
+ * (`test/roomsStub.ts`) record each batch, so the in-memory store runs signed
+ * in with its sends observed.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 import type { OpInput } from 'game-domain/ops/applyOp'
-import { installConvexMocks } from '../../components/__tests__/convexMock'
+import { acceptingRooms, roomOps } from '../../../test/roomsStub'
+import { installServerMocks } from '../../components/__tests__/serverMock'
 
-type Sent = { unit: string; gameId: string | null; op: OpInput }
+type Sent = { gameId: string | null; op: OpInput }
 
-const sent: Sent[] = []
-let seq = 0
+/** Each op the rooms took, with the Game whose room it went to. */
+const sent = (): Sent[] => roomOps.flatMap(({ gameId, ops }) => ops.map((op) => ({ gameId, op })))
 
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (ref: unknown, args: { ops?: Sent[] } & Partial<Sent>) => {
-      const name = getFunctionName(ref as FunctionReference<'mutation'>)
-      if (name === 'ops:apply') {
-        sent.push(args as Sent)
-        return { headSeq: ++seq, updatedAt: seq }
-      }
-      if (name === 'ops:transfer') {
-        sent.push(...(args.ops ?? []))
-        return {
-          applied: (args.ops ?? []).map((o) => ({
-            unitId: o.op.unitId,
-            headSeq: ++seq,
-            updatedAt: seq,
-          })),
-        }
-      }
-      return { updatedAt: 1 }
-    },
-  },
-})
+const serverMocks = await installServerMocks()
 
 const { useUnits } = await import('../units')
 const { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE, PLAY_TXN } = await import('../provenance')
@@ -51,7 +26,7 @@ const { resetStores } = await import('./resetStores')
 const { withSignedInBackend } = await import('./signedInBackend')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -72,8 +47,7 @@ const basePilotInput = {
 }
 
 beforeEach(() => {
-  sent.length = 0
-  seq = 0
+  acceptingRooms()
   resetStores()
 })
 
@@ -81,7 +55,7 @@ async function seedPilot() {
   return useUnits.getState().create('pilot', basePilotInput)
 }
 
-const opsFor = (id: string) => sent.filter((s) => s.op.unitId === id)
+const opsFor = (id: string) => sent().filter((s) => s.op.unitId === id)
 /** The fields an op writes, the bookkeeping stamp aside. */
 const fields = (s: Sent | undefined) =>
   Object.keys(s?.op.patch ?? {}).filter((f) => f !== 'updatedAt')
@@ -100,7 +74,6 @@ describe('ops — the write-through chokepoint', () => {
 
     const [only, ...rest] = opsFor(pilot.id)
     expect(rest).toEqual([])
-    expect(only?.unit).toBe('pilot')
     // A shelf build is in no Game.
     expect(only?.gameId).toBeNull()
     expect(fields(only)).toEqual(['callsign'])
@@ -111,7 +84,7 @@ describe('ops — the write-through chokepoint', () => {
     expect(only?.op).toMatchObject({ kind: 'manual', source: 'live-sheet' })
   })
 
-  test('each op is made against the seq the last one answered', async () => {
+  test('each op is its own, made against the copy held', async () => {
     const pilot = await seedPilot()
     const store = useUnits.getState()
     await store.update('pilot', pilot.id, { callsign: 'A' }, LIVE_SHEET_MANUAL)
@@ -120,7 +93,7 @@ describe('ops — the write-through chokepoint', () => {
 
     const ops = opsFor(pilot.id).map((s) => s.op)
     expect(ops.map((o) => o.patch.callsign)).toEqual(['A', 'B', 'C'])
-    expect(ops.map((o) => o.baseSeq)).toEqual([0, 1, 2])
+    expect(ops.map((o) => o.baseSeq)).toEqual([0, 0, 0])
     expect(ops.map((o) => o.kind)).toEqual(['manual', 'override', 'transaction'])
     expect(new Set(ops.map((o) => o.id)).size).toBe(3)
   })

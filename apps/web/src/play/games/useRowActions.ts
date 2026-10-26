@@ -24,7 +24,7 @@ import { useGamesCall } from '../../replica/roomCalls'
 import { useUnits } from '../../replica/units'
 
 export type RowActions = {
-  /** Assign an unassigned character to yourself; `ConvexFeed` brings it into this browser. */
+  /** Assign an unassigned character to yourself; `RoomFeed` brings it into this browser. */
   assignSelf: (row: RosterRow) => void
   /**
    * The table runner's: assign a character to `member`, whoever holds it now.
@@ -45,7 +45,7 @@ export type RowActions = {
 }
 
 export function useRowActions(confirm: Confirm, gameId: string): RowActions {
-  // The rooms need the Game a row is in, which Convex found from the row itself.
+  // The rooms need the Game a row is in, which the row itself does not name.
   const assign = useGamesCall('ownership.assign', { gameId })
   const unassign = useGamesCall('ownership.unassign', { gameId })
   const scrapCrawler = useGamesCall('entities.removeCrawler', { gameId })
@@ -62,7 +62,7 @@ export function useRowActions(confirm: Confirm, gameId: string): RowActions {
         ...ROW_ACTION_COPY.assignSelf(row.name),
         onConfirm: async () => {
           // Nothing to pull down by hand: it is yours now, so it is in
-          // `listMine`, and `ConvexFeed` caches it from there — the row's View
+          // `listMine`, and `RoomFeed` caches it from there — the row's View
           // opens it editable as soon as it lands.
           await assign({ entityId: row.serverId })
         },

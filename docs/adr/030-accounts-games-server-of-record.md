@@ -1,8 +1,8 @@
 # ADR-030: Accounts, Games, and a Server of Record
 
 The governing decision for identity, ownership and sharing. Operations:
-[deployments](../ARCHITECTURE.md#deployments), [environment](../ARCHITECTURE.md#convex-env)
-and the `convex-ops` skill. Amended by [ADR-051](051-play-mode.md): a pilot on a
+[deployments](../ARCHITECTURE.md#deployments), [environment](../ARCHITECTURE.md#worker-env)
+and the `site-ops` skill. Amended by [ADR-051](051-play-mode.md): a pilot on a
 Shelf has a seat too, seats carry presence, and a Game can bind a Discord
 channel (`channelBindings`). Amended by [ADR-052](052-build-assets-play-games.md):
 Build's Hangar lists what a player owns; a Game's page and joining are Play's.

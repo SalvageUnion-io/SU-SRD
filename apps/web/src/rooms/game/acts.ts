@@ -16,7 +16,7 @@ import { seedTemplate } from './template'
 /** Who is acting, in which Game, and when: the Worker vouches for the first, the room supplies the rest. */
 type ActContext = { room: GameRoomLogic; actor: string; gameId: string; at: number }
 
-/** A seat write's address, as `convex/seats.ts` takes it. */
+/** A seat write's address. */
 type SeatArgs = { pilotId: string }
 
 /** What `ops.propose` takes. */
@@ -64,7 +64,7 @@ const GAME_ACTS = {
   setPrimaryCrawler: (c: ActContext, a: { crawlerId: string }) =>
     c.room.units.setPrimaryCrawler(c.actor, a.crawlerId),
 
-  // The table in play, under the Convex function names a client's act
+  // The table in play, under the names a client's act
   // carries, with their args (`gameId` is the room's own, so it is ignored).
   'ops.propose': (c: ActContext, a: ProposeArgs) => {
     const id = c.room.newId()
@@ -120,7 +120,7 @@ const GAME_ACTS = {
   'changeLog.forEntity': (c: ActContext, a: { entityId: string }) =>
     entityLog(c.room.units.history(c.actor, a.entityId)),
 
-  // The Mediator's tray and running encounter, under the Convex function names a client's act carries.
+  // The Mediator's tray and running encounter, under the names a client's act carries.
   'mediator.npcs': (c: ActContext) => c.room.opposition.tray(c.actor),
   'mediator.amMediator': (c: ActContext) => c.room.opposition.mediates(c.actor),
   'mediator.addNpc': (c: ActContext, a: { body: unknown }) =>
@@ -140,7 +140,7 @@ const GAME_ACTS = {
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
   'mediator.endEncounter': (c: ActContext) => c.room.opposition.endEncounter(c.actor),
 
-  // The table's state from 4.3, under the Convex function names a client's act carries.
+  // The table's state, under the names a client's act carries.
   'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),
   'scenes.setConditions': (c: ActContext, a: { conditions: string[] }) =>
     c.room.scene.setConditions(c.actor, a.conditions, c.at),

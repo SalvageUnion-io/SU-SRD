@@ -54,12 +54,9 @@ const OTHER_TEST = 'tools/__biome_fixture__/y.test.ts'
 /** A file that asserts on load behaviour, excluded from the preload ban by path. */
 const EXEMPT_TEST = 'packages/salvageunion-reference/lib/__tests__/preload.test.ts'
 const BIG_LIB = 'apps/web/src/components/__biome_fixture__/big.tsx'
-/** A Convex function file, where collecting the Change Log is banned. */
-const CONVEX = 'apps/web/convex/__biome_fixture__/z.ts'
 const BIG_APP = 'apps/web/src/routes/__biome_fixture__/big.tsx'
 /** A function exactly at the cap. */
 const AT_CAP_APP = 'apps/web/src/routes/__biome_fixture__/atCap.tsx'
-const BIG_CONVEX = 'apps/web/convex/__biome_fixture__/big.ts'
 const BIG_APP_TEST = 'apps/web/src/routes/__biome_fixture__/big.test.tsx'
 /** A workspace with no function cap. */
 const BIG_SRD = 'apps/discord-bot/src/__biome_fixture__/big.ts'
@@ -114,17 +111,6 @@ const FIXTURES: Record<string, string> = {
     "export const said = (err: unknown) => (err instanceof Error ? err.message : 'x')",
     '',
   ].join('\n'),
-  [CONVEX]: [
-    'declare const ctx: any',
-    "export const all = ctx.db.query('changeLog').collect()", // 2: flagged
-    'export const indexed = ctx.db', // 3: flagged
-    "  .query('changeLog')",
-    "  .withIndex('by_game_state', (q: any) => q.eq('gameId', 1))",
-    '  .collect()',
-    "export const newest = ctx.db.query('changeLog').order('desc').take(10)",
-    "export const games = ctx.db.query('games').collect()",
-    '',
-  ].join('\n'),
   [OTHER_TEST]: [
     'declare const SalvageUnionReference: any',
     "SalvageUnionReference.preload(['chassis'])", // 2: flagged
@@ -140,7 +126,6 @@ const FIXTURES: Record<string, string> = {
   [BIG_LIB]: bigFunction(CAP + 1),
   [BIG_APP]: bigFunction(CAP + 1),
   [AT_CAP_APP]: bigFunction(CAP),
-  [BIG_CONVEX]: bigFunction(CAP + 1),
   [BIG_APP_TEST]: bigFunction(CAP + 1),
   [BIG_SRD]: bigFunction(CAP + 1),
 }
@@ -240,16 +225,6 @@ describe('noLiveClockFixture', () => {
   })
 })
 
-describe('noChangeLogCollect', () => {
-  test('flags collecting the Change Log in a Convex function, not take() or another table', () => {
-    expect(flagged(CONVEX, 'plugin', 'Do not collect the Change Log')).toEqual([2, 3])
-  })
-
-  test('does not apply to tests, which read their own fixture rows', () => {
-    expect(flagged(TEST_FILE, 'plugin', 'Do not collect the Change Log')).toEqual([])
-  })
-})
-
 describe('noRawErrorMessage', () => {
   test("flags showing a caught error's own message in the app's source, not a mismatched pair", () => {
     expect(flagged(SOURCE, 'plugin', 'Do not show a caught error')).toEqual([12])
@@ -274,10 +249,9 @@ describe('noWindowOpen', () => {
 describe('noExcessiveLinesPerFunction', () => {
   const rule = 'lint/complexity/noExcessiveLinesPerFunction'
 
-  test(`fires on a function over the ${CAP}-line cap anywhere in the app and its Convex backend`, () => {
+  test(`fires on a function over the ${CAP}-line cap anywhere in the app`, () => {
     expect(flagged(BIG_LIB, rule)).toEqual([1])
     expect(flagged(BIG_APP, rule)).toEqual([1])
-    expect(flagged(BIG_CONVEX, rule)).toEqual([1])
   })
 
   test('a function exactly at the cap passes', () => {

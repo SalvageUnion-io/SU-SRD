@@ -13,7 +13,6 @@ import type { LazyModel } from './LazyModel'
 import type { LoadProjection } from './ModelFactory'
 import {
   getLoadedModel,
-  installSchemas,
   isSchemaLoaded,
   loadSchemas,
   resetLoadStateForTesting,
@@ -374,25 +373,6 @@ export class SalvageUnionReference {
   ): Promise<void> {
     await loadSchemas(schemas, options?.projection)
     bindLoadedModels(schemas === 'all' ? Object.keys(lazyModelsById) : schemas)
-  }
-
-  /**
-   * Load schemas from data the caller has already imported — the synchronous
-   * sibling of {@link preload}, for a runtime with no dynamic `import()`.
-   *
-   * Convex's default runtime is one: `preload` throws "dynamic module import
-   * unsupported" there. Import the committed files statically
-   * (`salvageunion-reference/data/<schema>.json`) and pass them unchanged,
-   * keyed by schema id. Idempotent, like `preload`, and cheap to repeat: a call
-   * that installs nothing new leaves the action map and search index alone.
-   *
-   * @example
-   * import chassis from 'salvageunion-reference/data/chassis.json'
-   * SalvageUnionReference.install({ chassis })
-   */
-  public static install(data: Partial<Record<EntitySchemaName, readonly unknown[]>>): void {
-    const installed = installSchemas(data)
-    if (installed.length > 0) bindLoadedModels(installed)
   }
 
   /**

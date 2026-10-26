@@ -1,35 +1,28 @@
 /**
  * Where a write leaves the client: every send to the server of record, each
  * awaited by the replica before it holds the change, so a write the server
- * refused did not happen here either (the replica).
- *
- * Today the sends are Convex mutations; from the cutover they are `ops`
- * messages on the room socket (`rooms/protocol.ts`).
+ * refused did not happen here either (the replica). The sends are `ops`
+ * batches and acts on the room's socket (`rooms/protocol.ts`).
  *
  * Offline, an op on the player's own pilot, mech or NPC waits here, kept on
- * the device beside the rows (`persist.ts`), and goes up as a replay
- * (`ops.replay`) when the status is `live` again (ADR-063 decision 9). Every
- * other send off `live` is a no-op: the replica has already refused the write.
+ * the device beside the rows (`persist.ts`), and goes up to its room when the
+ * status is `live` again (ADR-063 decision 9). Every other send off `live` is
+ * a no-op: the replica has already refused the write.
  */
 
-import type { FunctionArgs } from 'convex/server'
-import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { OpInput } from 'game-domain/ops/applyOp'
 import { isEmptyOp } from 'game-domain/ops/applyOp'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
 import { keepOutbox, readOutbox } from './persist'
 import { row } from './replica'
 import { roomCall } from './roomCalls'
 import { noteRoomChange } from './roomChanges'
-import { ROOM_FEED, RoomDeclined, roomOf, roomOrStandIn } from './roomSocket'
+import { RoomDeclined, roomOrStandIn } from './roomSocket'
 import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
-/** What the server answered for a unit it wrote: its new version and `headSeq`. */
+/** What the room answered for a unit it made: its version and `headSeq`. */
 export type Applied = { version: number; headSeq: number }
 
 /**
@@ -76,46 +69,29 @@ function roomFor(gameId: string | null) {
 type UnitKind = EntityRef['type']
 
 /**
- * Send one op to the server of record (`ops.apply`, ADR-063), and **fail if it
- * does not land**; the replica awaits this before it holds the change. An
- * op that moves its unit hands it to the new room first (`entities.move`).
- * The answer's `headSeq` is what the unit's next op is made against.
+ * Send one op to its unit's room (ADR-063), and **fail if it does not land**;
+ * the replica awaits this before it holds the change, and the unit's new
+ * headSeq comes back as the room's `applied`. An op that moves its unit hands
+ * it to the new room first (`entities.move`).
  */
 export async function sendOp(
   unit: UnitKind,
   gameId: string | null,
   op: OpInput,
   move?: string | null
-): Promise<Applied | undefined> {
+): Promise<void> {
   if (!writable()) {
     if (queues(unit, op.patch) && !isEmptyOp(op)) await queue({ unit, gameId, op })
     return
   }
-  // Fed by the rooms (`RoomFeed`), an op on a unit in an open room goes there; its
-  // new headSeq comes back as the room's `applied`. A move is a handoff
-  // between rooms (`entities.move`), then the rest of the op in its new one.
+  // A move is a handoff between rooms (`entities.move`), then the rest of the
+  // op in its new one.
   if (move !== undefined) {
     await roomCall('entities.move', { kind: unit, appId: op.unitId, gameId: move })
     noteRoomChange()
-    if (isEmptyOp(op)) return
-    const target = roomOf(move)
-    if (target === null) throw new WritesBlockedOffline()
-    await target.submit([op])
-    return
-  }
-  const room = roomOf(gameId)
-  if (room !== null) {
-    if (!isEmptyOp(op)) await room.submit([op])
-    return
   }
   if (isEmptyOp(op)) return
-  const applied = await convexClient.mutation(api.ops.apply, {
-    unit,
-    gameId: gameId as Id<'games'> | null,
-    op,
-  })
-  if (applied === null) return
-  return { version: applied.updatedAt, headSeq: applied.headSeq }
+  await roomFor(move === undefined ? gameId : move).submit([op])
 }
 
 // ── The outbox: own units' ops made offline ──────────────────────────────
@@ -175,9 +151,9 @@ function foldOps(a: OpInput, b: OpInput): OpInput {
 let flushing: Promise<string[]> | null = null
 
 /**
- * Send what waits, oldest first, one replay at a time (`ops.replay`); answers
- * why each declined op was refused. A send that fails outright (the
- * connection went again) stops, keeping the rest for the next time.
+ * Send what waits, oldest first, one op at a time to its room; answers why
+ * each declined op was refused. A send that fails outright (the connection
+ * went again, or its room is not open) stops, keeping the rest for next time.
  */
 export function flushOutbox(): Promise<string[]> {
   flushing ??= (async () => {
@@ -185,21 +161,13 @@ export function flushOutbox(): Promise<string[]> {
     const ops = await waitingOps()
     try {
       while (ops.length > 0 && writable()) {
-        const { unit, gameId, op } = ops[0] as Waiting
-        const room = roomOf(gameId)
-        if (room !== null) {
-          await room.submit([op]).catch((err: unknown) => {
+        const { gameId, op } = ops[0] as Waiting
+        await roomFor(gameId)
+          .submit([op])
+          .catch((err: unknown) => {
             if (!(err instanceof RoomDeclined)) throw err
             declined.push(err.message)
           })
-        } else {
-          const answer = await convexClient.mutation(api.ops.replay, {
-            unit,
-            gameId: gameId as Id<'games'> | null,
-            op,
-          })
-          if (answer !== null && 'declined' in answer) declined.push(answer.declined)
-        }
         ops.shift()
         await keepOutbox(ops)
       }
@@ -220,18 +188,15 @@ export function forgetOutbox(): void {
 }
 
 /**
- * Send a batch of Change Log rows to the server of record, which is the only
- * copy of the log there is (`changeLog.forEntity` is what the drawer reads).
+ * Send a batch of Change Log rows. A unit's history is its ops (`rooms/ops.ts`'s
+ * `entityLog`), so only a Game's own rows (its rolls) are written, each to its
+ * Game's room.
  *
  * Never throws, and its callers do not await it: the log is provenance ABOUT a
  * write that has already happened and been committed, and failing the user's
  * edit because its audit row did not land would trade a real write for a
  * record of one. A failure is reported here, once, under one fingerprint —
  * not by each caller, which filed one fault as an issue per call site.
- *
- * A side that is `undefined` (a field set for the first time, or cleared) is
- * dropped by the Convex client on the wire; `appendChangeLog` stores it as
- * `null`.
  */
 export async function sendChangeLog(
   entries: readonly {
@@ -249,53 +214,38 @@ export async function sendChangeLog(
   if (!writable()) return
   if (entries.length === 0) return
 
-  try {
-    if (ROOM_FEED) return await sendRoomChangeLog(entries)
-    await convexClient.mutation(api.changeLog.appendChangeLog, {
-      entries: entries.map((e) => ({
-        ...e,
-        gameId: e.gameId === null ? null : (e.gameId as Id<'games'>),
-      })),
-    })
-  } catch (err) {
-    captureException(err, undefined, { fingerprint: ['convex', 'changeLog:appendChangeLog'] })
-  }
-}
-
-/**
- * On the rooms, a unit's history is its ops (`rooms/ops.ts`'s `entityLog`):
- * only a Game's own rows (its rolls) are written, each to its Game's room.
- */
-async function sendRoomChangeLog(entries: Parameters<typeof sendChangeLog>[0]): Promise<void> {
   const byGame = new Map<string, typeof entries>()
   for (const e of entries) {
     if (e.gameId === null || e.entityType !== 'game') continue
     byGame.set(e.gameId, [...(byGame.get(e.gameId) ?? []), e])
   }
-  for (const [gameId, rows] of byGame) {
-    await roomOf(gameId)?.act('changeLog.appendChangeLog', {
-      entries: rows.map(({ entityType, field, after, source, ts }) => ({
-        entityType,
-        field,
-        after,
-        source,
-        ts,
-      })),
-    })
+  try {
+    for (const [gameId, rows] of byGame) {
+      await roomOrStandIn(gameId)?.act('changeLog.appendChangeLog', {
+        entries: rows.map(({ entityType, field, after, source, ts }) => ({
+          entityType,
+          field,
+          after,
+          source,
+          ts,
+        })),
+      })
+    }
+  } catch (err) {
+    captureException(err, undefined, { fingerprint: ['rooms', 'changeLog:appendChangeLog'] })
   }
 }
 
 /**
  * A Shelf record's write, through the account room (`shelf.upsert<Record>` /
- * `shelf.remove<Record>`, Convex's names); refused while its socket is not open.
+ * `shelf.remove<Record>`); refused while its socket is not open.
  */
 async function shelfAct(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string },
   record: 'MechPattern' | 'EncounterNpc' | 'Encounter',
   idArg: string
 ): Promise<void> {
-  const room = roomOrStandIn(null)
-  if (room === null) throw new WritesBlockedOffline()
+  const room = roomFor(null)
   await (op.kind === 'delete'
     ? room.act(`shelf.remove${record}`, { [idArg]: op.id })
     : room.act(`shelf.upsert${record}`, { body: op.record }))
@@ -385,87 +335,17 @@ export type TransferWrite = {
 }
 
 /**
- * One record a transfer removes. A link is named by its endpoints, so it is
- * read before the local delete leaves nothing to name it by.
+ * Commit a cross-entity transfer (`units.transfer`) as ONE batch to the room
+ * its units share, and fail if it does not land: the room holds either every
+ * op of a stow, a load or a scrap hand-off, or none of them. A room cannot
+ * hold half of one, so a transfer between units in two rooms, or one that
+ * moves a unit, is refused before anything is sent.
  */
-export type TransferRemoval =
-  | { type: EntityRef['type']; id: string }
-  | { type: 'softLink'; link: SoftLink | null }
-
-type TransferArgs = FunctionArgs<typeof api.ops.transfer>
-
-/** The `ops.transfer` args: each op as `ops.apply` takes it, each link by its endpoints. */
-export function transferArgs(
-  writes: readonly TransferWrite[],
-  removals: readonly TransferRemoval[]
-): TransferArgs {
-  return {
-    ops: writes.map(({ unit, gameId, op, move }) => ({
-      unit,
-      gameId: gameId as Id<'games'> | null,
-      op,
-      ...(move === undefined ? {} : { move: move as Id<'games'> | null }),
-    })),
-    deletes: removals.flatMap((removal): TransferArgs['deletes'] => {
-      if (removal.type !== 'softLink') {
-        return [{ table: TABLE_OF_KIND[removal.type], appId: removal.id }]
-      }
-      const { link } = removal
-      // Half a link has nothing to address — see `sendLink`.
-      if (link?.from?.id === undefined || link.to?.id === undefined) return []
-      return [
-        {
-          table: 'softLinks' as const,
-          from: link.from,
-          to: link.to,
-          type: link.type,
-          ...(link.slot === undefined ? {} : { slot: link.slot }),
-        },
-      ]
-    }),
-  }
-}
-
-/**
- * Commit a cross-entity transfer (`units.transfer`) as ONE mutation,
- * and fail if it does not land.
- *
- * `ops.transfer` is a single Convex transaction, so the server holds either
- * every op and delete of a stow, a load or a scrap hand-off, or none of them:
- * a refusal on any record leaves every row as it was.
- */
-export async function sendTransfer(
-  writes: readonly TransferWrite[],
-  removals: readonly TransferRemoval[]
-): Promise<ReadonlyMap<string, Applied>> {
-  if (!writable()) return new Map()
-  if (ROOM_FEED) {
-    await sendRoomTransfer(writes, removals)
-    return new Map()
-  }
-  const { applied } = await convexClient.mutation(api.ops.transfer, transferArgs(writes, removals))
-  return new Map(
-    applied.map(({ unitId, updatedAt, headSeq }) => [unitId, { version: updatedAt, headSeq }])
-  )
-}
-
-/**
- * On the rooms, a transfer is one batch to the room its units share, all or
- * none as `ops.transfer` was; each unit's new head comes back as the room's
- * `applied`. A room cannot hold half of one, so a transfer between units in
- * two rooms, or one that moves or deletes a unit, is refused before anything
- * is sent.
- */
-async function sendRoomTransfer(
-  writes: readonly TransferWrite[],
-  removals: readonly TransferRemoval[]
-): Promise<void> {
+export async function sendTransfer(writes: readonly TransferWrite[]): Promise<void> {
+  if (!writable()) return
   const gameId = writes[0]?.gameId ?? null
-  const together = writes.every((w) => w.gameId === gameId && w.move === undefined)
-  if (!together || removals.length > 0) {
+  if (!writes.every((w) => w.gameId === gameId && w.move === undefined)) {
     throw new RoomDeclined('Both sides of a transfer must be at the same table')
   }
-  const room = roomOf(gameId)
-  if (room === null) throw new WritesBlockedOffline()
-  await room.submit(writes.map((w) => w.op).filter((op) => !isEmptyOp(op)))
+  await roomFor(gameId).submit(writes.map((w) => w.op).filter((op) => !isEmptyOp(op)))
 }

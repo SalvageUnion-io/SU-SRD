@@ -15,38 +15,28 @@ import type { ComponentProps, ReactNode } from 'react'
  * and a record in a container the account cannot reach says so instead of
  * reading as "in your shelves".
  *
- * Signed in here means a real `SyncProvider` over a mocked Convex client,
- * whose `mutation` records the server commit a move makes.
+ * Signed in here means a real `SyncProvider` over a stubbed session, with the
+ * Worker's calls recorded: a move is `entities.move`.
  */
 
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 let authed = true
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
 /** Set to make the next server commit fail, as an offline or refused write would. */
 let failWrites = false
 
-const convexMocks = await installConvexMocks({
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
-  also: {
-    '../../lib/connection/convexClient': () => ({
-      convexClient: {
-        mutation: async (ref: unknown, args: Record<string, unknown>) => {
-          if (failWrites) throw new Error('[CONVEX M(entities:upsertByAppId)] Server Error')
-          serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
-          // `upsertByAppId` answers with the row's new version.
-          return { updatedAt: 1 }
-        },
-      },
-    }),
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
+  call: (name, args) => {
+    if (failWrites) throw new Error('entities.move answered 500')
+    serverWrites.push({ name, args: args as Record<string, unknown> })
   },
 })
 
@@ -59,7 +49,7 @@ const { resetSync, setSyncStatus } = await import('../../../replica/sync')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 const GAMES = [
@@ -76,7 +66,7 @@ beforeEach(() => {
   resetStores()
   // The server's first answer is in, as `ConvexFeed` marks it.
   useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
-  setQueryAnswers({ 'games:listMine': GAMES })
+  setQueryAnswers({ 'games.listMine': GAMES })
 })
 
 afterEach(() => {
@@ -166,7 +156,7 @@ describe('MoveToContainerControl', () => {
     // character with no way to tell which one the table can see.
     expect(pilots.map((p) => [p.id, p.gameId])).toEqual([['p1', 'g1']])
     // A move is a handoff between rooms (`entities.move`).
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'pilot',
       appId: 'p1',
       gameId: 'g1',
@@ -175,7 +165,7 @@ describe('MoveToContainerControl', () => {
 
   test('a crawler moves as any unit does, by a handoff between rooms', async () => {
     setQueryAnswers({
-      'games:listMine': [
+      'games.listMine': [
         { _id: 'g1', name: 'Run by me', tableRunner: true },
         { _id: 'g2', name: 'Not mine to run', tableRunner: false },
       ],
@@ -200,7 +190,7 @@ describe('MoveToContainerControl', () => {
     fireEvent.change(select, { target: { value: 'game:g1' } })
 
     await waitFor(() => expect(changed).toBe(1))
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'crawler',
       appId: 'c1',
       gameId: 'g1',
@@ -208,7 +198,7 @@ describe('MoveToContainerControl', () => {
   })
 
   test('a crawler in a Game somebody else runs offers nowhere to go', () => {
-    setQueryAnswers({ 'games:listMine': [{ _id: 'g2', name: 'Not mine', tableRunner: false }] })
+    setQueryAnswers({ 'games.listMine': [{ _id: 'g2', name: 'Not mine', tableRunner: false }] })
     wrap(
       <MoveHarness
         entityType="crawler"
@@ -287,7 +277,7 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
     await waitFor(() => expect(changed).toBe(1))
     expect(gameIdOf()).toBe('g1')
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'pilot',
       appId: 'p1',
       gameId: 'g1',
@@ -346,7 +336,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
 
     await waitFor(() => expect(gameIdOf()).toBeNull())
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'pilot',
       appId: 'p1',
       gameId: null,
@@ -455,7 +445,7 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
         .list('pilot')
         .map((p) => p.id)
     ).toEqual(['p1'])
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'pilot',
       appId: 'p1',
       gameId: 'g2',
@@ -490,7 +480,7 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     await waitFor(() => expect(gameIdOf()).toBe('g2'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.name === 'entities:move')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
       kind: 'pilot',
       appId: 'p1',
       gameId: 'g2',

@@ -2,15 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import {
-  AREA_DIRS,
-  COMPONENTS_DIR,
-  CONVEX_DIR,
-  convexClientImports,
-  main,
-  misplacedRules,
-  relativeSpecifiers,
-} from '../check-rules-home'
+import { AREA_DIRS, COMPONENTS_DIR, main, misplacedRules } from '../check-rules-home'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const temps: string[] = []
@@ -27,36 +19,6 @@ function tree(files: Record<string, string>): string {
 
 afterAll(() => {
   for (const t of temps) rmSync(t, { recursive: true, force: true })
-})
-
-describe('relativeSpecifiers', () => {
-  test('reads from, export-from, dynamic and side-effect imports; skips packages', () => {
-    const source = [
-      "import { a } from './a'",
-      "export { b } from '../b'",
-      "const c = await import('./c')",
-      "import './d'",
-      "import { e } from 'game-domain/rules/e'",
-    ].join('\n')
-    expect(relativeSpecifiers(source)).toEqual(['./a', '../b', './c', './d'])
-  })
-})
-
-describe('convexClientImports', () => {
-  test('flags a Convex import of client src/, not of convex/ or a package', () => {
-    const root = tree({
-      [`${CONVEX_DIR}/games.ts`]:
-        "import { x } from '../src/lib/rules/crafting'\nimport { y } from './model/seats'\nimport { z } from 'game-domain/rules/downtime'",
-      [`${CONVEX_DIR}/model/seats.ts`]: "export { w } from '../../src/components/a'",
-      [`${CONVEX_DIR}/_generated/api.ts`]: "import '../../src/ignored'",
-    })
-    const { scanned, problems } = convexClientImports(root)
-    expect(scanned).toBe(2)
-    expect(problems.sort()).toEqual([
-      `${CONVEX_DIR}/games.ts imports '../src/lib/rules/crafting' (client src/)`,
-      `${CONVEX_DIR}/model/seats.ts imports '../../src/components/a' (client src/)`,
-    ])
-  })
 })
 
 describe('misplacedRules', () => {
@@ -107,7 +69,6 @@ describe('main', () => {
       [`${COMPONENTS_DIR}/sheet/pilotInventory.ts`]: '',
     }
     for (let i = 0; i < 300; i++) files[`${COMPONENTS_DIR}/sheet/Card${i}.tsx`] = ''
-    for (let i = 0; i < 30; i++) files[`${CONVEX_DIR}/m${i}.ts`] = ''
     const errors: string[] = []
     expect(
       main(
@@ -121,7 +82,7 @@ describe('main', () => {
     )
   })
 
-  test('a tree without convex/ fails', () => {
+  test('a tree without the components folder fails', () => {
     expect(
       main(
         tree({ 'README.md': '' }),

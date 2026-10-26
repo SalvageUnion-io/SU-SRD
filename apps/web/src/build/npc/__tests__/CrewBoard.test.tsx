@@ -7,23 +7,14 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
-const writes: unknown[] = []
-
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (_ref: unknown, args: unknown) => {
-      writes.push(args)
-      return { updatedAt: 1 }
-    },
-  },
-})
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { useUnits } = await import('../../../replica/units')
@@ -72,14 +63,13 @@ async function renderBoard(crawlerId: string, initialSlot?: string) {
 }
 
 beforeEach(() => {
-  writes.length = 0
   useUnits.setState({
     crawlers: [SHELF_CRAWLER],
     npcs: [],
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  setQueryAnswers({ 'games:listMine': [] })
+  setQueryAnswers({ 'games.listMine': [] })
 })
 
 describe('the slots', () => {
@@ -168,8 +158,8 @@ describe('only whoever may write the crawler assigns its crew (D7)', () => {
   test('a player sees a Game crawler read-only, and is told why', async () => {
     useUnits.setState({ crawlers: [{ ...SHELF_CRAWLER, gameId: 'g1' }] })
     setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-      'entities:listForGame': {
+      'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
+      'entities.listForGame': {
         pilots: [],
         mechs: [],
         crawlers: [],
@@ -177,7 +167,7 @@ describe('only whoever may write the crawler assigns its crew (D7)', () => {
         softLinks: [],
         primaryCrawlerId: null,
       },
-      'games:members': [],
+      'games.members': [],
     })
     await renderBoard('c1')
     expect(screen.queryByRole('button', { name: 'Design Med Bay crew' })).toBeNull()

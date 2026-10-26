@@ -10,10 +10,6 @@ import { z } from 'salvageunion-reference/zod'
  * soft-link ends do, and is never a field on either record. That keeps mount
  * state out of sheets and public sheets.
  *
- * This is the source of truth for `seats` in `apps/web/convex/schema.ts`: its
- * range, mount and resolve validators are built from the schemas below
- * (`zodToConvex`), and the row is checked against `Seat` when it compiles.
- *
  * A Game seat carries `gameId`; a solo seat carries `ownerId` instead (the
  * shelf it sits on, as a shelf row is `gameId` null + `ownerId`), so it is one
  * per pilot. A Game seat has no "in Downtime": that is the Game's `downtime`
@@ -77,7 +73,7 @@ const SoloDowntimeSchema = z.object({
 })
 
 export const SeatSchema = z.object({
-  /** The Game's Convex id; absent on a solo seat. */
+  /** The Game's id; absent on a solo seat. */
   gameId: z.string().min(1).optional(),
   /** A solo seat's owner (whose shelf it is on); absent on a Game seat. */
   ownerId: z.string().min(1).optional(),
@@ -100,4 +96,3 @@ export const SeatSchema = z.object({
   lastSeenAt: z.number().optional(),
   updatedAt: z.number(),
 })
-export type Seat = z.infer<typeof SeatSchema>

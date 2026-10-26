@@ -12,8 +12,8 @@
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { QueryAnswers } from '../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import type { QueryAnswers } from '../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import {
   acts,
   answerActs,
@@ -26,9 +26,8 @@ import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './
 /** What the Game's room was sent, by name. */
 const sent = acts
 
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
 
 // Capture before mocking: a module namespace is a live view.
@@ -37,7 +36,7 @@ mock.module('../../lib/flags', () => ({ ...realFlags, flagOn: () => true }))
 
 afterAll(async () => {
   mock.module('../../lib/flags', () => realFlags)
-  convexMocks.restore()
+  serverMocks.restore()
   const { flagOn } = await import('../../lib/flags')
   if (flagOn('encounterSheet')) throw new Error('flags were not restored')
 })
@@ -134,10 +133,10 @@ const RUNNING = {
 
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
-    'games:members': MEDIATOR_MEMBERS,
-    'crew:vitals': mediatorCrewAt(),
-    'seats:forGame': MEDIATOR_SEATS,
-    'entities:listForGame': {
+    'games.members': MEDIATOR_MEMBERS,
+    'crew.vitals': mediatorCrewAt(),
+    'seats.forGame': MEDIATOR_SEATS,
+    'entities.listForGame': {
       pilots: [],
       mechs: [],
       npcs: [],
@@ -145,20 +144,20 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       crawlers: [],
       primaryCrawlerId: null,
     },
-    'scenes:current': { conditions: [], hours: 0 },
-    'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-    'mediator:npcs': TRAY,
-    'mediator:amMediator': true,
-    'mediator:patterns': [],
-    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
-    'mediator:running': RUNNING,
-    'salvageAreas:here': null,
-    'ops:sent': [],
-    'changeLog:alerts': [],
-    'changeLog:rolls': [],
-    'channelBindings:current': null,
-    'safety:stopSign': null,
-    'account:me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'scenes.current': { conditions: [], hours: 0 },
+    'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    'mediator.npcs': TRAY,
+    'mediator.amMediator': true,
+    'mediator.patterns': [],
+    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
+    'mediator.running': RUNNING,
+    'salvageAreas.here': null,
+    'ops.sent': [],
+    'changeLog.alerts': [],
+    'changeLog.rolls': [],
+    'channelBindings.current': null,
+    'safety.stopSign': null,
+    'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,
   }
 }
@@ -218,7 +217,7 @@ describe('groups on the tray', () => {
       rolledAt: STAMP,
     }
     await renderCockpit({
-      'mediator:npcs': TRAY.map((row) =>
+      'mediator.npcs': TRAY.map((row) =>
         row._id === 'n-3' ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
       ),
     })
@@ -263,7 +262,7 @@ describe('waves', () => {
         },
       ],
     })
-    await renderCockpit({ 'mediator:running': null })
+    await renderCockpit({ 'mediator.running': null })
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))

@@ -1,15 +1,14 @@
 /**
  * Server-first writes (ADR-034 decision 2, plan phase P4b).
  *
- * A write goes to Convex **before** anything local is touched, so a record the
- * server refused leaves no trace on the device.
+ * A write goes to its room **before** anything local is touched, so a record
+ * the room refused leaves no trace on the device.
  *
- * These tests run signed in against the test client
- * (`apps/web/test/convexClientStub.ts`), which accepts every commit. That is
+ * These tests run signed in against the stand-in rooms
+ * (`apps/web/test/roomsStub.ts`), which accept every write. That is
  * deliberate and is worth being explicit about: what is asserted here is the
  * **ordering contract** — that a record is built, committed and only then
- * placed in the store. The refusal path itself is exercised against a real server in
- * `test/convex/*`, which is where a mutation can actually refuse.
+ * placed in the store. The refusal path itself is the rooms' own tests.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'

@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { accountSocketPath, gameSocketPath } from '../../rooms/routes'
 
 /**
@@ -9,14 +9,14 @@ import { accountSocketPath, gameSocketPath } from '../../rooms/routes'
  * socket, and unmounting closes them all.
  */
 
-let token: string | null = 'tok'
+let person: string | null = 'u1'
 const opened: string[] = []
 const closed: string[] = []
 
 // Captured before anything is mocked: the stand-in keeps every other export.
 const realRoomSocket = { ...(await import('../roomSocket')) }
-const convexMocks = await installConvexMocks({
-  authReact: { useSessionToken: () => token },
+const serverMocks = await installServerMocks({
+  authReact: { useMyPerson: () => person },
   also: {
     '../../replica/roomSocket': () => ({
       ...realRoomSocket,
@@ -30,17 +30,17 @@ const convexMocks = await installConvexMocks({
 const { RoomFeed } = await import('../RoomFeed')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 beforeEach(() => {
-  token = 'tok'
+  person = 'u1'
   opened.length = 0
   closed.length = 0
 })
 
 const games = (...ids: string[]) =>
-  setQueryAnswers({ 'games:listMine': ids.map((id) => ({ _id: id, name: id })) })
+  setQueryAnswers({ 'games.listMine': ids.map((id) => ({ _id: id, name: id })) })
 
 describe('RoomFeed', () => {
   test('signed in, it opens the account room and each Game’s', () => {
@@ -61,7 +61,7 @@ describe('RoomFeed', () => {
   })
 
   test('signed out, nothing opens', () => {
-    token = null
+    person = null
     games('g1')
     const { container, unmount } = render(<RoomFeed />)
     expect(opened).toEqual([])

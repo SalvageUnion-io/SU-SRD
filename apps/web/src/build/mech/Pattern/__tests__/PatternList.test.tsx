@@ -5,8 +5,8 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
 import {
   accountAnswers,
   accountApiStub,
@@ -15,12 +15,11 @@ import {
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../../replica/syncContext'
 
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+const serverMocks = await installServerMocks({
   router: true,
   also: { '../../lib/account/accountApi': accountApiStub },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../../replica/syncContext')
 const { usePatterns } = await import('../../../../replica/collections')

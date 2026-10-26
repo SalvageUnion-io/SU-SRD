@@ -29,7 +29,6 @@ import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useWorkerRead } from '../../lib/connection/workerRead'
@@ -186,7 +185,7 @@ function primaryCrawler(
 }
 
 export function usePlayMediator(gameId: string, gameName: string): PlayMediator {
-  const id = gameId as Id<'games'>
+  const id = gameId
   const connection = useSync()
   const { canWrite } = connection
   const here = useGamePresence(gameId, 'seat')

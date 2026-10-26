@@ -19,14 +19,14 @@ import {
 import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
 import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`. The signed-out
+// Module scope, before the imports below — see `serverMock.ts`. The signed-out
 // panel mounts `SignInControl`, whose auth hook needs the auth module.
-const convexMocks = await installConvexMocks({ authReact: true })
-afterAll(() => convexMocks.restore())
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
@@ -116,7 +116,7 @@ describe('NewEntityScreen — the gate’s landmark', () => {
 
 describe('NewEntityScreen — signed out, deep-linked', () => {
   test("signing in comes back to the route's own URL, so the preselection survives", async () => {
-    convexMocks.signIns.length = 0
+    serverMocks.signIns.length = 0
     rtlRender(
       <NewEntityScreen
         kind="mech"
@@ -130,7 +130,7 @@ describe('NewEntityScreen — signed out, deep-linked', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
     })
-    expect(convexMocks.signIns).toEqual([['/mechs/new?mode=guided&chassis=mule']])
+    expect(serverMocks.signIns).toEqual([['/mechs/new?mode=guided&chassis=mule']])
   })
 })
 

@@ -32,7 +32,7 @@ type SeatVital = {
 export type MediatorSeat = {
   /** The pilot's link id (`/pilots/<id>`). */
   pilotId: string
-  /** The pilot's Convex row id: what a tap aims Propose at. */
+  /** The pilot's row id: what a tap aims Propose at. */
   rowId: string
   /** The player's account: whether they are done with the Downtime step. */
   ownerId: string | null

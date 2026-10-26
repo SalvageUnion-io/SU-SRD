@@ -51,7 +51,7 @@ type PatternListProps = {
 
 export function PatternList({ onInstantiated }: PatternListProps) {
   // Subscribing keeps the list live — saves from this tab, and those
-  // `ConvexFeed` adopts from elsewhere, appear without a refetch. list()
+  // `RoomFeed` adopts from elsewhere, appear without a refetch. list()
   // lazily hydrates.
   const { status } = useSync()
   const me = useMe(status === 'live')

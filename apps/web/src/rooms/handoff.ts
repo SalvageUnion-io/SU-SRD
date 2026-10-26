@@ -50,7 +50,7 @@ export type UnitParcel = {
   ops: Op[]
   /** Every link touching it at the source; the target keeps those whose other end it holds. */
   links: LinkShape[]
-  /** A pilot's seat at the source, so play carries over as it did on Convex. */
+  /** A pilot's seat at the source, so play carries over. */
   seat: ParcelSeat | null
 }
 

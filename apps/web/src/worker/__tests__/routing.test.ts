@@ -139,29 +139,6 @@ describe('POST /__errors — a browser error report, logged for Workers Issues',
   })
 })
 
-describe("POST /__convex-logs — Convex's log stream", () => {
-  // `/build/__convex-logs` is where the stream posted before the app was one.
-  for (const path of ['/__convex-logs', '/build/__convex-logs']) {
-    it(`answers ${path} 503 while the stream secret is unset`, async () => {
-      const res = await worker.fetch(
-        new Request(`https://salvageunion.io${path}`, { method: 'POST', body: '[]' }),
-        envWith()
-      )
-      expect(res.status).toBe(503)
-    })
-
-    it(`refuses an unsigned delivery to ${path} once the secret is set`, async () => {
-      const env = { ...envWith(), CONVEX_LOG_STREAM_SECRET: 'whsec' }
-      const res = await worker.fetch(
-        new Request(`https://salvageunion.io${path}`, { method: 'POST', body: '[]' }),
-        env
-      )
-      expect(res.status).toBe(401)
-      expect(env.ASSETS.asked).toEqual([])
-    })
-  }
-})
-
 describe("the Dataset API's root is its manifest", () => {
   for (const path of ['/api/v1', '/api/v1/']) {
     it(path, async () => {

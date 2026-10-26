@@ -7,11 +7,11 @@ import { act, render } from '@testing-library/react'
  * mounted. What the rooms' feed folds in is `roomSocket.test.ts`'s.
  */
 
-import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks } from '../../components/__tests__/serverMock'
 import type { SyncStatus } from '../sync'
 
-const convexMocks = await installConvexMocks()
+const serverMocks = await installServerMocks()
 
 const { ReplicaSync } = await import('../ReplicaSync')
 const { SyncContext } = await import('../syncContext')
@@ -22,7 +22,7 @@ const { resetStores } = await import('./resetStores')
 const { resetSync, setSyncStatus } = await import('../sync')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 function tree(status: SyncStatus, outdated = false) {

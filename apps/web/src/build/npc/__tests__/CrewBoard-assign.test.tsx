@@ -12,8 +12,8 @@ import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:tes
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import { acceptingRooms, roomAnswer } from '../../../../test/roomsStub'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { RoomDeclined } from '../../../replica/roomSocket'
 import type { SyncState } from '../../../replica/syncContext'
@@ -21,9 +21,9 @@ import type { SyncState } from '../../../replica/syncContext'
 /** How the stand-in room answers a link drawn this test. */
 let linkWrite: 'ok' | 'defect' | 'refused' = 'ok'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { ToasterMount, toast } = await import('../../../components/index')
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -135,7 +135,7 @@ beforeEach(() => {
   }
   toast.dismiss()
   seed({})
-  setQueryAnswers({ 'games:listMine': [] })
+  setQueryAnswers({ 'games.listMine': [] })
 })
 afterEach(() => {
   toast.dismiss()
@@ -247,9 +247,9 @@ describe('a Game crawler, crewed by its table runner', () => {
 
   beforeEach(() => {
     setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
-      'entities:listForGame': gameListing(),
-      'games:members': [{ userId: 'u-sam', displayName: 'Sam' }],
+      'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
+      'entities.listForGame': gameListing(),
+      'games.members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
   })
 
@@ -297,9 +297,9 @@ describe('a player in someone else’s Game', () => {
   test('an open slot reads the book’s line and the Game rule, offering nothing', async () => {
     seed({ crawlers: [{ ...TENACITY, gameId: 'g1' }] })
     setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-      'entities:listForGame': gameListing(),
-      'games:members': [],
+      'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
+      'entities.listForGame': gameListing(),
+      'games.members': [],
     })
     await renderBoard('c1', 'med-bay')
     expect(screen.getByText(/Old Mags, the Doc holds/)).toBeTruthy()

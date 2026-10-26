@@ -82,7 +82,7 @@ export function openRooms(...gameIds: (string | null)[]): void {
     // Whole, so it needs no page URL to resolve against.
     const path = `http://localhost/__rooms/${gameId === null ? 'account' : `games/${gameId}`}/socket`
     const scope = gameId === null ? 'account' : gameScope(gameId)
-    closers.push(openRoom(path, scope, 'tok', gameId))
+    closers.push(openRoom(path, scope, gameId))
     const socket = FakeSocket.last as FakeSocket
     socket.gameId = gameId
     socket.readyState = FakeSocket.OPEN
@@ -137,22 +137,22 @@ export function closeRooms(): void {
 
 /** The record table each read answers from, with how its answer becomes the records. */
 const READ_TABLES: Record<string, { table: StateTable; records: (answer: unknown) => Body[] }> = {
-  'scenes:current': { table: 'scene', records: one },
-  'salvageAreas:here': { table: 'salvageArea', records: one },
-  'ledger:get': { table: 'ledger', records: one },
-  'safety:stopSign': { table: 'safety', records: one },
-  'safety:boundaries': { table: 'boundaries', records: list },
-  'mediator:npcs': {
+  'scenes.current': { table: 'scene', records: one },
+  'salvageAreas.here': { table: 'salvageArea', records: one },
+  'ledger.get': { table: 'ledger', records: one },
+  'safety.stopSign': { table: 'safety', records: one },
+  'safety.boundaries': { table: 'boundaries', records: list },
+  'mediator.npcs': {
     table: 'opposition',
     records: (answer) => list(answer).map((npc) => ({ ...(npc.body as Body), id: npc._id })),
   },
-  'seats:forGame': { table: 'seats', records: list },
-  'ops:pending': { table: 'proposals', records: list },
-  'ops:sent': { table: 'sentProposals', records: list },
-  'changeLog:rolls': { table: 'rolls', records: list },
-  'changeLog:alerts': { table: 'alerts', records: list },
-  'crew:vitals': { table: 'crew', records: one },
-  'shelf:patternSharing': { table: 'sharing', records: list },
+  'seats.forGame': { table: 'seats', records: list },
+  'ops.pending': { table: 'proposals', records: list },
+  'ops.sent': { table: 'sentProposals', records: list },
+  'changeLog.rolls': { table: 'rolls', records: list },
+  'changeLog.alerts': { table: 'alerts', records: list },
+  'crew.vitals': { table: 'crew', records: one },
+  'shelf.patternSharing': { table: 'sharing', records: list },
 }
 
 function one(answer: unknown): Body[] {
@@ -163,10 +163,10 @@ function list(answer: unknown): Body[] {
 }
 
 /**
- * Serve a room's records (a Game's, or the account room's for `null`) from what its reads answer, keyed as a Convex
- * mock's answers are (`'seats:forGame'`); keys that are not a table read are
- * left out. `downtime:state` is the Game's Downtime with `pilotId`'s steps,
- * and `mediator:amMediator` with `mediator:running` the Mediator's record.
+ * Serve a room's records (a Game's, or the account room's for `null`) from what its reads answer, keyed as the server
+ * mock's answers are (`'seats.forGame'`); keys that are not a table read are
+ * left out. `downtime.state` is the Game's Downtime with `pilotId`'s steps,
+ * and `mediator.amMediator` with `mediator.running` the Mediator's record.
  */
 export function serveReads(
   gameId: string | null,
@@ -178,13 +178,13 @@ export function serveReads(
     const read = READ_TABLES[name]
     if (read !== undefined && answer !== undefined) tables[read.table] = read.records(answer)
   }
-  const downtime = answers['downtime:state'] as (Body & { doneSteps?: number[] }) | undefined
+  const downtime = answers['downtime.state'] as (Body & { doneSteps?: number[] }) | undefined
   if (downtime !== undefined) {
     tables.downtime =
       downtime === null ? [] : [{ ...downtime, doneSteps: { [pilotId]: downtime.doneSteps ?? [] } }]
   }
-  if (answers['mediator:amMediator'] === true || answers['mediator:running'] != null) {
-    tables.mediator = [{ id: 'mediator', running: answers['mediator:running'] ?? null }]
+  if (answers['mediator.amMediator'] === true || answers['mediator.running'] != null) {
+    tables.mediator = [{ id: 'mediator', running: answers['mediator.running'] ?? null }]
   }
   serve(gameId, tables)
 }

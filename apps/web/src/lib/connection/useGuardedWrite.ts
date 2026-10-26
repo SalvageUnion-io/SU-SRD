@@ -3,9 +3,8 @@ import { useSync } from '../../replica/syncContext'
 import { askWrite, reportWriteFailure, runWrite } from '../runWrite'
 
 /**
- * A hook's own Convex writes (Play's seat and Downtime), refused here while
- * the connection cannot write rather than handed to the Convex client, which
- * would queue them until it returns: Disconnected is read-only, not a write
+ * A hook's own room writes (Play's seat and Downtime), refused here while
+ * the connection cannot write rather than queued until it returns: Disconnected is read-only, not a write
  * queue (ADR-030 §1). The refusal says why (offline, still signing in, an
  * outdated tab); a write that goes is `runWrite`'s or `askWrite`'s, so a
  * failure is said by the one rule (`reportWriteFailure`).

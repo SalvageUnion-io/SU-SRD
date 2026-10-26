@@ -3,8 +3,8 @@
  *
  * A write goes up only `live` (`sync.ts`), so every test that writes is a test
  * of the signed-in path: this publishes `live` before each test, and every
- * send in `outbox.ts` lands on the stub client the test preload installs
- * (`apps/web/test/convexClientStub.ts`), and every Games call (a move's
+ * send in `outbox.ts` lands on the stand-in rooms the test preload installs
+ * (`apps/web/test/roomsStub.ts`), and every Games call (a move's
  * `entities.move`, `roomCalls.ts`) on a stand-in Worker that answers null.
  *
  * The status is module state and Bun runs a workspace's test files in one

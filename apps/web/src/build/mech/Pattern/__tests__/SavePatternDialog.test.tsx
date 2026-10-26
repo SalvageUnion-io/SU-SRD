@@ -12,13 +12,13 @@ import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { acceptingRooms, roomAnswer } from '../../../../../test/roomsStub'
-import { installConvexMocks } from '../../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 
-// Module scope, before the imports below — see `convexMock.ts`: the router;
+// Module scope, before the imports below — see `serverMock.ts`: the router;
 // a pattern is saved through the stand-in account room (`test/roomsStub.ts`).
-const convexMocks = await installConvexMocks()
-afterAll(() => convexMocks.restore())
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { resetStores } = await import('../../../../replica/__tests__/resetStores')
 const { usePatterns } = await import('../../../../replica/collections')
@@ -182,6 +182,6 @@ describe('SavePatternButton', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save pattern' }))
     })
     await waitFor(() => expect(usePatterns.getState().mechPatterns).toHaveLength(1))
-    expect(convexMocks.navigations).toHaveLength(0)
+    expect(serverMocks.navigations).toHaveLength(0)
   })
 })

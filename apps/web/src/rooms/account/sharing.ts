@@ -12,8 +12,8 @@ import type { AccountShelf, ShelfRecord } from './shelf'
  * What a player writes on their Shelf that is not an op: the saved patterns,
  * encounters and NPC tray (`records`), who may read each pattern, its
  * Homebrew opt-in (ADR-061), and which of their units anyone with the link
- * may read (ADR-032). Convex's `shelf.*`, `homebrew.setShared` and
- * `publicSheet.setPublic`, by the same names, with the same refusals.
+ * may read (ADR-032): `shelf.*`, `homebrew.setShared` and
+ * `publicSheet.setPublic`.
  *
  * The rows the shared database serves follow from these through the room's
  * publisher (`../publish.ts`); nothing here writes them.

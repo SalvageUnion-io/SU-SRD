@@ -2,20 +2,18 @@
  * ChangeLogDrawer tests (ADR-022) — the per-entity Change Log shown behind the
  * sheet's overflow menu. The entries are the room's (`changeLog.forEntity`, an
  * act on the account room here, `fakeRooms.ts`); connected means a real
- * `SyncProvider` over the mocked Convex client. Plus the menu → drawer
+ * `SyncProvider` signed in on the stand-in rooms. Plus the menu → drawer
  * wiring on the Sheet.
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { acts, answerActs, closeRooms, openRooms } from '../../../replica/__tests__/fakeRooms'
 
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
+const serverMocks = await installServerMocks()
 
 const { ChangeLogDrawer } = await import('../ChangeLogDrawer')
 const { Sheet } = await import('../Sheet')
@@ -25,7 +23,7 @@ const { withSignedInBackend } = await import('../../../replica/__tests__/signedI
 const { useUnits } = await import('../../../replica/units')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 // Building needs an account (ADR-034 as amended), so the Sheet's pilot is made signed in.

@@ -14,14 +14,8 @@ import type { Plugin } from 'vite'
 import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { VitePWA } from 'vite-plugin-pwa'
 import { appGraph } from './astro/build/appGraph'
-import {
-  appShellInDev,
-  baseStylesheetModule,
-  homebrewInDev,
-  requireConvexUrl,
-} from './astro/build/appPlugins'
-import { authInDev } from './astro/build/devAuth'
-import { roomsInDev } from './astro/build/devRooms'
+import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
+import { workerInDev } from './astro/build/devWorker'
 import { referenceStamp } from './astro/build/referenceStamp'
 import { site } from './astro/build/site'
 import { siteSitemap } from './astro/build/sitemap'
@@ -109,13 +103,9 @@ export default defineConfig({
     // The app reads `VITE_` variables (`src/env.d.ts`); Astro's default is `PUBLIC_` alone.
     envPrefix: ['VITE_', 'PUBLIC_'],
     plugins: [
-      requireConvexUrl(),
       baseStylesheetModule(),
-      homebrewInDev(),
-      // The Worker's sign-in, on a local database (`astro/build/devAuth.ts`).
-      authInDev(),
-      // `wrangler dev`, for the rooms (`astro/build/devRooms.ts`).
-      roomsInDev(PORT + 1000),
+      // `wrangler dev`, for every path the Worker answers (`astro/build/devWorker.ts`).
+      workerInDev(PORT + 1000),
       appShellInDev(),
       // The router's code splitter runs before the JSX transform, or refuses to start.
       ...clientOnly(TanStackRouterVite(ROUTER_PLUGIN_OPTIONS) as Plugin | Plugin[]),
@@ -196,7 +186,7 @@ export default defineConfig({
                   {
                     name: 'app',
                     test: notOnPages(
-                      /[\\/]apps[\\/]web[\\/](src[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]game-domain[\\/]/
+                      /[\\/]apps[\\/]web[\\/]src[\\/](?!main\.tsx$)|[\\/]packages[\\/]game-domain[\\/]/
                     ),
                     tags: ['$initial'],
                     priority: 10,

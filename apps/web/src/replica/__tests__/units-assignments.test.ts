@@ -12,12 +12,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { ConvexError } from 'convex/values'
 import { CROSS_CONTAINER_REFUSAL } from 'game-domain/links/linkRules'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { assignLink } from '../../lib/links/assignLink'
 import { LinkRefused } from '../../lib/links/linkRefused'
 import { CONTAINER_MOVE } from '../provenance'
+import { RoomDeclined } from '../roomSocket'
 import { useUnits } from '../units'
 import { resetStores } from './resetStores'
 import { withSignedInBackend } from './signedInBackend'
@@ -167,7 +167,7 @@ describe('assignLink', () => {
   test("a server refusal arrives as a LinkRefused carrying the server's copy", async () => {
     const refusing = {
       create: async (): Promise<SoftLink> => {
-        throw new ConvexError('That pilot already flies another mech')
+        throw new RoomDeclined('That pilot already flies another mech')
       },
     }
     const refused = await assignLink(

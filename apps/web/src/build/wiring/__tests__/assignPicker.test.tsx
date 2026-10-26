@@ -18,7 +18,6 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { ConvexError } from 'convex/values'
 import type { Container } from 'game-domain/container'
 import { SHELF } from 'game-domain/container'
 import { CROSS_CONTAINER_REFUSAL } from 'game-domain/links/linkRules'
@@ -30,6 +29,7 @@ import type { ReactElement } from 'react'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { LinkRefused } from '../../../lib/links/linkRefused'
+import { RoomDeclined } from '../../../replica/roomSocket'
 import type { SyncState } from '../../../replica/syncContext'
 import { SIGNED_OUT, SyncContext } from '../../../replica/syncContext'
 import type { AssignPickerStore } from '../AssignPicker'
@@ -453,7 +453,7 @@ describe('AssignPicker — a refusal is shown in the dialog', () => {
 
   test('a server refusal, in the server’s words', async () => {
     await pickAndConfirm(async () => {
-      throw new ConvexError('Only the owner of that mech can reassign it.')
+      throw new RoomDeclined('Only the owner of that mech can reassign it.')
     })
     expect(screen.getByText('Only the owner of that mech can reassign it.')).toBeTruthy()
   })

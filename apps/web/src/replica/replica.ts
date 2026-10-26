@@ -3,19 +3,17 @@
  *
  * Every row a screen reads is here: the account's units, links, patterns, the
  * NPC tray and encounters, and the crawlers of the caller's Games. Rows arrive
- * from a feed (`feed.ts`): today the Convex subscriptions, from the cutover
- * the account and Game room sockets (`rooms/protocol.ts`). Each is kept on the
+ * from the account and Game room sockets (`RoomFeed.tsx`, `rooms/protocol.ts`).
+ * Each is kept on the
  * device (`persist.ts`), so a reload offline shows what the last one did.
  *
  * ## Scopes, and why absence is safe
  *
  * A feed speaks for one **scope** at a time, and its snapshot is the whole of
- * that scope: `account` is what the caller owns (a room's account snapshot,
- * Convex `listMine`), `wiring` the links and Game crawlers the caller sees.
- * A row is held while at least one scope holds it, so a snapshot that leaves a
+ * that scope: `account` is what the account room serves, and each Game room
+ * its own (`gameScope`). A row is held while at least one scope holds it, so a snapshot that leaves a
  * row out takes that scope's claim away and nothing else's: a Game crawler the
- * caller also owns stays while either answer has it. That is the whole of the
- * old prune guard. A row this tab wrote joins the scope the server will serve
+ * caller also owns stays while either answer has it. A row this tab wrote joins the scope the server will serve
  * it in (`scopeOfWrite`), so the next snapshot either confirms it or, when
  * the write was undone elsewhere, drops it.
  *
@@ -43,22 +41,11 @@ export type RowOf<T extends Table> =
 
 export const TABLES = Object.keys(RECORD_KINDS) as Table[]
 
-/**
- * Whose answer holds a row: see the header. Convex serves `account` and
- * `wiring`; the rooms serve `account` (the account room) and one scope per
- * Game room (`gameScope`).
- */
-export type Scope = 'account' | 'wiring' | `game:${string}`
+/** Whose answer holds a row: the account room, or a Game room. See the header. */
+export type Scope = 'account' | `game:${string}`
 
 /** A Game room's scope. */
 export const gameScope = (gameId: string): Scope => `game:${gameId}`
-
-/** Whether written rows join the rooms' scopes rather than Convex's: set by the feed. */
-let roomScopes = false
-
-export function setRoomScopes(on: boolean): void {
-  roomScopes = on
-}
 
 type Held = {
   row: { id: string }
@@ -213,11 +200,6 @@ export function serve(scope: Scope, tables: readonly Table[], served: readonly S
 
 /** The scopes the server will serve a written row in. */
 function scopesOfWrite(table: Table, row: { id: string }): Scope[] {
-  if (!roomScopes) {
-    if (table === 'softLink') return ['wiring']
-    if (table === 'crawler' && containerOf(row as never).kind === 'game') return ['wiring']
-    return ['account']
-  }
   // A room serves a link with the units it joins: it takes their scopes.
   if (table === 'softLink') {
     const link = row as SoftLink
@@ -252,10 +234,9 @@ export function hold<T extends Table>(
   return row
 }
 
-/** Hold several rows and drop others as one change: a transfer's result. */
+/** Hold several rows as one change: a transfer's result. */
 export function holdAll(
-  puts: ReadonlyArray<{ table: Table; row: { id: string }; version?: number; headSeq?: number }>,
-  drops: ReadonlyArray<{ table: Table; id: string }>
+  puts: ReadonlyArray<{ table: Table; row: { id: string }; version?: number; headSeq?: number }>
 ): void {
   for (const p of puts) {
     const current = tableOf(p.table).get(p.row.id)
@@ -267,7 +248,6 @@ export function holdAll(
       scopes,
     })
   }
-  for (const d of drops) remove(d.table, d.id)
   commit()
 }
 
@@ -275,6 +255,10 @@ export function holdAll(
  * Put back the rows the device kept (`persist.ts`), under the scopes that
  * held them. A row already held came from a live answer, which is newer and
  * stays. Not a change to save: it is what was saved.
+ *
+ * A claim no room makes (Convex's `wiring`, on a copy kept from it) is left
+ * off, and a row only it held is not put back: no snapshot would ever take
+ * it away.
  */
 export function restore(
   rows: ReadonlyArray<{
@@ -289,13 +273,14 @@ export function restore(
   let any = false
   for (const r of rows) {
     const table = held.get(r.table)
-    if (table === undefined || table.has(r.id)) continue
+    const scopes = r.scopes.filter((s) => s === 'account' || s.startsWith('game:'))
+    if (table === undefined || table.has(r.id) || scopes.length === 0) continue
     tableViews.delete(r.table)
     table.set(r.id, {
       row: r.row,
       version: r.version,
       headSeq: r.headSeq,
-      scopes: new Set(r.scopes),
+      scopes: new Set(scopes),
     })
     any = true
   }
@@ -482,7 +467,6 @@ export function resetReplica(): void {
   pending = []
   view = null
   rowsComing = () => false
-  roomScopes = false
   forgetTableState()
   for (const listener of [...listeners]) listener()
 }

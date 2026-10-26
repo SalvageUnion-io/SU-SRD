@@ -3,13 +3,6 @@
 
 interface ImportMetaEnv {
   /**
-   * The Convex deployment's client URL, which only the app reads. Every
-   * build carries one: `astro.config.ts` refuses to start without it
-   * (`bun run dev` writes it into `.env.local`; CI and the deploy pass it in
-   * the environment).
-   */
-  readonly VITE_CONVEX_URL: string
-  /**
    * Deployed commit SHA, set by `deploy-cloudflare.yml`. Sent with each error
    * report (see src/lib/observability.ts) so an error maps back to a deploy.
    * Unset in local dev — the release tag is simply omitted.
@@ -23,10 +16,4 @@ interface ImportMetaEnv {
    * (`astro.config.ts`); links need none.
    */
   readonly VITE_SITE_ORIGIN?: string
-  /**
-   * `'1'`: the replica is fed by the room sockets (`replica/RoomFeed.tsx`)
-   * rather than Convex's queries. Unset everywhere until the cutover fills
-   * the rooms (ADR-064 §7); then the switch and `ConvexFeed` go.
-   */
-  readonly VITE_ROOM_FEED?: string
 }

@@ -1,26 +1,23 @@
 import { Database } from 'bun:sqlite'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, spyOn } from 'bun:test'
-import { LINK_ISSUER, SESSION_ISSUER, TOKEN_AUDIENCE } from 'game-domain/authWire'
-import { bunAuthSql } from '../../../astro/build/devAuth'
-import { generateAuthKey, jwksDataUri } from '../../../scripts/authKeys'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
-import type { TokenAnswer } from '../../lib/auth/paths'
+import type { SessionAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { AuthDeps } from '../auth/index'
 import { discordAvatar, handleAuth, identityOf } from '../auth/index'
-import type { D1Like } from '../auth/store'
+import type { AuthSql, D1Like } from '../auth/store'
 import { d1Sql } from '../auth/store'
 import type { Env } from '../index'
 import worker from '../index'
 
 /**
  * Sign-in on the Worker (`src/worker/auth/`): the test seam's gate, sessions
- * in the cookie, the token Convex reads, and Discord's round trip.
+ * in the cookie, who it signs in, and Discord's round trip.
  */
 
 const ORIGIN = 'https://salvageunion.io'
-const CONVEX = 'https://convex.example'
-const KEY = await generateAuthKey()
+/** An account id `signInAs` mints. */
+const ACCOUNT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 type Call = { url: string; authorization: string | null; body: unknown }
 // The happy-dom preload's fetch classes drop `Cookie` and `Set-Cookie`; the
@@ -49,8 +46,6 @@ beforeEach(() => {
     const url = request.url
     const authorization = request.headers.get('authorization')
     calls.push({ url, authorization, body: await request.text() })
-    if (url === `${CONVEX}/api/mutation`)
-      return Response.json({ status: 'success', value: 'user1' })
     if (url === 'https://discord.com/api/oauth2/token')
       return Response.json({ access_token: 'discord-token', token_type: 'Bearer' })
     if (url === 'https://discord.com/api/users/@me') return Response.json(discordUser)
@@ -62,11 +57,31 @@ afterEach(() => {
   ;(globalThis.fetch as unknown as { mockRestore: () => void }).mockRestore()
 })
 
+/** `bun:sqlite` as the store's slice of D1. */
+function bunAuthSql(db: Database): AuthSql {
+  db.run('pragma foreign_keys = on')
+  return {
+    async run(query, ...bindings) {
+      db.query(query).run(...bindings)
+    },
+    async first<Row>(query: string, ...bindings: (string | number | null)[]) {
+      return (db.query(query).get(...bindings) as Row | null) ?? null
+    },
+  }
+}
+
+let removed: unknown[]
+beforeEach(() => {
+  removed = []
+})
+
 function deps(overrides: Partial<AuthDeps> = {}): AuthDeps {
   return {
     sql: bunAuthSql(new Database(':memory:')),
-    convexUrl: CONVEX,
-    signingKey: KEY,
+    removeAccount: async (who) => {
+      removed.push(who)
+      return null
+    },
     testAuth: true,
     discord: { clientId: 'client', clientSecret: 'secret' },
     ...overrides,
@@ -97,34 +112,6 @@ async function signedUp(d: AuthDeps): Promise<string> {
   return cookieOf(res)
 }
 
-function claimsOf(token: string): Record<string, unknown> {
-  const part = token.split('.')[1] ?? ''
-  return JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')))
-}
-
-/** Verifies a token against the JWKS Convex is given, as Convex does. */
-async function verifies(token: string): Promise<boolean> {
-  const uri = jwksDataUri(KEY)
-  const { keys } = JSON.parse(atob(uri.slice(uri.indexOf(',') + 1))) as { keys: JsonWebKey[] }
-  const key = await crypto.subtle.importKey(
-    'jwk',
-    keys[0] as JsonWebKey,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    false,
-    ['verify']
-  )
-  const [header, payload, signature] = token.split('.')
-  const raw = Uint8Array.from(atob((signature ?? '').replace(/-/g, '+').replace(/_/g, '/')), (c) =>
-    c.charCodeAt(0)
-  )
-  return crypto.subtle.verify(
-    { name: 'ECDSA', hash: 'SHA-256' },
-    key,
-    raw,
-    new TextEncoder().encode(`${header}.${payload}`)
-  )
-}
-
 describe('the test seam', () => {
   it('is no route at all without TEST_AUTH', async () => {
     expect(await handleAuth(post(AUTH_PATHS.testSignIn, ACCOUNT), deps({ testAuth: false }))).toBe(
@@ -148,24 +135,6 @@ describe('the test seam', () => {
     expect(right.status).toBe(204)
   })
 
-  it('links the account to Convex with a link token', async () => {
-    await signedUp(deps())
-    const link = calls.find((c) => c.url === `${CONVEX}/api/mutation`)
-    expect(JSON.parse(String(link?.body))).toEqual({
-      path: 'accountLink:link',
-      args: {},
-      format: 'json',
-    })
-    const token = link?.authorization?.replace('Bearer ', '') ?? ''
-    expect(claimsOf(token)).toMatchObject({
-      iss: LINK_ISSUER,
-      aud: TOKEN_AUDIENCE,
-      sub: 'test:pilot@example.com',
-      email: 'pilot@example.com',
-    })
-    expect(await verifies(token)).toBe(true)
-  })
-
   it('refuses a POST from another origin', async () => {
     const res = await answer(
       post(AUTH_PATHS.testSignIn, ACCOUNT, { origin: 'https://evil.example' }),
@@ -176,29 +145,30 @@ describe('the test seam', () => {
 })
 
 describe('the session', () => {
-  it("answers Convex's token for the cookie, its subject the Convex user and session", async () => {
+  it('answers who the cookie signs in, the same account on every sign-in', async () => {
     const d = deps()
     const cookie = await signedUp(d)
     const res = await answer(
-      new Request(`${ORIGIN}${AUTH_PATHS.token}`, { headers: { cookie } }),
+      new Request(`${ORIGIN}${AUTH_PATHS.session}`, { headers: { cookie } }),
       d
     )
     expect(res.status).toBe(200)
-    const { token, account, person } = (await res.json()) as TokenAnswer
-    expect(account).toBe('user1')
+    const { account, person } = (await res.json()) as SessionAnswer
+    expect(account).toMatch(ACCOUNT_ID)
     // The rooms' name for a test account: the stand-in `identityOf` gives.
     expect(person).toMatch(/^test:[0-9a-f]{64}$/)
-    const claims = claimsOf(token)
-    expect(claims).toMatchObject({ iss: SESSION_ISSUER, aud: TOKEN_AUDIENCE })
-    expect(String(claims.sub)).toMatch(/^user1\|[0-9a-f]{16}$/)
-    expect(Number(claims.exp) - Number(claims.iat)).toBe(600)
-    expect(await verifies(token)).toBe(true)
+    const again = await answer(post(AUTH_PATHS.testSignIn, { ...ACCOUNT, flow: 'signIn' }), d)
+    const second = await answer(
+      new Request(`${ORIGIN}${AUTH_PATHS.session}`, { headers: { cookie: cookieOf(again) } }),
+      d
+    )
+    expect(((await second.json()) as SessionAnswer).account).toBe(account)
   })
 
   it('is a 401 without a cookie, or with one the store does not know', async () => {
     const d = deps()
-    expect((await answer(new Request(`${ORIGIN}${AUTH_PATHS.token}`), d)).status).toBe(401)
-    const forged = new Request(`${ORIGIN}${AUTH_PATHS.token}`, {
+    expect((await answer(new Request(`${ORIGIN}${AUTH_PATHS.session}`), d)).status).toBe(401)
+    const forged = new Request(`${ORIGIN}${AUTH_PATHS.session}`, {
       headers: { cookie: 'su_session=forged' },
     })
     const res = await answer(forged, d)
@@ -212,7 +182,7 @@ describe('the session', () => {
     const out = await answer(post(AUTH_PATHS.signOut, undefined, { cookie }), d)
     expect(out.status).toBe(204)
     expect(out.headers.get('set-cookie')).toContain('Max-Age=0')
-    const after = new Request(`${ORIGIN}${AUTH_PATHS.token}`, { headers: { cookie } })
+    const after = new Request(`${ORIGIN}${AUTH_PATHS.session}`, { headers: { cookie } })
     expect((await answer(after, d)).status).toBe(401)
   })
 
@@ -251,7 +221,7 @@ describe('identityOf', () => {
       headers: { cookie: session?.split(';')[0] ?? '' },
     })
     expect(await identityOf(request, { SHARED })).toEqual({
-      accountId: 'user1',
+      accountId: expect.stringMatching(ACCOUNT_ID),
       discordId: '80351110224678912',
       admin: false,
     })
@@ -268,7 +238,7 @@ describe('identityOf', () => {
     const env = { SHARED, ADMIN_DISCORD_IDS: 'test:' }
     const identity = await identityOf(request, env)
     expect(identity).toEqual({
-      accountId: 'user1',
+      accountId: expect.stringMatching(ACCOUNT_ID),
       discordId: expect.stringMatching(/^test:[0-9a-f]{64}$/),
       admin: false,
     })
@@ -338,12 +308,6 @@ describe("Discord's round trip", () => {
     expect(back.headers.get('location')).toBe('/play/invite/abc?join=1')
     const session = back.headers.getSetCookie().find((c) => c.startsWith('su_session='))
     expect(session).toBeDefined()
-    const link = calls.find((c) => c.url === `${CONVEX}/api/mutation`)
-    expect(claimsOf(link?.authorization?.replace('Bearer ', '') ?? '')).toMatchObject({
-      sub: 'discord:80351110224678912',
-      name: 'Rae Voss',
-      picture: 'https://cdn.discordapp.com/embed/avatars/5.png',
-    })
   })
 
   it('a state that does not match signs nobody in', async () => {
@@ -427,69 +391,6 @@ describe('what goes wrong', () => {
     expect(back.headers.getSetCookie().some((c) => c.startsWith('su_session='))).toBe(false)
   })
 
-  it('a failed link lands the player signed out where they were, and logs why', async () => {
-    const errors = spyOn(console, 'error').mockImplementation(() => undefined)
-    ;(
-      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
-    ).mockImplementation(async (input: string | URL | Request, init?: RequestInit) => {
-      const url = new Request(input, init).url
-      if (url === `${CONVEX}/api/mutation`)
-        return Response.json({ status: 'error', errorMessage: 'not an account' })
-      if (url === 'https://discord.com/api/oauth2/token')
-        return Response.json({ access_token: 'discord-token', token_type: 'Bearer' })
-      return Response.json(discordUser)
-    })
-    try {
-      const d = deps()
-      const start = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}`), d)
-      const state = new URL(start.headers.get('location') ?? '').searchParams.get('state')
-      const back = await answer(
-        new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${state}`, {
-          headers: { cookie: cookieOf(start) },
-        }),
-        d
-      )
-      expect(back.headers.get('location')).toBe('/build/')
-      expect(back.headers.getSetCookie().some((c) => c.startsWith('su_session='))).toBe(false)
-      expect(String(errors.mock.calls[0]?.[1])).toContain('accountLink.link failed: not an account')
-    } finally {
-      errors.mockRestore()
-    }
-  })
-
-  it("logs Convex's reason when it refuses the link token", async () => {
-    const errors = spyOn(console, 'error').mockImplementation(() => undefined)
-    ;(
-      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
-    ).mockImplementation(async (input: string | URL | Request, init?: RequestInit) => {
-      const url = new Request(input, init).url
-      if (url === `${CONVEX}/api/mutation`)
-        return Response.json(
-          { code: 'InvalidAuthHeader', message: 'Could not verify token' },
-          { status: 401 }
-        )
-      if (url === 'https://discord.com/api/oauth2/token')
-        return Response.json({ access_token: 'discord-token', token_type: 'Bearer' })
-      return Response.json(discordUser)
-    })
-    try {
-      const d = deps()
-      const start = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}`), d)
-      const state = new URL(start.headers.get('location') ?? '').searchParams.get('state')
-      await answer(
-        new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${state}`, {
-          headers: { cookie: cookieOf(start) },
-        }),
-        d
-      )
-      expect(String(errors.mock.calls[0]?.[1])).toContain(
-        'accountLink.link failed: 401 InvalidAuthHeader Could not verify token'
-      )
-    } finally {
-      errors.mockRestore()
-    }
-  })
-
   it("logs Discord's reason when it refuses the code", async () => {
     const errors = spyOn(console, 'error').mockImplementation(() => undefined)
     ;(
@@ -529,7 +430,7 @@ describe('what goes wrong', () => {
     const d = deps()
     expect(await handleAuth(new Request(`${ORIGIN}/auth/elsewhere`), d)).toBeNull()
     expect(await handleAuth(new Request(`${ORIGIN}${AUTH_PATHS.signOut}`), d)).toBeNull()
-    expect(await handleAuth(post(AUTH_PATHS.token), d)).toBeNull()
+    expect(await handleAuth(post(AUTH_PATHS.session), d)).toBeNull()
   })
 })
 
@@ -537,10 +438,8 @@ describe('the Worker', () => {
   it('serves sign-in under /auth/ from its bindings and secrets', async () => {
     const env = {
       SHARED: d1(new Database(':memory:')),
-      CONVEX_URL: CONVEX,
       DISCORD_CLIENT_ID: 'client',
       DISCORD_CLIENT_SECRET: 'secret',
-      AUTH_SIGNING_KEY: KEY,
       TEST_AUTH: 'true',
     } as unknown as Env
     const start = await worker.fetch(new Request(`${ORIGIN}${AUTH_PATHS.signIn}`), env)
@@ -558,37 +457,35 @@ describe('the Worker', () => {
 })
 
 describe('deleting the account', () => {
-  it('deletes it on Convex as the session, then ends every session it has', async () => {
-    const d = deps()
+  it('removes what it holds as the signed-in player, then ends every session it has', async () => {
+    const d = deps({ adminIds: 'test:' })
     const cookie = await signedUp(d)
     const elsewhere = await answer(post(AUTH_PATHS.testSignIn, { ...ACCOUNT, flow: 'signIn' }), d)
     const res = await answer(post(AUTH_PATHS.deleteAccount, undefined, { cookie }), d)
     expect(res.status).toBe(204)
     expect(res.headers.get('set-cookie')).toContain('Max-Age=0')
-    const call = calls.at(-1)
-    expect(JSON.parse(String(call?.body))).toMatchObject({ path: 'account:deleteAccount' })
-    expect(claimsOf(call?.authorization?.replace('Bearer ', '') ?? '')).toMatchObject({
-      iss: SESSION_ISSUER,
-      sub: expect.stringMatching(/^user1\|/),
-    })
+    expect(removed).toEqual([
+      {
+        accountId: expect.stringMatching(ACCOUNT_ID),
+        discordId: expect.stringMatching(/^test:[0-9a-f]{64}$/),
+        admin: false,
+      },
+    ])
     for (const c of [cookie, cookieOf(elsewhere)]) {
-      const after = new Request(`${ORIGIN}${AUTH_PATHS.token}`, { headers: { cookie: c } })
+      const after = new Request(`${ORIGIN}${AUTH_PATHS.session}`, { headers: { cookie: c } })
       expect((await answer(after, d)).status).toBe(401)
     }
   })
 
-  it("keeps the account and its sessions when Convex refuses, with Convex's reason", async () => {
-    const d = deps()
+  it('keeps the account and its sessions when the rooms refuse, with their reason', async () => {
+    const d = deps({
+      removeAccount: async () => Response.json({ errorMessage: 'unreachable' }, { status: 409 }),
+    })
     const cookie = await signedUp(d)
-    ;(
-      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
-    ).mockImplementation(async () =>
-      Response.json({ status: 'error', errorMessage: 'refused', errorData: 'You organise a Game.' })
-    )
     const res = await answer(post(AUTH_PATHS.deleteAccount, undefined, { cookie }), d)
     expect(res.status).toBe(409)
-    expect(await res.json()).toEqual({ errorMessage: 'refused', errorData: 'You organise a Game.' })
-    const after = new Request(`${ORIGIN}${AUTH_PATHS.token}`, { headers: { cookie } })
+    expect(await res.json()).toEqual({ errorMessage: 'unreachable' })
+    const after = new Request(`${ORIGIN}${AUTH_PATHS.session}`, { headers: { cookie } })
     expect((await answer(after, d)).status).toBe(200)
   })
 

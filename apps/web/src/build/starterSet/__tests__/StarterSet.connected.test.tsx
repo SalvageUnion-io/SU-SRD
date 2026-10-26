@@ -6,18 +6,16 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
  * Set page, "Copy to…" offers the shelf and the player's Games too. Either way
  * the template is left as it was.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  */
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs.
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   // The store commits the copy to the server first.
-  // `upsertByAppId` answers with the row's new version.
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
 
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -31,7 +29,7 @@ const { StarterSetRoster } = await import('../StarterSetRoster')
 
 withSignedInBackend()
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const CONNECTED = {
   status: 'live' as const,
@@ -41,7 +39,7 @@ const CONNECTED = {
 
 beforeEach(async () => {
   setQueryAnswers({
-    'games:listMine': [
+    'games.listMine': [
       { _id: 'g1', name: 'The Long Haul', mediator: false, organizer: false, tableRunner: false },
     ],
   })

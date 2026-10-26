@@ -1,12 +1,12 @@
 /**
- * What the replica's feed (`ConvexFeed`) does to this browser's rows, as pure plans:
+ * What the replica's feed (`RoomFeed`) does to this browser's rows, as pure plans:
  * which served rows to adopt (`planRowSync`), and which links and Game
  * crawlers to adopt or forget (ADR-037).
  *
  * `entities.listWiring` is the server's answer to "every assignment you can
  * see, and every crawler at your tables". These functions turn one answer plus
  * the local store into the writes that make the store reflect it — the same
- * "server wins" reconcile `ConvexFeed` does for owned rows. They live here, as
+ * "server wins" reconcile `RoomFeed` does for owned rows. They live here, as
  * functions, so the tests assert the rule itself rather than a copy of it.
  *
  * ## Absence means deleted only where the server spoke
@@ -50,7 +50,7 @@ export type ServedCrawler = {
  * The local record for a served link.
  *
  * A server link has no id of its own — its identity is the (type, from, to)
- * triple, plus its crew slot — so the Convex row id stands in: stable, unique, and the same on
+ * triple, plus its crew slot — so the row id stands in: stable, unique, and the same on
  * every device that syncs it. A link drawn in this browser keeps the id it was
  * minted with; the two never need to agree, because nothing addresses a link
  * by id across the wire.

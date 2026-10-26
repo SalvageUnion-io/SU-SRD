@@ -51,7 +51,6 @@ describe('guard-generated.sh', () => {
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
     ['the router tree', 'apps/web/src/routeTree.gen.ts'],
     ['anything under dist', 'apps/web/dist/index.html'],
-    ['Convex codegen', 'apps/web/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
     ['a build-info file', 'apps/web/tsconfig.tsbuildinfo'],

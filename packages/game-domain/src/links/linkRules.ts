@@ -4,8 +4,8 @@
  * ([ADR-037](../../../../docs/ARCHITECTURE.md#decisions), and
  * [ADR-044](../../../../docs/ARCHITECTURE.md#decisions) for crew slots).
  *
- * Pure, and shared by the client store and the Convex backend on purpose. The
- * server is the authority — `convex/entities.ts` refuses what these rules
+ * Pure, and shared by the client store and the rooms on purpose. The
+ * server is the authority — the Game room refuses what these rules
  * refuse whatever the client sent — but a rule the client mirrors from a second
  * copy is a rule the two will eventually disagree about, so both import it
  * from here, the way both import `lib/container.ts`.
@@ -69,7 +69,7 @@ export type LinkShape = {
  * mech — while a crawler takes a crew. `slotted` makes it exclusive per slot:
  * a crawler's Med Bay takes one NPC, its Mech Bay another.
  */
-export const LINK_ENDS: Readonly<
+const LINK_ENDS: Readonly<
   Record<SoftLinkType, { from: EndType; to: EndType; exclusiveTo: boolean; slotted: boolean }>
 > = {
   'mech-to-pilot': { from: 'mech', to: 'pilot', exclusiveTo: true, slotted: false },
@@ -185,8 +185,7 @@ export type EndContainer = (ref: { type: EndType; id: string }) => Container | n
  *
  * Every link touching the entity whose other end is somewhere else — or is not
  * known here at all, because a link that cannot be shown to share the new
- * container cannot be kept in it. Mirrors the server's prune in the move path
- * (`pruneLinksAcrossContainers` in `convex/model/entities.ts`).
+ * container cannot be kept in it. Mirrors the room's prune when a unit moves.
  */
 export function linksBrokenByMove<L extends LinkShape>(
   links: readonly L[],

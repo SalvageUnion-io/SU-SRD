@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { act } from 'react'
-import { installConvexMocks } from '../../components/__tests__/convexMock'
+import { installServerMocks } from '../../components/__tests__/serverMock'
 
 /**
  * `SyncProvider`: the one status, worked out from the session and the
@@ -15,11 +15,11 @@ import { installConvexMocks } from '../../components/__tests__/convexMock'
 
 let auth = { isAuthenticated: false, isLoading: false }
 
-// Module scope, before the imports below: see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexReact: { useConvexAuth: () => auth },
+// Module scope, before the imports below: see `serverMock.ts`.
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => auth },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { SyncProvider } = await import('../SyncProvider')
 const { useSync } = await import('../syncContext')

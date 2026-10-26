@@ -2,11 +2,12 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { PostRollRelayResponse } from 'game-domain/botWire'
 import { BOT_RELAY_POST_ROLL_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
-import worker from '../index'
+import { Relay } from '../relay'
 
 /**
- * The relay: Convex posting a Play roll into a bound channel through the bot
- * (`src/worker/relay.ts`). Discord is `fetch`, stubbed per test.
+ * The relay: the site Worker posting a Play roll or a Stop Sign into a bound
+ * channel through the bot, over its service binding (`src/worker/relay.ts`).
+ * Discord is `fetch`, stubbed per test.
  */
 
 const realFetch = globalThis.fetch
@@ -25,22 +26,17 @@ function env(overrides: Partial<Env> = {}): Env {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
     DISCORD_TOKEN: 'a-token',
-    BACKEND_SITE_URL: 'https://x.convex.site',
-    BOT_SECRET: 'a-secret',
     ...overrides,
   } as Env
 }
 
-const ctx = { waitUntil: () => {} }
+/** The site's `BOT` binding, as the site calls it (`relayUrl`). */
+const relay = (request: Request, e: Env = env()) => new Relay({} as never, e).fetch(request)
 
-function relayRequest(
-  body: unknown,
-  secret = 'a-secret',
-  path = BOT_RELAY_POST_ROLL_PATH
-): Request {
-  return new Request(`https://bot.example${path}`, {
+function relayRequest(body: unknown, path = BOT_RELAY_POST_ROLL_PATH): Request {
+  return new Request(`https://relay${path}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
 }
@@ -65,7 +61,7 @@ describe('the post-roll relay', () => {
       return Response.json({ id: 'msg-1' }, { status: 200 })
     })
 
-    const res = await worker.fetch(relayRequest(ROLL), env(), ctx)
+    const res = await relay(relayRequest(ROLL))
     const body = (await res.json()) as PostRollRelayResponse
 
     expect(res.status).toBe(200)
@@ -86,7 +82,7 @@ describe('the post-roll relay', () => {
     stubFetch(async () =>
       Response.json({ message: 'Missing Access', code: 50001 }, { status: 403 })
     )
-    const res = await worker.fetch(relayRequest(ROLL), env(), ctx)
+    const res = await relay(relayRequest(ROLL))
     const body = (await res.json()) as PostRollRelayResponse
     expect(body.ok).toBe(false)
     if (body.ok) return
@@ -98,26 +94,55 @@ describe('the post-roll relay', () => {
     stubFetch(async () =>
       Response.json({ message: 'Unknown Channel', code: 10003 }, { status: 404 })
     )
-    const body = (await (
-      await worker.fetch(relayRequest(ROLL), env(), ctx)
-    ).json()) as PostRollRelayResponse
+    const body = (await (await relay(relayRequest(ROLL))).json()) as PostRollRelayResponse
     expect(body).toMatchObject({ ok: false, status: 404 })
   })
 
-  test('refuses a wrong secret, and posts nothing', async () => {
-    let called = false
-    stubFetch(async () => {
-      called = true
-      return Response.json({ id: 'x' })
-    })
-    const res = await worker.fetch(relayRequest(ROLL, 'not-the-secret'), env(), ctx)
-    expect(res.status).toBe(401)
-    expect(called).toBe(false)
+  test.each([
+    [
+      'another refusal names its status',
+      400,
+      { message: 'Bad', code: 50035 },
+      'refused the post (400)',
+    ],
+    ['a server error names its status', 500, 'oops', 'refused the post (500)'],
+    [
+      'a rate limit says to wait',
+      429,
+      { message: 'Slow', retry_after: 1, global: false },
+      'rate-limiting',
+    ],
+  ])('%s', async (_label, status, body, words) => {
+    stubFetch(async () =>
+      typeof body === 'string'
+        ? new Response(body, { status })
+        : Response.json(body, {
+            status,
+            headers: { 'retry-after': '1', 'x-ratelimit-scope': 'user' },
+          })
+    )
+    const answered = (await (await relay(relayRequest(ROLL))).json()) as PostRollRelayResponse
+    expect(answered.ok).toBe(false)
+    if (answered.ok) return
+    expect(answered.message).toContain(words)
   })
 
-  test('is absent while the secret is unset', async () => {
-    const res = await worker.fetch(relayRequest(ROLL), env({ BOT_SECRET: '' }), ctx)
-    expect(res.status).toBe(404)
+  test('Discord out of reach is said, not thrown', async () => {
+    stubFetch(async () => {
+      throw new Error('connect ECONNREFUSED')
+    })
+    const answered = (await (await relay(relayRequest(ROLL))).json()) as PostRollRelayResponse
+    expect(answered).toMatchObject({
+      ok: false,
+      status: null,
+      message: 'Discord could not be reached.',
+    })
+  })
+
+  test('answers no other path or method', async () => {
+    expect((await relay(relayRequest(ROLL, '/relay/elsewhere'))).status).toBe(404)
+    const get = new Request(`https://relay${BOT_RELAY_POST_ROLL_PATH}`)
+    expect((await relay(get)).status).toBe(404)
   })
 
   test.each([
@@ -131,18 +156,14 @@ describe('the post-roll relay', () => {
       called = true
       return Response.json({ id: 'x' })
     })
-    const res = await worker.fetch(relayRequest(body), env(), ctx)
+    const res = await relay(relayRequest(body))
     expect(res.status).toBe(400)
     expect(((await res.json()) as PostRollRelayResponse).ok).toBe(false)
     expect(called).toBe(false)
   })
 
   test('an unknown table is a failure with a reason, not a crash', async () => {
-    const res = await worker.fetch(
-      relayRequest({ ...ROLL, tableName: 'No Such Table' }),
-      env(),
-      ctx
-    )
+    const res = await relay(relayRequest({ ...ROLL, tableName: 'No Such Table' }))
     const body = (await res.json()) as PostRollRelayResponse
     expect(res.status).toBe(422)
     expect(body.ok).toBe(false)
@@ -150,8 +171,7 @@ describe('the post-roll relay', () => {
 })
 
 describe('the post-stop relay', () => {
-  const stop = (body: unknown, secret = 'a-secret') =>
-    relayRequest(body, secret, BOT_RELAY_POST_STOP_PATH)
+  const stop = (body: unknown) => relayRequest(body, BOT_RELAY_POST_STOP_PATH)
 
   test("posts the Stop Sign's fixed words to the channel", async () => {
     let sent: { url: string; body: Record<string, unknown> } | null = null
@@ -160,7 +180,7 @@ describe('the post-stop relay', () => {
       return Response.json({ id: 'msg-2' }, { status: 200 })
     })
 
-    const res = await worker.fetch(stop({ channelId: ROLL.channelId }), env(), ctx)
+    const res = await relay(stop({ channelId: ROLL.channelId }))
     expect((await res.json()) as PostRollRelayResponse).toEqual({ ok: true, messageId: 'msg-2' })
     if (sent === null) throw new Error('nothing was posted')
     const posted = sent as { url: string; body: Record<string, unknown> }
@@ -169,19 +189,8 @@ describe('the post-stop relay', () => {
     expect(JSON.stringify(posted.body.components)).toContain('the game is paused')
   })
 
-  test('refuses a wrong secret, and posts nothing', async () => {
-    let called = false
-    stubFetch(async () => {
-      called = true
-      return Response.json({ id: 'x' })
-    })
-    const res = await worker.fetch(stop({ channelId: ROLL.channelId }, 'nope'), env(), ctx)
-    expect(res.status).toBe(401)
-    expect(called).toBe(false)
-  })
-
   test('refuses a channel that is not a snowflake', async () => {
-    const res = await worker.fetch(stop({ channelId: 'general' }), env(), ctx)
+    const res = await relay(stop({ channelId: 'general' }))
     expect(res.status).toBe(400)
   })
 
@@ -190,7 +199,7 @@ describe('the post-stop relay', () => {
       Response.json({ message: 'Missing Access', code: 50001 }, { status: 403 })
     )
     const body = (await (
-      await worker.fetch(stop({ channelId: ROLL.channelId }), env(), ctx)
+      await relay(stop({ channelId: ROLL.channelId }))
     ).json()) as PostRollRelayResponse
     expect(body).toMatchObject({ ok: false, status: 403 })
   })

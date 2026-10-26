@@ -14,7 +14,7 @@ import type { CommandExecuteInteraction } from './interactions'
  * rather than six:
  *
  *  1. **Deferring.** Discord gives a command 3 seconds to acknowledge. A round
- *     trip to Convex usually fits and must not be assumed to, so every Game
+ *     trip to the site usually fits and must not be assumed to, so every Game
  *     subcommand defers before it calls anything.
  *  2. **The result kinds.** Ok, denied and unavailable each want different
  *     words. A single exhaustive branch here means no command can quietly
@@ -30,7 +30,7 @@ import type { CommandExecuteInteraction } from './interactions'
  * `env` — configuration does not exist on workerd until `fetch` is called — and
  * an unconfigured client answers every call `unavailable`.
  */
-let client: SiteClient = createSiteClient({})
+let client: SiteClient = createSiteClient(undefined)
 
 /** The current client. */
 export function site(): SiteClient {

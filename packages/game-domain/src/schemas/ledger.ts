@@ -23,7 +23,7 @@ export const LEDGER_MAX_NAME = 80
 export const LEDGER_MAX_PAY = 999
 
 /** How a faction regards the crew, worst first. */
-export const FACTION_STANDINGS = ['hostile', 'neutral', 'friendly'] as const
+const FACTION_STANDINGS = ['hostile', 'neutral', 'friendly'] as const
 export type FactionStanding = (typeof FACTION_STANDINGS)[number]
 
 /**

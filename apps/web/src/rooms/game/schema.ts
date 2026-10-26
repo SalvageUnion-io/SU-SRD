@@ -1,6 +1,6 @@
 /**
  * A Game room's tables: one Durable Object per Game holds everything
- * Convex kept under that `gameId`.
+ * the Game holds.
  *
  * - `game`: the one row naming it, its primary crawler (ADR-037), and when
  *   its Organizer began ending it.

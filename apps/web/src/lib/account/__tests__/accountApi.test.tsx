@@ -6,15 +6,15 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { ACCOUNT_PATHS } from '../../../rooms/routes'
 
 let person: string | null = 'd-1'
 
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: { '../../lib/auth/session': () => ({ useMyPerson: () => person }) },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { RoomDeclined } = await import('../../../replica/roomSocket')
 const api = await import('../accountApi')

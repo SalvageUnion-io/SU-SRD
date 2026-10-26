@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
  */
 
 import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { APP_BASE } from '../../../lib/appBase'
 import type { ShareKind } from '../../../lib/sharing/visibility'
 import { pageOrigin } from '../../../lib/site'
@@ -23,9 +23,9 @@ import type { SyncState } from '../../../replica/syncContext'
 import { forgetTableState, serveTableState } from '../../../replica/tableState'
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
 // `authReact` because the dialog can mount `SignInControl`.
-const convexMocks = await installConvexMocks({ authReact: true })
+const serverMocks = await installServerMocks()
 
 /** The acts' args, in order. */
 const mutations = () => roomActs.map((a) => a.args)
@@ -178,7 +178,7 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
 describe('ShareStatusDialog — a sheet in a Game', () => {
   test('its crew can see it, so the answer is My Game’s crew and Only me is out of reach', async () => {
     sheetShared('mech-1', false, 'game-1')
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     await act(async () => {
       renderDialog({ kind: 'mech', id: 'mech-1', gameId: 'game-1' })
     })
@@ -190,7 +190,7 @@ describe('ShareStatusDialog — a sheet in a Game', () => {
 
   test('going back from the link to the crew clears publicRead', async () => {
     sheetShared('mech-1', true, 'game-1')
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     await act(async () => {
       renderDialog({ kind: 'mech', id: 'mech-1', gameId: 'game-1' })
     })
@@ -229,7 +229,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
       gameName: null,
       builtCount: 0,
     })
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     await act(async () => {
       renderDialog({ kind: 'pattern', id: 'pattern-1' })
     })
@@ -259,7 +259,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
       builtCount: 0,
     })
     setQueryAnswers({
-      'games:listMine': [...GAMES, { _id: 'game-2', name: 'Dust Runners', mediator: false }],
+      'games.listMine': [...GAMES, { _id: 'game-2', name: 'Dust Runners', mediator: false }],
     })
     await act(async () => {
       renderDialog({ kind: 'pattern', id: 'pattern-1' })
@@ -296,7 +296,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
       gameName: null,
       builtCount: 2,
     })
-    setQueryAnswers({ 'games:listMine': [] })
+    setQueryAnswers({ 'games.listMine': [] })
     await act(async () => {
       renderDialog({ kind: 'pattern', id: 'pattern-1' })
     })
@@ -317,7 +317,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
         builtCount: 0,
         homebrew,
       })
-      setQueryAnswers({ 'games:listMine': [] })
+      setQueryAnswers({ 'games.listMine': [] })
     }
     const onReference = () => screen.queryByRole('switch', { name: 'Share with the SRD' })
 
@@ -347,4 +347,4 @@ describe('ShareStatusDialog — a mech pattern', () => {
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)

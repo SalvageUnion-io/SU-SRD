@@ -7,7 +7,7 @@ import type { UnitsStore } from '../../replica/units'
  * ## What feeds it
  *
  * A store built from whatever the server says right now, rebuilt each time it
- * says something new. Both sources are reactive Convex queries, so a sheet
+ * says something new. Both sources are live room reads, so a sheet
  * rendered from one is current, not frozen:
  *
  *  - **A Game's listing** (`entities.listForGame`, via `sheetDataFromListing`):

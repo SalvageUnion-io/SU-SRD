@@ -132,7 +132,7 @@ export function usePartnerCargo({
     )
     if (!result.ok) return result
 
-    // Both sides commit in ONE transfer (one Convex mutation): two sequential
+    // Both sides commit in ONE transfer (one room batch): two sequential
     // writes could vanish or duplicate the moved lot.
     const updates: Parameters<typeof storeState.transfer>[0]['updates'] = []
     if (result.changed.carrier) {

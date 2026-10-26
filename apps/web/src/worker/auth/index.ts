@@ -1,19 +1,16 @@
 /**
  * Sign-in, on the site Worker: Discord OAuth, accounts and sessions in
- * D1 (`./store.ts`), the session in an HttpOnly cookie, and a short-lived
- * token Convex accepts as a custom JWT provider while it is still the server
- * of record (`convex/auth.config.ts`).
+ * D1 (`./store.ts`), the session in an HttpOnly cookie.
  *
  *   - `GET /auth/sign-in?to=` → Discord, with PKCE; `to` is a path on this
  *     site, so an invite comes straight back to itself.
- *   - `GET /auth/callback` → the account saved, linked to its Convex account,
- *     a session opened, back to `to`.
- *   - `GET /auth/token` → `{ token, account }` for the Convex client, or 401.
+ *   - `GET /auth/callback` → the account saved, a session opened, back to `to`.
+ *   - `GET /auth/session` → who is signed in (`SessionAnswer`), or 401.
  *   - `POST /auth/sign-out` → the session closed.
  *   - `POST /auth/test-sign-in` → the test seam, only where `TEST_AUTH` is
  *     exactly `'true'` (never production's `wrangler.jsonc`); a 404 elsewhere.
  *
- * Admin stays `ADMIN_DISCORD_IDS` on Convex, read through the linked account.
+ * An admin is a Discord id `ADMIN_DISCORD_IDS` lists.
  *
  * A Worker Preview has its own origin, which Discord would have to list. With
  * `AUTH_CALLBACK_ORIGIN` set, its round trip comes back through that origin's
@@ -24,21 +21,13 @@
  */
 
 import { Discord, generateCodeVerifier, generateState, OAuth2RequestError } from 'arctic'
-import { getFunctionName, makeFunctionReference } from 'convex/server'
 import { APP_BASE } from 'game-domain/appAddress'
-import {
-  DISCORD_SUBJECT,
-  LINK_ISSUER,
-  SESSION_ISSUER,
-  TEST_SUBJECT,
-  TOKEN_AUDIENCE,
-} from 'game-domain/authWire'
-import type { TokenAnswer } from '../../lib/auth/paths'
+import type { SessionAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
-import type { SigningKey } from './crypto'
-import { base64urlJson, passwordHash, sha256Hex, signingKey, signToken } from './crypto'
+import { base64urlJson, passwordHash, sha256Hex } from './crypto'
 import type { Account, AuthSql, D1Like, SignIn } from './store'
 import {
+  accountIdOf,
   authStore,
   closeSession,
   d1Sql,
@@ -52,13 +41,17 @@ import {
 
 export type AuthDeps = {
   sql: AuthSql
-  /** The Convex deployment the app talks to. */
-  convexUrl: string
+  /** Unset, nobody can sign in with Discord. */
   discord?: { clientId: string; clientSecret: string }
   /** `AUTH_CALLBACK_ORIGIN`: whose `/auth/callback` Discord returns to. Unset, this origin's. */
   callbackOrigin?: string
-  /** `AUTH_SIGNING_KEY`. Unset, nobody can sign in. */
-  signingKey?: string
+  /**
+   * Deletes everything the account holds in the rooms and the shared database:
+   * `null` once it is gone, or the refusal to answer (`deleteRoomAccount`).
+   */
+  removeAccount(who: Identity): Promise<Response | null>
+  /** `ADMIN_DISCORD_IDS`, as `identityOf` reads it. */
+  adminIds?: string
   /** `TEST_AUTH === 'true'`. */
   testAuth: boolean
   now?: () => number
@@ -66,15 +59,13 @@ export type AuthDeps = {
 
 const SESSION_COOKIE = 'su_session'
 const OAUTH_COOKIE = 'su_oauth'
-/** The token Convex reads lives ten minutes; the client asks again before it ends. */
-const TOKEN_TTL_S = 10 * 60
 const OAUTH_TTL_S = 10 * 60
 /** A Worker Preview of su-srd: the only hosts a callback hands a code on to. */
 const PREVIEW_HOST = /^[a-z0-9-]+-su-srd\.alxjrvs\.workers\.dev$/
 /** Between the Preview's host and the random state, in a handed-on round trip. */
 const STATE_HOST = '~'
-const LINK = getFunctionName(makeFunctionReference<'mutation'>('accountLink:link'))
-const DELETE_ACCOUNT = getFunctionName(makeFunctionReference<'mutation'>('account:deleteAccount'))
+/** How a test account (no Discord) is named to the rooms: `test:` and the SHA-256 of its email. */
+const TEST_SUBJECT = 'test:'
 
 /** The answer for an `/auth/*` request, or `null` for a path that is not one. */
 export async function handleAuth(request: Request, deps: AuthDeps): Promise<Response | null> {
@@ -85,8 +76,8 @@ export async function handleAuth(request: Request, deps: AuthDeps): Promise<Resp
       return get ? signIn(url, deps) : null
     case AUTH_PATHS.callback:
       return get ? callback(request, url, deps) : null
-    case AUTH_PATHS.token:
-      return get ? token(request, url, deps) : null
+    case AUTH_PATHS.session:
+      return get ? session(request, url, deps) : null
     case AUTH_PATHS.signOut:
       return request.method === 'POST'
         ? guarded(request, url, () => signOut(request, url, deps))
@@ -145,7 +136,7 @@ function callbackOrigin(url: URL, deps: AuthDeps): string {
 }
 
 function discordClient(url: URL, deps: AuthDeps): Discord | null {
-  if (!deps.discord || !deps.signingKey) return null
+  if (!deps.discord) return null
   return new Discord(
     deps.discord.clientId,
     deps.discord.clientSecret,
@@ -252,7 +243,7 @@ async function callback(request: Request, url: URL, deps: AuthDeps): Promise<Res
   }
 }
 
-/** Links the sign-in to its Convex account, saves it, opens a session: its cookie. */
+/** Saves the account (made on its first sign-in), opens a session: its cookie. */
 async function signInAs(
   url: URL,
   deps: AuthDeps,
@@ -260,53 +251,10 @@ async function signInAs(
 ): Promise<string> {
   const sql = await authStore(deps.sql)
   const now = (deps.now ?? Date.now)()
-  const accountId = await linkToConvex(deps, signIn, now)
+  const accountId = (await accountIdOf(sql, signIn)) ?? crypto.randomUUID()
   await saveAccount(sql, { ...signIn, accountId }, now)
   const token = await openSession(sql, accountId, now)
   return cookie(url, SESSION_COOKIE, token, SESSION_MS / 1000)
-}
-
-async function key(deps: AuthDeps): Promise<SigningKey> {
-  if (!deps.signingKey) throw new Error('AUTH_SIGNING_KEY is not set')
-  return signingKey(deps.signingKey)
-}
-
-/**
- * The sign-in's Convex user id, made if it has none: `accountLink.link`,
- * called with a link token over Convex's HTTP API. A Discord account that
- * signed in through Convex Auth finds its own `users` row again.
- */
-async function linkToConvex(deps: AuthDeps, account: SignIn, now: number): Promise<string> {
-  const claims = {
-    iss: LINK_ISSUER,
-    aud: TOKEN_AUDIENCE,
-    sub: account.discordId
-      ? `${DISCORD_SUBJECT}${account.discordId}`
-      : `${TEST_SUBJECT}${account.testEmail}`,
-    ...(account.name ? { name: account.name } : {}),
-    ...(account.avatarUrl ? { picture: account.avatarUrl } : {}),
-    ...(account.email ? { email: account.email } : {}),
-  }
-  const res = await fetch(`${deps.convexUrl}/api/mutation`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${await signToken(await key(deps), claims, 60, now)}`,
-    },
-    body: JSON.stringify({ path: LINK, args: {}, format: 'json' }),
-  })
-  const body = (await res.json().catch(() => ({}))) as {
-    status?: string
-    value?: unknown
-    errorMessage?: string
-    code?: string
-    message?: string
-  }
-  // A refused token answers `{ code, message }`, not a function's error.
-  const why = body.errorMessage ?? [res.status, body.code, body.message].filter(Boolean).join(' ')
-  if (body.status !== 'success' || typeof body.value !== 'string')
-    throw new Error(`accountLink.link failed: ${why}`)
-  return body.value
 }
 
 function json(body: unknown, status: number, cookies: string[] = []): Response {
@@ -326,7 +274,7 @@ export type Identity = { accountId: string; discordId: string; admin: boolean }
  * @public For the rooms and the shared reads' signed-in routes.
  *
  * Who the request's session cookie signs in, or `null`. `admin` is a Discord
- * id `ADMIN_DISCORD_IDS` lists (comma-separated), as on Convex. Mints nothing.
+ * id `ADMIN_DISCORD_IDS` lists (comma-separated). Mints nothing.
  */
 export async function identityOf(
   request: Request,
@@ -337,10 +285,13 @@ export async function identityOf(
   if (!raw) return null
   const session = await readSession(await authStore(d1Sql(env.SHARED)), raw, now)
   if (session === null) return null
-  const { accountId, discordId } = session.account
-  const admins = (env.ADMIN_DISCORD_IDS ?? '').split(',').map((id) => id.trim())
-  const admin = discordId !== null && admins.includes(discordId)
-  return { accountId, discordId: await personOf(session.account), admin }
+  return identityFor(session.account, env.ADMIN_DISCORD_IDS)
+}
+
+async function identityFor(account: Account, adminIds: string | undefined): Promise<Identity> {
+  const admins = (adminIds ?? '').split(',').map((id) => id.trim())
+  const admin = account.discordId !== null && admins.includes(account.discordId)
+  return { accountId: account.accountId, discordId: await personOf(account), admin }
 }
 
 /** The rooms' name for an account: its Discord id, or a test account's stand-in (`Identity`). */
@@ -349,69 +300,35 @@ async function personOf(account: Account): Promise<string> {
   return `${TEST_SUBJECT}${await sha256Hex(account.testEmail ?? account.accountId)}`
 }
 
-/** The session token's claims for Convex: its subject is `<userId>|<sessionId>`. */
-async function sessionToken(deps: AuthDeps, userId: string, sessionId: string, now: number) {
-  return signToken(
-    await key(deps),
-    { iss: SESSION_ISSUER, aud: TOKEN_AUDIENCE, sub: `${userId}|${sessionId}` },
-    TOKEN_TTL_S,
-    now
-  )
-}
-
 /**
- * Deletes the account: Convex's `account.deleteAccount` as the session's
- * user, then, only once it has, the account's sign-in and all its sessions
- * here, so no cookie on any device outlives it. A refusal answers 409 with
- * Convex's own error, for the app to say.
+ * Deletes the account: everything it holds (`removeAccount`), then, only once
+ * that is done, its sign-in and all its sessions here, so no cookie on any
+ * device outlives it. A refusal answers as `removeAccount` words it.
  */
 async function deleteAccount(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
-  if (!raw || !deps.signingKey) return json({ errorMessage: 'Not signed in' }, 401)
+  if (!raw) return json({ errorMessage: 'Not signed in' }, 401)
   const sql = await authStore(deps.sql)
-  const now = (deps.now ?? Date.now)()
-  const session = await readSession(sql, raw, now)
+  const session = await readSession(sql, raw, (deps.now ?? Date.now)())
   if (session === null) return json({ errorMessage: 'Not signed in' }, 401)
-  const { accountId } = session.account
-  const res = await fetch(`${deps.convexUrl}/api/mutation`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${await sessionToken(deps, accountId, session.sessionId, now)}`,
-    },
-    body: JSON.stringify({ path: DELETE_ACCOUNT, args: {}, format: 'json' }),
-  }).catch(() => null)
-  const body = ((await res?.json().catch(() => null)) ?? {}) as {
-    status?: string
-    errorMessage?: string
-    errorData?: unknown
-  }
-  if (body.status !== 'success')
-    return json(
-      { errorMessage: body.errorMessage ?? 'unreachable', errorData: body.errorData },
-      409
-    )
-  await forgetAccount(sql, accountId)
+  const refused = await deps.removeAccount(await identityFor(session.account, deps.adminIds))
+  if (refused !== null) return refused
+  await forgetAccount(sql, session.account.accountId)
   return new Response(null, {
     status: 204,
     headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
   })
 }
 
-async function token(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
+async function session(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
-  const signedOut = () =>
-    json({ token: null }, 401, raw ? [cookie(url, SESSION_COOKIE, '', 0)] : [])
-  if (!raw || !deps.signingKey) return signedOut()
+  const signedOut = () => json(null, 401, raw ? [cookie(url, SESSION_COOKIE, '', 0)] : [])
+  if (!raw) return signedOut()
   const sql = await authStore(deps.sql)
-  const now = (deps.now ?? Date.now)()
-  const session = await readSession(sql, raw, now)
+  const session = await readSession(sql, raw, (deps.now ?? Date.now)())
   if (session === null) return signedOut()
-  const userId = session.account.accountId
-  const signed = await sessionToken(deps, userId, session.sessionId, now)
-  const answer: TokenAnswer = {
-    token: signed,
-    account: userId,
+  const answer: SessionAnswer = {
+    account: session.account.accountId,
     person: await personOf(session.account),
   }
   return json(

@@ -1,10 +1,10 @@
 /**
  * Accounts and sessions, in the shared D1 database (`SHARED`, `wrangler.jsonc`).
  *
- * An account's id is its Convex `users` id while Convex is the server of
- * record (`accountLink.link` answers it), so every row the cutover copies
- * keeps the owner it has. It is found again by how it signs in: `discord_id`,
- * or `test_email` where `TEST_AUTH` allows the test seam. `name` is Discord's
+ * An account's id is made on its first sign-in (one that signed in while
+ * Convex was the server of record keeps its Convex `users` id). It is found
+ * again by how it signs in: `discord_id`, or `test_email` where `TEST_AUTH`
+ * allows the test seam. `name` is Discord's
  * and every sign-in refreshes it; `display_name` is the player's own, which
  * sign-in never writes. A session is a random token in an HttpOnly cookie; the
  * table keeps only its SHA-256, so a read of the database signs nobody in.
@@ -126,23 +126,22 @@ export async function testSecret(sql: AuthSql, email: string): Promise<string | 
   return row === null ? undefined : row.secret
 }
 
-/**
- * Saves the account under its Convex id, its profile refreshed from the
- * sign-in. A row that held the same sign-in under another id (a Convex account
- * deleted and made again) goes first, with its sessions.
- */
+/** The id of the account this sign-in signs in to, or `null` for its first. */
+export async function accountIdOf(sql: AuthSql, signIn: SignIn): Promise<string | null> {
+  const row = await sql.first<{ account_id: string }>(
+    'select account_id from accounts where discord_id = ? or test_email = ?',
+    signIn.discordId,
+    signIn.testEmail
+  )
+  return row?.account_id ?? null
+}
+
+/** Saves the account under its id, its profile refreshed from the sign-in. */
 export async function saveAccount(
   sql: AuthSql,
   account: Account & { secret?: string },
   now: number
 ): Promise<void> {
-  await sql.run(
-    `delete from accounts where account_id != ?
-     and (discord_id = ? or test_email = ?)`,
-    account.accountId,
-    account.discordId,
-    account.testEmail
-  )
   await sql.run(
     `insert into accounts
        (account_id, discord_id, test_email, name, avatar_url, email, secret, created_at, updated_at)

@@ -15,19 +15,14 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
 // Signed in: building needs an account (ADR-034 as amended), so the roster a
 // player builds into is a Connected one. Module scope, before the imports
 // below — `mock.module` only affects imports that resolve after it runs.
-const convexMocks = await installConvexMocks({
-  // `upsertByAppId` answers with the row's new version.
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-  // The signed-out panel's "Sign in with Discord".
-  authReact: true,
-})
+const serverMocks = await installServerMocks()
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
@@ -36,7 +31,7 @@ const { Roster } = await import('../Roster')
 
 withSignedInBackend()
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const CONNECTED: SyncState = {
   status: 'live',
@@ -123,9 +118,9 @@ async function openMenu(name: string): Promise<HTMLElement> {
 beforeEach(async () => {
   // Shelves, with no Games and no shared patterns.
   setQueryAnswers({
-    'games:listMine': [],
-    'shelf:patternSharing': [],
-    'shelf:sharedByLink': [],
+    'games.listMine': [],
+    'shelf.patternSharing': [],
+    'shelf.sharedByLink': [],
   })
   // The NPC shelf also lists encounter NPCs; an earlier file in the same
   // process can leave some in memory, so every store starts empty.

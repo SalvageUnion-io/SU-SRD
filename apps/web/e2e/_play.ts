@@ -4,6 +4,7 @@ import { cockpitPath } from 'game-domain/entityKinds'
 import { runAxeOnPage } from 'gates/a11y'
 import { playDoor as openDoor } from 'gates/lib/appPage'
 import { routeInApp } from '../src/lib/appBase'
+import { ROOMS_PATH } from '../src/rooms/routes'
 import { openApp, pageOverflow, seedDice } from './_helpers'
 
 /**
@@ -38,15 +39,12 @@ export const PHONE = PLAY_VIEWPORTS[2]
  * Open a Play screen and wait for its bar. With `dice`, every d20 after the
  * load is 14 (`seedDice`): a Success.
  *
- * The seed goes in once the Convex client has opened its socket: the client
- * draws its session id from `Math.random()` when it connects, and the server
- * replays a mutation it has already seen from a session id, so a seed in
- * place before then gives every run one id, and the server answers a later
- * run's writes with the first run's.
+ * The seed goes in once a room's socket has opened (`ROOMS_PATH`), so the
+ * screen is live before any roll is made.
  */
 export async function openPlay(page: Page, path: string, { dice = false } = {}): Promise<void> {
   const socket = page.waitForEvent('websocket', {
-    predicate: (ws) => ws.url().endsWith('/sync'),
+    predicate: (ws) => new URL(ws.url()).pathname.startsWith(`${ROOMS_PATH}/`),
     timeout: 60_000,
   })
   await openApp(page, path)

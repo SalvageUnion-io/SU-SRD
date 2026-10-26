@@ -2,7 +2,7 @@
  * The Games' calls a page makes outside a room's socket (ADR-064 §5): its
  * list of Games, starting, joining and ending one, its roster and invite, who
  * holds what, where a unit is, a move between rooms, and Discord's channels.
- * Each keeps the Convex function's name, arguments and answer, so a client
+ * Each keeps its name, arguments and answer, so a client
  * caller swaps `useQuery` for `useRoomQuery` and nothing else
  * (`../../replica/roomCalls.ts`).
  *
@@ -18,7 +18,8 @@
  * shared rows again before answering, so the next list reads them.
  */
 
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll } from 'game-domain/botWire'
+import type { BotRelay } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from 'game-domain/botWire'
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { mayBindChannel } from 'game-domain/games/discord'
@@ -42,13 +43,10 @@ export type CallDeps = {
   db: SharedDb
   game(gameId: string): GameRoomStub
   account(discordId: string): AccountStub
-  bot: BotRelayEnv
+  /** The bot's relay (`wrangler.jsonc` `BOT`); unbound, a roll is not posted. */
+  bot: BotRelay | undefined
   newId(): string
-  fetch: typeof fetch
 }
-
-/** The bot relay's address and secret (`wrangler.jsonc`); unset, a roll is not posted. */
-export type BotRelayEnv = { BOT_URL?: string; BOT_SECRET?: string }
 
 type Caller = { discordId: string; accountId: string }
 type Call = (who: Caller, args: never, deps: CallDeps) => Promise<unknown>
@@ -405,8 +403,8 @@ const CALLS = {
     if (!isPostableRoll(tableName, rolls)) {
       return { kind: 'failed', channelId, message: 'That roll cannot be posted.' }
     }
-    const botUrl = deps.bot.BOT_URL?.replace(/\/+$/, '')
-    if (!botUrl || !deps.bot.BOT_SECRET) {
+    const bot = deps.bot
+    if (bot === undefined) {
       return { kind: 'failed', channelId, message: 'Posting to Discord is not set up.' }
     }
     const roller = await rollerName(who, gameId, a.pilotId, deps)
@@ -419,12 +417,9 @@ const CALLS = {
       ...(isDiscord ? { ownerDiscordId: who.discordId } : {}),
     }
     try {
-      const response = await deps.fetch(`${botUrl}${BOT_RELAY_POST_ROLL_PATH}`, {
+      const response = await bot.fetch(relayUrl(BOT_RELAY_POST_ROLL_PATH), {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${deps.bot.BOT_SECRET}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
         signal: AbortSignal.timeout(10_000),
       })

@@ -1,6 +1,6 @@
 /**
- * The device's note that a session is on it: the Convex account id, written
- * when the Worker's token endpoint answers signed in and removed when it
+ * The device's note that a session is on it: the account id, written
+ * when the Worker's session endpoint answers signed in and removed when it
  * answers signed out or the player signs out (`./session.ts`).
  *
  * The session itself is an HttpOnly cookie no script can read, so this is

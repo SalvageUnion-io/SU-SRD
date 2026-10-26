@@ -49,8 +49,8 @@
  * date. The tab that runs an old build is the one that stays open across a
  * deploy, and an installed PWA that is never closed.
  *
- * A deploy that breaks an open tab raises the Convex build floor
- * (`convex/buildFloor.ts`, raised by hand). A tab whose bundle is below it
+ * A deploy that breaks an open tab raises the build floor
+ * (`lib/connection/buildFloorStamp.ts`, raised by hand). A tab whose bundle is below it
  * stops writing at once. As soon as the Worker serves a different shell
  * (`serverBootsAnotherBuild`), the tab reloads through `reloadOntoNewBuild`.
  * `src/lib/connection/buildFloor.ts` owns that loop.

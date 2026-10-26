@@ -11,7 +11,7 @@ import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /**
  * `/su bind` and `/su unbind`. Who may bind what is the server's call
- * (`convex/model/channelBindings.ts`, proven in `channelBindings.test.ts`);
+ * (`apps/web/src/worker/shared/channelBindings.ts`, proven in its tests);
  * these pin what the bot sends it and how it words each answer: the channel it
  * ran in, the Game or none for solo play, and every refusal private.
  */

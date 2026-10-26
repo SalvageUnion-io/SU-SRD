@@ -58,8 +58,6 @@
         // Each of these asserts on load behaviour itself: it resets the ORM
         // and re-preloads on purpose, so the shared preload is the thing under
         // test rather than the thing being duplicated.
-        // Convex functions run on only the schemas the deployment installs.
-        "!**/apps/web/test/convex/__tests__/referenceSubset.test.ts",
         // The preload API is the unit under test.
         "!**/packages/salvageunion-reference/lib/__tests__/preload.test.ts",
         // preload() invalidates the search index and result cache.
@@ -77,11 +75,6 @@
     {
       "path": "./packages/gates/biome/noPartialModelPatch.grit",
       "includes": ["**/*.test.ts", "**/*.test.tsx"]
-    },
-    {
-      // Convex functions only: a test reads its own handful of fixture rows.
-      "path": "./packages/gates/biome/noChangeLogCollect.grit",
-      "includes": ["**/apps/web/convex/**", "!**/_generated/**"]
     },
     {
       // The app's client, where a caught error's text reaches a player. A test
@@ -129,7 +122,6 @@
       // fails depending on whether someone happens to have a server up.
       "!**/.wrangler",
       "!**/.vite",
-      "!**/.convex",
       "!**/coverage",
       "!**/playwright-report",
       "!**/test-results",
@@ -147,7 +139,6 @@
       // `role="button"` edit links ARE the page — and formatting it would
       // change what ships.
       "!apps/web/public/greembeem",
-      "!**/convex/_generated",
       "!packages/salvageunion-reference/lib/generated",
       // Game-data JSON is crawler-sourced; AGENTS.md's "Data Conventions"
       // section forbids automated formatters reformatting these arrays.
@@ -242,7 +233,7 @@
         //
         // The exemptions are real framework contracts, not preferences:
         // TanStack Router route modules are read as a default export.
-        // Cloudflare Workers and the Convex http router are the same shape. All are listed as
+        // Cloudflare Workers are the same shape. All are listed as
         // overrides at the bottom rather than suppressed per-file.
         "noDefaultExport": "error",
         // Prefer `const` over `let` where never reassigned, and template
@@ -344,7 +335,7 @@
       }
     },
     {
-      // Function-size ratchet for the app and its Convex backend. The cap is
+      // Function-size ratchet for the app. The cap is
       // the current largest body, so one more line there, or any longer
       // function anywhere, fails. Biome counts the whole function without
       // comment lines. Lower it when a split lands; never raise it.
@@ -409,8 +400,7 @@
     {
       // The other legitimate default-export contracts, each read by a framework
       // rather than imported by us: TanStack Router route modules, Cloudflare
-      // Worker entrypoints, the Convex http router, schema and cron table, and
-      // build/test config files. Listed here so the rule stays `error`
+      // Worker entrypoints, and build/test config files. Listed here so the rule stays `error`
       // everywhere else.
       "includes": [
         "apps/web/src/routes/**",
@@ -421,9 +411,6 @@
         // This glob is the `main` of every wrangler config (the `workers`
         // check holds them to it).
         "apps/*/src/worker/index.ts",
-        "apps/web/convex/http.ts",
-        "apps/web/convex/crons.ts",
-        "apps/web/convex/schema.ts",
         "**/*.config.ts",
         // Ambient module declarations for asset imports (`declare module
         // '*.md?raw'`) must re-declare the bundler's own default export — the
@@ -550,7 +537,7 @@
     {
       // A static page: what Astro renders and the islands it hydrates. It
       // ships at most 20 KB of JS, so it never imports the app's router,
-      // stores or shell, or Convex. A relative import does not say what it
+      // stores or shell. A relative import does not say what it
       // reaches, so the rule names those folders; `reference-bundle-budget.e2e.ts` and
       // the Vite pass's chunk groups (`astro/build/appGraph.ts`) catch what a shared
       // component pulls in further down.
@@ -580,8 +567,6 @@
                     "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
                   },
                   "@tanstack/react-router": "A static page never routes: it links with a plain href.",
-                  "convex/react": "A static page never talks to Convex: it reads the reference data it was built from.",
-                  "convex/browser": "A static page never talks to Convex: it reads the reference data it was built from.",
                   "zustand": "A static page holds no store; an island keeps its state in React."
                 },
                 "patterns": [
@@ -594,14 +579,8 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
-                    "group": [
-                      "**/convex/**",
-                      "**/routes/**",
-                      "**/stores/**",
-                      "**/shell/**",
-                      "**/main"
-                    ],
-                    "message": "A static page never imports Convex or the app's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
+                    "group": ["**/routes/**", "**/stores/**", "**/shell/**", "**/main"],
+                    "message": "A static page never imports the app's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
                   },
                   {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
@@ -626,7 +605,7 @@
     },
     {
       // The display layer draws whatever data it is handed: only the product
-      // folders (sheet/, games/, …) wire the stores or Convex
+      // folders (sheet/, games/, …) wire the stores
       // (apps/web/src/components/CLAUDE.md). Restates the root rule's options
       // in full: Biome overrides REPLACE a rule's options.
       "includes": [
@@ -647,8 +626,6 @@
                     "importNames": ["forwardRef"],
                     "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
                   },
-                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
-                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
                   "zustand": "The display layer takes its data as props; a product folder wires the stores."
                 },
                 "patterns": [
@@ -661,8 +638,8 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
-                    "group": ["**/convex/**", "**/stores/**"],
-                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                    "group": ["**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores."
                   },
                   {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
@@ -757,8 +734,6 @@
                     "importNames": ["forwardRef"],
                     "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
                   },
-                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
-                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
                   "zustand": "The display layer takes its data as props; a product folder wires the stores."
                 },
                 "patterns": [
@@ -771,8 +746,8 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
-                    "group": ["**/convex/**", "**/stores/**"],
-                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                    "group": ["**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores."
                   },
                   {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
@@ -813,8 +788,6 @@
                     "importNames": ["forwardRef"],
                     "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
                   },
-                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
-                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
                   "zustand": "The display layer takes its data as props; a product folder wires the stores."
                 },
                 "patterns": [
@@ -827,8 +800,8 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
-                    "group": ["**/convex/**", "**/stores/**"],
-                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                    "group": ["**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores."
                   },
                   {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
@@ -838,58 +811,6 @@
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
                     "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      // Every Convex mutation is built through `convex/model/entities.ts`, whose
-      // `mutation` / `internalMutation` run the database triggers that keep
-      // `games.summary` current. A mutation built from the generated builders
-      // writes without them, and the Games list badge for whatever it touched
-      // is then wrong until the next backfill — silently. That file is the one
-      // place allowed to import the raw builders, because it wraps them.
-      //
-      // Restates the root rule's options in full: Biome overrides
-      // REPLACE a rule's options for matched files rather than merging.
-      "includes": ["apps/web/convex/**", "!apps/web/convex/model/entities.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "react": {
-                    "importNames": ["forwardRef"],
-                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
-                  },
-                  "./_generated/server": {
-                    "importNames": ["mutation", "internalMutation"],
-                    "message": "Build mutations with `mutation` / `internalMutation` from './model/entities', which run the triggers that keep games.summary current."
-                  },
-                  "../_generated/server": {
-                    "importNames": ["mutation", "internalMutation"],
-                    "message": "Build mutations with `mutation` / `internalMutation` from './entities', which run the triggers that keep games.summary current."
-                  }
-                },
-                "patterns": [
-                  {
-                    "group": ["@/*"],
-                    "message": "Use relative imports instead of @/ path aliases."
-                  },
-                  {
-                    "group": ["salvageunion-reference/lib/**"],
-                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
-                  },
-                  {
-                    "group": ["**/src/**"],
-                    "message": "Convex never imports the client (apps/web/src): shared logic lives in game-domain or salvageunion-reference (`check rules-home`)."
                   }
                 ]
               }

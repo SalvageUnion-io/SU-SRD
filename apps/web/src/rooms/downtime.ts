@@ -4,7 +4,7 @@ import type { GameStore } from './game/store'
 import { RoomRefusal } from './refusal'
 
 /**
- * A Downtime's rules, with `convex/downtime.ts`'s: a Game's (`game/play.ts`)
+ * A Downtime's rules: a Game's (`game/play.ts`)
  * or a solo pilot's (`account/soloPlay.ts`), each keeping its running state
  * where it keeps it (`DowntimePlace`). Who may act is the caller's to check.
  *

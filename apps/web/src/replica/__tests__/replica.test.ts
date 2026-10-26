@@ -1,13 +1,14 @@
 /**
  * The replica's rule for what it holds: a row stays while any scope's latest
- * snapshot has it, and a served row replaces the held one only when newer.
- * This is the old prune guard, as scopes (`replica.ts`).
+ * snapshot has it, and a served row replaces the held one only when newer
+ * (`replica.ts`).
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import {
   drop,
+  gameScope,
   getView,
   headSeqOf,
   hold,
@@ -53,12 +54,16 @@ describe('a scope snapshot', () => {
   })
 
   test('keeps a row another scope still holds', () => {
-    // A Game crawler the caller also owns: in both answers.
+    // A crawler two answers have.
     serve('account', ['crawler'], [{ table: 'crawler', row: crawler('c1', 'g1'), version: 1 }])
-    serve('wiring', ['crawler'], [{ table: 'crawler', row: crawler('c1', 'g1'), version: 1 }])
+    serve(
+      gameScope('g1'),
+      ['crawler'],
+      [{ table: 'crawler', row: crawler('c1', 'g1'), version: 1 }]
+    )
     serve('account', ['crawler'], [])
     expect(ids(getView().crawlers)).toEqual(['c1'])
-    serve('wiring', ['crawler'], [])
+    serve(gameScope('g1'), ['crawler'], [])
     expect(getView().crawlers).toEqual([])
   })
 
@@ -99,7 +104,7 @@ describe('a write', () => {
     hold('crawler', crawler('c1', 'g1'))
     serve('account', ['crawler'], [])
     expect(ids(getView().crawlers)).toEqual(['c1'])
-    serve('wiring', ['crawler'], [])
+    serve(gameScope('g1'), ['crawler'], [])
     expect(getView().crawlers).toEqual([])
   })
 
@@ -153,6 +158,21 @@ describe('the device copy', () => {
     ])
     expect(getView().pilots.find((p) => p.id === 'p1')?.name).toBe('Live')
     expect(ids(getView().pilots)).toEqual(['p1', 'p2'])
+  })
+
+  test('leaves off a claim no room makes, and a row only it held', () => {
+    const kept = (id: string, scopes: string[]) => ({
+      table: 'crawler' as const,
+      id,
+      row: crawler(id, 'g1'),
+      version: 1,
+      headSeq: undefined,
+      scopes: scopes as never,
+    })
+    restore([kept('c1', ['wiring']), kept('c2', ['wiring', gameScope('g1')])])
+    expect(ids(getView().crawlers)).toEqual(['c2'])
+    serve(gameScope('g1'), ['crawler'], [])
+    expect(getView().crawlers).toEqual([])
   })
 })
 

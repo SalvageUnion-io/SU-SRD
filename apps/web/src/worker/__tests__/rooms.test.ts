@@ -327,53 +327,53 @@ describe('a Game room’s presence', () => {
 })
 
 describe('serveGameSocket', () => {
-  const env = { CONVEX_URL: 'https://convex.example', SHARED: {} as never }
-  const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '')
-  const TOKEN = `${b64({ alg: 'RS256' })}.${b64({ sub: 'user1|session9' })}.sig`
+  const env = { SHARED: {} as never }
   const upgrade = (seat: string) =>
     new Request(`https://salvageunion.io/__rooms/games/g1/socket?seat=${seat}`, {
-      headers: { upgrade: 'websocket', 'sec-websocket-protocol': `su-room, ${TOKEN}` },
+      headers: { upgrade: 'websocket' },
     })
-  const realFetch = globalThis.fetch
+  const signedIn = async () => ({ accountId: 'a1', discordId: 'd-rook', admin: false })
   const pageRequest = globalThis.Request
 
   afterEach(() => {
-    globalThis.fetch = realFetch
     globalThis.Request = pageRequest
   })
 
-  function convexAnswers(value: unknown) {
-    globalThis.fetch = (async () =>
-      new Response(JSON.stringify({ status: 'success', value }))) as unknown as typeof fetch
-  }
-
-  test('wants an upgrade', async () => {
-    expect((await serveGameSocket(new Request('https://x/'), 'g1', env)).status).toBe(426)
-  })
-
-  test('refuses someone outside the Game', async () => {
-    convexAnswers(null)
-    expect((await serveGameSocket(upgrade('1'), 'g1', env)).status).toBe(403)
-  })
-
-  test('hands a member to the Game’s room, saying who and how', async () => {
-    convexAnswers({ _id: 'g1' })
-    globalThis.Request = Request
-    let forwarded: Request | undefined
+  /** The Game's room: it reads `game` to its member, and records what it is handed. */
+  function room(game: unknown) {
+    const seen: { forwarded?: Request } = {}
     namespaces.GameRoom = {
       getByName: (name: string) => ({
+        act: async () => ({ ok: true, value: game }),
         fetch: async (req: Request) => {
-          forwarded = req
+          seen.forwarded = req
           return new Response(name)
         },
       }),
     }
-    const res = await serveGameSocket(upgrade('1'), 'g1', env)
+    return seen
+  }
+
+  test('wants an upgrade', async () => {
+    expect((await serveGameSocket(new Request('https://x/'), 'g1', env, signedIn)).status).toBe(426)
+  })
+
+  test('refuses someone signed out, or outside the Game', async () => {
+    room({ _id: 'g1' })
+    expect((await serveGameSocket(upgrade('1'), 'g1', env, async () => null)).status).toBe(403)
+    room(null)
+    expect((await serveGameSocket(upgrade('1'), 'g1', env, signedIn)).status).toBe(403)
+  })
+
+  test('hands a member to the Game’s room, saying who and how', async () => {
+    globalThis.Request = Request
+    const seen = room({ _id: 'g1' })
+    const res = await serveGameSocket(upgrade('1'), 'g1', env, signedIn)
     expect(await res.text()).toBe('g1')
-    expect(forwarded?.headers.get('x-su-member')).toBe('user1')
-    expect(forwarded?.headers.get('x-su-seat')).toBe('1')
-    await serveGameSocket(upgrade('yes'), 'g1', env)
-    expect(forwarded?.headers.get('x-su-seat')).toBe('0')
+    expect(seen.forwarded?.headers.get('x-su-member')).toBe('d-rook')
+    expect(seen.forwarded?.headers.get('x-su-seat')).toBe('1')
+    await serveGameSocket(upgrade('yes'), 'g1', env, signedIn)
+    expect(seen.forwarded?.headers.get('x-su-seat')).toBe('0')
   })
 })
 

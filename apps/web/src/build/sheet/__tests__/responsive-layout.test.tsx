@@ -18,14 +18,13 @@
  *
  * Conventions:
  *  - toBeTruthy() not toBeInTheDocument()
- *  - The only module mocks are Convex's (`installConvexMocks`): the signed-out
+ *  - The only module mocks are Convex's (`installServerMocks`): the signed-out
  *    Roster mounts `SignInControl`
  *  - afterEach cleanup()
  */
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
@@ -37,10 +36,11 @@ import {
   makeEntityLookupMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({ authReact: true })
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { Roster } = await import('../../roster/Roster')
 const { CrawlerSheet } = await import('../CrawlerSheet')

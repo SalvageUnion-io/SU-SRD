@@ -1,8 +1,8 @@
 import type { RoleFlags } from './roles'
 
 /**
- * Discord channel rules for a Game, as pure predicates. The server authorizes
- * with them (`convex/model/channelBindings.ts`) and Play reads the same answers
+ * Discord channel rules for a Game, as pure predicates. The Worker authorizes
+ * with them and Play reads the same answers
  * for its Post toggle, so the two cannot disagree.
  */
 

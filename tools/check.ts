@@ -184,8 +184,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
-    fix: 'move shared logic to game-domain or salvageunion-reference; move a rule to a lib/rules home, or name a view-model `<name>.model.ts`',
+      'no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
+    fix: 'move a rule to a lib/rules home, or name a view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -209,8 +209,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'workflows',
-    guards:
-      'CI aggregate gate, path filters, bunx pinning, deploy order (incl. Convex deploy-key guard), production-secret env',
+    guards: 'CI aggregate gate, path filters, bunx pinning, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
     // Reads only .github/ and the manifests, all of them `code`.

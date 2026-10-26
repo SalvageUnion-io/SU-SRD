@@ -6,11 +6,9 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
+const serverMocks = await installServerMocks()
 
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
@@ -18,7 +16,7 @@ const { useUnits } = await import('../../../replica/units')
 const { Sheet } = await import('../Sheet')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 withSignedInBackend()

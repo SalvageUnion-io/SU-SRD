@@ -13,7 +13,6 @@ import type { EntitySurfaceValue } from '../components/index'
 import { EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
-import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
 import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
@@ -22,6 +21,7 @@ import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { ReplicaSync } from '../replica/ReplicaSync'
+import { SyncProvider } from '../replica/SyncProvider'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 import '../styles/app.css'
 
@@ -46,7 +46,7 @@ export const Route = createRootRoute({
 /**
  * The Union bar's slots, filled (`UnionBarSlots`; the bar is the shell's). Its
  * own component because its account slots read the connection, which only
- * exists inside `AppConvexProvider`.
+ * exists inside `SyncProvider`.
  */
 function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: boolean }) {
   return (
@@ -75,20 +75,20 @@ function RootComponent() {
   }, [barHidden])
 
   // A link preview's render surface (`/og/*`) is a picture, not a
-  // page: the card alone, with Convex and the reference data and none of the
+  // page: the card alone, with the Worker and the reference data and none of the
   // chrome, banners or account flow a screenshot must not catch.
   if (pathname.startsWith('/og/')) {
     return (
-      <AppConvexProvider>
+      <SyncProvider>
         <GameDataReady>
           <Outlet />
         </GameDataReady>
-      </AppConvexProvider>
+      </SyncProvider>
     )
   }
 
   return (
-    <AppConvexProvider>
+    <SyncProvider>
       <HeadContent />
       <EntitySurfaceProvider value={ENTITY_SURFACE}>
         {/* The Union bar is the shell's, above this root, with the skip
@@ -126,6 +126,6 @@ function RootComponent() {
         </EntityPageHost>
         <ToasterMount />
       </EntitySurfaceProvider>
-    </AppConvexProvider>
+    </SyncProvider>
   )
 }

@@ -14,8 +14,7 @@ import { GameUnits } from './units'
 
 /**
  * One Game's room, as plain logic over its SQL: what the `GameRoom`
- * Durable Object serves (`../../worker/rooms.ts`). Each part keeps the rules
- * of the Convex module it replaces.
+ * Durable Object serves (`../../worker/rooms.ts`).
  */
 export class GameRoomLogic {
   readonly store: GameStore

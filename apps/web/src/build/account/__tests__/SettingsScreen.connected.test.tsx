@@ -12,14 +12,14 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  * not offered before there is anything to export, and that a blank display name
  * falls back to the Discord one rather than to nothing.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  * Name-keying needs no modulo wrap: a state change re-renders and replays the
  * same hooks, which would run off the end of a positional queue and collapse
  * the screen back to its loading state.
  */
 
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import type { QueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import {
   accountAnswers,
   accountApiStub,
@@ -42,11 +42,13 @@ async function deleteAccount() {
 }
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
 // `authReact` because the profile mounts `SignInControl`.
-const convexMocks = await installConvexMocks({
-  authReact: { deleteAccount },
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
+const serverMocks = await installServerMocks({
+  authReact: {
+    deleteAccount,
+    useSession: () => ({ isAuthenticated: authed, isLoading: false }),
+  },
   also: { '../../lib/account/accountApi': accountApiStub },
 })
 
@@ -272,4 +274,4 @@ describe('a write the server does not take says so', () => {
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)

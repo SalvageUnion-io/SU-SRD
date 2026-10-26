@@ -5,8 +5,8 @@
 #
 # A hook rather than `Edit(...)` deny rules in settings.json: Claude Code also
 # applies Edit deny rules to the Bash sandbox as write denies, so the
-# generators themselves (`ref-generate`, `tsc -b`, `bun install`, Convex
-# codegen) failed with EPERM inside it. A hook sees only tool calls, so the
+# generators themselves (`ref-generate`, `tsc -b`, `bun install`)
+# failed with EPERM inside it. A hook sees only tool calls, so the
 # tools stay off these paths while the commands that write them run.
 
 INPUT=$(cat)
@@ -30,7 +30,6 @@ case "$P" in
     */packages/salvageunion-reference/lib/generated/* | \
     */routeTree.gen.ts | \
     */worker-configuration.d.ts | \
-    */apps/web/convex/_generated/* | \
     */dist/* | \
     *.tsbuildinfo)
     echo "$FILE_PATH is generated: change its source, then run \`bun run check generated\` (or the build that writes it)." >&2

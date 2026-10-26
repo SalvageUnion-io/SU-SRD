@@ -6,7 +6,7 @@
 
 import type { ServerMessage } from './protocol'
 
-/** The second Sec-WebSocket-Protocol entry carries the caller's credential. */
+/** The room socket's Sec-WebSocket-Protocol; the session cookie signs it in. */
 export const ROOM_PROTOCOL = 'su-room'
 
 /** The tag on a socket that counts as here; its other tag is the member's id. */

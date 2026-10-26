@@ -2,15 +2,14 @@ import { describe, expect, it } from 'bun:test'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
 import { answerBot as answer } from '../botGateway'
 import { testDb } from '../shared/__tests__/d1'
-import { markFilled } from '../shared/db'
 import { putGame, putMembership } from '../shared/games'
 
 /**
- * The bot's gateway answers from the shared database once it is filled, as
- * `/bot/*` would, and leaves everything else to Convex (null).
+ * The bot's gateway answers from the shared database and the rooms, and null
+ * (which the bot says as unavailable) where it cannot.
  */
 
-/** A filled database with Rosa signed in with Discord and in one Game. */
+/** A database with Rosa signed in with Discord and in one Game. */
 async function filled() {
   const db = testDb()
   // The sign-in creates `accounts` on first use; the rows here are its columns.
@@ -24,7 +23,6 @@ async function filled() {
     mediator: true,
     organizer: true,
   })
-  await markFilled(db, 1)
   return db
 }
 
@@ -34,12 +32,8 @@ const answerBot = (...args: Parameters<typeof answer>): Promise<unknown> => answ
 const RECLAMATION = { gameId: 'g-1', name: 'Reclamation', mediator: true, organizer: true }
 
 describe('answerBot', () => {
-  it('leaves every op to Convex until the database is filled', async () => {
-    const db = testDb()
+  it('answers nothing without the database', async () => {
     expect(await answerBot(undefined, 'me', { discordId: 'd-rosa' })).toBeNull()
-    expect(await answerBot(db, 'me', { discordId: 'd-rosa' })).toBeNull()
-    expect(await answerBot(db, 'usage', { name: 'roll' })).toBeNull()
-    expect(db.sqlite.query('select count(*) as n from usage_counts').get()).toEqual({ n: 0 })
   })
 
   it('answers me and games from the account and its memberships', async () => {
@@ -116,14 +110,14 @@ describe('answerBot', () => {
     })
   })
 
-  it('leaves the rooms’ ops to Convex without the rooms', async () => {
+  it('cannot answer the rooms’ ops without the rooms', async () => {
     const db = await filled()
     for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()
     }
   })
 
-  it('leaves the rooms’ ops to Convex when a room cannot answer', async () => {
+  it('cannot answer the rooms’ ops when a room cannot answer', async () => {
     const db = await filled()
     const cannot = () => ({
       unitsFor: async () => {
