@@ -240,8 +240,9 @@ describe('the Game room’s socket', () => {
     const op = motto('Up')
     ws.send(JSON.stringify({ type: 'ops', ops: [op] }))
     await settle()
-    expect(heard.slice(-2)).toMatchObject([
+    expect(heard.slice(-3)).toMatchObject([
       { type: 'applied', unit: { appId: 'p1', headSeq: 1 } },
+      { type: 'record', table: 'crew' },
       { type: 'ack', opIds: [op.id] },
     ])
     ws.close(1000)
