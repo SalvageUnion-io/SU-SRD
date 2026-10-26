@@ -7,7 +7,7 @@
  * dialog explains what sharing needs instead. The Connected half — who can see
  * it, the link, the QR — is `ShareStatusDialog.connected.test.tsx`.
  *
- * No query is answered here: the panel that reads Convex must not mount, or
+ * No query is answered here: the panel that reads the server must not mount, or
  * the query mock would throw.
  */
 
@@ -63,7 +63,7 @@ describe('ShareStatusDialog — Solo', () => {
       renderDialog()
     })
     expect(screen.getByText(/sharing needs an account/i)).toBeTruthy()
-    // The settings are Convex-backed and must not mount here.
+    // The settings read the server and must not mount here.
     expect(screen.queryByRole('group', { name: /who can see it/i })).toBeNull()
   })
 })

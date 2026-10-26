@@ -99,7 +99,7 @@ describe('pathCandidate', () => {
       'docs/adrs/ADR-<n>.md',
       '@sentry/browser',
       'origin/main',
-      'convex/react',
+      'astro/config',
       'https://example.com/docs/x',
       '~/.claude.json',
       'bun run test',

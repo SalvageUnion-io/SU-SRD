@@ -60,9 +60,9 @@ function withQueries(answers: QueryAnswers): void {
 }
 
 /**
- * The two the profile asks the Worker for. No Convex query is answered: the
- * mock throws on an unregistered one, so a page that started asking Convex
- * again would fail here.
+ * The two the profile asks the Worker for. No other read is answered: the
+ * mock throws on an unregistered one, so a page that started asking another
+ * would fail here.
  */
 function profileQueries(me: unknown, exported: unknown = { pilots: [] }): QueryAnswers {
   accountAnswers.me = me as never

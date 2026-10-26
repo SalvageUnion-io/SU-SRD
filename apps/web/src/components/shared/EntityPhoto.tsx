@@ -18,9 +18,7 @@ import { photoUrl } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
-import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
-import { PHOTOS_PATH, photoPath } from '../../lib/sharing/paths'
+import { PhotoRefused, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
 import { sharedCopy } from '../../messages/components-shared'
 import { assetSrcSetFor, Button, EmptyState, tokens } from '../index'
 
@@ -80,20 +78,6 @@ const CONTROLS = {
 
 const CONTROL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
-/**
- * The upload against the site Worker's R2 route (`worker/photos.ts`), which
- * checks the file as it stores it: the claim is only the photo it names.
- */
-const UPLOADER: PhotoUploader = {
-  generateUploadUrl: async () => PHOTOS_PATH,
-  claim: async ({ storageId }) => ({
-    kind: 'upload',
-    storageId,
-    url: new URL(photoPath(storageId), window.location.origin).href,
-  }),
-  post: postPhoto,
-}
-
 /** A photo the player can fix says why; see `PhotoRefused`. */
 const PHOTO_PLAYER_ERRORS = [PhotoRefused]
 
@@ -109,7 +93,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
   const upload = useServerAction(
     async (file: File) => {
       if (!onChange) return
-      await onChange(await uploadPhoto(await shrinkPhoto(file), UPLOADER))
+      await onChange(await uploadPhoto(await shrinkPhoto(file)))
       setFailed(null)
     },
     {

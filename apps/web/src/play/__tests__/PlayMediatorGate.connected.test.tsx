@@ -81,7 +81,7 @@ describe('PlayMediatorGate', () => {
   })
 })
 
-/** Answer the Convex reads, and serve the Game room's records from the table reads among them. */
+/** Answer the Games reads, and serve the Game room's records from the table reads among them. */
 function answerReads(answers: Record<string, unknown>): void {
   setQueryAnswers(answers)
   serveReads('g1', answers)

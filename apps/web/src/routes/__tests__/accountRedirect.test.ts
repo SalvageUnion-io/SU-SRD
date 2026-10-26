@@ -7,7 +7,7 @@ import { landOn } from './landOn'
  * through the real generated route tree rather than a hand-built copy of it.
  *
  * `router.load()` resolves matches and runs every `beforeLoad` without
- * rendering, which is all a redirect needs and keeps the app shell (Convex,
+ * rendering, which is all a redirect needs and keeps the app shell (sync,
  * the reference-data gate) out of this test.
  */
 

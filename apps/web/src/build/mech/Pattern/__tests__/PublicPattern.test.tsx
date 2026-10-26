@@ -17,8 +17,8 @@ import { forgetTableState, serveTableState } from '../../../../replica/tableStat
 /** `homebrew.status` for a pattern that is not homebrew. */
 const NOT_LISTED = { listed: false, hidden: false, reported: false, mine: false, admin: false }
 
-// Module scope, before the imports below — see `serverMock.ts`. Convex
-// answers only the Games list now; the router and sign-in are stand-ins.
+// Module scope, before the imports below — see `serverMock.ts`. The mock
+// answers only the Games list; the router and sign-in are stand-ins.
 const serverMocks = await installServerMocks({
   router: true,
 })

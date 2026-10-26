@@ -1,7 +1,6 @@
 /**
  * What a table plays under, as a Game room serves it (`tableState.ts`): each
- * room's Scene, area, ledger, boundaries and Stop Sign, read as the Convex
- * query of the same name answered.
+ * room's Scene, area, ledger, boundaries and Stop Sign.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test'

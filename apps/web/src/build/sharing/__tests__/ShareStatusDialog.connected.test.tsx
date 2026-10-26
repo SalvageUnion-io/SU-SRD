@@ -9,7 +9,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
  *
  * What is shared is the rooms': a sheet's `publicRead` in its room, a
  * pattern's `sharing` record in the account room; every write is an act on a
- * stand-in room (`test/roomsStub.ts`). Only the Games list is a Convex query.
+ * stand-in room (`test/roomsStub.ts`). Only the Games list is a mocked read.
  */
 
 import { acceptingRooms, roomActs } from '../../../../test/roomsStub'

@@ -6,7 +6,7 @@ import { cleanup, render, screen } from '@testing-library/react'
  * the player's answer queue, read off the Game room's `proposals` record
  * (`fakeRooms.ts` serves it).
  *
- * The Convex hooks `SyncProvider` still uses are mocked through
+ * The server hooks `SyncProvider` uses are mocked through
  * `installServerMocks()`, which owns the capture-and-restore that keeps a
  * process-global `mock.module` from leaking into every test file that runs
  * after this one.
