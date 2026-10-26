@@ -3,10 +3,21 @@
  * table only when the Mediator presses Tell the table.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import { ToasterMount } from '../../../components/index'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { ToasterMount, toast } from '../../../components/index'
 import { RunningBriefing } from '../RunningBriefing'
+
+// Sonner's toast state is module-global: clear it on both sides, so a toast
+// raised here never fires its timers outside act() in a later file.
+beforeEach(() => {
+  toast.dismiss()
+})
+
+afterEach(() => {
+  toast.dismiss()
+  cleanup()
+})
 
 async function renderBriefing(onTell: (message: string) => Promise<void>, canWrite = true) {
   await act(async () => {

@@ -49,8 +49,8 @@ const NO_CHIPS = { durations: [], facts: [], tags: [] }
 /** No "View in the Reference" in a sheet's body (the surface's `externalLink`, E13). */
 const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
 
-/** The four sheets that share this shell (hard rule R11): a unit's, and a built NPC's. */
-type SheetVariant = SheetKind | 'npc'
+/** The sheets that share this shell (hard rule R11): a unit's, a built NPC's and an encounter's. */
+type SheetVariant = SheetKind | 'npc' | 'encounter'
 
 /** A unit that is out of play: its stamp ("Killed in Action") and what that means. */
 type SheetUnitOut = { stamp: string; note: string }
@@ -61,14 +61,16 @@ const KIND_LABEL: Record<SheetVariant, string> = {
   mech: 'Mech',
   crawler: 'Union Crawler',
   npc: 'NPC',
+  encounter: 'Encounter',
 }
 
-/** The chapter band each sheet wears: its own tone, and Denizens navy for an NPC. */
+/** The chapter band each sheet wears: its own tone, and Denizens navy for an NPC and an encounter. */
 const BAND_TONE = {
   pilot: 'pilot',
   mech: 'mech',
   crawler: 'crawler',
   npc: 'denizen',
+  encounter: 'denizen',
 } as const satisfies Record<SheetVariant, string>
 
 export type LiveSheetSegment = {

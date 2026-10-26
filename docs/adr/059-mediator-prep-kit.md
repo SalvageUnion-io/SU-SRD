@@ -18,7 +18,10 @@ and account deletion deletes it.
 
 `/build/encounters/$id` edits one: name, opposition (+ Add, Rename, Remove),
 tables to hand (pin from the core tables; the site has no custom ones) and
-notes. The shelf has + New encounter, Make a copy and Delete.
+notes. The shelf has + New encounter, Make a copy and Delete. The page is a
+Live Sheet like a built NPC's (hard rule R11): the Denizens band, Read | Edit
+and Delete under "⋯" in its corner. Read leaves empty sections out; a new
+encounter opens in Edit.
 
 ### 3. Run from a Game's Play
 
@@ -52,6 +55,16 @@ Mediator to be upfront about the situation (p.252).
   private notes. Running copies it to the Game's running encounter, where the
   Mediator's side column shows it with Tell the table, which sends it as an
   alert. Nothing reaches a player until the Mediator presses it.
+- **Threat read.** Under the opposition, the inputs p.255 eyeballs a fight
+  by, against a crew size and Tech Level the Mediator steps (remembered on the
+  device, never saved to the encounter): how many meet the Pilots first, how
+  many are held back, the Tech Level spread, total SP and HP, and whether
+  either side is outnumbered or out-teched. No difficulty score: the book says
+  fights are not balanced.
+- **Spoils.** A read-only list of what could be salvaged: each Mech's Chassis
+  Salvage Value and the Systems and Modules it was drawn with (its "loot
+  table", p.269), and each Vehicle or Meld's Salvage Value in Scrap (p.246).
+  Only what the reference data states; nothing pays out from it.
 - **Additive.** `groups`, `groupId` and `briefing` are optional on
   `schemaVersion` 1, so an encounter built before them reads as ungrouped with
   no briefing. A tray NPC never carries a group.

@@ -370,7 +370,7 @@ describe('poster text on the sheet tones', () => {
     return { tone, band, text: decl('--on-tone-band') }
   }
 
-  for (const kind of ['pilot', 'mech', 'crawler', 'npc']) {
+  for (const kind of ['pilot', 'mech', 'crawler', 'npc', 'encounter']) {
     test(`the ${kind} sheet's poster text follows onTone and clears 4.5:1`, () => {
       const { tone, band, text } = sheet(kind)
       expect(resolveColor(tone)).toBeDefined()

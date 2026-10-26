@@ -28,6 +28,7 @@ const { usePatterns } = await import('../../../replica/collections')
 const { EncounterPage } = await import('../EncounterPage')
 const { EncounterShelf } = await import('../../shelves/EncounterShelf')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
+const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
 withSignedInBackend()
 
@@ -66,6 +67,8 @@ let assigned: string[] = []
 let assignSpy: ReturnType<typeof spyOn> | null = null
 
 beforeEach(() => {
+  // Edit, where the writes are; Read is its own test.
+  useSheetModeStore.setState({ editing: true })
   assigned = []
   assignSpy = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
     assigned.push(String(to))
@@ -131,7 +134,7 @@ describe('an encounter page', () => {
 
   test('it shows the opposition, the pinned tables and the private notes', async () => {
     await renderPage()
-    expect(screen.getByRole('heading', { name: 'Ambush' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Ambush (Encounter)' })).toBeTruthy()
     expect(
       within(screen.getByRole('list', { name: 'Opposition' })).getByText('Raider')
     ).toBeTruthy()
@@ -214,9 +217,27 @@ describe('an encounter page', () => {
     expect(current()?.opposition.map((o) => o.name)).toEqual(['Raider', 'Raider 2'])
   })
 
-  test('Delete asks first, then returns to the Training Bay', async () => {
+  test('Read prints the encounter: no edits, its empty sections left out', async () => {
+    useSheetModeStore.setState({ editing: false })
+    usePrepStore.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
     await renderPage()
-    await click(screen.getByRole('button', { name: 'Delete' }))
+    expect(screen.getByRole('button', { name: 'Read', pressed: true })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Add opposition from the reference' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'More for Raider' })).toBeNull()
+    expect(screen.queryByLabelText('Pin a table')).toBeNull()
+    expect(screen.queryByText('Notes')).toBeNull()
+    expect(
+      within(screen.getByRole('list', { name: 'Opposition' })).getByText('Raider')
+    ).toBeTruthy()
+    await click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByRole('button', { name: 'Add opposition from the reference' })).toBeTruthy()
+    expect(screen.getByText('Notes')).toBeTruthy()
+  })
+
+  test('Delete, under the corner ⋯, asks first, then returns to the Training Bay', async () => {
+    await renderPage()
+    await click(screen.getByRole('button', { name: 'More actions' }))
+    await click(screen.getByRole('button', { name: 'Delete Ambush' }))
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     await settle(() => assigned.length > 0)
     expect(current()).toBeNull()
@@ -247,13 +268,15 @@ async function renderShelf() {
 }
 
 describe('the Encounters shelf', () => {
-  test('+ New encounter makes a blank one and opens it', async () => {
+  test('+ New encounter makes a blank one and opens it in Edit', async () => {
+    useSheetModeStore.setState({ editing: false })
     await renderShelf()
     await click(screen.getByRole('button', { name: '+ New encounter' }))
     await settle(() => assigned.length > 0)
     const made = useEncounters.getState().encounters.find((e) => e.id !== 'enc-1')
     expect(made?.name).toBe('New encounter')
     expect(assigned).toEqual([`/encounters/${made?.id}`])
+    expect(useSheetModeStore.getState().editing).toBe(true)
   })
 
   test('Make a copy asks, then shelves the copy', async () => {

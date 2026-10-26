@@ -20,6 +20,7 @@ import { buildPrepCopy } from '../../messages/build-prep'
 import { useEncounters } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.model'
+import { useSheetModeStore } from '../sheet/sheetMode.model'
 import { Shelf } from './Shelf'
 import { ShelfItem } from './ShelfItem'
 
@@ -68,6 +69,8 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
 
   async function newEncounter() {
     const created = await useEncounters.getState().create(blankEncounter())
+    // A blank encounter has nothing to read: it opens in Edit.
+    useSheetModeStore.getState().setEditing(true)
     go(encounterHref(created.id))
   }
 
