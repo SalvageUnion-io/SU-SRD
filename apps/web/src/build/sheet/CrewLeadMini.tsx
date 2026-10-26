@@ -15,11 +15,11 @@
  * Handler absence is the read-only encoding, as on `NpcLines`.
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel, EntityMode } from '../../components/index'
-import { Entity, relation, Toggle, VitalGauge } from '../../components/index'
+import { Entity, relation, Toggle, useDisclosure, VitalGauge } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
@@ -80,7 +80,7 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
   // In Edit the crew lead starts collapsed, its lines read as in Read; its
   // Details control opens their fields: a bay's crew lead is a collapsed
   // Mini, not four open fields.
-  const [open, setOpen] = useState(false)
+  const details = useDisclosure()
   const { model, hpHint } = useMemo(() => crewHead(base), [base])
   const relations = roleChip(title, name)
   // Its HP right of its lines, as Mini HP cells (R46): set in Edit, read in
@@ -114,9 +114,12 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
                 <Toggle
                   variant="pencil"
                   size="mini"
-                  pressed={open}
-                  onClick={() => setOpen(!open)}
-                  aria-label={`${open ? 'Close' : 'Edit'} ${bayName} crew details`}
+                  pressed={details.open}
+                  onClick={details.toggle}
+                  aria-label={buildSheetCopy(
+                    details.open ? 'closeCrewDetails' : 'editCrewDetails',
+                    { bayName }
+                  )}
                 >
                   {buildSheetCopy('details')}
                 </Toggle>
@@ -127,7 +130,7 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
           text: false,
           children: (
             <div className="su-crew-lead__body">
-              {editing && !open ? (
+              {editing && !details.open ? (
                 <NpcLines {...readLines(props)} />
               ) : (
                 <NpcLines {...props} identity />

@@ -123,6 +123,8 @@ export const buildSheetCopy = messages({
   abilityAndCrew: '{name} ability and crew',
   hp: 'HP',
   crewLead: '{bayName} crew lead',
+  editCrewDetails: 'Edit {bayName} crew details',
+  closeCrewDetails: 'Close {bayName} crew details',
   details: 'Details',
   readOnlyCrewSheet: 'Read-only crew sheet',
   cargoKind: 'Cargo kind',
