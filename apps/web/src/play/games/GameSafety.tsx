@@ -14,8 +14,6 @@ import type { BoundaryKind } from 'game-domain/games/safety'
 import { BOUNDARY_KINDS, BOUNDARY_TEXT_MAX } from 'game-domain/games/safety'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import {
   AdderBox,
   Button,
@@ -75,7 +73,7 @@ const LINE_TEXT = { minWidth: 0, overflowWrap: 'anywhere' } satisfies CSSPropert
 
 const ADDER_INPUT = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
-type Boundary = { _id: Id<'boundaries'>; kind: BoundaryKind; text: string; mayRemove: boolean }
+type Boundary = { _id: string; kind: BoundaryKind; text: string; mayRemove: boolean }
 
 function BoundaryList({
   gameId,
@@ -83,23 +81,23 @@ function BoundaryList({
   lines,
   canWrite,
 }: {
-  gameId: Id<'games'>
+  gameId: string
   kind: BoundaryKind
   lines: readonly Boundary[]
   canWrite: boolean
 }) {
   const id = useId()
   const [text, setText] = useState('')
-  const add = useServerAction(useTableAct(api.safety.addBoundary, gameId), {
+  const add = useServerAction(useTableAct('safety.addBoundary', gameId), {
     failure: playSafetyCopy('couldNotAdd'),
   })
-  const remove = useServerAction(useTableAct(api.safety.removeBoundary, gameId), {
+  const remove = useServerAction(useTableAct('safety.removeBoundary', gameId), {
     failure: playSafetyCopy('couldNotRemove'),
     toastId: 'boundary-remove',
   })
   const name = LIST_NAME[kind]
   const submit = async () => {
-    const result = await add.run({ gameId, kind, text })
+    const result = await add.run({ kind, text })
     if (result.ok) setText('')
   }
 
@@ -160,9 +158,9 @@ function BoundaryList({
   )
 }
 
-export function GameSafety({ gameId, sign }: { gameId: Id<'games'>; sign: StopSign | null }) {
-  const boundaries = useTableRead(api.safety.boundaries, { gameId })
-  const setPost = useServerAction(useTableAct(api.safety.setPostToChannel, gameId), {
+export function GameSafety({ gameId, sign }: { gameId: string; sign: StopSign | null }) {
+  const boundaries = useTableRead('safety.boundaries', { gameId })
+  const setPost = useServerAction(useTableAct('safety.setPostToChannel', gameId), {
     failure: playSafetyCopy('couldNotChange'),
     toastId: 'stop-sign-post',
   })
@@ -191,7 +189,7 @@ export function GameSafety({ gameId, sign }: { gameId: Id<'games'>; sign: StopSi
         <Switch
           checked={sign.postToChannel}
           disabled={!canWrite || setPost.pending}
-          onClick={() => void setPost.run({ gameId, on: !sign.postToChannel })}
+          onClick={() => void setPost.run({ on: !sign.postToChannel })}
         >
           {playSafetyCopy('postToChannel')}
         </Switch>

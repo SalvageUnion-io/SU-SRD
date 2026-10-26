@@ -105,7 +105,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const members = useGamesQuery(api.games.members, { gameId: gameId as Id<'games'> })
   const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
-  const vitals = useTableRead(api.crew.vitals, { gameId: gameId as Id<'games'> })
+  const vitals = useTableRead('crew.vitals', { gameId })
 
   const makePrimary = useServerAction(useGamesMutation(api.games.setPrimaryCrawler), {
     failure: 'That crawler could not be made primary. Try again.',

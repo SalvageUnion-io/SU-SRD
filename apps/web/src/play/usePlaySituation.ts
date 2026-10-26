@@ -11,7 +11,6 @@
  * else whatever this says.
  */
 
-import type { Id } from '../../convex/_generated/dataModel'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { boardMenu } from './boardMenu.model'
@@ -29,10 +28,10 @@ export function usePlaySituation(target: PlayTarget): Play {
   const { canWrite } = connection
   const store = useUnits()
   const pilot = store.get('pilot', target.pilotId)
-  const seat = useSeatAt({ gameId: target.gameId as Id<'games'> | null, pilotId: target.pilotId })
+  const seat = useSeatAt({ gameId: target.gameId, pilotId: target.pilotId })
   const downtime = usePlayDowntime(target)
   const scene = useScene(target.gameId)
-  const sources = useGameBoardSources(target.gameId as Id<'games'> | null)
+  const sources = useGameBoardSources(target.gameId)
 
   const mount = seat.seat.mount
   const boardedMechId = mount.kind === 'boarded' ? mount.mechId : null

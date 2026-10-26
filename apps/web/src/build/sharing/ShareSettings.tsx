@@ -29,7 +29,6 @@ import { Copy } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import {
   Button,
   CopiedIcon,
@@ -116,7 +115,7 @@ function SheetShareSettings({
   gameId = null,
   clipboardWriter,
 }: ShareSettingsProps & { kind: Exclude<ShareKind, 'pattern'> }) {
-  const setPublic = useTableAct(api.publicSheet.setPublic, gameId)
+  const setPublic = useTableAct('publicSheet.setPublic', gameId)
   const published = useSheetIsPublic(kind, appId, gameId)
   const games = useGamesQuery(api.games.listMine, gameId === null ? 'skip' : {})
   const share = useServerAction(
@@ -161,8 +160,8 @@ function SheetShareSettings({
 
 /** A pattern: all three answers are its own, the crew one with a Game to name. */
 function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsProps) {
-  const setVisibility = useTableAct(api.shelf.setPatternVisibility, null)
-  const sharing = useTableRead(api.shelf.patternSharing, {})
+  const setVisibility = useTableAct('shelf.setPatternVisibility', null)
+  const sharing = useTableRead('shelf.patternSharing', {})
   const games = useGamesQuery(api.games.listMine, {})
   const [pickedGame, setPickedGame] = useState<string | null>(null)
   const share = useServerAction(
@@ -170,7 +169,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
       setVisibility({
         patternId: appId,
         visibility: next,
-        ...(next === 'game' && nextGame ? { gameId: nextGame as Id<'games'> } : {}),
+        ...(next === 'game' && nextGame ? { gameId: nextGame } : {}),
       }),
     SHARE_FAILURE
   )
@@ -230,7 +229,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
 
 /** A link-shared pattern's second opt-in: Homebrew on the Reference (ADR-061). */
 function ShareOnReference({ appId, shared }: { appId: string; shared: boolean }) {
-  const setShared = useTableAct(api.homebrew.setShared, null)
+  const setShared = useTableAct('homebrew.setShared', null)
   const write = useServerAction(
     (next: boolean) => setShared({ patternId: appId, shared: next }),
     SHARE_FAILURE

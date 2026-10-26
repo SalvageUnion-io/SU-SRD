@@ -13,17 +13,16 @@
  * holds the Crew column's seat lines.
  */
 
-import type { FunctionReturnType } from 'convex/server'
 import { containerOf } from 'game-domain/container'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { coreRollBandLabel } from 'salvageunion-reference/rules'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { gauge, pool } from '../lib/units/crewPair'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
+import type { ProposalRead } from '../rooms/game/proposals'
+import type { CrewVitals } from '../rooms/vitals'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
@@ -41,10 +40,10 @@ export type RollLine = {
 export type AlertLine = { _id: string; message: string; ts: number }
 
 /** A proposal awaiting this player's answer (`ops.pending`). */
-export type PendingProposal = FunctionReturnType<typeof api.ops.pending>[number]
+export type PendingProposal = ProposalRead
 
 /** The crew as the server derives it (`crew.vitals`). */
-export type CrewVitals = FunctionReturnType<typeof api.crew.vitals>
+export type { CrewVitals }
 
 /** One crewmate, as Play's Crew reads it. */
 export type CrewLine = {
@@ -102,14 +101,14 @@ const LOG_ALERTS = 10
 export function useGameFeed(pilot: Pilot | null): GameFeed {
   const { status } = useSync()
   const container = pilot === null ? null : containerOf(pilot)
-  const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
+  const gameId = container?.kind === 'game' ? container.gameId : null
   const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null
 
-  const rolls = useTableRead(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
-  const alerts = useTableRead(api.changeLog.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
-  const pending = useTableRead(api.ops.pending, inGame ? { gameId } : 'skip')
-  const crew = useTableRead(api.crew.vitals, inGame ? { gameId } : 'skip')
+  const rolls = useTableRead('changeLog.rolls', inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
+  const alerts = useTableRead('changeLog.alerts', inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
+  const pending = useTableRead('ops.pending', inGame ? { gameId } : 'skip')
+  const crew = useTableRead('crew.vitals', inGame ? { gameId } : 'skip')
 
   return {
     rolls: rolls ?? null,

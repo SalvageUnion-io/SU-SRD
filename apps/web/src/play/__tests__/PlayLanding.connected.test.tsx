@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
@@ -22,6 +22,7 @@ import {
   setQueryAnswers,
 } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 import { crewPilot } from './crewRows'
 
@@ -124,7 +125,7 @@ const card = (name: string) => {
 
 describe('the Play landing', () => {
   test('signed out, asks you to sign in and asks Convex nothing', async () => {
-    setQueryAnswers({})
+    answerReads({})
     await renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Sign in with Discord' }).getAttribute('href')).toBe(
@@ -134,7 +135,7 @@ describe('the Play landing', () => {
   })
 
   test('Your Games: each a Compact opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
-    setQueryAnswers({
+    answerReads({
       'games:listMine': [TENACITY, WASTES],
       'downtime:state': IN_DOWNTIME,
       ...QUIET,
@@ -162,15 +163,10 @@ describe('the Play landing', () => {
     expect(mediate.textContent).toBe('Mediate')
     // One door per Game.
     expect(wastes.queryByRole('link', { name: /^Play / })).toBeNull()
-    // `downtime.state` for each Game.
-    const asked = queryCalls()
-      .filter((c) => c.name === 'downtime:state')
-      .map((c) => (c.args as { gameId: string }).gameId)
-    expect([...new Set(asked)].sort()).toEqual(['land-g1', 'land-g2'])
   })
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
-    setQueryAnswers({
+    answerReads({
       'games:listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
       'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
       ...QUIET,
@@ -186,7 +182,7 @@ describe('the Play landing', () => {
   })
 
   test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
-    setQueryAnswers({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
+    answerReads({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
     await renderAs('live')
     const solo = section('Play solo')
     expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
@@ -213,7 +209,7 @@ describe('the Play landing', () => {
   })
 
   test('the head offers + New Game and Join; Join opens the invite screen from a link or its token', async () => {
-    setQueryAnswers({ 'games:listMine': [], 'templates:list': [], ...QUIET })
+    answerReads({ 'games:listMine': [], 'templates:list': [], ...QUIET })
     const assigned: string[] = []
     const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
       assigned.push(String(to))
@@ -256,7 +252,7 @@ describe('the Play landing', () => {
   })
 
   test('a Game’s channel is a chip on its card; there is no Discord section', async () => {
-    setQueryAnswers({
+    answerReads({
       'games:listMine': [TENACITY, WASTES],
       'downtime:state': IN_DOWNTIME,
       ...QUIET,
@@ -280,7 +276,7 @@ describe('the Play landing', () => {
   })
 
   test('the crew are Minis with their chips: a boarded pilot is its mech, else the pilot', async () => {
-    setQueryAnswers({
+    answerReads({
       'games:listMine': [TENACITY],
       'downtime:state': IN_DOWNTIME,
       ...QUIET,
@@ -376,7 +372,7 @@ describe('the Play landing', () => {
   })
 
   test('Your Games: how many are here now, from the Game’s room', async () => {
-    setQueryAnswers({
+    answerReads({
       'games:listMine': [TENACITY],
       'downtime:state': IN_DOWNTIME,
       ...QUIET,
@@ -400,7 +396,7 @@ describe('the Play landing', () => {
   })
 
   test('offline, the shelf still lists, and Your Games wait for the connection', async () => {
-    setQueryAnswers({})
+    answerReads({})
     await renderAs('offline')
     expect(section('Play solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
     expect(
@@ -412,3 +408,11 @@ describe('the Play landing', () => {
     expect(queryCalls()).toHaveLength(0)
   })
 })
+
+/** Answer the Convex reads, and serve the Game room's records from the table reads among them. */
+function answerReads(answers: Record<string, unknown>): void {
+  setQueryAnswers(answers)
+  serveReads('land-g1', answers)
+}
+
+afterEach(closeRooms)

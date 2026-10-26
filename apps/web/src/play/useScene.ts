@@ -6,8 +6,6 @@
  */
 
 import type { SceneConditionId } from 'game-domain/schemas/scene'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
@@ -23,9 +21,6 @@ export const CLEAR_SCENE: SceneState = { conditions: [], hours: 0 }
 
 export function useScene(gameId: string | null): SceneState {
   const signedIn = isSignedIn(useSync().status)
-  const scene = useTableRead(
-    api.scenes.current,
-    signedIn && gameId !== null ? { gameId: gameId as Id<'games'> } : 'skip'
-  )
+  const scene = useTableRead('scenes.current', signedIn && gameId !== null ? { gameId } : 'skip')
   return scene ?? CLEAR_SCENE
 }

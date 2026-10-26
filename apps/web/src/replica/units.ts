@@ -31,10 +31,8 @@ import { diffBodies } from 'game-domain/ops/applyOp'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useCallback, useSyncExternalStore } from 'react'
-import { staleWriteOf } from '../../convex/model/staleWrite'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
-import { captureException } from '../lib/observability'
 import type { Applied } from './outbox'
 import { queues, sendLink, sendOp, sendRow, sendTransfer } from './outbox'
 import type { ChangeMeta } from './provenance'
@@ -56,7 +54,7 @@ import {
   untilArrived,
 } from './replica'
 import { ROOM_FEED } from './roomSocket'
-import { requireWritable, StaleWriteRefused } from './sync'
+import { requireWritable } from './sync'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
 export type { ChangeMeta } from './provenance'
@@ -207,33 +205,6 @@ function opOf(
 }
 
 /**
- * What a refused send throws. A stale-write refusal carries the server's row,
- * which is held first, so the sheet shows what the other device saved and the
- * player re-applies their change on top of it rather than over it; `rowOf`
- * names the refused record from the body's id. Any other refusal is thrown as
- * it came.
- */
-function refusalOf(
-  err: unknown,
-  rowOf: (bodyId: string | undefined) => { type: EntityType; id: string } | undefined
-): unknown {
-  const stale = staleWriteOf(err)
-  if (stale === null) return err
-  try {
-    const refused = rowOf((stale.body as { id?: string } | null)?.id)
-    if (refused !== undefined) {
-      const served = kindOf(refused.type).schema.parse(stale.body)
-      hold(refused.type, served as never, { version: stale.updatedAt, headSeq: stale.headSeq })
-    }
-  } catch (holdErr) {
-    // The refusal still stands and is still shown; only the refresh failed,
-    // and the feed brings the row down on its next answer regardless.
-    captureException(holdErr)
-  }
-  return new StaleWriteRefused(stale.message, { cause: err })
-}
-
-/**
  * Stamp a new build with its container (ADR-030 §2): an input that names its
  * Game keeps it (the wizard's `?game=<id>`), any other lands in the Training
  * Bay. Links carry no container.
@@ -326,11 +297,7 @@ export const units: UnitsApi = {
       await sendLink('upsert', updated as unknown as SoftLink)
     } else if (before !== null) {
       const { op, move } = opOf(type, id, before, updated, patch, meta)
-      try {
-        applied = await sendOp(type, (updated as ContainerFields).gameId ?? null, op, move)
-      } catch (err) {
-        throw refusalOf(err, () => ({ type, id }))
-      }
+      applied = await sendOp(type, (updated as ContainerFields).gameId ?? null, op, move)
     }
     holdApplied(type, updated, applied)
 
@@ -379,23 +346,18 @@ export const units: UnitsApi = {
     // that landed on the mech and was refused on the crawler would lose the
     // lot. Links are read before they are dropped here, because the server
     // addresses a link by its endpoints.
-    let applied: ReadonlyMap<string, Applied>
-    try {
-      applied = await sendTransfer(
-        prepared.map((pu) => ({
-          unit: pu.type,
-          gameId: (pu.record as ContainerFields).gameId ?? null,
-          ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
-        })),
-        deletes.map((d) =>
-          d.type === 'softLink'
-            ? { type: 'softLink' as const, link: units.get('softLink', d.id) }
-            : { type: d.type, id: d.id }
-        )
+    const applied = await sendTransfer(
+      prepared.map((pu) => ({
+        unit: pu.type,
+        gameId: (pu.record as ContainerFields).gameId ?? null,
+        ...opOf(pu.type, pu.id, pu.before as object, pu.record, pu.patch, meta),
+      })),
+      deletes.map((d) =>
+        d.type === 'softLink'
+          ? { type: 'softLink' as const, link: units.get('softLink', d.id) }
+          : { type: d.type, id: d.id }
       )
-    } catch (err) {
-      throw refusalOf(err, (bodyId) => prepared.find((pu) => pu.id === bodyId))
-    }
+    )
 
     // Hold it as one change; deleting a unit takes its links with it.
     holdAll(

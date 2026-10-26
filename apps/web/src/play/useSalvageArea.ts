@@ -12,8 +12,6 @@
  */
 
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
@@ -33,19 +31,19 @@ export type SalvageAreaView = {
 export function useSalvageArea(screen: PlayScreen): SalvageAreaView {
   const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
-  const gameId = screen.gameId as Id<'games'> | null
-  const here = useTableRead(api.salvageAreas.here, signedIn ? { gameId } : 'skip')
-  const setArea = useTableAct(api.salvageAreas.set, gameId)
-  const spendSupply = useTableAct(api.salvageAreas.spend, gameId)
+  const { gameId } = screen
+  const here = useTableRead('salvageAreas.here', signedIn ? { gameId } : 'skip')
+  const setArea = useTableAct('salvageAreas.set', gameId)
+  const spendSupply = useTableAct('salvageAreas.spend', gameId)
 
   return {
     area: here ?? null,
     canSet: gameId === null || screen.mediator,
-    set: (area) => guarded.send(() => setArea({ gameId, area })),
+    set: (area) => guarded.send(() => setArea({ area })),
     spend: async (pilotId) => {
       let spent: { techLevel: number; supply: number } | null = null
       const ok = await guarded.ask(async () => {
-        spent = await spendSupply({ gameId, pilotId })
+        spent = await spendSupply({ pilotId })
         return true
       })
       return ok ? spent : null

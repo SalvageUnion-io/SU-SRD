@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
@@ -24,7 +24,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  * end: each offered pilot is handed to the real `PlayGate`, with the Cockpit
  * itself stubbed.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * The Games reads are answered **by name** (`getFunctionName`) — see
+ * `convexMock.ts`; the Game room serves the rest (`fakeRooms.ts`).
  */
 
 import { getFunctionName } from 'convex/server'
@@ -33,7 +34,9 @@ import { createElement } from 'react'
 import type { QueryAnswers } from '../../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
+import { answerActs, closeRooms, openRooms, serveReads } from '../../../replica/__tests__/fakeRooms'
 
+/** Every Games call (`games:destroy`) and act on the Game's room (`ledger.setFaction`), in order. */
 const mutations: { name: string; args: unknown }[] = []
 /** Every `router.navigate(opts)` the hub made. */
 const navigations: unknown[] = []
@@ -90,7 +93,19 @@ beforeAll(hydrateStores)
 beforeEach(() => {
   mutations.length = 0
   navigations.length = 0
+  openRooms('g1')
+  answerActs(({ name, args }) => {
+    mutations.push({ name, args })
+  })
 })
+
+afterEach(closeRooms)
+
+/** The Games reads answered, and the Game's room serving what the table reads answer. */
+function answer(all: QueryAnswers): void {
+  setQueryAnswers(all)
+  serveReads('g1', all)
+}
 
 afterAll(() => {
   convexMocks.restore()
@@ -142,7 +157,7 @@ async function openGameMenu(): Promise<void> {
 
 // Async act: the roster inside flips its hydrated flag from a promise after mount.
 async function renderHub(over: QueryAnswers = {}): Promise<void> {
-  setQueryAnswers(answers(over))
+  answer(answers(over))
   await act(async () => {
     render(<GameHub gameId="g1" />)
   })
@@ -530,7 +545,7 @@ describe('Play from the Game page', () => {
   })
 
   test('opened before the pilots answer, it says so, then chooses yours when they arrive', async () => {
-    setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': undefined }))
+    answer(answers({ 'games:members': MEDIATED, 'entities:listForGame': undefined }))
     let view: ReturnType<typeof render> | undefined
     await act(async () => {
       view = render(<GameHub gameId="g1" />)
@@ -539,7 +554,7 @@ describe('Play from the Game page', () => {
     expect(within(dialog).getByText('Loading pilots…')).toBeTruthy()
     expect(within(dialog).queryByText(/saved in this browser/)).toBeNull()
 
-    setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) }))
+    answer(answers({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) }))
     await act(async () => {
       view?.rerender(<GameHub gameId="g1" />)
     })
@@ -662,9 +677,8 @@ describe('Factions and Jobs', () => {
     await act(async () => {
       fireEvent.click(screen.getAllByRole('button', { name: 'Add' })[0] as HTMLElement)
     })
-    const added = mutations.find((m) => m.name === 'ledger:setFaction')
+    const added = mutations.find((m) => m.name === 'ledger.setFaction')
     expect(added?.args).toMatchObject({
-      gameId: 'g1',
       faction: { name: 'DronTek', standing: 'neutral', deal: false },
     })
   })
@@ -679,21 +693,18 @@ describe('Factions and Jobs', () => {
     })
     const dialog = screen.getByRole('alertdialog')
     expect(within(dialog).getByText('It pays 30 Tech 3 Scrap into the crawler, once.')).toBeTruthy()
-    expect(mutations.some((m) => m.name === 'ledger:completeJob')).toBe(false)
+    expect(mutations.some((m) => m.name === 'ledger.completeJob')).toBe(false)
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Finish' }))
     })
-    expect(mutations.find((m) => m.name === 'ledger:completeJob')?.args).toEqual({
-      gameId: 'g1',
-      id: 'j1',
-    })
+    expect(mutations.find((m) => m.name === 'ledger.completeJob')?.args).toEqual({ id: 'j1' })
   })
 })
 
 describe('Safety (Core Book pp.12-13)', () => {
   /** The hub as `GamePage` mounts it: connected, so the Stop Sign is read. */
   async function renderConnected(over: QueryAnswers): Promise<void> {
-    setQueryAnswers(answers(over))
+    answer(answers(over))
     const connected = {
       status: 'live' as const,
       canWrite: true,
@@ -790,10 +801,10 @@ describe('Safety (Core Book pp.12-13)', () => {
       fireEvent.click(screen.getByRole('switch', { name: 'Post it to the Discord channel' }))
     })
     expect(mutations).toEqual([
-      { name: 'safety:addBoundary', args: { gameId: 'g1', kind: 'offCamera', text: 'Gore' } },
-      { name: 'safety:removeBoundary', args: { boundaryId: 'b1' } },
-      { name: 'safety:liftStop', args: { gameId: 'g1' } },
-      { name: 'safety:setPostToChannel', args: { gameId: 'g1', on: true } },
+      { name: 'safety.addBoundary', args: { kind: 'offCamera', text: 'Gore' } },
+      { name: 'safety.removeBoundary', args: { boundaryId: 'b1' } },
+      { name: 'safety.liftStop', args: {} },
+      { name: 'safety.setPostToChannel', args: { on: true } },
     ])
   })
 
@@ -802,6 +813,6 @@ describe('Safety (Core Book pp.12-13)', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Show the Stop Sign' }))
     })
-    expect(mutations).toEqual([{ name: 'safety:showStop', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'safety.showStop', args: {} }])
   })
 })

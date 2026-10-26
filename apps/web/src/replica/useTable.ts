@@ -1,32 +1,38 @@
 /**
- * What a table plays under, read and written the same way whichever server
- * holds it: the Scene, the salvage area, the ledger, the boundaries and the
- * Stop Sign (4.3), the Mediator's Opposition tray and running encounter,
- * the table in play: the seats, the Downtime, the proposals and the feed; and
- * who may read each of the player's saved patterns.
+ * What a table plays under, read and written through its room: the Scene, the
+ * salvage area, the ledger, the boundaries and the Stop Sign, the Mediator's
+ * Opposition tray and running encounter, the table in play: the seats, the
+ * Downtime, the proposals, the feed and the crew's vitals; and who may read
+ * each of the player's saved patterns.
  *
- * `useTableRead` stands in for Convex's `useQuery`, and `useTableAct` for its
- * `useMutation`, on those functions. A Game room serves each query's answer as
- * a record (`tableState.ts`) and takes each mutation as an act under the
- * function's own name, so a screen swaps one call for the other and nothing
- * else (but `mediator.runEncounter`, which carries the encounter: a Game room
- * cannot read the Mediator's shelf). The build's feed (`ROOM_FEED`) picks which; the cutover deletes the
- * Convex half.
+ * `useTableRead` reads a room's record (`tableState.ts`) as the read of that
+ * name answers it, and `useTableAct` sends an act of that name to a Game's
+ * room, or the account room's for the solo table (`gameId` null).
  */
 
-import { useMutation, useQuery } from 'convex/react'
-import type { FunctionArgs, FunctionReference, FunctionReturnType } from 'convex/server'
-import { getFunctionName } from 'convex/server'
+import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { useCallback, useSyncExternalStore } from 'react'
+import type { z } from 'salvageunion-reference/zod'
+import type { PatternSharing } from '../rooms/account/sharing'
+import type { SoloSeatRead } from '../rooms/account/soloPlay'
+import type { GameActName, GameActResult } from '../rooms/game/acts'
+import type { AlertRow, RollRow } from '../rooms/game/log'
+import type { DowntimeRead } from '../rooms/game/play'
+import type { ProposalRead, SentProposal } from '../rooms/game/proposals'
+import type { BoundaryRead } from '../rooms/game/safety'
+import type { ACCOUNT_SOCKET_ACTS, GAME_SOCKET_ACTS } from '../rooms/game/socketActs'
+import type { SeatRead } from '../rooms/seats'
+import type { CrewVitals } from '../rooms/vitals'
 import type { Scope } from './replica'
 import { gameScope } from './replica'
-import { ROOM_FEED, roomOf } from './roomSocket'
+import { roomOf } from './roomSocket'
 import { WritesBlockedOffline } from './sync'
 import type { StateTable } from './tableState'
 import { readTableState, subscribeTableState } from './tableState'
 
 /** A query's args, as a screen passes them. */
-type Args = { gameId?: string | null; pilotId?: string; limit?: number }
+export type ReadArgs = { gameId?: string | null; pilotId?: string | null; limit?: number }
+type Args = ReadArgs
 
 /**
  * How a room answers a query a screen reads: the record table that holds it
@@ -45,21 +51,19 @@ function newest(fallback: number) {
 }
 
 /** A solo pilot's seat, as `seats.solo` answered: null for one not on the Shelf. */
-function soloSeat(held: unknown, args: Args): SoloSeat | null {
-  return (held as SoloSeat[]).find((seat) => seat.pilotId === args.pilotId) ?? null
-}
-type SoloSeat = {
-  pilotId: string
-  downtime: {
-    stepIndex: number
-    startedAt: number
-    upkeepSpent: boolean
-    doneSteps: number[]
-  } | null
+function soloSeat(held: unknown, args: Args): SoloSeatRead | null {
+  return (held as SoloSeatRead[]).find((seat) => seat.pilotId === args.pilotId) ?? null
 }
 
-const NOT_RUNNING = {
+/** A Downtime as one pilot reads it: the steps they took, not every pilot's. */
+type DowntimeState = Omit<DowntimeRead, 'doneSteps' | 'runId'> & {
+  runId?: string | null
+  doneSteps: number[]
+}
+
+const NOT_RUNNING: DowntimeState = {
   running: false,
+  runId: null,
   stepIndex: null,
   startedAt: null,
   completedBy: [],
@@ -71,9 +75,9 @@ const NOT_RUNNING = {
  * `downtime.state`: a Game's, with the steps `pilotId` took; or a solo
  * pilot's, off its seat (null for one not on the Shelf).
  */
-function downtimeState(held: unknown, args: Args): unknown {
+function downtimeState(held: unknown, args: Args): DowntimeState | null {
   if (args.gameId != null) {
-    const game = held as { doneSteps: Record<string, number[]> } | null
+    const game = held as DowntimeRead | null
     if (game === null) return null
     return { ...game, doneSteps: game.doneSteps[args.pilotId ?? ''] ?? [] }
   }
@@ -82,44 +86,64 @@ function downtimeState(held: unknown, args: Args): unknown {
   return seat.downtime === null ? NOT_RUNNING : { ...seat.downtime, running: true, completedBy: [] }
 }
 
-/** Each query a screen reads, by its Convex name. */
-const ANSWERED_BY: Record<string, Answer> = {
-  'scenes:current': { table: 'scene' },
-  'salvageAreas:here': { table: 'salvageArea' },
-  'ledger:get': { table: 'ledger' },
-  'safety:boundaries': { table: 'boundaries' },
-  'safety:stopSign': { table: 'safety' },
+/** Each read a screen makes, by name. */
+const ANSWERED_BY: Record<ReadName, Answer> = {
+  'scenes.current': { table: 'scene' },
+  'salvageAreas.here': { table: 'salvageArea' },
+  'ledger.get': { table: 'ledger' },
+  'safety.boundaries': { table: 'boundaries' },
+  'safety.stopSign': { table: 'safety' },
   // The one `mediator` record is the running encounter, and having it at all is mediating.
-  'mediator:npcs': { table: 'opposition' },
-  'mediator:running': {
+  'mediator.npcs': { table: 'opposition' },
+  'mediator.running': {
     table: 'mediator',
     answer: (held) => (held as { running?: unknown } | null)?.running ?? null,
   },
-  'mediator:amMediator': { table: 'mediator', answer: (held) => held !== null },
-  'seats:forGame': { table: 'seats' },
-  'seats:solo': { table: 'seats', answer: soloSeat },
-  'downtime:state': {
+  'mediator.amMediator': { table: 'mediator', answer: (held) => held !== null },
+  'seats.forGame': { table: 'seats' },
+  'seats.solo': { table: 'seats', answer: soloSeat },
+  'downtime.state': {
     table: (args) => (args.gameId == null ? 'seats' : 'downtime'),
     answer: downtimeState,
   },
-  'ops:pending': { table: 'proposals' },
-  'ops:sent': { table: 'sentProposals', answer: newest(20) },
-  'changeLog:rolls': { table: 'rolls', answer: newest(30) },
-  'changeLog:alerts': { table: 'alerts', answer: newest(20) },
-  'crew:vitals': { table: 'crew' },
-  'shelf:patternSharing': { table: 'sharing' },
+  'ops.pending': { table: 'proposals' },
+  'ops.sent': { table: 'sentProposals', answer: newest(20) },
+  'changeLog.rolls': { table: 'rolls', answer: newest(30) },
+  'changeLog.alerts': { table: 'alerts', answer: newest(20) },
+  'crew.vitals': { table: 'crew' },
+  'shelf.patternSharing': { table: 'sharing' },
 }
 
-type Query = FunctionReference<'query'>
-type Mutation = FunctionReference<'mutation'>
-type Read = <Q extends Query>(
-  query: Q,
-  args: FunctionArgs<Q> | 'skip'
-) => FunctionReturnType<Q> | undefined
-type Act = <M extends Mutation>(
-  mutation: M,
-  gameId: string | null
-) => (args: FunctionArgs<M>) => Promise<FunctionReturnType<M>>
+/** What each read answers, as its screen reads it. */
+type Reads = {
+  'scenes.current': GameActResult<'scenes.current'>
+  'salvageAreas.here': GameActResult<'salvageAreas.here'>
+  'ledger.get': GameActResult<'ledger.get'>
+  'safety.boundaries': (Omit<BoundaryRead, 'id' | 'addedAt'> & { _id: string })[]
+  'safety.stopSign': GameActResult<'safety.stopSign'>
+  'mediator.npcs': { _id: string; body: Record<string, unknown> }[]
+  'mediator.running': RunningEncounter | null
+  'mediator.amMediator': boolean
+  'seats.forGame': SeatRead[]
+  'seats.solo': SoloSeatRead | null
+  'downtime.state': DowntimeState | null
+  'ops.pending': ProposalRead[]
+  'ops.sent': SentProposal[]
+  'changeLog.rolls': RollRow[]
+  'changeLog.alerts': AlertRow[]
+  'crew.vitals': CrewVitals | null
+  'shelf.patternSharing': (PatternSharing & { appId: string })[]
+}
+export type ReadName = keyof Reads
+export type ReadAnswer<N extends ReadName> = Reads[N]
+
+/** The acts a screen sends a room, with the args it sends. */
+type Acts = typeof GAME_SOCKET_ACTS & typeof ACCOUNT_SOCKET_ACTS
+export type TableActName = keyof Acts
+export type TableActArgs<N extends TableActName> = z.input<Acts[N]>
+type TableActResult<N extends TableActName> = N extends GameActName
+  ? Awaited<GameActResult<N>>
+  : unknown
 
 /** A Game's room, or the account room's for the solo table (`gameId` null). */
 function scopeOf(gameId: string | null): Scope {
@@ -129,46 +153,42 @@ function scopeOf(gameId: string | null): Scope {
 /** Each answer made from a held record, per args: stable between changes, for `useSyncExternalStore`. */
 const made = new WeakMap<object, Map<string, unknown>>()
 
-function answered(how: Answer, held: unknown, args: Args): unknown {
+function answered(name: ReadName, how: Answer, held: unknown, args: Args): unknown {
   if (held === undefined || how.answer === undefined) return held
   if (held === null || typeof held !== 'object') return how.answer(held, args)
-  const key = JSON.stringify(args)
+  const key = `${name}\u0000${JSON.stringify(args)}`
   const answers = made.get(held) ?? new Map<string, unknown>()
   made.set(held, answers)
   if (!answers.has(key)) answers.set(key, how.answer(held, args))
   return answers.get(key)
 }
 
-const useRoomRead: Read = (query, args) => {
-  const how = ANSWERED_BY[getFunctionName(query)]
-  const given = args === 'skip' || how === undefined ? null : (args as Args)
+/** The read `name` from its room's record: undefined until the room's snapshot, or while skipped. */
+export function useTableRead<N extends ReadName>(
+  name: N,
+  args: ReadArgs | 'skip'
+): ReadAnswer<N> | undefined {
+  const how = ANSWERED_BY[name]
+  const given = args === 'skip' ? null : args
   return useSyncExternalStore(subscribeTableState, () => {
-    if (given === null || how === undefined) return undefined
+    if (given === null) return undefined
     const table = typeof how.table === 'string' ? how.table : how.table(given)
-    const held = readTableState(scopeOf(given.gameId ?? null), table)
-    return answered(how, held, given)
-  }) as never
+    return answered(name, how, readTableState(scopeOf(given.gameId ?? null), table), given)
+  }) as ReadAnswer<N> | undefined
 }
 
-const useConvexRead: Read = (query, args) => useQuery(query, args as never)
-
-const useRoomAct: Act = (mutation, gameId) => {
-  const name = getFunctionName(mutation).replace(':', '.')
+/** The act `name`, sent to `gameId`'s room (the account room's when null); refused offline. */
+export function useTableAct<N extends TableActName>(
+  name: N,
+  gameId: string | null
+): (args: TableActArgs<N>) => Promise<TableActResult<N>> {
   return useCallback(
-    (args) => {
+    (args: TableActArgs<N>) => {
       const room = roomOf(gameId)
       return room === null
         ? Promise.reject(new WritesBlockedOffline())
-        : (room.act(name, args) as Promise<never>)
+        : (room.act(name, args) as Promise<TableActResult<N>>)
     },
     [name, gameId]
   )
 }
-
-const useConvexAct: Act = (mutation) => useMutation(mutation) as never
-
-/** `useQuery` on a table's state: its room's record while the rooms feed the replica. */
-export const useTableRead: Read = ROOM_FEED ? useRoomRead : useConvexRead
-
-/** `useMutation` on a table's state, sent to `gameId`'s room as an act while the rooms feed the replica. */
-export const useTableAct: Act = ROOM_FEED ? useRoomAct : useConvexAct

@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { createElement } from 'react'
 
@@ -12,6 +12,7 @@ import { createElement } from 'react'
  */
 
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 
 const convexMocks = await installConvexMocks({
   also: {
@@ -47,19 +48,19 @@ const GAME = { _id: 'g1', name: 'Reclamation of the Wastes', mediator: true, org
 
 describe('PlayMediatorGate', () => {
   test('signed out, there is no Game to run', () => {
-    setQueryAnswers({})
+    answerReads({})
     renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to run your Game' })).toBeTruthy()
   })
 
   test('the Mediator gets the screen, under the Game’s name', () => {
-    setQueryAnswers({ 'games:get': GAME, 'mediator:amMediator': true })
+    answerReads({ 'games:get': GAME, 'mediator:amMediator': true })
     renderAs('live')
     expect(screen.getByText('Mediating Reclamation of the Wastes')).toBeTruthy()
   })
 
   test('a member who does not mediate is sent back to the Game', () => {
-    setQueryAnswers({ 'games:get': { ...GAME, mediator: false }, 'mediator:amMediator': false })
+    answerReads({ 'games:get': { ...GAME, mediator: false }, 'mediator:amMediator': false })
     renderAs('live')
     expect(screen.getByText("Only this Game's Mediator runs this screen")).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
@@ -68,14 +69,22 @@ describe('PlayMediatorGate', () => {
   })
 
   test('a stranger is told the same, and the Mediator check is never asked', () => {
-    setQueryAnswers({ 'games:get': null })
+    answerReads({ 'games:get': null })
     renderAs('live')
     expect(screen.getByText("Only this Game's Mediator runs this screen")).toBeTruthy()
   })
 
   test('waits while the Game has not answered', () => {
-    setQueryAnswers({ 'games:get': undefined })
+    answerReads({ 'games:get': undefined })
     renderAs('offline')
     expect(screen.getByText('Loading the Game…')).toBeTruthy()
   })
 })
+
+/** Answer the Convex reads, and serve the Game room's records from the table reads among them. */
+function answerReads(answers: Record<string, unknown>): void {
+  setQueryAnswers(answers)
+  serveReads('g1', answers)
+}
+
+afterEach(closeRooms)

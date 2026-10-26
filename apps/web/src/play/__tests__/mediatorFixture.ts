@@ -5,7 +5,6 @@
  * Hotdog, an unassigned pre-gen, who is no seat.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 import { calm, crewMech, crewPilot } from './crewRows'
 
@@ -18,7 +17,6 @@ export const TABLE_HERE: ReadonlySet<string> = new Set(['u-bonesaw', 'u-mags', '
 /** The table. */
 export function mediatorCrewAt(): CrewVitals {
   return {
-    viewerId: 'u-gm' as Id<'users'>,
     pilots: [
       pilot('bonesaw', 'Bonesaw', 'u-bonesaw', {
         currentHP: 7,

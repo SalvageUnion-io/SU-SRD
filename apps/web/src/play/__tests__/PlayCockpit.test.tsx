@@ -8,11 +8,12 @@
  * Without a router, so the bar's "‹ Play" is a plain anchor.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
+import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 import { narrowViewport } from './narrowViewport'
 
@@ -41,7 +42,7 @@ const ANSWERS = {
   'ops:pending': [],
   'crew:vitals': null,
 }
-setQueryAnswers(ANSWERS)
+answerReads(ANSWERS)
 
 const { resetSync } = await import('../../replica/sync')
 const { useUnits } = await import('../../replica/units')
@@ -124,7 +125,7 @@ describe('the Cockpit frame', () => {
   })
 
   test('in a Game, the bar has Stop; up, the Stop Sign pauses the screen under the bar', async () => {
-    setQueryAnswers({
+    answerReads({
       ...ANSWERS,
       'safety:stopSign': {
         stop: { shownAt: 1, mine: false },
@@ -142,7 +143,7 @@ describe('the Cockpit frame', () => {
       expect(screen.getByText('Stop Sign: the game is paused')).toBeTruthy()
       expect(screen.queryByRole('button', { name: 'Resume play' })).toBeNull()
     } finally {
-      setQueryAnswers(ANSWERS)
+      answerReads(ANSWERS)
     }
   })
 
@@ -152,7 +153,7 @@ describe('the Cockpit frame', () => {
   })
 
   test('a bound channel: the button names it, as it was when bound', async () => {
-    setQueryAnswers({
+    answerReads({
       ...ANSWERS,
       'channelBindings:current': { channelId: 'c-1', channelName: 'salvage-run', boundAt: 1 },
     })
@@ -163,7 +164,7 @@ describe('the Cockpit frame', () => {
         '#salvage-run'
       )
     } finally {
-      setQueryAnswers(ANSWERS)
+      answerReads(ANSWERS)
     }
   })
 
@@ -225,3 +226,11 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
     }
   })
 })
+
+/** Answer the Convex reads, and serve the Game room's records from the table reads among them. */
+function answerReads(answers: Record<string, unknown>): void {
+  setQueryAnswers(answers)
+  serveReads('g1', answers)
+}
+
+afterEach(closeRooms)

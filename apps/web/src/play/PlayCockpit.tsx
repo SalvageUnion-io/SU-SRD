@@ -36,8 +36,6 @@ import { gamePath } from 'game-domain/entityKinds'
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { Button, HeaderMenu, tokens } from '../components/index'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
@@ -94,8 +92,8 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const play = usePlaySituation(target)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
-    api.crew.vitals,
-    target.gameId !== null && status === 'live' ? { gameId: target.gameId as Id<'games'> } : 'skip'
+    'crew.vitals',
+    target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
   )
   const sign = useStopSign(target.gameId)
   const here = useGamePresence(target.gameId, 'seat')
@@ -141,7 +139,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
             backLabel={solo ? playCopy('play') : playCopy('game')}
             live={status === 'live' && !solo}
-            here={crew === undefined || here === null ? null : hereCount(crew.pilots, here)}
+            here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
             readOnly={play.readOnly}
             situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
             channel={

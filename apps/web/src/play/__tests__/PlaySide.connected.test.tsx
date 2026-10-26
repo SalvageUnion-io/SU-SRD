@@ -1,7 +1,7 @@
 /**
  * The Cockpit's end column (`PlayCrewSection`, `PlayerTablesAndFeed` over one
  * `usePlaySide`, as `PlayCockpit` stacks them; play.md §7–§9) against
- * answered queries: the Crew's presence and attention lines and the sheet
+ * its Game room's records: the Crew's presence and attention lines and the sheet
  * they open, the Feed's order and Accept, the Tables' pinned rolls, and every
  * roll's Discord post (`channelBindings.postRoll`, mocked), its failure shown
  * on the Feed. Offline, nothing is offered and a roll says it was not posted.
@@ -10,19 +10,27 @@
  * the seats, the binding) are what is under test.
  */
 
-import { afterAll, afterEach, beforeAll, describe, expect, jest, mock, test } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  mock,
+  test,
+} from 'bun:test'
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { acts, closeRooms, openRooms, serveReads } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
 import { CREW_HERE, crewAt } from './crewFixture'
 
-const mutations: { name: string; args: unknown }[] = []
 let postResult: () => Promise<PostRollResult> = async () => ({
   kind: 'posted',
   channelId: 'c-1',
@@ -32,16 +40,7 @@ const postRoll = mock((_args: unknown) => postResult())
 const presence: { here: ReadonlySet<string> | null } = { here: CREW_HERE }
 
 const convexMocks = await installConvexMocks({
-  convexReact: {
-    useMutation: (ref: unknown) => {
-      const name = getFunctionName(ref as FunctionReference<'mutation'>)
-      const send = async (args: unknown) => {
-        mutations.push({ name, args })
-      }
-      return Object.assign(send, { withOptimisticUpdate: () => send })
-    },
-    useAction: () => postRoll,
-  },
+  convexReact: { useAction: () => postRoll },
   // Who the Game's room says is here (`useGamePresence`); a test changes it and rerenders.
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
 })
@@ -80,8 +79,9 @@ const PROPOSAL = {
   ts: NOW - 60_000,
 }
 
+/** The Games reads answered, and the Game room's records served, as these reads answer. */
 function answers(over: Record<string, unknown> = {}) {
-  setQueryAnswers({
+  const all = {
     'games:get': { name: 'Rust Belt Run', organizer: false },
     'changeLog:rolls': [
       {
@@ -101,7 +101,9 @@ function answers(over: Record<string, unknown> = {}) {
     'channelBindings:current': BOUND,
     'safety:stopSign': null,
     ...over,
-  })
+  }
+  setQueryAnswers(all)
+  serveReads(GAME, all)
 }
 
 function playFor(target: PlayTarget, canWrite: boolean): Play {
@@ -176,10 +178,12 @@ beforeAll(async () => {
   await hydrateStores()
 })
 
+beforeEach(() => openRooms(GAME))
+
 afterEach(() => {
   cleanup()
+  closeRooms()
   clearPlayRolls()
-  mutations.length = 0
   postRoll.mockClear()
   postResult = async () => ({ kind: 'posted', channelId: 'c-1', messageId: 'm-1' })
 })
@@ -286,7 +290,9 @@ describe('the Feed (play.md §8)', () => {
     await act(async () => {
       feed().getByRole('button', { name: 'Accept: Mediator proposes Bonesaw HP → 5' }).click()
     })
-    await waitFor(() => expect(mutations).toEqual([{ name: 'ops:accept', args: { opId: 'p-1' } }]))
+    await waitFor(() =>
+      expect(acts).toEqual([{ gameId: GAME, name: 'ops.accept', args: { opId: 'p-1' } }])
+    )
     await waitFor(() => expect(feed().getByText('You · Applied · Bonesaw HP → 5')).toBeTruthy())
   })
 

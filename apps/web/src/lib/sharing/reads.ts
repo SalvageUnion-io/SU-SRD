@@ -91,7 +91,7 @@ export const useSheetIsPublic: (
 
 /** `shelf.patternSharing`: who may read each of the reader's patterns. */
 export function usePatternSharing() {
-  return useTableRead(api.shelf.patternSharing, {})
+  return useTableRead('shelf.patternSharing', {})
 }
 
 /** After a Homebrew write: every Homebrew read asks again, as Convex's would have re-run. */

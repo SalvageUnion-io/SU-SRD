@@ -3,8 +3,7 @@
  * once, in the root route; renders nothing but the feed.
  *
  *  - Signed in: the replica is kept on the device for this account
- *    (`persist.ts`) and, live, the feed fills it (`ConvexFeed`, or the
- *    rooms' `RoomFeed` where the build turns it on). Booted
+ *    (`persist.ts`) and, live, the rooms' feed fills it (`RoomFeed`). Booted
  *    offline, what the device kept is what there is, read as arrived.
  *  - Signed out after a session: every held row and the device's copy go,
  *    whichever tab signed out, so the next account starts empty. Signed out
@@ -13,12 +12,10 @@
  */
 
 import { useEffect, useRef } from 'react'
-import { ConvexFeed } from './ConvexFeed'
 import { forgetOutbox } from './outbox'
 import { dropFromDevice, keepOnDevice, sessionAccount } from './persist'
 import { RoomFeed } from './RoomFeed'
 import { clear, markArrived, rowsComingChanged, setRowsComing, TABLES } from './replica'
-import { ROOM_FEED } from './roomSocket'
 import type { SyncStatus } from './sync'
 import { isSignedIn, subscribeSync, syncStatus } from './sync'
 import { useSync } from './syncContext'
@@ -71,5 +68,5 @@ export function ReplicaSync() {
     })
   }, [status])
   if (status !== 'live' || outdated) return null
-  return ROOM_FEED ? <RoomFeed /> : <ConvexFeed />
+  return <RoomFeed />
 }

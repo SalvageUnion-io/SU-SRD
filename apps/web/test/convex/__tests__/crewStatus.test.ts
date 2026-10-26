@@ -307,7 +307,7 @@ describe('crew.vitals keys a template pre-gen by its link id', () => {
     const crew = await u.as.query(api.crew.vitals, { gameId })
     expect(crew.pilots.every((p) => p.appId === null)).toBe(true)
     const seats = await u.as.query(api.seats.forGame, { gameId })
-    const lines = crewLines(crew, seats, pilotId)
+    const lines = crewLines(crew as never, seats, pilotId)
     // Every pre-gen has a row, and the boarded one carries its mech's numbers.
     expect(lines).toHaveLength(crew.pilots.length)
     const own = lines[0]

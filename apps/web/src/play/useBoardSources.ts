@@ -20,14 +20,17 @@ import { useTableRead } from '../replica/useTable'
 import type { BoardSources } from './boardMenu.model'
 
 /** One Game's board sources; with no Game, nothing is read. */
-export function useGameBoardSources(gameId: Id<'games'> | null): BoardSources {
+export function useGameBoardSources(gameId: string | null): BoardSources {
   const { status } = useSync()
   const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null ? { gameId } : 'skip'
 
   const viewerId = useViewerId(inGame !== 'skip')
-  const listing = useGamesQuery(api.entities.listForGame, inGame)
-  const seats = useTableRead(api.seats.forGame, inGame)
+  const listing = useGamesQuery(
+    api.entities.listForGame,
+    inGame === 'skip' ? 'skip' : { gameId: inGame.gameId as Id<'games'> }
+  )
+  const seats = useTableRead('seats.forGame', inGame)
 
   return { listing: listing ?? null, seats: seats ?? [], viewerId }
 }

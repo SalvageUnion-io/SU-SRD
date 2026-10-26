@@ -1,14 +1,14 @@
 /**
- * usePlayDowntime — the Downtime Play follows (play.md §3, §6): the Game's
- * `downtime` row, or with no Game the solo seat's own, through the one
- * `downtime` API keyed on the place (`gameId`, or null with the pilot), as
- * `useSeatAt` does for the seat.
+ * usePlayDowntime — the Downtime Play follows (play.md §3, §6): the Game
+ * room's `downtime` record, or with no Game the solo seat's own in the
+ * account room, through the one set of `downtime` acts, as `useSeatAt` does
+ * for the seat.
  *
  * In a Game only its Mediator starts, advances and ends Downtime, so it is
  * `locked` for everyone else; the server refuses the writes whatever this
  * says. Solo, nobody else is at the table: the player runs it, and may put it
  * on any step (`setStep`); in a Game the Mediator may too (their Back). Every
- * member's Play follows the Game's through one `downtime.state` subscription;
+ * member's Play follows the Game's through one `downtime.state` read;
  * each member marks themselves done with the step (`markStepDone`), and
  * `games.members` names everyone the ready pips count.
  *
@@ -22,14 +22,13 @@
  * §1), and a server refusal is said in its own words.
  */
 
-import { useMutation } from 'convex/react'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { PLAY_TXN } from '../replica/provenance'
 import { useGamesQuery } from '../replica/roomCalls'
-import { ROOM_FEED, roomOf } from '../replica/roomSocket'
+import { roomOf } from '../replica/roomSocket'
 import { isSignedIn, WritesBlockedOffline } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -48,30 +47,25 @@ const NOT_RUNNING: DowntimeView = {
 export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
-  const gameId = target.gameId as Id<'games'> | null
+  const { gameId } = target
   const { pilotId } = target
-  // Where the Downtime is: the Game's, or the solo pilot's seat.
-  const place = gameId === null ? { gameId, pilotId: pilotId ?? undefined } : { gameId }
+  // Where the Downtime is: the Game's room, or the solo pilot's seat in the account room.
+  const place = gameId === null ? { pilotId: pilotId ?? undefined } : {}
   const readable = signedIn && (gameId !== null || pilotId !== null)
 
-  const state = useTableRead(
-    api.downtime.state,
-    readable ? { ...place, pilotId: pilotId ?? undefined } : 'skip'
-  )
+  const state = useTableRead('downtime.state', readable ? { gameId, pilotId } : 'skip')
   const members = useGamesQuery(
     api.games.members,
-    signedIn && gameId !== null ? { gameId } : 'skip'
+    signedIn && gameId !== null ? { gameId: gameId as Id<'games'> } : 'skip'
   )
-  const begin = useTableAct(api.downtime.begin, gameId)
-  const advance = useTableAct(api.downtime.advance, gameId)
-  const setStep = useTableAct(api.downtime.setStep, gameId)
-  const end = useTableAct(api.downtime.end, gameId)
-  const markStepDone = useTableAct(api.downtime.markStepDone, gameId)
-  const applyOp = useMutation(api.ops.apply)
-  const spendUpkeep = useTableAct(api.downtime.spendUpkeep, gameId)
-  // A room names its run (`runId`); Convex named it by when it started.
-  const run =
-    (state as { runId?: string | null } | null | undefined)?.runId ?? state?.startedAt ?? 0
+  const begin = useTableAct('downtime.begin', gameId)
+  const advance = useTableAct('downtime.advance', gameId)
+  const setStep = useTableAct('downtime.setStep', gameId)
+  const end = useTableAct('downtime.end', gameId)
+  const markStepDone = useTableAct('downtime.markStepDone', gameId)
+  const spendUpkeep = useTableAct('downtime.spendUpkeep', gameId)
+  // A room names its run; a solo one copied from Convex is named by when it started.
+  const run = state?.runId ?? state?.startedAt ?? 0
 
   // `state` answers null for a solo pilot no longer on the shelf: not running.
   const downtime: DowntimeView =
@@ -95,7 +89,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     // Solo any step; in a Game the Mediator's Back.
     setStep: mayMove ? (stepIndex) => guarded.send(() => setStep({ ...place, stepIndex })) : null,
     end: () => guarded.send(() => end(place)),
-    markDone: gameId === null ? null : (done) => guarded.send(() => markStepDone({ gameId, done })),
+    markDone: gameId === null ? null : (done) => guarded.send(() => markStepDone({ done })),
     doneSteps: pilotId === null ? null : (state?.doneSteps ?? []),
     markStepDone:
       pilotId === null
@@ -110,16 +104,11 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 ...PLAY_TXN,
                 patch,
               }
-              if (ROOM_FEED) {
-                const room = roomOf(gameId)
-                if (room === null) throw new WritesBlockedOffline()
-                await room.submit([op])
-                // A step already taken is acked again, and changes nothing.
-                return !(state?.doneSteps ?? []).includes(stepIndex)
-              }
-              const applied = await applyOp({ unit: 'pilot', gameId, op })
-              // The pilot's new row reaches the replica through its feed.
-              return applied !== null && applied.fresh
+              const room = roomOf(gameId)
+              if (room === null) throw new WritesBlockedOffline()
+              await room.submit([op])
+              // A step already taken is acked again, and changes nothing.
+              return !(state?.doneSteps ?? []).includes(stepIndex)
             }),
     spendUpkeep: () => guarded.ask(() => spendUpkeep(place)),
   }

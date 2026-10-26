@@ -81,7 +81,7 @@ export function TheGame({
 }) {
   const id = useId()
   const members = useGamesQuery(api.games.members, { gameId })
-  const vitals = useTableRead(api.crew.vitals, { gameId })
+  const vitals = useTableRead('crew.vitals', { gameId })
   const setMediator = useGamesMutation(api.games.setMediator)
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)

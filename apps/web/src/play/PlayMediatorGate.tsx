@@ -48,7 +48,7 @@ function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
   const id = gameId as Id<'games'>
   const game = useGamesQuery(api.games.get, { gameId: id })
   // Asked only of a member: a stranger's `games.get` is already `null`.
-  const mediates = useTableRead(api.mediator.amMediator, game ? { gameId: id } : 'skip')
+  const mediates = useTableRead('mediator.amMediator', game ? { gameId: id } : 'skip')
 
   if (game === undefined || (game !== null && mediates === undefined)) {
     return <RoutePending label={playCopy('theGame')} />

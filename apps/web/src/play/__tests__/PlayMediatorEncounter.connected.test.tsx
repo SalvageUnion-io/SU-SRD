@@ -10,29 +10,23 @@
  * says why the capture comes first and the restore after).
  */
 
-import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import {
+  acts,
+  answerActs,
+  closeRooms,
+  openRooms,
+  serveReads,
+} from '../../replica/__tests__/fakeRooms'
 import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 
-type Sent = { name: string; args: Record<string, unknown> }
-const sent: Sent[] = []
-
-function useMutation(ref: unknown) {
-  const name = getFunctionName(ref as FunctionReference<'mutation'>)
-  const mutate = async (args: Record<string, unknown>) => {
-    sent.push({ name, args })
-    if (name === 'mediator:runEncounter' || name === 'mediator:bringInWave') return { added: 1 }
-    return null
-  }
-  return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
-}
+/** What the Game's room was sent, by name. */
+const sent = acts
 
 const convexMocks = await installConvexMocks({
-  convexReact: { useMutation },
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
 })
@@ -61,10 +55,17 @@ beforeAll(async () => {
   await hydrateStores()
 })
 
+beforeEach(() => {
+  openRooms(GAME)
+  answerActs(({ name }) =>
+    name === 'mediator.runEncounter' || name === 'mediator.bringInWave' ? { added: 1 } : null
+  )
+})
+
 afterEach(() => {
   cleanup()
+  closeRooms()
   clearPlayRolls()
-  sent.length = 0
 })
 
 const GAME = 'g-rust'
@@ -147,6 +148,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'scenes:current': { conditions: [], hours: 0 },
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:npcs': TRAY,
+    'mediator:amMediator': true,
     'mediator:patterns': [],
     'ledger:get': { factions: [], jobs: [], incomeCollected: false },
     'mediator:running': RUNNING,
@@ -162,7 +164,9 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
 }
 
 async function renderCockpit(over: QueryAnswers = {}) {
-  setQueryAnswers(answers(over))
+  const all = answers(over)
+  setQueryAnswers(all)
+  serveReads(GAME, all)
   await act(async () => {
     render(
       <SyncContext.Provider value={{ status: 'live', canWrite: true, outdated: false }}>
@@ -197,9 +201,9 @@ describe('groups on the tray', () => {
   test('one Reaction roll for the whole group is sent for its members', async () => {
     await renderCockpit()
     await click(named('Roll Reaction for Raider Band'))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator:recordGroupRoll']))
+    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.recordGroupRoll']))
+    expect(sent[0]).toMatchObject({ gameId: GAME })
     expect(sent[0]?.args).toMatchObject({
-      gameId: GAME,
       groupId: 'band',
       roll: { table: 'reaction' },
     })
@@ -228,7 +232,7 @@ describe('groups on the tray', () => {
     const loner = within(screen.getByRole('region', { name: 'NPC: Loner' }))
     expect(loner.queryByText('Morale due')).toBeNull()
     await click(mule.getByRole('button', { name: 'Roll Morale for Mule' }))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator:updateNpc']))
+    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.updateNpc']))
     expect(sent[0]?.args).toMatchObject({
       npcId: 'n-mule',
       patch: { lastMediatorRoll: { table: 'morale' } },
@@ -241,7 +245,7 @@ describe('waves', () => {
     await renderCockpit()
     expect(screen.getByText('Gantry snipers · held')).toBeTruthy()
     await click(named('Bring in wave 2'))
-    expect(sent).toEqual([{ name: 'mediator:bringInWave', args: { gameId: GAME, wave: 2 } }])
+    expect(sent).toEqual([{ gameId: GAME, name: 'mediator.bringInWave', args: { wave: 2 } }])
   })
 
   test('running an encounter asks for waves', async () => {
@@ -263,9 +267,10 @@ describe('waves', () => {
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))
-    expect(sent).toContainEqual({
-      name: 'mediator:runEncounter',
-      args: { gameId: GAME, encounterId: 'enc-1', clear: false, waves: true },
+    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+      encounter: { id: 'enc-1', name: 'Ambush' },
+      clear: false,
+      waves: true,
     })
     act(() => useEncounters.setState({ encounters: [] }))
   })

@@ -6,7 +6,6 @@
 
 import { describe, expect, test } from 'bun:test'
 import type { MechStatus } from 'game-domain/rules/crewStatus'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { BoardSources } from '../boardMenu.model'
 import { rollLogEntry } from '../playRolls.model'
 import type { CrewVitals } from '../useGameFeed'
@@ -60,11 +59,10 @@ describe('crewLines', () => {
     attention: false,
   }
   const crew: CrewVitals = {
-    viewerId: 'me' as Id<'users'>,
     pilots: [
       {
         ...pilot,
-        _id: 'r1' as Id<'pilots'>,
+        _id: 'r1',
         appId: 'vex',
         linkId: 'vex',
         name: 'Vex',
@@ -76,7 +74,7 @@ describe('crewLines', () => {
       },
       {
         ...pilot,
-        _id: 'r2' as Id<'pilots'>,
+        _id: 'r2',
         appId: 'rook',
         linkId: 'rook',
         name: 'Rook',
@@ -85,7 +83,7 @@ describe('crewLines', () => {
       },
       {
         ...pilot,
-        _id: 'r4' as Id<'pilots'>,
+        _id: 'r4',
         appId: 'wren',
         linkId: 'wren',
         name: 'Wren',
@@ -98,7 +96,7 @@ describe('crewLines', () => {
     mechs: [
       {
         ...mech,
-        _id: 'r3' as Id<'mechs'>,
+        _id: 'r3',
         appId: 'magpie',
         linkId: 'magpie',
         name: 'Magpie',
@@ -108,7 +106,7 @@ describe('crewLines', () => {
       },
       {
         ...mech,
-        _id: 'r6' as Id<'mechs'>,
+        _id: 'r6',
         appId: 'kettle',
         linkId: 'kettle',
         name: 'Kettle',
@@ -178,7 +176,7 @@ describe('crewLines', () => {
       pilots: [
         {
           ...pilot,
-          _id: 'r1' as Id<'pilots'>,
+          _id: 'r1',
           appId: 'rook',
           linkId: 'rook',
           name: 'Rook',
@@ -199,7 +197,7 @@ describe('crewLines', () => {
       pilots: [
         {
           ...pilot,
-          _id: 'r2' as Id<'pilots'>,
+          _id: 'r2',
           appId: 'rook',
           linkId: 'rook',
           name: 'Rook',
@@ -210,7 +208,7 @@ describe('crewLines', () => {
       mechs: [
         {
           ...mech,
-          _id: 'r6' as Id<'mechs'>,
+          _id: 'r6',
           appId: 'kettle',
           linkId: 'kettle',
           name: 'Kettle',
@@ -239,8 +237,8 @@ describe('crewLines', () => {
       pilots: [
         {
           ...pilot,
-          _id: 'r7' as Id<'pilots'>,
-          appId: null,
+          _id: 'r7',
+          appId: 'pregen-pilot',
           linkId: 'pregen-pilot',
           name: 'Pre-gen',
           currentHP: 6,
@@ -249,8 +247,8 @@ describe('crewLines', () => {
         },
         {
           ...pilot,
-          _id: 'r9' as Id<'pilots'>,
-          appId: null,
+          _id: 'r9',
+          appId: 'pregen-walker',
           linkId: 'pregen-walker',
           name: 'Walker',
           boarded: false,
@@ -260,8 +258,8 @@ describe('crewLines', () => {
       mechs: [
         {
           ...mech,
-          _id: 'r8' as Id<'mechs'>,
-          appId: null,
+          _id: 'r8',
+          appId: 'pregen-mech',
           linkId: 'pregen-mech',
           name: 'Starter',
           currentSP: 9,
@@ -269,8 +267,8 @@ describe('crewLines', () => {
         },
         {
           ...mech,
-          _id: 'r10' as Id<'mechs'>,
-          appId: null,
+          _id: 'r10',
+          appId: 'pregen-spare',
           linkId: 'pregen-spare',
           name: 'Spare',
         },

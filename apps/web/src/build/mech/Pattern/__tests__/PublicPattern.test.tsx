@@ -3,10 +3,11 @@
  * book's pattern page, plainly homebrew, and buildable by a signed-in reader.
  */
 
-import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import { answerActs, closeRooms, openRooms, serve } from '../../../../replica/__tests__/fakeRooms'
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../../replica/syncContext'
 
@@ -94,6 +95,8 @@ beforeEach(() => {
   convexMocks.navigations.length = 0
   visibilityWrites.length = 0
 })
+
+afterEach(closeRooms)
 
 describe('a shared pattern reads like the book and says a player made it', () => {
   test('laid out as the book pattern page: HOMEBREW stamp, the maker credited on the foot, their notes as its description', () => {
@@ -210,10 +213,17 @@ describe('signed in', () => {
     setQueryAnswers({
       'homebrew:status': NOT_LISTED,
       'publicSheet:pattern': answer({ mine: true, visibility: 'link' }),
-      'shelf:patternSharing': [
+      'games:listMine': [],
+    })
+    // Who may see it is the account room's, and so is the write that changes it.
+    openRooms(null)
+    answerActs(({ args }) => {
+      visibilityWrites.push(args)
+    })
+    serve(null, {
+      sharing: [
         { appId: 'pat-tow-rig', visibility: 'link', gameId: null, gameName: null, builtCount: 3 },
       ],
-      'games:listMine': [],
     })
     renderAs(CONNECTED)
 

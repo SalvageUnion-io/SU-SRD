@@ -18,7 +18,6 @@
  */
 
 import type { CSSProperties } from 'react'
-import { api } from '../../convex/_generated/api'
 import { Button, EmptyState, FeedLine, FeedList, Message, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
@@ -54,8 +53,8 @@ type PlayFeedProps = {
 }
 
 export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeedProps) {
-  const apply = useTableAct(api.ops.accept, gameId)
-  const decline = useTableAct(api.ops.decline, gameId)
+  const apply = useTableAct('ops.accept', gameId)
+  const decline = useTableAct('ops.decline', gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
     failure: 'Your answer did not land. Try again.',
     toastId: 'play-proposal-answer',

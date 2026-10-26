@@ -1,53 +1,36 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import { ConvexError } from 'convex/values'
 
 /**
- * `useSeatAt` — the pilot's seat, read from `seats.forGame` and written through
- * the seat mutations (ADR-038 §2).
+ * `useSeatAt` — the pilot's seat, read from its Game room's `seats` record and
+ * written as acts on that room (ADR-038 §2).
  *
- * Queries are answered by name (`convexMock.ts`). Mutations are recorded here
- * by name, with the optimistic update each was given, so the update can be run
- * against a stand-in for Convex's local query cache.
+ * The room is a fake (`fakeRooms.ts`): its records are served by hand, and
+ * every act is recorded here by name, beside the one Games call
+ * (`ownership.assign`), so their order shows.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
-import {
-  installConvexMocks,
-  queryCalls,
-  setQueryAnswers,
-} from '../../components/__tests__/convexMock'
+import { ConvexError } from 'convex/values'
+import { installConvexMocks } from '../../components/__tests__/convexMock'
 import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { answerActs, closeRooms, openRooms, serve } from '../../replica/__tests__/fakeRooms'
 import type { SyncStatus } from '../../replica/sync'
 
 type Sent = { name: string; args: Record<string, unknown> }
-type Updater = (store: LocalStore, args: Record<string, unknown>) => void
-type LocalStore = {
-  getQuery: (ref: unknown, args: unknown) => unknown
-  setQuery: (ref: unknown, args: unknown, value: unknown) => void
-}
 
 const sent: Sent[] = []
-const updaters = new Map<string, Updater>()
-let refusal: unknown = null
-/** Refusals for one mutation only, by name. */
-const refusedBy = new Map<string, unknown>()
+/** Refusals by name: an act's room refuses it, a Games call throws. */
+const refusedBy = new Map<string, string>()
 
 function useMutationMock(ref: unknown) {
-  const name = getFunctionName(ref as FunctionReference<'mutation'>)
-  const send = async (args: Record<string, unknown>) => {
+  const name = getFunctionName(ref as FunctionReference<'mutation'>).replace(':', '.')
+  return async (args: Record<string, unknown>) => {
     sent.push({ name, args })
-    if (refusal !== null) throw refusal
-    if (refusedBy.has(name)) throw refusedBy.get(name)
+    const refusal = refusedBy.get(name)
+    if (refusal !== undefined) throw new ConvexError(refusal)
   }
-  return Object.assign(send, {
-    withOptimisticUpdate: (update: Updater) => {
-      updaters.set(name, update)
-      return send
-    },
-  })
 }
 
 // Module scope, before the imports below: `mock.module` only affects imports
@@ -71,6 +54,7 @@ function seatRow(pilotId: string, extra: Record<string, unknown> = {}) {
     range: 'Close',
     activeEffects: [],
     resolving: null,
+    ejected: false,
     updatedAt: null,
     ...extra,
   }
@@ -102,10 +86,16 @@ afterAll(async () => {
 
 beforeEach(() => {
   sent.length = 0
-  updaters.clear()
-  refusal = null
   refusedBy.clear()
+  openRooms(GAME_ID)
+  answerActs((act) => {
+    sent.push({ name: act.name, args: act.args })
+    const refusal = refusedBy.get(act.name)
+    if (refusal !== undefined) throw new Error(refusal)
+  })
 })
+
+afterEach(() => closeRooms())
 
 function connection(status: SyncStatus) {
   return {
@@ -118,7 +108,7 @@ function connection(status: SyncStatus) {
 let handle: ReturnType<typeof useSeatAt> | null = null
 
 function Probe() {
-  handle = useSeatAt({ gameId: GAME_ID as Id<'games'>, pilotId: rook.id })
+  handle = useSeatAt({ gameId: GAME_ID, pilotId: rook.id })
   return null
 }
 
@@ -137,8 +127,8 @@ async function renderProbe(status: SyncStatus = 'live') {
 
 describe('useSeat reads', () => {
   test("the pilot's seat comes from its Game's forGame answer", async () => {
-    setQueryAnswers({
-      'seats:forGame': [
+    serve(GAME_ID, {
+      seats: [
         seatRow('someone-else', { range: 'Far' }),
         seatRow('seat-rook', { range: 'Long', activeEffects: ['x'] }),
       ],
@@ -146,11 +136,9 @@ describe('useSeat reads', () => {
     const seat = await renderProbe()
     expect(seat.seat.range).toBe('Long')
     expect(seat.seat.activeEffects).toEqual(['x'])
-    expect(queryCalls()).toEqual([{ name: 'seats:forGame', args: { gameId: GAME_ID } }])
   })
 
-  test('before the answer arrives the seat reads as on foot, at Close', async () => {
-    setQueryAnswers({ 'seats:forGame': undefined })
+  test('before the room’s snapshot the seat reads as on foot, at Close', async () => {
     const seat = await renderProbe()
     expect(seat.seat).toEqual({
       mount: { kind: 'foot' },
@@ -162,8 +150,8 @@ describe('useSeat reads', () => {
 })
 
 describe('useSeat writes', () => {
-  test('each write names the Game and the pilot', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+  test('each write is an act on the Game’s room, naming the pilot', async () => {
+    serve(GAME_ID, { seats: [seatRow('seat-rook')] })
     const seat = await renderProbe()
     const resolving = { ref: 'k', name: 'Crush', activated: false, applied: false }
     await act(async () => {
@@ -175,67 +163,20 @@ describe('useSeat writes', () => {
       seat.setResolving(resolving)
       seat.clearResolving()
     })
-    const who = { gameId: GAME_ID, pilotId: 'seat-rook' }
+    const who = { pilotId: 'seat-rook' }
     expect(sent).toEqual([
-      { name: 'seats:board', args: { ...who, mechId: 'seat-own' } },
-      { name: 'seats:setRange', args: { ...who, range: 'Medium' } },
-      { name: 'seats:toggleEffect', args: { ...who, ref: 'ref-1' } },
-      { name: 'seats:dismount', args: who },
-      { name: 'seats:eject', args: who },
-      { name: 'seats:setResolving', args: { ...who, resolving } },
-      { name: 'seats:clearResolving', args: who },
+      { name: 'seats.board', args: { ...who, mechId: 'seat-own' } },
+      { name: 'seats.setRange', args: { ...who, range: 'Medium' } },
+      { name: 'seats.toggleEffect', args: { ...who, ref: 'ref-1' } },
+      { name: 'seats.dismount', args: who },
+      { name: 'seats.eject', args: who },
+      { name: 'seats.setResolving', args: { ...who, resolving } },
+      { name: 'seats.clearResolving', args: who },
     ])
-  })
-
-  test('the optimistic updates change only that pilot, at once', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
-    await renderProbe()
-
-    let cached: unknown = [seatRow('seat-rook'), seatRow('crewmate')]
-    const local: LocalStore = {
-      getQuery: () => cached,
-      setQuery: (_ref, _args, value) => {
-        cached = value
-      },
-    }
-    const who = { gameId: GAME_ID, pilotId: 'seat-rook' }
-    updaters.get('seats:board')?.(local, { ...who, mechId: 'seat-spare' })
-    updaters.get('seats:setRange')?.(local, { ...who, range: 'Far' })
-    updaters.get('seats:toggleEffect')?.(local, { ...who, ref: 'a' })
-    updaters.get('seats:toggleEffect')?.(local, { ...who, ref: 'b' })
-    updaters.get('seats:toggleEffect')?.(local, { ...who, ref: 'a' })
-    expect(cached).toEqual([
-      seatRow('seat-rook', {
-        mount: { kind: 'boarded', mechId: 'seat-spare' },
-        range: 'Far',
-        activeEffects: ['b'],
-      }),
-      seatRow('crewmate'),
-    ])
-
-    updaters.get('seats:eject')?.(local, who)
-    expect((cached as Array<{ mount: unknown }>)[0]?.mount).toEqual({ kind: 'foot' })
-    updaters.get('seats:board')?.(local, { ...who, mechId: 'seat-spare' })
-    updaters.get('seats:dismount')?.(local, who)
-    expect((cached as Array<{ mount: unknown }>)[0]?.mount).toEqual({ kind: 'foot' })
-
-    // The resolve in progress, and a change of mount ending it as the server does.
-    const crush = { ref: 'k', name: 'Crush', activated: true, applied: false }
-    const first = () => (cached as Array<{ resolving: unknown }>)[0]?.resolving
-    updaters.get('seats:setResolving')?.(local, { ...who, resolving: crush })
-    expect(first()).toEqual(crush)
-    updaters.get('seats:dismount')?.(local, who)
-    expect(first()).toEqual(crush)
-    updaters.get('seats:board')?.(local, { ...who, mechId: 'seat-spare' })
-    expect(first()).toBeNull()
-    updaters.get('seats:setResolving')?.(local, { ...who, resolving: crush })
-    updaters.get('seats:clearResolving')?.(local, who)
-    expect(first()).toBeNull()
-    expect((cached as Array<{ resolving: unknown }>)[1]?.resolving).toBeNull()
   })
 
   test('offline, a write is refused here and never queued', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    serve(GAME_ID, { seats: [seatRow('seat-rook')] })
     const seat = await renderProbe('offline')
     await act(async () => {
       seat.board('seat-own')
@@ -247,8 +188,8 @@ describe('useSeat writes', () => {
   })
 
   test("a refused write shows the server's reason", async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
-    refusal = new ConvexError('Another pilot is already aboard that mech')
+    serve(GAME_ID, { seats: [seatRow('seat-rook')] })
+    refusedBy.set('seats.board', 'Another pilot is already aboard that mech')
     const seat = await renderProbe()
     await act(async () => {
       seat.board('seat-own')
@@ -261,36 +202,33 @@ describe('assign and board', () => {
   const spare = { mechId: 'seat-spare', serverId: 'row-spare' }
 
   test('writes the assignment before the seat', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    serve(GAME_ID, { seats: [seatRow('seat-rook')] })
     const seat = await renderProbe()
     await act(async () => {
       seat.assignAndBoard(spare)
     })
     expect(sent).toEqual([
-      { name: 'ownership:assign', args: { table: 'mechs', entityId: 'row-spare' } },
-      {
-        name: 'seats:board',
-        args: { gameId: GAME_ID, pilotId: 'seat-rook', mechId: 'seat-spare' },
-      },
+      { name: 'ownership.assign', args: { table: 'mechs', entityId: 'row-spare' } },
+      { name: 'seats.board', args: { pilotId: 'seat-rook', mechId: 'seat-spare' } },
     ])
   })
 
   test('a refused assignment leaves the seat untouched, and says why', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    serve(GAME_ID, { seats: [seatRow('seat-rook')] })
     refusedBy.set(
-      'ownership:assign',
-      new ConvexError('A crewmate already holds that — it has to be unassigned first')
+      'ownership.assign',
+      'A crewmate already holds that — it has to be unassigned first'
     )
     const seat = await renderProbe()
     await act(async () => {
       seat.assignAndBoard(spare)
     })
-    expect(sent.map((s) => s.name)).toEqual(['ownership:assign'])
+    expect(sent.map((s) => s.name)).toEqual(['ownership.assign'])
     expect(await screen.findByText(/A crewmate already holds that/)).toBeTruthy()
   })
 
   test('offline, neither is sent', async () => {
-    setQueryAnswers({ 'seats:forGame': [seatRow('seat-rook')] })
+    serve(GAME_ID, { seats: [seatRow('seat-rook')] })
     const seat = await renderProbe('offline')
     await act(async () => {
       seat.assignAndBoard(spare)

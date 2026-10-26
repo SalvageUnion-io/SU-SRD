@@ -10,8 +10,9 @@
  * The last block walks every capability the Mediator holds to where it lives
  * here, one test each.
  *
- * Queries are answered by name (`convexMock.ts`); every mutation is recorded
- * by name, and so is every server commit the store makes (the Game's log
+ * The Game room's records are served from what each read answers
+ * (`fakeRooms.ts`), the Games reads by name (`convexMock.ts`); every act is
+ * recorded by name, and so is every server commit the store makes (the Game's log
  * included), so a Mediator roll can be shown to stay off it.
  */
 
@@ -23,11 +24,18 @@ import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import type { QueryAnswers } from '../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
+import {
+  acts,
+  answerActs,
+  closeRooms,
+  openRooms,
+  serveReads,
+} from '../../replica/__tests__/fakeRooms'
 import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 import { narrowViewport } from './narrowViewport'
 
-type Sent = { name: string; args: Record<string, unknown> }
-const sent: Sent[] = []
+/** Every act the Game's room was sent: its name and args. */
+const sent = () => acts.map(({ name, args }) => ({ name, args }))
 const commits: string[] = []
 const postRoll = mock(async (_args: unknown) => ({
   kind: 'posted',
@@ -35,20 +43,16 @@ const postRoll = mock(async (_args: unknown) => ({
   messageId: 'm-1',
 }))
 
-function useMutation(ref: unknown) {
-  const name = getFunctionName(ref as FunctionReference<'mutation'>)
-  const mutate = async (args: Record<string, unknown>) => {
-    sent.push({ name, args })
-    if (name === 'mediator:runEncounter') return { added: 1 }
-    if (name === 'scenes:passHour') return 3
-    if (name === 'ledger:collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
-    return name === 'downtime:spendUpkeep' ? true : null
-  }
-  return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
+/** What the room answers each act this screen sends. */
+function answerAct({ name }: { name: string }): unknown {
+  if (name === 'mediator.runEncounter') return { added: 1 }
+  if (name === 'scenes.passHour') return 3
+  if (name === 'ledger.collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
+  return name === 'downtime.spendUpkeep' ? true : null
 }
 
 const convexMocks = await installConvexMocks({
-  convexReact: { useMutation, useAction: () => postRoll },
+  convexReact: { useAction: () => postRoll },
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
   convexClient: {
     mutation: async (ref: unknown) => {
@@ -70,10 +74,14 @@ const { PLAY_TXN } = await import('../../replica/provenance')
 withSignedInBackend()
 
 afterAll(convexMocks.restore)
+beforeEach(() => {
+  openRooms(GAME)
+  answerActs(answerAct)
+})
 afterEach(() => {
   cleanup()
+  closeRooms()
   clearPlayRolls()
-  sent.length = 0
   commits.length = 0
   postRoll.mockClear()
 })
@@ -183,6 +191,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'scenes:current': { conditions: [], hours: 0 },
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:npcs': NPCS,
+    'mediator:amMediator': true,
     'mediator:patterns': [],
     'ledger:get': { factions: [], jobs: [], incomeCollected: false },
     'mediator:running': null,
@@ -220,7 +229,9 @@ function downtimeAt(stepIndex: number, upkeepSpent = false): QueryAnswers {
 }
 
 async function renderCockpit(over: QueryAnswers = {}, canWrite = true) {
-  setQueryAnswers(answers(over))
+  const all = answers(over)
+  setQueryAnswers(all)
+  serveReads(GAME, all)
   await act(async () => {
     render(
       <SyncContext.Provider
@@ -263,7 +274,7 @@ async function click(el: HTMLElement) {
 
 const named = (name: string | RegExp) => screen.getByRole('button', { name })
 const region = (name: string) => within(screen.getByRole('region', { name }))
-const names = () => sent.map((s) => s.name)
+const names = () => sent().map((s) => s.name)
 const feedLines = () =>
   within(screen.getByRole('list', { name: 'Feed' }))
     .getAllByRole('listitem')
@@ -284,7 +295,7 @@ describe('the bar', () => {
     const state = within(screen.getByRole('group', { name: 'Game state' }))
     expect(state.getByRole('button', { name: 'Scene' }).getAttribute('aria-pressed')).toBe('true')
     await click(state.getByRole('button', { name: 'Begin Downtime' }))
-    expect(names()).toEqual(['downtime:begin'])
+    expect(names()).toEqual(['downtime.begin'])
   })
 
   test('running, it names the step; Scene ends it, asking first before the last step', async () => {
@@ -296,7 +307,7 @@ describe('the bar', () => {
     await click(
       within(screen.getByRole('alertdialog')).getByRole('button', { name: 'End Downtime' })
     )
-    expect(names()).toEqual(['downtime:end'])
+    expect(names()).toEqual(['downtime.end'])
   })
 
   test('Tell the table sends one word to every player', async () => {
@@ -308,9 +319,7 @@ describe('the bar', () => {
       fireEvent.change(dialog.getByLabelText('Alert'), { target: { value: 'Two squads east' } })
     })
     await click(dialog.getByRole('button', { name: 'Send' }))
-    expect(sent).toEqual([
-      { name: 'changeLog:broadcast', args: { gameId: GAME, message: 'Two squads east' } },
-    ])
+    expect(sent()).toEqual([{ name: 'changeLog.broadcast', args: { message: 'Two squads east' } }])
   })
 })
 
@@ -323,8 +332,8 @@ describe('the Scene', () => {
     expect(storm.getAttribute('aria-pressed')).toBe('false')
     expect(named('An hour passes').hasAttribute('disabled')).toBe(true)
     await click(storm)
-    expect(sent).toEqual([
-      { name: 'scenes:setConditions', args: { gameId: GAME, conditions: ['radiation-storm'] } },
+    expect(sent()).toEqual([
+      { name: 'scenes.setConditions', args: { conditions: ['radiation-storm'] } },
     ])
   })
 
@@ -333,7 +342,7 @@ describe('the Scene', () => {
     const storm = named('The Scene is under Radiation Storm')
     expect(storm.getAttribute('aria-pressed')).toBe('true')
     await click(storm)
-    expect(sent).toEqual([{ name: 'scenes:setConditions', args: { gameId: GAME, conditions: [] } }])
+    expect(sent()).toEqual([{ name: 'scenes.setConditions', args: { conditions: [] } }])
   })
 
   test('an hour passes: each exposed unit is proposed its cost, and the table is told the rest', async () => {
@@ -344,8 +353,10 @@ describe('the Scene', () => {
     // Wren sheltered in the crawler: untick them.
     await click(dialog.getByLabelText('Wren’s Mule · Radiation Storm'))
     await click(dialog.getByRole('button', { name: 'An hour passes' }))
-    expect(names()[0]).toBe('scenes:passHour')
-    const proposals = sent.filter((s) => s.name === 'ops:propose').map((s) => s.args)
+    expect(names()[0]).toBe('scenes.passHour')
+    const proposals = sent()
+      .filter((s) => s.name === 'ops.propose')
+      .map((s) => s.args)
     expect(proposals).toContainEqual({
       entityId: 'row-buzzard',
       entityType: 'mech',
@@ -363,7 +374,7 @@ describe('the Scene', () => {
     // Rook on foot takes no SP and no HP: a Major Injury is theirs to mark.
     expect(proposals.some((p) => p.entityId === 'row-rook')).toBe(false)
     expect(proposals.some((p) => p.entityId === 'row-mule')).toBe(false)
-    const alert = sent.find((s) => s.name === 'changeLog:broadcast')?.args.message
+    const alert = sent().find((s) => s.name === 'changeLog.broadcast')?.args.message
     expect(alert).toBe(
       'Hour 3 under Radiation Storm. Bonesaw’s Buzzard: make a Heat Check. Mags’s Atlas: make a Heat Check. Rook: suffer a Major Injury.'
     )
@@ -376,11 +387,11 @@ describe('the Scene', () => {
       within(screen.getByRole('alertdialog')).getByRole('button', { name: 'An hour passes' })
     )
     // The dice read 14: 11–19, 1 SP from cold erosion.
-    const sp = sent
-      .filter((s) => s.name === 'ops:propose' && s.args.entityId === 'row-buzzard')
+    const sp = sent()
+      .filter((s) => s.name === 'ops.propose' && s.args.entityId === 'row-buzzard')
       .map((s) => [s.args.field, s.args.after])
     expect(sp).toEqual([['currentSP', 13]])
-    const alert = String(sent.find((s) => s.name === 'changeLog:broadcast')?.args.message)
+    const alert = String(sent().find((s) => s.name === 'changeLog.broadcast')?.args.message)
     expect(alert).toContain(
       'Bonesaw’s Buzzard: Freezing 14: The Mech takes 1 SP damage from cold erosion.'
     )
@@ -424,9 +435,9 @@ describe('the table', () => {
       fireEvent.change(dock.getByLabelText('To'), { target: { value: '6' } })
     })
     await click(dock.getByRole('button', { name: 'Propose' }))
-    expect(sent).toEqual([
+    expect(sent()).toEqual([
       {
-        name: 'ops:propose',
+        name: 'ops.propose',
         args: { entityId: 'row-rook', entityType: 'pilot', field: 'currentHP', after: 6 },
       },
     ])
@@ -462,8 +473,8 @@ describe('the Opposition', () => {
     expect(screen.getByRole('region', { name: 'NPC: Strikebreaker' })).toBeTruthy()
     const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
     await click(scylla.getByRole('button', { name: 'Decrease SP' }))
-    expect(sent).toEqual([
-      { name: 'mediator:updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 29 } } },
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 29 } } },
     ])
   })
 
@@ -474,7 +485,7 @@ describe('the Opposition', () => {
     await click(raider.getByRole('button', { name: 'Delete Raider' }))
     expect(names()).toEqual([])
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
-    expect(sent).toEqual([{ name: 'mediator:removeNpc', args: { npcId: 'n-raider' } }])
+    expect(sent()).toEqual([{ name: 'mediator.removeNpc', args: { npcId: 'n-raider' } }])
   })
 
   test('a downed Vehicle breaks down for its Scrap into the crawler, claimed once', async () => {
@@ -495,8 +506,8 @@ describe('the Opposition', () => {
     await waitFor(() =>
       expect(useUnits.getState().get('crawler', tenacity.id)?.scrapPool?.tl3).toBe(4)
     )
-    expect(sent).toEqual([
-      { name: 'mediator:updateNpc', args: { npcId: 'n-tank', patch: { salvaged: true } } },
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-tank', patch: { salvaged: true } } },
     ])
     await restoreCrawler()
   })
@@ -526,7 +537,7 @@ describe('the Opposition', () => {
           ?.cargoLots?.some((c) => c.name === 'Mule (Damaged)')
       ).toBe(true)
     )
-    expect(names()).toEqual(['mediator:updateNpc'])
+    expect(names()).toEqual(['mediator.updateNpc'])
     await restoreCrawler()
   })
 
@@ -551,11 +562,11 @@ describe('the Opposition', () => {
     await renderCockpit({ 'salvageAreas:here': { name: 'Raider Camp', techLevel: 2, supply: 4 } })
     expect(screen.getByText('Raider Camp · T2 · Supply 4')).toBeTruthy()
     await click(named('Clear the area being salvaged'))
-    expect(sent).toEqual([{ name: 'salvageAreas:set', args: { gameId: GAME, area: null } }])
-    sent.length = 0
+    expect(sent()).toEqual([{ name: 'salvageAreas.set', args: { area: null } }])
+    acts.length = 0
     await click(named('Set the area being salvaged'))
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Set' }))
-    expect(names()).toEqual(['salvageAreas:set'])
+    expect(names()).toEqual(['salvageAreas.set'])
   })
 
   test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, private and off the log', async () => {
@@ -583,8 +594,8 @@ describe('the Opposition', () => {
   test('Morale rolls on the Morale table, kept on the NPC and on the Feed', async () => {
     await renderCockpit()
     await click(named('Roll the die on Morale'))
-    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
-    const patch = sent[0]?.args.patch as { lastMediatorRoll?: { table: string } }
+    await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
+    const patch = sent()[0]?.args.patch as { lastMediatorRoll?: { table: string } }
     expect(patch.lastMediatorRoll?.table).toBe('morale')
     await waitFor(() =>
       expect(feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale'))).toBe(true)
@@ -595,8 +606,8 @@ describe('the Opposition', () => {
     await renderCockpit()
     await click(named('More for Strikebreaker'))
     await click(screen.getByRole('menuitem', { name: 'Mark important' }))
-    expect(sent).toEqual([
-      { name: 'mediator:updateNpc', args: { npcId: 'n-strike', patch: { important: true } } },
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-strike', patch: { important: true } } },
     ])
     await click(named('More for Scylla'))
     expect(screen.queryByRole('menuitem', { name: 'Mark important' })).toBeNull()
@@ -607,13 +618,13 @@ describe('the Opposition', () => {
     const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler' }))
     expect(hauler.getByText('Mech · important')).toBeTruthy()
     await click(hauler.getByRole('button', { name: 'Increase Heat' }))
-    expect(sent).toEqual([
-      { name: 'mediator:updateNpc', args: { npcId: 'n-hauler', patch: { currentHeat: 3 } } },
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-hauler', patch: { currentHeat: 3 } } },
     ])
-    sent.length = 0
+    acts.length = 0
     await click(hauler.getByRole('button', { name: 'Heat Check for Hauler' }))
-    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
-    const patch = sent[0]?.args.patch as { lastImportantRoll?: { table: string } }
+    await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
+    const patch = sent()[0]?.args.patch as { lastImportantRoll?: { table: string } }
     expect(patch.lastImportantRoll?.table).toBe('heat-check')
     await waitFor(() =>
       expect(feedLines().some((l) => l.startsWith('You · Hauler · Heat Check'))).toBe(true)
@@ -625,8 +636,8 @@ describe('the Opposition', () => {
     const fallen = { ...raider, body: { ...raider.body, important: true } }
     await renderCockpit({ 'mediator:npcs': [fallen, HAULER_CRITICAL] })
     await click(named('Roll Critical Injury for Raider'))
-    await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
-    const patch = sent[0]?.args.patch as { lastImportantRoll?: { table: string } }
+    await waitFor(() => expect(names()).toEqual(['mediator.updateNpc']))
+    const patch = sent()[0]?.args.patch as { lastImportantRoll?: { table: string } }
     expect(patch.lastImportantRoll?.table).toBe('critical-injury')
     const hauler = within(screen.getByRole('region', { name: 'Mech: Hauler, down' }))
     expect(hauler.getByText('Critical Damage 12 · Core Damage')).toBeTruthy()
@@ -659,9 +670,9 @@ describe('the Opposition', () => {
     expect(dialog.getByText('0 opposition · 1 table')).toBeTruthy()
     await click(dialog.getByRole('radio', { name: /^Clear it first/ }))
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))
-    expect(sent).toContainEqual({
-      name: 'mediator:runEncounter',
-      args: { gameId: GAME, encounterId: 'enc-1', clear: true },
+    expect(sent().find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+      encounter: { id: 'enc-1', name: 'Ambush' },
+      clear: true,
     })
     act(() => useEncounters.setState({ encounters: [] }))
   })
@@ -672,7 +683,7 @@ describe('the Opposition', () => {
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
     expect(dialog.getByRole('link', { name: 'Training Bay' })).toBeTruthy()
     await click(dialog.getAllByRole('button', { name: 'Close' }).at(-1) as HTMLElement)
-    expect(sent.some((s) => s.name === 'mediator:runEncounter')).toBe(false)
+    expect(sent().some((s) => s.name === 'mediator.runEncounter')).toBe(false)
   })
 
   test('a running encounter names itself, shows its notes, and End stops it', async () => {
@@ -688,7 +699,7 @@ describe('the Opposition', () => {
     expect(screen.getByText('Behind the crusher.')).toBeTruthy()
     expect(screen.getByRole('list', { name: "This encounter's tables" })).toBeTruthy()
     await click(named('End Ambush'))
-    expect(sent).toContainEqual({ name: 'mediator:endEncounter', args: { gameId: GAME } })
+    expect(sent()).toContainEqual({ name: 'mediator.endEncounter', args: {} })
   })
 
   test('a briefing stays behind its flag, off in a production build', async () => {
@@ -726,9 +737,9 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(2))
     await click(named('Back to Step 2'))
     await click(named('Next: Step 4'))
-    expect(sent).toEqual([
-      { name: 'downtime:setStep', args: { gameId: GAME, stepIndex: 1 } },
-      { name: 'downtime:advance', args: { gameId: GAME } },
+    expect(sent()).toEqual([
+      { name: 'downtime.setStep', args: { stepIndex: 1 } },
+      { name: 'downtime.advance', args: {} },
     ])
   })
 
@@ -738,14 +749,14 @@ describe('Downtime', () => {
     expect(names()).toEqual([])
     const dialog = within(screen.getByRole('alertdialog'))
     await click(dialog.getByRole('button', { name: 'End Downtime' }))
-    expect(names()).toEqual(['downtime:end'])
+    expect(names()).toEqual(['downtime.end'])
   })
 
   test('at the last step, End Downtime is the way on and simply ends', async () => {
     await renderCockpit(downtimeAt(9))
     expect(screen.queryByRole('button', { name: /^Next: / })).toBeNull()
     await click(named('End Downtime'))
-    expect(names()).toEqual(['downtime:end'])
+    expect(names()).toEqual(['downtime.end'])
   })
 
   test('Upkeep waits for Upkeep & Upgrade: Pay is off in any other step', async () => {
@@ -757,7 +768,7 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP))
     await click(named('Pay'))
     await waitFor(() => expect(screen.getByText(/^Paid the Upkeep/)).toBeTruthy())
-    expect(names()).toEqual(['downtime:spendUpkeep'])
+    expect(names()).toEqual(['downtime.spendUpkeep'])
     expect(useUnits.getState().get('crawler', tenacity.id)?.scrapPool?.tl2).toBe(2)
   })
 
@@ -797,7 +808,7 @@ describe('Downtime', () => {
     await waitFor(() =>
       expect(screen.getByText('Collected 2 Tech 2 Scrap into Tenacity.')).toBeTruthy()
     )
-    expect(names()).toEqual(['ledger:collectIncome'])
+    expect(names()).toEqual(['ledger.collectIncome'])
   })
 
   test('collected, it says so', async () => {
@@ -886,8 +897,8 @@ describe('every Mediator capability is reachable here', () => {
       fireEvent.change(dialog.getByLabelText('Name'), { target: { value: 'Red Leader' } })
     })
     await click(dialog.getByRole('button', { name: 'Rename' }))
-    expect(sent).toEqual([
-      { name: 'mediator:updateNpc', args: { npcId: 'n-strike', patch: { name: 'Red Leader' } } },
+    expect(sent()).toEqual([
+      { name: 'mediator.updateNpc', args: { npcId: 'n-strike', patch: { name: 'Red Leader' } } },
     ])
   })
 

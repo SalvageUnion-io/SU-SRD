@@ -4,7 +4,6 @@
  * in Mule and away, and Bonesaw, the pilot the screen plays.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 import { calm, sound } from './crewRows'
 
@@ -37,31 +36,30 @@ export const CREW_HERE: ReadonlySet<string> = new Set(['u-bonesaw', 'u-mags', 'u
 /** The crew, each pilot assigned to their own player. */
 export function crewAt(): CrewVitals {
   return {
-    viewerId: 'u-me' as Id<'users'>,
     pilots: [
       {
         ...pilot,
-        _id: 'r-bonesaw' as Id<'pilots'>,
+        _id: 'r-bonesaw',
         appId: 'bonesaw',
         linkId: 'bonesaw',
         name: 'Bonesaw',
         boarded: false,
         mechId: null,
-        ownerId: 'u-bonesaw' as Id<'users'>,
+        ownerId: 'u-bonesaw',
       },
       {
         ...pilot,
-        _id: 'r-mags' as Id<'pilots'>,
+        _id: 'r-mags',
         appId: 'mags',
         linkId: 'mags',
         name: 'Mags',
         boarded: true,
         mechId: 'atlas',
-        ownerId: 'u-mags' as Id<'users'>,
+        ownerId: 'u-mags',
       },
       {
         ...pilot,
-        _id: 'r-rook' as Id<'pilots'>,
+        _id: 'r-rook',
         appId: 'rook',
         linkId: 'rook',
         name: 'Rook',
@@ -70,29 +68,29 @@ export function crewAt(): CrewVitals {
         mechId: null,
         status: { ...calm, injured: true },
         attention: true,
-        ownerId: 'u-rook' as Id<'users'>,
+        ownerId: 'u-rook',
       },
       {
         ...pilot,
-        _id: 'r-wren' as Id<'pilots'>,
+        _id: 'r-wren',
         appId: 'wren',
         linkId: 'wren',
         name: 'Wren',
         boarded: true,
         mechId: 'mule',
-        ownerId: 'u-wren' as Id<'users'>,
+        ownerId: 'u-wren',
       },
     ],
     mechs: [
       {
         ...mech,
-        _id: 'r-atlas' as Id<'mechs'>,
+        _id: 'r-atlas',
         appId: 'atlas',
         linkId: 'atlas',
         name: 'Atlas',
         currentSP: 22,
       },
-      { ...mech, _id: 'r-mule' as Id<'mechs'>, appId: 'mule', linkId: 'mule', name: 'Mule' },
+      { ...mech, _id: 'r-mule', appId: 'mule', linkId: 'mule', name: 'Mule' },
     ],
   }
 }

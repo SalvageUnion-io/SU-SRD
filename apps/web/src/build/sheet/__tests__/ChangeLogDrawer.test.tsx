@@ -1,19 +1,17 @@
 /**
  * ChangeLogDrawer tests (ADR-022) — the per-entity Change Log shown behind the
- * sheet's overflow menu. The entries are the server's (`changeLog.forEntity`),
- * answered here by the name-keyed `useQuery` double; connected means a real
+ * sheet's overflow menu. The entries are the room's (`changeLog.forEntity`, an
+ * act on the account room here, `fakeRooms.ts`); connected means a real
  * `SyncProvider` over the mocked Convex client. Plus the menu → drawer
  * wiring on the Sheet.
  */
 
-import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import {
-  installConvexMocks,
-  queryCalls,
-  setQueryAnswers,
-} from '../../../components/__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
+import { acts, answerActs, closeRooms, openRooms } from '../../../replica/__tests__/fakeRooms'
 
 const convexMocks = await installConvexMocks({
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },
@@ -62,27 +60,29 @@ const basePilotInput = {
 }
 
 beforeEach(() => {
-  setQueryAnswers({})
   resetStores()
 })
 
+afterEach(closeRooms)
+
 describe('ChangeLogDrawer', () => {
   test("renders the server's entries with field, before→after, kind and a pending proposal", async () => {
-    setQueryAnswers({
-      'changeLog:forEntity': [
-        row({
-          _id: 'r3',
-          kind: 'transaction',
-          field: 'currentHP',
-          before: null,
-          after: 3,
-          state: 'proposed',
-          source: 'mediator-proposal',
-        }),
-        row({ _id: 'r2', kind: 'override', field: 'maxHpOverride', before: 14, after: null }),
-        row({ _id: 'r1' }),
-      ],
-    })
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1' }))
+    openRooms(null)
+    const entries = [
+      row({
+        _id: 'r3',
+        kind: 'transaction',
+        field: 'currentHP',
+        before: null,
+        after: 3,
+        state: 'proposed',
+        source: 'mediator-proposal',
+      }),
+      row({ _id: 'r2', kind: 'override', field: 'maxHpOverride', before: 14, after: null }),
+      row({ _id: 'r1' }),
+    ]
+    answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
 
     connected(
       <ChangeLogDrawer
@@ -100,15 +100,10 @@ describe('ChangeLogDrawer', () => {
     expect(screen.getByText('Manual')).toBeTruthy()
     // A proposal still awaiting its answer says so, rather than reading as applied.
     expect(screen.getByText('Proposed')).toBeTruthy()
-    expect(queryCalls()).toContainEqual({
-      name: 'changeLog:forEntity',
-      args: { entityType: 'pilot', entityId: 'p1' },
-    })
+    expect(acts).toEqual([{ gameId: null, name: 'changeLog.forEntity', args: { entityId: 'p1' } }])
   })
 
   test('shows an empty state when the entity has no logged changes', async () => {
-    setQueryAnswers({ 'changeLog:forEntity': [] })
-
     connected(
       <ChangeLogDrawer
         entityType="pilot"
@@ -134,7 +129,7 @@ describe('ChangeLogDrawer', () => {
     )
 
     expect(screen.getByText(/kept with your account/i)).toBeTruthy()
-    expect(queryCalls()).toHaveLength(0)
+    expect(acts).toHaveLength(0)
   })
 
   test('renders nothing while closed', () => {

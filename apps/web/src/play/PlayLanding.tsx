@@ -340,9 +340,9 @@ function PlayGameItem({
   channel: string | null
 }) {
   const gameId = game._id as Id<'games'>
-  const downtime = useTableRead(api.downtime.state, { gameId }) ?? undefined
+  const downtime = useTableRead('downtime.state', { gameId }) ?? undefined
   const listing = useGamesQuery(api.entities.listForGame, { gameId })
-  const vitals = useTableRead(api.crew.vitals, { gameId })
+  const vitals = useTableRead('crew.vitals', { gameId })
   const presence = useGamePresence(gameId, 'watch')
   const here = hereCount(vitals?.pilots, presence)
   const chips = gameChips({ mediator: game.mediator, here, downtime, channel })

@@ -13,7 +13,6 @@
  */
 
 import { useState } from 'react'
-import type { Id } from '../../convex/_generated/dataModel'
 import type { PlayBinding } from './channels.model'
 import type { FeedSources } from './feed.model'
 import { playFeedEntries } from './feed.model'
@@ -76,7 +75,7 @@ export type PlaySide = SideFeed & {
 export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
   const inGame = target.gameId !== null
   const feed = useGameFeed(play.pilot)
-  const sources = useGameBoardSources(target.gameId as Id<'games'> | null)
+  const sources = useGameBoardSources(target.gameId)
   const binding = usePlayChannelBinding(target)
   const side = useSideFeed({
     target,
