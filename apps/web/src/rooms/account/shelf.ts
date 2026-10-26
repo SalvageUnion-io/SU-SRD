@@ -4,7 +4,7 @@ import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'game-domain/l
 import type { StoredOp, UnitRow } from '../game/store'
 import { GameStore } from '../game/store'
 import type { SubmitResult } from '../game/units'
-import { BatchRefused, GameUnits, parseUnitBody } from '../game/units'
+import { GameUnits, parseUnitBody } from '../game/units'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { RoomSql } from '../sql'
@@ -178,25 +178,7 @@ export class AccountShelf {
    * being one.
    */
   submit(actor: string, ops: readonly OpInput[]): SubmitResult {
-    try {
-      return this.store.sql.transaction(() => {
-        const applied: { id: string; seq: number }[] = []
-        for (const input of ops) {
-          const seen = this.store.op(input.id)
-          if (seen !== null) {
-            if (seen.unitId !== input.unitId) throw new Error(`Op ${input.id} names another unit`)
-            if (seen.seq !== null) applied.push({ id: seen.id, seq: seen.seq })
-            continue
-          }
-          const unit = this.writable(actor, input.unitId)
-          applied.push({ id: input.id, seq: this.units.applyTo(unit, input, actor) })
-        }
-        return { ok: true, applied } as const
-      })
-    } catch (error) {
-      if (error instanceof BatchRefused) return error.result
-      throw error
-    }
+    return this.units.applyBatch(actor, ops, (input) => this.writable(actor, input.unitId))
   }
 
   /**

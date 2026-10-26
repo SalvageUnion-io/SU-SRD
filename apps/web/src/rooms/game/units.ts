@@ -156,6 +156,25 @@ export class GameUnits {
    * Game-wide act, waits for a connection.
    */
   submit(actor: string, ops: readonly OpInput[], { replayed = false } = {}): SubmitResult {
+    return this.applyBatch(actor, ops, (input) => {
+      if (SERVER_SOURCES.has(input.source)) throw new RoomRefusal(SERVER_ONLY)
+      const unit = this.store.requireUnit(input.unitId)
+      this.assertMayWrite(actor, unit)
+      if (replayed && unit.ownerId !== actor) throw new RoomRefusal(ONLINE_ONLY)
+      return unit
+    })
+  }
+
+  /**
+   * Apply a batch of ops as `actor`'s, all or none: each new op's unit is
+   * `writable`'s, which refuses one the actor may not write. An op id already
+   * applied is skipped.
+   */
+  applyBatch(
+    actor: string,
+    ops: readonly OpInput[],
+    writable: (input: OpInput) => UnitRow
+  ): SubmitResult {
     try {
       return this.store.sql.transaction(() => {
         const applied: { id: string; seq: number }[] = []
@@ -166,11 +185,7 @@ export class GameUnits {
             if (seen.seq !== null) applied.push({ id: seen.id, seq: seen.seq })
             continue
           }
-          if (SERVER_SOURCES.has(input.source)) throw new RoomRefusal(SERVER_ONLY)
-          const unit = this.store.requireUnit(input.unitId)
-          this.assertMayWrite(actor, unit)
-          if (replayed && unit.ownerId !== actor) throw new RoomRefusal(ONLINE_ONLY)
-          applied.push({ id: input.id, seq: this.applyTo(unit, input, actor) })
+          applied.push({ id: input.id, seq: this.applyTo(writable(input), input, actor) })
         }
         return { ok: true, applied } as const
       })
