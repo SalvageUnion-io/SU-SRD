@@ -12,13 +12,13 @@ The reference site, built by Astro 7 (ADR-065 in [ARCHITECTURE.md](../../../docs
 
 ## Routes are files
 
-`astro/pages/` is the one list of what the site emits. A page module is a `PageModule` (`pattern`, `getStaticPaths?`, `page`); a document with no data is a `public/` file. Non-HTML outputs are `src/reference/endpoints/*.ts` behind `pages/**.ts` routes (`lib/endpoint.ts`); a file Astro would skip (`_redirects`, a leading `_`) is a param route.
+`astro/pages/` is the one list of what the site emits. A page module is a `PageModule` (`pattern`, `getStaticPaths?`, `page`); a document with no data is a `public/` file. Non-HTML outputs are `src/reference/endpoints/*.ts` behind `pages/**.ts` routes (`lib/endpoint.ts`); a file Astro would skip (`_redirects`, a leading `_`) is a param route. The Worker's routes are on-demand endpoints Astro injects (`build/workerRoutes.ts`).
 
 ## URL -> file table
 
-`trailingSlash: 'always'`, `build.format: 'directory'`:
+`build.format: 'directory'`, in `dist/client` (`trailingSlash: 'ignore'`, for the Worker's routes):
 
-| route                                  | dist file                                         |
+| route                                  | file                                              |
 | --- | --- |
 | `/` | `index.html` |
 | `/404` | `404.html` (Astro's own rule, not a directory) |

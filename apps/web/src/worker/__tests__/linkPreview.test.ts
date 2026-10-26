@@ -3,12 +3,12 @@ import { color } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { META_END, META_START } from '../../lib/documentHead'
 import { renderShell } from '../../shell/shell'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
 import type { ImageCache } from '../linkPreview'
 import { ogImage, previewRouteOf, versionOf } from '../linkPreview'
 import type { SharedDb } from '../shared/db'
 import { applyMeta } from '../shellMeta'
+import { worker } from './worker'
 
 /**
  * Link previews for player things. Discord's unfurler

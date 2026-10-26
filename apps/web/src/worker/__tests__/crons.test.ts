@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 import { join } from 'node:path'
 import { FEEDBACK_CRON, METRICS_CRON, runCron } from '../crons'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
 import { testDb } from '../shared/__tests__/d1'
 import { markFilled } from '../shared/db'
 import { acceptFeedback } from '../shared/feedback'
 import { readMetrics } from '../shared/signals'
+import { worker } from './worker'
 
 /** The Worker's Cron Triggers: the daily snapshot and the hourly feedback sweep. */
 

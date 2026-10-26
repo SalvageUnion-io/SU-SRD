@@ -39,4 +39,7 @@ declare module 'cloudflare:workers' {
 
   /** This Worker's own classes, by name (`exports` in `wrangler.jsonc`). */
   export const exports: Record<string, DurableObjectNamespace | undefined>
+
+  /** The Worker's bindings, vars and secrets (`src/worker/env.ts` types them). */
+  export const env: unknown
 }

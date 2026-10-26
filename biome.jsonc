@@ -411,6 +411,8 @@
         // This glob is the `main` of every wrangler config (the `workers`
         // check holds them to it).
         "apps/*/src/worker/index.ts",
+        // The rooms' entry for the workerd tests (`apps/web/vitest.config.ts`).
+        "apps/web/workerd/entry.ts",
         // Astro reads a client directive's `export default` (`addClientDirective`).
         "apps/web/src/runtime/directives/*.ts",
         "**/*.config.ts",

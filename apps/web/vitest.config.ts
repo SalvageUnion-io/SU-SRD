@@ -11,6 +11,8 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig(async () => ({
   plugins: [
     cloudflareTest({
+      // Not `wrangler.jsonc`'s `main`, which hands `fetch` to Astro's build.
+      main: './workerd/entry.ts',
       wrangler: { configPath: './wrangler.jsonc' },
       miniflare: {
         bindings: {

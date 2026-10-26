@@ -2,12 +2,12 @@ import { describe, expect, it } from 'bun:test'
 import { appPath } from '../../lib/appBase'
 import { HOMEBREW_PATTERNS_PATH } from '../../lib/homebrew/endpoint'
 import { renderShell } from '../../shell/shell'
+import type { Env } from '../env'
 import { serveHomebrew } from '../homebrew'
-import type { Env } from '../index'
-import worker from '../index'
 import { publish, publishGame, testDb } from '../shared/__tests__/d1'
 import type { SharedDb } from '../shared/db'
 import { setHomebrewHidden } from '../shared/homebrew'
+import { worker } from './worker'
 
 /**
  * The Worker's public reads, end to end on the shared database: link previews

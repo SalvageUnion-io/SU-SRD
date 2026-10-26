@@ -73,11 +73,6 @@ export type AppEnv = PreviewEnv & {
   ASSETS: Assets
 }
 
-/** Whether a path is the app's: `/build` or `/play` itself, or anything under either. */
-export function isAppPath(pathname: string): boolean {
-  return routeInApp(pathname) !== null
-}
-
 /**
  * A binding that answers a miss in the app (under the base, or under Play's
  * root) with the shell, as Static Assets' `single-page-application` mode does.
@@ -104,7 +99,7 @@ function defaultCache(): ImageCache | undefined {
 }
 
 /**
- * A request for the app (`isAppPath`); `null` for a missing file, which
+ * A request for the app (`/build`, `/play` and below); `null` for a missing file, which
  * the site answers as any other miss.
  */
 export async function serveApp(

@@ -100,7 +100,7 @@ describe('planShot', () => {
     const { server, path } = planShot({ target: 'app:/starter' })
     expect(path).toBe(`${APP_BASE}/starter`)
     expect(server).toEqual(planShot({ target: '/' }).server)
-    expect(server.cmd).toEqual(['bun', '--bun', 'astro', 'dev', '--ignore-lock'])
+    expect(server.cmd).toEqual(['bunx', 'astro', 'dev', '--ignore-lock'])
     expect(server.cwd.endsWith('apps/web')).toBe(true)
     expect(server.env).toBeUndefined()
     expect(planShot({ target: 'app:/' }).path).toBe(`${APP_BASE}/`)

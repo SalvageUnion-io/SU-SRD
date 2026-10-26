@@ -18,5 +18,5 @@ One app ([ADR-050](../../docs/architecture/one-app.md)): the SRD's pre-rendered 
 ## Verification
 
 No output snapshot: CI builds once and runs `bun --filter web check:examples`
-and the PR-tier e2e specs (`ci.yml`) on that `dist`; lower a
+and the PR-tier e2e specs (`ci.yml`) on that build; lower a
 `perf-budget.e2e.ts` budget when a page gets faster.

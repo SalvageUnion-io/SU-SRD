@@ -6,8 +6,9 @@
  * 1. The shared markdown files are read from disk **at build time**.
  *    This module only ever runs in the build (and in `astro dev`, which is the
  *    same render path), so a `node:fs` read here costs the browser nothing.
- *    The path is resolved from `import.meta.url` rather than `process.cwd()`
- *    so it does not depend on where the build was invoked from.
+ *    Each is found by walking up from this module rather than from
+ *    `process.cwd()`, so it does not depend on where the build was invoked
+ *    from, nor on where the bundler put this module.
  * 2. The lightbox is a plain script, `public/about-lightbox.js`, loaded by
  *    URL: the reference site emits no executable inline script, so its CSP `script-src`
  *    stays a literal (`public/_headers`). Every navigation is a real document
@@ -18,7 +19,7 @@
  *    `RouteContext.builtAssets`. See `BuiltAssets` in `src/reference/types.ts`.
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { PRODUCT } from 'game-domain/product'
 import { X } from 'lucide-react'
@@ -39,9 +40,14 @@ import { Island } from '../../runtime/Island'
 import { DocPage } from '../DocPage'
 import type { PageModule, PageResult, RouteContext } from '../types'
 
-/** Repo root, relative to this module — `apps/web/src/reference/pages` -> five levels up. */
-const repoRootFile = (name: string): string =>
-  fileURLToPath(new URL(`../../../../../${name}`, import.meta.url))
+/** A file at the repo root: the nearest `name` above this module. */
+function repoRootFile(name: string): string {
+  for (let dir = new URL('.', import.meta.url); ; dir = new URL('..', dir)) {
+    const file = fileURLToPath(new URL(name, dir))
+    if (existsSync(file)) return file
+    if (dir.pathname === '/') throw new Error(`[build] no ${name} above ${import.meta.url}`)
+  }
+}
 
 // The shared colophon prose, read at build time from the repo root. This page
 // is the About page of both tools: the app links here and keeps no copy.

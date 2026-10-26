@@ -5,7 +5,7 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "ref-generate && VITE_TEST_AUTH=true bun --bun astro dev",
+    "dev": "ref-generate && VITE_TEST_AUTH=true astro dev",
     "typecheck": "tsc -b",
     "build": "bun astro/build/genNavCatalog.ts && bun --bun astro build",
     "og:generate": "bun run build && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
@@ -42,6 +42,7 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@astrojs/cloudflare": "14.4.2",
     "@astrojs/react": "7.1.1",
     "@astrojs/sitemap": "3.7.4",
     "@cloudflare/vitest-plugin": "1.4.6",

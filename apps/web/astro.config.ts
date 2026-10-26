@@ -7,6 +7,7 @@
 
 import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import cloudflare from '@astrojs/cloudflare'
 import react from '@astrojs/react'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { defineConfig } from 'astro/config'
@@ -16,11 +17,12 @@ import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { VitePWA } from 'vite-plugin-pwa'
 import { appGraph } from './astro/build/appGraph'
 import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
-import { workerInDev } from './astro/build/devWorker'
+import { DEV_STATE, devWorker } from './astro/build/devWorker'
 import { islandDirectives } from './astro/build/islandDirectives'
 import { referenceStamp } from './astro/build/referenceStamp'
 import { site } from './astro/build/site'
 import { siteSitemap } from './astro/build/sitemap'
+import { workerRoutes } from './astro/build/workerRoutes'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { SITE_URL } from './src/lib/constants'
 import { SITE_WORKER, WORKBOX_OPTIONS } from './src/pwa'
@@ -66,6 +68,9 @@ const clientOnly = (plugins: Plugin | Plugin[]): Plugin[] =>
  * site (`site`), since the client pass ends before the pages are written.
  */
 const pwa = VitePWA({
+  // The client's half of the output, where the site is (the adapter puts the
+  // Worker in `dist/server`, which Vite would default to).
+  outDir: join(HERE, 'dist/client'),
   registerType: 'prompt',
   injectRegister: false,
   filename: SITE_WORKER.url.slice(1),
@@ -102,19 +107,34 @@ export default defineConfig({
   srcDir: './astro',
   publicDir: './public',
   outDir: './dist',
-  trailingSlash: 'always',
+  trailingSlash: 'ignore',
   build: { format: 'directory', inlineStylesheets: 'never', assets: 'assets' },
   server: { port: PORT, headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT } },
+  // The site Worker (`wrangler.jsonc`'s `main`), whose routes are endpoints
+  // (`workerRoutes`). Pages stay pre-rendered, in Node; no sessions, no
+  // image service, no inspector.
+  adapter: cloudflare({
+    prerenderEnvironment: 'node',
+    imageService: 'passthrough',
+    inspectorPort: false,
+    persistState: { path: DEV_STATE },
+  }),
+  session: false,
   // React renders the pages and hydrates their islands (`client:*`).
-  integrations: [react(), islandDirectives(), siteSitemap(), site({ pwa: pwaApi })],
+  integrations: [
+    react(),
+    islandDirectives(),
+    workerRoutes(),
+    devWorker(),
+    siteSitemap(),
+    site({ pwa: pwaApi }),
+  ],
   devToolbar: { enabled: false },
   vite: {
     // The app reads `VITE_` variables (`src/env.d.ts`); Astro's default is `PUBLIC_` alone.
     envPrefix: ['VITE_', 'PUBLIC_'],
     plugins: [
       baseStylesheetModule(),
-      // `wrangler dev`, for every path the Worker answers (`astro/build/devWorker.ts`).
-      workerInDev(PORT + 1000),
       appShellInDev(),
       // The router's code splitter runs before the JSX transform (the React
       // integration's, which Astro appends after these), or refuses to start.

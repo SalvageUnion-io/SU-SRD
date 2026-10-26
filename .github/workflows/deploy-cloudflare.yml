@@ -313,7 +313,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: web-dist
-          path: apps/web/dist
+          path: apps/web
 
       # The shared database before the Worker that reads it: create it on the
       # first run, then every migration it has not had (tools/d1-migrate.ts).

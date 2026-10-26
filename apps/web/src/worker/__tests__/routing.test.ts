@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
+import { workerRouteAt } from '../routeTable'
+import { routeFor, worker } from './worker'
 
 /**
  * The one Worker, which Static Assets runs only for a miss
@@ -176,5 +177,61 @@ describe('a miss under the Dataset API is a JSON 404, not the page', () => {
     const env = envWith()
     const res = await worker.fetch(req('/api/v1x'), env)
     expect(res.headers.get('content-type')).not.toBe('application/json')
+  })
+})
+
+describe('the route table Astro injects (`WORKER_ROUTES`)', () => {
+  it('sends each tree to its route and anything else to the miss', () => {
+    expect(
+      [
+        '/__errors',
+        '/auth/session',
+        '/build',
+        '/build/pilots',
+        '/play/',
+        '/admin/cutover/site',
+        '/__rooms/health',
+        '/__shared/sheet',
+        '/__photos',
+        '/homebrew/patterns.json',
+        '/homebrew/',
+        '/authors',
+        '/api/v1/nope.json',
+      ].map(routeFor)
+    ).toEqual([
+      'errors',
+      'auth',
+      'app',
+      'app',
+      'app',
+      'cutover',
+      'rooms',
+      'shared',
+      'photos',
+      'homebrew',
+      'miss',
+      'miss',
+      'miss',
+    ])
+  })
+
+  it('names the route at each injected pattern, and refuses one it never injected', () => {
+    expect(workerRouteAt('/__rooms/[...path]')).toBe('rooms')
+    expect(() => workerRouteAt('/nowhere')).toThrow('no Worker route at /nowhere')
+  })
+})
+
+describe('a path a route has nothing at is the site miss', () => {
+  it.each([
+    ['GET', '/auth/nope'],
+    ['GET', '/admin/cutover'],
+    ['GET', '/__rooms/nope'],
+    ['GET', '/__shared'],
+    ['POST', '/homebrew/patterns.json'],
+  ])('%s %s', async (method, path) => {
+    const env = envWith()
+    const res = await worker.fetch(new Request(`https://salvageunion.io${path}`, { method }), env)
+    expect(res.status).toBe(404)
+    expect(await res.text()).toBe(PAGE)
   })
 })

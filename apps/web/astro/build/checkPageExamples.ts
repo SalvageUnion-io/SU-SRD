@@ -23,7 +23,7 @@ import { join } from 'node:path'
 import { appPath } from '../../src/lib/appBase'
 import { SITE_URL } from '../../src/lib/constants'
 
-const DIST = join(import.meta.dir, '../../dist')
+const DIST = join(import.meta.dir, '../../dist/client')
 
 /** `https://salvageunion.io/schema/chassis.json` -> `schema/chassis.json` */
 function toDistPath(url: string): string {

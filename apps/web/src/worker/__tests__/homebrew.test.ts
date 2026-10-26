@@ -1,10 +1,10 @@
 import { describe, expect, it, spyOn } from 'bun:test'
 import { HOMEBREW_PATTERNS_PATH } from '../../lib/homebrew/endpoint'
+import type { Env } from '../env'
 import { serveHomebrew } from '../homebrew'
-import type { Env } from '../index'
-import worker from '../index'
 import { testDb } from '../shared/__tests__/d1'
 import type { SharedDb } from '../shared/db'
+import { worker } from './worker'
 
 /**
  * `GET /homebrew/patterns.json` (ADR-061): the SRD's pages read homebrew from

@@ -4,6 +4,12 @@
   // `/build` and `/play`, the app's (src/worker/index.ts, src/worker/app.ts);
   // every header on a real file is public/_headers. Built in GitHub Actions, not Workers Builds
   // (ADR-033 §4).
+  //
+  // Astro builds `main` through the Cloudflare adapter (its routes are Astro
+  // endpoints, src/worker/routes.ts) into `dist/server`, beside the site in
+  // `dist/client`, and writes this config there as `dist/server/wrangler.json`;
+  // `.wrangler/deploy/config.json` points `wrangler deploy`, `wrangler dev`
+  // and `wrangler preview` at it, so they ship the build, never this source.
   "name": "su-srd",
   "main": "src/worker/index.ts",
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
@@ -109,9 +115,9 @@
   ],
 
   "assets": {
-    "directory": "./dist",
+    "directory": "./dist/client",
     "binding": "ASSETS",
-    // A miss runs the Worker, which answers dist/404.html (or a bare 404 under
+    // A miss runs the Worker, which answers 404.html (or a bare 404 under
     // `/assets/`) with `no-store`. Not `404-page`: Static Assets applies
     // `_headers` to that response by path, so a missing chunk's 404 took the
     // `/assets/*` rule's year of `immutable`. Not SPA mode either: the reference site is
@@ -139,7 +145,7 @@
   // Issues' stacks point at the source, not the bundle.
   "upload_source_maps": true,
 
-  // `bun run preview` (`wrangler dev`) serves the built `dist/` exactly as
+  // `bun run preview` (`wrangler dev`) serves the build exactly as
   // above on the dev server's port: the e2e suite's CI server, and the one
   // `scripts/og-screenshots.ts` renders through.
   "dev": { "port": 4321 }

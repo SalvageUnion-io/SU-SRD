@@ -6,12 +6,12 @@
  *
  *   bun run dev:backend [--fresh]
  *
- * - It runs the dev server (`astro dev`, which runs the site Worker under
- *   `wrangler dev` beside it: `apps/web/astro/build/devRooms.ts`) with the
+ * - It runs the dev server (`astro dev`, which runs the site Worker in
+ *   workerd: `apps/web/astro/build/devWorker.ts`) with the
  *   test seam on, on this checkout's port (`packages/gates/lib/ports.ts`,
  *   4321 in the primary checkout).
  * - State lives in `.dev-backend/` at the checkout root (gitignored): the
- *   Worker's rooms and shared database (`wrangler dev --persist-to`) and
+ *   Worker's rooms and shared database (`DEV_ROOMS_STATE`) and
  *   `seed.json`. A restart keeps it; `--fresh` wipes it first.
  * - The first start seeds `SEED_ACCOUNT` through the test seam with the one
  *   account seed (`packages/gates/lib/seedAccount.ts`, by way of
@@ -239,7 +239,7 @@ export async function main(
   if (fresh) rmSync(state, { recursive: true, force: true })
   mkdirSync(state, { recursive: true })
   const server = sys.spawn(
-    ['bun', '--bun', 'astro', 'dev', '--ignore-lock'],
+    ['bunx', 'astro', 'dev', '--ignore-lock'],
     join(root, 'apps/web'),
     join(state, 'dev.log'),
     { PORT: String(devPort), VITE_TEST_AUTH: 'true', DEV_ROOMS_STATE: join(state, 'wrangler') }

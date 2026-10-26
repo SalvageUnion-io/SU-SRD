@@ -89,7 +89,7 @@ const LAUNCH_ARGS = [
 ]
 
 const APP_ROOT = fileURLToPath(new URL('..', import.meta.url))
-const DIST_DIR = join(APP_ROOT, 'dist')
+const DIST_DIR = join(APP_ROOT, 'dist/client')
 
 // ---------------------------------------------------------------------------
 // Incremental cache.

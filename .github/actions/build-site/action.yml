@@ -86,7 +86,11 @@ runs:
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: web-dist
-        path: apps/web/dist/
+        # The site (`dist/client`), its Worker (`dist/server`) and wrangler's
+        # pointer to the Worker's config, which `wrangler deploy` follows.
+        path: |
+          apps/web/dist/
+          apps/web/.wrangler/deploy/config.json
         include-hidden-files: true
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}

@@ -120,7 +120,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: web-dist
-          path: apps/web/dist
+          path: apps/web
 
       # The Previews' own shared database before the Preview that reads it
       # (tools/d1-migrate.ts); production's is never touched from here.
@@ -249,6 +249,6 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -uo pipefail
-          mkdir -p apps/web/dist
+          mkdir -p apps/web/dist/client
           (cd apps/web && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
             echo "::warning::no $PREVIEW_NAME Preview to delete"

@@ -112,7 +112,7 @@ describe('main', () => {
     expect(await main([], sys, s)).toBe(0)
     const state = join(s.root, STATE_DIR)
     expect(world.calls[0]).toBe(
-      `spawn bun --bun astro dev --ignore-lock true ${join(state, 'wrangler')}`
+      `spawn bunx astro dev --ignore-lock true ${join(state, 'wrangler')}`
     )
     expect(world.calls).toContain(`seed ${s.dev} ${SEED_ACCOUNT.email}`)
     expect(JSON.parse(readFileSync(join(state, 'seed.json'), 'utf8'))).toEqual({

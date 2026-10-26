@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { APP_BASE } from '../../lib/appBase'
 import { RUN_WORKER_FIRST, spaAssets } from '../app'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
+import { worker } from './worker'
 
 /**
  * The app under `/build`, served by the one Worker (`../app.ts`): the

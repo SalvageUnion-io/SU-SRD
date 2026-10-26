@@ -5,10 +5,10 @@ import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { color } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { renderShell } from '../../shell/shell'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
 import { publicShells, sitemapXml } from '../publicPages'
 import { markUnionRoute } from '../shellMeta'
+import { worker } from './worker'
 
 /**
  * The public pages (the front door, the Starter Set and each of its builds).

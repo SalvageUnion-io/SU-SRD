@@ -89,7 +89,8 @@ const DEV: Server = {
   port: portFor(),
   // The dev server itself, not `bun run dev`, which turns the test sign-in on.
   // `--ignore-lock`: in the foreground, where Astro would background itself for an agent.
-  cmd: ['bun', '--bun', 'astro', 'dev', '--ignore-lock'],
+  // Under Node, not `bun --bun`: Miniflare, which runs the Worker in dev, needs it.
+  cmd: ['bunx', 'astro', 'dev', '--ignore-lock'],
   cwd: join(REPO, 'apps/web'),
 }
 

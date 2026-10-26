@@ -16,8 +16,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { Env } from '../../worker/index'
-import worker from '../../worker/index'
+import { worker } from '../../worker/__tests__/worker'
+import type { Env } from '../../worker/env'
 import { land } from './landOn'
 
 /** Asked of the Worker: a miss, as Static Assets hands it one. */

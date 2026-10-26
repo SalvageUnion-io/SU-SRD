@@ -16,11 +16,10 @@ import {
   SiteBundleSchema,
 } from 'game-domain/migration/bundle'
 import { rooms } from './rooms'
+import { CUTOVER_PREFIX } from './routeTable'
 import { projectAccount, projectGame, projectSite } from './shared/cutover'
 import type { SharedDb } from './shared/db'
 import { markFilled } from './shared/db'
-
-export const CUTOVER_PREFIX = '/admin/cutover/'
 
 /**
  * What a room answers for its import: whether it took the bundle, where it

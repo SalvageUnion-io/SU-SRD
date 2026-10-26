@@ -7,9 +7,9 @@ import type { AuthDeps } from '../auth/index'
 import { discordAvatar, handleAuth, identityOf } from '../auth/index'
 import type { AuthSql } from '../auth/store'
 import { d1Sql } from '../auth/store'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
 import { testDb } from '../shared/__tests__/d1'
+import { worker } from './worker'
 
 /**
  * Sign-in on the Worker (`src/worker/auth/`): the test seam's gate, sessions

@@ -1,8 +1,8 @@
 /**
  * `cloudflare:workers` exists only inside workerd. The Worker's tests import
- * `src/worker/index.ts`, which exports the rooms and the bot's gateway, so
- * under `bun test` the module is this stand-in; the rooms' wiring is tested
- * inside workerd (`workerd/`).
+ * its routes (`src/worker/routes.ts`), which reach the rooms and the bot's
+ * gateway, so under `bun test` the module is this stand-in; the rooms' wiring
+ * is tested inside workerd (`workerd/`).
  */
 import { mock } from 'bun:test'
 

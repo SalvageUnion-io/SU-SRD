@@ -2,8 +2,8 @@ import { describe, expect, it } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { APP_BASE, appPath } from '../../lib/appBase'
 import { renderUnionBar } from '../../shell/unionBar'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
+import { worker } from './worker'
 
 /**
  * The app at salvageunion.io/build (ADR-048), which the one Worker runs
