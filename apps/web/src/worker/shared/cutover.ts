@@ -5,8 +5,8 @@
  * nothing; the site's rows, which have no natural key to upsert on, are
  * written once (`cutover:site` in `shared_meta`).
  *
- * Public sheets and the homebrew listing are not here: their rows are worked
- * out by the room that holds the thing (`publicSheets.ts`, `homebrew.ts`).
+ * Public sheets and the homebrew listing are not here: the room that holds
+ * the thing works their rows out, and the door asks it to (`republish`).
  */
 
 import type { AccountBundle, GameBundle, SiteBundle } from 'game-domain/migration/bundle'

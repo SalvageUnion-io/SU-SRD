@@ -20,7 +20,13 @@ const PARALLEL = 8
 type Post = (step: string, body: unknown) => Promise<unknown>
 
 /** One room's line in the report: what it said, or why the post failed. */
-type RoomReport = { room: string; imported?: boolean; diff: string[] }
+type RoomReport = {
+  room: string
+  imported?: boolean
+  diff: string[]
+  /** The shared-sheet and Homebrew rows the room wrote to D1. */
+  published?: unknown
+}
 
 export type RunReport = {
   site: unknown
@@ -62,8 +68,13 @@ function mediatorName(game: GameBundle, names: Map<string, string | null>): stri
 
 async function room(label: string, send: () => Promise<unknown>): Promise<RoomReport> {
   try {
-    const answer = (await send()) as { imported: boolean; diff: string[] }
-    return { room: label, imported: answer.imported, diff: answer.diff }
+    const answer = (await send()) as { imported: boolean; diff: string[]; published?: unknown }
+    return {
+      room: label,
+      imported: answer.imported,
+      diff: answer.diff,
+      published: answer.published,
+    }
   } catch (error) {
     return { room: label, diff: [`post failed: ${(error as Error).message}`] }
   }
