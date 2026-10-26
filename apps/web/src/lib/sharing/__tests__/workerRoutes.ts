@@ -1,9 +1,9 @@
 /**
  * The Worker's JSON routes as a test file reaches them (`lib/connection/workerRead.ts`):
  * `answerRoutes` names each path's value for this test, held before the
- * render, and every `POST` is kept in `routeWrites`. An unnamed path throws, so a screen that starts
- * asking something new fails loudly rather than loading forever. A
- * `Refused` answer is a refusal, as a route's 4xx is.
+ * render, and every `POST` is kept in `routeWrites`. A read of a path it did
+ * not name is never answered, so the screen stays loading; `routeAsks` says
+ * what it asked.
  *
  * Call `withWorkerRoutes()` once at the top level of a test file: it stands
  * in for `fetch` before each test, and puts it back and drops every held read
@@ -12,11 +12,6 @@
 
 import { afterEach, beforeEach } from 'bun:test'
 import { forgetWorkerReads, holdWorkerRead } from '../../connection/workerRead'
-
-/** A route's refusal, as its 4xx `{ refusal }`. */
-export class Refused {
-  constructor(readonly refusal: string) {}
-}
 
 let answers: Record<string, unknown> = {}
 
@@ -34,17 +29,12 @@ export const routeAsks: string[] = []
 export function answerRoutes(next: Record<string, unknown>): void {
   answers = next
   forgetWorkerReads()
-  for (const [path, value] of Object.entries(next)) {
-    if (!(value instanceof Refused)) holdWorkerRead(path, value)
-  }
+  for (const [path, value] of Object.entries(next)) holdWorkerRead(path, value)
 }
 
 function respond(path: string): Response {
   if (!(path in answers)) throw new Error(`No answer for the Worker route ${path}`)
-  const answer = answers[path]
-  return answer instanceof Refused
-    ? Response.json({ refusal: answer.refusal }, { status: 400 })
-    : Response.json({ value: answer })
+  return Response.json({ value: answers[path] })
 }
 
 export function withWorkerRoutes(): void {

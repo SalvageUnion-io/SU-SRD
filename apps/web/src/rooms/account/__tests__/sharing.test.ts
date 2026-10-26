@@ -53,6 +53,13 @@ describe('the Shelf records', () => {
     expect(room.shelf.records(PLAYER, 'patterns')).toEqual([])
   })
 
+  test('a record names itself by the id in its body', () => {
+    const room = shelf()
+    expect(() => room.sharing.putRecord(PLAYER, 'patterns', { name: 'No id' }, AT)).toThrow(
+      'must carry a string id'
+    )
+  })
+
   test('a tray NPC may be partial but is named', () => {
     const room = shelf()
     room.sharing.putRecord(PLAYER, 'npcTray', { id: 'n1', name: 'Scav' }, AT)
@@ -139,5 +146,15 @@ describe('sharing a sheet by link', () => {
     const room = shelf()
     expect(() => room.sharing.setPublic(STRANGER, 'pilot', 'p1', true)).toThrow(RoomRefusal)
     expect(() => room.sharing.setPublic(PLAYER, 'mech', 'p1', true)).toThrow(RoomRefusal)
+  })
+  test('a sheet that is not whole is not shared, though its link may come down', () => {
+    const room = shelf()
+    // A body written before its schema took it, as an old row copied over is.
+    room.shelf.create(PLAYER, { id: 'p2', kind: 'pilot', body: bodies.pilot('p2'), at: AT })
+    room.shelf.store.sql.exec('update units set body = ? where id = ?', '{"id":"p2"}', 'p2')
+    expect(() => room.sharing.setPublic(PLAYER, 'pilot', 'p2', true)).toThrow(
+      'This pilot cannot be shared publicly: it is not a whole pilot'
+    )
+    expect(room.sharing.setPublic(PLAYER, 'pilot', 'p2', false)).toBe(false)
   })
 })

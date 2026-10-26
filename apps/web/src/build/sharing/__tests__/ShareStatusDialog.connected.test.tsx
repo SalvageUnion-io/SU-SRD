@@ -250,6 +250,44 @@ describe('ShareStatusDialog — a mech pattern', () => {
     ])
   })
 
+  test('shared with a crew, a player in two Games picks which', async () => {
+    patternSharing({
+      appId: 'pattern-1',
+      visibility: 'game',
+      gameId: 'game-1',
+      gameName: 'The Long Haul',
+      builtCount: 0,
+    })
+    setQueryAnswers({
+      'games:listMine': [...GAMES, { _id: 'game-2', name: 'Dust Runners', mediator: false }],
+    })
+    await act(async () => {
+      renderDialog({ kind: 'pattern', id: 'pattern-1' })
+    })
+
+    const which = screen.getByLabelText(/which game/i) as HTMLSelectElement
+    expect(which.value).toBe('game-1')
+    await act(async () => {
+      fireEvent.change(which, { target: { value: 'game-2' } })
+    })
+    expect(mutations()).toEqual([{ patternId: 'pattern-1', visibility: 'game', gameId: 'game-2' }])
+  })
+
+  test('a link that will not copy says so', async () => {
+    sheetShared('pilot-1', true)
+    await act(async () => {
+      renderDialog({
+        clipboardWriter: async () => {
+          throw new Error('denied')
+        },
+      })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /copy public link/i }))
+    })
+    expect(screen.getByText(/could not copy/i)).toBeTruthy()
+  })
+
   test('shared by link: the /p/pattern/ link', async () => {
     patternSharing({
       appId: 'pattern-1',

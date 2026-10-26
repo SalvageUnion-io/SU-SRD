@@ -5,7 +5,7 @@ import type { Identity } from '../auth/index'
 import type { PhotoBucket } from '../photos'
 import { MAX_PHOTO_BYTES, servePhotos } from '../photos'
 import { testDb } from '../shared/__tests__/d1'
-import { putGame, putMembership } from '../shared/games'
+import { putGame, putInvite, putMembership } from '../shared/games'
 import { RoomPublisher } from '../shared/roomRows'
 import { serveShared } from '../sharedRoutes'
 
@@ -202,6 +202,38 @@ describe('serveShared', () => {
     expect((await ask(db, sharedPaths.gamePatterns('g2'), READER)).body.value).toEqual([])
     expect((await ask(db, sharedPaths.crewPatterns(), MAKER)).body.value).toEqual([])
     expect((await ask(db, sharedPaths.crewPatterns(), null)).body.value).toEqual([])
+  })
+
+  it('leaves out a crew pattern whose body cannot be read', async () => {
+    const db = await world()
+    await db.prepare("update crew_patterns set body = 'not json' where app_id = 'pat-2'").run()
+    expect((await ask(db, sharedPaths.crewPatterns(), READER)).body.value).toEqual([])
+  })
+
+  it("serves an invite's preview, null for a code no Game holds", async () => {
+    const db = await world()
+    await putInvite(db, 'g1', 'K7QR2XA')
+    expect((await ask(db, sharedPaths.invite('K7QR2XA'), null)).body.value).toMatchObject({
+      gameName: 'The Long Haul',
+    })
+    expect((await ask(db, sharedPaths.invite('NOPE'), null)).body.value).toBeNull()
+  })
+
+  it('answers an address it does not serve with 404, and a database fault with 503', async () => {
+    const db = await world()
+    expect((await ask(db, '/__shared/nowhere', null)).status).toBe(404)
+    const broken = {
+      prepare: () => {
+        throw new Error('D1 is down')
+      },
+    }
+    const quiet = console.error
+    console.error = () => {}
+    try {
+      expect((await ask(broken as never, sharedPaths.sheet('pilot', 'p-1'), null)).status).toBe(503)
+    } finally {
+      console.error = quiet
+    }
   })
 })
 

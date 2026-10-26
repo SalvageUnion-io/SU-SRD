@@ -41,4 +41,14 @@ describe('publicSheet.setPublic in a Game', () => {
     expect(share(room, ORGANIZER, 'p1', false)).toEqual({ ok: true, value: false })
     expect(share(room, STRANGER, 'p1', false)).toMatchObject({ ok: false })
   })
+  test('a unit that is not whole is not shared', () => {
+    const { room } = game()
+    // A body written before its schema took it, as an old row copied over is.
+    room.units.create(PLAYER, { id: 'p2', kind: 'pilot', body: bodies.pilot('p2'), at: AT })
+    room.store.sql.exec('update units set body = ? where id = ?', '{"id":"p2"}', 'p2')
+    expect(share(room, PLAYER, 'p2', true)).toEqual({
+      ok: false,
+      refusal: 'This pilot cannot be shared publicly: it is not a whole pilot',
+    })
+  })
 })
