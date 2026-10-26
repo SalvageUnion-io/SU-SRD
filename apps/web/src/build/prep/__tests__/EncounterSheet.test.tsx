@@ -36,6 +36,7 @@ const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { usePrepStore } = await import('../../../stores/prepStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
 const { EncounterPage } = await import('../EncounterPage')
+const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
 withSignedInBackend()
 
@@ -72,6 +73,7 @@ const connection: ConnectionState = {
 }
 
 beforeEach(() => {
+  useSheetModeStore.setState({ editing: true })
   toast.dismiss()
   resetStores()
   usePrepStore.setState({ encounters: [AMBUSH], hydrated: true } as never)
@@ -184,5 +186,46 @@ describe("an encounter's briefing", () => {
     await settle(() => current()?.briefing !== undefined)
     expect(current()?.briefing).toBe('Smoke rises from the crusher.')
     expect(current()?.notes).toBe('')
+  })
+})
+
+describe("an encounter's threat read and spoils", () => {
+  test('reads the opposition against a crew the Mediator steps', async () => {
+    await renderPage()
+    const read = screen.getByRole('region', { name: 'Threat read' })
+    expect(within(read).getByText('HP')).toBeTruthy()
+    expect(within(read).queryByText('Crew outnumbered')).toBeNull()
+    await click(within(read).getByRole('button', { name: 'Decrease crew size' }))
+    await click(within(read).getByRole('button', { name: 'Decrease crew size' }))
+    expect(within(read).getByText('Crew outnumbered')).toBeTruthy()
+  })
+
+  test('lists what could be salvaged, or says nothing here leaves any', async () => {
+    await renderPage()
+    expect(screen.getByText(/Nothing here leaves salvage in the book/)).toBeTruthy()
+    act(() => {
+      usePrepStore.setState({
+        encounters: [
+          {
+            ...AMBUSH,
+            opposition: [
+              {
+                id: 'm1',
+                refSchema: 'chassis',
+                refSlug: 'mule',
+                refName: 'Mule',
+                refPattern: 'hauler',
+                name: 'Hauler',
+                maxHp: 10,
+                statKind: 'sp',
+              },
+            ],
+          },
+        ],
+      } as never)
+    })
+    const spoils = screen.getByRole('list', { name: 'Spoils' })
+    expect(within(spoils).getByText('Mule Chassis · Tech 1 · Salvage Value 7')).toBeTruthy()
+    expect(within(spoils).getByText(/Comms Module/)).toBeTruthy()
   })
 })
