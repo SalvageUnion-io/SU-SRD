@@ -31,9 +31,7 @@ import { scanEntityMarkupIn, stripCssComments, stripTsComments } from './entityM
 const APP_DIRS = ['apps/web/src'] as const
 /** The component library's own stylesheet (`entry.css` and what it imports): the owner, not an app. */
 const LIB_CSS = new Set(
-  ['entry.css', 'index.css', 'reset.css', 'theme.css', 'fallback-fonts.css'].map(
-    (f) => `apps/web/src/styles/${f}`
-  )
+  ['entry.css', 'index.css', 'reset.css', 'theme.css'].map((f) => `apps/web/src/styles/${f}`)
 )
 const notLib = (rel: string) =>
   !LIB_CSS.has(rel) && !rel.startsWith('apps/web/src/styles/partials/')

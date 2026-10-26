@@ -1,12 +1,9 @@
 /**
  * appPlugins — what the Astro config (`astro.config.ts`) adds to its Vite for
  * the app: the base stylesheet's address for the reference site's head, and
- * the dev server's shell for the app's navigations. The build writes
- * the shell as a page (`astro/pages/build/index.astro`) and its public pages
- * after it (`writePublicPages`).
- *
- * Every `transformIndexHtml` here acts on the app's shell alone (it carries
- * the `app:meta` markers).
+ * the dev server's answer to the app's navigations. The shell is a page
+ * (`astro/pages/build/index.astro`); the build writes its public pages after
+ * it (`writePublicPages`).
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -14,18 +11,13 @@ import { dirname, join } from 'node:path'
 import type { Connect, Plugin } from 'vite'
 import { APP_BASE, routeInApp } from '../../src/lib/appBase'
 import { originOf } from '../../src/lib/site'
-import { SITE_MANIFEST } from '../../src/pwa'
-import { renderShell } from '../../src/shell/shell'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from '../../src/styles/baseStylesheet'
 import { publicShells, sitemapXml } from '../../src/worker/publicPages'
-import { markUnionRoute } from '../../src/worker/shellMeta'
-import { pickFontPreloads, pickScriptFontPreload } from './fontPreloads'
 
 /**
- * `virtual:base-stylesheet`: the base stylesheet's URL and the faces every
- * page preloads (`./fontPreloads`), for the reference site's head and the
- * app's shell (`astro/lib/assets.ts`). The dev server links the source and
- * preloads none.
+ * `virtual:base-stylesheet`: the base stylesheet's URL, for the reference
+ * site's head and the app's shell (`astro/lib/assets.ts`). The dev server
+ * links the source.
  */
 export function baseStylesheetModule(): Plugin {
   const id = 'virtual:base-stylesheet'
@@ -39,16 +31,8 @@ export function baseStylesheetModule(): Plugin {
     resolveId: (source) => (source === id ? resolved : undefined),
     async load(source) {
       if (source !== resolved) return undefined
-      if (!build)
-        return `export default ${JSON.stringify({ href: DEV_BASE_STYLESHEET, fonts: [] })}`
-      const { href, files } = await buildBaseStylesheet()
-      const emitted = files.map((file) => file.fileName)
-      const base = {
-        href,
-        fonts: pickFontPreloads(emitted),
-        scriptFont: pickScriptFontPreload(emitted),
-      }
-      return `export default ${JSON.stringify(base)}`
+      const href = build ? (await buildBaseStylesheet()).href : DEV_BASE_STYLESHEET
+      return `export default ${JSON.stringify({ href })}`
     },
   }
 }
@@ -59,42 +43,22 @@ function isAppNavigation(url: string, accept: string): boolean {
   return routeInApp(path) !== null && !/\.[a-z0-9]+$/i.test(path) && accept.includes('text/html')
 }
 
-/** Whether a document is the app's shell (`shell.ts`'s `app:meta` block). */
-const isShell = (html: string): boolean => html.includes('app:meta')
-
 /**
- * Dev only: every navigation under `/build` and `/play` gets the shell
- * (`src/shell/shell.ts`) with its entry from source, the base stylesheet and
- * the manifest after its title, marked for its route as the Worker serves it
- * (`worker/app.ts`). Ahead of Astro's page handler, which would answer a deep
- * app path with the 404.
+ * Dev only: every navigation under `/build` and `/play` is the shell's page,
+ * as the Worker answers it (`worker/app.ts`), its entry from source. Ahead of
+ * Astro's page handler, which would answer a deep app path with the 404; the
+ * app marks the Union bar for its route as it mounts.
  */
 export function appShellInDev(): Plugin {
   return {
     name: 'app-shell-in-dev',
     apply: 'serve',
-    transformIndexHtml: {
-      order: 'post',
-      handler: (html) =>
-        isShell(html)
-          ? html.replace(
-              '</title>',
-              `</title><link rel="stylesheet" href="${DEV_BASE_STYLESHEET}"><link rel="manifest" href="${SITE_MANIFEST}">`
-            )
-          : html,
-    },
     configureServer(server) {
-      const shell: Connect.NextHandleFunction = async (req, res, next) => {
-        const url = req.originalUrl ?? req.url ?? '/'
-        if (!isAppNavigation(url, req.headers.accept ?? '')) return next()
-        try {
-          const route = routeInApp(url.split(/[?#]/)[0] ?? '') ?? '/'
-          const html = markUnionRoute(await server.transformIndexHtml(url, renderShell()), route)
-          res.setHeader('Content-Type', 'text/html; charset=utf-8')
-          res.end(html)
-        } catch (error) {
-          next(error)
+      const shell: Connect.NextHandleFunction = (req, _res, next) => {
+        if (isAppNavigation(req.originalUrl ?? req.url ?? '/', req.headers.accept ?? '')) {
+          req.url = `${APP_BASE}/`
         }
+        next()
       }
       // After Astro's own setup, then to the front of the stack: Astro puts its
       // trailing-slash rule there, which would 404 `/build/starter`.

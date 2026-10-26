@@ -1,10 +1,10 @@
 /**
- * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
- * src/components entry (`./base.css`), at `/assets/base-<hash>.css`.
+ * baseStylesheet — the one stylesheet both apps link: the src/components
+ * entry (`./base.css`), at `/assets/base-<hash>.css`.
  *
- * the reference site and the app once bundled the fonts and the package stylesheet into
+ * the reference site and the app once bundled the package stylesheet into
  * their own CSS, under their own bases: a visit crossing from one to the other
- * downloaded the same ~115 KB twice, from two URLs. It is built once here, with
+ * downloaded it twice, from two URLs. It is built once here, with
  * no config either app could change, and the one Vite pass (`astro.config.ts`)
  * emits it (`emitBaseStylesheet`) and links it from the app's shell
  * (`baseStylesheetLink`, `astro/build/appPlugins.ts`); the reference site's pages link it from
@@ -30,7 +30,7 @@ type BaseFile = { fileName: string; source: string | Uint8Array }
 export type BaseStylesheet = {
   /** The stylesheet's URL, `/assets/base-<hash>.css`. */
   href: string
-  /** The stylesheet and every font it names. */
+  /** The stylesheet. */
   files: BaseFile[]
 }
 

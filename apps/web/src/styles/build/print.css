@@ -65,7 +65,7 @@
   body {
     font-size: 12pt;
     line-height: 1.4;
-    font-family: 'Barlow', system-ui, sans-serif;
+    font-family: var(--font-body);
   }
 
   h1 {

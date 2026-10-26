@@ -43,7 +43,7 @@ export type DocumentMeta = {
    */
   preloadImageSrcSet?: string
   preloadImageSizes?: string
-  /** Preload the tagline's hand: the page sets the quote above the fold (`./fontPreloads`). */
+  /** Preload the tagline's hand: the page sets the quote above the fold (`astro/components/Fonts.astro`). */
   preloadScriptFont?: boolean
   breadcrumbs?: BreadcrumbItem[]
 }

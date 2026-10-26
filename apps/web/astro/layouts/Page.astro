@@ -1,10 +1,11 @@
 ---
 /**
  * The one document shell: a page module's head and body, around the
- * stylesheets, with each island Astro renders where the body marks it
+ * stylesheets and the fonts, with each island Astro renders where the body marks it
  * (`components/Islands.astro`), and the page script every page loads.
  */
 import '../../src/styles/global.css'
+import Fonts from '../components/Fonts.astro'
 import Islands from '../components/Islands.astro'
 import { islandParts } from '../lib/islandParts'
 import type { ReferenceDocument } from '../lib/reference'
@@ -14,6 +15,6 @@ const { doc } = Astro.props
 const parts = islandParts(doc.body, doc.islands)
 ---
 <html lang="en">
-  <head><Fragment set:html={doc.head} /></head>
+  <head><Fragment set:html={doc.head} /><Fonts scriptFont={doc.scriptFont} /></head>
   <body>{parts.map((part) => ('html' in part ? <Fragment set:html={part.html} /> : <Islands island={part.island} />))}<script>import '../../src/runtime/islands.client'</script></body>
 </html>

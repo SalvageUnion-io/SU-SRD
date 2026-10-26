@@ -51,8 +51,7 @@
  *
  * ## Deliberate non-defaults
  *
- * - `globIgnores` drops the `latin-ext` and `vietnamese` font subsets
- *   (`UNFETCHED_FONT_SUBSETS`), the list projection of `actions` that nothing
+ * - `globIgnores` drops the list projection of `actions` that nothing
  *   loads, the builder's pre-rendered Starter Set pages (the shell with other
  *   words for crawlers; offline, the shell answers them), and the retired
  *   builder worker.
@@ -74,18 +73,6 @@ export const SITE_MANIFEST = '/site.webmanifest'
  * `registerSiteWorker` (`lib/sw/siteWorker.ts`) does the same.
  */
 export const SITE_WORKER = { url: '/sw.js', scope: '/' } as const
-
-/**
- * The font subsets left out of the precache. Each `@fontsource` face ships
- * `latin`, `latin-ext` and `vietnamese` subsets split by `unicode-range`, and
- * the browser fetches a subset only when the page draws a glyph in its range;
- * nothing the site ships does, so precaching the last two cost every first
- * visit about 157 KB of fonts it never loads. Their `@font-face` rules stay,
- * so a name typed with, say, a Polish letter still fetches its subset online.
- * Vite keeps the file name ahead of its hash
- * (`barlow-latin-ext-400-normal-<hash>.woff2`).
- */
-export const UNFETCHED_FONT_SUBSETS = '**/*-{latin-ext,vietnamese}-*.woff2'
 
 /**
  * The runtime cache visited pages land in, and the one the installed app's
@@ -171,7 +158,6 @@ export const WORKBOX_OPTIONS = {
   globIgnores: [
     // workbox-build's default, which setting `globIgnores` replaces.
     '**/node_modules/**/*',
-    UNFETCHED_FONT_SUBSETS,
     '**/actions.list.generated-*.js',
     `${APP_DIR}/starter.html`,
     `${APP_DIR}/starter/**`,

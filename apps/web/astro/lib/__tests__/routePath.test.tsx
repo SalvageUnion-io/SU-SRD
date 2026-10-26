@@ -14,7 +14,7 @@ import { astroPaths, fillPattern, withTrailingSlash } from '../routePath'
 import { documentHtml } from './pages'
 
 const ASSETS: PageAssets = {
-  stylesheet: { href: '/assets/base-CAFEBABE.css', fonts: [] },
+  stylesheet: { href: '/assets/base-CAFEBABE.css' },
   built: { 'src/assets/map.webp': '/assets/map-F00D.webp' },
 }
 

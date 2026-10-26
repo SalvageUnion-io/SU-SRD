@@ -1,6 +1,6 @@
 /**
  * assets — what a page's head links and addresses: the shared base
- * stylesheet with the faces it preloads (`virtual:base-stylesheet`,
+ * stylesheet (`virtual:base-stylesheet`,
  * `astro/build/appPlugins.ts`), and the files under `src/assets/`, imported
  * for their hashed URLs.
  */

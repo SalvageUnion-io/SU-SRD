@@ -10,7 +10,7 @@ import {
   installChunkRecovery,
   reactRootErrorHandlers,
 } from './lib/observability'
-import { preloadScriptFont } from './lib/scriptFont'
+import { preloadScriptFont, SCRIPT_FONT_VARIABLE } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { setSyncStatus } from './replica/sync'
@@ -59,7 +59,12 @@ setSyncStatus('syncing')
 
 // The front door's quote face, asked for now so it is in hand before the quote
 // paints rather than swapped in under it (lib/scriptFont.ts).
-preloadScriptFont(window.location.pathname, APP_BASE, document.fonts)
+preloadScriptFont(
+  window.location.pathname,
+  APP_BASE,
+  document.fonts,
+  getComputedStyle(document.documentElement).getPropertyValue(SCRIPT_FONT_VARIABLE).trim()
+)
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')

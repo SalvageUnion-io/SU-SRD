@@ -22,7 +22,7 @@ import { astroPaths, fillPattern } from '../routePath'
 const PAGES = join(import.meta.dir, '../../pages')
 
 const ASSETS: PageAssets = {
-  stylesheet: { href: '/assets/base.css', fonts: [] },
+  stylesheet: { href: '/assets/base.css' },
   built: { [ELDRIDGE_COAST_MAP]: '/assets/eldridge-coast-map.webp' },
 }
 

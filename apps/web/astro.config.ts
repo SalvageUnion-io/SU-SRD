@@ -18,6 +18,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { appGraph } from './astro/build/appGraph'
 import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
 import { DEV_STATE, devWorker } from './astro/build/devWorker'
+import { FONTS } from './astro/build/fonts'
 import { islandDirectives } from './astro/build/islandDirectives'
 import { referenceStamp } from './astro/build/referenceStamp'
 import { site } from './astro/build/site'
@@ -120,6 +121,7 @@ export default defineConfig({
     persistState: { path: DEV_STATE },
   }),
   session: false,
+  fonts: FONTS,
   // React renders the pages and hydrates their islands (`client:*`).
   integrations: [
     react(),
@@ -139,7 +141,7 @@ export default defineConfig({
       // The router's code splitter runs before the JSX transform (the React
       // integration's, which Astro appends after these), or refuses to start.
       ...clientOnly(TanStackRouterVite(ROUTER_PLUGIN_OPTIONS) as Plugin | Plugin[]),
-      // The fonts and the UI library's stylesheet, shared by both apps.
+      // The UI library's stylesheet, shared by both apps.
       ...clientOnly(emitBaseStylesheet()),
       ...clientOnly(graph.plugin),
       ...entrySignatures,

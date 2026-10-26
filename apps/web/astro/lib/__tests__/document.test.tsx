@@ -1,6 +1,6 @@
 /**
  * `renderDocument`: the seam where what only the build knows (the base
- * stylesheet with its font preloads) meets a page that does not, and where
+ * stylesheet) meets a page that does not, and where
  * the page's islands are collected for `Page.astro` to render.
  *
  * The head and body it returns are what `Page.astro` emits.
@@ -17,10 +17,7 @@ import { renderDocument as renderParts } from '../document'
 import { documentHtml } from './pages'
 
 const ASSETS: PageAssets = {
-  stylesheet: {
-    href: '/assets/base-CAFEBABE.css',
-    fonts: ['/assets/barlow-latin-400-normal-F0E7.woff2'],
-  },
+  stylesheet: { href: '/assets/base-CAFEBABE.css' },
   built: { 'src/assets/map.webp': '/assets/map-F00D.webp' },
 }
 
@@ -77,28 +74,14 @@ describe('document head', () => {
     expect(renderAbout()).toContain('<link rel="stylesheet" href="/assets/base-CAFEBABE.css">')
   })
 
-  it('preloads the fonts ahead of the stylesheet, in CORS mode', () => {
-    // Discovered from <head> rather than from the parsed stylesheet, so the
-    // first paint is already in Barlow and the swap re-wraps nothing.
-    expect(renderAbout()).toContain(
-      '<link rel="preload" href="/assets/barlow-latin-400-normal-F0E7.woff2" as="font" type="font/woff2" crossorigin>' +
-        '<link rel="stylesheet" href="/assets/base-CAFEBABE.css">'
-    )
-  })
-
-  it('preloads the tagline’s hand only on a page that asks for it', () => {
-    const assets = {
-      ...ASSETS,
-      stylesheet: { ...ASSETS.stylesheet, scriptFont: '/assets/caveat-latin-600-normal-C4.woff2' },
-    }
-    const tag =
-      '<link rel="preload" href="/assets/caveat-latin-600-normal-C4.woff2" as="font" type="font/woff2" crossorigin>'
-
-    expect(renderAbout({ preloadScriptFont: true }, assets)).toContain(
-      `${tag}<link rel="stylesheet" href="/assets/base-CAFEBABE.css">`
-    )
-    expect(renderAbout({}, assets)).not.toContain('caveat')
-    expect(renderAbout({ preloadScriptFont: true })).not.toContain('caveat')
+  it('asks its head for the tagline’s hand only on a page that sets it', () => {
+    const module = (meta: DocumentMeta) => ({
+      pattern: '/',
+      page: () => ({ meta, children: null }),
+    })
+    const render = (meta: DocumentMeta) => renderParts(module(meta), {}, undefined, ASSETS)
+    expect(render({ title: 'Home', preloadScriptFont: true }).scriptFont).toBe(true)
+    expect(render({ title: 'Home' }).scriptFont).toBe(false)
   })
 
   it('throws rather than emitting a document it could not split', () => {

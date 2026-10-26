@@ -89,7 +89,7 @@ describe('immutable is for content-hashed URLs only', () => {
     '/assets/eldridge-coast-map-BzRW_gBE.webp',
     '/assets/islands-D109A2bT.js',
     '/assets/styles-Cu7r9SFx.css',
-    '/assets/barlow-latin-400-normal-qiz4-Cze.woff2',
+    '/assets/fonts/1a2b3c4d5e6f.woff2',
     '/assets/some-icon-AbC123.svg',
     '/assets/some-image-AbC123.png',
   ])('%s gets exactly one Cache-Control, immutable', (path) => {

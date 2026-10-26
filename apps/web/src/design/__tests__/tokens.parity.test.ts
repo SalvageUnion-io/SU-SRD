@@ -103,10 +103,13 @@ function readDeclarations(): Map<string, string> {
   return out
 }
 
+/** The faces' stacks, which Astro's Fonts API declares (`astro/build/fonts.ts`). */
+const ASTRO_FONTS = new Set(['font-barlow', 'font-barlow-cond'])
+
 /** Follow `var(--x)` aliases to the literal they point at. */
 function resolve(value: string, declarations: Map<string, string>, depth = 0): string {
   const alias = value.match(/^var\(--([a-z0-9-]+)\)$/)
-  if (!alias?.[1]) return value
+  if (!alias?.[1] || ASTRO_FONTS.has(alias[1])) return value
   if (depth > 8) throw new Error(`custom-property alias cycle at --${alias[1]}`)
   const target = declarations.get(alias[1])
   if (target === undefined) throw new Error(`--${alias[1]} referenced but never defined`)

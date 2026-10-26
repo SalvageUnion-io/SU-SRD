@@ -536,7 +536,7 @@ describe('OgCard', () => {
   test('every title is set in the condensed display face the SRD loads', () => {
     for (const [, props] of KINDS) {
       const html = renderToStaticMarkup(<OgCard {...props} />)
-      expect(html).toContain('font-family:&#x27;Barlow Semi Condensed&#x27;')
+      expect(html).toContain('font-family:var(--font-barlow-cond)')
     }
   })
 })
