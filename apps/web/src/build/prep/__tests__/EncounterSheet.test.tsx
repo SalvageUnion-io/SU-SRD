@@ -198,7 +198,7 @@ describe("an encounter's threat read and spoils", () => {
     await renderPage()
     expect(screen.getByText(/Nothing here leaves salvage in the book/)).toBeTruthy()
     act(() => {
-      usePrepStore.setState({
+      useEncounters.setState({
         encounters: [
           {
             ...AMBUSH,
