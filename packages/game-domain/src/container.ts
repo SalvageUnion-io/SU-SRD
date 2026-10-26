@@ -7,8 +7,8 @@
  * first.
  *
  * `null` means "on the shelf", a real place. A body can also carry no `gameId`
- * at all: a template-seeded server body names no Game, and adoption stamps the
- * row's column into it (`planCrawlerSync`). Until then it reads as the shelf.
+ * at all: a template-seeded server body names no Game, and the replica stamps
+ * the unit's Game into it as its room serves it. Until then it reads as the shelf.
  */
 
 /** A shared Game, by id. */

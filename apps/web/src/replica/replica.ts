@@ -325,11 +325,6 @@ export function headSeqOf(table: Table, id: string): number | undefined {
   return tableOf(table).get(id)?.headSeq
 }
 
-/** The server version of the held row, when one was served. */
-export function versionOf(table: Table, id: string): number | undefined {
-  return tableOf(table).get(id)?.version
-}
-
 /** Every table's rows as one immutable view, rebuilt only after a change. */
 export function getView(): ReplicaView {
   if (view === null) {

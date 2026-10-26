@@ -2,27 +2,21 @@
  * Tests for the lib/entities layer.
  *
  * Covers the contract the migrated components rely on:
- *   - list/by-id hooks read the store's in-memory state
+ *   - list hooks read the store's in-memory state
  *   - reading an unhydrated type auto-triggers lazy hydration (like
  *     entityStore.list())
- *   - by-id hooks return null for unknown/undefined ids
- *   - selector identity: an unrelated write does NOT re-render a by-id
- *     subscriber (entity references are stable across update() of others)
- *   - (workspace hooks were removed with Workspaces themselves; container
- *     render-stable
  *
  * Conventions: real in-memory stores, no mock.module(),
  * toBeTruthy()/toBeFalsy() (no jest-dom augmentation).
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { resetStores } from '../../../replica/__tests__/resetStores'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
-import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { useUnits } from '../../../replica/units'
-import { useMech, usePilot, usePilots } from '../index'
+import { usePilots } from '../index'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
@@ -42,16 +36,6 @@ const basePilotInput = {
   keepsake: 'Old photo.',
   appearance: 'Short.',
   background: '',
-  conditions: [],
-}
-
-const baseMechInput = {
-  schemaVersion: 1 as const,
-  name: 'Iron Jaw',
-  chassisRef: 'titan',
-  systems: [],
-  modules: [],
-  cargoLots: [],
   conditions: [],
 }
 
@@ -115,75 +99,5 @@ describe('usePilots', () => {
       expect(screen.getByText('Zara Heln')).toBeTruthy()
     })
     expect(useUnits.getState().hydrated.pilots).toBe(true)
-  })
-})
-
-describe('usePilot / useMech (by id)', () => {
-  test('returns the entity by id', async () => {
-    await useUnits.getState().hydrate('pilot')
-    const pilot = await useUnits.getState().create('pilot', basePilotInput)
-
-    function PilotName() {
-      const p = usePilot(pilot.id)
-      return <p>{p ? p.name : 'Not found'}</p>
-    }
-
-    await act(async () => {
-      render(<PilotName />)
-    })
-
-    expect(screen.getByText('Zara Heln')).toBeTruthy()
-  })
-
-  test('returns null for unknown and undefined ids', async () => {
-    useUnits.setState((s) => ({
-      ...s,
-      hydrated: { ...s.hydrated, pilots: true },
-    }))
-
-    function Probe() {
-      const unknown = usePilot('nonexistent')
-      const missing = usePilot(undefined)
-      return (
-        <p>
-          {unknown === null ? 'unknown-null' : 'unknown-found'}{' '}
-          {missing === null ? 'missing-null' : 'missing-found'}
-        </p>
-      )
-    }
-
-    await act(async () => {
-      render(<Probe />)
-    })
-
-    expect(screen.getByText(/unknown-null/)).toBeTruthy()
-    expect(screen.getByText(/missing-null/)).toBeTruthy()
-  })
-
-  test('an unrelated write does not re-render a by-id subscriber', async () => {
-    await useUnits.getState().hydrate('mech')
-    const a = await useUnits.getState().create('mech', baseMechInput)
-    const b = await useUnits.getState().create('mech', { ...baseMechInput, name: 'Rust Bucket' })
-
-    const renderSpy = mock(() => {})
-    function MechB() {
-      renderSpy()
-      const m = useMech(b.id)
-      return <p>{m ? m.name : 'Not found'}</p>
-    }
-
-    await act(async () => {
-      render(<MechB />)
-    })
-    const rendersAfterMount = renderSpy.mock.calls.length
-
-    // Update mech A — update() maps the array and reuses untouched elements,
-    // so mech B's reference (the selected value) is unchanged.
-    await act(async () => {
-      await useUnits.getState().update('mech', a.id, { name: 'Renamed' }, LIVE_SHEET_MANUAL)
-    })
-
-    expect(renderSpy.mock.calls.length).toBe(rendersAfterMount)
-    expect(screen.getByText('Rust Bucket')).toBeTruthy()
   })
 })

@@ -11,10 +11,7 @@ import type { UnitsState } from '../../replica/units'
  *
  * Selector-equality notes (Zustand v5 uses Object.is on the selected value):
  *   - List hooks select the store's array reference directly — stable until a
- *     write to that type.
- *   - By-id hooks select via `.find()` — entity object references are stable
- *     across unrelated writes because `update()` maps the array and reuses
- *     untouched elements. No `useShallow` needed for either shape.
+ *     write to that type. No `useShallow` needed.
  *
  * Imperative reads inside event handlers should keep using
  * `useUnits.getState()` (legitimate — no subscription needed).
@@ -51,16 +48,6 @@ function selectEntityList<T extends EntityType>(
   return state[listKeyFor(type)] as EntityForType<T>[]
 }
 
-/** The record of `type` with `id`, or null (null when id is undefined). */
-function selectEntityById<T extends EntityType>(
-  state: EntityStoreState,
-  type: T,
-  id: string | undefined
-): EntityForType<T> | null {
-  if (!id) return null
-  return selectEntityList(state, type).find((e) => e.id === id) ?? null
-}
-
 // ---------------------------------------------------------------------------
 // Lazy-hydration trigger — mirrors entityStore.list()'s fire-and-forget
 // `void hydrate(type)` so hooks behave exactly like the store's own read API.
@@ -85,15 +72,6 @@ function useEntityList<T extends EntityType>(type: T): EntityForType<T>[] {
   return useUnits((s) => selectEntityList(s, type))
 }
 
-/**
- * Reactive by-id read. Returns null while unhydrated, when the record does
- * not exist, or when `id` is undefined. Auto-triggers lazy hydration.
- */
-function useEntity<T extends EntityType>(type: T, id: string | undefined): EntityForType<T> | null {
-  ensureHydrated(type)
-  return useUnits((s) => selectEntityById(s, type, id))
-}
-
 // ---------------------------------------------------------------------------
 // Named per-type hooks
 // ---------------------------------------------------------------------------
@@ -102,16 +80,8 @@ export function usePilots(): Pilot[] {
   return useEntityList('pilot')
 }
 
-export function usePilot(id: string | undefined): Pilot | null {
-  return useEntity('pilot', id)
-}
-
 export function useMechs(): Mech[] {
   return useEntityList('mech')
-}
-
-export function useMech(id: string | undefined): Mech | null {
-  return useEntity('mech', id)
 }
 
 export function useCrawlers(): Crawler[] {

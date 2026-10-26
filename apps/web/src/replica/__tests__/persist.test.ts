@@ -16,7 +16,7 @@ import {
   sessionAccount,
   setReplicaStorage,
 } from '../persist'
-import { drop, getView, hold, versionOf } from '../replica'
+import { drop, getView, hold } from '../replica'
 import { resetStores } from './resetStores'
 
 /** An in-memory device: the account it is stamped for, and its rows by key. */
@@ -62,14 +62,13 @@ afterEach(() => {
 })
 
 describe('keepOnDevice', () => {
-  test('restores what the last load kept for the same account, with its versions', async () => {
+  test('restores what the last load kept for the same account', async () => {
     const { storage } = fakeDevice('u1', [kept('p1', 'Kept')])
     setReplicaStorage(storage)
 
     await keepOnDevice('u1')
 
     expect(getView().pilots.map((p) => p.name)).toEqual(['Kept'])
-    expect(versionOf('pilot', 'p1')).toBe(3)
   })
 
   test('a row a live answer already brought stays, not the kept one', async () => {

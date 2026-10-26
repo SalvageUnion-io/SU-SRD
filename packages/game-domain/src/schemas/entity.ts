@@ -18,7 +18,7 @@ export const containerFields = {
   /**
    * Which container holds this entity: a Game's id, or `null` for the owner's
    * **Shelf**. Optional because a template-seeded server body names no Game;
-   * adoption stamps the row's `gameId` column into it (`planCrawlerSync`).
+   * the replica stamps the unit's Game into it as its room serves it.
    * Read it through `containerOf()`.
    */
   gameId: z.string().nullable().optional(),
