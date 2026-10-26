@@ -93,6 +93,12 @@ export type Env = AppEnv &
     /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
     DISCORD_CLIENT_ID?: string
     DISCORD_CLIENT_SECRET?: string
+    /**
+     * The origin whose `/auth/callback` Discord returns to, for a Worker
+     * Preview: production's, which hands the code back (`./auth/index.ts`).
+     * Unset, each origin is its own and Discord must list it.
+     */
+    AUTH_CALLBACK_ORIGIN?: string
     /** The private JWK the session's Convex token is signed with (`scripts/authKeys.ts`). */
     AUTH_SIGNING_KEY?: string
     /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
@@ -168,6 +174,7 @@ export default {
           env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET
             ? { clientId: env.DISCORD_CLIENT_ID, clientSecret: env.DISCORD_CLIENT_SECRET }
             : undefined,
+        callbackOrigin: env.AUTH_CALLBACK_ORIGIN,
         signingKey: env.AUTH_SIGNING_KEY,
         testAuth: env.TEST_AUTH === 'true',
       })
