@@ -73,6 +73,19 @@ const tables: Tables = {
       state: 'proposed',
       reason: 'ouch',
     }),
+    // An older row names its unit by the Convex id.
+    row('l4', {
+      entityType: 'pilot',
+      entityId: 'p2',
+      ts: 22,
+      kind: 'manual',
+      field: 'name',
+      before: 'A',
+      after: 'B',
+      source: 'build',
+      actorId: 'u2',
+      state: 'applied',
+    }),
   ],
   mechPatterns: [
     row('mp1', {
@@ -121,7 +134,9 @@ describe('buildBundles', () => {
     expect(ops.map((o) => [o.id, o.state, o.author])).toEqual([
       ['l1', 'applied', 'd2'],
       ['l2', 'proposed', 'd1'],
+      ['l4', 'applied', 'd2'],
     ])
+    expect(new Set(ops.map((o) => o.unitId))).toEqual(new Set(['pilot-b']))
     expect(ops[1]?.patch).toEqual({ currentHP: 1 })
     expect(ops[1]?.before).toBeNull()
     expect(ops[1]?.reason).toBe('ouch')

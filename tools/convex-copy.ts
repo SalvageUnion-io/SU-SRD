@@ -138,7 +138,13 @@ export function buildBundles(t: Tables): CopyResult {
     for (const r of rows(table)) {
       const appId = str(r.appId) ?? r._id
       appIdOf.set(r._id, appId)
-      const ops = (opsByUnit.get(appId) ?? opsByUnit.get(r._id) ?? []).sort((a, b) => a.at - b.at)
+      // Older Change Log rows name the unit by its Convex id, newer ones by its app id.
+      const ops = [
+        ...(opsByUnit.get(appId) ?? []),
+        ...(appId === r._id ? [] : (opsByUnit.get(r._id) ?? [])),
+      ]
+        .map((op) => ({ ...op, unitId: appId }))
+        .sort((a, b) => a.at - b.at)
       const unit: BundleUnit = {
         kind,
         appId,
