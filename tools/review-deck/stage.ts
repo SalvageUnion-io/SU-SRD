@@ -45,12 +45,11 @@ async function difference(a: string, b: string): Promise<number> {
   if (metaA.width !== metaB.width || metaA.height !== metaB.height) return 255
   const w = Math.max(1, Math.round((metaA.width ?? 1) / 8))
   const h = Math.max(1, Math.round((metaA.height ?? 1) / 8))
-  const [ra, rb] = await Promise.all(
-    [a, b].map((p) => sharp(p).resize(w, h, { fit: 'fill' }).removeAlpha().raw().toBuffer())
-  )
+  const small = (p: string) => sharp(p).resize(w, h, { fit: 'fill' }).removeAlpha().raw().toBuffer()
+  const [ra, rb] = await Promise.all([small(a), small(b)])
   let sum = 0
-  for (let i = 0; i < ra!.length; i++) sum += Math.abs(ra![i]! - rb![i]!)
-  return sum / ra!.length
+  for (let i = 0; i < ra.length; i++) sum += Math.abs((ra[i] ?? 0) - (rb[i] ?? 0))
+  return sum / ra.length
 }
 
 mkdirSync(join(dst, 'shots'), { recursive: true })
@@ -70,12 +69,15 @@ for (const raw of slides) {
     if (s.changed) changed++
   } else s.changed = null
   const last = sheets[sheets.length - 1]
-  if (last && last.length < CELLS && last[0]!.w === s.w && last[0]!.h === s.h) last.push(s)
+  const head = last?.[0]
+  if (last && head && last.length < CELLS && head.w === s.w && head.h === s.h) last.push(s)
   else sheets.push([s])
 }
 // Each sheet: its shots stacked, one JPEG; the page shows one cell of it.
 for (const [index, group] of sheets.entries()) {
-  const { w, h } = group[0]!
+  const head = group[0]
+  if (!head) continue
+  const { w, h } = head
   await sharp({
     create: { width: w, height: h * group.length, channels: 3, background: '#ffffff' },
   })

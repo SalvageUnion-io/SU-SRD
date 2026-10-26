@@ -123,6 +123,7 @@ export function DiscordReply({ sample, label }: { sample: SampleReply; label: st
             }
           >
             {sample.data.blocks.map((block, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: a fixed sample's blocks carry no id and never reorder
               <Block key={`${block.kind}${i}`} block={block} />
             ))}
           </div>
