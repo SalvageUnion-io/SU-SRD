@@ -56,8 +56,7 @@ export const islandRegistry = {
     import('../components/islands/RollTableIsland').then((m) => asIsland(m.RollTableIsland)),
   ColumnsTableIsland: () =>
     import('../components/islands/ColumnsTableIsland').then((m) => asIsland(m.ColumnsTableIsland)),
-  ColophonIsland: () =>
-    import('../components/islands/ColophonIsland').then((m) => asIsland(m.ColophonIsland)),
+  KofiIsland: () => import('../components/islands/KofiIsland').then((m) => asIsland(m.KofiIsland)),
   DidYouMeanIsland: () =>
     import('../components/islands/DidYouMeanIsland').then((m) => asIsland(m.DidYouMeanIsland)),
   OgCardIsland: () =>

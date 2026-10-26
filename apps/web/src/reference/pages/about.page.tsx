@@ -25,8 +25,9 @@ import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { Colophon } from '../../components/Colophon'
 import { Button, cn, InlineRef, SlabSection } from '../../components/index'
-import { ColophonIsland } from '../../components/islands/ColophonIsland'
+import { KofiIsland } from '../../components/islands/KofiIsland'
 import { color, fontSize, iconSize, space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../../lib/builtAssets'
@@ -47,6 +48,9 @@ const repoRootFile = (name: string): string =>
 const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
+
+/** The `<code>` in `ko-fi.com/<code>`. */
+const KOFI_CODE = 'C3Z82382ZC'
 
 const TITLE = pageTitle('About')
 const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and ${PRODUCT.play}, where you play them.`
@@ -377,23 +381,17 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           </SlabSection>
 
           {/* Colophon: About the Dev + support + Special Thanks | LLM Statement.
-                `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
-          <Island
-            name="ColophonIsland"
-            client="visible"
-            ssr
-            props={{
-              aboutMarkdown: aboutJrvsMd,
-              llmMarkdown: llmStatementMd,
-              specialThanksMarkdown: specialThanksMd,
-            }}
-          >
-            <ColophonIsland
-              aboutMarkdown={aboutJrvsMd}
-              llmMarkdown={llmStatementMd}
-              specialThanksMarkdown={specialThanksMd}
-            />
-          </Island>
+                Static prose; the Ko-fi button is the island (DESIGN.md's table). */}
+          <Colophon
+            aboutMarkdown={aboutJrvsMd}
+            llmMarkdown={llmStatementMd}
+            specialThanksMarkdown={specialThanksMd}
+            support={
+              <Island name="KofiIsland" client="visible" ssr props={{ code: KOFI_CODE }}>
+                <KofiIsland code={KOFI_CODE} />
+              </Island>
+            }
+          />
         </DocPage>
 
         {/* The junk slab's SVG filters (global.css names them) */}

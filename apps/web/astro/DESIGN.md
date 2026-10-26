@@ -50,7 +50,7 @@ Canonical URLs always carry a trailing slash.
 | `SchemaViewerIsland` | interaction | **true** | SEO: the island's own band and listing |
 | `ReferenceEntityIsland` | visible | false | SSR would be empty; `StaticEntityContent` is the SEO path |
 | `RollTableIsland` | idle | **true** | `hydrate`: the bands are content |
-| `ColophonIsland` | visible | **true** | prose worth indexing |
+| `KofiIsland` | visible | **true** | the colophon is static around it |
 | `OgCardIsland` | load | false | screenshot target |
 | `ColumnsTableIsland` | idle | **true** | `hydrate`: Callsign, as above |
 | `DidYouMeanIsland` | idle | false | the 404's guesses: the missed path is known only in the browser |

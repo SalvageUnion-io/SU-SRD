@@ -18,7 +18,7 @@ const modulePaths: Record<keyof typeof islandRegistry, string> = {
   ReferenceEntityIsland: '../../components/islands/ReferenceEntityIsland',
   RollTableIsland: '../../components/islands/RollTableIsland',
   ColumnsTableIsland: '../../components/islands/ColumnsTableIsland',
-  ColophonIsland: '../../components/islands/ColophonIsland',
+  KofiIsland: '../../components/islands/KofiIsland',
   DidYouMeanIsland: '../../components/islands/DidYouMeanIsland',
   OgCardIsland: '../../components/islands/OgCardIsland',
   PeekIsland: '../../components/islands/PeekIsland',
