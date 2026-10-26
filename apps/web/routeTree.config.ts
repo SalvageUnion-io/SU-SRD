@@ -11,6 +11,8 @@ export const ROUTER_PLUGIN_OPTIONS = {
   // Relative to the Vite root, the workspace.
   routesDirectory: './src/routes',
   generatedRouteTree: './src/routeTree.gen.ts',
+  // Route tests sit beside the routes in `__tests__/`: not routes.
+  routeFileIgnorePattern: '__tests__',
   // Split each route's component out of the entry bundle so a visitor
   // pays only for the route they land on. Without this every route
   // (roster, the three wizards, both sheets, dashboard, encounter,
