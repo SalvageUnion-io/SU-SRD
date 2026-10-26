@@ -55,7 +55,6 @@ jobs:
               - 'SPECIAL_THANKS.md'
             workers:
               - *shared
-              - 'apps/su-assets/**'
               - 'apps/discord-bot/**'
             web:
               - *shared
@@ -207,17 +206,13 @@ function ctx(overrides: {
     Object.entries(
       overrides.manifests ?? {
         'package.json': { devDependencies: { convex: '1.0.0' } },
-        'apps/su-assets/package.json': {
-          name: 'su-assets',
-          dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
-        },
         'apps/web/package.json': {
           name: 'srd',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
         'apps/discord-bot/package.json': {
           name: 'discord-bot',
-          dependencies: { ref: 'workspace:*' },
+          dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
         'packages/ref/package.json': { name: 'ref' },
         'packages/lib/package.json': { name: 'lib' },
@@ -306,20 +301,19 @@ describe('aggregator', () => {
 describe('path-filters', () => {
   test('passes when every workspace dependency is covered, expanding the *shared alias', () => {
     const c = ctx({})
-    for (const app of ['su-assets', 'web']) {
+    for (const app of ['discord-bot', 'web']) {
       c.manifests.set(`apps/${app}/package.json`, {
         name: app,
         dependencies: { ref: 'workspace:*' },
       })
     }
     const r = checkPathFilters(c)
-    // The fixture is deliberately small, so only the scan floor may complain.
-    expect(r.failures).toEqual(['checked 3 workspace dependency edge(s); expected at least 5.'])
+    expect(r.failures).toEqual([])
   })
 
   test('an app depending on a workspace its group does not cover fails', () => {
     const failures = checkPathFilters(ctx({})).failures.join('\n')
-    expect(failures).toContain('apps/su-assets depends on `lib` (packages/lib)')
+    expect(failures).toContain('apps/discord-bot depends on `lib` (packages/lib)')
     expect(failures).toContain('apps/web depends on `lib`')
   })
 
@@ -344,16 +338,16 @@ describe('path-filters', () => {
   test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
     const c = ctx({
       ci: CI_TEXT.replace(
-        "            workers:\n              - *shared\n              - 'apps/su-assets/**'\n              - 'apps/discord-bot/**'\n",
+        "            workers:\n              - *shared\n              - 'apps/discord-bot/**'\n",
         ''
       ),
     })
-    c.manifests.set('apps/su-assets/package.json', {
-      name: 'su-assets',
+    c.manifests.set('apps/discord-bot/package.json', {
+      name: 'discord-bot',
       dependencies: { ref: 'workspace:*' },
     })
     expect(checkPathFilters(c).failures).toContain(
-      'apps/su-assets maps to filter group `workers`, which .github/workflows/ci.yml does not define.'
+      'apps/discord-bot maps to filter group `workers`, which .github/workflows/ci.yml does not define.'
     )
   })
 
@@ -418,8 +412,8 @@ describe('pinning', () => {
 
   test('a bare name that is only the suffix of a scoped dependency is NOT exempt', () => {
     const c = ctx({})
-    c.manifests.set('apps/su-assets/package.json', {
-      name: 'su-assets',
+    c.manifests.set('apps/discord-bot/package.json', {
+      name: 'discord-bot',
       dependencies: { '@convex-dev/auth': '1.0.0' },
     })
     c.files.push(
@@ -855,6 +849,6 @@ describe('main', () => {
     expect(r.out).toHaveLength(1)
     expect(r.err[0]).toMatch(/^✗ .*:$/)
     expect(r.err.slice(1).every((l) => l.startsWith('    • '))).toBe(true)
-    expect(r.err.join('\n')).toContain('apps/su-assets depends on `lib`')
+    expect(r.err.join('\n')).toContain('apps/discord-bot depends on `lib`')
   })
 })

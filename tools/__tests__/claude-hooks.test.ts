@@ -118,10 +118,6 @@ describe('guard-generated.sh', () => {
       file: 'apps/web/worker-configuration.d.ts',
       denied: true,
     },
-    'apps/su-assets/worker-configuration.d.ts': {
-      file: 'apps/su-assets/worker-configuration.d.ts',
-      denied: true,
-    },
     'apps/discord-bot/worker-configuration.d.ts': {
       file: 'apps/discord-bot/worker-configuration.d.ts',
       denied: true,
@@ -265,7 +261,6 @@ describe('typecheck hooks against a stub workspace', () => {
   const WORKSPACES = [
     'apps/discord-bot',
     'apps/web',
-    'apps/su-assets',
     'packages/gates',
     'packages/game-domain',
     'packages/salvageunion-reference',

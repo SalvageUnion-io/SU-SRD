@@ -69,11 +69,10 @@ jobs:
               - 'packages/game-domain/**'
               # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
-            # The two Worker-only apps, bundled together by bundle-workers.
+            # The Worker-only app (the bot), bundled by bundle-workers.
             workers:
               - *shared
               - 'apps/discord-bot/**'
-              - 'apps/su-assets/**'
               # the bot's wire types (`game-domain/botWire`, `import type`)
               - 'packages/game-domain/**'
               # the theme the bot's colours mirror (themeLockstep.test.ts)
@@ -295,8 +294,8 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
-  # The Worker-only apps have no build but wrangler's bundle, which is what
-  # deploys; their typecheck already runs in static-checks. One leg each.
+  # The Worker-only app has no build but wrangler's bundle, which is what
+  # deploys; its typecheck already runs in static-checks.
   bundle-workers:
     needs: [changes]
     if: needs.changes.outputs.workers == 'true'
@@ -305,7 +304,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [discord-bot, su-assets]
+        app: [discord-bot]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

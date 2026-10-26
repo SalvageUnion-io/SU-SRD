@@ -13,8 +13,8 @@
  *     <dir>/<category>/<file>     e.g.  <dir>/chassis/iron-mongrel.webp
  *
  * Each file is stored under the object key "<category>/<file>" — exactly the
- * path that appears after the host in an asset URL — so the su-assets Worker
- * serves it at https://assets.salvageunion.io/<category>/<file>.
+ * path that appears after the host in an asset URL — so the bucket's custom
+ * domain serves it at https://assets.salvageunion.io/<category>/<file>.
  *
  * ## Usage
  *
@@ -37,10 +37,10 @@ const DEFAULT_BUCKET = 'su-lp-assets'
 /**
  * Content types this tool will upload, keyed by extension.
  *
- * An allowlist rather than a lookup with a fallback: the su-assets Worker
- * refuses to serve any extension it does not recognise, so uploading one would
- * put bytes in the bucket that the origin answers 404 for — a silent, and
- * expensive-to-notice, no-op.
+ * An allowlist rather than a lookup with a fallback: the bucket's custom domain
+ * serves each object with the content type stored here, so an extension this
+ * tool does not recognise would go out with a wrong one — a silent, and
+ * expensive-to-notice, break.
  */
 const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
@@ -92,7 +92,7 @@ async function main(): Promise<void> {
   // stray file does not end up half-applied against production storage.
   const unsupported = files.filter((f) => !CONTENT_TYPES[f.split('.').pop()?.toLowerCase() ?? ''])
   if (unsupported.length > 0) {
-    console.error(`error: ${unsupported.length} file(s) have an extension su-assets cannot serve:`)
+    console.error(`error: ${unsupported.length} file(s) have an extension this tool cannot type:`)
     for (const f of unsupported) console.error(`    ${relative(root, f)}`)
     console.error(`  supported: ${Object.keys(CONTENT_TYPES).join(', ')}`)
     process.exit(1)
@@ -108,8 +108,7 @@ async function main(): Promise<void> {
       if (!client) {
         console.log(`  · ${key} (${contentType}) — dry run, not uploaded`)
       } else {
-        // The content type is object metadata: the su-assets Worker sets its
-        // own on the way out, but the bucket stays browsable in the dashboard.
+        // The content type is object metadata, and the custom domain serves it.
         await client.write(key, readFileSync(file), { type: contentType })
         console.log(`  ✓ ${key}`)
       }

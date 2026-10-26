@@ -287,7 +287,7 @@ export function checkPathFilters(ctx: WorkflowContext): CheckResult {
     .map((p) => p.match(/^apps\/([^/]+)\/package\.json$/)?.[1])
     .filter((a): a is string => a !== undefined)
     .sort()
-  if (apps.length < 3) failures.push(`found ${apps.length} app(s); expected at least 3.`)
+  if (apps.length < 2) failures.push(`found ${apps.length} app(s); expected at least 2.`)
 
   let edges = 0
   for (const app of apps) {

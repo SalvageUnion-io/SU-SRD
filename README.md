@@ -25,7 +25,6 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 | --- | --- |
 | [`apps/web`](apps/web) | The app at [salvageunion.io](https://salvageunion.io): the SRD's pre-rendered reference pages (built by Astro with React islands, and a public [JSON API](https://salvageunion.io/api/)), and the app, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build) (React, TanStack Router, Convex in `convex/`). One source tree, one component library (`src/components/`), one build. |
 | [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in an app Game. |
-| [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
 | [`packages/game-domain`](packages/game-domain) | The schemas and rules the app, its Convex backend and the bot share. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |

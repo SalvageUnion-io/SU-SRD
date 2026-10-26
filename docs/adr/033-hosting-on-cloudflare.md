@@ -5,8 +5,15 @@ The one app's single `su-srd` Worker: [ADR-050](../architecture/one-app.md).
 
 ## Decision
 
-**1. Hosting is Cloudflare.** The app is Workers Static Assets, `su-assets` a
-Worker over R2, the Discord bot a Worker answering HTTP interactions.
+**1. Hosting is Cloudflare.** The app is Workers Static Assets, the Discord
+bot a Worker answering HTTP interactions. Artwork is R2 `su-lp-assets` on the
+custom domain `assets.salvageunion.io` (the `su-assets` Worker it replaced was
+retired in 4.5). Zone rules on that host, descriptions starting "artwork":
+URL rewrites of `*-{440,880}[q80].webp` to `/cdn-cgi/image/width=W,quality=80,format=webp/…`;
+response headers (CORS `*`, CSP `default-src 'none'; sandbox`, the site's
+security headers, `cache-control` immutable on 200 and `no-store` otherwise);
+a cache rule; and a WAF block on `raw.http.request.uri.path` starting
+`/cdn-cgi/`, so only the two widths ever bill.
 
 **4. Builds run in GitHub Actions; deploys use `wrangler`.** Not Workers
 Builds: the build provisions Chromium for OG images, and one build path keeps

@@ -107,7 +107,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 35. **Cloudflare** <a id="cloudflare"></a>
-    Workers `su-srd` (`salvageunion.io`, `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
+    Workers `su-srd` (`salvageunion.io`, `/build`), `su-discord-bot`; R2 `su-lp-assets` on `assets.salvageunion.io` (ADR-033).
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc`, `wrangler deployments list`.
 36. **Error tracking** · ADR-049 <a id="errors"></a>
     Workers Issues, no SDK, browser stacks minified; browsers post to `/__errors`, Convex's log stream to `/__convex-logs`.

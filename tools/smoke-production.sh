@@ -149,10 +149,11 @@ check https://salvageunion.io/build/p/pilot/smoke 200 "app client route without 
 # (apps/web/src/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
 check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "app rotated chunk 404 is not immutable" immutable
-# A derivative, not the master: entity cards ask for `-440`/`-880` first. It
-# reaches Cloudflare Images only once the baked `-440`/`-880` objects are gone
-# from su-lp-assets; while one is stored, the Worker serves that copy.
-check https://assets.salvageunion.io/chassis/mule-440.webp 200 "artwork derivative"
+# A derivative, not the master: entity cards ask for `-440q80`/`-880q80` first,
+# and a zone rewrite renders it (ADR-033). A direct /cdn-cgi/ request is the
+# WAF's to refuse, or any width would bill.
+check https://assets.salvageunion.io/chassis/mule-440q80.webp 200 "artwork derivative"
+check https://assets.salvageunion.io/cdn-cgi/image/width=100/chassis/mule.webp 403 "artwork transforms only the allowed widths"
 
 # BODY, not status: Cloudflare's zone-level managed robots.txt also answers 200
 # and carries no `Disallow`, so a status check would pass on exactly the

@@ -1,20 +1,21 @@
 /**
  * The artwork derivative contract: which widths and which quality the artwork
- * CDN (`apps/su-assets`) renders from a master, and the URL that names one.
+ * CDN renders from a master, and the URL that names one.
  *
- * Both sides read it here: the app builds `srcset` candidates with
- * {@link assetDerivativeUrl}, and the CDN accepts exactly what
- * {@link parseAssetDerivative} reads back and these constants allow. A width
- * one side knew and the other did not would be a silent 404, which browsers
- * resolve by quietly falling back to the master.
+ * The CDN is the `su-lp-assets` R2 bucket on `assets.salvageunion.io`. Zone
+ * URL-rewrite rules map `*-440q80.webp` and `*-880q80.webp` (and the older bare
+ * `-440`/`-880` names) onto Image Transformations; nothing else renders, and a
+ * WAF rule blocks a direct `/cdn-cgi/` request (ADR-033). The app builds
+ * `srcset` candidates with {@link assetDerivativeUrl}. A width the app knew and
+ * the rules did not would be a silent 404, which browsers resolve by quietly
+ * falling back to the master.
  *
  * ## Why an allowlist
  *
- * The CDN renders through Cloudflare Images, which bills by unique
- * transformation, and the width arrives in a public URL on an unauthenticated
- * origin. An open range would let a crawler walking `-1`, `-2`, `-3` exhaust
- * the month's quota in one pass. So the widths and the quality are each a
- * closed set.
+ * Image Transformations bill by unique transformation, and the width arrives
+ * in a public URL on an unauthenticated origin. An open range would let a
+ * crawler walking `-1`, `-2`, `-3` exhaust the month's quota in one pass. So
+ * the widths and the quality are each a closed set.
  *
  * ## Why these numbers
  *
@@ -40,36 +41,4 @@ export const ASSET_RENDER_QUALITY = 80
 /** The rendered derivative of a master at one of {@link ASSET_RENDER_WIDTHS}. */
 export function assetDerivativeUrl(masterUrl: string, width: AssetRenderWidth): string {
   return masterUrl.replace(/\.webp$/, `-${width}q${ASSET_RENDER_QUALITY}.webp`)
-}
-
-/**
- * An object key read as a derivative:
- * `chassis/mule-440q80.webp` -> `{ masterKey: 'chassis/mule.webp', width: 440, quality: 80 }`,
- * and the older `chassis/mule-440.webp` the same with no quality named. Null
- * when the key names no width. Whether the width and quality are allowed is
- * {@link isServedDerivative}.
- */
-export function parseAssetDerivative(
-  key: string
-): { masterKey: string; width: number; quality: number | undefined } | null {
-  const match = /^(.*)-(\d+)(?:q(\d+))?(\.[a-z0-9]+)$/i.exec(key)
-  if (!match) return null
-  const [, stem, digits, quality, ext] = match
-  if (stem === undefined || digits === undefined || ext === undefined) return null
-  return {
-    masterKey: `${stem}${ext}`,
-    width: Number(digits),
-    quality: quality === undefined ? undefined : Number(quality),
-  }
-}
-
-/** Whether the CDN renders this derivative: an allowed width, at the one quality or none named. */
-export function isServedDerivative(derivative: {
-  width: number
-  quality: number | undefined
-}): boolean {
-  return (
-    ASSET_RENDER_WIDTHS.some((width) => width === derivative.width) &&
-    (derivative.quality === undefined || derivative.quality === ASSET_RENDER_QUALITY)
-  )
 }

@@ -41,7 +41,6 @@ const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
   'apps/web/src',
   'apps/discord-bot/src',
-  'apps/su-assets/src',
   'packages/game-domain/src',
 ]
 

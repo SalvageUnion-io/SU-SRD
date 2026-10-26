@@ -5,8 +5,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { decideSurfaces, isShared, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
-const EVERYTHING = { 'su-assets': true, web: true, 'discord-bot': true }
-const NOTHING = { 'su-assets': false, web: false, 'discord-bot': false }
+const EVERYTHING = { web: true, 'discord-bot': true }
+const NOTHING = { web: false, 'discord-bot': false }
 
 describe('deploy-surfaces — decideSurfaces', () => {
   test('no deploy record deploys every surface', () => {
@@ -102,12 +102,12 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
 describe('deploy-surfaces — planDeploy', () => {
   /**
-   * The out-of-order case. A (the app) and B (su-assets) land on main in that
+   * The out-of-order case. A (the app) and B (the bot) land on main in that
    * order. B deploys and records first; A's deploy is then re-run. Diffing
-   * B->A would ship su-assets at A, reverting B in production.
+   * B->A would ship the bot at A, reverting B in production.
    */
   test('a push run for a commit older than the record deploys nothing', () => {
-    const plan = planDeploy(['apps/su-assets/src/index.ts'], false, 'behind', false)
+    const plan = planDeploy(['apps/discord-bot/src/index.ts'], false, 'behind', false)
     expect(plan).toEqual({ stale: true, surfaces: NOTHING })
   })
 
@@ -116,8 +116,8 @@ describe('deploy-surfaces — planDeploy', () => {
   })
 
   test('a rollback dispatch may deploy an older commit', () => {
-    const plan = planDeploy(['apps/su-assets/src/index.ts'], false, 'behind', true)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, 'su-assets': true } })
+    const plan = planDeploy(['apps/discord-bot/src/index.ts'], false, 'behind', true)
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, 'discord-bot': true } })
   })
 
   test.each(['ahead', 'same', 'none', 'diverged'] as const)(
@@ -182,7 +182,7 @@ describe('deploy-surfaces — script against a real git history', () => {
   }
   commit('README.md')
   const a = commit('apps/web/src/routes/app.ts')
-  const b = commit('apps/su-assets/index.ts')
+  const b = commit('apps/discord-bot/index.ts')
   git(
     work,
     'push',
@@ -214,8 +214,8 @@ describe('deploy-surfaces — script against a real git history', () => {
   })
 
   test('the same older commit may be deployed by a rollback dispatch', () => {
-    // B->A differs only in su-assets, so a rollback to A ships su-assets alone.
-    expect(decide(a, '--allow-backwards')).toEqual({ stale: 'false', deploy: '["su-assets"]' })
+    // B->A differs only in the bot, so a rollback to A ships the bot alone.
+    expect(decide(a, '--allow-backwards')).toEqual({ stale: 'false', deploy: '["discord-bot"]' })
   })
 
   test('the recorded commit itself is not stale and deploys nothing', () => {
@@ -231,10 +231,9 @@ describe('deploy-surfaces — script against a real git history', () => {
     const stale = decideLogged(a).lines
     expect(stale[0]).toBe(`last recorded deploy: ${b}`)
     expect(stale[1]).toContain(`HEAD is older than the recorded deploy ${b}`)
-    expect(stale.slice(2)).toEqual(['  skip   su-assets', '  skip   web', '  skip   discord-bot'])
+    expect(stale.slice(2)).toEqual(['  skip   web', '  skip   discord-bot'])
     expect(decideLogged(b, '--force-all').lines.slice(1)).toEqual([
       'force_all — deploying every surface',
-      '  deploy su-assets',
       '  deploy web',
       '  deploy discord-bot',
     ])
@@ -246,7 +245,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     const lines: string[] = []
     main([], { cwd: lonely, env: cleanEnv }, (l) => lines.push(l))
     expect(lines[0]).toBe('no usable deployed/cloudflare record — deploying every surface')
-    expect(lines).toHaveLength(4)
+    expect(lines).toHaveLength(3)
   })
 
   test('the CLI entry runs the same decision and writes $GITHUB_OUTPUT', () => {

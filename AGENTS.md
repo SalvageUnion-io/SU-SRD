@@ -8,7 +8,7 @@ Guidance for every coding agent here. Instructions only: history is in git.
 - **Before rules work:** [surfaces](docs/architecture/surfaces.md) (which surface enforces a rule, and never destroy without the player). Accounts and Games: [ADR-030](docs/adr/030-accounts-games-server-of-record.md).
 - **Path rules:** the [`.claude/rules/`](.claude/rules/) whose `paths:` match your files, and the workspace's `CLAUDE.md`.
 - **Rules text:** gitignored here; the private `SalvageUnion-io/su-rules` is the source (its AGENTS.md: use, PDFs). In the cloud attach it as a second repo. Then `bun run rules:find <term>`.
-- **Artwork** never lives in git: `apps/su-assets/` serves it from R2.
+- **Artwork** never lives in git: R2 `su-lp-assets` serves it.
 
 ## Critical Rules
 

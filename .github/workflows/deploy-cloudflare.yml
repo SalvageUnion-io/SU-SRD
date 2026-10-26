@@ -251,7 +251,7 @@ jobs:
   # exact `dist` it produced; its deploy job ships that artifact, unrebuilt.
   # ===========================================================================
   #
-  # su-assets and the bot have no build: wrangler bundles their Worker source
+  # The bot has no build: wrangler bundles its Worker source
   # at deploy time, as CI's bundle-workers does.
 
   # The site — the static reference pages, with their OG images rendered into
@@ -355,11 +355,11 @@ jobs:
   # wrangler is one root devDependency, so every `bun run deploy` runs the
   # version bun.lock resolved — audited and behind the 3-day release-age gate —
   # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping it
-  # moves all three together; keep `compatibility_date` in the three
+  # moves both together; keep `compatibility_date` in the two
   # wrangler.jsonc files at or below the workerd it bundles.
   #
   # wrangler bundles every Worker script here, and uploads its source maps
-  # for Workers Issues (`upload_source_maps`); su-assets and the bot have no other build. Discord's
+  # for Workers Issues (`upload_source_maps`); the bot has no other build. Discord's
   # Interactions Endpoint URL points at the bot's Worker, so this is the bot's
   # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
   # secrets set out of band, and a deploy does not touch them. The bot leg

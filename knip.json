@@ -68,12 +68,6 @@
         "entry": ["src/routeTree.gen.ts"]
       }
     },
-    "apps/su-assets": {
-      // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`
-      // via knip's wrangler plugin. `project` must still cover `src/**`, or the
-      // Worker and its test sit outside knip's scope.
-      "project": ["src/**/*.ts"]
-    },
     "apps/discord-bot": {
       // `src/worker/index.ts` (the Worker) comes from wrangler.jsonc's `main`
       // via knip's wrangler plugin, and `src/deploy-commands.ts` from the

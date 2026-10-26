@@ -31,7 +31,6 @@ const FLOORS: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference': 96.5,
   'apps/web': 97.9,
   'apps/discord-bot': 96.5,
-  'apps/su-assets': 98,
   'packages/game-domain': 97,
   'packages/gates': 99.3,
   tools: 99,

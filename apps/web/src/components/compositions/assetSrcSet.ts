@@ -2,8 +2,8 @@
  * Width-constrained artwork candidates, derived from a master asset URL.
  *
  * The widths, the quality and the derivative URL are the artwork CDN's
- * contract, owned by `salvageunion-reference/assetDerivatives` and read by the
- * CDN (`apps/su-assets`) too, so the two cannot drift.
+ * contract, owned by `salvageunion-reference/assetDerivatives`, which names the
+ * zone rules that render them.
  */
 import { ASSET_RENDER_WIDTHS, assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 
