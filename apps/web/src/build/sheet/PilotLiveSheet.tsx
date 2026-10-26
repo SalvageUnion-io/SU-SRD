@@ -8,16 +8,12 @@
  * (`assignedUnitsFor`), handed to `PilotSheet` as `linkedUnits`.
  */
 
-import { containerOf } from 'game-domain/container'
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
-import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { AssignPicker } from '../wiring/AssignPicker'
-import { AssignedUnits } from './AssignedUnits'
-import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
+import { assignedRail } from './assignedRail'
 import { pilotStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
@@ -61,22 +57,10 @@ export function PilotLiveSheet({
 
   // Assigned units: the mech it flies and the crawler it crews; an empty
   // crawler place stands in the hand-set crawler level until one is assigned.
-  const self = { type: 'pilot', id: pilot.id } as const
-  const container = containerOf(pilot)
-  const assigned = assignedUnitsFor({
-    subject: { kind: 'pilot', entity: pilot },
-    composition,
-    withheld,
-    softLinks: storeState.softLinks,
-    holds,
-    hrefFor,
-    ownerOf,
-    editable,
-    unassign: (linkId) => runWrite(() => storeState.delete('softLink', linkId)),
-    picker: (pick, options) => (
-      <AssignPicker subject={self} container={container} pick={pick} {...options} />
-    ),
-    extra: {
+  const rail = assignedRail(
+    { kind: 'pilot', entity: pilot },
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable },
+    {
       crawler: (
         <Stat
           label={buildSheetCopy('mockCrawlerLevel')}
@@ -86,13 +70,8 @@ export function PilotLiveSheet({
           onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
         />
       ),
-    },
-  })
-  // Nothing linked in Read draws no section, so none reaches the sidebar
-  // either: an empty sidebar would hold its column open.
-  const rail = hasAssignedUnits(assigned.units, editable) ? (
-    <AssignedUnits {...assigned} editable={editable} />
-  ) : undefined
+    }
+  )
 
   return (
     <LiveSheet

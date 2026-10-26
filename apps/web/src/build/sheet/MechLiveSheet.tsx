@@ -9,7 +9,6 @@
  * Play, not the Free-Edit Live Sheet (ADR-021).
  */
 
-import { containerOf } from 'game-domain/container'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -23,11 +22,8 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { AssignPicker } from '../wiring/AssignPicker'
-import { AssignedUnits } from './AssignedUnits'
-import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
+import { assignedRail } from './assignedRail'
 import { mechStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
@@ -92,25 +88,10 @@ export function MechLiveSheet({
 
   // Assigned units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
-  const self = { type: 'mech', id: mech.id } as const
-  const container = containerOf(mech)
-  const assigned = assignedUnitsFor({
-    subject: { kind: 'mech', entity: mech },
-    composition,
-    withheld,
-    softLinks: storeState.softLinks,
-    holds,
-    hrefFor,
-    ownerOf,
-    editable,
-    unassign: (linkId) => runWrite(() => storeState.delete('softLink', linkId)),
-    picker: (pick, options) => (
-      <AssignPicker subject={self} container={container} pick={pick} {...options} />
-    ),
-  })
-  const rail = hasAssignedUnits(assigned.units, editable) ? (
-    <AssignedUnits {...assigned} editable={editable} />
-  ) : undefined
+  const rail = assignedRail(
+    { kind: 'mech', entity: mech },
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+  )
 
   return (
     <LiveSheet
