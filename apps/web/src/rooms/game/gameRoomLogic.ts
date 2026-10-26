@@ -1,6 +1,7 @@
 import type { ApplyOp } from '../ops'
 import type { RoomSql } from '../sql'
 import { GameLedger } from './ledger'
+import { GameLog } from './log'
 import { GameOpposition } from './opposition'
 import { GamePlay } from './play'
 import { GameProposals } from './proposals'
@@ -27,6 +28,9 @@ export class GameRoomLogic {
   readonly scene: GameScene
   readonly ledger: GameLedger
   readonly safety: GameSafety
+  readonly log: GameLog
+  /** Mints an id for what the room makes (a proposal's op). */
+  readonly newId: () => string
 
   constructor(
     sql: RoomSql,
@@ -35,6 +39,7 @@ export class GameRoomLogic {
     const store = new GameStore(sql)
     this.store = store
     const newId = deps.newId ?? (() => crypto.randomUUID())
+    this.newId = newId
     this.units = new GameUnits(store, deps.applyOp, newId)
     this.proposals = new GameProposals(store, this.units)
     this.roster = new GameRoster(store, this.units, deps.mintCode ?? randomInviteCode)
@@ -44,5 +49,6 @@ export class GameRoomLogic {
     this.scene = new GameScene(store, this.units)
     this.ledger = new GameLedger(store, this.units, this.play, newId)
     this.safety = new GameSafety(store, newId)
+    this.log = new GameLog(store, newId)
   }
 }

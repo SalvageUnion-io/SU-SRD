@@ -5,13 +5,21 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import type { Faction } from 'game-domain/schemas/ledger'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { OpInput } from '../ops'
+import { entityLog } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { GameRoomLogic } from './gameRoomLogic'
+import type { LogEntry } from './log'
 import type { TrayPatch } from './opposition'
 import type { Profile } from './roster'
 
 /** Who is acting, in which Game, and when: the Worker vouches for the first, the room supplies the rest. */
 type ActContext = { room: GameRoomLogic; actor: string; gameId: string; at: number }
+
+/** A seat write's address, as `convex/seats.ts` takes it. */
+type SeatArgs = { pilotId: string }
+
+/** What `ops.propose` takes. */
+type ProposeArgs = { entityId: string; field: string; after: unknown; reason?: string }
 
 /** A unit as a reader outside the room sees it (the bot's sheets, ADR-064 §5). */
 export type UnitSheet = { id: string; kind: EntityKind; body: Record<string, unknown> }
@@ -43,7 +51,6 @@ const GAME_ACTS = {
     c.room.units.submit(c.actor, a.ops, { replayed: a.replayed === true }),
   units: (c: ActContext) => c.room.units.list(c.actor),
   links: (c: ActContext) => c.room.units.links(c.actor),
-  history: (c: ActContext, a: { unitId: string }) => c.room.units.history(c.actor, a.unitId),
   assign: (c: ActContext, a: { unitId: string; userId?: string }) =>
     c.room.units.assign(c.actor, a.unitId, c.at, a.userId),
   unassign: (c: ActContext, a: { unitId: string }) =>
@@ -54,40 +61,61 @@ const GAME_ACTS = {
   setPrimaryCrawler: (c: ActContext, a: { crawlerId: string }) =>
     c.room.units.setPrimaryCrawler(c.actor, a.crawlerId),
 
-  propose: (
-    c: ActContext,
-    a: { id: string; unitId: string; field: string; value: unknown; reason?: string }
-  ) => c.room.proposals.propose(c.actor, { ...a, at: c.at }),
-  pendingProposals: (c: ActContext) => c.room.proposals.pending(c.actor),
-  sentProposals: (c: ActContext) => c.room.proposals.sent(c.actor),
-  applyProposal: (c: ActContext, a: { proposalId: string }) =>
-    c.room.proposals.applyProposal(c.actor, a.proposalId, c.at),
-  declineProposal: (c: ActContext, a: { proposalId: string }) =>
-    c.room.proposals.declineProposal(c.actor, a.proposalId),
+  // The table in play, under the Convex function names a client's act
+  // carries, with their args (`gameId` is the room's own, so it is ignored).
+  'ops.propose': (c: ActContext, a: ProposeArgs) => {
+    const id = c.room.newId()
+    c.room.proposals.propose(c.actor, {
+      id,
+      unitId: a.entityId,
+      field: a.field,
+      value: a.after,
+      ...(a.reason === undefined ? {} : { reason: a.reason }),
+      at: c.at,
+    })
+    return id
+  },
+  'ops.pending': (c: ActContext) => c.room.proposals.pending(c.actor),
+  'ops.sent': (c: ActContext) => c.room.proposals.sent(c.actor),
+  'ops.accept': (c: ActContext, a: { opId: string }) => {
+    const result = c.room.proposals.applyProposal(c.actor, a.opId, c.at)
+    if (!result.ok) throw new RoomRefusal('That changed since it was proposed; ask for it again')
+  },
+  'ops.decline': (c: ActContext, a: { opId: string }) =>
+    c.room.proposals.declineProposal(c.actor, a.opId),
 
-  seats: (c: ActContext) => c.room.play.seats(c.actor),
-  board: (c: ActContext, a: { pilotId: string; mechId: string }) =>
+  'seats.forGame': (c: ActContext) => c.room.play.seats(c.actor),
+  'seats.board': (c: ActContext, a: SeatArgs & { mechId: string }) =>
     c.room.play.board(c.actor, a.pilotId, a.mechId, c.at),
-  dismount: (c: ActContext, a: { pilotId: string }) =>
-    c.room.play.dismount(c.actor, a.pilotId, c.at),
-  eject: (c: ActContext, a: { pilotId: string }) => c.room.play.eject(c.actor, a.pilotId, c.at),
-  setRange: (c: ActContext, a: { pilotId: string; range: string }) =>
+  'seats.dismount': (c: ActContext, a: SeatArgs) => c.room.play.dismount(c.actor, a.pilotId, c.at),
+  'seats.eject': (c: ActContext, a: SeatArgs) => c.room.play.eject(c.actor, a.pilotId, c.at),
+  'seats.setRange': (c: ActContext, a: SeatArgs & { range: string }) =>
     c.room.play.setRange(c.actor, a.pilotId, a.range, c.at),
-  toggleEffect: (c: ActContext, a: { pilotId: string; ref: string }) =>
+  'seats.toggleEffect': (c: ActContext, a: SeatArgs & { ref: string }) =>
     c.room.play.toggleEffect(c.actor, a.pilotId, a.ref, c.at),
-  setResolving: (c: ActContext, a: { pilotId: string; resolving: unknown }) =>
+  'seats.setResolving': (c: ActContext, a: SeatArgs & { resolving: unknown }) =>
     c.room.play.setResolving(c.actor, a.pilotId, a.resolving, c.at),
-  clearResolving: (c: ActContext, a: { pilotId: string }) =>
+  'seats.clearResolving': (c: ActContext, a: SeatArgs) =>
     c.room.play.clearResolving(c.actor, a.pilotId, c.at),
 
-  downtime: (c: ActContext) => c.room.play.downtime(c.actor),
-  beginDowntime: (c: ActContext) => c.room.play.beginDowntime(c.actor, c.at),
-  advanceDowntime: (c: ActContext) => c.room.play.advanceDowntime(c.actor),
-  setDowntimeStep: (c: ActContext, a: { stepIndex: number }) =>
+  'downtime.state': (c: ActContext) => c.room.play.downtime(c.actor),
+  'downtime.begin': (c: ActContext) => c.room.play.beginDowntime(c.actor, c.at),
+  'downtime.advance': (c: ActContext) => c.room.play.advanceDowntime(c.actor),
+  'downtime.setStep': (c: ActContext, a: { stepIndex: number }) =>
     c.room.play.setDowntimeStep(c.actor, a.stepIndex),
-  endDowntime: (c: ActContext) => c.room.play.endDowntime(c.actor),
-  markStepDone: (c: ActContext, a: { done: boolean }) => c.room.play.markStepDone(c.actor, a.done),
-  spendUpkeep: (c: ActContext) => c.room.play.spendUpkeep(c.actor),
+  'downtime.end': (c: ActContext) => c.room.play.endDowntime(c.actor),
+  'downtime.markStepDone': (c: ActContext, a: { done: boolean }) =>
+    c.room.play.markStepDone(c.actor, a.done),
+  'downtime.spendUpkeep': (c: ActContext) => c.room.play.spendUpkeep(c.actor),
+
+  'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
+    c.room.log.append(c.actor, a.entries),
+  'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
+    c.room.log.broadcast(c.actor, a.message, c.at),
+  'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
+  'changeLog.alerts': (c: ActContext) => c.room.log.alerts(c.actor),
+  'changeLog.forEntity': (c: ActContext, a: { entityId: string }) =>
+    entityLog(c.room.units.history(c.actor, a.entityId)),
 
   // The Mediator's tray and running encounter, under the Convex function names a client's act carries.
   'mediator.npcs': (c: ActContext) => c.room.opposition.tray(c.actor),

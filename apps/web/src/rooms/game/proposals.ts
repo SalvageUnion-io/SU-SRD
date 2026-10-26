@@ -11,22 +11,26 @@ import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
  * member it is assigned to. The rules are `convex/proposals.ts`'s.
  */
 
+/** A proposal as `ops.pending` and `ops.sent` serve it; `_id` is its op's id. */
 export type ProposalRead = {
-  id: string
-  unitId: string
-  kind: EntityKind
+  _id: string
+  entityId: string
+  entityType: EntityKind
   targetName: string | null
   field: string
-  value: unknown
+  after: unknown
   reason: string | null
-  at: number
+  ts: number
 }
 
 export type SentProposal = ProposalRead & {
   state: 'applied' | 'proposed' | 'declined' | 'superseded'
   mine: boolean
-  author: string
+  actorName: string | null
 }
+
+/** The most proposals `sent` returns. */
+const MAX_SENT = 100
 
 export class GameProposals {
   constructor(
@@ -82,7 +86,7 @@ export class GameProposals {
     })
   }
 
-  /** Proposals waiting on this player: only those on units assigned to them. */
+  /** Proposals waiting on this player, newest first: only those on units assigned to them. */
   pending(actor: string): ProposalRead[] {
     if (this.store.member(actor) === null) return []
     const out: ProposalRead[] = []
@@ -91,17 +95,17 @@ export class GameProposals {
       if (unit === null || unit.ownerId !== actor) continue
       out.push(proposalRead(op, unit))
     }
-    return out
+    return out.sort((a, b) => b.ts - a.ts)
   }
 
   /** Every Mediator proposal, newest first, for any Mediator: one handed the table inherits them. */
-  sent(actor: string, limit = 20): SentProposal[] {
+  sent(actor: string): SentProposal[] {
     const member = this.store.member(actor)
     if (member === null || !member.mediator) return []
     const rows = this.store.rows(
       'select id from ops where source = ? order by at desc, id limit ?',
       PROPOSAL_SOURCE,
-      Math.min(Math.max(Math.floor(limit), 1), 100)
+      MAX_SENT
     )
     const out: SentProposal[] = []
     for (const row of rows) {
@@ -112,7 +116,7 @@ export class GameProposals {
         ...proposalRead(op, unit),
         state: op.supersededBy !== null ? 'superseded' : op.state,
         mine: op.author === actor,
-        author: op.author,
+        actorName: this.store.member(op.author)?.displayName ?? null,
       })
     }
     return out
@@ -171,15 +175,15 @@ export class GameProposals {
 }
 
 function proposalRead(op: StoredOp, unit: UnitRow | null): ProposalRead {
-  const [field = '', value = null] = Object.entries(op.patch)[0] ?? []
+  const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
   return {
-    id: op.id,
-    unitId: op.unitId,
-    kind: unit?.kind ?? 'pilot',
+    _id: op.id,
+    entityId: op.unitId,
+    entityType: unit?.kind ?? 'pilot',
     targetName: unit === null ? null : unitName(unit),
     field,
-    value,
+    after,
     reason: op.reason ?? null,
-    at: op.at,
+    ts: op.at,
   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { AccountBundle } from 'game-domain/migration/bundle'
+import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { bunSql } from '../../__tests__/bunSql'
 import { AT, bodies, op, PLAYER, STRANGER, stubApplyOp, table } from '../../game/__tests__/harness'
 import type { GameRoomLogic } from '../../game/gameRoomLogic'
@@ -306,5 +307,47 @@ describe('the solo table’s salvage area', () => {
     expect(room.soloArea.updatedAt()).toBe(5)
     expect(room.transit.diffImport(bundle({ salvageArea: area }))).toEqual([])
     expect(room.transit.diffImport(bundle())).toEqual(['salvageArea: differs'])
+  })
+})
+
+describe('the solo table’s seats and Downtime', () => {
+  test('every Shelf pilot has a seat its player plays, and a seat boarded off the Shelf is on foot', () => {
+    const { room } = shelf()
+    expect(room.solo.soloSeats(PLAYER)).toMatchObject([
+      { pilotId: 'p1', mount: { kind: 'boarded', mechId: 'm1' }, range: 'Far', downtime: null },
+    ])
+    expect(room.solo.soloSeats(STRANGER)).toEqual([])
+    room.solo.setRange(PLAYER, 'p1', 'Long', AT)
+    room.solo.toggleEffect(PLAYER, 'p1', 'smoke', AT)
+    expect(room.solo.soloSeats(PLAYER)[0]).toMatchObject({
+      range: 'Long',
+      activeEffects: ['smoke'],
+    })
+    expect(() => room.solo.board(PLAYER, 'p1', 'p1', AT)).toThrow('That is not a Mech')
+    expect(() => room.solo.eject(STRANGER, 'p1', AT)).toThrow()
+    room.shelf.store.rows("delete from units where id = 'm1'")
+    expect(room.solo.soloSeats(PLAYER)[0]?.mount).toEqual({ kind: 'foot' })
+  })
+
+  test('its player runs a pilot’s Downtime, its steps read back off their ops', () => {
+    const { room } = shelf()
+    expect(() => room.solo.advanceDowntime(PLAYER, 'p1')).toThrow('Downtime is not running')
+    room.solo.beginDowntime(PLAYER, 'p1', AT)
+    room.solo.beginDowntime(PLAYER, 'p1', AT + 1)
+    room.shelf.submit(PLAYER, [
+      op('p1', {}, { id: downtimeStepOpId(AT, 'p1', 0), source: 'downtime' }),
+    ])
+    room.solo.advanceDowntime(PLAYER, 'p1')
+    expect(room.solo.soloSeats(PLAYER)[0]?.downtime).toEqual({
+      runId: String(AT),
+      stepIndex: 1,
+      startedAt: AT,
+      upkeepSpent: false,
+      doneSteps: [0],
+    })
+    // The seat keeps what was played on it.
+    expect(room.solo.soloSeats(PLAYER)[0]?.range).toBe('Far')
+    room.solo.endDowntime(PLAYER, 'p1')
+    expect(room.solo.soloSeats(PLAYER)[0]?.downtime).toBeNull()
   })
 })

@@ -145,11 +145,11 @@ describe('proposals', () => {
       reason: '  Rifle volley ',
       at: AT + 1,
     })
-    expect(room.proposals.pending(PLAYER).map((p) => [p.id, p.value, p.reason])).toEqual([
+    expect(room.proposals.pending(PLAYER).map((p) => [p._id, p.after, p.reason])).toEqual([
       ['pr2', 1, 'Rifle volley'],
     ])
     expect(room.proposals.pending(ORGANIZER)).toEqual([])
-    expect(room.proposals.sent(MEDIATOR).map((p) => [p.id, p.state])).toEqual([
+    expect(room.proposals.sent(MEDIATOR).map((p) => [p._id, p.state])).toEqual([
       ['pr2', 'proposed'],
       ['pr1', 'superseded'],
     ])
@@ -180,7 +180,7 @@ describe('proposals', () => {
       at: AT,
     })
     room.proposals.declineProposal(PLAYER, 'pr2')
-    expect(room.proposals.sent(MEDIATOR).find((p) => p.id === 'pr2')?.state).toBe('declined')
+    expect(room.proposals.sent(MEDIATOR).find((p) => p._id === 'pr2')?.state).toBe('declined')
   })
 
   test('an unassigned unit takes no proposal, and a long reason is refused, not cut', () => {

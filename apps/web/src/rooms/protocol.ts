@@ -97,6 +97,14 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *    served to the Mediator only, so a reader without it does not mediate.
  * Who added a boundary or showed the Stop Sign never reaches a socket: each
  * reader gets `mine` and what it may do, so these records are per reader.
+ * @public And the table in play, each as its Convex query answered:
+ *  - `members`: one per member, by Discord id (`games.members`).
+ *  - `seats`: one per pilot (`seats.forGame`; an account room's, each Shelf
+ *    pilot's solo seat with its Downtime, `seats.solo`).
+ *  - `downtime`: `downtime.state`, with each pilot's `doneSteps` by pilot id.
+ *  - `proposals`: those waiting on this reader (`ops.pending`);
+ *    `sentProposals`: every Mediator's, for a Mediator (`ops.sent`).
+ *  - `rolls` and `alerts`: the newest of each (`changeLog.rolls`, `.alerts`).
  */
 export const RECORD_TABLES = [
   'patterns',
@@ -109,6 +117,13 @@ export const RECORD_TABLES = [
   'ledger',
   'boundaries',
   'safety',
+  'members',
+  'seats',
+  'downtime',
+  'proposals',
+  'sentProposals',
+  'rolls',
+  'alerts',
 ] as const
 /** @public */
 export type RecordTable = (typeof RECORD_TABLES)[number]

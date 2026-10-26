@@ -59,7 +59,7 @@ describe('the Game room over RPC', () => {
       { id: 'p1', body: { motto: 'Keep moving' } },
     ])
     expect(await room.unit(PLAYER, 'p1')).toMatchObject({ ownerName: 'Player' })
-    expect(await room.act('d-stranger', 'beginDowntime', undefined as never)).toEqual({
+    expect(await room.act('d-stranger', 'downtime.begin', undefined as never)).toEqual({
       ok: false,
       refusal: 'Not a member of this Game',
     })

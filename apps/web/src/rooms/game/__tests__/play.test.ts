@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
+import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { downtimeStepCount, isUpkeepStep } from 'game-domain/rules/downtime'
-import { downtimeStepOpId } from '../play'
-import { AT, bodies, MEDIATOR, ORGANIZER, op, PLAYER, table } from './harness'
+import { AT, bodies, MEDIATOR, ORGANIZER, op, PLAYER, STRANGER, table } from './harness'
 
 function seated() {
   const made = table()
@@ -16,17 +16,17 @@ describe('seats', () => {
   test('a pilot with no seat sits down on foot at Close range', () => {
     const { room } = seated()
     room.play.setRange(PLAYER, 'p1', 'Long', AT)
+    const foot = {
+      mount: { kind: 'foot' as const },
+      activeEffects: [],
+      resolving: null,
+      ejected: false,
+    }
     expect(room.play.seats(ORGANIZER)).toEqual([
-      {
-        pilotId: 'p1',
-        mount: { kind: 'foot' },
-        range: 'Long',
-        activeEffects: [],
-        resolving: null,
-        ejected: false,
-        updatedAt: AT,
-      },
+      { pilotId: 'p1', ...foot, range: 'Long', updatedAt: AT },
+      { pilotId: 'p2', ...foot, range: 'Close', updatedAt: null },
     ])
+    expect(room.play.seats(STRANGER)).toEqual([])
   })
 
   test('boarding needs the mech, free and intact; changing mount drops the resolve', () => {
@@ -79,7 +79,9 @@ describe('Downtime', () => {
 
     room.play.markStepDone(PLAYER, true)
     room.play.markStepDone(PLAYER, true)
-    expect(room.play.downtime(PLAYER)?.completedBy).toEqual([PLAYER])
+    expect(room.play.downtime(PLAYER)?.completedBy).toEqual([
+      { userId: PLAYER, displayName: 'Player' },
+    ])
     room.play.advanceDowntime(MEDIATOR)
     expect(room.play.downtime(PLAYER)).toMatchObject({ stepIndex: 1, completedBy: [] })
     room.play.setDowntimeStep(MEDIATOR, 999)
@@ -111,5 +113,6 @@ describe('Downtime', () => {
     room.units.submit(PLAYER, [step])
     room.units.submit(PLAYER, [{ ...step, patch: { currentHP: 99 } }])
     expect(room.units.list(PLAYER).find((u) => u.id === 'p1')?.body.currentHP).toBe(10)
+    expect(room.play.downtime(ORGANIZER)?.doneSteps).toEqual({ p1: [0], p2: [] })
   })
 })

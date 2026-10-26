@@ -1,8 +1,9 @@
 /**
  * What a table plays under, as its room serves it (`rooms/protocol.ts`): the
  * Scene, the area being salvaged, the ledger, the boundaries and the Stop
- * Sign; and, for its Mediator only, the Opposition tray and the encounter
- * being run. Each record is per reader (who showed the Stop Sign never leaves the
+ * Sign; the table in play: the roster, the seats, the Downtime, the
+ * proposals and the rolls and alerts; and, for its Mediator only, the
+ * Opposition tray and the encounter being run. Each record is per reader (who showed the Stop Sign never leaves the
  * room) and only means anything live, so it is held in memory per room scope
  * rather than in the replica's tables: a reload starts from the room's next
  * snapshot, and offline a screen shows none of it, as it did on Convex.
@@ -22,8 +23,25 @@ const STATE_TABLES = [
   'safety',
   'opposition',
   'mediator',
+  'members',
+  'seats',
+  'downtime',
+  'proposals',
+  'sentProposals',
+  'rolls',
+  'alerts',
 ] as const
 export type StateTable = (typeof STATE_TABLES)[number]
+
+/** The tables a query answered with one row (or null); every other answered a list. */
+const ONE_ROW: ReadonlySet<StateTable> = new Set([
+  'scene',
+  'salvageArea',
+  'ledger',
+  'safety',
+  'downtime',
+  'mediator',
+])
 
 type Body = Record<string, unknown>
 type StateRecord = { appId: string; body: Body }
@@ -76,9 +94,9 @@ export function forgetTableState(scope?: Scope): void {
 
 /**
  * The table as its Convex query answered: undefined before the scope's
- * snapshot, then the one record or null; boundaries, every one with its id
- * as `_id`; the Opposition, `{ _id, body }` per NPC as `mediator.npcs`
- * answered. Stable between changes, for `useSyncExternalStore`.
+ * snapshot, then the one record or null, or every record (a boundary with
+ * its id as `_id`; the Opposition, `{ _id, body }` per NPC as
+ * `mediator.npcs` answered). Stable between changes, for `useSyncExternalStore`.
  */
 export function readTableState(scope: Scope, table: StateTable): unknown {
   const key = `${scope}\u0000${table}`
@@ -87,11 +105,15 @@ export function readTableState(scope: Scope, table: StateTable): unknown {
   const answer =
     rows === undefined
       ? undefined
-      : table === 'boundaries'
-        ? [...rows].map(([id, body]) => ({ ...body, _id: id }))
-        : table === 'opposition'
-          ? [...rows].map(([id, body]) => ({ _id: id, body }))
-          : ([...rows.values()][0] ?? null)
+      : ONE_ROW.has(table)
+        ? ([...rows.values()][0] ?? null)
+        : [...rows].map(([id, body]) =>
+            table === 'boundaries'
+              ? { ...body, _id: id }
+              : table === 'opposition'
+                ? { _id: id, body }
+                : body
+          )
   answers.set(key, answer)
   return answer
 }

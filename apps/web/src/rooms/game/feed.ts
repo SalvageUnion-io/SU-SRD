@@ -21,6 +21,7 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
       opposition: room.opposition.trayRecords(actor),
       mediator: room.opposition.mediatorRecords(actor),
       ...tableRecords(room, actor),
+      ...playRecords(room, actor),
     },
     links: roomLinks(room.store),
   }
@@ -45,6 +46,53 @@ function tableRecords(room: GameRoomLogic, actor: string) {
       .boundaries(actor)
       .map(({ id, addedAt, ...body }) => ({ appId: id, body, updatedAt: addedAt })),
     safety: one('safety', safety, room.safety.updatedAt()),
+  }
+}
+
+/**
+ * The table in play, as each member reads it: the roster, every pilot's
+ * seat, the Downtime, the proposals waiting on them (and, for a Mediator,
+ * every one sent) and the newest rolls and alerts.
+ */
+function playRecords(room: GameRoomLogic, actor: string) {
+  const by = <T extends object>(rows: T[], appId: (row: T) => string, at: (row: T) => number) =>
+    rows.map((row) => ({ appId: appId(row), body: { ...row }, updatedAt: at(row) }))
+  const downtime = room.play.downtime(actor)
+  return {
+    members: by(
+      room.roster.members(actor),
+      (m) => m.userId,
+      (m) => m.joinedAt
+    ),
+    seats: by(
+      room.play.seats(actor),
+      (s) => s.pilotId,
+      (s) => s.updatedAt ?? 0
+    ),
+    downtime:
+      downtime === null
+        ? []
+        : [{ appId: 'downtime', body: { ...downtime }, updatedAt: downtime.startedAt ?? 0 }],
+    proposals: by(
+      room.proposals.pending(actor),
+      (p) => p._id,
+      (p) => p.ts
+    ),
+    sentProposals: by(
+      room.proposals.sent(actor),
+      (p) => p._id,
+      (p) => p.ts
+    ),
+    rolls: by(
+      room.log.rolls(actor),
+      (r) => r._id,
+      (r) => r.ts
+    ),
+    alerts: by(
+      room.log.alerts(actor),
+      (a) => a._id,
+      (a) => a.ts
+    ),
   }
 }
 

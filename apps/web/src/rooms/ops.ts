@@ -47,3 +47,47 @@ type OpResult =
   | { ok: false; reason: 'invalid'; message: string }
 
 export type ApplyOp = (unit: Unit, op: OpInput) => OpResult
+
+/** One field's change as the Change Log drawer reads it (`changeLog.forEntity`). */
+export type EntityLogRow = {
+  _id: string
+  ts: number
+  kind: ChangeLogKind
+  field: string
+  before: unknown
+  after: unknown
+  source: string
+  state: 'applied' | 'proposed'
+}
+
+/** The most rows the drawer reads: its newest page. */
+const ENTITY_LOG_ROWS = 100
+
+/** Fields an op writes that are bookkeeping, not history a player reads. */
+const UNLOGGED: ReadonlySet<string> = new Set(['updatedAt'])
+
+/**
+ * A unit's Change Log from its ops, newest first, one row per field: applied
+ * and proposed only, since a declined proposal is not the unit's history.
+ */
+export function entityLog(ops: readonly Op[]): EntityLogRow[] {
+  return ops
+    .flatMap((op) => {
+      if (op.state === 'declined') return []
+      const state = op.state
+      return [...Object.keys(op.patch), ...(op.unset ?? [])]
+        .filter((field) => !UNLOGGED.has(field))
+        .map((field) => ({
+          _id: `${op.id}:${field}`,
+          ts: op.at,
+          kind: op.kind,
+          field,
+          before: op.before?.[field] ?? null,
+          after: op.patch[field] ?? null,
+          source: op.source,
+          state,
+        }))
+    })
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, ENTITY_LOG_ROWS)
+}

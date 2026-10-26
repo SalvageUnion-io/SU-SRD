@@ -9,7 +9,9 @@ import { DurableObject, exports } from 'cloudflare:workers'
 import type { DurableObjectNamespace, WebSocket as RoomSocket } from '@cloudflare/workers-types'
 import type { SheetVitals } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
+import { isDowntimeStepOp } from 'game-domain/ops/downtimeStep'
 import { AccountRoomLogic } from '../rooms/account/accountRoomLogic'
+import { ACCOUNT_ACTS, ACCOUNT_READ_ACTS } from '../rooms/account/acts'
 import { shelfSnapshot } from '../rooms/account/feed'
 import type {
   GameActAnswer,
@@ -244,23 +246,22 @@ export class AccountRoom extends Room implements UnitHome {
     if (result.ok) {
       const ids = result.applied.map((op) => op.id)
       sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null))
-      this.published()
+      // A solo Downtime step is read back off its op (the seat's `doneSteps`).
+      if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
+      else this.published()
     }
     ws.send(JSON.stringify(batchAnswer(opIds, result)))
   }
 
-  /** One act on the player's solo area; every socket of theirs then hears their Shelf. */
+  /** One act on the player's solo table; every socket of theirs then hears their Shelf. */
   private soloAct(
     member: string,
     act: Exclude<ReturnType<typeof socketAct<typeof ACCOUNT_SOCKET_ACTS>>, { refusal: string }>
   ): GameActAnswer<unknown> {
-    const at = Date.now()
+    const run = ACCOUNT_ACTS[act.name] as (c: unknown, a: unknown) => unknown
     try {
-      const value =
-        act.name === 'salvageAreas.set'
-          ? this.logic.soloArea.set(member, act.args.area, at)
-          : this.logic.soloArea.spend(member, act.args.pilotId, at)
-      this.broadcastSnapshots()
+      const value = run({ room: this.logic, actor: member, at: Date.now() }, act.args)
+      if (!ACCOUNT_READ_ACTS.has(act.name)) this.broadcastSnapshots()
       return { ok: true, value }
     } catch (error) {
       if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
@@ -350,7 +351,9 @@ export class GameRoom extends Room implements UnitHome {
       else if (result.ok) {
         const ids = result.applied.map((op) => op.id)
         this.broadcast(appliedMessages(this.logic.store, ids, this.gameId))
-        this.published()
+        // A Downtime step is read back off its op (`downtime` record's `doneSteps`).
+        if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
+        else this.published()
       }
     }
     return answer
@@ -532,11 +535,13 @@ const READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'inviteCode',
   'units',
   'links',
-  'history',
-  'pendingProposals',
-  'sentProposals',
-  'seats',
-  'downtime',
+  'ops.pending',
+  'ops.sent',
+  'seats.forGame',
+  'downtime.state',
+  'changeLog.rolls',
+  'changeLog.alerts',
+  'changeLog.forEntity',
   'mediator.npcs',
   'mediator.amMediator',
   'mediator.running',

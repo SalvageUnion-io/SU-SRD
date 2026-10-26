@@ -33,7 +33,32 @@ const TRAY_PATCH = z.object({
   lastImportantRoll: z.unknown().optional(),
 })
 
-/** A Game room's: its table's 4.3 state, and the Mediator's tray and running encounter. */
+const SEAT = z.object({ pilotId: z.string() })
+/** A seat at either table: the Game's, or (an account room's) the solo pilot's. */
+const SEAT_ACTS = {
+  'seats.board': SEAT.extend({ mechId: z.string() }),
+  'seats.dismount': SEAT,
+  'seats.eject': SEAT,
+  'seats.setRange': SEAT.extend({ range: z.string() }),
+  'seats.toggleEffect': SEAT.extend({ ref: z.string() }),
+  'seats.setResolving': SEAT.extend({ resolving: z.unknown() }),
+  'seats.clearResolving': SEAT,
+}
+
+/** A Downtime's moves; solo, `pilotId` names the pilot whose it is. */
+const PLACE = z.object({ pilotId: z.string().optional() })
+const DOWNTIME_ACTS = {
+  'downtime.begin': PLACE,
+  'downtime.advance': PLACE,
+  'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
+  'downtime.end': PLACE,
+  'downtime.spendUpkeep': PLACE,
+}
+
+/** A unit's Change Log, as the drawer reads it. */
+const FOR_ENTITY = z.object({ entityId: z.string() })
+
+/** A Game room's: its table's 4.3 state, the Mediator's tray and running encounter, its seats, Downtime, proposals and feed. */
 export const GAME_SOCKET_ACTS = {
   'mediator.addNpc': z.object({ body: z.unknown() }),
   'mediator.removeNpc': z.object({ npcId: z.string() }),
@@ -63,12 +88,40 @@ export const GAME_SOCKET_ACTS = {
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
   'safety.setPostToChannel': z.object({ on: z.boolean() }),
+
+  ...SEAT_ACTS,
+  ...DOWNTIME_ACTS,
+  'downtime.markStepDone': z.object({ done: z.boolean() }),
+  'ops.propose': z.object({
+    entityId: z.string(),
+    field: z.string(),
+    after: z.unknown(),
+    reason: z.string().optional(),
+  }),
+  'ops.accept': z.object({ opId: z.string() }),
+  'ops.decline': z.object({ opId: z.string() }),
+  'changeLog.appendChangeLog': z.object({
+    entries: z.array(
+      z.object({
+        entityType: z.string(),
+        field: z.string(),
+        after: z.unknown().optional(),
+        source: z.string(),
+        ts: z.number(),
+      })
+    ),
+  }),
+  'changeLog.broadcast': z.object({ message: z.string() }),
+  'changeLog.forEntity': FOR_ENTITY,
 } satisfies Partial<Record<GameActName, z.ZodType>>
 
-/** An account room's: its player's solo table's salvage area. */
+/** An account room's: its player's solo table, its seats, Downtime and salvage area. */
 export const ACCOUNT_SOCKET_ACTS = {
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
+  ...SEAT_ACTS,
+  ...DOWNTIME_ACTS,
+  'changeLog.forEntity': FOR_ENTITY,
 }
 
 type ActMessage = Extract<ClientMessage, { type: 'act' }>

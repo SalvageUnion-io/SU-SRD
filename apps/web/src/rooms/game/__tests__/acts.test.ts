@@ -13,6 +13,11 @@ import {
   table,
 } from './harness'
 
+/** A roll as Play appends it. */
+function roll(description: string) {
+  return { entityType: 'game', field: 'roll', after: { description }, source: 'play', ts: AT }
+}
+
 describe('acts by name', () => {
   test('the room names the Game and the time, not the caller', () => {
     const { room } = emptyRoom()
@@ -30,12 +35,12 @@ describe('acts by name', () => {
   test('a refusal is an answer; a defect throws', () => {
     const { room } = table()
     const c = { room, actor: STRANGER, gameId: 'g1', at: AT }
-    expect(runAct(c, 'beginDowntime', undefined as never)).toEqual({
+    expect(runAct(c, 'downtime.begin', undefined as never)).toEqual({
       ok: false,
       refusal: 'Not a member of this Game',
     })
     expect(() =>
-      runAct(c, 'setRange' as never, { pilotId: 'nope', range: 'Orbit' } as never)
+      runAct(c, 'seats.setRange' as never, { pilotId: 'nope', range: 'Orbit' } as never)
     ).toThrow()
     expect(() => runAct(c, 'toString' as never, undefined as never)).toThrow('No Game act named')
   })
@@ -106,35 +111,47 @@ describe('every act reaches its part of the room', () => {
     ok(runAct(me, 'removeLink', { link }))
     expect(ok(runAct(me, 'units', undefined as never))).toHaveLength(3)
 
-    ok(runAct(med, 'propose', { id: 'pr1', unitId: 'p1', field: 'motto', value: 'Onward' }))
-    expect(ok(runAct(me, 'pendingProposals', undefined as never))).toHaveLength(1)
-    expect(ok(runAct(med, 'sentProposals', undefined as never))).toHaveLength(1)
-    ok(runAct(me, 'applyProposal', { proposalId: 'pr1' }))
-    ok(runAct(med, 'propose', { id: 'pr2', unitId: 'p1', field: 'motto', value: 'Back' }))
-    ok(runAct(me, 'declineProposal', { proposalId: 'pr2' }))
-    expect(ok(runAct(me, 'history', { unitId: 'p1' })).length).toBeGreaterThan(0)
+    const pr1 = ok(runAct(med, 'ops.propose', { entityId: 'p1', field: 'motto', after: 'Onward' }))
+    expect(ok(runAct(me, 'ops.pending', undefined as never))).toHaveLength(1)
+    expect(ok(runAct(med, 'ops.sent', undefined as never))).toHaveLength(1)
+    ok(runAct(me, 'ops.accept', { opId: pr1 }))
+    const pr2 = ok(runAct(med, 'ops.propose', { entityId: 'p1', field: 'motto', after: 'Back' }))
+    ok(runAct(me, 'ops.decline', { opId: pr2 }))
+    expect(ok(runAct(me, 'changeLog.forEntity', { entityId: 'p1' }))).toContainEqual(
+      expect.objectContaining({ field: 'motto', after: 'Onward', state: 'applied' })
+    )
 
-    ok(runAct(me, 'board', { pilotId: 'p1', mechId: 'm1' }))
+    ok(runAct(me, 'seats.board', { pilotId: 'p1', mechId: 'm1' }))
     ok(
-      runAct(me, 'setResolving', {
+      runAct(me, 'seats.setResolving', {
         pilotId: 'p1',
         resolving: { ref: 'x', name: 'X', activated: true, applied: false },
       })
     )
-    ok(runAct(me, 'clearResolving', { pilotId: 'p1' }))
-    ok(runAct(me, 'toggleEffect', { pilotId: 'p1', ref: 'smoke' }))
-    ok(runAct(me, 'setRange', { pilotId: 'p1', range: 'Long' }))
-    ok(runAct(me, 'eject', { pilotId: 'p1' }))
-    ok(runAct(me, 'dismount', { pilotId: 'p1' }))
-    expect(ok(runAct(me, 'seats', undefined as never))).toHaveLength(1)
+    ok(runAct(me, 'seats.clearResolving', { pilotId: 'p1' }))
+    ok(runAct(me, 'seats.toggleEffect', { pilotId: 'p1', ref: 'smoke' }))
+    ok(runAct(me, 'seats.setRange', { pilotId: 'p1', range: 'Long' }))
+    ok(runAct(me, 'seats.eject', { pilotId: 'p1' }))
+    ok(runAct(me, 'seats.dismount', { pilotId: 'p1' }))
+    expect(ok(runAct(me, 'seats.forGame', undefined as never))).toHaveLength(1)
 
-    ok(runAct(med, 'beginDowntime', undefined as never))
-    ok(runAct(me, 'markStepDone', { done: true }))
-    ok(runAct(med, 'advanceDowntime', undefined as never))
-    ok(runAct(med, 'setDowntimeStep', { stepIndex: 0 }))
-    runAct(med, 'spendUpkeep', undefined as never)
-    expect(ok(runAct(me, 'downtime', undefined as never))?.running).toBe(true)
-    ok(runAct(med, 'endDowntime', undefined as never))
+    ok(runAct(med, 'downtime.begin', undefined as never))
+    ok(runAct(me, 'downtime.markStepDone', { done: true }))
+    ok(runAct(med, 'downtime.advance', undefined as never))
+    ok(runAct(med, 'downtime.setStep', { stepIndex: 0 }))
+    runAct(med, 'downtime.spendUpkeep', undefined as never)
+    expect(ok(runAct(me, 'downtime.state', undefined as never))?.running).toBe(true)
+    ok(runAct(med, 'downtime.end', undefined as never))
+
+    ok(runAct(me, 'changeLog.appendChangeLog', { entries: [roll('Ram: 14')] }))
+    expect(runAct(me, 'changeLog.broadcast', { message: 'Hold' })).toMatchObject({ ok: false })
+    ok(runAct(med, 'changeLog.broadcast', { message: '  Hold the line ' }))
+    expect(ok(runAct(me, 'changeLog.rolls', undefined as never))).toMatchObject([
+      { description: 'Ram: 14', actorName: 'Renamed' },
+    ])
+    expect(ok(runAct(me, 'changeLog.alerts', undefined as never))).toMatchObject([
+      { message: 'Hold the line', actorId: MEDIATOR },
+    ])
 
     const npc = ok(runAct(med, 'mediator.addNpc', { body: { name: 'Raider' } }))
     ok(runAct(med, 'mediator.updateNpc', { npcId: npc, patch: { name: 'Raider Boss' } }))

@@ -33,8 +33,8 @@ const UNIT_TABLES = ['pilot', 'mech', 'crawler', 'npc'] as const satisfies reado
 
 /**
  * The replica's table for each record table a room keeps. What the table
- * plays under, and a Game's Opposition and running encounter, are held
- * apart, per room (`tableState.ts`).
+ * plays under, the table in play, and a Game's Opposition and running
+ * encounter, are held apart, per room (`tableState.ts`).
  */
 const RECORD_TABLE: Record<RecordTable, Table | null> = {
   patterns: 'mechPattern',
@@ -47,6 +47,13 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   ledger: null,
   boundaries: null,
   safety: null,
+  members: null,
+  seats: null,
+  downtime: null,
+  proposals: null,
+  sentProposals: null,
+  rolls: null,
+  alerts: null,
 }
 
 type RoomLink = Extract<ServerMessage, { type: 'links' }>['links'][number]

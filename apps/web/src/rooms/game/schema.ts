@@ -20,8 +20,8 @@
  * - `leases`: handoffs in and out, so each is accepted once and refused for good.
  * - `imports`: the cutover copies already taken in, so a rerun takes nothing twice.
  *
- * Presence and the roll feed are their own step's, in their own tables; the
- * Scene, salvage area, ledger and Safety Protocols are step 3's.
+ * Presence is not stored; the Scene, salvage area, ledger and Safety
+ * Protocols are step 3's, the roll and alert feed step 4's.
  */
 /** Step 1 of `GAME_ROOM` (`../schemas.ts`). */
 export const GAME_ROOM_TABLES: readonly string[] = [
@@ -181,4 +181,21 @@ export const GAME_ROOM_TABLE_STATE: readonly string[] = [
         posted_at integer,
         updated_at integer not null
       )`,
+]
+
+/**
+ * Step 4 of `GAME_ROOM`: the table's own Change Log, what changes no unit
+ * (ADR-063 §7): Play's and the bot's rolls (`field` 'roll') and the
+ * Mediator's alerts ('alert'). A unit's change is its op, in `ops`.
+ */
+export const GAME_ROOM_CHANGE_LOG: readonly string[] = [
+  `create table change_log (
+        id text primary key,
+        field text not null,
+        after text,
+        source text not null,
+        actor_id text,
+        ts integer not null
+      )`,
+  'create index change_log_field on change_log (field, ts)',
 ]

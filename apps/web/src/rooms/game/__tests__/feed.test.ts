@@ -67,6 +67,39 @@ describe('what a Game room tells a socket', () => {
     expect(JSON.stringify({ boundaries, safety })).not.toContain(PLAYER)
   })
 
+  test('the table in play rides as records too: roster, seats, Downtime, proposals and feed', () => {
+    const { room } = wired()
+    room.play.board(PLAYER, 'p1', 'm1', AT)
+    room.play.beginDowntime(MEDIATOR, AT)
+    room.proposals.propose(MEDIATOR, {
+      id: 'pr1',
+      unitId: 'p1',
+      field: 'motto',
+      value: 'Go',
+      at: AT,
+    })
+    room.log.broadcast(MEDIATOR, 'Incoming', AT)
+    const mine = ServerMessageSchema.parse(gameSnapshot(room, PLAYER, 'g1'))
+    expect(mine).toMatchObject({
+      records: {
+        members: expect.arrayContaining([
+          { appId: PLAYER, body: expect.objectContaining({ userId: PLAYER }), updatedAt: AT + 1 },
+        ]),
+        seats: [{ appId: 'p1', body: { mount: { kind: 'boarded', mechId: 'm1' } }, updatedAt: AT }],
+        downtime: [
+          { appId: 'downtime', body: { running: true, stepIndex: 0, doneSteps: { p1: [] } } },
+        ],
+        proposals: [{ appId: 'pr1', body: { entityId: 'p1', after: 'Go' } }],
+        sentProposals: [],
+        rolls: [],
+        alerts: [{ body: { message: 'Incoming', actorId: MEDIATOR } }],
+      },
+    })
+    expect(gameSnapshot(room, MEDIATOR, 'g1')).toMatchObject({
+      records: { proposals: [], sentProposals: [{ appId: 'pr1', body: { mine: true } }] },
+    })
+  })
+
   test('only a Mediator’s holds the Opposition; a stranger’s holds nothing', () => {
     const { room } = wired()
     const mediator = gameSnapshot(room, MEDIATOR, 'g1')
