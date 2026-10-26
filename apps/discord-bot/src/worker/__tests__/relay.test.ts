@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { PostRollRelayResponse } from 'game-domain/botWire'
 import { BOT_RELAY_POST_ROLL_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
 import { Relay } from '../relay'
+import { withFetchStub } from './stubFetch'
 
 /**
  * The relay: the site Worker posting a Play roll or a Stop Sign into a bound
@@ -10,16 +11,7 @@ import { Relay } from '../relay'
  * Discord is `fetch`, stubbed per test.
  */
 
-const realFetch = globalThis.fetch
-afterEach(() => {
-  globalThis.fetch = realFetch
-})
-
-function stubFetch(
-  handler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>
-) {
-  globalThis.fetch = handler as typeof fetch
-}
+const stubFetch = withFetchStub()
 
 function env(overrides: Partial<Env> = {}): Env {
   return {

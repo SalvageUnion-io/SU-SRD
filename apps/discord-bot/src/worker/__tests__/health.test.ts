@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import worker from '../index'
+import { withFetchStub } from './stubFetch'
 
 /**
  * The `/health` endpoint.
@@ -21,24 +22,7 @@ import worker from '../index'
  *      answer.
  */
 
-const realFetch = globalThis.fetch
-
-afterEach(() => {
-  globalThis.fetch = realFetch
-})
-
-/**
- * Replace `fetch` for the duration of one test. Restored in `afterEach`.
- *
- * The input is spelled out rather than using `RequestInfo`: this app has no DOM
- * lib, so that name does not exist here — the same reason `verify.ts` declares
- * its own WebCrypto slice.
- */
-function stubFetch(
-  handler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>
-) {
-  globalThis.fetch = handler as typeof fetch
-}
+const stubFetch = withFetchStub()
 
 function envWith(overrides: Partial<Env> = {}): Env {
   return {
