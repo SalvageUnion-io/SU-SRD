@@ -51,10 +51,10 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 
 ## Chrome
 
-- **R20 A notice has one job** (K5) — toast for an act, `Banner` for a condition, `Message` for a consequence; one `Toaster` per document; one offline wording (`SyncBadge`, in the bar); Copied is the control's own swap (`useCopied`); no roll-tier colour outside the bot.
+- **R20 A notice has one job** (K5) — toast for an act, `Banner` for a condition, `FieldError` for a consequence; one `Toaster` per document; one offline wording (`SyncBadge`, in the bar); Copied is the control's own swap (`useCopied`); no roll-tier colour outside the bot.
 - **R22 One loading voice** (K6) — `Pending`, `Skeleton` or `RoutePending`, "Loading <thing>…" spelled by `loadingCopy` alone; a loading mark is the only `@keyframes`.
 - **R24 Three dialog widths** (K7) — `ModalShell` narrow, default or page (28, 48, 72rem), no per-dialog `max-width`. One pick dialog (§6.6): `PickDialog`, narrow, its Compacts in select mode in one radio group, Cancel and the act in `DialogActions`; `RadioCardGroup` only there and in the wizards' steps.
-- **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again", never "Retry"; `role="alert"` only in `Message`, `RecoveryPanel` and `Banner`. There is no search page: `/search` 301s home.
+- **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again", never "Retry"; `role="alert"` only in `FieldError`, `RecoveryPanel` and `Banner`. There is no search page: `/search` 301s home.
 - **R28 One focus ring** (K9) — `--focus-ring-shadow` on `:focus-visible`, everywhere, 3:1 on every ground; no `:focus` indicator of its own.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.
 - **R29 Tabs, Segmented, Toggle by job** (K10) — `role="tab"` only in `Tabs`, `aria-pressed` only in `Segmented` and `Toggle`; no tab or segment label clipped or ellipsized.

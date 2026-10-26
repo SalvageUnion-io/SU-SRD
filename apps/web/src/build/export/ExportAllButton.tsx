@@ -1,4 +1,4 @@
-import { Button, Message, Stack, toast } from '../../components/index'
+import { Button, FieldError, Stack, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
@@ -32,7 +32,7 @@ export function ExportAllButton() {
       <Button size="compact" disabled={busy} onClick={() => void handleExportAll()}>
         {busy ? buildExportCopy('exporting') : buildExportCopy('exportAll')}
       </Button>
-      <Message tone="bad">{error}</Message>
+      <FieldError>{error}</FieldError>
     </Stack>
   )
 }

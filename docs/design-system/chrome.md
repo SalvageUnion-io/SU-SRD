@@ -14,7 +14,7 @@ Status: agreed (2026-10-18).
 
 One component per job, chosen by the job (R16).
 
-- **K5 Notices** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition, save the connection: offline is one notice, one wording, the bar's `SyncBadge`; a `Message` states a consequence where it applies.
+- **K5 Notices** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition, save the connection: offline is one notice, one wording, the bar's `SyncBadge`; a `FieldError` states a consequence where it applies.
   Copied is the copy control's own `Check` swap and a polite live region, never a toast. No notice wears a roll-tier colour (ruleset §3.4).
 - **K6 Loading** — `Pending` inside a screen, `Skeleton` for a shape known ahead, `RoutePending` for a route; one voice, "Loading <thing>…".
 - **K7 Dialog widths** — `ModalShell` is narrow (28rem: confirms, short pickers), default (48rem) or page (72rem: the detail Page, the searcher); no per-dialog width.

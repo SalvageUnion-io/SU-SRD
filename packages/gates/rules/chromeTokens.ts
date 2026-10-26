@@ -266,11 +266,11 @@ const loadingMarkCss = (_decls: CssDecl[], blocks: CssBlock[], rel: string) =>
 
 /**
  * The error atoms (chrome.md K8): an alert is a crash (`RecoveryPanel`), a
- * failure line (`Message`, under `FieldError` too) or a lasting condition
+ * failure line (`FieldError`) or a lasting condition
  * (`Banner`). A failed act is `toast.error`, whose region is the Toaster's.
  */
 export const ALERT_ATOMS: readonly string[] = [
-  'apps/web/src/components/atoms/Message.tsx',
+  'apps/web/src/components/atoms/FieldError.tsx',
   'apps/web/src/components/containers/RecoveryPanel.tsx',
   'apps/web/src/components/containers/Banner.tsx',
 ]
@@ -450,7 +450,7 @@ const CHROME_RULES: ChromeRule[] = [
     id: 'raw-alert',
     mode: 'zero',
     rule: 'chrome.md K8 — one error per job: a raw `role="alert"` only in the error atoms',
-    fix: 'A crash is `RecoveryPanel`, a failure line `Message tone="bad"` (`FieldError` for a field), a lasting condition `Banner`, a failed act `toast.error`; a status that is not urgent is `role="status"`. The atoms are ALERT_ATOMS (packages/gates/rules/chromeTokens.ts).',
+    fix: 'A crash is `RecoveryPanel`, a failure line `FieldError`, a lasting condition `Banner`, a failed act `toast.error`; a status that is not urgent is `role="status"`. The atoms are ALERT_ATOMS (packages/gates/rules/chromeTokens.ts).',
     script: rawAlertScript,
   },
   {

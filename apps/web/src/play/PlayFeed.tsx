@@ -18,7 +18,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, FeedLine, FeedList, Message, tokens } from '../components/index'
+import { Button, EmptyState, FeedLine, FeedList, FieldError, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { useTableAct } from '../replica/useTable'
@@ -118,9 +118,9 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
               >
                 {entry.text}
                 {post?.kind === 'failed' && (
-                  <Message tone="bad">
+                  <FieldError>
                     {playCopy('notPostedToDiscord', { message: post.message })}
-                  </Message>
+                  </FieldError>
                 )}
               </FeedLine>
             )

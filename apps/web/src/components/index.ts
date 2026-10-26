@@ -65,8 +65,6 @@ export { Input, Textarea } from './atoms/inputs'
 export { FOCUS_RING } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
-// Message — the one single-line feedback message (bad = role="alert", else status)
-export { Message } from './atoms/Message'
 export { useModKeyHint } from './atoms/modKeyHint'
 export { NextLabel } from './atoms/NextLabel'
 export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'

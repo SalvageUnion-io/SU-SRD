@@ -38,7 +38,6 @@ const ROSTER = {
     'toast',
     'toastRoll',
     'Banner',
-    'Message',
     'FieldError',
     'CopiedIcon',
     'CopiedStatus',
