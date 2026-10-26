@@ -13,73 +13,22 @@
  * SalvageUnionReference is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, mock } from 'bun:test'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../../components/__tests__/must'
-import { resetStores } from '../../../replica/__tests__/resetStores'
-import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { useUnits } from '../../../replica/units'
+import {
+  clickButton,
+  clickNext,
+  getNextButton,
+  getPickByName,
+  pickByName,
+  withWizardStore,
+} from '../../__tests__/wizardHarness'
 import { PilotWizard } from '../PilotWizard'
 
-// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
-withSignedInBackend()
-
-// ---------------------------------------------------------------------------
-// Pre-load reference data
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Store reset
-// ---------------------------------------------------------------------------
-
-beforeEach(async () => {
-  sessionStorage.clear()
-  resetStores()
-  await useUnits.getState().hydrate('pilot')
-})
-
-afterEach(async () => {
-  await act(async () => {
-    cleanup()
-  })
-  sessionStorage.clear()
-  resetStores()
-})
-
-// ---------------------------------------------------------------------------
-// Helpers (WizShell skeleton)
-// ---------------------------------------------------------------------------
-
-/**
- * Class and ability picks are radio cards (exactly one); equipment picks are
- * SelCard rings — div[role="button"]. Both carry the entity name as label.
- */
-function getPickByName(name: string): HTMLElement {
-  const candidates = [...screen.queryAllByRole('radio'), ...screen.getAllByRole('button')]
-  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
-  if (exact) return exact
-  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
-  if (!row) throw new Error(`No radio or button pick for "${name}"`)
-  return row
-}
-
-async function pick(name: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(getPickByName(name))
-  })
-}
-
-/** The primary CTA is labeled from the steps array: 'Next: {step}' (`NextLabel`). */
-function getNextButton(): HTMLButtonElement {
-  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next: / })
-}
-
-async function clickNext(): Promise<void> {
-  await act(async () => {
-    fireEvent.click(getNextButton())
-  })
-}
+withWizardStore('pilot')
 
 function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => boolean) => unknown }) {
   const found = accessor.find((x) => x.name === name) as { id: string } | undefined
@@ -124,9 +73,9 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     // --- Step 2: Class & First Ability (merged, both gates hard) ---
     // Next locked until class + exactly 1 legal ability.
     expect(getNextButton().disabled).toBe(true)
-    await pick('Engineer')
+    await pickByName('Engineer')
     expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
-    await pick('Engineering Expertise')
+    await pickByName('Engineering Expertise')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
@@ -135,11 +84,9 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Choose 2 more equipment items to continue/i)).toBeTruthy()
     const item = firstTech1Equipment()
-    await pick(item.name) // card click adds copy #1
+    await pickByName(item.name) // card click adds copy #1
     expect(screen.getByText(/Choose 1 more equipment item to continue/i)).toBeTruthy()
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: `Increase ${item.name} count` })) // copy #2
-    })
+    await clickButton(`Increase ${item.name} count`) // copy #2
     expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
     expect(getNextButton().disabled).toBe(false)
     // At the budget every '+' disables.
@@ -165,10 +112,7 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     // --- Review → submit ('Create Pilot ✦'), recap present, no soft banner ---
     expect(screen.getByText(/1 class · 1 ability · 2 Tech 1 items/i)).toBeTruthy()
     expect(screen.queryByRole('alert')).toBeNull()
-    const submit = screen.getByRole('button', { name: /Create Pilot/i })
-    await act(async () => {
-      fireEvent.click(submit)
-    })
+    await clickButton(/Create Pilot/i)
 
     await waitFor(() => {
       const pilots = useUnits.getState().list('pilot')
@@ -196,10 +140,10 @@ describe('PilotWizard — hard creation enforcement', () => {
   it('ability pick is a RADIO: a new pick replaces the old, never a second slot', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext() // Stats → Class & Ability
-    await pick('Engineer')
-    await pick('Engineering Expertise')
+    await pickByName('Engineer')
+    await pickByName('Engineering Expertise')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
-    await pick('Jury Rig')
+    await pickByName('Jury Rig')
     // Still exactly one pick — replaced, not added.
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     expect(getPickByName('Jury Rig').getAttribute('aria-checked')).toBe('true')
@@ -209,9 +153,9 @@ describe('PilotWizard — hard creation enforcement', () => {
   it('changing class clears a now-illegal ability (cross-step invalidation)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()
-    await pick('Engineer')
-    await pick('Engineering Expertise') // Mechanical Knowledge L1
-    await pick('Soldier') // Mechanical Knowledge ∉ Soldier trees
+    await pickByName('Engineer')
+    await pickByName('Engineering Expertise') // Mechanical Knowledge L1
+    await pickByName('Soldier') // Mechanical Knowledge ∉ Soldier trees
     expect(screen.getByTestId('ability-count').textContent).toContain('0/1')
     expect(getNextButton().disabled).toBe(true)
   })
@@ -219,9 +163,9 @@ describe('PilotWizard — hard creation enforcement', () => {
   it('keeps a still-legal ability across a class change (Salvager shares core trees)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()
-    await pick('Engineer')
-    await pick('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
-    await pick('Salvager')
+    await pickByName('Engineer')
+    await pickByName('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
+    await pickByName('Salvager')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
   })
 
@@ -231,7 +175,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     // Non-core classes are filtered OUT of guided create entirely.
     expect(screen.queryByRole('radio', { name: 'Cyborg' })).toBeNull()
     expect(screen.queryByRole('radio', { name: 'Fabricator' })).toBeNull()
-    await pick('Salvager')
+    await pickByName('Salvager')
     const level1 = SalvageUnionReference.Abilities.findAll(
       (a) => (a as { level: number | string }).level === 1
     )
@@ -258,26 +202,19 @@ describe('PilotWizard — hard creation enforcement', () => {
   it('equipment Qty stepper supports duplicates and the − removes a copy', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()
-    await pick('Engineer')
-    await pick('Engineering Expertise')
+    await pickByName('Engineer')
+    await pickByName('Engineering Expertise')
     await clickNext()
 
     const item = firstTech1Equipment()
     const plus = () =>
       screen.getByRole<HTMLButtonElement>('button', { name: `Increase ${item.name} count` })
-    const minus = () => screen.getByRole('button', { name: `Decrease ${item.name} count` })
 
-    await act(async () => {
-      fireEvent.click(plus())
-    })
-    await act(async () => {
-      fireEvent.click(plus())
-    })
+    await clickButton(`Increase ${item.name} count`)
+    await clickButton(`Increase ${item.name} count`)
     expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
     expect(plus().disabled).toBe(true)
-    await act(async () => {
-      fireEvent.click(minus())
-    })
+    await clickButton(`Decrease ${item.name} count`)
     expect(screen.getByTestId('equipment-count').textContent).toContain('1/2')
     expect(plus().disabled).toBe(false)
   })
@@ -285,8 +222,8 @@ describe('PilotWizard — hard creation enforcement', () => {
   it('slot preview uses pilotInventory math, not pick count', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()
-    await pick('Engineer')
-    await pick('Engineering Expertise')
+    await pickByName('Engineer')
+    await pickByName('Engineering Expertise')
     await clickNext()
     // 0 picks → 0 / 6 slots (base capacity).
     expect(screen.getByTestId('slot-preview').textContent).toContain('/6')
@@ -340,7 +277,7 @@ describe('PilotWizard — session drafts', () => {
   it('restores in-progress state after unmount and clears it on confirmed cancel', async () => {
     const { unmount } = render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext() // Stats → Class & Ability
-    await pick('Engineer')
+    await pickByName('Engineer')
 
     // Simulate a refresh/navigation: unmount, then mount a fresh wizard.
     await act(async () => {
@@ -356,12 +293,8 @@ describe('PilotWizard — session drafts', () => {
     expect(getPickByName('Engineer').getAttribute('aria-checked')).toBe('true')
 
     // Cancel on a dirty form asks first; confirming discards the draft.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Discard' }))
-    })
+    await clickButton('Cancel')
+    await clickButton('Discard')
     expect(onCancel).toHaveBeenCalledTimes(1)
     expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).toBeNull()
   })
