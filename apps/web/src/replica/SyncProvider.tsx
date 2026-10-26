@@ -13,6 +13,7 @@ import { useBuildFloor } from '../lib/connection/buildFloor'
 import { sharedCopy } from '../messages/components-shared'
 import { flushOutbox } from './outbox'
 import { sessionAccount } from './persist'
+import { onRoomOpen } from './roomSocket'
 import { setSyncStatus, syncStatusOf } from './sync'
 import type { SyncState } from './syncContext'
 import { SyncContext } from './syncContext'
@@ -64,11 +65,16 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   )
 
   // Back live: what waited in the outbox goes up, and a refused edit says so.
+  // Live can come before a room's socket opens, so each opening sends again.
   useEffect(() => {
     if (status !== 'live' || outdated) return
-    void flushOutbox().then((declined) => {
-      for (const reason of declined) toast.error(sharedCopy('offlineChangeDeclined', { reason }))
-    })
+    const flush = () => {
+      void flushOutbox().then((declined) => {
+        for (const reason of declined) toast.error(sharedCopy('offlineChangeDeclined', { reason }))
+      })
+    }
+    flush()
+    return onRoomOpen(flush)
   }, [status, outdated])
   return <SyncContext.Provider value={state}>{children}</SyncContext.Provider>
 }

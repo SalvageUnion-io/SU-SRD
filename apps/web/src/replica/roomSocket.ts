@@ -165,6 +165,18 @@ type Room = {
 const open = new Map<string, Room>()
 const ACCOUNT = ''
 
+/** Who hears a room's socket open (`onRoomOpen`). */
+const opened = new Set<() => void>()
+
+/**
+ * Hear each time a room's socket opens, so a write held for it (the outbox)
+ * can go now; answers the unsubscribe.
+ */
+export function onRoomOpen(listener: () => void): () => void {
+  opened.add(listener)
+  return () => opened.delete(listener)
+}
+
 /** A unit test's stand-in for each room it has not opened (`test/roomsStub.ts`); none in the app. */
 let standIn: ((gameId: string | null) => Room | null) | null = null
 
@@ -226,6 +238,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
       attempt = 0
       open.set(gameId ?? ACCOUNT, room)
       for (const batch of waiting.values()) send(batch.ops)
+      for (const listener of opened) listener()
     }
     socket.onmessage = (event) => {
       let data: unknown

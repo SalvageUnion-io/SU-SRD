@@ -82,6 +82,18 @@ describe('back live', () => {
     expect(await flushOutbox()).toEqual(['That sheet is no longer yours'])
   })
 
+  test('a call while one is under way tells its refusals once', async () => {
+    await useUnits.getState().update('pilot', 'p1', { callsign: 'Late' }, TXN)
+    roomAnswer.submit = async () => {
+      throw new RoomDeclined('That sheet is no longer yours')
+    }
+    setSyncStatus('live')
+
+    const [first, second] = await Promise.all([flushOutbox(), flushOutbox()])
+    expect(first).toEqual(['That sheet is no longer yours'])
+    expect(second).toEqual([])
+  })
+
   test('a send that fails keeps the op for next time', async () => {
     await useUnits.getState().update('pilot', 'p1', { callsign: 'Kept' }, TXN)
     setSyncStatus('live')

@@ -7,7 +7,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../components/__tests__/fixtures'
 import { gameScope, getView, hold } from '../replica'
-import { foldRoomMessage, openRoom, RoomDeclined, roomOf } from '../roomSocket'
+import { foldRoomMessage, onRoomOpen, openRoom, RoomDeclined, roomOf } from '../roomSocket'
 import { WritesBlockedOffline } from '../sync'
 import { resetStores } from './resetStores'
 
@@ -223,6 +223,20 @@ describe('openRoom', () => {
     socket.onclose?.()
     expect(socket.closedWith).toBe(1000)
     expect(FakeSocket.all).toHaveLength(1)
+  })
+
+  test('tells who listens each time a socket opens, until they stop', () => {
+    let heard = 0
+    const stop = onRoomOpen(() => heard++)
+    const close = openRoom('/__rooms/account/socket', 'account')
+    const socket = FakeSocket.all[0] as FakeSocket
+    expect(heard).toBe(0)
+    socket.opens()
+    expect(heard).toBe(1)
+    stop()
+    socket.opens()
+    expect(heard).toBe(1)
+    close()
   })
 
   test('while open, it is the Game’s room: a batch waits for its ack or declined', async () => {

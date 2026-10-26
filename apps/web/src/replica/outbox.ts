@@ -154,9 +154,12 @@ let flushing: Promise<string[]> | null = null
  * Send what waits, oldest first, one op at a time to its room; answers why
  * each declined op was refused. A send that fails outright (the connection
  * went again, or its room is not open) stops, keeping the rest for next time.
+ * A call while one is under way waits for it and answers none, so each
+ * refusal is told once.
  */
 export function flushOutbox(): Promise<string[]> {
-  flushing ??= (async () => {
+  if (flushing !== null) return flushing.then(() => [])
+  flushing = (async () => {
     const declined: string[] = []
     const ops = await waitingOps()
     try {

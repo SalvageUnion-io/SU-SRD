@@ -80,8 +80,9 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
   },
   {
     // `deploy-preview.yml`: ships each PR into `main` that carries the
-    // `preview` label as Worker Previews `pr-<n>`, and pushes the staging
-    // Convex deployment `perfect-donkey-72`. It runs from ANY branch (`**/*`),
+    // `preview` label as Worker Previews `pr-<n>`. The staging Convex key
+    // (`perfect-donkey-72`) stays until the Convex project is retired, as
+    // production's does. It runs from ANY branch (`**/*`),
     // and the label is the gate: no required reviewer. Accepted risk
     // (ADR-033 §Credentials): the Cloudflare token
     // cannot be narrowed to the previews (Workers Scripts: Edit reaches every
