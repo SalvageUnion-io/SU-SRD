@@ -19,28 +19,19 @@
  * afterwards — the site should not be publishable in that state.
  */
 
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 /** Canonical 8-4-4-4-12 hex UUID, anywhere inside a same-origin href. */
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 const UUID_HREF = new RegExp(`href=["'](/[^"']*${UUID}[^"']*)["']`, 'gi')
 
-async function htmlFiles(dir: string): Promise<string[]> {
-  const out: string[] = []
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name)
-    if (entry.isDirectory()) out.push(...(await htmlFiles(path)))
-    else if (entry.name.endsWith('.html')) out.push(path)
-  }
-  return out
-}
-
 type UuidLink = { file: string; href: string }
 
 async function findUuidLinks(distDir: string): Promise<UuidLink[]> {
   const found: UuidLink[] = []
-  for (const file of await htmlFiles(distDir)) {
+  for await (const name of new Bun.Glob('**/*.html').scan(distDir)) {
+    const file = join(distDir, name)
     const html = await readFile(file, 'utf-8')
     for (const match of html.matchAll(UUID_HREF)) {
       found.push({ file, href: match[1] as string })
