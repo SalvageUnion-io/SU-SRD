@@ -129,6 +129,30 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: bun tools/d1-migrate.ts su-shared-preview
 
+      # A Preview takes the base config's secrets only when it is created, so
+      # one the base config has gained since goes, and the next step makes it
+      # again with every secret. Its rooms start empty; the shared database
+      # is the Previews' and stays.
+      - name: Recreate the Preview when the base config has a secret it lacks
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          names() { jq -r '.[].name' | sort; }
+          if ! own=$(bunx wrangler preview secret list --name "$PREVIEW_NAME" --json 2>/dev/null); then
+            echo "No $PREVIEW_NAME Preview yet: the next step makes it."
+            exit 0
+          fi
+          base=$(bunx wrangler preview base-config secret list --json)
+          missing=$(comm -13 <(printf '%s' "$own" | names) <(printf '%s' "$base" | names))
+          if [ -z "$missing" ]; then
+            echo "$PREVIEW_NAME has every base config secret."
+            exit 0
+          fi
+          echo "::notice::$PREVIEW_NAME lacks $(echo $missing): recreating it."
+          bunx wrangler preview delete --name "$PREVIEW_NAME" -y
+
       # A Preview, never a version or a deployment of the production Worker.
       # Its vars are wrangler.jsonc's `previews` block. Its URL is read back
       # from wrangler's output file, never guessed: `--json` still prints the
