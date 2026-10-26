@@ -1,8 +1,8 @@
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
-import { SalvageAreaSchema } from 'game-domain/schemas/salvageArea'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { SCENE_CONDITION_IDS } from 'game-domain/schemas/scene'
 import { RoomRefusal } from '../refusal'
+import { salvageAreaOf, setSalvageArea, spendSalvageSupply } from '../salvageArea'
 import type { GameStore } from './store'
 import { fromJson } from './store'
 import type { GameUnits } from './units'
@@ -66,29 +66,14 @@ export class GameScene {
   /** The area being salvaged, for a member; null when there is none. */
   salvageArea(actor: string): SalvageArea | null {
     if (this.store.member(actor) === null) return null
-    return this.area()
+    return salvageAreaOf(this.store)
   }
 
   /** Set the area being salvaged, or clear it with null: the Mediator's, who says what can be salvaged. */
   setSalvageArea(actor: string, area: SalvageArea | null, at: number): void {
     this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
-      if (area === null) {
-        this.store.rows('delete from salvage_area')
-        return
-      }
-      const parsed = SalvageAreaSchema.safeParse({ ...area, name: area.name.trim() })
-      if (!parsed.success) throw new RoomRefusal('An area has a Tech Level of 1 to 6 and a Supply')
-      const { name, techLevel, supply } = parsed.data
-      this.store.rows(
-        `insert into salvage_area (id, name, tech_level, supply, updated_at) values (1, ?, ?, ?, ?)
-         on conflict (id) do update set name = excluded.name, tech_level = excluded.tech_level,
-           supply = excluded.supply, updated_at = excluded.updated_at`,
-        name,
-        techLevel,
-        supply,
-        at
-      )
+      setSalvageArea(this.store, area, at)
     })
   }
 
@@ -104,12 +89,7 @@ export class GameScene {
         throw new RoomRefusal('That Pilot is not in this Game')
       }
       this.units.assertMayWrite(actor, pilot)
-      const area = this.area()
-      if (area === null) throw new RoomRefusal('There is no area to salvage here')
-      if (area.supply <= 0) throw new RoomRefusal('This area is picked clean')
-      const supply = area.supply - 1
-      this.store.rows('update salvage_area set supply = ?, updated_at = ? where id = 1', supply, at)
-      return { techLevel: area.techLevel, supply }
+      return spendSalvageSupply(this.store, at)
     })
   }
 
@@ -124,11 +104,5 @@ export class GameScene {
     const row = this.store.rows('select conditions, hours from scene where id = 1')[0]
     if (row === undefined) return null
     return { conditions: fromJson<SceneConditionId[]>(row.conditions), hours: Number(row.hours) }
-  }
-
-  private area(): SalvageArea | null {
-    const row = this.store.rows('select name, tech_level, supply from salvage_area where id = 1')[0]
-    if (row === undefined) return null
-    return { name: String(row.name), techLevel: Number(row.tech_level), supply: Number(row.supply) }
   }
 }
