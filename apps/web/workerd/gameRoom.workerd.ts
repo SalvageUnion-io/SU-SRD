@@ -1,7 +1,7 @@
 import type { D1Migration } from 'cloudflare:test'
 import { applyD1Migrations, runDurableObjectAlarm } from 'cloudflare:test'
 import { env, exports as workerExports } from 'cloudflare:workers'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { pilotFixture } from '../src/components/__tests__/fixtures'
 import { handOff } from '../src/rooms/handoff'
 import type { GameRoomStub } from '../src/worker/rooms'
@@ -9,6 +9,14 @@ import type { GameRoomStub } from '../src/worker/rooms'
 const exports = workerExports as unknown as {
   GameRoom: { getByName(name: string): GameRoomStub }
 }
+
+const { SHARED, TEST_MIGRATIONS } = env as unknown as {
+  SHARED: D1Database
+  TEST_MIGRATIONS: D1Migration[]
+}
+
+// Every room publishes after a change: give it the shared database's tables.
+beforeAll(() => applyD1Migrations(SHARED, TEST_MIGRATIONS))
 
 const ORGANIZER = 'd-org'
 const PLAYER = 'd-player'
@@ -142,11 +150,6 @@ describe('ending a Game', () => {
 
 describe('what the Game room publishes', () => {
   it('writes its shared units to the shared database, and drops them once it is wiped', async () => {
-    const { SHARED, TEST_MIGRATIONS } = env as unknown as {
-      SHARED: D1Database
-      TEST_MIGRATIONS: D1Migration[]
-    }
-    await applyD1Migrations(SHARED, TEST_MIGRATIONS)
     const room = exports.GameRoom.getByName('g-publish')
     const pilot = pilotFixture({ id: 'p9', name: 'Rosa', callsign: 'Rosa', classRef: 'salvager' })
     await room.importGame({
