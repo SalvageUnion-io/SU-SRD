@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
@@ -7,33 +7,40 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
  * while it is shared by link, the `/p/:kind/:appId` link, a copy button and a
  * QR of it (ADR-032, ADR-036). No snapshot control survives anywhere in it.
  *
- * Queries are answered **by name** (`convexMock.ts`), and the account room
- * serves the pattern's sharing (`fakeRooms.ts`); every write is an act on the
- * account room, recorded here.
+ * What is shared is the rooms': a sheet's `publicRead` in its room, a
+ * pattern's `sharing` record in the account room; every write is an act on a
+ * stand-in room (`test/roomsStub.ts`). Only the Games list is a Convex query.
  */
 
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
+import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { APP_BASE } from '../../../lib/appBase'
 import type { ShareKind } from '../../../lib/sharing/visibility'
 import { pageOrigin } from '../../../lib/site'
-import {
-  acts,
-  answerActs,
-  closeRooms,
-  openRooms,
-  serveReads,
-} from '../../../replica/__tests__/fakeRooms'
+import { gameScope } from '../../../replica/replica'
+import { holdSharedByLink } from '../../../replica/sharedByLink'
 import type { SyncState } from '../../../replica/syncContext'
-
-const mutations: unknown[] = []
+import { forgetTableState, serveTableState } from '../../../replica/tableState'
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
 // `authReact` because the dialog can mount `SignInControl`.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-})
+const convexMocks = await installConvexMocks({ authReact: true })
+
+/** The acts' args, in order. */
+const mutations = () => roomActs.map((a) => a.args)
+
+/** A sheet's room says whether it is shared by link; on the shelf, the account room. */
+function sheetShared(appId: string, publicRead: boolean, gameId: string | null = null) {
+  holdSharedByLink(gameId === null ? 'account' : gameScope(gameId), [{ appId, publicRead }])
+}
+
+/** The account room's `sharing` records. */
+function patternSharing(...records: { appId: string; [k: string]: unknown }[]) {
+  serveTableState('account', {
+    sharing: records.map(({ appId, ...body }) => ({ appId, body })),
+  })
+}
 
 const { ShareStatusDialog } = await import('../ShareStatusDialog')
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -76,25 +83,15 @@ function radio(name: RegExp): HTMLInputElement {
   return screen.getByRole('radio', { name }) as HTMLInputElement
 }
 
-/** The queries answered, and the account room serving what its reads answer. */
-function answer(all: QueryAnswers): void {
-  setQueryAnswers(all)
-  serveReads(null, all)
-}
-
 beforeEach(() => {
-  mutations.length = 0
-  openRooms(null, 'game-1')
-  answerActs(({ args }) => {
-    mutations.push(args)
-  })
+  forgetTableState()
+  acceptingRooms()
+  setQueryAnswers({})
 })
-
-afterEach(closeRooms)
 
 describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
   test('asks who can see it, answered Only me, and nothing about snapshots', async () => {
-    answer({ 'publicSheet:get': null })
+    sheetShared('pilot-1', false)
     await act(async () => {
       renderDialog()
     })
@@ -112,7 +109,7 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
   })
 
   test('Public sets publicRead on exactly this entity', async () => {
-    answer({ 'publicSheet:get': null })
+    sheetShared('pilot-1', false)
     await act(async () => {
       renderDialog()
     })
@@ -121,13 +118,13 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
       fireEvent.click(radio(/^public/i))
     })
 
-    expect(mutations).toEqual([{ kind: 'pilot', appId: 'pilot-1', isPublic: true }])
+    expect(mutations()).toEqual([{ kind: 'pilot', appId: 'pilot-1', isPublic: true }])
   })
 })
 
 describe('ShareStatusDialog — a sheet shared by link', () => {
   test('the link is the name and a short id, not the whole app id', async () => {
-    answer({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    sheetShared('0a1b2c3d-4e5f-4789-abcd-ef0123456789', true)
     await act(async () => {
       renderDialog({ id: '0a1b2c3d-4e5f-4789-abcd-ef0123456789' })
     })
@@ -138,7 +135,7 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
   })
 
   test('shows the /p/ link, copies it, and renders a QR of it', async () => {
-    answer({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    sheetShared('pilot-1', true)
     const writes: string[] = []
     await act(async () => {
       renderDialog({
@@ -165,7 +162,7 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
   })
 
   test('Only me turns it off', async () => {
-    answer({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    sheetShared('pilot-1', true)
     await act(async () => {
       renderDialog()
     })
@@ -174,13 +171,14 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
       fireEvent.click(radio(/only me/i))
     })
 
-    expect(mutations).toEqual([{ kind: 'pilot', appId: 'pilot-1', isPublic: false }])
+    expect(mutations()).toEqual([{ kind: 'pilot', appId: 'pilot-1', isPublic: false }])
   })
 })
 
 describe('ShareStatusDialog — a sheet in a Game', () => {
   test('its crew can see it, so the answer is My Game’s crew and Only me is out of reach', async () => {
-    answer({ 'publicSheet:get': null, 'games:listMine': GAMES })
+    sheetShared('mech-1', false, 'game-1')
+    setQueryAnswers({ 'games:listMine': GAMES })
     await act(async () => {
       renderDialog({ kind: 'mech', id: 'mech-1', gameId: 'game-1' })
     })
@@ -191,7 +189,8 @@ describe('ShareStatusDialog — a sheet in a Game', () => {
   })
 
   test('going back from the link to the crew clears publicRead', async () => {
-    answer({ 'publicSheet:get': { kind: 'mech', body: {} }, 'games:listMine': GAMES })
+    sheetShared('mech-1', true, 'game-1')
+    setQueryAnswers({ 'games:listMine': GAMES })
     await act(async () => {
       renderDialog({ kind: 'mech', id: 'mech-1', gameId: 'game-1' })
     })
@@ -200,14 +199,13 @@ describe('ShareStatusDialog — a sheet in a Game', () => {
       fireEvent.click(radio(/my game’s crew/i))
     })
 
-    expect(mutations).toEqual([{ kind: 'mech', appId: 'mech-1', isPublic: false }])
-    expect(acts.at(-1)?.gameId).toBe('game-1')
+    expect(mutations()).toEqual([{ kind: 'mech', appId: 'mech-1', isPublic: false }])
   })
 })
 
 describe('ShareStatusDialog — a built NPC', () => {
   test('shares by link exactly as a sheet does, at /p/npc/', async () => {
-    answer({ 'publicSheet:get': { kind: 'npc', body: {} } })
+    sheetShared('npc-1', true)
     await act(async () => {
       renderDialog({ kind: 'npc', id: 'npc-1' })
     })
@@ -218,24 +216,20 @@ describe('ShareStatusDialog — a built NPC', () => {
     await act(async () => {
       fireEvent.click(radio(/only me/i))
     })
-    expect(mutations).toEqual([{ kind: 'npc', appId: 'npc-1', isPublic: false }])
+    expect(mutations()).toEqual([{ kind: 'npc', appId: 'npc-1', isPublic: false }])
   })
 })
 
 describe('ShareStatusDialog — a mech pattern', () => {
   test('takes all three answers through the pattern’s own write', async () => {
-    answer({
-      'shelf:patternSharing': [
-        {
-          appId: 'pattern-1',
-          visibility: 'private',
-          gameId: null,
-          gameName: null,
-          builtCount: 0,
-        },
-      ],
-      'games:listMine': GAMES,
+    patternSharing({
+      appId: 'pattern-1',
+      visibility: 'private',
+      gameId: null,
+      gameName: null,
+      builtCount: 0,
     })
+    setQueryAnswers({ 'games:listMine': GAMES })
     await act(async () => {
       renderDialog({ kind: 'pattern', id: 'pattern-1' })
     })
@@ -250,19 +244,21 @@ describe('ShareStatusDialog — a mech pattern', () => {
       fireEvent.click(radio(/^public/i))
     })
 
-    expect(mutations).toEqual([
+    expect(mutations()).toEqual([
       { patternId: 'pattern-1', visibility: 'game', gameId: 'game-1' },
       { patternId: 'pattern-1', visibility: 'link' },
     ])
   })
 
   test('shared by link: the /p/pattern/ link', async () => {
-    answer({
-      'shelf:patternSharing': [
-        { appId: 'pattern-1', visibility: 'link', gameId: null, gameName: null, builtCount: 2 },
-      ],
-      'games:listMine': [],
+    patternSharing({
+      appId: 'pattern-1',
+      visibility: 'link',
+      gameId: null,
+      gameName: null,
+      builtCount: 2,
     })
+    setQueryAnswers({ 'games:listMine': [] })
     await act(async () => {
       renderDialog({ kind: 'pattern', id: 'pattern-1' })
     })
@@ -274,20 +270,25 @@ describe('ShareStatusDialog — a mech pattern', () => {
   })
 
   test('shared by link, it may also be shared on the Reference; otherwise that is not offered', async () => {
-    const share = (homebrew: boolean, visibility = 'link') => ({
-      'shelf:patternSharing': [
-        { appId: 'pattern-1', visibility, gameId: null, gameName: null, builtCount: 0, homebrew },
-      ],
-      'games:listMine': [],
-    })
+    const share = (homebrew: boolean, visibility = 'link') => {
+      patternSharing({
+        appId: 'pattern-1',
+        visibility,
+        gameId: null,
+        gameName: null,
+        builtCount: 0,
+        homebrew,
+      })
+      setQueryAnswers({ 'games:listMine': [] })
+    }
     const onReference = () => screen.queryByRole('switch', { name: 'Share with the SRD' })
 
-    answer(share(false, 'private'))
+    share(false, 'private')
     const { unmount } = renderDialog({ kind: 'pattern', id: 'pattern-1' })
     expect(onReference()).toBeNull()
     unmount()
 
-    answer(share(false))
+    share(false)
     const second = renderDialog({ kind: 'pattern', id: 'pattern-1' })
     expect(onReference()?.getAttribute('aria-checked')).toBe('false')
     await act(async () => {
@@ -295,13 +296,13 @@ describe('ShareStatusDialog — a mech pattern', () => {
     })
     second.unmount()
 
-    answer(share(true))
+    share(true)
     renderDialog({ kind: 'pattern', id: 'pattern-1' })
     expect(onReference()?.getAttribute('aria-checked')).toBe('true')
     await act(async () => {
       fireEvent.click(onReference() as HTMLElement)
     })
-    expect(mutations).toEqual([
+    expect(mutations()).toEqual([
       { patternId: 'pattern-1', shared: true },
       { patternId: 'pattern-1', shared: false },
     ])

@@ -6,17 +6,15 @@
  * refuses their writes either way.
  */
 
-import type { FunctionReturnType } from 'convex/server'
 import { publicPath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import type { api } from '../../../convex/_generated/api'
 import { Button, Cluster, SlabSection, Stack, Text, toast, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import type { HomebrewModeration as Queue } from '../../lib/sharing/reads'
 import { useHomebrewDismiss, useHomebrewSetHidden } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 
-type Queue = NonNullable<FunctionReturnType<typeof api.homebrew.moderation>>
 type Moderated = Queue['reported'][number]
 type Verb = 'hide' | 'dismiss' | 'restore'
 

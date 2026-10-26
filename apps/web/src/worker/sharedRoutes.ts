@@ -33,7 +33,7 @@ import {
   setHomebrewHidden,
 } from './shared/homebrew'
 import { publicPage, publicPreview } from './shared/publicSheets'
-import { REFUSALS } from './shared/refusals'
+import { crossOrigin, REFUSALS } from './shared/refusals'
 
 export type SharedRoutesEnv = { SHARED: SharedDb & D1Like; ADMIN_DISCORD_IDS?: string }
 
@@ -73,6 +73,7 @@ export async function serveShared(
   const get = request.method === 'GET'
   const post = request.method === 'POST'
   const db = env.SHARED
+  if (post && crossOrigin(request)) return refused(403, REFUSALS.crossOrigin)
   try {
     const [route, a, b] = parts
     if (get && (route === 'sheets' || route === 'previews') && parts.length === 3) {

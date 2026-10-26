@@ -2,32 +2,26 @@
  * `/p/$kind/$appId`: what the page shows before, and instead of, a public sheet.
  */
 
-import { afterAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import {
-  installConvexMocks,
-  queryCalls,
-  setQueryAnswers,
-} from '../../components/__tests__/convexMock'
+import { PublicSheetView } from '../../build/sheet/PublicSheetView'
 import { npcFixture } from '../../components/__tests__/fixtures'
+import { answerRoutes, routeAsks, withWorkerRoutes } from '../../lib/sharing/__tests__/workerRoutes'
+import { sharedPaths } from '../../lib/sharing/paths'
 
-// Module scope, before the import below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
-afterAll(() => convexMocks.restore())
-
-const { PublicSheetView } = await import('../../build/sheet/PublicSheetView')
+withWorkerRoutes()
 
 describe('the public sheet route', () => {
   test('a sheet that is not public says so', () => {
-    setQueryAnswers({ 'publicSheet:get': null })
+    answerRoutes({ [sharedPaths.sheet('pilot', 'anything')]: null })
     render(<PublicSheetView kind="pilot" appId="anything" />)
     // `getByText` throws when absent, so this asserts presence twice over.
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
   })
 
   test('a built NPC shared by link is its own read-only page, credited to its maker', () => {
-    setQueryAnswers({
-      'publicSheet:get': {
+    answerRoutes({
+      [sharedPaths.sheet('npc', 'npc-1')]: {
         kind: 'npc',
         appId: 'npc-1',
         body: npcFixture({ id: 'npc-1', name: 'Old Mags' }),
@@ -47,22 +41,22 @@ describe('the public sheet route', () => {
   })
 
   test('a private NPC is not available, as any private thing is', () => {
-    setQueryAnswers({ 'publicSheet:get': null })
+    answerRoutes({ [sharedPaths.sheet('npc', 'npc-1')]: null })
     render(<PublicSheetView kind="npc" appId="npc-1" />)
     expect(screen.getByText(/this NPC isn['’]t available/i)).toBeTruthy()
   })
 
   test('an unknown kind gets the same page, not a server round trip', () => {
-    setQueryAnswers({})
+    answerRoutes({})
     render(<PublicSheetView kind="dropship" appId="anything" />)
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
-    expect(queryCalls()).toEqual([])
+    expect(routeAsks).toEqual([])
   })
 
   test('an old full-id link settles on the name-and-short-id address', () => {
     const id = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
-    setQueryAnswers({
-      'publicSheet:get': {
+    answerRoutes({
+      [sharedPaths.sheet('npc', id)]: {
         kind: 'npc',
         appId: id,
         body: npcFixture({ id, name: 'Old Mags' }),
@@ -79,8 +73,8 @@ describe('the public sheet route', () => {
 
   test('a link already at its address is left alone', () => {
     const id = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
-    setQueryAnswers({
-      'publicSheet:get': {
+    answerRoutes({
+      [sharedPaths.sheet('npc', 'old-mags-0a1b2c3d4e5f')]: {
         kind: 'npc',
         appId: id,
         body: npcFixture({ id, name: 'Old Mags' }),

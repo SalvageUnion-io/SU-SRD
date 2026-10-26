@@ -22,7 +22,9 @@ import {
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { holdSharedByLink } from '../../../replica/sharedByLink'
 import type { SyncState } from '../../../replica/syncContext'
+import { serveTableState } from '../../../replica/tableState'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -115,11 +117,10 @@ beforeEach(async () => {
 
   toast.dismiss()
   resetStores()
-  setQueryAnswers({
-    'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-    'shelf:patternSharing': [],
-    'shelf:sharedByLink': [],
-  })
+  setQueryAnswers({ 'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }] })
+  // The account room's snapshot: nothing shared yet.
+  serveTableState('account', { sharing: [] })
+  holdSharedByLink('account', [])
   const store = useUnits.getState()
   await store.adopt('pilot', NIA)
   await store.adopt('pilot', ROOK)
@@ -253,11 +254,7 @@ describe('Crawlers', () => {
   })
 
   test('as the table runner, the Game’s crawler is yours to keep', async () => {
-    setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
-      'shelf:patternSharing': [],
-      'shelf:sharedByLink': [],
-    })
+    setQueryAnswers({ 'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }] })
     await renderShelves()
     const crawlers = screen.getByRole('region', { name: 'Crawlers' })
     expect(within(crawlers).getByText('Table Crawler')).toBeTruthy()

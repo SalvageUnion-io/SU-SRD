@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { PHOTOS_PATH, sharedPaths } from '../../lib/sharing/paths'
 import type { Identity } from '../auth/index'
 import type { PhotoBucket } from '../photos'
@@ -9,6 +10,17 @@ import { RoomPublisher } from '../shared/roomRows'
 import { serveShared } from '../sharedRoutes'
 
 /** `/__shared/*` and `/__photos`: what crosses rooms, for the app's screens. */
+
+// The runtime's own Request: happy-dom's drops the Origin header these routes check.
+const happyDom: Partial<typeof NATIVE_FETCH_GLOBALS> = {}
+beforeAll(() => {
+  for (const key of Object.keys(NATIVE_FETCH_GLOBALS) as (keyof typeof NATIVE_FETCH_GLOBALS)[])
+    Object.assign(happyDom, { [key]: globalThis[key] })
+  Object.assign(globalThis, NATIVE_FETCH_GLOBALS)
+})
+afterAll(() => {
+  Object.assign(globalThis, happyDom)
+})
 
 const ORIGIN = 'https://salvageunion.io'
 const MAKER: Identity = { accountId: 'a-1', discordId: 'd-1', admin: false }
@@ -64,7 +76,7 @@ function ask(
 ) {
   const request = new Request(`${ORIGIN}${path}`, {
     method: body === undefined ? 'GET' : 'POST',
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(body === undefined ? {} : { body: JSON.stringify(body), headers: { origin: ORIGIN } }),
   })
   return serveShared(request, { SHARED: db as never }, async () => who).then(async (res) => ({
     status: res.status,
@@ -106,6 +118,32 @@ describe('serveShared', () => {
       reported: false,
       mine: false,
       admin: true,
+    })
+  })
+
+  it('refuses a write sent from another site, before asking who sent it', async () => {
+    const db = await world()
+    let asked = false
+    for (const [path, body] of [
+      [sharedPaths.report('pat-1'), { reason: 'Book text' }],
+      [sharedPaths.hidden('pat-1'), { hidden: true }],
+      [sharedPaths.dismiss('pat-1'), {}],
+    ] as const) {
+      const request = new Request(`${ORIGIN}${path}`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { origin: 'https://elsewhere.example' },
+      })
+      const res = await serveShared(request, { SHARED: db as never }, async () => {
+        asked = true
+        return ADMIN
+      })
+      expect(res.status).toBe(403)
+    }
+    expect(asked).toBe(false)
+    expect((await ask(db, sharedPaths.homebrew('pat-1'), READER)).body.value).toMatchObject({
+      reported: false,
+      hidden: false,
     })
   })
 
@@ -191,10 +229,16 @@ function bucket() {
   return { it, files }
 }
 
-function upload(type: string, bytes: number, who: Identity | null, photos: PhotoBucket) {
+function upload(
+  type: string,
+  bytes: number,
+  who: Identity | null,
+  photos: PhotoBucket,
+  origin = ORIGIN
+) {
   const request = new Request(`${ORIGIN}${PHOTOS_PATH}`, {
     method: 'POST',
-    headers: { 'content-type': type },
+    headers: { 'content-type': type, origin },
     body: new Uint8Array(bytes),
   })
   return servePhotos(
@@ -220,6 +264,14 @@ describe('servePhotos', () => {
     expect(served.headers.get('content-type')).toBe('image/webp')
     expect(served.headers.get('cache-control')).toContain('immutable')
     expect((await served.arrayBuffer()).byteLength).toBe(10)
+  })
+
+  it('refuses an upload sent from another site, however signed in', async () => {
+    const { it: photos, files } = bucket()
+    expect(
+      (await upload('image/webp', 10, MAKER, photos, 'https://elsewhere.example')).status
+    ).toBe(403)
+    expect(files.size).toBe(0)
   })
 
   it('refuses a stranger, another type, an empty or a too-large file', async () => {

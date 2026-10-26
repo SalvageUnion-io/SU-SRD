@@ -29,7 +29,6 @@ import { getFunctionName } from 'convex/server'
 import type { QueryAnswers } from '../../../components/__tests__/convexMock'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
-import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
 
@@ -55,6 +54,7 @@ const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { resetSync, setSyncStatus } = await import('../../../replica/sync')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { forgetTableState, serveTableState } = await import('../../../replica/tableState')
 
 const GAMES = [
   { _id: 'g1', name: 'Union Crawler #430', mediator: false, organizer: false, tableRunner: false },
@@ -105,7 +105,6 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'ops:pending': [],
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
-    'shelf:sharedByLink': [],
     ...over,
   }
 }
@@ -115,6 +114,7 @@ beforeAll(hydrateStores)
 beforeEach(async () => {
   serverWrites.length = 0
   resetStores()
+  forgetTableState()
   // The server's first answer is in, as `ConvexFeed` marks it.
   useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   usePatterns.getState().markArrived()
@@ -132,7 +132,6 @@ beforeEach(async () => {
 afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
   resetSync()
-  closeRooms()
 })
 
 afterAll(() => {
@@ -261,9 +260,10 @@ describe('Training Bay: everything you own', () => {
       cargoLots: [],
       createdAt: '2026-01-01T00:00:00.000Z',
     })
-    // Who may see each pattern is the account room's.
-    serve(null, {
-      sharing: [{ appId: 'pat-tow-rig', visibility: 'link', gameName: null, builtCount: 2 }],
+    serveTableState('account', {
+      sharing: [
+        { appId: 'pat-tow-rig', body: { visibility: 'link', gameName: null, builtCount: 2 } },
+      ],
     })
     await renderHub()
 

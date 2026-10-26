@@ -11,7 +11,17 @@ export const REFUSALS = {
   unreadable: 'That could not be read. Try again.',
   photosUnset: 'Photos are not set up here',
   notAPhoto: 'A photo must be a WebP, JPEG or PNG image under 4 MB.',
+  crossOrigin: 'Send that from this site',
 } as const
+
+/**
+ * Whether a cookie-signed write came from another site's page, which the
+ * routes refuse, as the sign-in routes do: the cookie alone must not report,
+ * hide or upload for anyone.
+ */
+export function crossOrigin(request: Request): boolean {
+  return request.headers.get('origin') !== new URL(request.url).origin
+}
 
 /** A file whose address is never reused: any cache may keep it for a year. */
 export const IMMUTABLE = 'public, max-age=31536000, immutable'

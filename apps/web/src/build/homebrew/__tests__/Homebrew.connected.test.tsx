@@ -5,30 +5,28 @@
  * control makes.
  */
 
-import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import {
+  answerRoutes,
+  routeWrites,
+  withWorkerRoutes,
+} from '../../../lib/sharing/__tests__/workerRoutes'
+import { sharedPaths } from '../../../lib/sharing/paths'
 
-const writes: Array<[string, unknown]> = []
-
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-  convexReact: {
-    useMutation: (ref: unknown) => async (args: unknown) => {
-      writes.push([getFunctionName(ref as FunctionReference<'mutation'>), args])
-      return null
-    },
-  },
-  authReact: true,
-  router: true,
-})
+// Module scope, before the imports below — see `convexMock.ts`: the router
+// and sign-in only; Homebrew is the Worker's.
+const convexMocks = await installConvexMocks({ authReact: true, router: true })
 afterAll(() => convexMocks.restore())
 
 const { HomebrewControls } = await import('../HomebrewControls')
 const { HomebrewModerationScreen } = await import('../HomebrewModerationScreen')
+
+withWorkerRoutes()
+
+const TOW_RIG = sharedPaths.homebrew('pat-tow-rig')
+const MODERATION = sharedPaths.moderation()
 
 const STATUS = { listed: true, hidden: false, reported: false, mine: false, admin: false }
 
@@ -54,13 +52,9 @@ async function press(name: string | RegExp) {
   })
 }
 
-beforeEach(() => {
-  writes.length = 0
-})
-
 describe('a shared pattern’s page controls', () => {
   test('a reader reports it with a reason', async () => {
-    setQueryAnswers({ 'homebrew:status': STATUS })
+    answerRoutes({ [TOW_RIG]: STATUS })
     await act(async () => {
       render(<HomebrewControls appId="pat-tow-rig" name="Tow Rig" />)
     })
@@ -71,54 +65,52 @@ describe('a shared pattern’s page controls', () => {
       })
     })
     await press(/^Report$/)
-    expect(writes).toEqual([
-      ['homebrew:report', { appId: 'pat-tow-rig', reason: 'Copied book text' }],
+    expect(routeWrites).toEqual([
+      { path: sharedPaths.report('pat-tow-rig'), body: { reason: 'Copied book text' } },
     ])
   })
 
   test('an empty report is refused on the dialog, and nothing is sent', async () => {
-    setQueryAnswers({ 'homebrew:status': STATUS })
+    answerRoutes({ [TOW_RIG]: STATUS })
     await act(async () => {
       render(<HomebrewControls appId="pat-tow-rig" name="Tow Rig" />)
     })
     await press('Report Tow Rig')
     await press(/^Report$/)
     expect(screen.getByText('Say what is wrong with it first.')).toBeTruthy()
-    expect(writes).toEqual([])
+    expect(routeWrites).toEqual([])
   })
 
   test('already reported, it says so; its maker is offered nothing', async () => {
-    setQueryAnswers({ 'homebrew:status': { ...STATUS, reported: true } })
+    answerRoutes({ [TOW_RIG]: { ...STATUS, reported: true } })
     const { unmount } = render(<HomebrewControls appId="pat-tow-rig" name="Tow Rig" />)
     expect(screen.getByRole('button', { name: 'Report Tow Rig' }).textContent).toBe('Reported')
     unmount()
 
-    setQueryAnswers({ 'homebrew:status': { ...STATUS, mine: true } })
+    answerRoutes({ [TOW_RIG]: { ...STATUS, mine: true } })
     render(<HomebrewControls appId="pat-tow-rig" name="Tow Rig" />)
     expect(screen.queryByRole('button')).toBeNull()
   })
 
   test('an admin hides it, and puts a hidden one back', async () => {
-    setQueryAnswers({ 'homebrew:status': { ...STATUS, admin: true } })
+    answerRoutes({ [TOW_RIG]: { ...STATUS, admin: true } })
     const { unmount } = render(<HomebrewControls appId="pat-tow-rig" name="Tow Rig" />)
     await press('Hide from Homebrew')
     unmount()
 
-    setQueryAnswers({
-      'homebrew:status': { ...STATUS, listed: false, hidden: true, admin: true },
-    })
+    answerRoutes({ [TOW_RIG]: { ...STATUS, listed: false, hidden: true, admin: true } })
     render(<HomebrewControls appId="pat-tow-rig" name="Tow Rig" />)
     await press('Put back in Homebrew')
-    expect(writes).toEqual([
-      ['homebrew:setHidden', { appId: 'pat-tow-rig', hidden: true }],
-      ['homebrew:setHidden', { appId: 'pat-tow-rig', hidden: false }],
+    expect(routeWrites).toEqual([
+      { path: sharedPaths.hidden('pat-tow-rig'), body: { hidden: true } },
+      { path: sharedPaths.hidden('pat-tow-rig'), body: { hidden: false } },
     ])
   })
 })
 
 describe('the admin queue', () => {
   test('an admin hides, dismisses and puts back', async () => {
-    setQueryAnswers({ 'homebrew:moderation': QUEUE })
+    answerRoutes({ [MODERATION]: QUEUE })
     await act(async () => {
       render(<HomebrewModerationScreen />)
     })
@@ -126,16 +118,16 @@ describe('the admin queue', () => {
     await press('Hide')
     await press('Dismiss 2 reports')
     await press('Put back')
-    expect(writes).toEqual([
-      ['homebrew:setHidden', { appId: 'pat-tow-rig', hidden: true }],
-      ['homebrew:dismissReports', { appId: 'pat-tow-rig' }],
-      ['homebrew:setHidden', { appId: 'pat-gone', hidden: false }],
+    expect(routeWrites).toEqual([
+      { path: sharedPaths.hidden('pat-tow-rig'), body: { hidden: true } },
+      { path: sharedPaths.dismiss('pat-tow-rig'), body: {} },
+      { path: sharedPaths.hidden('pat-gone'), body: { hidden: false } },
     ])
   })
 
   test('one report reads in the singular; an empty queue says so', async () => {
-    setQueryAnswers({
-      'homebrew:moderation': {
+    answerRoutes({
+      [MODERATION]: {
         reported: [{ ...QUEUE.reported[0], reportCount: 1, reasons: ['Spam'] }],
         hidden: [],
       },
@@ -145,13 +137,13 @@ describe('the admin queue', () => {
     expect(screen.queryByText('Taken down')).toBeNull()
     unmount()
 
-    setQueryAnswers({ 'homebrew:moderation': { reported: [], hidden: [] } })
+    answerRoutes({ [MODERATION]: { reported: [], hidden: [] } })
     render(<HomebrewModerationScreen />)
     expect(screen.getByText('No open reports.')).toBeTruthy()
   })
 
   test('anyone else is told the page is not theirs', async () => {
-    setQueryAnswers({ 'homebrew:moderation': null })
+    answerRoutes({ [MODERATION]: null })
     render(<HomebrewModerationScreen />)
     expect(screen.getByText('Only a site admin can see this page.')).toBeTruthy()
   })

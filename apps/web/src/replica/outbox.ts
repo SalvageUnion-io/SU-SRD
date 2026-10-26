@@ -293,21 +293,19 @@ async function sendRoomChangeLog(entries: Parameters<typeof sendChangeLog>[0]): 
 }
 
 /**
- * A Shelf record's write, through the account room while its socket is open
- * (`shelf.upsert<Record>` / `shelf.remove<Record>`, Convex's names); false
- * when it is not, and the write goes to Convex.
+ * A Shelf record's write, through the account room (`shelf.upsert<Record>` /
+ * `shelf.remove<Record>`, Convex's names); refused while its socket is not open.
  */
 async function shelfAct(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string },
   record: 'MechPattern' | 'EncounterNpc' | 'Encounter',
   idArg: string
-): Promise<boolean> {
-  const room = roomOf(null)
-  if (room === null) return false
+): Promise<void> {
+  const room = roomOrStandIn(null)
+  if (room === null) throw new WritesBlockedOffline()
   await (op.kind === 'delete'
     ? room.act(`shelf.remove${record}`, { [idArg]: op.id })
     : room.act(`shelf.upsert${record}`, { body: op.record }))
-  return true
 }
 
 /**
@@ -324,13 +322,7 @@ export async function sendPattern(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
 ): Promise<void> {
   if (!writable()) return
-  if (await shelfAct(op, 'MechPattern', 'patternId')) return
-
-  if (op.kind === 'delete') {
-    await convexClient.mutation(api.shelf.removeMechPattern, { patternId: op.id })
-    return
-  }
-  await convexClient.mutation(api.shelf.upsertMechPattern, { body: op.record })
+  await shelfAct(op, 'MechPattern', 'patternId')
 }
 
 /**
@@ -344,13 +336,7 @@ export async function sendTrayNpc(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
 ): Promise<void> {
   if (!writable()) return
-  if (await shelfAct(op, 'EncounterNpc', 'npcId')) return
-
-  if (op.kind === 'delete') {
-    await convexClient.mutation(api.shelf.removeEncounterNpc, { npcId: op.id })
-    return
-  }
-  await convexClient.mutation(api.shelf.upsertEncounterNpc, { body: op.record })
+  await shelfAct(op, 'EncounterNpc', 'npcId')
 }
 
 /**
@@ -361,13 +347,7 @@ export async function sendEncounter(
   op: { kind: 'upsert'; record: { id: string } } | { kind: 'delete'; id: string }
 ): Promise<void> {
   if (!writable()) return
-  if (await shelfAct(op, 'Encounter', 'encounterId')) return
-
-  if (op.kind === 'delete') {
-    await convexClient.mutation(api.shelf.removeEncounter, { encounterId: op.id })
-    return
-  }
-  await convexClient.mutation(api.shelf.upsertEncounter, { body: op.record })
+  await shelfAct(op, 'Encounter', 'encounterId')
 }
 
 /**

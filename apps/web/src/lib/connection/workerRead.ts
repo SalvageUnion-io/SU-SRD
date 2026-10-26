@@ -76,3 +76,15 @@ export async function workerWrite<T>(path: string, body: unknown = {}): Promise<
   })
   return (await answerOf(res)) as T
 }
+
+/** Hold `value` as a route's answer without asking it: a test's stand-in server. */
+export function holdWorkerRead(path: string, value: unknown): void {
+  answers.set(path, value)
+  changed()
+}
+
+/** Drop every held read, telling no one, so the next ask goes to the route again: a test's fresh start. */
+export function forgetWorkerReads(): void {
+  answers.clear()
+  asking.clear()
+}

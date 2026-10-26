@@ -11,7 +11,7 @@ import { failureMessage } from '../../lib/connection/useServerAction'
 import { useHomebrewReport } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 
-/** Mirrors `REPORT_REASON_MAX` in `convex/homebrew.ts`. */
+/** Mirrors `REPORT_REASON_MAX` in `worker/shared/homebrew.ts`. */
 const REASON_MAX = 500
 
 type ReportDialogProps = {

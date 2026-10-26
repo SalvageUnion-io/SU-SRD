@@ -9,8 +9,7 @@
  *  - **A sheet** (pilot, mech, crawler, built NPC) switches `publicRead` with
  *    `publicSheet.setPublic` (ADR-032): "Public" sets it, the
  *    answer its container gives clears it. Whether it is public is read back
- *    from `publicSheet.get` on Convex, and from its room's own unit on the
- *    rooms (`useSheetIsPublic`).
+ *    from its room's own unit (`useSheetIsPublic`).
  *  - **A pattern** takes all three through `shelf.setPatternVisibility`, read
  *    back from `shelf.patternSharing`. Shared by link, it may also be shared
  *    with everyone on the Reference as Homebrew (`homebrew.setShared`, ADR-061).
@@ -42,13 +41,12 @@ import {
   useCopied,
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { useSheetIsPublic } from '../../lib/sharing/reads'
+import { usePatternSharing, useSharingAct, useSheetIsPublic } from '../../lib/sharing/reads'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
 import { buildSharingCopy } from '../../messages/build-sharing'
 import { useGamesQuery } from '../../replica/roomCalls'
-import { useTableAct, useTableRead } from '../../replica/useTable'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -115,8 +113,11 @@ function SheetShareSettings({
   gameId = null,
   clipboardWriter,
 }: ShareSettingsProps & { kind: Exclude<ShareKind, 'pattern'> }) {
-  const setPublic = useTableAct('publicSheet.setPublic', gameId)
-  const published = useSheetIsPublic(kind, appId, gameId)
+  const setPublic = useSharingAct<{ kind: string; appId: string; isPublic: boolean }>(
+    'publicSheet.setPublic',
+    gameId
+  )
+  const published = useSheetIsPublic(appId, gameId)
   const games = useGamesQuery(api.games.listMine, gameId === null ? 'skip' : {})
   const share = useServerAction(
     (next: Visibility) => setPublic({ kind, appId, isPublic: next === 'link' }),
@@ -160,8 +161,12 @@ function SheetShareSettings({
 
 /** A pattern: all three answers are its own, the crew one with a Game to name. */
 function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsProps) {
-  const setVisibility = useTableAct('shelf.setPatternVisibility', null)
-  const sharing = useTableRead('shelf.patternSharing', {})
+  const setVisibility = useSharingAct<{
+    patternId: string
+    visibility: Visibility
+    gameId?: string
+  }>('shelf.setPatternVisibility', null)
+  const sharing = usePatternSharing()
   const games = useGamesQuery(api.games.listMine, {})
   const [pickedGame, setPickedGame] = useState<string | null>(null)
   const share = useServerAction(
@@ -229,7 +234,10 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
 
 /** A link-shared pattern's second opt-in: Homebrew on the Reference (ADR-061). */
 function ShareOnReference({ appId, shared }: { appId: string; shared: boolean }) {
-  const setShared = useTableAct('homebrew.setShared', null)
+  const setShared = useSharingAct<{ patternId: string; shared: boolean }>(
+    'homebrew.setShared',
+    null
+  )
   const write = useServerAction(
     (next: boolean) => setShared({ patternId: appId, shared: next }),
     SHARE_FAILURE

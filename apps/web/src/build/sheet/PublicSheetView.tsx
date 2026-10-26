@@ -67,12 +67,12 @@ function useCanonicalAddress(
   }, [canonical, segment, onAddress])
 }
 
-/** The half that talks to Convex, reached only with a known kind. */
+/** The half that reads the shared page, reached only with a known kind. */
 function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: SheetKind }) {
   const result = usePublicSheet(kind, appId)
   useCanonicalAddress(appId, result, onAddress)
 
-  // `undefined` is Convex's "still loading"; `null` is a real "no such public
+  // `undefined` is "still loading"; `null` is a real "no such public
   // sheet". Collapsing them would flash the not-found page on every load.
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable />

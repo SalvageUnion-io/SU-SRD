@@ -18,7 +18,7 @@ import { PHOTOS_PATH } from '../lib/sharing/paths'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
 import type { D1Like } from './auth/store'
-import { IMMUTABLE, REFUSALS } from './shared/refusals'
+import { crossOrigin, IMMUTABLE, REFUSALS } from './shared/refusals'
 
 /** The slice of an R2 binding this uses. */
 export type PhotoBucket = {
@@ -76,6 +76,7 @@ export async function servePhotos(
   const url = new URL(request.url)
 
   if (request.method === 'POST' && url.pathname === PHOTOS_PATH) {
+    if (crossOrigin(request)) return json(403, { refusal: REFUSALS.crossOrigin })
     const who = await identify(request, env)
     if (who === null) return json(401, { refusal: REFUSALS.signIn })
     const type = (request.headers.get('content-type') ?? '').split(';')[0]?.trim() ?? ''

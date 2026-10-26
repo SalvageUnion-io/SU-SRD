@@ -8,22 +8,20 @@
  * is not there at all.
  */
 
-import { afterAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
-import {
-  installConvexMocks,
-  queryCalls,
-  setQueryAnswers,
-} from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import {
+  answerRoutes,
+  routeAsks,
+  withWorkerRoutes,
+} from '../../../../lib/sharing/__tests__/workerRoutes'
+import { sharedPaths } from '../../../../lib/sharing/paths'
 import type { SyncState } from '../../../../replica/syncContext'
+import { SyncContext } from '../../../../replica/syncContext'
+import { CrewPatterns } from '../CrewPatterns'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
-afterAll(() => convexMocks.restore())
-
-const { SyncContext } = await import('../../../../replica/syncContext')
-const { CrewPatterns } = await import('../CrewPatterns')
+withWorkerRoutes()
 
 function connection(status: SyncState['status']): SyncState {
   return { status, canWrite: status === 'live', outdated: false }
@@ -54,8 +52,8 @@ async function renderCrew(status: SyncState['status'] = 'live') {
 
 describe('CrewPatterns', () => {
   test('each shared pattern opens its page, naming its maker and Game', async () => {
-    setQueryAnswers({
-      'shelf:crewPatterns': [
+    answerRoutes({
+      [sharedPaths.crewPatterns()]: [
         { appId: 'pat-a', body: patternBody('Brawler'), madeBy: 'Sam', gameName: 'Tenacity' },
         // Unreadable rows are skipped, not fatal.
         { appId: 'pat-b', body: { name: 7 }, madeBy: 'Sam', gameName: 'Tenacity' },
@@ -76,15 +74,15 @@ describe('CrewPatterns', () => {
   })
 
   test('with nothing shared, the section is not there', async () => {
-    setQueryAnswers({ 'shelf:crewPatterns': [] })
+    answerRoutes({ [sharedPaths.crewPatterns()]: [] })
     await renderCrew()
     expect(screen.queryByText('Shared by your crew')).toBeNull()
   })
 
   test('signed out, nobody is asked and nothing is shown', async () => {
-    setQueryAnswers({})
+    answerRoutes({})
     await renderCrew('signedOut')
-    expect(queryCalls()).toHaveLength(0)
+    expect(routeAsks).toHaveLength(0)
     expect(screen.queryByText('Shared by your crew')).toBeNull()
   })
 })

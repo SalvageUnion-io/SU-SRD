@@ -11,20 +11,13 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
+import { acceptingRooms, roomAnswer } from '../../../../../test/roomsStub'
 import { installConvexMocks } from '../../../../components/__tests__/convexMock'
 import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
 
-let failWrites = false
-
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async () => {
-      if (failWrites) throw new Error('socket closed')
-      return { updatedAt: 1 }
-    },
-  },
-})
+// Module scope, before the imports below — see `convexMock.ts`: the router;
+// a pattern is saved through the stand-in account room (`test/roomsStub.ts`).
+const convexMocks = await installConvexMocks()
 afterAll(() => convexMocks.restore())
 
 const { resetStores } = await import('../../../../replica/__tests__/resetStores')
@@ -79,7 +72,7 @@ async function typeName(value: string) {
 }
 
 beforeEach(async () => {
-  failWrites = false
+  acceptingRooms()
   resetStores()
   await usePatterns.getState().hydrate()
 })
@@ -160,7 +153,9 @@ describe('SavePatternDialog', () => {
   })
 
   test('a failed save keeps the dialog open and says so; reopening clears it', async () => {
-    failWrites = true
+    roomAnswer.act = async () => {
+      throw new Error('socket closed')
+    }
     const onSaved = renderButton()
     await open()
     await act(async () => {
