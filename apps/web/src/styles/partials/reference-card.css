@@ -107,6 +107,13 @@
   }
 
   :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
+    .su-stat-stepper:has(> .su-stat-cell--compact)
+    > .su-step-btn--cell {
+    height: var(--size-mini);
+    line-height: 1;
+  }
+
+  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
     .su-chip-lane
     > .su-badge-stamp.su-rung-pad--full {
     height: var(--size-mini);
