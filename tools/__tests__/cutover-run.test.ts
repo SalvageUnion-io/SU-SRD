@@ -92,6 +92,25 @@ describe('poster', () => {
     answer.status = 401
     await expect(post('site', {})).rejects.toThrow('site: 401 nope')
   })
+
+  it('posts again when the connection drops before an answer, up to three tries', async () => {
+    let calls = 0
+    let drops = 2
+    const fetchImpl = (async () => {
+      calls++
+      if (drops-- > 0) throw new Error('The socket connection was closed unexpectedly.')
+      return new Response(JSON.stringify({ imported: true, diff: [] }))
+    }) as unknown as typeof fetch
+    const waits: number[] = []
+    const post = poster('https://pr-1.example', 's3cret', fetchImpl, async (ms) => {
+      waits.push(ms)
+    })
+    expect(await post('account', {})).toEqual({ imported: true, diff: [] })
+    expect(calls).toBe(3)
+    expect(waits).toEqual([500, 1000])
+    drops = 3
+    await expect(post('account', {})).rejects.toThrow('closed unexpectedly')
+  })
 })
 
 describe('main', () => {

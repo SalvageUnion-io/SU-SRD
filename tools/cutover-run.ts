@@ -101,14 +101,36 @@ export async function run(dir: string, post: Post, finish: boolean): Promise<Run
   return { site, rooms, differing, filled }
 }
 
-/** A `Post` to `origin`'s cutover door, failing on any answer but 200. */
-export function poster(origin: string, secret: string, fetchImpl = fetch): Post {
+/** How many times one post is tried while its connection drops before any answer. */
+const ATTEMPTS = 3
+
+/**
+ * A `Post` to `origin`'s cutover door, failing on any answer but 200. A
+ * connection that drops before any answer (a pooled keep-alive socket the
+ * far end already closed) is tried again: a room takes its bundle once, so a
+ * second post of one that did land only diffs it.
+ */
+export function poster(
+  origin: string,
+  secret: string,
+  fetchImpl = fetch,
+  pause = (ms: number) => Bun.sleep(ms)
+): Post {
   return async (step, body) => {
-    const res = await fetchImpl(new URL(`/admin/cutover/${step}`, origin), {
+    const init = {
       method: 'POST',
       headers: { authorization: `Bearer ${secret}`, 'content-type': 'application/json' },
       body: JSON.stringify(body),
-    })
+    }
+    let res: Response | undefined
+    for (let attempt = 1; res === undefined; attempt++) {
+      try {
+        res = await fetchImpl(new URL(`/admin/cutover/${step}`, origin), init)
+      } catch (error) {
+        if (attempt === ATTEMPTS) throw error
+        await pause(500 * attempt)
+      }
+    }
     if (!res.ok) throw new Error(`${step}: ${res.status} ${await res.text()}`)
     return res.json()
   }
