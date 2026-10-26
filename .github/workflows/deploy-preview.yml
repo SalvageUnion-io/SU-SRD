@@ -190,7 +190,7 @@ jobs:
         run: |
           set -euo pipefail
           marker='<!-- deploy-preview -->'
-          body=$(printf '%s\n**Preview** of %s\n\n- site: %s\n- the app: %s/build (the Previews' shared database)\n' \
+          body=$(printf '%s\n**Preview** of %s\n\n- site: %s\n- the app: %s/build (the shared Preview database)\n' \
             "$marker" "${SHA:0:12}" "$PREVIEW_URL" "$PREVIEW_URL")
           id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
             --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\")))][0].id // empty")

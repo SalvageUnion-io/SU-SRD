@@ -33,7 +33,7 @@ import {
   setHomebrewHidden,
 } from './shared/homebrew'
 import { publicPage, publicPreview } from './shared/publicSheets'
-import { crossOrigin, REFUSALS } from './shared/refusals'
+import { crossOrigin, decodeSegment, REFUSALS } from './shared/refusals'
 
 export type SharedRoutesEnv = { SHARED: SharedDb & D1Like; ADMIN_DISCORD_IDS?: string }
 
@@ -66,10 +66,12 @@ export async function serveShared(
   env: SharedRoutesEnv,
   identify: Identify = identityOf
 ): Promise<Response> {
-  const parts = new URL(request.url).pathname
+  const decoded = new URL(request.url).pathname
     .slice(SHARED_PATH.length + 1)
     .split('/')
-    .map(decodeURIComponent)
+    .map(decodeSegment)
+  if (decoded.includes(null)) return refused(404, REFUSALS.notFound)
+  const parts = decoded as string[]
   const get = request.method === 'GET'
   const post = request.method === 'POST'
   const db = env.SHARED

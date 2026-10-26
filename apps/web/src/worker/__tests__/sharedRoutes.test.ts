@@ -147,6 +147,12 @@ describe('serveShared', () => {
     })
   })
 
+  it('answers a malformed escape as not found', async () => {
+    const db = await world()
+    const path = sharedPaths.sheet('pattern', 'pat-1').replace('pat-1', '%E0%A4')
+    expect(await ask(db, path, null)).toEqual({ status: 404, body: { refusal: 'Not found' } })
+  })
+
   it('takes a report from a signed-in reader, never the maker', async () => {
     const db = await world()
     expect((await ask(db, sharedPaths.report('pat-1'), null, { reason: 'x' })).status).toBe(401)
@@ -315,12 +321,13 @@ describe('servePhotos', () => {
     expect(files.size).toBe(0)
   })
 
-  it('serves only a key it minted, and answers 503 with no bucket', async () => {
+  it('serves only a well-formed key it minted, and answers 503 with no bucket', async () => {
     const { it: photos } = bucket()
     const env = { SHARED: {} as never, PHOTOS: photos }
     expect(
       (await servePhotos(new Request(`${ORIGIN}${PHOTOS_PATH}/..%2Fsecret`), env)).status
     ).toBe(404)
+    expect((await servePhotos(new Request(`${ORIGIN}${PHOTOS_PATH}/%E0%A4`), env)).status).toBe(404)
     expect(
       (await servePhotos(new Request(`${ORIGIN}${PHOTOS_PATH}/x`), { SHARED: {} as never })).status
     ).toBe(503)

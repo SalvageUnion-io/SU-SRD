@@ -8,6 +8,7 @@ import { identityOf } from './auth/index'
 import type { D1Like } from './auth/store'
 import type { GameRoomStub } from './rooms'
 import { MEMBER_HEADER, rooms, SEAT_HEADER } from './rooms'
+import { crossOrigin } from './shared/refusals'
 
 export async function serveRoomsHealth(): Promise<Response> {
   const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' }
@@ -44,7 +45,10 @@ async function signedInMember(
 /** Who signs the request in: `identityOf`, or a test's stand-in. */
 type Identify = (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null>
 
-/** A member's socket to their Game's room (`?seat=1`: they count as here); anyone else a 403. */
+/**
+ * A member's socket to their Game's room (`?seat=1`: they count as here);
+ * anyone else, or another site's page, a 403.
+ */
 export async function serveGameSocket(
   request: Request,
   gameId: string,
@@ -52,6 +56,7 @@ export async function serveGameSocket(
   identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
+  if (crossOrigin(request)) return new Response(null, { status: 403 })
   const member = await signedInMember(request, env, gameId, identify)
   if (member === null) return new Response(null, { status: 403 })
   const headers = new Headers(request.headers)
@@ -63,13 +68,14 @@ export async function serveGameSocket(
   return forward(new Request(request, { headers }))
 }
 
-/** The signed-in player's socket to their own account room; signed out, a 403. */
+/** The signed-in player's socket to their own account room; signed out or another site's page, a 403. */
 export async function serveAccountSocket(
   request: Request,
   env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
   identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
+  if (crossOrigin(request)) return new Response(null, { status: 403 })
   const who = await identify(request, env)
   if (who === null) return new Response(null, { status: 403 })
   const headers = new Headers(request.headers)

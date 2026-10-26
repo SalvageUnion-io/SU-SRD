@@ -20,10 +20,11 @@ afterEach(() => {
 const env = () => ({ SHARED: testDb() as never })
 const ORG = { discordId: 'd-org', accountId: 'a-org' }
 
-const post = (body: unknown, who: typeof ORG | null = null) =>
+const post = (body: unknown, who: typeof ORG | null = null, origin = 'https://salvageunion.io') =>
   serveGameCall(
     new Request('https://salvageunion.io/__rooms/call', {
       method: 'POST',
+      headers: { origin },
       body: typeof body === 'string' ? body : JSON.stringify(body),
     }),
     env(),
@@ -55,6 +56,11 @@ describe('POST /__rooms/call', () => {
     expect((await post('not json')).status).toBe(400)
     expect((await post({ args: {} })).status).toBe(400)
     expect((await post({ name: 'games.nope' }, ORG)).status).toBe(404)
+  })
+
+  test('refuses a call sent from another site, however signed in', async () => {
+    const res = await post({ name: 'games.listMine' }, ORG, 'https://elsewhere.example')
+    expect(res.status).toBe(403)
   })
 
   test('a defect is a 500 without its message', async () => {

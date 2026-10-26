@@ -328,9 +328,9 @@ describe('a Game room’s presence', () => {
 
 describe('serveGameSocket', () => {
   const env = { SHARED: {} as never }
-  const upgrade = (seat: string) =>
+  const upgrade = (seat: string, origin = 'https://salvageunion.io') =>
     new Request(`https://salvageunion.io/__rooms/games/g1/socket?seat=${seat}`, {
-      headers: { upgrade: 'websocket' },
+      headers: { upgrade: 'websocket', origin },
     })
   const signedIn = async () => ({ accountId: 'a1', discordId: 'd-rook', admin: false })
   const pageRequest = globalThis.Request
@@ -365,6 +365,17 @@ describe('serveGameSocket', () => {
     expect((await serveGameSocket(upgrade('1'), 'g1', env, signedIn)).status).toBe(403)
   })
 
+  test('refuses a member’s socket opened by another site’s page', async () => {
+    room({ _id: 'g1' })
+    const res = await serveGameSocket(
+      upgrade('1', 'https://elsewhere.example'),
+      'g1',
+      env,
+      signedIn
+    )
+    expect(res.status).toBe(403)
+  })
+
   test('hands a member to the Game’s room, saying who and how', async () => {
     globalThis.Request = Request
     const seen = room({ _id: 'g1' })
@@ -379,9 +390,9 @@ describe('serveGameSocket', () => {
 
 describe('serveAccountSocket', () => {
   const env = { SHARED: {} as never }
-  const upgrade = () =>
+  const upgrade = (origin = 'https://salvageunion.io') =>
     new Request('https://salvageunion.io/__rooms/account/socket', {
-      headers: { upgrade: 'websocket' },
+      headers: { upgrade: 'websocket', origin },
     })
   const signedIn = async () => ({ accountId: 'a1', discordId: 'd-rook', admin: false })
   const signedOut = async () => null
@@ -398,6 +409,11 @@ describe('serveAccountSocket', () => {
 
   test('refuses someone signed out', async () => {
     expect((await serveAccountSocket(upgrade(), env, signedOut)).status).toBe(403)
+  })
+
+  test('refuses a socket opened by another site’s page, however signed in', async () => {
+    const res = await serveAccountSocket(upgrade('https://elsewhere.example'), env, signedIn)
+    expect(res.status).toBe(403)
   })
 
   test('hands the player to their own room, by Discord id', async () => {

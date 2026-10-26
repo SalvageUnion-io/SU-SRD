@@ -12,6 +12,7 @@ import { rooms } from './rooms'
 import type { SharedDb } from './shared/db'
 import type { CallDeps } from './shared/gameCalls'
 import { gameCall } from './shared/gameCalls'
+import { crossOrigin } from './shared/refusals'
 
 type AccountStub = ReturnType<CallDeps['account']>
 
@@ -23,6 +24,8 @@ export async function serveGameCall(
 ): Promise<Response> {
   const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' }
   if (request.method !== 'POST') return new Response(null, { status: 405 })
+  // The cookie alone must not make a call for another site's page.
+  if (crossOrigin(request)) return new Response(null, { status: 403 })
   const said = (await request.json().catch(() => null)) as { name?: unknown; args?: unknown } | null
   if (typeof said?.name !== 'string') return new Response(null, { status: 400 })
   const who = await identify(request, env)
