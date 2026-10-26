@@ -1,4 +1,5 @@
-import type { EntityKind } from 'game-domain/entityKinds'
+import type { Op as DomainOp, OpInput, OpResult, Unit } from 'game-domain/ops/applyOp'
+import type { OpState as DomainOpState } from 'game-domain/ops/opState'
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 
 /**
@@ -8,43 +9,13 @@ import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
  * merge on its own.
  */
 
-/** A unit as `applyOp` reads it: its body, head and the seq that last wrote each field. */
-export type Unit = {
-  kind: EntityKind
-  body: Record<string, unknown>
-  headSeq: number
-  fieldSeqs: Record<string, number>
-}
+export type { OpInput, Unit }
 
-/** What a client sends: an op before the server has applied it. */
-export type OpInput = {
-  /** Minted by the author's client, stable: sending it twice is a no-op. */
-  id: string
-  unitId: string
-  /** The `headSeq` of the copy the author edited; null when it holds none. */
-  baseSeq: number | null
-  at: number
-  kind: ChangeLogKind
-  source: string
-  patch: Record<string, unknown>
-  unset?: string[]
-}
-
-export type OpState = 'applied' | 'proposed' | 'declined'
+/** A room keeps no superseded op: a newer proposal declines the one it replaces. */
+export type OpState = Exclude<DomainOpState, 'superseded'>
 
 /** An op as a room stores it. */
-export type Op = OpInput & {
-  author: string
-  state: OpState
-  seq: number | null
-  before: Record<string, unknown> | null
-  reason?: string
-}
-
-type OpResult =
-  | { ok: true; unit: Unit; seq: number; before: Record<string, unknown> }
-  | { ok: false; reason: 'conflict'; fields: string[] }
-  | { ok: false; reason: 'invalid'; message: string }
+export type Op = Omit<DomainOp, 'state'> & { state: OpState }
 
 export type ApplyOp = (unit: Unit, op: OpInput) => OpResult
 
