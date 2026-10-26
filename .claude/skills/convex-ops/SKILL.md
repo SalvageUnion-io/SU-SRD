@@ -103,7 +103,7 @@ perfect-donkey-72`): a Preview's own secrets (`wrangler preview secret put`)
 are replaced by its next ship, so they last only until the next push.
 
 ```bash
-bunx wrangler secret put DISCORD_CLIENT_ID       # op://SUSRD/discord-bot-oauth,
+bunx wrangler secret put DISCORD_CLIENT_ID       # op://SUSRD/discord-bot,
 bunx wrangler secret put DISCORD_CLIENT_SECRET   # the OAuth client, on stdin
 umask 077; bun scripts/authKeys.ts key.json > jwks.txt   # a fresh pair
 bunx wrangler secret put AUTH_SIGNING_KEY < key.json
@@ -112,8 +112,10 @@ rm key.json jwks.txt
 ```
 
 The Discord application lists `<origin>/auth/callback` as a redirect for
-every origin that signs in (production, and `pr-<n>-su-srd.<subdomain>.workers.dev`
-for a Preview). Without the Discord pair `/auth/sign-in` answers 503.
+every origin that signs in. A Preview with `AUTH_CALLBACK_ORIGIN` in its vars
+(`wrangler.jsonc`'s `previews`) comes back through that origin's callback,
+which hands the code to `pr-<n>-su-srd.alxjrvs.workers.dev`, so Discord lists
+production's alone. Without the Discord pair `/auth/sign-in` answers 503.
 
 ## 2. Wire the Discord bot
 

@@ -14,6 +14,13 @@
  *     exactly `'true'` (never production's `wrangler.jsonc`); a 404 elsewhere.
  *
  * Admin stays `ADMIN_DISCORD_IDS` on Convex, read through the linked account.
+ *
+ * A Worker Preview has its own origin, which Discord would have to list. With
+ * `AUTH_CALLBACK_ORIGIN` set, its round trip comes back through that origin's
+ * `/auth/callback` instead, which hands the code on to the Preview named in
+ * the state (`PREVIEW_HOST` only). The Preview trades it there: PKCE ties the
+ * code to the verifier in its own cookie, so the hand-off carries nothing
+ * another host could use.
  */
 
 import { Discord, generateCodeVerifier, generateState, OAuth2RequestError } from 'arctic'
@@ -48,6 +55,8 @@ export type AuthDeps = {
   /** The Convex deployment the app talks to. */
   convexUrl: string
   discord?: { clientId: string; clientSecret: string }
+  /** `AUTH_CALLBACK_ORIGIN`: whose `/auth/callback` Discord returns to. Unset, this origin's. */
+  callbackOrigin?: string
   /** `AUTH_SIGNING_KEY`. Unset, nobody can sign in. */
   signingKey?: string
   /** `TEST_AUTH === 'true'`. */
@@ -60,6 +69,10 @@ const OAUTH_COOKIE = 'su_oauth'
 /** The token Convex reads lives ten minutes; the client asks again before it ends. */
 const TOKEN_TTL_S = 10 * 60
 const OAUTH_TTL_S = 10 * 60
+/** A Worker Preview of su-srd: the only hosts a callback hands a code on to. */
+const PREVIEW_HOST = /^[a-z0-9-]+-su-srd\.alxjrvs\.workers\.dev$/
+/** Between the Preview's host and the random state, in a handed-on round trip. */
+const STATE_HOST = '~'
 const LINK = getFunctionName(makeFunctionReference<'mutation'>('accountLink:link'))
 const DELETE_ACCOUNT = getFunctionName(makeFunctionReference<'mutation'>('account:deleteAccount'))
 
@@ -127,19 +140,38 @@ function redirect(location: string, cookies: string[] = []): Response {
   return new Response(null, { status: 302, headers })
 }
 
+function callbackOrigin(url: URL, deps: AuthDeps): string {
+  return deps.callbackOrigin?.replace(/\/$/, '') || url.origin
+}
+
 function discordClient(url: URL, deps: AuthDeps): Discord | null {
   if (!deps.discord || !deps.signingKey) return null
   return new Discord(
     deps.discord.clientId,
     deps.discord.clientSecret,
-    `${url.origin}${AUTH_PATHS.callback}`
+    `${callbackOrigin(url, deps)}${AUTH_PATHS.callback}`
   )
+}
+
+/**
+ * The Preview a round trip started on, when it came back here instead: the
+ * callback answers it there, with Discord's query unchanged. `null` for a
+ * state this host keeps.
+ */
+function handOn(url: URL): Response | null {
+  const state = url.searchParams.get('state') ?? ''
+  const at = state.lastIndexOf(STATE_HOST)
+  if (at < 0) return null
+  const host = state.slice(0, at)
+  if (host === url.host || !PREVIEW_HOST.test(host)) return null
+  return redirect(`https://${host}${AUTH_PATHS.callback}${url.search}`)
 }
 
 function signIn(url: URL, deps: AuthDeps): Response {
   const discord = discordClient(url, deps)
   if (discord === null) return new Response('Sign-in is not configured here', { status: 503 })
-  const state = generateState()
+  const own = callbackOrigin(url, deps) === url.origin
+  const state = own ? generateState() : `${url.host}${STATE_HOST}${generateState()}`
   const verifier = generateCodeVerifier()
   const to = sitePath(url.searchParams.get('to'))
   const authorize = discord.createAuthorizationURL(state, verifier, ['identify', 'email'])
@@ -183,6 +215,8 @@ export function discordAvatar(user: DiscordUser): string {
 }
 
 async function callback(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
+  const handed = handOn(url)
+  if (handed !== null) return handed
   const saved = readOAuthCookie(request)
   const clear = cookie(url, OAUTH_COOKIE, '', 0, '/auth/')
   const to = sitePath(saved?.to)
