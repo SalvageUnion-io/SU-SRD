@@ -53,7 +53,7 @@ import type { Pilot } from '../schemas/pilot'
 // ---------------------------------------------------------------------------
 
 /** The skippable Downtime steps, in rules order (p.227-228). */
-export const DOWNTIME_STEP_KEYS = [
+const DOWNTIME_STEP_KEYS = [
   'restoreMechs',
   'repairItems',
   'healPilots',
@@ -355,7 +355,7 @@ export function downtimeMechPatch(
  * Equipment that never regains Uses at Downtime (hand-managed): the Orbital
  * Lance Controller's satellite only ever holds three strikes.
  */
-export const NEVER_RECHARGE_EQUIPMENT = ['orbital-lance-controller'] as const
+const NEVER_RECHARGE_EQUIPMENT = ['orbital-lance-controller'] as const
 
 /** True when an equipmentUses key (an equipment slug) is a never-recharge item. */
 function isNeverRecharge(ref: string): boolean {

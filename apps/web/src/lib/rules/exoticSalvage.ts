@@ -45,7 +45,7 @@ export const EXOTIC_RESOURCES: readonly ExoticResource[] = [
 ]
 
 /** Bio-Salvage one Chimerium counts as when crafting Bio-Tech (WWHF p.10). */
-export const CHIMERIUM_BIO_VALUE = 10
+const CHIMERIUM_BIO_VALUE = 10
 
 export const BIO_CRAFTING_BAY = 'bio-crafting-bay'
 export const NANITE_PROCESSING_BAY = 'nanite-processing-bay'

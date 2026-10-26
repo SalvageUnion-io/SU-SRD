@@ -36,9 +36,9 @@ import {
   resolveAdvancementTrees,
 } from 'salvageunion-reference/rules'
 
-export type ClassPathGroupKind = 'reachable' | 'core' | 'off-ring'
+type ClassPathGroupKind = 'reachable' | 'core' | 'off-ring'
 
-export type ClassPathOption = {
+type ClassPathOption = {
   /** The class record to select. */
   cls: RefClass
   /** Short caption: how this destination is reached, or why it is demoted. */

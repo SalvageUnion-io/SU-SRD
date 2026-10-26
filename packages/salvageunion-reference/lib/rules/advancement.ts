@@ -58,7 +58,7 @@ export type AdvancementClassInput = {
 }
 
 /** The `ability-tree-requirements` shape: a tree name and what it needs. */
-export type AdvancementRequirementInput = {
+type AdvancementRequirementInput = {
   name: string
   requirement: readonly string[]
 }

@@ -151,7 +151,7 @@ export function importantTrackOf(
 }
 
 /** The tables only an important NPC rolls, by their stored ids. */
-export const IMPORTANT_TABLES = ['critical-damage', 'critical-injury', 'heat-check'] as const
+const IMPORTANT_TABLES = ['critical-damage', 'critical-injury', 'heat-check'] as const
 
 /** A table only an important NPC rolls. */
 export type ImportantTable = (typeof IMPORTANT_TABLES)[number]

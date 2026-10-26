@@ -16,12 +16,6 @@
       // root script, the check registry or a workflow; review-deck/ by hand.
       "entry": ["*.ts", "review-deck/*.ts"]
     },
-    "packages/gates": {
-      // `rules/*.ts` is listed because knip reads `.gitignore`'s `rules/*`
-      // (the local rules extract) as matching `packages/gates/rules/` too, and
-      // would not otherwise follow it.
-      "entry": ["rules/*.ts"]
-    },
     "packages/salvageunion-reference": {
       "entry": ["tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]

@@ -85,7 +85,7 @@ export function craftOutcome(
 // ─── area salvage (F2) ───────────────────────────────────────────────────────
 
 /** Inventory Slots one Scrap takes on a pilot (Core Book p.20, p.249). */
-export const PILOT_SCRAP_SLOTS = 3
+const PILOT_SCRAP_SLOTS = 3
 
 export type AreaSalvageHaul<T> = {
   /** Scrap that fits, at the area's Tech Level. */
@@ -135,7 +135,7 @@ export function areaSalvageToMech(
 }
 
 /** The name a pilot's carried Scrap goes by, its Tech Level in it. */
-export function pilotScrapName(tl: number): string {
+function pilotScrapName(tl: number): string {
   return `Tech ${tl} Scrap`
 }
 

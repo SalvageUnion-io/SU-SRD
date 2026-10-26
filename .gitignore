@@ -75,7 +75,7 @@ apps/web/src/.routeTree.gen.*.ts
 # their source of record is the private repo SalvageUnion-io/su-rules (a cloud
 # session attaches it as a second repository). Locally, produce the extract with
 # `bun run rules:extract`. Only the tooling (tools/extract-rules.ts) lives here.
-rules/*
+/rules/*
 
 # wrangler's local state and build scratch. `wrangler dev` writes its bundled
 # Worker (plus the miniflare middleware it injects) into `.wrangler/tmp/`, which

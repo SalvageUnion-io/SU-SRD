@@ -23,7 +23,7 @@ import {
 export type CrewUnit = { id: string | undefined; body: unknown }
 
 /** A link, as either store keeps it. */
-export type CrewLink = { type: string; from: { id: string }; to: { id: string } }
+type CrewLink = { type: string; from: { id: string }; to: { id: string } }
 
 /** A pilot's seat, as either store keeps it. */
 export type CrewSeat = {

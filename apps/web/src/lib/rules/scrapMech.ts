@@ -29,7 +29,7 @@ import { addToScrapPool } from '../cargo/cargoTransfer'
 import { readReference } from '../readReference'
 import type { PoolDraw } from './crawlerEconomy'
 
-export type ScrapMechComponentKind = 'chassis' | 'system' | 'module'
+type ScrapMechComponentKind = 'chassis' | 'system' | 'module'
 
 /** One scrappable component of a mech (chassis, or an installed system/module). */
 export type ScrapMechComponent = {
@@ -41,9 +41,9 @@ export type ScrapMechComponent = {
   condition: ItemCondition
 }
 
-export type ScrapMechSkipReason = 'destroyed' | 'no-tech-level' | 'unresolved'
+type ScrapMechSkipReason = 'destroyed' | 'no-tech-level' | 'unresolved'
 
-export type ScrapMechSkip = {
+type ScrapMechSkip = {
   name: string
   reason: ScrapMechSkipReason
 }
