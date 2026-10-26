@@ -19,14 +19,13 @@ import type { Profile, ShelfExport } from '../rooms/account/shelf'
 import { ACCOUNT_PATHS } from '../rooms/routes'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import type { D1Like } from './auth/store'
 import { rooms } from './rooms'
 import { exportedRows, signInProfile } from './shared/accounts'
 import type { SharedDb } from './shared/db'
 import { acceptFeedback } from './shared/feedback'
 import { readMetrics, takeSnapshot } from './shared/signals'
 
-export type AccountEnv = { SHARED: D1Like; ADMIN_DISCORD_IDS?: string }
+export type AccountEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string }
 
 type Identify = (request: Request, env: AccountEnv) => Promise<Identity | null>
 

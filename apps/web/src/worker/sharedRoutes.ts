@@ -19,7 +19,6 @@ import { isPreviewKind } from '../lib/linkPreview/previewSummary'
 import { SHARED_PATH } from '../lib/sharing/paths'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import type { D1Like } from './auth/store'
 import { reportError } from './errorReports'
 import { crewPatternsFor, gamePatternsFor } from './shared/crewPatterns'
 import type { SharedDb } from './shared/db'
@@ -35,7 +34,7 @@ import {
 import { publicPage, publicPreview } from './shared/publicSheets'
 import { crossOrigin, decodeSegment, REFUSALS } from './shared/refusals'
 
-export type SharedRoutesEnv = { SHARED: SharedDb & D1Like; ADMIN_DISCORD_IDS?: string }
+export type SharedRoutesEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string }
 
 type Identify = (request: Request, env: SharedRoutesEnv) => Promise<Identity | null>
 

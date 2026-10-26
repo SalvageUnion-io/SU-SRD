@@ -16,7 +16,7 @@
 import { PHOTOS_PATH } from '../lib/sharing/paths'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import type { D1Like } from './auth/store'
+import type { SharedDb } from './shared/db'
 import { crossOrigin, decodeSegment, IMMUTABLE, REFUSALS } from './shared/refusals'
 
 /** The slice of an R2 binding this uses. */
@@ -36,7 +36,7 @@ export type PhotoBucket = {
   } | null>
 }
 
-export type PhotosEnv = { SHARED: D1Like; ADMIN_DISCORD_IDS?: string; PHOTOS?: PhotoBucket }
+export type PhotosEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; PHOTOS?: PhotoBucket }
 
 /** The image types an upload may be, each with the extension its key takes. */
 const PHOTO_TYPES: Record<string, string> = {

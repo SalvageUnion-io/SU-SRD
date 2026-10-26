@@ -6,7 +6,6 @@
 import type { BotRelay } from 'game-domain/botWire'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import type { D1Like } from './auth/store'
 import type { GameRoomStub } from './rooms'
 import { rooms } from './rooms'
 import type { SharedDb } from './shared/db'
@@ -19,8 +18,8 @@ type AccountStub = ReturnType<CallDeps['account']>
 /** `POST /__rooms/call`: one call, as the session cookie's player. */
 export async function serveGameCall(
   request: Request,
-  env: { BOT?: BotRelay; SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
-  identify: (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null> = identityOf
+  env: { BOT?: BotRelay; SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
+  identify: (request: Request, env: { SHARED: SharedDb }) => Promise<Identity | null> = identityOf
 ): Promise<Response> {
   const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' }
   if (request.method !== 'POST') return new Response(null, { status: 405 })

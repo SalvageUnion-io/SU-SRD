@@ -5,9 +5,9 @@
 
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import type { D1Like } from './auth/store'
 import type { GameRoomStub } from './rooms'
 import { MEMBER_HEADER, rooms, SEAT_HEADER } from './rooms'
+import type { SharedDb } from './shared/db'
 import { crossOrigin } from './shared/refusals'
 
 export async function serveRoomsHealth(): Promise<Response> {
@@ -31,7 +31,7 @@ export async function serveRoomsHealth(): Promise<Response> {
  */
 async function signedInMember(
   request: Request,
-  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
   gameId: string,
   identify: Identify
 ): Promise<string | null> {
@@ -43,7 +43,7 @@ async function signedInMember(
 }
 
 /** Who signs the request in: `identityOf`, or a test's stand-in. */
-type Identify = (request: Request, env: { SHARED: D1Like }) => Promise<Identity | null>
+type Identify = (request: Request, env: { SHARED: SharedDb }) => Promise<Identity | null>
 
 /**
  * A member's socket to their Game's room (`?seat=1`: they count as here);
@@ -52,7 +52,7 @@ type Identify = (request: Request, env: { SHARED: D1Like }) => Promise<Identity 
 export async function serveGameSocket(
   request: Request,
   gameId: string,
-  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
   identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })
@@ -66,7 +66,7 @@ export async function serveGameSocket(
 /** The signed-in player's socket to their own account room; signed out or another site's page, a 403. */
 export async function serveAccountSocket(
   request: Request,
-  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
   identify: Identify = identityOf
 ): Promise<Response> {
   if (request.headers.get('upgrade') !== 'websocket') return new Response(null, { status: 426 })

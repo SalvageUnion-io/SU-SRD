@@ -24,8 +24,9 @@ import { Discord, generateCodeVerifier, generateState, OAuth2RequestError } from
 import { APP_BASE } from 'game-domain/appAddress'
 import type { SessionAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
+import type { SharedDb } from '../shared/db'
 import { base64urlJson, passwordHash, sha256Hex } from './crypto'
-import type { Account, AuthSql, D1Like, SignIn } from './store'
+import type { Account, AuthSql, SignIn } from './store'
 import {
   accountIdOf,
   authStore,
@@ -278,7 +279,7 @@ export type Identity = { accountId: string; discordId: string; admin: boolean }
  */
 export async function identityOf(
   request: Request,
-  env: { SHARED: D1Like; ADMIN_DISCORD_IDS?: string },
+  env: { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string },
   now = Date.now()
 ): Promise<Identity | null> {
   const raw = readCookie(request, SESSION_COOKIE)

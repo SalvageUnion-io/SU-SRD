@@ -5,10 +5,11 @@ import type { SessionAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { AuthDeps } from '../auth/index'
 import { discordAvatar, handleAuth, identityOf } from '../auth/index'
-import type { AuthSql, D1Like } from '../auth/store'
+import type { AuthSql } from '../auth/store'
 import { d1Sql } from '../auth/store'
 import type { Env } from '../index'
 import worker from '../index'
+import { testDb } from '../shared/__tests__/d1'
 
 /**
  * Sign-in on the Worker (`src/worker/auth/`): the test seam's gate, sessions
@@ -192,21 +193,9 @@ describe('the session', () => {
   })
 })
 
-/** `bun:sqlite` in D1's shape, for `identityOf`, which takes the binding. */
-function d1(db: Database): D1Like {
-  return {
-    prepare: (query) => ({
-      bind: (...values) => ({
-        first: async <Row>() => (db.query(query).get(...values) as Row | null) ?? null,
-        run: async () => db.query(query).run(...values),
-      }),
-    }),
-  }
-}
-
 describe('identityOf', () => {
   it("names the cookie's account, and an admin by ADMIN_DISCORD_IDS", async () => {
-    const SHARED = d1(new Database(':memory:'))
+    const SHARED = testDb()
     const d = deps({ sql: d1Sql(SHARED) })
     const start = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}`), d)
     const state = new URL(start.headers.get('location') ?? '').searchParams.get('state')
@@ -231,7 +220,7 @@ describe('identityOf', () => {
   })
 
   it('gives a test account a stable stand-in Discord id, never an admin', async () => {
-    const SHARED = d1(new Database(':memory:'))
+    const SHARED = testDb()
     const d = deps({ sql: d1Sql(SHARED) })
     const cookie = await signedUp(d)
     const request = new Request(`${ORIGIN}/x`, { headers: { cookie } })
@@ -437,7 +426,7 @@ describe('what goes wrong', () => {
 describe('the Worker', () => {
   it('serves sign-in under /auth/ from its bindings and secrets', async () => {
     const env = {
-      SHARED: d1(new Database(':memory:')),
+      SHARED: testDb(),
       DISCORD_CLIENT_ID: 'client',
       DISCORD_CLIENT_SECRET: 'secret',
       TEST_AUTH: 'true',

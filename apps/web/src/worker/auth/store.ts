@@ -14,9 +14,9 @@
  * migration step.
  */
 
+import type { SqlValue } from '../../rooms/sql'
+import type { SharedDb } from '../shared/db'
 import { sha256Hex } from './crypto'
-
-type SqlValue = string | number | null
 
 /** The slice of D1 the store uses, so tests and the dev server run it on `bun:sqlite`. */
 export type AuthSql = {
@@ -24,14 +24,7 @@ export type AuthSql = {
   first<Row>(query: string, ...bindings: SqlValue[]): Promise<Row | null>
 }
 
-/** A D1 binding, structurally: only what `d1Sql` calls. */
-export type D1Like = {
-  prepare(query: string): {
-    bind(...values: SqlValue[]): { first<Row>(): Promise<Row | null>; run(): Promise<unknown> }
-  }
-}
-
-export function d1Sql(db: D1Like): AuthSql {
+export function d1Sql(db: SharedDb): AuthSql {
   return {
     async run(query, ...bindings) {
       await db

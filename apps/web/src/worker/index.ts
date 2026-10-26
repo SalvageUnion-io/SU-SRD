@@ -78,7 +78,6 @@ import { isAccountPath, serveAccount } from './accountRoutes'
 import type { AppEnv } from './app'
 import { isAppPath, serveApp } from './app'
 import { handleAuth } from './auth/index'
-import type { D1Like } from './auth/store'
 import { d1Sql } from './auth/store'
 import type { CronEnv } from './crons'
 import { runCron } from './crons'
@@ -105,7 +104,7 @@ export type Env = AppEnv &
     /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
     ERROR_REPORT_LIMIT?: RateLimiter
     /** The shared D1 database; sign-in keeps accounts and sessions there (`./auth/store.ts`). */
-    SHARED: D1Like
+    SHARED: SharedDb
     /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
     DISCORD_CLIENT_ID?: string
     DISCORD_CLIENT_SECRET?: string
