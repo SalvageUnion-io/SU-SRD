@@ -3,9 +3,7 @@ import { SHEET_NOT_FOUND } from 'game-domain/botDenials'
 import type { SheetVitals } from 'game-domain/botWire'
 import type { BotRooms } from '../botSheets'
 import { mine, sheet } from '../botSheets'
-import { testDb } from '../shared/__tests__/d1'
-import { putGame, putMembership } from '../shared/games'
-import { putPublicSheet } from '../shared/publicSheets'
+import { publish, publishGame, testDb } from '../shared/__tests__/d1'
 
 /**
  * `/su sheet` from the rooms: the caller's Shelf, their Games' units, and a
@@ -54,12 +52,10 @@ async function table() {
     name text, display_name text, avatar_url text)`)
   db.sqlite.exec(`insert into accounts values ('acct-rosa', 'd-rosa', 'rosa', 'Rosa', null),
     ('acct-ines', 'd-ines', 'ines', 'Ines', null)`)
-  await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
-  await putMembership(db, {
-    gameId: 'g-1',
-    discordId: 'd-rosa',
-    mediator: true,
-    organizer: true,
+  await publishGame(db, 'g-1', {
+    name: 'Reclamation',
+    mediatedBy: 'Rosa',
+    members: [{ discordId: 'd-rosa', mediator: true, organizer: true }],
   })
   return db
 }
@@ -115,12 +111,16 @@ describe('sheet', () => {
 
   it('serves a published sheet to anyone, from its public page', async () => {
     const db = await table()
-    await putPublicSheet(db, {
-      kind: 'pilot',
-      appId: 'p-tam',
-      ownerId: 'd-tam',
-      page: { kind: 'pilot', appId: 'p-tam', body: TAM_PILOT.body },
-      preview: { kind: 'pilot', title: 'Tam', description: '' } as never,
+    await publish(db, 'account:d-tam', {
+      sheets: [
+        {
+          kind: 'pilot',
+          appId: 'p-tam',
+          ownerId: 'd-tam',
+          page: { kind: 'pilot', appId: 'p-tam', body: TAM_PILOT.body },
+          preview: { kind: 'pilot', title: 'Tam', description: '' } as never,
+        },
+      ],
     })
     expect(
       await sheet(db, rooms, { discordId: 'd-nobody', table: 'pilots', entityId: 'p-tam' })

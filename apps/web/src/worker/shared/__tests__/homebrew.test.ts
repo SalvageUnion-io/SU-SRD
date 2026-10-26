@@ -1,17 +1,14 @@
 import { describe, expect, it } from 'bun:test'
 import {
   dismissHomebrewReports,
-  dropHomebrew,
-  dropReportsBy,
   homebrewModeration,
   homebrewPatterns,
   homebrewStanding,
-  putHomebrew,
   REPORT_REASON_MAX,
   reportHomebrew,
   setHomebrewHidden,
 } from '../homebrew'
-import { testDb } from './d1'
+import { publish, testDb } from './d1'
 
 /** Homebrew's listing, reports and takedowns in the shared database (ADR-061). */
 
@@ -25,9 +22,13 @@ const TOW_RIG = {
   sharedAt: 1,
 }
 
+/** The maker's account room, listing `homebrew`. */
+const shelf = (db: ReturnType<typeof testDb>, homebrew = [TOW_RIG]) =>
+  publish(db, 'account:maker', { homebrew }, 'maker')
+
 async function listed() {
   const db = testDb()
-  await putHomebrew(db, TOW_RIG)
+  await shelf(db)
   return db
 }
 
@@ -68,11 +69,9 @@ describe('reports', () => {
     expect(await report('r-1', 'rude', 'pat-9')).toBe('not-listed')
   })
 
-  it('a dismissal clears them, and a going account takes its own', async () => {
+  it('a dismissal clears them', async () => {
     const db = await listed()
     await reportHomebrew(db, { appId: 'pat-1', reporterId: 'r-1', reason: 'rude' })
-    await reportHomebrew(db, { appId: 'pat-1', reporterId: 'r-2', reason: 'rude' })
-    await dropReportsBy(db, 'r-1')
     expect((await homebrewModeration(db)).reported[0]?.reportCount).toBe(1)
     await dismissHomebrewReports(db, 'pat-1')
     expect((await homebrewModeration(db)).reported).toEqual([])
@@ -99,8 +98,8 @@ describe('a takedown', () => {
   it('outlives unsharing and sharing again, until an admin puts it back', async () => {
     const db = await listed()
     await setHomebrewHidden(db, 'pat-1', true)
-    await dropHomebrew(db, 'pat-1')
-    await putHomebrew(db, TOW_RIG)
+    await shelf(db, [])
+    await shelf(db)
     expect(await homebrewPatterns(db)).toEqual([])
     await setHomebrewHidden(db, 'pat-1', false)
     expect((await homebrewPatterns(db)).map((r) => r.appId)).toEqual(['pat-1'])

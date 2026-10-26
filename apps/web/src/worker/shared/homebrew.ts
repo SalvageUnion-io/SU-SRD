@@ -27,45 +27,6 @@ const REASONS_SHOWN = 10
 /** The most patterns either moderation list carries. */
 const MODERATION_LIMIT = 100
 
-/** One listed pattern, as its account room writes it: its body already parsed. */
-export type HomebrewListing = {
-  appId: string
-  ownerId: string
-  chassisRef: string | null
-  /** What it calls itself, for the admin's queue. */
-  name: string
-  body: unknown
-  madeBy: string
-  sharedAt: number | null
-}
-
-/** List a pattern on the Reference, or update its row. */
-export async function putHomebrew(db: SharedDb, row: HomebrewListing) {
-  await db
-    .prepare(
-      `insert into homebrew_patterns (app_id, owner_id, chassis_ref, name, body, made_by, shared_at)
-       values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-       on conflict (app_id) do update set
-         owner_id = excluded.owner_id, chassis_ref = excluded.chassis_ref, name = excluded.name,
-         body = excluded.body, made_by = excluded.made_by, shared_at = excluded.shared_at`
-    )
-    .bind(
-      row.appId,
-      row.ownerId,
-      row.chassisRef,
-      row.name,
-      JSON.stringify(row.body),
-      row.madeBy,
-      row.sharedAt
-    )
-    .run()
-}
-
-/** Take a pattern off the Reference: its maker withdrew a share. Its moderation stays. */
-export async function dropHomebrew(db: SharedDb, appId: string) {
-  await db.prepare('delete from homebrew_patterns where app_id = ?1').bind(appId).run()
-}
-
 type ListedColumns = { app_id: string; body: string; made_by: string; shared_at: number | null }
 
 /** Every listed pattern not hidden, newest share first, or one chassis's. */
@@ -181,11 +142,6 @@ export async function setHomebrewHidden(
 /** Clear a pattern's reports and leave it shown. A site admin's act. */
 export async function dismissHomebrewReports(db: SharedDb, appId: string) {
   await db.prepare('delete from homebrew_reports where app_id = ?1').bind(appId).run()
-}
-
-/** Every report one account made: the account is going. */
-export async function dropReportsBy(db: SharedDb, reporterId: string) {
-  await db.prepare('delete from homebrew_reports where reporter_id = ?1').bind(reporterId).run()
 }
 
 /** One pattern as a site admin reviews it. */

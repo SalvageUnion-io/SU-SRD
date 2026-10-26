@@ -5,11 +5,9 @@ import { renderShell } from '../../shell/shell'
 import { serveHomebrew } from '../homebrew'
 import type { Env } from '../index'
 import worker from '../index'
-import { testDb } from '../shared/__tests__/d1'
+import { publish, publishGame, testDb } from '../shared/__tests__/d1'
 import type { SharedDb } from '../shared/db'
-import { putGame, putInvite } from '../shared/games'
-import { putHomebrew, setHomebrewHidden } from '../shared/homebrew'
-import { dropPublicSheet, putPublicSheet } from '../shared/publicSheets'
+import { setHomebrewHidden } from '../shared/homebrew'
 
 /**
  * The Worker's public reads, end to end on the shared database: link previews
@@ -35,16 +33,15 @@ const TOW_RIG = {
 
 async function seeded() {
   const db = testDb()
-  await putPublicSheet(db, {
-    kind: 'pilot',
-    appId: 'p-1',
-    ownerId: 'u-1',
-    page: {},
-    preview: PILOT as never,
+  await publish(db, 'account:u-1', {
+    sheets: [{ kind: 'pilot', appId: 'p-1', ownerId: 'u-1', page: {}, preview: PILOT as never }],
   })
-  await putGame(db, { gameId: 'g-1', name: 'Reclamation of the Wastes', mediatedBy: 'Jrvs' })
-  await putInvite(db, 'g-1', 'K7QR2XA')
-  await putHomebrew(db, TOW_RIG)
+  await publishGame(db, 'g-1', {
+    name: 'Reclamation of the Wastes',
+    mediatedBy: 'Jrvs',
+    invite: 'K7QR2XA',
+  })
+  await publish(db, 'account:maker', { homebrew: [TOW_RIG] }, 'maker')
   return db
 }
 
@@ -72,7 +69,7 @@ describe('link previews', () => {
     expect(
       title(await (await worker.fetch(discordbot('/play/invite/K7QR2XA'), env(db))).text())
     ).toBe('Reclamation of the Wastes')
-    await dropPublicSheet(db, 'pilot', 'p-1')
+    await publish(db, 'account:u-1', {})
     expect(title(await (await worker.fetch(discordbot('/p/pilot/p-1'), env(db))).text())).toBe(
       'Private'
     )

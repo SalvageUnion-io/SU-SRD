@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
 import { answerBot as answer } from '../botGateway'
-import { testDb } from '../shared/__tests__/d1'
-import { putGame, putMembership } from '../shared/games'
+import { publishGame, testDb } from '../shared/__tests__/d1'
 
 /**
  * The bot's gateway answers from the shared database and the rooms, and null
@@ -16,12 +15,10 @@ async function filled() {
   db.sqlite.exec(`create table accounts (account_id text primary key, discord_id text unique,
     name text, display_name text, avatar_url text)`)
   db.sqlite.exec(`insert into accounts values ('acct-rosa', 'd-rosa', 'rosa', 'Rosa', null)`)
-  await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
-  await putMembership(db, {
-    gameId: 'g-1',
-    discordId: 'd-rosa',
-    mediator: true,
-    organizer: true,
+  await publishGame(db, 'g-1', {
+    name: 'Reclamation',
+    mediatedBy: 'Rosa',
+    members: [{ discordId: 'd-rosa', mediator: true, organizer: true }],
   })
   return db
 }

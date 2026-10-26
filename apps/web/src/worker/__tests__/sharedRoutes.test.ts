@@ -4,8 +4,7 @@ import { PHOTOS_PATH, sharedPaths } from '../../lib/sharing/paths'
 import type { Identity } from '../auth/index'
 import type { PhotoBucket } from '../photos'
 import { MAX_PHOTO_BYTES, servePhotos } from '../photos'
-import { testDb } from '../shared/__tests__/d1'
-import { putGame, putInvite, putMembership } from '../shared/games'
+import { publishGame, testDb } from '../shared/__tests__/d1'
 import { RoomPublisher } from '../shared/roomRows'
 import { serveShared } from '../sharedRoutes'
 
@@ -37,6 +36,12 @@ const listing = {
   sharedAt: 1,
 }
 
+const LONG_HAUL = {
+  name: 'The Long Haul',
+  mediatedBy: null,
+  members: ['d-1', 'd-2'].map((discordId) => ({ discordId, mediator: false, organizer: false })),
+}
+
 async function world() {
   const db = testDb()
   const maker = new RoomPublisher(db, 'account:d-1', 'd-1', () => ({
@@ -62,9 +67,7 @@ async function world() {
     ],
   }))
   await maker.republish()
-  await putGame(db, { gameId: 'g1', name: 'The Long Haul', mediatedBy: null })
-  for (const discordId of ['d-1', 'd-2'])
-    await putMembership(db, { gameId: 'g1', discordId, mediator: false, organizer: false })
+  await publishGame(db, 'g1', LONG_HAUL)
   return db
 }
 
@@ -218,7 +221,7 @@ describe('serveShared', () => {
 
   it("serves an invite's preview, null for a code no Game holds", async () => {
     const db = await world()
-    await putInvite(db, 'g1', 'K7QR2XA')
+    await publishGame(db, 'g1', { ...LONG_HAUL, invite: 'K7QR2XA' })
     expect((await ask(db, sharedPaths.invite('K7QR2XA'), null)).body.value).toMatchObject({
       gameName: 'The Long Haul',
     })

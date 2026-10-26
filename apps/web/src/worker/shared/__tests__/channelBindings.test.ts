@@ -1,16 +1,23 @@
 import { describe, expect, it } from 'bun:test'
 import { bindChannel, bindingForGame, soloBinding, unbindChannel } from '../channelBindings'
-import { putGame, putMembership } from '../games'
-import { testDb } from './d1'
+import { publishGame, testDb } from './d1'
 
 /** Rosa mediates Reclamation; Tam plays in it; Ines is in no Game. */
 async function table() {
   const db = testDb()
-  await putGame(db, { gameId: 'g-1', name: 'Reclamation', mediatedBy: 'Rosa' })
-  await putGame(db, { gameId: 'g-2', name: 'Deep Salvage', mediatedBy: 'Tam' })
-  await putMembership(db, { gameId: 'g-1', discordId: 'rosa', mediator: true, organizer: false })
-  await putMembership(db, { gameId: 'g-1', discordId: 'tam', mediator: false, organizer: false })
-  await putMembership(db, { gameId: 'g-2', discordId: 'tam', mediator: true, organizer: false })
+  await publishGame(db, 'g-1', {
+    name: 'Reclamation',
+    mediatedBy: 'Rosa',
+    members: [
+      { discordId: 'rosa', mediator: true, organizer: false },
+      { discordId: 'tam', mediator: false, organizer: false },
+    ],
+  })
+  await publishGame(db, 'g-2', {
+    name: 'Deep Salvage',
+    mediatedBy: 'Tam',
+    members: [{ discordId: 'tam', mediator: true, organizer: false }],
+  })
   return db
 }
 

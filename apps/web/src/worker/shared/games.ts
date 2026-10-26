@@ -1,21 +1,12 @@
 /**
  * Games as the other rooms see them: a Game's name and Mediator, who
  * is in it, and its invite code. Each Game room writes its own rows when they
- * change; an account room lists its Games from here, and an invite link is
- * looked up here before any room is woken.
+ * change (`roomRows.ts`); an account room lists its Games from here, and an
+ * invite link is looked up here before any room is woken.
  */
 
 import type { InvitePreviewAnswer } from '../../lib/linkPreview/previewSummary'
 import type { SharedDb } from './db'
-import { flag } from './db'
-
-/** A Game's row: its name and who runs the table. */
-export type GameRow = {
-  gameId: string
-  name: string
-  /** The Mediator's display name; null while the Game has none. */
-  mediatedBy: string | null
-}
 
 /** One member's place in a Game. */
 export type MembershipRow = {
@@ -27,47 +18,6 @@ export type MembershipRow = {
 
 /** A Game the account belongs to, as its lists draw it. */
 export type MemberGame = { gameId: string; name: string; mediator: boolean; organizer: boolean }
-
-/** Write a Game's row, or replace it: on a rename or a new Mediator. */
-export async function putGame(db: SharedDb, game: GameRow, now = Date.now()) {
-  await db
-    .prepare(
-      `insert into games (game_id, name, mediated_by, updated_at) values (?1, ?2, ?3, ?4)
-       on conflict (game_id) do update set
-         name = excluded.name, mediated_by = excluded.mediated_by, updated_at = excluded.updated_at`
-    )
-    .bind(game.gameId, game.name, game.mediatedBy, now)
-    .run()
-}
-
-/** A Game is gone: its row, its members and its invite, all at once. */
-export async function dropGame(db: SharedDb, gameId: string) {
-  await db.batch([
-    db.prepare('delete from invites where game_id = ?1').bind(gameId),
-    db.prepare('delete from memberships where game_id = ?1').bind(gameId),
-    db.prepare('delete from games where game_id = ?1').bind(gameId),
-  ])
-}
-
-/** Write one member's place, or replace it: on joining, or a change of role. */
-export async function putMembership(db: SharedDb, row: MembershipRow) {
-  await db
-    .prepare(
-      `insert into memberships (game_id, discord_id, mediator, organizer) values (?1, ?2, ?3, ?4)
-       on conflict (game_id, discord_id) do update set
-         mediator = excluded.mediator, organizer = excluded.organizer`
-    )
-    .bind(row.gameId, row.discordId, flag(row.mediator), flag(row.organizer))
-    .run()
-}
-
-/** A member left, or was removed. */
-export async function dropMembership(db: SharedDb, gameId: string, discordId: string) {
-  await db
-    .prepare('delete from memberships where game_id = ?1 and discord_id = ?2')
-    .bind(gameId, discordId)
-    .run()
-}
 
 type MemberGameColumns = { game_id: string; name: string; mediator: number; organizer: number }
 
@@ -102,16 +52,6 @@ export async function membershipOf(
   return row === null
     ? null
     : { gameId, discordId, mediator: row.mediator === 1, organizer: row.organizer === 1 }
-}
-
-/** A Game's invite code, new or reset: the old code stops working at once. */
-export async function putInvite(db: SharedDb, gameId: string, code: string, now = Date.now()) {
-  await db.batch([
-    db.prepare('delete from invites where game_id = ?1').bind(gameId),
-    db
-      .prepare('insert into invites (code, game_id, created_at) values (?1, ?2, ?3)')
-      .bind(code, gameId, now),
-  ])
 }
 
 /** The Game an invite code joins, or null for a code that is no Game's now. */

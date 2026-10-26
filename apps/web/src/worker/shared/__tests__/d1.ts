@@ -1,7 +1,9 @@
 import { Database } from 'bun:sqlite'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import type { Published, PublishedRoster } from '../../../rooms/publish'
 import type { SharedDb, SharedStatement } from '../db'
+import { RoomPublisher } from '../roomRows'
 
 /**
  * The shared database for a test: `bun:sqlite` in memory, every migration in
@@ -48,4 +50,30 @@ export function testDb(): SharedDb & { sqlite: Database } {
       return results
     },
   }
+}
+
+/** `rows` written as room `room` writes them; a Shelf's Homebrew needs its `maker`. */
+export function publish(
+  db: SharedDb,
+  room: string,
+  rows: Partial<Published>,
+  maker: string | null = null
+) {
+  return new RoomPublisher(db, room, maker, () => ({
+    sheets: [],
+    homebrew: [],
+    ...rows,
+  })).republish()
+}
+
+/** A Game's row, members and invite, as its room writes them. */
+export function publishGame(
+  db: SharedDb,
+  gameId: string,
+  game: Pick<NonNullable<PublishedRoster['game']>, 'name' | 'mediatedBy'> &
+    Partial<NonNullable<PublishedRoster['game']>>
+) {
+  return publish(db, `game:${gameId}`, {
+    roster: { gameId, game: { members: [], invite: null, ...game } },
+  })
 }

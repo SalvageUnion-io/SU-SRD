@@ -12,8 +12,7 @@ import type { GameActAnswer } from '../../rooms/game/acts'
 import { ACCOUNT_SOCKET_ACTS, socketAct } from '../../rooms/game/socketActs'
 import { migrate } from '../../rooms/migrate'
 import { ACCOUNT_ROOM } from '../../rooms/schemas'
-import { testDb } from '../shared/__tests__/d1'
-import { putGame, putMembership } from '../shared/games'
+import { publishGame, testDb } from '../shared/__tests__/d1'
 import { isShelfAct, runShelfAct } from '../shelfActs'
 
 function room() {
@@ -116,8 +115,11 @@ describe('the Shelf acts', () => {
   test('a Game share names a Game the player is in, or is refused', async () => {
     const logic = room()
     const db = testDb()
-    await putGame(db, { gameId: 'g1', name: 'The Long Haul', mediatedBy: 'Rosa' })
-    await putMembership(db, { gameId: 'g1', discordId: PLAYER, mediator: false, organizer: false })
+    await publishGame(db, 'g1', {
+      name: 'The Long Haul',
+      mediatedBy: 'Rosa',
+      members: [{ discordId: PLAYER, mediator: false, organizer: false }],
+    })
     await run(logic, 'shelf.upsertMechPattern', { body: pattern })
 
     expect(

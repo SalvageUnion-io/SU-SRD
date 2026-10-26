@@ -17,49 +17,8 @@ import type { PreviewAnswer, PreviewKind } from '../../lib/linkPreview/previewSu
 import type { SharedDb } from './db'
 import { parseJson } from './db'
 
-/** One shared thing, as its room writes it. */
-export type PublicSheetRow = {
-  kind: PreviewKind
-  appId: string
-  /** The account that owns or made it; null for a Game's unowned crawler. */
-  ownerId: string | null
-  /** What its `/p/` page serves a stranger: `publicSheet.get`'s or `.pattern`'s answer. */
-  page: unknown
-  /** What its link preview says. */
-  preview: PreviewAnswer
-}
-
 /** Rows a short address's prefix can match before the lookup stops looking. */
 const PREFIX_MATCH_CAP = 8
-
-/** Write a shared thing's row, or replace it: the room calls this on every change. */
-export async function putPublicSheet(db: SharedDb, row: PublicSheetRow, now = Date.now()) {
-  await db
-    .prepare(
-      `insert into public_sheets (kind, app_id, owner_id, page, preview, created_at, updated_at)
-       values (?1, ?2, ?3, ?4, ?5, ?6, ?6)
-       on conflict (kind, app_id) do update set
-         owner_id = excluded.owner_id, page = excluded.page,
-         preview = excluded.preview, updated_at = excluded.updated_at`
-    )
-    .bind(
-      row.kind,
-      row.appId,
-      row.ownerId,
-      JSON.stringify(row.page),
-      JSON.stringify(row.preview),
-      now
-    )
-    .run()
-}
-
-/** Unshare: the row goes, so every link to it reads as missing at once. */
-export async function dropPublicSheet(db: SharedDb, kind: PreviewKind, appId: string) {
-  await db
-    .prepare('delete from public_sheets where kind = ?1 and app_id = ?2')
-    .bind(kind, appId)
-    .run()
-}
 
 type Columns = { page: string; preview: string }
 

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test'
-import { putGame, putMembership } from '../games'
 import {
   bumpUsage,
   dropAccountTotals,
@@ -9,7 +8,7 @@ import {
   touchGuild,
   weekStartOf,
 } from '../signals'
-import { testDb } from './d1'
+import { publishGame, testDb } from './d1'
 
 /** Usage metrics in the shared database (ADR-057): counts, never who. */
 
@@ -71,11 +70,19 @@ describe('the daily snapshot', () => {
       patterns: 9,
     })
     await dropAccountTotals(db, 'u-3')
-    await putGame(db, { gameId: 'g-1', name: 'Together', mediatedBy: null })
-    await putGame(db, { gameId: 'g-2', name: 'Alone', mediatedBy: null })
-    await putMembership(db, { gameId: 'g-1', discordId: 'u-1', mediator: true, organizer: true })
-    await putMembership(db, { gameId: 'g-1', discordId: 'u-2', mediator: false, organizer: false })
-    await putMembership(db, { gameId: 'g-2', discordId: 'u-1', mediator: true, organizer: true })
+    await publishGame(db, 'g-1', {
+      name: 'Together',
+      mediatedBy: null,
+      members: [
+        { discordId: 'u-1', mediator: true, organizer: true },
+        { discordId: 'u-2', mediator: false, organizer: false },
+      ],
+    })
+    await publishGame(db, 'g-2', {
+      name: 'Alone',
+      mediatedBy: null,
+      members: [{ discordId: 'u-1', mediator: true, organizer: true }],
+    })
     await touchGuild(db, 'guild-old', now - 30 * DAY)
     await touchGuild(db, 'guild-new', now - DAY)
 
