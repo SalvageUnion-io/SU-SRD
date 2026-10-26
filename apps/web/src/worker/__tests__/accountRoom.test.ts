@@ -32,6 +32,13 @@ function shelf() {
       setAlarm: async (at: number) => {
         state.alarm = at
       },
+      deleteAlarm: async () => {
+        state.alarm = null
+      },
+      deleteAll: async () => {
+        const tables = db.query("select name from sqlite_master where type = 'table'").all()
+        for (const { name } of tables as { name: string }[]) db.run(`drop table "${name}"`)
+      },
     },
     blockConcurrencyWhile: async (fn: () => Promise<void>) => fn(),
     getWebSockets: () => [],
@@ -116,5 +123,14 @@ describe('the account room’s other doors', () => {
     const stranger = { headers: { get: (name: string) => headers.get(name) ?? null } }
     expect((await room.fetch(stranger as never)).status).toBe(403)
     expect(room.refuseLease('L-unknown', Date.now())).toBe('refused')
+  })
+
+  test('forget wipes the Shelf for its own player only', async () => {
+    const { room } = shelf()
+    await room.forget('d-stranger')
+    expect(room.unitsFor(PLAYER)).toHaveLength(1)
+    await room.forget(PLAYER)
+    expect(room.unitsFor(PLAYER)).toEqual([])
+    expect(room.exportFor(PLAYER)).toBeNull()
   })
 })

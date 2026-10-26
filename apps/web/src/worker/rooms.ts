@@ -53,6 +53,7 @@ import type { RoomSql } from '../rooms/sql'
 import { loadCrewReference, unitVitals } from '../rooms/vitals'
 import { LEASE_SETTLE_MS, settleStaleOffers } from './leaseAlarm'
 import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
+import { storageSql } from './roomStorage'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
 import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
@@ -71,13 +72,6 @@ export const SEAT_HEADER = 'x-su-seat'
 /** workerd's `DurableObjectState` and `Env`, however the program types `cloudflare:workers`. */
 type RoomState = ConstructorParameters<typeof DurableObject>[0]
 type RoomEnv = ConstructorParameters<typeof DurableObject>[1]
-
-function storageSql(storage: RoomState['storage']): RoomSql {
-  return {
-    exec: (query, ...bindings) => storage.sql.exec(query, ...bindings).toArray() as never,
-    transaction: (fn) => storage.transactionSync(fn),
-  }
-}
 
 abstract class Room extends DurableObject<RoomEnv> {
   protected readonly sql: RoomSql
@@ -311,6 +305,12 @@ export class AccountRoom extends Room implements UnitHome {
   /** What the player owns on their Shelf, for their export; anyone else, null. */
   exportFor(actor: string): ShelfExport | null {
     return this.logic.shelf.exportFor(actor)
+  }
+
+  /** The player deleted their account: the room is wiped and left unclaimed. */
+  async forget(actor: string): Promise<void> {
+    if (this.logic.shelf.owner() === actor) await this.wipe()
+    this.published()
   }
 
   private broadcastSnapshots(): void {
