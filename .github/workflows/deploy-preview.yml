@@ -150,7 +150,7 @@ jobs:
             echo "$PREVIEW_NAME has every base config secret."
             exit 0
           fi
-          echo "::notice::$PREVIEW_NAME lacks $(echo $missing): recreating it."
+          echo "::notice::$PREVIEW_NAME lacks ${missing//$'\n'/ }: recreating it."
           bunx wrangler preview delete --name "$PREVIEW_NAME" -y
 
       # A Preview, never a version or a deployment of the production Worker.
