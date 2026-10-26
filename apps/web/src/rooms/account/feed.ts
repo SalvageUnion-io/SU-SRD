@@ -1,4 +1,5 @@
 import { roomLinks, roomUnit } from '../game/feed'
+import { fromJson } from '../game/store'
 import type { ServerMessage } from '../protocol'
 import type { AccountRoomLogic } from './accountRoomLogic'
 import { SHELF_RECORDS } from './shelf'
@@ -22,7 +23,7 @@ export function shelfSnapshot(room: AccountRoomLogic, actor: string): ServerMess
         .rows('select app_id, body, updated_at from records where tbl = ? order by app_id', table)
         .map((row) => ({
           appId: String(row.app_id),
-          body: JSON.parse(String(row.body)) as Record<string, unknown>,
+          body: fromJson<Record<string, unknown>>(row.body),
           updatedAt: Number(row.updated_at),
         })),
     ])

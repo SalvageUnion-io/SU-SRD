@@ -2,7 +2,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import type { LinkShape } from 'game-domain/links/linkRules'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'game-domain/links/linkRules'
 import type { StoredOp, UnitRow } from '../game/store'
-import { GameStore } from '../game/store'
+import { fromJson, GameStore } from '../game/store'
 import type { SubmitResult } from '../game/units'
 import { GameUnits, parseUnitBody } from '../game/units'
 import type { ApplyOp, OpInput } from '../ops'
@@ -249,6 +249,6 @@ export class AccountShelf {
     if (this.owner() !== actor) return []
     return this.store
       .rows('select app_id, body from records where tbl = ? order by app_id', table)
-      .map((row) => ({ appId: String(row.app_id), body: JSON.parse(String(row.body)) }))
+      .map((row) => ({ appId: String(row.app_id), body: fromJson(row.body) }))
   }
 }

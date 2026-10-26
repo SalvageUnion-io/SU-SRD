@@ -1,10 +1,10 @@
 import type { MechDerived, PilotDerived, SheetVitals } from 'game-domain/botWire'
-import type { CrewSeat, CrewUnit } from 'game-domain/rules/crewVitals'
+import type { CrewUnit } from 'game-domain/rules/crewVitals'
 import { crewDeriver } from 'game-domain/rules/crewVitals'
-import type { SeatMount } from 'game-domain/schemas/seat'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { GameStore, UnitRow } from './game/store'
 import { unitName } from './game/units'
+import { seatOf } from './seats'
 
 /** The reference data the crew's derivation reads; a room loads it before its first answer. */
 export function loadCrewReference(): Promise<void> {
@@ -17,7 +17,7 @@ function deriverOf(store: GameStore) {
     pilots: store.units('pilot').map(crewUnit),
     crawlers: store.units('crawler').map(crewUnit),
     links: store.links(),
-    seats: store.rows('select pilot_id, mount, active_effects, ejected from seats').map(seatOf),
+    seats: store.rows('select * from seats').map(seatOf),
   })
 }
 
@@ -106,13 +106,4 @@ function num(value: unknown): number | null {
 
 function crewUnit(unit: UnitRow): CrewUnit {
   return { id: unit.id, body: unit.body }
-}
-
-function seatOf(row: Record<string, unknown>): CrewSeat {
-  return {
-    pilotId: String(row.pilot_id),
-    mount: JSON.parse(String(row.mount)) as SeatMount,
-    activeEffects: JSON.parse(String(row.active_effects)) as string[],
-    ejected: row.ejected === 1,
-  }
 }

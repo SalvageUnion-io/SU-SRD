@@ -150,7 +150,8 @@ function remount(seat: SeatRead, mount: SeatMount): Partial<SeatRead> {
   return same ? { mount } : { mount, resolving: null }
 }
 
-function seatOf(row: Record<string, unknown>): SeatRead {
+/** A `seats` row, read. */
+export function seatOf(row: Record<string, unknown>): SeatRead {
   return {
     pilotId: String(row.pilot_id),
     mount: fromJson<SeatMount>(row.mount as string),

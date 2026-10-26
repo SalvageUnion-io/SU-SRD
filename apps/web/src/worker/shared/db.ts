@@ -34,7 +34,7 @@ export function parseJson<T>(text: unknown): T | null {
 }
 
 /** SQLite has no boolean: 0 and 1. */
-export const flag = (value: boolean): number => (value ? 1 : 0)
+export { bit as flag } from '../../rooms/game/store'
 
 /**
  * Whether the cutover's copy has filled the shared database. Until it has,

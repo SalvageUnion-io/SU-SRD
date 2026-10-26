@@ -1,3 +1,4 @@
+import { bit } from '../../rooms/game/store'
 import type {
   Published,
   PublishedCrewPattern,
@@ -6,7 +7,6 @@ import type {
   PublishedSheet,
 } from '../../rooms/publish'
 import type { SharedDb, SharedStatement } from './db'
-import { flag } from './db'
 
 /** The shared database a Worker's or room's `env` binds as `SHARED`, if it does. */
 export function sharedDb(env: unknown): SharedDb | undefined {
@@ -193,9 +193,7 @@ function rosterStatements(db: SharedDb, roster: PublishedRoster, now: number): S
       )
       .bind(gameId, game.name, game.mediatedBy, now),
     ...clear,
-    ...game.members.map((m) =>
-      member.bind(gameId, m.discordId, flag(m.mediator), flag(m.organizer))
-    ),
+    ...game.members.map((m) => member.bind(gameId, m.discordId, bit(m.mediator), bit(m.organizer))),
     ...(game.invite === null
       ? []
       : [

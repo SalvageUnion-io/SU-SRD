@@ -2,7 +2,7 @@ import type { UnitParcel } from '../handoff'
 import { parcelUnit } from '../leases'
 import { RoomRefusal } from '../refusal'
 import type { GameStore, Member } from './store'
-import { bit } from './store'
+import { bit, fromJson } from './store'
 import type { GameUnits } from './units'
 import { unitName } from './units'
 
@@ -266,7 +266,7 @@ export class GameRoster {
       })
       const npcs = this.store
         .rows('select body from tray order by added_at, id')
-        .map((row) => JSON.parse(String(row.body)) as Record<string, unknown>)
+        .map((row) => fromJson<Record<string, unknown>>(row.body))
       return { deliveries, tray: { to: actor, npcs } }
     })
   }

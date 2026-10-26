@@ -2,11 +2,12 @@ import type { LinkShape } from 'game-domain/links/linkRules'
 import type { AccountBundle } from 'game-domain/migration/bundle'
 import { AccountBundleSchema } from 'game-domain/migration/bundle'
 import type { UnitRow } from '../game/store'
-import { bit, fromJson } from '../game/store'
+import { bit } from '../game/store'
 import { importedOp, stable } from '../game/transit'
 import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
 import { Leases, MOVED_OFF } from '../leases'
 import { RoomRefusal } from '../refusal'
+import { seatOf } from '../seats'
 import type { AccountShelf } from './shelf'
 import { SHELF_RECORDS } from './shelf'
 import type { AccountSoloArea } from './soloArea'
@@ -83,12 +84,8 @@ export class AccountTransit {
   private seatOf(pilotId: string): ParcelSeat | null {
     const row = this.store.rows('select * from seats where pilot_id = ?', pilotId)[0]
     if (row === undefined) return null
-    return {
-      mount: fromJson(row.mount),
-      range: String(row.range_band),
-      activeEffects: fromJson(row.active_effects),
-      ejected: row.ejected === 1,
-    }
+    const { mount, range, activeEffects, ejected } = seatOf(row)
+    return { mount, range, activeEffects, ejected }
   }
 
   // -------------------------------------------------------------- inbound
