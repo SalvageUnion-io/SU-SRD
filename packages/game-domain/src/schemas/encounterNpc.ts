@@ -91,6 +91,16 @@ export const EncounterNpcSchema = z
       .strict()
       .optional(),
 
+    /**
+     * The encounter group it fights in (ADR-059 §5), copied with its name when
+     * the encounter was run, so the tray keeps it after the encounter ends.
+     * Absent, it fights alone.
+     */
+    group: z
+      .object({ id: z.string().min(1), name: z.string().trim().min(1).max(40) })
+      .strict()
+      .optional(),
+
     /** Instance label (defaults to the reference name; e.g. 'Raider 2'). */
     name: z.string(),
 

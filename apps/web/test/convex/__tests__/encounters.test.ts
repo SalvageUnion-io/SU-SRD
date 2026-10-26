@@ -168,6 +168,109 @@ describe('running an encounter in a Game', () => {
     expect(tray.every((row) => !('groupId' in (row.body as object)))).toBe(true)
   })
 
+  test('with waves, the first wave joins grouped and the rest wait to be brought in', async () => {
+    const t = testConvex()
+    const { mediator, player, gameId } = await seedMediatedGame(t)
+    const [band, raider] = ambush().opposition
+    await mediator.as.mutation(api.shelf.upsertEncounter, {
+      body: {
+        ...ambush(),
+        opposition: [
+          { ...band, groupId: 'band' },
+          { ...raider, groupId: 'snipers' },
+          { ...raider, id: 'o3', groupId: 'snipers' },
+        ],
+        groups: [
+          { id: 'band', name: 'Raider Band', wave: 1 },
+          { id: 'snipers', name: 'Gantry snipers', wave: 2 },
+        ],
+      },
+    })
+    const { added } = await mediator.as.mutation(api.mediator.runEncounter, {
+      gameId,
+      encounterId: 'enc-1',
+      clear: false,
+      waves: true,
+    })
+    expect(added).toBe(1)
+    const first = await mediator.as.query(api.mediator.npcs, { gameId })
+    expect(first.map((row) => row.body)).toMatchObject([
+      { name: 'Raider Band', group: { id: 'band', name: 'Raider Band' } },
+    ])
+    expect(await mediator.as.query(api.mediator.running, { gameId })).toMatchObject({
+      groups: [{ id: 'band' }, { id: 'snipers', wave: 2 }],
+      held: [{ id: 'o2' }, { id: 'o3' }],
+    })
+
+    await expect(player.as.mutation(api.mediator.bringInWave, { gameId, wave: 2 })).rejects.toThrow(
+      /mediator/i
+    )
+    expect(await mediator.as.mutation(api.mediator.bringInWave, { gameId, wave: 2 })).toEqual({
+      added: 2,
+    })
+    const tray = await mediator.as.query(api.mediator.npcs, { gameId })
+    expect(tray.map((row) => (row.body as { name: string }).name).sort()).toEqual([
+      'Raider',
+      'Raider 2',
+      'Raider Band',
+    ])
+    const running = await mediator.as.query(api.mediator.running, { gameId })
+    expect(running).not.toHaveProperty('held')
+    await expect(
+      mediator.as.mutation(api.mediator.bringInWave, { gameId, wave: 2 })
+    ).rejects.toThrow(/already in/i)
+  })
+
+  test('a group roll is kept on each of its members still standing', async () => {
+    const t = testConvex()
+    const { mediator, player, gameId } = await seedMediatedGame(t)
+    await mediator.as.mutation(api.shelf.upsertEncounter, {
+      body: {
+        ...ambush(),
+        opposition: ambush().opposition.map((o) => ({ ...o, groupId: 'band' })),
+        groups: [{ id: 'band', name: 'Raider Band', wave: 1 }],
+      },
+    })
+    await mediator.as.mutation(api.mediator.runEncounter, {
+      gameId,
+      encounterId: 'enc-1',
+      clear: false,
+      waves: true,
+    })
+    await mediator.as.mutation(api.mediator.addNpc, { gameId, body: { name: 'Loner' } })
+    const tray = await mediator.as.query(api.mediator.npcs, { gameId })
+    const downed = tray.find((row) => (row.body as { name: string }).name === 'Raider')
+    if (downed === undefined) throw new Error('no Raider')
+    await mediator.as.mutation(api.mediator.updateNpc, {
+      npcId: downed._id,
+      patch: { currentHp: 0 },
+    })
+
+    const roll = {
+      table: 'reaction',
+      roll: 4,
+      label: 'Hostile',
+      value: 'They threaten.',
+      rolledAt: STAMP,
+    }
+    await expect(
+      player.as.mutation(api.mediator.recordGroupRoll, { gameId, groupId: 'band', roll })
+    ).rejects.toThrow(/mediator/i)
+    await mediator.as.mutation(api.mediator.recordGroupRoll, { gameId, groupId: 'band', roll })
+    const after = await mediator.as.query(api.mediator.npcs, { gameId })
+    const rolled = after
+      .filter((row) => (row.body as { lastMediatorRoll?: unknown }).lastMediatorRoll)
+      .map((row) => (row.body as { name: string }).name)
+    expect(rolled).toEqual(['Raider Band'])
+    await expect(
+      mediator.as.mutation(api.mediator.recordGroupRoll, {
+        gameId,
+        groupId: 'band',
+        roll: { ...roll, roll: 40 },
+      })
+    ).rejects.toThrow()
+  })
+
   test('clear empties the tray first, and a second run replaces the running one', async () => {
     const t = testConvex()
     const { mediator, gameId } = await seedMediatedGame(t)
